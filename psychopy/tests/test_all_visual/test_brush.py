@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import division
-
 import pytest
 from psychopy.visual.window import Window
 from psychopy.visual.brush import Brush
 from psychopy.visual.shape import ShapeStim
 
 
-class Test_Brush(object):
+class Test_Brush():
     """Test suite for Brush component"""
     def setup_class(self):
         self.win = Window([128,128],

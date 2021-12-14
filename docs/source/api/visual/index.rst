@@ -65,6 +65,7 @@ Multiple stimuli:
 Other stimuli:
 
 * :class:`.MovieStim` to show movies
+* :class:`.VlcMovieStim` to show movies using VLC
 * :class:`.Slider` a new improved class to collect ratings
 * :class:`.RatingScale` to collect ratings
 * :class:`.CustomMouse` to change the cursor in windows with GUI. OBS: will be deprecated soon

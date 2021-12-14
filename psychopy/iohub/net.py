@@ -2,8 +2,6 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import division, absolute_import
-
 import struct
 from weakref import proxy
 
@@ -21,9 +19,12 @@ from .devices import Computer
 from .errors import print2err, printExceptionDetailsToStdErr
 from .util import NumPyRingBuffer as RingBuffer
 
-MAX_PACKET_SIZE = 64 * 1024
+if Computer.platform == 'win32':
+    MAX_PACKET_SIZE = 64 * 1024
+else:
+    MAX_PACKET_SIZE = 16 * 1024
 
-class SocketConnection(object): # pylint: disable=too-many-instance-attributes
+class SocketConnection(): # pylint: disable=too-many-instance-attributes
     def __init__(
             self,
             local_host=None,
@@ -72,8 +73,19 @@ class SocketConnection(object): # pylint: disable=too-many-instance-attributes
     def sendTo(self, data, address=None):
         if address is None:
             address = self._remote_host, self._remote_port
+        max_pkt_sz = 8192
         packed_data = self.pack(data)
-        self.sock.sendto(packed_data, address)
+        payload_size = len(packed_data)
+        if payload_size > max_pkt_sz:
+            # Send multi packet request to server
+            pkt_cnt = int(payload_size // max_pkt_sz) + 1
+            mpr_payload = ('IOHUB_MULTIPACKET_REQUEST', pkt_cnt)
+            self.sock.sendto(self.pack(mpr_payload), address)
+            for p in range(pkt_cnt):
+                si = p * max_pkt_sz
+                self.sock.sendto(packed_data[si:si + max_pkt_sz], address)
+        else:
+            self.sock.sendto(packed_data, address)
         return len(packed_data)
 
     def receive(self):
@@ -259,7 +271,7 @@ class ioHubTimeGreenSyncManager(Greenlet):
         self._close()
 
 
-class ioHubTimeSyncManager(object):
+class ioHubTimeSyncManager():
 
     def __init__(self, remote_address, sync_state_target):
         self.initial_sync_interval = 0.2
@@ -296,7 +308,7 @@ class ioHubTimeSyncManager(object):
         self.close()
 
 
-class TimeSyncState(object):
+class TimeSyncState():
     """Container class used by an ioHubSyncManager to hold the data necessary
     to calculate the current time base offset and drift between an ioHub Server
     and a ioHubRemoteEventSubscriber client."""

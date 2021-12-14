@@ -10,17 +10,11 @@ See http://www.photoresearch.com/
 
 --------
 """
-from __future__ import absolute_import, print_function
 
-from builtins import str
-from builtins import range
-from builtins import object
 from psychopy import logging
-import struct
 import sys
 import time
 import numpy
-from psychopy.constants import PY3
 
 try:
     import serial
@@ -28,7 +22,7 @@ except ImportError:
     serial = False
 
 
-class PR650(object):
+class PR650:
     """An interface to the PR650 via the serial port.
 
     (Added in version 1.63.02)
@@ -159,12 +153,9 @@ class PR650(object):
         if message in ('d5\n', 'D5\n'):
             # we need a spectrum which will have multiple lines
             reply = self.com.readlines()
-            if PY3:
-                reply = [thisLine.decode('utf-8') for thisLine in reply]
+            reply = [thisLine.decode('utf-8') for thisLine in reply]
         else:
-            reply = self.com.readline()
-            if PY3:
-                reply = reply.decode('utf-8')
+            reply = self.com.readline().decode('utf-8')
         return reply
 
     def measure(self, timeOut=30.0):

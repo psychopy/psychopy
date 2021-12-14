@@ -5,11 +5,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-from past.builtins import xrange, unicode
-from builtins import map
-from builtins import range
-
 import time
 import os
 import locale
@@ -18,7 +13,6 @@ import wx
 from wx import grid
 from wx.lib import intctrl
 
-from psychopy import constants
 from psychopy.localization import _translate
 from psychopy import monitors, hardware, logging
 from psychopy.app import dialogs
@@ -65,8 +59,6 @@ def unicodeToFloat(val):
     if val == 'None':
         val = None
     else:
-        if not constants.PY3 and type(val) == unicode:
-            val = val.encode('utf-8')
         try:
             val = locale.atof(val)
         except ValueError:
@@ -1064,7 +1056,7 @@ class MainFrame(wx.Frame):
 
             lumsPost = self.currentMon.getLumsPost()
             levelsPost = self.currentMon.getLevelsPost()
-        if lumsPost != None:
+        if lumsPost is not None:
             for gun in range(4):  # includes lum,r,g,b
                 lums = lumsPost[gun, :]
                 gamma = gammaGrid[gun, 2]

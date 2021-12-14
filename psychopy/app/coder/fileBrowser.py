@@ -7,8 +7,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-
 import wx
 from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
 
@@ -47,7 +45,7 @@ def convertBytes(nbytes):
         return '{:.1f} B'.format(nbytes)
 
 
-class FolderItemData(object):
+class FolderItemData:
     """Class representing a folder item in the file browser."""
     __slots__ = ['name', 'abspath', 'basename']
     def __init__(self, name, abspath, basename):
@@ -56,7 +54,7 @@ class FolderItemData(object):
         self.basename = basename
 
 
-class FileItemData(object):
+class FileItemData:
     """Class representing a file item in the file browser."""
     __slots__ = ['name', 'abspath', 'basename', 'fsize', 'mod']
     def __init__(self, name, abspath, basename, fsize, mod):

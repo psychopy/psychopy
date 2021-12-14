@@ -5,7 +5,6 @@ import os
 import pytest
 import numpy as np
 from psychopy.data import utils
-from psychopy.constants import PY3
 from os.path import join
 
 thisDir, _ = os.path.split(os.path.abspath(__file__))
@@ -47,13 +46,8 @@ class Test_utilsClass:
             utils.importConditions(fileName='raiseErrorfileName')
         assert 'Conditions file not found: %s' % os.path.abspath('raiseErrorfileName') in str(errMsg.value)
 
-        if PY3:
-            conds = utils.importConditions(fileName_pkl)
-            assert conds[0] == expected_cond
-        else:
-            with pytest.raises((IOError)) as errMsg:
-                utils.importConditions(fileName_pkl)
-            assert ('Could not open %s as conditions' % fileName_pkl) == str(errMsg.value)
+        conds = utils.importConditions(fileName_pkl)
+        assert conds[0] == expected_cond
 
         # trialTypes.pkl saved in list of list format (see trialTypes.docx)
         # test assertion for invalid file type

@@ -2,9 +2,6 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import division, absolute_import
-
-from past.builtins import xrange
 
 import os
 import sys
@@ -16,13 +13,14 @@ import gevent
 from gevent.server import DatagramServer
 from gevent import Greenlet
 
+import numpy
+
 try:
     import msgpack_numpy
     msgpack_numpy.patch()
 except ImportError:
     pass
 
-from past.builtins import basestring, unicode
 from . import IOHUB_DIRECTORY, EXP_SCRIPT_DIRECTORY, _DATA_STORE_AVAILABLE
 from .errors import print2err, printExceptionDetailsToStdErr, ioHubError
 from .net import MAX_PACKET_SIZE
@@ -33,8 +31,6 @@ from .devices import DeviceEvent, import_device
 from .devices import Computer
 from .devices.deviceConfigValidation import validateDeviceConfiguration
 getTime = Computer.getTime
-
-MAX_PACKET_SIZE = 64 * 1024
 
 # pylint: disable=protected-access
 # pylint: disable=broad-except
@@ -64,17 +60,34 @@ class udpServer(DatagramServer):
         self.unpacker = msgpack.Unpacker(use_list=True)
         self.unpack = self.unpacker.unpack
         self.feed = self.unpacker.feed
+        self.multipacket_reads = 0
         DatagramServer.__init__(self, address)
 
     def handle(self, request, replyTo):
         if self._running is False:
             return False
+
         self.feed(request)
+
+        if self.multipacket_reads > 0:
+            # Multi packet request handling...
+            self.multipacket_reads -= 1
+            if self.multipacket_reads > 0:
+                # If reading part of multi packet request, just return and wait for next part of request
+                return False
+
         request = self.unpack()
-        # print2err(">> Rx Packet: {}, {}".format(request, replyTo))
+
+        if request[0] == 'IOHUB_MULTIPACKET_REQUEST':
+            # setup multi packet request read
+            self.multipacket_reads = request[1]
+            return False
+        else:
+            self.multipacket_reads = 0
+
         request_type = request.pop(0)
-        if not isinstance(request_type, unicode):
-            request_type = unicode(request_type, 'utf-8') # convert bytes to string for compatibility
+        if not isinstance(request_type, str):
+            request_type = str(request_type, 'utf-8') # convert bytes to string for compatibility
 
         if request_type == 'SYNC_REQ':
             self.sendResponse(['SYNC_REPLY', getTime()], replyTo)
@@ -223,8 +236,8 @@ class udpServer(DatagramServer):
 
     def handleExperimentDeviceRequest(self, request, replyTo):
         request_type = request.pop(0)
-        if not isinstance(request_type, unicode):
-            request_type = unicode(request_type, 'utf-8') # convert bytes to string for compatibility
+        if not isinstance(request_type, str):
+            request_type = str(request_type, 'utf-8') # convert bytes to string for compatibility
         io_dev_dict = ioServer.deviceDict
         if request_type == 'EVENT_TX':
             exp_events = request.pop(0)
@@ -235,11 +248,11 @@ class udpServer(DatagramServer):
             return True
         elif request_type == 'DEV_RPC':
             dclass = request.pop(0)
-            if not isinstance(dclass, unicode):
-                dclass = unicode(dclass, 'utf-8')
+            if not isinstance(dclass, str):
+                dclass = str(dclass, 'utf-8')
             dmethod = request.pop(0)
-            if not isinstance(dmethod, unicode):
-                dmethod = unicode(dmethod, 'utf-8')
+            if not isinstance(dmethod, str):
+                dmethod = str(dmethod, 'utf-8')
             args = None
             kwargs = None
             if len(request) == 1:
@@ -308,8 +321,8 @@ class udpServer(DatagramServer):
 
         elif request_type == 'GET_DEV_INTERFACE':
             dclass = request.pop(0)
-            if not isinstance(dclass, unicode):
-                dclass = unicode(dclass, 'utf-8')
+            if not isinstance(dclass, str):
+                dclass = str(dclass, 'utf-8')
             data = None
             if dclass in ['EyeTracker', 'DAQ']:
                 for dname, hdevice in ioServer.deviceDict.items():
@@ -361,9 +374,12 @@ class udpServer(DatagramServer):
                 pkt_cnt = int(reply_data_sz // max_pkt_sz) + 1
                 mpr_payload = ('IOHUB_MULTIPACKET_RESPONSE', pkt_cnt)
                 self.sendResponse(mpr_payload, address)
-                for p in xrange(pkt_cnt - 1):
+                gevent.sleep(0.0001)
+                for p in range(pkt_cnt - 1):
                     si = p*max_pkt_sz
                     self.socket.sendto(reply_data[si:si+max_pkt_sz], address)
+                    # macOS hangs if we do not sleep gevent between each msg packet
+                    gevent.sleep(0.0001)
                 si = (p+1)*max_pkt_sz
                 self.socket.sendto(reply_data[si:reply_data_sz], address)
             else:
@@ -402,14 +418,40 @@ class udpServer(DatagramServer):
     def registerWindowHandles(self, *win_hwhds):
         if self.iohub:
             for wh in win_hwhds:
-                if wh not in self.iohub._pyglet_window_hnds:
-                    self.iohub._pyglet_window_hnds.append(wh)
+                if wh['handle'] not in self.iohub._psychopy_windows.keys():
+                    self.iohub._psychopy_windows[wh['handle']] = wh
+                    wh['size'] = numpy.asarray(wh['size'])
+                    wh['pos'] = numpy.asarray(wh['pos'])
+                    if wh['monitor']:
+                        from psychopy import monitors
+                        monitor = wh['monitor']
+                        monitor['monitor'] = monitors.Monitor('{}'.format(wh['handle']))
+                        monitor['monitor'].setDistance(monitor['distance'])
+                        monitor['monitor'].setWidth(monitor['width'])
+                        monitor['monitor'].setSizePix(monitor['resolution'])
+                    self.iohub.log('Registered Win: {}'.format(wh))
 
     def unregisterWindowHandles(self, *win_hwhds):
         if self.iohub:
             for wh in win_hwhds:
-                if wh in self.iohub._pyglet_window_hnds:
-                    self.iohub._pyglet_window_hnds.remove(wh)
+                if wh in self.iohub._psychopy_windows.keys():
+                    del self.iohub._psychopy_windows[wh]
+                    self.iohub.log('Removed Win: {}'.format(wh))
+
+    def updateWindowPos(self, win_hwhd, pos):
+        """
+        Update stored psychopy window position.
+        :param win_hwhd:
+        :param pos:
+        :return:
+        """
+        winfo = self.iohub._psychopy_windows.get(win_hwhd)
+        if winfo:
+            winfo['pos'] = pos
+            self.iohub.log('Update Win: {}'.format(winfo))
+        else:
+            print2err('warning: win_hwhd {} not registered with iohub server.'.format(win_hwhd))
+            self.iohub.log('updateWindowPos warning: win_hwhd {} not registered with iohub server.'.format(win_hwhd))
 
     def createExperimentSessionEntry(self, sessionInfoDict):
         sessionInfoDict = convertByteStrings(sessionInfoDict)
@@ -427,7 +469,7 @@ class udpServer(DatagramServer):
         if dsfile:
             output = []
             for a in numpy_dtype:
-                if isinstance(a[1], basestring):
+                if isinstance(a[1], str):
                     output.append(tuple(a))
                 else:
                     temp = [a[0], []]
@@ -523,11 +565,11 @@ class DeviceMonitor(Greenlet):
         self.device = None
 
 
-class ioServer(object):
+class ioServer():
     eventBuffer = None
     deviceDict = {}
     _logMessageBuffer = deque(maxlen=128)
-    _pyglet_window_hnds = []
+    _psychopy_windows = {}
     status = 'OFFLINE'
     def __init__(self, rootScriptPathDir, config=None):
         self._session_id = None

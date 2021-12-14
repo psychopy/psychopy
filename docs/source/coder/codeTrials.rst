@@ -3,6 +3,8 @@
 Handling Trials and Conditions
 -------------------------------
 
+.. _trialHandler:
+
 TrialHandler
 ============
 
@@ -18,6 +20,8 @@ For handling trial sequences in a *non-counterbalanced design* (i.e. *oddball pa
 Its functions are a superset of the class TrialHandler, and as such, can also be used for normal trial handling.
 
 see :class:`~psychopy.data.TrialHandlerExt` for more details.
+
+.. _stairHandler:
 
 StairHandler
 ============

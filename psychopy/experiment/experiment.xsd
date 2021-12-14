@@ -108,8 +108,17 @@
       <xsd:element name="NoiseStimComponent" type="Component"/>
       <xsd:element name="EnvGratingComponent" type="Component"/>
       <xsd:element name="VariableComponent" type="Component"/>
+      <xsd:element name="EyetrackerRecordComponent" type="Component"/>
+      <xsd:element name="RegionOfInterestComponent" type="Component"/>
     </xsd:choice>
   </xsd:group>
+
+  <xsd:complexType name="StandaloneRoutine">
+    <xsd:sequence>
+      <xsd:element name="Param" type="Param" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+    <xsd:attribute name="name" type="Name" use="required"/>
+  </xsd:complexType>
 
   <xsd:complexType name="Routine">
     <xsd:sequence>
@@ -118,9 +127,17 @@
     <xsd:attribute name="name" type="Name" use="required"/>
   </xsd:complexType>
 
+  <xsd:group name="RoutineGroup">
+    <xsd:choice>
+      <xsd:element name="Routine" type="Routine" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="EyetrackerCalibrationRoutine" type="StandaloneRoutine" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="EyetrackerValidationRoutine" type="StandaloneRoutine" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:choice>
+  </xsd:group>
+
   <xsd:complexType name="Routines">
     <xsd:sequence>
-      <xsd:element name="Routine" type="Routine" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:group ref="RoutineGroup" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
   </xsd:complexType>
 
@@ -139,6 +156,10 @@
       important:
       Attribute "name" is not checked for existence in Routines.
     -->
+    <xsd:attribute name="name" type="Name" use="required"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="FlowStandaloneRoutine">
     <xsd:attribute name="name" type="Name" use="required"/>
   </xsd:complexType>
 
@@ -163,14 +184,14 @@
       -->
       <xsd:element name="LoopInitiator" type="LoopInitiator"/>
       <xsd:element name="LoopTerminator" type="LoopTerminator"/>
+      <xsd:element name="EyetrackerCalibrationRoutine" type="FlowStandaloneRoutine" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="EyetrackerValidationRoutine" type="FlowStandaloneRoutine" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:choice>
   </xsd:group>
 
   <xsd:complexType name="Flow">
     <xsd:sequence>
-      <xsd:choice>
-        <xsd:group ref="FlowGroup" minOccurs="0" maxOccurs="unbounded"/>
-      </xsd:choice>
+      <xsd:group ref="FlowGroup" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
   </xsd:complexType>
 

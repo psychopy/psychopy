@@ -5,8 +5,6 @@
 Demo of gabor dots, using autodraw.
 """
 
-from __future__ import division
-
 from psychopy import visual, core, event
 
 # Create a window to draw in

@@ -31,7 +31,7 @@ except (ImportError, ModuleNotFoundError):
     _hasPTB = False
 
 
-class RecordingBuffer(object):
+class RecordingBuffer:
     """Class for a storing a recording from a stream.
 
     Think of instances of this class behaving like an audio tape whereas the
@@ -307,7 +307,7 @@ class RecordingBuffer(object):
             sampleRateHz=self._sampleRateHz)
 
 
-class Microphone(object):
+class Microphone:
     """Class for recording audio from a microphone or input stream.
 
     Creating an instance of this class will open a stream using the specified
@@ -893,6 +893,10 @@ class Microphone(object):
     def bank(self, tag=None, transcribe=False, **kwargs):
         """Store current buffer as a clip within the microphone object.
 
+        This method is used internally by the Microphone component in Builder,
+        don't use it for other applications. Either `stop()` or `pause()` must
+        be called before calling this method.
+
         Parameters
         ----------
         tag : str or None
@@ -911,13 +915,17 @@ class Microphone(object):
         if tag not in self.scripts:
             self.scripts[tag] = []
         # append current recording to clip list according to tag
-        self.lastClip = self._recording.getSegment()
+        self.lastClip = self.getRecording()
         self.clips[tag].append(self.lastClip)
+        # synonymise null values
+        if transcribe in ('undefined', 'NONE', 'None', 'none', 'False', 'false', 'FALSE'):
+            transcribe = False
         # append current clip's transcription according to tag
         if transcribe:
-            if transcribe:
+            if transcribe in ('Built-in', True, 'BUILT_IN', 'BUILT-IN',
+                              'Built-In', 'built-in'):
                 engine = "sphinx"
-            else:
+            elif type(transcribe) == str:
                 engine = transcribe
             self.lastScript = self.lastClip.transcribe(
                 engine=engine, **kwargs)

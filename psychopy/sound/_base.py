@@ -5,9 +5,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
-
-from past.builtins import basestring
 import numpy
 import copy
 from os import path
@@ -59,7 +56,7 @@ def apodize(soundArray, sampleRate):
     return soundArray
 
 
-class HammingWindow(object):
+class HammingWindow():
     def __init__(self, winSecs, soundSecs, sampleRate):
         """
 
@@ -121,7 +118,7 @@ class HammingWindow(object):
         return block
 
 
-class _SoundBase(object):
+class _SoundBase():
     """Base class for sound object, from one of many ways.
     """
     # Must be provided by class SoundPygame or SoundPyo:
@@ -181,7 +178,7 @@ class _SoundBase(object):
                 msg = 'Sound: bad requested frequency %.0f'
                 raise ValueError(msg % value)
             self._setSndFromFreq(value, secs, hamming=hamming)
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             if value.capitalize() in knownNoteNames:
                 self._setSndFromNote(value.capitalize(), secs, octave,
                                      hamming=hamming)

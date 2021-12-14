@@ -5,9 +5,6 @@
 Demo for clocks and count-down timers
 """
 
-from __future__ import division
-from __future__ import print_function
-
 from psychopy import core
 core.wait(0.5)  # give the system time to settle
 

@@ -5,6 +5,7 @@
 ;!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\AppMainExe.exe"
 
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
+!define FORMER_PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}3"
 !define PRODUCT_UNINST_ROOT_KEY "SHELL_CONTEXT"
 var PRODUCT_REGISTRY_ROOT
 
@@ -108,9 +109,15 @@ Function .onInit
 
   continue_init:
 
-  ;if previous version installed then remove
+  ;if previous version (PsychoPy) installed then remove
   ReadRegStr $R0 SHELL_CONTEXT \
-  "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" \
+  PRODUCT_UNINST_KEY \
+  "UninstallString"
+  StrCmp $R0 "" done
+
+  ;if previous version (PsychoPy3) installed then remove
+  ReadRegStr $R0 SHELL_CONTEXT \
+  FORMER_PRODUCT_UNINST_KEY \
   "UninstallString"
   StrCmp $R0 "" done
 

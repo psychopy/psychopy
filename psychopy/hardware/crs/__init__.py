@@ -14,10 +14,6 @@
 """Cambridge Research Systems makes devices to support particularly
 vision research.
 """
-
-from __future__ import absolute_import, print_function
-
-from psychopy import logging
 from .bits import BitsSharp, BitsPlusPlus, DisplayPlusPlus, DisplayPlusPlusTouch
 from .colorcal import ColorCAL
 # Monkey-patch our metadata into CRS class.

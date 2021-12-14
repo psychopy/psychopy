@@ -7,13 +7,6 @@
 
 """Conditions-file preview and mini-editor for the Builder
 """
-
-from __future__ import absolute_import, division, print_function
-
-# from future import standard_library
-# standard_library.install_aliases()
-from builtins import str
-from builtins import range
 import os
 import sys
 import pickle
@@ -25,8 +18,6 @@ from psychopy import gui
 from psychopy.experiment.utils import valid_var_re
 from psychopy.data.utils import _nonalphanumeric_re
 from psychopy.localization import _translate
-
-from psychopy.constants import PY3
 
 darkblue = wx.Colour(30, 30, 150, 255)
 darkgrey = wx.Colour(65, 65, 65, 255)
@@ -642,12 +633,9 @@ class DlgConditions(wx.Dialog):
         if os.path.isfile(fileName) and fileName.endswith('.pkl'):
             f = open(fileName, 'rb')
             # Converting newline characters.
-            if PY3:
-                # 'b' is necessary in Python3 because byte object is 
-                # returned when file is opened in binary mode.
-                buffer = f.read().replace(b'\r\n',b'\n').replace(b'\r',b'\n')
-            else:
-                buffer = f.read().replace('\r\n','\n').replace('\r','\n')
+            # 'b' is necessary in Python3 because byte object is
+            # returned when file is opened in binary mode.
+            buffer = f.read().replace(b'\r\n',b'\n').replace(b'\r',b'\n')
             contents = pickle.loads(buffer)
             f.close()
             if self.parent:

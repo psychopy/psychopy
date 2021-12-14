@@ -35,7 +35,7 @@ from psychopy.iohub.client.eyetracker.validation import PositionGrid, Trigger, K
 getTime = Computer.getTime
 
 
-class TargetStim(object):
+class TargetStim:
     def __init__(self, win, radius=None, fillcolor=None, edgecolor=None, edgewidth=None,
                  dotcolor=None, dotradius=None, units=None, colorspace=None, opacity=1.0, contrast=1.0):
         """
@@ -159,8 +159,7 @@ def create17PointGrid():
     return [(0.0, 0.0), ] + sixteen_pos
 
 
-
-class ValidationProcedure(object):
+class ValidationProcedure:
     def __init__(self,
                  win=None,  # psychopy window
                  target=None,  # target stim
@@ -174,6 +173,7 @@ class ValidationProcedure(object):
                  unit_type=None,  # None == use window unit type (may need to enforce this for Validation)
                  progress_on_key=" ",  # str or None
                  gaze_cursor=None,  # None, color, or a stim object with setPos()
+                 text_color=None,
                  show_results_screen=True,  # bool
                  save_results_screen=False,  # bool
                  # args not used by Builder at this time
@@ -276,6 +276,18 @@ class ValidationProcedure(object):
         self.save_results_screen = save_results_screen
         self._validation_results = None
 
+        self.text_color = text_color
+        self.text_color_space = color_space
+
+        if text_color is None or text_color == 'auto':
+            # If no calibration text color provided, base it on the window background color
+            from psychopy.iohub.util import complement
+            sbcolor = win.color
+            from psychopy.colors import Color
+            tcolor_obj = Color(sbcolor, win.colorSpace)
+            self.text_color = complement(*tcolor_obj.rgb255)
+            self.text_color_space = 'rgb255'
+
         storeeventsfor = [self.io.devices.keyboard,
                           self.io.devices.tracker,
                           self.io.devices.experiment]
@@ -330,15 +342,15 @@ class ValidationProcedure(object):
 
         if self.show_results_screen:
             self.showResultsScreen()
-            kb_presses = keyboard.waitForPresses(keys=[' ', self.terminate_key, self.targetsequence.gaze_cursor_key])
-            while ' ' not in kb_presses:
+            kb_presses = keyboard.waitForPresses(keys=['space', self.terminate_key, self.targetsequence.gaze_cursor_key])
+            while 'space' not in kb_presses:
                 if self.targetsequence.gaze_cursor_key in kb_presses:
                     self.targetsequence.display_gaze = not self.targetsequence.display_gaze
                     self.showResultsScreen()
                 if self.terminate_key in kb_presses:
                     print("Escape key pressed. Exiting validation")
                     break
-                kb_presses = keyboard.waitForPresses(keys=[' ',
+                kb_presses = keyboard.waitForPresses(keys=['space',
                                                            self.terminate_key,
                                                            self.targetsequence.gaze_cursor_key])
 
@@ -359,8 +371,8 @@ class ValidationProcedure(object):
             self.intro_text_stim.setText(text)
             self.intro_text_stim.setPos(textpos)
         else:
-            self.intro_text_stim = visual.TextStim(self.win, text=text, pos=textpos, height=30, color=(0, 0, 0),
-                                                   colorSpace='rgb255', opacity=1.0, contrast=1.0, units='pix',
+            self.intro_text_stim = visual.TextStim(self.win, text=text, pos=textpos, height=30, color=self.text_color,
+                                                   colorSpace=self.text_color_space, opacity=1.0, contrast=1.0, units='pix',
                                                    ori=0.0, antialias=True, bold=False, italic=False,
                                                    anchorHoriz='center', anchorVert='center',
                                                    wrapWidth=self.win.size[0] * .8)
@@ -460,7 +472,8 @@ class ValidationProcedure(object):
                                                                      *toPix(self.win, postdat['targ_pos_x'],
                                                                             postdat['targ_pos_y']))
 
-                if self.targetsequence.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
+                binoc_sample_types = [EventConstants.BINOCULAR_EYE_SAMPLE, EventConstants.GAZEPOINT_SAMPLE]
+                if self.targetsequence.sample_type in binoc_sample_types:
                     postdat['left_eye_x'], postdat['left_eye_y'] = toDeg(self.win,
                                                                          *toPix(self.win, postdat['left_eye_x'],
                                                                                 postdat['left_eye_y']))
@@ -548,7 +561,8 @@ class ValidationProcedure(object):
                 target_x = good_samples_in_period[:]['targ_pos_x']
                 target_y = good_samples_in_period[:]['targ_pos_y']
 
-                if self.targetsequence.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
+                binoc_sample_types = [EventConstants.BINOCULAR_EYE_SAMPLE, EventConstants.GAZEPOINT_SAMPLE]
+                if self.targetsequence.sample_type in binoc_sample_types:
                     left_x = good_samples_in_period[:]['left_eye_x']
                     left_y = good_samples_in_period[:]['left_eye_y']
                     left_error_x = target_x - left_x
@@ -638,12 +652,12 @@ class ValidationProcedure(object):
                     ' Mean %.4f (%s units)' % (results['min_error'], results['max_error'],
                                                results['mean_error'], results['reporting_unit_type'])
         title_stim = visual.TextStim(self.win, text=title_txt, height=24, pos=(0.0, (self.win.size[1] / 2.0) * .95),
-                                     color=(0, 0, 0), colorSpace='rgb255', units='pix', antialias=True,
+                                     color=self.text_color, colorSpace=self.text_color_space, units='pix', antialias=True,
                                      anchorVert='center', anchorHoriz='center', wrapWidth=self.win.size[0] * .8)
         title_stim.draw()
 
         exit_text = visual.TextStim(self.win, text='Press SPACE to continue.', opacity=1.0, units='pix', height=None,
-                                    pos=(0.0, -(self.win.size[1] / 2.0) * .95), color=(0, 0, 0), colorSpace='rgb255',
+                                    pos=(0.0, -(self.win.size[1] / 2.0) * .95), color=self.text_color, colorSpace=self.text_color_space,
                                     antialias=True, bold=True, anchorVert='center', anchorHoriz='center',
                                     wrapWidth=self.win.size[0] * .8)
         exit_text.draw()
@@ -670,7 +684,8 @@ class ValidationProcedure(object):
                 position_txt_color = "red"
             else:
                 samples = position_results['sample_from_filter_stages']['used_samples']
-                if self.targetsequence.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
+                binoc_sample_types = [EventConstants.BINOCULAR_EYE_SAMPLE, EventConstants.GAZEPOINT_SAMPLE]
+                if self.targetsequence.sample_type in binoc_sample_types:
                     gaze_x = (samples[:]['left_eye_x'] + samples[:]['right_eye_x']) / 2.0
                     gaze_y = (samples[:]['left_eye_y'] + samples[:]['right_eye_y']) / 2.0
                 else:
@@ -703,7 +718,7 @@ class ValidationProcedure(object):
             ci += 1
 
 
-class ValidationTargetRenderer(object):
+class ValidationTargetRenderer:
     TARGET_STATIONARY = 1
     TARGET_MOVING = 2
     TARGET_EXPANDING = 4
@@ -1105,15 +1120,15 @@ class ValidationTargetRenderer(object):
             samples = devlabel_events.get('tracker', [])
             # remove any eyetracker events that are not samples
             samples = [s for s in samples if s.type in (EventConstants.BINOCULAR_EYE_SAMPLE,
-                                                        EventConstants.MONOCULAR_EYE_SAMPLE)]
+                                                        EventConstants.MONOCULAR_EYE_SAMPLE,
+                                                        EventConstants.GAZEPOINT_SAMPLE)]
             self.saved_pos_samples.append(samples)
 
             self.sample_type = self.saved_pos_samples[0][0].type
-            if self.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
-                self.sample_msg_dtype = self.binocular_sample_message_element
-            else:
+            if self.sample_type == EventConstants.MONOCULAR_EYE_SAMPLE:
                 self.sample_msg_dtype = self.monocular_sample_message_element
-
+            else:
+                self.sample_msg_dtype = self.binocular_sample_message_element
             messages = devlabel_events.get('experiment', [])
             msg_lists = []
             for m in messages:
@@ -1157,7 +1172,8 @@ class ValidationTargetRenderer(object):
         # inline func to return sample field array based on sample namedtup
         def getSampleData(s):
             sampledata = [s.time, s.status]
-            if self.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
+            binoc_sample_types = [EventConstants.BINOCULAR_EYE_SAMPLE, EventConstants.GAZEPOINT_SAMPLE]
+            if self.sample_type in binoc_sample_types:
                 sampledata.extend((s.left_gaze_x, s.left_gaze_y, s.left_pupil_measure1,
                                    s.right_gaze_x, s.right_gaze_y, s.right_pupil_measure1))
                 return sampledata

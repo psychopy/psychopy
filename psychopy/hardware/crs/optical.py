@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, division, print_function
-
 # Copyright (c) 2009-2012 Valentin Haenel <valentin.haenel@gmx.de>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,11 +21,6 @@ from __future__ import absolute_import, division, print_function
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from builtins import chr
-from builtins import str
-from builtins import range
-from builtins import object
-from past.utils import old_div
 """ Python interface to the CRS 'OptiCAL' photometer.
 
     Overview
@@ -183,7 +176,7 @@ __docformat__ = "restructuredtext en"
 import serial
 
 
-class OptiCAL(object):
+class OptiCAL:
     """ Object to access the OptiCAL """
 
     _ACK = '\x06'
@@ -287,7 +280,7 @@ class OptiCAL(object):
         return _to_int(self._read_eeprom(2, 5))
 
     def _read_firmware_version(self):
-        return old_div(float(_to_int(self._read_eeprom(6, 7))), 100)
+        return float(_to_int(self._read_eeprom(6, 7))) / 100
 
     def _read_probe_serial_number(self):
         return int(self._read_eeprom(80, 95))
@@ -341,9 +334,9 @@ class OptiCAL(object):
     def read_luminance(self):
         """ the luminance in cd/m**2 """
         ADC_adjust = self._read_adc()
-        numerator = (old_div(float(ADC_adjust), 524288)) * self._V_ref * 1.e-6
+        numerator = (float(ADC_adjust) / 524288) * self._V_ref * 1.e-6
         denominator = self._R_feed * self._K_cal * 1.e-15
-        return max(0.0, old_div(numerator, denominator))
+        return max(0.0, numerator / denominator)
 
 
 def _to_int(byte_string):

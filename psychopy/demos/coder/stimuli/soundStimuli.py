@@ -12,9 +12,6 @@ but this is yet to be confirmed.
 See the demo hardware > testSoundLatency.py
 """
 
-from __future__ import division
-from __future__ import print_function
-
 import sys
 from psychopy import logging, prefs
 logging.console.setLevel(logging.DEBUG)  # get messages about the sound lib as it loads

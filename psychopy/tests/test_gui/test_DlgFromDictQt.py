@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from builtins import object
 from collections import OrderedDict
 from psychopy.gui.qtgui import DlgFromDict
 import pytest
 
 
 @pytest.mark.needs_qt
-class TestDlgFromDictQt(object):
+class TestDlgFromDictQt:
     def setup(self):
         self.d = dict(
             participant='000',

@@ -6,7 +6,7 @@ from psychopy.tests.utils import compareTextFiles, TESTS_DATA_PATH
 from psychopy.scripts import psyexpCompile
 
 
-class TestComponentCompilerJS(object):
+class TestComponentCompilerJS():
     """A class for testing the JS code compiler for all components"""
     def setup(self):
         self.temp_dir = mkdtemp()

@@ -1,21 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, print_function
-
-from builtins import str
-from builtins import object
 import os
 from pathlib import Path
 from xml.etree.ElementTree import Element
 import re
 import wx.__version__
-import psychopy
 from psychopy import logging
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
-from psychopy.tools.versionchooser import versionOptions, availableVersions, _versionFilter, latestVersion
-from psychopy.constants import PY3
+import psychopy.tools.versionchooser as versions
 from psychopy.monitors import Monitor
 from psychopy.iohub import util as ioUtil
 from psychopy.alerts import alert
@@ -94,7 +88,7 @@ ioDeviceMap = dict(ioUtil.getDeviceNames())
 #         pass
 
 
-class SettingsComponent(object):
+class SettingsComponent:
     """This component stores general info about how to run the experiment
     """
     targets = ['PsychoPy']
@@ -176,9 +170,9 @@ class SettingsComponent(object):
         self.params['Use version'] = Param(
             useVersion, valType='str', inputType="choice",
             # search for options locally only by default, otherwise sluggish
-            allowedVals=_versionFilter(versionOptions(), wx.__version__)
+            allowedVals=versions._versionFilter(versions.versionOptions(), wx.__version__)
                         + ['']
-                        + _versionFilter(availableVersions(), wx.__version__),
+                        + versions._versionFilter(versions.availableVersions(), wx.__version__),
             hint=_translate("The version of PsychoPy to use when running "
                             "the experiment."),
             label=_localized["Use version"], categ='Basic')
@@ -610,8 +604,7 @@ class SettingsComponent(object):
             u'Kastman E, Lindeløv JK. (2019) \n'
             '        PsychoPy2: Experiments in behavior made easy Behav Res 51: 195. \n'
             '        https://doi.org/10.3758/s13428-018-01193-y\n'
-            '\n"""\n'
-            "\nfrom __future__ import absolute_import, division\n")
+            '\n"""\n')
 
         self.writeUseVersion(buff)
 
@@ -751,7 +744,9 @@ class SettingsComponent(object):
         if useVer == '':
             useVer = version
         elif useVer == 'latest':
-            useVer = latestVersion()
+            useVer = versions.latestVersion()
+        else:
+            useVer = versions.fullVersion(useVer)
 
         # do we shorten minor versions ('3.4.2' to '3.4')?
         # only from 3.2 onwards
@@ -763,22 +758,20 @@ class SettingsComponent(object):
             # e.g. 2021.1.0 not 2021.1.0.dev3
             useVer = '.'.join(useVer.split('.')[:3])
 
-        # prepend the hyphen
-        versionStr = '-{}'.format(useVer)
-
         # html header
-        template = readTextFile("JS_htmlHeader.tmpl")
-        header = template.format(
-            name=jsFilename,
-            version=versionStr,
-            params=self.params)
-        jsFile = self.exp.expPath
-        folder = os.path.dirname(jsFile)
-        if not os.path.isdir(folder):
-            os.makedirs(folder)
-        with open(os.path.join(folder, "index.html"), 'wb') as html:
-            html.write(header.encode())
-        html.close()
+        if self.exp.expPath:
+            template = readTextFile("JS_htmlHeader.tmpl")
+            header = template.format(
+                name=jsFilename,
+                version=useVer,
+                params=self.params)
+            jsFile = self.exp.expPath
+            folder = os.path.dirname(jsFile)
+            if not os.path.isdir(folder):
+                os.makedirs(folder)
+            with open(os.path.join(folder, "index.html"), 'wb') as html:
+                html.write(header.encode())
+            html.close()
 
         # Write header comment
         starLen = "*"*(len(jsFilename) + 9)
@@ -790,14 +783,14 @@ class SettingsComponent(object):
         # Write imports if modular
         if modular:
             code = (
-                    "import {{ core, data, sound, util, visual }} from './lib/psychojs-2021.2.0.js';\n"
+                    "import {{ core, data, sound, util, visual }} from './lib/psychojs-{version}.js';\n"
                     "const {{ PsychoJS }} = core;\n"
-                    "const {{ TrialHandler }} = data;\n"
+                    "const {{ TrialHandler, MultiStairHandler }} = data;\n"
                     "const {{ Scheduler }} = util;\n"
                     "//some handy aliases as in the psychopy scripts;\n"
                     "const {{ abs, sin, cos, PI: pi, sqrt }} = Math;\n"
                     "const {{ round }} = util;\n"
-                    "\n").format(version=versionStr)
+                    "\n").format(version=useVer)
             buff.writeIndentedLines(code)
 
         code = ("\n// store info about the experiment session:\n"
@@ -834,18 +827,12 @@ class SettingsComponent(object):
 
     def writeStartCode(self, buff, version):
 
-        if not PY3:
-            decodingInfo = ".decode(sys.getfilesystemencoding())"
-        else:
-            decodingInfo = ""
         code = ("# Ensure that relative paths start from the same directory "
                 "as this script\n"
-                "_thisDir = os.path.dirname(os.path.abspath(__file__))"
-                "{decoding}\n"
-                "os.chdir(_thisDir)\n\n"
+                "_thisDir = os.path.dirname(os.path.abspath(__file__))\n"
+                "os.chdir(_thisDir)\n"
                 "# Store info about the experiment session\n"
-                "psychopyVersion = '{version}'\n".format(decoding=decodingInfo,
-                                                         version=version))
+                "psychopyVersion = '{version}'\n".format(version=version))
         buff.writeIndentedLines(code)
 
         if self.params['expName'].val in [None, '']:
@@ -855,10 +842,7 @@ class SettingsComponent(object):
                     " this script\n")
             buff.writeIndented(code % self.params['expName'])
 
-        if PY3:  # in Py3 dicts are chrono-sorted
-            sorting = "False"
-        else:  # in Py2, with no natural order, at least be alphabetical
-            sorting = "True"
+        sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
         expInfoDict = self.getInfo()
         buff.writeIndented("expInfo = %s\n" % repr(expInfoDict))
         if self.params['Show info dlg'].val:
@@ -995,11 +979,6 @@ class SettingsComponent(object):
                 buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
                 code = (
-                        "}\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(-1, relative=True)
-                code = (
                     "}\n"
                 )
                 buff.writeIndentedLines(code % inits)
@@ -1013,11 +992,6 @@ class SettingsComponent(object):
                 code = (
                             "'ip_address': %(gpAddress)s,\n"
                             "'port': %(gpPort)s\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(-1, relative=True)
-                code = (
-                        "}\n"
                 )
                 buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
@@ -1036,11 +1010,6 @@ class SettingsComponent(object):
                 buff.setIndentLevel(1, relative=True)
                 code = (
                             "'sampling_rate': %(tbSampleRate)s,\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(-1, relative=True)
-                code = (
-                        "}\n"
                 )
                 buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
@@ -1086,11 +1055,6 @@ class SettingsComponent(object):
                 buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
                 code = (
-                        "}\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(-1, relative=True)
-                code = (
                     "}\n"
                 )
                 buff.writeIndentedLines(code % inits)
@@ -1099,6 +1063,13 @@ class SettingsComponent(object):
                     "}\n"
                 )
                 buff.writeIndentedLines(code % inits)
+
+            # Close ioDevice dict
+            buff.setIndentLevel(-1, relative=True)
+            code = (
+                "}\n"
+            )
+            buff.writeIndentedLines(code % inits)
 
             # Close ioConfig dict
             buff.setIndentLevel(-1, relative=True)

@@ -6,7 +6,6 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 """Utilities for extending PsychoPy with plugins."""
 
-from __future__ import absolute_import
 __all__ = ['loadPlugin', 'listPlugins', 'computeChecksum', 'startUpPlugins',
            'pluginMetadata', 'pluginEntryPoints', 'scanPlugins',
            'requirePlugin', 'isPluginLoaded', 'isStartUpPlugin']

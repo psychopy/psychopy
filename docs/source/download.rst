@@ -15,7 +15,7 @@ For the easiest installation download and install the Standalone package.
 
     let filename;
     let url;
-    let version='2021.1.4'
+    let version='2021.2.3';
 
     let clientInfo = UAParser(navigator.userAgent);
     var osLabel;
@@ -25,11 +25,7 @@ For the easiest installation download and install the Standalone package.
     if (navigator.platform == 'Win32' && clientInfo.cpu.architecture == 'amd64') {
       osLabel = clientInfo.os.name+" "+clientInfo.cpu.architecture;
       filename = '  Standalone PsychoPy '+version+' for 64bit Windows (using Python3.6)';
-      url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy3-'+version+'-win64.exe';
-    }
-    else if (navigator.platform == 'Win32') {
-      filename = '  Standalone PsychoPy '+version+' for 32bit Windows (using Python3.6)';
-      url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy3-'+version+'-win32.exe';
+      url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy-'+version+'-win64.exe';
     }
     else if (navigator.platform == 'MacIntel') {
       osLabel = clientInfo.os.name+" "+clientInfo.os.version;
@@ -153,15 +149,14 @@ open your terminal, navigate to the directory you saved the file to, and run::
 
 This will create an environment named ``psychopy``. On Linux, the ``wxPython`` dependency of PsychoPy is linked
 against ``webkitgtk``, which needs to be installed manually, e.g. via ``sudo apt install libwebkitgtk-1.0`` on Debian-based
-systems linke Ubuntu.
+systems like Ubuntu.
 
-To activate the newly-created environment and run PsychoPy, exceute::
+To activate the newly-created environment and run PsychoPy, execute::
 
   conda activate psychopy
   psychopy
 
 .. _developers_install:
-
 
 Developers install
 ~~~~~~~~~~~~~~~~~~~~~~

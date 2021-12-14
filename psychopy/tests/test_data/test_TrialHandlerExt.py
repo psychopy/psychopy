@@ -4,10 +4,6 @@ So far, just copies tests for TrialHandler, no further test of weights etc.
 Maybe not worth doing if TrialHandler2 is going to have weights eventually.
 """
 
-from __future__ import print_function
-from builtins import str
-from builtins import range
-from builtins import object
 import os, glob
 from os.path import join as pjoin
 import shutil
@@ -24,7 +20,7 @@ thisPath = os.path.split(__file__)[0]
 fixturesPath = os.path.join(thisPath, '..', 'data')
 
 
-class TestTrialHandlerExt(object):
+class TestTrialHandlerExt():
     def setup_class(self):
         self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
         self.rootName = 'test_data_file'
@@ -205,7 +201,7 @@ class TestTrialHandlerExt(object):
         assert t1 != t2
 
 
-class TestTrialHandlerOutput(object):
+class TestTrialHandlerOutput():
     def setup_class(self):
         self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
         self.random_seed = 100

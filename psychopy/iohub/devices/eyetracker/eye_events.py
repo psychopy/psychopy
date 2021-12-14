@@ -615,6 +615,147 @@ class BinocularEyeSampleEvent(EyeTrackerEvent):
 
         DeviceEvent.__init__(self, *args, **kwargs)
 
+
+class GazepointSampleEvent(EyeTrackerEvent):
+    """GazePointSampleEvent contains the data collected from a GazePoint sample,
+    which can contain both gazepoint eye and biometric data, depending on the hardware being used.
+
+    Fields related to eye data are a subset of the standard BinocularEyeSampleEvent.
+
+    Event Type ID: EventConstants.GAZEPOINT_SAMPLE
+
+    Event Type String: 'GAZEPOINT_SAMPLE'
+    """
+    _newDataTypes = [
+        ('left_gaze_x', 'f4'),
+        ('left_gaze_y', 'f4'),
+        ('left_raw_x', 'f4'),
+        ('left_raw_y', 'f4'),
+        ('left_pupil_measure1', 'f4'),
+        ('left_pupil_measure1_type', 'u1'),
+        ('left_pupil_measure2', 'f4'),
+        ('left_pupil_measure2_type', 'u1'),
+        ('right_gaze_x', 'f4'),
+        ('right_gaze_y', 'f4'),
+        ('right_raw_x', 'f4'),
+        ('right_raw_y', 'f4'),
+        ('right_pupil_measure1', 'f4'),
+        ('right_pupil_measure1_type', 'u1'),
+        ('right_pupil_measure2', 'f4'),
+        ('right_pupil_measure2_type', 'u1'),
+        ('dial', 'f4'),
+        ('dialv', 'u1'),
+        ('gsr', 'f4'),
+        ('gsrv', 'u1'),
+        ('hr', 'f4'),
+        ('hrv', 'u1'),
+        ('hrp', 'f4'),
+        ('status', 'u1')
+    ]
+
+    EVENT_TYPE_ID = EventConstants.GAZEPOINT_SAMPLE
+    EVENT_TYPE_STRING = 'GAZEPOINT_SAMPLE'
+    IOHUB_DATA_TABLE = EVENT_TYPE_STRING
+
+    __slots__ = [e[0] for e in _newDataTypes]
+
+    def __init__(self, *args, **kwargs):
+
+        #: The calibrated horizontal left eye position on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.left_gaze_x = None
+
+        #: The calibrated vertical left eye position on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.left_gaze_y = None
+
+        #: The non-calibrated x position of the calculated left eye 'center'
+        #: on the camera sensor image,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.left_raw_x = None
+
+        #: The non-calibrated y position of the calculated left eye 'center'
+        #: on the camera sensor image,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.left_raw_y = None
+
+        #: A measure related to left pupil size or diameter. The attribute
+        #: pupil_measure1_type defines what type the measure represents.
+        self.left_pupil_measure1 = None
+
+        #: * EyeTrackerConstants.PUPIL_DIAMETER
+        self.left_pupil_measure1_type = None
+
+        #: A second measure related to left pupil size or diameter. The attribute
+        #: pupil_measure2_type defines what type the measure represents.
+        self.left_pupil_measure2 = None
+
+        #: The type of left pupil size or shape information provided in the pupil_measure2
+        #: attribute. Several possible pupil_measure types available:
+        #:
+        #: * EyeTrackerConstants.PUPIL_DIAMETER_MM
+        self.left_pupil_measure2_type = None
+
+        #: The calibrated horizontal right eye position on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.right_gaze_x = None
+
+        #: The calibrated vertical right eye position on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.right_gaze_y = None
+
+        #: The non-calibrated x position of the calculated right eye 'center'
+        #: on the camera sensor image,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.right_raw_x = None
+
+        #: The non-calibrated y position of the calculated right eye 'center'
+        #: on the camera sensor image,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.right_raw_y = None
+
+        #: A measure related to right pupil size or diameter. The attribute
+        #: pupil_measure1_type defines what type the measure represents.
+        self.right_pupil_measure1 = None
+
+        #: * EyeTrackerConstants.PUPIL_DIAMETER
+        self.right_pupil_measure1_type = None
+
+        #: A second measure related to right pupil size or diameter. The attribute
+        #: pupil_measure2_type defines what type the measure represents.
+        self.right_pupil_measure2 = None
+
+        #: * EyeTrackerConstants.PUPIL_DIAMETER_MM
+        self.right_pupil_measure2_type = None
+
+        #: Dial value from Gazepoint biometrics kit, 0-1
+        self.dial = None
+        self.dialv = None
+        #: GSR resistance value from Gazepoint biometrics kit, ohms
+        self.gsr = None
+        self.gsrv = None
+        #: Heart rate value from Gazepoint biometrics kit, bpm
+        self.hr = None
+        self.hrv = None
+        self.hrp = None
+
+        #: An available status byte for the eye tracker sample.
+        #: Meaning is completely tracker dependent.
+        self.status = None
+
+        DeviceEvent.__init__(self, *args, **kwargs)
 #
 ################### Fixation Event Types ##########################
 #

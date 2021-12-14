@@ -7,10 +7,6 @@ Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
-from __future__ import absolute_import, print_function
-from builtins import super  # provides Py3-style super() using python-future
-
-from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
 from psychopy.sound._base import knownNoteNames
@@ -197,10 +193,10 @@ class SoundComponent(BaseComponent):
         else:
             # sounds with stop values
             self.writeStopTestCodeJS(buff)
-            code = ("if (%(stopVal)s > 0.5) {"
+            code = ("if (%(stopVal)s > 0.5) {\n"
                     "  %(name)s.stop();  // stop the sound (if longer than duration)\n"
-                    "  %(name)s.status = PsychoJS.Status.FINISHED;\n"
-                    "}\n")
+                    "}\n"
+                    "%(name)s.status = PsychoJS.Status.FINISHED;\n")
             buff.writeIndentedLines(code % self.params)
             # because of the 'if' statement of the time test
             buff.setIndentLevel(-1, relative=True)

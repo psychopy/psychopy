@@ -7,9 +7,6 @@ Demo for the class psychopy.visual.RatingScale()
 author: Jeremy Gray, Example 4 by Henrik Singmann
 """
 
-from __future__ import division
-from __future__ import print_function
-
 from psychopy import visual, event, core, logging
 import os
 
@@ -40,7 +37,7 @@ myRatingScale = visual.RatingScale(win, choices=['cold', 'cool', 'hot'])
 myItem = visual.TextStim(win, text="How cool was that?", height=.12, units='norm')
 
 # anything with a frame-by-frame .draw() method will work, e.g.:
-# myItem = visual.MovieStim(win, 'jwpIntro.mov')
+# myItem = visual.MovieStim(win, 'jwpIntro.mp4')
 
 event.clearEvents()
 while myRatingScale.noResponse:  # show & update until a response has been made

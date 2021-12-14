@@ -1,4 +1,3 @@
-from __future__ import division, absolute_import
 # pyxhook -- an extension to emulate some of the PyHook library on linux.
 #
 # Copyright (C) 2008 Tim Alexander <dragonfyre13@gmail.com>
@@ -45,7 +44,6 @@ from __future__ import division, absolute_import
 #             - optimized keysym lookup by loading into a dict cache
 #             - started adding support for reporting unicode keys
 
-from builtins import str
 import threading
 import unicodedata
 import ctypes as ct

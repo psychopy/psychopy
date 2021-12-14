@@ -13,14 +13,9 @@ import ast
 import astunparse
 import esprima
 from os import path
-from psychopy.constants import PY3
 from psychopy import logging
 
-if PY3:
-    from past.builtins import unicode
-    from io import StringIO
-else:
-    from StringIO import StringIO
+from io import StringIO
 from psychopy.experiment.py2js_transpiler import translatePythonToJavaScript
 
 
@@ -89,7 +84,7 @@ def expression2js(expr):
         syntaxTree = ast.parse(expr)
     except Exception:
         try:
-            syntaxTree = ast.parse(unicode(expr))
+            syntaxTree = ast.parse(str(expr))
         except Exception as err:
             logging.error(err)
             return
@@ -98,7 +93,7 @@ def expression2js(expr):
         TupleTransformer().visit(node)  # Transform tuples to list
         # for py2 using 'unicode_literals' we don't want
         if isinstance(node, ast.Str) and type(node.s)==bytes:
-            node.s = unicode(node.s, 'utf-8')
+            node.s = str(node.s, 'utf-8')
         elif isinstance(node, ast.Str) and node.s.startswith("u'"):
             node.s = node.s[1:]
         if isinstance(node, ast.Name):

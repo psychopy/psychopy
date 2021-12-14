@@ -38,7 +38,7 @@ for the device.
 
 The following fields of the MonocularEyeSample event are supported:
 
-.. autoclass:: psychopy.iohub.devices.eyetracker.BinocularEyeSampleEvent(object)
+.. autoclass:: psychopy.iohub.devices.eyetracker.BinocularEyeSampleEvent
 
     .. attribute:: time
 
@@ -72,7 +72,7 @@ The following fields of the MonocularEyeSample event are supported:
 MouseGaze also creates basic fixation, saccade, and blink events
 based on mouse event data.
 
-.. autoclass:: psychopy.iohub.devices.eyetracker.FixationStartEvent(object)
+.. autoclass:: psychopy.iohub.devices.eyetracker.FixationStartEvent
     
     .. attribute:: time
     
@@ -93,7 +93,7 @@ based on mouse event data.
         The vertical eye position on the computer screen
         at the start of the fixation. Units are same as Window.
     
-.. autoclass:: psychopy.iohub.devices.eyetracker.FixationEndEvent(object)
+.. autoclass:: psychopy.iohub.devices.eyetracker.FixationEndEvent
 
     .. attribute:: time
 

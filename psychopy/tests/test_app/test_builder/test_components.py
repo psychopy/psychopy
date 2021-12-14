@@ -1,14 +1,12 @@
-from __future__ import print_function
-from past.builtins import unicode
+from pathlib import Path
 
-from builtins import object
 import os
 import io
 import pytest
 import warnings
 
 from psychopy import constants
-from psychopy.experiment import getAllComponents
+from psychopy.experiment import getAllComponents, Param, utils
 from psychopy import experiment
 from pkg_resources import parse_version
 
@@ -33,10 +31,11 @@ ignoreList = ['<built-in method __', "<method-wrapper '__", '__slotnames__:']
 ignoreParallelOutAddresses = True
 
 @pytest.mark.components
-class TestComponents(object):
+class TestComponents():
     @classmethod
     def setup_class(cls):
-        cls.exp = experiment.Experiment() # create once, not every test
+        cls.expPy = experiment.Experiment() # create once, not every test
+        cls.expJS = experiment.Experiment()
         cls.here = os.path.abspath(os.path.dirname(__file__))
         cls.baselineProfile = os.path.join(cls.here, profile)
 
@@ -97,7 +96,7 @@ class TestComponents(object):
 
         mismatched = []
         for compName in sorted(self.allComp):
-            comp = self.allComp[compName](parentName='x', exp=self.exp)
+            comp = self.allComp[compName](parentName='x', exp=self.expPy)
             order = '%s.order:%s' % (compName, eval("comp.order"))
 
             if order+'\n' not in target:
@@ -113,9 +112,6 @@ class TestComponents(object):
 
             for parName in comp.params:
                 # default is what you get from param.__str__, which returns its value
-                if not constants.PY3:
-                    if isinstance(comp.params[parName].val, unicode):
-                        comp.params[parName].val = comp.params[parName].val.encode('utf8')
                 default = '%s.%s.default:%s' % (compName, parName, comp.params[parName])
                 lineFields = []
                 for field in fields:
@@ -164,6 +160,141 @@ class TestComponents(object):
 
         for mismatch in mismatched:
             warnings.warn("Non-identical Builder Param: {}".format(mismatch))
+
+    def test_icons(self):
+        """Check that all components have icons for each app theme"""
+        # Iterate through component classes
+        for comp in self.allComp.values():
+            # Pathify icon file path
+            icon = Path(comp.iconFile)
+            # Get paths for each theme
+            files = [
+                icon.parent / "light" / icon.name,
+                icon.parent / "dark" / icon.name,
+                icon.parent / "classic" / icon.name,
+            ]
+            # Check that each path is a file
+            for file in files:
+                assert file.is_file()
+
+    def test_params_used(self):
+        # Change eyetracking settings
+        self.expPy.settings.params['eyetracker'].val = "MouseGaze"
+        # Test both python and JS
+        for target, exp in {"PsychoPy": self.expPy, "PsychoJS": self.expJS}.items():
+            # todo: add JS exceptions
+            if target == "PsychoJS":
+                continue
+            # Iterate through each component
+            for compName, component in self.allComp.items():
+                # Skip if not valid for this (or any) target
+                if target not in component.targets:
+                    continue
+                if compName == "SettingsComponent":
+                    continue
+                if compName in ['RatingScaleComponent', 'PatchComponent']:
+                    continue
+                # Make a routine for this component
+                rt = exp.addRoutine(compName + "Routine")
+                comp = component(parentName=compName + "Routine", exp=exp)
+                rt.append(comp)
+                exp.flow.addRoutine(rt, 0)
+                # Compile script
+                script = exp.writeScript(target=target)
+                # Check that the string value of each param is present in the script
+                experiment.utils.scriptTarget = target
+                # Iterate through every param
+                for paramName, param in experiment.getInitVals(comp.params, target).items():
+                    # Conditions to skip...
+                    if not param.direct:
+                        # Marked as not direct
+                        continue
+                    if any(paramName in depend['param'] for depend in comp.depends):
+                        # Dependent on another param
+                        continue
+                    if param.val in [
+                        "from exp settings",  # units and color space, aliased
+                        'default',  # most of the time will be aliased
+                    ]:
+                        continue
+                    # Check that param is used
+                    assert str(param) in script, f"Could not find {target}.{type(comp).__name__}.{paramName}: <psychopy.experiment.params.Param: val={param.val}, valType={param.valType}> in script:\n\n{script}"
+                # Remove routine
+                exp.flow.removeComponent(rt)
+
+
+def test_param_str():
+    exemplars = [
+        # Regular string
+        {"obj": Param("Hello there", "str"),
+         "py": "'Hello there'",
+         "js": "'Hello there'"},
+        # Dollar string
+        {"obj": Param("$win.color", "str"),
+         "py": "win.color",
+         "js": "psychoJS.window.color"},
+        # Integer
+        {"obj": Param("1", "int"),
+         "py": "1",
+         "js": "1"},
+        # Float
+        {"obj": Param("1", "num"),
+         "py": "1.0",
+         "js": "1.0"},
+        # File path
+        {"obj": Param("C://Downloads//file.ext", "file"),
+         "py": "'C:/Downloads/file.ext'",
+         "js": "'C:/Downloads/file.ext'"},
+        # Table path
+        {"obj": Param("C://Downloads//file.csv", "table"),
+         "py": "'C:/Downloads/file.csv'",
+         "js": "'C:/Downloads/file.csv'"},
+        # Color
+        {"obj": Param("red", "color"),
+         "py": "'red'",
+         "js": "'red'"},
+        # RGB Color
+        {"obj": Param("0.7, 0.7, 0.7", "color"),
+         "py": "[0.7, 0.7, 0.7]",
+         "js": "[0.7, 0.7, 0.7]"},
+        # Code
+        {"obj": Param("win.color", "code"),
+         "py": "win.color",
+         "js": "psychoJS.window.color"},
+        # Extended code
+        {"obj": Param("for x in y:\n\tprint(y)", "extendedCode"),
+         "py": "for x in y:\n\tprint(y)",
+         "js": "for x in y:\n\tprint(y)"}, # this will change when snipped2js is fully working
+        # List
+        {"obj": Param("1, 2, 3", "list"),
+         "py": "[1, 2, 3]",
+         "js": "[1, 2, 3]"},
+    ]
+    tykes = [
+        # Name containing "var" (should no longer return blank as of #4336)
+        {"obj": Param("variableName", "code"),
+         "py": "variableName",
+         "js": "variableName"},
+        # Color param with a $
+        {"obj": Param("$letterColor", "color"),
+         "py": "letterColor",
+         "js": "letterColor"},
+    ]
+
+    # Take note of what the script target started as
+    initTarget = utils.scriptTarget
+    # Try each case
+    for case in exemplars + tykes:
+        # Check Python compiles as expected
+        if "py" in case:
+            utils.scriptTarget = "PsychoPy"
+            assert str(case['obj']) == case['py']
+        # Check JS compiles as expected
+        if "js" in case:
+            utils.scriptTarget = "PsychoJS"
+            assert str(case['obj']) == case['js']
+    # Set script target back to init
+    utils.scriptTarget = initTarget
 
 
 @pytest.mark.components

@@ -7,13 +7,8 @@
 
 """Dialog classes for the Builder, including ParamCtrls
 """
-
-from __future__ import absolute_import, division, print_function
 import sys
 
-from builtins import map
-from builtins import str
-from builtins import object
 import os
 import copy
 from collections import OrderedDict
@@ -45,7 +40,7 @@ codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
 from ..localizedStrings import _localizedDialogs as _localized
 
 
-class ParamCtrls(object):
+class ParamCtrls():
 
     def __init__(self, dlg, label, param, parent, fieldName,
                  browse=False, noCtrls=False, advanced=False, appPrefs=None):
@@ -405,10 +400,12 @@ class StartStopCtrls(wx.GridBagSizer):
                 self.label = wx.StaticText(parent, label=param.label)
                 self.Add(self.ctrls[name], (0, 1), border=6, flag=wx.EXPAND | wx.TOP)
             if name in ['startType', 'stopType']:
+                localizedChoices = list(map(_translate, param.allowedVals or [param.val]))
                 self.ctrls[name] = wx.Choice(parent,
-                                             choices=param.allowedVals or [param.val],
+                                             choices=localizedChoices,
                                              size=wx.Size(96, 24))
-                self.ctrls[name].SetStringSelection(str(param.val))
+                self.ctrls[name]._choices = copy.copy(param.allowedVals)
+                self.ctrls[name].SetSelection(param.allowedVals.index(str(param.val)))
                 self.Add(self.ctrls[name], (0, 0), border=6, flag=wx.EXPAND | wx.TOP)
             if name in ['startEstim', 'durationEstim']:
                 self.ctrls[name] = wx.TextCtrl(parent,
@@ -422,15 +419,36 @@ class StartStopCtrls(wx.GridBagSizer):
                 self.Add(self.ctrls[name], (1, 1), border=6, flag=wx.EXPAND | wx.TOP | wx.BOTTOM)
         self.AddGrowableCol(1)
 
+    def getVisible(self):
+        return all(ctrl.IsShown() for ctrl in self.ctrls.values())
+
+    def setVisible(self, visible=True):
+        # Show/hide controls
+        for ctrl in self.ctrls.values():
+            ctrl.Show(visible)
+        # Show/hide labels
+        if hasattr(self, "estimLabel"):
+            self.estimLabel.Show(visible)
+        if hasattr(self, "label"):
+            self.label.Show(visible)
+        # Set value to None if hidden (specific to start/stop)
+        if not visible:
+            if "startVal" in self.ctrls:
+                self.ctrls["startVal"].Value = ""
+            if "stopVal" in self.ctrls:
+                self.ctrls["stopVal"].Value = ""
+        # Layout
+        self.parent.Layout()
+
     def updateCodeFont(self, evt=None):
         """Style input box according to code wanted"""
         if isinstance(evt, wx.TextCtrl):
             obj = evt
         else:
             obj = evt.EventObject
-        if psychopy.experiment.utils.unescapedDollarSign_re.fullmatch(obj.GetLineText(0)):
+        if psychopy.experiment.utils.unescapedDollarSign_re.match(obj.GetLineText(0)):
             # Set font if code
-            obj.SetFont(self.parent.GetTopLevelParent().app._codeFont)
+            obj.SetFont(self.parent.GetTopLevelParent().app._codeFont.Bold())
         else:
             # Set font if not
             obj.SetFont(self.parent.GetTopLevelParent().app._mainFont)
@@ -466,14 +484,14 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
                 if name in sortedParams:
                     startParams[name] = sortedParams.pop(name)
             if startParams:
-                self.addStartStopCtrl(startParams)
+                self.startCtrl = self.addStartStopCtrl(startParams)
             # Make stop controls
             stopParams = OrderedDict()
             for name in ['stopVal', 'stopType', 'durationEstim']:
                 if name in sortedParams:
                     stopParams[name] = sortedParams.pop(name)
             if stopParams:
-                self.addStartStopCtrl(stopParams)
+                self.stopCtrl = self.addStartStopCtrl(stopParams)
             # Make controls
             for name, param in sortedParams.items():
                 self.addParam(name, param)
@@ -519,6 +537,8 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
             # Iterate row
             self.row += 1
 
+            return panel
+
         def checkDepends(self, event=None):
             """Checks the relationships between params that depend on each other
 
@@ -532,11 +552,17 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
             isChanged = False
             for thisDep in self.parent.element.depends:
                 if not (
-                        thisDep['param'] in self.ctrls
+                        thisDep['param'] in list(self.ctrls) + ['start', 'stop']
                         and thisDep['dependsOn'] in self.ctrls):
                     # If params are on another page, skip
                     continue
-                dependentCtrls = self.ctrls[thisDep['param']]
+                # Get associated ctrl
+                if thisDep['param'] == 'start':
+                    dependentCtrls = self.startCtrl
+                elif thisDep['param'] == 'stop':
+                    dependentCtrls = self.stopCtrl
+                else:
+                    dependentCtrls = self.ctrls[thisDep['param']]
                 dependencyCtrls = self.ctrls[thisDep['dependsOn']]
                 condString = "dependencyCtrls.getValue() {}".format(thisDep['condition'])
                 if eval(condString):
@@ -566,8 +592,8 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
             if isChanged:
                 self.sizer.SetEmptyCellSize((0, 0))
                 self.sizer.Layout()
-                self.Fit()
-                self.dlg.Fit()
+                if isinstance(self.dlg, wx.Dialog):
+                    self.dlg.Fit()
                 self.Refresh()
 
         def doValidate(self, event=None):
@@ -610,7 +636,7 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
             page = self.CategoryPage(self, self.parent, params)
             self.paramCtrls.update(page.ctrls)
             # Add page to notebook
-            self.AddPage(page, categ)
+            self.AddPage(page, _translate(categ))
 
     def checkDepends(self, event=None):
         """
@@ -625,6 +651,11 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
 
         The new data from the dlg get inserted back into the original params
         used in __init__ and are also returned from this method.
+        
+        .. note::
+            Don't use GetStringSelection() here to avoid that translated value
+            is returned. Instead, use GetSelection() to get index of selection
+            and get untranslated value from _choices attribute.
         """
         # get data from input fields
         for fieldName in self.params:
@@ -635,17 +666,22 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
             if hasattr(ctrl, "getValue"):
                 param.val = ctrl.getValue()
             elif isinstance(ctrl, wx.Choice):
-                param.val = ctrl.GetStringSelection()
+                if hasattr(ctrl, "_choices"):
+                    param.val = ctrl._choices[ctrl.GetSelection()]
+                else:
+                    # use GetStringSelection()
+                    # only if this control doesn't has _choices
+                    param.val = ctrl.GetStringSelection()
             elif hasattr(ctrl, "GetValue"):
                 param.val = ctrl.GetValue()
             # Get type
             if hasattr(ctrl, "typeCtrl"):
                 if ctrl.typeCtrl:
-                    param.valType = ctrl.typeCtrl.GetStringSelection()
+                    param.valType = ctrl.typeCtrl._choices[ctrl.typeCtrl.GetSelection()]
             # Get update type
             if hasattr(ctrl, "updateCtrl"):
                 if ctrl.updateCtrl:
-                    updates = ctrl.updateCtrl.GetStringSelection()
+                    updates = ctrl.updateCtrl._choices[ctrl.updateCtrl.GetSelection()]
                     # may also need to update a static
                     if param.updates != updates:
                         self._updateStaticUpdates(fieldName,
@@ -1432,7 +1468,10 @@ class DlgLoopProperties(_BaseParamsDlg):
             else:
                 isSameFilePathAndName = False
 
-            newPath = str(Path(newFullPath).relative_to(expFolder))
+            try:
+                newPath = str(Path(newFullPath).relative_to(expFolder))
+            except ValueError:
+                newPath = str(Path(newFullPath).absolute())
             self.conditionsFile = newPath
             needUpdate = False
             try:
@@ -1658,10 +1697,14 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.Bind(wx.EVT_CHECKBOX, self.onFullScrChange,
                   self.paramCtrls['Full-screen window'].valueCtrl)
 
+        if timeout is not None:
+            wx.FutureCall(timeout, self.Destroy)
+
         # for all components
         self.show()
         if self.OK:
             self.params = self.getParams()  # get new vals from dlg
+
         self.Destroy()
 
     def onFullScrChange(self, event=None):
@@ -1695,3 +1738,80 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.mainSizer.Layout()
         self.Fit()
         self.Refresh()
+
+
+class DlgNewRoutine(wx.Dialog):
+
+    def __init__(self, parent, pos=wx.DefaultPosition, size=wx.DefaultSize,
+                 style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT):
+        self.parent = parent  # parent is probably the RoutinesNotebook (not the BuilderFrame)
+        if hasattr(parent, 'frame'):
+            self.frame = parent.frame
+        else:
+            self.frame = parent
+        wx.Dialog.__init__(self, parent, title=_translate("New Routine"), name=_translate("New Routine"),
+                           size=size, pos=pos, style=style)
+        self.app = parent.app
+        self.templates = self.frame.routineTemplates
+        self.templatesByID = {}
+        self.selectedTemplate = self.templates['Basic']['Blank']  # until we know otherwise
+        # controls
+        newNameLabel = wx.StaticText(self, -1, _translate("New Routine name:"))
+        nameTip = _translate("What is the name for the new Routine? "
+                             "(e.g. instr, trial, feedback)")
+        self.nameCtrl = wx.TextCtrl(self, -1, "")
+        self.nameCtrl.SetToolTip(nameTip)
+        templateLabel = wx.StaticText(self, -1, _translate("Routine Template:"))
+        nameTip = _translate("Select a template to base your new Routine on")
+        self.templateCtrl = wx.Button(self, -1, "Basic:Blank")
+        self.templateCtrl.Bind(wx.EVT_BUTTON, self.showTemplatesContextMenu)
+        # buttons
+        buttons = wx.StdDialogButtonSizer()
+        buttons.Add(wx.Button(self, wx.ID_CANCEL, "Cancel"))
+        buttons.Add(wx.Button(self, wx.ID_OK, "OK"))
+        buttons.Realize()
+
+        # layout
+        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
+        ctrlSizer = wx.GridSizer(cols=2, vgap=0, hgap=10)
+
+        ctrlSizer.Add(newNameLabel, flag=wx.ALL | wx.ALIGN_RIGHT)
+        ctrlSizer.Add(self.nameCtrl, flag=wx.EXPAND)
+        ctrlSizer.Add(templateLabel, flag=wx.ALL | wx.ALIGN_RIGHT)
+        ctrlSizer.Add(self.templateCtrl, flag=wx.ALL | wx.EXPAND, proportion=1)
+        self.mainSizer.Add(ctrlSizer, flag=wx.ALL, border=10)
+        # add buttons
+        self.mainSizer.Add(buttons, 1, flag=wx.ALL | wx.ALIGN_RIGHT)
+        self.SetSizerAndFit(self.mainSizer)
+
+    def showTemplatesContextMenu(self, evt):
+        self.templateMenu = wx.Menu()
+        self.templateMenu.Bind(wx.EVT_MENU, self.onSelectTemplate)
+        self.templatesByID = {}
+        for categName, categDict in self.templates.items():
+            submenu = wx.Menu()
+            self.templateMenu.Append(wx.ID_ANY, categName, submenu)
+            for templateName, routine in categDict.items():
+                id = wx.NewIdRef()
+                self.templatesByID[id] = {
+                    'routine': routine,
+                    'name': templateName,
+                    'categ': categName,
+                }
+                item = submenu.Append(id, templateName)
+
+        btnPos = self.templateCtrl.GetRect()
+        menuPos = (btnPos[0], btnPos[1] + btnPos[3])
+        self.PopupMenu(self.templateMenu, menuPos)
+
+    def onSelectTemplate(self, evt):
+
+        id = evt.Id
+        categ = self.templatesByID[id]['categ']
+        templateName = self.templatesByID[id]['name']
+        print(f"{categ}:{templateName}")
+        self.templateCtrl.SetLabelText(f"{categ}:{templateName}")
+        self.selectedTemplate = self.templates[categ][templateName]
+        self.Layout()  # update the size of the button
+        self.Fit()
+        # self.templateMenu.Destroy()  # destroy to avoid mem leak

@@ -13,19 +13,15 @@ See the GNU General Public License Version 3 for more details.
 You should have received a copy of the GNU General Public License along
 with this program. If not, see http://www.gnu.org/licenses/
 """
-from __future__ import absolute_import, division, print_function
 
-from builtins import map
-from builtins import range
-from builtins import object
+import ctypes
 import numpy as np
 from psychopy import logging
-from OpenGL.arrays import ArrayDatatype as ADT
 import pyglet
 GL = pyglet.gl
 
 
-class Warper(object):
+class Warper:
     """Class to perform warps.
 
     Supports spherical, cylindrical, warpfile, or None (disabled) warps
@@ -416,28 +412,44 @@ class Warper(object):
 
         GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
 
+        # type and size for arrays
+        arrType = ctypes.c_float
+        ptrType = ctypes.POINTER(arrType)
+        nbytes = ctypes.sizeof(arrType)
+
         # vertex buffer in hardware
         self.gl_vb = GL.GLuint()
         GL.glGenBuffers(1, self.gl_vb)
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.gl_vb)
-        GL.glBufferData(GL.GL_ARRAY_BUFFER, ADT.arrayByteCount(
-            vertices), ADT.voidDataPointer(vertices), GL.GL_STATIC_DRAW)
+        GL.glBufferData(
+            GL.GL_ARRAY_BUFFER,
+            vertices.size * nbytes,
+            vertices.ctypes.data_as(ptrType),
+            GL.GL_STATIC_DRAW)
 
-        # vertex buffer tdata in hardware
+        # vertex buffer texture data in hardware
         self.gl_tb = GL.GLuint()
         GL.glGenBuffers(1, self.gl_tb)
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.gl_tb)
-        GL.glBufferData(GL.GL_ARRAY_BUFFER, ADT.arrayByteCount(
-            tcoords), ADT.voidDataPointer(tcoords), GL.GL_STATIC_DRAW)
+        GL.glBufferData(
+            GL.GL_ARRAY_BUFFER,
+            tcoords.size * nbytes,
+            tcoords.ctypes.data_as(ptrType),
+            GL.GL_STATIC_DRAW)
 
         # opacity buffer in hardware (only for warp files)
         if opacity is not None:
             self.gl_color = GL.GLuint()
             GL.glGenBuffers(1, self.gl_color)
             GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.gl_color)
+
             # convert opacity to RGBA, one point for each corner of the quad
-            GL.glBufferData(GL.GL_ARRAY_BUFFER, ADT.arrayByteCount(
-                opacity), ADT.voidDataPointer(opacity), GL.GL_STATIC_DRAW)
+            GL.glBufferData(
+                GL.GL_ARRAY_BUFFER,
+                opacity.size * nbytes,
+                opacity.ctypes.data_as(ptrType),
+                GL.GL_STATIC_DRAW)
+
         else:
             self.gl_color = None
 

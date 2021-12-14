@@ -9,15 +9,12 @@ import io
 import sys
 import os
 import argparse
-import traceback
 from copy import deepcopy
 from subprocess import PIPE, Popen
 
-from psychopy.constants import PY3
-from psychopy import __version__, logging
+from psychopy import __version__
 
-# parse args for subprocess
-from psychopy.experiment.routines import BaseStandaloneRoutine
+# DO NOT IMPORT ANY OTHER PSYCHOPY SUB-PACKAGES OR THEY WON'T SWITCH VERSIONS
 
 parser = argparse.ArgumentParser(description='Compile your python file from here')
 parser.add_argument('infile', help='The input (psyexp) file to be compiled')
@@ -50,8 +47,6 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
         pythonExec = sys.executable.replace(' ', r'\ ')
 
     filename = experimentPath
-    if not PY3:  # encode path in Python2
-        filename = experimentPath = experimentPath.encode(sys.getfilesystemencoding())
 
     # Compile script from command line using version
     compiler = 'psychopy.scripts.psyexpCompile'
@@ -166,7 +161,7 @@ def compileScript(infile=None, version=None, outfile=None):
         # Leave original experiment unchanged.
         exp = deepcopy(exp)
         for key, routine in list(exp.routines.items()):  # PY2/3 compat
-            if isinstance(routine, BaseStandaloneRoutine):
+            if routine.type == 'StandaloneRoutine':
                 if routine.params['disabled']:
                     for node in exp.flow:
                         if node == routine:

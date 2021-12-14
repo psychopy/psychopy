@@ -22,7 +22,7 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
     event_buffer_length: 
         IOHUB_INT:
             min: 1
-            max: 2048
+            max: 8192
     device_timer:
         interval:
             IOHUB_FLOAT:
@@ -30,7 +30,7 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
                 max: 0.020
     monitor_event_types:           
         IOHUB_LIST:
-            valid_values: [BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent]
+            valid_values: [GazepointSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent]
             min_length: 1
             max_length: 3
     runtime_settings:
@@ -64,6 +64,7 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
                 max_length: 1
         randomize: IOHUB_BOOL
         screen_background_color: IOHUB_COLOR
+        text_color: IOHUB_COLOR
         target_attributes:
             outer_diameter:
                 IOHUB_FLOAT:

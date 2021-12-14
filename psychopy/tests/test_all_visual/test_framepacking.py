@@ -1,8 +1,3 @@
-from __future__ import print_function
-
-from builtins import str
-from builtins import range
-from builtins import object
 import pytest
 from psychopy.visual import Window
 from psychopy.visual.windowframepack import ProjectorFramePacker
@@ -15,7 +10,7 @@ from psychopy.visual.windowframepack import ProjectorFramePacker
 """
 
 
-class Test_class_ProjectorFramePacker(object):
+class Test_class_ProjectorFramePacker():
     """
     """
     def setup_class(self):

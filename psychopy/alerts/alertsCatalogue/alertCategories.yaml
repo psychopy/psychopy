@@ -49,6 +49,7 @@
     4315: Invalid dollar sign syntax
     4320: Non-local font
     4325: Font not available
+    4330: Recording device not found
   4400:
     cat: Conflicts
     4405: Textbox and keyboard conflict
@@ -61,12 +62,12 @@
     4530: Auto pace param not used
     4540: Eyetracking requires window to be fullscreen
     4545: Eyetracking requires a monitor config
-    4550: ROI component with no record component
 
   4600:
     cat: Audio Transcription
     4605: Transcription service not compatible online
     4610: Transcription service not compatible locally
+    4615: API key not found
 
 5000:
   cat: Online studies
@@ -80,8 +81,16 @@
     cat: File not found
     6105: Run nonexistant file
 
-7000: Python dependencies
-8000: None
+7000:
+  cat: Python dependencies
+
+8000:
+  cat: Legacy
+  8100:
+    cat: Colors
+    8105: Color space attributes no longer used
+    8110: RGB attributes no longer used
+
 9000: None
 
 9999: Test

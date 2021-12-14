@@ -7,10 +7,6 @@ Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
-from __future__ import absolute_import, print_function
-
-from builtins import str, object, super
-from past.builtins import basestring
 from pathlib import Path
 from xml.etree.ElementTree import Element
 
@@ -26,7 +22,7 @@ from psychopy.colors import nonAlphaSpaces
 from psychopy.localization import _translate, _localized
 
 
-class BaseComponent(object):
+class BaseComponent:
     """A template for components, defining the methods to be overridden"""
     # override the categories property below
     # an attribute of the class, determines the section in the components panel
@@ -68,7 +64,7 @@ class BaseComponent(object):
         self.params['startType'] = Param(startType,
             valType='str', inputType="choice", categ='Basic',
             allowedVals=['time (s)', 'frame N', 'condition'],
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['startType'])
 
         msg = _translate("How do you want to define your end point?")
@@ -76,7 +72,7 @@ class BaseComponent(object):
             valType='str', inputType="choice", categ='Basic',
             allowedVals=['duration (s)', 'duration (frames)', 'time (s)',
                          'frame N', 'condition'],
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['stopType'])
 
         self.params['startVal'] = Param(startVal,
@@ -94,14 +90,14 @@ class BaseComponent(object):
                          "representing in the timeline")
         self.params['startEstim'] = Param(startEstim,
             valType='code', inputType="single", categ='Basic',
-            hint=msg,allowedTypes=[],
+            hint=msg, allowedTypes=[], direct=False,
             label=_localized['startEstim'])
 
         msg = _translate("(Optional) expected duration (s), purely for "
                          "representing in the timeline")
         self.params['durationEstim'] = Param(durationEstim,
             valType='code', inputType="single", categ='Basic',
-            hint=msg, allowedTypes=[],
+            hint=msg, allowedTypes=[], direct=False,
             label=_localized['durationEstim'])
 
         msg = _translate("Store the onset/offset times in the data file "
@@ -121,7 +117,7 @@ class BaseComponent(object):
         msg = _translate("Disable this component")
         self.params['disabled'] = Param(disabled,
             valType='bool', inputType="bool", categ="Testing",
-            hint=msg, allowedTypes=[],
+            hint=msg, allowedTypes=[], direct=False,
             label=_translate('Disable component'))
 
     @property
@@ -162,7 +158,7 @@ class BaseComponent(object):
         for key in self.params:
             field = self.params[key]
             if (not hasattr(field, 'val') or
-                    not isinstance(field.val, basestring)):
+                    not isinstance(field.val, str)):
                 continue  # continue == no problem, no warning
             if not (field.allowedUpdates and
                     isinstance(field.allowedUpdates, list) and
@@ -250,6 +246,7 @@ class BaseComponent(object):
                     f"{loop}.{addDataFunc}('{name}.started', {name}.tStart)\n"
                     f"{loop}.{addDataFunc}('{name}.stopped', {name}.tStop)\n"
                 )
+
             buff.writeIndentedLines(code)
 
     def writeRoutineEndCodeJS(self, buff):
@@ -275,7 +272,7 @@ class BaseComponent(object):
         t = tCompare
         if self.params['startType'].val == 'time (s)':
             # if startVal is an empty string then set to be 0.0
-            if (isinstance(self.params['startVal'].val, basestring) and
+            if (isinstance(self.params['startVal'].val, str) and
                     not self.params['startVal'].val.strip()):
                 self.params['startVal'].val = '0.0'
             code = (f"if {params['name']}.status == NOT_STARTED and "
@@ -309,7 +306,7 @@ class BaseComponent(object):
         params = self.params
         if self.params['startType'].val == 'time (s)':
             # if startVal is an empty string then set to be 0.0
-            if (isinstance(self.params['startVal'].val, basestring) and
+            if (isinstance(self.params['startVal'].val, str) and
                     not self.params['startVal'].val.strip()):
                 self.params['startVal'].val = '0.0'
             code = (f"if (t >= {params['startVal']} "
@@ -510,6 +507,11 @@ class BaseComponent(object):
                 if stopVal in ['', None, -1, 'None']:
                     stopVal = '-1'
                 buff.writeIndented(f"{compName}.setSound({params['sound']}, secs={stopVal}){endStr}\n")
+            elif compName == 'eeg_marker':
+                # This allows the eeg_marker to be updated by a code component or a conditions file
+                # There is no setMarker_label or setMarker_value function in the eeg_marker object
+                # The marker label and value are set by the variables set in the dialogue
+                pass
             else:
                 buff.writeIndented(f"{compName}.set{paramCaps}({val}{loggingStr}){endStr}\n")
 
@@ -558,8 +560,8 @@ class BaseComponent(object):
         else:
             startTime = None
 
-        if stopType == 'time (s)' and numericStop and startTime is not None:
-            duration = float(self.params['stopVal'].val) - startTime
+        if stopType == 'time (s)' and numericStop:
+            duration = float(self.params['stopVal'].val) - (startTime or 0)
         elif stopType == 'duration (s)' and numericStop:
             duration = float(self.params['stopVal'].val)
         else:
@@ -807,6 +809,31 @@ class BaseVisualComponent(BaseComponent):
             buff.setIndentLevel(-1, relative=True)  # to exit the if block
             buff.writeIndented("}\n")
 
+    def writeRoutineEndCode(self, buff):
+        """Write the iohub HDF5 experiment message code that will be called
+         at the end of a routine.
+        """
+        BaseComponent.writeRoutineEndCode(self, buff)
+        saveHdf5 = self.exp.settings.params['Save hdf5 file'].val
+        if saveHdf5:
+            name = self.params['name']
+            comp_onset_tag = "%s.started" % name
+            if 'saveStartStop' in self.params and self.params['saveStartStop'].val:
+                code = (
+                        f"if ioServer:\n"
+                )
+                buff.writeIndentedLines(code)
+                buff.setIndentLevel(1, relative=True)
+                if self.params['syncScreenRefresh'].val:
+                        code = (
+                                f"ioServer.cacheMessageEvent('{comp_onset_tag}', sec_time={name}.tStartRefresh)\n"
+                        )
+                else:
+                        code = (
+                                f"ioServer.cacheMessageEvent('{comp_onset_tag}', sec_time={name}.tStart)\n"
+                        )
+                buff.writeIndentedLines(code)
+                buff.setIndentLevel(-1, relative=True)
 
 def canBeNumeric(inStr):
     """Determines whether the input can be converted to a float

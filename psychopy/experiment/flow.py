@@ -8,8 +8,6 @@
 """Describes the Flow of an experiment
 """
 
-from __future__ import absolute_import, print_function
-from past.builtins import basestring
 from xml.etree.ElementTree import Element
 
 from psychopy.experiment import getAllStandaloneRoutines
@@ -156,7 +154,7 @@ class Flow(list):
                     if (field.label.lower() in ['text', 'customize'] or
                             not field.valType in ('str', 'code')):
                         continue
-                    if (isinstance(field.val, basestring) and
+                    if (isinstance(field.val, str) and
                             field.val != field.val.strip()):
                         trailingWhitespace.append(
                             (field.val, key, component, entry))
@@ -233,6 +231,8 @@ class Flow(list):
         for entry in self:
             self._currentRoutine = entry
             entry.writeMainCode(script)
+            if hasattr(entry, "writeRoutineEndCode"):
+                entry.writeRoutineEndCode(script)
         # tear-down code (very few components need this)
         for entry in self:
             self._currentRoutine = entry

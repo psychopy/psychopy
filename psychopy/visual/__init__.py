@@ -8,8 +8,6 @@
 """Container for all visual-related functions and classes
 """
 
-from __future__ import absolute_import, print_function
-
 import sys
 if sys.platform == 'win32':
     from pyglet.libs import win32  # pyglet patch for ANACONDA install

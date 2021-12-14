@@ -86,7 +86,7 @@
         <Param val="False" valType="bool" updates="None" name="disabled"/>
         <Param val="" valType="code" updates="None" name="durationEstim"/>
         <Param val="look at" valType="str" updates="None" name="endRoutineOn"/>
-        <Param val="1000" valType="num" updates="None" name="lookDur"/>
+        <Param val="1" valType="num" updates="None" name="lookDur"/>
         <Param val="4" valType="int" updates="constant" name="nVertices"/>
         <Param val="target_roi" valType="code" updates="None" name="name"/>
         <Param val="0" valType="num" updates="constant" name="ori"/>

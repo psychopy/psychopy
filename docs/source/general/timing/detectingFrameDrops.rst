@@ -40,8 +40,6 @@ Warn me if I drop a frame
 The simplest way to check if a frame has been dropped is to get PsychoPy to
 report a warning if it thinks a frame was dropped::
 
-    from __future__ import division, print_function
-
     from psychopy import visual, logging
     win = visual.Window([800,600])
 

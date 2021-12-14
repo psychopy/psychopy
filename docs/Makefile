@@ -106,6 +106,11 @@ latexpdf:
 	make -C $(BUILDDIR)/latex all-pdf
 	@echo "pdflatex finished; the PDF files are in $(BUILDDIR)/latex."
 
+rinoh:
+	@echo "Running LaTeX files through rinoh..."
+	$(SPHINXBUILD) -b rinoh $(ALLSPHINXOPTS) $(BUILDDIR)/rinoh
+	@echo "rinoh finished; the PDF files are in $(BUILDDIR)/rinoh"
+
 text:
 	$(SPHINXBUILD) -b text $(ALLSPHINXOPTS) $(BUILDDIR)/text
 	@echo

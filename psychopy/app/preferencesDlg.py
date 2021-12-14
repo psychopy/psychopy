@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-from __future__ import absolute_import, print_function
-
 import json
 import sys
-from builtins import str
 import wx
 import wx.propgrid as pg
 import wx.py
@@ -49,6 +45,8 @@ _localized = {
     'shutdownKeyModifiers': _translate("shutdown key modifier keys"),
     'gammaErrorPolicy': _translate("gammaErrorPolicy"),
     'startUpPlugins': _translate("start up plugins"),
+    'appKeyGoogleCloud':_translate('appKeyGoogleCloud'),
+    'transcrKeyAzure':_translate('transcrKeyAzure'),
     # pref labels in App section
     'showStartupTips': _translate("show start-up tips"),
     'defaultView': _translate("default view"),
@@ -63,6 +61,7 @@ _localized = {
     'codeComponentLanguage': _translate('Code component language'),
     'unclutteredNamespace': _translate('uncluttered namespace'),
     'componentsFolders': _translate('components folders'),
+    'componentFilter':_translate('componentFilter'),
     'hiddenComponents': _translate('hidden components'),
     'unpackedDemosDir': _translate('unpacked demos dir'),
     'savedDataFolder': _translate('saved data folder'),
@@ -326,8 +325,9 @@ class PrefPropGrid(wx.Panel):
         if section not in self.sections.keys():
             self.sections[section] = []
 
-        self.sections[section].update(
-            {name: wx.propgrid.FileProperty(label, name, value)})
+        prop = wx.propgrid.FileProperty(label, name, value)
+        self.sections[section].update({name: prop})
+        prop.SetAttribute(wx.propgrid.PG_FILE_SHOW_FULL_PATH, True)
 
         self.helpText[name] = helpText
 
@@ -620,11 +620,12 @@ class PreferencesDlg(wx.Dialog):
                         default = self.fontList.index(thisPref)
                     except ValueError:
                         default = 0
+                    labels = [_translate(font) for font in self.fontList]
                     self.proPrefs.addEnumItem(
                             sectionName,
                             pLabel,
                             prefName,
-                            labels=self.fontList,
+                            labels=labels,
                             values=[i for i in range(len(self.fontList))],
                             value=default, helpText=helpText)
                 elif prefName in ('theme',):
@@ -664,7 +665,7 @@ class PreferencesDlg(wx.Dialog):
                         sectionName, pLabel, prefName, thisPref,
                         helpText=helpText)
                 # single file
-                elif prefName in ('flac',):
+                elif prefName in ('flac', 'appKeyGoogleCloud',):
                     self.proPrefs.addFileItem(
                         sectionName, pLabel, prefName, thisPref,
                         helpText=helpText)
@@ -854,6 +855,10 @@ class PreferencesDlg(wx.Dialog):
         # > sure, why not? - mdc
         self.populatePrefs()
 
+        # Update Builder window if needed
+        if self.app.builder:
+            self.app.builder.updateAllViews()
+
         # after validation, update the UI
         self.app.theme = self.app.theme
         self.updateFramesUI()
@@ -871,6 +876,10 @@ class PreferencesDlg(wx.Dialog):
                 for ii in range(frame.shelf.GetPageCount()):
                     doc = frame.shelf.GetPage(ii)
                     doc.theme = prefs.app['theme']
+
+                # apply console font, not handled by theme system ATM
+                if hasattr(frame, 'shell'):
+                    frame.shell.setFonts()
 
     def OnApplyClicked(self, event):
         """Apply button clicked, this makes changes to the UI without leaving

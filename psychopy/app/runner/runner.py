@@ -25,7 +25,6 @@ from subprocess import Popen, PIPE
 
 from psychopy import experiment
 from psychopy.app.utils import PsychopyPlateBtn, PsychopyToolbar, FrameSwitcher, FileDropTarget
-from psychopy.constants import PY3
 from psychopy.localization import _translate
 from psychopy.app.stdOutRich import StdOutRich
 from psychopy.projects.pavlovia import getProject
@@ -90,7 +89,13 @@ class RunnerFrame(wx.Frame, ThemeMixin):
 
     @property
     def filename(self):
-        if self.panel.currentSelection or self.panel.currentSelection == 0:
+        """Presently selected file name in Runner (`str` or `None`). If `None`,
+        not file is presently selected or the task list is empty.
+        """
+        if not self.panel.currentSelection:  # no selection or empty list
+            return
+
+        if self.panel.currentSelection >= 0:  # has valid item selected
             return self.panel.expCtrl.GetItem(self.panel.currentSelection).Text
 
     def addTask(self, evt=None, fileName=None):
@@ -131,7 +136,7 @@ class RunnerFrame(wx.Frame, ThemeMixin):
              'label': _translate('Save list')+'\t%s'%keys['save'],
              'status': _translate('Saving task'),
              'func': self.saveTaskList},
-            {'id': wx.ID_COPY, 'label': _translate('Open list')+'\tCtrl-O',
+            {'id': wx.ID_OPEN, 'label': _translate('Open list')+'\tCtrl-O',
              'status': _translate('Loading task'),
              'func': self.loadTaskList},
             {'id': wx.ID_CLOSE_FRAME, 'label': _translate('Close')+'\tCtrl-W',
@@ -473,7 +478,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                                           name=title,
                                           )
         ScriptProcess.__init__(self, app)
-        self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
+        #self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(parent.IsDoubleBuffered())
@@ -640,9 +645,9 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.SetSizerAndFit(self.mainSizer)
         self.SetMinSize(self.Size)
 
-    def onProcessEnded(self):
-        ScriptProcess.onProcessEnded(self)
-        self.stopTask()
+    # def onProcessEnded(self):
+    #     ScriptProcess.onProcessEnded(self)
+    #     self.stopTask()
 
     def setAlertsVisible(self, new=True):
         if type(new) == bool:
@@ -678,7 +683,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         if self.currentSelection:
             self.runBtn.Enable()
 
-    def runLocal(self, evt):
+    def runLocal(self, evt, focusOnExit='runner'):
         """Run experiment from new process using inherited ScriptProcess class methods."""
         if self.currentSelection is None:
             return
@@ -687,7 +692,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         if self.currentFile.suffix == '.psyexp':
             generateScript(experimentPath=currentFile.replace('.psyexp', '_lastrun.py'),
                            exp=self.loadExperiment())
-        self.runFile(fileName=currentFile)
+        self.runFile(fileName=currentFile, focusOnExit=focusOnExit)
 
         # Enable/Disable btns
         self.runBtn.Disable()
@@ -724,9 +729,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.getPsychoJS()
 
         htmlPath = str(self.currentFile.parent / self.outputPath)
-        server = ["SimpleHTTPServer", "http.server"][PY3]
         pythonExec = Path(sys.executable)
-        command = [str(pythonExec), "-m", server, str(port)]
+        command = [str(pythonExec), "-m", "http.server", str(port)]
 
         if not os.path.exists(htmlPath):
             print('##### HTML output path: "{}" does not exist. '
@@ -759,7 +763,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         """
         libPath = self.currentFile.parent / self.outputPath / 'lib'
         ver = '.'.join(self.app.version.split('.')[:3])
-        psychoJSLibs = ['core', 'data', 'util', 'visual', 'sound']
+        libFileExtensions = ['css', 'iife.js', 'iife.js.map', 'js', 'js.LEGAL.txt', 'js.map']
 
         try:  # ask-for-forgiveness rather than query-then-make
             os.makedirs(libPath)
@@ -767,11 +771,11 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
             if e.errno != errno.EEXIST:  # we only want to ignore "exists", not others like permissions
                 raise  # raises the error again
 
-        for lib in psychoJSLibs:
-            finalPath = libPath / ("{}-{}.js".format(lib, ver))
+        for ext in libFileExtensions:
+            finalPath = libPath / ("psychojs-{}.{}".format(ver, ext))
             if finalPath.exists():
                 continue
-            url = "https://lib.pavlovia.org/{}-{}.js".format(lib, ver)
+            url = "https://lib.pavlovia.org/psychojs-{}.{}".format(ver, ext)
             req = requests.get(url)
             with open(finalPath, 'wb') as f:
                 f.write(req.content)

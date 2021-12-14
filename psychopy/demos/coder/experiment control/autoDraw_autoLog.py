@@ -10,9 +10,6 @@ level EXP will be created when the setAutoDraw is called.
 This can be turned off for each call with stim.setAutoDraw(True, autoLog=False)
 """
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import range
 from psychopy import visual, core
 
 win = visual.Window([800, 800])

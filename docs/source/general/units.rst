@@ -1,4 +1,6 @@
 .. _units:
+.. role:: darkgreen
+.. role:: darkorange
 
 Units for the window and stimuli
 ====================================
@@ -11,6 +13,21 @@ Your choice of unit depends on the circumstances. For conducting demos, the two 
 
 For all units, the centre of the screen is represented by coordinates (0,0), negative values mean down/left, positive values mean up/right.
 
+For help understanding spatial units visually, try the builder demo `"spatialUnits" <https://gitlab.pavlovia.org/demos/workingwithspatialunits>`_  under "Understanding PsychoPy" (version 2021.2).
+
+.. _onlineUnits:
+
+Units for online experiments
+-----------------------------
+If you are running a study online the easiest units to use will be those that require no monitor info. It is likely that your experiment will be run on a wide variety of devices all with differing screen resolutions. Furthermore it is going to be more difficult for you to control factors like viewing distance. Because of this it makes it difficult to use units like *deg* or *cm* - because we need to know both the participants viewing distance and the number of pixels that make up a cm on that participants screen.
+The easiest solution here is to use :ref:`unitsHeight`, this means that the size of stimuli will be scaled relative to the height of that participants screen - which usually means it is possible to run studies even on smartphones!
+
+
+.. note::
+    If using height units on a tablet/touchscreen device,currently 1 unit height corresponds to the height of the screen when the device is held in landscape.
+
+:ref:`unitsDeg` are not currently supported for online use, but you can estimate pixels per cm using a `screen scaling method <https://run.pavlovia.org/Wake/screenscale/html/>`_ (this demo was shared by Wakefield Morys Carter 2021) and then use pixel units to present stimuli in cm see `Li et al (2020) <https://www.nature.com/articles/s41598-019-57204-1>`_ for more details. If you want to store the window size of your participants device in an online study, you can add a code component and use :code:`thisExp.addData('windowSize', win.size)`.
+
 .. _unitsHeight:
 
 Height units
@@ -20,7 +37,7 @@ With 'height' units everything is specified relative to the height of the window
 
 Spatial frequency: cycles **per stimulus** (so will scale with the size of the stimulus).
 
-Requires : No monitor information
+:darkgreen:`Requires :No monitor information`
 
 
 .. _unitsNorm:
@@ -32,7 +49,7 @@ In normalised ('norm') units the window ranges in both x and y from -1 to +1. Th
 
 Spatial frequency: cycles **per stimulus** (so will scale with the size of the stimulus).
 
-Requires : No monitor information
+:darkgreen:`Requires : No monitor information`
 
 
 .. _unitsCm:
@@ -44,7 +61,7 @@ Set the size and location of the stimulus in centimeters on the screen.
 
 Spatial frequency: cycles per cm
 
-Requires : information about the screen width in cm and size in pixels
+:darkorange:`Requires : information about the screen width in cm and size in pixels`
 
 Assumes : pixels are square. Can be verified by drawing a stimulus with matching width and height and verifying that it is in fact square. For a :term:`CRT` this can be controlled by setting the size of the viewable screen (settings on the monitor itself).
 
@@ -58,15 +75,15 @@ Use degrees of visual angle to set the size and location of the stimulus. This i
 
 Spatial frequency: cycles per degree
 
-Requires : information about the screen width in cm and pixels and the viewing distance in cm
+:darkorange:`Requires : information about the screen width in cm and pixels and the viewing distance in cm`
 
 There are actually three variants: 'deg', 'degFlat', and 'degFlatPos'
 
-**'deg'** :  Most people using degrees of visual angle choose to make the assumption that a degree of visual angle spans the same number of pixels at all parts of the screen. This isn't actually true for standard flat screens - a degree of visual angle at the edge of the screen spans more pixels because it is further from the eye. For moderate eccentricities the error is small (a 0.2% error in size calculation at 3 deg eccentricity) but grows as stimuli are placed further from the centre of the screen (a 2% error at 10 deg). For most studies this form of calculation is preferred, as it does not result in a warped appearance of visual stimuli, but if you need greater precision at far eccentricities then choose one of the alternatives below.
+*   **'deg'** :  Most people using degrees of visual angle choose to make the assumption that a degree of visual angle spans the same number of pixels at all parts of the screen. This isn't actually true for standard flat screens - a degree of visual angle at the edge of the screen spans more pixels because it is further from the eye. For moderate eccentricities the error is small (a 0.2% error in size calculation at 3 deg eccentricity) but grows as stimuli are placed further from the centre of the screen (a 2% error at 10 deg). For most studies this form of calculation is preferred, as it does not result in a warped appearance of visual stimuli, but if you need greater precision at far eccentricities then choose one of the alternatives below.
 
-**'degFlatPos'** : This accounts for flat screens in calculating position coordinates of visual stimuli but leaves size and spatial frequency uncorrected. This means that an evenly spaced grid of visual stimuli will appear warped in position but will 
+*   **'degFlatPos'** : This accounts for flat screens in calculating position coordinates of visual stimuli but leaves size and spatial frequency uncorrected. This means that an evenly spaced grid of visual stimuli will appear warped in position but will
 
-**'degFlat'**: This corrects the calculations of degrees for flatness of the screen for each vertex of your stimuli. Square stimuli in the periphery will, therefore, become more spaced apart but they will also get larger and rhomboid in the pixels that they occupy.
+*   **'degFlat'**: This corrects the calculations of degrees for flatness of the screen for each vertex of your stimuli. Square stimuli in the periphery will, therefore, become more spaced apart but they will also get larger and rhomboid in the pixels that they occupy.
 
 .. _unitsPix:
 
@@ -77,6 +94,6 @@ You can also specify the size and location of your stimulus in pixels. Obviously
 
 Spatial frequency: ```cycles per pixel``` (this catches people out but is used to be in keeping with the other units. If using pixels as your units you probably want a spatial frequency in the range 0.2-0.001 (i.e. from 1 cycle every 5 pixels to one every 100 pixels).
 
-Requires : information about the size of the screen (not window) in pixels, although this can often be deduce from the operating system if it has been set correctly there.
+:darkorange:`Requires : information about the size of the screen (not window) in pixels, although this can often be deduce from the operating system if it has been set correctly there.`
 
 Assumes: nothing

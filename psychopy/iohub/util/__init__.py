@@ -2,9 +2,6 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import division
-
-from builtins import object
 import sys
 import os
 import copy
@@ -15,6 +12,7 @@ import numbers  # numbers.Integral is like (int, long) but supports Py3
 import datetime
 from ..errors import print2err
 import re
+import collections.abc
 
 ########################
 #
@@ -298,8 +296,9 @@ def hideWindow(win, force=False):
     :return: None
     """
     if force or sys.platform == 'win32':
-        win.winHandle.minimize()  # minimize the PsychoPy window
-        win.winHandle.set_fullscreen(False)
+        if win._isFullScr:
+            win.winHandle.minimize()  # minimize the PsychoPy window
+            win.winHandle.set_fullscreen(False)
     elif sys.platform == 'darwin':
         pass
     elif sys.platform == 'linux':
@@ -315,8 +314,9 @@ def showWindow(win, force=False):
     :return: None
     """
     if force or sys.platform == 'win32':
-        win.winHandle.set_fullscreen(True)
-        win.winHandle.maximize()  # maximize the PsychoPy window
+        if win._isFullScr:
+            win.winHandle.set_fullscreen(True)
+            win.winHandle.maximize()  # maximize the PsychoPy window
     elif sys.platform == 'darwin':
         pass
     elif sys.platform == 'linux':
@@ -337,6 +337,17 @@ def updateDict(add_to, add_from):
         elif isinstance(value, dict) and isinstance(add_to[key], dict):
             updateDict(add_to[key], value)
 
+def updateSettings(d, u):
+    for k, v in u.items():
+        if type(k) == bytes:
+            k = k.decode('UTF-8')
+        if isinstance(v, collections.abc.Mapping):
+            d[k] = updateSettings(d.get(k, {}), v)
+        else:
+            if type(v) == bytes:
+                v = v.decode('UTF-8')
+            d[k] = v
+    return d
 
 # Convert Camel to Snake variable name format
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
@@ -356,7 +367,27 @@ getCurrentDateTime = datetime.datetime.now
 getCurrentDateTimeString = lambda: getCurrentDateTime().strftime("%Y-%m-%d %H:%M")
 
 
-class NumPyRingBuffer(object):
+# rgb255 color utils
+def hilo(a, b, c):
+    if c < b:
+        b, c = c, b
+    if b < a:
+        a, b = b, a
+    if c < b:
+        b, c = c, b
+    return a + c
+
+
+def complement(r, g, b):
+    if r == g == b:
+        # handle mono color
+        if r >= 128:
+            return 0, 0, 0
+        return 255, 255, 255
+    k = hilo(r, g, b)
+    return tuple(k - u for u in (r, g, b))
+
+class NumPyRingBuffer():
     """NumPyRingBuffer is a circular buffer implemented using a one dimensional
     numpy array on the backend. The algorithm used to implement the ring buffer
     behavior does not require any array copies to occur while the ring buffer
@@ -394,7 +425,7 @@ class NumPyRingBuffer(object):
 
         ring_buffer=NumPyRingBuffer(10)
 
-        for i in xrange(25):
+        for i in range(25):
             ring_buffer.append(i)
             print('-------')
             print('Ring Buffer Stats:')

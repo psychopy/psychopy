@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from builtins import object
 from psychopy import info, visual
 import pytest
 
@@ -8,7 +7,7 @@ import pytest
 
 
 @pytest.mark.info
-class TestInfo(object):
+class TestInfo():
     @classmethod
     def setup_class(self):
         self.win = visual.Window(size=(100,100), autoLog=False)

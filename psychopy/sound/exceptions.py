@@ -4,6 +4,8 @@
 """Errors and warnings associated with audio recording and playback.
 """
 
+from ..exceptions import SoundFormatError, DependencyError
+
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
@@ -16,9 +18,18 @@ __all__ = [
     'AudioUnsupportedCodecError',
     'AudioInvalidCaptureDeviceError',
     'AudioInvalidPlaybackDeviceError',
-    'AudioRecordingBufferFullError'
+    'AudioRecordingBufferFullError',
+    'RecognizerAPICredentialsError',
+    'RecognizerLanguageNotSupportedError',
+    'RecognizerEngineNotFoundError',
+    'SoundFormatError',
+    'DependencyError'
 ]
 
+
+# ------------------------------------------------------------------------------
+# Audio hardware and software exceptions
+#
 
 class AudioUnsupportedCodecError(Exception):
     """Error raise when trying to save or load and unsupported audio
@@ -74,6 +85,30 @@ class AudioInvalidPlaybackDeviceError(AudioInvalidDeviceError):
 class AudioRecordingBufferFullError(Exception):
     """Error raised when the recording buffer is full."""
     pass
+
+
+# ------------------------------------------------------------------------------
+# Transcriber exceptions
+#
+
+class RecognizerAPICredentialsError(ValueError):
+    """Raised when a given speech recognition is being given improper
+    credentials (i.e. API key is invalid or not found).
+    """
+
+
+class RecognizerLanguageNotSupportedError(ValueError):
+    """Raised when the specified language is not supported by the engine. If you
+    get this, you need to install the appropriate language support or select
+    another language.
+    """
+
+
+class RecognizerEngineNotFoundError(ModuleNotFoundError):
+    """Raised when the specified recognizer cannot be found. Usually get this
+    error if the required packages are not installed for a recognizer that is
+    invoked.
+    """
 
 
 if __name__ == "__main__":

@@ -1,0 +1,19 @@
+
+code: 4615
+cat: Audio Transcription
+msg: Chosen transcriber '{engine}' requires an API key, please supply one in Preferences.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: API key not found
+
+synopsis: |
+  If you're receiving this alert, it means you have selected an audio transcriber which requires an API key to function but have not supplied an API key in preferences.
+
+details: |
+  Some audio transcribers work fine without a key, they're just a publicly availble Python or JavaScript function which runs using your own computer's processing power, but others use algorithms which are either confidential or require huge amounts of processing power. This means that they need to be run on a server, often one which you've paid to access. If you have such a subscription, then your chosen transcription service will have provided you with an "API key" - this is a unique code, like a password, which tells their server who you are. If you are using such a transcription service within PsychoPy, then PsychoPy needs to be able to use your API key to request transcription.
+
+solutions: |
+  In PsychoPy, go to File -> Preferences -> General. Here you will find some preferences starting with `transcrKey` - in the one matching your choice of transcription service, copy and paste the API key you were given when you subscribed to that service.
+
+versions: |
+  > 2021.2.0

@@ -3,8 +3,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import division, absolute_import, print_function
-from past.builtins import unicode
+
 import os
 import sys
 import time
@@ -19,7 +18,6 @@ try:
     import psychopy.logging as psycho_logging
 except ImportError:
     psycho_logging = None
-from past.builtins import basestring
 from ..lazy_import import lazy_import
 from .. import IOHUB_DIRECTORY
 from ..util import yload, yLoader
@@ -35,13 +33,22 @@ getTime = Computer.getTime
 
 _currentSessionInfo = None
 
+def windowInfoDict(win):
+    windict = dict(handle=win._hw_handle, pos=win.pos, size=win.size,
+                   units=win.units, useRetina=win.useRetina, monitor=None)
+    if win.monitor:
+        windict['monitor'] = dict(resolution=win.monitor.getSizePix(),
+                                  width=win.monitor.getWidth(),
+                                  distance=win.monitor.getDistance())
+    return windict
+
 def getFullClassName(klass):
     module = klass.__module__
     if module == 'builtins':
         return klass.__qualname__  # avoid outputs like 'builtins.str'
     return module + '.' + klass.__qualname__
 
-class DeviceRPC(object):
+class DeviceRPC():
     '''
     ioHubDeviceView creates an RPC interface with the iohub server. Each
     iohub device method exposed by an ioHubDeviceView is represented
@@ -113,7 +120,7 @@ class DeviceRPC(object):
 
 # pylint: disable=protected-access
 
-class ioHubDeviceView(object):
+class ioHubDeviceView():
     """
     ioHubDeviceView is used as a client / PsychoPy process side representation
     of an ioHub device that is actually running on the separate iohub process.
@@ -191,7 +198,7 @@ class ioHubDeviceView(object):
 
 # pylint: enable=protected-access
 
-class ioHubDevices(object):
+class ioHubDevices():
     """
     Provides .name access to the the ioHub device's created when the ioHub
     Server is started. Each iohub device is accessible via a dynamically
@@ -220,7 +227,7 @@ class ioHubDevices(object):
     def getNames(self):
         return self._devicesByName.keys()
 
-class ioHubConnection(object):
+class ioHubConnection():
     """ioHubConnection is responsible for creating, sending requests to, and
     reading replies from the ioHub Process. This class is also used to
     shut down and disconnect the ioHub Server process.
@@ -283,7 +290,7 @@ class ioHubConnection(object):
         self._iohub_server_config = None
         self._shutdown_attempted = False
         self._cv_order = None
-
+        self._message_cache = []
         self.iohub_status = self._startServer(ioHubConfig, ioHubConfigAbsPath)
         if self.iohub_status != 'OK':
             raise RuntimeError('Error starting ioHub server: {}'.format(self.iohub_status))
@@ -434,9 +441,28 @@ class ioHubConnection(object):
         Create and send an Experiment MessageEvent to the ioHub Server
         for storage in the ioDataStore hdf5 file.
 
-        .. note::
-            MessageEvents can be thought of as DeviceEvents from the
-            virtual PsychoPy Process "Device".
+        Args:
+            text (str): The text message for the message event. 128 char max.
+
+            category (str): A str grouping code for the message. Optional.
+                            32 char max.
+
+            offset (float): Optional sec.msec offset applied to the
+                            message event time stamp. Default 0.
+
+            sec_time (float): Absolute sec.msec time stamp for the message in.
+                              If not provided, or None, then the MessageEvent
+                              is time stamped when this method is called
+                              using the global timer (core.getTime()).
+        """
+        self.cacheMessageEvent(text, category, offset, sec_time)
+        self._sendToHubServer(('EXP_DEVICE', 'EVENT_TX', self._message_cache))
+        self._message_cache = []
+
+    def cacheMessageEvent(self, text, category='', offset=0.0, sec_time=None):
+        """
+        Create an Experiment MessageEvent and store in local cache.
+        Message must be sent before it is saved to hdf5 file.
 
         Args:
             text (str): The text message for the message event. 128 char max.
@@ -451,17 +477,22 @@ class ioHubConnection(object):
                               If not provided, or None, then the MessageEvent
                               is time stamped when this method is called
                               using the global timer (core.getTime()).
-
-        Returns:
-            bool: True
-
         """
-        msg_evt = MessageEvent._createAsList(text, # pylint: disable=protected-access
+        self._message_cache.append(MessageEvent._createAsList(text, # pylint: disable=protected-access
                                              category=category,
                                              msg_offset=offset,
-                                             sec_time=sec_time)
-        self._sendToHubServer(('EXP_DEVICE', 'EVENT_TX', [msg_evt, ]))
-        return True
+                                             sec_time=sec_time))
+
+    def sendMessageEvents(self, messageList=[]):
+        if messageList:
+            self.cacheMessageEvents(messageList)
+        if self._message_cache:
+            self._sendToHubServer(('EXP_DEVICE', 'EVENT_TX', self._message_cache))
+            self._message_cache = []
+
+    def cacheMessageEvents(self, messageList):
+        for m in messageList:
+            self._message_cache.append(MessageEvent._createAsList(**m))
 
     def getHubServerConfig(self):
         """Returns a dict containing the current ioHub Server configuration.
@@ -611,7 +642,7 @@ class ioHubConnection(object):
 
         for cond_name in self._cv_order:
             cond_val = trial[cond_name]
-            if isinstance(cond_val, basestring):
+            if isinstance(cond_val, str):
                 numpy_dtype = (cond_name, 'S', 256)
             elif isinstance(cond_val, int):
                 numpy_dtype = (cond_name, 'i8')
@@ -646,7 +677,7 @@ class ioHubConnection(object):
             data = list(cv_row.values())
 
         for i, d in enumerate(data):
-            if isinstance(d, unicode):
+            if isinstance(d, str):
                 data[i] = d.encode('utf-8')
 
         cvt_rpc = ('RPC', 'extendConditionVariableTable',
@@ -669,6 +700,10 @@ class ioHubConnection(object):
         """
         r = self._sendToHubServer(
             ('RPC', 'unregisterWindowHandles', winHandles))
+        return r[2]
+
+    def updateWindowPos(self, win, x, y):
+        r = self._sendToHubServer(('RPC', 'updateWindowPos', (win._hw_handle, (x, y))))
         return r[2]
 
     def getTime(self):
@@ -777,16 +812,17 @@ class ioHubConnection(object):
         return self._addDeviceView(dev_name, device_class_name)
 
     def flushDataStoreFile(self):
-        """Manually tell the ioDataStore to flush any events it has buffered in
-        memory to disk.".
+        """Manually tell the iohub datastore to flush any events it has buffered in
+        memory to disk. Any cached message events are sent to the iohub server
+        before flushing the iohub datastore.
 
         Args:
             None
 
         Returns:
             None
-
         """
+        self.sendMessageEvents()
         r = self._sendToHubServer(('RPC', 'flushIODataStoreFile'))
         return r
 
@@ -969,7 +1005,9 @@ class ioHubConnection(object):
                 whs = []
                 # pylint: disable=protected-access
                 for w in window.openWindows:
-                    whs.append(w()._hw_handle)
+                    winfo = windowInfoDict(w())
+                    whs.append(winfo)
+                    w().backend.onMoveCallback = self.updateWindowPos
                 self.registerWindowHandles(*whs)
         except ImportError:
             pass
@@ -1141,7 +1179,7 @@ class ioHubConnection(object):
             raise ioHubError(result)
         # Otherwise return the result
         
-        if constants.PY3 and result is not None:
+        if result is not None:
             # Use recursive conversion funcs                     
             if isinstance(result, list) or  isinstance(result, tuple):
                 result = self._convertList(result)
@@ -1240,6 +1278,9 @@ class ioHubConnection(object):
 
     def _shutDownServer(self):
         if self._shutdown_attempted is False:
+            # send any cached experiment messages
+            self.sendMessageEvents()
+
             try:
                 from psychopy.visual import window
                 window.IOHUB_ACTIVE = False
@@ -1282,7 +1323,7 @@ class ioHubConnection(object):
             if isIterable(d0):
                 return False
             else:
-                if isinstance(d0, basestring) and d0.find('ERROR') >= 0:
+                if isinstance(d0, str) and d0.find('ERROR') >= 0:
                     return data
                 return False
         else:
@@ -1310,7 +1351,7 @@ class ioHubConnection(object):
 
 ##############################################################################
 
-class ioEvent(object):
+class ioEvent():
     """
     Parent class for all events generated by a psychopy.iohub.client
     Device wrapper.

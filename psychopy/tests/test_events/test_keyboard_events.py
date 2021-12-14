@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from builtins import object
 import pytest
 from psychopy import event, core
 from psychopy.preferences import prefs
@@ -19,7 +18,7 @@ from pyglet.window.key import (MOD_SHIFT,
 
 
 @pytest.mark.keyboard
-class TestKeyboardEvents(object):
+class TestKeyboardEvents():
 
     def test_keyname(self):
         """Test that a key name is correctly returned."""
@@ -97,7 +96,7 @@ class TestKeyboardEvents(object):
 
 
 @pytest.mark.keyboard
-class TestGLobalEventKeys(object):
+class TestGLobalEventKeys():
     @classmethod
     def setup_class(self):
         self.win = Window([128, 128], winType='pyglet', pos=[50, 50], autoLog=False)

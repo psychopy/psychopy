@@ -3,7 +3,7 @@
 Parallel Port Out Component
 ---------------------------------
 
-This component allows you to send triggers to a parallel port or to a LabJack device.
+This component allows you to send triggers to a parallel port, USB2TTL8, or LabJack U3 device.
 
 An example usage would be in EEG experiments to set the port to 0 when no stimuli are present and then set it to an identifier value for each stimulus synchronised to the start/stop of that stimulus. In that case you might set the `Start data` to be `$ID` (with ID being a column in your conditions file) and set the `Stop Data` to be 0.
 
@@ -39,6 +39,9 @@ Parameters for controlling hardware.
 Port address : select the appropriate option
     You need to know the address of the parallel port you wish to write to. The options that appear in this drop-down list are determined by the application preferences. You can add your particular port there if you prefer.
 
+Register : U3 register to write to
+     When using a LabJack U3, you can select which register is used to write a data byte to. Register EIO is the default.
+
 .. seealso::
 
-	API reference for :class:`~psychopy.hardware.iolab`
+	API reference for :class:`~psychopy.hardware.labjacks.U3`

@@ -5,15 +5,13 @@
 Demo of several visual stimuli depending on the mouse position.
 """
 
-from __future__ import division
-
 from psychopy import visual, event, core
 import numpy
 
 win = visual.Window([600, 600], color='black')
 
 gabor = visual.GratingStim(win, mask='gauss', pos=[-0.5, -0.5], color=[0, 0, 1], sf=5, ori=30)
-movie = visual.MovieStim3(win, 'jwpIntro.mov', units='pix', pos=[100, 100], size=[160, 120])
+movie = visual.MovieStim3(win, 'jwpIntro.mp4', units='pix', pos=[100, 100], size=[160, 120])
 txt = u"unicode (eg \u03A8 \u040A \u03A3)"
 text = visual.TextStim(win, pos=[0.5, -0.5], text=txt, font=['Times New Roman'])
 faceRGB = visual.ImageStim(win, image='face.jpg', pos=[-0.5, 0.5])

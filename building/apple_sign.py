@@ -18,7 +18,7 @@ finalDistFolder = thisFolder.parent.parent/'dist'
 
 with Path().home()/ 'keys/apple_ost_id' as p:
     IDENTITY = p.read_text().strip()
-with Path().home()/ 'keys/apple_psychopy3_app_specific' as p:
+with Path().home()/ 'keys/apple_psychopy_app_specific' as p:
     PWORD = p.read_text().strip()
 
 ENTITLEMENTS = thisFolder / "entitlements.plist"

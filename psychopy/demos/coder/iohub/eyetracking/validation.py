@@ -5,7 +5,6 @@ Calibrate, validate, run with GC cursor demo / test.
 Select which tracker to use by setting the TRACKER variable below.
 """
 
-from __future__ import absolute_import, division, print_function
 from psychopy import core, visual
 from psychopy import iohub
 from psychopy.iohub.client.eyetracker.validation import TargetStim
@@ -236,7 +235,7 @@ while t < TRIAL_COUNT:
         # Check any new keyboard char events for a space key.
         # If one is found, set the trial end variable.
         #
-        if keyboard.getPresses(keys=' '):
+        if keyboard.getPresses(keys='space'):
             run_trial = False
         elif core.getTime()-tstart_time > T_MAX:
             run_trial = False
@@ -249,6 +248,4 @@ while t < TRIAL_COUNT:
 # All Trials are done
 # End experiment
 tracker.setConnectionState(False)
-
-io.quit()
 core.quit()

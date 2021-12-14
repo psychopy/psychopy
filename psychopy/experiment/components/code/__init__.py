@@ -5,9 +5,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-
-from builtins import str
 from os import path
 from pathlib import Path
 
@@ -65,7 +62,7 @@ class CodeComponent(BaseComponent):
         self.params['Code Type'] = Param(
             codeType, valType='str', inputType="choice", allowedTypes=[],
             allowedVals=['Py', 'JS', 'Both', 'Auto->JS'],
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['Code Type'])
 
         msg = _translate("Code to run before the experiment starts "

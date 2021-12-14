@@ -5,13 +5,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-
-from __future__ import absolute_import, print_function
-
-from builtins import str
-from builtins import range
-from past.builtins import basestring
-from os import path
 from pathlib import Path
 
 from psychopy.experiment.components import BaseComponent, Param, _translate
@@ -76,7 +69,7 @@ class JoyButtonsComponent(BaseComponent):
         self.params['store'] = Param(
             store, valType='str', inputType="choice", allowedTypes=[], categ='Data',
             allowedVals=['last key', 'first key', 'all keys', 'nothing'],
-            updates='constant',
+            updates='constant', direct=False,
             hint=msg,
             label=_localized['store'])
 
@@ -306,16 +299,7 @@ class JoyButtonsComponent(BaseComponent):
         if allowedKeys in [None, "none", "None", "", "[]", "()"]:
             keyList=[]
         elif not allowedKeysIsVar:
-            try:
-                keyList = eval(allowedKeys)
-            except Exception:
-                raise CodeGenerationException(
-                    self.params["name"], "Allowed keys list is invalid.")
-            # this means the user typed "left","right" not ["left","right"]
-            if type(keyList) == tuple:
-                keyList = list(keyList)
-            elif isinstance(keyList, int):  # a single string/key
-                keyList = [keyList]
+            keyList = self.params['allowedKeys']
 
         code1 = ("{name}.newButtonState = {name}.device.getAllButtons()[:]\n"
                  "{name}.pressedButtons = []\n"
@@ -454,7 +438,7 @@ class JoyButtonsComponent(BaseComponent):
         if currLoop.type in ['StairHandler', 'MultiStairHandler']:
             # data belongs to a Staircase-type of object
             if self.params['storeCorrect'].val is True:
-                code = ("%s.addResponse(%s.corr)\n" %
+                code = ("%s.addResponse(%s.corr, level)\n" %
                         (currLoop.params['name'], name) +
                         "%s.addOtherData('%s.rt', %s.rt)\n"
                         % (currLoop.params['name'], name, name))

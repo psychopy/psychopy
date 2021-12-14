@@ -4,7 +4,7 @@
 ioHub Common Eye Tracker Interface
 ########################################
 
-The iohub commmon eye tracker interface provides a consistent way to configure
+The iohub common eye tracker interface provides a consistent way to configure
 and collected data from several different eye tracker manufacturers.
     
 Supported Eye Trackers

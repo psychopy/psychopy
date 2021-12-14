@@ -5,10 +5,6 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-from builtins import super  # provides Py3-style super() using python-future
-
-from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, \
     getInitVals, _translate
@@ -222,13 +218,12 @@ class SliderComponent(BaseVisualComponent):
 
         # build up an initialization string for Slider():
         initStr = ("{name} = visual.Slider(win=win, name='{name}',\n"
-                   "    size={size}, pos={pos}, units={units},\n"
+                   "    startValue={initVal}, size={size}, pos={pos}, units={units},\n"
                    "    labels={labels}, ticks={ticks}, granularity={granularity},\n"
                    "    style={styles}, styleTweaks={styleTweaks}, opacity={opacity},\n"
-                   "    color={color}, fillColor={fillColor}, borderColor={borderColor}, colorSpace={colorSpace},\n"
+                   "    labelColor={color}, markerColor={fillColor}, lineColor={borderColor}, colorSpace={colorSpace},\n"
                    "    font={font}, labelHeight={letterHeight},\n"
-                   "    flip={flip}, depth={depth}, readOnly={readOnly})\n"
-                   "{name}.markerPos = {initVal}\n"
+                   "    flip={flip}, ori={ori}, depth={depth}, readOnly={readOnly})\n"
                    .format(**inits))
         buff.writeIndented(initStr)
 
@@ -284,9 +279,9 @@ class SliderComponent(BaseVisualComponent):
         initStr = ("{name} = new visual.Slider({{\n"
                    "  win: psychoJS.window, name: '{name}',\n"
                    "  size: {size}, pos: {pos}, units: {units},\n"
-                   "  labels: {labels}, ticks: {ticks},\n"
+                   "  labels: {labels}, fontSize: {letterHeight}, ticks: {ticks},\n"
                    "  granularity: {granularity}, style: {styles},\n"
-                   "  color: new util.Color({color}), \n"
+                   "  color: new util.Color({color}), markerColor: new util.Color({fillColor}), lineColor: new util.Color({borderColor}), \n"
                    "  fontFamily: {font}, bold: true, italic: false, depth: {depth}, \n"
                    ).format(**inits)
         initStr += ("  flip: {flip},\n"

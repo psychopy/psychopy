@@ -1,9 +1,5 @@
 """Test StairHandler"""
 
-from __future__ import division, print_function
-
-from builtins import range
-from builtins import object
 import numpy as np
 import shutil
 import json_tricks
@@ -20,7 +16,7 @@ DEBUG = False
 np.random.seed(1000)
 
 
-class _BaseTestStairHandler(object):
+class _BaseTestStairHandler():
     def setup(self):
         self.tmp_dir = mkdtemp(prefix='psychopy-tests-%s' %
                                       type(self).__name__)

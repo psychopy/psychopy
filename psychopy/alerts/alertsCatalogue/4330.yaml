@@ -1,0 +1,19 @@
+
+code: 4330
+cat: Components
+msg: Recording device '{device}' not found, using default device instead.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Recording device not found
+
+synopsis: |
+  The recording device specified in your Microphone component could not be found on your current machine, so when writing the Python code for this experiment to run, the default device will be used instead.
+
+details: |
+  When writing Python code for Microphone components, PsychoPy needs to know the numeric index of its recording device. If the device isn't connected, then this information isn't available, so the Python code is written with the default device index instead.
+
+solutions: |
+  The information in your `.psyexp` file won't be changed, just the compiled Python file. If you open the same `.psyexp` file on a machine with the device connected, the Python code generated will contain that device's index, so if you're just testing the experiment on a different machine to the one it will run on then you can ignore this alert.
+
+versions: |
+  > 2021.2.0

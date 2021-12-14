@@ -8,9 +8,13 @@
 """Class for loading / saving prefs
 """
 
-from __future__ import absolute_import, print_function
+from pathlib import Path
 
 from . import preferences as prefsLib
+from .generateSpec import generateSpec
 
 Preferences = prefsLib.Preferences
 prefs = prefsLib.prefs
+
+# Take note of the folder this module is in
+__folder__ = Path(__file__).parent

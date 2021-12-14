@@ -7,11 +7,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import str
-from builtins import range
-from past.builtins import basestring
 import sys
 import numpy
 
@@ -325,6 +320,8 @@ class RatingScale(MinimalStim):
             mouseOnly = True
             noMouse = False
 
+        self.colorSpace = colorSpace
+
         # make things well-behaved if the requested value(s) would be trouble:
         self._initFirst(showAccept, mouseOnly, noMouse, singleClick,
                         acceptKeys, marker, markerStart, low, high, precision,
@@ -475,7 +472,7 @@ class RatingScale(MinimalStim):
         try:
             self.markerStart = float(markerStart)
         except Exception:
-            if (isinstance(markerStart, basestring) and
+            if (isinstance(markerStart, str) and
                     type(self.choices) == list and
                     markerStart in self.choices):
                 self.markerStart = self.choices.index(markerStart)
@@ -760,7 +757,7 @@ class RatingScale(MinimalStim):
         """
         # preparatory stuff:
         self.markerOffsetVert = 0.
-        if isinstance(marker, basestring):
+        if isinstance(marker, str):
             self.markerStyle = marker
         elif not hasattr(marker, 'draw'):
             logging.error("RatingScale: custom marker has no draw() method")
@@ -774,7 +771,7 @@ class RatingScale(MinimalStim):
                     "RatingScale: custom marker has no pos attribute")
 
         self.markerSize = 8. * self.size
-        if isinstance(markerColor, basestring):
+        if isinstance(markerColor, str):
             markerColor = markerColor.replace(' ', '')
 
         # define or create self.marker:
@@ -907,10 +904,10 @@ class RatingScale(MinimalStim):
     def _setMarkerColor(self, color):
         """Set the fill color or color of the marker"""
         try:
-            self.marker.setFillColor(color, log=False)
+            self.marker.setFillColor(color, colorSpace=self.colorSpace, log=False)
         except AttributeError:
             try:
-                self.marker.setColor(color, log=False)
+                self.marker.setColor(color, colorSpace=self.colorSpace, log=False)
             except Exception:
                 pass
 
@@ -1006,8 +1003,10 @@ class RatingScale(MinimalStim):
         self.accept.font = textFont
 
         self.acceptTextColor = markerColor
-        if markerColor in ['White']:
-            self.acceptTextColor = 'Black'
+        if isinstance(markerColor, str):
+            # warning raised if color not specified as a string
+            if markerColor in ['White']:
+                self.acceptTextColor = 'Black'
 
     def _getMarkerFromPos(self, mouseX):
         """Convert mouseX into units of tick marks, 0 .. high-low.
@@ -1198,10 +1197,10 @@ class RatingScale(MinimalStim):
             if self.showAccept and self.markerPlacedBySubject:
                 self.frame = (self.frame + 1) % 100
                 self.acceptBox.setFillColor(
-                    self.pulseColor[self.frame], log=False)
+                    self.pulseColor[self.frame], colorSpace=self.colorSpace, log=False)
                 self.acceptBox.setLineColor(
-                    self.pulseColor[self.frame], log=False)
-                self.accept.setColor(self.acceptTextColor, log=False)
+                    self.pulseColor[self.frame], colorSpace=self.colorSpace, log=False)
+                self.accept.setColor(self.acceptTextColor, colorSpace=self.colorSpace, log=False)
                 if self.showValue and self.markerPlacedAt is not False:
                     if self.choices:
                         val = str(self.choices[int(self.markerPlacedAt)])
@@ -1286,16 +1285,16 @@ class RatingScale(MinimalStim):
             if (mouseNearLine or
                     self.markerPlacedAt != self.markerPlacedAtLast):
                 if hasattr(self, 'targetWord'):
-                    self.targetWord.setColor(self.textColor, log=False)
+                    self.targetWord.setColor(self.textColor, colorSpace=self.colorSpace, log=False)
                     # self.targetWord.setHeight(self.textSizeSmall, log=False)
                     # # avoid TextStim memory leak
                 self.targetWord = self.labels[int(self.markerPlacedAt)]
-                self.targetWord.setColor(self.markerColor, log=False)
+                self.targetWord.setColor(self.markerColor, colorSpace=self.colorSpace, log=False)
                 # skip size change to reduce mem leakage from pyglet text
                 # self.targetWord.setHeight(1.05*self.textSizeSmall,log=False)
                 self.markerPlacedAtLast = self.markerPlacedAt
             elif not mouseNearLine and self.wasNearLine:
-                self.targetWord.setColor(self.textColor, log=False)
+                self.targetWord.setColor(self.textColor, colorSpace=self.colorSpace, log=False)
                 # self.targetWord.setHeight(self.textSizeSmall, log=False)
             self.wasNearLine = mouseNearLine
 
@@ -1310,8 +1309,8 @@ class RatingScale(MinimalStim):
             # minimum time is enforced during key and mouse handling
             self.status = FINISHED
             if self.showAccept:
-                self.acceptBox.setFillColor(self.acceptFillColor, log=False)
-                self.acceptBox.setLineColor(self.acceptLineColor, log=False)
+                self.acceptBox.setFillColor(self.acceptFillColor, colorSpace=self.colorSpace, log=False)
+                self.acceptBox.setLineColor(self.acceptLineColor, colorSpace=self.colorSpace, log=False)
         else:
             # build up response history if no decision or skip yet:
             tmpRating = self.getRating()
@@ -1334,7 +1333,7 @@ class RatingScale(MinimalStim):
         # reset label color if using hover
         if self.markerStyle == 'hover':
             for labels in self.labels:
-                labels.setColor(self.textColor, log=False)
+                labels.setColor(self.textColor, colorSpace=self.colorSpace, log=False)
         self.noResponse = True
         # restore in case it turned gray, etc
         self.markerColor = self.markerColorOriginal
@@ -1358,8 +1357,8 @@ class RatingScale(MinimalStim):
         self.frame = 0  # a counter used only to 'pulse' the 'accept' box
 
         if self.showAccept:
-            self.acceptBox.setFillColor(self.acceptFillColor, log=False)
-            self.acceptBox.setLineColor(self.acceptLineColor, log=False)
+            self.acceptBox.setFillColor(self.acceptFillColor, colorSpace=self.colorSpace, log=False)
+            self.acceptBox.setLineColor(self.acceptLineColor, colorSpace=self.colorSpace, log=False)
             self.accept.setColor('#444444', colorSpace='hex', log=False)  # greyed out
             self.accept.setText(self.keyClick, log=False)
         if log and self.autoLog:

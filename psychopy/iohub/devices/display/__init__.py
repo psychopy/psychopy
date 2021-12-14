@@ -50,9 +50,7 @@ class Display(Device):
             self._xwindow = None
 
         if Display._computer_display_runtime_info_list is None:
-            Display._computer_display_runtime_info_list =\
-                Display._createAllRuntimeInfoDicts()
-
+            Display._computer_display_runtime_info_list = Display._createAllRuntimeInfoDicts()
         self._addRuntimeInfoToDisplayConfig()
 
     def getDeviceNumber(self):
@@ -95,6 +93,15 @@ class Display(Device):
 
         """
         return len(cls._computer_display_runtime_info_list)
+
+    @classmethod
+    def getAllDisplayBounds(cls):
+        """
+        Returns pixel display bounds (l,t r,b) for each detected display.
+        
+        :return: list of (l,t r,b) tuples
+        """
+        return [d.get('bounds') for d in cls._computer_display_runtime_info_list]
 
     def getRuntimeInfo(self, display_index = None):
         """
@@ -583,7 +590,7 @@ class Display(Device):
             return (x - w / 2), -y + h / 2
 
         def psychopy2displayPix(cx, cy):
-            return l + (cx + w / 2), t + (cy + h / 2)
+            return l + (cx + w / 2), b - (cy + h / 2)
 
         if coord_type == 'pix':
             def pix2coord(self, x, y, display_index=None):

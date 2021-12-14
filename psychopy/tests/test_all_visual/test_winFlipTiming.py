@@ -1,6 +1,5 @@
 
 
-from builtins import object
 import sys
 from psychopy import visual, clock
 import pytest
@@ -12,7 +11,7 @@ try:
 except ImportError:
     havePTB = False
 
-class Test_WinFlipTiming(object):
+class Test_WinFlipTiming():
     def setup_class(self):
         self.win = visual.Window(size=(200, 200), units='pix',
                                  allowGUI=False, autoLog=False,

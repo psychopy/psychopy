@@ -4,8 +4,6 @@
 Demo of using the iohub mouse.
 """
 
-from __future__ import absolute_import, division, print_function
-
 import sys
 
 from psychopy import visual, core
@@ -20,8 +18,8 @@ io = launchHubServer(window=win)
 # some default devices have been created that can now be used
 keyboard = io.devices.keyboard
 mouse = io.devices.mouse
-
-win.setMouseVisible(False)
+mouse.setPosition((0.0, .250))
+#win.setMouseVisible(False)
 
 # Create some psychopy visual stim
 fixSpot = visual.GratingStim(win, tex="none", mask="gauss", pos=(0, 0), size=(.03, .03), color='black', autoLog=False)

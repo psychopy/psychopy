@@ -136,10 +136,7 @@ except IOError:
     logging.debug("Locale for '%s' not found. Using default." % lang)
     trans = gettext.NullTranslations()
 
-if constants.PY3:
-    trans.install()
-else:
-    trans.install(unicode=True)
+trans.install()
 
 # PsychoPy app uses a nonstandard name _translate (instead of _)
 # A dependency overwrites _ somewhere, clobbering use of _ as global:

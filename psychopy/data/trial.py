@@ -1,23 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import str
-from builtins import range
-from past.builtins import basestring
-from past.utils import old_div
 import os
 import sys
-import string
 import copy
-import codecs
 import numpy as np
 import pandas as pd
 
 from psychopy import logging
-from psychopy.constants import PY3
-from psychopy.tools.arraytools import shuffleArray
 from psychopy.tools.filetools import (openOutputFile, genDelimiter,
                                       genFilenameFromDelimiter)
 from .utils import importConditions
@@ -144,7 +134,7 @@ class TrialHandler(_BaseTrialHandler):
             # which corresponds to a list with a single empty entry
             self.trialList = [None]
         # user has hopefully specified a filename
-        elif isinstance(trialList, basestring) and os.path.isfile(trialList):
+        elif isinstance(trialList, str) and os.path.isfile(trialList):
             # import conditions from that file
             self.trialList = importConditions(trialList)
         else:
@@ -205,10 +195,7 @@ class TrialHandler(_BaseTrialHandler):
             strRepres += str('\tdata=')
             strRepres += str(data) + '\n'
 
-        if PY3:
-            method_string = "<class 'method'>"
-        else:
-            method_string = 'instancemethod'
+        method_string = "<class 'method'>"
 
         for thisAttrib in attribs:
             # can handle each attribute differently
@@ -240,13 +227,15 @@ class TrialHandler(_BaseTrialHandler):
         from the user.
 
         The returned sequence has form indices[stimN][repN]
-        Example: sequential with 6 trialtypes (rows), 5 reps (cols), returns:
-            [[0 0 0 0 0]
-             [1 1 1 1 1]
-             [2 2 2 2 2]
-             [3 3 3 3 3]
-             [4 4 4 4 4]
-             [5 5 5 5 5]]
+        Example: sequential with 6 trialtypes (rows), 5 reps (cols), returns::
+
+        [[0 0 0 0 0]
+        [1 1 1 1 1]
+        [2 2 2 2 2]
+        [3 3 3 3 3]
+        [4 4 4 4 4]
+        [5 5 5 5 5]]
+
         These 30 trials will be returned by .next() in the order:
             0, 1, 2, 3, 4, 5,   0, 1, 2, ...  ... 3, 4, 5
 
@@ -849,7 +838,7 @@ class TrialHandler2(_BaseTrialHandler):
             self.trialList = [None]
             self.columns = []
         # user has hopefully specified a filename
-        elif isinstance(trialList, basestring) and os.path.isfile(trialList):
+        elif isinstance(trialList, str) and os.path.isfile(trialList):
             # import conditions from that file
             self.trialList, self.columns = importConditions(
                 trialList,
@@ -906,10 +895,7 @@ class TrialHandler2(_BaseTrialHandler):
             strRepres += str('\tdata=')
             strRepres += str(data) + '\n'
 
-        if PY3:
-            method_string = "<class 'method'>"
-        else:
-            method_string = 'instancemethod'
+        method_string = "<class 'method'>"
 
         for thisAttrib in attribs:
             # can handle each attribute differently
@@ -1325,7 +1311,7 @@ class TrialHandlerExt(TrialHandler):
             # which corresponds to a list with a single empty entry
             self.trialList = [None]
         # user has hopefully specified a filename
-        elif isinstance(trialList, basestring) and os.path.isfile(trialList):
+        elif isinstance(trialList, str) and os.path.isfile(trialList):
             # import conditions from that file
             self.trialList = importConditions(trialList)
         else:
@@ -1380,25 +1366,28 @@ class TrialHandlerExt(TrialHandler):
         from the user.
 
         The returned sequence has form indices[stimN][repN]
-        Example: sequential with 6 trialtypes (rows), 5 reps (cols), returns:
-            [[0 0 0 0 0]
-             [1 1 1 1 1]
-             [2 2 2 2 2]
-             [3 3 3 3 3]
-             [4 4 4 4 4]
-             [5 5 5 5 5]]
+        Example: sequential with 6 trialtypes (rows), 5 reps (cols), returns::
+
+        [[0 0 0 0 0]
+        [1 1 1 1 1]
+        [2 2 2 2 2]
+        [3 3 3 3 3]
+        [4 4 4 4 4]
+        [5 5 5 5 5]]
+
         These 30 trials will be returned by .next() in the order:
             0, 1, 2, 3, 4, 5,   0, 1, 2, ...  ... 3, 4, 5
 
         Example: random, with 3 trialtypes, where the weights of
         conditions 0,1, and 2 are 3,2, and 1 respectively,
-        and a rep value of 5, might return:
-            [[0 1 2 0 1]
-             [1 0 1 1 1]
-             [0 2 0 0 0]
-             [0 0 0 1 0]
-             [2 0 1 0 2]
-             [1 1 0 2 0]]
+        and a rep value of 5, might return::
+
+        [[0 1 2 0 1]
+        [1 0 1 1 1]
+        [0 2 0 0 0]
+        [0 0 0 1 0]
+        [2 0 1 0 2]
+        [1 1 0 2 0]]
 
         These 30 trials will be returned by .next() in the order:
             0, 1, 0, 0, 2, 1,   1, 0, 2, 0, 0, 1, ...
@@ -1559,7 +1548,7 @@ class TrialHandlerExt(TrialHandler):
 
             _tw = self.trialWeights[self.thisIndex]
             dataRowThisTrial = firstRowIndex + (nThisTrialPresented - 1) % _tw
-            dataColThisTrial = int(old_div((nThisTrialPresented - 1), _tw))
+            dataColThisTrial = int((nThisTrialPresented - 1) // _tw)
 
             position = [dataRowThisTrial, dataColThisTrial]
 
@@ -1590,7 +1579,7 @@ class TrialHandlerExt(TrialHandler):
 
             _tw = self.trialWeights[self.thisIndex]
             dataRowThisTrial = firstRowIndex + nThisTrialPresented % _tw
-            dataColThisTrial = int(old_div(nThisTrialPresented, _tw))
+            dataColThisTrial = int(nThisTrialPresented // _tw)
 
             position = [dataRowThisTrial, dataColThisTrial]
 
@@ -1876,7 +1865,7 @@ class TrialHandlerExt(TrialHandler):
                             firstRowIndex = sum(self.trialWeights[:tti])
                             _tw = self.trialWeights[tti]
                             row = firstRowIndex + rep % _tw
-                            col = int(old_div(rep, _tw))
+                            col = int(rep // _tw)
                             nextEntry[prmName] = self.data[prmName][row][col]
                     else:
                         # allow a null value if this parameter wasn't

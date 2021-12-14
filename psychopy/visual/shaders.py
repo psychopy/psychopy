@@ -8,8 +8,6 @@
 """shaders programs for either pyglet or pygame
 """
 
-from __future__ import absolute_import, print_function
-
 import pyglet.gl as GL
 import psychopy.tools.gltools as gltools
 from ctypes import c_int, c_char_p, c_char, cast, POINTER, byref

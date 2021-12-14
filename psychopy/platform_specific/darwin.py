@@ -5,11 +5,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
-
-from past.utils import old_div
-import sys
-import time
 from psychopy import logging
 try:
     import ctypes
@@ -128,10 +123,10 @@ def rush(value=True, realtime=False):
         bus = getBusFreq()
         extendedPolicy = _timeConstraintThreadPolicy()
         # number of cycles in hz (make higher than frame rate)
-        extendedPolicy.period = old_div(bus, 160)
-        extendedPolicy.computation = old_div(bus, 320)  # half of that period
+        extendedPolicy.period = bus // 160
+        extendedPolicy.computation = bus // 320  # half of that period
         # max period that they should be carried out in
-        extendedPolicy.constrain = old_div(bus, 640)
+        extendedPolicy.constrain = bus // 640
         extendedPolicy.preemptible = 1
         extendedPolicy = getThreadPolicy(getDefault=True,
                                          flavour=THREAD_TIME_CONSTRAINT_POLICY)
@@ -271,9 +266,9 @@ def waitForVBL(screen=0, nFrames=1):
         return False
 
     scrID = getScreen(screen)
-    framePeriod = old_div(1.0, getRefreshRate(screen))
+    framePeriod = 1.0 / getRefreshRate(screen)
     if screen > 0:  # got multiple screens, check if they have same rate
-        mainFramePeriod = old_div(1.0, getRefreshRate(0))
+        mainFramePeriod = 1.0 / getRefreshRate(0)
         if mainFramePeriod != framePeriod:
             # CGDisplayBeamPosition is unpredictable in this case - usually
             # synced to the first monitor, but maybe better if 2 gfx cards?

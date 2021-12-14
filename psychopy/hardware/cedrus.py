@@ -10,18 +10,14 @@ See http://www.cedrus.com/
 
 DEPRECATED:
 This sub-package is out of date. Please use the cedrus-written
-pyxid package instead (bundled with Standalone PsychoPy)::
-    import pyxid
+pyxid2 package instead (bundled with Standalone PsychoPy)::
+    import pyxid2
 
 ----------
 """
-from __future__ import absolute_import, print_function
 
-from builtins import range
-from builtins import object
 from psychopy import core, logging
 import struct
-import sys
 
 try:
     import serial
@@ -29,7 +25,7 @@ except ImportError:
     serial = False
 
 
-class _KeyEvent(object):
+class _KeyEvent:
     """Info about a keypress from Cedrus keypad XID string
     """
 
@@ -59,7 +55,7 @@ class _KeyEvent(object):
             self.rt = struct.unpack('i', XID[2:])[0]  # integer in ms
 
 
-class RB730(object):
+class RB730:
     """Class to control/read a Cedrus RB-series response box
     """
 

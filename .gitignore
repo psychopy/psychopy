@@ -100,7 +100,6 @@ gource_psychopy.mkv
 *.iohpid
 *.paths
 *.EDF
-*.mp4
 *.hdf5
 *.7z
 
@@ -108,4 +107,4 @@ gource_psychopy.mkv
 #################################
 .coverage
 nonSphinx
-/venv/
+/venv*/

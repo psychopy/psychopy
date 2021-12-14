@@ -2,8 +2,6 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import division, print_function, absolute_import
-
 from collections import namedtuple
 
 import numpy as np
@@ -12,6 +10,7 @@ from .. import Device, Computer
 from ...constants import EventConstants, DeviceConstants
 from ...constants import MouseConstants, KeyboardConstants
 from ...errors import print2err, printExceptionDetailsToStdErr
+from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
 
 RectangleBorder = namedtuple('RectangleBorderClass', 'left top right bottom')
 currentSec = Computer.getTime
@@ -124,7 +123,7 @@ class MouseDevice(Device):
             tuple: new (x,y) position of mouse in Display coordinate space.
         """
         try:
-            pos = int(pos[0]), int(pos[1])
+            pos = pos[0], pos[1]
         except Exception:
             print2err('Warning: Mouse.setPosition: pos must be a list of '
                       'two numbers, not: ', pos)
@@ -169,6 +168,69 @@ class MouseDevice(Device):
             self._nativeSetMousePos(px, py)
         return self._position
 
+    def _desktopToWindowPos(self, dpos):
+        winfos = self._iohub_server._psychopy_windows
+        for w in winfos.values():
+            mx, my = dpos
+            wx, wy = w['pos'][0],  w['pos'][1]
+            ww, wh = w['size'][0], w['size'][1]
+            if w['useRetina']:
+                ww = ww / 2
+                wh = wh / 2
+            if wx <= mx <= wx+ww:
+                if wy <= my <= wy + wh:
+                    return w['handle'], mx - wx - ww/2, -(my - wy - wh/2)
+        return None, None, None
+
+    def _pix2windowUnits(self, win_handle, pos):
+        win = self._iohub_server._psychopy_windows.get(win_handle)
+        win_units = win['units']
+        monitor = win['monitor']
+        pos = np.asarray(pos)
+        if win_units == 'pix':
+            return pos
+        elif win_units == 'norm':
+            return pos * 2.0 / win['size']
+        elif win_units == 'cm':
+            if monitor:
+                return pix2cm(pos, monitor['monitor'])
+            else:
+                # should raise exception?
+                print2err("iohub Mouse error: Window is using units %s but has no Monitor definition." % win_units)
+        elif win_units == 'deg':
+            if monitor:
+                return pix2deg(pos, monitor['monitor'])
+            else:
+                # should raise exception?
+                print2err("iohub Mouse error: Window is using units %s but has no Monitor definition." % win_units)
+        elif win_units == 'height':
+            return pos / float(win['size'][1])
+
+    def _windowUnits2pix(self, win_handle, pos):
+        win = self._iohub_server._psychopy_windows.get(win_handle)
+        win_units = win['units']
+        monitor = win['monitor']
+        pos = np.asarray(pos)
+        if win_units == 'pix':
+            return pos
+        elif win_units == 'norm':
+            return pos * win['size'] / 2.0
+        elif win_units == 'cm':
+            if monitor:
+                return cm2pix(pos, monitor['monitor'])
+            else:
+                # should raise exception?
+                print2err("iohub Mouse error: Window is using units %s but has no Monitor definition." % win_units)
+
+        elif win_units == 'deg':
+            if monitor:
+                return deg2pix(pos, monitor['monitor'])
+            else:
+                # should raise exception
+                print2err("iohub Mouse error: Window is using units %s but has no Monitor definition." % win_units)
+        elif win_units == 'height':
+            return pos * float(win['size'][1])
+
     def getDisplayIndex(self):
         """
         Returns the current display index of the ioHub Mouse Device.
@@ -207,6 +269,9 @@ class MouseDevice(Device):
             self._initialMousePos()
             cpos = self._position
             lpos = self._lastPosition
+            if lpos is None:
+                lpos = cpos[0], cpos[1]
+
             change_x = cpos[0] - lpos[0]
             change_y = cpos[1] - lpos[1]
             if return_display_index is True:
@@ -351,9 +416,9 @@ class MouseInputEvent(DeviceEvent):
         ('pressed_buttons', np.uint8),
 
         # x position of the position when the event occurred
-        ('x_position', np.int16),
+        ('x_position', np.float64),
         # y position of the position when the event occurred
-        ('y_position', np.int16),
+        ('y_position', np.float64),
 
         # horizontal scroll wheel position change when the event occurred (OS X
         # only)

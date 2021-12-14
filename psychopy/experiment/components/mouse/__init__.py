@@ -5,10 +5,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-from builtins import super  # provides Py3-style super() using python-future
-
-from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.localization import _localized as __localized
@@ -62,7 +58,7 @@ class MouseComponent(BaseComponent):
         self.params['saveMouseState'] = Param(
             save, valType='str', inputType="choice", categ='Data',
             allowedVals=['final', 'on click', 'every frame', 'never'],
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['saveMouseState'])
 
         msg = _translate("Should a button press force the end of the routine"
@@ -74,7 +70,7 @@ class MouseComponent(BaseComponent):
         self.params['forceEndRoutineOnPress'] = Param(
             forceEndRoutineOnPress, valType='str', inputType="choice", categ='Basic',
             allowedVals=['never', 'any click', 'valid click'],
-            updates='constant',
+            updates='constant', direct=False,
             hint=msg,
             label=_localized['forceEndRoutineOnPress'])
 
@@ -84,25 +80,25 @@ class MouseComponent(BaseComponent):
             timeRelativeTo, valType='str', inputType="choice", categ='Data',
             allowedVals=['mouse onset', 'experiment', 'routine'],
             updates='constant',
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['timeRelativeTo'])
-
 
         msg = _translate('If the mouse button is already down when we start '
                          'checking then wait for it to be released before '
                          'recording as a new click.'
                          )
         self.params['newClicksOnly'] = Param(
-            True, valType='bool', inputType="bool", categ='Data',
+            True, valType='bool', inputType="bool", categ='Basic',
             updates='constant',
             hint=msg,
             label=_localized['New clicks only'])
+
         msg = _translate('A comma-separated list of your stimulus names that '
                          'can be "clicked" by the participant. '
                          'e.g. target, foil'
                          )
         self.params['clickable'] = Param(
-            '', valType='list', inputType="single", categ='Data',
+            '', valType='list', inputType="single", categ='Basic',
             updates='constant',
             hint=msg,
             label=_localized['Clickable stimuli'])
@@ -114,10 +110,9 @@ class MouseComponent(BaseComponent):
                          )
         self.params['saveParamsClickable'] = Param(
             'name,', valType='list', inputType="single", categ='Data',
-            updates='constant', allowedUpdates=[],
+            updates='constant', allowedUpdates=[], direct=False,
             hint=msg,
             label=_localized['Store params for clicked'])
-
 
     @property
     def _clickableParamsList(self):
@@ -244,14 +239,6 @@ class MouseComponent(BaseComponent):
         elif timeRelative in ['routine', 'mouse onset']:
             self.clockStr = '%s.mouseClock' % self.params['name'].val
 
-        # only write code for cases where we are storing data as we go (each
-        # frame or each click)
-
-        # might not be saving clicks, but want it to force end of trial
-        if (self.params['saveMouseState'].val not in
-                ['every frame', 'on click'] and forceEnd == 'never'):
-            return
-
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
 
         # writes an if statement to determine whether to draw etc
@@ -280,6 +267,14 @@ class MouseComponent(BaseComponent):
             buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
             # to get out of the if statement
             buff.setIndentLevel(-2, relative=True)
+
+        # only write code for cases where we are storing data as we go (each
+        # frame or each click)
+
+        # might not be saving clicks, but want it to force end of trial
+        if (self.params['saveMouseState'].val not in
+                ['every frame', 'on click'] and forceEnd == 'never'):
+            return
 
         # if STARTED and not FINISHED!
         code = ("if %(name)s.status == STARTED:  "
