@@ -1293,7 +1293,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         """
         self.routinePanel.createNewRoutine()
 
-    def renameRoutine(self, name, event=None, returnName=True):
+    def renameRoutine(self, name, event=None):
         """Defines ability to rename routine in the routine panel
         """
         # get notebook details
@@ -1532,27 +1532,18 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
             currId = self.GetSelection()
             self.DeletePage(currId)
 
-    def createNewRoutine(self, returnName=False):
+    def createNewRoutine(self, template=None):
         msg = _translate("What is the name for the new Routine? "
                          "(e.g. instr, trial, feedback)")
-        dlg = wx.TextEntryDialog(self, message=msg,
-                                 caption=_translate('New Routine'))
-        exp = self.frame.exp
+        dlg = DlgNewRoutine(self)
         routineName = None
         if dlg.ShowModal() == wx.ID_OK:
-            routineName = dlg.GetValue()
-            # silently auto-adjust the name to be valid, and register in the
-            # namespace:
-            routineName = exp.namespace.makeValid(
-                routineName, prefix='routine')
-            exp.namespace.add(routineName)  # add to the namespace
-            exp.addRoutine(routineName)  # add to the experiment
-            # then to the notebook:
-            self.addRoutinePage(routineName, exp.routines[routineName])
+            routineName = dlg.nameCtrl.GetValue()
+            template = dlg.selectedTemplate
+            self.frame.pasteRoutine(template, routineName)
             self.frame.addToUndoStack("NEW Routine `%s`" % routineName)
         dlg.Destroy()
-        if returnName:
-            return routineName
+        return routineName
 
     def onClosePane(self, event=None):
         """Close the pane and remove the routine from the exp.
@@ -3084,7 +3075,7 @@ class FlowPanel(wx.ScrolledWindow):
         """selecting (new) is a short-cut for:
         make new routine, insert it into the flow
         """
-        newRoutine = self.frame.routinePanel.createNewRoutine(returnName=True)
+        newRoutine = self.frame.routinePanel.createNewRoutine()
         if newRoutine:
             self.routinesFromID[event.GetId()] = newRoutine
             self.onInsertRoutineSelect(event)

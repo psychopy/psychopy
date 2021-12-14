@@ -1738,3 +1738,80 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.mainSizer.Layout()
         self.Fit()
         self.Refresh()
+
+
+class DlgNewRoutine(wx.Dialog):
+
+    def __init__(self, parent, pos=wx.DefaultPosition, size=wx.DefaultSize,
+                 style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT):
+        self.parent = parent  # parent is probably the RoutinesNotebook (not the BuilderFrame)
+        if hasattr(parent, 'frame'):
+            self.frame = parent.frame
+        else:
+            self.frame = parent
+        wx.Dialog.__init__(self, parent, title=_translate("New Routine"), name=_translate("New Routine"),
+                           size=size, pos=pos, style=style)
+        self.app = parent.app
+        self.templates = self.frame.routineTemplates
+        self.templatesByID = {}
+        self.selectedTemplate = self.templates['Basic']['Blank']  # until we know otherwise
+        # controls
+        newNameLabel = wx.StaticText(self, -1, _translate("New Routine name:"))
+        nameTip = _translate("What is the name for the new Routine? "
+                             "(e.g. instr, trial, feedback)")
+        self.nameCtrl = wx.TextCtrl(self, -1, "")
+        self.nameCtrl.SetToolTip(nameTip)
+        templateLabel = wx.StaticText(self, -1, _translate("Routine Template:"))
+        nameTip = _translate("Select a template to base your new Routine on")
+        self.templateCtrl = wx.Button(self, -1, "Basic:Blank")
+        self.templateCtrl.Bind(wx.EVT_BUTTON, self.showTemplatesContextMenu)
+        # buttons
+        buttons = wx.StdDialogButtonSizer()
+        buttons.Add(wx.Button(self, wx.ID_CANCEL, "Cancel"))
+        buttons.Add(wx.Button(self, wx.ID_OK, "OK"))
+        buttons.Realize()
+
+        # layout
+        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
+        ctrlSizer = wx.GridSizer(cols=2, vgap=0, hgap=10)
+
+        ctrlSizer.Add(newNameLabel, flag=wx.ALL | wx.ALIGN_RIGHT)
+        ctrlSizer.Add(self.nameCtrl, flag=wx.EXPAND)
+        ctrlSizer.Add(templateLabel, flag=wx.ALL | wx.ALIGN_RIGHT)
+        ctrlSizer.Add(self.templateCtrl, flag=wx.ALL | wx.EXPAND, proportion=1)
+        self.mainSizer.Add(ctrlSizer, flag=wx.ALL, border=10)
+        # add buttons
+        self.mainSizer.Add(buttons, 1, flag=wx.ALL | wx.ALIGN_RIGHT)
+        self.SetSizerAndFit(self.mainSizer)
+
+    def showTemplatesContextMenu(self, evt):
+        self.templateMenu = wx.Menu()
+        self.templateMenu.Bind(wx.EVT_MENU, self.onSelectTemplate)
+        self.templatesByID = {}
+        for categName, categDict in self.templates.items():
+            submenu = wx.Menu()
+            self.templateMenu.Append(wx.ID_ANY, categName, submenu)
+            for templateName, routine in categDict.items():
+                id = wx.NewIdRef()
+                self.templatesByID[id] = {
+                    'routine': routine,
+                    'name': templateName,
+                    'categ': categName,
+                }
+                item = submenu.Append(id, templateName)
+
+        btnPos = self.templateCtrl.GetRect()
+        menuPos = (btnPos[0], btnPos[1] + btnPos[3])
+        self.PopupMenu(self.templateMenu, menuPos)
+
+    def onSelectTemplate(self, evt):
+
+        id = evt.Id
+        categ = self.templatesByID[id]['categ']
+        templateName = self.templatesByID[id]['name']
+        print(f"{categ}:{templateName}")
+        self.templateCtrl.SetLabelText(f"{categ}:{templateName}")
+        self.selectedTemplate = self.templates[categ][templateName]
+        self.Layout()  # update the size of the button
+        self.Fit()
+        # self.templateMenu.Destroy()  # destroy to avoid mem leak
