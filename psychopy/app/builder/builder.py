@@ -1241,7 +1241,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
 
     def pasteRoutine(self, newRoutine, routineName):
         """
-        Paste a copied Routine into the current Experiment
+        Paste a copied Routine into the current Experiment. Returns a copy of that Routine
         """
         newRoutine.name = self.exp.namespace.makeValid(routineName)
         newRoutine.params['name'] = newRoutine.name
@@ -1254,6 +1254,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             newComp.params['name'].val = newName
         # could do redrawRoutines but would be slower?
         self.routinePanel.addRoutinePage(newRoutine.name, newRoutine)
+        self.routinePanel.setCurrentRoutine(newRoutine)
+        return newRoutine
 
     def onPasteCompon(self, event=None):
         """
