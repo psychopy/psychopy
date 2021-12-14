@@ -236,6 +236,12 @@ class PavloviaSession:
     def currentProject(self, value):
         self._currentProject = PavloviaProject(value)
 
+    def getOauthSuffix(self, prefix=""):
+        if self.getToken():
+            return f"{prefix}oauthToken={self.getToken()}"
+        else:
+            return ""
+
     def createProject(self, name, description="", tags=(), visibility='public',
                       localRoot='', namespace=''):
         """Returns a PavloviaProject object (derived from a gitlab.project)
@@ -463,6 +469,7 @@ class PavloviaSearch(pandas.DataFrame):
             return any(self.values())
 
     def __init__(self, term, sortBy=None, filterBy=None, mine=False):
+        session = getCurrentSession()
         # Replace default filter
         if filterBy is None:
             filterBy = {}
@@ -471,7 +478,7 @@ class PavloviaSearch(pandas.DataFrame):
         # Do search
         try:
             if term or filterBy or mine:
-                data = requests.get(f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}",
+                data = requests.get(f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}{session.getOauthSuffix('&')}",
                                     timeout=2).json()
             else:
                 # Display demos for blank search
@@ -484,7 +491,6 @@ class PavloviaSearch(pandas.DataFrame):
         pandas.DataFrame.__init__(self, data=data['experiments'])
         # Apply me mode
         if mine:
-            session = getCurrentSession()
             self.drop(self.loc[
                           # self['creatorId'] != session.userID  # Created by me
                           (self['userIds'].explode() != session.userID).groupby(level=0).any()  # Editable by me
@@ -537,8 +543,8 @@ class PavloviaProject(dict):
             # If given an ID, get Pavlovia info (for just created projects this can take a while, so allow 2s leeway)
             start = time.time()
             self.info = None
-            while self.info is None and time.time() - start < 2:
-                self.info = requests.get("https://pavlovia.org/api/v2/experiments/" + str(id)).json()['experiment']
+            while self.info is None and time.time() - start < 5:
+                self.info = requests.get(f"https://pavlovia.org/api/v2/experiments/{id}{self.session.getOauthSuffix('?')}").json()['experiment']
             if self.info is None:
                 raise LookupError(f"Could not find project with id `{id}` on Pavlovia")
         # Store own id
@@ -573,7 +579,7 @@ class PavloviaProject(dict):
 
     def refresh(self):
         # Update Pavlovia info
-        self.info = requests.get("https://pavlovia.org/api/v2/experiments/" + str(self.id)).json()['experiment']
+        self.info = requests.get(f"https://pavlovia.org/api/v2/experiments/{self.id}{self.session.getOauthSuffix('?')}").json()['experiment']
         # Convert datetime
         dtRegex = re.compile("\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d(.\d\d\d)?")
         for key in self.info:
