@@ -487,7 +487,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.parent = parent
         self.serverProcess = None
 
-        # self.entries is dict of dicts: {filepath: {'index': listCtrlInd}} and may store ore info later
+        # self.entries is dict of dicts: {filepath: {'index': listCtrlInd}} and may store more info later
         self.entries = {}
         self.currentFile = None
         self.currentProject = None  # access from self.currentProject property

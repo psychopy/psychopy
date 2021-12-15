@@ -232,7 +232,7 @@ class VisualSystemHD(window.Window):
         self._hwModel = model
         self._hwDesc = vshdModels[self._hwModel]
 
-        # distortion coefficent
+        # distortion coefficient
         self._distCoef = \
             self._hwDesc['distCoef'] if distCoef is None else float(distCoef)
 

@@ -290,7 +290,7 @@ class Rift(window.Window):
 
         self.autoUpdateInput = autoUpdateInput
 
-        # performance statisitics
+        # performance statistics
         # this can be changed while running
         self.warnAppFrameDropped = warnAppFrameDropped
 
@@ -1059,7 +1059,7 @@ class Rift(window.Window):
             if trackingState.positionValid and trackingState.orientationValid:
                 print('Tracking valid.')
 
-        It's upto the programmer to determine what to do in such cases. Note
+        It's up to the programmer to determine what to do in such cases. Note
         that tracking may still be valid even if
 
         Get the calibrated origin used for tracking during the sample period
@@ -2537,7 +2537,7 @@ class Rift(window.Window):
         bounding box with dimensions defined by `extents`. Bounding boxes are
         primarily used for visibility testing and culling by `PsychXR`. The
         dimensions of the bounding box can be specified explicitly, or fitted
-        to meshes by passing verticies to the
+        to meshes by passing vertices to the
         :py:meth:`~psychxr.libovr.LibOVRBounds.fit` method after initialization.
 
         This function exposes the :py:class:`~psychxr.libovr.LibOVRBounds` class

@@ -588,7 +588,7 @@ class BitsPlusPlus(object):
         if the next frame(s) is dropped the reset will be 
         re-issued thus keeping timing good.
         
-        Resets continute to be issued on each video frame until
+        Resets continue to be issued on each video frame until
         the next win.flip so you need to have regular win.flips for
         this function to work properly.
         
@@ -598,15 +598,16 @@ class BitsPlusPlus(object):
             bits.win.flip()
             
             
-        Will issue clock resets  while the image is being drawn then
-        display the inmage and allow the clock to continue formt he same frame.
+        Will issue clock resets while the image is being drawn then
+        display the image and allow the clock to continue from the
+        same frame.
         
         Example:
             bits.resetClock()
             bits.RTBoxWait()
             bits.win.flip()
             
-        Will issue clock resets until a button is presses.
+        Will issue clock resets until a button is pressed.
         
         """
         self.clockReset=True
@@ -632,7 +633,7 @@ class BitsPlusPlus(object):
                 #do some processing
                 bits.win.flip()
         
-        Will get a clock reset signal ready but wont issue it until the first win.flip in the loop.
+        Will get a clock reset signal ready but won't issue it until the first win.flip in the loop.
         
         """
         self.clockReset=True
@@ -866,7 +867,7 @@ class BitsPlusPlus(object):
         # Bits++ box tested.
 
         self.trigger=False # Needed before protecting triggers.
-        # Protect exisitng triggers. Also sets triggers to zero.
+        # Protect existing triggers. Also sets triggers to zero.
         self._protectTrigger() 
         self.trigger=True # Needed to send the zero trigger.
         self.win.flip() # Make sure zero trigger is sent.
@@ -1789,8 +1790,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
     def setAnalog(self,AOUT1=0, AOUT2=0):
         """Sets up Analog outputs in Bits# 
         AOUT1 and AOUT2 are the two analog values required in volts.
-        Analog comands are issued at the next win.flip() and 
-        actionsed 1 video frame later.
+        Analog commands are issued at the next win.flip() and
+        actioned 1 video frame later.
         
         Example:
             bits.set Analog(4.5,-2.2)
@@ -2554,7 +2555,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             res = bits.RTBoxWait() 
             
         will suspend all other activity until 1 button press has been
-        recorded and will then return a dict / strcuture containing results.
+        recorded and will then return a dict / structure containing results.
         
         Results can be accessed as follows:
             
@@ -2667,12 +2668,12 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             if event == 56:
                 Direction = 'up'
                 EV = 4
-            # Event 48 is the pulse envent - down only
-            # Deconded to button = 5, direction = down
+            # Event 48 is the pulse event - down only
+            # Decoded to button = 5, direction = down
             if event == 48:
                 Direction = 'down'
                 EV = 5
-            # Event 57 is the light envent - down only
+            # Event 57 is the light event - down only
             # Decoded to button = 6, direction = down
             if event == 57:
                 Direction = 'down'
@@ -2737,7 +2738,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         if threshold != None:
             self.statusBoxThreshold = threshold
         else:
-            self.statusBoxThreshold = 9999.99  # set impossibly hight to block events.
+            self.statusBoxThreshold = 9999.99  # set impossibly high to block events.
 
     def statusBoxEnable(self, mode=None, map=None, threshold=None):
         """ Sets up the stautsBox with preset or bespoke mappings 
@@ -3227,7 +3228,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             res = bits.statusBoxWait() 
             
         will suspend all other activity until 1 button press has been
-        recorded and will then return a dict / strcuture containing results.
+        recorded and will then return a dict / structure containing results.
         
         Results can be accessed as follows:
             
@@ -3979,7 +3980,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         sT=clock() # start time
         msg=""
         # Continue reading data until sample time is up or status.End is set
-        # Note when used in thread statusEnd canbe set from outside this function.
+        # Note when used in thread statusEnd can be set from outside this function.
         while (clock() - sT < t) and (self.statusEnd == False):
             smsg=self.read(timeout=0.1)
             # Compile message strings
@@ -3996,9 +3997,9 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             N = len(lines) 
             values = [status() for  i in range(N-1)] # ignore last line as likely to be error
             for i in range(N-1): # for each status line
-                v=lines[i].split(';') # split line into compoment parts marked by ;
+                v=lines[i].split(';') # split line into component parts marked by ;
                 if v[0] == '#sample': # Check we have read a status line
-                    # Now strip out statsu values into a structure.
+                    # Now strip out status values into a structure.
                     values[i].sample = int(float(v[1]))
                     values[i].time = float(v[2])
                     values[i].trigIn = int(float(v[3]))
@@ -4639,7 +4640,7 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
         self.sendMessage(b'$EnableTouchScreen=[OFF]\r')
         msg=self.read(timeout=0.1)
         msg=msg.decode("utf-8")
-        # Ceck the reply message
+        # Check the reply message
         if 'OFF' in msg:
             self.touchEnabled = False
         else:
@@ -4712,7 +4713,7 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
         'dir' is the direction of the event
                     eg 'touched' for presses and 'relased' for releases.
         'time' is the timestamp associated with the event.
-        these values canbe read as a structure:
+        these values can be read as a structure:
             res=getAllTouchResponses()
             res[0].dir, res[0].x, rest[0].time
         or dirctionary
@@ -4756,7 +4757,7 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
         'dir' is the direction of the event
                     eg 'touched' for presses and 'relased' for releases.
         'time' is the timestamp associated with the event.
-        these values canbe read as a structure:
+        these values can be read as a structure:
             res=getTouchGetResponse()
             res.dir, res.x, rest.time
         or dirctionary
@@ -4862,7 +4863,7 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
 
     def startTouchLog(self,t=60):
         """ Start logging data from the touch screen.
-        Truns on the troch screen.
+        Turns on the touch screen.
         
         Example:
             bits.startTouchLog()

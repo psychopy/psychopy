@@ -91,7 +91,7 @@ class Mouse(MouseDevice):
     # def _nativeSetSystemCursorVisibility(self, v):
     #     if Mouse._xfixsdll is None:
     #         print2err(
-    #             'Xfixes DLL could not be loaded. Cursor visiblity support is unavailable.')
+    #             'Xfixes DLL could not be loaded. Cursor visibility support is unavailable.')
     #         return True
     #
     #     if v is True and self._nativeGetSystemCursorVisibility() is False:

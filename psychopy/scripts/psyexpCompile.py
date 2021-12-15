@@ -77,7 +77,7 @@ def compileScript(infile=None, version=None, outfile=None):
     """
     Compile either Python or JS PsychoPy script from .psyexp file.
 
-    Paramaters
+    Parameters
     ----------
 
     infile: string, experiment.Experiment object

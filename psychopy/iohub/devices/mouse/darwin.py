@@ -245,7 +245,7 @@ class Mouse(MouseDevice):
 
 #                    result=self._validateMousePosition((px,py),display_index)
 #                    if result != True:
-#                        #print2err("!!! _validateMousePosition made ajustment: {0} to {1}".format((px,py),result))
+#                        #print2err("!!! _validateMousePosition made adjustment: {0} to {1}".format((px,py),result))
 #                        nx,ny=result
 #                        display_index=self.getDisplayIndexForMousePosition((nx,ny))
 #                        #print2err("Going to Update mousePosition: {0} => {1} on D {2}".format((px,py),(ny,ny),display_index))

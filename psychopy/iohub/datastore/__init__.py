@@ -494,4 +494,3 @@ class SessionMetaData(tables.IsDescription):
     name = StringCol(256, pos=4)
     comments = StringCol(4096, pos=5)
     user_variables = StringCol(16384, pos=6) # Holds json encoded version of user variable dict for session
-

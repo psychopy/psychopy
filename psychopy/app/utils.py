@@ -195,7 +195,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
                         shortcut='redo',
                         tooltip=_translate("Redo last action"),
                         func=self.frame.redo)  # Redo
-            self.AddSeparator()  # Seperator
+            self.AddSeparator()  # Separator
             self.addPsychopyTool(
                     name='monitors',
                     label=_translate('Monitor Center'),
@@ -233,7 +233,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
                     shortcut='runScript',
                     tooltip=_translate("Run experiment"),
                     func=self.frame.runFile)  # Run
-            self.AddSeparator()  # Seperator
+            self.AddSeparator()  # Separator
             pavButtons.addPavloviaTools()
         elif frame.__class__.__name__ == 'CoderFrame':
             self.addPsychopyTool('filenew', _translate('New'), 'new',
@@ -257,7 +257,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
                 self.addPsychopyTool('redo', _translate('Redo'), 'redo',
                                      _translate("Redo last action"),
                                      self.frame.redo)  # Redo
-            self.AddSeparator()  # Seperator
+            self.AddSeparator()  # Separator
             self.addPsychopyTool('monitors', _translate('Monitor Center'), 'none',
                                  _translate("Monitor settings and calibration"),
                                  self.frame.app.openMonitorCenter)

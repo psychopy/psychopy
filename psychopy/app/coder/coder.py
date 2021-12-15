@@ -745,7 +745,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
             return 'Plain Text'  # default, null lexer used
 
     def getTextUptoCaret(self):
-        """Get the text upto the caret."""
+        """Get the text up to the caret."""
         return self.GetTextRange(0, self.caretCurrentPos)
 
     def OnKeyReleased(self, event):
@@ -1115,7 +1115,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
             start = self.GetSelection()[1]
             loc = textstring.find(findstring, start)
 
-        # if it wasn't found then restart at begining
+        # if it wasn't found then restart at beginning
         if loc == -1 and start != 0:
             if backward:
                 start = end
@@ -2062,7 +2062,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
             dlg.Destroy()
 
     # def pluginManager(self, evt=None, value=True):
-    #     """Show the plugin manger frame."""
+    #     """Show the plugin manager frame."""
     #     PluginManagerFrame(self).ShowModal()
 
     def OnFindOpen(self, event):
@@ -2079,7 +2079,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.findDlg.Show()
 
     def OnFindNext(self, event):
-        # find the next occurence of text according to last find dialogue data
+        # find the next occurrence of text according to last find dialogue data
         if not self.findData.GetFindString():
             self.OnFindOpen(event)
             return
@@ -2155,7 +2155,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 and len(self.app.getAllFrames(frameType="runner")) == 0
                 and sys.platform != 'darwin'):
             if not self.app.quitting:
-                # send the event so it can be vetoed if neded
+                # send the event so it can be vetoed if needed
                 self.app.quit(event)
                 return  # app.quit() will have closed the frame already
 

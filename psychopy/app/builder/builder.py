@@ -816,7 +816,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         return os.path.splitext(os.path.split(self.filename)[1])[0]
 
     # def pluginManager(self, evt=None, value=True):
-    #     """Show the plugin manger frame."""
+    #     """Show the plugin manager frame."""
     #     PluginManagerFrame(self).ShowModal()
 
     def updateReadme(self):
@@ -1203,7 +1203,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
 
     def onPasteRoutine(self, event=None):
         """Paste the current routine from self.app.copiedRoutine to a new page
-        in self.routinePanel after promting for a new name.
+        in self.routinePanel after prompting for a new name.
         """
         if self.app.copiedRoutine is None:
             return -1
@@ -2494,7 +2494,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.faveLevels = self.prefs.appDataCfg['builder']['favComponents']
         self.favorites = []
         for comp in self.components:
-            # Add component to fave levels with a score of 0 if it's not already present
+            # Add component to favorite levels with a score of 0 if it's not already present
             if comp not in self.faveLevels:
                 self.faveLevels[comp] = 0
             # Mark as a favorite if it exceeds a threshold

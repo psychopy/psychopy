@@ -314,7 +314,7 @@ def test_Wait(duration=1.55):
         # IMO, during the hog period, which should only need to be only 1 - 2 msec
         # , not the 200 msec default now, nothing should be done but tight looping
         # waiting for the wait() to expire. This is what I do in ioHub and on this same
-        # PC I get actual vs. requested duration delta's of < 100 usec consitently.
+        # PC I get actual vs. requested duration delta's of < 100 usec consistently.
         #
         # I have not changed the wait in psychopy until feedback is given, as I
         # may be missing a reason why the current wait() implementation is required.

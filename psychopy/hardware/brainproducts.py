@@ -455,7 +455,7 @@ class RemoteControlServer(object):
         """An attribute to get/set whether the overwrite protection is turned on.
 
         When checking the attribute the state of `rcs.overwriteProtection` a call will be
-        made to the RCS and the report is based on teh response. There is also a
+        made to the RCS and the report is based on the response. There is also a
         variable `rcs._overwriteProtection` that is simply the stored state from the
         most recent call and does not make any further communication with the RCS itself.
 
@@ -575,7 +575,7 @@ class RemoteControlServer(object):
         -----------------
 
         annotation : string
-            The desription text to be sent in the annotation.
+            The description text to be sent in the annotation.
 
         annType : string
             The category of the annotation which are user-defined

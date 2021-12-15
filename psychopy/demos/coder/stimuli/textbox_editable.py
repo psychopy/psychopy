@@ -62,4 +62,3 @@ while t<30:
     win.flip()
 
 logging.flush()
-

@@ -123,4 +123,3 @@ class TestComputer(object):
     @skip_not_completed
     def test_procAffinity(self):
         pass
-

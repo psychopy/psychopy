@@ -2215,7 +2215,7 @@ def multQuat(q0, q1, out=None, dtype=None):
 
 
 def invertQuat(q, out=None, dtype=None):
-    """Get tht multiplicative inverse of a quaternion.
+    """Get the multiplicative inverse of a quaternion.
 
     This gives a quaternion which rotates in the opposite direction with equal
     magnitude. Multiplying a quaternion by its inverse returns an identity
@@ -3901,7 +3901,7 @@ def lensCorrectionSpherical(xys, coefK=1.0, aspect=1.0, out=None, dtype=None):
         the output will be rendered to normalized device coordinates where
         points range from -1.0 to 1.0.
     coefK : float
-        Distortion coefficent. Use positive numbers for pincushion distortion
+        Distortion coefficient. Use positive numbers for pincushion distortion
         and negative for barrel distortion.
     aspect : float
         Aspect ratio of the target window or buffer (width / height).

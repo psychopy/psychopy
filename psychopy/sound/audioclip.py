@@ -67,7 +67,7 @@ class AudioClip(object):
     You can play `AudioClip` by directly passing instances of this object to
     the :class:`~psychopy.sound.Sound` class::
 
-        inport psychopy.core as core
+        import psychopy.core as core
         import psyhcopy.sound as sound
 
         myTone = AudioClip.sine(duration=5.0)  # generate a tone

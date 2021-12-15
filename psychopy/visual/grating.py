@@ -232,7 +232,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.__dict__['phase'] = value
         self._needUpdate = True
 
-    # overload ColorMixin methods so tht they refresh the image after being called
+    # overload ColorMixin methods so that they refresh the image after being called
     @property
     def foreColor(self):
         # Call setter of parent mixin
