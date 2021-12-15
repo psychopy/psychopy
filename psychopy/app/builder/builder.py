@@ -3494,7 +3494,7 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetIdBounds(tmpId, wx.Rect(
             pos[0] - size, pos[1] - size, 2 * size, 2 * size))
 
-    def drawFlowRoutine(self, dc, routine, id, pos=[0, 0], draw=True):
+    def drawFlowRoutine(self, dc, routine, id, pos=(0, 0), draw=True):
         """Draw a box to show a routine on the timeline
         draw=False is for a dry-run, esp to compute and return size
         without drawing or setting a pdc ID
@@ -3534,8 +3534,8 @@ class FlowPanel(wx.ScrolledWindow):
         w, h = self.GetFullTextExtent(name)[0:2]
         pad = (5, 10, 20)[self.appData['flowSize']]
         # draw box
-        pos[1] += 2 - self.appData['flowSize']
-        rect = wx.Rect(pos[0], pos[1], w + pad, h + pad)
+        rect = wx.Rect(pos[0], pos[1] + 2 - self.appData['flowSize'],
+                       w + pad, h + pad)
         endX = pos[0] + w + pad
         # the edge should match the text
         if draw:

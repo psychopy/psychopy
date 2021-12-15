@@ -136,9 +136,12 @@ class User(object):
 
     (from previous logins and from the current session)"""
 
-    def __init__(self, localData={}, gitlabData=None, rememberMe=True):
+    def __init__(self, localData=None, gitlabData=None, rememberMe=True):
         currentSession = getCurrentSession()
-        self.data = localData
+        if localData is None:
+            self.data = {}
+        else:
+            self.data = localData
         self.gitlabData = gitlabData
         # try looking for local data
         if gitlabData and not localData:
