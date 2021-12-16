@@ -31,7 +31,7 @@ from psychopy import logging
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 from psychopy.tools.attributetools import attributeSetter, setAttribute
-from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
+from psychopy.visual.basevisual import (BaseVisualStim, ForeColorMixin,
     ContainerMixin)
 from psychopy.colors import Color
 
@@ -73,7 +73,7 @@ defaultWrapWidth = {'cm': 15.0,
                     'pixels': 500}
 
 
-class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
+class TextStim(BaseVisualStim, ForeColorMixin, ContainerMixin):
     """Class of text stimuli to be displayed in a
     :class:`~psychopy.visual.Window`
     """
