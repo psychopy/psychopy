@@ -52,7 +52,7 @@ from psychopy import logging, data
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties,
-                      ParamNotebook)
+                      ParamNotebook, DlgNewRoutine)
 from ..utils import (PsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
                      FileDropTarget, FrameSwitcher, updateDemosMenu,
                      ToggleButtonArray, HoverMixin)
@@ -94,8 +94,33 @@ alwaysHidden = [
     'SettingsComponent', 'UnknownComponent', 'UnknownRoutine', 'UnknownStandaloneRoutine'
 ]
 
+
+class TemplateManager(dict):
+    mainFolder = Path(prefs.paths['resources']).absolute() / 'routine_templates'
+    userFolder = Path(prefs.paths['userPrefsDir']).absolute() / 'routine_templates'
+    experimentFiles = {}
+
+    def __init__(self):
+        dict.__init__(self)
+        self.updateTemplates()
+
+    def updateTemplates(self, ):
+        """Search and import templates in the standard files"""
+        for folder in [TemplateManager.mainFolder, TemplateManager.userFolder]:
+            categs = folder.glob("*.psyexp")
+            for filePath in categs:
+                thisExp = experiment.Experiment()
+                thisExp.loadFromXML(filePath)
+                categName = filePath.stem
+                self[categName]={}
+                for routineName in thisExp.routines:
+                    self[categName][routineName] = copy.copy(thisExp.routines[routineName])
+
+
 class BuilderFrame(wx.Frame, ThemeMixin):
     """Defines construction of the Psychopy Builder Frame"""
+
+    routineTemplates = TemplateManager()
 
     def __init__(self, parent, id=-1, title='PsychoPy (Experiment Builder)',
                  pos=wx.DefaultPosition, fileName=None, frameData=None,
@@ -1208,22 +1233,29 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                                  caption=_translate('Paste Routine'))
         if dlg.ShowModal() == wx.ID_OK:
             routineName = dlg.GetValue()
-            newRoutine = copy.deepcopy(self.app.copiedRoutine)
             if not routineName:
                 routineName = defaultName
-            newRoutine.name = self.exp.namespace.makeValid(routineName)
-            newRoutine.params['name'] = newRoutine.name
-            self.exp.namespace.add(newRoutine.name)
-            # add to the experiment
-            self.exp.addRoutine(newRoutine.name, newRoutine)
-            for newComp in newRoutine:  # routine == list of components
-                newName = self.exp.namespace.makeValid(newComp.params['name'])
-                self.exp.namespace.add(newName)
-                newComp.params['name'].val = newName
-            # could do redrawRoutines but would be slower?
-            self.routinePanel.addRoutinePage(newRoutine.name, newRoutine)
-            self.addToUndoStack("PASTE Routine `%s`" % newRoutine.name)
+            newRoutine = copy.deepcopy(self.app.copiedRoutine)
+            self.pasteRoutine(newRoutine, routineName)
         dlg.Destroy()
+
+    def pasteRoutine(self, newRoutine, routineName):
+        """
+        Paste a copied Routine into the current Experiment. Returns a copy of that Routine
+        """
+        newRoutine.name = self.exp.namespace.makeValid(routineName)
+        newRoutine.params['name'] = newRoutine.name
+        self.exp.namespace.add(newRoutine.name)
+        # add to the experiment
+        self.exp.addRoutine(newRoutine.name, newRoutine)
+        for newComp in newRoutine:  # routine == list of components
+            newName = self.exp.namespace.makeValid(newComp.params['name'])
+            self.exp.namespace.add(newName)
+            newComp.params['name'].val = newName
+        # could do redrawRoutines but would be slower?
+        self.routinePanel.addRoutinePage(newRoutine.name, newRoutine)
+        self.routinePanel.setCurrentRoutine(newRoutine)
+        return newRoutine
 
     def onPasteCompon(self, event=None):
         """
@@ -1263,7 +1295,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         """
         self.routinePanel.createNewRoutine()
 
-    def renameRoutine(self, name, event=None, returnName=True):
+    def renameRoutine(self, name, event=None):
         """Defines ability to rename routine in the routine panel
         """
         # get notebook details
@@ -1502,27 +1534,18 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
             currId = self.GetSelection()
             self.DeletePage(currId)
 
-    def createNewRoutine(self, returnName=False):
+    def createNewRoutine(self, template=None):
         msg = _translate("What is the name for the new Routine? "
                          "(e.g. instr, trial, feedback)")
-        dlg = wx.TextEntryDialog(self, message=msg,
-                                 caption=_translate('New Routine'))
-        exp = self.frame.exp
+        dlg = DlgNewRoutine(self)
         routineName = None
         if dlg.ShowModal() == wx.ID_OK:
-            routineName = dlg.GetValue()
-            # silently auto-adjust the name to be valid, and register in the
-            # namespace:
-            routineName = exp.namespace.makeValid(
-                routineName, prefix='routine')
-            exp.namespace.add(routineName)  # add to the namespace
-            exp.addRoutine(routineName)  # add to the experiment
-            # then to the notebook:
-            self.addRoutinePage(routineName, exp.routines[routineName])
+            routineName = dlg.nameCtrl.GetValue()
+            template = dlg.selectedTemplate
+            self.frame.pasteRoutine(template, routineName)
             self.frame.addToUndoStack("NEW Routine `%s`" % routineName)
         dlg.Destroy()
-        if returnName:
-            return routineName
+        return routineName
 
     def onClosePane(self, event=None):
         """Close the pane and remove the routine from the exp.
@@ -3054,7 +3077,7 @@ class FlowPanel(wx.ScrolledWindow):
         """selecting (new) is a short-cut for:
         make new routine, insert it into the flow
         """
-        newRoutine = self.frame.routinePanel.createNewRoutine(returnName=True)
+        newRoutine = self.frame.routinePanel.createNewRoutine()
         if newRoutine:
             self.routinesFromID[event.GetId()] = newRoutine
             self.onInsertRoutineSelect(event)
@@ -3762,6 +3785,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.componentFromID[id] = loop
         # set the area for this component
         dc.SetIdBounds(id, rect)
+
 
 def extractText(stream):
     """Take a byte stream (or any file object of type b?) and return

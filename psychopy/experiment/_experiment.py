@@ -589,7 +589,6 @@ class Experiment:
         self._doc.parse(filename)
         root = self._doc.getroot()
 
-
         # some error checking on the version (and report that this isn't valid
         # .psyexp)?
         filenameBase = os.path.basename(filename)

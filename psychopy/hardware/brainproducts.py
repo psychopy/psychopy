@@ -166,6 +166,7 @@ class RemoteControlServer:
                 "RCS Didn't receive expected response from RCS to "
                 "the message {}. Current stack of recent responses:{}."
                 .format(message, self._listener.messages))
+            logging.flush()
         else:
             return True
 
@@ -371,7 +372,7 @@ class RemoteControlServer:
             self.waitForState("recordingState", ["Monitoring"])
             self.waitForState("acquisitionState", ["Running"])
         elif mode in ['test', 'tes']:
-            self.waitForState("recordingState", ["Saving calibration"])
+            self.waitForState("recordingState", ["Calibration"])
             self.waitForState("acquisitionState", ["Running"])
         elif mode in ['default', 'def', None]:
             self.waitForState("recordingState", ["Stopped"])
@@ -424,6 +425,7 @@ class RemoteControlServer:
         if amplifier == 'LiveAmp' and not serialNumber:
             logging.warning("LiveAmp may need a serial number. Use\n"
                           "  rcs.amplifier = 'LiveAmp', 'LA-serialNumberHere'")
+            logging.flush()
         if amplifier in ['actiCHamp', 'BrainAmp Family',
                          'LiveAmp', 'QuickAmp USB', 'Simulated Amplifier',
                          'V-Amp / FirstAmp']:
@@ -496,6 +498,7 @@ class RemoteControlServer:
                 self._RCSversion = reply.strip().replace("VS:")
             else:
                 logging.warning("Failed to retrieve the version of the RCS software")
+                logging.flush()
         return self._RCSversion
 
     def dcReset(self):

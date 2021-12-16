@@ -45,6 +45,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
                  units="",
                  pos=(0.0, 0.0),
                  size=None,
+                 anchor="center",
                  ori=0.0,
                  color=(1.0, 1.0, 1.0),
                  colorSpace='rgb',
@@ -84,6 +85,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         self.isLumImage = None
         self.interpolate = interpolate
         self.vertices = None
+        self.anchor = anchor
         self.flipHoriz = flipHoriz
         self.flipVert = flipVert
         self._requestedSize = size
