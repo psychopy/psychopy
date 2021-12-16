@@ -114,8 +114,8 @@ class ParamCtrls():
         if param.inputType == "single":
             # Create single line string control
             self.valueCtrl = paramCtrls.SingleLineCtrl(parent,
-                                                   val=str(param.val), valType=param.valType,
-                                                   fieldName=fieldName,size=wx.Size(self.valueWidth, 24))
+                                                       val=str(param.val), valType=param.valType,
+                                                       fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
         elif param.inputType == 'multi':
             # Create multiline string control
             self.valueCtrl = paramCtrls.MultiLineCtrl(parent,
@@ -127,8 +127,8 @@ class ParamCtrls():
         elif param.inputType == 'spin':
             # Create single line string control
             self.valueCtrl = paramCtrls.SingleLineCtrl(parent,
-                                                   val=str(param.val), valType=param.valType,
-                                                   fieldName=fieldName,size=wx.Size(self.valueWidth, 24))
+                                                       val=str(param.val), valType=param.valType,
+                                                       fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
             # Will have to disable spinCtrl until we have a dropdown for inputType, sadly
             # self.valueCtrl = paramCtrls.IntCtrl(parent,
             #                                     val=param.val, valType=param.valType,
@@ -144,7 +144,7 @@ class ParamCtrls():
                                                         size=wx.Size(self.valueWidth, -1))
         elif param.inputType == 'bool':
             self.valueCtrl = paramCtrls.BoolCtrl(parent,
-                                         name=fieldName,size=wx.Size(self.valueWidth, 24))
+                                                 name=fieldName, size=wx.Size(self.valueWidth, 24))
             self.valueCtrl.SetValue(bool(param))
         elif param.inputType == 'file' or browse:
             self.valueCtrl = paramCtrls.FileCtrl(parent,
@@ -153,8 +153,8 @@ class ParamCtrls():
             self.valueCtrl.allowedVals = param.allowedVals
         elif param.inputType == 'fileList':
             self.valueCtrl = paramCtrls.FileListCtrl(parent,
-                                          choices=param.val, valType=param.valType,
-                                          size=wx.Size(self.valueWidth, 100), pathtype="rel")
+                                                     choices=param.val, valType=param.valType,
+                                                     size=wx.Size(self.valueWidth, 100), pathtype="rel")
         elif param.inputType == 'table':
             self.valueCtrl = paramCtrls.TableCtrl(parent, val=param.val, valType=param.valType,
                                                   fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
@@ -168,12 +168,12 @@ class ParamCtrls():
                                                  fieldName=fieldName)
         elif param.inputType == 'inv':
             self.valueCtrl = paramCtrls.InvalidCtrl(parent,
-                                                       val=str(param.val), valType=param.valType,
-                                                       fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
+                                                    val=str(param.val), valType=param.valType,
+                                                    fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
         else:
             self.valueCtrl = paramCtrls.SingleLineCtrl(parent,
-                                                   val=str(param.val), valType=param.valType,
-                                                   fieldName=fieldName,size=wx.Size(self.valueWidth, 24))
+                                                       val=str(param.val), valType=param.valType,
+                                                       fieldName=fieldName,size=wx.Size(self.valueWidth, 24))
             logging.warn(f"Parameter {fieldName} has unrecognised inputType \"{param.inputType}\"")
 
         # if fieldName == 'Experiment info':
