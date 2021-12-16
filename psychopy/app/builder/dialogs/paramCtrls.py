@@ -187,7 +187,11 @@ class InvalidCtrl(SingleLineCtrl, _ValidatorMixin, _HideMixin):
         self.deleteBtn = wx.Button(parent, label="×", size=(24, 24))
         self.deleteBtn.SetForegroundColour("red")
         self.deleteBtn.Bind(wx.EVT_BUTTON, self.deleteParam)
-        self.deleteBtn.SetToolTipString(_translate("This parameter has come from an older version of PsychoPy. In the latest version of PsychoPy, it is not used. Click this button to delete it. WARNING: This may affect how this experiment works in older versions!"))
+        self.deleteBtn.SetToolTipString(_translate(
+            "This parameter has come from an older version of PsychoPy. "
+            "In the latest version of PsychoPy, it is not used. Click this "
+            "button to delete it. WARNING: This may affect how this experiment "
+            "works in older versions!"))
         self._szr.Add(self.deleteBtn, border=6, flag=wx.LEFT | wx.RIGHT)
         # Add deleted label
         self.deleteLbl = wx.StaticText(parent, label=_translate("DELETED"))
@@ -196,7 +200,9 @@ class InvalidCtrl(SingleLineCtrl, _ValidatorMixin, _HideMixin):
         self._szr.Add(self.deleteLbl, border=6, proportion=1, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         # Add undo delete button
         self.undoBtn = wx.Button(parent, label="⟲", size=(24, 24))
-        self.deleteBtn.SetToolTipString(_translate("This parameter will not be deleted until you click Okay. Click this button to revert the deletion and keep the parameter."))
+        self.deleteBtn.SetToolTipString(_translate(
+            "This parameter will not be deleted until you click Okay. "
+            "Click this button to revert the deletion and keep the parameter."))
         self.undoBtn.Hide()
         self.undoBtn.Bind(wx.EVT_BUTTON, self.undoDelete)
         self._szr.Add(self.undoBtn, border=6, flag=wx.LEFT | wx.RIGHT)
