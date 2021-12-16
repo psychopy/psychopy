@@ -80,9 +80,11 @@ class Vector(object):
         if (value == None).any() or numpy.isnan(value).any():
             win = Vector((1, 1), units="norm", win=self.win)
             if len(value.shape) == 1:
-                value[0] = getattr(win, units)[0]
-                value[1] = getattr(win, units)[1]
+                value[value == None] = getattr(win, units)[value == None]
+                value[numpy.isnan(value)] = getattr(win, units)[numpy.isnan(value)]
             else:
+                value[numpy.isnan(value[:, 0]), 0] = getattr(win, units)[0]
+                value[numpy.isnan(value[:, 1]), 1] = getattr(win, units)[1]
                 value[value[:, 0] == None, 0] = getattr(win, units)[0]
                 value[value[:, 1] == None, 1] = getattr(win, units)[1]
         assert self.valid, f"Array of position/size values must be either Nx1, Nx2 or Nx3, not {value.shape}"
@@ -375,7 +377,7 @@ class Size(Vector):
 
 
 class Vertices(object):
-    def __init__(self, verts, obj=None, size=None, pos=None, flip=None, anchor=None):
+    def __init__(self, verts, obj=None, size=None, pos=None, units=None, flip=None, anchor=None):
         if obj is None and pos is None and size is None:
             raise ValueError("Vertices array needs either an object or values for pos and size.")
         # Store object
@@ -383,6 +385,7 @@ class Vertices(object):
         # Store size and pos
         self._size = size
         self._pos = pos
+        self._units = units
         # Store flip
         self.flip = flip
         # Set anchor
@@ -421,6 +424,13 @@ class Vertices(object):
         else:
             raise AttributeError(f"Could not derive size from object {self.obj} as object does not have a "
                                  f"size attribute.")
+
+    @property
+    def units(self):
+        if hasattr(self, "_units") and self._units is not None:
+            return self._units
+        if hasattr(self, "obj") and hasattr(self.obj, "units"):
+            return self.obj.units
 
     @property
     def flip(self):
@@ -555,9 +565,9 @@ class Vertices(object):
         Get absolute positions of vertices in pix units
         """
         # If correcting for screen curve, use the old functions
-        if self.obj.units == 'degFlat':
+        if self.units == 'degFlat':
             return tools._degFlat2pix(self.base * self.obj.size, self.obj.pos, self.obj.win)
-        elif self.obj.units == 'degFlatPos':
+        elif self.units == 'degFlatPos':
             return tools._degFlatPos2pix(self.base * self.obj.size, self.obj.pos, self.obj.win)
         else:
             # Otherwise, use standardised method

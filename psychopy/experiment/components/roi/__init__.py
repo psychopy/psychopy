@@ -126,7 +126,7 @@ class RegionOfInterestComponent(PolygonComponent):
         code = (
                 "debug=%(debug)s,\n"
                 "shape=%(shape)s,\n"
-                + unitsStr + "pos=%(pos)s, size=%(size)s, ori=0.0)\n"
+                + unitsStr + "pos=%(pos)s, size=%(size)s, anchor=%(anchor)s, ori=0.0)\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)

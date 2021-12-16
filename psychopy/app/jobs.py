@@ -70,14 +70,13 @@ KILL_ERROR = wx.KILL_ERROR
 
 class PipeReader(Thread):
     """Thread for reading standard stream pipes. This is used by the `Job` class
-    to provide non-blocking reads of pipes.
+    to provide non-blocking reads of pipes. Threads are kept alive even after
+    the pipe has closed, only until all data has been read.
 
     Parameters
     ----------
     fdpipe : Any
         File descriptor for the pipe, either `Popen.stdout` or `Popen.stderr`.
-    pollMillis : int or float
-        Number of milliseconds to wait between pipe reads.
 
     """
     def __init__(self, fdpipe):
@@ -103,13 +102,11 @@ class PipeReader(Thread):
         """Read all bytes enqueued by the thread coming off the pipe. This is
         a non-blocking operation. The value `''` is returned if there is no
         new data on the pipe since the last `read()` call.
-
         Returns
         -------
         bytes
             Most recent data passed from the subprocess since the last `read()`
             call.
-
         """
         try:
             return self._queue.get_nowait()
@@ -137,15 +134,18 @@ class PipeReader(Thread):
                 # space.
                 self._overflowBuffer.append(pipeBytes)
 
-            # Put the thread to sleep for a bit, not sure if we need this since
-            # this loop will block execution of this thread if there is nothing
-            # to read.
-            time.sleep(0.1)
-
             # exit the loop
             if self._stopSignal.is_set():
                 break
 
+            # Put the thread to sleep for a bit, not sure if we need this since
+            # this loop will block execution of this thread if there is nothing
+            # to read.
+            time.sleep(0.05)
+
+        # NB - Normally we would flush here and read the remaining bytes in the
+        # thread, but since the process terminates itself
+        # self._fdpipe.flush()  # make sure we get everything
         self._fdpipe.close()  # close the pipe if stopped
 
     def stop(self):
@@ -303,13 +303,13 @@ class Job:
             processStillRunning = self._process.poll() is None
             time.sleep(0.1)  # sleep a bit to avoid CPU over-utilization
 
-        # stop the pipe reader threads now
-        self._stdoutReader.stop()
-        self._stderrReader.stop()
-
         # get the return code of the subprocess
         retcode = self._process.returncode
         self.onTerminate(retcode)
+
+        # stop the pipe reader threads now
+        self._stdoutReader.stop()
+        self._stderrReader.stop()
 
         self._process = self._pid = None  # reset
         self._flags = 0
@@ -424,7 +424,8 @@ class Job:
 
     @property
     def pollMillis(self):
-        """Polling interval for input and error pipes (`int` or `None`).
+        """Polling interval for input and error pipes in seconds (`int` or
+        `None`). Setting to `None` will disable automatic periodic polling.
         """
         return self._pollMillis
 

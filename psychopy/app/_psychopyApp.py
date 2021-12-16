@@ -186,12 +186,15 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         self._stdoutFrame = None
         self.iconCache = themes.IconCache()
 
-        if not self.testMode:
-            self._lastRunLog = open(os.path.join(
-                    self.prefs.paths['userPrefsDir'], 'last_app_load.log'),
-                    'w')
-            sys.stderr = sys.stdout = lastLoadErrs = self._lastRunLog
-            logging.console.setLevel(logging.DEBUG)
+        # mdc - removed the following and put it in `app.startApp()` to have
+        #       error logging occur sooner.
+        #
+        # if not self.testMode:
+        #     self._lastRunLog = open(os.path.join(
+        #             self.prefs.paths['userPrefsDir'], 'last_app_load.log'),
+        #             'w')
+        #     sys.stderr = sys.stdout = lastLoadErrs = self._lastRunLog
+        #     logging.console.setLevel(logging.DEBUG)
 
         # indicates whether we're running for testing purposes
         self.osfSession = None

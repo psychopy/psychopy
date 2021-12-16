@@ -1405,6 +1405,9 @@ class WindowMixin:
             # Set a backup value if there's no vertices yet
             self._anchor = value
 
+    def setAnchor(self, value, log=None):
+        setAttribute(self, 'anchor', value, log)
+
     @property
     def units(self):
         if hasattr(self, "_units"):
@@ -1436,6 +1439,7 @@ class WindowMixin:
         """
         if value in unitTypes:
             self._units = value or self.win.units
+            self._needVertexUpdate = True
         else:
             raise ValueError(f"Invalid unit type '{value}', must be one of: {unitTypes}")
 
