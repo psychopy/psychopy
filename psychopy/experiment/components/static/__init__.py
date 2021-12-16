@@ -55,9 +55,16 @@ class StaticComponent(BaseComponent):
         # have to do this in a loop rather than a simple remove
         target = {'compName': compName, 'fieldName': fieldName,
                   'routine': routine}
+
         for item in self.updatesList:
-            if item == target:
+            # check if dict has the same fields
+            for key in ('compName', 'fieldName', 'routine'):
+                if item[key] != target[key]:
+                    break
+            else:
                 self.updatesList.remove(item)
+
+            # NB - should we break out of it here if an item is found?
 
     def writeInitCode(self, buff):
         code = ("%(name)s = clock.StaticPeriod(win=win, "
@@ -136,7 +143,7 @@ class StaticComponent(BaseComponent):
                 #    'routine':routine}
                 compName = update['compName']
                 fieldName = update['fieldName']
-                routine = self.exp.routines[update['routine']]
+                # routine = self.exp.routines[update['routine']]
                 if hasattr(compName, 'params'):
                     prms = compName.params  # it's already a compon so get params
                 else:
