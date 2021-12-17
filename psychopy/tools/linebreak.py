@@ -124,7 +124,7 @@ def break_units(s, breakables):
         breakables:
             A sequence of 0/1 of the same length of s. 1 represents that 
             the input sequence is breakable at that point.
-            See alse get_breakable_points().
+            See also get_breakable_points().
     """
     i = 0
     for j, bk in enumerate(breakables):
@@ -154,7 +154,7 @@ def _preprocess_boundaries(s):
 
 def get_breakable_points(s):
     """
-    Returns a generator object that yields 1 if the next charactor is
+    Returns a generator object that yields 1 if the next character is
     breakable, otherwise yields 0.
     Do `list(get_breakable_points(s))` to get a list of breakable points.
     
@@ -294,5 +294,3 @@ def get_breakable_points(s):
             yield int(j==0 and do_break)
         prev_prev_lb = prev_lb
         prev_lb = lb
-
-

@@ -713,5 +713,3 @@ def rgb2dklCart(picture, conversionMatrix=None):
     dklPicture = numpy.reshape(numpy.transpose(dkl), origShape)
 
     return dklPicture
-
-

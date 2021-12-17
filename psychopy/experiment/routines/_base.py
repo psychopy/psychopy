@@ -34,7 +34,7 @@ class BaseStandaloneRoutine:
         self.order = ['stopVal', 'stopType', 'name']
 
         msg = _translate(
-            "Name of this routine (alpha-numeric or _, no spaces)")
+            "Name of this routine (alphanumeric or _, no spaces)")
         self.params['name'] = Param(name,
                                     valType='code', inputType="single", categ='Basic',
                                     hint=msg,

@@ -799,7 +799,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 # response on next line
                 self._currentVirtualY -= respHeight + self.itemPadding * 5/4
 
-        self._setDecorations()  # choose whether show/hide scroolbar
+        self._setDecorations()  # choose whether show/hide scrollbar
 
     def _setDecorations(self):
         """Sets Form decorations i.e., Border and scrollbar"""

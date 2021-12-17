@@ -1,6 +1,6 @@
 
 code: 6105
-cat: Run nonexistant file
+cat: Run nonexistent file
 msg: The file you are attempting to run does not seem to exist, the full path supplied to Runner was {path}
 
 label: Attempted to run file which does not exist...

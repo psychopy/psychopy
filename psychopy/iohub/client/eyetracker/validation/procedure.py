@@ -1055,7 +1055,7 @@ class ValidationTargetRenderer:
 
         To setup target animation between grid positions, the following keyword
         arguments are supported. If an option is not specified, the animation
-        related to it is not preformed.
+        related to it is not performed.
 
 
 

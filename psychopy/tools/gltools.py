@@ -4934,4 +4934,3 @@ defaultMaterial = createMaterial(
      (GL.GL_SPECULAR, (0.0, 0.0, 0.0, 1.0)),
      (GL.GL_EMISSION, (0.0, 0.0, 0.0, 1.0)),
      (GL.GL_SHININESS, 0)])
-

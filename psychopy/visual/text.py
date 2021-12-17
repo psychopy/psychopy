@@ -73,7 +73,7 @@ defaultWrapWidth = {'cm': 15.0,
                     'pixels': 500}
 
 
-class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
+class TextStim(BaseVisualStim, ForeColorMixin, ContainerMixin):
     """Class of text stimuli to be displayed in a
     :class:`~psychopy.visual.Window`
     """

@@ -261,7 +261,7 @@ class TestExpt():
                 try:
                     locale.setlocale(locale.LC_ALL, loc)
                 except locale.Error:
-                    continue #skip this locale; it isnt installed
+                    continue #skip this locale; it isn't installed
                 file_py, file_psyexp = self._checkLoadSave(file)
                 file_pyc = self._checkCompile(file_py)
                 #sha1_first = sha1hex(file_pyc, file=True)

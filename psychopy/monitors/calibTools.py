@@ -65,7 +65,7 @@ class Monitor:
     This will be loaded automatically from disk if the
     monitor name is already defined (see methods).
 
-    Many settings from the stored monitor can easilly be overridden
+    Many settings from the stored monitor can easily be overridden
     either by adding them as arguments during the initial call.
 
     **arguments**:
@@ -124,7 +124,7 @@ class Monitor:
             logging.warning("Monitor specification not found. "
                             "Creating a temporary one...")
 
-        # overide current monitor settings with the vals given
+        # override current monitor settings with the vals given
         if width:
             self.setWidth(width)
         if distance:
@@ -412,7 +412,7 @@ class Monitor:
         return self.currentCalib['notes']
 
     def getUseBits(self):
-        """Was this calibration carried out witha a bits++ box
+        """Was this calibration carried out with a bits++ box
         """
         return self.currentCalib['usebits']
 

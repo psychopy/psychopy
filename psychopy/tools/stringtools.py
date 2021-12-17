@@ -48,7 +48,7 @@ def prettyname(name, wrap=False):
 
 def _actualizeAstValue(item):
     """
-    Convert an AST value node to a useable Python object
+    Convert an AST value node to a usable Python object
     """
     if isinstance(item, ast.Str):
         # Handle ast string

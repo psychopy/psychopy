@@ -262,7 +262,7 @@ class _baseTest():
         m = event.Mouse(self.win, newPos=(0,0))
         s = ShapeStim(self.win, vertices=[[10,10],[10,-10],[-10,-10],[-10,10]], autoLog=False)
         if not s.contains(m.getPos()):
-            pytest.skip()  # or cant test
+            pytest.skip()  # or can't test
 
         event.mouseButtons = [1, 1, 1]
         assert m.isPressedIn(s)
@@ -286,7 +286,7 @@ class TestPygletNorm(_baseTest):
     @classmethod
     def setup_class(self):
         mon = monitors.Monitor('testMonitor')
-        mon.setDistance(10.0) #exagerate the effect of flatness by setting the monitor close
+        mon.setDistance(10.0) #exaggerate the effect of flatness by setting the monitor close
         mon.setWidth(40.0)
         mon.setSizePix([1024,768])
         self.win = Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], autoLog=False)

@@ -54,7 +54,7 @@ class BaseComponent:
         self.order = ['name', 'startVal', 'startEstim', 'startType', 'stopVal', 'durationEstim', 'stopType']  # name first, then timing, then others
 
         msg = _translate(
-            "Name of this component (alpha-numeric or _, no spaces)")
+            "Name of this component (alphanumeric or _, no spaces)")
         self.params['name'] = Param(name,
             valType='code', inputType="single", categ='Basic',
             hint=msg,

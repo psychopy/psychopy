@@ -121,4 +121,3 @@ for compName in sorted(allComp):
                 mismatches.append(err)
 
 # return mismatches
-

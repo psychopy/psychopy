@@ -863,7 +863,7 @@ class AudioDeviceStatus:
         self._inDeviceIndex = int(value)
 
 
-# Theses are used as sentinels or for testing. Instancing these here behaves as
+# These are used as sentinels or for testing. Instancing these here behaves as
 # a self-test, providing coverage to most of the setter methods when this module
 # is imported.
 #

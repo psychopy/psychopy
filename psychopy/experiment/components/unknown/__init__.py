@@ -31,7 +31,7 @@ class UnknownComponent(BaseComponent):
         self.parentName = parentName  # to access the routine too if needed
         self.params = {}
         self.depends = []
-        _hint = _translate("Name of this component (alpha-numeric or _, "
+        _hint = _translate("Name of this component (alphanumeric or _, "
                            "no spaces)")
         self.params['name'] = Param(name, valType='code', inputType="multi",
                                     hint=_hint,

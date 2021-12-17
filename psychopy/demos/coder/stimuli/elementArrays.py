@@ -63,7 +63,7 @@ while not event.getKeys():
     newXYs = globForm.xys
     newOris = globForm.oris
 
-    # find the dead elemnts and reset their life
+    # find the dead elements and reset their life
     deadElements = (lives > 10)  # numpy vector, not standard python
     lives[deadElements] = 0
 
