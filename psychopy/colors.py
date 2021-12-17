@@ -430,6 +430,12 @@ class Color:
 
     def copy(self):
         """Return a duplicate of this colour"""
+        return self.__copy__()
+
+    def __copy__(self):
+        return self.__deepcopy__()
+
+    def __deepcopy__(self):
         dupe = self.__class__(
             self._requested, self._requestedSpace, self.contrast)
         dupe.rgba = self.rgba
