@@ -986,7 +986,7 @@ msgstr "その名前は使用されています(%s). 名前を変更してくだ
 #: psychopy/app/builder/dialogs/__init__.py:996
 #: psychopy/app/builder/dialogs/dlgsConditions.py:305
 #: psychopy/app/builder/dialogs/dlgsConditions.py:592
-msgid "Name must be alphanumeric or _, no spaces"
+msgid "Name must be alpha-numeric or _, no spaces"
 msgstr "名前に使えるのは英数字と_です. スペースを含んではいけません."
 
 #: psychopy/app/builder/dialogs/__init__.py:1215
@@ -3766,7 +3766,7 @@ msgstr ""
 
 #: psychopy/experiment/components/_base.py:61
 #: psychopy/experiment/components/unknown/__init__.py:37
-msgid "Name of this component (alphanumeric or _, no spaces)"
+msgid "Name of this component (alpha-numeric or _, no spaces)"
 msgstr ""
 "このコンポーネントの名前を指定します (英数字と_のみ;スペースを含まない)"
 
@@ -5020,7 +5020,7 @@ msgstr ""
 
 #: psychopy/experiment/components/keyboard/__init__.py:84
 msgid ""
-"Do you want to discard all responses occurring before the onset of this "
+"Do you want to discard all responses occuring before the onset of this "
 "component?"
 msgstr "計測開始前のすべてのキー押しを破棄します"
 
@@ -5410,12 +5410,12 @@ msgstr "方位の帯域幅を角度で指定します (半値幅, Gaborのみ)"
 
 #: psychopy/experiment/components/noise/__init__.py:220
 msgid ""
-"Orientation of Gabor filter in degrees. Used to set the orientation of a "
+"Orientation of Gabor filter in degrees. Used to set the orienation of a "
 "Gabor filter to be applied to another noise sample with a different overall "
 "orientation. The best way to set the orientation of a Gabor noise sample is "
 "to leave this as 0 degree and use the overall orientation on the Advanced "
 "tab to vary the dominant orientation of the noise. If using this setting for "
-"orientation it is strongly recommended to set the interpolation method to "
+"orientation it is strongly recomended to set the interpolation method to "
 "'linear' on the Advanced tab to avoid pixelization."
 msgstr ""
 "Gaborフィルタの方向をdegで指定します. 他の異なる方向を持つノイズサンプルに対"
@@ -6836,7 +6836,7 @@ msgid "An xlsx or csv file specifying the parameters for each condition"
 msgstr "各条件のパラメータを定義したxlsxファイルまたはcsvファイルを指定します"
 
 #: psychopy/experiment/routines/_base.py:39
-msgid "Name of this routine (alphanumeric or _, no spaces)"
+msgid "Name of this routine (alpha-numeric or _, no spaces)"
 msgstr "このルーチンの名前  (英数字と_のみ;スペースを含まない)"
 
 #: psychopy/experiment/routines/_base.py:43
@@ -6958,7 +6958,7 @@ msgstr "外側の半径"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:107
 #: psychopy/experiment/routines/eyetracker_validate/__init__.py:147
-msgid "Size (radius) of the inner part of the target"
+msgid "Size (radius) of te inner part of the target"
 msgstr "ターゲットの内側の部分の半径"
 
 #: psychopy/experiment/routines/eyetracker_calibrate/__init__.py:108
@@ -8787,7 +8787,7 @@ msgstr "PsychoPyに戻るにはキャンセルをクリックします."
 
 #, fuzzy
 #~| msgid "Data filename"
-#~ msgid "Data file delimiter"
+#~ msgid "Data file delimeter"
 #~ msgstr "データファイル名"
 
 #~ msgid "Source Structure"
@@ -9356,7 +9356,7 @@ msgstr "PsychoPyに戻るにはキャンセルをクリックします."
 #~ msgid "(Sharing requires an internet connection.)"
 #~ msgstr "(共有にはインターネット接続が必要です)"
 
-#~ msgid "Configuration data were successfully uploaded to"
+#~ msgid "Configutation data were successfully uploaded to"
 #~ msgstr "データは"
 
 #~ msgid "Thanks for participating!"

@@ -1431,7 +1431,7 @@ msgstr ""
 #: ../app/builder/dialogs/dlgsConditions.py:303
 #: ../app/builder/dialogs/dlgsConditions.py:578
 #: ../app/builder/validators.py:110
-msgid "Name must be alphanumeric or _, no spaces"
+msgid "Name must be alpha-numeric or _, no spaces"
 msgstr ""
 
 #: ../app/builder/validators.py:198
@@ -2738,7 +2738,7 @@ msgstr ""
 #: ../experiment/components/_base.py:49
 #: ../experiment/components/eyetracker/__init__.py:40
 #: ../experiment/components/unknown/__init__.py:36
-msgid "Name of this component (alphanumeric or _, no spaces)"
+msgid "Name of this component (alpha-numeric or _, no spaces)"
 msgstr ""
 
 #: ../experiment/components/_base.py:56
@@ -3663,7 +3663,7 @@ msgstr ""
 
 #: ../experiment/components/keyboard/__init__.py:82
 msgid ""
-"Do you want to discard all responses occurring before the onset of this "
+"Do you want to discard all responses occuring before the onset of this "
 "component?"
 msgstr ""
 
@@ -3934,12 +3934,12 @@ msgstr ""
 
 #: ../experiment/components/noise/__init__.py:219
 msgid ""
-"Orientation of Gabor filter in degrees. Used to set the orientation of a "
+"Orientation of Gabor filter in degrees. Used to set the orienation of a "
 "Gabor filter to be applied to another noise sample with a different "
 "overall orientation. The best way to set the orientation of a Gabor noise"
 " sample is to leave this as 0 degree and use the overall orientation on "
 "the Advanced tab to vary the dominant orientation of the noise. If using "
-"this setting for orientation it is strongly recommended to set the "
+"this setting for orientation it is strongly recomended to set the "
 "interpolation method to 'linear' on the Advanced tab to avoid "
 "pixelization."
 msgstr ""
