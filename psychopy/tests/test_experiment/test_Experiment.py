@@ -168,7 +168,11 @@ class TestExpt():
     def _checkCompile(self, py_file):
         # compile the temp file to .pyc, catching error msgs
         # (including no file at all):
-        py_compile.compile(py_file, doraise=True)
+        try:
+            py_compile.compile(py_file, doraise=True)
+        except py_compile.PyCompileError as err:
+            err.msg = py_file
+            raise err
         return py_file + 'c'
 
     def _checkPyDiff(self, file_py, file2_py):
@@ -320,7 +324,10 @@ class TestExpt():
             f.write(script)
 
         stdout, stderr = core.shellCall([sys.executable, py_file], stderr=True)
-        assert not stderr
+        if stderr:
+            with codecs.open(expfile + "_local.py", "w", 'utf-8-sig') as f:
+                f.write(script)
+            raise AssertionError(f"File {py_file} raised error:\n {stderr}")
 
         #load the data
         print("searching..." +datafileBase)
