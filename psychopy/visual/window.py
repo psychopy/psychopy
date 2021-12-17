@@ -3156,6 +3156,8 @@ class Window():
             self.flip()
             recentFrames = self.frameIntervals[-nIdentical:]
             nIntervals = len(self.frameIntervals)
+            if len(recentFrames) < 3:
+                continue  # no need to check variance yet
             recentFramesStd = numpy.std(recentFrames)  # compute variability
             if nIntervals >= nIdentical and recentFramesStd < threshSecs:
                 # average duration of recent frames
