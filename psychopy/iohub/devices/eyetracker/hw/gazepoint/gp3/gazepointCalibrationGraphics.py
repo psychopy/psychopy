@@ -191,25 +191,23 @@ class GazepointPsychopyCalibrationGraphics:
         color_type = self.getCalibSetting('color_type')
         unit_type = self.getCalibSetting('unit_type')
 
-        lwidth = self.getCalibSetting(['target_attributes', 'outer_stroke_width'])
-        radius = self.getCalibSetting(['target_attributes', 'outer_diameter']) / 2.0
-        fcolor = self.getCalibSetting(['target_attributes', 'outer_fill_color'])
-        lcolor = self.getCalibSetting(['target_attributes', 'outer_line_color'])
-        self.calibrationPointOUTER = visual.Circle(self.window, pos=(0, 0), name='CP_OUTER',
-                                                   radius=radius, lineWidth=lwidth,
-                                                   fillColor=fcolor, lineColor=lcolor,
-                                                   opacity=1.0, interpolate=False,
-                                                   edges=64, units=unit_type, colorSpace=color_type)
-
-        lwidth = self.getCalibSetting(['target_attributes', 'inner_stroke_width'])
-        radius = self.getCalibSetting(['target_attributes', 'inner_diameter']) / 2.0
-        fcolor = self.getCalibSetting(['target_attributes', 'inner_fill_color'])
-        lcolor = self.getCalibSetting(['target_attributes', 'inner_line_color'])
-        self.calibrationPointINNER = visual.Circle(self.window, pos=(0, 0), name='CP_INNER',
-                                                   radius=radius, lineWidth=lwidth,
-                                                   fillColor=fcolor, lineColor=lcolor,
-                                                   opacity=1.0, interpolate=False,
-                                                   edges=64, units=unit_type, colorSpace=color_type)
+        self.calibrationPoint = visual.TargetStim(
+            self.window, name="CP", style="circles",
+            radius=self.getCalibSetting(['target_attributes', 'outer_diameter']) / 2.0,
+            fillColor=self.getCalibSetting(['target_attributes', 'outer_fill_color']),
+            borderColor=self.getCalibSetting(['target_attributes', 'outer_line_color']),
+            lineWidth=self.getCalibSetting(['target_attributes', 'outer_stroke_width']),
+            innerRadius=self.getCalibSetting(['target_attributes', 'inner_diameter']) / 2.0,
+            innerFillColor=self.getCalibSetting(['target_attributes', 'inner_fill_color']),
+            innerBorderColor=self.getCalibSetting(['target_attributes', 'inner_line_color']),
+            innerLineWidth=self.getCalibSetting(['target_attributes', 'inner_stroke_width']),
+            pos=(0, 0),
+            units=unit_type,
+            colorSpace=color_type,
+            autoLog=False
+        )
+        self.calibrationPointINNER = self.calibrationPoint.inner
+        self.calibrationPointOUTER = self.calibrationPoint.outer
 
         tctype = color_type
         tcolor = self.getCalibSetting(['text_color'])
@@ -315,9 +313,8 @@ class GazepointPsychopyCalibrationGraphics:
                     # Change target size from outer diameter to inner diameter over target_duration seconds.
                     t = elapsed_time / target_duration
                     d = outer_diameter - t * (outer_diameter - inner_diameter)
-                    self.calibrationPointOUTER.radius = d / 2
-                    self.calibrationPointOUTER.draw()
-                    self.calibrationPointINNER.draw()
+                    self.calibrationPoint.outerRadius = d / 2
+                    self.calibrationPoint.draw()
                     self.window.flip(clearBuffer=True)
                 elif animate_expansion_ratio not in [1, 1.0]:
                     if elapsed_time <= target_duration/2:
@@ -329,9 +326,8 @@ class GazepointPsychopyCalibrationGraphics:
                         t = (elapsed_time-target_duration/2) / (target_duration/2)
                         d = outer_diameter*animate_expansion_ratio - t * (outer_diameter*animate_expansion_ratio - inner_diameter)
                 if d:
-                    self.calibrationPointOUTER.radius = d / 2
-                    self.calibrationPointOUTER.draw()
-                    self.calibrationPointINNER.draw()
+                    self.calibrationPoint.outerRadius = d / 2
+                    self.calibrationPoint.draw()
                     self.window.flip(clearBuffer=True)
 
                 #print2err(inner_diameter, " ", outer_diameter, " ", t, " ", d)
