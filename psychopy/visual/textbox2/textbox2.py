@@ -346,6 +346,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if hasattr(self, "caret"):
             self.caret.index = self.caret.index
 
+        if hasattr(self, "_text"):
+            self._layout()
         self._needVertexUpdate = True
 
     @property
