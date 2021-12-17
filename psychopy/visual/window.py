@@ -3156,8 +3156,7 @@ class Window():
             self.flip()
             recentFrames = self.frameIntervals[-nIdentical:]
             nIntervals = len(self.frameIntervals)
-            recentFramesStd = numpy.std(recentFrames)  # compute variability
-            if nIntervals >= nIdentical and recentFramesStd < threshSecs:
+            if nIntervals >= nIdentical and numpy.std(recentFrames) < threshSecs:
                 # average duration of recent frames
                 period = numpy.mean(recentFrames)  # log this too?
                 rate = 1.0 / period  # compute frame rate in Hz
