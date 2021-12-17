@@ -119,31 +119,6 @@ class TestExpt():
         for psyexp_file in psyexp_files:
             assert schema.is_valid(psyexp_file), f"Error in {psyexp_file}:\n" + "\n".join(err.reason for err in schema.iter_errors(psyexp_file))
 
-    def test_missing_dotval(self):
-        """search for a builder component gotcha:
-            self.params['x'] when you mean self.params['x'].val
-        there could well be instances this does not catch
-        """
-        # find relevant files -- expect problems only in builder/components/:
-        files = []
-        for root, dirs, tmpfiles in os.walk(path.join(self.exp.prefsPaths['tests'], 'app', 'builder', 'components')):
-            for f in tmpfiles:
-                file = path.join(root, f)
-                if file.endswith('.py') and not file.endswith(__file__):
-                    files.append(file)
-
-        # check each line of each relevant file:
-        missing_dotval_count = 0
-        for file in files:
-            contents = open(r''+file+'', 'r').readlines()
-            lines = [line for line in enumerate(contents) if (
-                     line[1].find("if self.params[") > -1 # this pattern could miss some things
-                     and not (line[1].find('].val') > -1 or line[1].find('].updates') > -1) )
-                     ]
-            missing_dotval_count += len(lines)
-
-        assert missing_dotval_count == 0  # some suspicious lines were found: "if self.param[]" without .val or .updates
-
     def _checkLoadSave(self, file):
         exp = self.exp
         py_file = file+'.py'
