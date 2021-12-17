@@ -902,6 +902,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.box.setFillColor(self.pallette['fillColor'], colorSpace='rgb')
         #self.fillColor = self.box.fillColor
 
+        # Inherit win
+        self.box.win = self.win
+        self.contentBox.win = self.win
+        self.boundingBox.win = self.win
+
         if self._needVertexUpdate:
             #print("Updating vertices...")
             self._updateVertices()
