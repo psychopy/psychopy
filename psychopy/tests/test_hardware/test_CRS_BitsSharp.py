@@ -30,7 +30,7 @@ def test_bitsSharp():
     bits.getVideoLine(lineN=1, nPixels=1)
     core.wait(5) #wait for status mode to take effect
 
-    #createa  stimulus to check luminance values
+    #create a stimulus to check luminance values
     screenSqr = visual.GratingStim(win,tex=None, mask=None,
                size=2)
 

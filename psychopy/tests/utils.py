@@ -54,7 +54,7 @@ def compareScreenshot(fileName, win, crit=5.0):
         rms = np.std(imgDat-expDat)
         filenameLocal = fileName.replace('.png','_local.png')
         if rms >= crit/2:
-            #there was SOME discrepency
+            #there was SOME discrepancy
             logging.warning('PsychoPyTests: RMS=%.3g at threshold=%3.g'
                   % (rms, crit))
         if not rms<crit: #don't do `if rms>=crit because that doesn't catch rms=nan

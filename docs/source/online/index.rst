@@ -30,4 +30,3 @@ Besides the basics, we've got the following tutorials:
 
 
 The first generation of PsychoJS was realized by a `Wellcome Trust <https://wellcome.org/>`_ grant, awarded in January 2018.  to make online studies possible from PsychoPy. This is what we call PsychoPy3 - the 3rd major phase of PsychoPy's development.
-

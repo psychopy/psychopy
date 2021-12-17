@@ -55,7 +55,7 @@ class ExperimentHandler(_ComparisonMixin):
                 (e.g. {'participant':'jwp','gender':'m','orientation':90} )
 
             runtimeInfo : :class:`psychopy.info.RunTimeInfo`
-                Containining information about the system as detected at
+                Containing information about the system as detected at
                 runtime
 
             originPath : string or unicode

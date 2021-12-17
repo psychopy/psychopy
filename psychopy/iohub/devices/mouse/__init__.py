@@ -116,7 +116,7 @@ class MouseDevice(Device):
             pos ( (x,y) list or tuple ): The position, in Display
             coordinate space, to set the mouse position too.
 
-            display_index (int): Optional arguement giving the display index
+            display_index (int): Optional argument giving the display index
             to set the mouse pos within. If None, the active ioHub Display
             device index is used.
 
@@ -177,7 +177,7 @@ class MouseDevice(Device):
         presentation, then mouse position is in the display's coordinate units.
         If the display index != the index of the display being used for
         stimulus
-        presentation, then mouse position is in OS system mouse ccordinate
+        presentation, then mouse position is in OS system mouse coordinate
         space.
 
         Args:
@@ -423,7 +423,7 @@ class MouseInputEvent(DeviceEvent):
         #: occurred,
         #: provided in online events as a list of the modifier constant labels
         #: specified in iohub.ModifierConstants
-        #: list: Empty if no modifiers are pressed, otherwise each elemnt is
+        #: list: Empty if no modifiers are pressed, otherwise each element is
         #  the string name of a modifier constant.
         self.modifiers = 0
 

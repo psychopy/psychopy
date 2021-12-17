@@ -18,4 +18,3 @@ We can be quite flexible in what we offer, but to give you an idea of what is po
 .. image:: /images/consultancy.gif
    :align: center
    :width: 600
-

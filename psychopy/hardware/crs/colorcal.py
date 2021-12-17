@@ -116,7 +116,7 @@ class ColorCAL(object):
         self.calibMatrix = self.getCalibMatrix()
 
     def sendMessage(self, message, timeout=0.1):
-        """Send a command to the photometer and wait an alloted
+        """Send a command to the photometer and wait an allotted
         timeout for a response.
         """
         # flush the read buffer first

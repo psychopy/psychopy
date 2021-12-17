@@ -175,7 +175,7 @@ def getThreadPolicy(getDefault, flavour):
         return False
 
     extendedPolicy = _timeConstraintThreadPolicy()  # to store the infos
-    # we want to retrive actual policy or the default
+    # we want to retrieve actual policy or the default
     getDefault = ctypes.c_int(getDefault)
     err = cocoa.thread_policy_get(cocoa.mach_thread_self(),
                                   THREAD_TIME_CONSTRAINT_POLICY,

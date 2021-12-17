@@ -354,4 +354,3 @@ Adding a `teardown_class` method to your TestRect class:
             self.win.close()
             # Delete the object
             del self.rect
-

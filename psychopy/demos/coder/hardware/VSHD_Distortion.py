@@ -28,7 +28,7 @@ event.globalKeys.add('q', func=core.quit)
 
 # main loop, exits on pressing 'q'
 while 1:
-    # update the distortion coefficent text
+    # update the distortion coefficient text
     distText.text = 'Distortion Coef.: {:.3f}'.format(win.distCoef)
 
     # draw the checkerboard to each eye
@@ -38,7 +38,7 @@ while 1:
         distText.draw()
 
     # Check if keys have been pressed to update the distortion
-    # coefficent.
+    # coefficient.
     if event.getKeys(['w']):
         win.distCoef += 0.001
         msgText = 'Distortion Coef.: {:.3f}'.format(win.distCoef)

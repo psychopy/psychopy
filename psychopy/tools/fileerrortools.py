@@ -23,7 +23,7 @@ def handleFileCollision(fileName, fileCollisionMethod):
 
         fileCollisionMethod: 'overwrite', 'rename', 'fail'
             If a file with the requested name already exists, specify
-            how to deal with it. 'overwrite' will overwite existing
+            how to deal with it. 'overwrite' will overwrite existing
             files in place, 'rename' will append an integer to create
             a new file ('trials1.psydat', 'trials2.pysdat' etc) and
             'error' will raise an IOError.

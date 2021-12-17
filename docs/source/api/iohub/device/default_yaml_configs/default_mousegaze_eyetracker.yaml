@@ -38,4 +38,3 @@ eyetracker.hw.mouse.EyeTracker:
 
     # MouseGaze creates (minimally populated) fixation, saccade, and blink events.
     monitor_event_types: [MonocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]
-

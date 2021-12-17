@@ -851,7 +851,7 @@ class TestPygletDegFlat(_baseVisualTest):
     @classmethod
     def setup_class(self):
         mon = monitors.Monitor('testMonitor')
-        mon.setDistance(10.0) #exagerate the effect of flatness by setting the monitor close
+        mon.setDistance(10.0) #exaggerate the effect of flatness by setting the monitor close
         mon.setWidth(40.0)
         mon.setSizePix([1024,768])
         self.win = visual.Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], allowStencil=True,
@@ -864,7 +864,7 @@ class TestPygletDegFlatPos(_baseVisualTest):
     @classmethod
     def setup_class(self):
         mon = monitors.Monitor('testMonitor')
-        mon.setDistance(10.0) #exagerate the effect of flatness by setting the monitor close
+        mon.setDistance(10.0) #exaggerate the effect of flatness by setting the monitor close
         mon.setWidth(40.0)
         mon.setSizePix([1024,768])
         self.win = visual.Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], allowStencil=True,

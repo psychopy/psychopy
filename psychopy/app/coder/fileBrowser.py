@@ -683,4 +683,3 @@ class FileBrowserPanel(wx.Panel):
         self.currentPath = path
         self.txtAddr.SetValue(self.currentPath)
         self.updateFileBrowser()
-

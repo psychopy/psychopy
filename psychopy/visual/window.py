@@ -3307,4 +3307,3 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     """
     return myWin.getMsPerFrame(nFrames=60, showVisual=showVisual, msg=msg,
                                msDelay=0.)
-

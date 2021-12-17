@@ -253,7 +253,7 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
             code += ("    # was no response the correct answer?\n"
                      "    if str(%(correctAns)s).lower() == 'none':\n"
                      "        %(name)s.corr = 1  # correct non-response\n"
-                     "    else:\n        %(name)s.corr = 0  # failed to withold a response\n")
+                     "    else:\n        %(name)s.corr = 0  # failed to withhold a response\n")
 
         buff.writeIndentedLines(code % self.params)
 

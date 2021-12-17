@@ -311,4 +311,3 @@ respectively.
     while True:
         text.draw()
         win.flip()
-

@@ -151,8 +151,8 @@ class Keyboard(ioHubKeyboardDevice):
         ioHubKeyboardDevice.__init__(self, *args, **kwargs['dconfig'])
 
         # TODO: This dict should be reset whenever monitoring is turned off for the device OR
-        # whenever events are cleared fpr the device.
-        # Same to do for the _active_modifiers bool lookup array
+        # whenever events are cleared for the device.
+        # Do the same for the _active_modifiers bool lookup array
         self._last_general_mod_states = dict(
             shift_on=False, alt_on=False, cmd_on=False, ctrl_on=False)
 
@@ -269,7 +269,7 @@ class Keyboard(ioHubKeyboardDevice):
                         key_mods)
 
                     if fnModifierActive(key_mods) and keyFromNumpad(key_mods):
-                        # Atleast on mac mini wireless kb, arrow keys have
+                        # At least on mac mini wireless kb, arrow keys have
                         # fnModifierActive at all times, even when fn key is not pressed.
                         # When fn key 'is' pressed, and arrow key is pressed,
                         # then keyFromNumpad becomes false.

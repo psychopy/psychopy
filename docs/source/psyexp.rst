@@ -55,4 +55,3 @@ The Parameter names belonging to each Component (or the Settings node) must be u
 
 .. literalinclude:: stroop.psyexp
    :language: xml
-

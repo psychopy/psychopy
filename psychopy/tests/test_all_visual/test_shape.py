@@ -19,4 +19,3 @@ class TestShape(_TestColorMixin):
         self.fillUsed = True
         # Shape has no foreground color
         self.foreUsed = False
-

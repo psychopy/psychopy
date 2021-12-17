@@ -28,7 +28,3 @@ Once you have an account on `Pavlovia`_ and are logged in, your user name should
     :figclass: align-center
 
     Logging in on Pavlovia via the PsychoPy 3 Builder
-
-
-
-

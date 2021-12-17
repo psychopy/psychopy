@@ -2340,4 +2340,3 @@ class ObjMeshStim(BaseRigidBodyStim):
         GL.glPopMatrix()
 
         win.draw3d = False
-

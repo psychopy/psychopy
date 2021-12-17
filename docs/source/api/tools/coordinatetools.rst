@@ -18,4 +18,3 @@ Function details
 .. autofunction:: cart2sph
 .. autofunction:: pol2cart
 .. autofunction:: sph2cart
-

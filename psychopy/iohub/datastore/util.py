@@ -93,18 +93,18 @@ class ExperimentDataAccessUtility(object):
     """The ExperimentDataAccessUtility  provides a simple, high level, way to
     access data saved in an ioHub DataStore HDF5 file. Data access is done by
     providing information at an experiment and session level, as well as
-    specifying the ioHub Event types you want to retieve data for.
+    specifying the ioHub Event types you want to retrieve data for.
 
     An instance of the ExperimentDataAccessUtility class is created by providing
     the location and name of the file to read, as well as any session code
-    filtering you want applied to the retieved datasets.
+    filtering you want applied to the retrieved datasets.
 
     Args:
         hdfFilePath (str): The path of the directory the DataStore HDF5 file is in.
 
         hdfFileName (str): The name of the DataStore HDF5 file.
 
-        experimentCode (str): If multi-experiment support is enabled for the DataStore file, this arguement can be used to specify what experiment data to load based on the experiment_code given. NOTE: Multi-experiment data file support is not well tested and should not be used at this point.
+        experimentCode (str): If multi-experiment support is enabled for the DataStore file, this argument can be used to specify what experiment data to load based on the experiment_code given. NOTE: Multi-experiment data file support is not well tested and should not be used at this point.
 
         sessionCodes (str or list): The experiment session code to filter data by. If a list of codes is given, then all codes in the list will be used.
 
@@ -122,14 +122,14 @@ class ExperimentDataAccessUtility(object):
             mode='r'):
         """An instance of the ExperimentDataAccessUtility class is created by
         providing the location and name of the file to read, as well as any
-        session code filtering you want applied to the retieved datasets.
+        session code filtering you want applied to the retrieved datasets.
 
         Args:
             hdfFilePath (str): The path of the directory the DataStore HDF5 file is in.
 
             hdfFileName (str): The name of the DataStore HDF5 file.
 
-            experimentCode (str): If multi-experiment support is enabled for the DataStore file, this arguement can be used to specify what experiment data to load based on the experiment_code given. NOTE: Multi-experiment data file support is not well tested and should not be used at this point.
+            experimentCode (str): If multi-experiment support is enabled for the DataStore file, this argument can be used to specify what experiment data to load based on the experiment_code given. NOTE: Multi-experiment data file support is not well tested and should not be used at this point.
 
             sessionCodes (str or list): The experiment session code to filter data by. If a list of codes is given, then all codes in the list will be used.
 
@@ -262,7 +262,7 @@ class ExperimentDataAccessUtility(object):
                 event_value = event_type
             else:
                 print2err(
-                    'getEventTable error: event_type arguement must be a string or and int')
+                    'getEventTable error: event_type argument must be a string or and int')
                 return None
 
             result = []

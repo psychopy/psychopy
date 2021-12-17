@@ -1162,4 +1162,3 @@ def refreshSession():
     else:
         _existingSession = PavloviaSession()
     return _existingSession
-

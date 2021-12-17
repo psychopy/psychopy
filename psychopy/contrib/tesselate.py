@@ -35,7 +35,7 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
 
-# Many thanks to Martin O'Leary of supereffective.org, whos Squirtle module
+# Many thanks to Martin O'Leary of supereffective.org, whose Squirtle module
 # formed a major inspiration for this entire project [svgbatch], and in particular for
 # his sublime tesselation code. This has been copied wholesale, under the terms
 # of the BSD.

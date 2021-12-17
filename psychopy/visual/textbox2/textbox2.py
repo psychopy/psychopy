@@ -953,7 +953,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             # for the tight box anchor offset is included in vertex calcs
             self.boundingBox.size = tightW, tightH
             self.boundingBox.pos = self.pos + (Xmid, Ymid)
-        # box (larger than bounding box) needs anchor offest adding
+        # box (larger than bounding box) needs anchor offset adding
         self.box.pos = self.pos + (boxOffsetX, boxOffsetY)
         self.box.size = self.size  # this might have changed from _requested
 
@@ -1024,7 +1024,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         return False
 
     def getText(self):
-        """Returns the current text in the box, including formating tokens."""
+        """Returns the current text in the box, including formatting tokens."""
         return self.text
 
     @property

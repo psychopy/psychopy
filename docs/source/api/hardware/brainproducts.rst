@@ -9,4 +9,3 @@ BrainProducts
 
 .. autoclass:: psychopy.hardware.brainproducts.RemoteControlServer
     :members:
-

@@ -256,7 +256,7 @@ class StairHandler(_BaseTrialHandler):
         """
         if not dataName in self.otherData:  # init the list
             if self.thisTrialN > 0:
-                # might have run trals already
+                # might have run trials already
                 self.otherData[dataName] = [None] * (self.thisTrialN - 1)
             else:
                 self.otherData[dataName] = []
