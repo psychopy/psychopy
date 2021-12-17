@@ -10,7 +10,7 @@ import py_compile
 import difflib
 from tempfile import mkdtemp
 import codecs
-from psychopy import core, tests, prefs
+from psychopy import core, prefs
 import pytest
 import locale
 import numpy
