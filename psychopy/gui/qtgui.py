@@ -522,7 +522,7 @@ def fileSaveDlg(initFilePath="", initFileName="",
         allowed: string
             a string to specify file filters.
             e.g. "Text files (\\*.txt) ;; Image files (\\*.bmp \\*.gif)"
-            See http://pyqt.sourceforge.net/Docs/PyQt4/qfiledialog.html
+            See https://www.riverbankcomputing.com/static/Docs/PyQt4/qfiledialog.html
             #getSaveFileName
             for further details
 
@@ -569,7 +569,7 @@ def fileOpenDlg(tryFilePath="",
         allowed: string (available since v1.62.01)
             a string to specify file filters.
             e.g. "Text files (\\*.txt) ;; Image files (\\*.bmp \\*.gif)"
-            See http://pyqt.sourceforge.net/Docs/PyQt4/qfiledialog.html
+            See https://www.riverbankcomputing.com/static/Docs/PyQt4/qfiledialog.html
             #getOpenFileNames
             for further details
 

@@ -169,7 +169,7 @@ class PsychopyPyShell(wx.py.shell.Shell, ThemeMixin):
 class Printer(HtmlEasyPrinting):
     """bare-bones printing, no control over anything
 
-    from http://wiki.wxpython.org/Printing
+    from https://wiki.wxpython.org/Printing
     """
 
     def __init__(self):
