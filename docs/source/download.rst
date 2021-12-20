@@ -133,6 +133,8 @@ You need the necessary dev libraries installed first:
 and then you should be able to install using pip and it will build the extensions
 as needed:
 
+.. code-block:: bash
+
     pip install psychtoolbox
 
 
@@ -209,4 +211,4 @@ cause is that you need OpenGL drivers and your built-in Windows only has limited
 support for OpenGL (or possibly you have an Intel graphics card that isn't very
 good). Try installing new drivers for your graphics card **from its
 manufacturer's web page,** not from Microsoft. For example, NVIDIA provides
-drivers for its cards here: https://www.nvidia.com/Download/index.aspx
+drivers for its cards `here <https://www.nvidia.com/Download/index.aspx>`_

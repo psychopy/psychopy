@@ -5,7 +5,7 @@ Getting Started
 
 As an application, PsychoPy has two main views: the :doc:`Builder <builder/index>` view, and the :doc:`Coder <coder/index>` view. It also has a underlying :ref:`api` that you can call directly.
 
-#. :doc:`Builder <builder/index>`. You can generate a wide range of experiments easily from the Builder using its intuitive, graphical user interface (GUI). This might be all you ever need to do. But you can always compile your experiment into a python script for fine-tuning, and this is a quick way for experienced programmers to explore some of PsychoPy's libraries and conventions.
+#. :doc:`Builder <builder/index>`. You can generate a wide range of experiments easily from the Builder using its intuitive, graphical user interface (GUI). This might be all you ever need to do. But you can always compile your experiment into a python script for fine-tuning, and this is a quick way for experienced programmers to explore some of PsychoPy's libraries and conventions. **Note: if you are taking a study online we highly advise even experienced coders use Builder view, as the JS version of your experiment will also be generated**
 
 .. figure:: images/builder.png
   :width: 80%
@@ -36,9 +36,8 @@ A first program
 Start PsychoPy, and be sure to be in the Builder view.
 
 * If you have poked around a bit in the Builder already, be sure to start with a clean slate. To get a new Builder view, type `Ctrl-N` on Windows or Linux, or `Cmd-N` on Mac.
-* Click on a Text component
+* Click on a Text component and a Text Properties dialog will pop up.
 
-and a Text Properties dialog will pop up.
   .. image:: images/textdialog.png
     :width: 80%
     :align: center
@@ -91,7 +90,7 @@ To get a better feel for what was happening "behind the scenes" in the Builder p
 
 The view will automatically switch to the Coder, and display the python code. If you then save and run this code, it would look the same as running it directly from the Builder.
 
-It is always possible to go from the Builder to python code in this way. You can then edit that code and run it as a python program. However, you cannot go from code back to a Builder representation.
+It is always possible to go from the Builder to python code in this way. You can then edit that code and run it as a python program. However, you **cannot go from code back to a Builder representation** editing in coder is a one-way street, so, in general, we advise compiling to code is good for understanding what exists but, where possible, make code tweaks in builder itself using code components.
 
 To switch quickly between Builder and Coder views, you can type `Ctrl-L` / `Cmd-L`.
 
@@ -134,7 +133,7 @@ The shell provides an interactive python interpreter, which means you can enter 
 
 At the prompt, type::
 
-    >>> print u"\u00A1Hola mundo!"
+    >>> print(u"\u00A1Hola mundo!")
 
 You can do more complex things, such as type in each line from the Coder example directly into the Shell window, doing so line by line::
 

@@ -3,6 +3,8 @@
 Form Component
 --------------
 
+*Please note that this component is still in Beta mode and is therefore developing*
+
 The Form component enables Psychopy to be used as a questionnaire tool, where
 participants can be presented with a series of questions requiring responses.
 Form items, defined as questions and response pairs, are presented
@@ -20,8 +22,9 @@ Start : int, float
 Stop : int, float
     Governs the duration for which the stimulus is presented.
 
-Items : List of dicts or csv / xlsx file
-    A list of dicts or csv file should have the following key, value pairs / column headers:
+Items : A csv / xlsx file **To get started, we recommend selecting the "Open/Create Icon" which will open up a template forms spreadsheet**
+    A csv/xlsx file should have the following key, value pairs / column headers:
+
         *index*
             The item index as a number
         *itemText*
@@ -29,7 +32,7 @@ Items : List of dicts or csv / xlsx file
         *itemWidth*
             The question width between 0 : 1
         *type*
-            The type of rating e.g., 'radio', 'rating', 'slider'
+            The type of rating e.g., 'choice', 'rating', 'slider', 'free-text'
         *responseWidth*
             The question width between 0 : 1
         *options*
@@ -40,6 +43,8 @@ Items : List of dicts or csv / xlsx file
             The question text font color
         *responseColor*
             The response object color
+        *granularity*
+            If you are using a slider, what do you want the granularity of the slider to be?
 
     Missing column headers will be replaced by default entries, with the exception of `itemText` and `type`, which are required. The default entries are:
         *index*
@@ -63,22 +68,6 @@ Data format : menu
 randomize : bool
         Randomize order of Form elements
 
-Appearance
-==========
-How should the stimulus look? Color, borders, etc.
-
-style : light, dark
-    Whether to style items in your form for a light or a dark background
-
-border color : color
-    See :ref:`colorspaces`
-
-fill color : color
-    See :ref:`colorspaces`
-
-opacity :
-    Vary the transparency, from 0.0 = invisible to 1.0 = opaque
-
 Layout
 ======
 How should the stimulus be laid out? Padding, margins, size, position, etc.
@@ -92,6 +81,22 @@ Pos : [X,Y]
 Item padding : float
     Space or padding between Form elements (i.e., question and response text), to be specified in 'height' units.
 
+Appearance
+==========
+How should the stimulus look? Color, borders, etc. Many of these read-only parameters become editable when *Styles* is set to *custom*.
+
+style : light, dark
+    Whether to style items in your form for a light or a dark background
+
+border color : color
+    See :ref:`colorspaces`
+
+fill color : color
+    See :ref:`colorspaces`
+
+opacity :
+    Vary the transparency, from 0.0 = invisible to 1.0 = opaque
+
 Formatting
 ==========
 Formatting text
@@ -99,6 +104,11 @@ Formatting text
 Text height : float
     Text height of the Form elements (i.e., question and response text).
 
+Font
+    Font to use in text.
+
+.. note::
+    Top tip: Form has an attribute to check if all questions have been answered :code:`form.complete`. You could use this to make a "submit" button appear only when the form is completed!
 .. seealso::
 
 	API reference for :class:`~psychopy.visual.Form`
