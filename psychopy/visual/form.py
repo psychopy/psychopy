@@ -548,7 +548,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             anchor="top-right",
             lineColor="red",
             fillColor=None,
-            units=self.units
+            units=self.units,
+            autoLog=False
         )
         # Get slider pos and size
         if item['layout'] == 'horiz':
