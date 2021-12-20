@@ -1368,7 +1368,7 @@ def intersectRaySphere(rayOrig, rayDir, sphereOrig=(0., 0., 0.), sphereRadius=1.
         units from `orig`. Returns `None` if there is no intersection.
 
     """
-    # based off example from http://antongerdelan.net/opengl/raycasting.html
+    # based off example from https://antongerdelan.net/opengl/raycasting.html
     dtype = np.float64 if dtype is None else np.dtype(dtype).type
 
     rayOrig = np.asarray(rayOrig, dtype=dtype)
@@ -1534,7 +1534,7 @@ def intersectRayOBB(rayOrig, rayDir, modelMatrix, boundsExtents, dtype=None):
 
     """
     # based off algorithm:
-    # http://www.opengl-tutorial.org/miscellaneous/clicking-on-objects/
+    # https://www.opengl-tutorial.org/miscellaneous/clicking-on-objects/
     # picking-with-custom-ray-obb-function/
     dtype = np.float64 if dtype is None else np.dtype(dtype).type
 
@@ -3171,7 +3171,7 @@ def matrixFromEulerAngles(rx, ry, rz, degrees=True, out=None, dtype=None):
     matrices.
 
     """
-    # from http://www.j3d.org/matrix_faq/matrfaq_latest.html
+    # from https://www.j3d.org/matrix_faq/matrfaq_latest.html
     if out is None:
         dtype = np.float64 if dtype is None else np.dtype(dtype).type
         toReturn = np.zeros((4, 4,), dtype=dtype)

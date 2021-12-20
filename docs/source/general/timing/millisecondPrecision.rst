@@ -2,7 +2,7 @@
 Can PsychoPy deliver millisecond precision?
 ---------------------------------------------
 
-.. _Labhackers Millikey: http://labhackers.com/millikey.html
+.. _Labhackers Millikey: https://labhackers.com/millikey.html
 
 The simple answer is 'yes'. PsychoPy's timing is as good as (or in most cases better than) any package out there. 
 

@@ -2,7 +2,7 @@ From version 1.5 onwards PsychoPy is distributed under the GNU GPLv3
 
 The PsychoPy *library* includes the following:
 
-    - pyparallel (http://pyserial.sourceforge.net/pyparallel.html). License: Python Software Foundation
+    - pyparallel (https://github.com/pyserial/pyparallel). License: Python Software Foundation
     - quest (http://www.visionegg.org/Quest). License: BSD
     - psychopy/app/Resources/DejaVuSerif.ttf. License: BSD-like (see below for full list of terms)
     
@@ -53,4 +53,3 @@ License:
     Inc., respectively. For further information, contact: fonts at gnome dot
     org. 
 ~
-
