@@ -236,6 +236,12 @@ class PavloviaSession:
     def currentProject(self, value):
         self._currentProject = PavloviaProject(value)
 
+    def getOauthSuffix(self, prefix=""):
+        if self.getToken():
+            return f"{prefix}oauthToken={self.getToken()}"
+        else:
+            return ""
+
     def createProject(self, name, description="", tags=(), visibility='public',
                       localRoot='', namespace=''):
         """Returns a PavloviaProject object (derived from a gitlab.project)
@@ -463,6 +469,7 @@ class PavloviaSearch(pandas.DataFrame):
             return any(self.values())
 
     def __init__(self, term, sortBy=None, filterBy=None, mine=False):
+        session = getCurrentSession()
         # Replace default filter
         if filterBy is None:
             filterBy = {}
@@ -471,7 +478,7 @@ class PavloviaSearch(pandas.DataFrame):
         # Do search
         try:
             if term or filterBy or mine:
-                data = requests.get(f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}",
+                data = requests.get(f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}{session.getOauthSuffix('&')}",
                                     timeout=2).json()
             else:
                 # Display demos for blank search
@@ -484,7 +491,6 @@ class PavloviaSearch(pandas.DataFrame):
         pandas.DataFrame.__init__(self, data=data['experiments'])
         # Apply me mode
         if mine:
-            session = getCurrentSession()
             self.drop(self.loc[
                           # self['creatorId'] != session.userID  # Created by me
                           (self['userIds'].explode() != session.userID).groupby(level=0).any()  # Editable by me
@@ -537,10 +543,11 @@ class PavloviaProject(dict):
             # If given an ID, get Pavlovia info (for just created projects this can take a while, so allow 2s leeway)
             start = time.time()
             self.info = None
-            while self.info is None and time.time() - start < 2:
-                self.info = requests.get("https://pavlovia.org/api/v2/experiments/" + str(id)).json()['experiment']
+            while self.info is None and time.time() - start < 5:
+                self.info = requests.get(f"https://pavlovia.org/api/v2/experiments/{id}{self.session.getOauthSuffix('?')}").json()['experiment']
             if self.info is None:
-                raise ValueError(f"Could not find project with id `{id}` on Pavlovia")
+                raise LookupError(f"Could not find project with id `{id}` on Pavlovia")
+        self._newRemote = False  # False can also indicate 'unknown'
         # Store own id
         self.id = int(self.info['gitlabId'])
         # Init dict
@@ -573,7 +580,7 @@ class PavloviaProject(dict):
 
     def refresh(self):
         # Update Pavlovia info
-        self.info = requests.get("https://pavlovia.org/api/v2/experiments/" + str(self.id)).json()['experiment']
+        self.info = requests.get(f"https://pavlovia.org/api/v2/experiments/{self.id}{self.session.getOauthSuffix('?')}").json()['experiment']
         # Convert datetime
         dtRegex = re.compile("\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d(.\d\d\d)?")
         for key in self.info:
@@ -601,7 +608,7 @@ class PavloviaProject(dict):
             self._project = self.session.gitlab.projects.get(self.id)
             return self._project
         except gitlab.exceptions.GitlabGetError as e:
-            raise KeyError(f"Could not find GitLab project with id {self.id}.")
+            raise LookupError(f"Could not find GitLab project with id {self.id}.")
 
     @property
     def editable(self):
@@ -704,6 +711,8 @@ class PavloviaProject(dict):
         # Error catch local root
         if not self.localRoot:
             raise gitlab.GitlabGetError("Can't sync project without a local root.")
+        # Reset local repo so it checks again (rather than erroring if it's been deleted without an app restart)
+        self._repo = None
         # Jot down start time
         t0 = time.time()
         # If first commit, do initial push
@@ -807,19 +816,7 @@ class PavloviaProject(dict):
         gitRoot = getGitRoot(self.localRoot)
 
         if gitRoot is None:
-            # If there's no git root, make one
-            if not any(pathlib.Path(self.localRoot).iterdir()):
-                # If folder is empty, set as None so that remote is cloned
-                self._repo = None
-            else:
-                # If there's any files, make a new repo to sync
-                self._repo = git.Repo.init(self.localRoot)
-                self.configGitLocal()
-                self.repo.create_remote('origin', url=self.project.http_url_to_repo)
-                self.repo.git.checkout(b="master")
-                self.writeGitIgnore()
-                self.stageFiles(['.gitignore'])
-                self.commit('Create repository (including .gitignore)')
+            self.newRepo()
         elif gitRoot not in [self.localRoot, str(pathlib.Path(self.localRoot).absolute())]:
             # this indicates that the requested root is inside another repo
             raise AttributeError("The requested local path for project\n\t{}\n"
@@ -894,7 +891,7 @@ class PavloviaProject(dict):
             self._newRemote = True
         else:
             # no files locally so safe to try and clone from remote
-            self.cloneRepo(infoStream=infoStream)
+            repo = self.cloneRepo(infoStream=infoStream)
             # TODO: add the further case where there are remote AND local files!
 
         return repo
@@ -942,6 +939,8 @@ class PavloviaProject(dict):
 
         self._lastKnownSync = time.time()
         self._newRemote = False
+
+        return self.repo
 
     def configGitLocal(self):
         """Set the local repo to have the correct name and email for user
@@ -1188,7 +1187,12 @@ def getProject(filename):
     session = getCurrentSession()
     # If already found, return
     if (knownProjects is not None) and (path in knownProjects) and ('idNumber' in knownProjects[path]):
-        return PavloviaProject(knownProjects[path]['idNumber'])
+        try:
+            return PavloviaProject(knownProjects[path]['idNumber'])
+        except LookupError as err:
+            # If project not found, print warning and return None
+            logging.warn(str(err))
+            return None
     elif gitRoot:
         # Existing repo but not in our knownProjects. Investigate
         logging.info("Investigating repo at {}".format(gitRoot))
