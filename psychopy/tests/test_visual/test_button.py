@@ -1,7 +1,5 @@
-import pytest
-
 from psychopy import visual
-from psychopy.tests.test_all_visual.test_basevisual import _TestColorMixin
+from psychopy.tests.test_visual.test_basevisual import _TestColorMixin
 
 
 class TestButton(_TestColorMixin):
