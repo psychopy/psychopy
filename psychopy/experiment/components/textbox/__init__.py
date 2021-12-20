@@ -18,7 +18,6 @@ _localized.update({'text': _translate('Text'),
                    'letterHeight': _translate('Letter height'),
                    'flipHorizontal': _translate('Flip horizontal'),
                    'flipVertical': _translate('Flip vertical'),
-                   'languageStyle': _translate('Language style'),
                    'bold': _translate('Bold'),
                    'italic': _translate('Italic'),
                    'lineSpacing': _translate('Line Spacing'),
@@ -52,7 +51,7 @@ class TextboxComponent(BaseVisualComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
-                 languageStyle='LTR', fillColor="None",
+                 fillColor="None",
                  borderColor="None", borderWidth=2,
                  flipHoriz=False,
                  flipVert=False,
@@ -110,12 +109,6 @@ class TextboxComponent(BaseVisualComponent):
             hint=_translate("horiz = left-right reversed; vert = up-down"
                             " reversed; $var = variable"),
             label=_localized['flipVertical'])
-        self.params['languageStyle'] = Param(
-            languageStyle, valType='str', inputType="choice", categ='Formatting',
-            allowedVals=['LTR', 'RTL', 'Arabic'],
-            direct=False, # todo: remove this when language style is implemented
-            hint=_translate("Handle right-to-left (RTL) languages and Arabic reshaping"),
-            label=_localized['languageStyle'])
         self.params['italic'] = Param(
             italic, valType='bool', inputType="bool", allowedTypes=[], categ='Formatting',
             updates='constant',
