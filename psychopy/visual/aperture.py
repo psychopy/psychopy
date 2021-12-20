@@ -164,7 +164,7 @@ class Aperture(MinimalStim, ContainerMixin):
             GL.glStencilFunc(GL.GL_NEVER, 0, 0)
             GL.glStencilOp(GL.GL_INCR, GL.GL_INCR, GL.GL_INCR)
 
-            if self.__dict__['filename']:
+            if isinstance(self._shape, ImageStim):
                 GL.glEnable(GL.GL_ALPHA_TEST)
                 GL.glAlphaFunc(GL.GL_GREATER, 0)
                 self._shape.draw()
