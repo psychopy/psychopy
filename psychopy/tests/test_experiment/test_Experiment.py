@@ -63,7 +63,7 @@ class TestExpt():
         cls.exp = psychopy.experiment.Experiment() # create once, not every test
         try:
             cls.tmp_dir = mkdtemp(dir=Path(__file__).root, prefix='psychopy-tests-app')
-        except PermissionError:
+        except (PermissionError, OSError):
             # can't write to root on Linux
             cls.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
 
