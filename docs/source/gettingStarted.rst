@@ -86,7 +86,7 @@ To get a better feel for what was happening "behind the scenes" in the Builder p
 * In the Builder, load or recreate your "hello world" program.
 * Instead of running the program, explicitly convert it into python: Type `F5`, or click the `Compile` icon:
 
-.. image:: images/compile_py.png
+.. image:: images/compile_py.PNG
 
 The view will automatically switch to the Coder, and display the python code. If you then save and run this code, it would look the same as running it directly from the Builder.
 
