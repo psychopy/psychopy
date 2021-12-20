@@ -7,13 +7,12 @@ from pathlib import Path
 import pytest
 from pandas import DataFrame
 
-from psychopy.tests.test_all_visual.test_basevisual import _TestColorMixin
+from psychopy.tests.test_visual.test_basevisual import _TestColorMixin
 from psychopy.visual.window import Window
 from psychopy.visual.form import Form
 from psychopy.visual.textbox2.textbox2 import TextBox2
 from psychopy.visual.slider import Slider
 from psychopy.tests import utils
-from psychopy import constants
 import shutil
 from tempfile import mkdtemp
 import numpy as np
