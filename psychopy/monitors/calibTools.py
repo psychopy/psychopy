@@ -863,7 +863,7 @@ def makeXYZ2RGB(red_xy,
     display's phosphor 'guns' are usually measured with a spectrophotometer.
 
     The routines here are based on methods found at:
-    http://www.ryanjuckett.com/programming/rgb-color-space-conversion/
+    https://www.ryanjuckett.com/rgb-color-space-conversion/
 
     Parameters
     ----------

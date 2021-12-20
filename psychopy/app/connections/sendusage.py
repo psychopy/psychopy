@@ -48,7 +48,7 @@ def sendUsageStats(app=None):
         systemInfo = "win32_v" + platform.version()
     else:
         systemInfo = platform.system() + platform.release()
-    u = "http://usage.psychopy.org/submit.php?date=%s&sys=%s&version=%s&misc=%s"
+    u = "https://usage.psychopy.org/submit.php?date=%s&sys=%s&version=%s&misc=%s"
     URL = u % (dateNow, systemInfo, v, miscInfo)
     try:
         req = web.urllib.request.Request(URL)

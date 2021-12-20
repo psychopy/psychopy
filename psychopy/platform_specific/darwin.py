@@ -169,7 +169,7 @@ def getThreadPolicy(getDefault, flavour):
            .constrain
            .preemptible
 
-    See http://docs.huihoo.com/darwin/kernel-programming-guide/scheduler/chapter_8_section_4.html
+    See https://docs.huihoo.com/darwin/kernel-programming-guide/scheduler/chapter_8_section_4.html
     """
     if importCtypesFailed:
         return False

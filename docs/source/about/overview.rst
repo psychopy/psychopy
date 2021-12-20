@@ -40,4 +40,4 @@ System requirements
 ----------------------
 Although PsychoPy runs on a wide variety of hardware, and on Windows, macOS or Linux, it really does benefit from a decent graphics card. Get an ATI or nVidia card that supports OpenGL 2.0. *Avoid built-in Intel graphics chips (e.g. GMA 950)*
 
-.. _Python: http://www.python.org
+.. _Python: https://www.python.org
