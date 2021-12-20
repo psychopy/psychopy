@@ -10,7 +10,7 @@ import py_compile
 import difflib
 from tempfile import mkdtemp
 import codecs
-from psychopy import core, tests, prefs
+from psychopy import core, prefs
 import pytest
 import locale
 import numpy
@@ -63,7 +63,7 @@ class TestExpt():
         cls.exp = psychopy.experiment.Experiment() # create once, not every test
         try:
             cls.tmp_dir = mkdtemp(dir=Path(__file__).root, prefix='psychopy-tests-app')
-        except PermissionError:
+        except (PermissionError, OSError):
             # can't write to root on Linux
             cls.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
 
@@ -71,7 +71,7 @@ class TestExpt():
         """This setup is done for each test individually
         """
         self.here = path.abspath(path.dirname(__file__))
-        self.known_diffs_file   = path.join(self.here, 'known_py_diffs.txt')
+        self.known_diffs_file   = path.join(self.here, '../known_py_diffs.txt')
         self.tmp_diffs_file     = path.join(self.here, 'tmp_py_diffs.txt') # not deleted by mkdtemp cleanup
 
     @classmethod
@@ -119,31 +119,6 @@ class TestExpt():
         for psyexp_file in psyexp_files:
             assert schema.is_valid(psyexp_file), f"Error in {psyexp_file}:\n" + "\n".join(err.reason for err in schema.iter_errors(psyexp_file))
 
-    def test_missing_dotval(self):
-        """search for a builder component gotcha:
-            self.params['x'] when you mean self.params['x'].val
-        there could well be instances this does not catch
-        """
-        # find relevant files -- expect problems only in builder/components/:
-        files = []
-        for root, dirs, tmpfiles in os.walk(path.join(self.exp.prefsPaths['tests'], 'app', 'builder', 'components')):
-            for f in tmpfiles:
-                file = path.join(root, f)
-                if file.endswith('.py') and not file.endswith(__file__):
-                    files.append(file)
-
-        # check each line of each relevant file:
-        missing_dotval_count = 0
-        for file in files:
-            contents = open(r''+file+'', 'r').readlines()
-            lines = [line for line in enumerate(contents) if (
-                     line[1].find("if self.params[") > -1 # this pattern could miss some things
-                     and not (line[1].find('].val') > -1 or line[1].find('].updates') > -1) )
-                     ]
-            missing_dotval_count += len(lines)
-
-        assert missing_dotval_count == 0  # some suspicious lines were found: "if self.param[]" without .val or .updates
-
     def _checkLoadSave(self, file):
         exp = self.exp
         py_file = file+'.py'
@@ -168,7 +143,11 @@ class TestExpt():
     def _checkCompile(self, py_file):
         # compile the temp file to .pyc, catching error msgs
         # (including no file at all):
-        py_compile.compile(py_file, doraise=True)
+        try:
+            py_compile.compile(py_file, doraise=True)
+        except py_compile.PyCompileError as err:
+            err.msg = py_file
+            raise err
         return py_file + 'c'
 
     def _checkPyDiff(self, file_py, file2_py):
@@ -320,7 +299,10 @@ class TestExpt():
             f.write(script)
 
         stdout, stderr = core.shellCall([sys.executable, py_file], stderr=True)
-        assert not stderr
+        if stderr:
+            with codecs.open(expfile + "_local.py", "w", 'utf-8-sig') as f:
+                f.write(script)
+            raise AssertionError(f"File {py_file} raised error:\n {stderr}")
 
         #load the data
         print("searching..." +datafileBase)
