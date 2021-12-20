@@ -176,6 +176,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.rightEdge = None
         self.topEdge = None
         self._currentVirtualY = 0  # Y position in the virtual sheet
+        self._vheight = 0  # Height of the virtual sheet
         self._decorations = []
         self._externalDecorations = []
         # Check units - only works with height units for now
@@ -710,18 +711,17 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         return aperture
 
     def _getScrollOffset(self):
-        """Calculate offset position of items in relation to markerPos
+        """Calculate offset position of items in relation to markerPos. Offset is a proportion of
+        `vheight - height`, meaning the max offset (when scrollbar.markerPos is 1) is enough
+        to take the bottom element to the bottom of the border.
 
         Returns
         -------
         float
             Offset position of items proportionate to scroll bar
         """
-        sizeOffset = (1-self.scrollbar.markerPos) * self.size[1]
-        maxItemPos = self._currentVirtualY - self.size[1]
-        if maxItemPos > -self.size[1]:
-            return 0
-        return maxItemPos*(1- self.scrollbar.markerPos) + sizeOffset
+        offset = max(self._vheight - self.size[1], 0) * (1 - self.scrollbar.markerPos) * -1
+        return offset
 
     def _createItemCtrls(self):
         """Define layout of form"""
@@ -799,14 +799,16 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 # response on next line
                 self._currentVirtualY -= respHeight + self.itemPadding * 5/4
 
+        # Calculate virtual height as distance from top edge to bottom of last element
+        self._vheight = abs(self.topEdge - self._currentVirtualY)
+
         self._setDecorations()  # choose whether show/hide scroolbar
 
     def _setDecorations(self):
         """Sets Form decorations i.e., Border and scrollbar"""
         # add scrollbar if it's needed
         self._decorations = [self.border]
-        fractionVisible = self.size[1] / (-self._currentVirtualY)
-        if fractionVisible < 1.0:
+        if self._vheight > self.size[1]:
             self._decorations.append(self.scrollbar)
 
     def _inRange(self, item):
