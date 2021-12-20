@@ -253,7 +253,7 @@ class ScriptProcess:
         closeMsg = \
             " Experiment ended with exit code {} [pid:{}] ".format(
                 exitCode, pid)
-        closeMsg = closeMsg.center(80, '#')
+        closeMsg = closeMsg.center(80, '#') + '\n'
         self._writeOutput(closeMsg)
 
         self.scriptProcess = None  # reset
