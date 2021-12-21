@@ -9,5 +9,6 @@ You should do this in :ref:`monitorCenter` which can be opened from Builder by c
 
 Having set up your monitor settings you should then tell PsychoPy which of your monitor setups to use for this experiment by going to the :ref:`expSettings` dialog. 
 
+.. only:: html
 
-.. image:: ../images/monitorcenter.gif
+    .. image:: ../images/monitorcenter.gif
