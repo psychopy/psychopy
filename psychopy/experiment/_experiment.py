@@ -825,7 +825,7 @@ class Experiment:
                 return comp
         return None
 
-    def getComponentFromType(self, type):
+    def getComponentFromType(self, thisType):
         """Searches all the Routines in the Experiment for a matching component type
 
         :param name: str type of a component e.g., 'KeyBoard'
@@ -833,6 +833,7 @@ class Experiment:
         """
         for routine in self.routines.values():
             exists = routine.getComponentFromType(type)
+            exists = routine.getComponentFromType(thisType)
             if exists:
                 return True
         return False

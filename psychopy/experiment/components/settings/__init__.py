@@ -502,7 +502,7 @@ class SettingsComponent:
         )
 
     @property
-    def xml(self):
+    def _xml(self):
         # Make root element
         element = Element("Settings")
         # Add an element for each parameter
