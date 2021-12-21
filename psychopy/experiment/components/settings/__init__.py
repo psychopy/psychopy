@@ -502,7 +502,7 @@ class SettingsComponent:
         )
 
     @property
-    def xml(self):
+    def _xml(self):
         # Make root element
         element = Element("Settings")
         # Add an element for each parameter
@@ -510,7 +510,7 @@ class SettingsComponent:
             if key == 'name':
                 continue
             # Create node
-            paramNode = param.xml
+            paramNode = param._xml
             paramNode.set("name", key)
             # Add node
             element.append(paramNode)

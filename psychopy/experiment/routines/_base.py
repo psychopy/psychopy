@@ -82,7 +82,7 @@ class BaseStandaloneRoutine:
             return self
 
     @property
-    def xml(self):
+    def _xml(self):
         # Make root element
         element = Element(self.__class__.__name__)
         element.set("name", self.params['name'].val)
@@ -160,7 +160,7 @@ class BaseStandaloneRoutine:
     def getComponentFromName(self, name):
         return None
 
-    def getComponentFromType(self, type):
+    def getComponentFromType(self, thisType):
         return None
 
     def hasOnlyStaticComp(self):
@@ -223,13 +223,13 @@ class Routine(list):
         return _rep % (self.name, self.exp, str(list(self)))
 
     @property
-    def xml(self):
+    def _xml(self):
         # Make root element
         element = Element("Routine")
         element.set("name", self.name)
         # Add each component's element
         for comp in self:
-            element.append(comp.xml)
+            element.append(comp._xml)
 
         return element
 
@@ -680,9 +680,9 @@ class Routine(list):
                 return comp
         return None
 
-    def getComponentFromType(self, type):
+    def getComponentFromType(self, thisType):
         for comp in self:
-            if comp.type == type:
+            if comp.type == thisType:
                 return comp
         return None
 

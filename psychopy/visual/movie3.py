@@ -395,10 +395,11 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             GL.glGenTextures(1, ctypes.byref(self._texID))
             useSubTex = False
 
-        # bind the texture in openGL
-        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
         # bind that name to the target
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
+        # bind the texture in openGL
+        GL.glEnable(GL.GL_TEXTURE_2D)
         # makes the texture map wrap (this is actually default anyway)
         GL.glTexParameteri(
             GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP)
