@@ -12,8 +12,6 @@ class ResourceManagerComponent(BaseComponent):
     tooltip = _translate("Pre-load some resources into memory so that components using them can start without having "
                          "to load first")
     beta = True
-    type = "ResourceManager"
-    url = "https://www.psychopy.org/builder/components/rseourcemanager"
 
     def __init__(self, exp, parentName, name='resources',
                  startType='time (s)', startVal=0,
@@ -29,6 +27,9 @@ class ResourceManagerComponent(BaseComponent):
                                startEstim=startEstim, durationEstim=durationEstim,
                                saveStartStop=saveStartStop, syncScreenRefresh=syncScreenRefresh,
                                disabled=disabled)
+        self.type = 'ResourceManager'
+        self.url = "https://www.psychopy.org/builder/components/resourcemanager"
+
         if not resources:
             resources = []
 
