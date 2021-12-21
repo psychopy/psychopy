@@ -95,8 +95,15 @@ for compName in sorted(allComp):
                 continue
                 # ignore: never want to change the name *during an experiment*
                 # the default name.updates value varies across components
-            f = '%s.%s.%s:%s' % (compName, parName, field,
-                                 eval("comp.params[parName].%s" % field))
+            # skip private attributes
+            if field.startswith("_"):
+                continue
+            # get value of the field
+            fieldValue = str(eval("comp.params[parName].%s" % field))
+            # remove memory address from the string representation
+            if "at 0x" in fieldValue:
+                fieldValue = fieldValue.split(" at 0x")[0] + ">"
+            f = '%s.%s.%s:%s' % (compName, parName, field, fieldValue)
             lineFields.append(f)
 
         for line in [default] + lineFields:
