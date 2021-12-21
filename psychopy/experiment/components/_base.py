@@ -121,14 +121,14 @@ class BaseComponent:
             label=_translate('Disable component'))
 
     @property
-    def xml(self):
+    def _xml(self):
         # Make root element
         element = Element(self.__class__.__name__)
         element.set("name", self.params['name'].val)
         # Add an element for each parameter
         for key, param in sorted(self.params.items()):
             # Create node
-            paramNode = param.xml
+            paramNode = param._xml
             paramNode.set("name", key)
             # Add node
             element.append(paramNode)

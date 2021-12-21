@@ -293,7 +293,7 @@ class Param():
         return bool(self.val)
 
     @property
-    def xml(self):
+    def _xml(self):
         # Make root element
         element = Element('Param')
         # Assign values

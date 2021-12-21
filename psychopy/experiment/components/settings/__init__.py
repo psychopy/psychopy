@@ -510,7 +510,7 @@ class SettingsComponent:
             if key == 'name':
                 continue
             # Create node
-            paramNode = param.xml
+            paramNode = param._xml
             paramNode.set("name", key)
             # Add node
             element.append(paramNode)

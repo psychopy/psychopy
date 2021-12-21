@@ -229,7 +229,7 @@ class Routine(list):
         element.set("name", self.name)
         # Add each component's element
         for comp in self:
-            element.append(comp.xml)
+            element.append(comp._xml)
 
         return element
 
