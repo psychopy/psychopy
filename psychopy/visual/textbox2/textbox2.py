@@ -17,6 +17,7 @@ some more added:
 """
 import numpy as np
 from pyglet import gl
+from bidi import algorithm as bidi
 
 from ..basevisual import BaseVisualStim, ColorMixin, ContainerMixin, WindowMixin
 from psychopy.tools.attributetools import attributeSetter, setAttribute
@@ -72,6 +73,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  alignment='left',
                  flipHoriz=False,
                  flipVert=False,
+                 languageStyle="LTR",
                  editable=False,
                  lineBreaking='default',
                  name='',
@@ -212,6 +214,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 "specified.".format(lineBreaking))
         self._lineBreaking = lineBreaking
         # then layout the text (setting text triggers _layout())
+        self.languageStyle = languageStyle
         self._text = ''
         self.text = self.startText = text if text is not None else ""
 
@@ -430,6 +433,20 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             raise TypeError(f"Could not set font manager for TextBox2 object `{self.name}`, must be supplied with a FontManager object")
 
     @property
+    def languageStyle(self):
+        """
+        How is text laid out? Left to right (LTR), right to left (RTL) or using Arabic layout rules?
+        """
+        if hasattr(self, "_languageStyle"):
+            return self._languageStyle
+
+    @languageStyle.setter
+    def languageStyle(self, value):
+        self._languageStyle = value
+        # If layout is anything other than LTR, mark that we need to use bidi to lay it out
+        self._needsBidi = value != "LTR"
+
+    @property
     def anchor(self):
         return self.box.anchor
 
@@ -502,7 +519,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         text = text.replace('</b>', codes['BOLD_END'])      
         visible_text = ''.join([c for c in text if c not in codes.values()])
         self._styles = [0,]*len(visible_text)
-        self._text = visible_text
+        if self._needsBidi:
+            self._text = bidi.get_display(visible_text)
+        else:
+            self._text = visible_text
         
         current_style=0
         ci = 0
