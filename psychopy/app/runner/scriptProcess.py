@@ -19,6 +19,9 @@ import psychopy.app.jobs as jobs
 from wx import BeginBusyCursor, EndBusyCursor
 from psychopy.app.console import StdStreamDispatcher
 
+# polling interval for pipes in milliseconds
+PIPE_POLL_INTERVAL_MS = 120
+
 
 class ScriptProcess:
     """Class to run and manage user/compiled scripts from the PsychoPy UI.
@@ -122,7 +125,7 @@ class ScriptProcess:
             inputCallback=self._onInputCallback,  # both treated the same
             errorCallback=self._onErrorCallback,
             terminateCallback=self._onTerminateCallback,
-            pollMillis=120  # check input/error pipes every 120 ms
+            pollMillis=PIPE_POLL_INTERVAL_MS  # to check input/error pipes
         )
 
         BeginBusyCursor()  # visual feedback
@@ -250,7 +253,7 @@ class ScriptProcess:
         closeMsg = \
             " Experiment ended with exit code {} [pid:{}] ".format(
                 exitCode, pid)
-        closeMsg = closeMsg.center(80, '#')
+        closeMsg = closeMsg.center(80, '#') + '\n'
         self._writeOutput(closeMsg)
 
         self.scriptProcess = None  # reset

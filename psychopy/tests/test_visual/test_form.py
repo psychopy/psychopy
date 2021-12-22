@@ -242,7 +242,47 @@ class Test_Form(_TestColorMixin):
                 utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
                 self.win.flip()
 
-
+    def test_scrolling(self):
+        # Define basic question to test with
+        item = [{
+            'type': 'slider',
+            'itemText': "A PsychoPy zealot knows a smidge of wx but JavaScript is the question",
+            'options': [1, "a", "multiple word"],
+            'ticks': [1, 2, 3],
+            'layout': 'vert',
+            'itemColor': 'darkslateblue',
+            'itemWidth': 0.7,
+            'responseColor': 'darkred',
+            'responseWidth': 0.3,
+            'font': 'Open Sans',
+        }]
+        # Typical points on slider to test
+        exemplars = [
+            0,
+            0.5,
+            1
+        ]
+        # Problem cases which should be handled
+        tykes = [
+        ]
+        # Try with questions smaller than form, the same size as and much bigger
+        for nItems in (1, 3, 10):
+            # Make form
+            items = []
+            for i in range(nItems):
+                items.append(item[0].copy())
+                # Append index to item text so it's visible in artefacts
+                items[i]['itemText'] = str(i) + items[i]['itemText']
+            survey = Form(self.win, units="height", size=(1, 0.5), fillColor="white", items=items)
+            for case in exemplars + tykes:
+                # Set scrollbar
+                survey.scrollbar.rating = case
+                survey.draw()
+                # Compare screenshot
+                filename = f"TestForm_scrolling_nq{nItems}_s{case}.png"
+                self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+                #utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
+                self.win.flip()
 
     def test_set_scroll_speed(self):
         items = 2

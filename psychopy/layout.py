@@ -179,6 +179,12 @@ class Vector(object):
 
     def copy(self):
         """Create a copy of this object"""
+        return self.__copy__()
+
+    def __copy__(self):
+        return self.__deepcopy__()
+
+    def __deepcopy__(self):
         return self.__class__(self._requested, self._requestedUnits, self.win)
 
     @property

@@ -55,12 +55,12 @@ class Flow(list):
         return "psychopy.experiment.Flow(%s)" % (str(list(self)))
 
     @property
-    def xml(self):
+    def _xml(self):
         # Make root element
         element = Element("Flow")
         # Add an element for every Routine, Loop Initiator, Loop Terminator
         for item in self:
-            sub = item.xml
+            sub = item._xml
             if isinstance(item, Routine) or isinstance(item, BaseStandaloneRoutine):
                 # Remove all sub elements (we only need its name)
                 comps = [comp for comp in sub]

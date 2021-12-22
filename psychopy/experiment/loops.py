@@ -731,7 +731,7 @@ class LoopInitiator:
         loop.initiator = self
 
     @property
-    def xml(self):
+    def _xml(self):
         # Make root element
         element = Element("LoopInitiator")
         element.set("loopType", self.loop.__class__.__name__)
@@ -789,7 +789,7 @@ class LoopTerminator:
         loop.terminator = self
 
     @property
-    def xml(self):
+    def _xml(self):
         # Make root element
         element = Element("LoopTerminator")
         element.set("name", self.loop.params['name'].val)

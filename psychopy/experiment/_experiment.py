@@ -343,21 +343,21 @@ class Experiment:
         return script
 
     @property
-    def xml(self):
+    def _xml(self):
         # Create experiment root element
         experimentNode = xml.Element("PsychoPy2experiment")
         experimentNode.set('encoding', 'utf-8')
         experimentNode.set('version', __version__)
         # Add settings node
-        settingsNode = self.settings.xml
+        settingsNode = self.settings._xml
         experimentNode.append(settingsNode)
         # Add routines node
         routineNode = xml.Element("Routines")
         for key, routine in self.routines.items():
-            routineNode.append(routine.xml)
+            routineNode.append(routine._xml)
         experimentNode.append(routineNode)
         # Add flow node
-        flowNode = self.flow.xml
+        flowNode = self.flow._xml
         experimentNode.append(flowNode)
 
         return experimentNode
@@ -365,7 +365,7 @@ class Experiment:
     def saveToXML(self, filename):
         self.psychopyVersion = psychopy.__version__  # make sure is current
         # create the dom object
-        self.xmlRoot = self.xml
+        self.xmlRoot = self._xml
         # convert to a pretty string
         # update our document to use the new root
         self._doc._setroot(self.xmlRoot)
@@ -825,7 +825,7 @@ class Experiment:
                 return comp
         return None
 
-    def getComponentFromType(self, type):
+    def getComponentFromType(self, thisType):
         """Searches all the Routines in the Experiment for a matching component type
 
         :param name: str type of a component e.g., 'KeyBoard'
@@ -833,6 +833,7 @@ class Experiment:
         """
         for routine in self.routines.values():
             exists = routine.getComponentFromType(type)
+            exists = routine.getComponentFromType(thisType)
             if exists:
                 return True
         return False
