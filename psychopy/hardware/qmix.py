@@ -16,21 +16,43 @@ system is described in the following publication:
     Behavior Research Methods. doi: 10.3758/s13428-018-1145-1
 
 """
+from psychopy import prefs, logging
 
-
-from psychopy import prefs
-from pyqmix import config, QmixBus, QmixPump
-import pyqmix.pump
-
-syringeTypes = list(pyqmix.pump.syringes.keys())
+# note that we avoid importing pyqmix until the methods/classes that use it
+# that's partly because the pyqmix is a soft dependency and partly to
+# reduce load times when it isn't needed (e.g. in the PsychoPy App)
 volumeUnits = ['mL']
 flowRateUnits = ['mL/s', 'mL/min']
 configName = prefs.hardware['qmixConfiguration']
 bus = None
-pumps = []  # To keep track of all instantiated pumps.
+pumps = []  # To keep track of all instantiated pumps
+# syringeTypes could be fetched
+syringeTypes = ['25 mL glass', '50 mL glass']
+
+
+def _checkSyringeTypes():
+    """Check that the hard-coded and lib-defined syringes match"""
+    """NB the reason for this check:
+    - we don't want to import qmix on importing this lib 
+      (because it's a soft dependency not a hard one)
+    - the only reason it needs importing before init of the bus/pump
+      is to check the syringeTypes
+    So we hard-code those (there are just 2 that rarely change) and
+    then we check the hard-coded value matched the real thing  
+    """
+    from pyqmix import pump
+    libDefined = list(pump.syringes.keys())
+    try:
+        assert len(libDefined) == len(syringeTypes)
+        for this in libDefined:
+            assert this in syringeTypes
+    except AssertionError:
+        logging.warning(f"The syringe types in pyqmix used to be {syringeTypes} but "
+                        f"now appears to be {libDefined}. psychopy.qmix needs updating")
 
 
 def _init_bus():
+    from pyqmix import config, QmixBus
     global bus
 
     config.set_qmix_config(configName)
@@ -73,6 +95,7 @@ class Pump:
             <https://pyqmix.readthedocs.io/en/latest/interface.html#pyqmix.pump.QmixPump.set_syringe_params_by_type>`_.
 
         """
+        from pyqmix import QmixPump
         # Only initialize the bus when instantiating the very first pump.
         if bus is None:
             _init_bus()

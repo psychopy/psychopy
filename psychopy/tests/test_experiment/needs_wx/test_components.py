@@ -36,8 +36,8 @@ class TestComponents():
     def setup_class(cls):
         cls.expPy = experiment.Experiment() # create once, not every test
         cls.expJS = experiment.Experiment()
-        cls.here = os.path.abspath(os.path.dirname(__file__))
-        cls.baselineProfile = os.path.join(cls.here, profile)
+        cls.here = Path(__file__).parent
+        cls.baselineProfile = cls.here / profile
 
         # should not need a wx.App with fetchIcons=False
         try:
