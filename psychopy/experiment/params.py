@@ -213,7 +213,7 @@ class Param():
                     isPathLike = bool(re.findall(r"[\\/](?!\W)", val))
                     if self.valType in ['file', 'table'] or (isPathLike and self.canBePath):
                         val = Path(val).as_posix()
-                        val = val.replace("\\", "/")
+                        val = val.replace("\\", "/").replace("//", "/")
                     # Hide escape char on escaped $ (other escaped chars are handled by wx but $ is unique to us)
                     val = re.sub(r"\\\$", "$", val)
                     # Replace line breaks with escaped line break character
