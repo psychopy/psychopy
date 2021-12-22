@@ -226,6 +226,31 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         self.autoLog = autoLog
 
+    def __copy__(self):
+        return TextBox2(
+            self.win, self.text, self.font,
+            pos=self.pos, units=self.units, letterHeight=self.letterHeight,
+            size=self.size,
+            color=self.color, colorSpace=self.colorSpace,
+            fillColor=self.fillColor,
+            borderWidth=self.borderWidth, borderColor=self.borderColor,
+            contrast=self.contrast,
+            opacity=self.opacity,
+            bold=self.bold,
+            italic=self.italic,
+            lineSpacing=self.lineSpacing,
+            padding=self.padding,  # gap between box and text
+            anchor=self.anchor,
+            alignment=self.alignment,
+            flipHoriz=self.flipHoriz,
+            flipVert=self.flipVert,
+            editable=self.editable,
+            lineBreaking=self._lineBreaking,
+            name=self.name,
+            autoLog=self.autoLog,
+            onTextCallback=self.onTextCallback
+        )
+
     @property
     def editable(self):
         return self._editable
@@ -350,6 +375,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if hasattr(self, "caret"):
             self.caret.index = self.caret.index
 
+        if hasattr(self, "_text"):
+            self._layout()
         self._needVertexUpdate = True
 
     @property
@@ -924,6 +951,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # Background
         self.box.setFillColor(self.pallette['fillColor'], colorSpace='rgb')
         #self.fillColor = self.box.fillColor
+
+        # Inherit win
+        self.box.win = self.win
+        self.contentBox.win = self.win
+        self.boundingBox.win = self.win
 
         if self._needVertexUpdate:
             #print("Updating vertices...")
