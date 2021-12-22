@@ -280,7 +280,7 @@ def test_param_str():
         {"obj": Param(__file__, "str"),
          "py": f"'{__file__.replace(_slash, '/')}'",
          "js": f"'{__file__.replace(_slash, '/')}'"},
-        # Nonexistant file path marked as str
+        # Nonexistent file path marked as str
         {"obj": Param("C:\\\\Downloads\\file.csv", "str"),
          "py": "'C:/Downloads/file.csv'",
          "js": "'C:/Downloads/file.csv'"},
