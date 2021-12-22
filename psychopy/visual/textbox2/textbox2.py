@@ -16,6 +16,7 @@ some more added:
 
 """
 import numpy as np
+import arabic_reshaper
 from pyglet import gl
 from bidi import algorithm as bidi
 
@@ -445,6 +446,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._languageStyle = value
         # If layout is anything other than LTR, mark that we need to use bidi to lay it out
         self._needsBidi = value != "LTR"
+        self._needsArabic = value.lower == "arabic"
 
     @property
     def anchor(self):
@@ -519,10 +521,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         text = text.replace('</b>', codes['BOLD_END'])      
         visible_text = ''.join([c for c in text if c not in codes.values()])
         self._styles = [0,]*len(visible_text)
+        self._text = visible_text
+        if self._needsArabic:
+            self._text = arabic_reshaper.reshape(self._text)
         if self._needsBidi:
-            self._text = bidi.get_display(visible_text)
-        else:
-            self._text = visible_text
+            self._text = bidi.get_display(self._text)
         
         current_style=0
         ci = 0
