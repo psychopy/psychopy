@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" ?>
-<PsychoPy2experiment encoding="utf-8" version="2021.2.0">
+<PsychoPy2experiment encoding="utf-8" version="2022.1.0rc1">
   <Settings>
     <Param val="use prefs" valType="str" updates="None" name="Audio latency priority"/>
     <Param val="use prefs" valType="str" updates="None" name="Audio lib"/>
@@ -44,6 +44,7 @@
     <Param val="None" valType="str" updates="None" name="eyetracker"/>
     <Param val="127.0.0.1" valType="str" updates="None" name="gpAddress"/>
     <Param val="4242" valType="num" updates="None" name="gpPort"/>
+    <Param val="ioHub" valType="str" updates="None" name="keyboardBackend"/>
     <Param val="exp" valType="code" updates="None" name="logging level"/>
     <Param val="('MIDDLE_BUTTON',)" valType="list" updates="None" name="mgBlink"/>
     <Param val="CONTINUOUS" valType="str" updates="None" name="mgMove"/>
@@ -56,6 +57,7 @@
   <Routines>
     <Routine name="instructions">
       <TextboxComponent name="instr">
+        <Param val="center" valType="str" updates="constant" name="alignment"/>
         <Param val="center" valType="str" updates="constant" name="anchor"/>
         <Param val="True" valType="bool" updates="constant" name="autoLog"/>
         <Param val="False" valType="bool" updates="constant" name="bold"/>
@@ -147,6 +149,7 @@
         <Param val="updateEarnings" valType="code" updates="None" name="name"/>
       </CodeComponent>
       <ImageComponent name="balloonBody">
+        <Param val="center-left" valType="str" updates="constant" name="anchor"/>
         <Param val="$[1,1,1]" valType="color" updates="constant" name="color"/>
         <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
         <Param val="1" valType="num" updates="constant" name="contrast"/>
@@ -160,9 +163,9 @@
         <Param val="balloonBody" valType="code" updates="None" name="name"/>
         <Param val="1" valType="num" updates="constant" name="opacity"/>
         <Param val="0" valType="num" updates="constant" name="ori"/>
-        <Param val="[-1+balloonSize/2, 0]" valType="list" updates="set every frame" name="pos"/>
+        <Param val="[-1, 0]" valType="list" updates="constant" name="pos"/>
         <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
-        <Param val="balloonSize" valType="list" updates="set every frame" name="size"/>
+        <Param val="0.1+nPumps*0.015" valType="list" updates="set every frame" name="size"/>
         <Param val="" valType="num" updates="None" name="startEstim"/>
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="0.0" valType="num" updates="None" name="startVal"/>
@@ -173,6 +176,7 @@
         <Param val="norm" valType="str" updates="None" name="units"/>
       </ImageComponent>
       <TextboxComponent name="reminderMsg">
+        <Param val="top-left" valType="str" updates="constant" name="alignment"/>
         <Param val="center" valType="str" updates="constant" name="anchor"/>
         <Param val="True" valType="bool" updates="constant" name="autoLog"/>
         <Param val="False" valType="bool" updates="constant" name="bold"/>
@@ -209,6 +213,7 @@
         <Param val="from exp settings" valType="str" updates="None" name="units"/>
       </TextboxComponent>
       <TextboxComponent name="balloonValMsg">
+        <Param val="top-left" valType="str" updates="constant" name="alignment"/>
         <Param val="center" valType="str" updates="constant" name="anchor"/>
         <Param val="True" valType="bool" updates="constant" name="autoLog"/>
         <Param val="False" valType="bool" updates="constant" name="bold"/>
@@ -245,6 +250,7 @@
         <Param val="from exp settings" valType="str" updates="None" name="units"/>
       </TextboxComponent>
       <TextboxComponent name="bankedMsg">
+        <Param val="top-left" valType="str" updates="constant" name="alignment"/>
         <Param val="center" valType="str" updates="constant" name="anchor"/>
         <Param val="True" valType="bool" updates="constant" name="autoLog"/>
         <Param val="False" valType="bool" updates="constant" name="bold"/>
@@ -305,8 +311,8 @@
         <Param val="balloonSize = 0.08;&amp;#10;popped = false;&amp;#10;nPumps = 0;&amp;#10;" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
         <Param val="balloonSize=0.08&amp;#10;popped=False&amp;#10;nPumps=0" valType="extendedCode" updates="constant" name="Begin Routine"/>
         <Param val="Auto-&gt;JS" valType="str" updates="None" name="Code Type"/>
-        <Param val="balloonSize=0.1+nPumps*0.015" valType="extendedCode" updates="constant" name="Each Frame"/>
-        <Param val="balloonSize = (0.1 + (nPumps * 0.015));&amp;#10;" valType="extendedCode" updates="constant" name="Each JS Frame"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Each Frame"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Each JS Frame"/>
         <Param val="" valType="extendedCode" updates="constant" name="End Experiment"/>
         <Param val="" valType="extendedCode" updates="constant" name="End JS Experiment"/>
         <Param val="trials.addData(&quot;nPumps&quot;, nPumps);&amp;#10;trials.addData(&quot;size&quot;, balloonSize);&amp;#10;trials.addData(&quot;earnings&quot;, thisBalloonEarnings);&amp;#10;trials.addData(&quot;popped&quot;, popped);&amp;#10;" valType="extendedCode" updates="constant" name="End JS Routine"/>
@@ -334,6 +340,7 @@
         <Param val="checkPopped" valType="code" updates="None" name="name"/>
       </CodeComponent>
       <TextboxComponent name="feedbackMsg">
+        <Param val="top-left" valType="str" updates="constant" name="alignment"/>
         <Param val="center" valType="str" updates="constant" name="anchor"/>
         <Param val="True" valType="bool" updates="constant" name="autoLog"/>
         <Param val="False" valType="bool" updates="constant" name="bold"/>
@@ -372,6 +379,7 @@
     </Routine>
     <Routine name="final_score">
       <TextboxComponent name="finalScore">
+        <Param val="top-left" valType="str" updates="constant" name="alignment"/>
         <Param val="center" valType="str" updates="constant" name="anchor"/>
         <Param val="True" valType="bool" updates="constant" name="autoLog"/>
         <Param val="False" valType="bool" updates="constant" name="bold"/>
