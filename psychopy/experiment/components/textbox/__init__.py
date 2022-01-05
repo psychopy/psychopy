@@ -205,7 +205,7 @@ class TextboxComponent(BaseVisualComponent):
             "     padding=%(padding)s, alignment=%(alignment)s,\n"
             "     anchor=%(anchor)s,\n"
             "     fillColor=%(fillColor)s, borderColor=%(borderColor)s,\n"
-            "     flipHoriz=%(flipHoriz)s, flipVert=%(flipVert)s, languageStyle=%(languageStyle)s\n"
+            "     flipHoriz=%(flipHoriz)s, flipVert=%(flipVert)s, languageStyle=%(languageStyle)s,\n"
             "     editable=%(editable)s,\n"
             "     name='%(name)s',\n"
             "     autoLog=%(autoLog)s,\n"
