@@ -128,7 +128,9 @@ class Keyboard:
     """
     _iohubKeyboard = None
     _iohubOffset = 0.0
-    backend = ''  # Set at runtime to one of 'ptb', 'iohub', or 'event'
+    # Before creating an instance of Keyboard, set backend to one of 'ptb', 'iohub', or 'event'.
+    # If '' is used, best available backend will be selected.
+    backend = ''
 
     def __init__(self, device=-1, bufferSize=10000, waitForStart=False, clock=None):
         """Create the device (default keyboard or select one)
@@ -165,14 +167,18 @@ class Keyboard:
         else:
             self.clock = psychopy.clock.Clock()
 
-        if Keyboard.backend == '':
+        if Keyboard.backend in ['', 'iohub']:
             from psychopy.iohub.client import ioHubConnection
             from psychopy.iohub.devices import Computer
-            if ioHubConnection.getActiveConnection():
+            if not ioHubConnection.getActiveConnection() and Keyboard.backend == 'iohub':
+                # iohub backend was explicitly requested, but iohub is not running, so start it up
+                from psychopy.iohub import launchHubServer
+                launchHubServer()
+
+            if ioHubConnection.getActiveConnection() and Keyboard._iohubKeyboard is None:
                 Keyboard._iohubKeyboard = ioHubConnection.getActiveConnection().getDevice('keyboard')
                 Keyboard._iohubOffset = Computer.global_clock.getLastResetTime()
-                if Keyboard._iohubKeyboard:
-                    Keyboard.backend = 'iohub'
+                Keyboard.backend = 'iohub'
 
         if Keyboard.backend in ['', 'ptb'] and havePTB:
             Keyboard.backend = 'ptb'
@@ -201,7 +207,7 @@ class Keyboard:
             if not waitForStart:
                 self.start()
 
-        elif Keyboard.backend == '':
+        if Keyboard.backend in ['', 'event']:
             Keyboard.backend = 'event'
 
         logging.info('keyboard.Keyboard is using %s backend.' % Keyboard.backend)
