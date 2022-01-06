@@ -671,7 +671,7 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
             # Get value
             if hasattr(ctrl, "getValue"):
                 param.val = ctrl.getValue()
-            if hasattr(ctrl, "GetValue"):
+            elif hasattr(ctrl, "GetValue"):
                 param.val = ctrl.GetValue()
             elif isinstance(ctrl, wx.Choice):
                 if hasattr(ctrl, "_choices"):
