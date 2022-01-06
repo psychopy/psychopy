@@ -9,7 +9,7 @@ label: Eyetracking requires a monitor config
 synopsis: |
   In order for eyetracking measurements to be accurate, the eyetracker needs to know about the monitor you are using -
   how wide is it? How tall? What is its resolution? This is so that it can translate eye movements (in degrees of visual
-  angle) into useable data (in height, pix, etc. units). Without this information, the eyetracker can only guess and will
+  angle) into usable data (in height, pix, etc. units). Without this information, the eyetracker can only guess and will
   therefore give only approximate data.
 
 details: |

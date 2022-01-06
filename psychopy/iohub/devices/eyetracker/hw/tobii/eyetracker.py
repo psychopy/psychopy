@@ -322,7 +322,7 @@ class EyeTracker(EyeTrackerDevice):
         The above remarks are true for any eye tracker in general.
 
         The getLastGazePosition method returns the most recent eye gaze position
-        retieved from the eye tracker device. This is the position on the
+        retrieved from the eye tracker device. This is the position on the
         calibrated 2D surface that the eye tracker is reporting as the current
         eye position. The units are in the units in use by the Display device.
 

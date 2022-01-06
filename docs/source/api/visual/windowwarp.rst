@@ -8,5 +8,3 @@
 .. autoclass:: psychopy.visual.windowwarp.Warper
     :members: changeProjection
     :undoc-members: 
-
-

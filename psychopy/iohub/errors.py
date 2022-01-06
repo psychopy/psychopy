@@ -8,9 +8,9 @@ import traceback
 
 def print2err(*args):
     """
-    Note: As of atleast Jan-2020, this function seems to 
+    Note: As of at least Jan-2020, this function seems to 
     cause iohub to fail to start if the script is started from Coder. 
-    try: except: atleast stops whatever is crashing, 
+    try: except: at least stops whatever is crashing, 
     (Appears to be use of sys.stderr.write) but prints() do not appear in 
     Coder Console. Not sure how to get iohub process prints to 
     appear in Builder Console...??? Issue is specific to running script from Coder.

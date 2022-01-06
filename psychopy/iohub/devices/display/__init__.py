@@ -177,7 +177,7 @@ class Display(Device):
 
         The physical characteristics of the Display and the Participants viewing distance
         will either be based on the ioHub settings specified, or based on the information
-        saved in the PsychoPy Monitor Configuartion file that can be optionally
+        saved in the PsychoPy Monitor Configuration file that can be optionally
         given to the Display Device before it is instantiated.
 
         Args:
@@ -270,7 +270,7 @@ class Display(Device):
     def getPhysicalDimensions(self):
         """Returns the Display's physical screen area ( width,  height ) as
         specified in the ioHub Display devices configuration settings or by a
-        PsychoPy Monitor Configuartion file.
+        PsychoPy Monitor Configuration file.
 
         Args:
             None

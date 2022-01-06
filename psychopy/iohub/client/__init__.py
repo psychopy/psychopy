@@ -967,7 +967,7 @@ class ioHubConnection():
         self._server_process = subprocess.Popen(subprocessArgList,
                                                 env=envars,
                                                 cwd=IOHUB_DIRECTORY,
-                                                # set sub process stderr ro be stdout so PsychoPy Runner
+                                                # set sub process stderr to be stdout so PsychoPy Runner
                                                 # shows errors from iohub
                                                 stderr=subprocess.STDOUT,
                                                 )
@@ -1430,4 +1430,3 @@ try:
 except Exception as e: #pylint: disable=broad-except
     print2err('lazy_import Exception:', e)
     exec(_lazyImports) #pylint: disable=exec-used
-

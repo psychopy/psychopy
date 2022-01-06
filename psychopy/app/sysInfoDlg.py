@@ -240,5 +240,3 @@ class SystemInfoDialog(wx.Dialog):
     def OnClose(self, event):
         self.Destroy()
         event.Skip()
-
-

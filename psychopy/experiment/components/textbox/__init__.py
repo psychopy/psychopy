@@ -86,6 +86,7 @@ class TextboxComponent(BaseVisualComponent):
             text, valType='str', inputType="multi", allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The text to be displayed"),
+            canBePath=False,
             label=_localized['text'])
         self.params['font'] = Param(
             font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',
@@ -204,7 +205,7 @@ class TextboxComponent(BaseVisualComponent):
             "     padding=%(padding)s, alignment=%(alignment)s,\n"
             "     anchor=%(anchor)s,\n"
             "     fillColor=%(fillColor)s, borderColor=%(borderColor)s,\n"
-            "     flipHoriz=%(flipHoriz)s, flipVert=%(flipVert)s, languageStyle=%(languageStyle)s\n"
+            "     flipHoriz=%(flipHoriz)s, flipVert=%(flipVert)s, languageStyle=%(languageStyle)s,\n"
             "     editable=%(editable)s,\n"
             "     name='%(name)s',\n"
             "     autoLog=%(autoLog)s,\n"

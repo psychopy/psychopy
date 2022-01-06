@@ -15,4 +15,3 @@ You should filter out data where the balloon burst and measure the number of pum
 > **WARNING**: This is an advanced demo involving lots of code components
 
 This can be extended to be more similar to the original paper by adding further colours of balloons with different bursting profiles.
-

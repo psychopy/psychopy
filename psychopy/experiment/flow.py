@@ -108,7 +108,7 @@ class Flow(list):
         elif component.getType() in ['Routine'] + list(getAllStandaloneRoutines()):
             if id is None:
                 # a Routine may come up multiple times - remove them all
-                # self.remove(component)  # cant do this - two empty routines
+                # self.remove(component)  # can't do this - two empty routines
                 # (with diff names) look the same to list comparison
                 toBeRemoved = []
                 for id, compInFlow in enumerate(self):

@@ -190,7 +190,7 @@ class Experiment:
         an empty one if none is given.
         """
         if routine is None:
-            # create a deafult routine with this name
+            # create a default routine with this name
             self.routines[routineName] = Routine(routineName, exp=self)
         else:
             self.routines[routineName] = routine
@@ -452,7 +452,7 @@ class Experiment:
             elif val[0] == '$':
                 newVal = val[1:]  # they were using code (which we can reuse)
             elif val.startswith('[') and val.endswith(']'):
-                # they were using code (slightly incorectly!)
+                # they were using code (slightly incorrectly!)
                 newVal = val[1:-1]
             elif val in ['return', 'space', 'left', 'right', 'escape']:
                 newVal = val  # they were using code
@@ -656,7 +656,7 @@ class Experiment:
                     # the builder and change the default behavior
                     # (currently only the new behavior of choices for RatingScale,
                     # HS, November 2012)
-                    # HS's modification superceded Jan 2014, removing several
+                    # HS's modification superseded Jan 2014, removing several
                     # RatingScale options
                     if componentType == 'RatingScaleComponent':
                         if (componentNode.get('choiceLabelsAboveLine') or

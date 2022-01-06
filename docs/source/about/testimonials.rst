@@ -14,7 +14,5 @@ own testimonial then go to this
 (Updating the testimonials will be done periodically so don't expect your comment to appear here instantly, 
 but we'll try and remember to do it every now and then. Please don't swear!!)
 
-You may be interested in the `survey of behavioural software <http://lpl.ucsd.edu/software-survey-results>`_ by the `Language Production Lab at UCSD <http://lpl.ucsd.edu/home>`_
-
 .. raw:: html
    :file: testimonialsText.html

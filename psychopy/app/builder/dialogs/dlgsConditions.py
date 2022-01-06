@@ -293,7 +293,7 @@ class DlgConditions(wx.Dialog):
             if (name and not valid_var_re.match(name)
                     or not valid_var_re.match(event.GetString())):
                 msg, enable = _translate(
-                    "Name must be alpha-numeric or _, no spaces"), False
+                    "Name must be alphanumeric or _, no spaces"), False
             else:
                 msg, enable = "", True
         self.tmpMsg.SetLabel(msg)
@@ -580,7 +580,7 @@ class DlgConditions(wx.Dialog):
                     adjustedNames = True
             elif not valid_var_re.match(paramName):
                 msg, enable = _translate(
-                    "Name must be alpha-numeric or _, no spaces"), False
+                    "Name must be alphanumeric or _, no spaces"), False
                 newName = _nonalphanumeric_re.sub('_', newName)
                 adjustedNames = True
             else:

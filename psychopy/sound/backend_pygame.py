@@ -252,7 +252,7 @@ class SoundPygame(_SoundBase):
         self.status = STOPPED
 
     def getDuration(self):
-        """Get's the duration of the current sound in secs
+        """Gets the duration of the current sound in secs
         """
         return self._snd.get_length()
 

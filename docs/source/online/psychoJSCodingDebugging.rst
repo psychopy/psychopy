@@ -37,6 +37,3 @@ Adding JS functions
 If you have a function you want to use, and you find the equivalent on the crib sheet or stack overflow, add an 'initialization' code component to the start of your experiment. Set code type to be 'JS' and copy and paste the function(s) you want there in the 'Begin experiment' tab. These functions will then be available to be called throughout the rest of the task.
 
 .. image:: initializeJScode.png
-
-
-

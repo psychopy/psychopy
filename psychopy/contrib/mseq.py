@@ -39,7 +39,7 @@ run tests with:
 %          powerVal -power, so that sequence length is baseVal^powerVal-1
 %          shift    -cyclical shift of the sequence
 %          whichSeq -sequence istantiation to use 
-%          (numer of sequences varies with powerVal - see the code)
+%          (number of sequences varies with powerVal - see the code)
 %
 % (c) Giedrius T. Buracas, SNL-B, Salk Institute
 % Register values are taken from: WDT Davies, System Identification

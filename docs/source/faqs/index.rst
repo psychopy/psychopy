@@ -7,5 +7,3 @@ Frequently Asked Questions (FAQs)
    :glob:
    
    *
-
-
