@@ -65,7 +65,7 @@ PEN_TRACE_LINE_WIDTH = 2
 # Pen trace line color (in r,g,b 0-255)
 PEN_TRACE_LINE_COLOR = (0, 0, 0)
 
-# Pen trace line opacity. 0.0 = hidden / fully transparant, 1.0 = fully visible
+# Pen trace line opacity. 0.0 = hidden / fully transparent, 1.0 = fully visible
 PEN_TRACE_LINE_OPACITY = 1.0
 
 draw_pen_traces = True

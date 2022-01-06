@@ -69,5 +69,3 @@ Lastly, to make the shortcut look pretty, you might want to update the icon too.
 --------------------------------
 
 Fetch the latest .zip release. Unpack it and replace the contents of `<NETWORK_LOC>\\psychopyLib\\` with the contents of the zip file.
-    
-

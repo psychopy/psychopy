@@ -35,5 +35,5 @@ Possible good ideas
 It isn't clear that these actually make a difference, but they might).
 
    #. disconnect the internet cable (to prevent programs performing auto-updates?)
-   #. on Macs you can actually shut down the Finder. It might help. See Alex Holcombe's page `here <http://openwetware.org/wiki/Holcombe:VerifyTiming>`_
+   #. on Macs you can actually shut down the Finder. It might help. See Alex Holcombe's page `here <https://openwetware.org/wiki/Holcombe:VerifyTiming>`_
    #. use a single screen rather than two (probably there is some graphics card overhead in managing double the number of pixels?)

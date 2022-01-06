@@ -17,4 +17,3 @@ From here on in, a Polygon component is included whose `pos` is equal to the pa
 Before each trial, a fixation point is then presented in the centre of the screen, until participants have fixated on it for more than 1000ms. This ensures that their eyes always start in the same position.
 
 The trials themselves consist of between 0 and 7 distractors around a target - in some conditions, the target will be red and the distractors black, in others, the reverse. Each trial ends when participants look at the target for longer than 300ms.
-

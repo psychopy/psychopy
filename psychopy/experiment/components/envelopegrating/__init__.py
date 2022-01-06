@@ -314,4 +314,3 @@ class EnvGratingComponent(BaseVisualComponent):
         super().writeRoutineEndCode(buff)  # adds start/stop times to data
         #if self.params['blendmode'].val!='default':
             #buff.writeIndented("win.blendMode=__allEnvSaveBlendMode #clean up for %(name)s\n" %self.params)
-

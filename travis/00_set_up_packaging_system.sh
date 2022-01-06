@@ -10,7 +10,7 @@ travis_retry sudo apt-get update -qq
 travis_retry sudo apt-get install -qq lsb-release
 source /etc/lsb-release
 echo ${DISTRIB_CODENAME}
-wget -O- http://neuro.debian.net/lists/${DISTRIB_CODENAME}.us-nh.full | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
-wget -q -O- http://neuro.debian.net/_static/neuro.debian.net.asc | sudo apt-key add -
+wget -O- https://neuro.debian.net/lists/${DISTRIB_CODENAME}.us-nh.full | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
+wget -q -O- https://neuro.debian.net/_static/neuro.debian.net.asc | sudo apt-key add -
 travis_retry sudo apt-get update -qq
 sudo apt-cache policy  # What is actually available?

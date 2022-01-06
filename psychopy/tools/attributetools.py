@@ -128,7 +128,7 @@ def setAttribute(self, attrib, value, log,
         # Trick to control logging of attributeSetter. Set logging in
         # self.autoLog
         autoLogOrig = self.autoLog  # save original value
-        # set to desired logging. log=None dafaults to autoLog
+        # set to desired logging. log=None defaults to autoLog
         self.__dict__['autoLog'] = log or autoLogOrig and log is None
         # set attribute, calling attributeSetter if it exists
         setattr(self, attrib, value)

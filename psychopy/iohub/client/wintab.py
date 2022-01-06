@@ -138,7 +138,7 @@ class PenSampleEvent(ioEvent):
 
     @property
     def accelleration(self):
-        """Returns the calculated x, y, and xy accelleration for the current
+        """Returns the calculated x, y, and xy acceleration for the current
         sample.
 
         :return: (float, float, float)
@@ -157,7 +157,7 @@ class PenSampleEvent(ioEvent):
 
     @accelleration.setter
     def accelleration(self, a):
-        """Returns the calculated x, y, and xy accelleration for the current
+        """Returns the calculated x, y, and xy acceleration for the current
         sample.
 
         :return: (float, float, float)

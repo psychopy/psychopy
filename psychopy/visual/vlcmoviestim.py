@@ -429,7 +429,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         """
         # Do not call the libvlc API in this method, causes a deadlock which
         # freezes PsychoPy. Just set the flag below and the stream will restart
-        # on the ned `.draw()` call.
+        # on the next `.draw()` call.
         self._streamEnded = True
 
         if not self.loop:
@@ -463,7 +463,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         texture color data. Each frame, the pixel buffer memory is mapped and
         frame data is copied over to the GPU from the decoder.
 
-        This is called everytime a video file is loaded. The `_freeBuffers`
+        This is called every time a video file is loaded. The `_freeBuffers`
         method is called in this routine prior to creating new buffers, so it's
         safe to call this right after loading a new movie without having to
         `_freeBuffers` first.
@@ -527,7 +527,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
     def frameTexture(self):
         """Texture ID for the current video frame (`GLuint`). You can use this
         as a video texture. However, you must periodically call `updateTexture`
-        to keep this upto date.
+        to keep this up to date.
 
         """
         return self._textureId
@@ -1191,7 +1191,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 # WARNING: Due to a limitation of libvlc, you cannot call the API from within
 # the callbacks below. Doing so will result in a deadlock that stalls the
 # application. This applies to any method in the `VloMovieStim` class being
-# called wihtin a callback too. They cannot have any libvlc calls anywhere in
+# called within a callback too. They cannot have any libvlc calls anywhere in
 # the call stack.
 #
 

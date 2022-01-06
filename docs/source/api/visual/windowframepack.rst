@@ -8,4 +8,3 @@
 .. autoclass:: psychopy.visual.windowframepack.ProjectorFramePacker
     :members: 
     :undoc-members:  endOfFlip, startOfFlip
-

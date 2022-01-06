@@ -117,7 +117,7 @@ class SourceTreePanel(wx.Panel):
             self.coder.currentDoc.expandedItems[itemData] = False
 
     def GetScrollVert(self):
-        """Get the vertical scrolling position fo the tree. This is used to
+        """Get the vertical scrolling position for the tree. This is used to
         keep track of where we are in the tree by the code editor. This prevents
         the tree viewer from moving back to the top when returning to a
         document, which may be jarring for users."""
@@ -160,7 +160,7 @@ class SourceTreePanel(wx.Panel):
         # represents the hierarchy of the document. This system is dead simple,
         # determining what's a function/class based on what the Scintilla lexer
         # thinks should be folded. This is really fast and works most of the
-        # time (prefectly for Python). In the future, we may need to specify
+        # time (perfectly for Python). In the future, we may need to specify
         # additional code to handle languages which don't have strict whitespace
         # requirements.
         #

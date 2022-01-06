@@ -32,4 +32,3 @@ with open('testimonialsText.html', 'wb') as outFile:
             nameStr += ', %s' %thisEntry[companHead]
         nameStr += ' </em><br>\n'
         outFile.write(nameStr)
-

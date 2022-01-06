@@ -214,4 +214,3 @@ Deleting a framebuffer when done with it. This invalidates the framebuffer's ID
 and makes it available for use::
 
     deleteFBO(fbo)
-

@@ -25,4 +25,3 @@ accessing iohub devices and events.
     :exclude-members: eventListToObject, eventListToDict, eventListToNamedTuple, _isErrorReply, _startServer, _createDeviceList, _addDeviceView, _sendToHubServer, _sendExperimentInfo, _sendSessionInfo, addDeviceToMonitor, getHubServerConfig, getExperimentID, getExperimentMetaData, getSessionMetaData, initializeConditionVariableTable, addRowToConditionVariableTable, registerWindowHandles, unregisterWindowHandles, wait
     :members:
     :member-order: bysource
-
