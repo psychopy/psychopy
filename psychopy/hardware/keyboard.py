@@ -172,8 +172,9 @@ class Keyboard:
             from psychopy.iohub.devices import Computer
             if not ioHubConnection.getActiveConnection() and Keyboard.backend == 'iohub':
                 # iohub backend was explicitly requested, but iohub is not running, so start it up
+                # setting keyboard to use standard psychopy key mappings
                 from psychopy.iohub import launchHubServer
-                launchHubServer()
+                launchHubServer(Keyboard=dict(use_keymap='psychopy'))
 
             if ioHubConnection.getActiveConnection() and Keyboard._iohubKeyboard is None:
                 Keyboard._iohubKeyboard = ioHubConnection.getActiveConnection().getDevice('keyboard')
