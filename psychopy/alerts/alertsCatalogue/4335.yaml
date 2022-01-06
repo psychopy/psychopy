@@ -1,7 +1,7 @@
 
 code: 4335
 cat: Components
-msg: {comp} is only implemented online, so will do nothing when running locally.
+msg: Component '{comp}' is only implemented online, so will do nothing when running locally.
 
 # The following are typically used for online help pages, and support reStructured Text.
 label: Component not implemented in Python
