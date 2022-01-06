@@ -45,6 +45,8 @@ class ImageComponent(BaseVisualComponent):
         self.type = 'Image'
         self.url = "https://www.psychopy.org/builder/components/image.html"
         self.exp.requirePsychopyLibs(['visual'])
+        self.exp.requireImport(importName='DEFAULT_IMAGE',
+                           importFrom='psychopy.constants')
         # params
         self.order += ['image',  # Basic tab
                        'mask', 'texture resolution',  # Texture tab
