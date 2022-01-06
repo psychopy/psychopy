@@ -80,7 +80,7 @@
   cat: Interface
   6100:
     cat: File not found
-    6105: Run nonexistant file
+    6105: Run nonexistent file
 
 7000:
   cat: Python dependencies

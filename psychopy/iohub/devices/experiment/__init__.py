@@ -134,7 +134,7 @@ class MessageEvent(DeviceEvent):
 
         #: The category attribute is a 0 - 32 long string used as a 'group' or 'category'
         #: code that can be assigned to messages. The category attribute may be useful
-        #: for grouping messages into categories or types when retieving them for analysis
+        #: for grouping messages into categories or types when retrieving them for analysis
         #: by assigning the same prix string to related Message Event types.
         #: String type.
         self.category = None

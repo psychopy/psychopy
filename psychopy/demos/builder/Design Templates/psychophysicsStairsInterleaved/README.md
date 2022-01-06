@@ -12,4 +12,3 @@ Measure your detection thresholds for two different spatial frequencies of grati
 
 ## The staircases
 The experiment uses 4 adaptive staircases with interleaved trials. The set up of the stairs can be seen in the excel file in this folder: there a 2 spatial frequencies and for each there are two staircases, one starting at a very low contrast and another starting at a high contrast. The step size for the staircase is changing each time the staircase reverses in its direction, as determined by the stepSize column in the conditions file.
-

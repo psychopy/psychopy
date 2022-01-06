@@ -30,4 +30,3 @@ Some of the handy formatted string types::
     '005'
 
 See the `python documentation <http://docs.python.org/library/stdtypes.html#string-formatting-operations>`_ for a more complete list.
-

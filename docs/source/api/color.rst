@@ -23,4 +23,3 @@ Details
 
 .. autofunction:: isValidColor
 .. autofunction:: hex2rgb255
-

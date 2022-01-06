@@ -63,4 +63,3 @@ For converting movies, you could use `VLC Player <https://www.videolan.org/vlc/>
     :figclass: align-center
 
     Profile settings for encoding video to MP4 + H.264 & MP3
-

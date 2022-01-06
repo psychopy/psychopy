@@ -34,4 +34,3 @@ Device:
         IOHUB_STRING:
             min_length: 1
             max_length: 64
-

@@ -168,7 +168,7 @@ class Device(ioObject):
         # unique within all devices of the same type_id for a given experiment.
         # For devices that support multiple connected to the computer at once,
         # with some devices the device_number can be used to select which
-        # device ot use.
+        # device to use.
         ('device_number', np.uint8),
         # The name of the manufacturer for the device being used.
         ('manufacturer_name', '|S64'),
@@ -658,10 +658,10 @@ class Device(ioObject):
             #. The _getIOHubEventObject method is responsible for the actual conversion of the native event representation to the required ioHub Event representation for the accociated event type.
 
         Args:
-            args(tuple): tuple of non keyword arguements passed to the callback.
+            args(tuple): tuple of non keyword arguments passed to the callback.
 
         Kwargs:
-            kwargs(dict): dict of keyword arguements passed to the callback.
+            kwargs(dict): dict of keyword arguments passed to the callback.
 
         Returns:
             None
@@ -755,7 +755,7 @@ class DeviceEvent(ioObject):
 
         # The unique id assigned to the device that generated the event.
         ('device_id', np.uint8),
-        # CUrrrently not used, but will be in the future for device types that
+        # Currently not used, but will be in the future for device types that
         # support > one instance of that device type to be enabled
         # during an experiment. Currently only one device of a given type
         # can be used in an experiment.

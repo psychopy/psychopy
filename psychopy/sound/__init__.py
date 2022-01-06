@@ -8,7 +8,7 @@ sounds in PsychoPy. We started with `Pygame`, then tried `pyo` and `sounddevice`
 but we now strongly recommend you use the PTB setting. That uses the
 `PsychPortAudio`_ engine, written by Mario Kleiner for `Psychophysics Toolbox`_.
 
-With the PTB backend you get some options about how agressively you want to try
+With the PTB backend you get some options about how aggressively you want to try
 for low latency, and there is also an option to pre-schedule a sound to play at
 a given time in the future.
 

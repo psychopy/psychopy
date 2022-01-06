@@ -126,7 +126,7 @@ class NoiseStim(GratingStim):
     The function will produce an error when it can't draw the stimulus in the buffer but it may still be wrong when displayed.
     
     **Notes on orientation and phase**
-    The ori parameter twists the final image so the samples in noiseType Binary, Normal or Uniform will no longer be alighned to the sides of the monitor if ori is not a multiple of 90.
+    The ori parameter twists the final image so the samples in noiseType Binary, Normal or Uniform will no longer be aligned to the sides of the monitor if ori is not a multiple of 90.
     Most other noise types look broadly the same for all values of ori but the specific sample shown can be made to rotate by changing ori.
     The dominant orientation for Gabor noise is determined by ori at render time, not before.
     
@@ -265,7 +265,7 @@ class NoiseStim(GratingStim):
         
     @attributeSetter
     def imageCompoment(self, value):
-        """Which compoment of an image to randomise, amplitude or phase. 
+        """Which component of an image to randomise, amplitude or phase. 
         """
        
         self.__dict__['imageComponent'] = value
@@ -317,7 +317,7 @@ class NoiseStim(GratingStim):
            -1 gives pink noise.
            Note power spectrum of a pink noise image should
            fall as f^-2. But as power spectrum = amplitude spectrum squared
-           this is achived by setting amplitude spectrum to f^-1.
+           this is achieved by setting amplitude spectrum to f^-1.
         """
         
         self.__dict__['noiseFractalPower'] = value
@@ -372,7 +372,7 @@ class NoiseStim(GratingStim):
             
             noiseClip is used to scale the luminance values as
             above whenever a filter is applied to the noise sample, 
-            regardless of the inital type of noise requested. 
+            regardless of the initial type of noise requested. 
         """
         
         self.__dict__['noiseClip'] = value
@@ -498,7 +498,7 @@ class NoiseStim(GratingStim):
                                                             cutoff_y = self._upsf / filterSize, 
                                                             n=self.noiseFilterOrder, 
                                                             alpha=0, 
-                                                                offset_x = 0.5/filterSize,  #becuase FFTs are slightly off centred.
+                                                                offset_x = 0.5/filterSize,  #because FFTs are slightly off centred.
                                                                 offset_y = 0.5/filterSize)
             else:
                 filter = numpy.ones((int(filterSize),int(filterSize)))
@@ -512,7 +512,7 @@ class NoiseStim(GratingStim):
                                                                 cutoff_y = self._lowsf / filterSize, 
                                                                 n = self.noiseFilterOrder, 
                                                                 alpha = 0, 
-                                                                offset_x = 0.5/filterSize, #becuase FFTs are slightly off centred.
+                                                                offset_x = 0.5/filterSize, #because FFTs are slightly off centred.
                                                                 offset_y = 0.5/filterSize)
             return FT * filter
         else:
@@ -719,4 +719,3 @@ class NoiseStim(GratingStim):
   
         self._needBuild = False # prevent noise from being re-built at next draw() unless a parameter is changed in the mean time.
         self.updateNoise()  # now choose the initial random sample.
-

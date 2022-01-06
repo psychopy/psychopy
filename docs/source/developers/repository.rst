@@ -83,7 +83,7 @@ When you first start using the repo there are a few additional steps that you wo
 Create your own fork of the central repository
 ________________________________________________
 
-Go to `github <http://www.github.com>`_, create an account and make a fork of the `psychopy repository <https://github.com/psychopy/psychopy>`_
+Go to `github <https://www.github.com>`_, create an account and make a fork of the `psychopy repository <https://github.com/psychopy/psychopy>`_
 You can change your fork in any way you choose without it affecting the central project. You can also share your fork with others, including the central project.
 
 .. _fetchLocalCopy:
@@ -91,7 +91,7 @@ You can change your fork in any way you choose without it affecting the central 
 Fetch a local copy
 ________________________________________________
 
-`Install git on your computer <http://book.git-scm.com/2_installing_git.html>`_.
+`Install git on your computer <https://book.git-scm.com/book/en/v2/Getting-Started-Installing-Git>`_.
 Create and upload an ssh key to your github account - this is necessary for you to push changes back to your fork of the project at github.
 
 Then, in a folder of your choosing fetch your fork::

@@ -2,7 +2,7 @@ from pathlib import Path
 
 from psychopy import layout
 from psychopy.alerts._errorHandler import _BaseErrorHandler
-from psychopy.tests.test_visual.test_basevisual import _TestColorMixin
+from psychopy.tests.test_visual.test_basevisual import _TestColorMixin, _TestUnitsMixin
 from psychopy.visual import Window
 from psychopy.visual import TextBox2
 from psychopy.visual.textbox2.fontmanager import FontManager
@@ -14,7 +14,7 @@ from psychopy.tests import utils
 
 
 @pytest.mark.textbox
-class Test_textbox(_TestColorMixin):
+class Test_textbox(_TestColorMixin, _TestUnitsMixin):
     def setup_class(self):
         self.win = Window([128,128], pos=[50,50], monitor="testMonitor", allowGUI=False, autoLog=False)
         self.error = _BaseErrorHandler()

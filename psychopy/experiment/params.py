@@ -115,6 +115,7 @@ class Param():
     def __init__(self, val, valType, inputType=None, allowedVals=None, allowedTypes=None,
                  hint="", label="", updates=None, allowedUpdates=None,
                  allowedLabels=None, direct=True,
+                 canBePath=True,
                  categ="Basic"):
         """
         @param val: the value for this parameter
@@ -139,8 +140,12 @@ class Param():
         @param categ: category for this parameter
             will populate tabs in Component Dlg
         @type allowedUpdates: string
+        @param canBePath: is it possible for this parameter to be
+            a path? If so, writing as str will check for pathlike
+            characters and sanitise if needed.
+        @type canBePath: bool
         @param direct: purely used in the test suite, marks whether this
-            param's value is expected to appear in the script
+        param's value is expected to appear in the script
         @type direct: bool
         """
         super(Param, self).__init__()
@@ -157,6 +162,7 @@ class Param():
         self.categ = categ
         self.readOnly = False
         self.codeWanted = False
+        self.canBePath = canBePath
         self.direct = direct
         if inputType:
             self.inputType = inputType
@@ -203,12 +209,16 @@ class Param():
                             # if target is python2.x then unicode will be u'something'
                             # but for other targets that will raise an annoying error
                             val = val[1:]
-                    if self.valType in ['file', 'table']:
-                        # If param is a file of any kind, use Path to make sure it's valid
-                        val = Path(val).as_posix()  # Convert to a valid path with / not \
-                    val=re.sub("\n", "\\n", val)  # Replace line breaks with escaped line break character
-                    val=re.sub("\\\\", "/", val)  # handle older exps where files were valType=str not file
-                    return repr(val)                              
+                    # If param is a path or pathlike use Path to make sure it's valid (with / not \)
+                    isPathLike = bool(re.findall(r"[\\/](?!\W)", val))
+                    if self.valType in ['file', 'table'] or (isPathLike and self.canBePath):
+                        val = Path(val).as_posix()
+                        val = val.replace("\\", "/").replace("//", "/")
+                    # Hide escape char on escaped $ (other escaped chars are handled by wx but $ is unique to us)
+                    val = re.sub(r"\\\$", "$", val)
+                    # Replace line breaks with escaped line break character
+                    val = re.sub("\n", "\\n", val)
+                    return repr(val)
             return repr(self.val)
         elif self.valType in ['code', 'extendedCode']:
             isStr = isinstance(self.val, str)
