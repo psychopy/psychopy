@@ -34,7 +34,7 @@ class ResourceManagerComponent(BaseComponent):
             resources = []
 
         self.params['resources'] = Param(resources,
-            valType='list', inputType="fileList", categ='Basic', updates='set every repeat',
+            valType='list', inputType="fileList", categ='Basic', updates='constant',
             hint=_translate("Resources to download/check"),
             direct=False, label=_translate("Resources"))
 
@@ -84,6 +84,18 @@ class ResourceManagerComponent(BaseComponent):
               "false": "enable",  # permitted: hide, show, enable, disable
               }
          )
+
+    def writeInitCode(self, buff):
+        """
+        As ResourceManager is not yet implemented in Python, create a placeholder object purely to prevent crashing
+        """
+        # Get initial values
+        inits = getInitVals(self.params, 'PsychoPy')
+        # Create dummy object
+        code = (
+            "%(name)s = core.OnlineOnlyComponent()"
+        )
+        buff.writeIndentedLines(code % inits)
 
     def writeFrameCodeJS(self, buff):
         # Get initial values
