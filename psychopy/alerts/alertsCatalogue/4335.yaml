@@ -1,0 +1,19 @@
+
+code: 4335
+cat: Components
+msg: {comp} is only implemented online, so will do nothing when running locally.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Component not implemented in Python
+
+synopsis: |
+  When a component is has only been implemented online, for experiments running in Pavlovia through PsychoJS, PsychoPy will substitute it with a `core.OnlineOnlyComponent` object.
+
+details: |
+  This object does nothing, but it means that your experiment won't crash when running locally, so you can still test out other components.
+
+solutions: |
+  No action required.
+
+versions: |
+  > 2022.1.0

@@ -1,4 +1,6 @@
 from pathlib import Path
+
+from psychopy.alerts import alert
 from .._base import BaseComponent
 from psychopy.localization import _translate
 from ... import getInitVals
@@ -96,6 +98,8 @@ class ResourceManagerComponent(BaseComponent):
             "%(name)s = core.OnlineOnlyComponent()"
         )
         buff.writeIndentedLines(code % inits)
+        # Raise not implemented alert
+        alert(4335, strFields={'comp': type(self).__name__})
 
     def writeFrameCodeJS(self, buff):
         # Get initial values
