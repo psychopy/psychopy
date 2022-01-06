@@ -991,7 +991,7 @@ class TextureMixin:
         else:
             if isinstance(tex, (str, Path)):
                 # maybe tex is the name of a file:
-                filename = findImageFile(tex)
+                filename = findImageFile(tex, checkResources=True)
                 if not filename:
                     msg = "Couldn't find image %s; check path? (tried: %s)"
                     logging.error(msg % (tex, os.path.abspath(tex)))
