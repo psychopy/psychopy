@@ -21,10 +21,11 @@ win = visual.Window(WINDOW_SIZE, units=unit_type,
     color=[128, 128, 128], colorSpace='rgb255')
 
 # Create a Keyboard class with ptb as the backend
+ptb_keyboard.Keyboard.backend = 'ptb'
 ptb_keyboard = ptb_keyboard.Keyboard()
 
 # Start iohub process. The iohub process can be accessed using `io`.
-io = launchHubServer(window=win)
+io = launchHubServer(window=win, Keyboard=dict(use_keymap='psychopy'))
 
 # A `keyboard` variable is used to access the iohub Keyboard device.
 keyboard = io.devices.keyboard
