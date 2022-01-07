@@ -1153,8 +1153,7 @@ class SettingsComponent:
         code = (
             "\n"
             "# create a default keyboard (e.g. to check for escape)\n"
-            "keyboard.Keyboard.backend = %(keyboardBackend)s\n"
-            "defaultKeyboard = keyboard.Keyboard()\n"
+            "defaultKeyboard = keyboard.Keyboard(backend=%(keyboardBackend)s)\n"
         )
         buff.writeIndentedLines(code % inits)
 
