@@ -15,12 +15,11 @@ output = visual.TextBox2(win,
     font="Open Sans", letterHeight=0.1,
     pos=(0, -0.2))
 
-# Make keyboard object
-# Set backend to 'iohub', 'ptb', 'event', or ''.
+# Make keyboard object. Optionally add backend kwarg, using 'iohub', 'ptb', 'event', or ''.
 # If using '', best available backend will be selected.
-keyboard.Keyboard.backend = 'iohub'
+#kb = keyboard.Keyboard(backend='iohub')
 kb = keyboard.Keyboard()
-print("KB backend: ", kb.backend)
+print("KB backend: ", kb.getBackend())
 
 # Listen for keypresses until escape is pressed
 keys = kb.getKeys()
