@@ -1243,7 +1243,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         """
         Paste a copied Routine into the current Experiment. Returns a copy of that Routine
         """
-        newRoutine.name = self.exp.namespace.makeValid(routineName)
+        newRoutine.name = self.exp.namespace.makeValid(routineName, prefix="routine")
         newRoutine.params['name'] = newRoutine.name
         self.exp.namespace.add(newRoutine.name)
         # add to the experiment
