@@ -29,7 +29,7 @@ Further information:
    timing/index
    troubleshooting
    alerts/index
-   recipes/index
+   Recipes (“How-to”s) <http://workshops.psychopy.org/tutorials/index.html>
    faqs/index
    resources/index
 
