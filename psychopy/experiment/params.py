@@ -316,6 +316,22 @@ class Param():
 
         return element
 
+    def copy(self):
+        """
+        Create a copy of this parameter, such that changes to the copy won't affect the original.
+        """
+        return self.__deepcopy__()
+
+    def __deepcopy__(self, memo=None):
+        return type(self)(
+            val=self.val, updates=self.updates, categ=self.categ,
+            valType=self.valType, inputType=self.inputType,
+            hint=self.hint, label=self.label,
+            allowedVals=self.allowedVals, allowedTypes=self.allowedTypes,
+            allowedUpdates=self.allowedUpdates, allowedLabels=self.allowedLabels,
+            direct=self.direct, canBePath=self.canBePath
+        )
+
     def dollarSyntax(self):
         """
         Interpret string according to dollar syntax, return:

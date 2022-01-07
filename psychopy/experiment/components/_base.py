@@ -135,6 +135,18 @@ class BaseComponent:
 
         return element
 
+    def copy(self):
+        """
+        Create a copy of this component, such that changes to the copy won't affect the original.
+        """
+        return self.__deepcopy__()
+
+    def __deepcopy__(self, memo=None):
+        newComp = type(self)(exp=self.exp, parentName=self.parentName)
+        for name, param in self.params.items():
+            newComp.params[name] = param.copy()
+        return newComp
+
     def integrityCheck(self):
         """
         Run component integrity checks for non-visual components

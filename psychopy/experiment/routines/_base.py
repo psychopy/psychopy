@@ -102,6 +102,18 @@ class BaseStandaloneRoutine:
 
         return element
 
+    def copy(self):
+        """
+        Create a copy of this standalone routine, such that changes to the copy won't affect the original.
+        """
+        return self.__deepcopy__()
+
+    def __deepcopy__(self, memo=None):
+        newRT = type(self)(exp=self.exp)
+        for name, param in self.params.items():
+            newRT.params[name] = param.copy()
+        return newRT
+
     def writePreCode(self, buff):
         return
 
@@ -221,6 +233,16 @@ class Routine(list):
     def __repr__(self):
         _rep = "psychopy.experiment.Routine(name='%s', exp=%s, components=%s)"
         return _rep % (self.name, self.exp, str(list(self)))
+
+    def copy(self):
+        """
+        Create a copy of this routine, such that changes to the copy won't affect the original.
+        """
+        return self.__deepcopy__()
+
+    def __deepcopy__(self, memo=None):
+        components = [comp.copy() for comp in self]
+        return type(self)(name=self.name, exp=self.exp, components=components)
 
     @property
     def _xml(self):
