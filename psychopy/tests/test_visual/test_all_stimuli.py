@@ -498,11 +498,16 @@ class _baseVisualTest():
         mov = visual.MovieStim3(win, fileName, pos=pos, noAudio=True)
         mov.setFlipVert(True)
         mov.setFlipHoriz(True)
+        if sys.platform == 'darwin':
+            threshold = 30
+        else:
+            threshold = 11
         for frameN in range(10):
             mov.draw()
+
             if frameN==0:
                 utils.compareScreenshot('movFrame1_%s.png' %self.contextName,
-                                        win, crit=11)
+                                        win, crit=threshold)
             win.flip()
         "{}".format(mov) #check that str(xxx) is working
 
