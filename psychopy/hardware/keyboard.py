@@ -244,8 +244,8 @@ class Keyboard:
                                                                                                         'event', '']))
 
         else:
-            logging.warning("keyboard.Keyboard.setBackend already using '%s' backend. Can not switch to '%s'" % (self._backend,
-                                                                                                      backend))
+            logging.warning("keyboard.Keyboard.setBackend already using '%s' backend. "
+                            "Can not switch to '%s'" % (self._backend, backend))
 
         return self._backend
 
