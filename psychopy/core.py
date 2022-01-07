@@ -165,10 +165,10 @@ def shellCall(shellCmd, stdin='', stderr=False, env=None, encoding=None):
         return stdoutData.strip()
 
 
-class OnlineOnlyComponent:
+class ComponentPlaceholder:
     """
-    When a component is only implemented online, we need an object to represent it when running locally, which will
-    accept any attribute given without causing an error and breaking the experiment. This object extends the base Python
+    When a component is not implemented, we need an object to represent it when running, which will accept any
+    attribute given without causing an error and breaking the experiment. This object extends the base Python
     `object` class, with no additions.
     """
     pass

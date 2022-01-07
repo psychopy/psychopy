@@ -51,7 +51,8 @@
     4320: Non-local font
     4325: Font not available
     4330: Recording device not found
-    4335: Component not implemented in Python
+    4335: Component or routine not implemented in Python
+    4340: Component or routine not implemented in JavaScript
   4400:
     cat: Conflicts
     4405: Textbox and keyboard conflict

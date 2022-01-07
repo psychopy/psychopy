@@ -87,20 +87,6 @@ class ResourceManagerComponent(BaseComponent):
               }
          )
 
-    def writeInitCode(self, buff):
-        """
-        As ResourceManager is not yet implemented in Python, create a placeholder object purely to prevent crashing
-        """
-        # Get initial values
-        inits = getInitVals(self.params, 'PsychoPy')
-        # Create dummy object
-        code = (
-            "%(name)s = core.OnlineOnlyComponent()"
-        )
-        buff.writeIndentedLines(code % inits)
-        # Raise not implemented alert
-        alert(4335, strFields={'comp': type(self).__name__})
-
     def writeInitCodeJS(self, buff):
         # Get initial values
         inits = getInitVals(self.params, 'PsychoJS')
