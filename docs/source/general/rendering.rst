@@ -3,7 +3,7 @@
 OpenGL and Rendering
 ====================================
 
-All rendering performed by PsychoPy uses hardware-accelerated OpenGL rendering where possible. This means that, as much as possible, the necessary processing to calculate pixel values is performed by the graphics card :term:`GPU` rather than by the :term:`CPU`. For example, when an image is rotated the calculations to determine what pixel values should result, and any interpolation that is needed, are determined by the graphics card automatically.
+All rendering performed by PsychoPy uses hardware-accelerated `OpenGL <https://www.opengl.org//>`_ rendering where possible. This means that, as much as possible, the necessary processing to calculate pixel values is performed by the graphics card :term:`GPU` rather than by the :term:`CPU`. For example, when an image is rotated the calculations to determine what pixel values should result, and any interpolation that is needed, are determined by the graphics card automatically.
 
 In the double-buffered system, stimuli are initially drawn into a piece of memory on the graphics card called the 'back buffer', while the screen presents the 'front buffer'. The back buffer initially starts blank (all pixels are set to the window's defined color) and as stimuli are 'rendered' they are gradually added to this back buffer. The way in which stimuli are combined according to transparency rules is determined by the :ref:`blend mode <blendMode>` of the window. At some point in time, when we have rendered to this buffer all the objects that we wish to be presented, the buffers are 'flipped' such that the stimuli we have been drawing are presented simultaneously. The monitor updates at a very precise fixed rate and the flipping of the window will be synchronised to this monitor update if possible (see :ref:`waitBlanking`).
 
@@ -20,29 +20,29 @@ The fact that modern graphics processors are extremely powerful; they can carry 
 
 There are three things that are relatively slow and should be avoided at critical points in time (e.g. when rendering a dynamic or brief stimulus). These are:
 
-	#. disk accesses
-	#. passing large amounts of data to the graphics card
-	#. making large numbers of python calls.
+#. disk accesses
+#. passing large amounts of data to the graphics card
+#. making large numbers of python calls.
 
 Functions that are very fast:
 
-    #. Calls that move, resize, rotate your stimuli are likely to carry almost no overhead
-    #. Calls that alter the color, contrast or opacity of your stimulus will also have no overhead IF your graphics card supports :ref:`shaders`
-    #. Updating of stimulus parameters for :ref:`psychopy.visual.ElementArrayStim` is also surprisingly fast BUT you should try to update your stimuli using `numpy` arrays for the maths rather than `for...` loops
+#. Calls that move, resize, rotate your stimuli are likely to carry almost no overhead
+#. Calls that alter the color, contrast or opacity of your stimulus will also have no overhead IF your graphics card supports :ref:`shaders`
+#. Updating of stimulus parameters for :ref:`psychopy.visual.ElementArrayStim` is also surprisingly fast BUT you should try to update your stimuli using `numpy` arrays for the maths rather than `for...` loops
 
 Notable slow functions in PsychoPy calls:
 
-    #. Calls to set the image or set the mask of a stimulus. This involves having to transfer large amounts of data between the computer's main processor and the graphics card, which is a relatively time-consuming process. 
-    #. Any of your own code that uses a Python `for...` loop is likely to be slow if you have a large number of cycles through the loop. Try to 'vectorise' your code using a numpy array instead.
+#. Calls to set the image or set the mask of a stimulus. This involves having to transfer large amounts of data between the computer's main processor and the graphics card, which is a relatively time-consuming process.
+#. Any of your own code that uses a Python `for...` loop is likely to be slow if you have a large number of cycles through the loop. Try to 'vectorise' your code using a numpy array instead.
     
 .. _speedTips:
 
 Tips to render stimuli faster
 -----------------------------------
 
-    #. Keep images as small as possible. This is meant in terms of **number of pixels**, not in terms of Mb on your disk. Reducing the size of the image on your disk might have been achieved by image compression such as using jpeg images but these introduce artefacts and do nothing to reduce the problem of send large amounts of data from the CPU to the graphics card. Keep in mind the size that the image will appear on your monitor and how many pixels it will occupy there. If you took your photo using a 10 megapixel camera that means the image is represented by 30 million numbers (a red, green and blue) but your computer monitor will have, at most, around 2 megapixels (1960x1080).
-    #. Try to use square powers of two for your image sizes. This is efficient because computer memory is organised according to powers of two (did you notice how often numbers like 128, 512, 1024 seem to come up when you buy your computer?). Also several mathematical routines (anything involving Fourier maths, which is used a lot in graphics processing) are faster with power-of-two sequences. For the :class:`psychopy.visual.GratingStim` a texture/mask of this size is **required** and if you don't provide one then your texture will be 'upsampled' to the next larger square-power-of-2, so you can save this interpolation step by providing it in the right shape initially.
-    #. Get a faster graphics card. Upgrading to a more recent card will cost around £30. If you're currently using an integrated Intel graphics chip then almost any graphics card will be an advantage. Try to get an nVidia or an ATI Radeon card.
+#. Keep images as small as possible. This is meant in terms of **number of pixels**, not in terms of Mb on your disk. Reducing the size of the image on your disk might have been achieved by image compression such as using jpeg images but these introduce artefacts and do nothing to reduce the problem of send large amounts of data from the CPU to the graphics card. Keep in mind the size that the image will appear on your monitor and how many pixels it will occupy there. If you took your photo using a 10 megapixel camera that means the image is represented by 30 million numbers (a red, green and blue) but your computer monitor will have, at most, around 2 megapixels (1960x1080).
+#. Try to use square powers of two for your image sizes. This is efficient because computer memory is organised according to powers of two (did you notice how often numbers like 128, 512, 1024 seem to come up when you buy your computer?). Also several mathematical routines (anything involving Fourier maths, which is used a lot in graphics processing) are faster with power-of-two sequences. For the :class:`psychopy.visual.GratingStim` a texture/mask of this size is **required** and if you don't provide one then your texture will be 'upsampled' to the next larger square-power-of-2, so you can save this interpolation step by providing it in the right shape initially.
+#. Get a faster graphics card. Upgrading to a more recent card will cost around £30. If you're currently using an integrated Intel graphics chip then almost any graphics card will be an advantage. Try to get an nVidia or an ATI Radeon card.
 
 .. _shaders:
 

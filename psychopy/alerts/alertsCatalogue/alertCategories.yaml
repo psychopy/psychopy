@@ -64,6 +64,7 @@
     4530: Auto pace param not used
     4540: Eyetracking requires window to be fullscreen
     4545: Eyetracking requires a monitor config
+    4550: Eye tracker experiments should use 'ioHub' as the Input -> Keyboard Backend setting
 
   4600:
     cat: Audio Transcription

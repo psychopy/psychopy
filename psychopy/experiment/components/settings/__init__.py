@@ -1099,6 +1099,18 @@ class SettingsComponent:
             )
             buff.writeIndentedLines(code % inits)
 
+        # Add keyboard to ioConfig
+        if self.params['keyboardBackend'] == 'ioHub':
+            code = (
+                "\n"
+                "# Setup iohub keyboard\n"
+                "ioConfig['Keyboard'] = dict(use_keymap='psychopy')\n\n"
+            )
+            buff.writeIndentedLines(code % inits)
+
+        if self.needIoHub and self.params['keyboardBackend'] == 'PsychToolbox':
+            alert(code=4550)
+
         # Start ioHub server
         if self.needIoHub:
             # Specify session
@@ -1144,8 +1156,7 @@ class SettingsComponent:
         code = (
             "\n"
             "# create a default keyboard (e.g. to check for escape)\n"
-            "keyboard.Keyboard.backend = %(keyboardBackend)s\n"
-            "defaultKeyboard = keyboard.Keyboard()\n"
+            "defaultKeyboard = keyboard.Keyboard(backend=%(keyboardBackend)s)\n"
         )
         buff.writeIndentedLines(code % inits)
 
