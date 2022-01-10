@@ -546,3 +546,39 @@ class DictCtrl(ListWidget, _ValidatorMixin, _HideMixin):
         for child in self.Children:
             if hasattr(child, "SetForegroundColour"):
                 child.SetForegroundColour(color)
+
+    def Enable(self, enable=True):
+        """
+        Enable or disable all items in the dict ctrl
+        """
+        # Iterate through all children
+        for cell in self.Children:
+            # Get the actual child rather than the sizer item
+            child = cell.Window
+            # If it can be enabled/disabled, enable/disable it
+            if hasattr(child, "Enable"):
+                child.Enable(enable)
+
+    def Disable(self):
+        """
+        Disable all items in the dict ctrl
+        """
+        self.Enable(False)
+
+    def Show(self, show=True):
+        """
+        Show or hide all items in the dict ctrl
+        """
+        # Iterate through all children
+        for cell in self.Children:
+            # Get the actual child rather than the sizer item
+            child = cell.Window
+            # If it can be shown/hidden, show/hide it
+            if hasattr(child, "Show"):
+                child.Show(show)
+
+    def Hide(self):
+        """
+        Hide all items in the dict ctrl
+        """
+        self.Show(False)

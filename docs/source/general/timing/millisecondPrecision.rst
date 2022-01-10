@@ -2,7 +2,7 @@
 Can PsychoPy deliver millisecond precision?
 ---------------------------------------------
 
-.. _Labhackers Millikey: http://labhackers.com/millikey.html
+.. _Labhackers Millikey: https://labhackers.com/millikey.html
 
 The simple answer is 'yes'. PsychoPy's timing is as good as (or in most cases better than) any package out there. 
 
@@ -143,4 +143,3 @@ For further information please see the documentation about the :ref:`Sound libra
 .. figure:: ../../images/audioScope_Win10_PTB_mode3.png
 
     With the new PTB library you can achieve not only sub-millisecond precision, but roughly sub-millisecond lags!! You do need to know how to configure this though and testing it can only be done with hardware.
-

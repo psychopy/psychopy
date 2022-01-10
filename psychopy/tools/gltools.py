@@ -3990,7 +3990,7 @@ def createUVSphere(radius=0.5, sectors=16, stacks=16, flipFaces=False):
         normals = mt.applyMatrix(r, normals)
 
     """
-    # based of the code found here http://www.songho.ca/opengl/gl_sphere.html
+    # based of the code found here https://www.songho.ca/opengl/gl_sphere.html
     sectorStep = 2.0 * np.pi / sectors
     stackStep = np.pi / stacks
     lengthInv = 1.0 / radius
@@ -4942,4 +4942,3 @@ defaultMaterial = createMaterial(
      (GL.GL_SPECULAR, (0.0, 0.0, 0.0, 1.0)),
      (GL.GL_EMISSION, (0.0, 0.0, 0.0, 1.0)),
      (GL.GL_SHININESS, 0)])
-

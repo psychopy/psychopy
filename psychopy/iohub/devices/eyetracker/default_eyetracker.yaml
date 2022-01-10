@@ -16,4 +16,3 @@ eyetracker.EyeTrackerDevice:
     # manufacturer_name: Used by Builder as the displayed name in the eye tracker selection dropdown.
     #
     manufacturer_name: Unknown
-

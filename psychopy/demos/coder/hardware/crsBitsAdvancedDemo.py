@@ -137,7 +137,7 @@ if expInfo['Device']=='Display++' or expInfo['Device']=='None':
 #=======================================================================================#
 # If Bits# or Display++ initialise the device.                                          #
 # This can also be done via parameter setters but this illustrates the low level send   #
-# comands.                                                                              #
+# commands.                                                                              #
 if  expInfo['Device'] != 'Bits++':
     #bits = crs.BitsSharp(win, mode='bits++') 
     #gamma.setGamma(win.winHandle._dc, 1.0, 1)
@@ -371,7 +371,7 @@ else: # otherwise carry on
     print("2e: Single shot trigger detected by RTBox  via DIN")
     bits.RTBoxEnable(mode=['down'], map=[('btn1','Din9')])
     
-    # Example of using send trigger to issue a trigger that will pulse Dout6 which whould be connected to DIN
+    # Example of using send trigger to issue a trigger that will pulse Dout6 which would be connected to DIN
     bits.sendTrigger(0b1111111,0,0.004)
     bits.win.flip()  # win.flip needed to finish off the trigger
 
@@ -394,7 +394,7 @@ else: # otherwise carry on
     sleep(5)
 
     #=============================================================================#
-    # Example for makign the CRS device beep
+    # Example for making the CRS device beep
     print("3a: Beep test")
     bits.beep(400,0.5)
     sleep(0.5)
@@ -457,7 +457,7 @@ else: # otherwise carry on
         bits.statusBoxEnable(mode=['CB6','Down'])
         print("Press a button on the Box")
         
-        #Example statusBoxWait commant - waits for a button press
+        #Example statusBoxWait command - waits for a button press
         button = bits.statusBoxWait()
         if button:
             print(button)
@@ -465,7 +465,7 @@ else: # otherwise carry on
         bits.statusBoxEnable(mode=['IO6','Down'])
         print("Press one of first 3 buttons on the Box")
         
-        #Example statusBoxWait commant - waits for a button press
+        #Example statusBoxWait command - waits for a button press
         button = bits.statusBoxWait()
         if button:
             print(button)
@@ -473,7 +473,7 @@ else: # otherwise carry on
         bits.statusBoxEnable(mode=['IO','Down'])
         print("Press of first 3 buttons on the Box")
         
-        #Example statusBoxWait commant - waits for a button press
+        #Example statusBoxWait command - waits for a button press
         button = bits.statusBoxWait()
         if button:
             print(button)
@@ -495,7 +495,7 @@ else: # otherwise carry on
     bits.flush()
 
     #=============================================================================#
-    # Nore RTBox usage examples
+    # More RTBox usage examples
     print("4d: RTBox test")
     bits.flush()
     
@@ -504,7 +504,7 @@ else: # otherwise carry on
         bits.RTBoxEnable(mode=['CB6','Down'])
         print("Press a button on the Box")
         
-        #Example RTBoxWait commant - waits for a button press
+        #Example RTBoxWait command - waits for a button press
         button = bits.RTBoxWait()
         if button:
             print(button)
@@ -512,7 +512,7 @@ else: # otherwise carry on
         bits.RTBoxEnable(mode=['IO6','Down'])
         print("Press one of first 3 buttons on the Box")
         
-        #Example RTBoxWait commant - waits for a button press
+        #Example RTBoxWait command - waits for a button press
         button = bits.RTBoxWait()
         if button:
             print(button)
@@ -520,7 +520,7 @@ else: # otherwise carry on
         bits.RTBoxEnable(mode=['IO','Down'])
         print("Press of first 3 buttons on the Box")
         
-        #Example RTBoxWait commant - waits for a button press
+        #Example RTBoxWait command - waits for a button press
         button = bits.RTBoxWait()
         if button:
             print(button)
@@ -588,14 +588,14 @@ else: # otherwise carry on
         bits.flush()
         
         #=============================================================================#
-        # Example using triggers, goggles and anaog all at once
-        # ALso test the ability of triggers to servive people messing with
-        # Goggles and Analog outs as these all use the same communications channel.
+        # Example using triggers, goggles and analog all at once
+        # Also test the ability of triggers to service people messing with
+        # Goggles and Analog outs as these all use the same communication channel.
         print("5c: Goggles, analog and triggers")
         bits.setAnalog(3,3)
         bits.setTrigger(0b0000000010,0.002,0.002)
         
-        # Test to see if triggers can servive lots of toing a froing
+        # Test to see if triggers can service lots of toing a froing
         # of the analog and goggles outputs.
         bits.startAnalog()
         bits.win.flip()

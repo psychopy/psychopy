@@ -68,7 +68,7 @@ class PenSampleEvent(ioEvent):
             if efvalue >= 0:
                 setattr(self, '_' + efname, ioe_array[efvalue])
         self._velocity = 0.0
-        self._accelleration = 0.0
+        self._acceleration = 0.0
 
     @property
     def x(self):
@@ -140,14 +140,18 @@ class PenSampleEvent(ioEvent):
         return self._velocity
 
     @property
-    def accelleration(self):
-        """Returns the calculated x, y, and xy accelleration for the current
+    def acceleration(self):
+        """Returns the calculated x, y, and xy acceleration for the current
         sample.
 
         :return: (float, float, float)
 
         """
-        return self._accelleration
+        return self._acceleration
+
+    @property
+    def accelleration(self):  # deprecated, use acceleration instead
+        return self._acceleration
 
     @velocity.setter
     def velocity(self, v):
@@ -158,15 +162,19 @@ class PenSampleEvent(ioEvent):
         """
         self._velocity = v
 
-    @accelleration.setter
-    def accelleration(self, a):
-        """Returns the calculated x, y, and xy accelleration for the current
+    @acceleration.setter
+    def acceleration(self, a):
+        """Returns the calculated x, y, and xy acceleration for the current
         sample.
 
         :return: (float, float, float)
 
         """
-        self._accelleration = a
+        self._acceleration = a
+
+    @accelleration.setter
+    def accelleration(self, a):  # deprecated, use acceleration instead
+        self._acceleration = a
 
     def __str__(self):
         sargs = [ioEvent.__str__(self), self.x, self.y, self.z, self.pressure,
@@ -250,7 +258,7 @@ class Wintab(ioHubDeviceView):
                         'Warning: dt == 0: {}, {}, {}'.format(
                             dt, curr_samp.time, prev_samp.time))
                     curr_samp.velocity = (0, 0, 0)
-                    curr_samp.accelleration = (0, 0, 0)
+                    curr_samp.acceleration = (0, 0, 0)
                 else:
                     cvx = dx / dt
                     cvy = dy / dt
@@ -263,24 +271,24 @@ class Wintab(ioHubDeviceView):
                         cax = dx / dt
                         cay = dy / dt
                         cayx = np.sqrt(dx * dx + dy * dy) / dt
-                        curr_samp.accelleration = cax, cay, cayx
+                        curr_samp.acceleration = cax, cay, cayx
                     else:
-                        curr_samp.accelleration = (0, 0, 0)
+                        curr_samp.acceleration = (0, 0, 0)
             except ZeroDivisionError:
                 print("ERROR: wintab._calculateVelAccel ZeroDivisionError "
                       "occurred. prevId: %d, currentId: %d" % (curr_samp.id,
                                                                prev_samp.id))
                 curr_samp.velocity = (0, 0, 0)
-                curr_samp.accelleration = (0, 0, 0)
+                curr_samp.acceleration = (0, 0, 0)
             except Exception as e: #pylint: disable=broad-except
                 print("ERROR: wintab._calculateVelAccel error [%s] occurred."
                       "prevId: %d, currentId: %d" % (str(e), curr_samp.id,
                                                      prev_samp.id))
                 curr_samp.velocity = (0, 0, 0)
-                curr_samp.accelleration = (0, 0, 0)
+                curr_samp.acceleration = (0, 0, 0)
         else:
             curr_samp.velocity = (0, 0, 0)
-            curr_samp.accelleration = (0, 0, 0)
+            curr_samp.acceleration = (0, 0, 0)
         self._prev_sample = curr_samp
         return curr_samp
 

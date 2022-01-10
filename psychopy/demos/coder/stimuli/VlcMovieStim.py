@@ -8,7 +8,7 @@ This requires:
 
 1. VLC. Just install the standard VLC of the same bitness as Python for your OS.
 
-    http://www.videolan.org/vlc/index.html
+    https://www.videolan.org/vlc/index.html
 
 2. pip install python-vlc
 

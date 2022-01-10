@@ -956,7 +956,7 @@ class MainFrame(wx.Frame):
     def onBtnFindPhotometer(self, event):
 
         # safer to get by index, but GetStringSelection will work for
-        # nonlocalized techincal names:
+        # nonlocalized technical names:
         photName = self.ctrlPhotomType.GetStringSelection()
         # not sure how
         photPort = self.ctrlPhotomPort.GetValue().strip()

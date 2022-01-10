@@ -648,8 +648,6 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
                     # use GetStringSelection()
                     # only if this control doesn't has _choices
                     param.val = ctrl.GetStringSelection()
-            elif hasattr(ctrl, "GetValue"):
-                param.val = ctrl.GetValue()
             # Get type
             if hasattr(ctrl, "typeCtrl"):
                 if ctrl.typeCtrl:
@@ -993,7 +991,7 @@ class _BaseParamsDlg(wx.Dialog):
                     "That name is in use (it's a %s). Try another name.")
                 return msg % _translate(used), False
             elif not namespace.isValid(newName):  # valid as a var name
-                msg = _translate("Name must be alpha-numeric or _, no spaces")
+                msg = _translate("Name must be alphanumeric or _, no spaces")
                 return msg, False
             # warn but allow, chances are good that its actually ok
             elif namespace.isPossiblyDerivable(newName):

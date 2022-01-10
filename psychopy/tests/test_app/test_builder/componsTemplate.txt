@@ -54,7 +54,7 @@ ApertureComponent.name.allowedUpdates:None
 ApertureComponent.name.allowedVals:[]
 ApertureComponent.name.categ:Basic
 ApertureComponent.name.codeWanted:False
-ApertureComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+ApertureComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 ApertureComponent.name.inputType:single
 ApertureComponent.name.label:Name
 ApertureComponent.name.readOnly:False
@@ -342,7 +342,7 @@ BrushComponent.name.allowedUpdates:None
 BrushComponent.name.allowedVals:[]
 BrushComponent.name.categ:Basic
 BrushComponent.name.codeWanted:False
-BrushComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+BrushComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 BrushComponent.name.inputType:single
 BrushComponent.name.label:Name
 BrushComponent.name.readOnly:False
@@ -726,7 +726,7 @@ ButtonComponent.name.allowedUpdates:None
 ButtonComponent.name.allowedVals:[]
 ButtonComponent.name.categ:Basic
 ButtonComponent.name.codeWanted:False
-ButtonComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+ButtonComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 ButtonComponent.name.inputType:single
 ButtonComponent.name.label:Name
 ButtonComponent.name.readOnly:False
@@ -1238,7 +1238,7 @@ CodeComponent.name.allowedUpdates:None
 CodeComponent.name.allowedVals:[]
 CodeComponent.name.categ:Basic
 CodeComponent.name.codeWanted:False
-CodeComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+CodeComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 CodeComponent.name.inputType:single
 CodeComponent.name.label:Name
 CodeComponent.name.readOnly:False
@@ -1462,7 +1462,7 @@ DotsComponent.name.allowedUpdates:None
 DotsComponent.name.allowedVals:[]
 DotsComponent.name.categ:Basic
 DotsComponent.name.codeWanted:False
-DotsComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+DotsComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 DotsComponent.name.inputType:single
 DotsComponent.name.label:Name
 DotsComponent.name.readOnly:False
@@ -1750,7 +1750,7 @@ EmotivMarkingComponent.name.allowedUpdates:None
 EmotivMarkingComponent.name.allowedVals:[]
 EmotivMarkingComponent.name.categ:Basic
 EmotivMarkingComponent.name.codeWanted:False
-EmotivMarkingComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+EmotivMarkingComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 EmotivMarkingComponent.name.inputType:single
 EmotivMarkingComponent.name.label:Name
 EmotivMarkingComponent.name.readOnly:False
@@ -1926,7 +1926,7 @@ EmotivRecordingComponent.name.allowedUpdates:None
 EmotivRecordingComponent.name.allowedVals:[]
 EmotivRecordingComponent.name.categ:Basic
 EmotivRecordingComponent.name.codeWanted:False
-EmotivRecordingComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+EmotivRecordingComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 EmotivRecordingComponent.name.inputType:single
 EmotivRecordingComponent.name.label:Name
 EmotivRecordingComponent.name.readOnly:False
@@ -2294,7 +2294,7 @@ EnvGratingComponent.name.allowedUpdates:None
 EnvGratingComponent.name.allowedVals:[]
 EnvGratingComponent.name.categ:Basic
 EnvGratingComponent.name.codeWanted:False
-EnvGratingComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+EnvGratingComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 EnvGratingComponent.name.inputType:single
 EnvGratingComponent.name.label:Name
 EnvGratingComponent.name.readOnly:False
@@ -2790,7 +2790,7 @@ FormComponent.name.allowedUpdates:None
 FormComponent.name.allowedVals:[]
 FormComponent.name.categ:Basic
 FormComponent.name.codeWanted:False
-FormComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+FormComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 FormComponent.name.inputType:single
 FormComponent.name.label:Name
 FormComponent.name.readOnly:False
@@ -3110,7 +3110,7 @@ GratingComponent.name.allowedUpdates:None
 GratingComponent.name.allowedVals:[]
 GratingComponent.name.categ:Basic
 GratingComponent.name.codeWanted:False
-GratingComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+GratingComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 GratingComponent.name.inputType:single
 GratingComponent.name.label:Name
 GratingComponent.name.readOnly:False
@@ -3542,7 +3542,7 @@ ImageComponent.name.allowedUpdates:None
 ImageComponent.name.allowedVals:[]
 ImageComponent.name.categ:Basic
 ImageComponent.name.codeWanted:False
-ImageComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+ImageComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 ImageComponent.name.inputType:single
 ImageComponent.name.label:Name
 ImageComponent.name.readOnly:False
@@ -3862,7 +3862,7 @@ JoyButtonsComponent.name.allowedUpdates:None
 JoyButtonsComponent.name.allowedVals:[]
 JoyButtonsComponent.name.categ:Basic
 JoyButtonsComponent.name.codeWanted:False
-JoyButtonsComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+JoyButtonsComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 JoyButtonsComponent.name.inputType:single
 JoyButtonsComponent.name.label:Name
 JoyButtonsComponent.name.readOnly:False
@@ -4118,7 +4118,7 @@ JoystickComponent.name.allowedUpdates:None
 JoystickComponent.name.allowedVals:[]
 JoystickComponent.name.categ:Basic
 JoystickComponent.name.codeWanted:False
-JoystickComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+JoystickComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 JoystickComponent.name.inputType:single
 JoystickComponent.name.label:Name
 JoystickComponent.name.readOnly:False
@@ -4342,7 +4342,7 @@ KeyboardComponent.discard previous.allowedUpdates:None
 KeyboardComponent.discard previous.allowedVals:[]
 KeyboardComponent.discard previous.categ:Data
 KeyboardComponent.discard previous.codeWanted:False
-KeyboardComponent.discard previous.hint:Do you want to discard all responses occuring before the onset of this component?
+KeyboardComponent.discard previous.hint:Do you want to discard all responses occurring before the onset of this component?
 KeyboardComponent.discard previous.inputType:bool
 KeyboardComponent.discard previous.label:Discard previous
 KeyboardComponent.discard previous.readOnly:False
@@ -4390,7 +4390,7 @@ KeyboardComponent.name.allowedUpdates:None
 KeyboardComponent.name.allowedVals:[]
 KeyboardComponent.name.categ:Basic
 KeyboardComponent.name.codeWanted:False
-KeyboardComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+KeyboardComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 KeyboardComponent.name.inputType:single
 KeyboardComponent.name.label:Name
 KeyboardComponent.name.readOnly:False
@@ -4630,7 +4630,7 @@ MicrophoneComponent.name.allowedUpdates:None
 MicrophoneComponent.name.allowedVals:[]
 MicrophoneComponent.name.categ:Basic
 MicrophoneComponent.name.codeWanted:False
-MicrophoneComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+MicrophoneComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 MicrophoneComponent.name.inputType:single
 MicrophoneComponent.name.label:Name
 MicrophoneComponent.name.readOnly:False
@@ -4886,7 +4886,7 @@ MouseComponent.name.allowedUpdates:None
 MouseComponent.name.allowedVals:[]
 MouseComponent.name.categ:Basic
 MouseComponent.name.codeWanted:False
-MouseComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+MouseComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 MouseComponent.name.inputType:single
 MouseComponent.name.label:Name
 MouseComponent.name.readOnly:False
@@ -5206,7 +5206,7 @@ MovieComponent.name.allowedUpdates:None
 MovieComponent.name.allowedVals:[]
 MovieComponent.name.categ:Basic
 MovieComponent.name.codeWanted:False
-MovieComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+MovieComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 MovieComponent.name.inputType:single
 MovieComponent.name.label:Name
 MovieComponent.name.readOnly:False
@@ -5574,7 +5574,7 @@ NoiseStimComponent.name.allowedUpdates:None
 NoiseStimComponent.name.allowedVals:[]
 NoiseStimComponent.name.categ:Basic
 NoiseStimComponent.name.codeWanted:False
-NoiseStimComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+NoiseStimComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 NoiseStimComponent.name.inputType:single
 NoiseStimComponent.name.label:Name
 NoiseStimComponent.name.readOnly:False
@@ -5781,7 +5781,7 @@ NoiseStimComponent.noiseOri.allowedUpdates:['constant', 'set every repeat', 'set
 NoiseStimComponent.noiseOri.allowedVals:[]
 NoiseStimComponent.noiseOri.categ:Texture
 NoiseStimComponent.noiseOri.codeWanted:False
-NoiseStimComponent.noiseOri.hint:Orientation of Gabor filter in degrees. Used to set the orienation of a Gabor filter to be applied to another noise sample with a different overall orientation. The best way to set the orientation of a Gabor noise sample is to leave this as 0 degree and use the overall orientation on the Advanced tab to vary the dominant orientation of the noise. If using this setting for orientation it is strongly recomended to set the interpolation method to 'linear' on the Advanced tab to avoid pixelization.
+NoiseStimComponent.noiseOri.hint:Orientation of Gabor filter in degrees. Used to set the orientation of a Gabor filter to be applied to another noise sample with a different overall orientation. The best way to set the orientation of a Gabor noise sample is to leave this as 0 degree and use the overall orientation on the Advanced tab to vary the dominant orientation of the noise. If using this setting for orientation it is strongly recommended to set the interpolation method to 'linear' on the Advanced tab to avoid pixelization.
 NoiseStimComponent.noiseOri.inputType:single
 NoiseStimComponent.noiseOri.label:Orientation for Gabor filter
 NoiseStimComponent.noiseOri.readOnly:False
@@ -6102,7 +6102,7 @@ ParallelOutComponent.name.allowedUpdates:None
 ParallelOutComponent.name.allowedVals:[]
 ParallelOutComponent.name.categ:Basic
 ParallelOutComponent.name.codeWanted:False
-ParallelOutComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+ParallelOutComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 ParallelOutComponent.name.inputType:single
 ParallelOutComponent.name.label:Name
 ParallelOutComponent.name.readOnly:False
@@ -6438,7 +6438,7 @@ PatchComponent.name.allowedUpdates:None
 PatchComponent.name.allowedVals:[]
 PatchComponent.name.categ:Basic
 PatchComponent.name.codeWanted:False
-PatchComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+PatchComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 PatchComponent.name.inputType:single
 PatchComponent.name.label:Name
 PatchComponent.name.readOnly:False
@@ -6838,7 +6838,7 @@ PolygonComponent.name.allowedUpdates:None
 PolygonComponent.name.allowedVals:[]
 PolygonComponent.name.categ:Basic
 PolygonComponent.name.codeWanted:False
-PolygonComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+PolygonComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 PolygonComponent.name.inputType:single
 PolygonComponent.name.label:Name
 PolygonComponent.name.readOnly:False
@@ -7255,7 +7255,7 @@ RatingScaleComponent.name.allowedUpdates:None
 RatingScaleComponent.name.allowedVals:[]
 RatingScaleComponent.name.categ:Basic
 RatingScaleComponent.name.codeWanted:False
-RatingScaleComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+RatingScaleComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 RatingScaleComponent.name.inputType:single
 RatingScaleComponent.name.label:Name
 RatingScaleComponent.name.readOnly:False
@@ -8234,7 +8234,7 @@ SliderComponent.name.allowedUpdates:None
 SliderComponent.name.allowedVals:[]
 SliderComponent.name.categ:Basic
 SliderComponent.name.codeWanted:False
-SliderComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+SliderComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 SliderComponent.name.inputType:single
 SliderComponent.name.label:Name
 SliderComponent.name.readOnly:False
@@ -8602,7 +8602,7 @@ SoundComponent.name.allowedUpdates:None
 SoundComponent.name.allowedVals:[]
 SoundComponent.name.categ:Basic
 SoundComponent.name.codeWanted:False
-SoundComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+SoundComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 SoundComponent.name.inputType:single
 SoundComponent.name.label:Name
 SoundComponent.name.readOnly:False
@@ -8810,7 +8810,7 @@ StaticComponent.name.allowedUpdates:None
 StaticComponent.name.allowedVals:[]
 StaticComponent.name.categ:Basic
 StaticComponent.name.codeWanted:False
-StaticComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+StaticComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 StaticComponent.name.inputType:single
 StaticComponent.name.label:Name
 StaticComponent.name.readOnly:False
@@ -9082,7 +9082,7 @@ TextComponent.name.allowedUpdates:None
 TextComponent.name.allowedVals:[]
 TextComponent.name.categ:Basic
 TextComponent.name.codeWanted:False
-TextComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+TextComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 TextComponent.name.inputType:single
 TextComponent.name.label:Name
 TextComponent.name.readOnly:False
@@ -9612,7 +9612,7 @@ TextboxComponent.name.allowedUpdates:None
 TextboxComponent.name.allowedVals:[]
 TextboxComponent.name.categ:Basic
 TextboxComponent.name.codeWanted:False
-TextboxComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+TextboxComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 TextboxComponent.name.inputType:single
 TextboxComponent.name.label:Name
 TextboxComponent.name.readOnly:False
@@ -9886,7 +9886,7 @@ UnknownComponent.name.allowedUpdates:None
 UnknownComponent.name.allowedVals:[]
 UnknownComponent.name.categ:Basic
 UnknownComponent.name.codeWanted:False
-UnknownComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+UnknownComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 UnknownComponent.name.inputType:single
 UnknownComponent.name.label:Name
 UnknownComponent.name.readOnly:False
@@ -10046,7 +10046,7 @@ VariableComponent.name.allowedUpdates:None
 VariableComponent.name.allowedVals:[]
 VariableComponent.name.categ:Basic
 VariableComponent.name.codeWanted:False
-VariableComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+VariableComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 VariableComponent.name.inputType:single
 VariableComponent.name.label:Name
 VariableComponent.name.readOnly:False
@@ -10366,7 +10366,7 @@ cedrusButtonBoxComponent.discard previous.allowedUpdates:None
 cedrusButtonBoxComponent.discard previous.allowedVals:[]
 cedrusButtonBoxComponent.discard previous.categ:Data
 cedrusButtonBoxComponent.discard previous.codeWanted:False
-cedrusButtonBoxComponent.discard previous.hint:Do you want to discard all responses occuring before the onset of this component?
+cedrusButtonBoxComponent.discard previous.hint:Do you want to discard all responses occurring before the onset of this component?
 cedrusButtonBoxComponent.discard previous.inputType:bool
 cedrusButtonBoxComponent.discard previous.label:Discard previous
 cedrusButtonBoxComponent.discard previous.readOnly:False
@@ -10414,7 +10414,7 @@ cedrusButtonBoxComponent.name.allowedUpdates:None
 cedrusButtonBoxComponent.name.allowedVals:[]
 cedrusButtonBoxComponent.name.categ:Basic
 cedrusButtonBoxComponent.name.codeWanted:False
-cedrusButtonBoxComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+cedrusButtonBoxComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 cedrusButtonBoxComponent.name.inputType:single
 cedrusButtonBoxComponent.name.label:Name
 cedrusButtonBoxComponent.name.readOnly:False
@@ -10638,7 +10638,7 @@ ioLabsButtonBoxComponent.discard previous.allowedUpdates:None
 ioLabsButtonBoxComponent.discard previous.allowedVals:[]
 ioLabsButtonBoxComponent.discard previous.categ:Data
 ioLabsButtonBoxComponent.discard previous.codeWanted:False
-ioLabsButtonBoxComponent.discard previous.hint:Do you want to discard all responses occuring before the onset of this component?
+ioLabsButtonBoxComponent.discard previous.hint:Do you want to discard all responses occurring before the onset of this component?
 ioLabsButtonBoxComponent.discard previous.inputType:bool
 ioLabsButtonBoxComponent.discard previous.label:Discard previous
 ioLabsButtonBoxComponent.discard previous.readOnly:False
@@ -10718,7 +10718,7 @@ ioLabsButtonBoxComponent.name.allowedUpdates:None
 ioLabsButtonBoxComponent.name.allowedVals:[]
 ioLabsButtonBoxComponent.name.categ:Basic
 ioLabsButtonBoxComponent.name.codeWanted:False
-ioLabsButtonBoxComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+ioLabsButtonBoxComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
 ioLabsButtonBoxComponent.name.inputType:single
 ioLabsButtonBoxComponent.name.label:Name
 ioLabsButtonBoxComponent.name.readOnly:False

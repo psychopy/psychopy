@@ -18,7 +18,7 @@ details: |
 solutions: |
   In general, we recommend ending routines containing editable textboxes using a Button, Mouse or ROI component rather than
   Keyboard. If you are trying to gather keyboard responses as well as text input, consider splitting the two into
-  seperate routines to avoid conflicts.
+  separate routines to avoid conflicts.
 
 versions: |
   > 2020.1.0

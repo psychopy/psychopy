@@ -285,7 +285,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         for boxName in self.codeBoxes:
             # If it is not JS...
             if 'JS' not in boxName:
-                # Traslate to JS
+                # Translate to JS
                 self.runTranslation(boxName)
 
         if event:

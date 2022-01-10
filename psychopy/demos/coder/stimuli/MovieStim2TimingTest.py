@@ -336,7 +336,7 @@ def formattedDictStr(d, indent=1, rstr=''):
     return rstr
 
 def bytes2human(n):
-    # http://code.activestate.com/recipes/578019
+    # https://code.activestate.com/recipes/578019/
     # >>  > bytes2human(10000)
     # '9.8K'
     # >>  > bytes2human(100001221)

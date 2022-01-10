@@ -56,4 +56,3 @@ The last thing you need to do is copy the `Completion URL` from the main control
     :figclass: align-center
 
     The completion URL pasted into Psychoy Experiment Settings
-

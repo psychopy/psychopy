@@ -158,6 +158,14 @@ class SettingsComponent(object):
             hint=_translate("Name of the entire experiment (taken by default"
                             " from the filename on save)"),
             label=_localized["expName"])
+        self.depends.append(
+            {"dependsOn": "Show info dlg",  # must be param name
+             "condition": "==True",  # val to check for
+             "param": "Experiment info",  # param property to alter
+             "true": "enable",  # what to do with param if condition is True
+             "false": "disable",  # permitted: hide, show, enable, disable
+             }
+        )
         self.params['Show info dlg'] = Param(
             showExpInfo, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Start the experiment with a dialog to set info"
@@ -545,7 +553,7 @@ class SettingsComponent(object):
                                         "as a list of values."
                                         .format(val))
                 elif val in ['True', 'False']:
-                    infoDict[key] = ast.literal_eval(val)
+                    infoDict[key] = Param(val=val, valType='bool')
 
         except (ValueError, SyntaxError):
             """under Python3 {'participant':'', 'session':02} raises an error because 
@@ -799,10 +807,16 @@ class SettingsComponent(object):
                     "\n").format(version=useVer)
             buff.writeIndentedLines(code)
 
+        # Convert each item to str
+        expInfoStr = "{"
+        for key, value in self.getInfo().items():
+            expInfoStr += f"'{key}': {value}, "
+        expInfoStr = expInfoStr[:-2] + "}"
+
         code = ("\n// store info about the experiment session:\n"
                 "let expName = '%s';  // from the Builder filename that created this script\n"
                 "let expInfo = %s;\n"
-                "\n" % (jsFilename, self.getInfo()))
+                "\n" % (jsFilename, expInfoStr))
         buff.writeIndentedLines(code)
 
     def writeExpSetupCodeJS(self, buff, version):
@@ -1296,7 +1310,7 @@ class SettingsComponent(object):
         for thisRoutine in list(self.exp.routines.values()):
             # a single routine is a list of components:
             for thisComp in thisRoutine:
-                if thisComp.type == 'Code':
+                if thisComp.type in ['Code', 'EmotivRecording']:
                     buff.writeIndented("\n")
                     thisComp.writeExperimentEndCodeJS(buff)
                     buff.writeIndented("\n")

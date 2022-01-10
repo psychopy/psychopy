@@ -143,4 +143,3 @@ is where we've typically seen the issue crop up)::
 
 For further information on the discussion of this (Linux) issue see
     https://github.com/psychopy/psychopy/issues/2061
-

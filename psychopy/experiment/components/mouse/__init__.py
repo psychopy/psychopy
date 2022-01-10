@@ -547,9 +547,8 @@ class MouseComponent(BaseComponent):
                     buff.writeIndented(code)
                 else:
                     # we only had one click so don't return a list
-                    code = ("if len(%s.%s): %s.addData('%s.%s', %s.%s[0])\n" %
-                            (name, property,
-                             currLoop.params['name'], name,
+                    code = ("%s.addData('%s.%s', %s.%s)\n" %
+                            (currLoop.params['name'], name,
                              property, name, property))
                     buff.writeIndented(code)
 

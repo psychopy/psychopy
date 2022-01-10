@@ -10,7 +10,7 @@ from psychopy import logging, prefs
 import wx
 from datetime import datetime
 
-newsURL = "http://news.psychopy.org/"
+newsURL = "https://news.psychopy.org/"
 
 CRITICAL = 40
 ANNOUNCE = 30
