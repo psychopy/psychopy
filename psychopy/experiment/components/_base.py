@@ -135,6 +135,10 @@ class BaseComponent:
 
         return element
 
+    def __repr__(self):
+        _rep = "psychopy.experiment.components.%s(name='%s', exp=%s)"
+        return _rep % (self.__class__.__name__, self.name, self.exp)
+
     def integrityCheck(self):
         """
         Run component integrity checks for non-visual components
@@ -600,6 +604,14 @@ class BaseComponent:
     def getShortType(self):
         """Replaces word component with empty string"""
         return self.getType().replace('Component', '')
+
+    @property
+    def name(self):
+        return self.params['name'].val
+
+    @name.setter
+    def name(self, value):
+        self.params['name'].val = value
 
 
 class BaseVisualComponent(BaseComponent):
