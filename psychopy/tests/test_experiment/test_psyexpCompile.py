@@ -189,7 +189,6 @@ class TestComponents:
 
         # Compile experiment
         pyScript = exp.writeScript(target="PsychoPy")
-        exp.saveToXML("C:/Users/Work/Downloads/disabledTest.psyexp")
         # jsScript = exp.writeScript(target="PsychoJS")  ## disabled until js can compile without saving
 
         # Test all cases
