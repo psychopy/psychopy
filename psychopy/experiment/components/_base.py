@@ -613,6 +613,14 @@ class BaseComponent:
     def name(self, value):
         self.params['name'].val = value
 
+    @property
+    def disabled(self):
+        return self.params['disabled'].val
+
+    @disabled.setter
+    def disabled(self, value):
+        self.params['disabled'].val = value
+
 
 class BaseVisualComponent(BaseComponent):
     """Base class for most visual stimuli
