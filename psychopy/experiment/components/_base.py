@@ -601,6 +601,14 @@ class BaseComponent:
         """Replaces word component with empty string"""
         return self.getType().replace('Component', '')
 
+    @property
+    def name(self):
+        return self.params['name'].val
+
+    @name.setter
+    def name(self, value):
+        self.params['name'].val = value
+
 
 class BaseVisualComponent(BaseComponent):
     """Base class for most visual stimuli
