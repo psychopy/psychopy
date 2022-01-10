@@ -93,6 +93,7 @@ class TestComponents:
         exp = Experiment()
         rt1 = UnknownRoutine(exp, name="testRoutine1")
         rt2 = UnknownRoutine(exp, name="testRoutine2")
+        rt2.targets = ['PsychoPy', 'PsychoJS']
         # Disable one routine
         rt1.params['disabled'].val = True
         rt2.params['disabled'].val = False

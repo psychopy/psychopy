@@ -1,4 +1,6 @@
 from pathlib import Path
+
+from psychopy.alerts import alert
 from .._base import BaseComponent
 from psychopy.localization import _translate
 from ... import getInitVals
