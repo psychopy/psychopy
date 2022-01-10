@@ -124,12 +124,6 @@ class BaseStandaloneRoutine:
         return
 
     def writeMainCode(self, buff):
-        code = (
-            "\n"
-            "# -------Run Routine '%(name)s'-------\n"
-            "\n"
-        )
-        buff.writeIndentedLines(code % self.params)
         return
 
     def writeRoutineBeginCodeJS(self, buff, modular):
