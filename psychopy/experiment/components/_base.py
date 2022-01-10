@@ -135,6 +135,10 @@ class BaseComponent:
 
         return element
 
+    def __repr__(self):
+        _rep = "psychopy.experiment.components.%s(name='%s', exp=%s)"
+        return _rep % (self.__class__.__name__, self.name, self.exp)
+
     def integrityCheck(self):
         """
         Run component integrity checks for non-visual components

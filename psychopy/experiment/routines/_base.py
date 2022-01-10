@@ -61,8 +61,8 @@ class BaseStandaloneRoutine:
             label=_translate('Disable component'))
 
     def __repr__(self):
-        _rep = "psychopy.experiment.%s(name='%s', exp=%s)"
-        return _rep % (self.__class__, self.name, self.exp)
+        _rep = "psychopy.experiment.routines.%s(name='%s', exp=%s)"
+        return _rep % (self.__class__.__name__, self.name, self.exp)
 
     def __iter__(self):
         """Overloaded iteration behaviour - if iterated through, a standaloneRoutine returns
