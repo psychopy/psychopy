@@ -197,6 +197,14 @@ class BaseStandaloneRoutine:
             if 'name' in self.params:
                 self.params['name'].val = value
 
+    @property
+    def disabled(self):
+        return self.params['disabled'].val
+
+    @disabled.setter
+    def disabled(self, value):
+        self.params['disabled'].val = value
+
 
 class Routine(list):
     """
