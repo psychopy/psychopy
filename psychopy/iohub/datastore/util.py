@@ -83,8 +83,9 @@ def displayEventTableSelectionDialog(title, list_label, list_values, default=u'S
 
 
 def saveEventReport(hdf5FilePath="", eventType="", eventFields=[],
-                    psychopyDataFile=None, trialStart=None, trialStop=None,
-                    timeMargins=(0.0, 0.0)):
+                    trialStart=None, trialStop=None, timeMargins=(0.0, 0.0),
+                    psychopyDataFile=None, psychopyDataFileColumns=[]
+                    ):
     """
     Save a tab delimited event report, optionally splitting events into (trial) groups.
 
@@ -94,6 +95,7 @@ def saveEventReport(hdf5FilePath="", eventType="", eventFields=[],
     :param trialStart:
     :param trialStop:
     :param psychopyDataFile:
+    :param psychopyDataFileColumns:
     :param timeMargins:
     :return:
     """
@@ -132,8 +134,12 @@ def saveEventReport(hdf5FilePath="", eventType="", eventFields=[],
         import pandas
         psychoResults = pandas.read_csv(psychopyDataFile, delimiter=",", encoding='utf-8')
 
-        if trialStart is None and trialStop is None:
-            # TODO: If psychopyDataFile is specified, but trialStart and trialStop are None,
+        if trialStart is None or trialStop is None:
+            datafile.close()
+            raise ValueError("saveEventReport trialStart and trialStop values must be provided")
+
+        if trialStart == '' or trialStop == '':
+            # TODO: If psychopyDataFile is specified, but trialStart and trialStop are '',
             # display dialog letting users select start and stop columns to group events by.
             pass
 
@@ -193,7 +199,15 @@ def saveEventReport(hdf5FilePath="", eventType="", eventFields=[],
         # Save header row to file
         if trial_times:
             if hasattr(psychoResults, 'columns'):
-                column_names = list(psychoResults.columns) + eventFields
+                if psychopyDataFileColumns:
+                    for cname in psychopyDataFileColumns:
+                        if cname not in psychoResults.columns:
+                            datafile.close()
+                            raise ValueError("saveEventReport: psychopyDataFileColumn '%s' not found in .csv file." % cname)
+                    column_names = list(psychopyDataFileColumns) + eventFields
+                else:
+                    column_names = list(psychoResults.columns) + eventFields
+                    psychopyDataFileColumns = list(psychoResults.columns)
             else:
                 column_names = ['TRIAL_INDEX', trialStart, trialStop] + eventFields
         else:
@@ -232,9 +246,9 @@ def saveEventReport(hdf5FilePath="", eventType="", eventFields=[],
                 if trial_times:
                     tindex, tstart, tstop = trial_times[tid]
                     if hasattr(psychoResults, 'columns'):
-                        prowdat = [str(c) for c in psychoResults.iloc[tindex]]
+                        drow = psychoResults.iloc[tindex]
+                        prowdat = [str(drow[c]) for c in psychopyDataFileColumns]
                         output_file.write('\t'.join(prowdat + event_data))
-
                     else:
                         output_file.write('\t'.join([str(tindex), str(tstart), str(tstop)] + event_data))
                 else:
