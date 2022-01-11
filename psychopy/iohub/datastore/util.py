@@ -82,7 +82,8 @@ def displayEventTableSelectionDialog(title, list_label, list_values, default=u'S
     return list(dlg_info.values())[0]
 
 
-def saveEventReport(hdf5FilePath="", eventType="", eventFields=[], trialStartMessage=None, trialStopMessage=None,
+def saveEventReport(hdf5FilePath="", eventType="", eventFields=[],
+                    psychopyDataFile=None, trialStart=None, trialStop=None,
                     timeMargins=(0.0, 0.0)):
     """
     Save a tab delimited event report, optionally splitting events into (trial) groups.
@@ -90,8 +91,9 @@ def saveEventReport(hdf5FilePath="", eventType="", eventFields=[], trialStartMes
     :param hdf5FilePath:
     :param eventType:
     :param eventFields:
-    :param trialStartMessage:
-    :param trialStopMessage:
+    :param trialStart:
+    :param trialStop:
+    :param psychopyDataFile:
     :param timeMargins:
     :return:
     """
@@ -124,22 +126,49 @@ def saveEventReport(hdf5FilePath="", eventType="", eventFields=[], trialStartMes
             return None
 
     trial_times = []
-    if trialStartMessage and trialStopMessage:
+    psychoResults = None
+
+    if psychopyDataFile:
+        import pandas
+        psychoResults = pandas.read_csv(psychopyDataFile, delimiter=",", encoding='utf-8')
+
+        if trialStart is None and trialStop is None:
+            # TODO: If psychopyDataFile is specified, but trialStart and trialStop are None,
+            # display dialog letting users select start and stop columns to group events by.
+            pass
+
+        if trialStart and trialStop:
+            if trialStart not in psychoResults.columns:
+                datafile.close()
+                raise ValueError("saveEventReport trialStart column not found in psychopyDataFile: %s" % trialStart)
+            if trialStop not in psychoResults.columns:
+                datafile.close()
+                raise ValueError("saveEventReport trialStop column not found in psychopyDataFile: %s" % trialStop)
+
+            for t_ix, r in psychoResults.iterrows():
+                if r[trialStart] != 'None' and r[trialStop] != 'None' and pandas.notna(r[trialStart]) and pandas.notna(r[trialStop]):
+                    trial_times.append([t_ix, r[trialStart] - timeMargins[0], r[trialStop] + timeMargins[1]])
+
+        else:
+            datafile.close()
+            raise ValueError("saveEventReport trialStart and trialStop must be specified when using psychopyDataFile.")
+
+    if psychoResults is None and trialStart and trialStop:
         # Create a table of trial_index, trial_start_time, trial_end_time for each trial by
         # getting the time of 'TRIAL_START' and 'TRIAL_END' experiment messages.
         mgs_table = datafile.getEventTable('MessageEvent')
-        trial_start_msgs = mgs_table.where('text == b"%s"' % trialStartMessage)
+        trial_start_msgs = mgs_table.where('text == b"%s"' % trialStart)
         for mix, msg in enumerate(trial_start_msgs):
             trial_times.append([mix + 1, msg['time'] - timeMargins[0], 0])
-        trial_end_msgs = mgs_table.where('text == b"%s"' % trialStopMessage)
+        trial_end_msgs = mgs_table.where('text == b"%s"' % trialStop)
         for mix, msg in enumerate(trial_end_msgs):
             trial_times[mix][2] = msg['time'] + timeMargins[1]
         del mgs_table
-    elif trialStartMessage is None and trialStopMessage is None:
+    elif trialStart is None and trialStop is None:
         # do not split events into trial groupings
         pass
-    else:
-        print("Warning: saveEventReport requires trialStartMessage and trialStopMessage to be strings or both None."
+    elif trialStart is None or trialStop is None:
+        print("Warning: saveEventReport requires trialStart and trialStop to be strings or both None."
               " No report saved.")
         datafile.close()
         return None
@@ -163,7 +192,10 @@ def saveEventReport(hdf5FilePath="", eventType="", eventFields=[], trialStartMes
     with open(output_file_name, 'w') as output_file:
         # Save header row to file
         if trial_times:
-            column_names = ['TRIAL_INDEX', trialStartMessage, trialStopMessage] + eventFields
+            if hasattr(psychoResults, 'columns'):
+                column_names = list(psychoResults.columns) + eventFields
+            else:
+                column_names = ['TRIAL_INDEX', trialStart, trialStop] + eventFields
         else:
             column_names = eventFields
 
@@ -199,7 +231,12 @@ def saveEventReport(hdf5FilePath="", eventType="", eventFields=[], trialStartMes
                     event_data.append(str(cv))
                 if trial_times:
                     tindex, tstart, tstop = trial_times[tid]
-                    output_file.write('\t'.join([str(tindex), str(tstart), str(tstop)] + event_data))
+                    if hasattr(psychoResults, 'columns'):
+                        prowdat = [str(c) for c in psychoResults.iloc[tindex]]
+                        output_file.write('\t'.join(prowdat + event_data))
+
+                    else:
+                        output_file.write('\t'.join([str(tindex), str(tstart), str(tstop)] + event_data))
                 else:
                     output_file.write('\t'.join(event_data))
                 output_file.write('\n')

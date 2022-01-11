@@ -13,10 +13,17 @@ Each event is saved as a row in a tab delimited text file.
 """
 from psychopy.iohub.datastore.util import saveEventReport
 
+# Specify the iohub .hdf5 file to process. None will prompt for file selection when script is run.
+IOHUB_DATA_FILE = 'D:\\DEV\\my-code\\psychopy\\psychopy\\demos\\builder\\Experiments\\navon\\data\\sol_2022_Jan_11_0911.hdf5'
+
+# Specify the PsychoPy data (results) .csv file used to group events.
+# Set to None to not use a PsychoPy data file when creating event report.
+PSYCHOPY_DATA_FILE = 'D:\\DEV\\my-code\\psychopy\\psychopy\\demos\\builder\\Experiments\\navon\\data\\sol_2022_Jan_11_0911.csv'
+
 # Specify the experiment message text used to split events into trial periods.
 # Set both to None to save all events.
-TRIAL_START_MESSAGE = None #  'target.started'
-TRIAL_END_MESSAGE = None #  'fix_end_stim.started'
+TRIAL_START_MESSAGE = 'fixate.started' #  'target.started'
+TRIAL_END_MESSAGE = 'resp.stopped' #  'fix_end_stim.started'
 
 # Specify which event type to save. Setting to None will prompt to select an event table
 SAVE_EVENT_TYPE = None  # 'MonocularEyeSampleEvent'
@@ -31,8 +38,9 @@ SAVE_EVENT_FIELDS = None  # ['time', 'gaze_x', 'gaze_y', 'pupil_measure1', 'stat
 # SAVE_EVENT_FIELDS = ['time', 'text']
 
 if __name__ == '__main__':
-    result = saveEventReport(hdf5FilePath=None, eventType=SAVE_EVENT_TYPE, eventFields=SAVE_EVENT_FIELDS,
-                             trialStartMessage=TRIAL_START_MESSAGE, trialStopMessage=TRIAL_END_MESSAGE)
+    result = saveEventReport(hdf5FilePath=IOHUB_DATA_FILE, eventType=SAVE_EVENT_TYPE, eventFields=SAVE_EVENT_FIELDS,
+                             trialStart=TRIAL_START_MESSAGE, trialStop=TRIAL_END_MESSAGE,
+                             psychopyDataFile=PSYCHOPY_DATA_FILE)
     if result:
         file_saved, events_saved = result
         print("Saved %d events to %s." % (events_saved, file_saved))
