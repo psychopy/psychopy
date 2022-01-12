@@ -178,7 +178,7 @@ class ColorPickerDialog ( wx.Dialog ):
 
 		szrColorSelector.Add( self.nbColorSelector, 1, wx.EXPAND|wx.TOP, 5 )
 
-		lstColorPresetsChoices = [ u"RGB", u"HSV" ]
+		lstColorPresetsChoices = []
 		self.lstColorPresets = wx.ListBox( self.pnlColorSelector, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, lstColorPresetsChoices, 0|wx.ALWAYS_SHOW_SB )
 		self.lstColorPresets.SetMinSize( wx.Size( 140,-1 ) )
 
@@ -235,6 +235,7 @@ class ColorPickerDialog ( wx.Dialog ):
 		self.Centre( wx.BOTH )
 
 		# Connect Events
+		self.Bind( wx.EVT_CLOSE, self.OnClose )
 		self.sldRedChannel.Bind( wx.EVT_SCROLL, self.OnRedScroll )
 		self.spnRedChannel.Bind( wx.EVT_SPINCTRLDOUBLE, self.OnRedSpin )
 		self.spnRedChannel.Bind( wx.EVT_TEXT_ENTER, self.OnRedTextEnter )
@@ -244,7 +245,7 @@ class ColorPickerDialog ( wx.Dialog ):
 		self.sldBlueChannel.Bind( wx.EVT_SCROLL, self.OnBlueScroll )
 		self.spnBlueChannel.Bind( wx.EVT_SPINCTRLDOUBLE, self.OnBlueSpin )
 		self.spnBlueChannel.Bind( wx.EVT_TEXT_ENTER, self.OnBlueTextEnter )
-		self.txtHexRGB.Bind( wx.EVT_KEY_DOWN, self.OnKeyDown )
+		self.txtHexRGB.Bind( wx.EVT_KEY_DOWN, self.OnHexRGBKeyDown )
 		self.rdoRGBModePsychoPy.Bind( wx.EVT_RADIOBUTTON, self.OnRGBModePsychoPy )
 		self.rdoRGBModeNormalized.Bind( wx.EVT_RADIOBUTTON, self.OnRGBModeNormalized )
 		self.rdoRGBMode255.Bind( wx.EVT_RADIOBUTTON, self.OnRGBMode255 )
@@ -267,6 +268,9 @@ class ColorPickerDialog ( wx.Dialog ):
 
 
 	# Virtual event handlers, override them in your derived class
+	def OnClose( self, event ):
+		event.Skip()
+
 	def OnRedScroll( self, event ):
 		event.Skip()
 
@@ -294,7 +298,7 @@ class ColorPickerDialog ( wx.Dialog ):
 	def OnBlueTextEnter( self, event ):
 		event.Skip()
 
-	def OnKeyDown( self, event ):
+	def OnHexRGBKeyDown( self, event ):
 		event.Skip()
 
 	def OnRGBModePsychoPy( self, event ):

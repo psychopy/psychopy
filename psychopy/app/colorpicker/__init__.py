@@ -11,11 +11,9 @@ import wx.stc as stc
 from .panels import ColorPresets, ColorPreview
 from .pages import ColorPickerPageHSV, ColorPickerPageRGB
 from .ui import ColorPickerDialog
-from psychopy.colors import Color
-from psychopy.localization import _translate
+from psychopy.colors import Color, colorNames
+# from psychopy.localization import _translate
 
-LAST_COLOR = Color((0, 0, 0, 1), space='rgba')
-LAST_OUTPUT_SPACE = 0
 SLIDER_RES = 255  # resolution of the slider for color channels, leave alone!
 
 
@@ -28,16 +26,25 @@ class ColorPickerState:
     ----------
     color : Color
         Last color selected by the user.
-    colorspace : Color
-        Last colorspace specified.
+    space : int
+        Last RGB colorspace specified.
     rgbInputMode : int
         RGB input mode selected by the user.
 
     """
-    def __init__(self, color, colorspace, rgbInputMode):
+    def __init__(self, color, space, rgbInputMode):
         self.color = color
-        self.colorspace = colorspace
+        self.space = space
         self.rgbInputMode = rgbInputMode
+
+
+# Store the state of the color picker here for persistance. Here we define the
+# defaults for when the colorpicker is first invoked.
+COLORPICKER_STATE = ColorPickerState(
+    color=Color((0, 0, 0, 1), space='rgba'),
+    space=0,
+    rgbInputMode=0  # PsychopPy RGB
+)
 
 
 class PsychoColorPicker(ColorPickerDialog):
@@ -54,12 +61,22 @@ class PsychoColorPicker(ColorPickerDialog):
         Reference to a :class:`~wx.Frame` which owns this dialog.
 
     """
-    def __init__(self, parent, context=None, allowInsert=False, allowCopy=False):
+    def __init__(self, parent, context=None, allowInsert=True, allowCopy=True):
         ColorPickerDialog.__init__(self, parent)
 
         self.parent = parent
         self.allowInsert = allowInsert
+
+        if not self.allowInsert:
+            self.cmdInsert.Disable()
+
         self.allowCopy = allowCopy
+
+        if not self.allowCopy:
+            self.cmdCopy.Disable()
+            self.cmdCopy.Hide()
+            # make insert show 'OK' if the only option
+            self.cmdInsert.Label = u'&OK'
 
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
         self.SetSize(wx.Size(640, 480))
@@ -67,10 +84,6 @@ class PsychoColorPicker(ColorPickerDialog):
 
         # store context
         self.context = context
-
-        # current output color, should be displayed in the preview
-        global LAST_COLOR
-        self._color = LAST_COLOR.copy()
 
         # output spaces mapped to the `cboOutputSpace` object
         self._spaces = {
@@ -89,19 +102,22 @@ class PsychoColorPicker(ColorPickerDialog):
             u'Hue-Saturation-Value (hsv)'
         ]
 
-        # set the available output spaces
-        self.cboOutputSpace.SetItems(self._outputChoices)
+        # set preset color names, all except None
+        self.lstColorPresets.SetItems(
+            [col for col in colorNames.keys() if col is not None])
 
         # Functions to convert slider units to an RGB format to display in the
         # double-spin controls beside them.
-        self._posToValFunc = {0: lambda v: 2 * (v / SLIDER_RES) - 1,  # [-1:1]
-                              1: lambda v: v / SLIDER_RES,  # [0:1]
-                              2: lambda v: v}  # [0:255]
+        self._posToValFunc = {
+            0: lambda v: 2 * (v / SLIDER_RES) - 1,  # [-1:1]
+            1: lambda v: v / SLIDER_RES,  # [0:1]
+            2: lambda v: v}  # [0:255]
 
         # inverse of the above functions, converts values to positions
-        self._valToPosFunc = {0: lambda p: int(SLIDER_RES * (p + 1) / 2.),  # [-1:1]
-                              1: lambda p: int(p * SLIDER_RES),  # [0:1]
-                              2: lambda p: int(p)}  # [0:255]
+        self._valToPosFunc = {
+            0: lambda p: int(SLIDER_RES * (p + 1) / 2.),  # [-1:1]
+            1: lambda p: int(p * SLIDER_RES),  # [0:1]
+            2: lambda p: int(p)}  # [0:255]
 
         # initialize the window controls
         midpoint = int(SLIDER_RES / 2.)
@@ -115,10 +131,15 @@ class PsychoColorPicker(ColorPickerDialog):
         self.sldStaturationChannel.SetRange(0, SLIDER_RES)
         self.sldValueChannel.SetRange(0, SLIDER_RES)
 
-        self.updateRGBChannels()  # initialize
-        self.updateRGBPage()
-        self.updateHSVPage()
-        self.updateDialog()
+        # current output color, should be displayed in the preview
+        global COLORPICKER_STATE
+        self._color = None
+        self.color = COLORPICKER_STATE.color.copy()
+        self.rgbInputMode = COLORPICKER_STATE.rgbInputMode
+
+        # set the available output spaces
+        self.cboOutputSpace.SetItems(self._outputChoices)
+        self.cboOutputSpace.SetSelection(COLORPICKER_STATE.space)
 
     @property
     def color(self):
@@ -136,11 +157,12 @@ class PsychoColorPicker(ColorPickerDialog):
     @color.setter
     def color(self, value):
         if value is None:
-            value = Color('none', space='named')
+            value = Color((0., 0., 0., 1.), space='rgba')
 
-        global LAST_COLOR
-        self.pnlColorPreview.color = self._color = value
-        LAST_COLOR = self._color.copy()
+        self._color = value
+        self.updateRGBPage()
+        self.updateHSVPage()
+        self.updateDialog()
 
     @property
     def rgbInputMode(self):
@@ -154,6 +176,28 @@ class PsychoColorPicker(ColorPickerDialog):
             return 2
         else:
             return -1
+
+    @rgbInputMode.setter
+    def rgbInputMode(self, value):
+        value = int(value)
+        if value == 0:
+            self.rdoRGBModePsychoPy.SetValue(1)
+        elif value == 1:
+            self.rdoRGBModeNormalized.SetValue(1)
+        elif value == 2:
+            self.rdoRGBMode255.SetValue(1)
+        else:
+            raise IndexError('Invalid index for `rgbInputMode`.')
+
+        global COLORPICKER_STATE
+        COLORPICKER_STATE.rgbInputMode = value
+
+        self.updateRGBChannels()
+        self.updateDialog()
+
+    # --------------------------------------------------------------------------
+    # Dialog controls update methods
+    #
 
     def updateDialog(self):
         """Update the color specified by the dialog. Call this whenever the
@@ -180,6 +224,8 @@ class PsychoColorPicker(ColorPickerDialog):
         self.pnlColorPreview.SetBackgroundColour(
             wx.Colour(r, g, b, alpha=wx.ALPHA_OPAQUE))
         self.pnlColorPreview.Refresh()
+
+        self.txtHexRGB.SetValue(self.color.hex)
 
     def updateHSVPage(self):
         """Update values on the HSV page. This is called when some other page is
@@ -341,6 +387,10 @@ class PsychoColorPicker(ColorPickerDialog):
         self.updateDialog()
 
     def OnHueScroll(self, event):
+        """Called when the hue channel slider is moved. Updates the spin
+        control and the color specified by the dialog.
+
+        """
         self.spnHueChannel.SetValue(event.Position)
         self.color.hsv = (
             self.spnHueChannel.GetValue(),
@@ -350,6 +400,10 @@ class PsychoColorPicker(ColorPickerDialog):
         self.updateDialog()
 
     def OnSaturationSpin(self, event):
+        """Called when the saturation spin control is changed. Updates the hex
+        value and the color specified by the dialog.
+
+        """
         self.sldStaturationChannel.SetValue(event.GetValue() * SLIDER_RES)
         self.color.hsv = (
             self.spnHueChannel.GetValue(),
@@ -359,6 +413,10 @@ class PsychoColorPicker(ColorPickerDialog):
         self.updateDialog()
 
     def OnSaturationScroll(self, event):
+        """Called when the saturation channel slider is moved. Updates the spin
+        control and the color specified by the dialog.
+
+        """
         self.spnSaturationChannel.SetValue(event.Position / SLIDER_RES)
         self.color.hsv = (
             self.spnHueChannel.GetValue(),
@@ -385,6 +443,51 @@ class PsychoColorPicker(ColorPickerDialog):
         self.updateRGBPage()
         self.updateDialog()
 
+    # --------------------------------------------------------------------------
+    # Hex RGB input methods
+    #
+    def OnHexRGBKeyDown(self, event):
+        """Called when the user manually enters a hex value into the field.
+        If the color value is valid, the new value will appear and the channels
+        will update.
+
+        """
+        # keydown need to be processed like this on MacOS
+        if event.GetKeyCode() == wx.WXK_RETURN:
+            oldHexColor = self.color.hex
+            try:
+                self.color.rgba = Color(self.txtHexRGB.GetValue(), space='hex').rgba
+                self.updateRGBPage()
+                self.updateHSVPage()
+                self.updateDialog()
+            except ValueError:
+                self.txtHexRGB.SetValue(oldHexColor)
+        else:
+            event.Skip()
+
+    def updateHex(self):
+        """Update the hex/HTML value using the color specified by the dialog.
+
+        """
+        self.txtHexRGB.SetValue(self.color.hex)
+
+    # --------------------------------------------------------------------------
+    # Color preset list methods
+    #
+    def OnPresetSelect(self, event):
+        """Called when the user selects a preset from the list."""
+        idxSelection = self.lstColorPresets.GetSelection()
+        if idxSelection == -1:  # event occurred with no valid selection
+            event.Skip()
+
+        presetColorKey = self.lstColorPresets.GetString(idxSelection)
+        presetColor = Color(colorNames[presetColorKey], space='rgb')
+
+        self.color = presetColor
+
+    # --------------------------------------------------------------------------
+    # Output methods
+    #
     def getOutputValue(self):
         """Get the string value using the specified output format.
 
@@ -441,31 +544,48 @@ class PsychoColorPicker(ColorPickerDialog):
             errDlg.ShowModal()
             errDlg.Destroy()
 
-    def onInsertValue(self, event):
-        """Event to copy the color to the clipboard as a an object.
+    def _saveState(self):
+        """Call this to make dialog value persistent across invocations."""
+        global COLORPICKER_STATE
+        COLORPICKER_STATE.color = self.color.copy()
+        COLORPICKER_STATE.space = self.cboOutputSpace.GetSelection()
+        COLORPICKER_STATE.rgbInputMode = self.rgbInputMode
 
+    def OnInsert(self, event):
+        """Event to copy the color to the clipboard as a an object.
         """
+        if not self.allowInsert:
+            event.Skip()
+
         if isinstance(self.context, wx.TextCtrl):
             self.context.SetValue(self.getOutputValue())
         elif isinstance(self.context, stc.StyledTextCtrl):
             self.context.InsertText(
-                self.context.GetCurrentPos(), "(" + self.color + ")")
+                self.context.GetCurrentPos(), "(" + self.getOutputValue() + ")")
 
+        self._saveState()  # retain state
         self.Close()
-        event.Skip()
 
-    def onCopyValue(self, event):
+    def OnCopy(self, event):
         """Event to copy the color to the clipboard as a value.
-
         """
-        self._copyToClipboard(self.getOutputValue())  # copy out to clipboard
-        self.Close()
-        event.Skip()
+        if not self.allowCopy:
+            event.Skip()
 
-    def onClose(self, event):
-        """Called when the cancel button is clicked."""
+        self._copyToClipboard(self.getOutputValue())  # copy out to clipboard
+
+        self._saveState()
         self.Close()
-        event.Skip()
+
+    def OnCancel(self, event):
+        """Called when the cancel button is clicked.
+        """
+        self.Close()
+
+    # def OnClose(self, event):
+    #     """Called when the 'x' is clicked on the title bar."""
+    #     self._saveState()
+    #     self.Close()
 
 
 if __name__ == "__main__":
