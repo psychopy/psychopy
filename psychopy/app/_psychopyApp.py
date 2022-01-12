@@ -670,7 +670,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             return
 
         document = self.coder.currentDoc
-        dlg = PsychoColorPicker(document)  # doesn't need a parent
+        dlg = PsychoColorPicker(None, context=document)  # doesn't need a parent
         dlg.ShowModal()
         dlg.Destroy()
 
