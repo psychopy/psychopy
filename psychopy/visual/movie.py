@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy.
 """
 
@@ -10,6 +9,9 @@
 
 import sys
 import os
+import numpy
+import imageio_ffmpeg  # get the FFMPEG installation used by MoviePy
+from psychopy import core, logging, event
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -19,28 +21,17 @@ import pyglet
 pyglet.options['debug_gl'] = False
 GL = pyglet.gl
 
-# on windows try to load avbin now (other libs can interfere)
-if sys.platform == 'win32':
-    # make sure we also check in SysWOW64 if on 64-bit windows
-    if 'C:\\Windows\\SysWOW64' not in os.environ['PATH']:
-        os.environ['PATH'] += ';C:\\Windows\\SysWOW64'
+import pyglet_ffmpeg
+pyglet_ffmpeg.load_ffmpeg()
 
-    try:
-        from pyglet.media import avbin
-        haveAvbin = True
-    except ImportError:
-        # either avbin isn't installed or scipy.stats has been imported
-        # (prevents avbin loading)
-        haveAvbin = False
-    except Exception as e:
-        # WindowsError on some systems
-        # AttributeError if using avbin5 from pyglet 1.2?
-        haveAvbin = False
+try:
+    pyglet.options['debug_media'] = True
+    from pyglet import media
+    havePygletMedia = True
+except Exception:
+    havePygletMedia = False
 
-
-import psychopy  # so we can get the __path__
-from psychopy import core, logging, event
-import psychopy.event
+print(media.get_decoders(), file=sys.__stdout__)
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
@@ -49,18 +40,10 @@ from psychopy.tools.attributetools import logAttrib, setAttribute
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
 from psychopy.tools.filetools import pathToString
 
-if sys.platform == 'win32' and not haveAvbin:
-    logging.warning("avbin.dll failed to load. "
-                    "Try importing psychopy.visual as the first library "
-                    "(before anything that uses scipy) or use a different"
-                    "movie backend (e.g. moviepy).")
-
-import numpy
-try:
-    from pyglet import media
-    havePygletMedia = True
-except Exception:
-    havePygletMedia = False
+if sys.platform == 'win32' and not hasCodec:
+    logging.warning(
+        "Failed to load FFMPEG. Ensure that `imageio_ffmepeg` is installed and "
+        "restart your session to use `MovieStim`.")
 
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 
@@ -68,18 +51,40 @@ from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 class MovieStim(BaseVisualStim, ContainerMixin):
     """A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy.
 
-    **Example**::
+    Parameters
+    ----------
+    filename : str
+        a string giving the relative or absolute path to the movie. Can be any
+        movie that FFMPEG can read (e.g. MPEG, AVI, etc.)
+    flipVert : bool
+        If `True` then the movie will be top-bottom flipped.
+    flipHoriz : bool
+        If `True` then the movie will be right-left flipped.
+    volume : float
+        The nominal level is 1.0, and 0.0 is silence, see `pyglet.media.Player`.
+    loop : bool, optional
+        Whether to start the movie over from the beginning if draw is called
+        and the movie is done.
+
+    Examples
+    --------
+    Create a movie stimulus by loading a file::
 
         mov = visual.MovieStim(myWin, 'testMovie.mp4', flipVert=False)
+
+    Print the duration of the loaded movie in seconds and its horizontal and
+    vertical resolution of the movie::
+
         print(mov.duration)
-        # give the original size of the movie in pixels:
         print(mov.format.width, mov.format.height)
 
-        mov.draw()  # draw the current frame (automagically determined)
+    Draw the current frame (automagically determined)::
 
-    See MovieStim.py for demo.
+        mov.draw()
+
+    See MovieStim.py for demo for a more comprehensive example.
+
     """
-
     def __init__(self, win,
                  filename="",
                  units='pix',
@@ -96,25 +101,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
                  name=None,
                  loop=False,
                  autoLog=None,
-                 depth=0.0,):
-        """
-        :Parameters:
-
-            filename :
-                a string giving the relative or absolute path to the movie.
-                Can be any movie that AVbin can read (e.g. mpeg, DivX)
-            flipVert : True or *False*
-                If True then the movie will be top-bottom flipped
-            flipHoriz : True or *False*
-                If True then the movie will be right-left flipped
-            volume :
-                The nominal level is 1.0, and 0.0 is silence,
-                see pyglet.media.Player
-            loop : bool, optional
-                Whether to start the movie over from the beginning
-                if draw is called and the movie is done.
-
-        """
+                 depth=0.0):
         # what local vars are defined (these are the init params) for use by
         # __repr__
         self._initParams = dir()
@@ -134,13 +121,9 @@ class MovieStim(BaseVisualStim, ContainerMixin):
                    "    - avbin is not installed")
             raise ImportError(msg)
         self._movie = None  # the actual pyglet media object
-        self._player = pyglet.media.ManagedSoundPlayer()
+        self._player = pyglet.media.Player()
         self._player.volume = volume
-        try:
-            self._player_default_on_eos = self._player.on_eos
-        except Exception:
-            # pyglet 1.1.4?
-            self._player_default_on_eos = self._player._on_eos
+        self._player_default_on_eos = self._player.on_eos
 
         self.filename = pathToString(filename)
         self.duration = None
@@ -149,7 +132,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
             logging.error("looping of movies is not currently supported "
                           "for pyglet >= 1.2 (only for version 1.1.4)")
         self.loadMovie(self.filename)
-        self.format = self._movie.video_format
+        self.format = None
         self.pos = numpy.asarray(pos, float)
         self.anchor = anchor
         self.depth = depth
@@ -169,8 +152,8 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         self._updateVertices()
 
         if win.winType != 'pyglet':
-            logging.error('Movie stimuli can only be used with a '
-                          'pyglet window')
+            logging.error(
+                'Movie stimuli can only be used with a pyglet window.')
             core.quit()
 
         # set autoLog now that params have been initialised
@@ -199,25 +182,14 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         duration (in seconds).
         """
         filename = pathToString(filename)
-        try:
-            self._movie = pyglet.media.load(filename, streaming=True)
-        except Exception as e:
-            # pyglet.media.riff is N/A if avbin is available, and then
-            # actual exception would get masked with a new one for unknown
-            # (sub)module riff, thus catching any exception and tuning msg
-            # up if it has to do anything with avbin
-            estr = str(e)
-            msg = ''
-            if "avbin" in estr.lower():
-                msg = ("\nIt seems that avbin was not installed correctly."
-                       "\nPlease fetch/install it from "
-                       "http://code.google.com/p/avbin/.")
-            emsg = "Caught exception '%s' while loading file '%s'.%s"
-            raise IOError(emsg % (estr, filename, msg))
+        self._movie = pyglet.media.load(filename, streaming=True)
+
+        self.format = self._movie.video_format
         self._player.queue(self._movie)
         self.duration = self._movie.duration
         while self._player.source != self._movie:
             next(self._player)
+
         self.status = NOT_STARTED
         self._player.pause()  # start 'playing' on the next draw command
         self.filename = filename

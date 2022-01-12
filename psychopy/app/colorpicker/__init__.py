@@ -10,18 +10,43 @@ import wx
 import wx.stc as stc
 from .panels import ColorPresets, ColorPreview
 from .pages import ColorPickerPageHSV, ColorPickerPageRGB
+from .ui import ColorPickerDialog
 from psychopy.colors import Color
 from psychopy.localization import _translate
 
 LAST_COLOR = Color((0, 0, 0, 1), space='rgba')
 LAST_OUTPUT_SPACE = 0
+SLIDER_RES = 255  # resolution of the slider for color channels, leave alone!
 
 
-class PsychoColorPicker(wx.Dialog):
+class ColorPickerState:
+    """Class representing the state of the color picker. This is used to
+    provide persistence between multiple invocations of the dialog within a
+    single session.
+
+    Parameters
+    ----------
+    color : Color
+        Last color selected by the user.
+    colorspace : Color
+        Last colorspace specified.
+    rgbInputMode : int
+        RGB input mode selected by the user.
+
+    """
+    def __init__(self, color, colorspace, rgbInputMode):
+        self.color = color
+        self.colorspace = colorspace
+        self.rgbInputMode = rgbInputMode
+
+
+class PsychoColorPicker(ColorPickerDialog):
     """Class for the color picker dialog.
 
     This dialog is used to standardize color selection across platforms. It also
     supports PsychoPy's RGB representation directly.
+
+    This is a subclass of the auto-generated `ColorPickerDialog` class.
 
     Parameters
     ----------
@@ -29,22 +54,18 @@ class PsychoColorPicker(wx.Dialog):
         Reference to a :class:`~wx.Frame` which owns this dialog.
 
     """
-    def __init__(self, parent, context=None):
-        wx.Dialog.__init__(
-            self,
-            parent,
-            id=wx.ID_ANY,
-            title=_translate("Color Picker"),
-            pos=wx.DefaultPosition,
-            size=wx.Size(680, 480),
-            style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+    def __init__(self, parent, context=None, allowInsert=False, allowCopy=False):
+        ColorPickerDialog.__init__(self, parent)
 
         self.parent = parent
+        self.allowInsert = allowInsert
+        self.allowCopy = allowCopy
 
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
-        self.SetMinSize(wx.Size(600, 480))
+        self.SetSize(wx.Size(640, 480))
+        self.SetMinSize(wx.Size(640, 480))
 
-        # Store context
+        # store context
         self.context = context
 
         # current output color, should be displayed in the preview
@@ -68,8 +89,36 @@ class PsychoColorPicker(wx.Dialog):
             u'Hue-Saturation-Value (hsv)'
         ]
 
+        # set the available output spaces
+        self.cboOutputSpace.SetItems(self._outputChoices)
+
+        # Functions to convert slider units to an RGB format to display in the
+        # double-spin controls beside them.
+        self._posToValFunc = {0: lambda v: 2 * (v / SLIDER_RES) - 1,  # [-1:1]
+                              1: lambda v: v / SLIDER_RES,  # [0:1]
+                              2: lambda v: v}  # [0:255]
+
+        # inverse of the above functions, converts values to positions
+        self._valToPosFunc = {0: lambda p: int(SLIDER_RES * (p + 1) / 2.),  # [-1:1]
+                              1: lambda p: int(p * SLIDER_RES),  # [0:1]
+                              2: lambda p: int(p)}  # [0:255]
+
         # initialize the window controls
-        self._setupUI()
+        midpoint = int(SLIDER_RES / 2.)
+        self.sldRedChannel.SetValue(midpoint)
+        self.sldGreenChannel.SetValue(midpoint)
+        self.sldBlueChannel.SetValue(midpoint)
+        self.sldRedChannel.SetMax(SLIDER_RES)
+        self.sldGreenChannel.SetMax(SLIDER_RES)
+        self.sldBlueChannel.SetMax(SLIDER_RES)
+        self.sldHueChannel.SetRange(0.0, 360.0)
+        self.sldStaturationChannel.SetRange(0, SLIDER_RES)
+        self.sldValueChannel.SetRange(0, SLIDER_RES)
+
+        self.updateRGBChannels()  # initialize
+        self.updateRGBPage()
+        self.updateHSVPage()
+        self.updateDialog()
 
     @property
     def color(self):
@@ -92,198 +141,249 @@ class PsychoColorPicker(wx.Dialog):
         global LAST_COLOR
         self.pnlColorPreview.color = self._color = value
         LAST_COLOR = self._color.copy()
-        self._updateColorSpacePage()
 
-    def _updateColorSpacePage(self):
-        """Update the current colorspace page to reflect the current color being
-        specified by the dialog. Called only on the current page or when the
-        page has been changed. Pointless to update all pages at once.
-
-        """
-        page = self.nbColorSpaces.GetCurrentPage()
-
-        if hasattr(page, 'updateChannels'):
-            page.updateChannels()
-
-        if hasattr(page, 'updateHex'):
-            page.updateHex()
-
-    def _addColorSpacePages(self):
-        """Add pages for each supported color space.
-
-        In the future this will be modified to support plugging in additional
-        color spaces. Right now the pages are hard-coded in.
-
-        """
-        self.pnlRGB = ColorPickerPageRGB(self.nbColorSpaces)
-        self.pnlHSV = ColorPickerPageHSV(self.nbColorSpaces)
-
-        self.nbColorSpaces.AddPage(self.pnlRGB, _translate(u"RGB"), True)
-        self.nbColorSpaces.AddPage(self.pnlHSV, _translate(u"HSV"), False)
-
-    def _setupUI(self):
-        """Setup the UI for the color picker dialog box.
-
-        """
-        szrMain = wx.BoxSizer(wx.VERTICAL)
-
-        # Color area panel. Shows the preview, colorspace pages and presets
-        # panels at the top portion of the dialog.
-        #
-        self.pnlColorArea = wx.Panel(
-            self,
-            wx.ID_ANY,
-            wx.DefaultPosition,
-            wx.DefaultSize,
-            wx.TAB_TRAVERSAL)
-
-        szrColorArea = wx.BoxSizer(wx.HORIZONTAL)
-
-        # color preview panel
-        self.pnlColorPreview = ColorPreview(
-            self.pnlColorArea, self._color)
-        self.pnlColorPreview.SetMinSize(wx.Size(100, -1))
-        self.pnlColorPreview.SetMaxSize(wx.Size(100, -1))
-
-        # color space notebook area
-        self.nbColorSpaces = wx.Notebook(
-            self.pnlColorArea,
-            wx.ID_ANY,
-            wx.DefaultPosition,
-            wx.DefaultSize,
-            0)
-
-        self._addColorSpacePages()  # add the pages to the notebook
-
-        # preset panel
-        self.colorPresets = ColorPresets(self.pnlColorArea)
-        self.colorPresets.SetMinSize(wx.Size(140, -1))
-        self.colorPresets.SetMaxSize(wx.Size(140, -1))
-
-        szrColorArea.Add(self.pnlColorPreview, 0, wx.EXPAND | wx.ALL, 5)
-        szrColorArea.Add(
-            self.nbColorSpaces, 1, wx.EXPAND | wx.TOP | wx.BOTTOM, 5)
-        szrColorArea.Add(self.colorPresets, 0, wx.EXPAND | wx.ALL, 5)
-
-        self.pnlColorArea.SetSizer(szrColorArea)
-        self.pnlColorArea.Layout()
-        szrColorArea.Fit(self.pnlColorArea)
-        szrMain.Add(self.pnlColorArea, 1, wx.ALL| wx.EXPAND, 5)
-
-        # line to divide the color area from the dialog controls, looks neat
-        self.stlMain = wx.StaticLine(
-            self,
-            wx.ID_ANY,
-            wx.DefaultPosition,
-            wx.DefaultSize,
-            wx.LI_HORIZONTAL)
-
-        szrMain.Add(self.stlMain, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
-
-        # Dialog controls area. Shows buttons for closing the dialog or copying
-        # colors. Also shows the output format to use when copying to the
-        # clipboard.
-        #
-        szrDlgButtonArea = wx.BoxSizer(wx.VERTICAL)
-        szrDlgCtrls = wx.FlexGridSizer(1, 5, 0, 5)
-        szrDlgCtrls.AddGrowableCol(1)
-        szrDlgCtrls.SetFlexibleDirection(wx.BOTH)
-        szrDlgCtrls.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
-
-        self.lblResult = wx.StaticText(
-            self,
-            wx.ID_ANY,
-            _translate("Output Space:"),
-            wx.DefaultPosition,
-            wx.DefaultSize,
-            0)
-        self.lblResult.Wrap(-1)
-
-        szrDlgCtrls.Add(
-            self.lblResult,
-            0,
-            wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL,
-            5)
-
-        self.cboOutputSpace = wx.Choice(
-            self,
-            wx.ID_ANY,
-            wx.DefaultPosition,
-            wx.DefaultSize,
-            choices=self._outputChoices)
-        self.cboOutputSpace.SetSelection(LAST_OUTPUT_SPACE)
-
-        szrDlgCtrls.Add(self.cboOutputSpace, 1, wx.ALIGN_CENTER_VERTICAL, 5)
-
-        self.cmdInsertColor = wx.Button(
-            self, wx.ID_ANY, _translate(u"&Insert"), wx.DefaultPosition,
-            wx.DefaultSize, 0)
-        self.cmdCopy = wx.Button(
-            self, wx.ID_ANY, _translate(u"&Copy"), wx.DefaultPosition,
-            wx.DefaultSize, 0)
-        self.cmdClose = wx.Button(
-            self, wx.ID_ANY, _translate(u"Canc&el"), wx.DefaultPosition, wx.DefaultSize, 0)
-
-        self.cmdInsertColor.SetToolTip(
-            _translate(u"Insert color value."))
-        self.cmdCopy.SetToolTip(
-            _translate(u"Copy color value to clipboard."))
-
-        if sys.platform == "win32":
-            btns = [self.cmdCopy, self.cmdInsertColor, self.cmdClose]
+    @property
+    def rgbInputMode(self):
+        """The RGB input mode (`int`)."""
+        # replaces the older radio box which returned indices
+        if self.rdoRGBModePsychoPy.GetValue():
+            return 0
+        elif self.rdoRGBModeNormalized.GetValue():
+            return 1
+        elif self.rdoRGBMode255.GetValue():
+            return 2
         else:
-            btns = [self.cmdClose, self.cmdCopy, self.cmdInsertColor]
-        szrDlgCtrls.Add(btns[0], 0, wx.EXPAND, 5)
-        szrDlgCtrls.Add(btns[1], 0, wx.EXPAND, 5)
-        szrDlgCtrls.Add(btns[2], 0, wx.EXPAND, 5)
+            return -1
 
-        szrDlgButtonArea.Add(szrDlgCtrls, 1, wx.ALL | wx.EXPAND, 5)
-
-        szrMain.Add(szrDlgButtonArea, 0, wx.EXPAND | wx.ALL, 5)
-
-        self.SetSizer(szrMain)
-        self.Layout()
-
-        self.Centre(wx.BOTH)
-
-        # Connect Events
-        self.nbColorSpaces.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.onPageChanged)
-        self.cmdInsertColor.Bind(wx.EVT_BUTTON, self.onInsertValue)
-        self.cmdCopy.Bind(wx.EVT_BUTTON, self.onCopyValue)
-        self.cboOutputSpace.Bind(
-            wx.EVT_CHOICE, self.onOutputSpaceChanged)
-        self.cmdClose.Bind(wx.EVT_BUTTON, self.onClose)
-
-        # disable insert if parent is not a valid context, allow copying though
-        if self.parent is None:
-            self.cmdInsertColor.Enable(False)
-
-    def _copyToClipboard(self, text):
-        """Copy text to the clipboard.
-
-        Shows an error dialog if the clipboard cannot be opened to inform the
-        user the values have not been copied.
-
-        Parameters
-        ----------
-        text : str
-            Text to copy to the clipboard.
+    def updateDialog(self):
+        """Update the color specified by the dialog. Call this whenever the
+        color controls are updated by the user.
 
         """
-        # copy the value to the clipboard
-        if wx.TheClipboard.Open():
-            wx.TheClipboard.SetData(wx.TextDataObject(str(text)))
-            wx.TheClipboard.Close()
+        spinVals = [
+            self.spnRedChannel.GetValue(),
+            self.spnGreenChannel.GetValue(),
+            self.spnBlueChannel.GetValue()]
+
+        if self.rgbInputMode == 0:
+            self.color.rgb = spinVals
+        elif self.rgbInputMode == 1:
+            self.color.rgb1 = spinVals
+        elif self.rgbInputMode == 2:
+            self.color.rgb255 = spinVals
         else:
-            # Raised if the clipboard fails to open, warns the user the value
-            # wasn't copied.
-            errDlg = wx.MessageDialog(
-                self,
-                'Failed to open the clipboard, output value not copied.',
-                'Clipboard Error',
-                wx.OK | wx.ICON_ERROR)
-            errDlg.ShowModal()
-            errDlg.Destroy()
+            raise ValueError('Color channel format not supported.')
+
+        # update the HSV page
+        previewRGB = self.color.rgb255
+        r, g, b = previewRGB
+        self.pnlColorPreview.SetBackgroundColour(
+            wx.Colour(r, g, b, alpha=wx.ALPHA_OPAQUE))
+        self.pnlColorPreview.Refresh()
+
+    def updateHSVPage(self):
+        """Update values on the HSV page. This is called when some other page is
+        used to pick the color and the HSV page needs to reflect that.
+
+        """
+        # get colors and convert to format wxPython controls can accept
+        hsvColor = self.color.hsv
+        self.sldHueChannel.SetValue(hsvColor[0])
+        self.sldStaturationChannel.SetValue(hsvColor[1] * SLIDER_RES)
+        self.sldValueChannel.SetValue(hsvColor[2] * SLIDER_RES)
+
+        # set the value in the new range
+        self.spnHueChannel.SetValue(hsvColor[0])
+        self.spnSaturationChannel.SetValue(hsvColor[1])
+        self.spnValueChannel.SetValue(hsvColor[2])
+
+    def updateRGBPage(self):
+        """Update values on the RGB page. This is called when some other page is
+        used to pick the color and the RGB page needs to reflect that.
+
+        """
+        rgb255 = [int(i) for i in self.color.rgb255]
+        self.sldRedChannel.SetValue(rgb255[0])
+        self.sldGreenChannel.SetValue(rgb255[1])
+        self.sldBlueChannel.SetValue(rgb255[2])
+        # self.sldAlpha.SetValue(
+        #    rgbaColor.alpha * SLIDER_RES)  # arrrg! should be 255!!!
+
+        # set the value in the new range
+        if self.rgbInputMode == 0:
+            spnColVals = self.color.rgb
+        elif self.rgbInputMode == 1:
+            spnColVals = self.color.rgb1
+        elif self.rgbInputMode == 2:
+            spnColVals = self.color.rgb255
+        else:
+            raise ValueError(
+                "Unknown RGB channel format specified. Did you add a new mode?")
+
+        self.spnRedChannel.SetValue(spnColVals[0])
+        self.spnGreenChannel.SetValue(spnColVals[1])
+        self.spnBlueChannel.SetValue(spnColVals[2])
+
+    def updateRGBChannels(self):
+        """Update the values of the indicated RGB channels to reflect the
+        selected color input mode.
+
+        The RGB page has modes which changes the format of the input values.
+        Calling this updates the controls to reflect the format.
+
+        """
+        # get colors and convert to format wxPython controls can accept
+        channelMode = self.rgbInputMode
+        convFunc = self._posToValFunc[channelMode]
+
+        # update spinner values/ranges for each channel
+        for spn in (self.spnRedChannel, self.spnGreenChannel, self.spnBlueChannel):
+            spn.SetDigits(
+                0 if channelMode == 2 else 4)
+            spn.SetIncrement(
+                1 if channelMode == 2 else 0.05)
+            spn.SetMin(convFunc(0))
+            spn.SetMax(convFunc(SLIDER_RES))
+
+        self.updateRGBPage()
+
+    # --------------------------------------------------------------------------
+    # Events for RGB controls
+    #
+
+    def OnRedScroll(self, event):
+        """Called when the red channel slider is moved. Updates the spin control
+        and the color specified by the dialog.
+
+        """
+        self.spnRedChannel.SetValue(
+            self._posToValFunc[self.rgbInputMode](
+                event.Position))
+        self.updateHSVPage()
+        self.updateDialog()
+
+    def OnGreenScroll(self, event):
+        """Called when the green channel slider is moved. Updates the spin
+        control and the color specified by the dialog.
+
+        """
+        self.spnGreenChannel.SetValue(
+            self._posToValFunc[self.rgbInputMode](
+                event.Position))
+        self.updateHSVPage()
+        self.updateDialog()
+
+    def OnBlueScroll(self, event):
+        """Called when the blue channel slider is moved. Updates the spin
+        control and the color specified by the dialog.
+
+        """
+        self.spnBlueChannel.SetValue(
+            self._posToValFunc[self.rgbInputMode](
+                event.Position))
+        self.updateHSVPage()
+        self.updateDialog()
+
+    def OnRedSpin(self, event):
+        """Called when the red spin control is changed. Updates the hex value
+        and the color specified by the dialog.
+
+        """
+        self.sldRedChannel.SetValue(
+            self._valToPosFunc[self.rgbInputMode](event.Value))
+        self.updateHSVPage()
+        self.updateDialog()
+
+    def OnGreenSpin(self, event):
+        """Called when the green spin control is changed. Updates the hex value
+        and the color specified by the dialog.
+
+        """
+        self.sldGreenChannel.SetValue(
+            self._valToPosFunc[self.rgbInputMode](event.Value))
+        self.updateHSVPage()
+        self.updateDialog()
+
+    def OnBlueSpin(self, event):
+        """Called when the blue spin control. Updates the hex value and the
+         color specified by the dialog.
+
+         """
+        self.sldBlueChannel.SetValue(
+            self._valToPosFunc[self.rgbInputMode](event.Value))
+        self.updateHSVPage()
+        self.updateDialog()
+
+    def OnRGBModePsychoPy(self, event):
+        self.updateRGBChannels()
+
+    def OnRGBModeNormalized(self, event):
+        self.updateRGBChannels()
+
+    def OnRGBMode255(self, event):
+        self.updateRGBChannels()
+
+    # --------------------------------------------------------------------------
+    # Events for HSV controls
+    #
+
+    def OnHueSpin(self, event):
+        """Called when the hue spin control is changed. Updates the hex value
+        and the color specified by the dialog.
+
+        """
+        self.sldHueChannel.SetValue(event.GetValue())
+        self.color.hsv = (
+            self.spnHueChannel.GetValue(),
+            self.spnSaturationChannel.GetValue(),
+            self.spnValueChannel.GetValue())
+        self.updateRGBPage()
+        self.updateDialog()
+
+    def OnHueScroll(self, event):
+        self.spnHueChannel.SetValue(event.Position)
+        self.color.hsv = (
+            self.spnHueChannel.GetValue(),
+            self.spnSaturationChannel.GetValue(),
+            self.spnValueChannel.GetValue())
+        self.updateRGBPage()
+        self.updateDialog()
+
+    def OnSaturationSpin(self, event):
+        self.sldStaturationChannel.SetValue(event.GetValue() * SLIDER_RES)
+        self.color.hsv = (
+            self.spnHueChannel.GetValue(),
+            self.spnSaturationChannel.GetValue(),
+            self.spnValueChannel.GetValue())
+        self.updateRGBPage()
+        self.updateDialog()
+
+    def OnSaturationScroll(self, event):
+        self.spnSaturationChannel.SetValue(event.Position / SLIDER_RES)
+        self.color.hsv = (
+            self.spnHueChannel.GetValue(),
+            self.spnSaturationChannel.GetValue(),
+            self.spnValueChannel.GetValue())
+        self.updateRGBPage()
+        self.updateDialog()
+
+    def OnValueSpin(self, event):
+        self.sldValueChannel.SetValue(event.GetValue() * SLIDER_RES)
+        self.color.hsv = (
+            self.spnHueChannel.GetValue(),
+            self.spnSaturationChannel.GetValue(),
+            self.spnValueChannel.GetValue())
+        self.updateRGBPage()
+        self.updateDialog()
+
+    def OnValueScroll(self, event):
+        self.spnValueChannel.SetValue(event.Position / SLIDER_RES)
+        self.color.hsv = (
+            self.spnHueChannel.GetValue(),
+            self.spnSaturationChannel.GetValue(),
+            self.spnValueChannel.GetValue())
+        self.updateRGBPage()
+        self.updateDialog()
 
     def getOutputValue(self):
         """Get the string value using the specified output format.
@@ -314,30 +414,42 @@ class PsychoColorPicker(wx.Dialog):
 
         return colorOut
 
-    def onOutputSpaceChanged(self, event):
-        """Set when the output space choicebox is changed."""
-        global LAST_OUTPUT_SPACE
-        LAST_OUTPUT_SPACE = event.GetSelection()
-        event.Skip()
+    def _copyToClipboard(self, text):
+        """Copy text to the clipboard.
 
-    def onPageChanged(self, event):
-        """Called when the color space notebook is changed. Updates the current
-        page to show values appropriate for the current color specified by the
-        dialog.
+        Shows an error dialog if the clipboard cannot be opened to inform the
+        user the values have not been copied.
+
+        Parameters
+        ----------
+        text : str
+            Text to copy to the clipboard.
 
         """
-        self._updateColorSpacePage()
-        event.Skip()
+        # copy the value to the clipboard
+        if wx.TheClipboard.Open():
+            wx.TheClipboard.SetData(wx.TextDataObject(str(text)))
+            wx.TheClipboard.Close()
+        else:
+            # Raised if the clipboard fails to open, warns the user the value
+            # wasn't copied.
+            errDlg = wx.MessageDialog(
+                self,
+                'Failed to open the clipboard, output value not copied.',
+                'Clipboard Error',
+                wx.OK | wx.ICON_ERROR)
+            errDlg.ShowModal()
+            errDlg.Destroy()
 
     def onInsertValue(self, event):
         """Event to copy the color to the clipboard as a an object.
 
         """
-        if isinstance(self.parent, wx.TextCtrl):
-            self.parent.SetValue(self.getOutputValue())
-        elif isinstance(self.parent, stc.StyledTextCtrl):
-            self.parent.InsertText(
-                self.parent.GetCurrentPos(), "(" + self.getOutputValue() + ")")
+        if isinstance(self.context, wx.TextCtrl):
+            self.context.SetValue(self.getOutputValue())
+        elif isinstance(self.context, stc.StyledTextCtrl):
+            self.context.InsertText(
+                self.context.GetCurrentPos(), "(" + self.color + ")")
 
         self.Close()
         event.Skip()

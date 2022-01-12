@@ -9,6 +9,24 @@
 """
 
 import sys
+import os
+# import imageio_ffmpeg
+#
+# # Check if the version of FFMPEG we have is compatible with the video player
+# # Pyglet provides.
+# ffmpegVersion = imageio_ffmpeg.get_ffmpeg_version()
+# if not ffmpegVersion.startswith('4.'):
+#     hasCodec = False
+#
+# ffmpegPath = os.path.split(imageio_ffmpeg.get_ffmpeg_exe())[0]
+# if sys.platform == 'win32':
+#     os.environ["PATH"] += ffmpegPath
+# elif sys.platform.lower() in ('linux', 'darwin'):
+#     # create the key if not present
+#     if os.environ.get("LD_LIBRARY_PATH", None) is None:
+#         os.environ["LD_LIBRARY_PATH"] = ''
+#     os.environ["LD_LIBRARY_PATH"] += ":" + ffmpegPath
+
 if sys.platform == 'win32':
     from pyglet.libs import win32  # pyglet patch for ANACONDA install
     from ctypes import *
