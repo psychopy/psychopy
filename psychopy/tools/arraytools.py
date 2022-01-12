@@ -257,17 +257,10 @@ def snapto(x, points):
         pointsi = numpy.argsort(points[0])
         i = pointsi[xi]
     else:
-        # If lengths differ, get differences
+        # If lengths differ, snap to closest
         deltas = numpy.abs(x1d - points)
-        if len(x) < len(points[0]):
-            # If there are more points than values, snap to closest with collision avoidance
-            i = []
-            for c in range(deltas.shape[1]):
-                i.append(numpy.argmin(deltas[:, c]))
-                numpy.delete(deltas, c, 1)
-        if len(x) > len(points[0]):
-            # If there are more values than points, snap to closest without collision avoidance
-            i = numpy.argmin(deltas, axis=1)
+        # If there are more values than points, snap to closest without collision avoidance
+        i = numpy.argmin(deltas, axis=1)
 
     # Get corresponding points
     snapped1d = points[0, i]
