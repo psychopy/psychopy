@@ -638,7 +638,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             if w is None:
                 w = self.size[0] * 3
             # Evenly spaced and clipped to ticks, constant x
-            y = np.linspace(top, bottom, num=n)
+            y = np.linspace(bottom, top, num=n)
             y = arraytools.snapto(y, points=self.tickParams['xys'][:, 1])
             x = [self.pos[0]] * n
             # Padding applied on horizontal
