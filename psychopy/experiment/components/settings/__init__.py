@@ -1205,6 +1205,13 @@ class SettingsComponent:
                 )
                 buff.writeIndentedLines(code % inits)
 
+                # Close runtime_settings dict
+                buff.setIndentLevel(-1, relative=True)
+                code = (
+                    "}\n"
+                )
+                buff.writeIndentedLines(code % inits)
+
             # Close ioDevice dict
             buff.setIndentLevel(-1, relative=True)
             code = (
