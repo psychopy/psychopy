@@ -10,6 +10,7 @@ from psychopy.alerts import alerttools
 from psychopy.experiment import Experiment
 from psychopy.experiment.routines import Routine, BaseStandaloneRoutine, UnknownRoutine
 from psychopy.experiment.components import BaseComponent
+from psychopy.experiment.components.unknown import UnknownComponent
 from psychopy.experiment.params import Param, utils
 from psychopy import logging
 
@@ -65,50 +66,152 @@ class TestComponents:
                     f"Compile of {case['file'].name} did not match {case['ans']}. View compile here: {outfile}"
                 )
 
-    def test_component_is_written_to_script(self):
-        psyexp_file = os.path.join(TESTS_DATA_PATH,
-                                   'TextComponent_not_disabled.psyexp')
-        outfile = os.path.join(self.temp_dir, 'outfile.py')
-        try:
-            psyexpCompile.compileScript(infile=psyexp_file, outfile=outfile)
-        except NotImplementedError as err:
-            logging.warning(f"Test included feature not implemented: \n{str(err)}")
-
-        with io.open(outfile, mode='r', encoding='utf-8-sig') as f:
-            script = f.read()
-            assert 'visual.TextStim' in script
-
-    def test_disabled_component_is_not_written_to_script(self):
-        psyexp_file = os.path.join(TESTS_DATA_PATH,
-                                   'TextComponent_disabled.psyexp')
-        outfile = os.path.join(self.temp_dir, 'outfile.py')
-        psyexpCompile.compileScript(infile=psyexp_file, outfile=outfile)
-
-        with io.open(outfile, mode='r', encoding='utf-8-sig') as f:
-            script = f.read()
-            assert 'visual.TextStim' not in script
-
-    def test_disabled_routine_is_not_written_to_script(self):
-        # Make experiment and two test routines
+    def test_muting(self):
+        """
+        Test that component and standalone routines are muted under the correct conditions (i.e. if target is unimplemented or if disabled)
+        """
+        # Make experiment to hold everything
         exp = Experiment()
-        rt1 = UnknownRoutine(exp, name="testRoutine1")
-        rt2 = UnknownRoutine(exp, name="testRoutine2")
-        # Disable one routine
-        rt1.params['disabled'].val = True
-        rt2.params['disabled'].val = False
-        # Add routines to expriment
-        exp.addStandaloneRoutine("testRoutine1", rt1)
-        exp.flow.addRoutine(rt1, 0)
-        exp.addStandaloneRoutine("testRoutine2", rt2)
-        exp.flow.addRoutine(rt2, 0)
-        # Write python script
+        comp_rt = Routine("comp_rt", exp)
+        comp_rt = exp.addRoutine("comp_rt", comp_rt)
+        exp.flow.append(comp_rt)
+
+        # Define some routines/components which should or should not compile
+        exemplars = []
+
+        # standalone routine + disabled + no target
+        obj = UnknownRoutine(exp, name="test_rt_disabled_notarget")
+        obj.disabled = True
+        obj.targets = []
+        exp.addStandaloneRoutine(obj.name, obj)
+        exp.flow.append(obj)
+        exemplars.append({"obj": obj, "ans": []})
+        # standalone routine + disabled + py target
+        obj = UnknownRoutine(exp, name="test_rt_disabled_pytarget")
+        obj.disabled = True
+        obj.targets = ['PsychoPy']
+        exp.addStandaloneRoutine(obj.name, obj)
+        exp.flow.append(obj)
+        exemplars.append({"obj": obj, "ans": []})
+        # standalone routine + disabled + js target
+        obj = UnknownRoutine(exp, name="test_rt_disabled_jstarget")
+        obj.disabled = True
+        obj.targets = ['PsychoJS']
+        exp.addStandaloneRoutine(obj.name, obj)
+        exp.flow.append(obj)
+        exemplars.append({"obj": obj, "ans": []})
+        # standalone routine + disabled + both targets
+        obj = UnknownRoutine(exp, name="test_rt_disabled_bothtarget")
+        obj.disabled = True
+        obj.targets = ['PsychoPy', 'PsychoJS']
+        exp.addStandaloneRoutine(obj.name, obj)
+        exp.flow.append(obj)
+        exemplars.append({"obj": obj, "ans": []})
+        # standalone routine + enabled + no target
+        obj = UnknownRoutine(exp, name="test_rt_enabled_notarget")
+        obj.disabled = False
+        obj.targets = []
+        exp.addStandaloneRoutine(obj.name, obj)
+        exp.flow.append(obj)
+        exemplars.append({"obj": obj, "ans": obj.targets})
+        # standalone routine + enabled + py target
+        obj = UnknownRoutine(exp, name="test_rt_enabled_pytarget")
+        obj.disabled = False
+        obj.targets = ['PsychoPy']
+        exp.addStandaloneRoutine(obj.name, obj)
+        exp.flow.append(obj)
+        exemplars.append({"obj": obj, "ans": obj.targets})
+        # standalone routine + enabled + js target
+        obj = UnknownRoutine(exp, name="test_rt_enabled_jstarget")
+        obj.disabled = False
+        obj.targets = ['PsychoJS']
+        exp.addStandaloneRoutine(obj.name, obj)
+        exp.flow.append(obj)
+        exemplars.append({"obj": obj, "ans": obj.targets})
+        # standalone routine + enabled + both target
+        obj = UnknownRoutine(exp, name="test_rt_enabled_bothtarget")
+        obj.disabled = False
+        obj.targets = ['PsychoPy', 'PsychoJS']
+        exp.addStandaloneRoutine(obj.name, obj)
+        exp.flow.append(obj)
+        exemplars.append({"obj": obj, "ans": obj.targets})
+
+        # component + disabled + no target
+        obj = UnknownComponent(exp, parentName="comp_rt", name="test_cmp_disabled_notarget")
+        obj.disabled = True
+        obj.targets = []
+        comp_rt.addComponent(obj)
+        exemplars.append({"obj": obj, "ans": []})
+        # component + disabled + py target
+        obj = UnknownComponent(exp, parentName="comp_rt", name="test_cmp_disabled_pytarget")
+        obj.disabled = True
+        obj.targets = ['PsychoPy']
+        comp_rt.addComponent(obj)
+        exemplars.append({"obj": obj, "ans": []})
+        # component + disabled + js target
+        obj = UnknownComponent(exp, parentName="comp_rt", name="test_cmp_disabled_jstarget")
+        obj.disabled = True
+        obj.targets = ['PsychoJS']
+        comp_rt.addComponent(obj)
+        exemplars.append({"obj": obj, "ans": []})
+        # component + disabled + both target
+        obj = UnknownComponent(exp, parentName="comp_rt", name="test_cmp_disabled_bothtarget")
+        obj.disabled = True
+        obj.targets = ['PsychoPy', 'PsychoJS']
+        comp_rt.addComponent(obj)
+        exemplars.append({"obj": obj, "ans": []})
+        # component + enabled + no target
+        obj = UnknownComponent(exp, parentName="comp_rt", name="test_cmp_enabled_notarget")
+        obj.disabled = False
+        obj.targets = []
+        comp_rt.addComponent(obj)
+        exemplars.append({"obj": obj, "ans": obj.targets})
+        # component + enabled + py target
+        obj = UnknownComponent(exp, parentName="comp_rt", name="test_cmp_enabled_pytarget")
+        obj.disabled = False
+        obj.targets = ['PsychoPy']
+        comp_rt.addComponent(obj)
+        exemplars.append({"obj": obj, "ans": obj.targets})
+        # component + enabled + js target
+        obj = UnknownComponent(exp, parentName="comp_rt", name="test_cmp_enabled_jstarget")
+        obj.disabled = False
+        obj.targets = ['PsychoJS']
+        comp_rt.addComponent(obj)
+        exemplars.append({"obj": obj, "ans": obj.targets})
+        # component + enabled + both target
+        obj = UnknownComponent(exp, parentName="comp_rt", name="test_cmp_enabled_bothtarget")
+        obj.disabled = False
+        obj.targets = ['PsychoPy', 'PsychoJS']
+        comp_rt.addComponent(obj)
+        exemplars.append({"obj": obj, "ans": obj.targets})
+
+        tykes = []
+
+        # Compile experiment
         pyScript = exp.writeScript(target="PsychoPy")
-        # Check that one routine is present and the other is not
-        assert "testRoutine1" not in pyScript and "testRoutine2" in pyScript
-        # Write JS script
-        # TEST DISABLED until JS can compile without saving
-        #jsScript = exp.writeScript(target="PsychoJS")
-        #assert "testRoutine1" not in jsScript and "testRoutine2" in jsScript
+        # jsScript = exp.writeScript(target="PsychoJS")  ## disabled until js can compile without saving
+
+        # Test all cases
+        for case in exemplars + tykes:
+            # Check Python script
+            if "PsychoPy" in case['ans']:
+                assert case['obj'].name in pyScript, (
+                    f"{case['obj']} not found in Python script when it should be."
+                )
+            else:
+                assert case['obj'].name not in pyScript, (
+                    f"{case['obj']} found in Python script when it should not be."
+                )
+            ## disabled until js can compile without saving
+            # # Check JS script
+            # if "PsychoJS" in case['ans']:
+            #     assert case['obj'].name in jsScript, (
+            #         f"{case['obj']} not found in JS script when it should be."
+            #     )
+            # else:
+            #     assert case['obj'].name not in jsScript, (
+            #         f"{case['obj']} found in JS script when it should not be."
+            #     )
 
     def test_all_code_component_tabs(self):
         psyexp_file = os.path.join(TESTS_DATA_PATH,

@@ -1108,6 +1108,9 @@ class SettingsComponent:
             )
             buff.writeIndentedLines(code % inits)
 
+        if self.needIoHub and self.params['keyboardBackend'] == 'PsychToolbox':
+            alert(code=4550)
+
         # Start ioHub server
         if self.needIoHub:
             # Specify session

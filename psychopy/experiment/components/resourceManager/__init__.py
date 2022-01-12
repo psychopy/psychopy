@@ -1,4 +1,6 @@
 from pathlib import Path
+
+from psychopy.alerts import alert
 from .._base import BaseComponent
 from psychopy.localization import _translate
 from ... import getInitVals
@@ -34,7 +36,7 @@ class ResourceManagerComponent(BaseComponent):
             resources = []
 
         self.params['resources'] = Param(resources,
-            valType='list', inputType="fileList", categ='Basic', updates='set every repeat',
+            valType='list', inputType="fileList", categ='Basic', updates='constant',
             hint=_translate("Resources to download/check"),
             direct=False, label=_translate("Resources"))
 
@@ -85,6 +87,25 @@ class ResourceManagerComponent(BaseComponent):
               }
          )
 
+    def writeInitCodeJS(self, buff):
+        # Get initial values
+        inits = getInitVals(self.params, 'PsychoJS')
+        # Create object
+        code = (
+            "%(name)s = {\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+            "status: PsychoJS.Status.NOT_STARTED\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "};\n"
+        )
+        buff.writeIndentedLines(code % inits)
+
     def writeFrameCodeJS(self, buff):
         # Get initial values
         inits = getInitVals(self.params, 'PsychoJS')
@@ -95,14 +116,14 @@ class ResourceManagerComponent(BaseComponent):
         if "start" in self.params['actionType'].val.lower():
             code = (
                 "// start downloading resources specified by component %(name)s\n"
-                "if (t >= %(startVal)s && %(name)s.status === NOT_STARTED) {\n"
+                "if (t >= %(startVal)s && %(name)s.status === PsychoJS.Status.NOT_STARTED) {\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
             code = (
                     "console.log('register and start downloading resources specified by component %(name)s');\n"
                     "psychoJS.serverManager.prepareResources(%(resources)s);\n"
-                    "resources.status = STARTED;\n"
+                    "resources.status = PsychoJS.Status.STARTED;\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(-1, relative=True)
@@ -114,14 +135,23 @@ class ResourceManagerComponent(BaseComponent):
         if "check" in self.params['actionType'].val.lower():
             code = (
                 "// check on the resources specified by component %(name)s\n"
-                "if (t >= %(stopVal)s && resources.status === STARTED) {\n"
+                "if (t >= %(stopVal)s && %(name)s.status === PsychoJS.Status.STARTED) {\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
             code = (
-                    "await psychoJS.serverManager.waitForResources(%(resources)s);\n"
-                    "console.log('finished downloading resources specified by component %(name)s');\n"
-                    "resources.status = FINISHED;\n"
+                    "if (psychoJS.serverManager.getResourceStatus(%(resources)s) === core.ServerManager.ResourceStatus.DOWNLOADED) {\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(1, relative=True)
+            code = (
+                        "console.log('finished downloading resources specified by component %(name)s');\n"
+                        "%(name)s.status = PsychoJS.Status.FINISHED;\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(-1, relative=True)
+            code = (
+                "}"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(-1, relative=True)

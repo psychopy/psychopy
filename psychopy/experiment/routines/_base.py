@@ -61,8 +61,8 @@ class BaseStandaloneRoutine:
             label=_translate('Disable component'))
 
     def __repr__(self):
-        _rep = "psychopy.experiment.%s(name='%s', exp=%s)"
-        return _rep % (self.__class__, self.name, self.exp)
+        _rep = "psychopy.experiment.routines.%s(name='%s', exp=%s)"
+        return _rep % (self.__class__.__name__, self.name, self.exp)
 
     def __iter__(self):
         """Overloaded iteration behaviour - if iterated through, a standaloneRoutine returns
@@ -124,12 +124,6 @@ class BaseStandaloneRoutine:
         return
 
     def writeMainCode(self, buff):
-        code = (
-            "\n"
-            "# -------Run Routine '%(name)s'-------\n"
-            "\n"
-        )
-        buff.writeIndentedLines(code % self.params)
         return
 
     def writeRoutineBeginCodeJS(self, buff, modular):
@@ -196,6 +190,14 @@ class BaseStandaloneRoutine:
         if hasattr(self, 'params'):
             if 'name' in self.params:
                 self.params['name'].val = value
+
+    @property
+    def disabled(self):
+        return self.params['disabled'].val
+
+    @disabled.setter
+    def disabled(self, value):
+        self.params['disabled'].val = value
 
 
 class Routine(list):

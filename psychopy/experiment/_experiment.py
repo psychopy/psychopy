@@ -233,17 +233,23 @@ class Experiment:
         self_copy = deepcopy(self)
         for key, routine in list(self_copy.routines.items()):  # PY2/3 compat
             if isinstance(routine, BaseStandaloneRoutine):
-                if routine.params['disabled']:
+                # Remove disabled / unimplemented standalone routines
+                if routine.disabled or target not in routine.targets:
                     for node in self_copy.flow:
                         if node == routine:
                             self_copy.flow.removeComponent(node)
+                            if target not in routine.targets:
+                                # If this routine isn't implemented in target library, print alert and mute it
+                                alertCode = 4335 if target == "PsychoPy" else 4340
+                                alert(alertCode, strFields={'comp': type(routine).__name__})
             else:
-                for component in routine:
-                    try:
-                        if component.params['disabled']:
-                            routine.removeComponent(component)
-                    except KeyError:
-                        pass
+                for component in [comp for comp in routine]:
+                    if component.disabled or target not in component.targets:
+                        routine.removeComponent(component)
+                        if component.targets and target not in component.targets:
+                            # If this component isn't implemented in target library, print alert and mute it
+                            alertCode = 4335 if target == "PsychoPy" else 4340
+                            alert(alertCode, strFields={'comp': type(component).__name__})
 
         if target == "PsychoPy":
             self_copy.settings.writeInitCode(script, self_copy.psychopyVersion,

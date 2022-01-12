@@ -1,0 +1,19 @@
+
+code: 4335
+cat: Components
+msg: The component or routine '{comp}' is only implemented online, so will do nothing when running locally.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Component or routine not implemented in Python
+
+synopsis: |
+  This component is not yet implemented in Python, meaning that it will do nothing in local experiments.
+
+details: |
+  You are receiving this alert as you are compiling an experiment to JavaScript, but the experiment contains a component which only works in JavaScript.
+
+solutions: |
+  No action required.
+
+versions: |
+  > 2022.1.0
