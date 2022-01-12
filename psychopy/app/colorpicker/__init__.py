@@ -8,8 +8,6 @@ import sys
 
 import wx
 import wx.stc as stc
-from .panels import ColorPresets, ColorPreview
-from .pages import ColorPickerPageHSV, ColorPickerPageRGB
 from .ui import ColorPickerDialog
 from psychopy.colors import Color, colorNames
 # from psychopy.localization import _translate
