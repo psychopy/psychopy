@@ -250,15 +250,29 @@ def snapto(x, points):
     x = numpy.asarray(x)
     x1d = x.reshape((-1, 1))
     points = numpy.asarray(points).reshape((1, -1))
-    # Get differences
-    deltas = numpy.abs(x1d - points)
-    # Get indices of smallest deltas
-    i = numpy.argmin(deltas, axis=1)
+
+    if len(x) == len(points[0]):
+        # If there are the same number of values as points, match by sort order
+        xi = numpy.argsort(x)
+        pointsi = numpy.argsort(points[0])
+        i = pointsi[xi]
+    else:
+        # If lengths differ, get differences
+        deltas = numpy.abs(x1d - points)
+        if len(x) < len(points[0]):
+            # If there are more points than values, snap to closest with collision avoidance
+            i = []
+            for c in range(deltas.shape[1]):
+                i.append(numpy.argmin(deltas[:, c]))
+                numpy.delete(deltas, c, 1)
+        if len(x) > len(points[0]):
+            # If there are more values than points, snap to closest without collision avoidance
+            i = numpy.argmin(deltas, axis=1)
+
     # Get corresponding points
     snapped1d = points[0, i]
     # Reshape to original shape of x
     snapped = snapped1d.reshape(x.shape)
-
     return snapped
 
 

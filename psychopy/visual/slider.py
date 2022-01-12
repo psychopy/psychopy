@@ -209,9 +209,6 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         self.status = NOT_STARTED
         self.responseClock = core.Clock()
 
-
-
-
     def __repr__(self, complete=False):
         return self.__str__(complete=complete)  # from MinimalStim
 
