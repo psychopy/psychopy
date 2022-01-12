@@ -326,7 +326,7 @@ class DetailsPanel(wx.Panel):
         # Tags
         self.tagSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(self.tagSizer, flag=wx.EXPAND)
-        self.tagLbl = wx.StaticText(self, label=_translate("Tags:"))
+        self.tagLbl = wx.StaticText(self, label=_translate("Keywords:"))
         self.tagSizer.Add(self.tagLbl, border=6, flag=wx.EXPAND | wx.ALL)
         self.tags = utils.ButtonArray(self, orient=wx.HORIZONTAL, items=[], itemAlias=_translate("tag"))
         self.tags.Bind(wx.EVT_LIST_INSERT_ITEM, self.updateProject)
@@ -448,7 +448,7 @@ class DetailsPanel(wx.Panel):
             self.status.SetStringSelection(project.info['status'])
             self.status.Enable(project.editable)
             # Tags
-            self.tags.items = self.project['tag_list']
+            self.tags.items = self.project.info['keywords']
             self.tags.Enable(project.editable)
 
         # Layout
@@ -558,10 +558,13 @@ class DetailsPanel(wx.Panel):
             self.project['visibility'] = self.visibility.GetStringSelection().lower()
             self.project.save()
         if obj == self.status and self.project.editable:
-            pass
+            requests.put(f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
+                         data={"keywords": self.status.GetStringSelection()},
+                         headers={'OauthToken': self.session.getToken()})
         if obj == self.tags and self.project.editable:
-            self.project['tag_list'] = self.tags.GetValue()
-            self.project.save()
+            requests.put(f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
+                         data={"keywords": self.tags.GetValue()},
+                         headers={'OauthToken': self.session.getToken()})
 
 
 class ProjectFrame(wx.Dialog):
