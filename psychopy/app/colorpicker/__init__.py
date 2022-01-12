@@ -61,6 +61,15 @@ class PsychoColorPicker(ColorPickerDialog):
         Reference to a :class:`~wx.Frame` which owns this dialog.
 
     """
+    # NB: This is a *really* complicated dialog box as controls can update each
+    # other and colors have many different formats that can be used to set
+    # values. If you're not careful, one control updating the values of another
+    # can trigger events which in-turn set the original control. This can lead
+    # to deadlocks that may either stop the control from being updated or cause
+    # an application error. There are probably better ways of doing things here
+    # but beware of these potential pitfalls when making changes to this class.
+    # -- mdc
+    #
     def __init__(self, parent, context=None, allowInsert=True, allowCopy=True):
         ColorPickerDialog.__init__(self, parent)
 
@@ -166,7 +175,10 @@ class PsychoColorPicker(ColorPickerDialog):
 
     @property
     def rgbInputMode(self):
-        """The RGB input mode (`int`)."""
+        """The RGB input mode (`int`). This will update how RGB channels are
+        formatted when set.
+
+        """
         # replaces the older radio box which returned indices
         if self.rdoRGBModePsychoPy.GetValue():
             return 0
@@ -188,9 +200,6 @@ class PsychoColorPicker(ColorPickerDialog):
             self.rdoRGBMode255.SetValue(1)
         else:
             raise IndexError('Invalid index for `rgbInputMode`.')
-
-        global COLORPICKER_STATE
-        COLORPICKER_STATE.rgbInputMode = value
 
         self.updateRGBChannels()
         self.updateDialog()
@@ -298,9 +307,7 @@ class PsychoColorPicker(ColorPickerDialog):
     #
 
     def OnRedScroll(self, event):
-        """Called when the red channel slider is moved. Updates the spin control
-        and the color specified by the dialog.
-
+        """Called when the red (RGB) channel slider is moved.
         """
         self.spnRedChannel.SetValue(
             self._posToValFunc[self.rgbInputMode](
@@ -309,9 +316,7 @@ class PsychoColorPicker(ColorPickerDialog):
         self.updateDialog()
 
     def OnGreenScroll(self, event):
-        """Called when the green channel slider is moved. Updates the spin
-        control and the color specified by the dialog.
-
+        """Called when the green (RGB) channel slider is moved.
         """
         self.spnGreenChannel.SetValue(
             self._posToValFunc[self.rgbInputMode](
@@ -320,9 +325,7 @@ class PsychoColorPicker(ColorPickerDialog):
         self.updateDialog()
 
     def OnBlueScroll(self, event):
-        """Called when the blue channel slider is moved. Updates the spin
-        control and the color specified by the dialog.
-
+        """Called when the blue (RGB) channel slider is moved.
         """
         self.spnBlueChannel.SetValue(
             self._posToValFunc[self.rgbInputMode](
@@ -331,9 +334,7 @@ class PsychoColorPicker(ColorPickerDialog):
         self.updateDialog()
 
     def OnRedSpin(self, event):
-        """Called when the red spin control is changed. Updates the hex value
-        and the color specified by the dialog.
-
+        """Called when the red (RGB) spin control is changed.
         """
         self.sldRedChannel.SetValue(
             self._valToPosFunc[self.rgbInputMode](event.Value))
@@ -341,9 +342,7 @@ class PsychoColorPicker(ColorPickerDialog):
         self.updateDialog()
 
     def OnGreenSpin(self, event):
-        """Called when the green spin control is changed. Updates the hex value
-        and the color specified by the dialog.
-
+        """Called when the green (RGB) spin control is changed.
         """
         self.sldGreenChannel.SetValue(
             self._valToPosFunc[self.rgbInputMode](event.Value))
@@ -351,9 +350,7 @@ class PsychoColorPicker(ColorPickerDialog):
         self.updateDialog()
 
     def OnBlueSpin(self, event):
-        """Called when the blue spin control. Updates the hex value and the
-         color specified by the dialog.
-
+        """Called when the blue (RGB) spin control is changed.
          """
         self.sldBlueChannel.SetValue(
             self._valToPosFunc[self.rgbInputMode](event.Value))
@@ -361,12 +358,21 @@ class PsychoColorPicker(ColorPickerDialog):
         self.updateDialog()
 
     def OnRGBModePsychoPy(self, event):
+        """Called when the user selects 'PsychoPy RGB' mode as the RGB input
+        format.
+        """
         self.updateRGBChannels()
 
     def OnRGBModeNormalized(self, event):
+        """Called when the user selects 'Normalized RGB' mode as the RGB input
+        format.
+        """
         self.updateRGBChannels()
 
     def OnRGBMode255(self, event):
+        """Called when the user selects '8-Bit RGB' mode as the RGB input
+        format.
+        """
         self.updateRGBChannels()
 
     # --------------------------------------------------------------------------
@@ -374,9 +380,7 @@ class PsychoColorPicker(ColorPickerDialog):
     #
 
     def OnHueSpin(self, event):
-        """Called when the hue spin control is changed. Updates the hex value
-        and the color specified by the dialog.
-
+        """Called when the hue (HSV) spin control is changed.
         """
         self.sldHueChannel.SetValue(event.GetValue())
         self.color.hsv = (
@@ -387,9 +391,7 @@ class PsychoColorPicker(ColorPickerDialog):
         self.updateDialog()
 
     def OnHueScroll(self, event):
-        """Called when the hue channel slider is moved. Updates the spin
-        control and the color specified by the dialog.
-
+        """Called when the hue (HSV) channel slider is moved.
         """
         self.spnHueChannel.SetValue(event.Position)
         self.color.hsv = (
@@ -400,9 +402,7 @@ class PsychoColorPicker(ColorPickerDialog):
         self.updateDialog()
 
     def OnSaturationSpin(self, event):
-        """Called when the saturation spin control is changed. Updates the hex
-        value and the color specified by the dialog.
-
+        """Called when the saturation (HSV) spin control is changed.
         """
         self.sldStaturationChannel.SetValue(event.GetValue() * SLIDER_RES)
         self.color.hsv = (
@@ -413,9 +413,7 @@ class PsychoColorPicker(ColorPickerDialog):
         self.updateDialog()
 
     def OnSaturationScroll(self, event):
-        """Called when the saturation channel slider is moved. Updates the spin
-        control and the color specified by the dialog.
-
+        """Called when the saturation (HSV) channel slider is moved.
         """
         self.spnSaturationChannel.SetValue(event.Position / SLIDER_RES)
         self.color.hsv = (
@@ -426,6 +424,8 @@ class PsychoColorPicker(ColorPickerDialog):
         self.updateDialog()
 
     def OnValueSpin(self, event):
+        """Called when the value (HSV) spin control is changed.
+        """
         self.sldValueChannel.SetValue(event.GetValue() * SLIDER_RES)
         self.color.hsv = (
             self.spnHueChannel.GetValue(),
@@ -435,6 +435,8 @@ class PsychoColorPicker(ColorPickerDialog):
         self.updateDialog()
 
     def OnValueScroll(self, event):
+        """Called when the value (HSV) channel slider is moved.
+        """
         self.spnValueChannel.SetValue(event.Position / SLIDER_RES)
         self.color.hsv = (
             self.spnHueChannel.GetValue(),
@@ -448,15 +450,17 @@ class PsychoColorPicker(ColorPickerDialog):
     #
     def OnHexRGBKeyDown(self, event):
         """Called when the user manually enters a hex value into the field.
+
         If the color value is valid, the new value will appear and the channels
-        will update.
+        will update. If not, the box will revert back to the last valid value.
 
         """
         # keydown need to be processed like this on MacOS
         if event.GetKeyCode() == wx.WXK_RETURN:
             oldHexColor = self.color.hex
             try:
-                self.color.rgba = Color(self.txtHexRGB.GetValue(), space='hex').rgba
+                self.color.rgba = Color(
+                    self.txtHexRGB.GetValue(), space='hex').rgba
                 self.updateRGBPage()
                 self.updateHSVPage()
                 self.updateDialog()
@@ -467,7 +471,6 @@ class PsychoColorPicker(ColorPickerDialog):
 
     def updateHex(self):
         """Update the hex/HTML value using the color specified by the dialog.
-
         """
         self.txtHexRGB.SetValue(self.color.hex)
 
@@ -475,7 +478,8 @@ class PsychoColorPicker(ColorPickerDialog):
     # Color preset list methods
     #
     def OnPresetSelect(self, event):
-        """Called when the user selects a preset from the list."""
+        """Called when the user selects a preset from the list.
+        """
         idxSelection = self.lstColorPresets.GetSelection()
         if idxSelection == -1:  # event occurred with no valid selection
             event.Skip()
@@ -545,7 +549,8 @@ class PsychoColorPicker(ColorPickerDialog):
             errDlg.Destroy()
 
     def _saveState(self):
-        """Call this to make dialog value persistent across invocations."""
+        """Call this to make dialog value persistent across invocations.
+        """
         global COLORPICKER_STATE
         COLORPICKER_STATE.color = self.color.copy()
         COLORPICKER_STATE.space = self.cboOutputSpace.GetSelection()
