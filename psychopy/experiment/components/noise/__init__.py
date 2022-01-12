@@ -214,13 +214,13 @@ class NoiseStimComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['noiseBWO'])
             
-        msg = _translate("Orientation of Gabor filter in degrees. Used to set the orienation "
+        msg = _translate("Orientation of Gabor filter in degrees. Used to set the orientation "
                            "of a Gabor filter to be applied to another noise sample with a "
                            "different overall orientation. "
                            "The best way to set the orientation of a Gabor noise sample "
                            "is to leave this as 0 degree and use the overall orientation "
                            "on the Advanced tab to vary the dominant orientation of the noise. "
-                           "If using this setting for orientation it is strongly recomended to set "
+                           "If using this setting for orientation it is strongly recommended to set "
                            "the interpolation method to 'linear' on the Advanced tab to avoid pixelization.")
         self.params['noiseOri'] = Param(
             noiseOri, valType='num', inputType="single", allowedTypes=[], categ='Texture',

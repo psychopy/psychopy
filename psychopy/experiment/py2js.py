@@ -10,6 +10,8 @@ to JS (ES6/PsychoJS)
 """
 
 import ast
+from pathlib import Path
+
 import astunparse
 import esprima
 from os import path
@@ -156,10 +158,15 @@ def addVariableDeclarations(inputProgram, fileName):
 
     # parse Javascript code into abstract syntax tree:
     # NB: esprima: https://media.readthedocs.org/pdf/esprima/4.0/esprima.pdf
+    fileName = Path(str(fileName))
     try:
         ast = esprima.parseScript(inputProgram, {'range': True, 'tolerant': True})
     except esprima.error_handler.Error as err:
-        logging.error("{0} in {1}".format(err, path.split(fileName)[1]))
+        if fileName:
+            logging.error(f"Error parsing JS in {fileName.name}:\n{err}")
+        else:
+            logging.error(f"Error parsing JS: {err}")
+        logging.flush()
         return inputProgram  # So JS can be written to file
 
     # find undeclared vars in functions and declare them before the function

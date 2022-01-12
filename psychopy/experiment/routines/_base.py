@@ -34,7 +34,7 @@ class BaseStandaloneRoutine:
         self.order = ['stopVal', 'stopType', 'name']
 
         msg = _translate(
-            "Name of this routine (alpha-numeric or _, no spaces)")
+            "Name of this routine (alphanumeric or _, no spaces)")
         self.params['name'] = Param(name,
                                     valType='code', inputType="single", categ='Basic',
                                     hint=msg,
@@ -61,8 +61,8 @@ class BaseStandaloneRoutine:
             label=_translate('Disable component'))
 
     def __repr__(self):
-        _rep = "psychopy.experiment.%s(name='%s', exp=%s)"
-        return _rep % (self.__class__, self.name, self.exp)
+        _rep = "psychopy.experiment.routines.%s(name='%s', exp=%s)"
+        return _rep % (self.__class__.__name__, self.name, self.exp)
 
     def __iter__(self):
         """Overloaded iteration behaviour - if iterated through, a standaloneRoutine returns
@@ -82,7 +82,7 @@ class BaseStandaloneRoutine:
             return self
 
     @property
-    def xml(self):
+    def _xml(self):
         # Make root element
         element = Element(self.__class__.__name__)
         element.set("name", self.params['name'].val)
@@ -124,12 +124,6 @@ class BaseStandaloneRoutine:
         return
 
     def writeMainCode(self, buff):
-        code = (
-            "\n"
-            "# -------Run Routine '%(name)s'-------\n"
-            "\n"
-        )
-        buff.writeIndentedLines(code % self.params)
         return
 
     def writeRoutineBeginCodeJS(self, buff, modular):
@@ -160,7 +154,7 @@ class BaseStandaloneRoutine:
     def getComponentFromName(self, name):
         return None
 
-    def getComponentFromType(self, type):
+    def getComponentFromType(self, thisType):
         return None
 
     def hasOnlyStaticComp(self):
@@ -197,6 +191,14 @@ class BaseStandaloneRoutine:
             if 'name' in self.params:
                 self.params['name'].val = value
 
+    @property
+    def disabled(self):
+        return self.params['disabled'].val
+
+    @disabled.setter
+    def disabled(self, value):
+        self.params['disabled'].val = value
+
 
 class Routine(list):
     """
@@ -223,13 +225,13 @@ class Routine(list):
         return _rep % (self.name, self.exp, str(list(self)))
 
     @property
-    def xml(self):
+    def _xml(self):
         # Make root element
         element = Element("Routine")
         element.set("name", self.name)
         # Add each component's element
         for comp in self:
-            element.append(comp.xml)
+            element.append(comp._xml)
 
         return element
 
@@ -596,6 +598,13 @@ class Routine(list):
         buff.writeIndentedLines("}\n")
 
     def writeRoutineEndCode(self, buff):
+        saveHdf5 = self.exp.settings.params['Save hdf5 file'].val
+        if saveHdf5:
+            code = ('# save any cached experiment messages to hdf5 file\n'
+                    'if ioServer:\n'
+                    '    ioServer.sendMessageEvents([])\n')
+            buff.writeIndentedLines(code)
+
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
 
@@ -673,9 +682,9 @@ class Routine(list):
                 return comp
         return None
 
-    def getComponentFromType(self, type):
+    def getComponentFromType(self, thisType):
         for comp in self:
-            if comp.type == type:
+            if comp.type == thisType:
                 return comp
         return None
 

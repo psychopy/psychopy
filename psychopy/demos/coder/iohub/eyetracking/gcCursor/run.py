@@ -194,14 +194,13 @@ if __name__ == "__main__":
         instuction_text = "Press Space Key To Start Trial %d" % t
         instructions_text_stim.setText(instuction_text)
         instructions_text_stim.draw()
-        flip_time = window.flip()
-        io_hub.sendMessageEvent(text="EXPERIMENT_START", sec_time=flip_time)
+        window.flip()
 
         # Wait until a space key press event occurs after the
         # start trial instuctions have been displayed.
         #
         io_hub.clearEvents('all')
-        kb.waitForPresses(keys=['space', ])
+        kb.waitForPresses(keys=[' ', ])
 
         # Space Key has been pressed, start the trial.
         # Set the current session and trial id values to be saved
@@ -210,11 +209,6 @@ if __name__ == "__main__":
 
         trial['session_id'] = io_hub.getSessionID()
         trial['trial_id'] = t+1
-
-        # Send a msg to the ioHub indicating that the trial started, and the time of
-        # the first retrace displaying the trial stm.
-        #
-        io_hub.sendMessageEvent(text="TRIAL_START", sec_time=flip_time)
 
         # Start Recording Eye Data
         #
@@ -278,7 +272,7 @@ if __name__ == "__main__":
             # Check any new keyboard press events by a space key.
             # If one is found, set the trial end variable and break.
             # from the loop
-            if kb.getPresses(keys=['space', ]):
+            if kb.getPresses(keys=[' ', ]):
                 run_trial = False
                 break
 
@@ -287,7 +281,7 @@ if __name__ == "__main__":
         #
         flip_time = window.flip()
         trial['TRIAL_END'] = flip_time
-        io_hub.sendMessageEvent(text="TRIAL_END %d" % t, sec_time=flip_time)
+        io_hub.sendMessageEvent(text="TRIAL_END", sec_time=flip_time)
 
         # Stop recording eye data.
         # In this example, we have no use for any eye data

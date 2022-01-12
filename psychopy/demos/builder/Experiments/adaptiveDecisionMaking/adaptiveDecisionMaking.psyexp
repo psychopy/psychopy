@@ -296,7 +296,7 @@
         <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
         <Param name="stopVal" updates="constant" val="" valType="code"/>
         <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
-        <Param name="text" updates="constant" val="You will be presented with choices between 2 amounts of money.&amp;#10;Some will be delivered at different points in time.&amp;#10;Some have a certain probability of being recieved. If not, you recieve nothing.&amp;#10;&amp;#10;Your job is to consider which you prefer and choose using the LEFT or RIGHT keys.&amp;#10;&amp;#10;There is no correct or incorrect response, please emphasise accuracy in which choice you prefer, no need to rush!&amp;#10;&amp;#10;Press SPACE to continue." valType="str"/>
+        <Param name="text" updates="constant" val="You will be presented with choices between 2 amounts of money.&amp;#10;Some will be delivered at different points in time.&amp;#10;Some have a certain probability of being received. If not, you receive nothing.&amp;#10;&amp;#10;Your job is to consider which you prefer and choose using the LEFT or RIGHT keys.&amp;#10;&amp;#10;There is no correct or incorrect response, please emphasise accuracy in which choice you prefer, no need to rush!&amp;#10;&amp;#10;Press SPACE to continue." valType="str"/>
         <Param name="units" updates="None" val="from exp settings" valType="str"/>
         <Param name="wrapWidth" updates="constant" val="" valType="code"/>
       </TextComponent>

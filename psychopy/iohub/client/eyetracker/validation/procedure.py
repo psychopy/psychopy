@@ -324,7 +324,7 @@ class ValidationProcedure:
         if self.show_intro_screen:
             # Display Validation Intro Screen
             self.showIntroScreen()
-            if self.terminate_key and self.terminate_key in keyboard.waitForReleases(keys=[' ', self.terminate_key]):
+            if self.terminate_key and self.terminate_key in keyboard.waitForReleases(keys=[' ', 'space',self.terminate_key]):
                 print("Escape key pressed. Exiting validation")
                 self._validation_results = None
                 return
@@ -342,15 +342,15 @@ class ValidationProcedure:
 
         if self.show_results_screen:
             self.showResultsScreen()
-            kb_presses = keyboard.waitForPresses(keys=['space', self.terminate_key, self.targetsequence.gaze_cursor_key])
-            while 'space' not in kb_presses:
+            kb_presses = keyboard.waitForPresses(keys=['space',' ', self.terminate_key, self.targetsequence.gaze_cursor_key])
+            while 'space' not in kb_presses and ' ' not in kb_presses:
                 if self.targetsequence.gaze_cursor_key in kb_presses:
                     self.targetsequence.display_gaze = not self.targetsequence.display_gaze
                     self.showResultsScreen()
                 if self.terminate_key in kb_presses:
                     print("Escape key pressed. Exiting validation")
                     break
-                kb_presses = keyboard.waitForPresses(keys=['space',
+                kb_presses = keyboard.waitForPresses(keys=['space', ' ',
                                                            self.terminate_key,
                                                            self.targetsequence.gaze_cursor_key])
 
@@ -378,6 +378,7 @@ class ValidationProcedure:
                                                    wrapWidth=self.win.size[0] * .8)
 
         self.intro_text_stim.draw()
+        self.win.flip()
         return self.win.flip()
 
     @property
@@ -1055,7 +1056,7 @@ class ValidationTargetRenderer:
 
         To setup target animation between grid positions, the following keyword
         arguments are supported. If an option is not specified, the animation
-        related to it is not preformed.
+        related to it is not performed.
 
 
 

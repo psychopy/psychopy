@@ -72,6 +72,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
                  tex="sin",
                  mask="none",
                  units=None,
+                 anchor="center",
                  pos=(0.0, 0.0),
                  size=None,
                  sf=None,
@@ -150,6 +151,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.sf = val2array(sf)
         self.pos = val2array(pos, False, False)
         self.depth = depth
+        self.anchor = anchor
 
         self.tex = tex
         self.mask = mask
@@ -225,7 +227,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.__dict__['phase'] = value
         self._needUpdate = True
 
-    # overload ColorMixin methods so tht they refresh the image after being called
+    # overload ColorMixin methods so that they refresh the image after being called
     @property
     def foreColor(self):
         # Call setter of parent mixin

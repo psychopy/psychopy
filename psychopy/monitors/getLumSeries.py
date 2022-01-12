@@ -135,7 +135,7 @@ def getLumSeries(lumLevels=8,
             # only do luminanc=-1 once
             if lum == -1 and gun > 0:
                 continue
-            # set hte patch color
+            # set the patch color
             if gun > 0:
                 rgb = [-1, -1, -1]
                 rgb[gun - 1] = lum

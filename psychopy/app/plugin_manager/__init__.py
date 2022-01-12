@@ -1,4 +1,4 @@
-"""Plugin manger for PsychoPy GUI apps (Builder and Coder)."""
+"""Plugin manager for PsychoPy GUI apps (Builder and Coder)."""
 
 from pkg_resources import parse_version
 import wx

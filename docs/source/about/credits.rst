@@ -32,7 +32,7 @@ Support and training providers
 
 Software projects aren't just about code. A great deal of work is done by the community in terms of supporting each other.
 
-You can see the most `active posters on the user forum <https://discourse.psychopy.org/u?period=all>`_ and those `answering PsychoPy questions on StackOverflow here <http://stackoverflow.com/tags/psychopy/info>`_ but notable examples that have done a fantastic job of supporting users:
+You can see the most `active posters on the user forum <https://discourse.psychopy.org/u?period=all>`_ and those `answering PsychoPy questions on StackOverflow here <https://stackoverflow.com/tags/psychopy/info>`_ but notable examples that have done a fantastic job of supporting users:
 
 - Mike MacAskill (New Zealand)
 - Jonas Lindeløv (Denmark)

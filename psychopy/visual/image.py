@@ -45,6 +45,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
                  units="",
                  pos=(0.0, 0.0),
                  size=None,
+                 anchor="center",
                  ori=0.0,
                  color=(1.0, 1.0, 1.0),
                  colorSpace='rgb',
@@ -84,6 +85,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         self.isLumImage = None
         self.interpolate = interpolate
         self.vertices = None
+        self.anchor = anchor
         self.flipHoriz = flipHoriz
         self.flipVert = flipVert
         self._requestedSize = size
@@ -221,7 +223,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         # return the view to previous state
         GL.glPopMatrix()
 
-    # overload ColorMixin methods so tht they refresh the image after being called
+    # overload ColorMixin methods so that they refresh the image after being called
     @property
     def foreColor(self):
         # Call setter of parent mixin

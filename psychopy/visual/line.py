@@ -128,6 +128,7 @@ class Line(ShapeStim):
                  lineColorSpace=None,
                  pos=(0, 0),
                  size=1.0,
+                 anchor="center",
                  ori=0.0,
                  opacity=None,
                  contrast=1.0,
@@ -161,6 +162,7 @@ class Line(ShapeStim):
             fillColor=None,
             fillColorSpace=lineColorSpace,  # have these set to the same
             vertices=None,
+            anchor=anchor,
             closeShape=False,
             pos=pos,
             size=size,

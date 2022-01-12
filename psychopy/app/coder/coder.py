@@ -163,7 +163,7 @@ class PsychopyPyShell(wx.py.shell.Shell, ThemeMixin):
 class Printer(HtmlEasyPrinting):
     """bare-bones printing, no control over anything
 
-    from http://wiki.wxpython.org/Printing
+    from https://wiki.wxpython.org/Printing
     """
 
     def __init__(self):
@@ -739,7 +739,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
             return 'Plain Text'  # default, null lexer used
 
     def getTextUptoCaret(self):
-        """Get the text upto the caret."""
+        """Get the text up to the caret."""
         return self.GetTextRange(0, self.caretCurrentPos)
 
     def OnKeyReleased(self, event):
@@ -1109,7 +1109,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
             start = self.GetSelection()[1]
             loc = textstring.find(findstring, start)
 
-        # if it wasn't found then restart at begining
+        # if it wasn't found then restart at beginning
         if loc == -1 and start != 0:
             if backward:
                 start = end
@@ -1142,6 +1142,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
 
     def __init__(self, parent, ID, title, files=(), app=None):
         self.app = app  # type: psychopy.app.PsychoPyApp
+        self.session = pavlovia.getCurrentSession()
         self.frameType = 'coder'
         # things the user doesn't set like winsize etc
         self.appData = self.app.prefs.appData['coder']
@@ -2079,7 +2080,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
             dlg.Destroy()
 
     # def pluginManager(self, evt=None, value=True):
-    #     """Show the plugin manger frame."""
+    #     """Show the plugin manager frame."""
     #     PluginManagerFrame(self).ShowModal()
 
     def OnFindOpen(self, event):
@@ -2096,7 +2097,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.findDlg.Show()
 
     def OnFindNext(self, event):
-        # find the next occurence of text according to last find dialogue data
+        # find the next occurrence of text according to last find dialogue data
         if not self.findData.GetFindString():
             self.OnFindOpen(event)
             return
@@ -2172,7 +2173,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 and len(self.app.getAllFrames(frameType="runner")) == 0
                 and sys.platform != 'darwin'):
             if not self.app.quitting:
-                # send the event so it can be vetoed if neded
+                # send the event so it can be vetoed if needed
                 self.app.quit(event)
                 return  # app.quit() will have closed the frame already
 
@@ -2636,7 +2637,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.app.runner.Raise()
         if event:
             if event.Id in [self.cdrBtnRun.Id, self.IDs.cdrRun]:
-                self.app.runner.panel.runLocal(event)
+                self.app.runner.panel.runLocal(event, focusOnExit='coder')
                 self.Raise()
             else:
                 self.app.showRunner()
@@ -2846,7 +2847,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         """Push changes to project repo, or create new proj if proj is None"""
         self.project = pavlovia.getProject(self.currentDoc.filename)
         self.fileSave(self.currentDoc.filename)  # Must save on sync else changes not pushed
-        pavlovia_ui.syncProject(parent=self, project=self.project)
+        pavlovia_ui.syncProject(parent=self, file=self.currentDoc.filename, project=self.project)
 
     def onPavloviaRun(self, evt=None):
         # TODO: Allow user to run project from coder

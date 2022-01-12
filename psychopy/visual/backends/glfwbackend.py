@@ -20,7 +20,6 @@ import glob
 import numpy as np
 from psychopy import logging, event, prefs, core
 from psychopy.tools.attributetools import attributeSetter
-from psychopy.visual import window
 from .gamma import createLinearRamp
 import psychopy.hardware.mouse as mouse
 from .. import globalVars
@@ -160,7 +159,7 @@ class GLFWBackend(BaseBackend):
     """
     GL = pyglet.gl  # use Pyglet's OpenGL interface for now, should use PyOpenGL
     winTypeName = 'glfw'  # needed to identify class for plugins
-
+    _next_hw_handle=1
     def __init__(self, win, backendConf=None):
         BaseBackend.__init__(self, win)
 
@@ -368,6 +367,9 @@ class GLFWBackend(BaseBackend):
                        "GL_ARB_texture_float is not supported. Disabling")
                 logging.warn(msg)
                 win.useFBO = False
+
+        win._hw_handle = GLFWBackend._next_hw_handle
+        GLFWBackend._next_hw_handle += 1
 
         # Assign event callbacks, these are dispatched when 'poll_events' is
         # called.
@@ -649,30 +651,82 @@ class GLFWBackend(BaseBackend):
         if glfw.window_should_close(self.winHandle):
             return
 
-        _hw_handle = None
-
         try:
             self.setMouseVisibility(True)
             glfw.set_window_should_close(self.winHandle, 1)
             glfw.destroy_window(self.winHandle)
         except Exception:
             pass
-        # If iohub is running, inform it to stop looking for this win id
-        # when filtering kb and mouse events (if the filter is enabled of
-        # course)
-        try:
-            if window.IOHUB_ACTIVE and _hw_handle:
-                from psychopy.iohub.client import ioHubConnection
-                conn = ioHubConnection.ACTIVE_CONNECTION
-                conn.unregisterWindowHandles(_hw_handle)
-        except Exception:
-            pass
 
     def setFullScr(self, value):
-        """Sets the window to/from full-screen mode"""
-        raise NotImplementedError(
-            "Toggling fullscreen mode is not currently supported on GFLW "
-            "windows")
+        """Sets the window to/from full-screen mode.
+
+        Parameters
+        ----------
+        value : bool or int
+            If `True`, resize the window to be fullscreen.
+
+        """
+        # convert value to correct type
+        value = bool(value)
+        # get monitor handle for the window
+        monitor = glfw.get_window_monitor(self.winHandle)
+        # get the video mode for the monitor
+        # get monitors, with GLFW the primary display is ALWAYS at index 0
+        allScrs = glfw.get_monitors()
+        if len(allScrs) < int(self.win.screen) + 1:
+            logging.warn("Requested an unavailable screen number - "
+                         "using first available.")
+            self.win.screen = 0
+
+        thisScreen = allScrs[self.win.screen]
+        if self.win.autoLog:
+            logging.info('configured GLFW screen %i' % self.win.screen)
+
+        # get monitor information
+        nativeVidmode = glfw.get_video_mode(thisScreen)
+        refreshRateHz = nativeVidmode.refresh_rate
+        scrWidth, scrHeight = nativeVidmode.size
+        winWidth, winHeight = nativeVidmode.size if value else self.win.windowedSize
+
+        # set the monitor
+        # glfw.window_hint(glfw.DECORATED, glfw.FALSE)
+        glfw.set_window_monitor(
+            self.winHandle,
+            monitor if value else None,  # if `None` windowed, else fullscreen
+            0, 0,  # position keep zero and set later
+            nativeVidmode.size[0] if value else self.win.windowedSize[0],
+            nativeVidmode.size[1] if value else self.win.windowedSize[1],
+            refreshRateHz)
+
+        if not value:  # extra stuff for non-fullscreen
+            # if no window position is specified, centre it on-screen
+            if self.win.pos is None:
+                self.win.pos = [
+                    (scrWidth - winWidth) / 2.0,
+                    (scrHeight - winHeight) / 2.0]
+
+            # get the virtual position of the monitor, apply offset to the
+            # window position
+            px, py = glfw.get_monitor_pos(thisScreen)
+            glfw.set_window_pos(
+                self.winHandle,
+                int(self.win.pos[0] + px),
+                int(self.win.pos[1] + py))
+
+        # get the reported client size
+        self.win.clientSize[:] = glfw.get_window_size(self.winHandle)
+        self.frameBufferSize[:] = glfw.get_framebuffer_size(self.winHandle)
+        self.win.viewport = (
+            0, 0,
+            self._frameBufferSize[0],
+            self._frameBufferSize[1])
+        self.win.scissor = (
+            0, 0,
+            self._frameBufferSize[0],
+            self._frameBufferSize[1])
+
+        self.win.resetEyeTransform()
 
     # --------------------------------------------------------------------------
     # Mouse button event handlers

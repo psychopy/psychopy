@@ -220,7 +220,7 @@ class KeyboardInputEvent(DeviceEvent):
         #: List of the modifiers that were active when the key was pressed, provide in
         #: online events as a list of the modifier constant labels specified in
         #: iohub.ModifierConstants
-        #: list: Empty if no modifiers are pressed, otherwise each elemnt is the string name of a modifier constant.
+        #: list: Empty if no modifiers are pressed, otherwise each element is the string name of a modifier constant.
         self.modifiers = 0
 
         #: The id or handle of the window that had focus when the key was pressed.
@@ -277,7 +277,7 @@ class KeyboardPressEvent(KeyboardInputEvent):
     If auto repeat key events are not desired at all, then the keyboard configuration
     setting 'report_auto_repeat_press_events' can be used to disable these
     events by having the ioHub Server filter the unwanted events out. By default
-    this keyboard configuartion parameter is set to True.
+    this keyboard configuration parameter is set to True.
 
     Event Type ID: EventConstants.KEYBOARD_PRESS
 
