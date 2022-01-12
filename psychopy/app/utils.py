@@ -12,6 +12,7 @@ import os
 import re
 from pathlib import Path
 
+import numpy
 from wx.lib.agw.aui.aui_constants import *
 import wx.lib.statbmp
 from wx.lib.agw.aui.aui_utilities import IndentPressedBitmap, ChopText, TakeScreenShot
@@ -394,7 +395,8 @@ class ButtonArray(wx.Window):
     def items(self, value):
         if isinstance(value, str):
             value = [value]
-
+        if value is None or value is numpy.nan:
+            value = []
         assert isinstance(value, (list, tuple))
 
         value.reverse()
