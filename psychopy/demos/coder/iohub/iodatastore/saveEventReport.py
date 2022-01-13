@@ -23,8 +23,8 @@ USE_PSYCHOPY_DATA_FILE = True
 
 # Specify the experiment message text used to split events into trial periods.
 # Set both to None to save all events.
-TRIAL_START = 'text.started' #  'target.started'
-TRIAL_END = 'fix_end_stim.started' #  'fix_end_stim.started'
+TRIAL_START = None#'text.started' #  'target.started'
+TRIAL_END = None#'fix_end_stim.started' #  'fix_end_stim.started'
 
 # Specify which event type to save. Setting to None will prompt to select an event table
 SAVE_EVENT_TYPE = None  # 'MonocularEyeSampleEvent'
