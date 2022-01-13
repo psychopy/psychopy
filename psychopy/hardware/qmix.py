@@ -10,7 +10,7 @@ Simple interface to the Cetoni neMESYS syringe pump system, based on the
 `pyqmix <https://github.com/psyfood/pyqmix/>`_ library. The syringe pump
 system is described in the following publication:
 
-    CA Andersen, L Alfine, K Ohla, & R Höchenberger (2018):
+    CA Andersen, L Alfine, K Ohla, & R Höchenberger (2018):
     "A new gustometer: Template for the construction of a portable and
      modular stimulator for taste and lingual touch."
     Behavior Research Methods. doi: 10.3758/s13428-018-1145-1
