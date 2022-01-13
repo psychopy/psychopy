@@ -547,9 +547,14 @@ class DetailsPanel(wx.Panel):
                 self.project.localRoot = self.localRoot.Value
             else:
                 dlg = wx.MessageDialog(self,
-                                 message=f"Could not find directory {self.localRoot.Value}, could not change local root.",
-                                 caption="Directory not found",
-                                 style=wx.ICON_ERROR)
+                                       message=_translate(
+                                           "Could not find folder {directory}, please select a different "
+                                           "local root.".format(directory=self.localRoot.Value)
+                                       ),
+                                       caption="Directory not found",
+                                       style=wx.ICON_ERROR)
+                self.localRoot.SetValue("")
+                self.project.localRoot = ""
                 dlg.ShowModal()
         if obj == self.description and self.project.editable:
             self.project['description'] = self.description.Value
