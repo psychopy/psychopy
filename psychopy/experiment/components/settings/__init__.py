@@ -383,7 +383,7 @@ class SettingsComponent:
 
         self.params['eyetracker'] = Param(
             eyetracker, valType='str', inputType="choice",
-            allowedVals=list(ioDeviceMap) + ["None"],
+            allowedVals=list(ioDeviceMap),
             hint=_translate("What kind of eye tracker should PsychoPy use? Select 'MouseGaze' to use "
                             "the mouse to simulate eye movement (for debugging without a tracker connected)"),
             label=_translate("Eyetracker Device"), categ="Eyetracking"
