@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from pathlib import Path
 
+from psychopy.tests import utils
 from psychopy.tests.test_visual.test_basevisual import _TestColorMixin
 from psychopy.visual.window import Window
 from psychopy.visual.slider import Slider
@@ -91,21 +93,36 @@ class Test_Slider(_TestColorMixin):
         assert s._posToRating((-.5, 0)) == 1
         assert s._posToRating((.5, 0)) == 5
 
-    def test_tickLocs(self):
-        s = Slider(self.win, size=(1, 0.1), )
-        assert s.tickParams['xys'][0][0] == -.5 and s.tickParams['xys'][0][1] == 0.0
-        assert s.tickParams['xys'][1][0] == -.25 and s.tickParams['xys'][1][1] == 0.0
-        assert s.tickParams['xys'][2][0] == .0 and s.tickParams['xys'][2][1] == 0.0
-        assert s.tickParams['xys'][3][0] == .25 and s.tickParams['xys'][3][1] == 0.0
-        assert s.tickParams['xys'][4][0] == .5 and s.tickParams['xys'][4][1] == 0.0
-
-    def test_labelLocs(self):
-        s = Slider(self.win, size=(1, 0.1), labels=('a','b','c','d','e'))
-        assert s.labelParams['pos'][0, 0] == -.5 and s.labelParams['pos'][0, 1] == 0
-        assert s.labelParams['pos'][1, 0] == -.25 and s.labelParams['pos'][1, 1] == 0
-        assert s.labelParams['pos'][2, 0] == .0 and s.labelParams['pos'][2, 1] == 0
-        assert s.labelParams['pos'][3, 0] == .25 and s.labelParams['pos'][3, 1] == 0
-        assert s.labelParams['pos'][4, 0] == .5 and s.labelParams['pos'][4, 1] == 0
+    def test_tick_and_label_locs(self):
+        exemplars = [
+            {'ticks': [1, 2, 3, 4, 5], 'labels': ["a", "b", "c", "d", "e"], 'tag': "simple"},
+            {'ticks': [1, 2, 3, 9, 10], 'labels': ["a", "b", "c", "d", "e"], 'tag': "clustered"},
+            {'ticks': [1, 2, 3, 4, 5], 'labels': ["", "b", "c", "d", ""], 'tag': "blanks"},
+            {'ticks': None, 'labels': ["a", "b", "c", "d", "e"], 'tag': "noticks"},
+            {'ticks': [1, 2, 3, 4, 5], 'labels': None, 'tag': "nolabels"},
+        ]
+        tykes = [
+            {'ticks': [1, 2, 3], 'labels': ["a", "b", "c", "d", "e"], 'tag': "morelabels"},
+            {'ticks': [1, 2, 3, 4, 5], 'labels': ["a", "b", "c"], 'tag': "moreticks"},
+            {'ticks': [1, 9, 10], 'labels': ["a", "b", "c", "d", "e"], 'tag': "morelabelsclustered"},
+            {'ticks': [1, 7, 8, 9, 10], 'labels': ["a", "b", "c", "d"], 'tag': "moreticksclustered"},
+        ]
+        # Test all cases
+        self.win.flip()
+        for case in exemplars + tykes:
+            # Make vertical slider
+            vert = Slider(self.win, size=(0.1, 0.5), pos=(-0.25, 0), units="height",
+                          labels=case['labels'], ticks=case['ticks'])
+            vert.draw()
+            # Make horizontal slider
+            horiz = Slider(self.win, size=(0.5, 0.1), pos=(0.2, 0), units="height",
+                           labels=case['labels'], ticks=case['ticks'])
+            horiz.draw()
+            # Compare screenshot
+            filename = "test_slider_ticklabelloc_%(tag)s.png" % case
+            #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+            utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win)
+            self.win.flip()
 
     def test_granularity(self):
         s = Slider(self.win, size=(1, 0.1), granularity=1)
