@@ -193,7 +193,7 @@ class BaseStandaloneRoutine:
 
     @property
     def disabled(self):
-        return self.params['disabled'].val
+        return bool(self.params['disabled'])
 
     @disabled.setter
     def disabled(self, value):
