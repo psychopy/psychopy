@@ -453,6 +453,8 @@ class Job:
             self._pollTimer.Stop()
 
         # flush remaining data from pipes, process it
+        self._process.InputStream.flush()
+        self._process.ErrorStream.flush()
         self.poll()
 
         pid = event.GetPid()
