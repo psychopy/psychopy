@@ -1180,7 +1180,9 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 
     def __del__(self):
         try:
-            self._releaseVLCInstance()
+            if hasattr(self, '_player'):
+                # false if crashed before creating instance
+                self._releaseVLCInstance()
         except (ImportError, ModuleNotFoundError, TypeError):
             pass  # has probably been garbage-collected already
 
