@@ -116,7 +116,7 @@ class ScriptProcess:
         # build the shell command to run the script
         # pyExec = '"' + pyExec + '"'  # use quotes to prevent issues with spaces
         # fullPath = '"' + fullPath + '"'
-        command = [pyExec, '-u', fullPath]  # passed to the Job object
+        command = ' '.join([pyExec, '-u', fullPath])  # passed to the Job object
 
         # create a new job with the user script
         self.scriptProcess = jobs.Job(
@@ -243,12 +243,6 @@ class ScriptProcess:
             Program exit code.
 
         """
-        # get remaining data from pipes if available
-        if self.scriptProcess.isInputAvailable:
-            self._writeOutput(self.scriptProcess.getInputData())
-        if self.scriptProcess.isErrorAvailable:
-            self._writeOutput(self.scriptProcess.getErrorData())
-
         # write a close message, shows the exit code
         closeMsg = \
             " Experiment ended with exit code {} [pid:{}] ".format(
