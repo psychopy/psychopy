@@ -758,7 +758,7 @@ class _baseVisualTest():
 class TestPygletNorm(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50],
+        self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50],
                                  allowStencil=True, autoLog=False)
         self.contextName='norm'
         self.scaleFactor=1#applied to size/pos values
@@ -766,7 +766,7 @@ class TestPygletNorm(_baseVisualTest):
 class TestPygletHexColor(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50],
+        self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50],
                                  color="#FF0099",
                                  allowStencil=True, autoLog=False)
         self.contextName='normHexbackground'
@@ -776,7 +776,7 @@ if not _travisTesting:
     class TestPygletBlendAdd(_baseVisualTest):
         @classmethod
         def setup_class(self):
-            self.win = visual.Window([128,128], winType='pyglet', pos=[50,50],
+            self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50],
                                      blendMode='add', useFBO=True)
             self.contextName='normAddBlend'
             self.scaleFactor=1#applied to size/pos values
@@ -785,7 +785,7 @@ if not _travisTesting:
 class TestPygletNormFBO(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50],
+        self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50],
                                  allowStencil=True, autoLog=False, useFBO=True)
         self.contextName='norm'
         self.scaleFactor=1#applied to size/pos values
@@ -794,7 +794,7 @@ class TestPygletNormFBO(_baseVisualTest):
 class TestPygletHeight(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,64], winType='pyglet', pos=[50,50],
+        self.win = visual.Window([128,64], monitor='testMonitor', winType='pyglet', pos=[50,50],
                                  allowStencil=False, autoLog=False)
         self.contextName='height'
         self.scaleFactor=1#applied to size/pos values
