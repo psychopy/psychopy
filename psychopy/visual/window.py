@@ -201,7 +201,7 @@ class Window(object):
             Size of the window in pixels [x, y].
         pos : array-like of int
             Location of the top-left corner of the window on the screen [x, y].
-        color : `rray-like of float
+        color : array-like of float
             Color of background as [r, g, b] list or single value. Each gun can
             take values between -1.0 and 1.0.
         fullscr : bool or None
