@@ -116,8 +116,14 @@ class ScriptProcess:
             execFlags |= jobs.EXEC_MAKE_GROUP_LEADER
 
         # build the shell command to run the script
-        execCmd = '"import os; os.chdir({}); exec(open({}).read())"'
-        execCmd = execCmd.format(repr(workingDir), repr(fullPath))
+        execCmd = (
+            '"__file__={fileName}; '
+            'import os; os.chdir({cwd}); '
+            'exec(open({fullPath}, encoding=\'utf-8-sig\').read())"')
+        execCmd = execCmd.format(
+            fileName=repr(fileName),
+            cwd=repr(workingDir),
+            fullPath=repr(fullPath))
         command = ' '.join([pyExec, '-c', execCmd])  # passed to the Job object
 
         # create a new job with the user script
