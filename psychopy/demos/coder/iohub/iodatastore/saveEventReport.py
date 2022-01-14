@@ -19,7 +19,10 @@ from psychopy.iohub.datastore.util import saveEventReport
 IOHUB_DATA_FILE = None
 
 # If True, psychopy .csv file with same path as IOHUB_DATA_FILE will be used
-USE_PSYCHOPY_DATA_FILE = True
+USE_PSYCHOPY_DATA_FILE = False
+
+# If True, iohub .hdf5 condition variable table will be used to split events based on TRIAL_START and TRIAL_END
+USE_CONDITIONS_TABLE = False
 
 # Specify the experiment message text used to split events into trial periods.
 # Set both to None to save all events.
@@ -39,9 +42,13 @@ SAVE_EVENT_FIELDS = None  # ['time', 'gaze_x', 'gaze_y', 'pupil_measure1', 'stat
 # SAVE_EVENT_FIELDS = ['time', 'text']
 
 if __name__ == '__main__':
-    result = saveEventReport(hdf5FilePath=IOHUB_DATA_FILE, eventType=SAVE_EVENT_TYPE, eventFields=SAVE_EVENT_FIELDS,
-                             trialStart=TRIAL_START, trialStop=TRIAL_END,
-                             usePsychopyDataFile=USE_PSYCHOPY_DATA_FILE)
+    result = saveEventReport(hdf5FilePath=IOHUB_DATA_FILE,
+                             eventType=SAVE_EVENT_TYPE,
+                             eventFields=SAVE_EVENT_FIELDS,
+                             useConditionsTable=USE_CONDITIONS_TABLE,
+                             usePsychopyDataFile=USE_PSYCHOPY_DATA_FILE,
+                             trialStart=TRIAL_START,
+                             trialStop=TRIAL_END)
     if result:
         file_saved, events_saved = result
         print("Saved %d events to %s." % (events_saved, file_saved))

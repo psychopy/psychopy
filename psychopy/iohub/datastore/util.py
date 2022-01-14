@@ -141,9 +141,17 @@ def saveEventReport(hdf5FilePath=None, eventType=None, eventFields=[], useCondit
             datafile.close()
             raise RuntimeError("saveEventReport requires eventType. No report saved.")
 
-    trial_times = []
-    psychoResults = None
+    # Get the event table to generate report for
+    event_table = datafile.getEventTable(eventType)
 
+    if not eventFields:
+        # If no event fields were specified, report (almost) all event fields.
+        eventFields = [c for c in event_table.colnames if c not in ['experiment_id', 'session_id', 'device_id',
+                                                                    'type', 'filter_id']]
+    trial_times = []
+    column_names = []
+
+    psychoResults = None
     psychopyDataFile = None
     if usePsychopyDataFile is True:
         psychopyDataFile = hdf5FilePath[:-4] + 'csv'
@@ -186,22 +194,43 @@ def saveEventReport(hdf5FilePath=None, eventType=None, eventFields=[], useCondit
             datafile.close()
             raise ValueError("saveEventReport trialStart and trialStop must be specified when using psychopyDataFile.")
 
+    cvTable = None
     if useConditionsTable is True:
-        # TODO: Use hdf5 conditions table columns 'trialStart' and 'trialStop' to group events
-        if trialStart is None and trialStop is None:
-            # If both trialStart and trialStop are None, display selection dialogs
-            # TODO: Let user select trial start and stop columns from conditions table
-            pass
+        # Use hdf5 conditions table columns 'trialStart' and 'trialStop' to group events
+        if trialStart is None or trialStop is None:
+            # If either trialStart and trialStop are None, display selection dialogs
+            try:
+                cvColumnNames = datafile.getConditionVariableNames()[2:]
+            except Exception as e:
+                #datastore Conditions table must not exist
+                datafile.close()
+                raise RuntimeError("saveEventReport: Error calling datafile.getConditionVariableNames().\n{}".format(e))
+
+            if trialStart is None:
+                trialStart = displayEventTableSelectionDialog("Select Event Grouping Start Time Column",
+                                                              "Columns", list(cvColumnNames))
+            if trialStop is None:
+                trialStop = displayEventTableSelectionDialog("Select Event Grouping End Time Column",
+                                                              "Columns", [cn for cn in cvColumnNames if cn != trialStart])
+
 
         if trialStart is None or trialStop is None:
             datafile.close()
             raise ValueError("saveEventReport: trialStart and trialStop must be specified "
                              "when useConditionsTable is True.")
 
-        print("TODO: Use hdf5 conditions table columns 'trialStart' and 'trialStop' to group events")
-        # TODO: Check that conditions table exists, or give error
-        # TODO: Check that trialStart exists as conditions table column, or give error
-        # TODO: Check that trialStop exists as conditions table column, or give error
+        if trialStart not in cvColumnNames:
+            datafile.close()
+            raise ValueError("saveEventReport:"
+                             " trialStart column not found in trial condition variables table: %s" % trialStart)
+        if trialStop not in cvColumnNames:
+            datafile.close()
+            raise ValueError("saveEventReport:"
+                             " trialStop column not found in trial condition variables table: %s" % trialStop)
+
+        cvTable = datafile.getConditionVariablesTable()
+        for t_ix, r in enumerate(cvTable):
+            trial_times.append([t_ix, r[trialStart] - timeMargins[0], r[trialStop] + timeMargins[1]])
 
     if useConditionsTable is False and psychoResults is None and trialStart and trialStop:
         # Create a table of trial_index, trial_start_time, trial_end_time for each trial by
@@ -222,14 +251,6 @@ def saveEventReport(hdf5FilePath=None, eventType=None, eventFields=[], useCondit
         raise RuntimeError("Warning: saveEventReport requires trialStart and trialStop to be strings or both None."
                            " No report saved.")
 
-    # Get the event table to generate report for
-    event_table = datafile.getEventTable(eventType)
-
-    if not eventFields:
-        # If no event fields were specified, report (almost) all event fields.
-        eventFields = [c for c in event_table.colnames if c not in ['experiment_id', 'session_id', 'device_id',
-                                                                    'type', 'filter_id']]
-
     if eventType == 'MessageEvent':
         # Sort experiment messages by time since they may not be ordered chronologically.
         event_table = event_table.read()
@@ -242,21 +263,16 @@ def saveEventReport(hdf5FilePath=None, eventType=None, eventFields=[], useCondit
         # Save header row to file
         if trial_times:
             if useConditionsTable:
-                # TODO: Add header columns for conditions table
-                print("TODO: Add header columns for conditions table")
+                cvtColumnNames = datafile.getConditionVariableNames()[2:]
                 if columnNames:
-                    # TODO: Check that columnNames are valid for conditions table
-                    print("TODO: Check that columnNames are valid for conditions table")
-                    # for cname in columnNames:
-                    #    if cname not in psychoResults.columns:
-                    #        datafile.close()
-                    #        raise ValueError("saveEventReport: psychopyDataFileColumn '%s' not found in .csv file." % cname)
+                    for cname in columnNames:
+                        if cname not in cvtColumnNames:
+                            datafile.close()
+                            raise ValueError("saveEventReport: .hdf5 conditions table column '%s' not found." % cname)
                     column_names = list(columnNames) + eventFields
                 else:
-                    # TODO: Save all conditions table columns to header
-                    print("TODO: Save all conditions table columns to header")
-                    # column_names = list(psychoResults.columns) + eventFields
-                    # columnNames = list(psychoResults.columns)
+                    column_names = list(cvtColumnNames) + eventFields
+                    columnNames = list(cvtColumnNames)
 
             elif hasattr(psychoResults, 'columns'):
                 if columnNames:
@@ -307,9 +323,16 @@ def saveEventReport(hdf5FilePath=None, eventType=None, eventFields=[], useCondit
                 if trial_times:
                     tindex, tstart, tstop = trial_times[tid]
                     if useConditionsTable:
-                        # TODO: Save conditions table columnNames to row output
-                        print("TODO: Save conditions table columnNames to row output")
-                        # output_file.write('\t'.join(prowdat + event_data))
+                        cvRow=cvTable.read(tindex, tindex+1)
+                        cvrowdat = [cvRow[c][0] for c in columnNames]
+                        for ri, cv in enumerate(cvrowdat):
+                            if type(cv) == numpy.bytes_:
+                                cvrowdat[ri] = cvrowdat[ri].decode('utf-8')
+                            else:
+                                cvrowdat[ri] = str(cvrowdat[ri])
+                            if type(cv) == str and len(cv) == 0:
+                                cvrowdat[ri] = '.'
+                        output_file.write('\t'.join(cvrowdat + event_data))
                     elif hasattr(psychoResults, 'columns'):
                         drow = psychoResults.iloc[tindex]
                         prowdat = [str(drow[c]) for c in columnNames]
