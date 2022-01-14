@@ -9,8 +9,8 @@ import pyglet
 class Test_Custommouse():
     @classmethod
     def setup_class(self):
-        self.win = Window([128,256])
-        self.winpix = Window([128,256], units='pix', autoLog=False)
+        self.win = Window([128,256], monitor='testMonitor')
+        self.winpix = Window([128,256], monitor='testMonitor', units='pix', autoLog=False)
     @classmethod
     def teardown_class(self):
         for win in [self.win, self.winpix]:

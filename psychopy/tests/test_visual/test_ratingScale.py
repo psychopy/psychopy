@@ -21,8 +21,8 @@ class Test_class_RatingScale:
     """RatingScale internal logic, no check that its drawn correctly
     """
     def setup_class(self):
-        self.win = Window([128,128], pos=[50,50], allowGUI=False, autoLog=False)
-        self.winpix = Window([128,128], pos=[50,50], allowGUI=False, units='pix', autoLog=False)
+        self.win = Window([128,128], monitor='testMonitor', pos=[50,50], allowGUI=False, autoLog=False)
+        self.winpix = Window([128,128], monitor='testMonitor', pos=[50,50], allowGUI=False, units='pix', autoLog=False)
         self.r = RatingScale(self.win, autoLog=False)
 
     def teardown_class(self):
