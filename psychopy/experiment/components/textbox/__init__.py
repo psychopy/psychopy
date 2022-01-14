@@ -46,7 +46,7 @@ class TextboxComponent(BaseVisualComponent):
                  text=_translate('Any text\n\nincluding line breaks'),
                  font='Open Sans', units='from exp settings', bold=False, italic=False,
                  color='white', colorSpace='rgb', opacity="",
-                 pos=(0, 0), size=(None, None), letterHeight=0.05, ori=0,
+                 pos=(0, 0), size=(None, None), letterHeight="", ori=0,
                  anchor='center', alignment='top-left',
                  lineSpacing=1.0, padding=0,  # gap between box and text
                  startType='time (s)', startVal=0.0,

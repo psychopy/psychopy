@@ -6,6 +6,9 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import copy
+
+import numpy
+
 import psychopy
 from .text import TextStim
 from .rect import Rect
@@ -1116,6 +1119,43 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             if 'responseCtrl' in item:
                 if isinstance(item['responseCtrl'], psychopy.visual.Slider):
                     item['responseCtrl'].fillColor = self._markerColor
+
+    @property
+    def letterHeight(self):
+        if hasattr(self, "_letterHeight"):
+            return getattr(self._letterHeight, self.units)[1]
+
+    @letterHeight.setter
+    def letterHeight(self, value):
+        if isinstance(value, layout.Vector):
+            # If given a Vector, use it directly
+            self._letterHeight = value
+        elif isinstance(value, (int, float)):
+            # If given an integer, convert it to a 2D Vector with width 0
+            self._letterHeight = layout.Size([0, value], units=self.units, win=self.win)
+        elif value is None:
+            # If None, use default (16pt)
+            self._letterHeight = layout.Size([0, 22], units='pt', win=self.win)
+        elif isinstance(value, (list, tuple, numpy.ndarray)):
+            # If given an array, convert it to a Vector
+            self._letterHeight = layout.Size(value, units=self.units, win=self.win)
+
+        # Set letterHeight on each item
+        for item in self.items:
+            if 'itemCtrl' in item:
+                if isinstance(item['itemCtrl'], psychopy.visual.TextBox2):
+                    item['itemCtrl'].letterHeight = self._letterHeight
+            if 'responseCtrl' in item:
+                if isinstance(item['responseCtrl'], psychopy.visual.TextBox2):
+                    item['responseCtrl'].letterHeight = self._letterHeight
+
+    @property
+    def textHeight(self):
+        return self.letterHeight
+
+    @textHeight.setter
+    def textHeight(self, value):
+        self.letterHeight = value
 
     @property
     def style(self):

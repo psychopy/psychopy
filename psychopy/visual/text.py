@@ -16,13 +16,14 @@ import warnings
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
 # up by the pyglet GL engine and have no effect.
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
+import numpy as np
 import pyglet
 pyglet.options['debug_gl'] = False
 import ctypes
 GL = pyglet.gl
 
 import psychopy  # so we can get the __path__
-from psychopy import logging
+from psychopy import logging, layout
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
@@ -50,15 +51,6 @@ try:
 except Exception:
     havePygame = False
 
-defaultLetterHeight = {'cm': 1.0,
-                       'deg': 1.0,
-                       'degs': 1.0,
-                       'degFlatPos': 1.0,
-                       'degFlat': 1.0,
-                       'norm': 0.1,
-                       'height': 0.2,
-                       'pix': 20,
-                       'pixels': 20}
 defaultWrapWidth = {'cm': 15.0,
                     'deg': 15.0,
                     'degs': 15.0,
@@ -235,31 +227,19 @@ class TextStim(BaseVisualStim, ForeColorMixin, ContainerMixin):
             except (ImportError, ModuleNotFoundError, TypeError):
                 pass  # if pyglet no longer exists
 
-    @attributeSetter
-    def height(self, height):
+    @property
+    def height(self):
         """The height of the letters (Float/int or None = set default).
 
         Height includes the entire box that surrounds the letters
         in the font. The width of the letters is then defined by the font.
 
         :ref:`Operations <attrib-operations>` supported."""
-        # height in pix (needs to be done after units which is done during
-        # _Base.__init__)
-        if height is None:
-            if self.units in defaultLetterHeight:
-                height = defaultLetterHeight[self.units]
-            else:
-                msg = ("TextStim does now know a default letter height "
-                       "for units %s")
-                raise AttributeError(msg % repr(self.units))
-        self.__dict__['height'] = height
-        self._heightPix = convertToPix(pos=numpy.array([0, 0]),
-                                       vertices=numpy.array([0, self.height]),
-                                       units=self.units, win=self.win)[1]
+        return self.letterHeight
 
-        # need to update the font to reflect the change
-        self.setFont(self.font, log=False)
-        return self.__dict__['height']
+    @height.setter
+    def height(self, value):
+        self.letterHeight = value
 
     @property
     def size(self):
@@ -270,6 +250,30 @@ class TextStim(BaseVisualStim, ForeColorMixin, ContainerMixin):
     def size(self, value):
         WindowMixin.size.fset(self, value)
         self.height = getattr(self._size, self.units)[1]
+
+    @property
+    def letterHeight(self):
+        if hasattr(self, "_letterHeight"):
+            return getattr(self._letterHeight, self.units)[1]
+
+    @letterHeight.setter
+    def letterHeight(self, value):
+        if isinstance(value, layout.Vector):
+            # If given a Vector, use it directly
+            self._letterHeight = value
+        elif isinstance(value, (int, float)):
+            # If given an integer, convert it to a 2D Vector with width 0
+            self._letterHeight = layout.Size([0, value], units=self.units, win=self.win)
+        elif value is None:
+            # If None, use default (32pt)
+            self._letterHeight = layout.Size([0, 32], units='pt', win=self.win)
+        elif isinstance(value, (list, tuple, np.ndarray)):
+            # If given an array, convert it to a Vector
+            self._letterHeight = layout.Size(value, units=self.units, win=self.win)
+
+        # need to update the font to reflect the change
+        self._heightPix = self._letterHeight.pix[1]
+        self.setFont(self.font, log=False)
 
     def setHeight(self, height, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,

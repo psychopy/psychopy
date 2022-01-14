@@ -426,8 +426,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             # If given an integer, convert it to a 2D Vector with width 0
             self._letterHeight = layout.Size([0, value], units=self.units, win=self.win)
         elif value is None:
-            # If None, use default (20px)
-            self._letterHeight = layout.Size([0, 20], units='pix', win=self.win)
+            # If None, use default (32pt)
+            self._letterHeight = layout.Size([0, 32], units='pt', win=self.win)
         elif isinstance(value, (list, tuple, np.ndarray)):
             # If given an array, convert it to a Vector
             self._letterHeight = layout.Size(value, units=self.units, win=self.win)
