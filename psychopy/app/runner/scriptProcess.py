@@ -14,6 +14,7 @@ compiled from Builder.
 
 __all__ = ['ScriptProcess']
 
+import os.path
 import sys
 import psychopy.app.jobs as jobs
 from wx import BeginBusyCursor, EndBusyCursor
@@ -86,6 +87,7 @@ class ScriptProcess:
         """
         # full path to the script
         fullPath = fileName.replace('.psyexp', '_lastrun.py')
+        workingDir = os.path.split(fullPath)[0]
 
         # provide a message that the script is running
         # format the output message
@@ -114,9 +116,9 @@ class ScriptProcess:
             execFlags |= jobs.EXEC_MAKE_GROUP_LEADER
 
         # build the shell command to run the script
-        # pyExec = '"' + pyExec + '"'  # use quotes to prevent issues with spaces
-        # fullPath = '"' + fullPath + '"'
-        command = ' '.join([pyExec, '-u', fullPath])  # passed to the Job object
+        execCmd = '"import os; os.chdir({}); exec(open({}).read())"'
+        execCmd = execCmd.format(repr(workingDir), repr(fullPath))
+        command = ' '.join([pyExec, '-c', execCmd])  # passed to the Job object
 
         # create a new job with the user script
         self.scriptProcess = jobs.Job(

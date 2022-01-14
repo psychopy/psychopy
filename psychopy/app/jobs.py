@@ -129,14 +129,8 @@ class Job:
         self.terminateCallback = terminateCallback
         self.pollMillis = pollMillis
 
-    def start(self, cwd=None):
+    def start(self):
         """Start the subprocess.
-
-        Parameters
-        ----------
-        cwd : str or None
-            Working directory for the subprocess. Leave `None` to use the same
-            as the application.
 
         Returns
         -------
@@ -147,8 +141,6 @@ class Job:
         # build the command, prepend the change directory command to get the
         # process started in the correct directory
         command = self._command
-        if cwd is not None:
-            command = "cd " + cwd + "; " + command
 
         # create a new process object, this handles streams and stuff
         self._process = wx.Process(None, -1)
