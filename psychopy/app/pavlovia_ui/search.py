@@ -147,7 +147,7 @@ class SearchPanel(wx.Panel):
         self.filterTerms = {
             "Status": [],
             "Platform": [],
-            "Tags": [],
+            "Keywords": [],
         }
         self.filterOptions = {
             "Author": None,

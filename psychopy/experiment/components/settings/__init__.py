@@ -383,7 +383,7 @@ class SettingsComponent:
 
         self.params['eyetracker'] = Param(
             eyetracker, valType='str', inputType="choice",
-            allowedVals=list(ioDeviceMap) + ["None"],
+            allowedVals=list(ioDeviceMap),
             hint=_translate("What kind of eye tracker should PsychoPy use? Select 'MouseGaze' to use "
                             "the mouse to simulate eye movement (for debugging without a tracker connected)"),
             label=_translate("Eyetracker Device"), categ="Eyetracking"
@@ -566,6 +566,8 @@ class SettingsComponent:
                                         .format(val))
                 elif val in ['True', 'False']:
                     infoDict[key] = Param(val=val, valType='bool')
+                elif isinstance(val, str):
+                    infoDict[key] = Param(val=val, valType='str')
 
         except (ValueError, SyntaxError):
             """under Python3 {'participant':'', 'session':02} raises an error because 
@@ -875,8 +877,11 @@ class SettingsComponent:
             buff.writeIndented(code % self.params['expName'])
 
         sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
-        expInfoDict = self.getInfo()
-        buff.writeIndented("expInfo = %s\n" % repr(expInfoDict))
+        expInfoStr = "{"
+        for key, value in self.getInfo().items():
+            expInfoStr += f"'{key}': {value}, "
+        expInfoStr = expInfoStr[:-2] + "}"
+        buff.writeIndented("expInfo = %s\n" % expInfoStr)
         if self.params['Show info dlg'].val:
             buff.writeIndentedLines(
                 f"dlg = gui.DlgFromDict(dictionary=expInfo, "

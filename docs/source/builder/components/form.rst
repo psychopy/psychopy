@@ -22,45 +22,43 @@ Start : int, float
 Stop : int, float
     Governs the duration for which the stimulus is presented.
 
-Items : A csv / xlsx file **To get started, we recommend selecting the "Open/Create Icon" which will open up a template forms spreadsheet**
-    A csv/xlsx file should have the following key, value pairs / column headers:
+Items : A csv / xlsx file **To get started, we recommend selecting the "Open/Create Icon" which will open up a template forms spreadsheet** A csv/xlsx file should have the following key, value pairs / column headers:
+    *index*
+        The item index as a number
+    *itemText*
+        The item question string
+    *itemWidth*
+        The question width between 0 : 1
+    *type*
+        The type of rating e.g., 'choice', 'rating', 'slider', 'free-text'
+    *responseWidth*
+        The question width between 0 : 1
+    *options*
+        A sequence of tick labels for options e.g., yes, no
+    *layout*
+        Response object layout e.g., 'horiz' or 'vert'
+    *itemColor*
+        The question text font color
+    *responseColor*
+        The response object color
+    *granularity*
+        If you are using a slider, what do you want the granularity of the slider to be?
 
-        *index*
-            The item index as a number
-        *itemText*
-            The item question string
-        *itemWidth*
-            The question width between 0 : 1
-        *type*
-            The type of rating e.g., 'choice', 'rating', 'slider', 'free-text'
-        *responseWidth*
-            The question width between 0 : 1
-        *options*
-            A sequence of tick labels for options e.g., yes, no
-        *layout*
-            Response object layout e.g., 'horiz' or 'vert'
-        *itemColor*
-            The question text font color
-        *responseColor*
-            The response object color
-        *granularity*
-            If you are using a slider, what do you want the granularity of the slider to be?
-
-    Missing column headers will be replaced by default entries, with the exception of `itemText` and `type`, which are required. The default entries are:
-        *index*
-            0 (increments for each item)
-        *itemWidth*
-            0.7
-        *responseWidth*
-            0.3
-        *options*
-            Yes, No
-        *layout*
-            horiz
-        *itemColor*
-            from style
-        *responseColor*
-            from style
+Missing column headers will be replaced by default entries, with the exception of `itemText` and `type`, which are required. The default entries are:
+    *index*
+        0 (increments for each item)
+    *itemWidth*
+        0.7
+    *responseWidth*
+        0.3
+    *options*
+        Yes, No
+    *layout*
+        horiz
+    *itemColor*
+        from style
+    *responseColor*
+        from style
 
 Data format : menu
     Choose whether to store items data by column or row in your datafile.
