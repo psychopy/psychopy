@@ -275,11 +275,11 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         theta = np.radians(self.ori)
         atheta = np.radians(90-self.ori)
         # Calculate adjacent sides to get vertical extent
-        A1 = np.cos(theta) * self.size[1]
-        A2 = np.cos(atheta) * self.size[0]
+        A1 = abs(np.cos(theta) * self.size[1])
+        A2 = abs(np.cos(atheta) * self.size[0])
         # Calculate opposite sides to get horizontal extent
-        O1 = np.sin(theta) * self.size[1]
-        O2 = np.sin(atheta) * self.size[0]
+        O1 = abs(np.sin(theta) * self.size[1])
+        O2 = abs(np.sin(atheta) * self.size[0])
         # Return extent
         return O1 + O2, A1 + A2
 
