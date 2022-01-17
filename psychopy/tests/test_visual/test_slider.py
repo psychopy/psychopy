@@ -37,21 +37,32 @@ class Test_Slider(_TestColorMixin):
     def test_horiz(self):
         # Define cases
         exemplars = [
-            {'size': (1, 0.1), 'ori': 0, 'horiz': True},  # Wide slider, no rotation
-            {'size': (0.1, 1), 'ori': 0, 'horiz': False},  # Tall slider, no rotation
-            {'size': (1, 0.1), 'ori': 90, 'horiz': False},  # Wide slider, 90deg rotation
-            {'size': (0.1, 1), 'ori': 90, 'horiz': True},  # Tall slider, 90deg rotation
+            {'size': (1, 0.2), 'ori': 0, 'horiz': True, 'tag': 'horiz'},  # Wide slider, no rotation
+            {'size': (0.2, 1), 'ori': 0, 'horiz': False, 'tag': 'vert'},  # Tall slider, no rotation
+            {'size': (1, 0.2), 'ori': 90, 'horiz': False, 'tag': 'vert'},  # Wide slider, 90deg rotation
+            {'size': (0.2, 1), 'ori': 90, 'horiz': True, 'tag': 'horiz'},  # Tall slider, 90deg rotation
         ]
         tykes = [
-            {'size': (1, 0.1), 'ori': 25, 'horiz': True},  # Wide slider, accute rotation
-            {'size': (0.1, 1), 'ori': 25, 'horiz': False},  # Tall slider, accute rotation
-            {'size': (1, 0.1), 'ori': 115, 'horiz': False},  # Wide slider, obtuse rotation
-            {'size': (0.1, 1), 'ori': 115, 'horiz': True},  # Tall slider, obtuse rotation
+            {'size': (1, 0.2), 'ori': 25, 'horiz': True, 'tag': 'accute_horiz'},  # Wide slider, accute rotation
+            {'size': (0.2, 1), 'ori': 25, 'horiz': False, 'tag': 'accute_vert'},  # Tall slider, accute rotation
+            {'size': (1, 0.2), 'ori': 115, 'horiz': False, 'tag': 'obtuse_horiz'},  # Wide slider, obtuse rotation
+            {'size': (0.2, 1), 'ori': 115, 'horiz': True, 'tag': 'obtuse_vert'},  # Tall slider, obtuse rotation
         ]
         # Try each case
+        self.win.flip()
         for case in exemplars + tykes:
-            obj = Slider(self.win, size=case['size'], ori=case['ori'])
+            # Make sure horiz is set as intended
+            obj = Slider(self.win,
+                         labels=["a", "b", "c", "d"], ticks=[1, 2, 3, 4],
+                         labelHeight=0.2, labelColor='red',
+                         size=case['size'], ori=case['ori'])
             assert obj.horiz == case['horiz']
+            # Make sure slider looks as intended
+            obj.draw()
+            filename = f"test_slider_horiz_{case['tag']}.png"
+            # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+            utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win)
+            self.win.flip()
 
     def test_reset(self):
         s = Slider(self.win, size=(1, 0.1))
