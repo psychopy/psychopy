@@ -61,7 +61,7 @@ class Test_Slider(_TestColorMixin):
             obj.draw()
             filename = f"test_slider_horiz_{case['tag']}.png"
             # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
-            utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win)
+            utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=10)
             self.win.flip()
 
     def test_reset(self):
