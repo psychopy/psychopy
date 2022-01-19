@@ -82,6 +82,22 @@ def displayEventTableSelectionDialog(title, list_label, list_values, default=u'S
     return list(dlg_info.values())[0]
 
 
+def getEyeSampleTypesInFile(hdf5FilePath):
+    """
+    Return the eye sample type(s) saved in the hdf5 file located in hdf5FilePath.
+    If no eye samples have been saved to the file return []. Possible return list values are defined in
+    psychopy.iohub.constants.EYE_SAMPLE_TYPES.
+
+    :param returnType: (type)
+    :return: (list)
+    """
+    dpath, dfile = os.path.split(hdf5FilePath)
+    datafile = ExperimentDataAccessUtility(dpath, dfile)
+    result = datafile.getAvailableEyeSampleTypes()
+    datafile.close()
+    return result
+
+
 def saveEventReport(hdf5FilePath="", eventType="", eventFields=[], trialStartMessage=None, trialStopMessage=None,
                     timeMargins=(0.0, 0.0)):
     """
