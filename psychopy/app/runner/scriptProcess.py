@@ -14,6 +14,7 @@ compiled from Builder.
 
 __all__ = ['ScriptProcess']
 
+import os.path
 import sys
 import psychopy.app.jobs as jobs
 from wx import BeginBusyCursor, EndBusyCursor
@@ -86,6 +87,7 @@ class ScriptProcess:
         """
         # full path to the script
         fullPath = fileName.replace('.psyexp', '_lastrun.py')
+        workingDir = os.path.split(fullPath)[0]
 
         # provide a message that the script is running
         # format the output message
@@ -114,9 +116,15 @@ class ScriptProcess:
             execFlags |= jobs.EXEC_MAKE_GROUP_LEADER
 
         # build the shell command to run the script
-        # pyExec = '"' + pyExec + '"'  # use quotes to prevent issues with spaces
-        # fullPath = '"' + fullPath + '"'
-        command = [pyExec, '-u', fullPath]  # passed to the Job object
+        execCmd = (
+            '"__file__={fileName}; '
+            'import os; os.chdir({cwd}); '
+            'exec(open({fullPath}, encoding=\'utf-8-sig\').read())"')
+        execCmd = execCmd.format(
+            fileName=repr(fileName),
+            cwd=repr(workingDir),
+            fullPath=repr(fullPath))
+        command = ' '.join([pyExec, '-c', execCmd])  # passed to the Job object
 
         # create a new job with the user script
         self.scriptProcess = jobs.Job(
@@ -243,12 +251,6 @@ class ScriptProcess:
             Program exit code.
 
         """
-        # get remaining data from pipes if available
-        if self.scriptProcess.isInputAvailable:
-            self._writeOutput(self.scriptProcess.getInputData())
-        if self.scriptProcess.isErrorAvailable:
-            self._writeOutput(self.scriptProcess.getErrorData())
-
         # write a close message, shows the exit code
         closeMsg = \
             " Experiment ended with exit code {} [pid:{}] ".format(

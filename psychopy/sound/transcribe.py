@@ -34,9 +34,9 @@ try:
     import speech_recognition as sr
 except (ImportError, ModuleNotFoundError):
     logging.warning(
-        "Speech-to-text recognition module not available (use command `pip "
-        "install SpeechRecognition` to get it. Transcription will be "
-        "unavailable.")
+        "Speech-to-text recognition module for PocketSphinx is not available "
+        "(use command `pip install SpeechRecognition` to get it). "
+        "Transcription will be unavailable using that service this session.")
     _hasSpeechRecognition = False
 
 # Google Cloud API
@@ -46,6 +46,12 @@ try:
     import google.cloud.speech
     import google.auth.exceptions
 except (ImportError, ModuleNotFoundError):
+    logging.warning(
+        "Speech-to-text recognition using Google online services is not "
+        "available (use command `pip install google-api-core google-auth "
+        "google-cloud google-cloud-speech googleapis-common-protos` to get "
+        "it). Transcription will be unavailable using that service this "
+        "session.")
     _hasGoogleCloud = False
 
 try:
