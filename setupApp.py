@@ -139,6 +139,9 @@ setup(
                   NSHumanReadableCopyright   = "Open Science Tools Limited",
                   CFBundleDocumentTypes=[dict(CFBundleTypeExtensions=['*'],
                                               CFBundleTypeRole='Editor')],
+                  CFBundleURLTypes=[dict(CFBundleURLName='psychopy',  # respond to psychopy://
+                                         CFBundleURLSchemes='psychopy',
+                                         CFBundleTypeRole='Editor')],
                   LSEnvironment=dict(PATH="/usr/local/git/bin:/usr/local/bin:"
                                           "/usr/local:/usr/bin:/usr/sbin"),
             ),
