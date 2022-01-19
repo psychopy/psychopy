@@ -141,6 +141,7 @@ def saveEventReport(hdf5FilePath=None, eventType=None, eventFields=[], useCondit
             datafile.close()
             raise RuntimeError("saveEventReport requires eventType. No report saved.")
 
+    #print("getAvailableEyeSampleTypes: ", datafile.getAvailableEyeSampleTypes())
     # Get the event table to generate report for
     event_table = datafile.getEventTable(eventType)
 
@@ -577,6 +578,30 @@ class ExperimentDataAccessUtility:
                     pass
             return events_by_type
         return None
+
+    def getAvailableEyeSampleTypes(self, returnType=str):
+        """
+        Return the eye sample type(s) saved to the current hdf5 file.
+        If no eye samples have been saved to the file return []. Possible return list values are defined in
+        psychopy.iohub.constants.EYE_SAMPLE_TYPES.
+
+        :param returnType: (type)
+        :return: (list)
+        """
+        from psychopy.iohub.constants import EYE_SAMPLE_TYPES
+
+        if returnType == int:
+            return [etype for etype in self.getEventsByType() if etype in EYE_SAMPLE_TYPES]
+
+        if returnType == str:
+            eventTableMappings = self.getEventMappingInformation()
+            sampleTypes = [etype for etype in self.getEventsByType() if etype in EYE_SAMPLE_TYPES]
+            eventList = []
+            for event_id in sampleTypes:
+                eventList.append(eventTableMappings[event_id].class_name.decode('utf-8'))
+            return eventList
+
+        raise RuntimeError("getAvailableEyeSampleTypes returnType arg must be set to either int or str type.")
 
     def getConditionVariablesTable(self):
         """
