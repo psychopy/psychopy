@@ -206,22 +206,24 @@ def proxyFromPacFiles(pacURLs=None, URL=None, log=True):
 def setupProxy(log=True):
     """Set up the urllib proxy if possible.
 
-     The function will use the following methods in order to try and
-     determine proxies:
-        #. standard urllib.request.urlopen (which will use any
-           statically-defined http-proxy settings)
-        #. previous stored proxy address (in prefs)
-        #. proxy.pac files if these have been added to system settings
-        #. auto-detect proxy settings (WPAD technology)
+    The function will use the following methods in order to try and
+    determine proxies:
 
-     .. note:
+    #. standard urllib.request.urlopen (which will use any
+       statically-defined http-proxy settings)
+    #. previous stored proxy address (in prefs)
+    #. proxy.pac files if these have been added to system settings
+    #. auto-detect proxy settings (WPAD technology)
+
+    .. note:
         This can take time, as each failed attempt to set up a proxy
         involves trying to load a URL and timing out. Best
         to do in a separate thread.
 
-    :Returns:
-
+    Returns
+    _________
         True (success) or False (failure)
+
     """
     global proxies
     # try doing nothing

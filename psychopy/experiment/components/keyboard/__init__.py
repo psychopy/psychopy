@@ -72,7 +72,7 @@ class KeyboardComponent(BaseComponent):
 
         # hints say 'responses' not 'key presses' because the same hint is
         # also used with button boxes
-        msg = _translate("Do you want to discard all responses occuring "
+        msg = _translate("Do you want to discard all responses occurring "
                          "before the onset of this component?")
         self.params['discard previous'] = Param(
             discardPrev, valType='bool', inputType="bool", allowedTypes=[], categ='Data',
@@ -455,7 +455,7 @@ class KeyboardComponent(BaseComponent):
         if currLoop.type in ['StairHandler', 'MultiStairHandler']:
             # data belongs to a Staircase-type of object
             if self.params['storeCorrect'].val is True:
-                code = ("%s.addResponse(%s., level)\n" %
+                code = ("%s.addResponse(%s.corr, level)\n" %
                         (currLoop.params['name'], name) +
                         "%s.addOtherData('%s.rt', %s.rt)\n"
                         % (currLoop.params['name'], name, name))

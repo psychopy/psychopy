@@ -24,17 +24,10 @@ Variables associated with :ref:`loops` can also be entered in this way (see :ref
 
 For example:
 
-    * $random(2)
-        will generate a pair of random numbers
-
-    * $"yn"[randint(2)]
-        will randomly choose the first or second character (y or n)
-
-    *  $globalClock.getTime()
-        will insert the current time in secs of the globalClock object
-
-    *  $[sin(angle), cos(angle)]
-        will insert the sin and cos of an angle (e.g. into the x,y coords of a stimulus)
+* :code:`$random(2)` will generate a pair of random numbers
+* :code:`$"yn"[randint(2)]` will randomly choose the first or second character (y or n)
+* :code:`$globalClock.getTime()` will insert the current time in secs of the globalClock object
+* :code:`$[sin(angle), cos(angle)]` will insert the sin and cos of an angle (e.g. into the x,y coords of a stimulus)
 
 
 How often to evaluate the variable/code

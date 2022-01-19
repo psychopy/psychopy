@@ -50,9 +50,7 @@ class Display(Device):
             self._xwindow = None
 
         if Display._computer_display_runtime_info_list is None:
-            Display._computer_display_runtime_info_list =\
-                Display._createAllRuntimeInfoDicts()
-
+            Display._computer_display_runtime_info_list = Display._createAllRuntimeInfoDicts()
         self._addRuntimeInfoToDisplayConfig()
 
     def getDeviceNumber(self):
@@ -95,6 +93,15 @@ class Display(Device):
 
         """
         return len(cls._computer_display_runtime_info_list)
+
+    @classmethod
+    def getAllDisplayBounds(cls):
+        """
+        Returns pixel display bounds (l,t r,b) for each detected display.
+        
+        :return: list of (l,t r,b) tuples
+        """
+        return [d.get('bounds') for d in cls._computer_display_runtime_info_list]
 
     def getRuntimeInfo(self, display_index = None):
         """
@@ -170,7 +177,7 @@ class Display(Device):
 
         The physical characteristics of the Display and the Participants viewing distance
         will either be based on the ioHub settings specified, or based on the information
-        saved in the PsychoPy Monitor Configuartion file that can be optionally
+        saved in the PsychoPy Monitor Configuration file that can be optionally
         given to the Display Device before it is instantiated.
 
         Args:
@@ -263,7 +270,7 @@ class Display(Device):
     def getPhysicalDimensions(self):
         """Returns the Display's physical screen area ( width,  height ) as
         specified in the ioHub Display devices configuration settings or by a
-        PsychoPy Monitor Configuartion file.
+        PsychoPy Monitor Configuration file.
 
         Args:
             None

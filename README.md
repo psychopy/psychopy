@@ -1,5 +1,6 @@
 # PsychoPy
 
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/psychopy/psychopy.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/psychopy/psychopy/context:python)
 [![GH tests](https://github.com/psychopy/psychopy/actions/workflows/pytests.yaml/badge.svg)](https://github.com/psychopy/psychopy/actions/workflows/pytests.yaml)
 [![PyPI version](https://img.shields.io/pypi/v/psychopy.svg)](https://pypi.python.org/pypi/PsychoPy)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v1.4%20adopted-ff69b4.svg)](code-of-conduct.md)

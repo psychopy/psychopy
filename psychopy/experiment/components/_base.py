@@ -54,7 +54,7 @@ class BaseComponent:
         self.order = ['name', 'startVal', 'startEstim', 'startType', 'stopVal', 'durationEstim', 'stopType']  # name first, then timing, then others
 
         msg = _translate(
-            "Name of this component (alpha-numeric or _, no spaces)")
+            "Name of this component (alphanumeric or _, no spaces)")
         self.params['name'] = Param(name,
             valType='code', inputType="single", categ='Basic',
             hint=msg,
@@ -121,19 +121,23 @@ class BaseComponent:
             label=_translate('Disable component'))
 
     @property
-    def xml(self):
+    def _xml(self):
         # Make root element
         element = Element(self.__class__.__name__)
         element.set("name", self.params['name'].val)
         # Add an element for each parameter
         for key, param in sorted(self.params.items()):
             # Create node
-            paramNode = param.xml
+            paramNode = param._xml
             paramNode.set("name", key)
             # Add node
             element.append(paramNode)
 
         return element
+
+    def __repr__(self):
+        _rep = "psychopy.experiment.components.%s(name='%s', exp=%s)"
+        return _rep % (self.__class__.__name__, self.name, self.exp)
 
     def integrityCheck(self):
         """
@@ -246,6 +250,7 @@ class BaseComponent:
                     f"{loop}.{addDataFunc}('{name}.started', {name}.tStart)\n"
                     f"{loop}.{addDataFunc}('{name}.stopped', {name}.tStop)\n"
                 )
+
             buff.writeIndentedLines(code)
 
     def writeRoutineEndCodeJS(self, buff):
@@ -334,6 +339,11 @@ class BaseComponent:
         params = self.params
         buff.writeIndentedLines(f"if {params['name']}.status == STARTED:\n")
         buff.setIndentLevel(+1, relative=True)
+
+        # If start time is blank ad stop is a duration, raise alert
+        if self.params['stopType'] in ('duration (s)', 'duration (frames)'):
+            if ('startVal' not in self.params) or (self.params['startVal'] in ("", "None", None)):
+                alerttools.alert(4120, strFields={'component': self.params['name']})
 
         if self.params['stopType'].val == 'time (s)':
             code = (f"# is it time to stop? (based on local clock)\n"
@@ -542,22 +552,27 @@ class BaseComponent:
         value and can be used in non-slip global clock timing (e.g for fMRI)
         """
         if not 'startType' in self.params:
-            # this component does not have any start/stop
+            # this component does not have any start
             return None, None, True
 
-        startType = self.params['startType'].val
-        stopType = self.params['stopType'].val
-        numericStart = canBeNumeric(self.params['startVal'].val)
-        numericStop = canBeNumeric(self.params['stopVal'].val)
-
         # deduce a start time (s) if possible
-        # user has given a time estimate
+        startType = self.params['startType'].val
+        numericStart = canBeNumeric(self.params['startVal'].val)
+
         if canBeNumeric(self.params['startEstim'].val):
             startTime = float(self.params['startEstim'].val)
         elif startType == 'time (s)' and numericStart:
             startTime = float(self.params['startVal'].val)
         else:
             startTime = None
+
+        if 'stopType' not in self.params:
+            # this component does not have any stop
+            return startTime, 0, numericStart
+
+        # deduce stop time (s) if possible
+        stopType = self.params['stopType'].val
+        numericStop = canBeNumeric(self.params['stopVal'].val)
 
         if stopType == 'time (s)' and numericStop:
             duration = float(self.params['stopVal'].val) - (startTime or 0)
@@ -589,6 +604,22 @@ class BaseComponent:
     def getShortType(self):
         """Replaces word component with empty string"""
         return self.getType().replace('Component', '')
+
+    @property
+    def name(self):
+        return self.params['name'].val
+
+    @name.setter
+    def name(self, value):
+        self.params['name'].val = value
+
+    @property
+    def disabled(self):
+        return bool(self.params['disabled'])
+
+    @disabled.setter
+    def disabled(self, value):
+        self.params['disabled'].val = value
 
 
 class BaseVisualComponent(BaseComponent):

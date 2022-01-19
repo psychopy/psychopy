@@ -49,6 +49,52 @@ RequiredImport = namedtuple('RequiredImport',
                                          'importAs'))
 
 
+# Some params have previously had types which cause errors compiling in new versions, so we need to keep track of them and force them to the new type if needed
+forceType = {
+    'pos': 'list',
+    'size': 'list',
+    ('KeyboardComponent', 'allowedKeys'): 'list',
+    ('cedrusButtonBoxComponent', 'allowedKeys'): 'list',
+    ('DotsComponent', 'fieldPos'): 'list',
+    ('JoyButtonsComponent', 'allowedKeys'): 'list',
+    ('JoyButtonsComponent', 'correctAns'): 'list',
+    ('JoystickComponent', 'clickable'): 'list',
+    ('JoystickComponent', 'saveParamsClickable'): 'list',
+    ('JoystickComponent', 'allowedButtons'): 'list',
+    ('MicrophoneComponent', 'transcribeWords'): 'list',
+    ('MouseComponent', 'clickable'): 'list',
+    ('MouseComponent', 'saveParamsClickable'): 'list',
+    ('NoiseStimComponent', 'noiseElementSize'): 'list',
+    ('PatchComponent', 'sf'): 'list',
+    ('RatingScaleComponent', 'categoryChoices'): 'list',
+    ('RatingScaleComponent', 'labels'): 'list',
+    ('RegionOfInterestComponent', 'vertices'): 'list',
+    ('SettingsComponent', 'Window size (pixels)'): 'list',
+    ('SettingsComponent', 'Resources'): 'list',
+    ('SettingsComponent', 'mgBlink'): 'list',
+    ('SliderComponent', 'ticks'): 'list',
+    ('SliderComponent', 'labels'): 'list',
+    ('SliderComponent', 'styleTweaks'): 'list'
+}
+
+# # Code to generate force list
+# comps = experiment.components.getAllComponents()
+# exp = experiment._experiment.Experiment()
+# rt = experiment.routines.Routine("routine", exp)
+# exp.addRoutine("routine", rt)
+#
+# forceType = {
+#     'pos': 'list',
+#     'size': 'list',
+#     'vertices': 'list',
+# }
+# for Comp in comps.values():
+#     comp = Comp(exp=exp, parentName="routine")
+#     for key, param in comp.params.items():
+#         if param.valType == 'list' and key not in forceType:
+#             forceType[(Comp.__name__, key)] = 'list'
+
+
 class Experiment:
     """
     An experiment contains a single Flow and at least one
@@ -144,7 +190,7 @@ class Experiment:
         an empty one if none is given.
         """
         if routine is None:
-            # create a deafult routine with this name
+            # create a default routine with this name
             self.routines[routineName] = Routine(routineName, exp=self)
         else:
             self.routines[routineName] = routine
@@ -187,17 +233,23 @@ class Experiment:
         self_copy = deepcopy(self)
         for key, routine in list(self_copy.routines.items()):  # PY2/3 compat
             if isinstance(routine, BaseStandaloneRoutine):
-                if routine.params['disabled']:
+                # Remove disabled / unimplemented standalone routines
+                if routine.disabled or target not in routine.targets:
                     for node in self_copy.flow:
                         if node == routine:
                             self_copy.flow.removeComponent(node)
+                            if target not in routine.targets:
+                                # If this routine isn't implemented in target library, print alert and mute it
+                                alertCode = 4335 if target == "PsychoPy" else 4340
+                                alert(alertCode, strFields={'comp': type(routine).__name__})
             else:
-                for component in routine:
-                    try:
-                        if component.params['disabled']:
-                            routine.removeComponent(component)
-                    except KeyError:
-                        pass
+                for component in [comp for comp in routine]:
+                    if component.disabled or target not in component.targets:
+                        routine.removeComponent(component)
+                        if component.targets and target not in component.targets:
+                            # If this component isn't implemented in target library, print alert and mute it
+                            alertCode = 4335 if target == "PsychoPy" else 4340
+                            alert(alertCode, strFields={'comp': type(component).__name__})
 
         if target == "PsychoPy":
             self_copy.settings.writeInitCode(script, self_copy.psychopyVersion,
@@ -297,21 +349,21 @@ class Experiment:
         return script
 
     @property
-    def xml(self):
+    def _xml(self):
         # Create experiment root element
         experimentNode = xml.Element("PsychoPy2experiment")
         experimentNode.set('encoding', 'utf-8')
         experimentNode.set('version', __version__)
         # Add settings node
-        settingsNode = self.settings.xml
+        settingsNode = self.settings._xml
         experimentNode.append(settingsNode)
         # Add routines node
         routineNode = xml.Element("Routines")
         for key, routine in self.routines.items():
-            routineNode.append(routine.xml)
+            routineNode.append(routine._xml)
         experimentNode.append(routineNode)
         # Add flow node
-        flowNode = self.flow.xml
+        flowNode = self.flow._xml
         experimentNode.append(flowNode)
 
         return experimentNode
@@ -319,7 +371,7 @@ class Experiment:
     def saveToXML(self, filename):
         self.psychopyVersion = psychopy.__version__  # make sure is current
         # create the dom object
-        self.xmlRoot = self.xml
+        self.xmlRoot = self._xml
         # convert to a pretty string
         # update our document to use the new root
         self._doc._setroot(self.xmlRoot)
@@ -406,7 +458,7 @@ class Experiment:
             elif val[0] == '$':
                 newVal = val[1:]  # they were using code (which we can reuse)
             elif val.startswith('[') and val.endswith(']'):
-                # they were using code (slightly incorectly!)
+                # they were using code (slightly incorrectly!)
                 newVal = val[1:-1]
             elif val in ['return', 'space', 'left', 'right', 'escape']:
                 newVal = val  # they were using code
@@ -500,15 +552,15 @@ class Experiment:
                 else:
                     # we found an unknown parameter (probably from the future)
                     params[name] = Param(
-                        val, valType=paramNode.get('valType'),
+                        val, valType=paramNode.get('valType'), inputType="inv",
                         allowedTypes=[], label=_translate(name),
                         hint=_translate(
                             "This parameter is not known by this version "
-                            "of PsychoPy. It might be worth upgrading"))
+                            "of PsychoPy. It might be worth upgrading, otherwise "
+                            "press the X button to remove this parameter."))
                     params[name].allowedTypes = paramNode.get('allowedTypes')
                     if params[name].allowedTypes is None:
                         params[name].allowedTypes = []
-                    params[name].readOnly = True
                     if name not in legacyParams + ['JS libs', 'OSF Project ID']:
                         # don't warn people if we know it's OK (e.g. for params
                         # that have been removed
@@ -542,7 +594,6 @@ class Experiment:
         """
         self._doc.parse(filename)
         root = self._doc.getroot()
-
 
         # some error checking on the version (and report that this isn't valid
         # .psyexp)?
@@ -611,7 +662,7 @@ class Experiment:
                     # the builder and change the default behavior
                     # (currently only the new behavior of choices for RatingScale,
                     # HS, November 2012)
-                    # HS's modification superceded Jan 2014, removing several
+                    # HS's modification superseded Jan 2014, removing several
                     # RatingScale options
                     if componentType == 'RatingScaleComponent':
                         if (componentNode.get('choiceLabelsAboveLine') or
@@ -665,10 +716,16 @@ class Experiment:
                                    "exists")
                             logging.warning(msg % (thisParamName, static))
                         else:
+                            thisRoutine = \
+                                self.routines[routine].getComponentFromName(
+                                    static)
+                            if thisRoutine is None:
+                                continue
                             self.routines[routine].getComponentFromName(
                                 static).addComponentUpdate(
                                 thisRoutine.params['name'],
                                 thisComp.params['name'], thisParamName)
+
         # fetch flow settings
         flowNode = root.find('Flow')
         loops = {}
@@ -735,6 +792,20 @@ class Experiment:
         if duplicateNames:
             msg = 'duplicate variable names: %s'
             logging.warning(msg % ', '.join(list(set(duplicateNames))))
+        # Modernise params
+        for rt in self.routines.values():
+            if not isinstance(rt, list):
+                # Treat standalone routines as a routine with one component
+                rt = [rt]
+            for comp in rt:
+                # For each param, if it's pointed to in the forceType array, set it to the new valType
+                for paramName, param in comp.params.items():
+                    # Param pointed to by name
+                    if paramName in forceType:
+                        param.valType = forceType[paramName]
+                    if (type(comp).__name__, paramName) in forceType:
+                        param.valType = forceType[(type(comp).__name__, paramName)]
+
         # if we succeeded then save current filename to self
         self.filename = filename
 
@@ -760,7 +831,7 @@ class Experiment:
                 return comp
         return None
 
-    def getComponentFromType(self, type):
+    def getComponentFromType(self, thisType):
         """Searches all the Routines in the Experiment for a matching component type
 
         :param name: str type of a component e.g., 'KeyBoard'
@@ -768,6 +839,7 @@ class Experiment:
         """
         for routine in self.routines.values():
             exists = routine.getComponentFromType(type)
+            exists = routine.getComponentFromType(thisType)
             if exists:
                 return True
         return False
@@ -805,7 +877,7 @@ class Experiment:
             else:
                 thisFile['rel'] = filePath
                 thisFile['abs'] = os.path.normpath(join(srcRoot, filePath))
-                if os.path.isfile(thisFile['abs']):
+                if len(thisFile['abs']) <= 256 and os.path.isfile(thisFile['abs']):
                     return thisFile
 
         def findPathsInFile(filePath):

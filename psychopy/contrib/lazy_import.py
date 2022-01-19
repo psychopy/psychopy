@@ -91,7 +91,7 @@ class ScopeReplacer():
             # Check if another thread has jumped in while obj was generated.
             real_obj = object.__getattribute__(self, '_real_obj')
             if real_obj is None:
-                # Still no prexisting obj, so go ahead and assign to scope and
+                # Still no preexisting obj, so go ahead and assign to scope and
                 # return. There is still a small window here where races will
                 # not be detected, but safest to avoid additional locking.
                 object.__setattr__(self, '_real_obj', obj)

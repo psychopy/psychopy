@@ -145,7 +145,7 @@ eyetracker.hw.tobii.EyeTracker:
     
     runtime_settings:
         # The supported sampling rates for Tobii are model dependent. 
-        # Using a defualt of 60 Hz.
+        # Using a default of 60 Hz.
         sampling_rate: 60
 
         # Tobii implementation supports BINOCULAR tracking mode only.
@@ -154,4 +154,3 @@ eyetracker.hw.tobii.EyeTracker:
     # manufacturer_name is used to store the name of the maker of the eye tracking
     # device. This is for informational purposes only.
     manufacturer_name: Tobii Technology
-

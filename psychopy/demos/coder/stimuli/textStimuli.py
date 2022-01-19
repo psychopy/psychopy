@@ -38,7 +38,7 @@ unicodeStuff = visual.TextBox2(win,
     font="EB Garamond", letterHeight=0.05,
     size=(0.5, 0.2), pos=(-0.5, -0.5), anchor="bottom-left")
 longSentence = visual.TextBox2(win,
-    text = u"Text wraps automatically! Just keep typing a long sentence that is very long and also it is entirely unecessary how long the sentence is, it will wrap neatly.",
+    text = u"Text wraps automatically! Just keep typing a long sentence that is very long and also it is entirely unnecessary how long the sentence is, it will wrap neatly.",
     color='DarkSlateBlue', borderColor="DarkSlateBlue", 
     font="Open Sans", letterHeight=0.025,
     size=(0.4, 0.3), pos=(0.45, -0.45), anchor='bottom-right')

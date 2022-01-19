@@ -173,7 +173,7 @@ def openOutputFile(fileName=None, append=False, fileCollisionMethod='rename',
     if os.path.exists(fileName) and mode in ['w', 'wb']:
         logging.warning('Data file %s will be overwritten!' % fileName)
 
-    # The file wil always be opened in binary writing mode,
+    # The file will always be opened in binary writing mode,
     # see https://docs.python.org/2/library/codecs.html#codecs.open
     f = codecs.open(fileName, mode=mode, encoding=encoding)
     return f
@@ -285,8 +285,8 @@ def pathToString(filepath):
     """
     Coerces pathlib Path objects to a string (only python version 3.6+)
     any other objects passed to this function will be returned as is.
-    This WILL NOT work with on Python 3.4, 3.5 since the __fspath__ dunder
-    method did not exist in those verisions, however psychopy does not support
+    This WILL NOT work with on Python 3.4, 3.5 since the __fspath__ under
+    method did not exist in those versions, however psychopy does not support
     these versions of python anyways.
 
     :Parameters:

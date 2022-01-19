@@ -1,5 +1,5 @@
-:mod:`psychopy.colors` - For working with colors.
-------------------------------------------------
+:mod:`psychopy.colors` - For working with colors
+-------------------------------------------------
 
 Classes and functions for working with colors.
 
@@ -23,4 +23,3 @@ Details
 
 .. autofunction:: isValidColor
 .. autofunction:: hex2rgb255
-

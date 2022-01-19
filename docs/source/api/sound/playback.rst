@@ -74,7 +74,7 @@ many things about the local operating system and hardware. You should test it
 yourself for your kit, but here is an example of a standard Win10 box using
 built-in audio (not a fancy audio card):
 
-.. figure:: /images/audioScope_Win10_PTB_mode3.png
+.. figure:: /images/audioScope_win10_PTB_mode3.png
     :align: center
 
     Sub-ms audio timing with standard audio on Win10. Yellow trace is a 440

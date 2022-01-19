@@ -85,6 +85,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
                  units='pix',
                  size=None,
                  pos=(0.0, 0.0),
+                 anchor="center",
                  ori=0.0,
                  flipVert=False,
                  flipHoriz=False,
@@ -150,6 +151,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         self.loadMovie(self.filename)
         self.format = self._movie.video_format
         self.pos = numpy.asarray(pos, float)
+        self.anchor = anchor
         self.depth = depth
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz

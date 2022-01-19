@@ -12,9 +12,9 @@ An experiment can have any number of :ref:`routines`, describing the timing of s
 
 The way in which these :ref:`routines` are combined and/or repeated is controlled by the :ref:`flow` panel. All experiments have exactly one :ref:`flow`. This takes the form of a standard flowchart allowing a sequence of routines to occur one after another, and for loops to be inserted around one or more of the :ref:`routines`. The loop also controls variables that change between repetitions, such as stimulus attributes.
 
-If it is your first time opening PsychoPy, we highly recommend taking a look at the large number of inbuilt demos that come with PsychoPy. This can be done through selecting `Demos > unpack demos` within your application. Another good place to get started is to take a look at the many `openly available demos at pavlovia.org <pavlovia.org/explore>`_ you can view an `intro to pavlovia <https://www.youtube.com/watch?v=oYhcBDK2O10&t=42s>`_ at our Youtube channel.
+If it is your first time opening PsychoPy, we highly recommend taking a look at the large number of inbuilt demos that come with PsychoPy. This can be done through selecting `Demos > unpack demos` within your application. Another good place to get started is to take a look at the many `openly available demos at pavlovia.org <https://pavlovia.org/explore>`_ you can view an `intro to pavlovia <https://www.youtube.com/watch?v=oYhcBDK2O10&t=42s>`_ at our Youtube channel.
 
-.. image:: ../images/builder_concepts.png
+.. image:: /images/builder_concepts.png
     :width: 100%
     :alt: The Builder view
 *The PsychoPy builder, the Routines panel an the Flow are highlighted, if you are new to PsychoPy, we recommend starting by unpacking your demos and exploring the example tasks*
@@ -34,7 +34,7 @@ You can add components to an experiment by selecting components from the *Compon
 
 Making experiments to go online
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. image:: ../images/builderViewIndexed.png
+.. image:: /images/builderViewIndexed.png
     :width: 100%
     :alt: The Builder view
 *Buttons to interact with pavlovia.org from your experiment builder*

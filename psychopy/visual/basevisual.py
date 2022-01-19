@@ -11,6 +11,7 @@
 from pathlib import Path
 from statistics import mean
 from psychopy.colors import Color, colorSpaces
+from psychopy.layout import Vector, Position, Size, Vertices, unitTypes
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -259,7 +260,10 @@ class LegacyVisualMixin:
         self.__dict__['depth'] = value
 
 
-class LegacyColorMixin:
+class LegacyForeColorMixin:
+    """
+    Mixin class to give an object all of the legacy functions for setting foreground color
+    """
     def setDKL(self, color, operation=''):
         """DEPRECATED since v1.60.05: Please use the `color` attribute
         """
@@ -292,6 +296,36 @@ class LegacyColorMixin:
     def RGB(self, value):
         self.foreRGB = value
 
+    def setRGB(self, color, operation='', log=None):
+        """
+        DEPRECATED: Legacy setter for foreground RGB, instead set `obj._foreColor.rgb`
+        """
+        self.setForeColor(color, 'rgb', operation, log)
+
+    def setForeRGB(self, color, operation='', log=None):
+        """
+        DEPRECATED: Legacy setter for foreground RGB, instead set `obj._foreColor.rgb`
+        """
+        self.setForeColor(color, 'rgb', operation, log)
+
+    @property
+    def foreColorSpace(self):
+        """Deprecated, please use colorSpace to set color space for the entire
+        object.
+        """
+        return self.colorSpace
+
+    @foreColorSpace.setter
+    def foreColorSpace(self, value):
+        logging.warning(
+            "Setting color space by attribute rather than by object is deprecated. Value of foreColorSpace has been assigned to colorSpace.")
+        self.colorSpace = value
+
+
+class LegacyFillColorMixin:
+    """
+    Mixin class to give an object all of the legacy functions for setting fill color
+    """
     @property
     def fillRGB(self):
         """
@@ -308,33 +342,11 @@ class LegacyColorMixin:
         """
         DEPRECATED: Legacy property for setting the fill color of a stimulus in RGB, instead use `obj._fillColor.rgb`
         """
-        return self.borderRGB
+        return self.fillRGB
 
     @backRGB.setter
     def backRGB(self, value):
         self.fillRGB = value
-
-    @property
-    def borderRGB(self):
-        """
-        DEPRECATED: Legacy property for setting the border color of a stimulus in RGB, instead use `obj._borderColor.rgb`
-        """
-        return self._borderColor.rgb
-
-    @borderRGB.setter
-    def borderRGB(self, value):
-        self.borderColor = Color(value, 'rgb')
-
-    @property
-    def lineRGB(self):
-        """
-        DEPRECATED: Legacy property for setting the border color of a stimulus in RGB, instead use `obj._borderColor.rgb`
-        """
-        return self.borderRGB
-
-    @lineRGB.setter
-    def lineRGB(self, value):
-        self.borderRGB = value
 
     def setFillRGB(self, color, operation='', log=None):
         """
@@ -347,43 +359,6 @@ class LegacyColorMixin:
         DEPRECATED: Legacy setter for fill RGB, instead set `obj._fillColor.rgb`
         """
         self.setFillColor(color, 'rgb', operation, log)
-
-    def setRGB(self, color, operation='', log=None):
-        """
-        DEPRECATED: Legacy setter for foreground RGB, instead set `obj._foreColor.rgb`
-        """
-        self.setForeColor(color, 'rgb', operation, log)
-
-    def setForeRGB(self, color, operation='', log=None):
-        """
-        DEPRECATED: Legacy setter for foreground RGB, instead set `obj._foreColor.rgb`
-        """
-        self.setForeColor(color, 'rgb', operation, log)
-
-    def setBorderRGB(self, color, operation='', log=None):
-        """
-        DEPRECATED: Legacy setter for border RGB, instead set `obj._borderColor.rgb`
-        """
-        self.setBorderColor(color, 'rgb', operation, log)
-
-    def setLineRGB(self, color, operation='', log=None):
-        """
-        DEPRECATED: Legacy setter for border RGB, instead set `obj._borderColor.rgb`
-        """
-        self.setBorderColor(color, 'rgb', operation, log)
-
-    @property
-    def foreColorSpace(self):
-        """Deprecated, please use colorSpace to set color space for the entire
-        object.
-        """
-        return self.colorSpace
-
-    @foreColorSpace.setter
-    def foreColorSpace(self, value):
-        logging.warning(
-            "Setting color space by attribute rather than by object is deprecated. Value of foreColorSpace has been assigned to colorSpace.")
-        self.colorSpace = value
 
     @property
     def fillColorSpace(self):
@@ -406,8 +381,48 @@ class LegacyColorMixin:
 
     @backColorSpace.setter
     def backColorSpace(self, value):
-        logging.warning("Setting color space by attribute rather than by object is deprecated. Value of backColorSpace has been assigned to colorSpace.")
+        logging.warning(
+            "Setting color space by attribute rather than by object is deprecated. Value of backColorSpace has been assigned to colorSpace.")
         self.colorSpace = value
+
+
+class LegacyBorderColorMixin:
+    """
+    Mixin class to give an object all of the legacy functions for setting border color
+    """
+    @property
+    def borderRGB(self):
+        """
+        DEPRECATED: Legacy property for setting the border color of a stimulus in RGB, instead use `obj._borderColor.rgb`
+        """
+        return self._borderColor.rgb
+
+    @borderRGB.setter
+    def borderRGB(self, value):
+        self.borderColor = Color(value, 'rgb')
+
+    @property
+    def lineRGB(self):
+        """
+        DEPRECATED: Legacy property for setting the border color of a stimulus in RGB, instead use `obj._borderColor.rgb`
+        """
+        return self.borderRGB
+
+    @lineRGB.setter
+    def lineRGB(self, value):
+        self.borderRGB = value
+
+    def setBorderRGB(self, color, operation='', log=None):
+        """
+        DEPRECATED: Legacy setter for border RGB, instead set `obj._borderColor.rgb`
+        """
+        self.setBorderColor(color, 'rgb', operation, log)
+
+    def setLineRGB(self, color, operation='', log=None):
+        """
+        DEPRECATED: Legacy setter for border RGB, instead set `obj._borderColor.rgb`
+        """
+        self.setBorderColor(color, 'rgb', operation, log)
 
     @property
     def borderColorSpace(self):
@@ -436,10 +451,123 @@ class LegacyColorMixin:
         self.colorSpace = value
 
 
-class ColorMixin(LegacyColorMixin):
-    """Mixin class for visual stim that need color and or contrast.
+class LegacyColorMixin(LegacyForeColorMixin, LegacyFillColorMixin, LegacyBorderColorMixin):
+    """
+    Mixin class to give an object all of the legacy functions for setting all colors (fore, fill and border
     """
 
+
+class BaseColorMixin:
+    """
+    Mixin class giving base color methods (e.g. colorSpace) which are needed for any color stuff.
+    """
+    @property
+    def colorSpace(self):
+        """The name of the color space currently being used
+
+        Value should be: a string or None
+
+        For strings and hex values this is not needed.
+        If None the default colorSpace for the stimulus is
+        used (defined during initialisation).
+
+        Please note that changing colorSpace does not change stimulus
+        parameters. Thus you usually want to specify colorSpace before
+        setting the color. Example::
+
+            # A light green text
+            stim = visual.TextStim(win, 'Color me!',
+                                   color=(0, 1, 0), colorSpace='rgb')
+
+            # An almost-black text
+            stim.colorSpace = 'rgb255'
+
+            # Make it light green again
+            stim.color = (128, 255, 128)
+        """
+        if hasattr(self, '_colorSpace'):
+            return self._colorSpace
+        else:
+            return 'rgba'
+
+    @colorSpace.setter
+    def colorSpace(self, value):
+        if value in colorSpaces:
+            self._colorSpace = value
+        else:
+            logging.error(f"'{value}' is not a valid color space")
+
+    @property
+    def contrast(self):
+        """A value that is simply multiplied by the color.
+
+        Value should be: a float between -1 (negative) and 1 (unchanged).
+            :ref:`Operations <attrib-operations>` supported.
+
+        Set the contrast of the stimulus, i.e. scales how far the stimulus
+        deviates from the middle grey. You can also use the stimulus
+        `opacity` to control contrast, but that cannot be negative.
+
+        Examples::
+
+            stim.contrast =  1.0  # unchanged contrast
+            stim.contrast =  0.5  # decrease contrast
+            stim.contrast =  0.0  # uniform, no contrast
+            stim.contrast = -0.5  # slightly inverted
+            stim.contrast = -1.0  # totally inverted
+
+        Setting contrast outside range -1 to 1 is permitted, but may
+        produce strange results if color values exceeds the monitor limits.::
+
+            stim.contrast =  1.2  # increases contrast
+            stim.contrast = -1.2  # inverts with increased contrast
+
+        """
+        if hasattr(self, '_foreColor'):
+            return self._foreColor.contrast
+
+    @contrast.setter
+    def contrast(self, value):
+        if hasattr(self, '_foreColor'):
+            self._foreColor.contrast = value
+        if hasattr(self, '_fillColor'):
+            self._fillColor.contrast = value
+        if hasattr(self, '_borderColor'):
+            self._borderColor.contrast = value
+
+    def setContrast(self, newContrast, operation='', log=None):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        """
+        if newContrast is not None:
+            self.contrast = newContrast
+        if operation in ['', '=']:
+            self.contrast = newContrast
+        elif operation in ['+']:
+            self.contrast += newContrast
+        elif operation in ['-']:
+            self.contrast -= newContrast
+        else:
+            logging.error(f"Operation '{operation}' not recognised.")
+
+    def _getDesiredRGB(self, rgb, colorSpace, contrast):
+        """ Convert color to RGB while adding contrast.
+        Requires self.rgb, self.colorSpace and self.contrast
+        """
+        col = Color(rgb, colorSpace)
+        col.contrast *= contrast or 0
+        return col.render('rgb')
+
+    def updateColors(self):
+        """Placeholder method to update colours when set externally, for example updating the `pallette` attribute of
+        a textbox"""
+        return
+
+
+class ForeColorMixin(BaseColorMixin, LegacyForeColorMixin):
+    """
+    Mixin class for visual stim that need fore color.
+    """
     @property
     def foreColor(self):
         """Foreground color of the stimulus
@@ -516,11 +644,28 @@ class ColorMixin(LegacyColorMixin):
     def color(self, value):
         self.foreColor = value
 
+    def setForeColor(self, color, colorSpace=None, operation='', log=None):
+        """Hard setter for foreColor, allows suppression of the log message,
+        simultaneous colorSpace setting and calls update methods.
+        """
+        setColor(obj=self, colorAttrib="foreColor", color=color, colorSpace=colorSpace or self.colorSpace, operation=operation)
+        # Trigger color update for components like Textbox which have different behaviours for a hard setter
+        self.updateColors()
+
+    def setColor(self, color, colorSpace=None, operation='', log=None):
+        self.setForeColor(color, colorSpace=colorSpace, operation=operation, log=log)
+
+
+class FillColorMixin(BaseColorMixin, LegacyFillColorMixin):
+    """
+    Mixin class for visual stim that need fill color.
+    """
+
     @property
     def fillColor(self):
         """Set the fill color for the shape."""
         if hasattr(self, '_fillColor'):
-            return getattr(self._fillColor, self.colorSpace) #return self._fillColor.render(self.colorSpace)
+            return getattr(self._fillColor, self.colorSpace)  # return self._fillColor.render(self.colorSpace)
 
     @fillColor.setter
     def fillColor(self, value):
@@ -544,6 +689,19 @@ class ColorMixin(LegacyColorMixin):
     def backColor(self, value):
         self.fillColor = value
 
+    def setFillColor(self, color, colorSpace=None, operation='', log=None):
+        """Hard setter for fillColor, allows suppression of the log message,
+        simultaneous colorSpace setting and calls update methods.
+        """
+        setColor(obj=self, colorAttrib="fillColor", color=color, colorSpace=colorSpace or self.colorSpace, operation=operation)
+        # Trigger color update for components like Textbox which have different behaviours for a hard setter
+        self.updateColors()
+
+    def setBackColor(self, color, colorSpace=None, operation='', log=None):
+        self.setFillColor(color, colorSpace=None, operation='', log=None)
+
+
+class BorderColorMixin(BaseColorMixin, LegacyBorderColorMixin):
     @property
     def borderColor(self):
         if hasattr(self, '_borderColor'):
@@ -571,102 +729,6 @@ class ColorMixin(LegacyColorMixin):
     def lineColor(self, value):
         self.borderColor = value
 
-    @property
-    def colorSpace(self):
-        """The name of the color space currently being used
-
-        Value should be: a string or None
-
-        For strings and hex values this is not needed.
-        If None the default colorSpace for the stimulus is
-        used (defined during initialisation).
-
-        Please note that changing colorSpace does not change stimulus
-        parameters. Thus you usually want to specify colorSpace before
-        setting the color. Example::
-
-            # A light green text
-            stim = visual.TextStim(win, 'Color me!',
-                                   color=(0, 1, 0), colorSpace='rgb')
-
-            # An almost-black text
-            stim.colorSpace = 'rgb255'
-
-            # Make it light green again
-            stim.color = (128, 255, 128)
-        """
-        if hasattr(self, '_colorSpace'):
-            return self._colorSpace
-        else:
-            return 'rgba'
-    @colorSpace.setter
-    def colorSpace(self, value):
-        if value in colorSpaces:
-            self._colorSpace = value
-        else:
-            logging.error(f"'{value}' is not a valid color space")
-
-    # ---legacy functions---
-    @property
-    def contrast(self):
-        """A value that is simply multiplied by the color.
-
-        Value should be: a float between -1 (negative) and 1 (unchanged).
-            :ref:`Operations <attrib-operations>` supported.
-
-        Set the contrast of the stimulus, i.e. scales how far the stimulus
-        deviates from the middle grey. You can also use the stimulus
-        `opacity` to control contrast, but that cannot be negative.
-
-        Examples::
-
-            stim.contrast =  1.0  # unchanged contrast
-            stim.contrast =  0.5  # decrease contrast
-            stim.contrast =  0.0  # uniform, no contrast
-            stim.contrast = -0.5  # slightly inverted
-            stim.contrast = -1.0  # totally inverted
-
-        Setting contrast outside range -1 to 1 is permitted, but may
-        produce strange results if color values exceeds the monitor limits.::
-
-            stim.contrast =  1.2  # increases contrast
-            stim.contrast = -1.2  # inverts with increased contrast
-
-        """
-        if hasattr(self, '_foreColor'):
-            return self._foreColor.contrast
-
-    @contrast.setter
-    def contrast(self, value):
-        if hasattr(self, '_foreColor'):
-            self._foreColor.contrast = value
-        if hasattr(self, '_fillColor'):
-            self._fillColor.contrast = value
-        if hasattr(self, '_borderColor'):
-            self._borderColor.contrast = value
-
-    def setForeColor(self, color, colorSpace=None, operation='', log=None):
-        """Hard setter for foreColor, allows suppression of the log message,
-        simultaneous colorSpace setting and calls update methods.
-        """
-        setColor(obj=self, colorAttrib="foreColor", color=color, colorSpace=colorSpace or self.colorSpace, operation=operation)
-        # Trigger color update for components like Textbox which have different behaviours for a hard setter
-        self.updateColors()
-
-    def setColor(self, color, colorSpace=None, operation='', log=None):
-        self.setForeColor(color, colorSpace=colorSpace, operation=operation, log=log)
-
-    def setFillColor(self, color, colorSpace=None, operation='', log=None):
-        """Hard setter for fillColor, allows suppression of the log message,
-        simultaneous colorSpace setting and calls update methods.
-        """
-        setColor(obj=self, colorAttrib="fillColor", color=color, colorSpace=colorSpace or self.colorSpace, operation=operation)
-        # Trigger color update for components like Textbox which have different behaviours for a hard setter
-        self.updateColors()
-
-    def setBackColor(self, color, colorSpace=None, operation='', log=None):
-        self.setFillColor(color, colorSpace=None, operation='', log=None)
-
     def setBorderColor(self, color, colorSpace=None, operation='', log=None):
         """Hard setter for `fillColor`, allows suppression of the log message,
         simultaneous colorSpace setting and calls update methods.
@@ -678,33 +740,11 @@ class ColorMixin(LegacyColorMixin):
     def setLineColor(self, color, colorSpace=None, operation='', log=None):
         self.setBorderColor(color, colorSpace=None, operation='', log=None)
 
-    def setContrast(self, newContrast, operation='', log=None):
-        """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message
-        """
-        if newContrast is not None:
-            self.contrast = newContrast
-        if operation in ['', '=']:
-            self.contrast = newContrast
-        elif operation in ['+']:
-            self.contrast += newContrast
-        elif operation in ['-']:
-            self.contrast -= newContrast
-        else:
-            logging.error(f"Operation '{operation}' not recognised.")
 
-    def _getDesiredRGB(self, rgb, colorSpace, contrast):
-        """ Convert color to RGB while adding contrast.
-        Requires self.rgb, self.colorSpace and self.contrast
-        """
-        col = Color(rgb, colorSpace)
-        col.contrast *= contrast or 0
-        return col.render('rgb')
-
-    def updateColors(self):
-        """Placeholder method to update colours when set externally, for example updating the `pallette` attribute of
-        a textbox"""
-        return
+class ColorMixin(ForeColorMixin, FillColorMixin, BorderColorMixin):
+    """
+    Mixin class for visual stim that need fill, fore and border color.
+    """
 
 
 class ContainerMixin:
@@ -748,37 +788,25 @@ class ContainerMixin:
         """Sets Stim.verticesPix and ._borderPix from pos, size, ori,
         flipVert, flipHoriz
         """
-        # check whether stimulus needs flipping in either direction
-        flip = numpy.array([1, 1])
-        if hasattr(self, 'flipHoriz') and self.flipHoriz:
-            flip[0] = -1 # True=(-1), False->(+1)
-        if hasattr(self, 'flipVert') and self.flipVert:
-            flip[1] = -1 # True=(-1), False->(+1)
+
+        verts = numpy.dot(self.vertices, self._rotationMatrix)
+        # If needed, sub in missing values for flip and anchor
+        flip = None
+        if hasattr(self, "flip"):
+            flip = self.flip
+        anchor = None
+        if hasattr(self, "anchor"):
+            anchor = self.anchor
+        # Convert to a vertices object if not already
+        verts = Vertices(verts, obj=self, flip=flip, anchor=anchor).pix
+        self.__dict__['verticesPix'] = self.__dict__['_borderPix'] = verts
 
         if hasattr(self, '_tesselVertices'):  # Shapes need to render from this
-            verts = self._tesselVertices
-        elif hasattr(self, 'vertices'):
-            verts = self.vertices
-        else:
-            verts = self._verticesBase
-
-        # set size and orientation, combine with position and convert to pix:
-        if hasattr(self, 'fieldSize'):
-            # this is probably a DotStim and size is handled differently
-            verts = numpy.dot(verts * flip, self._rotationMatrix)
-        else:
-            verts = numpy.dot(self.size * verts * flip, self._rotationMatrix)
-        verts = convertToPix(vertices=verts, pos=self.pos,
-                             win=self.win, units=self.units)
-        self.__dict__['verticesPix'] = verts
-
-        if hasattr(self, 'border'):
-            #border = self.border
-            border = numpy.dot(self.size * self.border *
-                               flip, self._rotationMatrix)
-            border = convertToPix(
-                vertices=border, pos=self.pos, win=self.win, units=self.units)
-            self.__dict__['_borderPix'] = border
+            tesselVerts = self._tesselVertices
+            tesselVerts = numpy.dot(tesselVerts, self._rotationMatrix)
+            # Convert to a vertices object if not already
+            tesselVerts = Vertices(tesselVerts, obj=self, flip=self.flip, anchor=self.anchor).pix
+            self.__dict__['verticesPix'] = tesselVerts
 
         self._needVertexUpdate = False
         self._needUpdate = True  # but we presumably need to update the list
@@ -963,7 +991,7 @@ class TextureMixin:
         else:
             if isinstance(tex, (str, Path)):
                 # maybe tex is the name of a file:
-                filename = findImageFile(tex)
+                filename = findImageFile(tex, checkResources=True)
                 if not filename:
                     msg = "Couldn't find image %s; check path? (tried: %s)"
                     logging.error(msg % (tex, os.path.abspath(tex)))
@@ -1223,14 +1251,14 @@ class WindowMixin:
     Used by BaseVisualStim, SimpleImageStim and ElementArrayStim.
 
     """
-    @attributeSetter
-    def win(self, value):
+    @property
+    def win(self):
         """The :class:`~psychopy.visual.Window` object in which the
         stimulus will be rendered by default. (required)
 
-       Example, drawing same stimulus in two different windows and display
-       simultaneously. Assuming that you have two windows and a stimulus
-       (win1, win2 and stim)::
+        Example, drawing same stimulus in two different windows and display
+        simultaneously. Assuming that you have two windows and a stimulus
+        (win1, win2 and stim)::
 
            stim.win = win1  # stimulus will be drawn in win1
            stim.draw()  # stimulus is now drawn to win1
@@ -1248,11 +1276,188 @@ class WindowMixin:
            stim.draw(win2)
 
         """
-        self.__dict__['win'] = value
+        return self.__dict__['win']
 
-    @attributeSetter
+    @win.setter
+    def win(self, value):
+        self.__dict__['win'] = value
+        # Update window ref in size and pos objects
+        if hasattr(self, "_size") and isinstance(self._size, Vector):
+            self._size.win = value
+        if hasattr(self, "_pos") and isinstance(self._pos, Vector):
+            self._pos.win = value
+
+    @property
+    def pos(self):
+        if hasattr(self, "_pos"):
+            return getattr(self._pos, self.units)
+
+    @pos.setter
+    def pos(self, value):
+        self._pos = Position(value, units=self.units, win=self.win)
+
+    @property
+    def size(self):
+        if hasattr(self, "_size"):
+            return getattr(self._size, self.units)
+
+    @size.setter
+    def size(self, value):
+        if value is None:
+            value = (None, None)
+        self._size = Size(value, units=self.units, win=self.win)
+
+    @property
+    def width(self):
+        if len(self.size.shape) == 1:
+            # Return first value if a 1d array
+            return self.size[0]
+        elif len(self.size.shape) == 2:
+            # Return first column if a 2d array
+            return self.size[:, 0]
+
+    @width.setter
+    def width(self, value):
+        # Convert to a numpy array
+        value = numpy.array(value)
+        # Set size
+        if len(self.size.shape) == 1:
+            # Set first value if a 1d array
+            self.size[0] = value
+        elif len(self.size.shape) == 2:
+            # Set first column if a 2d array
+            self.size[:, 0] = value
+
+    @property
+    def height(self):
+        if len(self.size.shape) == 1:
+            # Return first value if a 1d array
+            return self.size[1]
+        elif len(self.size.shape) == 2:
+            # Return first column if a 2d array
+            return self.size[:, 1]
+
+    @height.setter
+    def height(self, value):
+        # Convert to a numpy array
+        value = numpy.array(value)
+        # Set size
+        if len(self.size.shape) == 1:
+            # Set first value if a 1d array
+            self.size[1] = value
+        elif len(self.size.shape) == 2:
+            # Set first column if a 2d array
+            self.size[:, 1] = value
+
+    @property
+    def vertices(self):
+        # Get or make Vertices object
+        if hasattr(self, "_vertices"):
+            verts = self._vertices
+        else:
+            # If not defined, assume vertices are just a square
+            verts = self._vertices = Vertices(numpy.array([
+                                [0.5, -0.5],
+                                [-0.5, -0.5],
+                                [-0.5, 0.5],
+                                [0.5, 0.5],
+                            ]), obj=self, flip=self.flip, anchor=self.anchor)
+        return verts.base
+
+    @vertices.setter
+    def vertices(self, value):
+        # If None, use defaut
+        if value is None:
+            value = [
+                [0.5, -0.5],
+                [-0.5, -0.5],
+                [-0.5, 0.5],
+                [0.5, 0.5],
+            ]
+        # Create Vertices object
+        self._vertices = Vertices(value, obj=self, flip=self.flip, anchor=self.anchor)
+
+    @property
+    def flip(self):
+        """
+        1x2 array for flipping vertices along each axis; set as True to flip or False to not flip. If set as a single value, will duplicate across both axes. Accessing the protected attribute (`._flip`) will give an array of 1s and -1s with which to multiply vertices.
+        """
+        # Get base value
+        if hasattr(self, "_flip"):
+            flip = self._flip
+        else:
+            flip = numpy.array([[False, False]])
+        # Convert from boolean
+        return flip == -1
+
+    @flip.setter
+    def flip(self, value):
+        if value is None:
+            value = False
+        # Convert to 1x2 numpy array
+        value = numpy.array(value)
+        value.resize((1, 2))
+        # Ensure values were bool
+        assert value.dtype == bool, "Flip values must be either a boolean (True/False) or an array of booleans"
+        # Set as multipliers rather than bool
+        self._flip = numpy.array([[
+            -1 if value[0, 0] else 1,
+            -1 if value[0, 1] else 1,
+        ]])
+        self._flipHoriz, self._flipVert = self._flip[0]
+        # Apply to vertices
+        if not hasattr(self, "_vertices"):
+            self.vertices = None
+        self._vertices.flip = self.flip
+        # Mark as needing vertex update
+        self._needVertexUpdate = True
+
+    @property
+    def flipHoriz(self):
+        return self.flip[0][0]
+
+    @flipHoriz.setter
+    def flipHoriz(self, value):
+        self.flip = [value, self.flip[0, 1]]
+
+    @property
+    def flipVert(self):
+        return self.flip[0][1]
+
+    @flipVert.setter
+    def flipVert(self, value):
+        self.flip = [self.flip[0, 0], value]
+
+    @property
+    def anchor(self):
+        if hasattr(self, "_vertices"):
+            return self._vertices.anchor
+        elif hasattr(self, "_anchor"):
+            # Return a backup value if there's no vertices yet
+            return self._anchor
+
+    @anchor.setter
+    def anchor(self, value):
+        if hasattr(self, "_vertices"):
+            self._vertices.anchor = value
+        else:
+            # Set a backup value if there's no vertices yet
+            self._anchor = value
+
+    def setAnchor(self, value, log=None):
+        setAttribute(self, 'anchor', value, log)
+
+    @property
+    def units(self):
+        if hasattr(self, "_units"):
+            return self._units
+        else:
+            return self.win.units
+
+    @units.setter
     def units(self, value):
-        """Units to use when drawing.
+        """
+        Units to use when drawing.
 
         Possible options are: None, 'norm', 'cm', 'deg', 'degFlat',
         'degFlatPos', or 'pix'.
@@ -1273,22 +1478,11 @@ class WindowMixin:
             stim.units = 'deg'
 
         """
-        if value != None and len(value):
-            self.__dict__['units'] = value
+        if value in unitTypes:
+            self._units = value or self.win.units
+            self._needVertexUpdate = True
         else:
-            self.__dict__['units'] = self.win.units
-
-        # Update size and position if they are defined (tested as numeric).
-        # If not, this is probably
-        # during some init and they will be defined later, given the new unit.
-        try:
-            # quick and dirty way to check that both are numeric. This avoids
-            # the heavier attributeSetter calls.
-            self.size * self.pos
-            self.size = self.size
-            self.pos = self.pos
-        except Exception:
-            pass
+            raise ValueError(f"Invalid unit type '{value}', must be one of: {unitTypes}")
 
     def draw(self):
         raise NotImplementedError('Stimulus classes must override '
@@ -1308,7 +1502,7 @@ class WindowMixin:
         self._updateListShaders()
 
 
-class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin, LegacyColorMixin):
+class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
     """A template for a visual stimulus class.
 
     Actual visual stim like GratingStim, TextStim etc... are based on this.
@@ -1391,8 +1585,8 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin, LegacyColorMix
         self._needVertexUpdate = True  # need to update update vertices
         self._needUpdate = True
 
-    @attributeSetter
-    def size(self, value):
+    @property
+    def size(self):
         """The size (width, height) of the stimulus in the stimulus
         :ref:`units <units>`
 
@@ -1413,53 +1607,28 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin, LegacyColorMix
         Tip: if you can see the actual pixel range this corresponds to by
         looking at `stim._sizeRendered`
         """
-        array = numpy.array
-        value = val2array(value)  # Check correct user input
-        self._requestedSize = copy.copy(value)  # to track whether we're using a default
-        # None --> set to default
+        return WindowMixin.size.fget(self)
+
+    @size.setter
+    def size(self, value):
+        # Supply default for None
         if value is None:
-            # Set the size to default (e.g. to the size of the loaded image
-            # calculate new size
-            if self._origSize is None:  # not an image from a file
-                # this was PsychoPy's original default
-                value = numpy.array([0.5, 0.5])
-            else:
-                # we have an image; calculate the size in `units` that matches
-                # original pixel size
-                # also scale for retina display (virtual pixels are bigger)
-                if self.win.useRetina:
-                    winSize = self.win.size / 2
-                else:
-                    winSize = self.win.size
-                # then handle main scale
-                if self.units == 'pix':
-                    value = numpy.array(self._origSize)
-                elif self.units in ('deg', 'degFlatPos', 'degFlat'):
-                    # NB when no size has been set (assume to use orig size
-                    # in pix) this should not be corrected for flat anyway,
-                    # so degFlat == degFlatPos
-                    value = pix2deg(array(self._origSize, float),
-                                    self.win.monitor)
-                elif self.units == 'norm':
-                    value = 2 * array(self._origSize, float) / winSize
-                elif self.units == 'height':
-                    value = array(self._origSize, float) / winSize[1]
-                elif self.units == 'cm':
-                    value = pix2cm(array(self._origSize, float),
-                                   self.win.monitor)
-                else:
-                    msg = ("Failed to create default size for ImageStim. "
-                           "Unsupported unit, %s")
-                    raise AttributeError(msg % repr(self.units))
-        self.__dict__['size'] = value
+            value = Size((1, 1), units="height", win=self.win)
+        # Duplicate single values
+        if isinstance(value, (float, int)):
+            value = (value, value)
+        # Do setting
+        WindowMixin.size.fset(self, value)
+        # Mark any updates needed
         self._needVertexUpdate = True
         self._needUpdate = True
         if hasattr(self, '_calcCyclesPerStim'):
             self._calcCyclesPerStim()
 
-    @attributeSetter
-    def pos(self, value):
-        """The position of the center of the stimulus in the stimulus
+    @property
+    def pos(self):
+        """
+        The position of the center of the stimulus in the stimulus
         :ref:`units <units>`
 
         `value` should be an :ref:`x,y-pair <attrib-xy>`.
@@ -1480,7 +1649,16 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin, LegacyColorMix
             posPix = posToPix(stim)
 
         """
-        self.__dict__['pos'] = val2array(value, False, False)
+        return WindowMixin.pos.fget(self)
+
+    @pos.setter
+    def pos(self, value):
+        # Supply defualt for None
+        if value is None:
+            value = Position((0, 0), units="height", win=self.win)
+        # Do setting
+        WindowMixin.pos.fset(self, value)
+        # Mark any updates needed
         self._needVertexUpdate = True
         self._needUpdate = True
 

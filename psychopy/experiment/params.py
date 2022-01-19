@@ -115,6 +115,7 @@ class Param():
     def __init__(self, val, valType, inputType=None, allowedVals=None, allowedTypes=None,
                  hint="", label="", updates=None, allowedUpdates=None,
                  allowedLabels=None, direct=True,
+                 canBePath=True,
                  categ="Basic"):
         """
         @param val: the value for this parameter
@@ -139,8 +140,12 @@ class Param():
         @param categ: category for this parameter
             will populate tabs in Component Dlg
         @type allowedUpdates: string
+        @param canBePath: is it possible for this parameter to be
+            a path? If so, writing as str will check for pathlike
+            characters and sanitise if needed.
+        @type canBePath: bool
         @param direct: purely used in the test suite, marks whether this
-            param's value is expected to appear in the script
+        param's value is expected to appear in the script
         @type direct: bool
         """
         super(Param, self).__init__()
@@ -157,6 +162,7 @@ class Param():
         self.categ = categ
         self.readOnly = False
         self.codeWanted = False
+        self.canBePath = canBePath
         self.direct = direct
         if inputType:
             self.inputType = inputType
@@ -179,7 +185,7 @@ class Param():
                 return "%i" % self.val  # int and float -> str(int)
             except TypeError:
                 return "%s" % self.val  # try array of float instead?
-        elif self.valType in ['extendedStr','str', 'file', 'table', 'color']:
+        elif self.valType in ['extendedStr','str', 'file', 'table']:
             # at least 1 non-escaped '$' anywhere --> code wanted
             # return str if code wanted
             # return repr if str wanted; this neatly handles "it's" and 'He
@@ -203,12 +209,16 @@ class Param():
                             # if target is python2.x then unicode will be u'something'
                             # but for other targets that will raise an annoying error
                             val = val[1:]
-                    if self.valType in ['file', 'table']:
-                        # If param is a file of any kind, use Path to make sure it's valid
-                        val = Path(val).as_posix()  # Convert to a valid path with / not \
-                    val=re.sub("\n", "\\n", val)  # Replace line breaks with escaped line break character
-                    val=re.sub("\\\\", "/", val)  # handle older exps where files were valType=str not file
-                    return repr(val)                              
+                    # If param is a path or pathlike use Path to make sure it's valid (with / not \)
+                    isPathLike = bool(re.findall(r"[\\/](?!\W)", val))
+                    if self.valType in ['file', 'table'] or (isPathLike and self.canBePath):
+                        val = Path(val).as_posix()
+                        val = val.replace("\\", "/").replace("//", "/")
+                    # Hide escape char on escaped $ (other escaped chars are handled by wx but $ is unique to us)
+                    val = re.sub(r"\\\$", "$", val)
+                    # Replace line breaks with escaped line break character
+                    val = re.sub("\n", "\\n", val)
+                    return repr(val)
             return repr(self.val)
         elif self.valType in ['code', 'extendedCode']:
             isStr = isinstance(self.val, str)
@@ -232,6 +242,18 @@ class Param():
                 return valJS
             else:
                 return val
+        elif self.valType == 'color':
+            _, val = self.dollarSyntax()
+            if self.codeWanted:
+                # Handle code
+                return val
+            elif "," in val:
+                # Handle lists (e.g. RGB, HSV, etc.)
+                val = toList(val)
+                return "{}".format(val)
+            else:
+                # Otherwise, treat as string
+                return repr(val)
         elif self.valType == 'list':
             valid, val = self.dollarSyntax()
             val = toList(val)
@@ -281,7 +303,7 @@ class Param():
         return bool(self.val)
 
     @property
-    def xml(self):
+    def _xml(self):
         # Make root element
         element = Element('Param')
         # Assign values

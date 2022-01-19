@@ -47,8 +47,9 @@ class TextboxComponent(BaseVisualComponent):
                  font='Open Sans', units='from exp settings', bold=False, italic=False,
                  color='white', colorSpace='rgb', opacity="",
                  pos=(0, 0), size=(None, None), letterHeight=0.05, ori=0,
+                 anchor='center', alignment='top-left',
                  lineSpacing=1.0, padding=0,  # gap between box and text
-                 startType='time (s)', startVal=0.0, anchor='center',
+                 startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
                  languageStyle='LTR', fillColor="None",
@@ -85,6 +86,7 @@ class TextboxComponent(BaseVisualComponent):
             text, valType='str', inputType="multi", allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The text to be displayed"),
+            canBePath=False,
             label=_localized['text'])
         self.params['font'] = Param(
             font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',
@@ -112,7 +114,6 @@ class TextboxComponent(BaseVisualComponent):
         self.params['languageStyle'] = Param(
             languageStyle, valType='str', inputType="choice", categ='Formatting',
             allowedVals=['LTR', 'RTL', 'Arabic'],
-            direct=False, # todo: remove this when language style is implemented
             hint=_translate("Handle right-to-left (RTL) languages and Arabic reshaping"),
             label=_localized['languageStyle'])
         self.params['italic'] = Param(
@@ -148,8 +149,23 @@ class TextboxComponent(BaseVisualComponent):
                          'bottom-right',
                          ],
             updates='constant',
-            hint=_translate("Should text anchor to the top, center or bottom of the box?"),
-            label=_localized['anchor'])
+            hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
+            label=_translate('Anchor'))
+        self.params['alignment'] = Param(
+            alignment, valType='str', inputType="choice", categ='Formatting',
+            allowedVals=['center',
+                         'top-center',
+                         'bottom-center',
+                         'center-left',
+                         'center-right',
+                         'top-left',
+                         'top-right',
+                         'bottom-left',
+                         'bottom-right',
+                         ],
+            updates='constant',
+            hint=_translate("How should text be laid out within the box?"),
+            label=_translate("Alignment"))
         self.params['borderWidth'] = Param(
             borderWidth, valType='num', inputType="single", allowedTypes=[], categ='Appearance',
             updates='constant', allowedUpdates=_allow3[:],
@@ -186,10 +202,10 @@ class TextboxComponent(BaseVisualComponent):
             "     opacity=%(opacity)s,\n"
             "     bold=%(bold)s, italic=%(italic)s,\n"
             "     lineSpacing=%(lineSpacing)s,\n"
-            "     padding=%(padding)s,\n"
+            "     padding=%(padding)s, alignment=%(alignment)s,\n"
             "     anchor=%(anchor)s,\n"
             "     fillColor=%(fillColor)s, borderColor=%(borderColor)s,\n"
-            "     flipHoriz=%(flipHoriz)s, flipVert=%(flipVert)s,\n"
+            "     flipHoriz=%(flipHoriz)s, flipVert=%(flipVert)s, languageStyle=%(languageStyle)s,\n"
             "     editable=%(editable)s,\n"
             "     name='%(name)s',\n"
             "     autoLog=%(autoLog)s,\n"

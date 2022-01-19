@@ -15,7 +15,7 @@ For the easiest installation download and install the Standalone package.
 
     let filename;
     let url;
-    let version='2021.2.2';
+    let version='2021.2.3';
 
     let clientInfo = UAParser(navigator.userAgent);
     var osLabel;
@@ -133,6 +133,8 @@ You need the necessary dev libraries installed first:
 and then you should be able to install using pip and it will build the extensions
 as needed:
 
+.. code-block:: bash
+
     pip install psychtoolbox
 
 
@@ -149,15 +151,14 @@ open your terminal, navigate to the directory you saved the file to, and run::
 
 This will create an environment named ``psychopy``. On Linux, the ``wxPython`` dependency of PsychoPy is linked
 against ``webkitgtk``, which needs to be installed manually, e.g. via ``sudo apt install libwebkitgtk-1.0`` on Debian-based
-systems linke Ubuntu.
+systems like Ubuntu.
 
-To activate the newly-created environment and run PsychoPy, exceute::
+To activate the newly-created environment and run PsychoPy, execute::
 
   conda activate psychopy
   psychopy
 
 .. _developers_install:
-
 
 Developers install
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -209,4 +210,4 @@ cause is that you need OpenGL drivers and your built-in Windows only has limited
 support for OpenGL (or possibly you have an Intel graphics card that isn't very
 good). Try installing new drivers for your graphics card **from its
 manufacturer's web page,** not from Microsoft. For example, NVIDIA provides
-drivers for its cards here: https://www.nvidia.com/Download/index.aspx
+drivers for its cards `here <https://www.nvidia.com/Download/index.aspx>`_

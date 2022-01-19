@@ -10,4 +10,19 @@ class UnknownRoutine(BaseStandaloneRoutine):
 
     def __init__(self, exp, name=''):
         BaseStandaloneRoutine.__init__(self, exp, name=name)
-        self.type = 'UnknownStandaloneRoutine'
+
+    def writeMainCode(self, buff):
+        code = (
+            "\n"
+            "# Unknown standalone routine ignored: %(name)s\n"
+            "\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+    def writeRoutineBeginCodeJS(self, buff):
+        code = (
+            "\n"
+            "// Unknown standalone routine ignored: %(name)s\n"
+            "\n"
+        )
+        buff.writeIndentedLines(code % self.params)

@@ -186,12 +186,15 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         self._stdoutFrame = None
         self.iconCache = themes.IconCache()
 
-        if not self.testMode:
-            self._lastRunLog = open(os.path.join(
-                    self.prefs.paths['userPrefsDir'], 'last_app_load.log'),
-                    'w')
-            sys.stderr = sys.stdout = lastLoadErrs = self._lastRunLog
-            logging.console.setLevel(logging.DEBUG)
+        # mdc - removed the following and put it in `app.startApp()` to have
+        #       error logging occur sooner.
+        #
+        # if not self.testMode:
+        #     self._lastRunLog = open(os.path.join(
+        #             self.prefs.paths['userPrefsDir'], 'last_app_load.log'),
+        #             'w')
+        #     sys.stderr = sys.stdout = lastLoadErrs = self._lastRunLog
+        #     logging.console.setLevel(logging.DEBUG)
 
         # indicates whether we're running for testing purposes
         self.osfSession = None
@@ -570,7 +573,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         self.coder.Raise()
 
     def newBuilderFrame(self, event=None, fileName=None):
-        # have to reimport because it is ony local to __init__ so far
+        # have to reimport because it is only local to __init__ so far
         wx.BeginBusyCursor()
         from .builder.builder import BuilderFrame
         title = "PsychoPy Builder (v%s)"
@@ -667,7 +670,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             return
 
         document = self.coder.currentDoc
-        dlg = PsychoColorPicker(document)  # doesn't need a parent
+        dlg = PsychoColorPicker(None, context=document)  # doesn't need a parent
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -935,7 +938,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # So this fix checks to see if changing the font name invalidates the font.
         # if so rollback to the font before attempted change.
         # Note that wx.Font uses referencing and copy-on-write so we need to force creation of a copy
-        # witht he wx.Font() call. Otherwise you just get reference to the font that gets borked by SetFaceName()
+        # with the wx.Font() call. Otherwise you just get reference to the font that gets borked by SetFaceName()
         # -Justin Ales
         beforesetface = wx.Font(self._codeFont)
         success = self._codeFont.SetFaceName(codeFont)

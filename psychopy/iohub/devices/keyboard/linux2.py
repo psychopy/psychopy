@@ -73,9 +73,8 @@ class Keyboard(ioHubKeyboardDevice):
                 report_system_wide_events = self.getConfiguration().get(
                     'report_system_wide_events', True)
                 if report_system_wide_events is False:
-                    pyglet_window_hnds = self._iohub_server._pyglet_window_hnds
-                    if len(pyglet_window_hnds) > 0 and event_array[
-                            self.win_id_index] not in pyglet_window_hnds:
+                    pyglet_window_hnds = self._iohub_server._psychopy_windows.keys()
+                    if len(pyglet_window_hnds) > 0 and event_array[self.win_id_index] not in pyglet_window_hnds:
                         return True
 
                 is_pressed = event_array[

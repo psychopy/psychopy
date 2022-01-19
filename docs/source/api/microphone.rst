@@ -29,7 +29,7 @@ Audio Capture
 Speech recognition
 ------------------
 
-Google's speech to text API is no longer available. AT&T, IBM, and wit.ai have
+Google's speech to text API is no longer available. AT&T, IBM, and Wit.ai have
 a similar (paid) service.
 
 Misc

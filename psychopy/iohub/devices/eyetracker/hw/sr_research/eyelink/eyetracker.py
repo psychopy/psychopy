@@ -219,7 +219,7 @@ class EyeTracker(EyeTrackerDevice):
 
     def setConnectionState(self, enable):
         """setConnectionState connects the ioHub Server to the EyeLink device
-        if the enable arguement is True, otherwise an open connection is closed
+        if the enable argument is True, otherwise an open connection is closed
         with the device. Calling this method multiple times with the same value
         has no effect.
 
@@ -308,8 +308,8 @@ class EyeTracker(EyeTrackerDevice):
             "key = value"
 
         and this is sent to the EyeLink device. If only key is provided, it is
-        assumed to include both the command name and any value or arguements
-        required by the EyeLink all in the one arguement, which is sent to the
+        assumed to include both the command name and any value or arguments
+        required by the EyeLink all in the one argument, which is sent to the
         EyeLink device untouched.
 
         """
@@ -366,6 +366,13 @@ class EyeTracker(EyeTrackerDevice):
                     eyelink.setAutoCalibrationPacing(int(cal_val * 1000))
                 elif cal_key == 'target_delay' and cal_val:  # in seconds.msec
                     eyelink.setAutoCalibrationPacing(int(cal_val * 1000))
+                elif cal_key == 'randomize':
+                    if cal_val is True:
+                        self._eyelink.sendCommand('randomize_calibration_order = YES')
+                        self._eyelink.sendCommand('randomize_validation_order = YES')
+                    else:
+                        self._eyelink.sendCommand('randomize_calibration_order = NO')
+                        self._eyelink.sendCommand('randomize_validation_order = NO')
                 elif cal_key == 'type':
                     VALID_CALIBRATION_TYPES = dict(THREE_POINTS='HV3', FIVE_POINTS='HV5', NINE_POINTS='HV9',
                                                    THIRTEEN_POINTS='HV13')
@@ -529,7 +536,7 @@ class EyeTracker(EyeTrackerDevice):
         are successfully being tracked, then the average of the two eye
         positions is returned. If the eye tracker is not recording or is not
         connected, then None is returned. The getLastGazePosition method
-        returns the most recent eye gaze position retieved from the eye tracker
+        returns the most recent eye gaze position retrieved from the eye tracker
         device. This is the position on the calibrated 2D surface that the eye
         tracker is reporting as the current eye position. The units are in the
         units in use by the Display device.

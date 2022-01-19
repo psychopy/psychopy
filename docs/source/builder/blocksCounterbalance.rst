@@ -53,7 +53,7 @@ Finally, we set parameters of our `blocks` loop to use the method 'sequential' (
 ```
 $"chooseBlocks"+expInfo['group']+".xlsx"
 ```
-This will concatinate the string "chooseBlocks" with our selected group ("A" or "B") and the required file extension (in this case "xlsx") in order to select the correct order.
+This will concatenate the string "chooseBlocks" with our selected group ("A" or "B") and the required file extension (in this case "xlsx") in order to select the correct order.
 
 Even though our outer loop is now sequential, your inner loop still probably wants to be random (to shuffle the image order within a block).
 
@@ -82,7 +82,7 @@ For our outer loop we will use conditions files that look something like this:
 .. image:: counterbalanceTasksCondFile.png
         :scale: 100 %
 
-Each row corresponds to how many times a subtask routine (or set of routines) will be repeated per itteration of the outer loop. The example conditions file above would be used for a participant in group 'ABCD' (on the first itteration Task 1 will repeat once, on the second itteration Task 2 will repeat once and so on).
+Each row corresponds to how many times a subtask routine (or set of routines) will be repeated per iteration of the outer loop. The example conditions file above would be used for a participant in group 'ABCD' (on the first iteration Task 1 will repeat once, on the second iteration Task 2 will repeat once and so on).
 
 Just like before we create a field in our experiment settings called group (but let's say that the group names this time are 'ABCD', 'BCDA' and so on where the content of the conditions file differs).
 Finally, we use the following parameters for our outermost loop to select which, preordered, conditions file we are using.

@@ -1,5 +1,5 @@
 """
-Python support for `BrainProducts <https://www.brainproducts.com>`_ hardware.
+Python support for `Brain Products GMBH <https://www.brainproducts.com>`_ hardware.
 
 Here we have implemented support for the Remote Control Server application,
 which allows you to control recordings, send annotations etc. all from Python.
@@ -166,6 +166,7 @@ class RemoteControlServer:
                 "RCS Didn't receive expected response from RCS to "
                 "the message {}. Current stack of recent responses:{}."
                 .format(message, self._listener.messages))
+            logging.flush()
         else:
             return True
 
@@ -193,7 +194,7 @@ class RemoteControlServer:
                     self._listener.messages.remove(reply)
                     return reply
 
-    def waitForState(self, stateName, permitted):
+    def waitForState(self, stateName, permitted, timeout=10):
         """Helper function to wait for a particular state (or any attribute, for that matter)
          to have a particular value. Beware this will wait indefinitely, so only call
          if you are confident that the state will eventually arrive!
@@ -204,11 +205,18 @@ class RemoteControlServer:
             Name of the state (e.g. "applicationState")
         permitted : list
             List of values that are permitted before returning
-=        """
+
+        """
         if type(permitted) is not list:
             raise TypeError("permitted must be a list of permitted values")
+        t0 = time.time()
         while getattr(self, stateName) not in permitted:
             time.sleep(0.01)
+            if time.time()-t0 > timeout:
+                logging.warning(
+                    f'RCS {stateName} not achieved: expected states {permitted} but state is {getattr(self, stateName)}'
+                )
+                return
 
     def open(self, expName, participant, workspace):
         """Opens a study/workspace on the RCS server
@@ -370,11 +378,11 @@ class RemoteControlServer:
             self.waitForState("recordingState", ["Monitoring"])
             self.waitForState("acquisitionState", ["Running"])
         elif mode in ['test', 'tes']:
-            self.waitForState("recordingState", ["Saving calibration"])
+            self.waitForState("recordingState", ["Calibration"])
             self.waitForState("acquisitionState", ["Running"])
         elif mode in ['default', 'def', None]:
-            self.waitForState("recordingState", ["Stopped"])
-            self.waitForState("acquisitionState", ["Idle"])
+            self.waitForState("recordingState", ["Idle"])
+            self.waitForState("acquisitionState", ["Stopped"])
 
     @property
     def timeout(self):
@@ -423,6 +431,7 @@ class RemoteControlServer:
         if amplifier == 'LiveAmp' and not serialNumber:
             logging.warning("LiveAmp may need a serial number. Use\n"
                           "  rcs.amplifier = 'LiveAmp', 'LA-serialNumberHere'")
+            logging.flush()
         if amplifier in ['actiCHamp', 'BrainAmp Family',
                          'LiveAmp', 'QuickAmp USB', 'Simulated Amplifier',
                          'V-Amp / FirstAmp']:
@@ -447,7 +456,7 @@ class RemoteControlServer:
         """An attribute to get/set whether the overwrite protection is turned on.
 
         When checking the attribute the state of `rcs.overwriteProtection` a call will be
-        made to the RCS and the report is based on teh response. There is also a
+        made to the RCS and the report is based on the response. There is also a
         variable `rcs._overwriteProtection` that is simply the stored state from the
         most recent call and does not make any further communication with the RCS itself.
 
@@ -495,6 +504,7 @@ class RemoteControlServer:
                 self._RCSversion = reply.strip().replace("VS:")
             else:
                 logging.warning("Failed to retrieve the version of the RCS software")
+                logging.flush()
         return self._RCSversion
 
     def dcReset(self):
@@ -567,7 +577,7 @@ class RemoteControlServer:
         -----------------
 
         annotation : string
-            The desription text to be sent in the annotation.
+            The description text to be sent in the annotation.
 
         annType : string
             The category of the annotation which are user-defined

@@ -174,7 +174,7 @@ def rec709TF(rgb, **kwargs):
     """Apply the Rec 709 transfer function (or gamma) to linear RGB values.
 
     This transfer function is defined in the ITU-R BT.709 (2015) recommendation
-    document (http://www.itu.int/rec/R-REC-BT.709-6-201506-I/en) and is
+    document (https://www.itu.int/rec/R-REC-BT.709-6-201506-I/en) and is
     commonly used with HDTV televisions.
 
     Parameters
@@ -270,7 +270,7 @@ def cielab2rgb(lab,
     if conversionMatrix is None:
         # XYZ -> sRGB conversion matrix, assumes D65 white point
         # mdc - computed using makeXYZ2RGB with sRGB primaries
-        conversionMatrix = numpy.asmatrix([
+        conversionMatrix = numpy.asarray([
             [3.24096994, -1.53738318, -0.49861076],
             [-0.96924364, 1.8759675, 0.04155506],
             [0.05563008, -0.20397696, 1.05697151]
@@ -332,12 +332,12 @@ def cielch2rgb(lch,
                transferFunc=None,
                clip=False,
                **kwargs):
-    """Transform CIE L*C*h* coordinates to RGB tristimulus values.
+    """Transform CIE `L*C*h*` coordinates to RGB tristimulus values.
 
     Parameters
     ----------
     lch : tuple, list or ndarray
-        1-, 2-, 3-D vector of CIE L*C*h* coordinates to convert. The last
+        1-, 2-, 3-D vector of CIE `L*C*h*` coordinates to convert. The last
         dimension should be length-3 in all cases specifying a single
         coordinate. The hue angle *h is expected in degrees.
     whiteXYZ : tuple, list or ndarray
@@ -573,7 +573,7 @@ def hsv2rgb(hsv_Nx3):
     PsychoPy functions.
     """
     # based on method in
-    # http://en.wikipedia.org/wiki/HSL_and_HSV#Converting_to_RGB
+    # https://en.wikipedia.org/wiki/HSL_and_HSV#Converting_to_RGB
 
     hsv_Nx3 = numpy.asarray(hsv_Nx3, dtype=float)
     # we expect a 2D array so convert there if needed
@@ -713,5 +713,3 @@ def rgb2dklCart(picture, conversionMatrix=None):
     dklPicture = numpy.reshape(numpy.transpose(dkl), origShape)
 
     return dklPicture
-
-

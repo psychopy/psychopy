@@ -16,7 +16,7 @@ python3.6 setup.py sdist --format=zip
 # then handle the mac app bundle
 rm psychopy/prefSite.cfg
 
-declare -a pythons=("python3.6")
+declare -a pythons=("python3.8")
 declare -a names=("PsychoPy")
 declare -a todo=(0) # or  (1 0) to do both
 TEST_ONLY=0

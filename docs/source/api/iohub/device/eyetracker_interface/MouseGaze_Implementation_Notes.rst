@@ -147,4 +147,3 @@ Default Device Settings
 
 
 **Last Updated:** March, 2021
-

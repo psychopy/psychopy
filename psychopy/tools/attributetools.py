@@ -128,7 +128,7 @@ def setAttribute(self, attrib, value, log,
         # Trick to control logging of attributeSetter. Set logging in
         # self.autoLog
         autoLogOrig = self.autoLog  # save original value
-        # set to desired logging. log=None dafaults to autoLog
+        # set to desired logging. log=None defaults to autoLog
         self.__dict__['autoLog'] = log or autoLogOrig and log is None
         # set attribute, calling attributeSetter if it exists
         setattr(self, attrib, value)
@@ -149,8 +149,7 @@ def logAttrib(obj, log, attrib, value=None):
 
         # for numpy arrays bigger than 2x2 repr is slow (up to 1ms) so just
         # say it was an array
-        if isinstance(value, numpy.ndarray) \
-                and (value.ndim > 2 or len(value) > 2):
+        if isinstance(value, numpy.ndarray) and (value.ndim > 2 or value.size > 2):
             valStr = repr(type(value))
         else:
             valStr = value.__repr__()

@@ -92,6 +92,7 @@ class EyetrackerCalibration:
                 'type': self.targetLayout,
                 'auto_pace': self.progressMode == "time",
                 'pacing_speed': self.targetDelay,
+                'randomize': self.randomisePos,
                 'text_color': textColor,
                 'screen_background_color': getattr(self.win._color, self.colorSpace)
             }

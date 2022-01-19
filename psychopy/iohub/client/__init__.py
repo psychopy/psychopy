@@ -33,6 +33,15 @@ getTime = Computer.getTime
 
 _currentSessionInfo = None
 
+def windowInfoDict(win):
+    windict = dict(handle=win._hw_handle, pos=win.pos, size=win.size,
+                   units=win.units, useRetina=win.useRetina, monitor=None)
+    if win.monitor:
+        windict['monitor'] = dict(resolution=win.monitor.getSizePix(),
+                                  width=win.monitor.getWidth(),
+                                  distance=win.monitor.getDistance())
+    return windict
+
 def getFullClassName(klass):
     module = klass.__module__
     if module == 'builtins':
@@ -281,7 +290,7 @@ class ioHubConnection():
         self._iohub_server_config = None
         self._shutdown_attempted = False
         self._cv_order = None
-
+        self._message_cache = []
         self.iohub_status = self._startServer(ioHubConfig, ioHubConfigAbsPath)
         if self.iohub_status != 'OK':
             raise RuntimeError('Error starting ioHub server: {}'.format(self.iohub_status))
@@ -432,9 +441,28 @@ class ioHubConnection():
         Create and send an Experiment MessageEvent to the ioHub Server
         for storage in the ioDataStore hdf5 file.
 
-        .. note::
-            MessageEvents can be thought of as DeviceEvents from the
-            virtual PsychoPy Process "Device".
+        Args:
+            text (str): The text message for the message event. 128 char max.
+
+            category (str): A str grouping code for the message. Optional.
+                            32 char max.
+
+            offset (float): Optional sec.msec offset applied to the
+                            message event time stamp. Default 0.
+
+            sec_time (float): Absolute sec.msec time stamp for the message in.
+                              If not provided, or None, then the MessageEvent
+                              is time stamped when this method is called
+                              using the global timer (core.getTime()).
+        """
+        self.cacheMessageEvent(text, category, offset, sec_time)
+        self._sendToHubServer(('EXP_DEVICE', 'EVENT_TX', self._message_cache))
+        self._message_cache = []
+
+    def cacheMessageEvent(self, text, category='', offset=0.0, sec_time=None):
+        """
+        Create an Experiment MessageEvent and store in local cache.
+        Message must be sent before it is saved to hdf5 file.
 
         Args:
             text (str): The text message for the message event. 128 char max.
@@ -449,17 +477,22 @@ class ioHubConnection():
                               If not provided, or None, then the MessageEvent
                               is time stamped when this method is called
                               using the global timer (core.getTime()).
-
-        Returns:
-            bool: True
-
         """
-        msg_evt = MessageEvent._createAsList(text, # pylint: disable=protected-access
+        self._message_cache.append(MessageEvent._createAsList(text, # pylint: disable=protected-access
                                              category=category,
                                              msg_offset=offset,
-                                             sec_time=sec_time)
-        self._sendToHubServer(('EXP_DEVICE', 'EVENT_TX', [msg_evt, ]))
-        return True
+                                             sec_time=sec_time))
+
+    def sendMessageEvents(self, messageList=[]):
+        if messageList:
+            self.cacheMessageEvents(messageList)
+        if self._message_cache:
+            self._sendToHubServer(('EXP_DEVICE', 'EVENT_TX', self._message_cache))
+            self._message_cache = []
+
+    def cacheMessageEvents(self, messageList):
+        for m in messageList:
+            self._message_cache.append(MessageEvent._createAsList(**m))
 
     def getHubServerConfig(self):
         """Returns a dict containing the current ioHub Server configuration.
@@ -669,6 +702,10 @@ class ioHubConnection():
             ('RPC', 'unregisterWindowHandles', winHandles))
         return r[2]
 
+    def updateWindowPos(self, win, x, y):
+        r = self._sendToHubServer(('RPC', 'updateWindowPos', (win._hw_handle, (x, y))))
+        return r[2]
+
     def getTime(self):
         """
         **Deprecated Method:** Use Computer.getTime instead. Remains here for
@@ -775,16 +812,17 @@ class ioHubConnection():
         return self._addDeviceView(dev_name, device_class_name)
 
     def flushDataStoreFile(self):
-        """Manually tell the ioDataStore to flush any events it has buffered in
-        memory to disk.".
+        """Manually tell the iohub datastore to flush any events it has buffered in
+        memory to disk. Any cached message events are sent to the iohub server
+        before flushing the iohub datastore.
 
         Args:
             None
 
         Returns:
             None
-
         """
+        self.sendMessageEvents()
         r = self._sendToHubServer(('RPC', 'flushIODataStoreFile'))
         return r
 
@@ -929,7 +967,7 @@ class ioHubConnection():
         self._server_process = subprocess.Popen(subprocessArgList,
                                                 env=envars,
                                                 cwd=IOHUB_DIRECTORY,
-                                                # set sub process stderr ro be stdout so PsychoPy Runner
+                                                # set sub process stderr to be stdout so PsychoPy Runner
                                                 # shows errors from iohub
                                                 stderr=subprocess.STDOUT,
                                                 )
@@ -967,7 +1005,9 @@ class ioHubConnection():
                 whs = []
                 # pylint: disable=protected-access
                 for w in window.openWindows:
-                    whs.append(w()._hw_handle)
+                    winfo = windowInfoDict(w())
+                    whs.append(winfo)
+                    w().backend.onMoveCallback = self.updateWindowPos
                 self.registerWindowHandles(*whs)
         except ImportError:
             pass
@@ -1238,6 +1278,9 @@ class ioHubConnection():
 
     def _shutDownServer(self):
         if self._shutdown_attempted is False:
+            # send any cached experiment messages
+            self.sendMessageEvents()
+
             try:
                 from psychopy.visual import window
                 window.IOHUB_ACTIVE = False
@@ -1387,4 +1430,3 @@ try:
 except Exception as e: #pylint: disable=broad-except
     print2err('lazy_import Exception:', e)
     exec(_lazyImports) #pylint: disable=exec-used
-

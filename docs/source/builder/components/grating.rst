@@ -26,7 +26,7 @@ Appearance
 How should the stimulus look? Colour, borders, etc.
 
 blend mode : average, add
-    How should colours blend when overlayed onto something? Should colours be averaged, or added?
+    How should colours blend when overlaid onto something? Should colours be averaged, or added?
 
 foreground color :
     See :doc:`../../general/colours`

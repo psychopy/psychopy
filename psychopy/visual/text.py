@@ -8,9 +8,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-
-
-
 import os
 import glob
 import warnings
@@ -31,8 +28,8 @@ from psychopy import logging
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 from psychopy.tools.attributetools import attributeSetter, setAttribute
-from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
-    ContainerMixin)
+from psychopy.visual.basevisual import (BaseVisualStim, ForeColorMixin,
+                                        ContainerMixin, WindowMixin)
 from psychopy.colors import Color
 
 # for displaying right-to-left (possibly bidirectional) text correctly:
@@ -73,7 +70,7 @@ defaultWrapWidth = {'cm': 15.0,
                     'pixels': 500}
 
 
-class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
+class TextStim(BaseVisualStim, ForeColorMixin, ContainerMixin):
     """Class of text stimuli to be displayed in a
     :class:`~psychopy.visual.Window`
     """
@@ -179,7 +176,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.__dict__['flipVert'] = flipVert
         self.__dict__['languageStyle'] = languageStyle
         self._pygletTextObj = None
-        self.__dict__['pos'] = numpy.array(pos, float)
+        self.pos = pos
         # deprecated attributes
         if alignVert:
             self.__dict__['alignVert'] = alignVert
@@ -262,6 +259,17 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         # need to update the font to reflect the change
         self.setFont(self.font, log=False)
+        return self.__dict__['height']
+
+    @property
+    def size(self):
+        self.size = (self.height*len(self.text), self.height)
+        return WindowMixin.size.fget(self)
+
+    @size.setter
+    def size(self, value):
+        WindowMixin.size.fset(self, value)
+        self.height = getattr(self._size, self.units)[1]
 
     def setHeight(self, height, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
@@ -363,6 +371,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._setTextShaders(text)
 
         self._needSetText = False
+        return self.__dict__['text']
 
     def setText(self, text=None, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
@@ -657,10 +666,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # because this is a property getter we can check /on-access/ if it
         # needs updating :-)
         if self._needVertexUpdate:
-            self.__dict__['posPix'] = convertToPix(vertices=[0, 0],
-                                                   pos=self.pos,
-                                                   units=self.units,
-                                                   win=self.win)
+            self.__dict__['posPix'] = self._pos.pix
         self._needVertexUpdate = False
         return self.__dict__['posPix']
 

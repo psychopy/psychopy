@@ -14,9 +14,14 @@ compiled from Builder.
 
 __all__ = ['ScriptProcess']
 
+import os.path
 import sys
 import psychopy.app.jobs as jobs
 from wx import BeginBusyCursor, EndBusyCursor
+from psychopy.app.console import StdStreamDispatcher
+
+# polling interval for pipes in milliseconds
+PIPE_POLL_INTERVAL_MS = 120
 
 
 class ScriptProcess:
@@ -36,6 +41,24 @@ class ScriptProcess:
         self.app = app  # reference to the app
         self.scriptProcess = None  # reference to the `Job` object
         self._processEndTime = None  # time the process ends
+        self._focusOnExit = 'runner'
+
+    @property
+    def focusOnExit(self):
+        """Which output to focus on when the script exits (`str`)?
+        """
+        return self._focusOnExit
+
+    @focusOnExit.setter
+    def focusOnExit(self, value):
+        if not isinstance(value, str):
+            raise TypeError('Property `focusOnExit` must be string.')
+        elif value not in ('runner', 'coder'):
+            raise ValueError(
+                'Property `focusOnExit` must have value either "runner" or '
+                '"coder"')
+
+        self._focusOnExit = value
 
     @property
     def running(self):
@@ -47,7 +70,7 @@ class ScriptProcess:
 
         return self.scriptProcess.isRunning
 
-    def runFile(self, event=None, fileName=None):
+    def runFile(self, event=None, fileName=None, focusOnExit='runner'):
         """Begin new process to run experiment.
 
         Parameters
@@ -57,10 +80,14 @@ class ScriptProcess:
             callback. Set as `None` if calling directly.
         fileName : str
             Path to the file to run.
+        focusOnExit : str
+            Which output window to focus on when the application exits. Can be
+            either 'coder' or 'runner'. Default is 'runner'.
 
         """
         # full path to the script
         fullPath = fileName.replace('.psyexp', '_lastrun.py')
+        workingDir = os.path.split(fullPath)[0]
 
         # provide a message that the script is running
         # format the output message
@@ -69,7 +96,7 @@ class ScriptProcess:
 
         # if we have a runner frame, write to the output text box
         if hasattr(self.app, 'runner'):
-            stdOut = self.app.runner.stdOut
+            stdOut = StdStreamDispatcher.getInstance()
             stdOut.lenLastRun = len(self.app.runner.stdOut.getText())
         else:
             # if not, just write to the standard output pipe
@@ -89,9 +116,15 @@ class ScriptProcess:
             execFlags |= jobs.EXEC_MAKE_GROUP_LEADER
 
         # build the shell command to run the script
-        # pyExec = '"' + pyExec + '"'  # use quotes to prevent issues with spaces
-        # fullPath = '"' + fullPath + '"'
-        command = [pyExec, '-u', fullPath]  # passed to the Job object
+        execCmd = (
+            '"__file__={fileName}; '
+            'import os; os.chdir({cwd}); '
+            'exec(open({fullPath}, encoding=\'utf-8-sig\').read())"')
+        execCmd = execCmd.format(
+            fileName=repr(fileName),
+            cwd=repr(workingDir),
+            fullPath=repr(fullPath))
+        command = ' '.join([pyExec, '-c', execCmd])  # passed to the Job object
 
         # create a new job with the user script
         self.scriptProcess = jobs.Job(
@@ -100,13 +133,14 @@ class ScriptProcess:
             inputCallback=self._onInputCallback,  # both treated the same
             errorCallback=self._onErrorCallback,
             terminateCallback=self._onTerminateCallback,
-            pollMillis=120  # check input/error pipes every 120 ms
+            pollMillis=PIPE_POLL_INTERVAL_MS  # to check input/error pipes
         )
 
         BeginBusyCursor()  # visual feedback
 
         # start the subprocess
         self.scriptProcess.start()
+        self.focusOnExit = focusOnExit
 
     def stopFile(self, event=None):
         """Stop the script process.
@@ -150,7 +184,11 @@ class ScriptProcess:
         # not available we just write to `sys.stdout`.
         if hasattr(self.app, 'runner'):
             # get any remaining data on the pipes
-            stdOut = self.app.runner.stdOut
+            stdOut = StdStreamDispatcher.getInstance()
+            # backup if we don't have an instance for some reason
+            if stdOut is None:
+                stdOut = self.app.runner.stdOut
+
             self.app.runner.Show()
         else:
             stdOut = sys.stdout
@@ -215,8 +253,9 @@ class ScriptProcess:
         """
         # write a close message, shows the exit code
         closeMsg = \
-            "##### Experiment ended with exit code {} [pid:{}] #####\n".format(
+            " Experiment ended with exit code {} [pid:{}] ".format(
                 exitCode, pid)
+        closeMsg = closeMsg.center(80, '#') + '\n'
         self._writeOutput(closeMsg)
 
         self.scriptProcess = None  # reset
@@ -231,6 +270,32 @@ class ScriptProcess:
             if itemIdx >= 0:
                 self.expCtrl.Select(itemIdx)
                 self.runBtn.Enable()
+
+        def _focusOnOutput(win):
+            """Subroutine to focus on a given output window."""
+            win.Show()
+            win.Raise()
+            win.Iconize(False)
+
+        # set focus to output window
+        if self.app is not None:
+            if self.focusOnExit == 'coder' and hasattr(self.app, 'coder'):
+                if self.app.coder is not None:
+                    _focusOnOutput(self.app.coder)
+                    self.app.coder.shelf.SetSelection(1)  # page for the console output
+                    self.app.coder.shell.SetFocus()
+                else:  # coder is closed, open runner and show output instead
+                    if hasattr(self.app, 'runner') and \
+                            hasattr(self.app, 'showRunner'):
+                        # show runner if available
+                        if self.app.runner is None:
+                            self.app.showRunner()
+                        _focusOnOutput(self.app.runner)
+                        self.app.runner.stdOut.SetFocus()
+            elif self.focusOnExit == 'runner' and hasattr(self.app, 'runner'):
+                if self.app.runner is not None:
+                    _focusOnOutput(self.app.runner)
+                    self.app.runner.stdOut.SetFocus()
 
         EndBusyCursor()
 

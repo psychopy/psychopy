@@ -31,7 +31,7 @@ class MovieComponent(BaseVisualComponent):
 
     def __init__(self, exp, parentName, name='movie', movie='',
                  units='from exp settings',
-                 pos=(0, 0), size='', ori=0,
+                 pos=(0, 0), size='', anchor="center", ori=0,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
@@ -92,6 +92,21 @@ class MovieComponent(BaseVisualComponent):
             loop, valType='bool', inputType="bool", categ='Playback',
             hint=msg,
             label=_translate('Loop playback'))
+        self.params['anchor'] = Param(
+            anchor, valType='str', inputType="choice", categ='Layout',
+            allowedVals=['center',
+                         'top-center',
+                         'bottom-center',
+                         'center-left',
+                         'center-right',
+                         'top-left',
+                         'top-right',
+                         'bottom-left',
+                         'bottom-right',
+                         ],
+            updates='constant',
+            hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
+            label=_translate('Anchor'))
 
         # these are normally added but we don't want them for a movie
         del self.params['color']
@@ -108,9 +123,9 @@ class MovieComponent(BaseVisualComponent):
         #
         # leave units blank if not needed
         if self.params['units'].val == 'from exp settings':
-            unitsStr = ""
+            unitsStr = "units=''"
         else:
-            unitsStr = "units=%(units)s, " % self.params
+            unitsStr = "units=%(units)s" % self.params
 
         # If we're in writeInitCode then we need to convert params to initVals
         # because some (variable) params haven't been created yet.
@@ -121,22 +136,26 @@ class MovieComponent(BaseVisualComponent):
 
         if self.params['backend'].val == 'moviepy':
             code = ("%s = visual.MovieStim3(\n" % params['name'] +
-                    "    win=win, name='%s',%s\n" % (params['name'], unitsStr) +
+                    "    win=win, name='%s', %s,\n" % (
+                        params['name'], unitsStr) +
                     "    noAudio = %(No audio)s,\n" % params)
         elif self.params['backend'].val == 'avbin':
             code = ("%s = visual.MovieStim(\n" % params['name'] +
-                    "    win=win, name='%s',%s\n" % (params['name'], unitsStr))
+                    "    win=win, name='%s', %s,\n" % (
+                        params['name'], unitsStr))
         elif self.params['backend'].val == 'vlc':
             code = ("%s = visual.VlcMovieStim(\n" % params['name'] +
-                    "    win=win, name='%s',%s\n" % (params['name'], unitsStr))
+                    "    win=win, name='%s', %s,\n" % (
+                        params['name'], unitsStr))
         else:
             code = ("%s = visual.MovieStim2(\n" % params['name'] +
-                    "    win=win, name='%s',%s\n" % (params['name'], unitsStr) +
-                    "    noAudio = %(No audio)s,\n" % params)
+                    "    win=win, name='%s', %s,\n" % (
+                        params['name'], unitsStr) +
+                    "    noAudio=%(No audio)s,\n" % params)
 
         code += ("    filename=%(movie)s,\n"
                  "    ori=%(ori)s, pos=%(pos)s, opacity=%(opacity)s,\n"
-                 "    loop=%(loop)s,\n"
+                 "    loop=%(loop)s, anchor=%(anchor)s,\n"
                  % params)
 
         buff.writeIndentedLines(code)

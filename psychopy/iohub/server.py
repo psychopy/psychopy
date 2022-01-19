@@ -13,6 +13,8 @@ import gevent
 from gevent.server import DatagramServer
 from gevent import Greenlet
 
+import numpy
+
 try:
     import msgpack_numpy
     msgpack_numpy.patch()
@@ -58,14 +60,31 @@ class udpServer(DatagramServer):
         self.unpacker = msgpack.Unpacker(use_list=True)
         self.unpack = self.unpacker.unpack
         self.feed = self.unpacker.feed
+        self.multipacket_reads = 0
         DatagramServer.__init__(self, address)
 
     def handle(self, request, replyTo):
         if self._running is False:
             return False
+
         self.feed(request)
+
+        if self.multipacket_reads > 0:
+            # Multi packet request handling...
+            self.multipacket_reads -= 1
+            if self.multipacket_reads > 0:
+                # If reading part of multi packet request, just return and wait for next part of request
+                return False
+
         request = self.unpack()
-        # print2err(">> Rx Packet: {}, {}".format(request, replyTo))
+
+        if request[0] == 'IOHUB_MULTIPACKET_REQUEST':
+            # setup multi packet request read
+            self.multipacket_reads = request[1]
+            return False
+        else:
+            self.multipacket_reads = 0
+
         request_type = request.pop(0)
         if not isinstance(request_type, str):
             request_type = str(request_type, 'utf-8') # convert bytes to string for compatibility
@@ -399,14 +418,40 @@ class udpServer(DatagramServer):
     def registerWindowHandles(self, *win_hwhds):
         if self.iohub:
             for wh in win_hwhds:
-                if wh not in self.iohub._pyglet_window_hnds:
-                    self.iohub._pyglet_window_hnds.append(wh)
+                if wh['handle'] not in self.iohub._psychopy_windows.keys():
+                    self.iohub._psychopy_windows[wh['handle']] = wh
+                    wh['size'] = numpy.asarray(wh['size'])
+                    wh['pos'] = numpy.asarray(wh['pos'])
+                    if wh['monitor']:
+                        from psychopy import monitors
+                        monitor = wh['monitor']
+                        monitor['monitor'] = monitors.Monitor('{}'.format(wh['handle']))
+                        monitor['monitor'].setDistance(monitor['distance'])
+                        monitor['monitor'].setWidth(monitor['width'])
+                        monitor['monitor'].setSizePix(monitor['resolution'])
+                    self.iohub.log('Registered Win: {}'.format(wh))
 
     def unregisterWindowHandles(self, *win_hwhds):
         if self.iohub:
             for wh in win_hwhds:
-                if wh in self.iohub._pyglet_window_hnds:
-                    self.iohub._pyglet_window_hnds.remove(wh)
+                if wh in self.iohub._psychopy_windows.keys():
+                    del self.iohub._psychopy_windows[wh]
+                    self.iohub.log('Removed Win: {}'.format(wh))
+
+    def updateWindowPos(self, win_hwhd, pos):
+        """
+        Update stored psychopy window position.
+        :param win_hwhd:
+        :param pos:
+        :return:
+        """
+        winfo = self.iohub._psychopy_windows.get(win_hwhd)
+        if winfo:
+            winfo['pos'] = pos
+            self.iohub.log('Update Win: {}'.format(winfo))
+        else:
+            print2err('warning: win_hwhd {} not registered with iohub server.'.format(win_hwhd))
+            self.iohub.log('updateWindowPos warning: win_hwhd {} not registered with iohub server.'.format(win_hwhd))
 
     def createExperimentSessionEntry(self, sessionInfoDict):
         sessionInfoDict = convertByteStrings(sessionInfoDict)
@@ -524,7 +569,7 @@ class ioServer():
     eventBuffer = None
     deviceDict = {}
     _logMessageBuffer = deque(maxlen=128)
-    _pyglet_window_hnds = []
+    _psychopy_windows = {}
     status = 'OFFLINE'
     def __init__(self, rootScriptPathDir, config=None):
         self._session_id = None

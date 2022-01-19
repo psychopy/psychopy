@@ -156,4 +156,3 @@ class TobiiTracker():
         if self._isRecording:
             self.stopTracking()
         self._eyetracker = None
-

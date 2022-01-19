@@ -1,0 +1,19 @@
+
+code: 4120
+cat: Timing
+msg: Component {component} has stop time set as a duration, but doesn't have a start time
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Component stop duration with no start time
+
+synopsis: |
+  In order for stop time to be set as a duration, PsychoPy needs to know the time at which the component started. When there's no start time, stop time will be calculated from the duration as if start time were 0s.
+
+details: |
+
+
+solutions: |
+  You can either add a start time to this component, or change the stop time to be set in a different way (e.g. `time (s)`)
+
+versions: |
+  > 2022.1.0

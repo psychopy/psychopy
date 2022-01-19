@@ -348,7 +348,7 @@ def fileSaveDlg(initFilePath="", initFileName="",
         allowed: string
             A string to specify file filters.
             e.g. "BMP files (*.bmp)|*.bmp|GIF files (*.gif)|*.gif"
-            See http://www.wxpython.org/docs/api/wx.FileDialog-class.html
+            See https://docs.wxpython.org/wx.FileDialog.html
             for further details
 
     If initFilePath or initFileName are empty or invalid then
@@ -393,7 +393,7 @@ def fileOpenDlg(tryFilePath="",
         allowed: string (available since v1.62.01)
             a string to specify file filters.
             e.g. "BMP files (*.bmp)|*.bmp|GIF files (*.gif)|*.gif"
-            See http://www.wxpython.org/docs/api/wx.FileDialog-class.html
+            See https://docs.wxpython.org/wx.FileDialog.html
             for further details
 
     If tryFilePath or tryFileName are empty or invalid then

@@ -124,7 +124,7 @@ class _HideMixin:
             self.Show(visible)
 
     def HideAll(self):
-        self.Show(True)
+        self.Show(False)
 
     def tunnelShow(self, sizer, visible):
         if sizer is not None:
@@ -162,6 +162,8 @@ class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         wx.TextCtrl.Show(self, value)
         if hasattr(self, "dollarLbl"):
             self.dollarLbl.Show(value)
+        if hasattr(self, "deleteBtn"):
+            self.deleteBtn.Show(value)
 
 
 class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin, _HideMixin):
@@ -171,6 +173,69 @@ class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin, _HideMixin):
         SingleLineCtrl.__init__(self, parent, valType,
                                 val=val, fieldName=fieldName,
                                 size=size, style=wx.TE_MULTILINE)
+
+
+class InvalidCtrl(SingleLineCtrl, _ValidatorMixin, _HideMixin):
+    def __init__(self, parent, valType,
+                 val="", fieldName="",
+                 size=wx.Size(-1, 24), style=wx.DEFAULT):
+        SingleLineCtrl.__init__(self, parent, valType,
+                                val=val, fieldName=fieldName,
+                                size=size, style=style)
+        self.Disable()
+        # Add delete button
+        self.deleteBtn = wx.Button(parent, label="×", size=(24, 24))
+        self.deleteBtn.SetForegroundColour("red")
+        self.deleteBtn.Bind(wx.EVT_BUTTON, self.deleteParam)
+        self.deleteBtn.SetToolTipString(_translate(
+            "This parameter has come from an older version of PsychoPy. "
+            "In the latest version of PsychoPy, it is not used. Click this "
+            "button to delete it. WARNING: This may affect how this experiment "
+            "works in older versions!"))
+        self._szr.Add(self.deleteBtn, border=6, flag=wx.LEFT | wx.RIGHT)
+        # Add deleted label
+        self.deleteLbl = wx.StaticText(parent, label=_translate("DELETED"))
+        self.deleteLbl.SetForegroundColour("red")
+        self.deleteLbl.Hide()
+        self._szr.Add(self.deleteLbl, border=6, proportion=1, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        # Add undo delete button
+        self.undoBtn = wx.Button(parent, label="⟲", size=(24, 24))
+        self.deleteBtn.SetToolTipString(_translate(
+            "This parameter will not be deleted until you click Okay. "
+            "Click this button to revert the deletion and keep the parameter."))
+        self.undoBtn.Hide()
+        self.undoBtn.Bind(wx.EVT_BUTTON, self.undoDelete)
+        self._szr.Add(self.undoBtn, border=6, flag=wx.LEFT | wx.RIGHT)
+
+        # Set deletion flag
+        self.forDeletion = False
+
+    def deleteParam(self, evt=None):
+        """
+        When the remove button is pressed, mark this param as for deletion
+        """
+        # Mark for deletion
+        self.forDeletion = True
+        # Hide value ctrl and delete button
+        self.Hide()
+        self.deleteBtn.Hide()
+        # Show delete label and
+        self.undoBtn.Show()
+        self.deleteLbl.Show()
+
+        self._szr.Layout()
+
+    def undoDelete(self, evt=None):
+        # Mark not for deletion
+        self.forDeletion = False
+        # Show value ctrl and delete button
+        self.Show()
+        self.deleteBtn.Show()
+        # Hide delete label and
+        self.undoBtn.Hide()
+        self.deleteLbl.Hide()
+
+        self._szr.Layout()
 
 
 class IntCtrl(wx.SpinCtrl, _ValidatorMixin, _HideMixin):
@@ -288,13 +353,15 @@ class FileListCtrl(wx.ListBox, _ValidatorMixin, _HideMixin, _FileMixin):
         if type(choices) == str:
             choices = data.utils.listFromString(choices)
         self.Create(id=wx.ID_ANY, parent=parent, choices=choices, size=size, style=wx.LB_EXTENDED | wx.LB_HSCROLL)
+        self.addCustomBtn = wx.Button(parent, -1, size=(24,24), style=wx.BU_EXACTFIT, label="...")
+        self.addCustomBtn.Bind(wx.EVT_BUTTON, self.addCustomItem)
         self.addBtn = wx.Button(parent, -1, size=(24,24), style=wx.BU_EXACTFIT, label="+")
         self.addBtn.Bind(wx.EVT_BUTTON, self.addItem)
         self.subBtn = wx.Button(parent, -1, size=(24,24), style=wx.BU_EXACTFIT, label="-")
         self.subBtn.Bind(wx.EVT_BUTTON, self.removeItem)
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         self.btns = wx.BoxSizer(wx.VERTICAL)
-        self.btns.AddMany((self.addBtn, self.subBtn))
+        self.btns.AddMany((self.addCustomBtn, self.addBtn, self.subBtn))
         self._szr.Add(self, proportion=1, flag=wx.EXPAND)
         self._szr.Add(self.btns)
 
@@ -320,6 +387,18 @@ class FileListCtrl(wx.ListBox, _ValidatorMixin, _HideMixin, _FileMixin):
         items = [item for index, item in enumerate(self.Items)
                  if index not in i]
         self.SetItems(items)
+
+    def addCustomItem(self, event):
+        # Create string dialog
+        dlg = wx.TextEntryDialog(parent=self, message=_translate("Add custom item"))
+        # Show dialog
+        if dlg.ShowModal() != wx.ID_OK:
+            return
+        # Get string
+        stringEntry = dlg.GetValue()
+        # Add to list
+        if stringEntry:
+            self.InsertItems([stringEntry], 0)
 
     def GetValue(self):
         return self.Items
@@ -441,7 +520,7 @@ class ColorCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         self.validate()
 
     def colorPicker(self, evt):
-        dlg = PsychoColorPicker(self)  # open a color picker
+        dlg = PsychoColorPicker(self, context=self, allowCopy=False)  # open a color picker
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -542,7 +621,7 @@ class DictCtrl(ListWidget, _ValidatorMixin, _HideMixin):
         if isinstance(val, dict):
             newVal = []
             for key, v in val.items():
-                newVal.append({'Field': key, 'Default': v})
+                newVal.append({'Field': key, 'Default': v.val})
             val = newVal
         # If any items within the list are not dicts or are dicts longer than 1, throw error
         if not all(isinstance(v, dict) and len(v) == 2 for v in val):
@@ -554,3 +633,39 @@ class DictCtrl(ListWidget, _ValidatorMixin, _HideMixin):
         for child in self.Children:
             if hasattr(child, "SetForegroundColour"):
                 child.SetForegroundColour(color)
+
+    def Enable(self, enable=True):
+        """
+        Enable or disable all items in the dict ctrl
+        """
+        # Iterate through all children
+        for cell in self.Children:
+            # Get the actual child rather than the sizer item
+            child = cell.Window
+            # If it can be enabled/disabled, enable/disable it
+            if hasattr(child, "Enable"):
+                child.Enable(enable)
+
+    def Disable(self):
+        """
+        Disable all items in the dict ctrl
+        """
+        self.Enable(False)
+
+    def Show(self, show=True):
+        """
+        Show or hide all items in the dict ctrl
+        """
+        # Iterate through all children
+        for cell in self.Children:
+            # Get the actual child rather than the sizer item
+            child = cell.Window
+            # If it can be shown/hidden, show/hide it
+            if hasattr(child, "Show"):
+                child.Show(show)
+
+    def Hide(self):
+        """
+        Hide all items in the dict ctrl
+        """
+        self.Show(False)

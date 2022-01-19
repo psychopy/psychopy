@@ -948,7 +948,7 @@ class MainFrame(wx.Frame):
     def onBtnFindPhotometer(self, event):
 
         # safer to get by index, but GetStringSelection will work for
-        # nonlocalized techincal names:
+        # nonlocalized technical names:
         photName = self.ctrlPhotomType.GetStringSelection()
         # not sure how
         photPort = self.ctrlPhotomPort.GetValue().strip()
@@ -1056,7 +1056,7 @@ class MainFrame(wx.Frame):
 
             lumsPost = self.currentMon.getLumsPost()
             levelsPost = self.currentMon.getLevelsPost()
-        if lumsPost != None:
+        if lumsPost is not None:
             for gun in range(4):  # includes lum,r,g,b
                 lums = lumsPost[gun, :]
                 gamma = gammaGrid[gun, 2]

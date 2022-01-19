@@ -163,7 +163,7 @@ class PsychopyPyShell(wx.py.shell.Shell, ThemeMixin):
 class Printer(HtmlEasyPrinting):
     """bare-bones printing, no control over anything
 
-    from http://wiki.wxpython.org/Printing
+    from https://wiki.wxpython.org/Printing
     """
 
     def __init__(self):
@@ -739,7 +739,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
             return 'Plain Text'  # default, null lexer used
 
     def getTextUptoCaret(self):
-        """Get the text upto the caret."""
+        """Get the text up to the caret."""
         return self.GetTextRange(0, self.caretCurrentPos)
 
     def OnKeyReleased(self, event):
@@ -898,8 +898,8 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
                     calltipText = '\n    '.join(
                         textwrap.wrap(calltipText, 76))  # 80 cols after indent
                     y, x = foundRefs[0].bracket_start
-                    self.CallTipShow(
-                        self.XYToPosition(x + 1, y), calltipText)
+                    callTipPos = self.XYToPosition(x, y)
+                    self.CallTipShow(callTipPos, calltipText)
 
     def MacOpenFile(self, evt):
         logging.debug('PsychoPyCoder: got MacOpenFile event')
@@ -1096,8 +1096,9 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         backward = not (findData.GetFlags() & wx.FR_DOWN)
         matchcase = (findData.GetFlags() & wx.FR_MATCHCASE) != 0
         end = self.GetLength()
-        textstring = self.GetTextRange(0, end)
-        findstring = findData.GetFindString()
+        # Byte string is necessary to let SetSelection() work properly
+        textstring = self.GetTextRangeRaw(0, end)
+        findstring = findData.GetFindString().encode('utf-8')
         if not matchcase:
             textstring = textstring.lower()
             findstring = findstring.lower()
@@ -1108,7 +1109,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
             start = self.GetSelection()[1]
             loc = textstring.find(findstring, start)
 
-        # if it wasn't found then restart at begining
+        # if it wasn't found then restart at beginning
         if loc == -1 and start != 0:
             if backward:
                 start = end
@@ -1120,7 +1121,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         # was it still not found?
         if loc == -1:
             dlg = dialogs.MessageDialog(self, message=_translate(
-                'Unable to find "%s"') % findstring, type='Info')
+                'Unable to find "%s"') % findstring.decode('utf-8'), type='Info')
             dlg.ShowModal()
             dlg.Destroy()
         else:
@@ -1141,6 +1142,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
 
     def __init__(self, parent, ID, title, files=(), app=None):
         self.app = app  # type: psychopy.app.PsychoPyApp
+        self.session = pavlovia.getCurrentSession()
         self.frameType = 'coder'
         # things the user doesn't set like winsize etc
         self.appData = self.app.prefs.appData['coder']
@@ -1302,29 +1304,14 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600),
             agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS)
         #self.shelf.SetArtProvider(PsychopyTabArt())
+
         # Create shell
-        self._useShell = None
-        if haveCode:
-            useDefaultShell = True
-            if self.prefs['preferredShell'].lower() == 'ipython':
-                try:
-                    # Try to use iPython
-                    from IPython.gui.wx.ipython_view import IPShellWidget
-                    self.shell = IPShellWidget(self)
-                    useDefaultShell = False
-                    self._useShell = 'ipython'
-                except Exception:
-                    msg = _translate('IPython failed as shell, using pyshell'
-                                     ' (IPython v0.12 can fail on wx)')
-                    logging.warn(msg)
-            if useDefaultShell:
-                # Default to Pyshell if iPython fails
-                self.shell = PythonREPLCtrl(self)
-                self._useShell = 'pyshell'
-            # Add shell to output pane
-            self.shell.SetName("PythonShell")
-            self.shelf.AddPage(self.shell, _translate('Shell'))
-            # Hide close button
+        self._useShell = 'pyshell'
+        self.shell = PythonREPLCtrl(self)
+
+        # Add shell to output pane
+        self.shell.SetName("PythonShell")
+        self.shelf.AddPage(self.shell, _translate('Shell'))
 
         # script output panel
         self.consoleOutput = ScriptOutputPanel(self.shelf)
@@ -1693,6 +1680,25 @@ class CoderFrame(wx.Frame, ThemeMixin):
         menu.AppendSubMenu(self.themesMenu,
                            _translate("Themes"))
 
+        # ---_view---#000000#FFFFFF-------------------------------------------
+        self.shellMenu = wx.Menu()
+        menuBar.Append(self.shellMenu, _translate('&Shell'))
+
+        menu = self.shellMenu
+        item = menu.Append(
+            wx.ID_ANY,
+            _translate("Start Python Session"),
+            _translate("Start a new Python session in the shell."),
+            wx.ITEM_NORMAL)
+        self.Bind(wx.EVT_MENU, self.onStartShellSession, id=item.GetId())
+        menu.AppendSeparator()
+        item = menu.Append(
+            wx.ID_ANY,
+            _translate("Run Line\tF6"),
+            _translate("Push the line at the caret to the shell."),
+            wx.ITEM_NORMAL)
+        self.Bind(wx.EVT_MENU, self.onPushLineToShell, id=item.GetId())
+
         # menu.Append(ID_UNFOLDALL, "Unfold All\tF3",
         #   "Unfold all lines", wx.ITEM_NORMAL)
         # self.Bind(wx.EVT_MENU,  self.unfoldAll, id=ID_UNFOLDALL)
@@ -1886,6 +1892,25 @@ class CoderFrame(wx.Frame, ThemeMixin):
             if dlg.ShowModal() == wx.ID_YES:
                 self.fileBrowserWindow.gotoDir(cwdpath)
 
+    def onStartShellSession(self, event):
+        """Start a new Python session in the shell."""
+        if hasattr(self, 'shell'):
+            self.shell.start()
+            self.shell.SetFocus()
+
+    def onPushLineToShell(self, event):
+        """Push the currently selected line in the editor to the console and
+        run it.."""
+        if hasattr(self, 'shell'):
+            ed = self.currentDoc
+            if ed is None:  # no document selected
+                return
+
+            lineText, _ = ed.GetCurLine()
+            self.shell.clearAndReplaceTyped(lineText)
+            self.shell.submit(self.shell.getTyped())
+            ed.LineDown()
+
     def onSetCWDFromBrowserPane(self, event):
         """Set the current working directory by browsing for it."""
 
@@ -2055,7 +2080,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
             dlg.Destroy()
 
     # def pluginManager(self, evt=None, value=True):
-    #     """Show the plugin manger frame."""
+    #     """Show the plugin manager frame."""
     #     PluginManagerFrame(self).ShowModal()
 
     def OnFindOpen(self, event):
@@ -2072,7 +2097,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.findDlg.Show()
 
     def OnFindNext(self, event):
-        # find the next occurence of text according to last find dialogue data
+        # find the next occurrence of text according to last find dialogue data
         if not self.findData.GetFindString():
             self.OnFindOpen(event)
             return
@@ -2148,7 +2173,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 and len(self.app.getAllFrames(frameType="runner")) == 0
                 and sys.platform != 'darwin'):
             if not self.app.quitting:
-                # send the event so it can be vetoed if neded
+                # send the event so it can be vetoed if needed
                 self.app.quit(event)
                 return  # app.quit() will have closed the frame already
 
@@ -2612,33 +2637,40 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.app.runner.Raise()
         if event:
             if event.Id in [self.cdrBtnRun.Id, self.IDs.cdrRun]:
-                self.app.runner.panel.runLocal(event)
+                self.app.runner.panel.runLocal(event, focusOnExit='coder')
                 self.Raise()
             else:
                 self.app.showRunner()
 
-    def copy(self, event):
-        foc = self.FindFocus()
-        foc.Copy()
-        if isinstance(foc, CodeEditor):
-            self.currentDoc.Copy()  # let the text ctrl handle this
-        # elif isinstance(foc, StdOutRich):
-
     def duplicateLine(self, event):
+        """Duplicate the current line."""
         self.currentDoc.LineDuplicate()
 
-    def cut(self, event):
+    def copy(self, event):
+        """Copy text to the clipboard from the focused widget."""
         foc = self.FindFocus()
-        foc.Copy()
         if isinstance(foc, CodeEditor):
-            self.currentDoc.Cut()  # let the text ctrl handle this
+            self.currentDoc.Copy()  # let the text ctrl handle this
+        elif hasattr(foc, 'Copy'):  # handle any other widget
+            foc.Copy()
+
+    def cut(self, event):
+        """Cut text from the focused widget to clipboard."""
+        foc = self.FindFocus()
+        if isinstance(foc, CodeEditor):
+            self.currentDoc.Cut()
             self.currentDoc.analyseScript()
+        elif hasattr(foc, 'Cut'):
+            foc.Cut()
 
     def paste(self, event):
+        """Paste text from the clipboard to the focused object."""
         foc = self.FindFocus()
-        if hasattr(foc, 'Paste'):
-            foc.Paste()
+        if isinstance(foc, CodeEditor):
+            self.currentDoc.Paste()
             self.currentDoc.analyseScript()
+        elif hasattr(foc, 'Paste'):
+            foc.Paste()
 
     def undo(self, event):
         if self.currentDoc:
@@ -2815,7 +2847,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         """Push changes to project repo, or create new proj if proj is None"""
         self.project = pavlovia.getProject(self.currentDoc.filename)
         self.fileSave(self.currentDoc.filename)  # Must save on sync else changes not pushed
-        pavlovia_ui.syncProject(parent=self, project=self.project)
+        pavlovia_ui.syncProject(parent=self, file=self.currentDoc.filename, project=self.project)
 
     def onPavloviaRun(self, evt=None):
         # TODO: Allow user to run project from coder

@@ -7,13 +7,13 @@ msg: >-
 
 # The following are typically used for online help pages, and support reStructured Text.
 
-label: Stimulus duration is not posible on a standard monitor refresh
+label: Stimulus duration is not possible on a standard monitor refresh
 
 synopsis: |
   If using a 60Hz or 100Hz monitor, then for accurate presentation of visual stimuli, components must be presented in valid multiples of screen refresh for 60 Hz or 100 Hz.
 
 details: |
-  When presenting stimuli at, say, 60 Hz you stimulus can be presented for 1 frame (1/60 s = 16.667 ms), 2 frames (2/60 s = 33.333 ms) but not for intervening periods (20 ms is not possible becuase the stimulus would have to be presented for a little more than 1 frame, which isn't phsyically possible on standard fixed-framerate monitors.
+  When presenting stimuli at, say, 60 Hz you stimulus can be presented for 1 frame (1/60 s = 16.667 ms), 2 frames (2/60 s = 33.333 ms) but not for intervening periods (20 ms is not possible because the stimulus would have to be presented for a little more than 1 frame, which isn't physically possible on standard fixed-framerate monitors.
 
 solutions: |
   We recommend for brief stimuli that you simply specify your stimulus duration in terms of the number of frames it should be presented (e.g. 1, 2, 3, for 16.7, 33.3 and 50 ms respectively). That reminds you of what is possible and means that PsychoPy won't have to guess about what to do when the desired duration isn't achievable.
