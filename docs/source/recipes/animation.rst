@@ -16,9 +16,7 @@ Question: How can I produce scrolling text (like html's <marquee behavior = "scr
 
 Answer: PsychoPy has animation capabilities built-in (it can even produce and export movies itself (e.g. if you want to show your stimuli in presentations)). But here you just want to animate stimuli directly.
 
-e.g. create a text stimulus.  In the 'pos' (position) field, type:
-
-  [frameN, 0]
+e.g. create a text stimulus.  In the 'pos' (position) field, type :code:`[frameN, 0]`
 
 and select "set every frame" in the popup button next to that field.
 
@@ -29,9 +27,7 @@ You might find performance issues (jittering motion) if you try to render a lot 
 I wanted my text to scroll from right to left.  So if you keep your eyes in the middle of the screen
 the next word to read would come from the right (as if you were actually reading text).  The original formula posted above scrolls the
 other way.  So, you have to put a negative sign in front of the formula for it to scroll the other way.  You have to change the units to pixel.  Also, you have to make sure you have an end time set, otherwise it just flickers.  I also set my letter height to 100
-pixels.  The other problem I had was that I wanted the text to start blank and scroll into the screen.  So, I wrote
-
-  [2000-frameN, 0]
+pixels.  The other problem I had was that I wanted the text to start blank and scroll into the screen.  So, I wrote :code:`[2000-frameN, 0]`
 
 and this worked really well.
 
@@ -45,9 +41,7 @@ Question: I'd like to present an image with the image appearing progressively an
 
 Answer: The Patch stimulus has an opacity field.  Set the button next to it to be "set every frame" so that its value can be changed progressively, and enter an equation in the box that does what you want.
 
-e.g. if your screen refresh rate is 60 Hz, then entering:
-
-  frameN/120
+e.g. if your screen refresh rate is 60 Hz, then entering :code:`frameN/120`
 
 would cycle the opacity linearly from 0 to 1.0 over 2s (it will then continue incrementing but it doesn't seem to matter if the value exceeds 1.0).
 

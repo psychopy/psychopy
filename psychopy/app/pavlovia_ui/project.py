@@ -295,7 +295,7 @@ class DetailsPanel(wx.Panel):
         self.rootSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(self.rootSizer, flag=wx.EXPAND)
         self.localRootLabel = wx.StaticText(self, label="Local root:")
-        self.rootSizer.Add(self.localRootLabel, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP)
+        self.rootSizer.Add(self.localRootLabel, border=6, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         self.localRoot = utils.FileCtrl(self, dlgtype="dir")
         self.localRoot.Bind(wx.EVT_FILEPICKER_CHANGED, self.updateProject)
         self.rootSizer.Add(self.localRoot, proportion=1, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM)
@@ -311,7 +311,7 @@ class DetailsPanel(wx.Panel):
         self.visSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(self.visSizer, flag=wx.EXPAND)
         self.visLbl = wx.StaticText(self, label=_translate("Visibility:"))
-        self.visSizer.Add(self.visLbl, border=6, flag=wx.EXPAND | wx.ALL)
+        self.visSizer.Add(self.visLbl, border=6, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         self.visibility = wx.Choice(self, choices=["Private", "Public"])
         self.visibility.Bind(wx.EVT_CHOICE, self.updateProject)
         self.visSizer.Add(self.visibility, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
@@ -319,15 +319,15 @@ class DetailsPanel(wx.Panel):
         self.statusSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(self.statusSizer, flag=wx.EXPAND)
         self.statusLbl = wx.StaticText(self, label=_translate("Status:"))
-        self.statusSizer.Add(self.statusLbl, border=6, flag=wx.EXPAND | wx.ALL)
+        self.statusSizer.Add(self.statusLbl, border=6, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         self.status = wx.Choice(self, choices=["Running", "Piloting", "Inactive"])
         self.status.Bind(wx.EVT_CHOICE, self.updateProject)
         self.statusSizer.Add(self.status, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
         # Tags
         self.tagSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(self.tagSizer, flag=wx.EXPAND)
-        self.tagLbl = wx.StaticText(self, label=_translate("Tags:"))
-        self.tagSizer.Add(self.tagLbl, border=6, flag=wx.EXPAND | wx.ALL)
+        self.tagLbl = wx.StaticText(self, label=_translate("Keywords:"))
+        self.tagSizer.Add(self.tagLbl, border=6, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         self.tags = utils.ButtonArray(self, orient=wx.HORIZONTAL, items=[], itemAlias=_translate("tag"))
         self.tags.Bind(wx.EVT_LIST_INSERT_ITEM, self.updateProject)
         self.tags.Bind(wx.EVT_LIST_DELETE_ITEM, self.updateProject)
@@ -448,7 +448,7 @@ class DetailsPanel(wx.Panel):
             self.status.SetStringSelection(project.info['status'])
             self.status.Enable(project.editable)
             # Tags
-            self.tags.items = self.project['tag_list']
+            self.tags.items = self.project.info['keywords']
             self.tags.Enable(project.editable)
 
         # Layout
@@ -547,9 +547,14 @@ class DetailsPanel(wx.Panel):
                 self.project.localRoot = self.localRoot.Value
             else:
                 dlg = wx.MessageDialog(self,
-                                 message=f"Could not find directory {self.localRoot.Value}, could not change local root.",
-                                 caption="Directory not found",
-                                 style=wx.ICON_ERROR)
+                                       message=_translate(
+                                           "Could not find folder {directory}, please select a different "
+                                           "local root.".format(directory=self.localRoot.Value)
+                                       ),
+                                       caption="Directory not found",
+                                       style=wx.ICON_ERROR)
+                self.localRoot.SetValue("")
+                self.project.localRoot = ""
                 dlg.ShowModal()
         if obj == self.description and self.project.editable:
             self.project['description'] = self.description.Value
@@ -558,10 +563,13 @@ class DetailsPanel(wx.Panel):
             self.project['visibility'] = self.visibility.GetStringSelection().lower()
             self.project.save()
         if obj == self.status and self.project.editable:
-            pass
+            requests.put(f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
+                         data={"keywords": self.status.GetStringSelection()},
+                         headers={'OauthToken': self.session.getToken()})
         if obj == self.tags and self.project.editable:
-            self.project['tag_list'] = self.tags.GetValue()
-            self.project.save()
+            requests.put(f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
+                         data={"keywords": self.tags.GetValue()},
+                         headers={'OauthToken': self.session.getToken()})
 
 
 class ProjectFrame(wx.Dialog):
