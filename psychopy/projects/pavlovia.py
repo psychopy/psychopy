@@ -278,8 +278,10 @@ class PavloviaSession:
             if namespaceRaw:
                 projDict['namespace_id'] = namespaceRaw.id
             else:
-                raise ValueError("PavloviaSession.createProject was given a "
-                                 "namespace that couldn't be found on gitlab.")
+                raise ValueError(
+                    f"PavloviaSession.createProject was given a namespace ({namespace}) that couldn't be found "
+                    f"on gitlab."
+                )
         # Create project on GitLab
         try:
             gitlabProj = self.gitlab.projects.create(projDict)
