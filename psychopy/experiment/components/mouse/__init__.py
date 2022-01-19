@@ -305,12 +305,12 @@ class MouseComponent(BaseComponent):
 
             if forceEnd == 'valid click':
                     # does valid response end the trial?
-                    code = ("if gotValidClick:  # abort routine on response\n"
-                            "    continueRoutine = False\n")
+                    code = ("if gotValidClick:  \n"
+                            "    continueRoutine = False  # abort routine on response\n")
                     buff.writeIndentedLines(code)
                     buff.setIndentLevel(-dedentAtEnd, relative=True)
             else:
-                buff.writeIndented('continueRoutine = False')
+                buff.writeIndented('continueRoutine = False  # abort routine on response')
                 buff.setIndentLevel(-dedentAtEnd, relative=True)
 
         elif self.params['saveMouseState'].val != 'never':
@@ -360,13 +360,13 @@ class MouseComponent(BaseComponent):
                 if self.params['clickable'].val:
                     # does valid response end the trial?
                     if forceEnd == 'valid click':
-                        code = ("if gotValidClick:  # abort routine on response\n"
-                                "    continueRoutine = False\n")
+                        code = ("if gotValidClick:\n"
+                                "    continueRoutine = False  # abort routine on response\n")
                         buff.writeIndentedLines(code)
                 # does any response end the trial?
                 if forceEnd == 'any click':
-                    code = ("# abort routine on response\n"
-                            "continueRoutine = False\n")
+                    code = ("\n"
+                            "continueRoutine = False  # abort routine on response\n")
                     buff.writeIndentedLines(code)
                 else:
                     pass # forceEnd == 'never'
