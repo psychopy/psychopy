@@ -11,6 +11,7 @@ from psychopy import logging
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
 import psychopy.tools.versionchooser as versions
+from psychopy.experiment import utils as exputils
 from psychopy.monitors import Monitor
 from psychopy.iohub import util as ioUtil
 from psychopy.alerts import alert
@@ -556,14 +557,8 @@ class SettingsComponent:
             # check for strings of lists: "['male','female']"
             for key in infoDict:
                 val = infoDict[key]
-                if (hasattr(val, 'startswith')
-                        and val.startswith('[') and val.endswith(']')):
-                    try:
-                        infoDict[key] = ast.literal_eval(val)
-                    except (ValueError, SyntaxError):
-                        logging.warning("Tried and failed to parse {!r}"
-                                        "as a list of values."
-                                        .format(val))
+                if exputils.list_like_re.search(str(val)):
+                    infoDict[key] = Param(val=val, valType='list')
                 elif val in ['True', 'False']:
                     infoDict[key] = Param(val=val, valType='bool')
                 elif isinstance(val, str):
@@ -903,7 +898,7 @@ class SettingsComponent:
         if 'Saved data folder' in self.params:
             participantField = ''
             for field in ('participant', 'Participant', 'Subject', 'Observer'):
-                if field in expInfoDict:
+                if field in self.getInfo():
                     participantField = field
                     self.params['Data filename'].val = (
                         repr(saveToDir) + " + os.sep + '%s_%s' % (expInfo['" +

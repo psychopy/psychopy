@@ -621,7 +621,7 @@ class DictCtrl(ListWidget, _ValidatorMixin, _HideMixin):
         if isinstance(val, dict):
             newVal = []
             for key, v in val.items():
-                newVal.append({'Field': key, 'Default': v})
+                newVal.append({'Field': key, 'Default': v.val})
             val = newVal
         # If any items within the list are not dicts or are dicts longer than 1, throw error
         if not all(isinstance(v, dict) and len(v) == 2 for v in val):
