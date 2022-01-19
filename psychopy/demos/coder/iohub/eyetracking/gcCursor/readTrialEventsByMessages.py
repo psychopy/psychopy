@@ -26,7 +26,7 @@ TRIAL_END_MESSAGE = "TRIAL_END"
 
 if __name__ == '__main__':
     result = saveEventReport(hdf5FilePath=None, eventType=SAVE_EVENT_TYPE, eventFields=SAVE_EVENT_FIELDS,
-                             trialStartMessage=TRIAL_START_MESSAGE, trialStopMessage=TRIAL_END_MESSAGE)
+                             trialStart=TRIAL_START_MESSAGE, trialStop=TRIAL_END_MESSAGE)
     if result:
         file_saved, events_saved = result
         print("Saved %d events to %s." % (events_saved, file_saved))
