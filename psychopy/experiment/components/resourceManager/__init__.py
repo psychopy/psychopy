@@ -123,7 +123,7 @@ class ResourceManagerComponent(BaseComponent):
             code = (
                     "console.log('register and start downloading resources specified by component %(name)s');\n"
                     "psychoJS.serverManager.prepareResources(%(resources)s);\n"
-                    "resources.status = PsychoJS.Status.STARTED;\n"
+                    "%(name)s.status = PsychoJS.Status.STARTED;\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(-1, relative=True)
