@@ -22,9 +22,8 @@ var PRODUCT_REGISTRY_ROOT
 
 !include "MUI2.nsh"
 !include "building\fileassoc.nsh"
-!include "building\EnvVarUpdate.nsh"
 !include "Library.nsh"
-!include LogicLib.nsh
+!include "LogicLib.nsh"
 
 ; MUI Settings
 !define MUI_ABORTWARNING
@@ -56,6 +55,7 @@ var ICONS_GROUP
 
 ; Uninstaller pages
 !insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_DIRECTORY
 !insertmacro MUI_UNPAGE_INSTFILES
 
 ; Language files
@@ -90,13 +90,7 @@ Function .onInit
     SetShellVarContext current
     StrCpy $InstDir "$LOCALAPPDATA\${PRODUCT_NAME}"
     StrCpy $PRODUCT_REGISTRY_ROOT "HKCU"
-    IfFileExists $SYSDIR\avbin.dll continue_init 0
-    MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
-    "You do not have admin privileges, which are needed to install AVBin. \
-    $\n$\nPlease cancel the install and run with admin \
-    privileges, or manually install AVBin later." \
-    IDOK continue_init
-    Abort
+    EnVar::SetHKCU
   ${Else}
     SetShellVarContext all
     ${If} ${ARCH} == "win64"
@@ -105,9 +99,8 @@ Function .onInit
       StrCpy $InstDir "$PROGRAMFILES\${PRODUCT_NAME}"
     ${EndIf}
     StrCpy $PRODUCT_REGISTRY_ROOT "HKLM"
+    EnVar::SetHKLM
   ${EndIf}
-
-  continue_init:
 
   ;if previous version (PsychoPy) installed then remove
   ReadRegStr $R0 SHELL_CONTEXT \
@@ -131,7 +124,7 @@ Function .onInit
   ;Run the uninstaller
   uninst:
     ClearErrors
-    ExecWait '"$INSTDIR\uninst.exe" _?=$INSTDIR'
+    ExecWait '"$InstDir\uninst.exe" _?=$InstDir'
   done:
 FunctionEnd
 
@@ -155,11 +148,11 @@ FunctionEnd
 
 Section "PsychoPy" SEC01
   SectionIn RO
-  SetOutPath "$INSTDIR"
+  SetOutPath "$InstDir"
   SetOverwrite on
   ;AppDir is the path to the psychopy app folder
   Var /GLOBAL AppDir
-  StrCpy $AppDir "$INSTDIR\Lib\site-packages\psychopy\app"
+  StrCpy $AppDir "$InstDir\Lib\site-packages\psychopy\app"
 
   File /r /x *.pyo /x *.chm /x Editra /x doc "${PYPATH}*.*"
 
@@ -172,27 +165,26 @@ Section "PsychoPy" SEC01
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   CreateDirectory "$SMPROGRAMS\$ICONS_GROUP"
   CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}.lnk" \
-      "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\"" "$AppDir\Resources\psychopy.ico"
+      "$InstDir\pythonw.exe" "$\"$AppDir\psychopyApp.py$\"" "$AppDir\Resources\psychopy.ico"
   CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME} Runner.lnk" \
-      "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\" --runner" "$AppDir\Resources\runner.ico"
+      "$InstDir\pythonw.exe" "$\"$AppDir\psychopyApp.py$\" --runner" "$AppDir\Resources\runner.ico"
   CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME} Builder.lnk" \
-      "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\" --builder" "$AppDir\Resources\builder.ico"
+      "$InstDir\pythonw.exe" "$\"$AppDir\psychopyApp.py$\" --builder" "$AppDir\Resources\builder.ico"
   CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME} Coder.lnk" \
-      "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\" --coder"  "$AppDir\Resources\coder.ico"
+      "$InstDir\pythonw.exe" "$\"$AppDir\psychopyApp.py$\" --coder"  "$AppDir\Resources\coder.ico"
   !insertmacro MUI_STARTMENU_WRITE_END
 
 ; File Associations
   !insertmacro APP_ASSOCIATE "psyexp" "PsychoPy.experiment" "PsychoPy Experiment" "$AppDir\Resources\builder.ico,0" \
-     "Open with PsychoPy" "$\"$INSTDIR\python.exe$\" $\"$AppDir\psychopyApp.py$\" $\"%1$\""
+     "Open with PsychoPy" "$\"$InstDir\python.exe$\" $\"$AppDir\psychopyApp.py$\" $\"%1$\""
   ; !insertmacro APP_ASSOCIATE "py" "PsychoPy.script" "PsychoPy Experiment" "$AppDir\Resources\coder.ico,0" \
-  ;    "Open with PsychoPy" "$\"$INSTDIR\python.exe$\" $\"$AppDir\psychopyApp.py$\" $\"%1$\""
+  ;    "Open with PsychoPy" "$\"$InstDir\python.exe$\" $\"$AppDir\psychopyApp.py$\" $\"%1$\""
   !insertmacro APP_ASSOCIATE "psyrun" "PsychoPy.runner" "PsychoPy Runner List" "$AppDir\Resources\runner.ico,0" \
-     "Open with PsychoPy" "$\"$INSTDIR\python.exe$\" $\"$AppDir\psychopyApp.py$\" $\"%1$\""
+     "Open with PsychoPy" "$\"$InstDir\python.exe$\" $\"$AppDir\psychopyApp.py$\" $\"%1$\""
 
 ; Update Windows Path
-  ;add to path variable
-  ${EnvVarUpdate} $0 "PATH" "A" "$PRODUCT_REGISTRY_ROOT" "$INSTDIR"
-  ${EnvVarUpdate} $0 "PATH" "A" "$PRODUCT_REGISTRY_ROOT" "$INSTDIR\DLLs"
+  EnVar::AddValue "PATH" "$InstDir"
+  EnVar::AddValue "PATH" "$InstDir\DLLs"
 
 SectionEnd
 
@@ -211,7 +203,6 @@ SectionEnd
 
 Section -Post
   WriteUninstaller "$INSTDIR\uninst.exe"
-  ;WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\AppMainExe.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
@@ -228,16 +219,16 @@ Section Uninstall
   RMDir /r "$INSTDIR"
   ; NB we don't uninstall avbin - it might be used by another python installation
 
-  ;shortcuts
+  ; shortcuts
   Delete "$SMPROGRAMS\$ICONS_GROUP\Uninstall.lnk"
   Delete "$SMPROGRAMS\$ICONS_GROUP\www.psychopy.org.lnk"
   Delete "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}.lnk"
   RMDir /r "$SMPROGRAMS\$ICONS_GROUP"
-
+  ; remove from registry
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
-  ;DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
-  ${un.EnvVarUpdate} $0 "PATH" "R" "$PRODUCT_REGISTRY_ROOT" "$INSTDIR"
-  ${un.EnvVarUpdate} $0 "PATH" "R" "$PRODUCT_REGISTRY_ROOT" "$INSTDIR\DLLs"
+  ; remove from PATH variable
+  EnVar::DeleteValue "PATH" "$InstDir"
+  EnVar::DeleteValue "PATH" "$InstDir\DLLs"
 
   SetAutoClose true
 SectionEnd
