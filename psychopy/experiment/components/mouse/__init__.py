@@ -300,7 +300,7 @@ class MouseComponent(BaseComponent):
             return buff, dedent
 
         # No mouse tracking, end routine on any or valid click
-        if self.params['saveMouseState'].val == 'never' and forceEnd in ['any click', 'valid click']:
+        if self.params['saveMouseState'].val in ['never', 'final'] and forceEnd in ['any click', 'valid click']:
             buff, dedentAtEnd = _buttonPressCode(buff, dedentAtEnd)
 
             if forceEnd == 'valid click':
