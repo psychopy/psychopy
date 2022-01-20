@@ -58,7 +58,8 @@ debug = False
 # If text is ". " we don't want to start next line with single space?
 
 class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
-    def __init__(self, win, text, font,
+    def __init__(self, win, text,
+                 font="Open Sans",
                  pos=(0, 0), units=None, letterHeight=None,
                  size=None,
                  color=(1.0, 1.0, 1.0), colorSpace='rgb',
