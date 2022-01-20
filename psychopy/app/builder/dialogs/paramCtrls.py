@@ -342,6 +342,12 @@ class FileCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
             self.SetValue(file)
             self.validate(evt)
 
+    def SetValue(self, value):
+        # Replace backslashes with forward slashes
+        value = value.replace("\\", "/")
+        # Do base set method
+        wx.TextCtrl.SetValue(self, value)
+
 
 class FileListCtrl(wx.ListBox, _ValidatorMixin, _HideMixin, _FileMixin):
     def __init__(self, parent, valType,
@@ -402,6 +408,20 @@ class FileListCtrl(wx.ListBox, _ValidatorMixin, _HideMixin, _FileMixin):
 
     def GetValue(self):
         return self.Items
+
+    def SetItems(self, value):
+        # Replace backslashes with forward slashes
+        for i, path in enumerate(value):
+            value[i] = path.replace("\\", "/")
+        # Do base set method
+        wx.ListBox.SetItems(self, value)
+
+    def InsertItems(self, items, index):
+        # Replace backslashes with forward slashes
+        for i, path in enumerate(items):
+            items[i] = path.replace("\\", "/")
+        # Do base set method
+        wx.ListBox.InsertItems(self, items, index)
 
 
 class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):

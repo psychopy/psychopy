@@ -766,6 +766,8 @@ class FileCtrl(wx.TextCtrl):
         self.SetValue(str(file))
 
     def SetValue(self, value):
+        # Replace backslashes with forward slashes
+        value = value.replace("\\", "/")
         # Do base value setting
         wx.TextCtrl.SetValue(self, value)
         # Post event
