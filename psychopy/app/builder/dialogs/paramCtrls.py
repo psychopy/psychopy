@@ -89,7 +89,7 @@ class _FileMixin:
             filename = Path(file).relative_to(self.rootDir)
         except ValueError:
             filename = Path(file).absolute()
-        return str(filename)
+        return str(filename).replace("\\", "/")
 
     def getFiles(self, msg="Specify file or files...", wildcard="All Files (*.*)|*.*"):
         dlg = wx.FileDialog(self, message=_translate(msg), defaultDir=str(self.rootDir),
@@ -104,7 +104,7 @@ class _FileMixin:
                 filename = Path(file).relative_to(self.rootDir)
             except ValueError:
                 filename = Path(file).absolute()
-            outList.append(str(filename))
+            outList.append(str(filename).replace("\\", "/"))
         return outList
 
 
@@ -342,12 +342,6 @@ class FileCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
             self.SetValue(file)
             self.validate(evt)
 
-    def SetValue(self, value):
-        # Replace backslashes with forward slashes
-        value = value.replace("\\", "/")
-        # Do base set method
-        wx.TextCtrl.SetValue(self, value)
-
 
 class FileListCtrl(wx.ListBox, _ValidatorMixin, _HideMixin, _FileMixin):
     def __init__(self, parent, valType,
@@ -408,20 +402,6 @@ class FileListCtrl(wx.ListBox, _ValidatorMixin, _HideMixin, _FileMixin):
 
     def GetValue(self):
         return self.Items
-
-    def SetItems(self, value):
-        # Replace backslashes with forward slashes
-        for i, path in enumerate(value):
-            value[i] = path.replace("\\", "/")
-        # Do base set method
-        wx.ListBox.SetItems(self, value)
-
-    def InsertItems(self, items, index):
-        # Replace backslashes with forward slashes
-        for i, path in enumerate(items):
-            items[i] = path.replace("\\", "/")
-        # Do base set method
-        wx.ListBox.InsertItems(self, items, index)
 
 
 class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
