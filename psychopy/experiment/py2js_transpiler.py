@@ -79,6 +79,8 @@ class psychoJSTransformer(ast.NodeTransformer):
                     kind=None
                 )
 
+        # return the node by default:
+        return node
 
 class pythonTransformer(ast.NodeTransformer):
     """Python-specific AST transformer
@@ -194,7 +196,6 @@ class pythonTransformer(ast.NodeTransformer):
         raise Exception('formatted f-string are not all supported at the moment')
 
     def visit_Call(self, node):
-
         # transform the node arguments:
         nbArgs = len(node.args)
         for i in range(0, nbArgs):
