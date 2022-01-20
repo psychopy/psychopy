@@ -173,14 +173,14 @@ class pythonTransformer(ast.NodeTransformer):
                     attr='toPrecision',
                     ctx=ast.Load()
                 ),
-				        args=[ast.Constant(value=precision, kind=None)],
+                args=[ast.Constant(value=precision, kind=None)],
                 keywords=[]
             )
 
             # deal with width:
             widthCall = ast.Call(
                 func=ast.Name(id='pad', ctx=ast.Load()),
-				        args=[precisionCall, ast.Constant(value=width, kind=None)],
+                args=[precisionCall, ast.Constant(value=width, kind=None)],
                 keywords=[]
             )
 
