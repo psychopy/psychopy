@@ -8,11 +8,6 @@
 # python text parser
 # this is really just for the purpose of constructing code analysis in
 # python scripts
-
-from __future__ import absolute_import, print_function
-
-from builtins import next
-from builtins import object
 import tokenize
 import re
 
@@ -21,7 +16,7 @@ import re
 # print(xx['makeRadialMatrix'].__doc__)
 
 
-class tokenBuffer(object):
+class tokenBuffer():
     # simple buffer to provide mechanism to step backwards through previous
     # tokens
 

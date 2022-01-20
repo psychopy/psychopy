@@ -8,15 +8,11 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
-
-from past.builtins import basestring
-from builtins import range
 import os
 import copy
 from pkg_resources import parse_version
-
-from psychopy import logging, colors
+from pathlib import Path
+from psychopy import logging, colors, prefs
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
@@ -242,11 +238,12 @@ def setColor(obj, color, colorSpace=None, operation='',
 immutables = {int, float, str, tuple, int, bool, np.float32, np.float64}
 
 
-def findImageFile(filename):
+def findImageFile(filename, checkResources=False):
     """Tests whether the filename is an image file. If not will try some common
-    alternatives (e.g. extensions .jpg .tif...)
+    alternatives (e.g. extensions .jpg .tif...) as well as looking in the
+    `psychopy/app/Resources` folder
     """
-    # if user supplied correct path then reutnr quickly
+    # if user supplied correct path then return quickly
     filename = pathToString(filename)
     isfile = os.path.isfile
     if isfile(filename):
@@ -276,6 +273,11 @@ def findImageFile(filename):
             filename += ext
             logCorrected(orig, filename)
             return filename
+
+    # try doing the same in the Resources folder
+    if checkResources:
+        return findImageFile(Path(prefs.paths['resources'])/orig, checkResources=False)
+
 
 def groupFlipVert(flipList, yReflect=0):
     """Reverses the vertical mirroring of all items in list ``flipList``.

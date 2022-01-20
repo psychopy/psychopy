@@ -1,1 +1,0 @@
-"""Testing PsychoJS, but also see test_app/test_builder/test_compileJS.py"""

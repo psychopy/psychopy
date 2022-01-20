@@ -12,8 +12,6 @@ from ...errors import print2err, printExceptionDetailsToStdErr
 from ...constants import DeviceConstants, EventConstants
 getTime = Computer.getTime
 
-PY3 = sys.version_info.major >= 3
-
 
 class Serial(Device):
     """A general purpose serial input interface device.
@@ -305,8 +303,7 @@ class Serial(Device):
 
     def read(self):
         returned = self._serial.read(self._serial.inWaiting())
-        if PY3:
-            returned = returned.decode('utf-8')
+        returned = returned.decode('utf-8')
         return returned
 		
     def closeSerial(self):

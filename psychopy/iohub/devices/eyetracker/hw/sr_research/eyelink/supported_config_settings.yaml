@@ -12,7 +12,7 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
     event_buffer_length: 
         IOHUB_INT:
             min: 1
-            max: 2048
+            max: 8192
     monitor_event_types:           
         IOHUB_LIST:
             valid_values: [ MonocularEyeSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]  
@@ -49,6 +49,7 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
                 min: 0.5
                 max: 2.5
         screen_background_color: IOHUB_COLOR
+        text_color: IOHUB_COLOR
         target_type: [CIRCLE_TARGET,]
         target_attributes:
             outer_diameter:

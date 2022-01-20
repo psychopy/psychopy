@@ -101,6 +101,11 @@ class PavloviaMiniBrowser(wx.Dialog):
             url = self.user.attributes['web_url']
             self.browser.LoadURL(url)
 
+    def editUserPage(self):
+        url = "https://gitlab.pavlovia.org/profile"
+        self.browser.LoadURL(url)
+        self.SetSizeWH(1240, 840)
+
     def gotoProjects(self):
         self.browser.LoadURL("https://pavlovia.org/projects.html")
 

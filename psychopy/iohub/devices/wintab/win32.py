@@ -409,7 +409,7 @@ def wtinfo_bool(category, index):
     return bool(buffer.value)
 
 
-class Win32Wintab(object):
+class Win32Wintab:
     '''High-level interface to tablet devices.
 
     Unlike other devices, tablets must be opened for a specific window,
@@ -673,7 +673,7 @@ class Win32WintabCanvas(EventDispatcher):
             self._current_cursor = None
 
 
-class Win32WintabCursor(object):
+class Win32WintabCursor:
 
     def __init__(self, device, index):
         self.device = device

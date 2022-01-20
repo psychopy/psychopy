@@ -5,7 +5,6 @@
 
 edit the file name, then run the script
 """
-from __future__ import print_function
 
 import os
 from psychopy.tools.filetools import fromFile

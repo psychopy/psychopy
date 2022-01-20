@@ -1,6 +1,3 @@
-from __future__ import print_function
-from builtins import next
-from builtins import range
 from psychopy import visual, core, data, event
 from numpy.random import shuffle
 import copy, time #from the std python libs

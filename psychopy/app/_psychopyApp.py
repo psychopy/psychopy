@@ -5,10 +5,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import str
-from builtins import object
 from pathlib import Path
 
 from psychopy.app.colorpicker import PsychoColorPicker
@@ -20,7 +16,6 @@ import argparse
 import psychopy
 from psychopy import prefs
 from pkg_resources import parse_version
-from psychopy.constants import PY3
 from . import urls
 from . import frametracker
 from . import themes
@@ -61,11 +56,6 @@ import weakref
 # knowing if the user has admin priv is generally a good idea for security.
 # not actually needed; psychopy should never need anything except normal user
 # see older versions for code to detect admin (e.g., v 1.80.00)
-
-if not PY3 and sys.platform == 'darwin':
-    blockTips = True
-else:
-    blockTips = False
 
 
 # Enable high-dpi support if on Windows. This fixes blurry text rendering.
@@ -131,7 +121,7 @@ class IDStore(dict):
         self[attr] = value
 
 
-class _Showgui_Hack(object):
+class _Showgui_Hack():
     """Class with side-effect of restoring wx window switching under wx-3.0
 
     - might only be needed on some platforms (Mac 10.9.4 needs it for me);
@@ -196,12 +186,15 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         self._stdoutFrame = None
         self.iconCache = themes.IconCache()
 
-        if not self.testMode:
-            self._lastRunLog = open(os.path.join(
-                    self.prefs.paths['userPrefsDir'], 'last_app_load.log'),
-                    'w')
-            sys.stderr = sys.stdout = lastLoadErrs = self._lastRunLog
-            logging.console.setLevel(logging.DEBUG)
+        # mdc - removed the following and put it in `app.startApp()` to have
+        #       error logging occur sooner.
+        #
+        # if not self.testMode:
+        #     self._lastRunLog = open(os.path.join(
+        #             self.prefs.paths['userPrefsDir'], 'last_app_load.log'),
+        #             'w')
+        #     sys.stderr = sys.stdout = lastLoadErrs = self._lastRunLog
+        #     logging.console.setLevel(logging.DEBUG)
 
         # indicates whether we're running for testing purposes
         self.osfSession = None
@@ -228,7 +221,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         logging.flush()
 
         # set the exception hook to present unhandled errors in a dialog
-        if not PsychoPyApp._called_from_test:  #NB class variable not self
+        if not self.testMode:  # NB class variable not self
             from psychopy.app.errorDlg import exceptionCallback
             sys.excepthook = exceptionCallback
 
@@ -409,8 +402,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
                                         title=title)
             dlg.ShowModal()
 
-        if (self.prefs.app['showStartupTips']
-                and not self.testMode and not blockTips):
+        if self.prefs.app['showStartupTips'] and not self.testMode:
             tipFile = os.path.join(
                 self.prefs.paths['resources'], _translate("tips.txt"))
             tipIndex = self.prefs.appData['tipIndex']
@@ -678,7 +670,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             return
 
         document = self.coder.currentDoc
-        dlg = PsychoColorPicker(document)  # doesn't need a parent
+        dlg = PsychoColorPicker(None, context=document)  # doesn't need a parent
         dlg.ShowModal()
         dlg.Destroy()
 

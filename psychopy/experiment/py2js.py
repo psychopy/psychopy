@@ -10,17 +10,14 @@ to JS (ES6/PsychoJS)
 """
 
 import ast
+from pathlib import Path
+
 import astunparse
 import esprima
 from os import path
-from psychopy.constants import PY3
 from psychopy import logging
 
-if PY3:
-    from past.builtins import unicode
-    from io import StringIO
-else:
-    from StringIO import StringIO
+from io import StringIO
 from psychopy.experiment.py2js_transpiler import translatePythonToJavaScript
 
 
@@ -89,7 +86,7 @@ def expression2js(expr):
         syntaxTree = ast.parse(expr)
     except Exception:
         try:
-            syntaxTree = ast.parse(unicode(expr))
+            syntaxTree = ast.parse(str(expr))
         except Exception as err:
             logging.error(err)
             return
@@ -98,7 +95,7 @@ def expression2js(expr):
         TupleTransformer().visit(node)  # Transform tuples to list
         # for py2 using 'unicode_literals' we don't want
         if isinstance(node, ast.Str) and type(node.s)==bytes:
-            node.s = unicode(node.s, 'utf-8')
+            node.s = str(node.s, 'utf-8')
         elif isinstance(node, ast.Str) and node.s.startswith("u'"):
             node.s = node.s[1:]
         if isinstance(node, ast.Name):
@@ -161,10 +158,15 @@ def addVariableDeclarations(inputProgram, fileName):
 
     # parse Javascript code into abstract syntax tree:
     # NB: esprima: https://media.readthedocs.org/pdf/esprima/4.0/esprima.pdf
+    fileName = Path(str(fileName))
     try:
         ast = esprima.parseScript(inputProgram, {'range': True, 'tolerant': True})
     except esprima.error_handler.Error as err:
-        logging.error("{0} in {1}".format(err, path.split(fileName)[1]))
+        if fileName:
+            logging.error(f"Error parsing JS in {fileName.name}:\n{err}")
+        else:
+            logging.error(f"Error parsing JS: {err}")
+        logging.flush()
         return inputProgram  # So JS can be written to file
 
     # find undeclared vars in functions and declare them before the function

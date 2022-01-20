@@ -12,8 +12,6 @@ misnomer; setting a high 'opacity' doesn't cause the background to be
 obscured; it just acts as a multiplier for the contrast of the stimulus being drawn.
 """
 
-from __future__ import division
-
 from psychopy import visual, logging, event, core
 
 # create a window to draw in

@@ -1,21 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, print_function
-
-from builtins import str
-from builtins import object
 import os
+from copy import deepcopy
 from pathlib import Path
 from xml.etree.ElementTree import Element
 import re
 import wx.__version__
-import psychopy
 from psychopy import logging
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
 import psychopy.tools.versionchooser as versions
-from psychopy.constants import PY3
+from psychopy.experiment import utils as exputils
 from psychopy.monitors import Monitor
 from psychopy.iohub import util as ioUtil
 from psychopy.alerts import alert
@@ -74,8 +70,16 @@ _localized = {'expName': _translate("Experiment name"),
               'Force stereo': _translate("Force stereo"),
               'Export HTML': _translate("Export HTML")}
 ioDeviceMap = dict(ioUtil.getDeviceNames())
-#
-#
+ioDeviceMap['None'] = ""
+
+# Keyboard backend options
+keyboardBackendMap = {
+    "ioHub": "iohub",
+    "PsychToolbox": "ptb",
+    "Pyglet": "event"
+}
+
+
 # # customize the Proj ID Param class to
 # class ProjIDParam(Param):
 #     @property
@@ -94,7 +98,7 @@ ioDeviceMap = dict(ioUtil.getDeviceNames())
 #         pass
 
 
-class SettingsComponent(object):
+class SettingsComponent:
     """This component stores general info about how to run the experiment
     """
     targets = ['PsychoPy']
@@ -123,6 +127,7 @@ class SettingsComponent(object):
                  elTrackingMode='PUPIL_CR_TRACKING', elPupilMeasure='PUPIL_AREA', elPupilAlgorithm='ELLIPSE_FIT',
                  elAddress='100.1.1.1',
                  tbModel="", tbLicenseFile="", tbSerialNo="", tbSampleRate=60,
+                 keyboardBackend="ioHub",
                  filename=None, exportHTML='on Sync'):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
@@ -379,7 +384,7 @@ class SettingsComponent(object):
 
         self.params['eyetracker'] = Param(
             eyetracker, valType='str', inputType="choice",
-            allowedVals=list(ioDeviceMap) + ["None"],
+            allowedVals=list(ioDeviceMap),
             hint=_translate("What kind of eye tracker should PsychoPy use? Select 'MouseGaze' to use "
                             "the mouse to simulate eye movement (for debugging without a tracker connected)"),
             label=_translate("Eyetracker Device"), categ="Eyetracking"
@@ -515,8 +520,16 @@ class SettingsComponent(object):
             label=_translate("Sampling Rate"), categ="Eyetracking"
         )
 
+        # Input
+        self.params['keyboardBackend'] = Param(
+            keyboardBackend, valType='str', inputType="choice",
+            allowedVals=list(keyboardBackendMap),
+            hint=_translate("What Python package should PsychoPy use to get keyboard input?"),
+            label=_translate("Keyboard Backend"), categ="Input"
+        )
+
     @property
-    def xml(self):
+    def _xml(self):
         # Make root element
         element = Element("Settings")
         # Add an element for each parameter
@@ -524,7 +537,7 @@ class SettingsComponent(object):
             if key == 'name':
                 continue
             # Create node
-            paramNode = param.xml
+            paramNode = param._xml
             paramNode.set("name", key)
             # Add node
             element.append(paramNode)
@@ -544,16 +557,12 @@ class SettingsComponent(object):
             # check for strings of lists: "['male','female']"
             for key in infoDict:
                 val = infoDict[key]
-                if (hasattr(val, 'startswith')
-                        and val.startswith('[') and val.endswith(']')):
-                    try:
-                        infoDict[key] = ast.literal_eval(val)
-                    except (ValueError, SyntaxError):
-                        logging.warning("Tried and failed to parse {!r}"
-                                        "as a list of values."
-                                        .format(val))
+                if exputils.list_like_re.search(str(val)):
+                    infoDict[key] = Param(val=val, valType='list')
                 elif val in ['True', 'False']:
                     infoDict[key] = Param(val=val, valType='bool')
+                elif isinstance(val, str):
+                    infoDict[key] = Param(val=val, valType='str')
 
         except (ValueError, SyntaxError):
             """under Python3 {'participant':'', 'session':02} raises an error because 
@@ -618,8 +627,7 @@ class SettingsComponent(object):
             u'Kastman E, Lindeløv JK. (2019) \n'
             '        PsychoPy2: Experiments in behavior made easy Behav Res 51: 195. \n'
             '        https://doi.org/10.3758/s13428-018-01193-y\n'
-            '\n"""\n'
-            "\nfrom __future__ import absolute_import, division\n")
+            '\n"""\n')
 
         self.writeUseVersion(buff)
 
@@ -659,7 +667,7 @@ class SettingsComponent(object):
             "import sys  # to get file system encoding\n"
             "\n")
 
-        if not self.params['eyetracker'] == "None":
+        if not self.params['eyetracker'] == "None" or self.params['keyboardBackend'] == "ioHub":
             code = (
                 "import psychopy.iohub as io\n"
             )
@@ -774,18 +782,19 @@ class SettingsComponent(object):
             useVer = '.'.join(useVer.split('.')[:3])
 
         # html header
-        template = readTextFile("JS_htmlHeader.tmpl")
-        header = template.format(
-            name=jsFilename,
-            version=useVer,
-            params=self.params)
-        jsFile = self.exp.expPath
-        folder = os.path.dirname(jsFile)
-        if not os.path.isdir(folder):
-            os.makedirs(folder)
-        with open(os.path.join(folder, "index.html"), 'wb') as html:
-            html.write(header.encode())
-        html.close()
+        if self.exp.expPath:
+            template = readTextFile("JS_htmlHeader.tmpl")
+            header = template.format(
+                name=jsFilename,
+                version=useVer,
+                params=self.params)
+            jsFile = self.exp.expPath
+            folder = os.path.dirname(jsFile)
+            if not os.path.isdir(folder):
+                os.makedirs(folder)
+            with open(os.path.join(folder, "index.html"), 'wb') as html:
+                html.write(header.encode())
+            html.close()
 
         # Write header comment
         starLen = "*"*(len(jsFilename) + 9)
@@ -799,7 +808,7 @@ class SettingsComponent(object):
             code = (
                     "import {{ core, data, sound, util, visual }} from './lib/psychojs-{version}.js';\n"
                     "const {{ PsychoJS }} = core;\n"
-                    "const {{ TrialHandler }} = data;\n"
+                    "const {{ TrialHandler, MultiStairHandler }} = data;\n"
                     "const {{ Scheduler }} = util;\n"
                     "//some handy aliases as in the psychopy scripts;\n"
                     "const {{ abs, sin, cos, PI: pi, sqrt }} = Math;\n"
@@ -847,18 +856,12 @@ class SettingsComponent(object):
 
     def writeStartCode(self, buff, version):
 
-        if not PY3:
-            decodingInfo = ".decode(sys.getfilesystemencoding())"
-        else:
-            decodingInfo = ""
         code = ("# Ensure that relative paths start from the same directory "
                 "as this script\n"
-                "_thisDir = os.path.dirname(os.path.abspath(__file__))"
-                "{decoding}\n"
-                "os.chdir(_thisDir)\n\n"
+                "_thisDir = os.path.dirname(os.path.abspath(__file__))\n"
+                "os.chdir(_thisDir)\n"
                 "# Store info about the experiment session\n"
-                "psychopyVersion = '{version}'\n".format(decoding=decodingInfo,
-                                                         version=version))
+                "psychopyVersion = '{version}'\n".format(version=version))
         buff.writeIndentedLines(code)
 
         if self.params['expName'].val in [None, '']:
@@ -868,12 +871,12 @@ class SettingsComponent(object):
                     " this script\n")
             buff.writeIndented(code % self.params['expName'])
 
-        if PY3:  # in Py3 dicts are chrono-sorted
-            sorting = "False"
-        else:  # in Py2, with no natural order, at least be alphabetical
-            sorting = "True"
-        expInfoDict = self.getInfo()
-        buff.writeIndented("expInfo = %s\n" % repr(expInfoDict))
+        sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
+        expInfoStr = "{"
+        for key, value in self.getInfo().items():
+            expInfoStr += f"'{key}': {value}, "
+        expInfoStr = expInfoStr[:-2] + "}"
+        buff.writeIndented("expInfo = %s\n" % expInfoStr)
         if self.params['Show info dlg'].val:
             buff.writeIndentedLines(
                 f"dlg = gui.DlgFromDict(dictionary=expInfo, "
@@ -895,7 +898,7 @@ class SettingsComponent(object):
         if 'Saved data folder' in self.params:
             participantField = ''
             for field in ('participant', 'Participant', 'Subject', 'Observer'):
-                if field in expInfoDict:
+                if field in self.getInfo():
                     participantField = field
                     self.params['Data filename'].val = (
                         repr(saveToDir) + " + os.sep + '%s_%s' % (expInfo['" +
@@ -950,22 +953,21 @@ class SettingsComponent(object):
 
     def writeIohubCode(self, buff):
         # Substitute inits
-        inits = self.params.copy()
+        inits = deepcopy(self.params)
         if inits['mgMove'].val == "CONTINUOUS":
             inits['mgMove'].val = "$"
+        inits['keyboardBackend'].val = keyboardBackendMap[inits['keyboardBackend'].val]
+        inits['eyetracker'].val = ioDeviceMap[inits['eyetracker'].val]
 
         # Make ioConfig dict
         code = (
-            "\n"
-            "# Setup eyetracking\n"
+            "# Setup ioHub\n"
+            "ioConfig = {}\n"
         )
         buff.writeIndentedLines(code % inits)
-        if self.params['eyetracker'] == "None":
-            code = (
-                "ioDevice = ioConfig = ioSession = ioServer = eyetracker = None\n"
-            )
-            buff.writeIndentedLines(code % inits)
-        else:
+        # Add eyetracker config
+        if self.params['eyetracker'] != "None":
+            print(self.params['eyetracker'])
             # Alert user if window is not fullscreen
             if not self.params['Full-screen window'].val:
                 alert(code=4540)
@@ -977,15 +979,12 @@ class SettingsComponent(object):
                 if not any(isinstance(rt, EyetrackerCalibrationRoutine)
                            for rt in self.exp.flow):
                     alert(code=4510, strFields={"eyetracker": self.params['eyetracker'].val})
+
             # Write code
             code = (
-                "ioDevice = '" + ioDeviceMap[self.params['eyetracker'].val] + "'\n"
-                "ioConfig = {\n"
-            )
-            buff.writeIndentedLines(code % inits)
-            buff.setIndentLevel(1, relative=True)
-            code = (
-                "ioDevice: {\n"
+                "\n"
+                "# Setup eyetracking\n"
+                "ioConfig[%(eyetracker)s] = {\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
@@ -1008,11 +1007,6 @@ class SettingsComponent(object):
                 buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
                 code = (
-                        "}\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(-1, relative=True)
-                code = (
                     "}\n"
                 )
                 buff.writeIndentedLines(code % inits)
@@ -1026,11 +1020,6 @@ class SettingsComponent(object):
                 code = (
                             "'ip_address': %(gpAddress)s,\n"
                             "'port': %(gpPort)s\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(-1, relative=True)
-                code = (
-                        "}\n"
                 )
                 buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
@@ -1049,11 +1038,6 @@ class SettingsComponent(object):
                 buff.setIndentLevel(1, relative=True)
                 code = (
                             "'sampling_rate': %(tbSampleRate)s,\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(-1, relative=True)
-                code = (
-                        "}\n"
                 )
                 buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
@@ -1099,11 +1083,6 @@ class SettingsComponent(object):
                 buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
                 code = (
-                        "}\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(-1, relative=True)
-                code = (
                     "}\n"
                 )
                 buff.writeIndentedLines(code % inits)
@@ -1113,14 +1092,28 @@ class SettingsComponent(object):
                 )
                 buff.writeIndentedLines(code % inits)
 
-            # Close ioConfig dict
+            # Close ioDevice dict
             buff.setIndentLevel(-1, relative=True)
             code = (
                 "}\n"
             )
             buff.writeIndentedLines(code % inits)
 
-            # Start iohub server
+        # Add keyboard to ioConfig
+        if self.params['keyboardBackend'] == 'ioHub':
+            code = (
+                "\n"
+                "# Setup iohub keyboard\n"
+                "ioConfig['Keyboard'] = dict(use_keymap='psychopy')\n\n"
+            )
+            buff.writeIndentedLines(code % inits)
+
+        if self.needIoHub and self.params['keyboardBackend'] == 'PsychToolbox':
+            alert(code=4550)
+
+        # Start ioHub server
+        if self.needIoHub:
+            # Specify session
             code = (
                 "ioSession = '1'\n"
                 "if 'session' in expInfo:\n"
@@ -1132,13 +1125,30 @@ class SettingsComponent(object):
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(-1, relative=True)
+            # Start server
             if self.params['Save hdf5 file'].val:
-                saveStr = " experiment_code=%(expName)s, session_code=ioSession, datastore_name=filename,"
+                code = (
+                    f"ioServer = io.launchHubServer(window=win, experiment_code=%(expName)s, session_code=ioSession, datastore_name=filename, **ioConfig)\n"
+                )
             else:
-                saveStr = ""
+                code = (
+                    f"ioServer = io.launchHubServer(window=win, **ioConfig)\n"
+                )
+            buff.writeIndentedLines(code % inits)
+            # Get eyetracker name
+            if self.params['eyetracker'] != "None":
+                code = (
+                    "eyetracker = ioServer.getDevice('tracker')\n"
+                )
+                buff.writeIndentedLines(code % inits)
+            else:
+                code = (
+                    "eyetracker = None\n"
+                )
+                buff.writeIndentedLines(code % inits)
+        else:
             code = (
-                f"ioServer = io.launchHubServer(window=win,{saveStr} **ioConfig)\n"
-                f"eyetracker = ioServer.getDevice('tracker')\n"
+                "ioSession = ioServer = None"
             )
             buff.writeIndentedLines(code % inits)
 
@@ -1146,9 +1156,9 @@ class SettingsComponent(object):
         code = (
             "\n"
             "# create a default keyboard (e.g. to check for escape)\n"
-            "defaultKeyboard = keyboard.Keyboard()\n"
+            "defaultKeyboard = keyboard.Keyboard(backend=%(keyboardBackend)s)\n"
         )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % inits)
 
     def writeWindowCode(self, buff):
         """Setup the window code.
@@ -1337,3 +1347,12 @@ class SettingsComponent(object):
     @monitor.setter
     def monitor(self, monitor):
         self._monitor = monitor
+
+    @property
+    def needIoHub(self):
+        # Needed for keyboard
+        kb = self.params['keyboardBackend'] == 'ioHub'
+        # Needed for eyetracking
+        et = self.params['eyetracker'] != 'None'
+
+        return any((kb, et))

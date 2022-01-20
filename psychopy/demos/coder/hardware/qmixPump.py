@@ -12,8 +12,6 @@ library. The syringe pump system is described in the following publication:
 
 """
 
-from __future__ import absolute_import, division, print_function
-
 from psychopy import event
 from psychopy import core
 from psychopy.visual import Window, TextStim

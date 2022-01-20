@@ -16,18 +16,13 @@ The code that writes out a *_lastrun.py experiment file is (in order):
     settings.SettingsComponent.writeEndCode()
 """
 
-from __future__ import absolute_import, print_function
-# from future import standard_library
-
-from past.builtins import basestring
-from builtins import object
 import os
 import codecs
 import xml.etree.ElementTree as xml
 from xml.dom import minidom
 from copy import deepcopy
 from pathlib import Path
-from packaging.version import Version
+from pkg_resources import parse_version
 
 import psychopy
 from psychopy import data, __version__, logging
@@ -43,8 +38,6 @@ from .components import getComponents, getAllComponents
 
 from psychopy.localization import _translate
 import locale
-
-# standard_library.install_aliases()
 
 from collections import namedtuple, OrderedDict
 
@@ -102,7 +95,7 @@ forceType = {
 #             forceType[(Comp.__name__, key)] = 'list'
 
 
-class Experiment(object):
+class Experiment:
     """
     An experiment contains a single Flow and at least one
     Routine. The Flow controls how Routines are organised
@@ -240,17 +233,23 @@ class Experiment(object):
         self_copy = deepcopy(self)
         for key, routine in list(self_copy.routines.items()):  # PY2/3 compat
             if isinstance(routine, BaseStandaloneRoutine):
-                if routine.params['disabled']:
+                # Remove disabled / unimplemented standalone routines
+                if routine.disabled or target not in routine.targets:
                     for node in self_copy.flow:
                         if node == routine:
                             self_copy.flow.removeComponent(node)
+                            if target not in routine.targets:
+                                # If this routine isn't implemented in target library, print alert and mute it
+                                alertCode = 4335 if target == "PsychoPy" else 4340
+                                alert(alertCode, strFields={'comp': type(routine).__name__})
             else:
-                for component in routine:
-                    try:
-                        if component.params['disabled']:
-                            routine.removeComponent(component)
-                    except KeyError:
-                        pass
+                for component in [comp for comp in routine]:
+                    if component.disabled or target not in component.targets:
+                        routine.removeComponent(component)
+                        if component.targets and target not in component.targets:
+                            # If this component isn't implemented in target library, print alert and mute it
+                            alertCode = 4335 if target == "PsychoPy" else 4340
+                            alert(alertCode, strFields={'comp': type(component).__name__})
 
         if target == "PsychoPy":
             self_copy.settings.writeInitCode(script, self_copy.psychopyVersion,
@@ -350,21 +349,21 @@ class Experiment(object):
         return script
 
     @property
-    def xml(self):
+    def _xml(self):
         # Create experiment root element
         experimentNode = xml.Element("PsychoPy2experiment")
         experimentNode.set('encoding', 'utf-8')
         experimentNode.set('version', __version__)
         # Add settings node
-        settingsNode = self.settings.xml
+        settingsNode = self.settings._xml
         experimentNode.append(settingsNode)
         # Add routines node
         routineNode = xml.Element("Routines")
         for key, routine in self.routines.items():
-            routineNode.append(routine.xml)
+            routineNode.append(routine._xml)
         experimentNode.append(routineNode)
         # Add flow node
-        flowNode = self.flow.xml
+        flowNode = self.flow._xml
         experimentNode.append(flowNode)
 
         return experimentNode
@@ -372,7 +371,7 @@ class Experiment(object):
     def saveToXML(self, filename):
         self.psychopyVersion = psychopy.__version__  # make sure is current
         # create the dom object
-        self.xmlRoot = self.xml
+        self.xmlRoot = self._xml
         # convert to a pretty string
         # update our document to use the new root
         self._doc._setroot(self.xmlRoot)
@@ -553,15 +552,15 @@ class Experiment(object):
                 else:
                     # we found an unknown parameter (probably from the future)
                     params[name] = Param(
-                        val, valType=paramNode.get('valType'),
+                        val, valType=paramNode.get('valType'), inputType="inv",
                         allowedTypes=[], label=_translate(name),
                         hint=_translate(
                             "This parameter is not known by this version "
-                            "of PsychoPy. It might be worth upgrading"))
+                            "of PsychoPy. It might be worth upgrading, otherwise "
+                            "press the X button to remove this parameter."))
                     params[name].allowedTypes = paramNode.get('allowedTypes')
                     if params[name].allowedTypes is None:
                         params[name].allowedTypes = []
-                    params[name].readOnly = True
                     if name not in legacyParams + ['JS libs', 'OSF Project ID']:
                         # don't warn people if we know it's OK (e.g. for params
                         # that have been removed
@@ -596,7 +595,6 @@ class Experiment(object):
         self._doc.parse(filename)
         root = self._doc.getroot()
 
-
         # some error checking on the version (and report that this isn't valid
         # .psyexp)?
         filenameBase = os.path.basename(filename)
@@ -608,10 +606,10 @@ class Experiment(object):
             return
         self.psychopyVersion = root.get('version')
         # If running an experiment from a future version, send alert to change "Use Version"
-        if Version(psychopy.__version__) < Version(self.psychopyVersion):
+        if parse_version(psychopy.__version__) < parse_version(self.psychopyVersion):
             alert(code=4051, strFields={'version': self.psychopyVersion})
         # If versions are either side of 2021, send alert
-        if Version(psychopy.__version__) >= Version("2021.1.0") > Version(self.psychopyVersion):
+        if parse_version(psychopy.__version__) >= parse_version("2021.1.0") > parse_version(self.psychopyVersion):
             alert(code=4052, strFields={'version': self.psychopyVersion})
 
         # Parse document nodes
@@ -718,10 +716,16 @@ class Experiment(object):
                                    "exists")
                             logging.warning(msg % (thisParamName, static))
                         else:
+                            thisRoutine = \
+                                self.routines[routine].getComponentFromName(
+                                    static)
+                            if thisRoutine is None:
+                                continue
                             self.routines[routine].getComponentFromName(
                                 static).addComponentUpdate(
                                 thisRoutine.params['name'],
                                 thisComp.params['name'], thisParamName)
+
         # fetch flow settings
         flowNode = root.find('Flow')
         loops = {}
@@ -827,7 +831,7 @@ class Experiment(object):
                 return comp
         return None
 
-    def getComponentFromType(self, type):
+    def getComponentFromType(self, thisType):
         """Searches all the Routines in the Experiment for a matching component type
 
         :param name: str type of a component e.g., 'KeyBoard'
@@ -835,6 +839,7 @@ class Experiment(object):
         """
         for routine in self.routines.values():
             exists = routine.getComponentFromType(type)
+            exists = routine.getComponentFromType(thisType)
             if exists:
                 return True
         return False
@@ -913,14 +918,14 @@ class Experiment(object):
             if thisFile not in paths:
                 paths.append(thisFile)
             # does it look at all like an excel file?
-            if (not isinstance(filePath, basestring)
+            if (not isinstance(filePath, str)
                     or not os.path.splitext(filePath)[1] in ['.csv', '.xlsx',
                                                              '.xls']):
                 return paths
             conds = data.importConditions(thisFile['abs'])  # load the abs path
             for thisCond in conds:  # thisCond is a dict
                 for param, val in list(thisCond.items()):
-                    if isinstance(val, basestring) and len(val):
+                    if isinstance(val, str) and len(val):
                         # only add unique entries (can't use set() on a dict)
                         for thisFile in findPathsInFile(val):
                             if thisFile not in paths:
@@ -942,9 +947,9 @@ class Experiment(object):
                     for paramName in thisComp.params:
                         thisParam = thisComp.params[paramName]
                         thisFile = ''
-                        if isinstance(thisParam, basestring):
+                        if isinstance(thisParam, str):
                             thisFile = getPaths(thisParam)
-                        elif isinstance(thisParam.val, basestring):
+                        elif isinstance(thisParam.val, str):
                             thisFile = getPaths(thisParam.val)
                         # then check if it's a valid path and not yet included
                         if thisFile and thisFile not in resources:

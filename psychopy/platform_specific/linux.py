@@ -7,8 +7,6 @@
 
 """Placeholder for adding c (or ctypes) extensions to PsychoPy on linux.
 """
-from __future__ import absolute_import, print_function
-
 from psychopy import logging
 import sys
 try:

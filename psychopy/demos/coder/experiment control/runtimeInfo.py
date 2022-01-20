@@ -6,9 +6,6 @@ Demo of some ways to use class psychopy.info.RunTimeInfo()
 to obtain current system and other data at run-time.
 """
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import str
 from psychopy import visual, logging, core
 import psychopy.info
 

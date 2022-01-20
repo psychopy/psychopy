@@ -126,11 +126,11 @@ class Keyboard:
     systems.
 
     """
+    _backend = None
     _iohubKeyboard = None
     _iohubOffset = 0.0
-    backend = ''  # Set at runtime to one of 'ptb', 'iohub', or 'event'
 
-    def __init__(self, device=-1, bufferSize=10000, waitForStart=False, clock=None):
+    def __init__(self, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None):
         """Create the device (default keyboard or select one)
 
         Parameters
@@ -153,6 +153,17 @@ class Keyboard:
 
         """
         global havePTB
+
+        if self._backend is None and backend in ['iohub', 'ptb', 'event', '']:
+            Keyboard._backend = backend
+
+        if self._backend is None:
+            Keyboard._backend = ''
+
+        if backend and self._backend != backend:
+            logging.warning("keyboard.Keyboard already using '%s' backend. Can not switch to '%s'" % (self._backend,
+                                                                                                      backend))
+
         self.status = NOT_STARTED
         # Initiate containers for storing responses
         self.keys = []  # the key(s) pressed
@@ -165,17 +176,22 @@ class Keyboard:
         else:
             self.clock = psychopy.clock.Clock()
 
-        if Keyboard.backend == '':
+        if Keyboard._backend in ['', 'iohub']:
             from psychopy.iohub.client import ioHubConnection
             from psychopy.iohub.devices import Computer
-            if ioHubConnection.getActiveConnection():
+            if not ioHubConnection.getActiveConnection() and Keyboard._backend == 'iohub':
+                # iohub backend was explicitly requested, but iohub is not running, so start it up
+                # setting keyboard to use standard psychopy key mappings
+                from psychopy.iohub import launchHubServer
+                launchHubServer(Keyboard=dict(use_keymap='psychopy'))
+
+            if ioHubConnection.getActiveConnection() and Keyboard._iohubKeyboard is None:
                 Keyboard._iohubKeyboard = ioHubConnection.getActiveConnection().getDevice('keyboard')
                 Keyboard._iohubOffset = Computer.global_clock.getLastResetTime()
-                if Keyboard._iohubKeyboard:
-                    Keyboard.backend = 'iohub'
+                Keyboard._backend = 'iohub'
 
-        if Keyboard.backend in ['', 'ptb'] and havePTB:
-            Keyboard.backend = 'ptb'
+        if Keyboard._backend in ['', 'ptb'] and havePTB:
+            Keyboard._backend = 'ptb'
             # get the necessary keyboard buffer(s)
             if sys.platform == 'win32':
                 self._ids = [-1]  # no indexing possible so get the combo keyboard
@@ -201,20 +217,47 @@ class Keyboard:
             if not waitForStart:
                 self.start()
 
-        elif Keyboard.backend == '':
-            Keyboard.backend = 'event'
+        if Keyboard._backend in ['', 'event']:
+            Keyboard._backend = 'event'
 
-        logging.info('keyboard.Keyboard is using %s backend.' % Keyboard.backend)
+        logging.info('keyboard.Keyboard is using %s backend.' % Keyboard._backend)
+
+    @classmethod
+    def getBackend(self):
+        """Return backend being used."""
+        return self._backend
+
+    @classmethod
+    def setBackend(self, backend):
+        """
+        Set backend event handler. Returns currently active handler.
+
+        :param backend: 'iohub', 'ptb', 'event', or ''
+        :return: str
+        """
+        if self._backend is None:
+            if backend in ['iohub', 'ptb', 'event', '']:
+                Keyboard._backend = backend
+            else:
+                logging.warning("keyboard.Keyboard.setBackend failed. backend must be one of %s" % str(['iohub',
+                                                                                                        'ptb',
+                                                                                                        'event', '']))
+
+        else:
+            logging.warning("keyboard.Keyboard.setBackend already using '%s' backend. "
+                            "Can not switch to '%s'" % (self._backend, backend))
+
+        return self._backend
 
     def start(self):
         """Start recording from this keyboard """
-        if Keyboard.backend == 'ptb':
+        if Keyboard._backend == 'ptb':
             for buffer in self._buffers.values():
                 buffer.start()
 
     def stop(self):
         """Start recording from this keyboard"""
-        if Keyboard.backend == 'ptb':
+        if Keyboard._backend == 'ptb':
             logging.warning("Stopping key buffers but this could be dangerous if"
                             "other keyboards rely on the same.")
             for buffer in self._buffers.values():
@@ -248,17 +291,15 @@ class Keyboard:
 
         """
         keys = []
-        if Keyboard.backend == 'ptb':
+        if Keyboard._backend == 'ptb':
             for buffer in self._buffers.values():
                 for origKey in buffer.getKeys(keyList, waitRelease, clear):
                     # calculate rt from time and self.timer
                     thisKey = copy.copy(origKey)  # don't alter the original
                     thisKey.rt = thisKey.tDown - self.clock.getLastResetTime()
                     keys.append(thisKey)
-        elif Keyboard.backend == 'iohub':
+        elif Keyboard._backend == 'iohub':
             watchForKeys = keyList
-            if watchForKeys:
-                watchForKeys = [' ' if k == 'space' else k for k in watchForKeys]
             if waitRelease:
                 key_events = Keyboard._iohubKeyboard.getReleases(keys=watchForKeys, clear=clear)
             else:
@@ -266,8 +307,6 @@ class Keyboard:
 
             for k in key_events:
                 kname = k.key
-                if kname == ' ':
-                    kname = 'space'
 
                 if waitRelease:
                     tDown = k.time-k.duration
@@ -332,13 +371,13 @@ class Keyboard:
 
     def clearEvents(self, eventType=None):
         """"""
-        if Keyboard.backend == 'ptb':
+        if Keyboard._backend == 'ptb':
             for buffer in self._buffers.values():
                 buffer.flush()  # flush the device events to the soft buffer
                 buffer._evts.clear()
                 buffer._keys.clear()
                 buffer._keysStillDown.clear()
-        elif Keyboard.backend == 'iohub':
+        elif Keyboard._backend == 'iohub':
             Keyboard._iohubKeyboard.clearEvents()
         else:
             event.clearEvents(eventType)
@@ -374,10 +413,10 @@ class KeyPress(object):
         self.tDown = tDown
         self.duration = None
         self.rt = None
-        if Keyboard.backend == 'event':  # we have event.getKeys()
+        if Keyboard._backend == 'event':  # we have event.getKeys()
             self.name = name
             self.rt = tDown
-        elif Keyboard.backend == 'ptb':
+        elif Keyboard._backend == 'ptb':
             if code not in keyNames:
                 self.name = 'n/a'
                 logging.warning("Got keycode {} but that code isn't yet known")
@@ -388,7 +427,7 @@ class KeyPress(object):
                 self.name = 'unknown'
             else:
                 self.name = keyNames[code]
-        elif Keyboard.backend == 'iohub':
+        elif Keyboard._backend == 'iohub':
             self.name = name
 
     def __eq__(self, other):

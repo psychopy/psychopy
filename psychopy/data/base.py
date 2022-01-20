@@ -1,13 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, print_function
-
-# from future import standard_library
-# standard_library.install_aliases()
-from builtins import str
-from past.builtins import basestring
-from builtins import object
 import weakref
 import pickle
 import os
@@ -43,7 +36,7 @@ except ImportError:
 _experiments = weakref.WeakValueDictionary()
 
 
-class _ComparisonMixin(object):
+class _ComparisonMixin():
     def __eq__(self, other):
         # NoneType and booleans, for example, don't have a .__dict__ attribute.
         try:
@@ -513,7 +506,7 @@ class DataHandler(_ComparisonMixin, dict):
         """
         if not shape:
             shape = self.dataShape
-        if not isinstance(names, basestring):
+        if not isinstance(names, str):
             # recursively call this function until we have a string
             for thisName in names:
                 self.addDataType(thisName)

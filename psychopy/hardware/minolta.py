@@ -10,12 +10,8 @@ See http://www.konicaminolta.com/instruments
 
 ----------
 """
-from __future__ import absolute_import, print_function
 
-from builtins import range
-from builtins import object
 from psychopy import logging
-import struct
 import sys
 import time
 
@@ -25,7 +21,7 @@ except ImportError:
     serial = False
 
 
-class LS100(object):
+class LS100:
     """A class to define a Minolta LS100 (or LS110?) photometer
 
     You need to connect a LS100 to the serial (RS232) port and
@@ -225,6 +221,7 @@ class LS100(object):
         The message can be in either bytes or unicode but the returned string
         will always be utf-encoded.
         """
+
         # append a newline if necessary (for either str or bytes)
         if type(message) == str:
             if message[-2:] != '\r\n':

@@ -7,7 +7,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
 from psychopy.visual.shape import BaseShapeStim
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 import numpy as np

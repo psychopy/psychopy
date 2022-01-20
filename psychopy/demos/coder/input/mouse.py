@@ -14,8 +14,6 @@ You can also check the motion of the wheel with myMouse.getWheelRel()
 (in two directions for the mac mighty mouse or equivalent!)
 """
 
-from __future__ import absolute_import, division, print_function
-
 from psychopy import visual, core, event
 
 # Create a window to draw in

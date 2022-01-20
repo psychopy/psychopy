@@ -13,8 +13,6 @@ local installation of VLC media player (https://www.videolan.org/).
 # class was taken and rewritten to use only VLC.
 #
 
-from __future__ import absolute_import, division, print_function
-
 import os
 import sys
 import threading
@@ -1076,13 +1074,15 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
     def _drawRectangle(self):
         """Draw the frame to the window. This is called by the `draw()` method.
         """
-        # make sure that textures are on and GL_TEXTURE0 is active
-        GL.glActiveTexture(GL.GL_TEXTURE0)
+        # make sure that textures are on and GL_TEXTURE0 is activ
         GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+
         # sets opacity (1, 1, 1 = RGB placeholder)
         GL.glColor4f(1, 1, 1, self.opacity)
         GL.glPushMatrix()
         self.win.setScale('pix')
+
         # move to centre of stimulus and rotate
         vertsPix = self.verticesPix
 
@@ -1097,15 +1097,18 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
             vertsPix[3, 0], vertsPix[3, 1], 0.,
         )
         GL.glPushAttrib(GL.GL_ENABLE_BIT)
-        GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
         GL.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT)
+
         # 2D texture array, 3D vertex array
         GL.glInterleavedArrays(GL.GL_T2F_V3F, 0, array)
         GL.glDrawArrays(GL.GL_QUADS, 0, 4)
         GL.glPopClientAttrib()
         GL.glPopAttrib()
         GL.glPopMatrix()
+
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glEnable(GL.GL_TEXTURE_2D)
 
     def draw(self, win=None):
         """Draw the current frame to a particular
@@ -1182,7 +1185,9 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 
     def __del__(self):
         try:
-            self._releaseVLCInstance()
+            if hasattr(self, '_player'):
+                # false if crashed before creating instance
+                self._releaseVLCInstance()
         except (ImportError, ModuleNotFoundError, TypeError):
             pass  # has probably been garbage-collected already
 

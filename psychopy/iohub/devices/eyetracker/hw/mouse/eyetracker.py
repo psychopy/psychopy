@@ -110,7 +110,7 @@ class EyeTracker(EyeTrackerDevice):
         # Used to hold the last valid gaze position processed by ioHub.
         # If the last mouse tracker in a blink state, then this is set to None
         #
-        self._latest_gaze_position = 0.0, 0.0
+        self._latest_gaze_position = None
 
     def _connectMouse(self):
         if self._iohub_server:
@@ -122,7 +122,8 @@ class EyeTracker(EyeTrackerDevice):
         if self.isConnected() and self.isRecordingEnabled():
             if EyeTracker._last_mouse_event_time == 0:
                 EyeTracker._last_mouse_event_time = getTime() - self._ISI
-
+                # Start off mousegaze pos with current mouse position
+                self._latest_gaze_position = self._ioMouse.getPosition()
             while getTime() - EyeTracker._last_mouse_event_time >= self._ISI:
                 # Generate an eye sample every ISI seconds
                 button_states = self._ioMouse.getCurrentButtonStates()

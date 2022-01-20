@@ -7,17 +7,12 @@
 
 """Functions and classes related to attribute handling
 """
-from __future__ import absolute_import, division, print_function
 
-from past.builtins import basestring
-from past.utils import old_div
-from builtins import object
 import numpy
-
 from psychopy import logging
 
 
-class attributeSetter(object):
+class attributeSetter:
     """Makes functions appear as attributes. Takes care of autologging.
     """
 
@@ -91,10 +86,8 @@ def setAttribute(self, attrib, value, log,
 
         # Apply operation except for the case when new or old value
         # are None or string-like
-        if (value is not None and
-                not isinstance(value, basestring) and
-                oldValue is not None and
-                not isinstance(oldValue, basestring)):
+        if (value is not None and type(value)!=str
+                and oldValue is not None and type(oldValue)!=str):
             value = numpy.array(value, float)
 
             # Calculate new value using operation

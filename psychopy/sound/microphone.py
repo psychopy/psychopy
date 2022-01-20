@@ -31,7 +31,7 @@ except (ImportError, ModuleNotFoundError):
     _hasPTB = False
 
 
-class RecordingBuffer(object):
+class RecordingBuffer:
     """Class for a storing a recording from a stream.
 
     Think of instances of this class behaving like an audio tape whereas the
@@ -307,7 +307,7 @@ class RecordingBuffer(object):
             sampleRateHz=self._sampleRateHz)
 
 
-class Microphone(object):
+class Microphone:
     """Class for recording audio from a microphone or input stream.
 
     Creating an instance of this class will open a stream using the specified

@@ -7,13 +7,8 @@
 
 """Dialog classes for the Builder, including ParamCtrls
 """
-
-from __future__ import absolute_import, division, print_function
 import sys
 
-from builtins import map
-from builtins import str
-from builtins import object
 import os
 import copy
 from collections import OrderedDict
@@ -45,7 +40,7 @@ codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
 from ..localizedStrings import _localizedDialogs as _localized
 
 
-class ParamCtrls(object):
+class ParamCtrls():
 
     def __init__(self, dlg, label, param, parent, fieldName,
                  browse=False, noCtrls=False, advanced=False, appPrefs=None):
@@ -119,8 +114,8 @@ class ParamCtrls(object):
         if param.inputType == "single":
             # Create single line string control
             self.valueCtrl = paramCtrls.SingleLineCtrl(parent,
-                                                   val=str(param.val), valType=param.valType,
-                                                   fieldName=fieldName,size=wx.Size(self.valueWidth, 24))
+                                                       val=str(param.val), valType=param.valType,
+                                                       fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
         elif param.inputType == 'multi':
             # Create multiline string control
             self.valueCtrl = paramCtrls.MultiLineCtrl(parent,
@@ -132,8 +127,8 @@ class ParamCtrls(object):
         elif param.inputType == 'spin':
             # Create single line string control
             self.valueCtrl = paramCtrls.SingleLineCtrl(parent,
-                                                   val=str(param.val), valType=param.valType,
-                                                   fieldName=fieldName,size=wx.Size(self.valueWidth, 24))
+                                                       val=str(param.val), valType=param.valType,
+                                                       fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
             # Will have to disable spinCtrl until we have a dropdown for inputType, sadly
             # self.valueCtrl = paramCtrls.IntCtrl(parent,
             #                                     val=param.val, valType=param.valType,
@@ -149,7 +144,7 @@ class ParamCtrls(object):
                                                         size=wx.Size(self.valueWidth, -1))
         elif param.inputType == 'bool':
             self.valueCtrl = paramCtrls.BoolCtrl(parent,
-                                         name=fieldName,size=wx.Size(self.valueWidth, 24))
+                                                 name=fieldName, size=wx.Size(self.valueWidth, 24))
             self.valueCtrl.SetValue(bool(param))
         elif param.inputType == 'file' or browse:
             self.valueCtrl = paramCtrls.FileCtrl(parent,
@@ -158,8 +153,8 @@ class ParamCtrls(object):
             self.valueCtrl.allowedVals = param.allowedVals
         elif param.inputType == 'fileList':
             self.valueCtrl = paramCtrls.FileListCtrl(parent,
-                                          choices=param.val, valType=param.valType,
-                                          size=wx.Size(self.valueWidth, 100), pathtype="rel")
+                                                     choices=param.val, valType=param.valType,
+                                                     size=wx.Size(self.valueWidth, 100), pathtype="rel")
         elif param.inputType == 'table':
             self.valueCtrl = paramCtrls.TableCtrl(parent, val=param.val, valType=param.valType,
                                                   fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
@@ -171,10 +166,14 @@ class ParamCtrls(object):
             self.valueCtrl = paramCtrls.DictCtrl(parent,
                                                  val=self.exp.settings.getInfo(), valType=param.valType,
                                                  fieldName=fieldName)
+        elif param.inputType == 'inv':
+            self.valueCtrl = paramCtrls.InvalidCtrl(parent,
+                                                    val=str(param.val), valType=param.valType,
+                                                    fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
         else:
             self.valueCtrl = paramCtrls.SingleLineCtrl(parent,
-                                                   val=str(param.val), valType=param.valType,
-                                                   fieldName=fieldName,size=wx.Size(self.valueWidth, 24))
+                                                       val=str(param.val), valType=param.valType,
+                                                       fieldName=fieldName,size=wx.Size(self.valueWidth, 24))
             logging.warn(f"Parameter {fieldName} has unrecognised inputType \"{param.inputType}\"")
 
         # if fieldName == 'Experiment info':
@@ -424,6 +423,27 @@ class StartStopCtrls(wx.GridBagSizer):
                 self.Add(self.ctrls[name], (1, 1), border=6, flag=wx.EXPAND | wx.TOP | wx.BOTTOM)
         self.AddGrowableCol(1)
 
+    def getVisible(self):
+        return all(ctrl.IsShown() for ctrl in self.ctrls.values())
+
+    def setVisible(self, visible=True):
+        # Show/hide controls
+        for ctrl in self.ctrls.values():
+            ctrl.Show(visible)
+        # Show/hide labels
+        if hasattr(self, "estimLabel"):
+            self.estimLabel.Show(visible)
+        if hasattr(self, "label"):
+            self.label.Show(visible)
+        # Set value to None if hidden (specific to start/stop)
+        if not visible:
+            if "startVal" in self.ctrls:
+                self.ctrls["startVal"].Value = ""
+            if "stopVal" in self.ctrls:
+                self.ctrls["stopVal"].Value = ""
+        # Layout
+        self.parent.Layout()
+
     def updateCodeFont(self, evt=None):
         """Style input box according to code wanted"""
         if isinstance(evt, wx.TextCtrl):
@@ -468,14 +488,14 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
                 if name in sortedParams:
                     startParams[name] = sortedParams.pop(name)
             if startParams:
-                self.addStartStopCtrl(startParams)
+                self.startCtrl = self.addStartStopCtrl(startParams)
             # Make stop controls
             stopParams = OrderedDict()
             for name in ['stopVal', 'stopType', 'durationEstim']:
                 if name in sortedParams:
                     stopParams[name] = sortedParams.pop(name)
             if stopParams:
-                self.addStartStopCtrl(stopParams)
+                self.stopCtrl = self.addStartStopCtrl(stopParams)
             # Make controls
             for name, param in sortedParams.items():
                 self.addParam(name, param)
@@ -521,6 +541,8 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
             # Iterate row
             self.row += 1
 
+            return panel
+
         def checkDepends(self, event=None):
             """Checks the relationships between params that depend on each other
 
@@ -534,11 +556,17 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
             isChanged = False
             for thisDep in self.parent.element.depends:
                 if not (
-                        thisDep['param'] in self.ctrls
+                        thisDep['param'] in list(self.ctrls) + ['start', 'stop']
                         and thisDep['dependsOn'] in self.ctrls):
                     # If params are on another page, skip
                     continue
-                dependentCtrls = self.ctrls[thisDep['param']]
+                # Get associated ctrl
+                if thisDep['param'] == 'start':
+                    dependentCtrls = self.startCtrl
+                elif thisDep['param'] == 'stop':
+                    dependentCtrls = self.stopCtrl
+                else:
+                    dependentCtrls = self.ctrls[thisDep['param']]
                 dependencyCtrls = self.ctrls[thisDep['dependsOn']]
                 condString = "dependencyCtrls.getValue() {}".format(thisDep['condition'])
                 if eval(condString):
@@ -633,6 +661,8 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
             is returned. Instead, use GetSelection() to get index of selection
             and get untranslated value from _choices attribute.
         """
+        # Create empty list to store fieldnames of params for deletion
+        killList = []
         # get data from input fields
         for fieldName in self.params:
             param = self.params[fieldName]
@@ -641,6 +671,8 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
             # Get value
             if hasattr(ctrl, "getValue"):
                 param.val = ctrl.getValue()
+            elif hasattr(ctrl, "GetValue"):
+                param.val = ctrl.GetValue()
             elif isinstance(ctrl, wx.Choice):
                 if hasattr(ctrl, "_choices"):
                     param.val = ctrl._choices[ctrl.GetSelection()]
@@ -661,6 +693,12 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
                         self._updateStaticUpdates(fieldName,
                                                   param.updates, updates)
                         param.updates = updates
+            # If requested, mark param for deletion
+            if hasattr(ctrl, "valueCtrl") and isinstance(ctrl.valueCtrl, paramCtrls.InvalidCtrl) and ctrl.valueCtrl.forDeletion:
+                killList.append(fieldName)
+        # Delete params on kill list
+        for fieldName in killList:
+            del self.params[fieldName]
         return self.params
 
     def _updateStaticUpdates(self, fieldName, updates, newUpdates):
@@ -1671,10 +1709,14 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.Bind(wx.EVT_CHECKBOX, self.onFullScrChange,
                   self.paramCtrls['Full-screen window'].valueCtrl)
 
+        if timeout is not None:
+            wx.FutureCall(timeout, self.Destroy)
+
         # for all components
         self.show()
         if self.OK:
             self.params = self.getParams()  # get new vals from dlg
+
         self.Destroy()
 
     def onFullScrChange(self, event=None):
@@ -1708,3 +1750,86 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.mainSizer.Layout()
         self.Fit()
         self.Refresh()
+
+
+class DlgNewRoutine(wx.Dialog):
+
+    def __init__(self, parent, pos=wx.DefaultPosition, size=(512, -1),
+                 style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT):
+        self.parent = parent  # parent is probably the RoutinesNotebook (not the BuilderFrame)
+        self.app = parent.app
+        if hasattr(parent, 'frame'):
+            self.frame = parent.frame
+        else:
+            self.frame = parent
+        # Initialise dlg
+        wx.Dialog.__init__(self, parent, title=_translate("New Routine"), name=_translate("New Routine"),
+                           size=size, pos=pos, style=style)
+        # Setup sizer
+        self.border = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.border)
+        self.sizer = wx.FlexGridSizer(cols=2, vgap=0, hgap=6)
+        self.border.Add(self.sizer, border=12, proportion=1, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP)
+        # Get templates
+        self.templates = self.frame.routineTemplates
+        self.templatesByID = {}
+        self.selectedTemplate = self.templates['Basic']['Blank']  # until we know otherwise
+        # New name ctrl
+        self.nameLbl = wx.StaticText(self, -1, _translate("New Routine name:"))
+        self.sizer.Add(self.nameLbl, border=6, flag=wx.ALL | wx.ALIGN_RIGHT)
+        self.nameCtrl = wx.TextCtrl(self, -1, "", size=(200, -1))
+        self.nameCtrl.SetToolTip(_translate(
+            "What is the name for the new Routine? (e.g. instr, trial, feedback)"
+        ))
+        self.sizer.Add(self.nameCtrl, border=6, flag=wx.ALL | wx.ALIGN_TOP | wx.EXPAND)
+        # Template picker
+        self.templateLbl = wx.StaticText(self, -1, _translate("Routine Template:"))
+        self.sizer.Add(self.templateLbl, border=6, flag=wx.ALL | wx.ALIGN_RIGHT)
+        self.templateCtrl = wx.Button(self, -1, "Basic:Blank", size=(200, -1))
+        self.templateCtrl.SetToolTip(_translate(
+            "Select a template to base your new Routine on"
+        ))
+        self.templateCtrl.Bind(wx.EVT_BUTTON, self.showTemplatesContextMenu)
+        self.sizer.Add(self.templateCtrl, border=6, flag=wx.ALL | wx.ALIGN_TOP | wx.EXPAND)
+        # Buttons
+        self.btnSizer = wx.StdDialogButtonSizer()
+        self.CANCEL = wx.Button(self, wx.ID_CANCEL, "Cancel")
+        self.btnSizer.AddButton(self.CANCEL)
+        self.OK = wx.Button(self, wx.ID_OK, "OK")
+        self.btnSizer.AddButton(self.OK)
+        self.btnSizer.Realize()
+        self.border.Add(self.btnSizer, border=12, flag=wx.ALL | wx.ALIGN_RIGHT)
+
+        self.Fit()
+        self.Center()
+
+    def showTemplatesContextMenu(self, evt):
+        self.templateMenu = wx.Menu()
+        self.templateMenu.Bind(wx.EVT_MENU, self.onSelectTemplate)
+        self.templatesByID = {}
+        for categName, categDict in self.templates.items():
+            submenu = wx.Menu()
+            self.templateMenu.Append(wx.ID_ANY, categName, submenu)
+            for templateName, routine in categDict.items():
+                id = wx.NewIdRef()
+                self.templatesByID[id] = {
+                    'routine': routine,
+                    'name': templateName,
+                    'categ': categName,
+                }
+                item = submenu.Append(id, templateName)
+
+        btnPos = self.templateCtrl.GetRect()
+        menuPos = (btnPos[0], btnPos[1] + btnPos[3])
+        self.PopupMenu(self.templateMenu, menuPos)
+
+    def onSelectTemplate(self, evt):
+
+        id = evt.Id
+        categ = self.templatesByID[id]['categ']
+        templateName = self.templatesByID[id]['name']
+        self.templateCtrl.SetLabelText(f"{categ}: {templateName}")
+        self.selectedTemplate = self.templates[categ][templateName]
+        self.Layout()  # update the size of the button
+        self.Fit()
+        # self.templateMenu.Destroy()  # destroy to avoid mem leak

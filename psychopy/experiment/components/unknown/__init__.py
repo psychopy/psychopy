@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, print_function
-
-from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy import prefs
@@ -34,12 +31,7 @@ class UnknownComponent(BaseComponent):
         self.parentName = parentName  # to access the routine too if needed
         self.params = {}
         self.depends = []
-        _hint = _translate("Name of this component (alphanumeric or _, "
-                           "no spaces)")
-        self.params['name'] = Param(name, valType='code', inputType="multi",
-                                    hint=_hint,
-                                    label=_localized['name'])
-        super(UnknownComponent, self).__init__(exp, parentName)
+        super(UnknownComponent, self).__init__(exp, parentName, name=name)
         self.order += []
     # make sure nothing gets written into experiment for an unknown object
     # class!
@@ -51,7 +43,20 @@ class UnknownComponent(BaseComponent):
         pass
 
     def writeInitCode(self, buff):
-        pass
+        code = (
+            "\n"
+            "# Unknown component ignored: %(name)s\n"
+            "\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+    def writeInitCodeJS(self, buff):
+        code = (
+            "\n"
+            "// Unknown component ignored: %(name)s\n"
+            "\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def writeFrameCode(self, buff):
         pass

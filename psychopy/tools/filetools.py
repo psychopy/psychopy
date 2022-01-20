@@ -7,10 +7,6 @@
 
 """Functions and classes related to file and directory handling
 """
-from __future__ import absolute_import, print_function
-
-# from future import standard_library
-# standard_library.install_aliases()
 import os
 import shutil
 import sys
@@ -25,7 +21,7 @@ try:
 except ImportError:
     import pickle
 
-from psychopy import logging, constants
+from psychopy import logging
 from psychopy.tools.fileerrortools import handleFileCollision
 
 
@@ -264,10 +260,7 @@ class DictStorage(dict):
         # save the file as json
         with open(filename, 'wb') as f:
             json_str = json.dumps(self, indent=2, sort_keys=True)
-            if constants.PY3:
-                f.write(bytes(json_str, 'UTF-8'))
-            else:
-                f.write(json_str)
+            f.write(bytes(json_str, 'UTF-8'))
 
     def __del__(self):
         if not self._deleted:
@@ -292,8 +285,8 @@ def pathToString(filepath):
     """
     Coerces pathlib Path objects to a string (only python version 3.6+)
     any other objects passed to this function will be returned as is.
-    This WILL NOT work with on Python 3.4, 3.5 since the __fspath__ dunder
-    method did not exist in those verisions, however psychopy does not support
+    This WILL NOT work with on Python 3.4, 3.5 since the __fspath__ under
+    method did not exist in those versions, however psychopy does not support
     these versions of python anyways.
 
     :Parameters:

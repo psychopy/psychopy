@@ -10,8 +10,8 @@ import pyglet.gl as GL
 
 # Create a VR session, treat the returned object just like a regular window.
 # Increase the number of samples for anti-aliasing, could be 2, 4, 6, 8, 16 or
-# 32 depending on your hardware.
-hmd = visual.Rift(samples=1)
+# 32 depending on your hardware. The GLFW backend is preferred when using VR.
+hmd = visual.Rift(samples=1, color=(0, 0, 0), colorSpace='rgb', winType='glfw')
 
 # Create a LibOVRPose object to represent the rigid body pose of the triangle in
 # the scene. The position of the triangle will be 2 meters away from the user at
@@ -24,6 +24,9 @@ translationMatrix = trianglePose.getModelMatrix()
 
 # convert to format Pyglet's GL libraries accept
 translationMatrix = arraytools.array2pointer(translationMatrix)
+
+# uncomment the line below to show a performance HUD
+# hmd.perfHudMode('PerfSummary')
 
 # loop until the user quits the app through the GUI menu
 stopApp = False
@@ -84,6 +87,9 @@ while not stopApp:
     elif event.getKeys('r') or hmd.shouldRecenter:
         hmd.recenterTrackingOrigin()
 
+# turn off the hud
+# hmd.perfHudMode('Off')
 
 # cleanly end the session
+hmd.close()
 core.quit()

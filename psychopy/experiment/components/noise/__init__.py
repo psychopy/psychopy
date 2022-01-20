@@ -6,9 +6,6 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 # This file by Andrew Schofield
 
-from __future__ import absolute_import, print_function
-
-from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy.localization import _localized as __localized
@@ -145,7 +142,7 @@ class NoiseStimComponent(BaseVisualComponent):
                          "rescaled")
         self.params['interpolate'] = Param(
             interpolate, valType='str', inputType="choice", allowedVals=['linear', 'nearest'], categ='Texture',
-            updates='constant', allowedUpdates=[],
+            updates='constant', allowedUpdates=[], direct=False,
             hint=msg,
             label=_localized['interpolate'])
 

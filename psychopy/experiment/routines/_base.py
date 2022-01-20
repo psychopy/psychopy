@@ -8,8 +8,6 @@
 """Describes the Flow of an experiment
 """
 
-from __future__ import absolute_import, print_function
-
 from psychopy.constants import FOREVER
 from xml.etree.ElementTree import Element
 from pathlib import Path
@@ -52,19 +50,19 @@ class BaseStandaloneRoutine:
         self.params['stopType'] = Param(stopType,
             valType='str', inputType="choice", categ='Basic',
             allowedVals=['duration (s)', 'duration (frames)', 'condition'],
-            hint=msg,
+            hint=msg, direct=False,
             label=_translate('Stop Type...'))
 
         # Testing
         msg = _translate("Disable this component")
         self.params['disabled'] = Param(disabled,
             valType='bool', inputType="bool", categ="Testing",
-            hint=msg, allowedTypes=[],
+            hint=msg, allowedTypes=[], direct=False,
             label=_translate('Disable component'))
 
     def __repr__(self):
-        _rep = "psychopy.experiment.%s(name='%s', exp=%s)"
-        return _rep % (self.__class__, self.name, self.exp)
+        _rep = "psychopy.experiment.routines.%s(name='%s', exp=%s)"
+        return _rep % (self.__class__.__name__, self.name, self.exp)
 
     def __iter__(self):
         """Overloaded iteration behaviour - if iterated through, a standaloneRoutine returns
@@ -84,7 +82,7 @@ class BaseStandaloneRoutine:
             return self
 
     @property
-    def xml(self):
+    def _xml(self):
         # Make root element
         element = Element(self.__class__.__name__)
         element.set("name", self.params['name'].val)
@@ -126,12 +124,6 @@ class BaseStandaloneRoutine:
         return
 
     def writeMainCode(self, buff):
-        code = (
-            "\n"
-            "# -------Run Routine '%(name)s'-------\n"
-            "\n"
-        )
-        buff.writeIndentedLines(code % self.params)
         return
 
     def writeRoutineBeginCodeJS(self, buff, modular):
@@ -162,7 +154,7 @@ class BaseStandaloneRoutine:
     def getComponentFromName(self, name):
         return None
 
-    def getComponentFromType(self, type):
+    def getComponentFromType(self, thisType):
         return None
 
     def hasOnlyStaticComp(self):
@@ -199,6 +191,14 @@ class BaseStandaloneRoutine:
             if 'name' in self.params:
                 self.params['name'].val = value
 
+    @property
+    def disabled(self):
+        return bool(self.params['disabled'])
+
+    @disabled.setter
+    def disabled(self, value):
+        self.params['disabled'].val = value
+
 
 class Routine(list):
     """
@@ -225,13 +225,13 @@ class Routine(list):
         return _rep % (self.name, self.exp, str(list(self)))
 
     @property
-    def xml(self):
+    def _xml(self):
         # Make root element
         element = Element("Routine")
         element.set("name", self.name)
         # Add each component's element
         for comp in self:
-            element.append(comp.xml)
+            element.append(comp._xml)
 
         return element
 
@@ -252,6 +252,22 @@ class Routine(list):
     def addComponent(self, component):
         """Add a component to the end of the routine"""
         self.append(component)
+
+    def insertComponent(self, index, component):
+        """Insert a component at some point of the routine.
+
+        Parameters
+        ----------
+        index : int
+            Position in the routine to insert the component.
+        component : object
+            Component object to insert.
+
+        """
+        try:
+            self.insert(index, component)
+        except IndexError:
+            self.append(component)  # just insert at the end on invalid index
 
     def removeComponent(self, component):
         """Remove a component from the end of the routine"""
@@ -659,9 +675,9 @@ class Routine(list):
                 return comp
         return None
 
-    def getComponentFromType(self, type):
+    def getComponentFromType(self, thisType):
         for comp in self:
-            if comp.type == type:
+            if comp.type == thisType:
                 return comp
         return None
 

@@ -18,12 +18,11 @@ from .....errors import print2err, printExceptionDetailsToStdErr
 currentTime = Computer.getTime
 
 
-class TobiiPsychopyCalibrationGraphics(object):
+class TobiiPsychopyCalibrationGraphics:
     IOHUB_HEARTBEAT_INTERVAL = 0.050  # seconds between forced run through of micro threads, since one is blocking on camera setup.
     CALIBRATION_POINT_LIST = [(0.5, 0.5), (0.1, 0.1), (0.9, 0.1), (0.9, 0.9), (0.1, 0.9), (0.5, 0.5)]
 
     TEXT_POS = [0, 0]
-    TEXT_COLOR = [0, 0, 0]
     TEXT_HEIGHT = 36
     _keyboard_key_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key')
 
@@ -41,7 +40,7 @@ class TobiiPsychopyCalibrationGraphics(object):
         self._device_config = self._eyetrackerinterface.getConfiguration()
         updateSettings(self._device_config.get('calibration'), calibration_args)
         self._calibration_args = self._device_config.get('calibration')
-        print2err("self._calibration_args:", self._calibration_args)
+        #print2err("self._calibration_args:", self._calibration_args)
         
         unit_type = self.getCalibSetting('unit_type')
         if unit_type is None:
@@ -170,7 +169,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             ek = event[self._keyboard_key_index]
             if isinstance(ek, bytes):
                 ek = ek.decode('utf-8')
-            if ek == ' ':
+            if ek == ' ' or ek == 'space':
                 self._msg_queue.append('SPACE_KEY_ACTION')
                 self.clearAllEventBuffers()
             elif ek == 'escape':
@@ -209,43 +208,44 @@ class TobiiPsychopyCalibrationGraphics(object):
         color_type = self.getCalibSetting('color_type')
         unit_type = self.getCalibSetting('unit_type')
 
-        self.calibrationPointOUTER = visual.Circle(
-            self.window,
-            pos=(
-                0,
-                0),
-            lineWidth=self.getCalibSetting(['target_attributes', 'outer_stroke_width']),
+        self.calibrationPoint = visual.TargetStim(
+            self.window, name="CP", style="circles",
             radius=self.getCalibSetting(['target_attributes', 'outer_diameter']) / 2.0,
-            name='CP_OUTER',
             fillColor=self.getCalibSetting(['target_attributes', 'outer_fill_color']),
-            lineColor=self.getCalibSetting(['target_attributes', 'outer_line_color']),
-            opacity=1.0,
-            interpolate=False,
-            edges=64,
-            units=unit_type, colorSpace=color_type)
+            borderColor=self.getCalibSetting(['target_attributes', 'outer_line_color']),
+            lineWidth=self.getCalibSetting(['target_attributes', 'outer_stroke_width']),
+            innerRadius=self.getCalibSetting(['target_attributes', 'inner_diameter']) / 2.0,
+            innerFillColor=self.getCalibSetting(['target_attributes', 'inner_fill_color']),
+            innerBorderColor=self.getCalibSetting(['target_attributes', 'inner_line_color']),
+            innerLineWidth=self.getCalibSetting(['target_attributes', 'inner_stroke_width']),
+            pos=(0, 0),
+            units=unit_type,
+            colorSpace=color_type,
+            autoLog=False
+        )
+        self.calibrationPointINNER = self.calibrationPoint.inner
+        self.calibrationPointOUTER = self.calibrationPoint.outer
 
-        self.calibrationPointINNER = visual.Circle(
-            self.window,
-            pos=(
-                0,
-                0),
-            lineWidth=self.getCalibSetting(['target_attributes', 'inner_stroke_width']),
-            radius=self.getCalibSetting(['target_attributes', 'inner_diameter']) / 2.0,
-            name='CP_INNER',
-            fillColor=self.getCalibSetting(['target_attributes', 'inner_fill_color']),
-            lineColor=self.getCalibSetting(['target_attributes', 'inner_line_color']),
-            opacity=1.0,
-            interpolate=False,
-            edges=64,
-            units=unit_type, colorSpace=color_type)
+        tctype = color_type
+        tcolor = self.getCalibSetting(['text_color'])
+        if tcolor is None:
+            # If no calibration text color provided, base it on the window background color
+            from psychopy.iohub.util import complement
+            sbcolor = self.getCalibSetting(['screen_background_color'])
+            if sbcolor is None:
+                sbcolor = self.window.color
+            from psychopy.colors import Color
+            tcolor_obj = Color(sbcolor, color_type)
+            tcolor = complement(*tcolor_obj.rgb255)
+            tctype = 'rgb255'
 
         instuction_text = 'Press SPACE to Start Calibration; ESCAPE to Exit.'
         self.textLineStim = visual.TextStim(self.window,
                                             text=instuction_text,
                                             pos=self.TEXT_POS,
                                             height=self.TEXT_HEIGHT,
-                                            color=self.TEXT_COLOR,
-                                            colorSpace='rgb255',
+                                            color=tcolor,
+                                            colorSpace=tctype,
                                             units='pix',
                                             wrapWidth=self.width * 0.9)
 

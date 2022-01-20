@@ -13,7 +13,6 @@ used by backends.getBackend(winType) which will locate the appropriate class
 and initialize an instance using the attributes of the Window.
 """
 
-from __future__ import absolute_import, print_function
 import sys
 import os
 import numpy as np
@@ -21,8 +20,7 @@ import numpy as np
 import psychopy
 from psychopy import core
 from psychopy.hardware import mouse
-from psychopy import logging, event, platform_specific, constants
-from psychopy.visual import window
+from psychopy import logging, event, platform_specific
 from psychopy.tools.attributetools import attributeSetter
 from psychopy.tests import _vmTesting
 from .gamma import setGamma, setGammaRamp, getGammaRamp, getGammaRampSize
@@ -304,6 +302,8 @@ class PygletBackend(BaseBackend):
         self.winHandle.getGammaRamp = getGammaRamp
         self.winHandle.set_vsync(True)
         self.winHandle.on_text = self.onText
+        self.winHandle.on_move = self.onMove
+        self.winHandle.on_resize = self.onResize
         self.winHandle.on_text_motion = self.onCursorKey
         self.winHandle.on_key_press = self.onKey
         self.winHandle.on_mouse_press = self.onMouseButtonPress
@@ -317,7 +317,6 @@ class PygletBackend(BaseBackend):
             # make mouse invisible. Could go further and make it 'exclusive'
             # (but need to alter x,y handling then)
             self.winHandle.set_mouse_visible(False)
-        self.winHandle.on_resize = _onResize  # avoid circular reference
         if not win.pos:
             # work out where the centre should be 
             if win.useRetina:
@@ -413,8 +412,21 @@ class PygletBackend(BaseBackend):
         for win in wins:
             win.dispatch_events()
 
+    def onResize(self, width, height):
+        """A method that will be called if the window detects a resize event.
+
+        This method is bound to the window backend resize event, data is
+        formatted and forwarded to the user's callback function.
+
+        """
+        # Call original _onResize handler
+        _onResize(width, height)
+
+        if self._onResizeCallback is not None:
+            self._onResizeCallback(self.win, width, height)
+
     def onKey(self, evt, modifiers):
-        "Check for tab key then pass all events to event package"
+        """Check for tab key then pass all events to event package."""
         if evt is not None:
             thisKey = pyglet.window.key.symbol_string(evt).lower()
             if thisKey == 'tab':
@@ -438,9 +450,6 @@ class PygletBackend(BaseBackend):
         if currentEditable:
             keyName = pyglet.window.key.motion_string(evt)
             currentEditable._onCursorKeys(keyName)
-
-    def onResize(self, width, height):
-        _onResize(width, height)
 
     @attributeSetter
     def gamma(self, gamma):
@@ -500,18 +509,11 @@ class PygletBackend(BaseBackend):
         """
         if sys.platform == 'win32':
             scrBytes = self.winHandle._dc
-            if constants.PY3:
-                try:
-                    _screenID = 0xFFFFFFFF & int.from_bytes(
-                        scrBytes, byteorder='little')
-                except TypeError:
-                    _screenID = 0xFFFFFFFF & scrBytes
-            else:
-                try:
-                    _screenID = 0xFFFFFFFF & scrBytes
-                except TypeError:
-                    _screenID = scrBytes
-
+            try:
+                _screenID = 0xFFFFFFFF & int.from_bytes(
+                    scrBytes, byteorder='little')
+            except TypeError:
+                _screenID = 0xFFFFFFFF & scrBytes
         elif sys.platform == 'darwin':
             try:
                 _screenID = self.winHandle._screen.id  # pyglet1.2alpha1
@@ -542,26 +544,37 @@ class PygletBackend(BaseBackend):
         if self._origGammaRamp is not None:
             self.gammaRamp = self._origGammaRamp
 
-        _hw_handle = None
         try:
-            _hw_handle = self.win._hw_handle
             self.winHandle.close()
-        except Exception:
-            pass
-        # If iohub is running, inform it to stop looking for this win id
-        # when filtering kb and mouse events (if the filter is enabled of
-        # course)
-        try:
-            if window.IOHUB_ACTIVE and _hw_handle:
-                from psychopy.iohub.client import ioHubConnection
-                conn = ioHubConnection.ACTIVE_CONNECTION
-                conn.unregisterWindowHandles(_hw_handle)
         except Exception:
             pass
 
     def setFullScr(self, value):
-        """Sets the window to/from full-screen mode"""
+        """Sets the window to/from full-screen mode.
+
+        Parameters
+        ----------
+        value : bool or int
+            If `True`, resize the window to be fullscreen.
+
+        """
         self.winHandle.set_fullscreen(value)
+        self.win.clientSize[:] = (self.winHandle.width, self.winHandle.height)
+
+        # special handling for retina displays, if needed
+        global retinaContext
+        if retinaContext is not None:
+            view = retinaContext.view()
+            bounds = view.convertRectToBacking_(view.bounds()).size
+            backWidth, backHeight = (int(bounds.width), int(bounds.height))
+        else:
+            backWidth, backHeight = self.win.clientSize
+
+        self._frameBufferSize[:] = (backWidth, backHeight)
+        self.win.viewport = (0, 0, backWidth, backHeight)
+        self.win.scissor = (0, 0, backWidth, backHeight)
+
+        self.win.resetEyeTransform()
 
     def setMouseType(self, name='arrow'):
         """Change the appearance of the cursor for this window. Cursor types

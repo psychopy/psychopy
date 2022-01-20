@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 from psychopy import core, logging, hardware
 import pytest
 

@@ -46,7 +46,7 @@ client secret.  A line beginning with a hash will be ignored. eg
 | ---end file---
 
 Troubleshooting
-=============
+===============
 
 * Check that the .emotiv_creds file does not have ".txt" file extension.
 * Ensure the file format is exactly correct (do **not** include the begin and end file lines)

@@ -5,8 +5,6 @@
 Demo to illustrate Dialog (Dlg) classes and usage.
 """
 
-from __future__ import absolute_import, division, print_function
-
 from psychopy import gui  # Fetch default gui handler (qt if available)
 from psychopy import __version__ # Get the PsychoPy version currently in use
 ## You can explicitly choose one of the qt/wx backends like this:
