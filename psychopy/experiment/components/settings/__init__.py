@@ -846,12 +846,13 @@ class SettingsComponent:
         #     saveType = "EXPERIMENT_SERVER"
         #     projID = 'undefined'
         code = template.format(
-                        params=self.params,
-                        name=self.params['expName'].val,
-                        loggingLevel=self.params['logging level'].val.upper(),
-                        setRedirectURL=setRedirectURL,
-                        version=version,
-                        )
+            params=self.params,
+            filename=self.params['Data filename'],
+            name=self.params['expName'].val,
+            loggingLevel=self.params['logging level'].val.upper(),
+            setRedirectURL=setRedirectURL,
+            version=version,
+        )
         buff.writeIndentedLines(code)
 
     def writeStartCode(self, buff, version):
