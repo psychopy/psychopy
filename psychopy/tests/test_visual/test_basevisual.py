@@ -382,6 +382,8 @@ class _TestUnitsMixin:
         obj.draw()
         filename = Path(utils.TESTS_DATA_PATH) / "test_unit_mismatch.png"
         win.getMovieFrame(buffer='back').save(filename)
+        # Get model sizes
+        targetSizes = {units: getattr(obj._size, units) for units in unitTypes}
         # Flip screen
         win.flip()
         # Iterate through window and object units
@@ -392,8 +394,10 @@ class _TestUnitsMixin:
                 obj.units = objunits
                 # Draw object
                 obj.draw()
-                # Compare
+                # Compare appearance
                 utils.compareScreenshot(filename, win, tag=f"{winunits}X{objunits}")
+                # Compare reported size
+                assert layout.Size(obj.size, obj.units, obj.win) == layout.Size(targetSizes[objunits], objunits, obj.win)
                 # Flip screen
                 win.flip()
         # Close window
