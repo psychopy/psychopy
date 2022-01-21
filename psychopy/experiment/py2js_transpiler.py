@@ -60,9 +60,30 @@ class psychoJSTransformer(ast.NodeTransformer):
                 ctx=ast.Load()
             )
 
+        # _thisDir -->  '.'
+        elif node.id == '_thisDir' and isinstance(node.ctx, ast.Load):
+            return ast.Constant(
+                value='.',
+                kind=None
+            )
         # return the node by default:
         return node
 
+
+    def visit_Attribute(self, node):
+
+        node.value = psychoJSTransformer().visit(node.value)
+
+        if isinstance(node.value, ast.Name):
+            # os.sep --> '/'
+            if node.value.id == 'os' and node.attr == 'sep':
+                return ast.Constant(
+                    value='/',
+                    kind=None
+                )
+
+        # return the node by default:
+        return node
 
 class pythonTransformer(ast.NodeTransformer):
     """Python-specific AST transformer
@@ -86,7 +107,31 @@ class pythonTransformer(ast.NodeTransformer):
 
         # formatted strings with %:
         if isinstance(node.op, ast.Mod) and isinstance(node.left, ast.Str):
-            raise Exception('string formatting using % is not currently supported, please use f-strings instead')
+            # transform the node into an f-string node:
+            stringFormat = node.left.value
+            stringTuple = node.right.elts if isinstance(node.right, ast.Tuple) else [node.right]
+
+            values = []
+            tupleIndex = 0
+            while True:
+                # TODO deal with more complicated formats, such as %.3f
+                match = re.search(r'%.', stringFormat)
+                if match is None:
+                    break
+                values.append(ast.Constant(value=stringFormat[0:match.span(0)[0]], kind=None))
+                values.append(
+                    self.visit_FormattedValue(
+                        ast.FormattedValue(
+                            value=stringTuple[tupleIndex],
+                            conversion=-1,
+                            format_spec=None
+                        )
+                    )
+                )
+                stringFormat = stringFormat[match.span(0)[1]:]
+                tupleIndex += 1
+
+            return ast.JoinedStr(values)
 
         return node
 
@@ -133,14 +178,14 @@ class pythonTransformer(ast.NodeTransformer):
                     attr='toPrecision',
                     ctx=ast.Load()
                 ),
-                args=[ast.Num(n=precision)],
+                args=[ast.Constant(value=precision, kind=None)],
                 keywords=[]
             )
 
             # deal with width:
             widthCall = ast.Call(
                 func=ast.Name(id='pad', ctx=ast.Load()),
-                args=[precisionCall, ast.Num(n=width)],
+                args=[precisionCall, ast.Constant(value=width, kind=None)],
                 keywords=[]
             )
 
@@ -154,7 +199,6 @@ class pythonTransformer(ast.NodeTransformer):
         raise Exception('formatted f-string are not all supported at the moment')
 
     def visit_Call(self, node):
-
         # transform the node arguments:
         nbArgs = len(node.args)
         for i in range(0, nbArgs):
