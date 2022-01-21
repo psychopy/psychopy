@@ -396,8 +396,9 @@ class _TestUnitsMixin:
                 obj.draw()
                 # Compare appearance
                 utils.compareScreenshot(filename, win, tag=f"{winunits}X{objunits}")
-                # Compare reported size
-                assert layout.Size(obj.size, obj.units, obj.win) == layout.Size(targetSizes[objunits], objunits, obj.win)
+                if hasattr(obj, "_size"):
+                    # Compare reported size
+                    assert layout.Size(obj.size, obj.units, obj.win) == layout.Size(targetSizes[objunits], objunits, obj.win)
                 # Flip screen
                 win.flip()
         # Close window
