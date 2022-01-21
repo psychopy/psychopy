@@ -36,7 +36,7 @@ class FormComponent(BaseVisualComponent):
     def __init__(self, exp, parentName,
                  name='form',
                  items='.csv',
-                 textHeight=.03,
+                 textHeight=0.03,
                  font="Open Sans",
                  randomize=False,
                  fillColor='',

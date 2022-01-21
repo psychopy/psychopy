@@ -126,7 +126,7 @@ class Experiment:
         # What libs are needed (make sound come first)
         self.requiredImports = []
         libs = ('sound', 'gui', 'visual', 'core', 'data', 'event',
-                'logging', 'clock', 'colors')
+                'logging', 'clock', 'colors', 'layout')
         self.requirePsychopyLibs(libs=libs)
         self.requireImport(importName='keyboard',
                            importFrom='psychopy.hardware')
