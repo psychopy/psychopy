@@ -71,6 +71,9 @@ class psychoJSTransformer(ast.NodeTransformer):
 
 
     def visit_Attribute(self, node):
+
+        node.value = psychoJSTransformer().visit(node.value)
+
         if isinstance(node.value, ast.Name):
             # os.sep --> '/'
             if node.value.id == 'os' and node.attr == 'sep':
