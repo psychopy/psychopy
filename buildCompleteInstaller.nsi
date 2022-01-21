@@ -165,8 +165,6 @@ Section "PsychoPy" SEC01
     EnVar::AddValue "PATH" "$INSTDIR"
     EnVar::AddValue "PATH" "$INSTDIR\DLLs"
 
-  done:
-
 SectionEnd
 
 ; Section descriptions - ONLY USE IF USING COMPONENTS
