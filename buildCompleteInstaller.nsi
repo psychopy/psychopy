@@ -1,29 +1,32 @@
 
 ; HM NIS Edit Wizard helper defines
-!define PRODUCT_PUBLISHER "Jon Peirce"
+!define PRODUCT_PUBLISHER "Open Science Tools Ltd"
 !define PRODUCT_WEB_SITE "https://www.psychopy.org"
 ;!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\AppMainExe.exe"
 
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define FORMER_PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}3"
 !define PRODUCT_UNINST_ROOT_KEY "SHELL_CONTEXT"
-var PRODUCT_REGISTRY_ROOT
-
 !define PRODUCT_STARTMENU_REGVAL "NSIS:StartMenuDir"
 
-
-; Modern User Interface v2 ------
+!include "building\fileassoc.nsh"
+; !include "Library.nsh"  ; for installing avbin
+!include LogicLib.nsh
 
 ; Allow choosing between multiuser and current user (no admin rights) installs
 !define MULTIUSER_EXECUTIONLEVEL Highest
 !define MULTIUSER_MUI
 !define MULTIUSER_INSTALLMODE_COMMANDLINE
+!define MULTIUSER_INSTALLMODE_INSTDIR "PsychoPy"
+!if ${ARCH} == "win64"
+  !define MULTIUSER_USE_PROGRAMFILES64  ; this is a 64bit app
+!endif
 !include MultiUser.nsh
+!include MUI2.nsh
 
-!include "MUI2.nsh"
-!include "building\fileassoc.nsh"
-!include "Library.nsh"
-!include "LogicLib.nsh"
+
+; MULTIUSER Settings
+; !define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_KEY 
 
 ; MUI Settings
 !define MUI_ABORTWARNING
@@ -54,8 +57,8 @@ var ICONS_GROUP
 !insertmacro MUI_PAGE_INSTFILES
 
 ; Uninstaller pages
+; !insertmacro MUI_UNPAGE_DIRECTORY  ; allow the user to change the uninstall dir?
 !insertmacro MUI_UNPAGE_CONFIRM
-!insertmacro MUI_UNPAGE_DIRECTORY
 !insertmacro MUI_UNPAGE_INSTFILES
 
 ; Language files
@@ -64,10 +67,10 @@ var ICONS_GROUP
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION} ${ARCH}"
-OutFile "Standalone${PRODUCT_NAME}-${PRODUCT_VERSION}-${ARCH}.exe"
+OutFile ".\dist\Standalone${PRODUCT_NAME}-${PRODUCT_VERSION}-${ARCH}.exe"
 
 ; We set InstallDir inside .onInit instead so it can be dynamic
-InstallDir ""
+var InstalledPrevDir
 
 ShowInstDetails show
 ShowUnInstDetails show
@@ -84,107 +87,85 @@ Function multiuser_pre_func
 FunctionEnd
 
 Function .onInit
+
+  ; NB this function occurs BEFORE the MULTIUSER_PAGE_INSTALLMODE 
+  ; so doesn't yet know whether we're single or multi-user
   !insertmacro MULTIUSER_INIT
 
-  ${If} $MultiUser.InstallMode == "CurrentUser"
-    SetShellVarContext current
-    StrCpy $InstDir "$LOCALAPPDATA\${PRODUCT_NAME}"
-    StrCpy $PRODUCT_REGISTRY_ROOT "HKCU"
-    EnVar::SetHKCU
-  ${Else}
-    SetShellVarContext all
-    ${If} ${ARCH} == "win64"
-      StrCpy $InstDir "$PROGRAMFILES64\${PRODUCT_NAME}"
-    ${Else}
-      StrCpy $InstDir "$PROGRAMFILES\${PRODUCT_NAME}"
-    ${EndIf}
-    StrCpy $PRODUCT_REGISTRY_ROOT "HKLM"
-    EnVar::SetHKLM
-  ${EndIf}
-
-  ;if previous version (PsychoPy) installed then remove
-  ReadRegStr $R0 SHELL_CONTEXT \
-  PRODUCT_UNINST_KEY \
-  "UninstallString"
-  StrCmp $R0 "" done
-
-  ;if previous version (PsychoPy3) installed then remove
-  ReadRegStr $R0 SHELL_CONTEXT \
-  FORMER_PRODUCT_UNINST_KEY \
-  "UninstallString"
-  StrCmp $R0 "" done
-
-  IfSilent +3
-  MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
-  "A version of ${PRODUCT_NAME} is already installed. $\n$\nClick `OK` to remove the \
-  previous version or `Cancel` to cancel this upgrade." \
-  IDOK uninst
-  Abort
-
-  ;Run the uninstaller
-  uninst:
-    ClearErrors
-    ExecWait '"$InstDir\uninst.exe" _?=$InstDir'
-  done:
 FunctionEnd
 
 Function un.onInit
+
   !insertmacro MULTIUSER_UNINIT
-  ${If} $MultiUser.InstallMode == "CurrentUser"
-    SetShellVarContext current
-    StrCpy $InstDir "$LOCALAPPDATA\${PRODUCT_NAME}"
-    StrCpy $PRODUCT_REGISTRY_ROOT "HKCU"
-  ${Else}
-    SetShellVarContext all
-    ${If} ${ARCH} == "win64"
-      StrCpy $InstDir "$PROGRAMFILES64\${PRODUCT_NAME}"
-    ${Else}
-      StrCpy $InstDir "$PROGRAMFILES\${PRODUCT_NAME}"
-    ${EndIf}
-    StrCpy $PRODUCT_REGISTRY_ROOT "HKLM"
-  ${EndIf}
 
 FunctionEnd
 
 Section "PsychoPy" SEC01
   SectionIn RO
-  SetOutPath "$InstDir"
+  SetOutPath "$INSTDIR"
   SetOverwrite on
-  ;AppDir is the path to the psychopy app folder
-  Var /GLOBAL AppDir
-  StrCpy $AppDir "$InstDir\Lib\site-packages\psychopy\app"
+  DetailPrint "Target is $INSTDIR"
 
-  File /r /x *.pyo /x *.chm /x Editra /x doc "${PYPATH}*.*"
+  ;if previous version (PsychoPy) installed then remove
+  ReadRegStr $InstalledPrevDir SHELL_CONTEXT "${PRODUCT_UNINST_KEY}" "UninstallDir"
+  StrCmp $InstalledPrevDir "" continue_inst uninst_query ; if an existing installation check for uninstall
+  ; DetailPrint "SHELL_CONTEXT returned $InstalledPrevDir"
+  ; ReadRegStr $InstalledPrevDir HKLM "${PRODUCT_UNINST_KEY}" "UninstallDir"
+  ; DetailPrint "HKLM returned $InstalledPrevDir"
+  ; StrCmp $InstalledPrevDir $InstDir uninst_query  ; if $R0 is empty no need to continue
+  ; ReadRegStr $InstalledPrevDir HKCU "${PRODUCT_UNINST_KEY}" "UninstallDir"
+  ; DetailPrint "HKCU returned $InstalledPrevDir"
+  ; StrCmp $InstalledPrevDir $InstDir uninst_query  ; if $R0 is empty no need to continue
 
-  ${If} $MultiUser.InstallMode == "AllUsers"
-  ; avbin to system32
-    !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED avbin.dll $SYSDIR\avbin.dll $SYSDIR
-  ${EndIf}
+  uninstall_first:
+    ExecWait '"$InstalledPrevDir\uninst.exe" _?=$InstalledPrevDir'
+    Goto continue_inst
+    ; Abort "Install of files has been cancelled. Wise choice. Run the application uninstaller and come back :-)"
 
-; Shortcuts
-  !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
-  CreateDirectory "$SMPROGRAMS\$ICONS_GROUP"
-  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}.lnk" \
-      "$InstDir\pythonw.exe" "$\"$AppDir\psychopyApp.py$\"" "$AppDir\Resources\psychopy.ico"
-  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME} Runner.lnk" \
-      "$InstDir\pythonw.exe" "$\"$AppDir\psychopyApp.py$\" --runner" "$AppDir\Resources\runner.ico"
-  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME} Builder.lnk" \
-      "$InstDir\pythonw.exe" "$\"$AppDir\psychopyApp.py$\" --builder" "$AppDir\Resources\builder.ico"
-  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME} Coder.lnk" \
-      "$InstDir\pythonw.exe" "$\"$AppDir\psychopyApp.py$\" --coder"  "$AppDir\Resources\coder.ico"
-  !insertmacro MUI_STARTMENU_WRITE_END
+  uninst_query:
+    IfSilent +3
+    MessageBox MB_YESNO|MB_ICONEXCLAMATION \
+    "A version of ${PRODUCT_NAME} is already installed at that location. \
+    It's ususally a good idea to remove previous installations first. \
+    $\n$\nClick `YES` to remove the old one first. \
+    `NO` not to carry on regardless." \
+    IDYES uninstall_first \
+    IDNO continue_inst
 
-; File Associations
-  !insertmacro APP_ASSOCIATE "psyexp" "PsychoPy.experiment" "PsychoPy Experiment" "$AppDir\Resources\builder.ico,0" \
-     "Open with PsychoPy" "$\"$InstDir\python.exe$\" $\"$AppDir\psychopyApp.py$\" $\"%1$\""
-  ; !insertmacro APP_ASSOCIATE "py" "PsychoPy.script" "PsychoPy Experiment" "$AppDir\Resources\coder.ico,0" \
-  ;    "Open with PsychoPy" "$\"$InstDir\python.exe$\" $\"$AppDir\psychopyApp.py$\" $\"%1$\""
-  !insertmacro APP_ASSOCIATE "psyrun" "PsychoPy.runner" "PsychoPy Runner List" "$AppDir\Resources\runner.ico,0" \
-     "Open with PsychoPy" "$\"$InstDir\python.exe$\" $\"$AppDir\psychopyApp.py$\" $\"%1$\""
+  continue_inst:
+    ;AppDir is the path to the psychopy app folder
+    Var /GLOBAL AppDir
+    StrCpy $AppDir "$InstDir\Lib\site-packages\psychopy\app"
 
-; Update Windows Path
-  EnVar::AddValue "PATH" "$InstDir"
-  EnVar::AddValue "PATH" "$InstDir\DLLs"
+    File /r /x *.pyo /x *.chm /x Editra /x doc "${PYPATH}*.*"
+    ; File "C:\Program Files\ffmpeg.exe"  ; useful alternative just to run a test file
+
+    ; Shortcuts
+    !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
+    CreateDirectory "$SMPROGRAMS\$ICONS_GROUP"
+    CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}.lnk" \
+        "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\"" "$AppDir\Resources\psychopy.ico"
+    CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME} Runner.lnk" \
+        "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\" --runner" "$AppDir\Resources\runner.ico"
+    CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME} Builder.lnk" \
+        "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\" --builder" "$AppDir\Resources\builder.ico"
+    CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME} Coder.lnk" \
+        "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\" --coder"  "$AppDir\Resources\coder.ico"
+    !insertmacro MUI_STARTMENU_WRITE_END
+
+    ; File Associations
+    !insertmacro APP_ASSOCIATE "psyexp" "PsychoPy.experiment" "PsychoPy Experiment" "$AppDir\Resources\builder.ico,0" \
+      "Open with PsychoPy" "$\"$INSTDIR\python.exe$\" $\"$AppDir\psychopyApp.py$\" $\"%1$\""
+    ; !insertmacro APP_ASSOCIATE "py" "PsychoPy.script" "PsychoPy Experiment" "$AppDir\Resources\coder.ico,0" \
+    ;    "Open with PsychoPy" "$\"$INSTDIR\python.exe$\" $\"$AppDir\psychopyApp.py$\" $\"%1$\""
+    !insertmacro APP_ASSOCIATE "psyrun" "PsychoPy.runner" "PsychoPy Runner List" "$AppDir\Resources\runner.ico,0" \
+      "Open with PsychoPy" "$\"$INSTDIR\python.exe$\" $\"$AppDir\psychopyApp.py$\" $\"%1$\""
+
+    ; Update Windows Path
+    EnVar::AddValue "PATH" "$INSTDIR"
+    EnVar::AddValue "PATH" "$INSTDIR\DLLs"
+
+  done:
 
 SectionEnd
 
@@ -202,12 +183,15 @@ Section -AdditionalIcons
 SectionEnd
 
 Section -Post
+
   WriteUninstaller "$INSTDIR\uninst.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallDir" "$INSTDIR"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
+
 SectionEnd
 
 
@@ -219,16 +203,17 @@ Section Uninstall
   RMDir /r "$INSTDIR"
   ; NB we don't uninstall avbin - it might be used by another python installation
 
-  ; shortcuts
+  ;shortcuts
   Delete "$SMPROGRAMS\$ICONS_GROUP\Uninstall.lnk"
   Delete "$SMPROGRAMS\$ICONS_GROUP\www.psychopy.org.lnk"
   Delete "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}.lnk"
   RMDir /r "$SMPROGRAMS\$ICONS_GROUP"
-  ; remove from registry
+
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
+  ;DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"  
   ; remove from PATH variable
-  EnVar::DeleteValue "PATH" "$InstDir"
-  EnVar::DeleteValue "PATH" "$InstDir\DLLs"
+  EnVar::DeleteValue "PATH" "$INSTDIR"
+  EnVar::DeleteValue "PATH" "$INSTDIR\DLLs"
 
   SetAutoClose true
 SectionEnd
