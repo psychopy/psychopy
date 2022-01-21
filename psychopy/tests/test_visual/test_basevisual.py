@@ -371,8 +371,8 @@ class _TestUnitsMixin:
         """
         # Test all unit types apart from None and ""
         unitTypes = layout.unitTypes[2:]
-        # Create window
-        win = visual.Window(monitor="testMonitor")
+        # Create window (same size as was used for other tests)
+        win = visual.Window(self.obj.win.size, pos=self.obj.win.pos, monitor="testMonitor")
         # Create object
         obj = copy(self.obj)
         obj.win = win
