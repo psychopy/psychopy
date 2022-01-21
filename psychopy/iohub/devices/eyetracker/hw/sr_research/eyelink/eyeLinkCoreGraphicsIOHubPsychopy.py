@@ -46,16 +46,14 @@ class FixationTarget():
             colorSpace=color_type,
             autoLog=False
         )
-        self.calibrationPointOuter = self.calibrationPoint.inner
-        self.calibrationPointInner = self.calibrationPoint.outer
+        self.calibrationPointOuter = self.calibrationPoint.outer
+        self.calibrationPointInner = self.calibrationPoint.inner
 
     def draw(self, pos=None):
         if pos:
             self.calibrationPointOuter.pos = pos
             self.calibrationPointInner.pos = pos
-        self.calibrationPointOuter.draw()
-        self.calibrationPointInner.draw()
-
+        self.calibrationPoint.draw()
 
 # Intro Screen
 class BlankScreen():
