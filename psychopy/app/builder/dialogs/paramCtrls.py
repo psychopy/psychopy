@@ -89,7 +89,7 @@ class _FileMixin:
             filename = Path(file).relative_to(self.rootDir)
         except ValueError:
             filename = Path(file).absolute()
-        return str(filename)
+        return str(filename).replace("\\", "/")
 
     def getFiles(self, msg="Specify file or files...", wildcard="All Files (*.*)|*.*"):
         dlg = wx.FileDialog(self, message=_translate(msg), defaultDir=str(self.rootDir),
@@ -104,7 +104,7 @@ class _FileMixin:
                 filename = Path(file).relative_to(self.rootDir)
             except ValueError:
                 filename = Path(file).absolute()
-            outList.append(str(filename))
+            outList.append(str(filename).replace("\\", "/"))
         return outList
 
 
