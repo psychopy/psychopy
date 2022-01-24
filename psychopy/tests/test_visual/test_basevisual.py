@@ -382,8 +382,9 @@ class _TestUnitsMixin:
         obj.draw()
         filename = Path(utils.TESTS_DATA_PATH) / "test_unit_mismatch.png"
         win.getMovieFrame(buffer='back').save(filename)
-        # Get model sizes
-        targetSizes = {units: getattr(obj._size, units) for units in unitTypes}
+        if hasattr(obj, "_size"):
+            # Get model sizes
+            targetSizes = {units: getattr(obj._size, units) for units in unitTypes}
         # Flip screen
         win.flip()
         # Iterate through window and object units
