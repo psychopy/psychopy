@@ -1271,6 +1271,8 @@ class SettingsComponent:
         if self.params['Save log file'].val:
             buff.writeIndented("logging.flush()\n")
         code = ("# make sure everything is closed down\n"
+                "if eyetracker:\n"
+                "    eyetracker.setConnectionState(False)\n"
                 "thisExp.abort()  # or data files will save again on exit\n"
                 "win.close()\n"
                 "core.quit()\n")
