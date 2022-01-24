@@ -158,6 +158,9 @@ class Job:
             self._pollTimer.Notify = self.onNotify  # override
             self._pollTimer.Start(self._pollMillis, oneShot=wx.TIMER_CONTINUOUS)
 
+        if sys.platform == 'win32':
+            self._process.Activate()  # raise the GUI if available
+
         return self._pid
 
     def terminate(self, flags=SIGTERM):
