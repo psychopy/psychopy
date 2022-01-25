@@ -176,11 +176,6 @@ class Job:
         Callback function called when `poll` is invoked and the error pipe has
         data. Data is passed to the first argument of the callable object. You
         may set `inputCallback` and `errorCallback` using the same function.
-    pollMillis : int or None
-        Time in milliseconds between polling intervals. When interval specified
-        by `pollMillis` elapses, the input and error streams will be read and
-        callback functions will be called. If `None`, then the timer will be
-        disabled and the `poll()` method will need to be invoked.
 
     Examples
     --------
@@ -195,7 +190,7 @@ class Job:
 
     """
     def __init__(self, parent, command='', flags=EXEC_ASYNC, terminateCallback=None,
-                 inputCallback=None, errorCallback=None, pollMillis=None):
+                 inputCallback=None, errorCallback=None):
 
         # command to be called, cannot be changed after spawning the process
         self.parent = parent
@@ -213,7 +208,6 @@ class Job:
         self.inputCallback = inputCallback
         self.errorCallback = errorCallback
         self.terminateCallback = terminateCallback
-        self.pollMillis = pollMillis
 
         # non-blocking pipe reading threads and FIFOs
         self._stdoutReader = None
@@ -602,13 +596,13 @@ class Job:
         if self._terminateCallback is not None:
             wx.CallAfter(self._terminateCallback, self._pid, exitCode)
 
-    def onNotify(self):
-        """Called when the polling timer elapses.
-
-        Default action is to read input and error streams and broadcast any data
-        to user defined callbacks (if `poll()` has not been overwritten).
-        """
-        self.poll()
+    # def onNotify(self):
+    #     """Called when the polling timer elapses.
+    #
+    #     Default action is to read input and error streams and broadcast any data
+    #     to user defined callbacks (if `poll()` has not been overwritten).
+    #     """
+    #     self.poll()
 
     def __del__(self):
         """Called when the object is garbage collected or deleted."""
