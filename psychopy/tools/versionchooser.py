@@ -36,6 +36,36 @@ def _translate(string):
     return string
 
 
+def getPsychoJSVersionStr(currentVersion, preferredVersion=''):
+    """Get the PsychoJS version string for a given PsychoPy version
+    taking into account:
+    - the current/requested version
+    - the fact that early PsychoJS versions did not include minor version
+    - PsychoJS versions do not use rc1 or dev1 suffixes"""
+    if preferredVersion == '':
+        useVerStr = currentVersion
+    elif preferredVersion == 'latest':
+        useVerStr = latestVersion()
+    else:
+        useVerStr = fullVersion(preferredVersion)
+
+    # do we shorten minor versions ('3.4.2' to '3.4')?
+    # only from 3.2 onwards
+    if (parse_version('3.2')) <= parse_version(useVerStr) < parse_version('2021') \
+            and len(useVerStr.split('.')) > 2:
+        # e.g. 2020.2 not 2021.2.5
+        useVerStr = '.'.join(useVerStr.split('.')[:2])
+    elif len(useVerStr.split('.')) > 3:
+        # e.g. 2021.1.0 not 2021.1.0.dev3
+        useVerStr = '.'.join(useVerStr.split('.')[:3])
+    # PsychoJS doesn't have additional rc1 or dev1 releases
+    for versionSuffix in ["rc", "dev"]:
+        if versionSuffix in useVerStr:
+            useVerStr = useVerStr.split(versionSuffix)[0]
+
+    return useVerStr
+
+
 def useVersion(requestedVersion):
     """Manage paths and checkout psychopy libraries for requested versions
     of PsychoPy.
