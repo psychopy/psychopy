@@ -60,12 +60,97 @@ SIGINT = wx.SIGINT
 KILL_NOCHILDREN = wx.KILL_NOCHILDREN
 KILL_CHILDREN = wx.KILL_CHILDREN  # yeesh ...
 
-# Error values for `wx.Process.Kill`, check against using `is` not `==`
+# Error values for `wx.Process.Kill`
 KILL_OK = wx.KILL_OK
 KILL_BAD_SIGNAL = wx.KILL_BAD_SIGNAL
 KILL_ACCESS_DENIED = wx.KILL_ACCESS_DENIED
 KILL_NO_PROCESS = wx.KILL_NO_PROCESS
 KILL_ERROR = wx.KILL_ERROR
+
+
+class PipeReader(Thread):
+    """Thread for reading standard stream pipes. This is used by the `Job` class
+    to provide non-blocking reads of pipes.
+
+    Parameters
+    ----------
+    fdpipe : Any
+        File descriptor for the pipe, either `Popen.stdout` or `Popen.stderr`.
+    pollMillis : int or float
+        Number of milliseconds to wait between pipe reads.
+
+    """
+    def __init__(self, fdpipe):
+        # setup the `Thread` stuff
+        super(PipeReader, self).__init__()
+        self.daemon = True
+
+        self._fdpipe = fdpipe  # pipe file descriptor
+        # queue objects for passing bytes to the main thread
+        self._queue = Queue(maxsize=1)
+        # Overflow buffer if the queue is full, prevents data loss if the
+        # application isn't reading the pipe quick enough.
+        self._overflowBuffer = []
+        # used to signal to the thread that it's time to stop
+        self._stopSignal = Event()
+
+    @property
+    def isAvailable(self):
+        """Are there bytes available to be read (`bool`)?"""
+        return self._queue.full()
+
+    def read(self):
+        """Read all bytes enqueued by the thread coming off the pipe. This is
+        a non-blocking operation. The value `''` is returned if there is no
+        new data on the pipe since the last `read()` call.
+
+        Returns
+        -------
+        bytes
+            Most recent data passed from the subprocess since the last `read()`
+            call.
+
+        """
+        try:
+            return self._queue.get_nowait()
+        except Empty:
+            return ''
+
+    def run(self):
+        """Payload routine for the thread. This reads bytes from the pipe and
+        enqueues them.
+        """
+        # read bytes in chunks until EOF
+        for pipeBytes in iter(self._fdpipe.readline, ''):
+            # put bytes into the queue, handle overflows if the queue is full
+            if not self._queue.full():
+                # we have room, check if we have a backlog of bytes to send
+                if self._overflowBuffer:
+                    pipeBytes = "".join(self._overflowBuffer) + pipeBytes
+                    self._overflowBuffer = []  # clear the overflow buffer
+
+                # write bytes to the queue
+                self._queue.put(pipeBytes)
+            else:
+                # Put bytes into buffer if the queue hasn't been emptied quick
+                # enough. These bytes will be passed along once the queue has
+                # space.
+                self._overflowBuffer.append(pipeBytes)
+
+            # Put the thread to sleep for a bit, not sure if we need this since
+            # this loop will block execution of this thread if there is nothing
+            # to read.
+            time.sleep(0.1)
+
+            # exit the loop
+            if self._stopSignal.is_set():
+                break
+
+        self._fdpipe.close()  # close the pipe if stopped
+
+    def stop(self):
+        """Call this to signal the thread to stop reading bytes."""
+        self._stopSignal.set()
 
 
 class Job:
@@ -75,7 +160,7 @@ class Job:
 
     Parameters
     ----------
-    command : str, list or tuple
+    command : list or tuple
         Command to execute when the job is started. Similar to who you would
         specify the command to `Popen`.
     flags : int
@@ -129,8 +214,18 @@ class Job:
         self.terminateCallback = terminateCallback
         self.pollMillis = pollMillis
 
-    def start(self):
+        # non-blocking pipe reading threads and FIFOs
+        self._stdoutReader = None
+        self._stderrReader = None
+
+    def start(self, cwd=None):
         """Start the subprocess.
+
+        Parameters
+        ----------
+        cwd : str or None
+            Working directory for the subprocess. Leave `None` to use the same
+            as the application.
 
         Returns
         -------
@@ -138,37 +233,52 @@ class Job:
             Process ID assigned by the operating system.
 
         """
-        # build the command, prepend the change directory command to get the
-        # process started in the correct directory
+        # NB - keep these lines since we will use them once the bug in
+        # `wx.Execute` is fixed.
+        #
+        # create a new process object, this handles streams and stuff
+        # self._process = wx.Process(None, -1)
+        # self._process.Redirect()  # redirect streams from subprocess
+
+        # start the sub-process
         command = self._command
 
-        # create a new process object, this handles streams and stuff
-        self._process = wx.Process(None, -1)
-        self._process.Redirect()  # redirect streams from subprocess
-        self._pid = wx.Execute(
-            command,
-            flags=wx.EXEC_ASYNC,
-            callback=self._process)
+        self._process = Popen(
+            args=command,
+            bufsize=1,
+            executable=None,
+            stdin=None,
+            stdout=PIPE,
+            stderr=PIPE,
+            preexec_fn=None,
+            shell=False,
+            cwd=cwd,
+            env=None,
+            universal_newlines=True,  # gives us back a string instead of bytes
+            creationflags=0
+        )
+
+        # get the PID
+        self._pid = self._process.pid
 
         # bind the event called when the process ends
-        self._process.Bind(wx.EVT_END_PROCESS, self.onTerminate)
+        # self._process.Bind(wx.EVT_END_PROCESS, self.onTerminate)
+
+        # setup asynchronous readers of the subprocess pipes
+        self._stdoutReader = PipeReader(self._process.stdout)
+        self._stderrReader = PipeReader(self._process.stderr)
+        self._stdoutReader.start()
+        self._stderrReader.start()
 
         # start polling for data from the subprocesses
         if self._pollMillis is not None:
             self._pollTimer.Notify = self.onNotify  # override
             self._pollTimer.Start(self._pollMillis, oneShot=wx.TIMER_CONTINUOUS)
 
-        if sys.platform == 'win32':
-            self._process.Activate()  # raise the GUI if available
-
         return self._pid
 
-    def terminate(self, flags=SIGTERM):
+    def terminate(self):
         """Terminate the subprocess associated with this object.
-
-        Parameters
-        ----------
-        flags : int
 
         Return
         ------
@@ -183,7 +293,28 @@ class Job:
 
         # isOk = wx.Process.Kill(self._pid, signal, flags) is wx.KILL_OK
         self._pollTimer.Stop()
-        self._process.Kill(wx.SIGTERM)  # kill the process
+        self._process.terminate()  # kill the process
+
+        # Wait for the process to exit completely, return code will be incorrect
+        # if we don't.
+        processStillRunning = True
+        while processStillRunning:
+            wx.Yield()  # yield to the GUI main loop
+            processStillRunning = self._process.poll() is None
+            time.sleep(0.1)  # sleep a bit to avoid CPU over-utilization
+
+        # stop the pipe reader threads now
+        self._stdoutReader.stop()
+        self._stderrReader.stop()
+
+        # get the return code of the subprocess
+        retcode = self._process.returncode
+        self.onTerminate(retcode)
+
+        self._process = self._pid = None  # reset
+        self._flags = 0
+
+        return retcode is None
 
     @property
     def command(self):
@@ -241,22 +372,22 @@ class Job:
         """
         return self._pid
 
-    def setPriority(self, priority):
-        """Set the subprocess priority. Has no effect if the process has not
-        been started.
-
-        Parameters
-        ----------
-        priority : int
-            Process priority from 0 to 100, where 100 is the highest. Values
-            will be clipped between 0 and 100.
-
-        """
-        if self._process is None:
-            return
-
-        priority = max(min(int(priority), 100), 0)  # clip range
-        self._process.SetPriority(priority)  # set it
+    # def setPriority(self, priority):
+    #     """Set the subprocess priority. Has no effect if the process has not
+    #     been started.
+    #
+    #     Parameters
+    #     ----------
+    #     priority : int
+    #         Process priority from 0 to 100, where 100 is the highest. Values
+    #         will be clipped between 0 and 100.
+    #
+    #     """
+    #     if self._process is None:
+    #         return
+    #
+    #     priority = max(min(int(priority), 100), 0)  # clip range
+    #     self._process.SetPriority(priority)  # set it
 
     @property
     def inputCallback(self):
@@ -293,8 +424,7 @@ class Job:
 
     @property
     def pollMillis(self):
-        """Polling interval for input and error pipes in seconds (`int` or
-        `None`). Setting to `None` will disable automatic periodic polling.
+        """Polling interval for input and error pipes (`int` or `None`).
         """
         return self._pollMillis
 
@@ -321,28 +451,28 @@ class Job:
     #   this stuff with threads which greatly simplifies this class.
     #   ~~~
     #
-    @property
-    def isOutputAvailable(self):
-        """`True` if the output pipe to the subprocess is opened (therefore
-        writeable). If not, you cannot write any bytes to 'outputStream'. Some
-        subprocesses may signal to the parent process that its done processing
-        data by closing its input.
-        """
-        if self._process is None:
-            return False
-
-        return self._process.IsInputOpened()
-
-    @property
-    def outputStream(self):
-        """Handle to the file-like object handling the standard output stream
-        (`wx.OutputStream`). This is used to write bytes which will show up in
-        the 'stdin' pipe of the subprocess.
-        """
-        if not self.isRunning:
-            return None
-
-        return self._process.OutputStream
+    # @property
+    # def isOutputAvailable(self):
+    #     """`True` if the output pipe to the subprocess is opened (therefore
+    #     writeable). If not, you cannot write any bytes to 'outputStream'. Some
+    #     subprocesses may signal to the parent process that its done processing
+    #     data by closing its input.
+    #     """
+    #     if self._process is None:
+    #         return False
+    #
+    #     return self._process.IsInputOpened()
+    #
+    # @property
+    # def outputStream(self):
+    #     """Handle to the file-like object handling the standard output stream
+    #     (`ww.OutputStream`). This is used to write bytes which will show up in
+    #     the 'stdin' pipe of the subprocess.
+    #     """
+    #     if not self.isRunning:
+    #         return None
+    #
+    #     return self._process.OutputStream
 
     @property
     def isInputAvailable(self):
@@ -352,7 +482,7 @@ class Job:
         if self._process is None:
             return False
 
-        return self._process.IsInputAvailable()
+        return self._stdoutReader.isAvailable
 
     def getInputData(self):
         """Get any new data which has shown up on the input pipe (stdout of the
@@ -367,21 +497,21 @@ class Job:
         if self._process is None:
             return
 
-        if self._process.IsInputAvailable():
-            return self._process.InputStream.read()
+        if self._stdoutReader.isAvailable:
+            return self._stdoutReader.read()
 
         return ''
 
-    @property
-    def inputStream(self):
-        """Handle to the file-like object handling the standard input stream
-        (`wx.InputStream`). This is used to read bytes which the subprocess is
-        writing to 'stdout'.
-        """
-        if not self.isRunning:
-            return None
-
-        return self._process.InputStream
+    # @property
+    # def inputStream(self):
+    #     """Handle to the file-like object handling the standard input stream
+    #     (`wx.InputStream`). This is used to read bytes which the subprocess is
+    #     writing to 'stdout'.
+    #     """
+    #     if not self.isRunning:
+    #         return None
+    #
+    #     return self._process.InputStream
 
     @property
     def isErrorAvailable(self):
@@ -391,7 +521,7 @@ class Job:
         if self._process is None:
             return False
 
-        return self._process.IsErrorAvailable()
+        return self._stderrReader.isAvailable
 
     def getErrorData(self):
         """Get any new data which has shown up on the error pipe (stderr of the
@@ -406,21 +536,21 @@ class Job:
         if self._process is None:
             return
 
-        if self._process.IsErrorAvailable():
-            return self._process.ErrorStream.read()
+        if self._stderrReader.isAvailable:
+            return self._stderrReader.read()
 
         return ''
 
-    @property
-    def errorStream(self):
-        """Handle to the file-like object handling the standard error stream
-        (`wx.InputStream`). This is used to read bytes which the subprocess is
-        writing to 'stderr'.
-        """
-        if not self.isRunning:
-            return None
-
-        return self._process.ErrorStream
+    # @property
+    # def errorStream(self):
+    #     """Handle to the file-like object handling the standard error stream
+    #     (`wx.InputStream`). This is used to read bytes which the subprocess is
+    #     writing to 'stderr'.
+    #     """
+    #     if not self.isRunning:
+    #         return None
+    #
+    #     return self._process.ErrorStream
 
     def poll(self):
         """Poll input and error streams for data, pass them to callbacks if
@@ -428,6 +558,9 @@ class Job:
         """
         if self._process is None:  # do nothing if there is no process
             return
+
+        # poll the subprocess
+        retCode = self._process.poll()
 
         # get data from pipes
         if self.isInputAvailable:
@@ -440,7 +573,10 @@ class Job:
             if self._errorCallback is not None:
                 wx.CallAfter(self._errorCallback, stderrText)
 
-    def onTerminate(self, event):
+        if retCode is not None:  # process has exited?
+            wx.CallAfter(self.onTerminate, retCode)
+
+    def onTerminate(self, exitCode):
         """Called when the process exits.
 
         Override for custom functionality. Right now we're just stopping the
@@ -456,19 +592,11 @@ class Job:
             self._pollTimer.Stop()
 
         # flush remaining data from pipes, process it
-        self._process.InputStream.flush()
-        self._process.ErrorStream.flush()
-        self.poll()
-
-        pid = event.GetPid()
-        exitcode = event.GetExitCode()
+        # self.poll()
 
         # if callback is provided, else nop
         if self._terminateCallback is not None:
-            wx.CallAfter(self._terminateCallback, pid, exitcode)
-
-        self._process = self._pid = None  # reset
-        self._flags = 0
+            wx.CallAfter(self._terminateCallback, self._pid, exitCode)
 
     def onNotify(self):
         """Called when the polling timer elapses.
