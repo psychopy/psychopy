@@ -14,14 +14,9 @@ compiled from Builder.
 
 __all__ = ['ScriptProcess']
 
-import os.path
 import sys
 import psychopy.app.jobs as jobs
 from wx import BeginBusyCursor, EndBusyCursor
-from psychopy.app.console import StdStreamDispatcher
-
-# polling interval for pipes in milliseconds
-PIPE_POLL_INTERVAL_MS = 120
 
 
 class ScriptProcess:
@@ -87,7 +82,6 @@ class ScriptProcess:
         """
         # full path to the script
         fullPath = fileName.replace('.psyexp', '_lastrun.py')
-        workingDir = os.path.split(fullPath)[0]
 
         # provide a message that the script is running
         # format the output message
@@ -96,7 +90,7 @@ class ScriptProcess:
 
         # if we have a runner frame, write to the output text box
         if hasattr(self.app, 'runner'):
-            stdOut = StdStreamDispatcher.getInstance()
+            stdOut = self.app.runner.stdOut
             stdOut.lenLastRun = len(self.app.runner.stdOut.getText())
         else:
             # if not, just write to the standard output pipe
@@ -116,24 +110,18 @@ class ScriptProcess:
             execFlags |= jobs.EXEC_MAKE_GROUP_LEADER
 
         # build the shell command to run the script
-        execCmd = (
-            '"__file__={fileName}; '
-            'import os; os.chdir({cwd}); '
-            'exec(open({fullPath}, encoding=\'utf-8-sig\').read())"')
-        execCmd = execCmd.format(
-            fileName=repr(fileName),
-            cwd=repr(workingDir),
-            fullPath=repr(fullPath))
-        command = ' '.join([pyExec, '-c', execCmd])  # passed to the Job object
+        # pyExec = '"' + pyExec + '"'  # use quotes to prevent issues with spaces
+        # fullPath = '"' + fullPath + '"'
+        command = [pyExec, '-u', fullPath]  # passed to the Job object
 
         # create a new job with the user script
         self.scriptProcess = jobs.Job(
+            self.app,
             command=command,
             flags=execFlags,
             inputCallback=self._onInputCallback,  # both treated the same
             errorCallback=self._onErrorCallback,
-            terminateCallback=self._onTerminateCallback,
-            pollMillis=PIPE_POLL_INTERVAL_MS  # to check input/error pipes
+            terminateCallback=self._onTerminateCallback
         )
 
         BeginBusyCursor()  # visual feedback
@@ -184,11 +172,7 @@ class ScriptProcess:
         # not available we just write to `sys.stdout`.
         if hasattr(self.app, 'runner'):
             # get any remaining data on the pipes
-            stdOut = StdStreamDispatcher.getInstance()
-            # backup if we don't have an instance for some reason
-            if stdOut is None:
-                stdOut = self.app.runner.stdOut
-
+            stdOut = self.app.runner.stdOut
             self.app.runner.Show()
         else:
             stdOut = sys.stdout
@@ -253,9 +237,8 @@ class ScriptProcess:
         """
         # write a close message, shows the exit code
         closeMsg = \
-            " Experiment ended with exit code {} [pid:{}] ".format(
+            "##### Experiment ended with exit code {} [pid:{}] #####\n".format(
                 exitCode, pid)
-        closeMsg = closeMsg.center(80, '#') + '\n'
         self._writeOutput(closeMsg)
 
         self.scriptProcess = None  # reset
