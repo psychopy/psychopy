@@ -278,8 +278,10 @@ class PavloviaSession:
             if namespaceRaw:
                 projDict['namespace_id'] = namespaceRaw.id
             else:
-                raise ValueError("PavloviaSession.createProject was given a "
-                                 "namespace that couldn't be found on gitlab.")
+                raise ValueError(
+                    f"PavloviaSession.createProject was given a namespace ({namespace}) that couldn't be found "
+                    f"on gitlab."
+                )
         # Create project on GitLab
         try:
             gitlabProj = self.gitlab.projects.create(projDict)
@@ -882,7 +884,7 @@ class PavloviaProject(dict):
             repo = git.Repo.init(self.localRoot)
             self.configGitLocal()  # sets user.email and user.name
             # add origin remote and master branch (but no push)
-            self.repo.create_remote('origin', url=self['remoteHTTPS'])
+            self.repo.create_remote('origin', url=self.project.remoteHTTPS)
             self.repo.git.checkout(b="master")
             self.writeGitIgnore()
             self.stageFiles(['.gitignore'])
@@ -1168,7 +1170,6 @@ def getNameWithNamespace(p):
         return path
     else:
         return None
-
 
 
 def getProject(filename):
