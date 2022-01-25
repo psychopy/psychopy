@@ -9,8 +9,8 @@
 # $pyPaths = @("C:\Python36\", "C:\Python36_64\")
 # $names = @("PsychoPy3", "PsychoPy3")
 # $archs = @("win32", "win64")
-$pyPaths = @("C:\Python38\", "C:\Python36_64\")
-$names = @("PsychoPy_py38", "PsychoPy_py36")
+$pyPaths = @("C:\Python38\")
+$names = @("PsychoPy")
 $archs = @("win64")
 
 # read from the version file
