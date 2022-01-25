@@ -1,7 +1,8 @@
+import json
 from pathlib import Path
 
 import pytest
-from psychopy import visual
+from psychopy import visual, layout, event
 from psychopy import colors
 from psychopy.monitors import Monitor
 from copy import copy
@@ -362,3 +363,124 @@ class _TestUnitsMixin:
         win.close()
         del obj
         del win
+
+    def test_unit_mismatch(self):
+        """
+        Test that a given stimulus can be drawn without error in all combinations of stimulus units x window units and
+        checking that it looks the same as when both units are pix.
+        """
+        # Test all unit types apart from None and ""
+        unitTypes = layout.unitTypes[2:]
+        # Create window (same size as was used for other tests)
+        win = visual.Window(self.obj.win.size, pos=self.obj.win.pos, monitor="testMonitor")
+        # Create object
+        obj = copy(self.obj)
+        obj.win = win
+        # Create model image (pix units for both)
+        win.units = 'pix'
+        obj.units = 'pix'
+        obj.draw()
+        filename = Path(utils.TESTS_DATA_PATH) / "test_unit_mismatch.png"
+        win.getMovieFrame(buffer='back').save(filename)
+        if hasattr(obj, "_size"):
+            # Get model sizes
+            targetSizes = {units: getattr(obj._size, units) for units in unitTypes}
+        # Flip screen
+        win.flip()
+        # Iterate through window and object units
+        for winunits in unitTypes:
+            for objunits in unitTypes:
+                # Create a window and object
+                win.units = winunits
+                obj.units = objunits
+                # Draw object
+                obj.draw()
+                # Compare appearance
+                utils.compareScreenshot(filename, win, tag=f"{winunits}X{objunits}")
+                if hasattr(obj, "_size"):
+                    # Compare reported size
+                    assert layout.Size(obj.size, obj.units, obj.win) == layout.Size(targetSizes[objunits], objunits, obj.win)
+                # Flip screen
+                win.flip()
+        # Close window
+        win.close()
+        # Delete model image
+        filename.unlink()
+
+    def test_manual(self):
+        """
+        For local use only: Uncomment desired manual tests to have them picked up by the test suite when you next run
+        it. Useful as it means you can actually interact with the stimulus to make sure it behaves right, rather than
+        relying on static screenshot comparisons.
+
+        IMPORTANT: Comment them back out before committing, otherwise the test suite will stall!
+        """
+        # self.manual_unit_mismatch()
+
+    def manual_unit_mismatch(self):
+        """
+        For manually testing stimulus x window unit mismatches. Won't be run by the test suite but can be useful to run
+        yourself as it allows you to interact with the stimulus to make sure it's working as intended.
+        """
+        # Test all unit types apart from None and ""
+        unitTypes = layout.unitTypes[2:]
+
+        # Load / create file to store reference to combinations which are marked as good (saves time)
+        goodPath = Path(utils.TESTS_DATA_PATH) / "manual_unit_test_good_local.json"
+        if goodPath.is_file():
+            # Load good file if present
+            with open(goodPath, "r") as f:
+                good = json.loads(f.read())
+        else:
+            # Create good file if not
+            good = []
+            with open(goodPath, "w") as f:
+                f.write("[]")
+
+        # Iterate through window and object units
+        for winunits in unitTypes:
+            for objunits in unitTypes:
+                # If already marked as good, skip this combo
+                if [winunits, objunits] in good:
+                    continue
+                try:
+                    # Create a window and object
+                    win = visual.Window(monitor="testMonitor", units=winunits)
+                    obj = copy(self.obj)
+                    obj.win = win
+                    obj.units = objunits
+                    # Add a label for the units
+                    label = visual.TextBox2(win, text=f"Window: {winunits}, Slider: {objunits}", font="Open Sans",
+                                            anchor="top-center", alignment="center top", padding=0.05, units="norm",
+                                            pos=(0, 1))
+                    # Add instructions
+                    instr = visual.TextBox2(win,
+                                            text=(
+                                                f"Press ENTER if object is functioning as intended, otherwise press "
+                                                f"any other key."
+                                            ), font="Open Sans", anchor="top-center", alignment="center bottom",
+                                            padding=0.05, units="norm", pos=(0, -1))
+                    # Draw loop until button is pressed
+                    keys = []
+                    while not keys:
+                        keys = event.getKeys()
+                        obj.draw()
+                        label.draw()
+                        instr.draw()
+                        win.flip()
+
+                    if 'return' in keys:
+                        # If enter was pressed, mark as good
+                        good.append([winunits, objunits])
+                        with open(goodPath, "w") as f:
+                            f.write(json.dumps(good))
+                    else:
+                        # If any other key was pressed, mark as bad
+                        raise AssertionError(
+                            f"{self.obj.__class__.__name__} marked as bad when its units were {objunits} and window "
+                            f"units were {winunits}"
+                        )
+                    win.close()
+                except BaseException as err:
+                    err.args = err.args + ([winunits, objunits],)
+                    raise err
