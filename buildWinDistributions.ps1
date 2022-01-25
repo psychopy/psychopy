@@ -9,8 +9,8 @@
 # $pyPaths = @("C:\Python36\", "C:\Python36_64\")
 # $names = @("PsychoPy3", "PsychoPy3")
 # $archs = @("win32", "win64")
-$pyPaths = @("C:\Python38\", "C:\Python36_64\")
-$names = @("PsychoPy_py38", "PsychoPy_py36")
+$pyPaths = @("C:\Python38\")
+$names = @("PsychoPy")
 $archs = @("win64")
 
 # read from the version file
@@ -34,8 +34,6 @@ for ($i=0; $i -lt $pyPaths.Length; $i++) {
     Invoke-Expression $cmdStr
     # "C:\Program Files\Caphyon\Advanced Installer 13.1\bin\x86\AdvancedInstaller.com" /rebuild PsychoPy_AdvancedInstallerProj.aip
 
-    echo 'moving files to ..\dist'
-
     Invoke-Expression ("& '{0}python.exe' setup.py clean --all" -f $pyPaths[$i])  # clean up our build dir
     # try to uninstall psychopy from site-packages
     Invoke-Expression ("& '{0}python.exe' -m pip uninstall -y psychopy" -f $pyPaths[$i])
@@ -44,6 +42,7 @@ for ($i=0; $i -lt $pyPaths.Length; $i++) {
 
 }
 
+echo 'moving files to ..\dist'
 Move-Item -Force "StandalonePsychoPy*.exe" "..\dist"
 Move-Item -Force dist\* "..\dist"
 

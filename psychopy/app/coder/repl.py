@@ -105,6 +105,9 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         self.txtTerm.WriteText("Hit [Return] to start a Python session.")
         self._lastTextPos = self.txtTerm.GetLastPosition()
 
+        # Setup fonts
+        self.setFonts()
+
     def setFonts(self):
         """Set the font for the console."""
         # select the font size, either from prefs or platform defaults
@@ -119,7 +122,10 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
             fontSize = int(prefs.coder['codeFontSize'])
 
         # get the font to use
-        fontName = prefs.coder['codeFont']
+        if prefs.coder['outputFont'].lower() == "From Theme...".lower():
+            fontName = ThemeMixin.codeColors['base']['font'].replace("bold", "").replace("italic", "").replace(",", "")
+        else:
+            fontName = prefs.coder['outputFont']
 
         # apply the font
         self.txtTerm.SetFont(

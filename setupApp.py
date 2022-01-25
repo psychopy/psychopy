@@ -6,9 +6,12 @@ import glob
 import os
 import sys
 from sys import platform
+import setuptools  # noqa: setuptools complains if it isn't implicitly imported before distutils
 from distutils.core import setup
 from pkg_resources import parse_version
-# import versioneer
+import bdist_mpkg  # noqa: needed to build bdist, even though not explicitly used here
+import py2app  # noqa: needed to build app bundle, even though not explicitly used here
+
 import psychopy
 version = psychopy.__version__
 
@@ -28,8 +31,6 @@ requires = []
 if platform != 'darwin':
     raise RuntimeError("setupApp.py is only for building Mac Standalone bundle")
 
-import bdist_mpkg
-import py2app
 resources = glob.glob('psychopy/app/Resources/*')
 frameworks = [ # these installed using homebrew
               "/usr/local/opt/libevent/lib/libevent.dylib", 

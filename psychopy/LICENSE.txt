@@ -1,5 +1,7 @@
-Copyright (c) 2002-2021, J. W. Peirce.
+Copyright (c) 2002-2019, Jon Peirce. (c) 2019-2022 Open Science Tools Ltd
 All rights reserved.
+
+PsychoPy is a Registered Trademark of Open Science Tools Ltd.
 
 As of version 1.5 PsychoPy is licensed under the GNU General Public License (version 3). For the complete text of that license see
 https://www.gnu.org/licenses/gpl-3.0.html

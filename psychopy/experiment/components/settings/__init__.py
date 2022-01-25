@@ -762,24 +762,9 @@ class SettingsComponent:
             self.prepareResourcesJS()
         jsFilename = os.path.basename(os.path.splitext(self.exp.filename)[0])
 
-        # decide if we need anchored useVersion or leave plain
+        # configure the PsychoJS version number from current/requested versions
         useVer = self.params['Use version'].val
-        if useVer == '':
-            useVer = version
-        elif useVer == 'latest':
-            useVer = versions.latestVersion()
-        else:
-            useVer = versions.fullVersion(useVer)
-
-        # do we shorten minor versions ('3.4.2' to '3.4')?
-        # only from 3.2 onwards
-        if (parse_version('3.2')) <= parse_version(useVer) < parse_version('2021') \
-                and len(useVer.split('.')) > 2:
-            # e.g. 2020.2 not 2021.2.5
-            useVer = '.'.join(useVer.split('.')[:2])
-        elif len(useVer.split('.')) > 3:
-            # e.g. 2021.1.0 not 2021.1.0.dev3
-            useVer = '.'.join(useVer.split('.')[:3])
+        useVer = versions.getPsychoJSVersionStr(version, useVer)
 
         # html header
         if self.exp.expPath:

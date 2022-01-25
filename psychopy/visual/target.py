@@ -81,6 +81,9 @@ class TargetStim(ColorMixin, WindowMixin):
 
     @pos.setter
     def pos(self, value):
+        # Do base pos setting
+        WindowMixin.size.fset(self, value)
+
         self.outer.pos = value
         self.inner.pos = value
 
@@ -90,6 +93,8 @@ class TargetStim(ColorMixin, WindowMixin):
 
     @size.setter
     def size(self, value):
+        # Do base size setting
+        WindowMixin.size.fset(self, value)
         # Get original scale
         ogScale = self.scale
         # Set new sizes
