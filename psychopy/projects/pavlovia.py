@@ -278,17 +278,22 @@ class PavloviaSession:
             if namespaceRaw:
                 projDict['namespace_id'] = namespaceRaw.id
             else:
-                raise ValueError(
+                dlg = wx.MessageDialog(None, message=_translate(
                     f"PavloviaSession.createProject was given a namespace ({namespace}) that couldn't be found "
                     f"on gitlab."
-                )
+                ), style=wx.ICON_WARNING)
+                dlg.ShowModal()
+                return
         # Create project on GitLab
         try:
             gitlabProj = self.gitlab.projects.create(projDict)
         except gitlab.exceptions.GitlabCreateError as e:
             if 'has already been taken' in str(e.error_message):
-                # wx.MessageDialog(self, message=_translate(f"Project `{namespace}/{name}` already exists, please choose another name."), style=wx.ICON_WARNING)
-                raise gitlab.exceptions.GitlabCreateError(f"Project `{self.username}/{name}` already exists, please choose another name.")
+                dlg = wx.MessageDialog(None, message=_translate(
+                    f"Project `{namespace}/{name}` already exists, please choose another name."
+                ), style=wx.ICON_WARNING)
+                dlg.ShowModal()
+                return
             else:
                 raise e
 

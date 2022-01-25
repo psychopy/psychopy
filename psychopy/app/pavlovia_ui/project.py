@@ -631,6 +631,9 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
                                  path=path)
             dlg.ShowModal()
             project = dlg.project
+            # If project creation failed for whatever reason, cancel sync
+            if not project:
+                return
     # If no local root, prompt to make one
     if not project.localRoot:
         defaultRoot = Path(file).parent
