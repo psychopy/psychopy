@@ -882,7 +882,7 @@ class PavloviaProject(dict):
             repo = git.Repo.init(self.localRoot)
             self.configGitLocal()  # sets user.email and user.name
             # add origin remote and master branch (but no push)
-            self.repo.create_remote('origin', url=self['remoteHTTPS'])
+            self.repo.create_remote('origin', url=self['http_url_to_repo'])
             self.repo.git.checkout(b="master")
             self.writeGitIgnore()
             self.stageFiles(['.gitignore'])
