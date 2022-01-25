@@ -27,7 +27,7 @@ class StaticComponent(BaseComponent):
     # override the categories property below
     # an attribute of the class, determines the section in the components panel
     categories = ['Custom']
-    targets = ['PsychoPy']
+    targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'static.png'
     tooltip = _translate('Static: Static screen period (e.g. an ISI). '
                          'Useful for pre-loading stimuli.')
