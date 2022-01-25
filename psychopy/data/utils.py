@@ -9,7 +9,7 @@ import os
 import re
 import ast
 import pickle
-import time
+import time, datetime
 import numpy as np
 import pandas as pd
 
@@ -634,15 +634,42 @@ def functionFromStaircase(intensities, responses, bins=10):
     return binnedInten, binnedResp, nPoints
 
 
-def getDateStr(format="%Y_%b_%d_%H%M"):
-    """Uses ``time.strftime()``_ to generate a string of the form
-    2012_Apr_19_1531 for 19th April 3.31pm, 2012.
+def getDateStr(format="%Y-%m-%d_%Hh%M.%S.%f", fractionalSecondDigits=3):
+    """Uses ``datetime.now().strftime(format)``_ to generate a string
+    based on ISO 8601 but made safe for filename use::
+
+        "2022-01-14_18h35.05.386"
+
+    represents 14th Jan 2022 at 6:35pm with 5 sec and 386 ms
+
     This is often useful appended to data filenames to provide unique names.
-    To include the year: getDateStr(format="%Y_%b_%d_%H%M")
-    returns '2011_Mar_16_1307' depending on locale, can have unicode chars
-    in month names, so utf_8_decode them
-    For date in the format of the current localization, do:
-        data.getDateStr(format=locale.nl_langinfo(locale.D_T_FMT))
+
+    Parameters
+    ----------
+    format : str
+        default="%Y-%m-%d_%Hh%M.%S.%f"
+    fractionalSecondDigits : int
+        An integer value 1-6 indicating the number of digits of fractional
+        seconds to include if the `%f` parameter is included in the format.
+        This would normally give 6 digits (microseconds) but to get just
+        milliseconds you can set fractionalSecondDigits=3
+
     """
-    now = time.strftime(format, time.localtime())
-    return now
+    now = datetime.datetime.now()
+    microsecs = now.strftime("%f")
+    nowStr = now.strftime(format)
+    if "%f" in format and (
+            fractionalSecondDigits < 1
+            or int(fractionalSecondDigits) != fractionalSecondDigits
+    ):
+        raise TypeError("fractionalSecondDigits argument to getDateStr should "
+                        f"be an integer greater than 1, not {fractionalSecondDigits}")
+    elif  "%f" in format and fractionalSecondDigits > len(microsecs):
+        logging.warning("fractionalSecondDigits argument to getDateStr requested "
+                        f"{fractionalSecondDigits} digits but only {len(microsecs)} "
+                        f"are available. Truncating to {len(microsecs)}.")
+    elif "%f" in format:
+        nowStr = nowStr.replace(
+            microsecs, microsecs[:int(fractionalSecondDigits)],
+        )
+    return nowStr

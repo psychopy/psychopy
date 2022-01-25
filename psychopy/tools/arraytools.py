@@ -219,13 +219,13 @@ def array2pointer(arr, dtype=None):
         ctypes.POINTER(numpy.ctypeslib.as_ctypes_type(dtype)))
 
 
-def snapto(x, points):
+def snapto(values, points):
     """
     Snap values in array x to their closest equivalent in an array of target values, returning an array of the closest value in `points` to each value in `x`.
 
     Parameters
     ----------
-    x : list, tuple or numpy.ndarray
+    values : list, tuple or numpy.ndarray
         Array of values to be snapped to `points`
     points : list, tuple or numpy.ndarray
         Array of values to be snapped to
@@ -247,17 +247,23 @@ def snapto(x, points):
     """
 
     # Force values to 1d numpy arrays, though keep track of original shape of x
-    x = numpy.asarray(x)
-    x1d = x.reshape((-1, 1))
+    ogShape = numpy.asarray(values).shape
+    values = numpy.asarray(values).reshape((1, -1))
     points = numpy.asarray(points).reshape((1, -1))
-    # Get differences
-    deltas = numpy.abs(x1d - points)
-    # Get indices of smallest deltas
-    i = numpy.argmin(deltas, axis=1)
+
+    # Get sort order of values and points
+    valuesi = numpy.argsort(values[0])
+    pointsi = numpy.argsort(points[0])
+    # Shift values indices to sit evenly within points indices
+    valuesi -= min(pointsi)
+    valuesi = valuesi / max(valuesi) * max(pointsi)
+    valuesi = valuesi.round().astype(int)
+    # Get indices of points corresponding to each x value
+    i = pointsi[valuesi]
     # Get corresponding points
     snapped1d = points[0, i]
     # Reshape to original shape of x
-    snapped = snapped1d.reshape(x.shape)
+    snapped = snapped1d.reshape(ogShape)
 
     return snapped
 

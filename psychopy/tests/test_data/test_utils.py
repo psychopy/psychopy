@@ -128,7 +128,14 @@ class Test_utilsClass:
 
     def test_getDateStr(self):
         import time
-        assert utils.getDateStr() == time.strftime("%Y_%b_%d_%H%M", time.localtime())
+        millisecs_dateStr = utils.getDateStr()
+        microsecs_dateStr = utils.getDateStr(fractionalSecondDigits=6)
+        assert len(millisecs_dateStr) == len(microsecs_dateStr[:-3])  # ms=3dp not 6
+        shortFormat = "%Y_%b_%d_%H%M"
+        customDateStr = utils.getDateStr(shortFormat)
+        # getDateStr() uses datetime.now().strftime(format) but should match
+        # format for time.strftime (the latter doesn't support milli/microsecs)
+        assert customDateStr == time.strftime(shortFormat, time.localtime())
 
     def test_import_blankColumns(self):
         fileName_blanks = join(fixturesPath, 'trialsBlankCols.xlsx')

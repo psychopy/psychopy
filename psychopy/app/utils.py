@@ -12,6 +12,7 @@ import os
 import re
 from pathlib import Path
 
+import numpy
 from wx.lib.agw.aui.aui_constants import *
 import wx.lib.statbmp
 from wx.lib.agw.aui.aui_utilities import IndentPressedBitmap, ChopText, TakeScreenShot
@@ -331,26 +332,26 @@ class PsychopyPlateBtn(platebtn.PlateButton, ThemeMixin):
 
 class ButtonArray(wx.Window):
 
-    class ArrayBtn(wx.Button):
+    class ArrayBtn(wx.Window):
         def __init__(self, parent, label=""):
-            wx.Button.__init__(self, parent, label=label)
+            wx.Window.__init__(self, parent)
             self.parent = parent
             # Setup sizer
             self.sizer = wx.BoxSizer(wx.HORIZONTAL)
             self.SetSizer(self.sizer)
+            # Create button
+            self.button = wx.Button(self, label=label, style=wx.BORDER_NONE)
+            self.sizer.Add(self.button, border=4, flag=wx.LEFT | wx.EXPAND)
             # Create remove btn
-            self.removeBtn = wx.Button()
-            self.removeBtn.SetBackgroundStyle(wx.BG_STYLE_TRANSPARENT)
-            self.removeBtn.Create(self, size=(12, 12), style=wx.BORDER_NONE)
-            self.removeBtn.SetBitmap(IconCache().getBitmap(name="delete", size=8))
-            # Add remove btn to spacer
-            self.sizer.AddStretchSpacer(1)
-            self.sizer.Add(self.removeBtn, border=4, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-            self.Layout()
+            self.removeBtn = wx.Button(self, label="×", size=(24, -1))
+            self.sizer.Add(self.removeBtn, border=4, flag=wx.RIGHT | wx.EXPAND)
             # Bind remove btn to remove function
             self.removeBtn.Bind(wx.EVT_BUTTON, self.remove)
             # Bind button to button function
-            self.Bind(wx.EVT_BUTTON, self.onClick)
+            self.button.Bind(wx.EVT_BUTTON, self.onClick)
+
+            self.SetBackgroundColour(self.parent.GetBackgroundColour())
+            self.Layout()
 
         def remove(self, evt=None):
             self.parent.removeItem(self)
@@ -382,19 +383,25 @@ class ButtonArray(wx.Window):
         # Layout
         self.Layout()
 
+    def _applyAppTheme(self, target=None):
+        for child in self.sizer.Children:
+            if hasattr(child.Window, "_applyAppTheme"):
+                child.Window._applyAppTheme()
+
     @property
     def items(self):
         items = {}
         for child in self.sizer.Children:
             if not child.Window == self.addBtn:
-                items[child.Window.Label] = child.Window
+                items[child.Window.button.Label] = child.Window
         return items
 
     @items.setter
     def items(self, value):
         if isinstance(value, str):
             value = [value]
-
+        if value is None or value is numpy.nan:
+            value = []
         assert isinstance(value, (list, tuple))
 
         value.reverse()
@@ -759,6 +766,8 @@ class FileCtrl(wx.TextCtrl):
         self.SetValue(str(file))
 
     def SetValue(self, value):
+        # Replace backslashes with forward slashes
+        value = value.replace("\\", "/")
         # Do base value setting
         wx.TextCtrl.SetValue(self, value)
         # Post event

@@ -43,14 +43,15 @@ def openHubFile(filepath, filename, mode):
     return hubFile
 
 
-def displayDataFileSelectionDialog(starting_dir=None):
-    """Shows a FileDialog and lets you select a .hdf5 file to open for
-    processing."""
+def displayDataFileSelectionDialog(starting_dir=None, prompt="Select a ioHub HDF5 File", allowed="HDF5 Files (*.hdf5)"):
+    """
+    Shows a FileDialog and lets you select a .hdf5 file to open for processing.
+    """
     from psychopy.gui.qtgui import fileOpenDlg
 
     filePath = fileOpenDlg(tryFilePath=starting_dir,
-                           prompt="Select a ioHub HDF5 File",
-                           allowed='HDF5 Files (*.hdf5)')
+                           prompt=prompt,
+                           allowed=allowed)
 
     if filePath is None:
         return None
@@ -58,7 +59,7 @@ def displayDataFileSelectionDialog(starting_dir=None):
     return filePath
 
 
-def displayEventTableSelectionDialog(title, list_label, list_values, default=u'Select'):
+def displayEventTableSelectionDialog(title, list_label, list_values, default='Select'):
     from psychopy import gui
     if default not in list_values:
         list_values.insert(0, default)
@@ -82,27 +83,61 @@ def displayEventTableSelectionDialog(title, list_label, list_values, default=u'S
     return list(dlg_info.values())[0]
 
 
-def saveEventReport(hdf5FilePath="", eventType="", eventFields=[], trialStartMessage=None, trialStopMessage=None,
-                    timeMargins=(0.0, 0.0)):
+def getEyeSampleTypesInFile(hdf5FilePath):
     """
-    Save a tab delimited event report, optionally splitting events into (trial) groups.
+    Return the eye sample type(s) saved in the hdf5 file located in hdf5FilePath.
+    If no eye samples have been saved to the file return []. Possible return list values are defined in
+    psychopy.iohub.constants.EYE_SAMPLE_TYPES.
 
-    :param hdf5FilePath:
-    :param eventType:
-    :param eventFields:
-    :param trialStartMessage:
-    :param trialStopMessage:
-    :param timeMargins:
+    :param returnType: (type)
+    :return: (list)
+    """
+    dpath, dfile = os.path.split(hdf5FilePath)
+    datafile = ExperimentDataAccessUtility(dpath, dfile)
+    result = datafile.getAvailableEyeSampleTypes()
+    datafile.close()
+    return result
+
+
+def saveEventReport(hdf5FilePath=None, eventType=None, eventFields=[], useConditionsTable=False,
+                    usePsychopyDataFile=None, columnNames=[],
+                    trialStart=None, trialStop=None, timeMargins=(0.0, 0.0)
+                    ):
+    """
+    Save a tab delimited event report from an iohub .hdf5 data file.
+
+
+    Events can optionally be split into groups using either a Psychopy .csv data file (usePsychopyDataFile),
+    iohub experiment message events, or the hdf5 condition variables table (useConditionsTable=True).
+
+    If usePsychopyDataFile is True, trialStart and trialStop must be provided, or a dialog will prompt the user
+    to select a column from the Psychopy .cvs file. The column must have a float or int data type. Each non nan / None
+    row will be used to split events.
+
+    If usePsychopyDataFile and useConditionsTable are False and trialStart and trialStop are provided as text,
+    events are split based on the time of iohub Experiment Message events that match the trialStart and trialStop text.
+
+    :param hdf5FilePath: (str or None)
+    :param eventType: (str or None)
+    :param eventFields: (list)
+    :param useConditionsTable: (bool)
+    :param usePsychopyDataFile: (bool)
+    :param columnNames: (list)
+    :param trialStart: (str or None)
+    :param trialStop: (str or None)
+    :param timeMargins: ([float, float] or None)
     :return:
     """
     # Select the hdf5 file to process.
+    if usePsychopyDataFile is True and useConditionsTable is True:
+        raise RuntimeError("saveEventReport: useConditionsTable and usePsychopyDataFile can both not be True")
+
     if not hdf5FilePath:
         selectedFilePath = displayDataFileSelectionDialog(os.getcwd())
         if selectedFilePath:
             hdf5FilePath = selectedFilePath[0]
     if not hdf5FilePath:
-        print("Warning: saveEventReport requires hdf5FilePath. No report saved.")
-        return None
+        raise RuntimeError("Warning: saveEventReport requires hdf5FilePath. No report saved.")
 
     dpath, dfile = os.path.split(hdf5FilePath)
     datafile = ExperimentDataAccessUtility(dpath, dfile)
@@ -119,31 +154,10 @@ def saveEventReport(hdf5FilePath="", eventType="", eventFields=[], trialStartMes
             eventNameList.append(eventTableMappings[event_id].class_name.decode('utf-8'))
         eventType = displayEventTableSelectionDialog("Select Event Type to Save", "Event Type:", eventNameList)
         if eventType is None:
-            print("Warning: saveEventReport requires eventType. No report saved.")
             datafile.close()
-            return None
+            raise RuntimeError("saveEventReport requires eventType. No report saved.")
 
-    trial_times = []
-    if trialStartMessage and trialStopMessage:
-        # Create a table of trial_index, trial_start_time, trial_end_time for each trial by
-        # getting the time of 'TRIAL_START' and 'TRIAL_END' experiment messages.
-        mgs_table = datafile.getEventTable('MessageEvent')
-        trial_start_msgs = mgs_table.where('text == b"%s"' % trialStartMessage)
-        for mix, msg in enumerate(trial_start_msgs):
-            trial_times.append([mix + 1, msg['time'] - timeMargins[0], 0])
-        trial_end_msgs = mgs_table.where('text == b"%s"' % trialStopMessage)
-        for mix, msg in enumerate(trial_end_msgs):
-            trial_times[mix][2] = msg['time'] + timeMargins[1]
-        del mgs_table
-    elif trialStartMessage is None and trialStopMessage is None:
-        # do not split events into trial groupings
-        pass
-    else:
-        print("Warning: saveEventReport requires trialStartMessage and trialStopMessage to be strings or both None."
-              " No report saved.")
-        datafile.close()
-        return None
-
+    #print("getAvailableEyeSampleTypes: ", datafile.getAvailableEyeSampleTypes())
     # Get the event table to generate report for
     event_table = datafile.getEventTable(eventType)
 
@@ -151,6 +165,108 @@ def saveEventReport(hdf5FilePath="", eventType="", eventFields=[], trialStartMes
         # If no event fields were specified, report (almost) all event fields.
         eventFields = [c for c in event_table.colnames if c not in ['experiment_id', 'session_id', 'device_id',
                                                                     'type', 'filter_id']]
+    trial_times = []
+    column_names = []
+
+    psychoResults = None
+    psychopyDataFile = None
+    if usePsychopyDataFile is True:
+        psychopyDataFile = hdf5FilePath[:-4] + 'csv'
+        if not os.path.isfile(psychopyDataFile):
+            datafile.close()
+            raise RuntimeError("saveEventReport: Could not find .csv file: %s" % psychopyDataFile)
+
+        import pandas
+        psychoResults = pandas.read_csv(psychopyDataFile, delimiter=",", encoding='utf-8')
+
+        if trialStart is None or trialStop is None:
+            # get list of possible column names from
+            columnNames = []
+            for columnName in psychoResults.columns:
+                if columnName.endswith('.started') or columnName.endswith('.stopped'):
+                    if psychoResults[columnName].dtype in [float, int]:
+                        columnNames.append(columnName)
+            if trialStart is None:
+                trialStart = displayEventTableSelectionDialog("Select Event Grouping Start Time Column",
+                                                              "Columns", list(columnNames))
+            if trialStop is None:
+                trialStop = displayEventTableSelectionDialog("Select Event Grouping End Time Column",
+                                                              "Columns", [cn for cn in columnNames if cn != trialStart])
+                print('trialStop:', trialStop)
+
+        if trialStart and trialStop:
+            if trialStart not in psychoResults.columns:
+                datafile.close()
+                raise ValueError("saveEventReport trialStart column not found in psychopyDataFile: %s" % trialStart)
+            if trialStop not in psychoResults.columns:
+                datafile.close()
+                raise ValueError("saveEventReport trialStop column not found in psychopyDataFile: %s" % trialStop)
+
+            for t_ix, r in psychoResults.iterrows():
+                if r[trialStart] != 'None' and r[trialStop] != 'None' and pandas.notna(r[trialStart]) and pandas.notna(
+                        r[trialStop]):
+                    trial_times.append([t_ix, r[trialStart] - timeMargins[0], r[trialStop] + timeMargins[1]])
+
+        else:
+            datafile.close()
+            raise ValueError("saveEventReport trialStart and trialStop must be specified when using psychopyDataFile.")
+
+    cvTable = None
+    if useConditionsTable is True:
+        # Use hdf5 conditions table columns 'trialStart' and 'trialStop' to group events
+        if trialStart is None or trialStop is None:
+            # If either trialStart and trialStop are None, display selection dialogs
+            try:
+                cvColumnNames = datafile.getConditionVariableNames()[2:]
+            except Exception as e:
+                #datastore Conditions table must not exist
+                datafile.close()
+                raise RuntimeError("saveEventReport: Error calling datafile.getConditionVariableNames().\n{}".format(e))
+
+            if trialStart is None:
+                trialStart = displayEventTableSelectionDialog("Select Event Grouping Start Time Column",
+                                                              "Columns", list(cvColumnNames))
+            if trialStop is None:
+                trialStop = displayEventTableSelectionDialog("Select Event Grouping End Time Column",
+                                                              "Columns", [cn for cn in cvColumnNames if cn != trialStart])
+
+
+        if trialStart is None or trialStop is None:
+            datafile.close()
+            raise ValueError("saveEventReport: trialStart and trialStop must be specified "
+                             "when useConditionsTable is True.")
+
+        if trialStart not in cvColumnNames:
+            datafile.close()
+            raise ValueError("saveEventReport:"
+                             " trialStart column not found in trial condition variables table: %s" % trialStart)
+        if trialStop not in cvColumnNames:
+            datafile.close()
+            raise ValueError("saveEventReport:"
+                             " trialStop column not found in trial condition variables table: %s" % trialStop)
+
+        cvTable = datafile.getConditionVariablesTable()
+        for t_ix, r in enumerate(cvTable):
+            trial_times.append([t_ix, r[trialStart] - timeMargins[0], r[trialStop] + timeMargins[1]])
+
+    if useConditionsTable is False and psychoResults is None and trialStart and trialStop:
+        # Create a table of trial_index, trial_start_time, trial_end_time for each trial by
+        # getting the time of 'TRIAL_START' and 'TRIAL_END' experiment messages.
+        mgs_table = datafile.getEventTable('MessageEvent')
+        trial_start_msgs = mgs_table.where('text == b"%s"' % trialStart)
+        for mix, msg in enumerate(trial_start_msgs):
+            trial_times.append([mix + 1, msg['time'] - timeMargins[0], 0])
+        trial_end_msgs = mgs_table.where('text == b"%s"' % trialStop)
+        for mix, msg in enumerate(trial_end_msgs):
+            trial_times[mix][2] = msg['time'] + timeMargins[1]
+        del mgs_table
+    elif trialStart is None and trialStop is None:
+        # do not split events into trial groupings
+        pass
+    elif trialStart is None or trialStop is None:
+        datafile.close()
+        raise RuntimeError("Warning: saveEventReport requires trialStart and trialStop to be strings or both None."
+                           " No report saved.")
 
     if eventType == 'MessageEvent':
         # Sort experiment messages by time since they may not be ordered chronologically.
@@ -163,7 +279,31 @@ def saveEventReport(hdf5FilePath="", eventType="", eventFields=[], trialStartMes
     with open(output_file_name, 'w') as output_file:
         # Save header row to file
         if trial_times:
-            column_names = ['TRIAL_INDEX', trialStartMessage, trialStopMessage] + eventFields
+            if useConditionsTable:
+                cvtColumnNames = datafile.getConditionVariableNames()[2:]
+                if columnNames:
+                    for cname in columnNames:
+                        if cname not in cvtColumnNames:
+                            datafile.close()
+                            raise ValueError("saveEventReport: .hdf5 conditions table column '%s' not found." % cname)
+                    column_names = list(columnNames) + eventFields
+                else:
+                    column_names = list(cvtColumnNames) + eventFields
+                    columnNames = list(cvtColumnNames)
+
+            elif hasattr(psychoResults, 'columns'):
+                if columnNames:
+                    for cname in columnNames:
+                        if cname not in psychoResults.columns:
+                            datafile.close()
+                            raise ValueError(
+                                "saveEventReport: psychopyDataFileColumn '%s' not found in .csv file." % cname)
+                    column_names = list(columnNames) + eventFields
+                else:
+                    column_names = list(psychoResults.columns) + eventFields
+                    columnNames = list(psychoResults.columns)
+            else:
+                column_names = ['TRIAL_INDEX', trialStart, trialStop] + eventFields
         else:
             column_names = eventFields
 
@@ -199,7 +339,23 @@ def saveEventReport(hdf5FilePath="", eventType="", eventFields=[], trialStartMes
                     event_data.append(str(cv))
                 if trial_times:
                     tindex, tstart, tstop = trial_times[tid]
-                    output_file.write('\t'.join([str(tindex), str(tstart), str(tstop)] + event_data))
+                    if useConditionsTable:
+                        cvRow=cvTable.read(tindex, tindex+1)
+                        cvrowdat = [cvRow[c][0] for c in columnNames]
+                        for ri, cv in enumerate(cvrowdat):
+                            if type(cv) == numpy.bytes_:
+                                cvrowdat[ri] = cvrowdat[ri].decode('utf-8')
+                            else:
+                                cvrowdat[ri] = str(cvrowdat[ri])
+                            if type(cv) == str and len(cv) == 0:
+                                cvrowdat[ri] = '.'
+                        output_file.write('\t'.join(cvrowdat + event_data))
+                    elif hasattr(psychoResults, 'columns'):
+                        drow = psychoResults.iloc[tindex]
+                        prowdat = [str(drow[c]) for c in columnNames]
+                        output_file.write('\t'.join(prowdat + event_data))
+                    else:
+                        output_file.write('\t'.join([str(tindex), str(tstart), str(tstop)] + event_data))
                 else:
                     output_file.write('\t'.join(event_data))
                 output_file.write('\n')
@@ -438,6 +594,30 @@ class ExperimentDataAccessUtility:
                     pass
             return events_by_type
         return None
+
+    def getAvailableEyeSampleTypes(self, returnType=str):
+        """
+        Return the eye sample type(s) saved to the current hdf5 file.
+        If no eye samples have been saved to the file return []. Possible return list values are defined in
+        psychopy.iohub.constants.EYE_SAMPLE_TYPES.
+
+        :param returnType: (type)
+        :return: (list)
+        """
+        from psychopy.iohub.constants import EYE_SAMPLE_TYPES
+
+        if returnType == int:
+            return [etype for etype in self.getEventsByType() if etype in EYE_SAMPLE_TYPES]
+
+        if returnType == str:
+            eventTableMappings = self.getEventMappingInformation()
+            sampleTypes = [etype for etype in self.getEventsByType() if etype in EYE_SAMPLE_TYPES]
+            eventList = []
+            for event_id in sampleTypes:
+                eventList.append(eventTableMappings[event_id].class_name.decode('utf-8'))
+            return eventList
+
+        raise RuntimeError("getAvailableEyeSampleTypes returnType arg must be set to either int or str type.")
 
     def getConditionVariablesTable(self):
         """

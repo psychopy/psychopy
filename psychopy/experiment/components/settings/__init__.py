@@ -11,6 +11,7 @@ from psychopy import logging
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
 import psychopy.tools.versionchooser as versions
+from psychopy.experiment import utils as exputils
 from psychopy.monitors import Monitor
 from psychopy.iohub import util as ioUtil
 from psychopy.alerts import alert
@@ -394,7 +395,7 @@ class SettingsComponent:
 
         self.params['eyetracker'] = Param(
             eyetracker, valType='str', inputType="choice",
-            allowedVals=list(ioDeviceMap) + ["None"],
+            allowedVals=list(ioDeviceMap),
             hint=_translate("What kind of eye tracker should PsychoPy use? Select 'MouseGaze' to use "
                             "the mouse to simulate eye movement (for debugging without a tracker connected)"),
             label=_translate("Eyetracker Device"), categ="Eyetracking"
@@ -610,16 +611,12 @@ class SettingsComponent:
             # check for strings of lists: "['male','female']"
             for key in infoDict:
                 val = infoDict[key]
-                if (hasattr(val, 'startswith')
-                        and val.startswith('[') and val.endswith(']')):
-                    try:
-                        infoDict[key] = ast.literal_eval(val)
-                    except (ValueError, SyntaxError):
-                        logging.warning("Tried and failed to parse {!r}"
-                                        "as a list of values."
-                                        .format(val))
+                if exputils.list_like_re.search(str(val)):
+                    infoDict[key] = Param(val=val, valType='list')
                 elif val in ['True', 'False']:
                     infoDict[key] = Param(val=val, valType='bool')
+                elif isinstance(val, str):
+                    infoDict[key] = Param(val=val, valType='str')
 
         except (ValueError, SyntaxError):
             """under Python3 {'participant':'', 'session':02} raises an error because 
@@ -903,12 +900,13 @@ class SettingsComponent:
         #     saveType = "EXPERIMENT_SERVER"
         #     projID = 'undefined'
         code = template.format(
-                        params=self.params,
-                        name=self.params['expName'].val,
-                        loggingLevel=self.params['logging level'].val.upper(),
-                        setRedirectURL=setRedirectURL,
-                        version=version,
-                        )
+            params=self.params,
+            filename=self.params['Data filename'],
+            name=self.params['expName'].val,
+            loggingLevel=self.params['logging level'].val.upper(),
+            setRedirectURL=setRedirectURL,
+            version=version,
+        )
         buff.writeIndentedLines(code)
 
     def writeStartCode(self, buff, version):
@@ -929,8 +927,11 @@ class SettingsComponent:
             buff.writeIndented(code % self.params['expName'])
 
         sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
-        expInfoDict = self.getInfo()
-        buff.writeIndented("expInfo = %s\n" % repr(expInfoDict))
+        expInfoStr = "{"
+        for key, value in self.getInfo().items():
+            expInfoStr += f"'{key}': {value}, "
+        expInfoStr = expInfoStr[:-2] + "}"
+        buff.writeIndented("expInfo = %s\n" % expInfoStr)
         if self.params['Show info dlg'].val:
             buff.writeIndentedLines(
                 f"dlg = gui.DlgFromDict(dictionary=expInfo, "
@@ -952,7 +953,7 @@ class SettingsComponent:
         if 'Saved data folder' in self.params:
             participantField = ''
             for field in ('participant', 'Participant', 'Subject', 'Observer'):
-                if field in expInfoDict:
+                if field in self.getInfo():
                     participantField = field
                     self.params['Data filename'].val = (
                         repr(saveToDir) + " + os.sep + '%s_%s' % (expInfo['" +
@@ -1390,6 +1391,8 @@ class SettingsComponent:
         if self.params['Save log file'].val:
             buff.writeIndented("logging.flush()\n")
         code = ("# make sure everything is closed down\n"
+                "if eyetracker:\n"
+                "    eyetracker.setConnectionState(False)\n"
                 "thisExp.abort()  # or data files will save again on exit\n"
                 "win.close()\n"
                 "core.quit()\n")

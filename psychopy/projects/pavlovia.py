@@ -440,7 +440,7 @@ class PavloviaSearch(pandas.DataFrame):
             "Status": "status",
             "Platform": "platform",
             "Visibility": "visibility",
-            "Tags": "tags",
+            "Keywords": "keywords",
         }
 
         def __str__(self):
@@ -475,26 +475,23 @@ class PavloviaSearch(pandas.DataFrame):
             filterBy = {}
         # Ensure filter is a FilterTerm
         filterBy = self.FilterTerm(filterBy)
+        # Search base
+        mineStr = f"designers/{session.user.id}/" if mine else ""
         # Do search
         try:
             if term or filterBy or mine:
-                data = requests.get(f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}{session.getOauthSuffix('&')}",
-                                    timeout=2).json()
+                # If there's a search, filter or me mode, construct a search url
+                reqStr = f"https://pavlovia.org/api/v2/{mineStr}experiments?search={term}{filterBy}"
             else:
-                # Display demos for blank search
-                data = requests.get("https://pavlovia.org/api/v2/designers/5/experiments",
-                                    timeout=5).json()
+                # If search is blank, request demos
+                reqStr = "https://pavlovia.org/api/v2/designers/5/experiments"
+            # Send request
+            data = requests.get(reqStr, timeout=2, headers={'OauthToken': session.getToken()}).json()
         except requests.exceptions.ReadTimeout:
             msg = "Could not connect to Pavlovia server. Please check that you are connected to the internet. If you are connected, then the Pavlovia servers may be down. You can check their status here: https://pavlovia.org/status"
             raise ConnectionError(msg)
         # Construct dataframe
         pandas.DataFrame.__init__(self, data=data['experiments'])
-        # Apply me mode
-        if mine:
-            self.drop(self.loc[
-                          # self['creatorId'] != session.userID  # Created by me
-                          (self['userIds'].explode() != session.userID).groupby(level=0).any()  # Editable by me
-                      ].index, inplace=True)
         # Do any requested sorting
         if sortBy is not None:
             self.sort_values(sortBy)
@@ -544,7 +541,9 @@ class PavloviaProject(dict):
             start = time.time()
             self.info = None
             while self.info is None and time.time() - start < 5:
-                self.info = requests.get(f"https://pavlovia.org/api/v2/experiments/{id}{self.session.getOauthSuffix('?')}").json()['experiment']
+                reqStr = f"https://pavlovia.org/api/v2/experiments/{id}"
+                received = requests.get(reqStr, headers={'OauthToken': self.session.getToken()}).json()
+                self.info = received['experiment']
             if self.info is None:
                 raise LookupError(f"Could not find project with id `{id}` on Pavlovia")
         self._newRemote = False  # False can also indicate 'unknown'

@@ -226,6 +226,8 @@ class EventConstants(Constants):
 
 EventConstants.initialize()
 
+EYE_SAMPLE_TYPES = [EventConstants.EYE_SAMPLE, EventConstants.MONOCULAR_EYE_SAMPLE,
+                    EventConstants.BINOCULAR_EYE_SAMPLE, EventConstants.GAZEPOINT_SAMPLE]
 
 class DeviceConstants(Constants):
     """

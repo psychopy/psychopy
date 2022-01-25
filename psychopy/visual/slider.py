@@ -209,9 +209,6 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         self.status = NOT_STARTED
         self.responseClock = core.Clock()
 
-
-
-
     def __repr__(self, complete=False):
         return self.__str__(complete=complete)  # from MinimalStim
 
@@ -219,7 +216,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
     def _tickL(self):
         """The length of the line (in the size units)
         """
-        return min(self.size)
+        return min(self.extent)
 
     @property
     def units(self):
@@ -278,13 +275,17 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         theta = np.radians(self.ori)
         atheta = np.radians(90-self.ori)
         # Calculate adjacent sides to get vertical extent
-        A1 = np.cos(theta) * self.size[1]
-        A2 = np.cos(atheta) * self.size[0]
+        A1 = abs(np.cos(theta) * self.size[1])
+        A2 = abs(np.cos(atheta) * self.size[0])
         # Calculate opposite sides to get horizontal extent
-        O1 = np.sin(theta) * self.size[1]
-        O2 = np.sin(atheta) * self.size[0]
+        O1 = abs(np.sin(theta) * self.size[1])
+        O2 = abs(np.sin(atheta) * self.size[0])
         # Return extent
         return O1 + O2, A1 + A2
+
+    @extent.setter
+    def extent(self, value):
+        self._extent = layout.Size(self.extent, self.units, self.win)
 
     @property
     def flip(self):
@@ -413,6 +414,9 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         self.status = NOT_STARTED
 
     def _createElements(self):
+        # Refresh extent
+        self.extent = self.extent
+
         # Make line
         self._getLineParams()
         self.line = Rect(
@@ -471,6 +475,8 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
     def _layout(self):
         # Refresh style
         self.style = self.style
+        # Refresh extent
+        self.extent = self.extent
 
         # Get marker params
         self._getMarkerParams()
@@ -523,7 +529,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         # Adjust to scale magnitude
         delta = magDelta / (ticks[-1] - ticks[0])
         # Adjust to scale size
-        delta = self._size.pix * (delta - 0.5)
+        delta = self._extent.pix * (delta - 0.5)
         # Adjust to scale pos
         pos = delta + self._pos.pix
         # Replace irrelevant value according to orientation
@@ -542,7 +548,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         # Get difference from scale pos
         delta = pos - self._pos.pix
         # Adjust to scale size
-        delta = delta / self._size.pix + 0.5
+        delta = delta / self._extent.pix + 0.5
         # Adjust to scale magnitude
         magDelta = delta * (ticks[-1] - ticks[0])
         # Adjust to scale bottom
@@ -558,7 +564,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         self.lineParams = {
             'units': self.units,
             'pos': self.pos,
-            'size': self._size * np.array(self._lineSizeMultiplier) + layout.Size(self._lineSizeAddition, self.units, self.win)
+            'size': self._extent * np.array(self._lineSizeMultiplier) + layout.Size(self._lineSizeAddition, self.units, self.win)
         }
 
     def _getMarkerParams(self):
@@ -587,7 +593,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         # Calculate positions
         xys = self._ratingToPos(self.ticks)
         # Get size (and correct for norm)
-        size = layout.Size([min(self._size.pix)]*2, 'pix', self.win)
+        size = layout.Size([min(self._extent.pix)]*2, 'pix', self.win)
         # Store tick details
         self.tickParams = {
             'units': self.units,
@@ -603,10 +609,10 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         # Get number of labels now for convenience
         n = len(self.labels)
         # Get coords of slider edges
-        top = self.pos[1] + self.size[1] / 2
-        bottom = self.pos[1] - self.size[1] / 2
-        left = self.pos[0] - self.size[0] / 2
-        right = self.pos[0] + self.size[0] / 2
+        top = self.pos[1] + self.extent[1] / 2
+        bottom = self.pos[1] - self.extent[1] / 2
+        left = self.pos[0] - self.extent[0] / 2
+        right = self.pos[0] + self.extent[0] / 2
         # Work out where labels are relative to line
         w = self.labelWrapWidth
         if self.horiz:  # horizontal
@@ -614,8 +620,8 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             anchorHoriz = alignHoriz = 'center'
             # Width as fraction of size, height starts at double slider
             if w is None:
-                w = self.size[0] / len(self.ticks)
-            h = self.size[1] * 3
+                w = self.extent[0] / len(self.ticks)
+            h = self.extent[1] * 3
             # Evenly spaced, constant y
             x = np.linspace(left, right, num=n)
             x = arraytools.snapto(x, points=self.tickParams['xys'][:, 0])
@@ -634,11 +640,11 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             # Always centered vertically
             anchorVert = alignVert = 'center'
             # Height as fraction of size, width starts at double slider
-            h = self.size[1] / len(self.ticks)
+            h = self.extent[1] / len(self.ticks)
             if w is None:
-                w = self.size[0] * 3
+                w = self.extent[0] * 3
             # Evenly spaced and clipped to ticks, constant x
-            y = np.linspace(top, bottom, num=n)
+            y = np.linspace(bottom, top, num=n)
             y = arraytools.snapto(y, points=self.tickParams['xys'][:, 1])
             x = [self.pos[0]] * n
             # Padding applied on horizontal
@@ -668,7 +674,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         # Get pos
         pos = self.pos
         # Get size
-        size = self._size * 1.1
+        size = self._extent * 1.1
         # Store hitbox details
         self.hitboxParams = {
             'units': self.units,
@@ -1008,10 +1014,10 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             self.marker.vertices = "rectangle"
             if self.horiz:
                 self._markerSizeMultiplier = (0, 1)
-                self._markerSizeAddition = (self.size[0] / 5, 0)
+                self._markerSizeAddition = (self.extent[0] / 5, 0)
             else:
                 self._markerSizeMultiplier = (1, 0)
-                self._markerSizeAddition = (0, self.size[1] / 5)
+                self._markerSizeAddition = (0, self.extent[1] / 5)
             # No ticks
             self.tickLines.elementMask = None
             self._tickSizeAddition = (0, 0)

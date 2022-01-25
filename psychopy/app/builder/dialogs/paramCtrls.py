@@ -89,7 +89,7 @@ class _FileMixin:
             filename = Path(file).relative_to(self.rootDir)
         except ValueError:
             filename = Path(file).absolute()
-        return str(filename)
+        return str(filename).replace("\\", "/")
 
     def getFiles(self, msg="Specify file or files...", wildcard="All Files (*.*)|*.*"):
         dlg = wx.FileDialog(self, message=_translate(msg), defaultDir=str(self.rootDir),
@@ -104,7 +104,7 @@ class _FileMixin:
                 filename = Path(file).relative_to(self.rootDir)
             except ValueError:
                 filename = Path(file).absolute()
-            outList.append(str(filename))
+            outList.append(str(filename).replace("\\", "/"))
         return outList
 
 
@@ -520,7 +520,7 @@ class ColorCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         self.validate()
 
     def colorPicker(self, evt):
-        dlg = PsychoColorPicker(self)  # open a color picker
+        dlg = PsychoColorPicker(self, context=self, allowCopy=False)  # open a color picker
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -621,7 +621,7 @@ class DictCtrl(ListWidget, _ValidatorMixin, _HideMixin):
         if isinstance(val, dict):
             newVal = []
             for key, v in val.items():
-                newVal.append({'Field': key, 'Default': v})
+                newVal.append({'Field': key, 'Default': v.val})
             val = newVal
         # If any items within the list are not dicts or are dicts longer than 1, throw error
         if not all(isinstance(v, dict) and len(v) == 2 for v in val):

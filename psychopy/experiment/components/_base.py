@@ -615,7 +615,7 @@ class BaseComponent:
 
     @property
     def disabled(self):
-        return self.params['disabled'].val
+        return bool(self.params['disabled'])
 
     @disabled.setter
     def disabled(self, value):
@@ -839,31 +839,6 @@ class BaseVisualComponent(BaseComponent):
             buff.setIndentLevel(-1, relative=True)  # to exit the if block
             buff.writeIndented("}\n")
 
-    def writeRoutineEndCode(self, buff):
-        """Write the iohub HDF5 experiment message code that will be called
-         at the end of a routine.
-        """
-        BaseComponent.writeRoutineEndCode(self, buff)
-        saveHdf5 = self.exp.settings.params['Save hdf5 file'].val
-        if saveHdf5:
-            name = self.params['name']
-            comp_onset_tag = "%s.started" % name
-            if 'saveStartStop' in self.params and self.params['saveStartStop'].val:
-                code = (
-                        f"if ioServer:\n"
-                )
-                buff.writeIndentedLines(code)
-                buff.setIndentLevel(1, relative=True)
-                if self.params['syncScreenRefresh'].val:
-                        code = (
-                                f"ioServer.cacheMessageEvent('{comp_onset_tag}', sec_time={name}.tStartRefresh)\n"
-                        )
-                else:
-                        code = (
-                                f"ioServer.cacheMessageEvent('{comp_onset_tag}', sec_time={name}.tStart)\n"
-                        )
-                buff.writeIndentedLines(code)
-                buff.setIndentLevel(-1, relative=True)
 
 def canBeNumeric(inStr):
     """Determines whether the input can be converted to a float

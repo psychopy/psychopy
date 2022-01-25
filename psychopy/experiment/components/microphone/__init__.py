@@ -359,6 +359,7 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         if inits['transcribeBackend'].val:
             code = (
+                "tag = data.utils.getDateStr()\n"
                 "%(name)sClip, %(name)sScript = %(name)s.bank(\n"
             )
         else:
@@ -368,7 +369,7 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-            "tag='%(loop)s', transcribe='%(transcribeBackend)s',\n"
+            "tag=tag, transcribe='%(transcribeBackend)s',\n"
         )
         buff.writeIndentedLines(code % inits)
         if transcribe:
@@ -383,7 +384,7 @@ class MicrophoneComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
         code = (
             ")\n"
-            "%(loop)s.addData('%(name)s.clip', os.path.join(%(name)sRecFolder, %(filename)s))\n"
+            "%(loop)s.addData('%(name)s.clip', os.path.join(%(name)sRecFolder, 'recording_%(name)s_%%s.%(outputType)s' %% tag))\n"
         )
         buff.writeIndentedLines(code % inits)
         if transcribe:
@@ -422,7 +423,7 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "tag: %(filename)s + Date.now(),\n"
+                "tag: %(filename)s + util.MonotonicClock.getDateStr(),\n"
                 "flush: false\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -482,7 +483,22 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                    "clip.save(os.path.join(%(name)sRecFolder, 'recording_%(name)s_%%s_%%s.%(outputType)s' %% (tag, i)))\n"
+                    "clipFilename = 'recording_%(name)s_%%s.%(outputType)s' %% tag\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        code = (
+                    "# if there's more than 1 clip with this tag, append a counter for all beyond the first\n"
+                    "if i > 0:\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                        "clipFilename += '_%%s' %% i"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+                    "clip.save(os.path.join(%(name)sRecFolder, clipFilename))\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-2, relative=True)

@@ -11,6 +11,7 @@ unitTypes = [
     'degFlat',
     'degFlatPos',
     'cm',
+    'pt',
     'norm',
     'height',
 ]
@@ -321,6 +322,27 @@ class Vector(object):
         value, units = self.validate(value, 'cm')
         # Convert and set
         self.pix = tools.cm2pix(value, self.monitor)
+
+    @property
+    def pt(self):
+        """
+        Points (pt) are commonly used in print media to define text sizes. One point is equivalent to 1/72 inches, or
+        around 0.35 mm.
+        """
+        # Return cached value if present
+        if 'pt' in self._cache:
+            return self._cache['pt']
+        # Otherwise, do conversion and cache
+        self._cache['pt'] = self.cm / (2.54 / 72)
+        # Return new cached value
+        return self._cache['pt']
+
+    @pt.setter
+    def pt(self, value):
+        # Validate
+        value, units = self.validate(value, 'height')
+        # Convert and set
+        self.cm = value * (2.54 / 72)
 
     @property
     def norm(self):

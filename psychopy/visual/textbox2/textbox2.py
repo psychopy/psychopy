@@ -58,7 +58,8 @@ debug = False
 # If text is ". " we don't want to start next line with single space?
 
 class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
-    def __init__(self, win, text, font,
+    def __init__(self, win, text,
+                 font="Open Sans",
                  pos=(0, 0), units=None, letterHeight=None,
                  size=None,
                  color=(1.0, 1.0, 1.0), colorSpace='rgb',
@@ -264,10 +265,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if editable is True:
             if self.win:
                 self.win.addEditable(self)
-        
+
     @property
-    def pallette(self):
-        self._pallette = {
+    def palette(self):
+        self._palette = {
             False: {
                 'lineColor': self._borderColor,
                 'lineWidth': self.borderWidth,
@@ -279,11 +280,34 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 'fillColor': self._fillColor+0.1
             }
         }
-        return self._pallette[self.hasFocus]
+        return self._palette[self.hasFocus]
+
+    @property
+    def pallette(self):  # deprecated, use palette instead
+        self._palette = {
+            False: {
+                'lineColor': self._borderColor,
+                'lineWidth': self.borderWidth,
+                'fillColor': self._fillColor
+            },
+            True: {
+                'lineColor': self._borderColor-0.1,
+                'lineWidth': self.borderWidth+1,
+                'fillColor': self._fillColor+0.1
+            }
+        }
+        return self._palette[self.hasFocus]
+
+    @palette.setter
+    def pallette(self, value):
+        self._palette = {
+            False: value,
+            True: value
+        }
 
     @pallette.setter
-    def pallette(self, value):
-        self._pallette = {
+    def pallette(self, value):  # deprecated, use palette instead
+        self._palette = {
             False: value,
             True: value
         }
@@ -943,13 +967,13 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def draw(self):
         """Draw the text to the back buffer"""
         # Border width
-        self.box.setLineWidth(self.pallette['lineWidth']) # Use 1 as base if border width is none
+        self.box.setLineWidth(self.palette['lineWidth']) # Use 1 as base if border width is none
         #self.borderWidth = self.box.lineWidth
         # Border colour
-        self.box.setLineColor(self.pallette['lineColor'], colorSpace='rgb')
+        self.box.setLineColor(self.palette['lineColor'], colorSpace='rgb')
         #self.borderColor = self.box.lineColor
         # Background
-        self.box.setFillColor(self.pallette['fillColor'], colorSpace='rgb')
+        self.box.setFillColor(self.palette['fillColor'], colorSpace='rgb')
         #self.fillColor = self.box.fillColor
 
         # Inherit win

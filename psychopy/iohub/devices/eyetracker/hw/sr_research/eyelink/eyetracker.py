@@ -188,7 +188,7 @@ class EyeTracker(EyeTrackerDevice):
                     if len(default_native_data_file_name) > 7:
                         EyeTracker._full_edf_name = default_native_data_file_name
                         twoDigitRand = np.random.randint(10, 99)
-                        EyeTracker._host_edf_name = self._full_edf_name[:3] + twoDigitRand + self._full_edf_name[5:7]
+                        EyeTracker._host_edf_name = self._full_edf_name[:3] + str(twoDigitRand) + self._full_edf_name[5:7]
                     else:
                         EyeTracker._full_edf_name = default_native_data_file_name
                         EyeTracker._host_edf_name = default_native_data_file_name
