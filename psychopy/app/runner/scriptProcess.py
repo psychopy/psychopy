@@ -116,6 +116,7 @@ class ScriptProcess:
 
         # create a new job with the user script
         self.scriptProcess = jobs.Job(
+            self.app,
             command=command,
             flags=execFlags,
             inputCallback=self._onInputCallback,  # both treated the same

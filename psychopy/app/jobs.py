@@ -194,10 +194,11 @@ class Job:
         pid = job.start()  # returns a PID for the sub process
 
     """
-    def __init__(self, command='', flags=EXEC_ASYNC, terminateCallback=None,
+    def __init__(self, parent, command='', flags=EXEC_ASYNC, terminateCallback=None,
                  inputCallback=None, errorCallback=None, pollMillis=None):
 
         # command to be called, cannot be changed after spawning the process
+        self.parent = parent
         self._command = command
         self._pid = None
         self._flags = flags
@@ -263,6 +264,7 @@ class Job:
 
         # bind the event called when the process ends
         # self._process.Bind(wx.EVT_END_PROCESS, self.onTerminate)
+        self.parent.Bind(wx.EVT_IDLE, self.poll)
 
         # setup asynchronous readers of the subprocess pipes
         self._stdoutReader = PipeReader(self._process.stdout)
@@ -271,9 +273,9 @@ class Job:
         self._stderrReader.start()
 
         # start polling for data from the subprocesses
-        if self._pollMillis is not None:
-            self._pollTimer.Notify = self.onNotify  # override
-            self._pollTimer.Start(self._pollMillis, oneShot=wx.TIMER_CONTINUOUS)
+        # if self._pollMillis is not None:
+        #     self._pollTimer.Notify = self.onNotify  # override
+        #     self._pollTimer.Start(self._pollMillis, oneShot=wx.TIMER_CONTINUOUS)
 
         return self._pid
 
@@ -292,7 +294,7 @@ class Job:
             return False  # nop
 
         # isOk = wx.Process.Kill(self._pid, signal, flags) is wx.KILL_OK
-        self._pollTimer.Stop()
+        #self._pollTimer.Stop()
         self._process.terminate()  # kill the process
 
         # Wait for the process to exit completely, return code will be incorrect
@@ -422,28 +424,28 @@ class Job:
     def terminateCallback(self, val):
         self._terminateCallback = val
 
-    @property
-    def pollMillis(self):
-        """Polling interval for input and error pipes (`int` or `None`).
-        """
-        return self._pollMillis
+    # @property
+    # def pollMillis(self):
+    #     """Polling interval for input and error pipes (`int` or `None`).
+    #     """
+    #     return self._pollMillis
 
-    @pollMillis.setter
-    def pollMillis(self, val):
-        if isinstance(val, (int, float)):
-            self._pollMillis = int(val)
-        elif val is None:
-            self._pollMillis = None
-        else:
-            raise TypeError("Value must be must be `int` or `None`.")
-
-        if not self._pollTimer.IsRunning():
-            return
-
-        if self._pollMillis is None:  # if `None`, stop the timer
-            self._pollTimer.Stop()
-        else:
-            self._pollTimer.Start(self._pollMillis, oneShot=wx.TIMER_CONTINUOUS)
+    # @pollMillis.setter
+    # def pollMillis(self, val):
+    #     if isinstance(val, (int, float)):
+    #         self._pollMillis = int(val)
+    #     elif val is None:
+    #         self._pollMillis = None
+    #     else:
+    #         raise TypeError("Value must be must be `int` or `None`.")
+    #
+    #     if not self._pollTimer.IsRunning():
+    #         return
+    #
+    #     if self._pollMillis is None:  # if `None`, stop the timer
+    #         self._pollTimer.Stop()
+    #     else:
+    #         self._pollTimer.Start(self._pollMillis, oneShot=wx.TIMER_CONTINUOUS)
 
     #   ~~~
     #   NB - Keep these here commented until wxPython fixes the `env` bug with
@@ -552,7 +554,7 @@ class Job:
     #
     #     return self._process.ErrorStream
 
-    def poll(self):
+    def poll(self, evt=None):
         """Poll input and error streams for data, pass them to callbacks if
         specified. Input stream data is processed before error.
         """
@@ -590,6 +592,8 @@ class Job:
         """
         if self._pollTimer.IsRunning():
             self._pollTimer.Stop()
+
+        self.parent.Bind(wx.EVT_IDLE, None)
 
         # flush remaining data from pipes, process it
         # self.poll()
