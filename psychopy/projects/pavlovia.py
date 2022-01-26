@@ -386,9 +386,9 @@ class PavloviaSession:
                         "than expected length ({} not 64) for gitlab token"
                             .format(repr(token), len(token)))
             if parse_version(gitlab.__version__) > parse_version("1.4"):
-                self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=3, per_page=100)
+                self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=10, per_page=100)
             else:
-                self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=3)
+                self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=10)
             self.gitlab.auth()
             self.username = self.gitlab.user.username
             self.userID = self.gitlab.user.id  # populate when token property is set
@@ -396,9 +396,9 @@ class PavloviaSession:
             self.authenticated = True
         else:
             if parse_version(gitlab.__version__) > parse_version("1.4"):
-                self.gitlab = gitlab.Gitlab(rootURL, timeout=3, per_page=100)
+                self.gitlab = gitlab.Gitlab(rootURL, timeout=10, per_page=100)
             else:
-                self.gitlab = gitlab.Gitlab(rootURL, timeout=3)
+                self.gitlab = gitlab.Gitlab(rootURL, timeout=10)
 
     @property
     def user(self):
@@ -532,24 +532,11 @@ class PavloviaProject(dict):
     def __init__(self, id, localRoot=None):
         if not isinstance(id, int):
             # If given a dict from Pavlovia rather than an ID, store it rather than requesting again
-            self.info = dict(id)
+            self._info = dict(id)
+            self.id = self._info['id']
         else:
-            # If given an ID, get Pavlovia info (for just created projects this can take a while, so allow 2s leeway)
-            start = time.time()
-            self.info = None
-            while self.info is None and time.time() - start < 2:
-                self.info = requests.get("https://pavlovia.org/api/v2/experiments/" + str(id)).json()['experiment']
-            if self.info is None:
-                raise ValueError(f"Could not find project with id `{id}` on Pavlovia")
-        # Store own id
-        self.id = int(self.info['gitlabId'])
-        # Init dict
-        dict.__init__(self, self.project.attributes)
-        # Convert datetime
-        dtRegex = re.compile("\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d(.\d\d\d)?")
-        for key in self.info:
-            if dtRegex.match(str(self.info[key])):
-                self.info[key] = pandas.to_datetime(self.info[key], format="%Y-%m-%d %H:%M:%S.%f")
+            # If given an ID, store this ready to fetch info when needed
+            self.id = id
         # Set local root
         if localRoot is not None:
             self.localRoot = localRoot
@@ -571,14 +558,39 @@ class PavloviaProject(dict):
         dict.__setitem__(self, key, value)
         self.project.__setattr__(key, value)
 
+    @property
+    def info(self):
+        """
+        Returns the info about the project from Pavlovia API. This may have a delay after
+        changes to the GitLab API calls, as the info filters through so use with caution.
+
+        This can be updated with self.refresh()
+        """
+        if not self._info:
+            self.refresh()
+        return self._info
+
     def refresh(self):
+        """
+        Update the info about the project from Pavlovia API. This may have a delay after
+        changes to the GitLab API calls, as the info filters through so use with caution.
+        """
         # Update Pavlovia info
-        self.info = requests.get("https://pavlovia.org/api/v2/experiments/" + str(self.id)).json()['experiment']
+        start = time.time()
+        self._info = None
+        # for a new project it may take time for Pavlovia to register the new ID so try for a while
+        while self._info is None and (time.time() - start) < 30:
+            requestVal = requests.get("https://pavlovia.org/api/v2/experiments/" + str(self.id)).json()
+            self._info = requestVal['experiment']
+        if self._info is None:
+            raise ValueError(f"Could not find project with id `{self.id}` on Pavlovia: {requestVal}")
+        # Store own id
+        dict.__init__(self, self.project.attributes)
         # Convert datetime
         dtRegex = re.compile("\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d(.\d\d\d)?")
-        for key in self.info:
+        for key in self._info:
             if dtRegex.match(str(self.info[key])):
-                self.info[key] = pandas.to_datetime(self.info[key], format="%Y-%m-%d %H:%M:%S.%f")
+                self._info[key] = pandas.to_datetime(self._info[key], format="%Y-%m-%d %H:%M:%S.%f")
         # Update base dict
         self.update(self.project.attributes)
 
@@ -663,7 +675,21 @@ class PavloviaProject(dict):
         else:
             self.project.unstar()
         # Get info from Pavlovia again, as star count will have changed
-        self.info = requests.get("https://pavlovia.org/api/v2/experiments/" + str(self.id)).json()['experiment']
+        self.refresh()
+
+    @property
+    def remoteHTTPS(self):
+        """
+        The URL for the https access to thr git repo
+        """
+        return self.project.http_url_to_repo
+
+    @property
+    def remoteSSH(self):
+        """
+        The URL for the ssh access to the git repo
+        """
+        return self.project.ssh_url_to_repo
 
     @property
     def localRoot(self):
@@ -721,7 +747,7 @@ class PavloviaProject(dict):
             infoStream.write("\n" + msg)
             time.sleep(0.5)
         # Refresh info
-        self.refresh()
+        # self.refresh()  # avoid refresh because that requires pavlovia api (delayed)
 
         return 1
 
@@ -886,7 +912,7 @@ class PavloviaProject(dict):
             repo = git.Repo.init(self.localRoot)
             self.configGitLocal()  # sets user.email and user.name
             # add origin remote and master branch (but no push)
-            self.repo.create_remote('origin', url=self['remoteHTTPS'])
+            self.repo.create_remote('origin', url=self.remoteHTTPS)
             self.repo.git.checkout(b="master")
             self.writeGitIgnore()
             self.stageFiles(['.gitignore'])
