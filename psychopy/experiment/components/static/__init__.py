@@ -128,7 +128,7 @@ class StaticComponent(BaseComponent):
 
         # pass  # the clock.StaticPeriod class handles its own stopping
 
-    def writeParamUpdates(self, buff, updateType=None, paramNames=None):
+    def writeParamUpdates(self, buff, updateType=None, paramNames=None, target="PsychoPy"):
         """Write updates. Unlike most components, which us this method
         to update themselves, the Static Component uses this to update
         *other* components
@@ -136,8 +136,13 @@ class StaticComponent(BaseComponent):
         if updateType == 'set every repeat':
             return  # the static component doesn't need to change itself
         if len(self.updatesList):
-            code = "# updating other components during *%s*\n"
+            # Comment to mark start of updates
+            if target == "PsychoJS":
+                code = "// Updating other components during *%s*\n"
+            else:
+                code = "# Updating other components during *%s*\n"
             buff.writeIndented(code % self.params['name'])
+            # Do updates
             for update in self.updatesList:
                 # update = {'compName':compName,'fieldName':fieldName,
                 #    'routine':routine}
@@ -154,12 +159,21 @@ class StaticComponent(BaseComponent):
                                       val=prms[fieldName],
                                       updateType=prms[fieldName].updates,
                                       params=prms)
-            code = "# component updates done\n"
+            # Comment to mark end of updates
+            if target == "PsychoJS":
+                code = "// Component updates done\n"
+            else:
+                code = "# Component updates done\n"
+            buff.writeIndentedLines(code)
 
             # Write custom code
             if self.params['code']:
-                code += ("# Adding custom code for {name}\n"
-                         "{code}\n".format(name=self.params['name'],
-                                           code=self.params['code']))
-
-            buff.writeIndentedLines(code)
+                # Comment to mark start of custom code
+                if target == "PsychoJS":
+                    code = "// Adding custom code for %(name)s\n"
+                else:
+                    code = "# Adding custom code for %(name)s\n"
+                buff.writeIndentedLines(code % self.params)
+                # Write custom code
+                code = "%(code)s\n"
+                buff.writeIndentedLines(code % self.params)
