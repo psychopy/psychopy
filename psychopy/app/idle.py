@@ -87,7 +87,7 @@ def doIdleTasks(app=None):
 
     if currentTask and currentTask['thread'] and \
             currentTask['thread'].is_alive():
-        # is currently tunning in a thread
+        # is currently running in a thread
         return 0
 
     for taskName in tasks:

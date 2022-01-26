@@ -462,4 +462,3 @@ windows by specifying ``winType`` as ``winTypeName``::
 
     loadPlugin('psychopy-custom-backend')
     win = Window(winType='custom')
-

@@ -832,7 +832,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         return os.path.splitext(os.path.split(self.filename)[1])[0]
 
     # def pluginManager(self, evt=None, value=True):
-    #     """Show the plugin manger frame."""
+    #     """Show the plugin manager frame."""
     #     PluginManagerFrame(self).ShowModal()
 
     def updateReadme(self):
@@ -1220,7 +1220,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
 
     def onPasteRoutine(self, event=None):
         """Paste the current routine from self.app.copiedRoutine to a new page
-        in self.routinePanel after promting for a new name.
+        in self.routinePanel after prompting for a new name.
         """
         if self.app.copiedRoutine is None:
             return -1
@@ -1243,7 +1243,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         """
         Paste a copied Routine into the current Experiment. Returns a copy of that Routine
         """
-        newRoutine.name = self.exp.namespace.makeValid(routineName)
+        newRoutine.name = self.exp.namespace.makeValid(routineName, prefix="routine")
         newRoutine.params['name'] = newRoutine.name
         self.exp.namespace.add(newRoutine.name)
         # add to the experiment
@@ -1541,7 +1541,7 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
         routineName = None
         if dlg.ShowModal() == wx.ID_OK:
             routineName = dlg.nameCtrl.GetValue()
-            template = dlg.selectedTemplate
+            template = copy.deepcopy(dlg.selectedTemplate)
             self.frame.pasteRoutine(template, routineName)
             self.frame.addToUndoStack("NEW Routine `%s`" % routineName)
         dlg.Destroy()
@@ -2091,7 +2091,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             dc.SetPen(thisPen)
             dc.SetBrush(thisBrush)
             # If there's a fixed end time and no start time, start 20px before 0
-            if (
+            if ('stopType' in component.params) and ('startType' in component.params) and (
                     component.params['stopType'].val in ('time (s)', 'duration (s)')
                     and component.params['startType'].val in ('time (s)')
                     and startTime is None
@@ -2609,7 +2609,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.faveLevels = self.prefs.appDataCfg['builder']['favComponents']
         self.favorites = []
         for comp in self.components:
-            # Add component to fave levels with a score of 0 if it's not already present
+            # Add component to favorite levels with a score of 0 if it's not already present
             if comp not in self.faveLevels:
                 self.faveLevels[comp] = 0
             # Mark as a favorite if it exceeds a threshold
@@ -3632,7 +3632,7 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetIdBounds(tmpId, wx.Rect(
             pos[0] - size, pos[1] - size, 2 * size, 2 * size))
 
-    def drawFlowRoutine(self, dc, routine, id, pos=[0, 0], draw=True):
+    def drawFlowRoutine(self, dc, routine, id, pos=(0, 0), draw=True):
         """Draw a box to show a routine on the timeline
         draw=False is for a dry-run, esp to compute and return size
         without drawing or setting a pdc ID
@@ -3672,8 +3672,8 @@ class FlowPanel(wx.ScrolledWindow):
         w, h = self.GetFullTextExtent(name)[0:2]
         pad = (5, 10, 20)[self.appData['flowSize']]
         # draw box
-        pos[1] += 2 - self.appData['flowSize']
-        rect = wx.Rect(pos[0], pos[1], w + pad, h + pad)
+        rect = wx.Rect(pos[0], pos[1] + 2 - self.appData['flowSize'],
+                       w + pad, h + pad)
         endX = pos[0] + w + pad
         # the edge should match the text
         if draw:

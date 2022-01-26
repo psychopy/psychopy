@@ -15,6 +15,24 @@ to run on the same PsychoPy version even where a different version is installed 
 That setting often even allows PsychoPy to run experiments from versions that have not yet
 been installed! If the dependencies haven't changed it will run.
 
+PsychoPy 2022.2
+---------------
+
+*Highlights:*
+
+- Template Routines
+- Improvements to VLC Movie backend
+- QUEST staircases now supported via multi-staircase in Loops
+- dynamic loading of stimuli now possible in online experiments rather
+  than loading all stimuli during the Exp Info dialog. Can now alter
+  the stimuli downloaded per-participant
+
+*Compatibility Changes:*
+
+- Filename timestamps now have a different default format (based on ISO 8601):
+  2022-01-14_14h39.36.092 for 2:39pm and 36s, 92ms
+  See :func:`psychopy.utils.getDateStr` for details on the new functionality
+
 PsychoPy 2021.2
 ---------------
 
@@ -2385,7 +2403,7 @@ Released: Feb 2010
 * FIXED bug in the new win.clearBuffer() method
 * CHANGED builder component variables so that the user inputs are interpreted as literal text unless preceded by $, in which case they are treated as variables/python code
 * CHANGED builder handling of keyboard 'allowedKeys' parameter. Instead of `['1','2','q']` you can now simply use `12q` to indicate those three keys. If you want a key like `'right'` and `'left'` you now have to use `$['right','left']`
-* TWITTER follow on http://twitter.com/psychopy
+* TWITTER follow on https://twitter.com/psychopy
 * FIXED? win32 version now compatible with Vista/7? Still compatible with XP?
 
 PsychoPy 1.60.00

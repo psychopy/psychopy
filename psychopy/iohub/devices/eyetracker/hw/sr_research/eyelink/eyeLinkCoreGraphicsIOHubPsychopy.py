@@ -31,39 +31,29 @@ class FixationTarget():
             inner_fill_color = psychopy_eyelink_graphics.getCalibSetting(['target_attributes', 'inner_fill_color'])
             inner_line_color = psychopy_eyelink_graphics.getCalibSetting(['target_attributes', 'inner_line_color'])
 
-        self.calibrationPointOuter = visual.Circle(
-            win,
-            pos=(0, 0),
-            lineWidth=psychopy_eyelink_graphics.getCalibSetting(['target_attributes', 'outer_stroke_width']),
+        self.calibrationPoint = visual.TargetStim(
+            win, name="CP", style="circles",
             radius=psychopy_eyelink_graphics.getCalibSetting(['target_attributes', 'outer_diameter']) / 2.0,
-            name='CP_OUTER',
             fillColor=outer_fill_color,
-            lineColor=outer_line_color,
-            opacity=1.0,
-            interpolate=False,
-            edges=64,
-            units=unit_type, colorSpace=color_type)
-
-        self.calibrationPointInner = visual.Circle(
-            win,
+            borderColor=outer_line_color,
+            lineWidth=psychopy_eyelink_graphics.getCalibSetting(['target_attributes', 'outer_stroke_width']),
+            innerRadius=psychopy_eyelink_graphics.getCalibSetting(['target_attributes', 'inner_diameter']) / 2.0,
+            innerFillColor=inner_fill_color,
+            innerBorderColor=inner_line_color,
+            innerLineWidth=psychopy_eyelink_graphics.getCalibSetting(['target_attributes', 'inner_stroke_width']),
             pos=(0, 0),
-            lineWidth=psychopy_eyelink_graphics.getCalibSetting(['target_attributes', 'inner_stroke_width']),
-            radius=psychopy_eyelink_graphics.getCalibSetting(['target_attributes', 'inner_diameter']) / 2.0,
-            name='CP_INNER',
-            fillColor=inner_fill_color,
-            lineColor=inner_line_color,
-            opacity=1.0,
-            interpolate=False,
-            edges=64,
-            units=unit_type, colorSpace=color_type)
+            units=unit_type,
+            colorSpace=color_type,
+            autoLog=False
+        )
+        self.calibrationPointOuter = self.calibrationPoint.outer
+        self.calibrationPointInner = self.calibrationPoint.inner
 
     def draw(self, pos=None):
         if pos:
             self.calibrationPointOuter.pos = pos
             self.calibrationPointInner.pos = pos
-        self.calibrationPointOuter.draw()
-        self.calibrationPointInner.draw()
-
+        self.calibrationPoint.draw()
 
 # Intro Screen
 class BlankScreen():

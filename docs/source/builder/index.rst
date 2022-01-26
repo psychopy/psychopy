@@ -36,4 +36,3 @@ You can also find a range of `materials for teaching <https://workshops.psychopy
    gotchas
    compileScript
    *
-

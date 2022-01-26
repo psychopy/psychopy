@@ -196,7 +196,7 @@ class Window():
             Size of the window in pixels [x, y].
         pos : array-like of int
             Location of the top-left corner of the window on the screen [x, y].
-        color : `rray-like of float
+        color : array-like of float
             Color of background as [r, g, b] list or single value. Each gun can
             take values between -1.0 and 1.0.
         fullscr : bool or None
@@ -323,6 +323,9 @@ class Window():
         self.autoLog = False  # to suppress log msg during init
         self.name = name
         self.clientSize = numpy.array(size, int)  # size of window, not buffer
+        # size of the window when restored (not fullscreen)
+        self._windowedSize = self.clientSize.copy()
+
         self.pos = pos
         # this will get overridden once the window is created
         self.winHandle = None
@@ -1423,6 +1426,16 @@ class Window():
         """Size of the framebuffer in pixels (w, h)."""
         # Dimensions should match window size unless using a retina display
         return self.backend.frameBufferSize
+
+    @property
+    def windowedSize(self):
+        """Size of the window to use when not fullscreen (w, h)."""
+        return self._windowedSize
+
+    @windowedSize.setter
+    def windowedSize(self, value):
+        """Size of the window to use when not fullscreen (w, h)."""
+        self._windowedSize[:] = value
 
     def getContentScaleFactor(self):
         """Get the scaling factor required for scaling correctly on high-DPI
@@ -3103,7 +3116,7 @@ class Window():
             The number of frames to display before starting the test
             (this is in place to allow the system to settle after opening
             the `Window` for the first time.
-        threshold : int, optional
+        threshold : int or float, optional
             The threshold for the std deviation (in ms) before the set
             are considered a match.
 
@@ -3115,36 +3128,57 @@ class Window():
 
         """
         if nIdentical > nMaxFrames:
-            raise ValueError('nIdentical must be equal to or '
-                             'less than nMaxFrames')
+            raise ValueError(
+                'Parameter `nIdentical` must be equal to or less than '
+                '`nMaxFrames`')
+
+        screen = self.screen
+        name = self.name
+
+        # log that we're measuring the frame rate now
+        if self.autoLog:
+            msg = "{}: Attempting to measure frame rate of screen ({:d}) ..."
+            logging.exp(msg.format(name, screen))
+
+        # Disable `recordFrameIntervals` prior to the warmup as we expect to see
+        # some instability here.
         recordFrmIntsOrig = self.recordFrameIntervals
-        # run warm-ups
         self.recordFrameIntervals = False
+
+        # warm-up, allow the system to settle a bit before measuring frames
         for frameN in range(nWarmUpFrames):
             self.flip()
+
         # run test frames
-        self.recordFrameIntervals = True
+        self.recordFrameIntervals = True  # record intervals for actual test
+        threshSecs = threshold / 1000.0  # must be in seconds
         for frameN in range(nMaxFrames):
             self.flip()
-            if (len(self.frameIntervals) >= nIdentical and
-                    (numpy.std(self.frameIntervals[-nIdentical:]) <
-                     (threshold / 1000.0))):
-                rate = 1.0 / numpy.mean(self.frameIntervals[-nIdentical:])
-                if self.screen is None:
-                    scrStr = ""
-                else:
-                    scrStr = " (%i)" % self.screen
+            recentFrames = self.frameIntervals[-nIdentical:]
+            nIntervals = len(self.frameIntervals)
+            if len(recentFrames) < 3:
+                continue  # no need to check variance yet
+            recentFramesStd = numpy.std(recentFrames)  # compute variability
+            if nIntervals >= nIdentical and recentFramesStd < threshSecs:
+                # average duration of recent frames
+                period = numpy.mean(recentFrames)  # log this too?
+                rate = 1.0 / period  # compute frame rate in Hz
                 if self.autoLog:
-                    msg = 'Screen%s actual frame rate measured at %.2f'
-                    logging.debug(msg % (scrStr, rate))
+                    scrStr = "" if screen is None else " (%i)" % screen
+                    msg = "Screen{} actual frame rate measured at {:.2f}Hz"
+                    logging.exp(msg.format(scrStr, rate))
+
                 self.recordFrameIntervals = recordFrmIntsOrig
                 self.frameIntervals = []
+
                 return rate
-        # if we got here we reached end of maxFrames with no consistent value
-        msg = ("Couldn't measure a consistent frame rate.\n"
+
+        # if we get here we reached end of `maxFrames` with no consistent value
+        msg = ("Couldn't measure a consistent frame rate!\n"
                "  - Is your graphics card set to sync to vertical blank?\n"
                "  - Are you running other processes on your computer?\n")
         logging.warning(msg)
+
         return None
 
     def getMsPerFrame(self, nFrames=60, showVisual=False, msg='', msDelay=0.):
@@ -3318,4 +3352,3 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     """
     return myWin.getMsPerFrame(nFrames=60, showVisual=showVisual, msg=msg,
                                msDelay=0.)
-

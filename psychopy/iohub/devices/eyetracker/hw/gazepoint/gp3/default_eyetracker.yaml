@@ -137,4 +137,3 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
     # device configuration, or you can complete any ones that are relevant for FYI
     # purposes only at this time.
     device_number: 0
-

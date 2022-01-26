@@ -532,8 +532,7 @@ class PavloviaProject(dict):
     def __init__(self, id, localRoot=None):
         if not isinstance(id, int):
             # If given a dict from Pavlovia rather than an ID, store it rather than requesting again
-            self._info = dict(id)
-            self.id = self._info['id']
+            self.info = dict(id)
         else:
             # If given an ID, store this ready to fetch info when needed
             self.id = id
@@ -747,7 +746,7 @@ class PavloviaProject(dict):
             infoStream.write("\n" + msg)
             time.sleep(0.5)
         # Refresh info
-        # self.refresh()  # avoid refresh because that requires pavlovia api (delayed)
+        self.refresh()
 
         return 1
 
@@ -912,7 +911,7 @@ class PavloviaProject(dict):
             repo = git.Repo.init(self.localRoot)
             self.configGitLocal()  # sets user.email and user.name
             # add origin remote and master branch (but no push)
-            self.repo.create_remote('origin', url=self.remoteHTTPS)
+            self.repo.create_remote('origin', url=self['remoteHTTPS'])
             self.repo.git.checkout(b="master")
             self.writeGitIgnore()
             self.stageFiles(['.gitignore'])

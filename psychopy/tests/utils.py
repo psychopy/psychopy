@@ -20,7 +20,7 @@ TESTS_DATA_PATH = pjoin(TESTS_PATH, 'data')
 TESTS_FONT = pjoin(TESTS_DATA_PATH, 'DejaVuSerif.ttf')
 
 
-def compareScreenshot(fileName, win, crit=5.0):
+def compareScreenshot(fileName, win, tag="", crit=5.0):
     """Compare the current back buffer of the given window with the file
 
     Screenshots are stored and compared against the files under path
@@ -49,9 +49,11 @@ def compareScreenshot(fileName, win, crit=5.0):
             imgDat = np.array(frame.getdata())
             crit += 5  # be more relaxed because of the interpolation
         rms = np.std(imgDat-expDat)
-        filenameLocal = fileName.replace('.png','_local.png')
+        if tag:
+            tag = "_" + tag
+        filenameLocal = fileName.replace('.png',f'{tag}_local.png')
         if rms >= crit/2:
-            #there was SOME discrepency
+            #there was SOME discrepancy
             logging.warning('PsychoPyTests: RMS=%.3g at threshold=%3.g'
                   % (rms, crit))
         if not rms<crit: #don't do `if rms>=crit because that doesn't catch rms=nan

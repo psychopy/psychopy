@@ -415,7 +415,7 @@ class NumPyRingBuffer():
 
     Methods that can be called from a standard numpy array can also be called using the
     NumPyRingBuffer instance created. However Numpy module level functions will not accept
-    a NumPyRingBuffer as a valid arguement.
+    a NumPyRingBuffer as a valid argument.
 
     To clear the ring buffer and start with no data in the buffer, without
     needing to create a new NumPyRingBuffer object, call the clear() method
@@ -627,4 +627,3 @@ def rotate2D(pts, origin, ang=None):
                                    numpy.sin(ang)],
                                   [-numpy.sin(ang),
                                    numpy.cos(ang)]])) + origin
-

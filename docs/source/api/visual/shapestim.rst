@@ -40,4 +40,3 @@ Details
 .. autoclass:: ShapeStim
     :members:
     :inherited-members:
-

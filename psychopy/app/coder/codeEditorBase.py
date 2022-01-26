@@ -201,7 +201,7 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl, ThemeMixin):
         nLines = len(self._GetSelectedLineNumbers())
         nHashtags = self.HashtagCounter(self.GetTextRange(startText, endText))
         passDec = False # pass decision - only pass  if line is blank
-        # Test decision criteria, and catch devision errors
+        # Test decision criteria, and catch division errors
         # when caret starts at line with no text, or at beginning of line...
         try:
             devCrit, decVal = .6, nHashtags / nLines # Decision criteria and value

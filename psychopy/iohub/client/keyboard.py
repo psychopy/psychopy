@@ -91,8 +91,8 @@ class KeyboardEvent(ioEvent):
 
     def __eq__(self, v):
         if isinstance(v, KeyboardEvent):
-            return self.key == v.key or self.char == v.char
-        return self.key == v or self.char == v
+            return self.key == v.key
+        return self.key == v
 
     def __ne__(self, v):
         return not self.__eq__(v)

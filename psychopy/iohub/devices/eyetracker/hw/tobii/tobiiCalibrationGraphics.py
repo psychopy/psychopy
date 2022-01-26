@@ -208,35 +208,23 @@ class TobiiPsychopyCalibrationGraphics:
         color_type = self.getCalibSetting('color_type')
         unit_type = self.getCalibSetting('unit_type')
 
-        self.calibrationPointOUTER = visual.Circle(
-            self.window,
-            pos=(
-                0,
-                0),
-            lineWidth=self.getCalibSetting(['target_attributes', 'outer_stroke_width']),
+        self.calibrationPoint = visual.TargetStim(
+            self.window, name="CP", style="circles",
             radius=self.getCalibSetting(['target_attributes', 'outer_diameter']) / 2.0,
-            name='CP_OUTER',
             fillColor=self.getCalibSetting(['target_attributes', 'outer_fill_color']),
-            lineColor=self.getCalibSetting(['target_attributes', 'outer_line_color']),
-            opacity=1.0,
-            interpolate=False,
-            edges=64,
-            units=unit_type, colorSpace=color_type)
-
-        self.calibrationPointINNER = visual.Circle(
-            self.window,
-            pos=(
-                0,
-                0),
-            lineWidth=self.getCalibSetting(['target_attributes', 'inner_stroke_width']),
-            radius=self.getCalibSetting(['target_attributes', 'inner_diameter']) / 2.0,
-            name='CP_INNER',
-            fillColor=self.getCalibSetting(['target_attributes', 'inner_fill_color']),
-            lineColor=self.getCalibSetting(['target_attributes', 'inner_line_color']),
-            opacity=1.0,
-            interpolate=False,
-            edges=64,
-            units=unit_type, colorSpace=color_type)
+            borderColor=self.getCalibSetting(['target_attributes', 'outer_line_color']),
+            lineWidth=self.getCalibSetting(['target_attributes', 'outer_stroke_width']),
+            innerRadius=self.getCalibSetting(['target_attributes', 'inner_diameter']) / 2.0,
+            innerFillColor=self.getCalibSetting(['target_attributes', 'inner_fill_color']),
+            innerBorderColor=self.getCalibSetting(['target_attributes', 'inner_line_color']),
+            innerLineWidth=self.getCalibSetting(['target_attributes', 'inner_stroke_width']),
+            pos=(0, 0),
+            units=unit_type,
+            colorSpace=color_type,
+            autoLog=False
+        )
+        self.calibrationPointINNER = self.calibrationPoint.inner
+        self.calibrationPointOUTER = self.calibrationPoint.outer
 
         tctype = color_type
         tcolor = self.getCalibSetting(['text_color'])
@@ -438,9 +426,8 @@ class TobiiPsychopyCalibrationGraphics:
                         # Change target size from outer diameter to inner diameter over target_duration seconds.
                         t = elapsed_time / target_duration
                         d = outer_diameter - t * (outer_diameter - inner_diameter)
-                        self.calibrationPointOUTER.radius = d / 2
-                        self.calibrationPointOUTER.draw()
-                        self.calibrationPointINNER.draw()
+                        self.calibrationPoint.outerRadius = d / 2
+                        self.calibrationPoint.draw()
                         self.window.flip(clearBuffer=True)
                     elif animate_expansion_ratio not in [1, 1.0]:
                         if elapsed_time <= target_duration/2:
@@ -452,9 +439,8 @@ class TobiiPsychopyCalibrationGraphics:
                             t = (elapsed_time-target_duration/2) / (target_duration/2)
                             d = outer_diameter*animate_expansion_ratio - t * (outer_diameter*animate_expansion_ratio - inner_diameter)
                     if d:
-                        self.calibrationPointOUTER.radius = d / 2
-                        self.calibrationPointOUTER.draw()
-                        self.calibrationPointINNER.draw()
+                        self.calibrationPoint.outerRadius = d / 2
+                        self.calibrationPoint.draw()
                         self.window.flip(clearBuffer=True)
 
                     self.getNextMsg()
@@ -669,20 +655,18 @@ class TobiiPsychopyCalibrationGraphics:
             EXPANSION_RATE = 1.0
 
         stime = Computer.getTime()
-        self.calibrationPointOUTER.radius = orad
-        self.calibrationPointOUTER.draw()
-        self.calibrationPointINNER.draw()
+        self.calibrationPoint.outerRadius = orad
+        self.calibrationPoint.draw()
         ftime = self.window.flip(clearBuffer=True)
-        current_size = self.calibrationPointOUTER.radius
+        current_size = self.calibrationPoint.outerRadius
         while current_size < max_osize:
             sec_dur = ftime - stime
             if sec_dur < 0.0:
                 sec_dur = 0.0
             stime = ftime
             current_size += sec_dur * EXPANSION_RATE
-            self.calibrationPointOUTER.radius = current_size
-            self.calibrationPointOUTER.draw()
-            self.calibrationPointINNER.draw()
+            self.calibrationPoint.outerRadius = current_size
+            self.calibrationPoint.draw()
             ftime = self.window.flip(clearBuffer=True)
 
     def contractTarget(self, TARG_RAD_MULTIPLIER, EXPANSION_RATE):
@@ -696,9 +680,8 @@ class TobiiPsychopyCalibrationGraphics:
             EXPANSION_RATE = 1.0
 
         stime = Computer.getTime()
-        self.calibrationPointOUTER.radius = max_osize
-        self.calibrationPointOUTER.draw()
-        self.calibrationPointINNER.draw()
+        self.calibrationPoint.outerRadius = max_osize
+        self.calibrationPoint.draw()
         ftime = self.window.flip(clearBuffer=True)
         current_size = max_osize
         while current_size > orad:
@@ -707,9 +690,8 @@ class TobiiPsychopyCalibrationGraphics:
                 sec_dur = 0.0
             stime = ftime
             current_size -= sec_dur * EXPANSION_RATE
-            self.calibrationPointOUTER.radius = current_size
-            self.calibrationPointOUTER.draw()
-            self.calibrationPointINNER.draw()
+            self.calibrationPoint.outerRadius = current_size
+            self.calibrationPoint.draw()
             ftime = self.window.flip(clearBuffer=True)
 
     def drawCalibrationTargetDeprecated(self, target_number, tp):
@@ -775,16 +757,13 @@ class TobiiPsychopyCalibrationGraphics:
         self.calibrationPointINNER.setFillColor(self.getCalibSetting(['target_attributes', 'inner_fill_color']))
         self.calibrationPointINNER.lineWidth = int(self.getCalibSetting(['target_attributes', 'inner_stroke_width']))
 
-        self.calibrationPointOUTER.draw()
-        self.calibrationPointINNER.draw()
+        self.calibrationPoint.draw()
         return self.window.flip(clearBuffer=True)
 
     def drawCalibrationTarget(self, tp, reset=True):
-        self.calibrationPointOUTER.setPos(tp)
-        self.calibrationPointINNER.setPos(tp)
+        self.calibrationPoint.pos = tp
         if reset:
             return self.drawDefaultTarget()
         else:
-            self.calibrationPointOUTER.draw()
-            self.calibrationPointINNER.draw()
+            self.calibrationPoint.draw()
             return self.window.flip(clearBuffer=True)

@@ -8,9 +8,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-
-
-
 import os
 import glob
 import warnings
@@ -31,7 +28,7 @@ from psychopy import logging
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 from psychopy.tools.attributetools import attributeSetter, setAttribute
-from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
+from psychopy.visual.basevisual import (BaseVisualStim, ForeColorMixin,
                                         ContainerMixin, WindowMixin)
 from psychopy.colors import Color
 
@@ -73,7 +70,7 @@ defaultWrapWidth = {'cm': 15.0,
                     'pixels': 500}
 
 
-class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
+class TextStim(BaseVisualStim, ForeColorMixin, ContainerMixin):
     """Class of text stimuli to be displayed in a
     :class:`~psychopy.visual.Window`
     """

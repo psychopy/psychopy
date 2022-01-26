@@ -49,7 +49,7 @@ class PParallelDLPortIO:
     An alternative on other versions of Windows might be to use inpout32.
 
     .  _winioport: http://www.dinceraydin.com/python/indexeng.html
-    .. _PortIO driver: http://www.winfordeng.com/support/download.php
+    .. _PortIO driver: https://www.winford.com/support/download.php
     """
 
     def __init__(self, address=0x0378):

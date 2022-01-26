@@ -4,12 +4,11 @@ Localizing text strings in PsychoPy
 Notes by Jeremy R. Gray
 
 Sources:
-  - http://www.supernifty.org/blog/2011/09/16/python-localization-made-easy/
-  - http://bip.weizmann.ac.il/course/python/PyMOTW/PyMOTW/docs/gettext/
+  - https://www.supernifty.org/blog/2011/09/16/python-localization-made-easy/
+  - https://bip.weizmann.ac.il/course/python/PyMOTW/PyMOTW/docs/gettext/
   - https://webtranslateit.com/en/docs/file_formats/gettext_po/
-  - utils/{pygettext.py,msgfmt.py,makelocalealias.py} are from python 2.7 (PSF licence)
-  - windows mappings: http://msdn.microsoft.com/en-us/goglobal/bb896001.aspx
-  - python future: http://hg.python.org/cpython/file/ed62c4c70c4d/Lib/locale.py
+  - windows mappings: https://msdn.microsoft.com/en-us/goglobal/bb896001.aspx
+  - python future: https://hg.python.org/cpython/file/ed62c4c70c4d/Lib/locale.py
 
 
 Intended usage:
@@ -31,11 +30,10 @@ Known limitations (July 2014):
   - use for localizing the app (PsychoPy), not for localizing user scripts.
 
 Files:
-  - psychopy/locale/LANG/LC_MESSAGES/ holds the text files and translations, where LANG
-    is a 5 letter code like en_UK or ja_JP. poedit will re-make *.mo next to *.po
+  - psychopy/app/locale/LANG/LC_MESSAGES/ holds the text files and translations,
+    where LANG is a 5 letter code like en_UK or ja_JP. poedit will re-make *.mo
+    next to *.po.
     Such directories will be auto-detected by PsychoPy in users prefs -> app -> locale
-  - utils/ holds helper scripts for managing localization files and workflow. called
-    manually, not by psychopy.
 
 Process:
 Do once:
@@ -48,21 +46,17 @@ Do once:
 
   poedit will do the following automatically, and is much easier than doing by hand:
   To discover all instances of _translate() and dump to a file messages.pot (name customizable)
-    $ python utils/pygettext.py filename.py  BUT: need to signal PsychoPy uses _translate not _
-  Or more usefully, from within psychopy/psychopy/app/localization directory:
-    $ find ../.. -name '*.py' | grep -v tests | grep -v localization | xargs python utils/pygettext.py
-- edit messages.pot manually:
-  "Content-Type: text/plain; charset=utf-8\n"
-  fill in various fields for the app.
+    $ pybabel extract --no-default-keywords -k _translate --no-wrap --project=PsychoPy --sort-by-file -o messages.pot ..
+- edit messages.pot manually if needed, fill in various fields for the app.
 - messages.pot is now a template, copy to each destination LANG directory:
-   $ cp messages.pot ../locale/LANG/LC_MESSAGES/messages.po
+   $ cp messages.pot ../app/locale/LANG/LC_MESSAGES/messages.po
 
 human translation:
 - doing a translation well requires a strong understanding of PsychoPy itself, especially
   to know what are technical terms (like Routine) and so should not be translated, and to
   know the context of messages and hints, which can be snippets
-- edit locale/LANG/LC_MESSAGES/messages.po to have the desired translations. Use
-  poEdit from http://poedit.net or (debian-based) "sudo apt-get install poedit"
+- edit psychopy/app/locale/LANG/LC_MESSAGES/messages.po to have the desired translations.
+  Use poEdit from https://poedit.net/ or (debian-based) "sudo apt-get install poedit"
 
 generate .mo (binary) from .po (text):
 - use poedit (easiest): update catalog

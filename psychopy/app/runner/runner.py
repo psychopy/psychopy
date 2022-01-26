@@ -30,6 +30,7 @@ from psychopy.app.stdOutRich import StdOutRich
 from psychopy.projects.pavlovia import getProject
 from psychopy.scripts.psyexpCompile import generateScript
 from psychopy.app.runner.scriptProcess import ScriptProcess
+import psychopy.tools.versionchooser as versions
 
 folderColumn = 1
 filenameColumn = 0
@@ -492,7 +493,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.parent = parent
         self.serverProcess = None
 
-        # self.entries is dict of dicts: {filepath: {'index': listCtrlInd}} and may store ore info later
+        # self.entries is dict of dicts: {filepath: {'index': listCtrlInd}} and may store more info later
         self.entries = {}
         self.currentFile = None
         self.currentProject = None  # access from self.currentProject property
@@ -755,14 +756,14 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
     def onURL(self, evt):
         self.parent.onURL(evt)
 
-    def getPsychoJS(self):
+    def getPsychoJS(self, useVersion=''):
         """
         Download and save the current version of the PsychoJS library.
 
         Useful for debugging, amending scripts.
         """
         libPath = self.currentFile.parent / self.outputPath / 'lib'
-        ver = '.'.join(self.app.version.split('.')[:3])
+        ver = versions.getPsychoJSVersionStr(self.app.version, useVersion)
         libFileExtensions = ['css', 'iife.js', 'iife.js.map', 'js', 'js.LEGAL.txt', 'js.map']
 
         try:  # ask-for-forgiveness rather than query-then-make

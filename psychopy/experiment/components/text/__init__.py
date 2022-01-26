@@ -34,7 +34,7 @@ class TextComponent(BaseVisualComponent):
                  text=_translate('Any text\n\nincluding line breaks'),
                  font='Open Sans', units='from exp settings',
                  color='white', colorSpace='rgb',
-                 pos=(0, 0), letterHeight=0.1, ori=0,
+                 pos=(0, 0), letterHeight=0.05, ori=0,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  flip='None', startEstim='', durationEstim='', wrapWidth='',
@@ -60,6 +60,7 @@ class TextComponent(BaseVisualComponent):
             text, valType='str', inputType="multi", allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The text to be displayed"),
+            canBePath=False,
             label=_localized['text'])
         self.params['font'] = Param(
             font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',

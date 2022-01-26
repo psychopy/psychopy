@@ -33,8 +33,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.mathjax',
               'sphinx.ext.napoleon',
               'sphinx.ext.intersphinx',
-              'sphinx.ext.viewcode',
-              'rinoh.frontend.sphinx']
+              'sphinx.ext.viewcode']
 
 autoclass_content = 'both'
 autosummary_generate = True
@@ -187,8 +186,7 @@ htmlhelp_basename = 'PsychoPydoc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
-# xelatex or pdflatex (but pdflatex on mac struggles with Höchenberger!)
-latex_engine = 'xelatex'
+latex_engine = 'pdflatex'  # xelatex or pdflatex
 # latex_elements = {
 #    'babel': '\\usepackage{babel}',
 #    'inputenc': '\\usepackage[utf8]{inputenc}'

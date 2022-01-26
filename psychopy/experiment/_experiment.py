@@ -126,7 +126,7 @@ class Experiment:
         # What libs are needed (make sound come first)
         self.requiredImports = []
         libs = ('sound', 'gui', 'visual', 'core', 'data', 'event',
-                'logging', 'clock', 'colors')
+                'logging', 'clock', 'colors', 'layout')
         self.requirePsychopyLibs(libs=libs)
         self.requireImport(importName='keyboard',
                            importFrom='psychopy.hardware')
@@ -190,7 +190,7 @@ class Experiment:
         an empty one if none is given.
         """
         if routine is None:
-            # create a deafult routine with this name
+            # create a default routine with this name
             self.routines[routineName] = Routine(routineName, exp=self)
         else:
             self.routines[routineName] = routine
@@ -233,17 +233,23 @@ class Experiment:
         self_copy = deepcopy(self)
         for key, routine in list(self_copy.routines.items()):  # PY2/3 compat
             if isinstance(routine, BaseStandaloneRoutine):
-                if routine.params['disabled']:
+                # Remove disabled / unimplemented standalone routines
+                if routine.disabled or target not in routine.targets:
                     for node in self_copy.flow:
                         if node == routine:
                             self_copy.flow.removeComponent(node)
+                            if target not in routine.targets:
+                                # If this routine isn't implemented in target library, print alert and mute it
+                                alertCode = 4335 if target == "PsychoPy" else 4340
+                                alert(alertCode, strFields={'comp': type(routine).__name__})
             else:
-                for component in routine:
-                    try:
-                        if component.params['disabled']:
-                            routine.removeComponent(component)
-                    except KeyError:
-                        pass
+                for component in [comp for comp in routine]:
+                    if component.disabled or target not in component.targets:
+                        routine.removeComponent(component)
+                        if component.targets and target not in component.targets:
+                            # If this component isn't implemented in target library, print alert and mute it
+                            alertCode = 4335 if target == "PsychoPy" else 4340
+                            alert(alertCode, strFields={'comp': type(component).__name__})
 
         if target == "PsychoPy":
             self_copy.settings.writeInitCode(script, self_copy.psychopyVersion,
@@ -343,21 +349,21 @@ class Experiment:
         return script
 
     @property
-    def xml(self):
+    def _xml(self):
         # Create experiment root element
         experimentNode = xml.Element("PsychoPy2experiment")
         experimentNode.set('encoding', 'utf-8')
         experimentNode.set('version', __version__)
         # Add settings node
-        settingsNode = self.settings.xml
+        settingsNode = self.settings._xml
         experimentNode.append(settingsNode)
         # Add routines node
         routineNode = xml.Element("Routines")
         for key, routine in self.routines.items():
-            routineNode.append(routine.xml)
+            routineNode.append(routine._xml)
         experimentNode.append(routineNode)
         # Add flow node
-        flowNode = self.flow.xml
+        flowNode = self.flow._xml
         experimentNode.append(flowNode)
 
         return experimentNode
@@ -365,7 +371,7 @@ class Experiment:
     def saveToXML(self, filename):
         self.psychopyVersion = psychopy.__version__  # make sure is current
         # create the dom object
-        self.xmlRoot = self.xml
+        self.xmlRoot = self._xml
         # convert to a pretty string
         # update our document to use the new root
         self._doc._setroot(self.xmlRoot)
@@ -452,7 +458,7 @@ class Experiment:
             elif val[0] == '$':
                 newVal = val[1:]  # they were using code (which we can reuse)
             elif val.startswith('[') and val.endswith(']'):
-                # they were using code (slightly incorectly!)
+                # they were using code (slightly incorrectly!)
                 newVal = val[1:-1]
             elif val in ['return', 'space', 'left', 'right', 'escape']:
                 newVal = val  # they were using code
@@ -546,15 +552,15 @@ class Experiment:
                 else:
                     # we found an unknown parameter (probably from the future)
                     params[name] = Param(
-                        val, valType=paramNode.get('valType'),
+                        val, valType=paramNode.get('valType'), inputType="inv",
                         allowedTypes=[], label=_translate(name),
                         hint=_translate(
                             "This parameter is not known by this version "
-                            "of PsychoPy. It might be worth upgrading"))
+                            "of PsychoPy. It might be worth upgrading, otherwise "
+                            "press the X button to remove this parameter."))
                     params[name].allowedTypes = paramNode.get('allowedTypes')
                     if params[name].allowedTypes is None:
                         params[name].allowedTypes = []
-                    params[name].readOnly = True
                     if name not in legacyParams + ['JS libs', 'OSF Project ID']:
                         # don't warn people if we know it's OK (e.g. for params
                         # that have been removed
@@ -656,7 +662,7 @@ class Experiment:
                     # the builder and change the default behavior
                     # (currently only the new behavior of choices for RatingScale,
                     # HS, November 2012)
-                    # HS's modification superceded Jan 2014, removing several
+                    # HS's modification superseded Jan 2014, removing several
                     # RatingScale options
                     if componentType == 'RatingScaleComponent':
                         if (componentNode.get('choiceLabelsAboveLine') or
@@ -710,10 +716,16 @@ class Experiment:
                                    "exists")
                             logging.warning(msg % (thisParamName, static))
                         else:
+                            thisRoutine = \
+                                self.routines[routine].getComponentFromName(
+                                    static)
+                            if thisRoutine is None:
+                                continue
                             self.routines[routine].getComponentFromName(
                                 static).addComponentUpdate(
                                 thisRoutine.params['name'],
                                 thisComp.params['name'], thisParamName)
+
         # fetch flow settings
         flowNode = root.find('Flow')
         loops = {}
@@ -819,7 +831,7 @@ class Experiment:
                 return comp
         return None
 
-    def getComponentFromType(self, type):
+    def getComponentFromType(self, thisType):
         """Searches all the Routines in the Experiment for a matching component type
 
         :param name: str type of a component e.g., 'KeyBoard'
@@ -827,6 +839,7 @@ class Experiment:
         """
         for routine in self.routines.values():
             exists = routine.getComponentFromType(type)
+            exists = routine.getComponentFromType(thisType)
             if exists:
                 return True
         return False

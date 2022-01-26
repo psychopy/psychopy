@@ -89,5 +89,3 @@ class TestKeyboard():
 
         self.keyboard.reporting = True
         assert self.keyboard.isReportingEvents() is True
-
-

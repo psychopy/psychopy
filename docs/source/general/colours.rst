@@ -33,7 +33,7 @@ These are not case sensitive, but should not include any spaces.
 
 Colors by hex value
 --------------------
-This is really just another way of specifying the r,g,b values of a color, where each gun's value is given by two hexadecimal characters. For some examples see `this chart <http://html-color-codes.com/>`_. To use these in PsychoPy they should be formatted as a string, beginning with `#` and with no spaces. (NB on a British Mac keyboard the # key is hidden - you need to press Alt-3)
+This is really just another way of specifying the r,g,b values of a color, where each gun's value is given by two hexadecimal characters. For some examples see `this chart <https://html-color-codes.com/>`_. To use these in PsychoPy they should be formatted as a string, beginning with `#` and with no spaces. (NB on a British Mac keyboard the # key is hidden - you need to press Alt-3)
 
 .. _RGB:
 
@@ -60,7 +60,7 @@ Note that PsychoPy will use your monitor calibration to linearize this for each 
 HSV color space
 ------------------
 
-Another way to specify colors is in terms of their Hue, Saturation and 'Value' (HSV). For a description of the color space see the `Wikipedia HSV entry <http://en.wikipedia.org/wiki/HSL_and_HSV>`_. The Hue in this case is specified in degrees, the saturation ranging 0:1 and the 'value' also ranging 0:1.
+Another way to specify colors is in terms of their Hue, Saturation and 'Value' (HSV). For a description of the color space see the `Wikipedia HSV entry <https://en.wikipedia.org/wiki/HSL_and_HSV>`_. The Hue in this case is specified in degrees, the saturation ranging 0:1 and the 'value' also ranging 0:1.
 
 Examples:
 
@@ -85,7 +85,7 @@ In the Derrington, Krauskopf and Lennie [#dkl1984]_ color space (based on the Ma
 
 In PsychoPy these values are specified in units of degrees for elevation and azimuth and as a float (ranging -1:1) for the contrast.
 
-Note that not all colors that can be specified in DKL color space can be reproduced on a monitor. `Here <http://youtu.be/xwoVrGoBaWg>`_ is a movie plotting in DKL space (showing `cartesian` coordinates, not spherical coordinates) the gamut of colors available on an example CRT monitor.
+Note that not all colors that can be specified in DKL color space can be reproduced on a monitor. `Here <https://youtu.be/xwoVrGoBaWg>`_ is a movie plotting in DKL space (showing `cartesian` coordinates, not spherical coordinates) the gamut of colors available on an example CRT monitor.
 
 Examples:
 

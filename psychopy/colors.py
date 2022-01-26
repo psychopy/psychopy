@@ -259,6 +259,9 @@ class Color:
             color = np.reshape(color, (1, -1))
         # If data type is string, check against named and hex as these override other spaces
         if color.dtype.char == 'U':
+            # Remove superfluous quotes
+            for i in range((len(color[:, 0]))):
+                color[i, 0] = color[i, 0].replace("\"", "").replace("'", "")
             # If colors are all named, override color space
             namedMatch = np.vectorize(
                 lambda col: bool(colorSpaces['named'].fullmatch(
@@ -430,6 +433,12 @@ class Color:
 
     def copy(self):
         """Return a duplicate of this colour"""
+        return self.__copy__()
+
+    def __copy__(self):
+        return self.__deepcopy__()
+
+    def __deepcopy__(self):
         dupe = self.__class__(
             self._requested, self._requestedSpace, self.contrast)
         dupe.rgba = self.rgba

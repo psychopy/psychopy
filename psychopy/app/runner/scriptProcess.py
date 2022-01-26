@@ -17,7 +17,6 @@ __all__ = ['ScriptProcess']
 import sys
 import psychopy.app.jobs as jobs
 from wx import BeginBusyCursor, EndBusyCursor
-from psychopy.app.console import StdStreamDispatcher
 
 
 class ScriptProcess:
@@ -91,7 +90,7 @@ class ScriptProcess:
 
         # if we have a runner frame, write to the output text box
         if hasattr(self.app, 'runner'):
-            stdOut = StdStreamDispatcher.getInstance()
+            stdOut = self.app.runner.stdOut
             stdOut.lenLastRun = len(self.app.runner.stdOut.getText())
         else:
             # if not, just write to the standard output pipe
@@ -117,12 +116,12 @@ class ScriptProcess:
 
         # create a new job with the user script
         self.scriptProcess = jobs.Job(
+            self.app,
             command=command,
             flags=execFlags,
             inputCallback=self._onInputCallback,  # both treated the same
             errorCallback=self._onErrorCallback,
-            terminateCallback=self._onTerminateCallback,
-            pollMillis=120  # check input/error pipes every 120 ms
+            terminateCallback=self._onTerminateCallback
         )
 
         BeginBusyCursor()  # visual feedback
@@ -173,11 +172,7 @@ class ScriptProcess:
         # not available we just write to `sys.stdout`.
         if hasattr(self.app, 'runner'):
             # get any remaining data on the pipes
-            stdOut = StdStreamDispatcher.getInstance()
-            # backup if we don't have an instance for some reason
-            if stdOut is None:
-                stdOut = self.app.runner.stdOut
-
+            stdOut = self.app.runner.stdOut
             self.app.runner.Show()
         else:
             stdOut = sys.stdout
@@ -240,17 +235,10 @@ class ScriptProcess:
             Program exit code.
 
         """
-        # get remaining data from pipes if available
-        if self.scriptProcess.isInputAvailable:
-            self._writeOutput(self.scriptProcess.getInputData())
-        if self.scriptProcess.isErrorAvailable:
-            self._writeOutput(self.scriptProcess.getErrorData())
-
         # write a close message, shows the exit code
         closeMsg = \
-            " Experiment ended with exit code {} [pid:{}] ".format(
+            "##### Experiment ended with exit code {} [pid:{}] #####\n".format(
                 exitCode, pid)
-        closeMsg = closeMsg.center(80, '#')
         self._writeOutput(closeMsg)
 
         self.scriptProcess = None  # reset

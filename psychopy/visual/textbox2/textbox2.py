@@ -16,7 +16,9 @@ some more added:
 
 """
 import numpy as np
+import arabic_reshaper
 from pyglet import gl
+from bidi import algorithm as bidi
 
 from ..basevisual import BaseVisualStim, ColorMixin, ContainerMixin, WindowMixin
 from psychopy.tools.attributetools import attributeSetter, setAttribute
@@ -56,7 +58,8 @@ debug = False
 # If text is ". " we don't want to start next line with single space?
 
 class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
-    def __init__(self, win, text, font,
+    def __init__(self, win, text,
+                 font="Open Sans",
                  pos=(0, 0), units=None, letterHeight=None,
                  size=None,
                  color=(1.0, 1.0, 1.0), colorSpace='rgb',
@@ -72,6 +75,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  alignment='left',
                  flipHoriz=False,
                  flipVert=False,
+                 languageStyle="LTR",
                  editable=False,
                  lineBreaking='default',
                  name='',
@@ -212,6 +216,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 "specified.".format(lineBreaking))
         self._lineBreaking = lineBreaking
         # then layout the text (setting text triggers _layout())
+        self.languageStyle = languageStyle
         self._text = ''
         self.text = self.startText = text if text is not None else ""
 
@@ -221,6 +226,31 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
 
         self.autoLog = autoLog
+
+    def __copy__(self):
+        return TextBox2(
+            self.win, self.text, self.font,
+            pos=self.pos, units=self.units, letterHeight=self.letterHeight,
+            size=self.size,
+            color=self.color, colorSpace=self.colorSpace,
+            fillColor=self.fillColor,
+            borderWidth=self.borderWidth, borderColor=self.borderColor,
+            contrast=self.contrast,
+            opacity=self.opacity,
+            bold=self.bold,
+            italic=self.italic,
+            lineSpacing=self.lineSpacing,
+            padding=self.padding,  # gap between box and text
+            anchor=self.anchor,
+            alignment=self.alignment,
+            flipHoriz=self.flipHoriz,
+            flipVert=self.flipVert,
+            editable=self.editable,
+            lineBreaking=self._lineBreaking,
+            name=self.name,
+            autoLog=self.autoLog,
+            onTextCallback=self.onTextCallback
+        )
 
     @property
     def editable(self):
@@ -235,10 +265,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if editable is True:
             if self.win:
                 self.win.addEditable(self)
-        
+
     @property
-    def pallette(self):
-        self._pallette = {
+    def palette(self):
+        self._palette = {
             False: {
                 'lineColor': self._borderColor,
                 'lineWidth': self.borderWidth,
@@ -250,11 +280,34 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 'fillColor': self._fillColor+0.1
             }
         }
-        return self._pallette[self.hasFocus]
+        return self._palette[self.hasFocus]
+
+    @property
+    def pallette(self):  # deprecated, use palette instead
+        self._palette = {
+            False: {
+                'lineColor': self._borderColor,
+                'lineWidth': self.borderWidth,
+                'fillColor': self._fillColor
+            },
+            True: {
+                'lineColor': self._borderColor-0.1,
+                'lineWidth': self.borderWidth+1,
+                'fillColor': self._fillColor+0.1
+            }
+        }
+        return self._palette[self.hasFocus]
+
+    @palette.setter
+    def pallette(self, value):
+        self._palette = {
+            False: value,
+            True: value
+        }
 
     @pallette.setter
-    def pallette(self, value):
-        self._pallette = {
+    def pallette(self, value):  # deprecated, use palette instead
+        self._palette = {
             False: value,
             True: value
         }
@@ -346,6 +399,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if hasattr(self, "caret"):
             self.caret.index = self.caret.index
 
+        if hasattr(self, "_text"):
+            self._layout()
         self._needVertexUpdate = True
 
     @property
@@ -430,6 +485,21 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             raise TypeError(f"Could not set font manager for TextBox2 object `{self.name}`, must be supplied with a FontManager object")
 
     @property
+    def languageStyle(self):
+        """
+        How is text laid out? Left to right (LTR), right to left (RTL) or using Arabic layout rules?
+        """
+        if hasattr(self, "_languageStyle"):
+            return self._languageStyle
+
+    @languageStyle.setter
+    def languageStyle(self, value):
+        self._languageStyle = value
+        # If layout is anything other than LTR, mark that we need to use bidi to lay it out
+        self._needsBidi = value != "LTR"
+        self._needsArabic = value.lower == "arabic"
+
+    @property
     def anchor(self):
         return self.box.anchor
 
@@ -503,6 +573,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         visible_text = ''.join([c for c in text if c not in codes.values()])
         self._styles = [0,]*len(visible_text)
         self._text = visible_text
+        if self._needsArabic:
+            self._text = arabic_reshaper.reshape(self._text)
+        if self._needsBidi:
+            self._text = bidi.get_display(self._text)
         
         current_style=0
         ci = 0
@@ -599,7 +673,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     fakeBold = 0.0
                 elif self._styles[i] == ITALIC:
                     fakeItalic = 0.1 * font.size
-                elif self._styles[i] == ITALIC:
+                elif self._styles[i] == BOLD:
                     fakeBold = 0.3 * font.size
 
                 # handle newline
@@ -893,14 +967,19 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def draw(self):
         """Draw the text to the back buffer"""
         # Border width
-        self.box.setLineWidth(self.pallette['lineWidth']) # Use 1 as base if border width is none
+        self.box.setLineWidth(self.palette['lineWidth']) # Use 1 as base if border width is none
         #self.borderWidth = self.box.lineWidth
         # Border colour
-        self.box.setLineColor(self.pallette['lineColor'], colorSpace='rgb')
+        self.box.setLineColor(self.palette['lineColor'], colorSpace='rgb')
         #self.borderColor = self.box.lineColor
         # Background
-        self.box.setFillColor(self.pallette['fillColor'], colorSpace='rgb')
+        self.box.setFillColor(self.palette['fillColor'], colorSpace='rgb')
         #self.fillColor = self.box.fillColor
+
+        # Inherit win
+        self.box.win = self.win
+        self.contentBox.win = self.win
+        self.boundingBox.win = self.win
 
         if self._needVertexUpdate:
             #print("Updating vertices...")
@@ -1113,7 +1192,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         return False
 
     def getText(self):
-        """Returns the current text in the box, including formating tokens."""
+        """Returns the current text in the box, including formatting tokens."""
         return self.text
 
     @property

@@ -5,7 +5,7 @@ _anacondaTesting = bool("{}".format(os.environ.get('CONDA')).lower() == 'true')
 _githubActions = str(os.environ.get('GITHUB_WORKFLOW')) != 'None'
 _vmTesting = _travisTesting or _githubActions
 
-# fro skip_under we need pytest but we don't want that to be a requirement for normal use
+# for skip_under we need pytest but we don't want that to be a requirement for normal use
 try:
     import pytest
     # some pytest decorators for those conditions

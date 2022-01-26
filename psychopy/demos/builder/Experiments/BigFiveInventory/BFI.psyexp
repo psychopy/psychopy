@@ -85,7 +85,7 @@
         <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
       </FormComponent>
       <ButtonComponent name="contBtn1">
-        <Param val="center" valType="str" updates="constant" name="anchor"/>
+        <Param val="bottom-right" valType="str" updates="constant" name="anchor"/>
         <Param val="True" valType="bool" updates="constant" name="bold"/>
         <Param val="None" valType="color" updates="constant" name="borderColor"/>
         <Param val="0" valType="num" updates="constant" name="borderWidth"/>
@@ -151,7 +151,7 @@
         <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
       </FormComponent>
       <ButtonComponent name="contBtn2">
-        <Param val="center" valType="str" updates="constant" name="anchor"/>
+        <Param val="bottom-right" valType="str" updates="constant" name="anchor"/>
         <Param val="True" valType="bool" updates="constant" name="bold"/>
         <Param val="None" valType="color" updates="constant" name="borderColor"/>
         <Param val="0" valType="num" updates="constant" name="borderWidth"/>
