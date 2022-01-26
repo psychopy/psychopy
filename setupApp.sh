@@ -8,6 +8,9 @@ read -p "Version (def=$defVersion):" version
 version=${version:-$defVersion}
 echo "Building $version"
 
+echo "UNLOCKING KEYCHAIN"
+security unlock-keychain
+
 rm -r build
 sudo rm -r dist/PsychoPy*.app #the previous version
 sudo rm -r ../dist/PsychoPy*.app  # the previous version in outer location
