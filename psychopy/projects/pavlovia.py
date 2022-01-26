@@ -532,7 +532,8 @@ class PavloviaProject(dict):
     def __init__(self, id, localRoot=None):
         if not isinstance(id, int):
             # If given a dict from Pavlovia rather than an ID, store it rather than requesting again
-            self.info = dict(id)
+            self._info = dict(id)
+            self.id = self._info['id']
         else:
             # If given an ID, store this ready to fetch info when needed
             self.id = id
@@ -729,10 +730,13 @@ class PavloviaProject(dict):
         # Error catch local root
         if not self.localRoot:
             raise gitlab.GitlabGetError("Can't sync project without a local root.")
+        # Reset local repo so it checks again (rather than erroring if it's been deleted without an app restart)
+        self._repo = None
         # Jot down start time
         t0 = time.time()
         # If first commit, do initial push
         if not bool(self['default_branch']):
+            self.newRepo(infoStream=infoStream)
             self.firstPush(infoStream=infoStream)
         # Pull and push
         self.pull(infoStream)
@@ -832,19 +836,7 @@ class PavloviaProject(dict):
         gitRoot = getGitRoot(self.localRoot)
 
         if gitRoot is None:
-            # If there's no git root, make one
-            if not any(pathlib.Path(self.localRoot).iterdir()):
-                # If folder is empty, set as None so that remote is cloned
-                self._repo = None
-            else:
-                # If there's any files, make a new repo to sync
-                self._repo = git.Repo.init(self.localRoot)
-                self.configGitLocal()
-                self.repo.create_remote('origin', url=self.project.http_url_to_repo)
-                self.repo.git.checkout(b="master")
-                self.writeGitIgnore()
-                self.stageFiles(['.gitignore'])
-                self.commit('Create repository (including .gitignore)')
+            self.newRepo()
         elif gitRoot not in [self.localRoot, str(pathlib.Path(self.localRoot).absolute())]:
             # this indicates that the requested root is inside another repo
             raise AttributeError("The requested local path for project\n\t{}\n"
@@ -905,13 +897,12 @@ class PavloviaProject(dict):
                     bareRemote = True
                 else:
                     bareRemote = False
-
         # if remote is new (or existed but is bare) then init and push
         if localFiles and (self._newRemote or bareRemote):  # existing folder
             repo = git.Repo.init(self.localRoot)
             self.configGitLocal()  # sets user.email and user.name
             # add origin remote and master branch (but no push)
-            self.repo.create_remote('origin', url=self['remoteHTTPS'])
+            self.repo.create_remote('origin', url=self.project.http_url_to_repo)
             self.repo.git.checkout(b="master")
             self.writeGitIgnore()
             self.stageFiles(['.gitignore'])
@@ -919,7 +910,7 @@ class PavloviaProject(dict):
             self._newRemote = True
         else:
             # no files locally so safe to try and clone from remote
-            self.cloneRepo(infoStream=infoStream)
+            repo = self.cloneRepo(infoStream=infoStream)
             # TODO: add the further case where there are remote AND local files!
 
         return repo
@@ -967,6 +958,8 @@ class PavloviaProject(dict):
 
         self._lastKnownSync = time.time()
         self._newRemote = False
+
+        return self.repo
 
     def configGitLocal(self):
         """Set the local repo to have the correct name and email for user
@@ -1213,7 +1206,12 @@ def getProject(filename):
     session = getCurrentSession()
     # If already found, return
     if (knownProjects is not None) and (path in knownProjects) and ('idNumber' in knownProjects[path]):
-        return PavloviaProject(knownProjects[path]['idNumber'])
+        try:
+            return PavloviaProject(knownProjects[path]['idNumber'])
+        except LookupError as err:
+            # If project not found, print warning and return None
+            logging.warn(str(err))
+            return None
     elif gitRoot:
         # Existing repo but not in our knownProjects. Investigate
         logging.info("Investigating repo at {}".format(gitRoot))
