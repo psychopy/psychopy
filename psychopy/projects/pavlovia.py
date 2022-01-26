@@ -488,7 +488,7 @@ class PavloviaSearch(pandas.DataFrame):
                 # If search is blank, request demos
                 reqStr = "https://pavlovia.org/api/v2/designers/5/experiments"
             # Send request
-            data = requests.get(reqStr, timeout=2, headers={'OauthToken': session.getToken()}).json()
+            data = requests.get(reqStr, timeout=5, headers={'OauthToken': session.getToken()}).json()
         except requests.exceptions.ReadTimeout:
             msg = "Could not connect to Pavlovia server. Please check that you are connected to the internet. If you are connected, then the Pavlovia servers may be down. You can check their status here: https://pavlovia.org/status"
             raise ConnectionError(msg)
@@ -547,7 +547,10 @@ class PavloviaProject(dict):
                 received = requests.get(reqStr, headers={'OauthToken': self.session.getToken()}).json()
                 self.info = received['experiment']
             if self.info is None:
-                raise LookupError(f"Could not find project with id `{id}` on Pavlovia")
+                raise LookupError(_translate(
+                    f"Could not find project with id `{id}` on Pavlovia, server returned the following message:\n"
+                    f"{received['message']}"
+                ))
         self._newRemote = False  # False can also indicate 'unknown'
         # Store own id
         self.id = int(self.info['gitlabId'])
@@ -718,6 +721,7 @@ class PavloviaProject(dict):
         t0 = time.time()
         # If first commit, do initial push
         if not bool(self['default_branch']):
+            self.newRepo(infoStream=infoStream)
             self.firstPush(infoStream=infoStream)
         # Pull and push
         self.pull(infoStream)
@@ -878,13 +882,12 @@ class PavloviaProject(dict):
                     bareRemote = True
                 else:
                     bareRemote = False
-
         # if remote is new (or existed but is bare) then init and push
         if localFiles and (self._newRemote or bareRemote):  # existing folder
             repo = git.Repo.init(self.localRoot)
             self.configGitLocal()  # sets user.email and user.name
             # add origin remote and master branch (but no push)
-            self.repo.create_remote('origin', url=self.project.remoteHTTPS)
+            self.repo.create_remote('origin', url=self.project.http_url_to_repo)
             self.repo.git.checkout(b="master")
             self.writeGitIgnore()
             self.stageFiles(['.gitignore'])
