@@ -443,6 +443,15 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         if not self.prefs.app['debugMode']:
             logging.console.setLevel(logging.INFO)
 
+        # if we're on linux, check if we have the permissions file setup
+        from psychopy.app.linuxconfig import (
+            LinuxConfigDialog, linuxConfigFileExists)
+
+        if not linuxConfigFileExists():
+            linuxConfDlg = LinuxConfigDialog(None)
+            linuxConfDlg.ShowModal()
+            linuxConfDlg.Destroy()
+
         return True
 
     @property
