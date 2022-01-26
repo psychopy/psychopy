@@ -236,12 +236,6 @@ class PavloviaSession:
     def currentProject(self, value):
         self._currentProject = PavloviaProject(value)
 
-    def getOauthSuffix(self, prefix=""):
-        if self.getToken():
-            return f"{prefix}oauthToken={self.getToken()}"
-        else:
-            return ""
-
     def createProject(self, name, description="", tags=(), visibility='public',
                       localRoot='', namespace=''):
         """Returns a PavloviaProject object (derived from a gitlab.project)
@@ -278,10 +272,8 @@ class PavloviaSession:
             if namespaceRaw:
                 projDict['namespace_id'] = namespaceRaw.id
             else:
-                raise ValueError(
-                    f"PavloviaSession.createProject was given a namespace ({namespace}) that couldn't be found "
-                    f"on gitlab."
-                )
+                raise ValueError("PavloviaSession.createProject was given a "
+                                 "namespace that couldn't be found on gitlab.")
         # Create project on GitLab
         try:
             gitlabProj = self.gitlab.projects.create(projDict)
@@ -394,9 +386,9 @@ class PavloviaSession:
                         "than expected length ({} not 64) for gitlab token"
                             .format(repr(token), len(token)))
             if parse_version(gitlab.__version__) > parse_version("1.4"):
-                self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=3, per_page=100)
+                self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=10, per_page=100)
             else:
-                self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=3)
+                self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=10)
             self.gitlab.auth()
             self.username = self.gitlab.user.username
             self.userID = self.gitlab.user.id  # populate when token property is set
@@ -404,9 +396,9 @@ class PavloviaSession:
             self.authenticated = True
         else:
             if parse_version(gitlab.__version__) > parse_version("1.4"):
-                self.gitlab = gitlab.Gitlab(rootURL, timeout=3, per_page=100)
+                self.gitlab = gitlab.Gitlab(rootURL, timeout=10, per_page=100)
             else:
-                self.gitlab = gitlab.Gitlab(rootURL, timeout=3)
+                self.gitlab = gitlab.Gitlab(rootURL, timeout=10)
 
     @property
     def user(self):
@@ -442,7 +434,7 @@ class PavloviaSearch(pandas.DataFrame):
             "Status": "status",
             "Platform": "platform",
             "Visibility": "visibility",
-            "Keywords": "keywords",
+            "Tags": "tags",
         }
 
         def __str__(self):
@@ -471,29 +463,32 @@ class PavloviaSearch(pandas.DataFrame):
             return any(self.values())
 
     def __init__(self, term, sortBy=None, filterBy=None, mine=False):
-        session = getCurrentSession()
         # Replace default filter
         if filterBy is None:
             filterBy = {}
         # Ensure filter is a FilterTerm
         filterBy = self.FilterTerm(filterBy)
-        # Search base
-        mineStr = f"designers/{session.user.id}/" if mine else ""
         # Do search
         try:
             if term or filterBy or mine:
-                # If there's a search, filter or me mode, construct a search url
-                reqStr = f"https://pavlovia.org/api/v2/{mineStr}experiments?search={term}{filterBy}"
+                data = requests.get(f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}",
+                                    timeout=2).json()
             else:
-                # If search is blank, request demos
-                reqStr = "https://pavlovia.org/api/v2/designers/5/experiments"
-            # Send request
-            data = requests.get(reqStr, timeout=5, headers={'OauthToken': session.getToken()}).json()
+                # Display demos for blank search
+                data = requests.get("https://pavlovia.org/api/v2/designers/5/experiments",
+                                    timeout=5).json()
         except requests.exceptions.ReadTimeout:
             msg = "Could not connect to Pavlovia server. Please check that you are connected to the internet. If you are connected, then the Pavlovia servers may be down. You can check their status here: https://pavlovia.org/status"
             raise ConnectionError(msg)
         # Construct dataframe
         pandas.DataFrame.__init__(self, data=data['experiments'])
+        # Apply me mode
+        if mine:
+            session = getCurrentSession()
+            self.drop(self.loc[
+                          # self['creatorId'] != session.userID  # Created by me
+                          (self['userIds'].explode() != session.userID).groupby(level=0).any()  # Editable by me
+                      ].index, inplace=True)
         # Do any requested sorting
         if sortBy is not None:
             self.sort_values(sortBy)
@@ -537,30 +532,11 @@ class PavloviaProject(dict):
     def __init__(self, id, localRoot=None):
         if not isinstance(id, int):
             # If given a dict from Pavlovia rather than an ID, store it rather than requesting again
-            self.info = dict(id)
+            self._info = dict(id)
+            self.id = self._info['id']
         else:
-            # If given an ID, get Pavlovia info (for just created projects this can take a while, so allow 2s leeway)
-            start = time.time()
-            self.info = None
-            while self.info is None and time.time() - start < 5:
-                reqStr = f"https://pavlovia.org/api/v2/experiments/{id}"
-                received = requests.get(reqStr, headers={'OauthToken': self.session.getToken()}).json()
-                self.info = received['experiment']
-            if self.info is None:
-                raise LookupError(_translate(
-                    f"Could not find project with id `{id}` on Pavlovia, server returned the following message:\n"
-                    f"{received['message']}"
-                ))
-        self._newRemote = False  # False can also indicate 'unknown'
-        # Store own id
-        self.id = int(self.info['gitlabId'])
-        # Init dict
-        dict.__init__(self, self.project.attributes)
-        # Convert datetime
-        dtRegex = re.compile("\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d(.\d\d\d)?")
-        for key in self.info:
-            if dtRegex.match(str(self.info[key])):
-                self.info[key] = pandas.to_datetime(self.info[key], format="%Y-%m-%d %H:%M:%S.%f")
+            # If given an ID, store this ready to fetch info when needed
+            self.id = id
         # Set local root
         if localRoot is not None:
             self.localRoot = localRoot
@@ -582,14 +558,39 @@ class PavloviaProject(dict):
         dict.__setitem__(self, key, value)
         self.project.__setattr__(key, value)
 
+    @property
+    def info(self):
+        """
+        Returns the info about the project from Pavlovia API. This may have a delay after
+        changes to the GitLab API calls, as the info filters through so use with caution.
+
+        This can be updated with self.refresh()
+        """
+        if not self._info:
+            self.refresh()
+        return self._info
+
     def refresh(self):
+        """
+        Update the info about the project from Pavlovia API. This may have a delay after
+        changes to the GitLab API calls, as the info filters through so use with caution.
+        """
         # Update Pavlovia info
-        self.info = requests.get(f"https://pavlovia.org/api/v2/experiments/{self.id}{self.session.getOauthSuffix('?')}").json()['experiment']
+        start = time.time()
+        self._info = None
+        # for a new project it may take time for Pavlovia to register the new ID so try for a while
+        while self._info is None and (time.time() - start) < 30:
+            requestVal = requests.get("https://pavlovia.org/api/v2/experiments/" + str(self.id)).json()
+            self._info = requestVal['experiment']
+        if self._info is None:
+            raise ValueError(f"Could not find project with id `{self.id}` on Pavlovia: {requestVal}")
+        # Store own id
+        dict.__init__(self, self.project.attributes)
         # Convert datetime
         dtRegex = re.compile("\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d(.\d\d\d)?")
-        for key in self.info:
+        for key in self._info:
             if dtRegex.match(str(self.info[key])):
-                self.info[key] = pandas.to_datetime(self.info[key], format="%Y-%m-%d %H:%M:%S.%f")
+                self._info[key] = pandas.to_datetime(self._info[key], format="%Y-%m-%d %H:%M:%S.%f")
         # Update base dict
         self.update(self.project.attributes)
 
@@ -612,7 +613,7 @@ class PavloviaProject(dict):
             self._project = self.session.gitlab.projects.get(self.id)
             return self._project
         except gitlab.exceptions.GitlabGetError as e:
-            raise LookupError(f"Could not find GitLab project with id {self.id}.")
+            raise KeyError(f"Could not find GitLab project with id {self.id}.")
 
     @property
     def editable(self):
@@ -674,7 +675,21 @@ class PavloviaProject(dict):
         else:
             self.project.unstar()
         # Get info from Pavlovia again, as star count will have changed
-        self.info = requests.get("https://pavlovia.org/api/v2/experiments/" + str(self.id)).json()['experiment']
+        self.refresh()
+
+    @property
+    def remoteHTTPS(self):
+        """
+        The URL for the https access to thr git repo
+        """
+        return self.project.http_url_to_repo
+
+    @property
+    def remoteSSH(self):
+        """
+        The URL for the ssh access to the git repo
+        """
+        return self.project.ssh_url_to_repo
 
     @property
     def localRoot(self):
@@ -1173,6 +1188,7 @@ def getNameWithNamespace(p):
         return path
     else:
         return None
+
 
 
 def getProject(filename):
