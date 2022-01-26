@@ -718,6 +718,7 @@ class PavloviaProject(dict):
         t0 = time.time()
         # If first commit, do initial push
         if not bool(self['default_branch']):
+            self.newRepo(infoStream=infoStream)
             self.firstPush(infoStream=infoStream)
         # Pull and push
         self.pull(infoStream)
@@ -878,13 +879,12 @@ class PavloviaProject(dict):
                     bareRemote = True
                 else:
                     bareRemote = False
-
         # if remote is new (or existed but is bare) then init and push
         if localFiles and (self._newRemote or bareRemote):  # existing folder
             repo = git.Repo.init(self.localRoot)
             self.configGitLocal()  # sets user.email and user.name
             # add origin remote and master branch (but no push)
-            self.repo.create_remote('origin', url=self.project.remoteHTTPS)
+            self.repo.create_remote('origin', url=self.project.http_url_to_repo)
             self.repo.git.checkout(b="master")
             self.writeGitIgnore()
             self.stageFiles(['.gitignore'])
