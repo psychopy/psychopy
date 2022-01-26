@@ -77,6 +77,56 @@ class StaticComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
         self.writeStopTestCode(buff)
 
+    def writeFrameCodeJS(self, buff):
+        # Start test
+        self.writeStartTestCodeJS(buff)
+        self.writeParamUpdates(buff, target="PsychoJS")
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines("}\n")
+
+        # Stop test, with stop actions
+        self.writeStopTestCodeJS(buff)
+        for update in self.updatesList:
+
+            # Get params for update
+            compName = update['compName']
+            fieldName = update['fieldName']
+            # routine = self.exp.routines[update['routine']]
+            if hasattr(compName, 'params'):
+                prms = compName.params  # it's already a compon so get params
+            else:
+                # it's a name so get compon and then get params
+                prms = self.exp.getComponentFromName(str(compName)).params
+            if prms[fieldName].valType == "file":
+                # Check resource manager status
+                code = (
+                    f"if (psychoJS.serverManager.getResourceStatus(%({fieldName})s) === core.ServerManager.ResourceStatus.DOWNLOADED) {{\n"
+                )
+                buff.writeIndentedLines(code % prms)
+                # Print confirmation
+                buff.setIndentLevel(+1, relative=True)
+                code = (
+                    "console.log('finished downloading resources specified by component %(name)s');\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+                # else...
+                buff.setIndentLevel(-1, relative=True)
+                code = (
+                    "} else {\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+                # Print warning if not downloaded
+                buff.setIndentLevel(+1, relative=True)
+                code = (
+                    "console.log('resource specified in %(name)s took longer than expected to download');\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+                buff.setIndentLevel(-1, relative=True)
+                buff.writeIndentedLines("}\n")
+        # Escape stop code indent
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines("}\n")
+
     def writeStartTestCode(self, buff):
         """This will be executed as the final component in the routine
         """
@@ -155,33 +205,13 @@ class StaticComponent(BaseComponent):
                     # it's a name so get compon and then get params
                     prms = self.exp.getComponentFromName(str(compName)).params
                 # If in JS, prepare resources
-                if target == "PsychoJS":
+                if target == "PsychoJS" and prms[fieldName].valType == "file":
                     # Do resource manager stuff
                     code = (
-                        "console.log('register and start downloading resources specified by component %(name)s');\n"
-                        "psychoJS.serverManager.prepareResources(%(resources)s);\n"
-                        "if (psychoJS.serverManager.getResourceStatus(%(resources)s) === core.ServerManager.ResourceStatus.DOWNLOADED) {\n"
+                        f"console.log('register and start downloading resources specified by component %(name)s');\n"
+                        f"psychoJS.serverManager.prepareResources(%({fieldName})s);\n"
                     )
-                    buff.writeIndentedLines(code % self.params)
-                    # Print confirmation
-                    buff.setIndentLevel(+1, relative=True)
-                    code = (
-                            "console.log('finished downloading resources specified by component %(name)s');\n"
-                    )
-                    buff.writeIndentedLines(code % self.params)
-                    # Print warning if it took too long
-                    code = (
-                            "// If download took too long, print a warning\n"
-                            "if (t >= ({params['name']}.tStart + {params['stopVal']})) {\n"
-                    )
-                    buff.writeIndentedLines(code % self.params)
-                    buff.setIndentLevel(+1, relative=True)
-                    code = (
-                                "console.log('resource specified in %(name)s took longer than expected to download');\n"
-                    )
-                    buff.writeIndentedLines(code % self.params)
-                    buff.setIndentLevel(-1, relative=True)
-
+                    buff.writeIndentedLines(code % prms)
                 # Set values
                 self.writeParamUpdate(buff, compName=compName,
                                       paramName=fieldName,
@@ -190,7 +220,6 @@ class StaticComponent(BaseComponent):
                                       params=prms)
             # Comment to mark end of updates
             if target == "PsychoJS":
-                buff.setIndentLevel(-1, relative=True)  # have one extra if statement to escape in JS
                 code = "// Component updates done\n"
             else:
                 code = "# Component updates done\n"
