@@ -488,7 +488,7 @@ class PavloviaSearch(pandas.DataFrame):
                 # If search is blank, request demos
                 reqStr = "https://pavlovia.org/api/v2/designers/5/experiments"
             # Send request
-            data = requests.get(reqStr, timeout=2, headers={'OauthToken': session.getToken()}).json()
+            data = requests.get(reqStr, timeout=5, headers={'OauthToken': session.getToken()}).json()
         except requests.exceptions.ReadTimeout:
             msg = "Could not connect to Pavlovia server. Please check that you are connected to the internet. If you are connected, then the Pavlovia servers may be down. You can check their status here: https://pavlovia.org/status"
             raise ConnectionError(msg)
