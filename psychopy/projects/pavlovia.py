@@ -547,7 +547,10 @@ class PavloviaProject(dict):
                 received = requests.get(reqStr, headers={'OauthToken': self.session.getToken()}).json()
                 self.info = received['experiment']
             if self.info is None:
-                raise LookupError(f"Could not find project with id `{id}` on Pavlovia")
+                raise LookupError(_translate(
+                    f"Could not find project with id `{id}` on Pavlovia, server returned the following message:\n"
+                    f"{received['message']}"
+                ))
         self._newRemote = False  # False can also indicate 'unknown'
         # Store own id
         self.id = int(self.info['gitlabId'])
