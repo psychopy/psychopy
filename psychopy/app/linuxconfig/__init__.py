@@ -57,9 +57,13 @@ class LinuxConfigDialog(BaseLinuxConfigDialog):
     ----------
     parent : wx.Window or None
         Dialog parent.
+    timeout : int or None
+        Milliseconds to keep the dialog open. Setting to `None` keeps the dialog
+        open. Specify a time if we're running in a test environment to prevent
+        the UI from locking up the test suite.
 
     """
-    def __init__(self, parent):
+    def __init__(self, parent, timeout=None):
         BaseLinuxConfigDialog.__init__(self, parent)
 
         # intro text which provides instructions for the user
@@ -73,6 +77,12 @@ class LinuxConfigDialog(BaseLinuxConfigDialog):
 
         # redo the layout
         self.DoLayoutAdaptation()
+
+        self.timeout = timeout
+
+        if self.timeout is not None:
+            timeout = wx.CallLater(self.timeout, self.Close)
+            timeout.Start()
 
     def OnOpenTerminal(self, event):
         event.Skip()
