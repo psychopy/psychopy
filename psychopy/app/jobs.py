@@ -67,6 +67,8 @@ KILL_ACCESS_DENIED = wx.KILL_ACCESS_DENIED
 KILL_NO_PROCESS = wx.KILL_NO_PROCESS
 KILL_ERROR = wx.KILL_ERROR
 
+PIPE_READER_POLL_INTERVAL = 0.025  # seconds
+
 
 class PipeReader(Thread):
     """Thread for reading standard stream pipes. This is used by the `Job` class
@@ -140,7 +142,7 @@ class PipeReader(Thread):
             # Put the thread to sleep for a bit, not sure if we need this since
             # this loop will block execution of this thread if there is nothing
             # to read.
-            time.sleep(0.05)
+            time.sleep(PIPE_READER_POLL_INTERVAL)
 
             # exit the loop
             if self._stopSignal.is_set():
