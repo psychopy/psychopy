@@ -129,7 +129,7 @@ class SettingsComponent:
                  tbModel="", tbLicenseFile="", tbSerialNo="", tbSampleRate=60,
                  plPupillometryOnly=False,
                  plSurfaceName="psychopy_iohub_surface",
-                 plGazeConfidenceThreshold=0.6,
+                 plConfidenceThreshold=0.6,
                  plPupilRemoteAddress="127.0.0.1",
                  plPupilRemotePort=50020,
                  plPupilRemoteTimeoutMs=1000,
@@ -370,7 +370,7 @@ class SettingsComponent:
                                 "elDataFiltering", "elTrackingMode", "elPupilMeasure", "elPupilAlgorithm",
                                 "elAddress"],
             "Tobii Technology": ["tbModel", "tbLicenseFile", "tbSerialNo", "tbSampleRate"],
-            "Pupil Labs": ["plPupillometryOnly", "plSurfaceName", "plGazeConfidenceThreshold",
+            "Pupil Labs": ["plPupillometryOnly", "plSurfaceName", "plConfidenceThreshold",
                            "plPupilRemoteAddress", "plPupilRemotePort", "plPupilRemoteTimeoutMs",
                            "plPupilCaptureRecordingEnabled", "plPupilCaptureRecordingLocation"],
         }
@@ -543,8 +543,8 @@ class SettingsComponent:
             hint=_translate("Name of the Pupil Capture surface"),
             label=_translate("Surface Name"), categ="Eyetracking"
         )
-        self.params['plGazeConfidenceThreshold'] = Param(
-            plGazeConfidenceThreshold, valType='num', inputType="single",
+        self.params['plConfidenceThreshold'] = Param(
+            plConfidenceThreshold, valType='num', inputType="single",
             hint=_translate("Gaze Confidence Threshold"),
             label=_translate("Gaze Confidence Threshold"), categ="Eyetracking"
         )
@@ -1159,7 +1159,7 @@ class SettingsComponent:
                 code = (
                     "'pupillometry_only': %(plPupillometryOnly)s,\n"
                     "'surface_name': %(plSurfaceName)s,\n"
-                    "'gaze_confidence_threshold': %(plGazeConfidenceThreshold)s,\n"
+                    "'gaze_confidence_threshold': %(plConfidenceThreshold)s,\n"
                 )
                 buff.writeIndentedLines(code % inits)
 

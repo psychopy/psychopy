@@ -62,4 +62,4 @@ eyetracker.hw.pupil_labs.pupil_core.EyeTracker:
         pupillometry_only: False
         # Only relevant if pupillometry_only is False
         surface_name: psychopy_iohub_surface
-        gaze_confidence_threshold: 0.6
+        confidence_threshold: 0.6
