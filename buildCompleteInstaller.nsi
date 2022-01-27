@@ -12,7 +12,6 @@
 !include "building\fileassoc.nsh"
 ; !include "Library.nsh"  ; for installing avbin
 !include LogicLib.nsh
-!include "building\strExplode.nsh"
 
 ; Allow choosing between multiuser and current user (no admin rights) installs
 !define MULTIUSER_EXECUTIONLEVEL Highest
@@ -72,7 +71,6 @@ OutFile "Standalone${PRODUCT_NAME}-${PRODUCT_VERSION}-${ARCH}.exe"
 
 ; We set InstallDir inside .onInit instead so it can be dynamic
 var InstalledPrevDir
-var MAJOR_VERSION
 
 ShowInstDetails show
 ShowUnInstDetails show
@@ -89,16 +87,9 @@ Function multiuser_pre_func
 FunctionEnd
 
 Function .onInit
-
   ; NB this function occurs BEFORE the MULTIUSER_PAGE_INSTALLMODE 
   ; so doesn't yet know whether we're single or multi-user
-  !insertmacro MULTIUSER_INIT
-  !insertmacro strExplode $0 "." ${PRODUCT_VERSION}  # explode the version number
-  Pop $1  # each part is stored on the stack so pop to vars $1 and V2
-  Pop $2
-  StrCpy $MAJOR_VERSION "$1.$2"
-
-  StrCpy $ICONS_GROUP "${PRODUCT_NAME}-$MAJOR_VERSION"
+  StrCpy $ICONS_GROUP "${PRODUCT_NAME}-${PRODUCT_VERSION}"
 FunctionEnd
 
 Function un.onInit
