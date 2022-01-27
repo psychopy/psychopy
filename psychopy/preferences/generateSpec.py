@@ -75,3 +75,6 @@ def generateSpec(baseSpec=None):
         f.write(winSpec)
 
     os.chdir(startPath)
+
+if __name__ == "__main__":
+    generateSpec()

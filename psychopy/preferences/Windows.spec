@@ -68,7 +68,7 @@
     # Show an error dialog when PsychoPy encounters an unhandled internal error.
     errorDialog = boolean(default='True')
     # Theme
-    theme = string(default='PsychopyDark')
+    theme = string(default='PsychopyLight')
 
 # Settings for the Coder window
 [coder]

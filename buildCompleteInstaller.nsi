@@ -67,7 +67,7 @@ var ICONS_GROUP
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION} ${ARCH}"
-OutFile ".\dist\Standalone${PRODUCT_NAME}-${PRODUCT_VERSION}-${ARCH}.exe"
+OutFile "Standalone${PRODUCT_NAME}-${PRODUCT_VERSION}-${ARCH}.exe"
 
 ; We set InstallDir inside .onInit instead so it can be dynamic
 var InstalledPrevDir
@@ -104,7 +104,7 @@ Section "PsychoPy" SEC01
   SectionIn RO
   SetOutPath "$INSTDIR"
   SetOverwrite on
-  DetailPrint "Target is $INSTDIR"
+  ; DetailPrint "Target is $INSTDIR"
 
   ;if previous version (PsychoPy) installed then remove
   ReadRegStr $InstalledPrevDir SHELL_CONTEXT "${PRODUCT_UNINST_KEY}" "UninstallDir"
