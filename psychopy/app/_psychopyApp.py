@@ -220,10 +220,20 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             profile.dump_stats('profileLaunchApp.profile')
         logging.flush()
 
-        # set the exception hook to present unhandled errors in a dialog
         if not self.testMode:  # NB class variable not self
+            # set the exception hook to present unhandled errors in a dialog
             from psychopy.app.errorDlg import exceptionCallback
             sys.excepthook = exceptionCallback
+
+        # if we're on linux, check if we have the permissions file setup
+        from psychopy.app.linuxconfig import (
+            LinuxConfigDialog, linuxConfigFileExists)
+
+        if not linuxConfigFileExists():
+            linuxConfDlg = LinuxConfigDialog(
+                None, timeout=1000 if self.testMode else None)
+            linuxConfDlg.ShowModal()
+            linuxConfDlg.Destroy()
 
     def onInit(self, showSplash=True, testMode=False):
         """This is launched immediately *after* the app initialises with wx
