@@ -483,12 +483,12 @@ class PavloviaSearch(pandas.DataFrame):
         # Construct dataframe
         pandas.DataFrame.__init__(self, data=data['experiments'])
         # Apply me mode
-        if mine:
+        if mine and 'userIds' in self:
             session = getCurrentSession()
-            self.drop(self.loc[
-                          # self['creatorId'] != session.userID  # Created by me
-                          (self['userIds'].explode() != session.userID).groupby(level=0).any()  # Editable by me
-                      ].index, inplace=True)
+            mineBoolArray = self['userIds'].explode() != session.userID
+            mineBoolIndices = mineBoolArray.groupby(level=0).any()
+            mineIndices = self.loc[mineBoolIndices].index
+            self.drop(mineIndices, inplace=True)
         # Do any requested sorting
         if sortBy is not None:
             self.sort_values(sortBy)
