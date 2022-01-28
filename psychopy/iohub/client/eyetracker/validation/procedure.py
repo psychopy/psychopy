@@ -646,7 +646,7 @@ class ValidationProcedure:
         results = self.getValidationResults()
 
         for tp in self.positions.getPositions():
-            self.targetsequence.target.setPos(tp)
+            self.targetsequence.target.pos = tp
             self.targetsequence.target.draw()
 
         title_txt = 'Validation Results\nMin: %.4f, Max: %.4f,' \
@@ -699,7 +699,7 @@ class ValidationProcedure:
                     else:
                         g_pos = toPix(self.win, gaze_x[i], gaze_y[i])
                         g_pos = g_pos[0][0], g_pos[1][0]
-                    sample_gfx.setPos(g_pos)
+                    sample_gfx.pos = g_pos
                     sample_gfx.draw()
                 txt_bold = False
                 position_txt = "Gaze Error:\nMin: %.4f\nMax: %.4f\n" \
@@ -857,7 +857,7 @@ class ValidationTargetRenderer:
                     v2 = topos
                     t = 60.0 * ((1.0 / 10.0) * t ** 5 - (1.0 / 4.0) * t ** 4 + (1.0 / 6.0) * t ** 3)
                     moveTo = ((1.0 - t) * v1[0] + t * v2[0], (1.0 - t) * v1[1] + t * v2[1])
-                    self.target.setPos(moveTo)
+                    self.target.pos = moveTo
                     self._draw()
                     fliptime = self.win.flip()
                     io.sendMessageEvent('POS_UPDATE %.4f,%.4f' % (moveTo[0], moveTo[1]), self.msgcategory,
@@ -874,7 +874,7 @@ class ValidationTargetRenderer:
                     if self._terminate_requested:
                         return 0
 
-        self.target.setPos(topos)
+        self.target.pos = topos
         self._draw()
         fliptime = self.win.flip()
         io.sendMessageEvent('TARGET_POS %.4f,%.4f' % (topos[0], topos[1]), self.msgcategory, sec_time=fliptime)
