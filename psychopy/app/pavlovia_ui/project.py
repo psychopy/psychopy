@@ -497,8 +497,17 @@ class DetailsPanel(wx.Panel):
         dlg = sync.SyncDialog(self, self.project)
         dlg.sync()
         functions.showCommitDialog(self, self.project, initMsg="", infoStream=dlg.status)
-        # Update last sync date
+        # Update project
+        self.project.refresh()
+        # Update last sync date & show
         self.syncLbl.SetLabel(f"{self.project['last_activity_at']:%d %B %Y, %I:%M%p}")
+        self.syncLbl.Show()
+        self.syncLbl.Enable()
+        # Switch buttons to show Sync rather than Download/Create
+        self.createBtn.Hide()
+        self.downloadBtn.Hide()
+        self.syncBtn.Show()
+        self.syncBtn.Enable()
 
     def fork(self, evt=None):
         # Do fork
