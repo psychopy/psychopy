@@ -1007,7 +1007,6 @@ class SettingsComponent:
         buff.writeIndentedLines(code % inits)
         # Add eyetracker config
         if self.params['eyetracker'] != "None":
-            print(self.params['eyetracker'])
             # Alert user if window is not fullscreen
             if not self.params['Full-screen window'].val:
                 alert(code=4540)
