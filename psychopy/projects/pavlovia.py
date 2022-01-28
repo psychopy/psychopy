@@ -533,7 +533,10 @@ class PavloviaProject(dict):
         if not isinstance(id, int):
             # If given a dict from Pavlovia rather than an ID, store it rather than requesting again
             self._info = dict(id)
-            self.id = self._info['id']
+            if 'gitlabId' in self._info:
+                self.id = int(self._info['gitlabId'])
+            else:
+                self.id = int(self._info['id'])
         else:
             # If given an ID, store this ready to fetch info when needed
             self.id = id
