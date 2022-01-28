@@ -49,19 +49,19 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin):
         exemplars = [
             # An English pangram
             {"text": "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question.",
-             "font": "Noto Sans",
+             "font": "Noto Sans", "size": 16,
              "screenshot": "exemplar_1.png"},
             # The same pangram in IPA
             {"text": "ə saɪkəʊpaɪ zɛlət nəʊz ə smidge ɒv wx, bʌt ˈʤɑːvəskrɪpt ɪz ðə ˈkwɛsʧən",
-                "font": "Noto Sans",
+                "font": "Noto Sans", "size": 16,
                 "screenshot": "exemplar_2.png"},
             # The same pangram in Hangul
             {"text": "아 프시초피 제알롣 크노W스 아 s믿게 오f wx, 붇 자v앗c립t 잇 테 q왯디온",
-             "font": "Noto Sans KR",
+             "font": "Noto Sans KR", "size": 16,
              "screenshot": "exemplar_3.png"},
             # A noticeably non-standard font
             {"text": "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question.",
-             "font": "Indie Flower",
+             "font": "Indie Flower", "size": 16,
              "screenshot": "exemplar_4.png",
             }
         ]
@@ -69,18 +69,23 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin):
         tykes = [
             # Text which doesn't render properly on Mac (Issue #3203)
             {"text": "कोशिकायें",
-             "font": "Noto Sans",
+             "font": "Noto Sans", "size": 16,
              "screenshot": "tyke_1.png"},
             # Thai text which old Text component couldn't handle due to Pyglet
             {"text": "ขาว แดง เขียว เหลือง ชมพู ม่วง เทา",
-             "font": "Niramit",
+             "font": "Niramit", "size": 16,
              "screenshot": "tyke_2.png"
-             }
+             },
+            # Text which had the top cut off
+            {"text": "โฬิปื้ด็ลู",
+             "font": "Niramit", "size": 36,
+             "screenshot": "cutoff_top.png"},
         ]
         # Test each case and compare against screenshot
         for case in exemplars + tykes:
             self.textbox.reset()
             self.textbox.fontMGR.addGoogleFont(case['font'])
+            self.textbox.letterHeight = layout.Size(case['size'], "pix", self.win)
             self.textbox.font = case['font']
             self.textbox.text = case['text']
             self.win.flip()
