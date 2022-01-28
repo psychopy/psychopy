@@ -427,7 +427,7 @@ class ButtonArray(wx.Window):
     def addItem(self, item):
         if not isinstance(item, wx.Window):
             item = self.ArrayBtn(self, label=item)
-        self.sizer.Insert(0, item, border=3, flag=wx.EXPAND | wx.ALL)
+        self.sizer.Insert(0, item, border=3, flag=wx.EXPAND | wx.TOP | wx.BOTTOM | wx.RIGHT)
         self.Layout()
         # Raise event
         evt = wx.ListEvent(wx.EVT_LIST_INSERT_ITEM.typeId)
