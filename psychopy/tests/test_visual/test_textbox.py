@@ -309,6 +309,6 @@ def test_font_manager():
 @pytest.mark.uax14
 class Test_uax14_textbox(Test_textbox):
     """Runs the same tests as for Test_textbox, but with the textbox set to uax14 line breaking"""
-    def setup_class(self):
-        Test_textbox.setup_class(self)
+    def setup(self):
+        Test_textbox.setup(self)
         self.textbox._lineBreaking = 'uax14'
