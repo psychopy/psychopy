@@ -77,6 +77,14 @@ class TargetStim:
             s.setPos(pos)
 
     @property
+    def pos(self):
+        return self.stim[0].pos
+
+    @pos.setter
+    def pos(self, value):
+        self.setPos(value)
+
+    @property
     def radius(self):
         return self._radius
 
