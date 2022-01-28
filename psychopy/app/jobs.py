@@ -67,6 +67,8 @@ KILL_ACCESS_DENIED = wx.KILL_ACCESS_DENIED
 KILL_NO_PROCESS = wx.KILL_NO_PROCESS
 KILL_ERROR = wx.KILL_ERROR
 
+PIPE_READER_POLL_INTERVAL = 0.025  # seconds
+
 
 class PipeReader(Thread):
     """Thread for reading standard stream pipes. This is used by the `Job` class
@@ -140,13 +142,15 @@ class PipeReader(Thread):
             # Put the thread to sleep for a bit, not sure if we need this since
             # this loop will block execution of this thread if there is nothing
             # to read.
-            time.sleep(0.1)
+            time.sleep(PIPE_READER_POLL_INTERVAL)
 
             # exit the loop
             if self._stopSignal.is_set():
                 break
 
-        self._fdpipe.close()  # close the pipe if stopped
+            self._fdpipe.flush()
+
+        #self._fdpipe.close()  # close the pipe if stopped
 
     def stop(self):
         """Call this to signal the thread to stop reading bytes."""
@@ -198,8 +202,8 @@ class Job:
         self._pid = None
         self._flags = flags
         self._process = None
-        self._pollMillis = None
-        self._pollTimer = wx.Timer()
+        # self._pollMillis = None
+        # self._pollTimer = wx.Timer()
 
         # user defined callbacks
         self._inputCallback = None
@@ -287,6 +291,8 @@ class Job:
         if not self.isRunning:
             return False  # nop
 
+        self.parent.Unbind(wx.EVT_IDLE)
+
         # isOk = wx.Process.Kill(self._pid, signal, flags) is wx.KILL_OK
         #self._pollTimer.Stop()
         self._process.terminate()  # kill the process
@@ -299,16 +305,9 @@ class Job:
             processStillRunning = self._process.poll() is None
             time.sleep(0.1)  # sleep a bit to avoid CPU over-utilization
 
-        # stop the pipe reader threads now
-        self._stdoutReader.stop()
-        self._stderrReader.stop()
-
         # get the return code of the subprocess
         retcode = self._process.returncode
         self.onTerminate(retcode)
-
-        self._process = self._pid = None  # reset
-        self._flags = 0
 
         return retcode is None
 
@@ -557,6 +556,8 @@ class Job:
 
         # poll the subprocess
         retCode = self._process.poll()
+        if retCode is not None:  # process has exited?
+            wx.CallAfter(self.onTerminate, retCode)
 
         # get data from pipes
         if self.isInputAvailable:
@@ -568,9 +569,6 @@ class Job:
             stderrText = self.getErrorData()
             if self._errorCallback is not None:
                 wx.CallAfter(self._errorCallback, stderrText)
-
-        if retCode is not None:  # process has exited?
-            wx.CallAfter(self.onTerminate, retCode)
 
     def onTerminate(self, exitCode):
         """Called when the process exits.
@@ -584,17 +582,22 @@ class Job:
         called.
 
         """
-        if self._pollTimer.IsRunning():
-            self._pollTimer.Stop()
+        # if self._pollTimer.IsRunning():
+        #     self._pollTimer.Stop()
 
+        # unbind the idle loop used to poll the subprocess
         self.parent.Bind(wx.EVT_IDLE, None)
 
-        # flush remaining data from pipes, process it
-        # self.poll()
+        # stop the pipe reader threads now
+        self._stdoutReader.stop()
+        self._stderrReader.stop()
 
         # if callback is provided, else nop
         if self._terminateCallback is not None:
             wx.CallAfter(self._terminateCallback, self._pid, exitCode)
+
+        self._process = self._pid = None  # reset
+        self._flags = 0
 
     # def onNotify(self):
     #     """Called when the polling timer elapses.

@@ -17,6 +17,7 @@ __all__ = ['ScriptProcess']
 import sys
 import psychopy.app.jobs as jobs
 from wx import BeginBusyCursor, EndBusyCursor
+from psychopy.app.console import StdStreamDispatcher
 
 
 class ScriptProcess:
@@ -90,7 +91,7 @@ class ScriptProcess:
 
         # if we have a runner frame, write to the output text box
         if hasattr(self.app, 'runner'):
-            stdOut = self.app.runner.stdOut
+            stdOut = StdStreamDispatcher.getInstance()
             stdOut.lenLastRun = len(self.app.runner.stdOut.getText())
         else:
             # if not, just write to the standard output pipe
@@ -116,7 +117,7 @@ class ScriptProcess:
 
         # create a new job with the user script
         self.scriptProcess = jobs.Job(
-            self.app,
+            self,
             command=command,
             flags=execFlags,
             inputCallback=self._onInputCallback,  # both treated the same
@@ -172,7 +173,11 @@ class ScriptProcess:
         # not available we just write to `sys.stdout`.
         if hasattr(self.app, 'runner'):
             # get any remaining data on the pipes
-            stdOut = self.app.runner.stdOut
+            stdOut = StdStreamDispatcher.getInstance()
+            # backup if we don't have an instance for some reason
+            if stdOut is None:
+                stdOut = self.app.runner.stdOut
+
             self.app.runner.Show()
         else:
             stdOut = sys.stdout
@@ -237,8 +242,9 @@ class ScriptProcess:
         """
         # write a close message, shows the exit code
         closeMsg = \
-            "##### Experiment ended with exit code {} [pid:{}] #####\n".format(
+            " Experiment ended with exit code {} [pid:{}] ".format(
                 exitCode, pid)
+        closeMsg = closeMsg.center(80, '#') + '\n'
         self._writeOutput(closeMsg)
 
         self.scriptProcess = None  # reset
