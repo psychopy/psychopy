@@ -15,10 +15,12 @@ from psychopy.tests import utils
 
 @pytest.mark.textbox
 class Test_textbox(_TestColorMixin, _TestUnitsMixin):
-    def setup_class(self):
-        self.win = Window([128,128], pos=[50,50], monitor="testMonitor", allowGUI=False, autoLog=False)
+    def setup(self):
+        self.win = Window((128, 128), pos=(50, 50), monitor="testMonitor", allowGUI=False, autoLog=False)
         self.error = _BaseErrorHandler()
-        self.textbox = TextBox2(self.win, "", "Noto Sans", alignment="top left", lineSpacing=1,
+        self.textbox = TextBox2(self.win,
+                                "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question.",
+                                "Noto Sans", alignment="top left", lineSpacing=1,
                                 pos=(0, 0), size=(1, 1), units='height',
                                 letterHeight=0.1, colorSpace="rgb")
         self.obj = self.textbox  # point to textbox for mixin tests
@@ -31,7 +33,7 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin):
         # Textbox foreground is too unreliable due to fonts for pixel analysis
         self.foreUsed = False
 
-    def teardown_class(self):
+    def teardown(self):
         self.win.close()
 
     def test_glyph_rendering(self):
