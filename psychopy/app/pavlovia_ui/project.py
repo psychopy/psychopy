@@ -286,6 +286,12 @@ class DetailsPanel(wx.Panel):
         self.syncBtn.SetBitmap(iconCache.getBitmap(name="view-refresh", size=16))
         self.syncBtn.Bind(wx.EVT_BUTTON, self.sync)
         self.btnSizer.Add(self.syncBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        # Get button
+        self.getBtn = wx.Button(self, label=_translate("Get"))
+        self.getBtn.SetBitmap(iconCache.getBitmap(name="download", size=16))
+        self.getBtn.Bind(wx.EVT_BUTTON, self.sync)
+        self.btnSizer.Add(self.getBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        # Sync label
         self.syncLbl = wx.StaticText(self, size=(-1, -1), label="---")
         self.btnSizer.Add(self.syncLbl, border=6, flag=wx.RIGHT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
         self.btnSizer.AddStretchSpacer(1)
@@ -374,6 +380,8 @@ class DetailsPanel(wx.Panel):
             self.createBtn.Enable(bool(self.session.user))
             # Sync button
             self.syncBtn.Hide()
+            # Get button
+            self.getBtn.Hide()
             # Sync label
             self.syncLbl.SetLabel("---")
             self.syncLbl.Disable()
@@ -429,8 +437,11 @@ class DetailsPanel(wx.Panel):
             # Create button
             self.createBtn.Hide()
             # Sync button
-            self.syncBtn.Show()
+            self.syncBtn.Show(bool(project.localRoot))
             self.syncBtn.Enable(project.editable)
+            # Get button
+            self.getBtn.Show(not bool(project.localRoot))
+            self.getBtn.Enable(project.editable)
             # Sync label
             self.syncLbl.SetLabel(f"{project['last_activity_at']:%d %B %Y, %I:%M%p}")
             self.syncLbl.Enable(project.editable)
