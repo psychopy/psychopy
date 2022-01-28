@@ -87,6 +87,9 @@ class TargetStim(ColorMixin, WindowMixin):
         self.outer.pos = value
         self.inner.pos = value
 
+    def setPos(self, value):
+        self.pos = value
+
     @property
     def size(self):
         return self.outer.size

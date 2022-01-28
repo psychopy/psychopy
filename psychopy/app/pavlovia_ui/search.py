@@ -154,7 +154,7 @@ class SearchPanel(wx.Panel):
             "Status": ["running", "piloting", "inactive"],
             "Platform": ["psychojs", "jspsych", "labjs", "opensesame", "other"],
             "Visibility": ["public", "private"],
-            "Tags": None,
+            "Keywords": None,
         }
         self.filterBtn.Bind(wx.EVT_BUTTON, self.filter)
         self.btnSizer.Add(self.filterBtn, border=6, flag=wx.LEFT | wx.TOP | wx.BOTTOM)

@@ -286,6 +286,12 @@ class DetailsPanel(wx.Panel):
         self.syncBtn.SetBitmap(iconCache.getBitmap(name="view-refresh", size=16))
         self.syncBtn.Bind(wx.EVT_BUTTON, self.sync)
         self.btnSizer.Add(self.syncBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        # Get button
+        self.downloadBtn = wx.Button(self, label=_translate("Download"))
+        self.downloadBtn.SetBitmap(iconCache.getBitmap(name="download", size=16))
+        self.downloadBtn.Bind(wx.EVT_BUTTON, self.sync)
+        self.btnSizer.Add(self.downloadBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        # Sync label
         self.syncLbl = wx.StaticText(self, size=(-1, -1), label="---")
         self.btnSizer.Add(self.syncLbl, border=6, flag=wx.RIGHT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
         self.btnSizer.AddStretchSpacer(1)
@@ -374,6 +380,8 @@ class DetailsPanel(wx.Panel):
             self.createBtn.Enable(bool(self.session.user))
             # Sync button
             self.syncBtn.Hide()
+            # Get button
+            self.downloadBtn.Hide()
             # Sync label
             self.syncLbl.SetLabel("---")
             self.syncLbl.Disable()
@@ -429,10 +437,14 @@ class DetailsPanel(wx.Panel):
             # Create button
             self.createBtn.Hide()
             # Sync button
-            self.syncBtn.Show()
+            self.syncBtn.Show(bool(project.localRoot) or (not project.editable))
             self.syncBtn.Enable(project.editable)
+            # Get button
+            self.downloadBtn.Show(not bool(project.localRoot) and project.editable)
+            self.downloadBtn.Enable(project.editable)
             # Sync label
             self.syncLbl.SetLabel(f"{project['last_activity_at']:%d %B %Y, %I:%M%p}")
+            self.syncLbl.Show(bool(project.localRoot) or (not project.editable))
             self.syncLbl.Enable(project.editable)
             # Local root
             self.localRoot.SetValue(project.localRoot or "")#project.info['path'])
@@ -485,8 +497,17 @@ class DetailsPanel(wx.Panel):
         dlg = sync.SyncDialog(self, self.project)
         dlg.sync()
         functions.showCommitDialog(self, self.project, initMsg="", infoStream=dlg.status)
-        # Update last sync date
+        # Update project
+        self.project.refresh()
+        # Update last sync date & show
         self.syncLbl.SetLabel(f"{self.project['last_activity_at']:%d %B %Y, %I:%M%p}")
+        self.syncLbl.Show()
+        self.syncLbl.Enable()
+        # Switch buttons to show Sync rather than Download/Create
+        self.createBtn.Hide()
+        self.downloadBtn.Hide()
+        self.syncBtn.Show()
+        self.syncBtn.Enable()
 
     def fork(self, evt=None):
         # Do fork
