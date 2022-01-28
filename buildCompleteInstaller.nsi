@@ -142,13 +142,13 @@ Section "PsychoPy" SEC01
     ; Shortcuts
     !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
     CreateDirectory "$SMPROGRAMS\$ICONS_GROUP"
-    CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}-$MAJOR_VERSION .lnk" \
+    CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}-${PRODUCT_VERSION}.lnk" \
         "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\"" "$AppDir\Resources\psychopy.ico"
-    CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}-$MAJOR_VERSION Runner.lnk" \
+    CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}-${PRODUCT_VERSION} Runner.lnk" \
         "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\" --runner" "$AppDir\Resources\runner.ico"
-    CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}-$MAJOR_VERSION Builder.lnk" \
+    CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}-${PRODUCT_VERSION} Builder.lnk" \
         "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\" --builder" "$AppDir\Resources\builder.ico"
-    CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}-$MAJOR_VERSION Coder.lnk" \
+    CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}-${PRODUCT_VERSION} Coder.lnk" \
         "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\" --coder"  "$AppDir\Resources\coder.ico"
     !insertmacro MUI_STARTMENU_WRITE_END
 
@@ -175,7 +175,7 @@ Section -AdditionalIcons
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   WriteIniStr "$INSTDIR\${PRODUCT_NAME}.url" "InternetShortcut" "URL" "${PRODUCT_WEB_SITE}"
   CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\www.psychopy.org.lnk" "$INSTDIR\${PRODUCT_NAME}.url"
-  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Uninstall ${PRODUCT_NAME}-$MAJOR_VERSION.lnk" "$INSTDIR\uninst.exe"
+  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Uninstall ${PRODUCT_NAME}-${PRODUCT_VERSION}.lnk" "$INSTDIR\uninst.exe"
   !insertmacro MUI_STARTMENU_WRITE_END
 SectionEnd
 
