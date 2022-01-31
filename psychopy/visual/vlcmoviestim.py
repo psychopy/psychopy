@@ -33,14 +33,17 @@ GL = pyglet.gl
 try:
     # check if the lib can be loaded
     import vlc
+    haveVLC = True
 except Exception as err:
+    haveVLC = False
+    # store the error but only raise it if the
     if "wrong architecture" in str(err):
         msg = ("Failed to import `vlc` module required by `vlcmoviestim`.\n"
                "You're using %i-bit python. Is your VLC install the same?"
                % 64 if sys.maxsize == 2 ** 64 else 32)
-        raise OSError(msg)
+        _vlcImportErr = OSError(msg)
     else:
-        raise err
+        _vlcImportErr = err
 
 # flip time, and time since last movie frame flip will be printed
 reportNDroppedFrames = 10
@@ -113,6 +116,9 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
                  noAudio=False,
                  interpolate=True,
                  autoStart=True):
+        # check if we have the VLC lib
+        if not haveVLC:
+            raise _vlcImportErr
         # what local vars are defined (these are the init params) for use
         # by __repr__
         self._initParams = dir()
