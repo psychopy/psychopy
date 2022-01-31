@@ -556,7 +556,10 @@ class PavloviaProject(dict):
         try:
             value = dict.__getitem__(self, key)
         except KeyError:
-            value = self.project.attributes[key]
+            if key in self.project.attributes:
+                value = self.project.attributes[key]
+            else:
+                value = None
         # Transform datetimes
         dtRegex = re.compile("\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(.\d\d\d)?\w?")
         if dtRegex.match(str(value)):
