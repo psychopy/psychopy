@@ -677,7 +677,7 @@ class Rift(window.Window):
         Examples
         --------
         Generate your own eye poses. These are used when
-        :py:method:`calcEyePoses` is called::
+        :py:meth:`calcEyePoses` is called::
 
             leftEyePose = Rift.createPose((-self.eyeToNoseDistance, 0., 0.))
             rightEyePose = Rift.createPose((self.eyeToNoseDistance, 0., 0.))
@@ -956,7 +956,7 @@ class Rift(window.Window):
 
     def getDevicePose(self, deviceName, absTime=None, latencyMarker=False):
         """Get the pose of a tracked device. For head (HMD) and hand poses
-        (Touch controllers) it is better to use :py:method:`getTrackingState`
+        (Touch controllers) it is better to use :py:meth:`getTrackingState`
         instead.
 
         Parameters
@@ -1120,11 +1120,11 @@ class Rift(window.Window):
         Once this function returns, `setBuffer` may be called and frame
         rendering can commence. The computed eye pose for the selected buffer is
         accessible through the :py:attr:`eyeRenderPose` attribute after calling
-        :py:method:`setBuffer`. If `monoscopic=True`, the eye poses are set to
+        :py:meth:`setBuffer`. If `monoscopic=True`, the eye poses are set to
         the head pose.
 
         The source data specified to `headPose` can originate from the tracking
-        state retrieved by calling :py:method:`getTrackingState`, or from
+        state retrieved by calling :py:meth:`getTrackingState`, or from
         other sources. If a custom head pose is specified (for instance, from a
         motion tracker), you must ensure `head-locking` is enabled to prevent
         the ASW feature of the compositor from engaging. Furthermore, you must
@@ -1578,7 +1578,7 @@ class Rift(window.Window):
     @property
     def viewMatrix(self):
         """The view matrix for the current eye buffer. Only valid after a
-        :py:method:`calcEyePoses` call. Note that setting `viewMatrix` manually
+        :py:meth:`calcEyePoses` call. Note that setting `viewMatrix` manually
         will break visibility culling.
 
         """
@@ -2441,7 +2441,7 @@ class Rift(window.Window):
 
         A haptics buffer is object which stores vibration amplitude samples for
         playback through the Touch controllers. To play a haptics buffer, pass
-        it to :py:method:`submitHapticsBuffer`.
+        it to :py:meth:`submitHapticsBuffer`.
 
         Parameters
         ----------

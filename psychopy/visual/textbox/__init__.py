@@ -104,6 +104,7 @@ class TextBox:
     * TextBox is a composite stimulus type, with the following graphical
       elements, many of which can be changed to control many aspects of how
       the TextBox is displayed.:
+
          - TextBox Border / Outline
          - TextBox Fill Area
          - Text Grid Cell Lines
@@ -126,6 +127,7 @@ class TextBox:
 
     * TextBox component is not a completely **standard** psychopy visual
       stim and has the following functional difference:
+
           - TextBox attributes are never accessed directly; get* and set*
             methods are always used (this will be changed to use class
             properties in the future).
@@ -145,8 +147,7 @@ class TextBox:
 
     * Auto logging or auto drawing is not currently supported.
 
-    TextStim and TextBox Comparison
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    TextStim and TextBox Comparison:
 
     ============================ ============= ===========
     Feature                      TextBox       TextStim
@@ -170,9 +171,7 @@ class TextBox:
       used Windows 7 64 bit, PsychoPy 1.79, with a i7 3.4 Ghz CPU, 8 GB RAM,
       and NVIDIA 480 GTX 2GB graphics card.
 
-    Examples
-    --------
-    Demonstration of using `TextBox`::
+    Example::
 
         from psychopy import visual
 

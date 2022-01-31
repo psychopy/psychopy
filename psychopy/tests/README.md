@@ -109,7 +109,7 @@ Practicing writing tests? Try extending the above class to test if a created rec
 
 One of the really useful features on PyCharm is its ability to run tests with just a click. If you have `pytest` installed, then any valid test will have a green play button next to its name, in the line margins:
 
-![run button](./doc/run_btn.png)
+![run button](./doc/run_btn_pycharm.png)
 
 Clicking this button will start all the necessary processes to run this test, just like it would run in our test suite. This button also appears next to test classes, clicking the run button next to the class name will create an instance of that class, then run each of its methods which are valid tests.
 

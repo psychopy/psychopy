@@ -36,46 +36,53 @@ FLAC_PATH = None  # set on first call to _getFlacPath()
 class AudioCapture:
     """Capture sound sample from the default sound input, and save to a file.
 
-        Untested whether you can have two recordings going on simultaneously.
+    Untested whether you can have two recordings going on simultaneously.
 
-        **Examples**::
+    **Examples**
+    .. code-block:: python
 
-            from psychopy import microphone
-            from psychopy import event, visual  # for key events
+        from psychopy import microphone
+        from psychopy import event, visual  # for key events
 
-            microphone.switchOn(sampleRate=16000)  # do once
+        microphone.switchOn(sampleRate=16000)  # do once
 
-            # Record for 1.000 seconds, save to mic.savedFile
-            mic = microphone.AudioCapture()
-            mic.record(1)
-            mic.playback()
+        # Record for 1.000 seconds, save to mic.savedFile
+        mic = microphone.AudioCapture()
+        mic.record(1)
+        mic.playback()
 
-            # Resample, creates a new file discards orig
-            mic.resample(48000, keep=False)
+        # Resample, creates a new file discards orig
+        mic.resample(48000, keep=False)
 
-            # Record new file for 60 sec or until key 'q'
-            w = visual.Window()  # needed for key-events
-            mic.reset()
-            mic.record(60, block=False)
-            while mic.recorder.running:
-                if 'q' in event.getKeys():
-                    mic.stop()
+        # Record new file for 60 sec or until key 'q'
+        w = visual.Window()  # needed for key-events
+        mic.reset()
+        mic.record(60, block=False)
+        while mic.recorder.running:
+            if 'q' in event.getKeys():
+                mic.stop()
 
-        Also see Builder Demo "voiceCapture".
+    Also see Builder Demo "voiceCapture".
 
-        :Author: Jeremy R. Gray, March 2012
+    :Author: Jeremy R. Gray, March 2012
     """
 
     class _Recorder():
         """Class for internal object to make an audio recording using pyo.
 
-        Never needed by end-users; only used internally in __init__:
+        Never needed by end-users; only used internally in __init__::
+
             self.recorder = _Recorder(None) # instantiate, global
-        Then in record(), do:
+
+        Then in record(), do::
+
             self.recorder.run(filename, sec)
+
         This sets recording parameters, starts recording.
-        To stop a recording that is in progress, do
+        To stop a recording that is in progress, do::
+
             self.stop()
+
         This class never handles blocking; AudioCapture has to do that.
 
         Motivation: Doing pyo Record from within a function worked most of
@@ -112,21 +119,22 @@ class AudioCapture:
                  buffering=16, chnl=0, stereo=True, autoLog=True):
         """
         :Parameters:
-            name :
-                Stem for the output file, also used in logging.
-            filename :
-                optional file name to use; default = 'name-onsetTimeEpoch.wav'
-            saveDir :
-                Directory to use for output .wav files.
-                If a saveDir is given, it will return 'saveDir/file'.
-                If no saveDir, then return abspath(file)
-            sampletype : bit depth
-                pyo recording option:
-                0=16 bits int, 1=24 bits int; 2=32 bits int
-            buffering : pyo argument
-            chnl : which audio input channel to record (default=0)
-            stereo : how many channels to record
-                (default True, stereo; False = mono)
+
+        name :
+            Stem for the output file, also used in logging.
+        filename :
+            optional file name to use; default = 'name-onsetTimeEpoch.wav'
+        saveDir :
+            Directory to use for output .wav files. If a saveDir is given, it will return 'saveDir/file'.
+            If no saveDir, then return abspath(file)
+        sampletype : bit depth
+            pyo recording option: 0=16 bits int, 1=24 bits int; 2=32 bits int
+        buffering : pyo argument
+            Controls the buffering argument for pyo if necessary
+        chnl : int (default=0)
+            which audio input channel to record (default=0)
+        stereo : bool or nChannels (default = True)
+            how many channels to record
         """
         if not haveMic:
             raise MicrophoneError('Need to call microphone.switchOn()'

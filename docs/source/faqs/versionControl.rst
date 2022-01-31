@@ -23,10 +23,12 @@ Version control using Coder View
 2. Add :code:`import psychopy` at the top of your script, **above** all other import statements.
 3. Add the function call :code:`psychopy.useVersion('<version_no>')` directly below :code:`import psychopy`, but still **above** the other import statements. Here's an example:
 ::
+
     import psychopy
     psychopy.useVersion('2021.1.0')
     from psychopy import visual, core, event
     # the rest of your script follows
+
 4. Run the script.
 
 NOTE: Internet connection needed (the first time)

@@ -1007,6 +1007,7 @@ This release fixes several bugs but it does also add 2 new dependencies:
 * these are paving the way for updating Python3 (which will be enabled in 1.86.x series of releases)
 
 FIXED:
+
     * Problem with text stimuli on Windows not rendering if large (was a bug in pyglet, fixed in 1.3.0b1)
     * Whitespace/indentation guides were not toggling on/off correctly in Coder #4ebbdb9c5468beebb50d817697c0665450e9a5ad
     * Added status property to labjack U3 in Builder scripts #b4d16d3d6319d0edeb7a95e774ff60c0ea51a1cf
@@ -1019,7 +1020,9 @@ PsychoPy 1.85.2
 Released: June 2017
 
 FIXED:
+
 * several errors with **PsychoJS** outputs from Builder (mostly thanks to Jon Roberts at Colorado):
+
     * nReps and randomisation now being handled correctly by PsychoJS #ad9a931
     * "correct" responses were being overwritten by non-responses #f903210
     * Text components that were static caused a crash (were erroneously given two single-quotes) #b399a50
@@ -1035,25 +1038,22 @@ PsychoPy 1.85.1
 Released: April 2017
 
 FIXED:
-- several errors with **PsychoJS** outputs from Builder:
-    - early termination of experiments #f1bd15047
-    - incorrect blank email field in info.php #d68c36bf9
-    - incorrect component name sin endRoutine #e47d90a36
-    - incorrect default units for image stims #8c32d1c9a
 
-- several problems with **sound**:
-    - pyo not loading #1365
-    - searching for 'auto' instead of 'default' device #d54d14fe
-    - fixed duration calculation (bug in soundfile) for sounddevice #e0e01ad
-
-- textbox v textstim demo wasn't working #b2913c12476
-
-- error with colors when using TextStim with blendmode='add'
-
-- errors in installer package:
-    - windows installer could overwrite system path setting
+* several errors with **PsychoJS** outputs from Builder:
+    * early termination of experiments #f1bd15047
+    * incorrect blank email field in info.php #d68c36bf9
+    * incorrect component name sin endRoutine #e47d90a36
+    * incorrect default units for image stims #8c32d1c9a
+* several problems with **sound**:
+    * pyo not loading #1365
+    * searching for 'auto' instead of 'default' device #d54d14fe
+    * fixed duration calculation (bug in soundfile) for sounddevice #e0e01ad
+* textbox v textstim demo wasn't working #b2913c12476
+* error with colors when using TextStim with blendmode='add'
+* errors in installer package:
+    * windows installer could overwrite system path setting
       rather than append (NSIS short-string problem came back!)
-    - freetype 32 bit dll is being provided again (was in matplotlib
+    * freetype 32 bit dll is being provided again (was in matplotlib
       before but disappeared?)
 
 PsychoPy 1.85.0
