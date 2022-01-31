@@ -402,6 +402,8 @@ class DetailsPanel(wx.Panel):
             self.tags.clear()
             self.tags.Disable()
         else:
+            # Refresh project to make sure it has info
+            project.refresh()
             # Icon
             if 'avatarUrl' in project.info:
                 try:
@@ -460,7 +462,7 @@ class DetailsPanel(wx.Panel):
             self.status.SetStringSelection(project.info['status'])
             self.status.Enable(project.editable)
             # Tags
-            self.tags.items = project.info['keywords']
+            self.tags.items = project['keywords']
             self.tags.Enable(project.editable)
 
         # Layout
