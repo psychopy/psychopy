@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
@@ -814,7 +814,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         info.SetVersion('v' + psychopy.__version__)
         info.SetDescription(msg)
 
-        info.SetCopyright('(C) 2002-2021 Jonathan Peirce')
+        info.SetCopyright('(C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.')
         info.SetWebSite('https://www.psychopy.org')
         info.SetLicence(license)
         # developers
