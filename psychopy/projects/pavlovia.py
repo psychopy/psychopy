@@ -272,15 +272,22 @@ class PavloviaSession:
             if namespaceRaw:
                 projDict['namespace_id'] = namespaceRaw.id
             else:
-                raise ValueError("PavloviaSession.createProject was given a "
-                                 "namespace that couldn't be found on gitlab.")
+                dlg = wx.MessageDialog(None, message=_translate(
+                    f"PavloviaSession.createProject was given a namespace ({namespace}) that couldn't be found "
+                    f"on gitlab."
+                ), style=wx.ICON_WARNING)
+                dlg.ShowModal()
+                return
         # Create project on GitLab
         try:
             gitlabProj = self.gitlab.projects.create(projDict)
         except gitlab.exceptions.GitlabCreateError as e:
             if 'has already been taken' in str(e.error_message):
-                # wx.MessageDialog(self, message=_translate(f"Project `{namespace}/{name}` already exists, please choose another name."), style=wx.ICON_WARNING)
-                raise gitlab.exceptions.GitlabCreateError(f"Project `{self.username}/{name}` already exists, please choose another name.")
+                dlg = wx.MessageDialog(None, message=_translate(
+                    f"Project `{namespace}/{name}` already exists, please choose another name."
+                ), style=wx.ICON_WARNING)
+                dlg.ShowModal()
+                return
             else:
                 raise e
 
@@ -739,7 +746,6 @@ class PavloviaProject(dict):
         t0 = time.time()
         # If first commit, do initial push
         if not bool(self['default_branch']):
-            self.newRepo(infoStream=infoStream)
             self.firstPush(infoStream=infoStream)
         # Pull and push
         self.pull(infoStream)
@@ -839,7 +845,7 @@ class PavloviaProject(dict):
         gitRoot = getGitRoot(self.localRoot)
 
         if gitRoot is None:
-            self.newRepo()
+            self._repo = self.newRepo()
         elif gitRoot not in [self.localRoot, str(pathlib.Path(self.localRoot).absolute())]:
             # this indicates that the requested root is inside another repo
             raise AttributeError("The requested local path for project\n\t{}\n"
@@ -850,6 +856,7 @@ class PavloviaProject(dict):
         else:
             # If there's a git root, return the associated repo
             self._repo = git.Repo(gitRoot)
+            self.configGitLocal()
 
         self.writeGitIgnore()
 
@@ -901,16 +908,16 @@ class PavloviaProject(dict):
                 else:
                     bareRemote = False
         # if remote is new (or existed but is bare) then init and push
-        if localFiles and (self._newRemote or bareRemote):  # existing folder
+        if localFiles and bareRemote:  # existing folder
             repo = git.Repo.init(self.localRoot)
             self.configGitLocal()  # sets user.email and user.name
             # add origin remote and master branch (but no push)
-            self.repo.create_remote('origin', url=self.project.http_url_to_repo)
-            self.repo.git.checkout(b="master")
+            repo.create_remote('origin', url=self.project.http_url_to_repo)
+            repo.git.checkout(b="master")
             self.writeGitIgnore()
             self.stageFiles(['.gitignore'])
             self.commit('Create repository (including .gitignore)')
-            self._newRemote = True
+            self._newRemote = False
         else:
             # no files locally so safe to try and clone from remote
             repo = self.cloneRepo(infoStream=infoStream)
@@ -952,17 +959,17 @@ class PavloviaProject(dict):
 
         if infoStream:
             infoStream.SetValue("Cloning from remote...")
-        self.repo = git.Repo.clone_from(
+        repo = git.Repo.clone_from(
                 self.remoteWithToken,
                 self.localRoot,
         )
         # now change the remote to be the standard (without password token)
-        self.repo.remotes.origin.set_url(self.project.http_url_to_repo)
+        repo.remotes.origin.set_url(self.project.http_url_to_repo)
 
         self._lastKnownSync = time.time()
         self._newRemote = False
 
-        return self.repo
+        return repo
 
     def configGitLocal(self):
         """Set the local repo to have the correct name and email for user

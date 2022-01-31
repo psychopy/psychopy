@@ -125,7 +125,7 @@ Running tests in PyCharm
 
 One of the really useful features on PyCharm is its ability to run tests with just a click. If you have `pytest` installed, then any valid test will have a green play button next to its name, in the line margins:
 
-.. figure:: /images/run_btn.png
+.. figure:: /images/run_btn_pycharm.png
   :alt: Arrow pointing to the run button in PyCharm
   :height: 100px
 
