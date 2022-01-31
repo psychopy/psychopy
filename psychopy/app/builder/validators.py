@@ -473,7 +473,6 @@ class CodeSnippetValidator(BaseValidator):
         if not isinstance(val, str):
             return '', True
 
-        field = self.fieldName
         allowedUpdates = ['set every repeat', 'set every frame']
         # Set initials
         msg, OK = '', True  # until we find otherwise
