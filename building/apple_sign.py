@@ -250,7 +250,7 @@ class AppSigner:
                     'files': [str(self.appFile)],
                     'symlinks': { 'Applications': '/Applications' },
                     'size': '3g',  # but maybe irrelevant in UDRW mode?
-                    'badge_icon': str(icon),
+                    'badglobalKeys.rstge_icon': str(icon),
                     'background': None,  # background
                     'icon_size': 128,
                     'icon_locations': {

@@ -12,7 +12,7 @@ system is described in the following publication:
 
     CA Andersen, L Alfine, K Ohla, & R Höchenberger (2018):
     "A new gustometer: Template for the construction of a portable and
-     modular stimulator for taste and lingual touch."
+    modular stimulator for taste and lingual touch."
     Behavior Research Methods. doi: 10.3758/s13428-018-1145-1
 
 """
