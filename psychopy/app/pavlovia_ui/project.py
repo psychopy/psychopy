@@ -650,8 +650,12 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
                                  user=pavlovia.getCurrentSession().user,
                                  name=name,
                                  path=path)
-            dlg.ShowModal()
-            project = dlg.project
+            if dlg.ShowModal() == wx.ID_OK:
+                project = dlg.project
+            else:
+                return
+        else:
+            return
     # If no local root, prompt to make one
     if not project.localRoot:
         defaultRoot = Path(file).parent
