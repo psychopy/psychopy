@@ -7,6 +7,7 @@ recursive-include psychopy/app/themes *.json
 recursive-include psychopy/app/Resources *.icns
 recursive-include psychopy/app/Resources *.ico
 recursive-include psychopy/app/Resources *.ttf
+recursive-include psychopy/app/Resources *.psyexp
 recursive-include psychopy/app/Resources *.desktop
 recursive-include psychopy/app/locale *.mo
 recursive-include psychopy/app *.spec *.xsd
