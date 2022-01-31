@@ -460,7 +460,7 @@ class DetailsPanel(wx.Panel):
             self.status.SetStringSelection(project.info['status'])
             self.status.Enable(project.editable)
             # Tags
-            self.tags.items = self.project.info['keywords']
+            self.tags.items = project.info['keywords']
             self.tags.Enable(project.editable)
 
         # Layout
@@ -585,7 +585,7 @@ class DetailsPanel(wx.Panel):
             self.project.save()
         if obj == self.status and self.project.editable:
             requests.put(f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
-                         data={"keywords": self.status.GetStringSelection()},
+                         data={"status": self.status.GetStringSelection()},
                          headers={'OauthToken': self.session.getToken()})
         if obj == self.tags and self.project.editable:
             requests.put(f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
