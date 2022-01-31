@@ -90,12 +90,11 @@ Function .onInit
   ; NB this function occurs BEFORE the MULTIUSER_PAGE_INSTALLMODE 
   ; so doesn't yet know whether we're single or multi-user
   StrCpy $ICONS_GROUP "${PRODUCT_NAME}-${PRODUCT_VERSION}"
+  !insertmacro MULTIUSER_INIT
 FunctionEnd
 
 Function un.onInit
-
   !insertmacro MULTIUSER_UNINIT
-
 FunctionEnd
 
 Section "PsychoPy" SEC01

@@ -32,7 +32,7 @@ for ($i=0; $i -lt $pyPaths.Length; $i++) {
     $thisPath = $pyPaths[$i]
     $thisName = $names[$i]
     $thisArch = $archs[$i]
-    $cmdStr = "makensis.exe /v2 /DPRODUCT_VERSION={0} /DPRODUCT_NAME={1} /DARCH={2} /DPYPATH={3} buildCompleteInstaller.nsi" -f $v, $thisName, $thisArch, $thisPath
+    $cmdStr = "makensis.exe /v3 /DPRODUCT_VERSION={0} /DPRODUCT_NAME={1} /DARCH={2} /DPYPATH={3} buildCompleteInstaller.nsi" -f $v, $thisName, $thisArch, $thisPath
     echo $cmdStr
     Invoke-Expression $cmdStr
     # "C:\Program Files\Caphyon\Advanced Installer 13.1\bin\x86\AdvancedInstaller.com" /rebuild PsychoPy_AdvancedInstallerProj.aip
