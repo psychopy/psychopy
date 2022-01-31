@@ -148,7 +148,8 @@ class CreateDlg(wx.Dialog):
 
     def submit(self, evt=None):
         self.project = self.session.createProject(**self.GetValue())
-        self.Close()
+        if self.project is not None:
+            self.Close()
 
     def GetValue(self):
         return {
