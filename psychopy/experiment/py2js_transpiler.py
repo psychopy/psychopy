@@ -105,11 +105,15 @@ class pythonTransformer(ast.NodeTransformer):
         node.left = pythonTransformer().visit(node.left)
         node.right = pythonTransformer().visit(node.right)
 
-        # formatted strings with %:
+        # formatted strings with %
+        # note: we have extended the pythong syntax slightly, to accommodate both tuples and lists
+        # so both '%_%' % (1,2) and '%_%' % [1,2] are successfully transpiled
         if isinstance(node.op, ast.Mod) and isinstance(node.left, ast.Str):
             # transform the node into an f-string node:
             stringFormat = node.left.value
-            stringTuple = node.right.elts if isinstance(node.right, ast.Tuple) else [node.right]
+            stringTuple = node.right.elts if (
+              isinstance(node.right, ast.Tuple) or isinstance(node.right, ast.List))\
+                else [node.right]
 
             values = []
             tupleIndex = 0
