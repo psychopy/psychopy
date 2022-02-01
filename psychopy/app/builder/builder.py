@@ -2754,7 +2754,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
 
     def onFilterBtn(self, evt=None):
         dlg = self.FilterDialog(self)
-        dlg.Show()
+        dlg.ShowModal()
 
 
 class ReadmeFrame(wx.Frame):
