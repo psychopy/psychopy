@@ -27,6 +27,7 @@ from pkg_resources import parse_version
 import psychopy
 from psychopy import data, __version__, logging
 from .components.resourceManager import ResourceManagerComponent
+from .components.static import StaticComponent
 from .exports import IndentingBuffer, NameSpace
 from .flow import Flow
 from .loops import TrialHandler, LoopInitiator, \
@@ -946,7 +947,7 @@ class Experiment:
                 # find all params of all compons and check if valid filename
                 for thisComp in thisEntry:
                     # if current component is a Resource Manager, we don't need to pre-load ANY resources
-                    if isinstance(thisComp, ResourceManagerComponent):
+                    if isinstance(thisComp, (ResourceManagerComponent, StaticComponent)):
                         return []
                     for paramName in thisComp.params:
                         thisParam = thisComp.params[paramName]
