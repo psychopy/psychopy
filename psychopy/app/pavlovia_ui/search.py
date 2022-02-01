@@ -274,6 +274,12 @@ class SearchPanel(wx.Panel):
             self.mineBtn.Value = evt
         # Apply "mine" filter
         self._mine = self.mineBtn.Value
+        # Clear and disable filters & search todo: This is a stop gap, remove once the Pavlovia API can accept searches and filters WITHIN a designer
+        self.filterBtn.Enable(not self._mine)
+        self.searchCtrl.Enable(not self._mine)
+        if self._mine:
+            self.filterOptions = {key: [] for key in self.filterOptions}
+            self.searchCtrl.Value = ""
         # Update
         self.filterLbl.update()
         self.search()
