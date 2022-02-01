@@ -126,7 +126,6 @@ class CreateDlg(wx.Dialog):
         self.btnSizer.AddStretchSpacer(1)
         self.OKbtn = wx.Button(self, label=_translate("Okay"))
         self.OKbtn.Bind(wx.EVT_BUTTON, self.submit)
-        self.SetAffirmativeId(wx.ID_OK)
         self.btnSizer.Add(self.OKbtn, border=3, flag=wx.ALL)
 
         self.Layout()
@@ -148,6 +147,7 @@ class CreateDlg(wx.Dialog):
 
     def submit(self, evt=None):
         self.project = self.session.createProject(**self.GetValue())
+        self.project.refresh()
         if self.project is not None:
             self.Close()
 
