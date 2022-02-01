@@ -487,7 +487,7 @@ class PavloviaSearch(pandas.DataFrame):
             elif term or filterBy:
                 data = requests.get(
                     f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}",
-                    timeout=2
+                    timeout=5
                 ).json()
             else:
                 # Display demos for blank search
