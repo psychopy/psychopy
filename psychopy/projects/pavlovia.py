@@ -477,25 +477,29 @@ class PavloviaSearch(pandas.DataFrame):
         filterBy = self.FilterTerm(filterBy)
         # Do search
         try:
-            if term or filterBy or mine:
-                data = requests.get(f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}",
-                                    timeout=2).json()
+            if mine:
+                # Display experiments by current user
+                session = getCurrentSession()
+                data = requests.get(
+                    f"https://pavlovia.org/api/v2/designers/{session.userID}/experiments?search={term}{filterBy}",
+                    timeout=5
+                ).json()
+            elif term or filterBy:
+                data = requests.get(
+                    f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}",
+                    timeout=2
+                ).json()
             else:
                 # Display demos for blank search
-                data = requests.get("https://pavlovia.org/api/v2/designers/5/experiments",
-                                    timeout=5).json()
+                data = requests.get(
+                    "https://pavlovia.org/api/v2/designers/5/experiments",
+                    timeout=5
+                ).json()
         except requests.exceptions.ReadTimeout:
             msg = "Could not connect to Pavlovia server. Please check that you are connected to the internet. If you are connected, then the Pavlovia servers may be down. You can check their status here: https://pavlovia.org/status"
             raise ConnectionError(msg)
         # Construct dataframe
         pandas.DataFrame.__init__(self, data=data['experiments'])
-        # Apply me mode
-        if mine and 'userIds' in self:
-            session = getCurrentSession()
-            mineBoolArray = self['userIds'].explode() != session.userID
-            mineBoolIndices = mineBoolArray.groupby(level=0).any()
-            mineIndices = self.loc[mineBoolIndices].index
-            self.drop(mineIndices, inplace=True)
         # Do any requested sorting
         if sortBy is not None:
             self.sort_values(sortBy)
