@@ -675,6 +675,8 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
         else:
             # If they don't want to specify, cancel sync
             return
+    # Assign project to parent frame
+    parent.project = project
     # If there is (now) a project, do sync
     if project is not None:
         dlg = sync.SyncDialog(parent, project)
