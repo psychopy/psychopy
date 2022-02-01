@@ -652,7 +652,7 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
                                        user=pavlovia.getCurrentSession().user,
                                        name=name,
                                        path=path)
-            if createDlg.ShowModal() == wx.ID_OK:
+            if createDlg.ShowModal() == wx.ID_OK and createDlg.project is not None:
                 project = createDlg.project
             else:
                 return
@@ -675,6 +675,8 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
         else:
             # If they don't want to specify, cancel sync
             return
+    # Assign project to parent frame
+    parent.project = project
     # If there is (now) a project, do sync
     if project is not None:
         dlg = sync.SyncDialog(parent, project)

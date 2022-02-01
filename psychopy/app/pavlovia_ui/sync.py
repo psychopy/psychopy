@@ -4,6 +4,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
+import sys
 
 import wx
 from .. import utils
@@ -119,15 +120,23 @@ class CreateDlg(wx.Dialog):
         self.rootCtrl.Bind(wx.EVT_FILEPICKER_CHANGED, self.validate)
         self.sizer.Add(self.rootCtrl, border=3, flag=wx.ALL | wx.EXPAND)
 
-        # Add OK button
+        # Add dlg buttons
         self.sizer.AddStretchSpacer(1)
         self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(self.btnSizer, border=3, flag=wx.ALL | wx.EXPAND)
         self.btnSizer.AddStretchSpacer(1)
-        self.OKbtn = wx.Button(self, label=_translate("Okay"))
+        # OK button
+        self.OKbtn = wx.Button(self, id=wx.ID_OK, label=_translate("OK"))
         self.OKbtn.Bind(wx.EVT_BUTTON, self.submit)
-        self.SetAffirmativeId(wx.ID_OK)
-        self.btnSizer.Add(self.OKbtn, border=3, flag=wx.ALL)
+        # CANCEL button
+        self.CANCELbtn = wx.Button(self, id=wx.ID_CANCEL, label=_translate("Cancel"))
+        # Add dlg buttons in OS appropriate order
+        if sys.platform == "win32":
+            btns = [self.OKbtn, self.CANCELbtn]
+        else:
+            btns = [self.CANCELbtn, self.OKbtn]
+        self.btnSizer.Add(btns[0], border=3, flag=wx.ALL)
+        self.btnSizer.Add(btns[1], border=3, flag=wx.ALL)
 
         self.Layout()
         self.validate()
@@ -149,7 +158,8 @@ class CreateDlg(wx.Dialog):
     def submit(self, evt=None):
         self.project = self.session.createProject(**self.GetValue())
         if self.project is not None:
-            self.Close()
+            self.project.refresh()
+            evt.Skip()
 
     def GetValue(self):
         return {
