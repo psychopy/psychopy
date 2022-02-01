@@ -157,8 +157,9 @@ class CreateDlg(wx.Dialog):
 
     def submit(self, evt=None):
         self.project = self.session.createProject(**self.GetValue())
-        self.project.refresh()
-        evt.Skip()
+        if self.project is not None:
+            self.project.refresh()
+            evt.Skip()
 
     def GetValue(self):
         return {

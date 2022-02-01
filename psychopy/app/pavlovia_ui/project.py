@@ -652,7 +652,7 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
                                        user=pavlovia.getCurrentSession().user,
                                        name=name,
                                        path=path)
-            if createDlg.ShowModal() == wx.ID_OK:
+            if createDlg.ShowModal() == wx.ID_OK and createDlg.project is not None:
                 project = createDlg.project
             else:
                 return
