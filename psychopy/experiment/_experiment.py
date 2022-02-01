@@ -864,10 +864,6 @@ class Experiment:
             if type(filePath) != str:
               return None
 
-            # remove extraneous quotes
-            filePath = filePath.replace("'", "")
-            filePath = filePath.replace('"', "")
-
             thisFile = {}
             # NB: Pathlib might be neater here but need to be careful
             # e.g. on mac:
@@ -939,7 +935,6 @@ class Experiment:
             return paths
 
         resources = []
-        managed = []
         for thisEntry in self.flow:
             if thisEntry.getType() == 'LoopInitiator':
                 # find all loops and check for conditions filename
@@ -950,23 +945,9 @@ class Experiment:
             elif thisEntry.getType() == 'Routine':
                 # find all params of all compons and check if valid filename
                 for thisComp in thisEntry:
-                    # if current component is a Resource Manager, look for resources to exclude
+                    # if current component is a Resource Manager, we don't need to pre-load ANY resources
                     if isinstance(thisComp, ResourceManagerComponent):
-                        # If component isn't Check Only, then there's resources handled which need excluding
-                        if thisComp.params['actionType'] != 'Check Only':
-                            val = thisComp.params['resources'].val
-                            # Listify value if it's stringy
-                            if isinstance(thisComp.params['resources'].val, str):
-                                for brace in ("[", "]", "(", ")"):
-                                    val = val.replace(brace, "")
-                                val = val.split(",")
-                            if val is None:
-                                val = []
-                            # Get each specified resource
-                            for res in val:
-                                thisFile = getPaths(res)
-                                managed.append(thisFile)
-                    # look for resources to include
+                        return []
                     for paramName in thisComp.params:
                         thisParam = thisComp.params[paramName]
                         thisFile = ''
@@ -990,10 +971,6 @@ class Experiment:
                 psychopy.logging.warning("{} is not in the experiment path and "
                                          "so will not be copied to Pavlovia"
                                          .format(res['rel']))
-        # Remove any resources already covered by a resource manager
-        for res in managed:
-            if res in resources:
-                resources.remove(res)
 
         return resources
 
