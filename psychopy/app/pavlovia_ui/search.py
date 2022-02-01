@@ -266,6 +266,9 @@ class SearchPanel(wx.Panel):
         """
         if self.projects is not None:
             proj = self.projects.iloc[self.projectList.GetFocusedItem()]
+            # Set project to None while waiting
+            self.viewer.project = None
+            # Set project
             self.viewer.project = pavlovia.PavloviaProject(proj)
 
     def onMineBtn(self, evt=None):
