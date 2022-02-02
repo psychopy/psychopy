@@ -16,7 +16,7 @@ from psychopy.tools.versionchooser import _translate
 
 class SyncDialog(wx.Dialog):
     def __init__(self, parent, project):
-        wx.Dialog.__init__(self, parent, title="Syncing project...")
+        wx.Dialog.__init__(self, parent, title=_translate("Syncing project..."))
         self.project = project
         # Setup sizer
         self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -31,7 +31,7 @@ class SyncDialog(wx.Dialog):
         self.sizer.Add(self.btnSizer, border=6, flag=wx.ALL | wx.EXPAND)
         self.btnSizer.AddStretchSpacer(1)
         # Add buttons
-        self.OKbtn = wx.Button(self, label=_translate("Okay"), id=wx.ID_OK)
+        self.OKbtn = wx.Button(self, label=_translate("OK"), id=wx.ID_OK)
         self.OKbtn.Disable()
         self.btnSizer.Add(self.OKbtn, border=3, flag=wx.LEFT | wx.ALIGN_CENTER_VERTICAL)
         # Layout
