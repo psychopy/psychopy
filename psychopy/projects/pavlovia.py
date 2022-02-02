@@ -492,7 +492,7 @@ class PavloviaSearch(pandas.DataFrame):
             else:
                 # Display demos for blank search
                 data = requests.get(
-                    "https://pavlovia.org/api/v2/designers/5/experiments",
+                    "https://pavlovia.org/api/v2/experiments?search=demos&designer=demos",
                     timeout=5
                 ).json()
         except requests.exceptions.ReadTimeout:
