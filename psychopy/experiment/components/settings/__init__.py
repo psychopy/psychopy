@@ -886,7 +886,7 @@ class SettingsComponent:
         #     projID = 'undefined'
         code = template.format(
             params=self.params,
-            filename=self.params['Data filename'],
+            filename=str(self.params['Data filename']),
             name=self.params['expName'].val,
             loggingLevel=self.params['logging level'].val.upper(),
             setRedirectURL=setRedirectURL,
