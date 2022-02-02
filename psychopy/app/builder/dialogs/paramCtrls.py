@@ -30,6 +30,9 @@ class _ValidatorMixin:
         """
         validate(self, self.valType)
 
+        if evt is not None:
+            evt.Skip()
+
     def showValid(self, valid):
         """Style input box according to valid"""
         if not hasattr(self, "SetForegroundColour"):
@@ -155,7 +158,7 @@ class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         # Add self to sizer
         self._szr.Add(self, proportion=1, border=5, flag=wx.EXPAND)
         # Bind to validation
-        self.Bind(wx.EVT_TEXT, self.validate)
+        self.Bind(wx.EVT_CHAR, self.validate)
         self.validate()
 
     def Show(self, value=True):
@@ -516,7 +519,7 @@ class ColorCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         self.pickerBtn.Bind(wx.EVT_BUTTON, self.colorPicker)
         self._szr.Add(self.pickerBtn)
         # Bind to validation
-        self.Bind(wx.EVT_TEXT, self.validate)
+        self.Bind(wx.EVT_CHAR, self.validate)
         self.validate()
 
     def colorPicker(self, evt):
@@ -527,7 +530,7 @@ class ColorCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
 
 def validate(obj, valType):
     val = str(obj.GetValue())
-    valid = True
+    valid = False
     if val.startswith("$"):
         # If indicated as code, treat as code
         valType = "code"
@@ -597,6 +600,7 @@ def validate(obj, valType):
             # If control has specified list of ext, does value end in correct ext?
             if val.suffix not in obj.validExt:
                 valid = False
+
     # If additional allowed values are defined, override validation
     if hasattr(obj, "allowedVals"):
         if val in obj.allowedVals:

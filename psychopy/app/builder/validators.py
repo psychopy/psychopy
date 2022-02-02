@@ -33,7 +33,7 @@ VALIDATOR_WARNING_FONT_MISSING = 3
 VALIDATOR_WARNING_COUNT = 4  # increment when adding more
 
 
-class ValidatorWarning():
+class ValidatorWarning:
     """Class for validator warnings.
 
     These are used internally by the `WarningManager`, do not create instances
@@ -124,7 +124,8 @@ class ValidatorWarning():
         """`True` if this is a non-critical message which doesn't disable the OK button"""
         return self.kind in [VALIDATOR_WARNING_FONT_MISSING]
 
-class WarningManager():
+
+class WarningManager:
     """Manager for warnings produced by validators associated with controls
     within the component properties dialog. Assumes that the `parent` dialog
     uses a standardized convention for attribute names for all components.
@@ -473,7 +474,6 @@ class CodeSnippetValidator(BaseValidator):
         if not isinstance(val, str):
             return '', True
 
-        field = self.fieldName
         allowedUpdates = ['set every repeat', 'set every frame']
         # Set initials
         msg, OK = '', True  # until we find otherwise
