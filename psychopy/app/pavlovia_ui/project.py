@@ -402,6 +402,9 @@ class DetailsPanel(wx.Panel):
             self.tags.clear()
             self.tags.Disable()
         else:
+            # Refresh project to make sure it has info
+            if not hasattr(project, "_info"):
+                project.refresh()
             # Icon
             if 'avatarUrl' in project.info:
                 try:
