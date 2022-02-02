@@ -600,10 +600,10 @@ class Job:
         self._readPipes()  # read remaining data
 
         # stop the pipe reader threads now
-        self._stdoutReader.stop()
+        self._stderrReader.stop()
         self._stdoutReader.stop()
         self._stderrReader.join(timeout=1)
-        self._stderrReader.join(timeout=1)
+        self._stdoutReader.join(timeout=1)
 
         # if callback is provided, else nop
         if self._terminateCallback is not None:
