@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
+import sys
 
 import wx
 from .. import utils
@@ -15,7 +16,7 @@ from psychopy.tools.versionchooser import _translate
 
 class SyncDialog(wx.Dialog):
     def __init__(self, parent, project):
-        wx.Dialog.__init__(self, parent, title="Syncing project...")
+        wx.Dialog.__init__(self, parent, title=_translate("Syncing project..."))
         self.project = project
         # Setup sizer
         self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -30,7 +31,7 @@ class SyncDialog(wx.Dialog):
         self.sizer.Add(self.btnSizer, border=6, flag=wx.ALL | wx.EXPAND)
         self.btnSizer.AddStretchSpacer(1)
         # Add buttons
-        self.OKbtn = wx.Button(self, label=_translate("Okay"), id=wx.ID_OK)
+        self.OKbtn = wx.Button(self, label=_translate("OK"), id=wx.ID_OK)
         self.OKbtn.Disable()
         self.btnSizer.Add(self.OKbtn, border=3, flag=wx.LEFT | wx.ALIGN_CENTER_VERTICAL)
         # Layout
@@ -119,15 +120,23 @@ class CreateDlg(wx.Dialog):
         self.rootCtrl.Bind(wx.EVT_FILEPICKER_CHANGED, self.validate)
         self.sizer.Add(self.rootCtrl, border=3, flag=wx.ALL | wx.EXPAND)
 
-        # Add OK button
+        # Add dlg buttons
         self.sizer.AddStretchSpacer(1)
         self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(self.btnSizer, border=3, flag=wx.ALL | wx.EXPAND)
         self.btnSizer.AddStretchSpacer(1)
-        self.OKbtn = wx.Button(self, label=_translate("Okay"))
+        # OK button
+        self.OKbtn = wx.Button(self, id=wx.ID_OK, label=_translate("OK"))
         self.OKbtn.Bind(wx.EVT_BUTTON, self.submit)
-        self.SetAffirmativeId(wx.ID_OK)
-        self.btnSizer.Add(self.OKbtn, border=3, flag=wx.ALL)
+        # CANCEL button
+        self.CANCELbtn = wx.Button(self, id=wx.ID_CANCEL, label=_translate("Cancel"))
+        # Add dlg buttons in OS appropriate order
+        if sys.platform == "win32":
+            btns = [self.OKbtn, self.CANCELbtn]
+        else:
+            btns = [self.CANCELbtn, self.OKbtn]
+        self.btnSizer.Add(btns[0], border=3, flag=wx.ALL)
+        self.btnSizer.Add(btns[1], border=3, flag=wx.ALL)
 
         self.Layout()
         self.validate()
@@ -148,7 +157,9 @@ class CreateDlg(wx.Dialog):
 
     def submit(self, evt=None):
         self.project = self.session.createProject(**self.GetValue())
-        self.Close()
+        if self.project is not None:
+            self.project.refresh()
+            evt.Skip()
 
     def GetValue(self):
         return {

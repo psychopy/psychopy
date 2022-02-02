@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import io
 import sys
@@ -286,6 +286,12 @@ class DetailsPanel(wx.Panel):
         self.syncBtn.SetBitmap(iconCache.getBitmap(name="view-refresh", size=16))
         self.syncBtn.Bind(wx.EVT_BUTTON, self.sync)
         self.btnSizer.Add(self.syncBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        # Get button
+        self.downloadBtn = wx.Button(self, label=_translate("Download"))
+        self.downloadBtn.SetBitmap(iconCache.getBitmap(name="download", size=16))
+        self.downloadBtn.Bind(wx.EVT_BUTTON, self.sync)
+        self.btnSizer.Add(self.downloadBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        # Sync label
         self.syncLbl = wx.StaticText(self, size=(-1, -1), label="---")
         self.btnSizer.Add(self.syncLbl, border=6, flag=wx.RIGHT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
         self.btnSizer.AddStretchSpacer(1)
@@ -374,6 +380,8 @@ class DetailsPanel(wx.Panel):
             self.createBtn.Enable(bool(self.session.user))
             # Sync button
             self.syncBtn.Hide()
+            # Get button
+            self.downloadBtn.Hide()
             # Sync label
             self.syncLbl.SetLabel("---")
             self.syncLbl.Disable()
@@ -429,10 +437,14 @@ class DetailsPanel(wx.Panel):
             # Create button
             self.createBtn.Hide()
             # Sync button
-            self.syncBtn.Show()
+            self.syncBtn.Show(bool(project.localRoot) or (not project.editable))
             self.syncBtn.Enable(project.editable)
+            # Get button
+            self.downloadBtn.Show(not bool(project.localRoot) and project.editable)
+            self.downloadBtn.Enable(project.editable)
             # Sync label
             self.syncLbl.SetLabel(f"{project['last_activity_at']:%d %B %Y, %I:%M%p}")
+            self.syncLbl.Show(bool(project.localRoot) or (not project.editable))
             self.syncLbl.Enable(project.editable)
             # Local root
             self.localRoot.SetValue(project.localRoot or "")#project.info['path'])
@@ -448,7 +460,7 @@ class DetailsPanel(wx.Panel):
             self.status.SetStringSelection(project.info['status'])
             self.status.Enable(project.editable)
             # Tags
-            self.tags.items = self.project.info['keywords']
+            self.tags.items = project['keywords']
             self.tags.Enable(project.editable)
 
         # Layout
@@ -485,8 +497,17 @@ class DetailsPanel(wx.Panel):
         dlg = sync.SyncDialog(self, self.project)
         dlg.sync()
         functions.showCommitDialog(self, self.project, initMsg="", infoStream=dlg.status)
-        # Update last sync date
+        # Update project
+        self.project.refresh()
+        # Update last sync date & show
         self.syncLbl.SetLabel(f"{self.project['last_activity_at']:%d %B %Y, %I:%M%p}")
+        self.syncLbl.Show()
+        self.syncLbl.Enable()
+        # Switch buttons to show Sync rather than Download/Create
+        self.createBtn.Hide()
+        self.downloadBtn.Hide()
+        self.syncBtn.Show()
+        self.syncBtn.Enable()
 
     def fork(self, evt=None):
         # Do fork
@@ -564,7 +585,7 @@ class DetailsPanel(wx.Panel):
             self.project.save()
         if obj == self.status and self.project.editable:
             requests.put(f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
-                         data={"keywords": self.status.GetStringSelection()},
+                         data={"status": self.status.GetStringSelection()},
                          headers={'OauthToken': self.session.getToken()})
         if obj == self.tags and self.project.editable:
             requests.put(f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
@@ -612,11 +633,11 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
     """
     # If not in a project, make one
     if project is None:
-        dlg = wx.MessageDialog(parent,
+        msgDlg = wx.MessageDialog(parent,
                                message=_translate("This file doesn't belong to any existing project."),
                                style=wx.OK | wx.CANCEL | wx.CENTER)
-        dlg.SetOKLabel(_translate("Create a project"))
-        if dlg.ShowModal() == wx.ID_OK:
+        msgDlg.SetOKLabel(_translate("Create a project"))
+        if msgDlg.ShowModal() == wx.ID_OK:
             # Get start path and name from builder/coder if possible
             if file:
                 file = Path(file)
@@ -625,12 +646,16 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
             else:
                 name = path = ""
             # Open dlg to create new project
-            dlg = sync.CreateDlg(parent,
-                                 user=pavlovia.getCurrentSession().user,
-                                 name=name,
-                                 path=path)
-            dlg.ShowModal()
-            project = dlg.project
+            createDlg = sync.CreateDlg(parent,
+                                       user=pavlovia.getCurrentSession().user,
+                                       name=name,
+                                       path=path)
+            if createDlg.ShowModal() == wx.ID_OK and createDlg.project is not None:
+                project = createDlg.project
+            else:
+                return
+        else:
+            return
     # If no local root, prompt to make one
     if not project.localRoot:
         defaultRoot = Path(file).parent
@@ -648,6 +673,8 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
         else:
             # If they don't want to specify, cancel sync
             return
+    # Assign project to parent frame
+    parent.project = project
     # If there is (now) a project, do sync
     if project is not None:
         dlg = sync.SyncDialog(parent, project)

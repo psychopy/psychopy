@@ -4,7 +4,7 @@
 """
 Defines the behavior of Psychopy's Builder view window
 Part of the PsychoPy library
-Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
@@ -2555,7 +2555,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.sizer.Add(self.viewCtrl, border=6, flag=wx.ALL | wx.EXPAND)
             self.viewCtrl.SetValue(prefs.builder['componentFilter'])
             # OK
-            self.OKbtn = wx.Button(self, id=wx.ID_OK, label=_translate("Okay"))
+            self.OKbtn = wx.Button(self, id=wx.ID_OK, label=_translate("OK"))
             self.SetAffirmativeId(wx.ID_OK)
             self.border.Add(self.OKbtn, border=6, flag=wx.ALL | wx.ALIGN_RIGHT)
 
@@ -2754,7 +2754,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
 
     def onFilterBtn(self, evt=None):
         dlg = self.FilterDialog(self)
-        dlg.Show()
+        dlg.ShowModal()
 
 
 class ReadmeFrame(wx.Frame):

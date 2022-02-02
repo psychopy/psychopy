@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -26,6 +26,8 @@ from pkg_resources import parse_version
 
 import psychopy
 from psychopy import data, __version__, logging
+from .components.resourceManager import ResourceManagerComponent
+from .components.static import StaticComponent
 from .exports import IndentingBuffer, NameSpace
 from .flow import Flow
 from .loops import TrialHandler, LoopInitiator, \
@@ -933,17 +935,16 @@ class Experiment:
 
             return paths
 
-        resources = []
+        # Get resources for components
+        compResources = []
+        handled = False
         for thisEntry in self.flow:
-            if thisEntry.getType() == 'LoopInitiator':
-                # find all loops and check for conditions filename
-                params = thisEntry.loop.params
-                if 'conditionsFile' in params:
-                    condsPaths = findPathsInFile(params['conditionsFile'].val)
-                    resources.extend(condsPaths)
-            elif thisEntry.getType() == 'Routine':
+            if thisEntry.getType() == 'Routine':
                 # find all params of all compons and check if valid filename
                 for thisComp in thisEntry:
+                    # if current component is a Resource Manager, we don't need to pre-load ANY resources
+                    if isinstance(thisComp, (ResourceManagerComponent, StaticComponent)):
+                        handled = True
                     for paramName in thisComp.params:
                         thisParam = thisComp.params[paramName]
                         thisFile = ''
@@ -952,16 +953,36 @@ class Experiment:
                         elif isinstance(thisParam.val, str):
                             thisFile = getPaths(thisParam.val)
                         # then check if it's a valid path and not yet included
-                        if thisFile and thisFile not in resources:
-                            resources.append(thisFile)
+                        if thisFile and thisFile not in compResources:
+                            compResources.append(thisFile)
+        if handled:
+            # If resources are handled, clear all component resources
+            compResources = []
+
+        # Get resources for loops
+        loopResources = []
+        for thisEntry in self.flow:
+            if thisEntry.getType() == 'LoopInitiator':
+                # find all loops and check for conditions filename
+                params = thisEntry.loop.params
+                if 'conditionsFile' in params:
+                    if handled:
+                        loopResources.append(getPaths(params['conditionsFile'].val))
+                    else:
+                        condsPaths = findPathsInFile(params['conditionsFile'].val)
+                        loopResources.extend(condsPaths)
 
         # Add files from additional resources box
+        chosenResources = []
         val = self.settings.params['Resources'].val
         for thisEntry in val:
             thisFile = getPaths(thisEntry)
             if thisFile:
-                resources.append(thisFile)
+                chosenResources.append(thisFile)
+
         # Check for any resources not in experiment path
+        resources = loopResources + compResources + chosenResources
+        resources = [res for res in resources if res is not None]
         for res in resources:
             if srcRoot not in res['abs']:
                 psychopy.logging.warning("{} is not in the experiment path and "

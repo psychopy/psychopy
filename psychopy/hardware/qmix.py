@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """
@@ -12,7 +12,7 @@ system is described in the following publication:
 
     CA Andersen, L Alfine, K Ohla, & R Höchenberger (2018):
     "A new gustometer: Template for the construction of a portable and
-     modular stimulator for taste and lingual touch."
+    modular stimulator for taste and lingual touch."
     Behavior Research Methods. doi: 10.3758/s13428-018-1145-1
 
 """

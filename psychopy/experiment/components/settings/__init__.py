@@ -886,7 +886,7 @@ class SettingsComponent:
         #     projID = 'undefined'
         code = template.format(
             params=self.params,
-            filename=self.params['Data filename'],
+            filename=str(self.params['Data filename']),
             name=self.params['expName'].val,
             loggingLevel=self.params['logging level'].val.upper(),
             setRedirectURL=setRedirectURL,
@@ -1007,7 +1007,6 @@ class SettingsComponent:
         buff.writeIndentedLines(code % inits)
         # Add eyetracker config
         if self.params['eyetracker'] != "None":
-            print(self.params['eyetracker'])
             # Alert user if window is not fullscreen
             if not self.params['Full-screen window'].val:
                 alert(code=4540)

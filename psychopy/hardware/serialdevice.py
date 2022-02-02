@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Base class for serial devices. Includes some convenience methods to open
@@ -167,12 +167,12 @@ class SerialDevice:
     def getResponse(self, length=1, timeout=0.1):
         """Read the latest response from the serial port
 
-        :params:
+        Parameters:
 
         `length` determines whether we expect:
-           1: a single-line reply (use readline())
-           2: a multiline reply (use readlines() which *requires* timeout)
-           -1: may not be any EOL character; just read whatever chars are
+           - 1: a single-line reply (use readline())
+           - 2: a multiline reply (use readlines() which *requires* timeout)
+           - -1: may not be any EOL character; just read whatever chars are
                 there
         """
         # get reply (within timeout limit)

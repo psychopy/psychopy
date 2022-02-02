@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Helper functions in PsychoPy for interacting with Pavlovia.org
@@ -272,15 +272,22 @@ class PavloviaSession:
             if namespaceRaw:
                 projDict['namespace_id'] = namespaceRaw.id
             else:
-                raise ValueError("PavloviaSession.createProject was given a "
-                                 "namespace that couldn't be found on gitlab.")
+                dlg = wx.MessageDialog(None, message=_translate(
+                    f"PavloviaSession.createProject was given a namespace ({namespace}) that couldn't be found "
+                    f"on gitlab."
+                ), style=wx.ICON_WARNING)
+                dlg.ShowModal()
+                return
         # Create project on GitLab
         try:
             gitlabProj = self.gitlab.projects.create(projDict)
         except gitlab.exceptions.GitlabCreateError as e:
             if 'has already been taken' in str(e.error_message):
-                # wx.MessageDialog(self, message=_translate(f"Project `{namespace}/{name}` already exists, please choose another name."), style=wx.ICON_WARNING)
-                raise gitlab.exceptions.GitlabCreateError(f"Project `{self.username}/{name}` already exists, please choose another name.")
+                dlg = wx.MessageDialog(None, message=_translate(
+                    f"Project `{namespace}/{name}` already exists, please choose another name."
+                ), style=wx.ICON_WARNING)
+                dlg.ShowModal()
+                return
             else:
                 raise e
 
@@ -470,25 +477,29 @@ class PavloviaSearch(pandas.DataFrame):
         filterBy = self.FilterTerm(filterBy)
         # Do search
         try:
-            if term or filterBy or mine:
-                data = requests.get(f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}",
-                                    timeout=2).json()
+            if mine:
+                # Display experiments by current user
+                session = getCurrentSession()
+                data = requests.get(
+                    f"https://pavlovia.org/api/v2/designers/{session.userID}/experiments?search={term}{filterBy}",
+                    timeout=5
+                ).json()
+            elif term or filterBy:
+                data = requests.get(
+                    f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}",
+                    timeout=5
+                ).json()
             else:
                 # Display demos for blank search
-                data = requests.get("https://pavlovia.org/api/v2/designers/5/experiments",
-                                    timeout=5).json()
+                data = requests.get(
+                    "https://pavlovia.org/api/v2/experiments?search=demos&designer=demos",
+                    timeout=5
+                ).json()
         except requests.exceptions.ReadTimeout:
             msg = "Could not connect to Pavlovia server. Please check that you are connected to the internet. If you are connected, then the Pavlovia servers may be down. You can check their status here: https://pavlovia.org/status"
             raise ConnectionError(msg)
         # Construct dataframe
         pandas.DataFrame.__init__(self, data=data['experiments'])
-        # Apply me mode
-        if mine:
-            session = getCurrentSession()
-            self.drop(self.loc[
-                          # self['creatorId'] != session.userID  # Created by me
-                          (self['userIds'].explode() != session.userID).groupby(level=0).any()  # Editable by me
-                      ].index, inplace=True)
         # Do any requested sorting
         if sortBy is not None:
             self.sort_values(sortBy)
@@ -533,7 +544,10 @@ class PavloviaProject(dict):
         if not isinstance(id, int):
             # If given a dict from Pavlovia rather than an ID, store it rather than requesting again
             self._info = dict(id)
-            self.id = self._info['id']
+            if 'gitlabId' in self._info:
+                self.id = int(self._info['gitlabId'])
+            else:
+                self.id = int(self._info['id'])
         else:
             # If given an ID, store this ready to fetch info when needed
             self.id = id
@@ -546,7 +560,10 @@ class PavloviaProject(dict):
         try:
             value = dict.__getitem__(self, key)
         except KeyError:
-            value = self.project.attributes[key]
+            if key in self.project.attributes:
+                value = self.project.attributes[key]
+            else:
+                value = None
         # Transform datetimes
         dtRegex = re.compile("\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(.\d\d\d)?\w?")
         if dtRegex.match(str(value)):
@@ -736,7 +753,6 @@ class PavloviaProject(dict):
         t0 = time.time()
         # If first commit, do initial push
         if not bool(self['default_branch']):
-            self.newRepo(infoStream=infoStream)
             self.firstPush(infoStream=infoStream)
         # Pull and push
         self.pull(infoStream)
@@ -836,7 +852,7 @@ class PavloviaProject(dict):
         gitRoot = getGitRoot(self.localRoot)
 
         if gitRoot is None:
-            self.newRepo()
+            self._repo = self.newRepo()
         elif gitRoot not in [self.localRoot, str(pathlib.Path(self.localRoot).absolute())]:
             # this indicates that the requested root is inside another repo
             raise AttributeError("The requested local path for project\n\t{}\n"
@@ -847,6 +863,7 @@ class PavloviaProject(dict):
         else:
             # If there's a git root, return the associated repo
             self._repo = git.Repo(gitRoot)
+            self.configGitLocal()
 
         self.writeGitIgnore()
 
@@ -898,16 +915,16 @@ class PavloviaProject(dict):
                 else:
                     bareRemote = False
         # if remote is new (or existed but is bare) then init and push
-        if localFiles and (self._newRemote or bareRemote):  # existing folder
+        if localFiles and bareRemote:  # existing folder
             repo = git.Repo.init(self.localRoot)
             self.configGitLocal()  # sets user.email and user.name
             # add origin remote and master branch (but no push)
-            self.repo.create_remote('origin', url=self.project.http_url_to_repo)
-            self.repo.git.checkout(b="master")
+            repo.create_remote('origin', url=self.project.http_url_to_repo)
+            repo.git.checkout(b="master")
             self.writeGitIgnore()
             self.stageFiles(['.gitignore'])
             self.commit('Create repository (including .gitignore)')
-            self._newRemote = True
+            self._newRemote = False
         else:
             # no files locally so safe to try and clone from remote
             repo = self.cloneRepo(infoStream=infoStream)
@@ -949,17 +966,17 @@ class PavloviaProject(dict):
 
         if infoStream:
             infoStream.SetValue("Cloning from remote...")
-        self.repo = git.Repo.clone_from(
+        repo = git.Repo.clone_from(
                 self.remoteWithToken,
                 self.localRoot,
         )
         # now change the remote to be the standard (without password token)
-        self.repo.remotes.origin.set_url(self.project.http_url_to_repo)
+        repo.remotes.origin.set_url(self.project.http_url_to_repo)
 
         self._lastKnownSync = time.time()
         self._newRemote = False
 
-        return self.repo
+        return repo
 
     def configGitLocal(self):
         """Set the local repo to have the correct name and email for user

@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import os
@@ -44,15 +44,17 @@ class Aperture(MinimalStim, ContainerMixin):
     the Aperture. Once disabled, subsequent draw operations affect the whole
     screen as usual.
 
-    If shape is 'square' or 'triangle' then that is what will be used
-    If shape is 'circle' or `None` then a polygon with nVerts will be used (120 for a rough circle)
-    If shape is an integer, then a polygon with that many vertices will be used
-    If shape is a list or numpy array (Nx2) then it will be used directly
-        as the vertices to a :class:`~psychopy.visual.ShapeStim`
-    If shape is a filename then it will be used to load and image as a
-        :class:`~psychopy.visual.ImageStim`. Note that transparent parts
-        in the image (e.g. in a PNG file) will not be included in the mask
-        shape. The color of the image will be ignored.
+    Supported shapes:
+
+    * 'square', 'triangle', 'circle' or `None`: a polygon with appropriate nVerts will be used
+      (120 for 'circle')
+    * integer: a polygon with that many vertices will be used
+    * list or numpy array (Nx2): it will be used directly as the vertices to a
+      :class:`~psychopy.visual.ShapeStim`
+    * a filename then it will be used to load and image as a
+      :class:`~psychopy.visual.ImageStim`. Note that transparent parts
+      in the image (e.g. in a PNG file) will not be included in the mask
+      shape. The color of the image will be ignored.
 
     See demos/stimuli/aperture.py for example usage
 

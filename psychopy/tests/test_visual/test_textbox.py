@@ -15,10 +15,12 @@ from psychopy.tests import utils
 
 @pytest.mark.textbox
 class Test_textbox(_TestColorMixin, _TestUnitsMixin):
-    def setup_class(self):
-        self.win = Window([128,128], pos=[50,50], monitor="testMonitor", allowGUI=False, autoLog=False)
+    def setup(self):
+        self.win = Window((128, 128), pos=(50, 50), monitor="testMonitor", allowGUI=False, autoLog=False)
         self.error = _BaseErrorHandler()
-        self.textbox = TextBox2(self.win, "", "Noto Sans", alignment="top left", lineSpacing=1,
+        self.textbox = TextBox2(self.win,
+                                "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question.",
+                                "Noto Sans", alignment="top left", lineSpacing=1,
                                 pos=(0, 0), size=(1, 1), units='height',
                                 letterHeight=0.1, colorSpace="rgb")
         self.obj = self.textbox  # point to textbox for mixin tests
@@ -31,7 +33,7 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin):
         # Textbox foreground is too unreliable due to fonts for pixel analysis
         self.foreUsed = False
 
-    def teardown_class(self):
+    def teardown(self):
         self.win.close()
 
     def test_glyph_rendering(self):
@@ -49,19 +51,19 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin):
         exemplars = [
             # An English pangram
             {"text": "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question.",
-             "font": "Noto Sans",
+             "font": "Noto Sans", "size": 16,
              "screenshot": "exemplar_1.png"},
             # The same pangram in IPA
             {"text": "ə saɪkəʊpaɪ zɛlət nəʊz ə smidge ɒv wx, bʌt ˈʤɑːvəskrɪpt ɪz ðə ˈkwɛsʧən",
-                "font": "Noto Sans",
+                "font": "Noto Sans", "size": 16,
                 "screenshot": "exemplar_2.png"},
             # The same pangram in Hangul
             {"text": "아 프시초피 제알롣 크노W스 아 s믿게 오f wx, 붇 자v앗c립t 잇 테 q왯디온",
-             "font": "Noto Sans KR",
+             "font": "Noto Sans KR", "size": 16,
              "screenshot": "exemplar_3.png"},
             # A noticeably non-standard font
             {"text": "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question.",
-             "font": "Indie Flower",
+             "font": "Indie Flower", "size": 16,
              "screenshot": "exemplar_4.png",
             }
         ]
@@ -69,18 +71,23 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin):
         tykes = [
             # Text which doesn't render properly on Mac (Issue #3203)
             {"text": "कोशिकायें",
-             "font": "Noto Sans",
+             "font": "Noto Sans", "size": 16,
              "screenshot": "tyke_1.png"},
             # Thai text which old Text component couldn't handle due to Pyglet
             {"text": "ขาว แดง เขียว เหลือง ชมพู ม่วง เทา",
-             "font": "Niramit",
+             "font": "Niramit", "size": 16,
              "screenshot": "tyke_2.png"
-             }
+             },
+            # Text which had the top cut off
+            {"text": "โฬิปื้ด็ลู",
+             "font": "Niramit", "size": 36,
+             "screenshot": "cutoff_top.png"},
         ]
         # Test each case and compare against screenshot
         for case in exemplars + tykes:
             self.textbox.reset()
             self.textbox.fontMGR.addGoogleFont(case['font'])
+            self.textbox.letterHeight = layout.Size(case['size'], "pix", self.win)
             self.textbox.font = case['font']
             self.textbox.text = case['text']
             self.win.flip()
@@ -302,6 +309,6 @@ def test_font_manager():
 @pytest.mark.uax14
 class Test_uax14_textbox(Test_textbox):
     """Runs the same tests as for Test_textbox, but with the textbox set to uax14 line breaking"""
-    def setup_class(self):
-        Test_textbox.setup_class(self)
+    def setup(self):
+        Test_textbox.setup(self)
         self.textbox._lineBreaking = 'uax14'

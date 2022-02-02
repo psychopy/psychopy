@@ -6,7 +6,7 @@ second order envelope carrier and envelope can vary independently for
 orientation, frequencyand phase. Also does beat stimuli. """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # some code provided by Andrew Schofield
 # Distributed under the terms of the GNU General Public License (GPL).
 
@@ -42,72 +42,99 @@ class NoiseStim(GratingStim):
 
     **Example**::
 
-    noise1 = noise = visual.NoiseStim(
-                                    win=win, name='noise',units='pix', 
-                                    noiseImage='testImg.jpg', mask='circle',
-                                    ori=1.0, pos=(0, 0), size=(512, 512), sf=None, phase=0,
-                                    color=[1,1,1], colorSpace='rgb', opacity=1, blendmode='add', contrast=1.0,
-                                    texRes=512, filter='None', imageComponent='Phase'
-                                    noiseType='Gabor', noiseElementSize=4, noiseBaseSf=32.0/512,
-                                    noiseBW=1.0, noiseBWO=30, noiseFractalPower=-1,noiseFilterLower=3/512, noiseFilterUpper=8.0/512.0, 
-                                    noiseFilterOrder=3.0, noiseClip=3.0, filter=False, interpolate=False, depth=-1.0)
-                                    
-            # gives a circular patch of noise made up of scattered Gabor elements with peak frequency = 32.0/512 cycles per pixel, 
-            # orientation = 0 , frequency bandwidth = 1 octave and orientation bandwidth 30 degrees
+        noise1 = noise = visual.NoiseStim(
+                        win=win, name='noise',units='pix',
+                        noiseImage='testImg.jpg', mask='circle',
+                        ori=1.0, pos=(0, 0), size=(512, 512), sf=None, phase=0,
+                        color=[1,1,1], colorSpace='rgb', opacity=1, blendmode='add', contrast=1.0,
+                        texRes=512, filter='None', imageComponent='Phase'
+                        noiseType='Gabor', noiseElementSize=4, noiseBaseSf=32.0/512,
+                        noiseBW=1.0, noiseBWO=30, noiseFractalPower=-1,noiseFilterLower=3/512, noiseFilterUpper=8.0/512.0,
+                        noiseFilterOrder=3.0, noiseClip=3.0, filter=False, interpolate=False, depth=-1.0)
+        # gives a circular patch of noise made up of scattered Gabor elements with peak frequency = 32.0/512 cycles per pixel,
+        # orientation = 0 , frequency bandwidth = 1 octave and orientation bandwidth 30 degrees
 
     **Types of noise available**
-    Binary, Normal, Uniform - pixel based noise samples drawn from a binary (blank and white), normal or uniform distribution respectively. Binary noise is always exactly zero mean, Normal and Uniform are approximately so.
-            Parameters -    noiseElementSize - (can be a tuple) defines the size of the noise elements in the components units.
-                            noiseClip the values in normally distributed noise are divided by noiseClip to limit excessively high or low values.
-                                However, values can still go out of range -1 to 1 whih will throw a soft error message high values of noiseClip are recommended if using 'Normal'
+
+    * Binary, Normal, Uniform - pixel based noise samples drawn from a binary (blank and white), normal or uniform distribution respectively. Binary noise is always exactly zero mean, Normal and Uniform are approximately so.
+      Parameters:
+
+        * noiseElementSize - (can be a tuple) defines the size of the noise elements in the components units.
+        * noiseClip the values in normally distributed noise are divided by noiseClip to limit excessively high or low values.
+          However, values can still go out of range -1 to 1 whih will throw a soft error message high values of noiseClip are recommended if using 'Normal'
     
-    Gabor, Isotropic - Effectively a dense scattering of Gabor elements with random amplitude and fixed orientation for Gabor or random orientation for Isotropic noise.
-            Parameters -    noiseBaseSf - centre spatial frequency in the component units. 
-                            noiseBW - spatial frequency bandwidth full width half height in octaves.
-                            ori - center orientation for Gabor noise (works as for gratingStim so twists the final image at render time).
-                            noiseBWO - orientation bandwidth for Gabor noise full width half height in degrees.
-                            noiseOri - alternative center orientation for Gabor which sets the orientation during the image build rather than at render time.
-                                        useful for setting the orientation of a filter to be applied to some other noise type with a different base orientation.
+    * **Gabor**, **Isotropic**: Effectively a dense scattering of Gabor elements with random amplitude and fixed orientation
+      for Gabor or random orientation for Isotropic noise. In practice the desired amplitude spectrum for the noise is
+      built in Fourier space with a random phase spectrum. DC term is set to zero - ie zero mean.
+      Parameters:
 
-            In practice the desired amplitude spectrum for the noise is built in Fourier space with a random phase spectrum. DC term is set to zero - ie zero mean.
-        
-    Filtered - A white noise sample that has been filtered with a low, high or bandpass Butterworth filter. The initial sample can have its spectrum skewed towards low or high frequencies
-            The contrast of the noise falls by half its maximum (3dB) at the cutoff frequencies.
-            Parameters -    noiseFilterUpper - upper cutoff frequency - if greater than texRes/2 cycles per image low pass filter used.
-                            noiseFilterLower - Lower cutoff frequency - if zero low pass filter used.
-                            noiseFilterOrder - The order of the filter controls the steepness of the falloff outside the passband is zero no filter is applied.
-                            noiseFractalPower - spectrum = f^noiseFractalPower  - determines the spatial frequency bias of the initial noise sample. 0 = flat spectrum, negative = low frequency bias, positive = high frequency bias, -1 = fractal or brownian noise.
-                            noiseClip - determines clipping values and rescaling factor such that final rms contrast is close to that requested by contrast parameter while keeping pixel values in range -1, 1.  
+        * noiseBaseSf - centre spatial frequency in the component units.
+        * noiseBW - spatial frequency bandwidth full width half height in octaves.
+        * ori - center orientation for Gabor noise (works as for gratingStim so twists the final image at render time).
+        * noiseBWO - orientation bandwidth for Gabor noise full width half height in degrees.
+        * noiseOri - alternative center orientation for Gabor which sets the orientation during the image build rather
+          than at render time. Useful for setting the orientation of a filter to be applied to some other noise type
+          with a different base orientation.
 
-    White - A short cut to obtain noise with a flat, unfiltered spectrum
-                            noiseClip - determines clipping values and rescaling factor such that final rms contrast is close to that requested by contrast parameter while keeping pixel values in range -1, 1.  
 
-            In practice the desired amplitude spectrum is built in the Fourier Domain with a random phase spectrum. DC term is set to zero - ie zero mean
-            Note despite name the noise contains all grey levels.
+    * **Filtered** - A white noise sample that has been filtered with a low, high or bandpass Butterworth filter. The
+      initial sample can have its spectrum skewed towards low or high frequencies. The contrast of the noise falls
+      by half its maximum (3dB) at the cutoff frequencies.
+      Parameters:
 
-    Image - A noise sample whose spatial frequency spectrum is taken from the supplied image.
-            Parameters -    noiseImage name of nparray or image file from which to take spectrum - should be same size as largest side requested for component if units is pix or texRes x texRes otherwise
-                            imageComponent: 'Phase' ransomizes the phase spectrum leaving the amplitude spectrum untouched.
-                                            'Amplitude' randomizes the amplitude spectrum leaving the phase spectrum untouched - retains spatial structure of image.
-                                            'Neither' keeps the image as is - but you can now apply a spatial filter to the image.
-                            noiseClip - determines clipping values and rescaling factor such that final rms contrast is close to that requested by contrast parameter while keeping pixel values in range -1, 1.  
+        * noiseFilterUpper - upper cutoff frequency - if greater than texRes/2 cycles per image low pass filter used.
+        * noiseFilterLower - Lower cutoff frequency - if zero low pass filter used.
+        * noiseFilterOrder - The order of the filter controls the steepness of the falloff outside the passband is
+          zero no filter is applied.
+        * noiseFractalPower - spectrum = f^noiseFractalPower  - determines the spatial frequency bias of the initial
+          noise sample. 0 = flat spectrum, negative = low frequency bias, positive = high frequency bias, -1 = fractal
+          or brownian noise.
+        * noiseClip - determines clipping values and rescaling factor such that final rms contrast is close to that
+          requested by contrast parameter while keeping pixel values in range -1, 1.
 
-            In practice the desired amplitude spectrum is taken from the image and paired with a random phase spectrum. DC term is set to zero - ie zero mean
-    
-    **filter parameter
-    If the filter parameter = Butterworth then the a spectral filter defined by the filtered noise parameters will be applied to the other noise types.
-    If the filter parameter = Gabor then the a spectral filter defined by the Gabor noise parameters will be applied to the other noise types.
-    If the filter parameter = Isotropic then the a spectral filter defined by the Isotropic noise parameters will be applied to the other noise types.
+    * **White** - A short cut to obtain noise with a flat, unfiltered spectrum. In practice the desired amplitude spectrum
+      is built in the Fourier Domain with a random phase spectrum. DC term is set to zero - ie zero mean
+      Note despite name the noise contains all grey levels.
+      Parameters:
+
+        * noiseClip - determines clipping values and rescaling factor such that final rms contrast is close to that
+          requested by contrast parameter while keeping pixel values in range -1, 1.
+
+    * **Image**: A noise sample whose spatial frequency spectrum is taken from the supplied image. In practice the
+      desired amplitude spectrum is taken from the image and paired with a random phase spectrum. DC term is set to
+      zero - ie zero mean.
+      Parameters:
+
+        * noiseImage name of ndarray or image file from which to take spectrum - should be same size as largest side
+          requested for component if units is pix or texRes x texRes otherwise
+        * imageComponent: 'Phase' randomizes the phase spectrum leaving the amplitude spectrum untouched. 'Amplitude'
+          randomizes the amplitude spectrum leaving the phase spectrum untouched - retains spatial structure of image.
+          'Neither' keeps the image as is - but you can now apply a spatial filter to the image.
+        * noiseClip - determines clipping values and rescaling factor such that final rms contrast is close to that
+          requested by contrast parameter while keeping pixel values in range -1, 1.
+
+    **Filter parameter**
+
+    * Butterworth: a spectral filter defined by the filtered noise parameters will be applied to the other noise types.
+    * Gabor: a spectral filter defined by the Gabor noise parameters will be applied to the other noise types.
+    * Isotropic: then a spectral filter defined by the Isotropic noise parameters will be applied to the other noise
+      types.
     
     
     **Updating noise samples and timing**
-    The noise is rebuilt at next call of the draw function whenever a parameter starting 'noise' is notionally changed even if the value does not actually change every time. eg. setting a parameter to update every frame will cause a new noise sample on every frame but see below.
+
+    The noise is rebuilt at next call of the draw function whenever a parameter starting 'noise' is notionally changed
+    even if the value does not actually change every time. eg. setting a parameter to update every frame will cause a
+    new noise sample on every frame but see below.
     A rebuild can also be forced at any time using the buildNoise() function.
-    The updateNoise() function can be used at any time to produce a new random saple of noise without doing a full build. ie it is quicker than a full build.
+    The updateNoise() function can be used at any time to produce a new random saple of noise without doing a full
+    build. ie it is quicker than a full build.
     Both buildNoise and updateNoise can be slow for large samples. 
     Samples of Binary, Normal or Uniform noise can usually be made at frame rate using noiseUpdate. 
     Updating or building other noise types at frame rate may result in dropped frames. 
-    An alternative is to build a large sample of noise at the start of the routien and place it off the screen then cut a samples out of this at random locations and feed that as a numpy array into the texture of a visible gratingStim.
+    An alternative is to build a large sample of noise at the start of the routien and place it off the screen then
+    cut a samples out of this at random locations and feed that as a numpy array into the texture of a visible
+    gratingStim.
 
     **Notes on size**
     If units = pix and noiseType = Binary, Normal or Uniform will make noise sample of requested size.

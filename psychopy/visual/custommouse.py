@@ -5,7 +5,7 @@
 including the pointer graphic and bounding box."""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 
@@ -29,11 +29,11 @@ class CustomMouse(MinimalStim):
     Seems to work with pyglet or pygame. Not completely tested.
 
     Known limitations:
-    - only norm units are working
-    - getRel() always returns [0,0]
-    - mouseMoved() is always False; maybe due to
-        self.mouse.visible == False -> held at [0,0]
-    - no idea if clickReset() works
+
+    * only norm units are working
+    * getRel() always returns [0,0]
+    * mouseMoved() is always False; maybe due to `self.mouse.visible == False` -> held at [0,0]
+    * no idea if clickReset() works
 
     Author: Jeremy Gray, 2011
     """
@@ -50,36 +50,34 @@ class CustomMouse(MinimalStim):
         system mouse. Create your `visual.Window` before creating a
         CustomMouse.
 
-        :Parameters:
-            win : required, `visual.Window`
-                the window to which this mouse is attached
-            visible : **True** or False
-                makes the mouse invisible if necessary
-            newPos : **None** or [x,y]
-                gives the mouse a particular starting position
-            leftLimit :
-                left edge of a virtual box within which the mouse can move
-            topLimit :
-                top edge of virtual box
-            rightLimit :
-                right edge of virtual box
-            bottomLimit :
-                lower edge of virtual box
-            showLimitBox : default is False
-                display the boundary within which the mouse can move.
-            pointer :
-                The visual display item to use as the pointer;
-                must have .draw() and setPos() methods. If your item has
-                .setOpacity(), you can alter the mouse's opacity.
-            clickOnUp : when to count a mouse click as having occurred
-                default is False, record a click when the mouse is first
-                pressed down. True means record a click when the mouse
-                button is released.
-        :Note:
-            CustomMouse is a new feature, and subject to change.
-            `setPos()` does not work yet. `getRel()` returns `[0,0]`
-            and `mouseMoved()` always
-            returns `False`. `clickReset()` may not be working.
+        Parameters
+        ----------
+
+        win : required, `visual.Window`
+            the window to which this mouse is attached
+        visible : **True** or False
+            makes the mouse invisible if necessary
+        newPos : **None** or [x,y]
+            gives the mouse a particular starting position
+        leftLimit :
+            left edge of a virtual box within which the mouse can move
+        topLimit :
+            top edge of virtual box
+        rightLimit :
+            right edge of virtual box
+        bottomLimit :
+            lower edge of virtual box
+        showLimitBox : default is False
+            display the boundary within which the mouse can move.
+        pointer :
+            The visual display item to use as the pointer;
+            must have .draw() and setPos() methods. If your item has
+            .setOpacity(), you can alter the mouse's opacity.
+        clickOnUp : when to count a mouse click as having occurred
+            default is False, record a click when the mouse is first
+            pressed down. True means record a click when the mouse
+            button is released.
+
         """
         # what local vars are defined (these are the init params) for use by
         # __repr__

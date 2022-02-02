@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from .project import DetailsPanel
@@ -154,7 +154,7 @@ class SearchPanel(wx.Panel):
             "Status": ["running", "piloting", "inactive"],
             "Platform": ["psychojs", "jspsych", "labjs", "opensesame", "other"],
             "Visibility": ["public", "private"],
-            "Tags": None,
+            "Keywords": None,
         }
         self.filterBtn.Bind(wx.EVT_BUTTON, self.filter)
         self.btnSizer.Add(self.filterBtn, border=6, flag=wx.LEFT | wx.TOP | wx.BOTTOM)
@@ -266,6 +266,9 @@ class SearchPanel(wx.Panel):
         """
         if self.projects is not None:
             proj = self.projects.iloc[self.projectList.GetFocusedItem()]
+            # Set project to None while waiting
+            self.viewer.project = None
+            # Set project
             self.viewer.project = pavlovia.PavloviaProject(proj)
 
     def onMineBtn(self, evt=None):
@@ -274,6 +277,12 @@ class SearchPanel(wx.Panel):
             self.mineBtn.Value = evt
         # Apply "mine" filter
         self._mine = self.mineBtn.Value
+        # Clear and disable filters & search todo: This is a stop gap, remove once the Pavlovia API can accept searches and filters WITHIN a designer
+        self.filterBtn.Enable(not self._mine)
+        self.searchCtrl.Enable(not self._mine)
+        if self._mine:
+            self.filterOptions = {key: [] for key in self.filterOptions}
+            self.searchCtrl.Value = ""
         # Update
         self.filterLbl.update()
         self.search()
@@ -402,7 +411,7 @@ class FilterDlg(wx.Dialog):
             self.sizer.Add(self.ctrls[key], border=6, flag=wx.EXPAND | wx.ALL)
         # Add Okay button
         self.sizer.AddStretchSpacer(1)
-        self.OkayBtn = wx.Button(self, id=wx.ID_OK, label=_translate("Okay"))
+        self.OkayBtn = wx.Button(self, id=wx.ID_OK, label=_translate("OK"))
         self.contentBox.Add(self.OkayBtn, border=6, flag=wx.ALL | wx.ALIGN_RIGHT)
         # Bind cancel
         self.Bind(wx.EVT_CLOSE, self.onCancel)

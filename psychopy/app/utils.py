@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """utility classes for the Builder
@@ -427,7 +427,7 @@ class ButtonArray(wx.Window):
     def addItem(self, item):
         if not isinstance(item, wx.Window):
             item = self.ArrayBtn(self, label=item)
-        self.sizer.Insert(0, item, border=3, flag=wx.EXPAND | wx.ALL)
+        self.sizer.Insert(0, item, border=3, flag=wx.EXPAND | wx.TOP | wx.BOTTOM | wx.RIGHT)
         self.Layout()
         # Raise event
         evt = wx.ListEvent(wx.EVT_LIST_INSERT_ITEM.typeId)

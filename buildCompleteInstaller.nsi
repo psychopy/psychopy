@@ -12,7 +12,6 @@
 !include "building\fileassoc.nsh"
 ; !include "Library.nsh"  ; for installing avbin
 !include LogicLib.nsh
-!include "building\strExplode.nsh"
 
 ; Allow choosing between multiuser and current user (no admin rights) installs
 !define MULTIUSER_EXECUTIONLEVEL Highest
@@ -72,7 +71,6 @@ OutFile "Standalone${PRODUCT_NAME}-${PRODUCT_VERSION}-${ARCH}.exe"
 
 ; We set InstallDir inside .onInit instead so it can be dynamic
 var InstalledPrevDir
-var MAJOR_VERSION
 
 ShowInstDetails show
 ShowUnInstDetails show
@@ -89,22 +87,14 @@ Function multiuser_pre_func
 FunctionEnd
 
 Function .onInit
-
   ; NB this function occurs BEFORE the MULTIUSER_PAGE_INSTALLMODE 
   ; so doesn't yet know whether we're single or multi-user
+  StrCpy $ICONS_GROUP "${PRODUCT_NAME}-${PRODUCT_VERSION}"
   !insertmacro MULTIUSER_INIT
-  !insertmacro strExplode $0 "." ${PRODUCT_VERSION}  # explode the version number
-  Pop $1  # each part is stored on the stack so pop to vars $1 and V2
-  Pop $2
-  StrCpy $MAJOR_VERSION "$1.$2"
-
-  StrCpy $ICONS_GROUP "${PRODUCT_NAME}-$MAJOR_VERSION"
 FunctionEnd
 
 Function un.onInit
-
   !insertmacro MULTIUSER_UNINIT
-
 FunctionEnd
 
 Section "PsychoPy" SEC01
@@ -151,13 +141,13 @@ Section "PsychoPy" SEC01
     ; Shortcuts
     !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
     CreateDirectory "$SMPROGRAMS\$ICONS_GROUP"
-    CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}-$MAJOR_VERSION .lnk" \
+    CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}-${PRODUCT_VERSION}.lnk" \
         "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\"" "$AppDir\Resources\psychopy.ico"
-    CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}-$MAJOR_VERSION Runner.lnk" \
+    CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}-${PRODUCT_VERSION} Runner.lnk" \
         "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\" --runner" "$AppDir\Resources\runner.ico"
-    CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}-$MAJOR_VERSION Builder.lnk" \
+    CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}-${PRODUCT_VERSION} Builder.lnk" \
         "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\" --builder" "$AppDir\Resources\builder.ico"
-    CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}-$MAJOR_VERSION Coder.lnk" \
+    CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}-${PRODUCT_VERSION} Coder.lnk" \
         "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\" --coder"  "$AppDir\Resources\coder.ico"
     !insertmacro MUI_STARTMENU_WRITE_END
 
@@ -184,7 +174,7 @@ Section -AdditionalIcons
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   WriteIniStr "$INSTDIR\${PRODUCT_NAME}.url" "InternetShortcut" "URL" "${PRODUCT_WEB_SITE}"
   CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\www.psychopy.org.lnk" "$INSTDIR\${PRODUCT_NAME}.url"
-  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Uninstall ${PRODUCT_NAME}-$MAJOR_VERSION.lnk" "$INSTDIR\uninst.exe"
+  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Uninstall ${PRODUCT_NAME}-${PRODUCT_VERSION}.lnk" "$INSTDIR\uninst.exe"
   !insertmacro MUI_STARTMENU_WRITE_END
 SectionEnd
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Acknowledgements:
@@ -229,6 +229,7 @@ class BitsPlusPlus:
     """The main class to control a Bits++ box.
     This is usually a class added within the window object and is
     typically accessed from there. e.g.::
+
         from psychopy import visual
         from psychopy.hardware import crs
         win = visual.Window([800,600])
@@ -246,31 +247,34 @@ class BitsPlusPlus:
                  rampType='configFile',
                  frameRate=None):
         """
-        :Parameters:
-            contrast :
-                The contrast to be applied to the LUT.
-                See :func:`BitsPlusPlus.setLUT` and
-                :func:`BitsPlusPlus.setContrast` for flexibility on setting
-                just a section of the LUT to a different value
-            gamma :
-                The value used to correct the gamma in the LUT
-            nEntries : 256
-                [DEPRECATED feature]
-            mode : 'bits++' (or 'mono++' or 'color++')
-                Note that, unlike the Bits#, this only affects the way the
-                window is rendered, it does not switch the state of the Bits++
-                device itself (because unlike the Bits# have no way to
-                communicate with it).
-                The mono++ and color++ are only supported in PsychoPy 1.82.00
-                onwards. Even then they suffer from not having gamma
-                correction applied on Bits++ (unlike Bits# which can apply
-                a gamma table in the device hardware).
-            rampType : 'configFile', None or an integer
-                if 'configFile' then we'll look for a valid config in the
-                userPrefs folder if an integer then this will be used during
-                win.setGamma(rampType=rampType):
-            frameRate : an estimate the frameRate of the monitor. If None frame rate
+        Parameters
+        -----------
+
+        contrast :
+            The contrast to be applied to the LUT.
+            See :func:`BitsPlusPlus.setLUT` and
+            :func:`BitsPlusPlus.setContrast` for flexibility on setting
+            just a section of the LUT to a different value
+        gamma :
+            The value used to correct the gamma in the LUT
+        nEntries : 256
+            [DEPRECATED feature]
+        mode : 'bits++' (or 'mono++' or 'color++')
+            Note that, unlike the Bits#, this only affects the way the
+            window is rendered, it does not switch the state of the Bits++
+            device itself (because unlike the Bits# have no way to
+            communicate with it).
+            The mono++ and color++ are only supported in PsychoPy 1.82.00
+            onwards. Even then they suffer from not having gamma
+            correction applied on Bits++ (unlike Bits# which can apply
+            a gamma table in the device hardware).
+        rampType : 'configFile', None or an integer
+            if 'configFile' then we'll look for a valid config in the
+            userPrefs folder if an integer then this will be used during
+            win.setGamma(rampType=rampType):
+        frameRate : an estimate the frameRate of the monitor. If None frame rate
             will be calculated.
+
         """
         self.win = win
         self.contrast = contrast
@@ -313,10 +317,9 @@ class BitsPlusPlus:
         
         self._setHeaders(self.frameRate)
 
-        self.setLUT()#this will set self.LUT and update self._LUTandHEAD
+        self.setLUT()  # this will set self.LUT and update self._LUTandHEAD
         self._setupShaders()
 
-        
         # replace window methods with our custom ones
         self.win._prepareFBOrender = self._prepareFBOrender
         self.win._finishFBOrender = self._finishFBOrender
@@ -444,16 +447,17 @@ class BitsPlusPlus:
         Note that, if you leave gammaCorrect=True then any LUT values you
         supply will automatically be gamma corrected.
         The LUT will take effect on the next `Window.flip()`
-        **Examples:**
-            ``bitsBox.setLUT()``
-                builds a LUT using bitsBox.contrast and bitsBox.gamma
-            ``bitsBox.setLUT(newLUT=some256x1array)``
-                (NB array should be float 0.0:1.0)
-                Builds a luminance LUT using newLUT for each gun
-                (actually array can be 256x1 or 1x256)
-            ``bitsBox.setLUT(newLUT=some256x3array)``
-               (NB array should be float 0.0:1.0)
-               Allows you to use a different LUT on each gun
+
+        **Examples**:
+
+            - `bitsBox.setLUT()` to build a LUT using bitsBox.contrast and bitsBox.gamma
+            - `bitsBox.setLUT(newLUT=some256x1array)` (NB array should be float 0.0:1.0)
+              Builds a luminance LUT using newLUT for each gun
+              (actually array can be 256x1 or 1x256)
+            - `bitsBox.setLUT(newLUT=some256x3array)`
+              (NB array should be float 0.0:1.0)
+              Allows you to use a different LUT on each gun
+
         (NB by using BitsBox.setContr() and BitsBox.setGamma() users may not
         need this function)
         """
@@ -536,21 +540,22 @@ class BitsPlusPlus:
     def setContrast(self, contrast, LUTrange=1.0, gammaCorrect=None):
         """Set the contrast of the LUT for 'bits++' mode only
         :Parameters:
+
             contrast : float in the range 0:1
                 The contrast for the range being set
+
             LUTrange : float or array
                 If a float is given then this is the fraction of the LUT
                 to be used. If an array of floats is given, these will
                 specify the start / stop points as fractions of the LUT.
                 If an array of ints (0-255) is given these determine the
                 start stop *indices* of the LUT
+
         Examples:
-            ``setContrast(1.0,0.5)``
-                will set the central 50% of the LUT so that a stimulus with
+            - `setContrast(1.0,0.5)` to set the central 50% of the LUT so that a stimulus with
                 contr=0.5 will actually be drawn with contrast 1.0
-            ``setContrast(1.0,[0.25,0.5])``
-            ``setContrast(1.0,[63,127])``
-                will set the lower-middle quarter of the LUT
+            - `setContrast(1.0,[0.25,0.5])`
+            - or `setContrast(1.0,[63,127])` to set the lower-middle quarter of the LUT
                 (which might be useful in LUT animation paradigms)
         """
         self.contrast = contrast
@@ -618,7 +623,8 @@ class BitsPlusPlus:
         the next win.flip so you need to have regular win.flips for
         this function to work properly.
         
-        Example
+        Example::
+
             bits.primeClock()
             drawImage
             while not response
@@ -845,7 +851,9 @@ class BitsPlusPlus:
     def stopTrigger(self):
         """ Stop sending triggers at the next win flip
         
-        Example::
+        Example:
+
+        .. code-block:: python
 
                 bits.setTrigger(0b0000000010, 2.0, 4.0, 0b0111111111)
                 bits.startTrigger()
@@ -854,6 +862,7 @@ class BitsPlusPlus:
                     continue
                 bits.stopTrigger()
                 bits.win.flip()
+
         """
         # This is a hack to get triggers to stop on the one
         # Bits++ box tested.
@@ -1176,7 +1185,9 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
     This device uses the CDC (serial port) connection to the Bits box.
     To use it you must have followed the instructions from CRS Ltd. to get
     your box into the CDC communication mode.
-    Typical usage (also see demo in Coder view demos>hardware>BitsBox )::
+    Typical usage (also see demo in Coder view demos>hardware>BitsBox ):
+
+    .. code-block:: python
 
         from psychopy import visual
         from psychopy.hardware import crs
@@ -1192,7 +1203,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         core.wait(0.1)
         # now, you can change modes using
         bits.mode = 'mono++' # 'color++', 'mono++', 'bits++', 'status'
-        
+
     Note that the firmware in Bits# boxes varies over time and some features of
     this class may not work for all firmware versions. Also Bits# boxes can be
     configured in various ways via their config.xml file so this class makes certain
@@ -1202,7 +1213,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
     then 'status' and 'event' commands in this class may not work.
     
     RTBox commands that reset the key mapping have been found not to work
-    one some firmware.
+    one some firmware
     """
     name = b'CRS Bits#'
 
@@ -1214,38 +1225,43 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
                          gamma=None,
                          noComms=False):
         """
-        :Parameters:
-            win : a PsychoPy :class:`~psychopy.visual.Window` object, required
-            portName : the (virtual) serial port to which the device is
-                connected. If None then PsychoPy will search available
-                serial ports and test communication (on OSX, the first
-                match of `/dev/tty.usbmodemfa*` will be used and on
-                linux `/dev/ttyS0` will be used
-            mode : 'bits++', 'color++', 'mono++', 'status'
-            checkConfigLevel : integer
-                Allows you to specify how much checking of the device is
-                done to ensure a valid identity look-up table. If you specify
-                one level and it fails then the check will be escalated to
-                the next level (e.g. if we check level 1 and find that it
-                fails we try to find a new LUT):
-                    - 0 don't check at all
-                    - 1 check that the graphics driver and OS version haven't
-                        changed since last LUT calibration
-                    - 2 check that the current LUT calibration still provides
-                        identity (requires switch to status mode)
-                    - 3 search for a new identity look-up table (requires
-                        switch to status mode)
-            gammaCorrect : string governing how gamma correction is performed
-                'hardware': use the gamma correction file stored on the
-                    hardware
-                'FBO': gamma correct using shaders when rendering the FBO
-                    to back buffer
-                'bitsMode': in bits++ mode there is a user-controlled LUT
-                    that we can use for gamma correction
-            noComms : bool
-                If True then don't try to communicate with the device at all
-                (passive mode). This can be useful if you want to debug the
-                system without actually having a Bits# connected.
+        Parameters
+        ----------
+
+        win : a PsychoPy :class:`~psychopy.visual.Window` object, required
+
+        portName : the (virtual) serial port to which the device is
+            connected. If None then PsychoPy will search available
+            serial ports and test communication (on OSX, the first
+            match of `/dev/tty.usbmodemfa*` will be used and on
+            linux `/dev/ttyS0` will be used
+        mode : 'bits++', 'color++', 'mono++', 'status'
+        checkConfigLevel : integer
+            Allows you to specify how much checking of the device is
+            done to ensure a valid identity look-up table. If you specify
+            one level and it fails then the check will be escalated to
+            the next level (e.g. if we check level 1 and find that it
+            fails we try to find a new LUT):
+
+                - 0 don't check at all
+                - 1 check that the graphics driver and OS version haven't
+                    changed since last LUT calibration
+                - 2 check that the current LUT calibration still provides
+                    identity (requires switch to status mode)
+                - 3 search for a new identity look-up table (requires
+                    switch to status mode)
+
+        gammaCorrect : string governing how gamma correction is performed
+            'hardware': use the gamma correction file stored on the
+                hardware
+            'FBO': gamma correct using shaders when rendering the FBO
+                to back buffer
+            'bitsMode': in bits++ mode there is a user-controlled LUT
+                that we can use for gamma correction
+        noComms : bool
+            If True then don't try to communicate with the device at all
+            (passive mode). This can be useful if you want to debug the
+            system without actually having a Bits# connected.
         """
 
         # import pyglet.GL late so that we can import bits.py without it
@@ -1368,6 +1384,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         """Stop sending triggers at the next win flip.
         
         Example::
+
             bits.setTrigger(0b0000000010, 2.0, 4.0, 0b0111111111)
             bits.startTrigger()
             while imageOn:
@@ -1375,6 +1392,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
                 continue
             bits.stopTrigger()
             bits.win.flip()
+
         """
         # Simply stops sending TLock triggers as the next win flip.
         self.trigger=False
@@ -1383,6 +1401,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         """ Stop the stereo goggles from toggling 
         
         Example::
+
             bits.startGoggles(0,1)
             bits.win.flip()
             while not response
@@ -1390,7 +1409,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
                 #do some processing
             bits.stopGoggles()
             bits.win.flip()
-            
+
         Starts toggling the goggles with the right eye open in sync with the
         first win.flip(0) within the loop. The open eye will alternate.
 
@@ -1588,11 +1607,13 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
     def getVideoLine(self, lineN, nPixels, timeout=10.0, nAttempts=10):
         """Return the r,g,b values for a number of pixels on a particular
         video line
+
         :param lineN: the line number you want to read
         :param nPixels: the number of pixels you want to read
         :param nAttempts: the first time you call this function it has
             to get to status mode. In this case it sometimes takes a few
             attempts to make the call work
+
         :return: an Nx3 numpy array of uint8 values
         """
         # define sub-function oneAttempt
@@ -1869,7 +1890,9 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         
     def stopAnalog(self):
         """will stop sending analogs signals at the next win flip.
-                Example:
+
+        Example::
+
             bits.set Analog(4.5,-2.2)
             bits.startAnalog()
             bits.win.flip()
@@ -1878,6 +1901,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
                 bits.win.flip()
             bits.stopAnalog()
             bits.win.flip()
+
         """
         # Restore any protected triggers if required and stop sending.
         # TLock for analog at next win flip.
@@ -1965,9 +1989,10 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         
         Mode is a list of strings.
         Preset mappings  provided via mode:
-            CB6 for the CRS CB6 IR response box.
-            IO for a three button box connected to Din0-2
-            IO6 for a six button box connected to Din0-5
+
+        * `CB6` for the CRS CB6 IR response box.
+        * `IO` for a three button box connected to Din0-2
+        * `IO6` for a six button box connected to Din0-5
             
         If mode = None or is not set then the value of self.RTBoxMode is used.
 
@@ -1989,27 +2014,28 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         Mode is a list of string or list of strings that contains 
         keywords to determine present mappings and modes for RTBox.
         
-        If mode includes 'Down' button events will be 
-        detected when pressed.
-        If mode includes 'Up' button events will be 
-        detected when released.
-        You can detect both types of event but note 
-        that pulse, light and trigger events
+        * If mode includes 'Down' button events will be detected when pressed.
+        * If mode includes 'Up' button events will be detected when released.
+
+        You can detect both types of event but note that pulse, light and trigger events
         don't have an 'Up' mode.
         
-        If Trigger is included in mode the trigger 
-            event will be mapped to the trigIn connector.
-            
-        Example: 
+        If Trigger is included in mode the trigger event will be mapped to the trigIn connector.
+
+        Example:
+        .. code-block:: python
+
             bits.RTBoxEnable(mode = ['Down']), map = [('btn1','Din0'), ('btn2','Din1')]
             
-        enable the RTBox emulation to detect Down events on buttons 1 and 2 where they are
+        enables the RTBox emulation to detect Down events on buttons 1 and 2 where they are
         mapped to DIN0 and DIN1.
-        
-        Example: 
+
+        Example:
+        .. code-block:: python
+
             bits.RTBoxEnable(mode = ['Down','CB6'])
         
-        enable the RTBox emulation to detect Down events on the standard CB6 IR response box keys.
+        enables the RTBox emulation to detect Down events on the standard CB6 IR response box keys.
         
         If no key direction has been set (mode does not contain 'Up' or 'Down') the default is 'Down'.
 
@@ -2048,7 +2074,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         self.RTBoxResetKeys() # reset all the button - input mappings.
         # If map is not None the mapping provided will over ride any presets given
         # by mode, otherwise use the present mappings below.
-        if map == None:
+        if map is None:
             if 'CB6' in self.RTBoxMode:
                 self.sendMessage(b'$btn1 =[IRButtonA]\r')
                 self.sendMessage(b'$btn2 =[IRButtonB]\r')
@@ -2731,19 +2757,20 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         CB6 IR input channels.
         
         mode is a list of strings.
-        Preset mappings  provided via mode:
-            CB6 for the CRS CB6 IR response box connected mapped to btn1-6
-            IO for a three button box connected to Din0-2 mapped to btn1-3
-            IO6 for a six button box connected to Din0-5 mapped to btn1-6
-            IO10 for a ten button box connected to Din0-9 mapped to btn1-10
-            Trigger maps the trigIn to btn17
-            Analog maps the 6 analog inputs on a Bits# to btn18-23
+        Preset mappings provided via mode:
+
+            - CB6 for the CRS CB6 IR response box connected mapped to btn1-6
+            - IO for a three button box connected to Din0-2 mapped to btn1-3
+            - IO6 for a six button box connected to Din0-5 mapped to btn1-6
+            - IO10 for a ten button box connected to Din0-9 mapped to btn1-10
+            - Trigger maps the trigIn to btn17
+            - Analog maps the 6 analog inputs on a Bits# to btn18-23
             
-            if CB6 and IOx are used together the Dins are mapped from btn7 onwards.
+        If CB6 and IOx are used together the Dins are mapped from btn7 onwards.
             
         If mode = None or is not set then the value of self.statusBoxMode is used.
 
-        Bespoke Mappings over write preset ones.
+        Bespoke Mappings overwrite preset ones.
         
         The format for map is a list of tuples with each tuple 
         containing the name of the 
@@ -2779,16 +2806,18 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         events. So if only 'Up' events are detected the input must go up by threshold, then come
         down again and then go back up to register 2 up events.
             
-        Example: 
+        Example::
+
             bits.statusBoxEnable(mode = 'Down'), map = [('btn1','Din0'), ('btn2','Din1')]
             
-        enable the stautsBox to detect Down events on buttons 1 and 2 where they are
+        enables the stautsBox to detect Down events on buttons 1 and 2 where they are
         mapped to DIN0 and DIN1.
         
-        Example: 
+        Example::
+
             bits.statusBoxEnable(mode = ['Down','CB6'])
         
-        enable the status Box emulation to detect Down events on the standard CB6 IR response box keys.
+        enables the status Box emulation to detect Down events on the standard CB6 IR response box keys.
         
         
         Note that the firmware in Bits# units varies over time and some 
@@ -3476,13 +3505,13 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             Will run for t seconds, defrault 60 or until 
             stopStatusLog() is called.
             
-        Example::
+            Example::
 
-            bits.startStatusLog()
-            while not event
-                #do some processing
-                continue
-            bits.stopStatusLog()
+                bits.startStatusLog()
+                while not event
+                    #do some processing
+                    continue
+                bits.stopStatusLog()
             
         Note that the firmware in Bits# units varies over time and some 
         features of this class may not work for all firmware versions. 
@@ -3517,15 +3546,13 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             in statusValues and statusEvents.
             
             statusValues will end up containing 
-            dict like objects of the following style:
-                sample, time, trigIn, DIN[10], DWORD, IR[6], ADC[6]
+            dict like objects of the following style: `sample, time, trigIn, DIN[10], DWORD, IR[6], ADC[6]`
         
             They can be accessed as statusValues[i]['sample'] or 
             statusValues[i].sample, statusValues[x].ADC[j].
             
             StatusEvents will end up containing dict like objects of
-            the following style:
-                source, input, direction, time.
+            the following style: `source, input, direction, time`
                 
             The data can be accessed as statusEvents[i]['time'] or statusEvents[i].time
             
@@ -3587,7 +3614,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         
         The data can be accessed as value[i]['time'] or value[i].time
         
-        Example:
+        Example::
+
             bits.startStatusLog()
             while not event
                 #do some processing
@@ -3632,7 +3660,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         
         The data can be accessed as value['time'] or value.time
         
-        Example:
+        Example::
+
             bits.startStatusLog()
             while not event
                 #do some processing
@@ -3678,7 +3707,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         IR 0 ... 5
         ADC 0 ... 5
         
-        Example:
+        Example::
+
             bits.startStatusLog()
             while not event
                 #do some processing
@@ -3686,7 +3716,6 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             bits.stopStatusLog()
             res=getAllStatusValues()
             print(bits.res[0].time)
-            
             
         Note that the firmware in Bits# units varies over time and some 
         features of this class may not work for all firmware versions. 
@@ -3721,7 +3750,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         IR 0 ... 5
         ADC 0 ... 5
 
-        Example:
+        Example::
+
             bits.startStatusLog()
             while not event
                 #do some processing
@@ -4213,15 +4243,16 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
     def checkConfig(self, level=1, demoMode=False, logFile=''):
         """Checks whether there is a configuration for this device and
         whether it's correct
+
         :params:
             level: integer
-                0: do nothing
-                1: check that we have a config file and that the graphics
+                - 0: do nothing
+                - 1: check that we have a config file and that the graphics
                     card and operating system match that specified in the
                     file. Then assume identity LUT is correct
-                2: switch the box to status mode and check that the
+                - 2: switch the box to status mode and check that the
                     identity LUT is currently working
-                3: force a fresh search for the identity LUT
+                - 3: force a fresh search for the identity LUT
         """
         
         if self.noComms:
