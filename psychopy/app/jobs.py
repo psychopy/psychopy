@@ -67,7 +67,7 @@ KILL_ACCESS_DENIED = wx.KILL_ACCESS_DENIED
 KILL_NO_PROCESS = wx.KILL_NO_PROCESS
 KILL_ERROR = wx.KILL_ERROR
 
-PIPE_READER_POLL_INTERVAL = 0.025  # seconds
+# PIPE_READER_POLL_INTERVAL = 0.025  # seconds
 
 
 class PipeReader(Thread):
@@ -123,7 +123,10 @@ class PipeReader(Thread):
         enqueues them.
         """
         # read bytes in chunks until EOF
-        for pipeBytes in iter(self._fdpipe.readline, ''):
+        while 1:
+            self._fdpipe.flush()
+            pipeBytes = self._fdpipe.readline()
+
             # put bytes into the queue, handle overflows if the queue is full
             if not self._queue.full():
                 # we have room, check if we have a backlog of bytes to send
@@ -142,13 +145,14 @@ class PipeReader(Thread):
             # Put the thread to sleep for a bit, not sure if we need this since
             # this loop will block execution of this thread if there is nothing
             # to read.
-            time.sleep(PIPE_READER_POLL_INTERVAL)
+            # time.sleep(PIPE_READER_POLL_INTERVAL)
 
             # exit the loop
             if self._stopSignal.is_set():
                 break
 
-            self._fdpipe.flush()
+            if pipeBytes == '':
+                break
 
         #self._fdpipe.close()  # close the pipe if stopped
 
@@ -547,6 +551,19 @@ class Job:
     #
     #     return self._process.ErrorStream
 
+    def _readPipes(self):
+        """Read data available on the pipes."""
+        # get data from pipes
+        if self.isInputAvailable:
+            stdinText = self.getInputData()
+            if self._inputCallback is not None:
+                wx.CallAfter(self._inputCallback, stdinText)
+
+        if self.isErrorAvailable:
+            stderrText = self.getErrorData()
+            if self._errorCallback is not None:
+                wx.CallAfter(self._errorCallback, stderrText)
+
     def poll(self, evt=None):
         """Poll input and error streams for data, pass them to callbacks if
         specified. Input stream data is processed before error.
@@ -560,15 +577,7 @@ class Job:
             wx.CallAfter(self.onTerminate, retCode)
 
         # get data from pipes
-        if self.isInputAvailable:
-            stdinText = self.getInputData()
-            if self._inputCallback is not None:
-                wx.CallAfter(self._inputCallback, stdinText)
-
-        if self.isErrorAvailable:
-            stderrText = self.getErrorData()
-            if self._errorCallback is not None:
-                wx.CallAfter(self._errorCallback, stderrText)
+        self._readPipes()
 
     def onTerminate(self, exitCode):
         """Called when the process exits.
@@ -588,9 +597,13 @@ class Job:
         # unbind the idle loop used to poll the subprocess
         self.parent.Bind(wx.EVT_IDLE, None)
 
+        self._readPipes()  # read remaining data
+
         # stop the pipe reader threads now
-        self._stdoutReader.stop()
         self._stderrReader.stop()
+        self._stdoutReader.stop()
+        self._stderrReader.join(timeout=1)
+        self._stdoutReader.join(timeout=1)
 
         # if callback is provided, else nop
         if self._terminateCallback is not None:
