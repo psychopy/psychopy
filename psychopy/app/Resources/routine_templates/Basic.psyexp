@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" ?>
-<PsychoPy2experiment encoding="utf-8" version="2022.1.0rc10">
+<PsychoPy2experiment encoding="utf-8" version="2022.1.0rc14">
   <Settings>
     <Param val="use prefs" valType="str" updates="None" name="Audio latency priority"/>
     <Param val="use prefs" valType="str" updates="None" name="Audio lib"/>
@@ -63,7 +63,6 @@
     <Param val="" valType="str" updates="None" name="tbSerialNo"/>
   </Settings>
   <Routines>
-    <Routine name="Blank"/>
     <Routine name="fixed_interval">
       <TextComponent name="fix">
         <Param val="white" valType="color" updates="constant" name="color"/>
@@ -271,6 +270,7 @@
         <Param val="mouse onset" valType="str" updates="constant" name="timeRelativeTo"/>
       </MouseComponent>
     </Routine>
+    <Routine name="blank"/>
   </Routines>
   <Flow/>
 </PsychoPy2experiment>
