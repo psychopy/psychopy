@@ -530,7 +530,7 @@ class ColorCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
 
 def validate(obj, valType):
     val = str(obj.GetValue())
-    valid = False
+    valid = True
     if val.startswith("$"):
         # If indicated as code, treat as code
         valType = "code"
