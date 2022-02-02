@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
@@ -250,7 +250,7 @@ class AppSigner:
                     'files': [str(self.appFile)],
                     'symlinks': { 'Applications': '/Applications' },
                     'size': '3g',  # but maybe irrelevant in UDRW mode?
-                    'badglobalKeys.rstge_icon': str(icon),
+                    'badge_icon': str(icon),
                     'background': None,  # background
                     'icon_size': 128,
                     'icon_locations': {
