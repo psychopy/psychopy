@@ -13,6 +13,11 @@ import re
 from pathlib import Path
 
 import numpy
+from wx.html import HtmlWindow
+try:
+    import markdown_it as md
+except ImportError:
+    md = None
 from wx.lib.agw.aui.aui_constants import *
 import wx.lib.statbmp
 from wx.lib.agw.aui.aui_utilities import IndentPressedBitmap, ChopText, TakeScreenShot
@@ -328,6 +333,60 @@ class PsychopyPlateBtn(platebtn.PlateButton, ThemeMixin):
                       press=cs['txtbutton_bg_hover'],
                       htxt=cs['text'])
         return colors
+
+
+class MarkdownCtrl(wx.Window):
+    def __init__(self, parent, size=(-1, -1), value="", style=wx.DEFAULT):
+        # Initialise superclass
+        wx.Window.__init__(self, parent, size=size)
+        self.SetBackgroundColour(parent.GetBackgroundColour())
+        # Setup sizers
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.SetSizer(self.sizer)
+        self.contentSizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.contentSizer, proportion=1, flag=wx.EXPAND)
+        self.btnSizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.btnSizer, border=6, flag=wx.LEFT | wx.ALIGN_TOP)
+
+        # Make text control
+        self.rawTextCtrl = wx.TextCtrl(self, size=size, value=value, style=wx.TE_MULTILINE | style)
+        self.contentSizer.Add(self.rawTextCtrl, proportion=1, flag=wx.EXPAND)
+
+        # Make HTML preview
+        self.htmlPreview = HtmlWindow(self, wx.ID_ANY)
+        self.contentSizer.Add(self.htmlPreview, proportion=1, flag=wx.EXPAND)
+
+        # Make switch
+        self.editBtn = wx.ToggleButton(self, size=(24, 24), label="✏️")
+        self.editBtn.Bind(wx.EVT_TOGGLEBUTTON, self.toggleView)
+        self.btnSizer.Add(self.editBtn)
+
+        # Set initial view
+        self.editBtn.SetValue(False)
+        self.toggleView(False)
+
+    def getValue(self):
+        return self.rawTextCtrl.GetValue()
+
+    def setValue(self, value):
+        self.rawTextCtrl.SetValue(value)
+
+    def toggleView(self, evt=True):
+        if isinstance(evt, bool):
+            edit = evt
+        else:
+            edit = evt.EventObject.Value
+        # Render HTML
+        if md:
+            renderedText = md.MarkdownIt().render(self.rawTextCtrl.Value)
+        else:
+            renderedText = self.rawTextCtrl.Value.replace("\n", "<br>")
+        self.htmlPreview.SetPage(renderedText)
+        # Show opposite control
+        self.rawTextCtrl.Show(edit)
+        self.htmlPreview.Show(not edit)
+
+        self.Layout()
 
 
 class ButtonArray(wx.Window):
