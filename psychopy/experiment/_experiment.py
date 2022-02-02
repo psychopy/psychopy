@@ -982,6 +982,7 @@ class Experiment:
 
         # Check for any resources not in experiment path
         resources = loopResources + compResources + chosenResources
+        resources = [res for res in resources if res is not None]
         for res in resources:
             if srcRoot not in res['abs']:
                 psychopy.logging.warning("{} is not in the experiment path and "
