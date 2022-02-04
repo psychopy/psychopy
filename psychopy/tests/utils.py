@@ -213,6 +213,9 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
 
 
 def comparePixelColor(screen, color, coord=(0,0), context="color_comparison"):
+    # Adjust for retina
+    coord = tuple(int(c * screen.getContentScaleFactor()) for c in coord)
+
     if hasattr(screen, 'getMovieFrame'):  # check it is a Window class (without importing visual in this file)
         # If given a window, get frame from window
         screen.getMovieFrame(buffer='back')
