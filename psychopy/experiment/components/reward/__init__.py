@@ -29,7 +29,7 @@ class RewardComponent(BaseComponent):
     """Delivers a water reward to the animal and monitor licks"""
     targets = ['PsychoPy']
     categories = ['Custom']
-    iconFile = Path(__file__).parent / 'eau.png'
+    iconFile = Path(__file__).parent / 'reward.png'
     tooltip = _translate('Reward : Delivers a water reward to the animal and monitor water consumption (licks)')
 
     def __init__(self, exp, parentName, name='reward',
