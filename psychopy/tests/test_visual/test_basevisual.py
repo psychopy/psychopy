@@ -74,12 +74,13 @@ class _TestColorMixin:
                 self.obj.opacity = 1
                 if hasattr(self.obj, "text"):
                     self.obj.text = "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question."
+                # Prepare window
+                self.win.flip()
                 # Test fill color
                 if self.fillUsed:
                     # Set fill
                     self.obj.fillColor = color
                     self.obj.opacity = 1
-                    self.win.flip()
                     self.obj.draw()
                     if color is not None:
                         # Make sure fill is set
@@ -98,7 +99,6 @@ class _TestColorMixin:
                     # Set border
                     self.obj.borderColor = color
                     self.obj.opacity = 1
-                    self.win.flip()
                     self.obj.draw()
                     if color is not None:
                         # Make sure border is set
@@ -117,7 +117,6 @@ class _TestColorMixin:
                     # Set fore
                     self.obj.foreColor = color
                     self.obj.opacity = 1
-                    self.win.flip()
                     self.obj.draw()
                     if color is not None:
                         # Make sure fore is set
