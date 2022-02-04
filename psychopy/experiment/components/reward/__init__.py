@@ -28,12 +28,18 @@ _localized.update({'pulseDuration': _translate('Pulse duration (s)'),
 class RewardComponent(BaseComponent):
     """Delivers a water reward to the animal and monitor licks"""
     targets = ['PsychoPy']
-    categories = ['Custom']
+    categories = ['I/O']
     iconFile = Path(__file__).parent / 'eau.png'
-    tooltip = _translate('Reward : Delivers a water reward to the animal and monitor water consumption (licks)')
+    tooltip = _translate(
+        'Reward : Delivers a water reward to the animal and monitor water '
+        'consumption (licks)')
 
     def __init__(self, exp, parentName, name='reward',
-                 pulseDuration=0, numberOfPulses = 0, delayBetweenSeq = 0, numberOfSequences = 0, delayBetweenPulses = 0,  startType='time (s)', startVal='0.0', stopVal='1.0', stopType='duration (s)', saveStats = False, com_port="Select pump com port"):
+                 pulseDuration=0, numberOfPulses = 0, delayBetweenSeq = 0,
+                 numberOfSequences = 0, delayBetweenPulses = 0,
+                 startType='time (s)', startVal='0.0', stopVal='1.0',
+                 stopType='duration (s)', saveStats = False,
+                 com_port="Select pump com port"):
 
         super(RewardComponent, self).__init__(
             exp, parentName, name, startType=startType, startVal=startVal,
@@ -42,15 +48,12 @@ class RewardComponent(BaseComponent):
 
         self.type = 'Reward'
         self.url = 'file:///C:/Users/delam/Desktop/BehavioralTask/pompe_sequence.html'
-        #self.url = Path(__file__).parent / 'pompe_sequence.html' # TODO : create a html help page with pump sequence on the options panel
-        
+        # TODO : create a html help page with pump sequence on the options panel
+        #self.url = Path(__file__).parent / 'pompe_sequence.html'
 
         # Order in which the user-settable parameters will be displayed
         # in the component's properties window.
         #self.order += ['PulseDuration',  # Basic tab]
-    
-        
-            
 
         self.params['pulseDuration'] = Param(
             pulseDuration, categ='Basic',
@@ -88,8 +91,11 @@ class RewardComponent(BaseComponent):
             hint=_translate('Save log to txt file'),
             label=_localized['saveStats'])
 
-        self.params['stopVal'] = Param(((((pulseDuration*numberOfPulses+delayBetweenPulses)*(numberOfPulses-1))*numberOfSequences) +(delayBetweenSeq*(numberOfSequences-1))) , categ='Basic',
-            valType='num', inputType="single",
+        self.params['stopVal'] = Param(
+            ((((pulseDuration * numberOfPulses + delayBetweenPulses) *
+               (numberOfPulses - 1)) * numberOfSequences) +
+             (delayBetweenSeq * (numberOfSequences - 1))),
+            categ='Basic', valType='num', inputType="single",
             hint=_translate('The duration of the pulse sent to the peristaltic pump'),
             label=_localized['stopVal'])
             
@@ -166,8 +172,7 @@ class RewardComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("if firstFrame == False and  %(name)s.status == STARTED:\n" % self.params)
         buff.setIndentLevel(1, relative=True)
-        
-        
+
         buff.writeIndented("firstFrame = True\n")
         buff.writeIndented("tp0 = time.time()\n")
         buff.writeIndented("td=0\n")
@@ -177,7 +182,6 @@ class RewardComponent(BaseComponent):
         buff.writeIndented("""pump.write(bytes('o', 'utf-8'))\n""")
         buff.writeIndented("""print(str(round(t,2)) + ': pump ON')\n""")
         buff.writeIndented("pulse_started = True\n")
-        
         
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("tp = time.time() - tp0\n")
@@ -190,8 +194,6 @@ class RewardComponent(BaseComponent):
         buff.writeIndented("n+=1\n")
         buff.writeIndented("td0 = time.time()\n")
         
-        
-        
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("td = time.time() - td0\n")
         buff.writeIndented("if td >= delay_pulses and pulse_started == False and pause == False and firstFrame == True:\n")
@@ -199,8 +201,7 @@ class RewardComponent(BaseComponent):
         buff.writeIndented("pulse_started = True\n")
         buff.writeIndented("if not n >= number_pulses :\n")
         buff.setIndentLevel(1, relative=True)
-        
-        
+
         buff.writeIndented("""pump.write(bytes('o', 'utf-8'))\n""")
         buff.writeIndented("""print(str(round(t,2)) + ': pump ON')\n""")
         buff.writeIndented("pulse_started = True\n")
@@ -229,8 +230,6 @@ class RewardComponent(BaseComponent):
         buff.writeIndented("tp0 = time.time()\n")
     
         buff.setIndentLevel(-1, relative=True)
-
-
 
     def writeRoutineEndCode(self, buff):
         buff.writeIndented("%(name)s.status = 0\n" % self.params)
