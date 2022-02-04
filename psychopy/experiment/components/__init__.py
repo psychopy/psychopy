@@ -295,6 +295,9 @@ def getInitVals(params, target="PsychoPy"):
         elif name == 'vertices':
             inits[name].val = "[[-0.5,-0.5], [-0.5, 0.5], [0.5, 0.5], [0.5, -0.5]]"
             inits[name].valType = 'code'
+        elif name == 'movie':
+            inits[name].val = 'None'
+            inits[name].valType = 'code'
         else:
             print("I don't know the appropriate default value for a '%s' "
                   "parameter. Please email the mailing list about this error" %

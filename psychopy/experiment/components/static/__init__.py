@@ -71,6 +71,27 @@ class StaticComponent(BaseComponent):
                 "screenHz=expInfo['frameRate'], name='%(name)s')\n")
         buff.writeIndented(code % self.params)
 
+    def writeInitCodeJS(self, buff):
+        code = (
+            "%(name)s = new core.MinimalStim({\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(+1, relative=True)
+        code = (
+                "name: \"%(name)s\", \n"
+                "win: psychoJS.window,\n"
+                "autoDraw: false, \n"
+                "autoLog: true, \n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "});\n"
+        )
+        buff.writeIndented(code % self.params)
+
     def writeFrameCode(self, buff):
         self.writeStartTestCode(buff)
         # to get out of the if statement
@@ -209,7 +230,7 @@ class StaticComponent(BaseComponent):
                     # Do resource manager stuff
                     code = (
                         f"console.log('register and start downloading resources specified by component %(name)s');\n"
-                        f"psychoJS.serverManager.prepareResources(%({fieldName})s);\n"
+                        f"await psychoJS.serverManager.prepareResources(%({fieldName})s);\n"
                     )
                     buff.writeIndentedLines(code % prms)
                 # Set values
