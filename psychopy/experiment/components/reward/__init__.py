@@ -22,12 +22,14 @@ _localized.update({'pulseDuration': _translate('Pulse duration (s)'),
                     'com_port': _translate('COM port'),})
 
 
-class RewardComponent(BaseComponent):
+class PeristalticPumpComponent(BaseComponent):
     """Delivers a water reward to the animal and monitor licks"""
     targets = ['PsychoPy']
-    categories = ['Custom']
+    categories = ['I/O']
     iconFile = Path(__file__).parent / 'reward.png'
-    tooltip = _translate('Reward : Delivers a water reward to the animal and monitor water consumption (licks)')
+    tooltip = _translate(
+        'LabeoTech Pump: Delivers a water reward to the animal and monitor '
+        'water consumption (licks)')
 
     def __init__(self, exp, parentName, name='reward',
                  pulseDuration=0, numberOfPulses = 0, delayBetweenSeq = 0,
@@ -36,12 +38,12 @@ class RewardComponent(BaseComponent):
                  stopType='duration (s)', saveStats = False,
                  com_port="Select pump com port"):
 
-        super(RewardComponent, self).__init__(
+        super(PeristalticPumpComponent, self).__init__(
             exp, parentName, name, startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal
             )
 
-        self.type = 'Reward'
+        self.type = 'LabeoTech Pump'
         self.url = 'file:///C:/Users/delam/Desktop/BehavioralTask/pompe_sequence.html'
         # TODO : create a html help page with pump sequence on the options panel
         #self.url = Path(__file__).parent / 'pompe_sequence.html'
