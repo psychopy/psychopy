@@ -148,6 +148,11 @@ class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         wx.TextCtrl.__init__(self)
         self.Create(parent, -1, val, name=fieldName, size=size, style=style)
         self.valType = valType
+
+        # On MacOS, we need to disable smart quotes
+        if sys.platform == 'darwin':
+            self.OSXDisableAllSmartSubstitutions()
+
         # Add sizer
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         if not valType == "str" and not fieldName == "name":
@@ -530,7 +535,7 @@ class ColorCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
 
 def validate(obj, valType):
     val = str(obj.GetValue())
-    valid = False
+    valid = True
     if val.startswith("$"):
         # If indicated as code, treat as code
         valType = "code"
