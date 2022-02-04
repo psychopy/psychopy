@@ -305,3 +305,73 @@ class TestComponents:
             utils.scriptTarget == "PsychoJS"
             assert (re.fullmatch(case['js'],str(param)),
                     f"`{case['val']}` should match the regex `{case['js']}`, but it was `{param}`")
+
+
+def test_get_resources_js():
+    cases = [
+        # Resource not handled, no loop present
+        {'exp': "unhandled_noloop",
+         'seek': ['blue.png'],
+         'avoid': ['white.png', 'yellow.png', 'groups.csv', 'groupA.csv', 'groupB.csv']},
+        # Resource not handled, loop defined by string
+        {'exp': "unhandled_strloop",
+         'seek': ['blue.png', 'white.png', 'groupA.csv'],
+         'avoid': ['yellow.png', 'groupB.csv', 'groups.csv']},
+        # Resource not handled, loop defined by constructed string
+        {'exp': "unhandled_constrloop",
+         'seek': ['blue.png', 'white.png', 'yellow.png', 'groupA.csv', 'groupB.csv', 'groups.csv'],
+         'avoid': []},
+        # Resource not handled, loop defined by constructed string from loop
+        {'exp': "unhandled_recurloop",
+         'seek': ['blue.png', 'white.png', 'yellow.png', 'groupA.csv', 'groupB.csv', 'groups.csv'],
+         'avoid': []},
+
+        # Resource handled by static component, no loop present
+        {'exp': "handledbystatic_noloop",
+         'seek': [],
+         'avoid': ['blue.png', 'white.png', 'yellow.png', 'groups.csv', 'groupA.csv', 'groupB.csv']},
+        # Resource handled by static component, loop defined by string
+        {'exp': "handledbystatic_strloop",
+         'seek': ['groupA.csv'],
+         'avoid': ['blue.png', 'white.png', 'yellow.png', 'groupB.csv', 'groups.csv']},
+        # Resource handled by static component, loop defined by constructed string
+        {'exp': "handledbystatic_constrloop",
+         'seek': ['groupA.csv', 'groupB.csv', 'groups.csv'],
+         'avoid': ['blue.png', 'white.png', 'yellow.png']},
+        # Resource handled by static component, loop defined by constructed string from loop
+        {'exp': "handledbystatic_recurloop",
+         'seek': ['groupA.csv', 'groupB.csv', 'groups.csv'],
+         'avoid': ['blue.png', 'white.png', 'yellow.png']},
+
+        # Resource handled by resource manager component, no loop present
+        {'exp': "handledbyrm_noloop",
+         'seek': [],
+         'avoid': ['blue.png', 'white.png', 'yellow.png', 'groups.csv', 'groupA.csv', 'groupB.csv']},
+        # Resource handled by resource manager component, loop defined by constructed string
+        {'exp': "handledbyrm_strloop",
+         'seek': ['groupA.csv'],
+         'avoid': ['blue.png', 'white.png', 'yellow.png', 'groupB.csv', 'groups.csv']},
+        # Resource handled by resource manager component, loop defined by constructed string
+        {'exp': "handledbyrm_constrloop",
+         'seek': ['groupA.csv', 'groupB.csv', 'groups.csv'],
+         'avoid': ['blue.png', 'white.png', 'yellow.png']},
+        # Resource handled by resource manager component, loop defined by constructed string from loop
+        {'exp': "handledbyrm_recurloop",
+         'seek': ['groupA.csv', 'groupB.csv', 'groups.csv'],
+         'avoid': ['blue.png', 'white.png', 'yellow.png']},
+    ]
+
+    exp = Experiment()
+    for case in cases:
+        # Load experiment
+        exp.loadFromXML(Path(TESTS_DATA_PATH) / "test_get_resources" / (case['exp'] + ".psyexp"))
+        # Write to JS
+        script = exp.writeScript(target="PsychoJS")
+        # Extract resources def at start of experiment
+        resources = re.search("(?<=resources: \[)[^\]]*", script).group(0)
+        # Check that all "seek" phrases are included
+        for phrase in case['seek']:
+            assert phrase in resources, f"'{phrase}' was not found in resources for {case['exp']}.psyexp"
+        # Check that all "avoid" phrases are excluded
+        for phrase in case['avoid']:
+            assert phrase not in resources, f"'{phrase}' was found in resources for {case['exp']}.psyexp"
