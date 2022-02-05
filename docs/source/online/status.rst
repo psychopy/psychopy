@@ -19,7 +19,7 @@ The table below shows you the current state of play of PsychoJS. Per feature we 
   :escape: \
 
   **Stimuli**,,
-    :ref:`Dots (RDK) <dots>`, :darkorange:`Prototype`, The dots component isn't yet in PsychoJS. You could use pre-created movies. `a code workaround here <https://pavlovia.org/Francesco_Cabiddu/staircaserdk>`_ thanks to Francesco Cabiddu
+    :ref:`Dots (RDK) <dots>`, :darkorange:`Prototype`, The dots component isn't yet in PsychoJS. You could use pre-created movies instead- or try `a workaround with code components here <https://pavlovia.org/Francesco_Cabiddu/staircaserdk>`_ thanks to Francesco Cabiddu
     :ref:`Images <image>`, :darkgreen:`Built-in`, Ensure to use the image extension when referencing images in your experiment e.g. ".png" ".jpg" - this will help avoid "Unknown Resource" errors
     :ref:`Movies <movie>`, :darkgreen:`Built-in`, Do check :ref:`mediaFormats`
     :ref:`Polygons <polygonComponent>`, :darkgreen:`Built-in`, If using circles online use a "regular" polygon with 100 vertices - rather than using the dropdown "circle" option
