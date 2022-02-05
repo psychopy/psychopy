@@ -279,7 +279,7 @@ class TextboxComponent(BaseVisualComponent):
                         inits[param].val = ""
 
             code = (
-                "%(name)s.setText(%(text)s);"
+                "%(name)s.setText(%(text)s);\n%(name)s.refresh();"
             )
             buff.writeIndentedLines(code % inits)
         BaseVisualComponent.writeRoutineStartCodeJS(self, buff)
