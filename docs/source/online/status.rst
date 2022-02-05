@@ -19,23 +19,24 @@ The table below shows you the current state of play of PsychoJS. Per feature we 
   :escape: \
 
   **Stimuli**,,
-    :ref:`Dots (RDK) <dots>`, :darkorange:`Prototype`, Random Dot Kinematogram. Try it out via `staircaserdk <https://gitlab.pavlovia.org/Francesco_Cabiddu/staircaserdk>`_
-    :ref:`Images <image>`, :darkgreen:`Built-in`, Try it out via `e2e_img <https://gitlab.pavlovia.org/tpronk/e2e_img>`_
-    :ref:`Movies <movie>`, :darkgreen:`Built-in`, Try it out via `demo_video <https://gitlab.pavlovia.org/tpronk/demo_video>`_    
-    :ref:`Polygons <polygonComponent>`, :darkgreen:`Built-in`, Try it out via `e2e_polygons <https://gitlab.pavlovia.org/tpronk/e2e_polygons>`_
-    :ref:`Sounds <sound>`, :darkgreen:`Built-in`, Try it out via `demo_sound <https://gitlab.pavlovia.org/tpronk/demo_sound>`_
-    :ref:`Text <textComponent>`, :darkgreen:`Built-in`, Try it out via `e2e_text <https://gitlab.pavlovia.org/tpronk/e2e_text>`_
-    :ref:`Textbox <textboxComponent>`, :darkgreen:`Built-in`, Try it out via `e2e_textbox <https://gitlab.pavlovia.org/tpronk/e2e_textbox>`_    
+    :ref:`Dots (RDK) <dots>`, :darkorange:`Prototype`, The dots component isn't yet in PsychoJS. You could use pre-created movies. `a code workaround here <https://pavlovia.org/Francesco_Cabiddu/staircaserdk>`_ thanks to Francesco Cabiddu
+    :ref:`Images <image>`, :darkgreen:`Built-in`, Ensure to use the image extension when referencing images in your experiment e.g. ".png" ".jpg" - this will help avoid "Unknown Resource" errors
+    :ref:`Movies <movie>`, :darkgreen:`Built-in`, Do check :ref:`mediaFormats`
+    :ref:`Polygons <polygonComponent>`, :darkgreen:`Built-in`, If using circles online use a "regular" polygon with 100 vertices - rather than using the dropdown "circle" option
+    :ref:`Text <textComponent>`, :darkgreen:`Built-in`, We recommend using "Text" rather than "TextBox" for static text online - since TextBox is still in beta
+    :ref:`Textbox <textboxComponent>`, :darkgreen:`Built-in`, For versions preceding 2022.1 textbox needed a code component with `textbox.refresh()` in the "Begin Routine" to be used on several trials
     , :darkred:`Not supported`, Apertures\, Envelope Gratings\, Gratings\, Noise
   **Responses**,,
     :ref:`Form <formComponent>`, :darkgreen:`Built-in`,
-    Gyroscope, :darkorange:`Prototype`, Measures the orientation of tablets and smartphones. Try it out via `demo_gyroscope <https://gitlab.pavlovia.org/tpronk/demo_gyroscope>`_
-    Eye-tracking, :darkorange:`Prototype`, Try it out via `demo_eye_tracking2 <https://gitlab.pavlovia.org/tpronk/demo_eye_tracking2/>`_
+    Gyroscope, :darkorange:`Prototype`, Measures the orientation of tablets and smartphones. `Try it out <https://pavlovia.org/tpronk/demo_gyroscope>`_
+    Eye-tracking, :darkorange:`Prototype`, `Try it out  <https://pavlovia.org/demos/demo_eye_tracking2/>`_
     :ref:`Keyboard <keyboard>`, :darkgreen:`Built-in`, 
-    :ref:`Mouse <mouse>`, :darkgreen:`Built-in`, 
-    :ref:`Slider <slider>`, :darkgreen:`Built-in`, 
-    :ref:`Textbox <textboxComponent>`, :darkgreen:`Built-in`, Try it out via `e2e_textbox <https://gitlab.pavlovia.org/tpronk/e2e_textbox>`_
-    , :darkred:`Not supported`, Brush\, Joystick\, Microphone\, Button boxes (Cedrus & IO Labs)\, Button component
+    :ref:`Mouse <mouse>`, :darkgreen:`Built-in`, Mouse components translate to touch responses on touch screens
+    :ref:`Slider <slider>`, :darkgreen:`Built-in`, Use slider and not "rating" for online studies
+    :ref:`TextBox <textboxComponent>`, :darkgreen:`Built-in`, see above
+    :ref:`Brush <brush>`, :darkgreen:`Built-in`,
+    :ref:`Microphone <microphone>`, :darkgreen:`Built-in`, available in 2021.2 onward
+    , :darkred:`Not supported`, Joystick\, Button boxes (Cedrus & IO Labs)\, Button component
   **Data**,,
     :ref:`CSV files <outputs>`, :darkgreen:`Built-in`, These can easily be imported into analysis software\, such as Matlab\, R\, JAMOVI\, or JASP
     :ref:`Log files <outputs>`, :darkgreen:`Built-in`, Low-level logs. These offer detailed information\, but are hard to analyze
@@ -43,12 +44,11 @@ The table below shows you the current state of play of PsychoJS. Per feature we 
     , :darkred:`Not supported`, XLSX
   **Flow and Logic**,,
     :ref:`Code <code>`, :darkgreen:`Built-in`, Insert snippets of programming code\, which can be automatically translated from Python to JavaScript
-    :ref:`Loops <loops>`, :darkgreen:`Built-in`, Loops allow randomization and importing condition files. Try it out via `e2e_conditions <https://gitlab.pavlovia.org/tpronk/e2e_conditions>`_
-    :ref:`Staircases <loops>`, :darkorange:`Prototype`, Adapt aspects of a trial based on earlier responses of a participant. Try out a "Just Noticeable Difference" staircase via  `staircase-demo <https://gitlab.pavlovia.org/lpxrh6/staircase-demo>`_ or a "Method-of-Adjustment" via `method-of-adjustment <https://gitlab.pavlovia.org/lpxrh6/method-of-adjustment>`_
-    :ref:`Multistair <loops>`, :darkorange:`Prototype`, Interleave several basic staircases. This is currently possible through interleaving basic stair prototype (note that in this prototype the staircase list is randomly shuffled each time). You can try a `pavlovia demo <https://run.pavlovia.org/lpxrh6/interleaved-staircase/>`_ and associated `gitlab project <https://gitlab.pavlovia.org/lpxrh6/interleaved-staircase>`_
-    :ref:`QUEST staircases <loops>`, :darkorange:`Prototype`, This is currently supported via `jsQUEST <https://github.com/kurokida/jsQUEST>`_ you can `try a demo <https://run.pavlovia.org/tpronk/demo_jsquest/>`_ and access the `gitlab project <https://gitlab.pavlovia.org/tpronk/demo_jsquest>`_ to build on for your own research
+    :ref:`Loops <loops>`, :darkgreen:`Built-in`, Loops allow randomization and importing condition files.
+    :ref:`Staircases <loops>`, :darkorange:`Prototype`, Adapt aspects of a trial based on earlier responses of a participant. Try out a "Just Noticeable Difference" staircase via  `staircase-demo <https://pavlovia.org/demos/staircase-demo/>`_
+    :ref:`Multistair <loops>`, :darkorange:`Prototype`, Interleave several basic staircases. This is currently possible through interleaving basic stair prototype (note that in this prototype the staircase list is randomly shuffled each time). You can try a `pavlovia demo <https://pavlovia.org/demos/interleaved-staircase>`_
+    :ref:`QUEST staircases <loops>`, :darkgreen:`Prototype`, This is currently supported via `jsQUEST <https://github.com/kurokida/jsQUEST>`_ you can `try a demo <https://run.pavlovia.org/tpronk/demo_jsquest/>`_ and access the `gitlab project <https://gitlab.pavlovia.org/tpronk/demo_jsquest>`_ to build on for your own research
   **External Tools**,,
-    Any Tool, :darkgreen:`Built-in`, General instructions are at :ref:`Recruiting participants and connecting with online services <recruitingOnline>`
     AMT, :darkgreen:`Built-in`, Amazon Mechanical Turk. See instructions in this `forum post <https://discourse.psychopy.org/t/how-to-use-mturk-for-recruiting/8486/7>`_
     Prolific, :darkgreen:`Built-in`, See instructions at :ref:`Recruiting with Prolific <prolificIntegration>`
     Qualtrics, :darkgreen:`Built-in`, There are many guides available for integrating Qualtrics on our `forum <https://discourse.psychopy.org/search?q=qualtrics>`_
