@@ -359,15 +359,19 @@ class Param():
     __nonzero__ = __bool__  # for python2 compatibility
 
 
-def getCodeFromParamStr(val):
+def getCodeFromParamStr(val, target=None):
     """Convert a Param.val string to its intended python code
     (as triggered by special char $)
     """
-    tmp = re.sub(r"^(\$)+", '', val)  # remove leading $, if any
+    # Substitute target
+    if target is None:
+        target = utils.scriptTarget
+    # remove leading $, if any
+    tmp = re.sub(r"^(\$)+", '', val)
     # remove all nonescaped $, squash $$$$$
     tmp2 = re.sub(r"([^\\])(\$)+", r"\1", tmp)
     out = re.sub(r"[\\]\$", '$', tmp2)  # remove \ from all \$
-    if utils.scriptTarget=='PsychoJS':
+    if target == 'PsychoJS':
         out = py2js.expression2js(out)
     return out if out else ''
 
