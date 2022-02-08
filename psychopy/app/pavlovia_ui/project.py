@@ -339,6 +339,8 @@ class DetailsPanel(wx.Panel):
         self.tags.Bind(wx.EVT_LIST_DELETE_ITEM, self.updateProject)
         self.tagSizer.Add(self.tags, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
         # Populate
+        if project is not None:
+            project.refresh()
         self.project = project
 
     @property
