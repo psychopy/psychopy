@@ -213,10 +213,10 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
         raise IOError(error)
 
 
-def comparePixelColor(screen, color, coord=(0,0), context="color_comparison"):
-    if sys.platform=='darwin':
-        # Adjust for retina
-        coord = tuple(int(c * screen.getContentScaleFactor()) for c in coord)
+def comparePixelColor(screen, color, coord=(0, 0), context="color_comparison"):
+    ogCoord = coord
+    # Adjust for retina
+    coord = tuple(int(c * screen.getContentScaleFactor()) for c in ogCoord)
 
     if hasattr(screen, 'getMovieFrame'):  # check it is a Window class (without importing visual in this file)
         # If given a window, get frame from window
@@ -244,4 +244,4 @@ def comparePixelColor(screen, color, coord=(0,0), context="color_comparison"):
     cond = all(c for c in color == pixCol) or closeEnough
     if not cond:
         frame.save(Path(TESTS_DATA_PATH) / (context + "_local.png"))
-        raise AssertionError(f"Pixel color {pixCol} at {coord} not equal to target color {color}")
+        raise AssertionError(f"Pixel color {pixCol} at {ogCoord} (x{screen.getContentScaleFactor()}) not equal to target color {color}")
