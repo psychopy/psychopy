@@ -755,7 +755,7 @@ class PavloviaProject(dict):
         # Jot down start time
         t0 = time.time()
         # If first commit, do initial push
-        if not bool(self['default_branch']):
+        if not bool(self.project.attributes['default_branch']):
             self.firstPush(infoStream=infoStream)
         # Pull and push
         self.pull(infoStream)
@@ -939,6 +939,7 @@ class PavloviaProject(dict):
         if infoStream:
             infoStream.write("\nPushing to Pavlovia for the first time...")
         info = self.repo.git.push('-u', self.remoteWithToken, 'master')
+        self.project.attributes['default_branch'] = 'master'
         if infoStream:
             infoStream.write("\n{}".format(info))
             infoStream.write("\nSuccess!".format(info))
