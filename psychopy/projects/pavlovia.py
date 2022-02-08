@@ -562,6 +562,8 @@ class PavloviaProject(dict):
         except KeyError:
             if key in self.project.attributes:
                 value = self.project.attributes[key]
+            elif hasattr(self, "_info") and key in self._info:
+                return self._info[key]
             else:
                 value = None
         # Transform datetimes
