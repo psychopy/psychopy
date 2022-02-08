@@ -78,7 +78,7 @@ class ResourceManagerComponent(BaseComponent):
               "true": "hide",  # what to do with param if condition is True
               "false": "show",  # permitted: hide, show, enable, disable
               }
-         )
+        )
         self.depends.append(
              {"dependsOn": "actionType",  # must be param name
               "condition": "=='Check Only'",  # val to check for
@@ -86,15 +86,10 @@ class ResourceManagerComponent(BaseComponent):
               "true": "hide",  # what to do with param if condition is True
               "false": "show",  # permitted: hide, show, enable, disable
               }
-         )
-        self.depends.append(
-             {"dependsOn": "checkAll",  # must be param name
-              "condition": "==True",  # val to check for
-              "param": "resources",  # param property to alter
-              "true": "disable",  # what to do with param if condition is True
-              "false": "enable",  # permitted: hide, show, enable, disable
-              }
-         )
+        )
+
+        del self.params['syncScreenRefresh']
+        del self.params['saveStartStop']
 
     def writeInitCodeJS(self, buff):
         # Get initial values

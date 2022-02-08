@@ -502,7 +502,7 @@ class CodeSnippetValidator(BaseValidator):
         # Validate as code
         if codeWanted or isCodeField:
             # get var names from val, check against namespace:
-            code = experiment.getCodeFromParamStr(val)
+            code = experiment.getCodeFromParamStr(val, target="PsychoPy")
             try:
                 names = list(stringtools.getVariables(code))
                 parent.warnings.clearWarning(control)
