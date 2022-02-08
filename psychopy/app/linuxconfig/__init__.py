@@ -33,12 +33,12 @@ _confPath = u"/etc/security/limits.d/99-psychopylimits.conf"
 
 # these are the commands we want the user to run in their terminal
 _cmdStr = (
-    u"sudo groupadd --force psychtoolbox\n\n"
-    u"sudo usermod -a -G psychtoolbox $USER\n\n"
+    u"sudo groupadd --force psychopy\n\n"
+    u"sudo usermod -a -G psychopy $USER\n\n"
     u"sudo gedit {fpath}\n"
-    u"@psychtoolbox - nice -20\n"
-    u"@psychtoolbox - rtprio 50\n"
-    u"@psychtoolbox - memlock unlimited")
+    u"@psychopy - nice -20\n"
+    u"@psychopy - rtprio 50\n"
+    u"@psychopy - memlock unlimited")
 _cmdStr = _cmdStr.format(fpath=_confPath)
 
 
