@@ -43,7 +43,7 @@ class PeristalticPumpComponent(BaseComponent):
             stopType=stopType, stopVal=stopVal
             )
 
-        self.type = 'LabeoTech Pump'
+        self.type = 'PeristalticPump'
         self.url = 'file:///C:/Users/delam/Desktop/BehavioralTask/pompe_sequence.html'
         # TODO : create a html help page with pump sequence on the options panel
         #self.url = Path(__file__).parent / 'pompe_sequence.html'
