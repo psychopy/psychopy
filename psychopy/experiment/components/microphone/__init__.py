@@ -364,6 +364,7 @@ class MicrophoneComponent(BaseComponent):
             )
         else:
             code = (
+                "tag = data.utils.getDateStr()\n"
                 "%(name)sClip = %(name)s.bank(\n"
             )
         buff.writeIndentedLines(code % inits)
