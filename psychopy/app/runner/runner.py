@@ -275,14 +275,42 @@ class RunnerFrame(wx.Frame, ThemeMixin):
             self, message=_translate("Open task list ..."), defaultDir=initPath,
             defaultFile=filename, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
             wildcard=wildcard)
-        if dlg.ShowModal() == wx.ID_OK:
+
+        fileOk = True
+        newPath = None
+        if dlg.ShowModal() == wx.ID_OK:  # file was selected
             newPath = dlg.GetPath()
             with open(newPath, 'r') as file:
-                experiments = json.load(file)
-            self.panel.expCtrl.DeleteAllItems()
-            for exp in experiments:
-                self.panel.addTask(fileName=os.path.join(exp['path'], exp['file']))
-            self.listname = newPath
+                try:
+                    experiments = json.load(file)
+                except Exception:  # broad catch, but lots of stuff can go wrong
+                    fileOk = False
+
+                if fileOk:
+                    self.panel.expCtrl.DeleteAllItems()
+                    for exp in experiments:
+                        self.panel.addTask(
+                            fileName=os.path.join(exp['path'], exp['file']))
+                    self.listname = newPath
+
+        dlg.Destroy()  # close the file browser
+
+        if newPath is None:  # user cancelled
+            if evt is not None:
+                evt.Skip()
+            return
+
+        if not fileOk:  # file failed to load, show an error dialog
+            errMsg = (
+                u"Failed to open file '{}', check if the file has the "
+                u"correct UTF-8 encoding and is the correct format."
+            )
+            errMsg = errMsg.format(str(newPath))
+            errDlg = wx.MessageDialog(
+                None, errMsg, 'Error',
+                wx.OK | wx.ICON_ERROR)
+            errDlg.ShowModal()
+            errDlg.Destroy()
 
     def clearTasks(self, evt=None):
         """Clear all items from the panels expCtrl ListCtrl."""
@@ -857,7 +885,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.currentFile = Path(folder, filename)
         self.currentExperiment = self.loadExperiment()
         self.currentProject = None  # until it's needed (slow to update)
-        thisItem = self.entries[self.currentFile]
+        # thisItem = self.entries[self.currentFile]
 
         if not self.running:  # if we aren't already running we can enable run button
             self.runBtn.Enable()
