@@ -11,6 +11,7 @@ Online studies are realized via PsychoJS; the online counterpart of PsychoPy. To
   :maxdepth: 1
 
   Check whether the features you need are supported by PsychoJS <status>
+  Configure the online settings of your experiment <configureOnline>
   Convert your media (images, sound, and video) to online-suitable formats <mediaFormats>
   Launch your study on Pavlovia.org <usingPavlovia>
 
