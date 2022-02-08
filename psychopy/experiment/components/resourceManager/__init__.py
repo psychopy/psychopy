@@ -78,14 +78,6 @@ class ResourceManagerComponent(BaseComponent):
               "false": "show",  # permitted: hide, show, enable, disable
               }
          )
-        self.depends.append(
-             {"dependsOn": "checkAll",  # must be param name
-              "condition": "==True",  # val to check for
-              "param": "resources",  # param property to alter
-              "true": "disable",  # what to do with param if condition is True
-              "false": "enable",  # permitted: hide, show, enable, disable
-              }
-         )
 
     def writeInitCodeJS(self, buff):
         # Get initial values
