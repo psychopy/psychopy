@@ -450,17 +450,17 @@ class DetailsPanel(wx.Panel):
             self.syncLbl.Show(bool(project.localRoot) or (not project.editable))
             self.syncLbl.Enable(project.editable)
             # Local root
-            self.localRoot.SetValue(project.localRoot or "")#project.info['path'])
-            self.localRootLabel.Enable(project.editable)  # bool(project.info['path']))
-            self.localRoot.Enable(project.editable)#bool(project.info['path']) and project.editable)
+            self.localRoot.SetValue(project.localRoot or "")
+            self.localRootLabel.Enable(project.editable)
+            self.localRoot.Enable(project.editable)
             # Description
             self.description.SetValue(project['description'])
             self.description.Enable(project.editable)
             # Visibility
-            self.visibility.SetStringSelection(project.info['visibility'])
+            self.visibility.SetStringSelection(project['visibility'])
             self.visibility.Enable(project.editable)
             # Status
-            self.status.SetStringSelection(project.info['status'])
+            self.status.SetStringSelection(str(project['status2']).title())
             self.status.Enable(project.editable)
             # Tags
             self.tags.items = project['keywords']
