@@ -787,6 +787,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             # actually save
             self.fileSave(event=None, filename=newPath)
             self.filename = newPath
+            self.project = pavlovia.getProject(filename)
             returnVal = 1
         dlg.Destroy()
 
