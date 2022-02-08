@@ -236,7 +236,7 @@ class PavloviaSession:
     def currentProject(self, value):
         self._currentProject = PavloviaProject(value)
 
-    def createProject(self, name, description="", tags=(), visibility='public',
+    def createProject(self, name, description="", tags=(), visibility='private',
                       localRoot='', namespace=''):
         """Returns a PavloviaProject object (derived from a gitlab.project)
 
