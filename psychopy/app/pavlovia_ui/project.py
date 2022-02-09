@@ -4,6 +4,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
+from datetime import datetime
 import io
 import sys
 import tempfile
@@ -245,7 +246,7 @@ class DetailsPanel(wx.Panel):
         self.title = wx.TextCtrl(self,
                                  size=(-1, 30 if sys.platform == 'darwin' else -1),
                                  value="")
-        self.title.Bind(wx.EVT_IDLE, self.updateProject)
+        self.title.Bind(wx.EVT_TEXT, self.updateProject)
         self.title.SetFont(
             wx.Font(24, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         )
@@ -309,7 +310,7 @@ class DetailsPanel(wx.Panel):
         self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
         # Description
         self.description = wx.TextCtrl(self, size=(-1, -1), value="", style=wx.TE_MULTILINE)
-        self.description.Bind(wx.EVT_IDLE, self.updateProject)
+        self.description.Bind(wx.EVT_TEXT, self.updateProject)
         self.sizer.Add(self.description, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         # Sep
         self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
@@ -339,6 +340,7 @@ class DetailsPanel(wx.Panel):
         self.tags.Bind(wx.EVT_LIST_DELETE_ITEM, self.updateProject)
         self.tagSizer.Add(self.tags, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
         # Populate
+        self._lastUpdate = datetime.now()
         if project is not None:
             project.refresh()
         self.project = project
@@ -546,6 +548,11 @@ class DetailsPanel(wx.Panel):
         # todo: Refresh stars count
 
     def updateProject(self, evt=None):
+        # Check last updated so we aren't calling this too often
+        if (datetime.now() - self._lastUpdate).seconds < 1:
+            return
+        self._lastUpdate = datetime.now()
+
         # Skip if no project
         if self.project is None or evt is None:
             return
