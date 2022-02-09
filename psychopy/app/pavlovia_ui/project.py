@@ -245,7 +245,7 @@ class DetailsPanel(wx.Panel):
         self.title = wx.TextCtrl(self,
                                  size=(-1, 30 if sys.platform == 'darwin' else -1),
                                  value="")
-        self.title.Bind(wx.EVT_KILL_FOCUS, self.updateProject)
+        self.title.Bind(wx.EVT_IDLE, self.updateProject)
         self.title.SetFont(
             wx.Font(24, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         )
@@ -309,7 +309,7 @@ class DetailsPanel(wx.Panel):
         self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
         # Description
         self.description = wx.TextCtrl(self, size=(-1, -1), value="", style=wx.TE_MULTILINE)
-        self.description.Bind(wx.EVT_KILL_FOCUS, self.updateProject)
+        self.description.Bind(wx.EVT_IDLE, self.updateProject)
         self.sizer.Add(self.description, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         # Sep
         self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
