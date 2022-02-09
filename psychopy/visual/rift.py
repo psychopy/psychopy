@@ -28,7 +28,7 @@ __all__ = ['Rift']
 _HAS_PSYCHXR_ = True
 
 try:
-    import psychxr.libovr as libovr
+    import psychxr.drivers.libovr as libovr
 except ImportError:
     _HAS_PSYCHXR_ = False
 
@@ -170,6 +170,7 @@ if _HAS_PSYCHXR_:
     # eye types
     RIFT_EYE_TYPE = {'left': libovr.EYE_LEFT, 'right': libovr.EYE_RIGHT}
 
+
 # ------------------------------------------------------------------------------
 # LibOVR Error Handler
 #
@@ -186,8 +187,10 @@ class Rift(window.Window):
     """Class provides a display and peripheral interface for the Oculus Rift
     (see: https://www.oculus.com/) head-mounted display.
 
-    """
+    Requires PsychXR 0.2.4 to be installed. Setting the `winType='glfw'` is
+    preferred for VR applications.
 
+    """
     def __init__(
             self,
             fovType='recommended',
@@ -314,7 +317,7 @@ class Rift(window.Window):
                                "connections and try again.")
 
         # create a VR session, do some initial configuration
-        initResult = libovr.initialize(logCallback=_logCallback)
+        initResult = libovr.initialize()  # removed logging callback
         if libovr.failure(initResult):
             _, msg = libovr.getLastErrorInfo()
             raise LibOVRError(msg)
@@ -496,7 +499,7 @@ class Rift(window.Window):
             pass
 
         # shutdown the session completely
-        libovr.shutdown()
+        #libovr.shutdown()
         logging.info('LibOVR session shutdown cleanly.')
 
         try:
@@ -674,7 +677,7 @@ class Rift(window.Window):
         Examples
         --------
         Generate your own eye poses. These are used when
-        :py:method:`calcEyePoses` is called::
+        :py:meth:`calcEyePoses` is called::
 
             leftEyePose = Rift.createPose((-self.eyeToNoseDistance, 0., 0.))
             rightEyePose = Rift.createPose((self.eyeToNoseDistance, 0., 0.))
@@ -953,7 +956,7 @@ class Rift(window.Window):
 
     def getDevicePose(self, deviceName, absTime=None, latencyMarker=False):
         """Get the pose of a tracked device. For head (HMD) and hand poses
-        (Touch controllers) it is better to use :py:method:`getTrackingState`
+        (Touch controllers) it is better to use :py:meth:`getTrackingState`
         instead.
 
         Parameters
@@ -1117,11 +1120,11 @@ class Rift(window.Window):
         Once this function returns, `setBuffer` may be called and frame
         rendering can commence. The computed eye pose for the selected buffer is
         accessible through the :py:attr:`eyeRenderPose` attribute after calling
-        :py:method:`setBuffer`. If `monoscopic=True`, the eye poses are set to
+        :py:meth:`setBuffer`. If `monoscopic=True`, the eye poses are set to
         the head pose.
 
         The source data specified to `headPose` can originate from the tracking
-        state retrieved by calling :py:method:`getTrackingState`, or from
+        state retrieved by calling :py:meth:`getTrackingState`, or from
         other sources. If a custom head pose is specified (for instance, from a
         motion tracker), you must ensure `head-locking` is enabled to prevent
         the ASW feature of the compositor from engaging. Furthermore, you must
@@ -1463,7 +1466,7 @@ class Rift(window.Window):
         GL.glDepthMask(GL.GL_TRUE)
 
         if clear:
-            self.setColor(self.color)  # clear the texture to the window color
+            self.setColor(self.color, colorSpace=self.colorSpace)  # clear the texture to the window color
             GL.glClear(
                 GL.GL_COLOR_BUFFER_BIT |
                 GL.GL_DEPTH_BUFFER_BIT |
@@ -1531,7 +1534,7 @@ class Rift(window.Window):
                 libovr.EYE_RIGHT)
 
         if clear:
-            self.setColor(self.color)  # clear the texture to the window color
+            self.setColor(self.color, colorSpace=self.colorSpace)  # clear the texture to the window color
             GL.glClearDepth(1.0)
             GL.glDepthMask(GL.GL_TRUE)
             GL.glClear(
@@ -1575,7 +1578,7 @@ class Rift(window.Window):
     @property
     def viewMatrix(self):
         """The view matrix for the current eye buffer. Only valid after a
-        :py:method:`calcEyePoses` call. Note that setting `viewMatrix` manually
+        :py:meth:`calcEyePoses` call. Note that setting `viewMatrix` manually
         will break visibility culling.
 
         """
@@ -1778,7 +1781,7 @@ class Rift(window.Window):
                     libovr.destroyMirrorTexture()
                     libovr.destroyTextureSwapChain(libovr.TEXTURE_SWAP_CHAIN0)
                     libovr.destroy()
-                    libovr.shutdown()
+                    #libovr.shutdown()  # avoid error
 
                 _, msg = libovr.getLastErrorInfo()
                 raise LibOVRError(msg)
@@ -2051,19 +2054,13 @@ class Rift(window.Window):
         if not self._monoscopic:
             libovr.getEyeProjectionMatrix(
                 libovr.EYE_LEFT,
-                self._nearClip,
-                self._farClip,
                 self._projectionMatrix[0])
             libovr.getEyeProjectionMatrix(
                 libovr.EYE_RIGHT,
-                self._nearClip,
-                self._farClip,
                 self._projectionMatrix[1])
         else:
             libovr.getEyeProjectionMatrix(
                 libovr.EYE_LEFT,
-                self._nearClip,
-                self._farClip,
                 self._projectionMatrix)
 
     def getMovieFrame(self, buffer='mirror'):
@@ -2444,7 +2441,7 @@ class Rift(window.Window):
 
         A haptics buffer is object which stores vibration amplitude samples for
         playback through the Touch controllers. To play a haptics buffer, pass
-        it to :py:method:`submitHapticsBuffer`.
+        it to :py:meth:`submitHapticsBuffer`.
 
         Parameters
         ----------
@@ -2628,7 +2625,8 @@ class Rift(window.Window):
         if self._perfStats.frameStatsCount > 0:
             recentStat = self._perfStats.frameStats[0]  # get the most recent
             # check for dropped frames since last call
-            if self.warnAppFrameDropped:
+            if self.warnAppFrameDropped and \
+                    reportNDroppedFrames > self._lastAppDroppedFrameCount:
                 appDroppedFrameCount = recentStat.appDroppedFrameCount
                 if appDroppedFrameCount > self._lastAppDroppedFrameCount:
                     logging.warn(
@@ -2637,12 +2635,17 @@ class Rift(window.Window):
 
                 self._lastAppDroppedFrameCount = appDroppedFrameCount
 
+                if reportNDroppedFrames == self._lastAppDroppedFrameCount:
+                    logging.warn(
+                        "Maximum number of dropped frames detected. I'll stop "
+                        "warning you about them.")
 
-def _logCallback(level, msg):
-    """Callback function for log messages generated by LibOVR."""
-    if level == libovr.LOG_LEVEL_INFO:
-        logging.info(msg)
-    elif level == libovr.LOG_LEVEL_DEBUG:
-        logging.debug(msg)
-    elif level == libovr.LOG_LEVEL_ERROR:
-        logging.error(msg)
+
+# def _logCallback(level, msg):
+#     """Callback function for log messages generated by LibOVR."""
+#     if level == libovr.LOG_LEVEL_INFO:
+#         logging.info(msg)
+#     elif level == libovr.LOG_LEVEL_DEBUG:
+#         logging.debug(msg)
+#     elif level == libovr.LOG_LEVEL_ERROR:
+#         logging.error(msg)

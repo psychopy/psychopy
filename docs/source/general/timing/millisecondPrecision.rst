@@ -4,9 +4,9 @@ Can PsychoPy deliver millisecond precision?
 
 .. _Labhackers Millikey: https://labhackers.com/millikey.html
 
-The simple answer is 'yes'. PsychoPy's timing is as good as (or in most cases better than) any package out there. 
+The simple answer is 'yes'. PsychoPy's timing is as good as (or in most cases better than) any package out there. For detailed Studies of timing see `Bridges et al., 2020 <https://peerj.com/articles/9414/>`_
 
-The longer answer is that you should test the timing of your own experimental stimuli on your own hardware. Very often a computer is not optimally configured to produce good timing, and a poorly code experiment could also destroy your timing. Many software and hardware manufacturers will suggest that the key to this is using computer clocks with high precision (lots of decimal places) but that is not the answer at all. The sources of error in stimulus/response timing are almost never to do with the poor precision of the clock. The following issues are extremely common and **until you actually test your experiment you don't realise that your timing is being affected by them**:
+The longer answer is that you should test the timing of your own experimental stimuli on your own hardware. Very often a computer is not optimally configured to produce good timing, and a poorly coded experiment could also destroy your timing (which is one reason we now recommend even good coders use :ref:`builder`!). Many software and hardware manufacturers will suggest that the key to good timing is using computer clocks with high precision (lots of decimal places) but that is not the answer at all. The sources of error in stimulus/response timing are almost never to do with the poor precision of the clock. The following issues are extremely common and **until you actually test your experiment you don't realise that your timing is being affected by them**:
 
 - :ref:`monitorDelays`: e.g. the monitor taking additional time to process the image before presentation
 - :ref:`OSdelays`: Windows, Linux and Mac all perform further processing on the images, depending on settings and this can delay your visual stimulus delivery by a further frame interval or more
@@ -46,11 +46,11 @@ The top of the screen appears 5-15 ms before the bottom
 
 For most monitor technologies, the lines of pixels are drawn sequentially from the top to the bottom and once the bottom line has been drawn the screen is finished and the line returns to the top (the Vertical Blank Interval, VBI). Most of your frame interval is spent drawing the lines, with 1-2ms being left for the VBI. This means that the pixels at the bottom are drawn '''up to 10 ms later''' than the pixels at the top of the screen. At what point are you going to say your stimulus 'appeared' to the participant?
 
-.. figure:: ../../images/TopOfScreen.jpg
+.. figure:: /images/TopOfScreen.jpg
 
     Figure 1: photodiode trace at top of screen. The image above shows the luminance trace of a CRT recorded by a fast photo-sensitive diode at the top of the screen when a stimulus is requested (shown by the square wave). The square wave at the bottom is from a parallel port that indicates when the stimulus was flipped to the screen. Note that on a CRT the screen at any point is actually black for the majority of the time and just briefly bright. The visual system integrates over a large enough time window not to notice this. On the next frame after the stimulus 'presentation time' the luminance of the screen flash increased.
 
-.. figure:: ../../images/BottOfScreen.jpg
+.. figure:: /images/BottOfScreen.jpg
 
     Figure 2: photodiode trace of the same large stimulus at bottom of screen. The image above shows comes from exactly the same script as the above but the photodiode is positioned at the bottom of the screen. In this case, after the stimulus is 'requested' the current frame (which is dark) finishes drawing and then, 10ms later than the above image, the screen goes bright at the bottom.
 
@@ -111,9 +111,9 @@ Common ways for this to happen are to forget the operations that are potentially
 
 For image stimuli where the image is constant the image should be loaded from disk at the beginning of the script (Builder-generate experiments will do so automatically for you). When an image stimulus has to *change on each trial*, it must be loaded from disk at some point. That typically takes several milliseconds (possibly hundreds of milliseconds for a large image) and while that is happening the screen will not be refreshing. You need to take your image-loading time into account and allow it to occur during a static period of the screen. 
 
-In Builder experiments if you set something to update "On every repeat" then it will update as that Routine begins so, if your trial Routine simply begins with 0.5s fixation period, all your stimuli can be loaded/updated in that period and you will have no further problems. Sometimes you want to load/update your stimulus explicitly at a different point in time and then you can insert a "Static Component" into your Builder experiment (a "Static Period" in the Python API) and then set your stimulus to update during that period (it will show up as an update option after you insert the Static Component).
+In B :ref:`builder` experiments if you set something to update "On every repeat" then it will update as that Routine begins so, if your trial Routine simply begins with 0.5s fixation period, all your stimuli can be loaded/updated in that period and you will have no further problems. Sometimes you want to load/update your stimulus explicitly at a different point in time and then you can insert a  :ref:`static` Component into your Builder experiment (a "Static Period" in the Python API) and then set your stimulus to update during that period (it will show up as an update option after you insert the Static Component).
 
-The good news is that a lot of the visual timing issues caused by coding problems **are** visible in the log files, unlike the problems with hardware and operating systems introducing lags.
+The good news is that a lot of the visual timing issues caused by coding problems **are** visible in the :ref:`Log Files <logFile>`, unlike the problems with hardware and operating systems introducing lags.
 
 .. _keyboardDelays:
 
@@ -140,6 +140,6 @@ Most recently we added support for the Psychophysics Toolbox audio library (Psyc
 
 For further information please see the documentation about the :ref:`Sound library <soundAPI>`
 
-.. figure:: ../../images/audioScope_Win10_PTB_mode3.png
+.. figure:: /images/audioScope_win10_PTB_mode3.png
 
     With the new PTB library you can achieve not only sub-millisecond precision, but roughly sub-millisecond lags!! You do need to know how to configure this though and testing it can only be done with hardware.

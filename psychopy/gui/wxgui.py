@@ -2,17 +2,12 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """To build simple dialogues etc. (requires wxPython)
 """
 
-from __future__ import absolute_import, print_function
-
-from builtins import str
-from builtins import super
-from builtins import range
 from psychopy import logging
 import wx
 import numpy

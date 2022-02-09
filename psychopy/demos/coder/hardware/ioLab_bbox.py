@@ -5,8 +5,6 @@
 Demo to illustrate using ioLabs button box.
 """
 
-from __future__ import absolute_import, division, print_function
-
 __author__ = 'Jonathan Roberts (orig demo); Jeremy Gray (rewrite 2013)'
 
 from psychopy.hardware import iolab

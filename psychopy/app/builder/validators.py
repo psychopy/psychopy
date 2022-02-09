@@ -2,15 +2,12 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Module containing validators for various parameters.
 """
-from __future__ import absolute_import, print_function
-
 import re
-from past.builtins import basestring
 import wx
 import psychopy.experiment.utils
 from psychopy.tools import stringtools
@@ -36,7 +33,7 @@ VALIDATOR_WARNING_FONT_MISSING = 3
 VALIDATOR_WARNING_COUNT = 4  # increment when adding more
 
 
-class ValidatorWarning(object):
+class ValidatorWarning:
     """Class for validator warnings.
 
     These are used internally by the `WarningManager`, do not create instances
@@ -127,7 +124,8 @@ class ValidatorWarning(object):
         """`True` if this is a non-critical message which doesn't disable the OK button"""
         return self.kind in [VALIDATOR_WARNING_FONT_MISSING]
 
-class WarningManager(object):
+
+class WarningManager:
     """Manager for warnings produced by validators associated with controls
     within the component properties dialog. Assumes that the `parent` dialog
     uses a standardized convention for attribute names for all components.
@@ -473,10 +471,9 @@ class CodeSnippetValidator(BaseValidator):
             return '', True  # mdc - why return anything here?
 
         val = control.GetValue()  # same as parent.params[self.fieldName].val
-        if not isinstance(val, basestring):
+        if not isinstance(val, str):
             return '', True
 
-        field = self.fieldName
         allowedUpdates = ['set every repeat', 'set every frame']
         # Set initials
         msg, OK = '', True  # until we find otherwise
@@ -505,7 +502,7 @@ class CodeSnippetValidator(BaseValidator):
         # Validate as code
         if codeWanted or isCodeField:
             # get var names from val, check against namespace:
-            code = experiment.getCodeFromParamStr(val)
+            code = experiment.getCodeFromParamStr(val, target="PsychoPy")
             try:
                 names = list(stringtools.getVariables(code))
                 parent.warnings.clearWarning(control)

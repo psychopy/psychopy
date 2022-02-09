@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, print_function
-
 # This code is heavily based upon winioport.py
 # Provides hardware port access for Python under Windows 95/98/NT/2000
 #
@@ -38,9 +36,7 @@ from __future__ import absolute_import, print_function
 #  IN THE SOFTWARE.
 
 
-from past.builtins import basestring
-from builtins import object
-class PParallelDLPortIO(object):
+class PParallelDLPortIO:
     """This class provides read/write access to the parallel port on a PC.
 
     This is a wrapper around Dincer Aydin's `winioport`_ for reading and
@@ -76,7 +72,7 @@ class PParallelDLPortIO(object):
                   "parallel Ports not available")
             raise e
 
-        if isinstance(address, basestring) and address.startswith('0x'):
+        if isinstance(address, str) and address.startswith('0x'):
             # convert u"0x0378" into 0x0378
             self.base = int(address, 16)
         else:

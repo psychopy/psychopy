@@ -2,20 +2,19 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """utility classes for the Builder
 """
-
-from __future__ import absolute_import, division, print_function
-
 import glob
 import os
-from builtins import object
+import re
 from pathlib import Path
 
+import numpy
 from wx.lib.agw.aui.aui_constants import *
+import wx.lib.statbmp
 from wx.lib.agw.aui.aui_utilities import IndentPressedBitmap, ChopText, TakeScreenShot
 import sys
 import wx
@@ -26,9 +25,10 @@ import psychopy
 from psychopy import logging
 from . import pavlovia_ui
 from . import icons
-from .themes import ThemeMixin
+from .themes import ThemeMixin, IconCache
 from psychopy.localization import _translate
 from psychopy.tools.stringtools import prettyname
+from psychopy.tools.apptools import SortTerm
 
 
 class FileDropTarget(wx.FileDropTarget):
@@ -65,7 +65,7 @@ class FileDropTarget(wx.FileDropTarget):
         return True
 
 
-class WindowFrozen(object):
+class WindowFrozen():
     """
     Equivalent to wxWindowUpdateLocker.
 
@@ -329,6 +329,364 @@ class PsychopyPlateBtn(platebtn.PlateButton, ThemeMixin):
                       htxt=cs['text'])
         return colors
 
+
+class ButtonArray(wx.Window):
+
+    class ArrayBtn(wx.Window):
+        def __init__(self, parent, label=""):
+            wx.Window.__init__(self, parent)
+            self.parent = parent
+            # Setup sizer
+            self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+            self.SetSizer(self.sizer)
+            # Create button
+            self.button = wx.Button(self, label=label, style=wx.BORDER_NONE)
+            self.sizer.Add(self.button, border=4, flag=wx.LEFT | wx.EXPAND)
+            # Create remove btn
+            self.removeBtn = wx.Button(self, label="×", size=(24, -1))
+            self.sizer.Add(self.removeBtn, border=4, flag=wx.RIGHT | wx.EXPAND)
+            # Bind remove btn to remove function
+            self.removeBtn.Bind(wx.EVT_BUTTON, self.remove)
+            # Bind button to button function
+            self.button.Bind(wx.EVT_BUTTON, self.onClick)
+
+            self.SetBackgroundColour(self.parent.GetBackgroundColour())
+            self.Layout()
+
+        def remove(self, evt=None):
+            self.parent.removeItem(self)
+
+        def onClick(self, evt=None):
+            evt = wx.CommandEvent(wx.EVT_BUTTON.typeId)
+            evt.SetEventObject(self)
+            wx.PostEvent(self.parent, evt)
+
+    def __init__(self, parent, orient=wx.HORIZONTAL,
+                 items=(),
+                 options=None,
+                 itemAlias=_translate("item")):
+        # Create self
+        wx.Window.__init__(self, parent)
+        self.SetBackgroundColour(parent.GetBackgroundColour())
+        self.parent = parent
+        self.itemAlias = itemAlias
+        self.options = options
+        # Create sizer
+        self.sizer = wx.WrapSizer(orient=orient)
+        self.SetSizer(self.sizer)
+        # Create add button
+        self.addBtn = wx.Button(self, size=(24, 24), label="+", style=wx.BORDER_NONE)
+        self.addBtn.Bind(wx.EVT_BUTTON, self.newItem)
+        self.sizer.Add(self.addBtn, border=3, flag=wx.EXPAND | wx.ALL)
+        # Add items
+        self.items = items
+        # Layout
+        self.Layout()
+
+    def _applyAppTheme(self, target=None):
+        for child in self.sizer.Children:
+            if hasattr(child.Window, "_applyAppTheme"):
+                child.Window._applyAppTheme()
+
+    @property
+    def items(self):
+        items = {}
+        for child in self.sizer.Children:
+            if not child.Window == self.addBtn:
+                items[child.Window.button.Label] = child.Window
+        return items
+
+    @items.setter
+    def items(self, value):
+        if isinstance(value, str):
+            value = [value]
+        if value is None or value is numpy.nan:
+            value = []
+        assert isinstance(value, (list, tuple))
+
+        value.reverse()
+
+        self.clear()
+        for item in value:
+            self.addItem(item)
+
+    def newItem(self, evt=None):
+        msg = _translate("Add ") + self.itemAlias + "..."
+        if self.options is None:
+            _dlg = wx.TextEntryDialog(self.parent, message=msg)
+        else:
+            _dlg = wx.SingleChoiceDialog(self.parent, msg, "Input Text", choices=self.options)
+
+        if _dlg.ShowModal() != wx.ID_OK:
+            return
+        if self.options is None:
+            self.addItem(_dlg.GetValue())
+        else:
+            self.addItem(_dlg.GetStringSelection())
+
+    def addItem(self, item):
+        if not isinstance(item, wx.Window):
+            item = self.ArrayBtn(self, label=item)
+        self.sizer.Insert(0, item, border=3, flag=wx.EXPAND | wx.TOP | wx.BOTTOM | wx.RIGHT)
+        self.Layout()
+        # Raise event
+        evt = wx.ListEvent(wx.EVT_LIST_INSERT_ITEM.typeId)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
+
+    def removeItem(self, item):
+        items = self.items.copy()
+        # Get value from key if needed
+        if item in items:
+            item = items[item]
+        # Delete object and item in dict
+        if item in list(items.values()):
+            i = self.sizer.Children.index(self.sizer.GetItem(item))
+            self.sizer.Remove(i)
+            item.Hide()
+        self.Layout()
+        # Raise event
+        evt = wx.ListEvent(wx.EVT_LIST_DELETE_ITEM.typeId)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
+
+    def clear(self):
+        # Raise event
+        evt = wx.ListEvent(wx.EVT_LIST_DELETE_ALL_ITEMS.typeId)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
+        # Delete all items
+        for item in self.items:
+            self.removeItem(item)
+
+    def Enable(self, enable=True):
+        for child in self.Children:
+            child.Enable(enable)
+
+    def Disable(self):
+        self.Enable(False)
+
+    def GetValue(self):
+        return list(self.items)
+
+
+class SortCtrl(wx.Window):
+    class SortItem(wx.Window):
+        def __init__(self, parent,
+                     item,
+                     showSelect=False, selected=True,
+                     showFlip=False
+                     ):
+            # Create self
+            wx.Window.__init__(self, parent, style=wx.BORDER_NONE)
+            self.SetBackgroundColour("white")
+            self.parent = parent
+            # Make sure we've been given a SortTerm
+            assert isinstance(item, SortTerm)
+            self.item = item
+            # Setup sizer
+            self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+            self.SetSizer(self.sizer)
+            # Add tickbox (if select)
+            self.selectCtrl = wx.CheckBox(self)
+            self.selectCtrl.Bind(wx.EVT_CHECKBOX, self.onSelect)
+            self.selectCtrl.SetValue(selected)
+            self.selectCtrl.Show(showSelect)
+            self.sizer.Add(self.selectCtrl, border=6, flag=wx.ALL | wx.EXPAND)
+            # Add label
+            self.labelObj = wx.StaticText(self, label=self.item.label)
+            self.sizer.Add(self.labelObj, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+            # Add flip button
+            self.flipBtn = wx.Button(self, size=(16, 8), label="⇵", style=wx.BORDER_NONE)
+            self.flipBtn.SetBackgroundColour(self.GetBackgroundColour())
+            self.flipBtn.Bind(wx.EVT_BUTTON, self.flip)
+            self.flipBtn.Show(showFlip)
+            self.sizer.Add(self.flipBtn, border=6, flag=wx.ALL | wx.EXPAND)
+            # Add ctrls sizer
+            self.ctrlsSizer = wx.BoxSizer(wx.VERTICAL)
+            self.sizer.Add(self.ctrlsSizer, border=6, flag=wx.ALL | wx.EXPAND)
+            # Add up button
+            self.upBtn = wx.Button(self, size=(16, 8), label="▲", style=wx.BORDER_NONE)
+            self.upBtn.SetBackgroundColour(self.GetBackgroundColour())
+            self.upBtn.Bind(wx.EVT_BUTTON, self.moveUp)
+            self.ctrlsSizer.Add(self.upBtn, border=0, flag=wx.ALL | wx.EXPAND)
+            # Add stretch spacer inbetween
+            self.ctrlsSizer.AddStretchSpacer(1)
+            # Add up button
+            self.downBtn = wx.Button(self, size=(16, 8), label="▼", style=wx.BORDER_NONE)
+            self.downBtn.SetBackgroundColour(self.GetBackgroundColour())
+            self.downBtn.Bind(wx.EVT_BUTTON, self.moveDown)
+            self.ctrlsSizer.Add(self.downBtn, border=0, flag=wx.ALL | wx.EXPAND)
+            # Do initial select
+            self.onSelect()
+
+        @property
+        def label(self):
+            return self.item.label
+
+        @property
+        def value(self):
+            return self.item.value
+
+        def flip(self, evt=None):
+            # Flip state
+            self.item.ascending = not self.item.ascending
+            # Change label
+            self.labelObj.SetLabel(self.label)
+
+        def moveUp(self, evt=None):
+            # Get own index
+            i = self.parent.items.index(self)
+            # Insert popped self before previous position
+            self.parent.items.insert(max(i-1, 0), self.parent.items.pop(i))
+            # Layout
+            self.parent.Layout()
+
+        def moveDown(self, evt=None):
+            # Get own index
+            i = self.parent.items.index(self)
+            # Insert popped self before previous position
+            self.parent.items.insert(min(i+1, len(self.parent.items)), self.parent.items.pop(i))
+            # Layout
+            self.parent.Layout()
+
+        @property
+        def selected(self):
+            return self.selectCtrl.GetValue()
+
+        def onSelect(self, evt=None):
+            self.Enable(self.selected)
+
+        def Enable(self, enable=True):
+            self.labelObj.Enable(enable)
+
+        def Disable(self):
+            self.Enable(False)
+
+    def __init__(self, parent,
+                 items,
+                 showSelect=False, selected=True,
+                 showFlip=False,
+                 orient=wx.VERTICAL):
+        wx.Window.__init__(self, parent)
+        # Make sure we've been given an array
+        if not isinstance(items, (list, tuple)):
+            items = [items]
+        # Setup sizer
+        self.sizer = wx.BoxSizer(orient)
+        self.SetSizer(self.sizer)
+        # If given a bool for select, apply it to all items
+        if isinstance(selected, bool):
+            selected = [selected] * len(items)
+        assert isinstance(selected, (list, tuple)) and len(selected) == len(items)
+        # Setup items
+        self.items = []
+        for i, item in enumerate(items):
+            self.items.append(self.SortItem(self,
+                                            item=item,
+                                            showSelect=showSelect, selected=selected[i],
+                                            showFlip=showFlip))
+            self.sizer.Add(self.items[i], border=6, flag=wx.ALL | wx.EXPAND)
+        # Layout
+        self.Layout()
+
+    def GetValue(self):
+        items = []
+        for item in self.items:
+            if item.selected:
+                items.append(item.item)
+        return items
+
+    def Layout(self):
+        # Get order of items in reverse
+        items = self.items.copy()
+        items.reverse()
+        # Remove each item
+        for item in items:
+            self.sizer.Remove(self.sizer.Children.index(self.sizer.GetItem(item)))
+        # Add items back in oder
+        for i, item in enumerate(items):
+            self.sizer.Prepend(item, border=6, flag=wx.ALL | wx.EXPAND)
+            item.upBtn.Show(i != len(items)-1)
+            item.downBtn.Show(i != 0)
+        # Disable appropriate buttons
+        # Do base layout
+        wx.Window.Layout(self)
+
+
+class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
+    def __init__(self, parent, bitmap, size=(128, 128)):
+        wx.lib.statbmp.GenStaticBitmap.__init__(self, parent, ID=wx.ID_ANY, bitmap=wx.Bitmap(), size=size)
+        self.parent = parent
+        self.iconCache = IconCache()
+        # Set bitmap
+        self.SetBitmap(bitmap)
+        # Setup sizer
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.AddStretchSpacer(1)
+        self.SetSizer(self.sizer)
+        # Add edit button
+        self.editBtn = wx.Button(self, size=(24, 24), label=chr(int("270E", 16)))
+        self.editBtn.Bind(wx.EVT_BUTTON, self.LoadBitmap)
+        self.sizer.Add(self.editBtn, border=6, flag=wx.ALIGN_BOTTOM | wx.ALL)
+
+    def LoadBitmap(self, evt=None):
+        # Open file dlg
+        _dlg = wx.FileDialog(self.parent, message=_translate("Select image..."))
+        if _dlg.ShowModal() != wx.ID_OK:
+            return
+        # Get value
+        path = str(Path(_dlg.GetPath()))
+        self.SetBitmap(path)
+        # Post event
+        evt = wx.FileDirPickerEvent(wx.EVT_FILEPICKER_CHANGED.typeId, self, -1, path)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
+
+    def SetBitmap(self, bitmap):
+        # Get from file if needed
+        if not isinstance(bitmap, wx.Bitmap):
+            self.path = bitmap
+            bitmap = wx.Bitmap(bitmap)
+        # Sub in blank bitmaps
+        if not bitmap.IsOk():
+            bitmap = self.iconCache.getBitmap(name="user_none", size=128)
+        # Store full size bitmap
+        self._fullBitmap = bitmap
+        # Resize bitmap
+        buffer = bitmap.ConvertToImage()
+        buffer = buffer.Scale(*self.Size, quality=wx.IMAGE_QUALITY_HIGH)
+        scaledBitmap = wx.Bitmap(buffer)
+        # Set image
+        wx.lib.statbmp.GenStaticBitmap.SetBitmap(self, scaledBitmap)
+
+    @property
+    def path(self):
+        """
+        If current bitmap is from a file, returns the filepath. Otherwise, returns None.
+        """
+        if hasattr(self, "_path"):
+            return self._path
+
+    @path.setter
+    def path(self, value):
+        self._path = value
+
+    def GetBitmapFull(self):
+        return self._fullBitmap
+
+    @property
+    def BitmapFull(self):
+        return self.GetBitmapFull()
+
+    def Enable(self, enable=True):
+        wx.StaticBitmap.Enable(self, enable)
+        self.editBtn.Enable(enable)
+
+    def Disable(self):
+        self.Enable(False)
+
+
 class PsychopyScrollbar(wx.ScrollBar):
     def __init__(self, parent, ori=wx.VERTICAL):
         wx.ScrollBar.__init__(self)
@@ -371,6 +729,66 @@ class PsychopyScrollbar(wx.ScrollBar):
             range=1,
             pageSize=vsz
         )
+
+
+class FileCtrl(wx.TextCtrl):
+    def __init__(self, parent, dlgtype="file", value=""):
+        wx.TextCtrl.__init__(self, parent, value=value, size=(-1, 24))
+        # Store type
+        self.dlgtype = dlgtype
+        # Setup sizer
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.SetSizer(self.sizer)
+        self.sizer.AddStretchSpacer(1)
+        # Add button
+        self.fileBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
+        self.fileBtn.SetBackgroundColour(self.GetBackgroundColour())
+        self.fileBtn.SetBitmap(IconCache().getBitmap(name="folder", size=16))
+        self.sizer.Add(self.fileBtn, border=4, flag=wx.ALL)
+        # Bind browse function
+        self.fileBtn.Bind(wx.EVT_BUTTON, self.browse)
+
+    def browse(self, evt=None):
+        file = Path(self.GetValue())
+        # Sub in a / for blank paths to force the better folder navigator
+        if file == Path():
+            file = Path("/")
+        # Open file or dir dlg
+        if self.dlgtype == "dir":
+            dlg = wx.DirDialog(self, message=_translate("Specify folder..."), defaultPath=str(file))
+        else:
+            dlg = wx.FileDialog(self, message=_translate("Specify file..."), defaultDir=str(file))
+        if dlg.ShowModal() != wx.ID_OK:
+            return
+        # Get data from dlg
+        file = Path(dlg.GetPath())
+        # Set data
+        self.SetValue(str(file))
+
+    def SetValue(self, value):
+        # Replace backslashes with forward slashes
+        value = value.replace("\\", "/")
+        # Do base value setting
+        wx.TextCtrl.SetValue(self, value)
+        # Post event
+        evt = wx.FileDirPickerEvent(wx.EVT_FILEPICKER_CHANGED.typeId, self, -1, value)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
+
+    def Enable(self, enable=True):
+        wx.TextCtrl.Enable(self, enable)
+        self.fileBtn.Enable(enable)
+        self.fileBtn.SetBackgroundColour(self.GetBackgroundColour())
+
+    def Disable(self):
+        self.Enable(False)
+
+    def Show(self, show=True):
+        wx.TextCtrl.Show(self, show)
+        self.fileBtn.Show(show)
+
+    def Hide(self):
+        self.Show(False)
 
 
 def updateDemosMenu(frame, menu, folder, ext):
@@ -508,3 +926,197 @@ class FrameSwitcher(wx.Menu):
         self.frames[i].Raise()
         self.frames[i].Show()
         self.updateFrames()
+
+
+def sanitize(inStr):
+    """
+    Process a string to remove any sensitive information, i.e. OAUTH keys
+    """
+    # Key-value pairs of patterns with what to replace them with
+    patterns = {
+        "https\:\/\/oauth2\:[\d\w]{64}@gitlab\.pavlovia\.org\/.*\.git": "[[OAUTH key hidden]]" # Remove any oauth keys
+    }
+    # Replace each pattern
+    for pattern, repl in patterns.items():
+        inStr = re.sub(pattern, repl, inStr)
+
+    return inStr
+
+
+class HoverMixin:
+    """
+    Mixin providing methods to handle hover on/off events for a wx.Window based class.
+    """
+    IsHovered = False
+
+    def SetupHover(self):
+        """
+        Helper method to setup hovering for this object
+        """
+        # Bind both hover on and hover off events to the OnHover method
+        self.Bind(wx.EVT_ENTER_WINDOW, self.OnHover)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self.OnHover)
+
+    def OnHover(self, evt=None):
+        """
+        Method to handle hover events for buttons. To use, bind both `wx.EVT_ENTER_WINDOW` and `wx.EVT_LEAVE_WINDOW` events to this method.
+        """
+        if evt is None:
+            # If calling without event, style according to last IsHovered measurement
+            if self.IsHovered:
+                self.SetForegroundColour(self.ForegroundColourHover)
+                self.SetBackgroundColour(self.BackgroundColourHover)
+            else:
+                self.SetForegroundColour(self.ForegroundColourNoHover)
+                self.SetBackgroundColour(self.BackgroundColourNoHover)
+        elif evt.EventType == wx.EVT_ENTER_WINDOW.typeId:
+            # If hovered over currently, use hover colours
+            self.SetForegroundColour(self.ForegroundColourHover)
+            self.SetBackgroundColour(self.BackgroundColourHover)
+            # and mark as hovered
+            self.IsHovered = True
+        else:
+            # Otherwise, use regular colours
+            self.SetForegroundColour(self.ForegroundColourNoHover)
+            self.SetBackgroundColour(self.BackgroundColourNoHover)
+            # and mark as unhovered
+            self.IsHovered = False
+
+    @property
+    def ForegroundColourNoHover(self):
+        if hasattr(self, "_ForegroundColourNoHover"):
+            return self._ForegroundColourNoHover
+        return ThemeMixin.appColors['text']
+
+    @ForegroundColourNoHover.setter
+    def ForegroundColourNoHover(self, value):
+        self._ForegroundColourNoHover = value
+
+    @property
+    def BackgroundColourNoHover(self):
+        if hasattr(self, "_BackgroundColourNoHover"):
+            return self._BackgroundColourNoHover
+        return ThemeMixin.appColors['frame_bg']
+
+    @BackgroundColourNoHover.setter
+    def BackgroundColourNoHover(self, value):
+        self._BackgroundColourNoHover = value
+
+    @property
+    def ForegroundColourHover(self):
+        if hasattr(self, "_ForegroundColourHover"):
+            return self._ForegroundColourHover
+        return ThemeMixin.appColors['txtbutton_fg_hover']
+
+    @ForegroundColourHover.setter
+    def ForegroundColourHover(self, value):
+        self._ForegroundColourHover = value
+
+    @property
+    def BackgroundColourHover(self):
+        if hasattr(self, "_BackgroundColourHover"):
+            return self._BackgroundColourHover
+        return ThemeMixin.appColors['txtbutton_bg_hover']
+
+    @BackgroundColourHover.setter
+    def BackgroundColourHover(self, value):
+        self._BackgroundColourHover = value
+
+
+class ToggleButton(wx.ToggleButton, HoverMixin):
+    """
+    Extends wx.ToggleButton to give methods for handling color changes relating to hover events and value setting.
+    """
+    @property
+    def BackgroundColourNoHover(self):
+        if self.GetValue():
+            # Return a darker color if selected
+            return ThemeMixin.appColors['docker_bg']
+        else:
+            # Return the default color otherwise
+            return HoverMixin.BackgroundColourNoHover.fget(self)
+
+
+class ToggleButtonArray(wx.Window, ThemeMixin):
+
+    def __init__(self, parent, labels=None, values=None, multi=False, ori=wx.HORIZONTAL):
+        wx.Window.__init__(self, parent)
+        self.parent = parent
+        self.multi = multi
+        # Setup sizer
+        self.sizer = wx.BoxSizer(ori)
+        self.SetSizer(self.sizer)
+        # Alias values and labels
+        if labels is None:
+            labels = values
+        if values is None:
+            values = labels
+        if values is None and labels is None:
+            values = labels = []
+        # Make buttons
+        self.buttons = {}
+        for i, val in enumerate(values):
+            self.buttons[val] = ToggleButton(self, style=wx.BORDER_NONE)
+            self.buttons[val].SetupHover()
+            self.buttons[val].SetLabelText(labels[i])
+            self.buttons[val].Bind(wx.EVT_TOGGLEBUTTON, self.processToggle)
+            self.sizer.Add(self.buttons[val], border=6, proportion=1, flag=wx.ALL | wx.EXPAND)
+
+    def processToggle(self, evt):
+        obj = evt.GetEventObject()
+        if self.multi:
+            # Toggle self
+            self.SetValue(self.GetValue())
+        else:
+            # Selectself and deselect other buttons
+            for key, btn in self.buttons.items():
+                if btn == obj:
+                    self.SetValue(key)
+
+    def SetValue(self, value):
+        if not isinstance(value, (list, tuple)):
+            value = [value]
+        if not self.multi:
+            assert len(value) == 1, "When multi is False, ToggleButtonArray value must be a single value"
+        # Set corresponding button's value to be True and all others to be False
+        for key, btn in self.buttons.items():
+            btn.SetValue(key in value)
+        # Restyle
+        self._applyAppTheme()
+        # Emit event
+        evt = wx.CommandEvent(wx.EVT_CHOICE.typeId)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
+
+    def GetValue(self):
+        # Return key of button(s) whose value is True
+        values = []
+        for key, btn in self.buttons.items():
+            if btn.GetValue():
+                values.append(key)
+        # If single select, only return first value
+        if not self.multi:
+            values = values[0]
+        return values
+
+    def _applyAppTheme(self, target=None):
+        # Set panel background
+        self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+        # Use OnHover event to set buttons to their default colors
+        for btn in self.buttons.values():
+            btn.OnHover()
+
+
+def sanitize(inStr):
+    """
+    Process a string to remove any sensitive information, i.e. OAUTH keys
+    """
+    # Key-value pairs of patterns with what to replace them with
+    patterns = {
+        "https\:\/\/oauth2\:[\d\w]{64}@gitlab\.pavlovia\.org\/.*\.git": "[[OAUTH key hidden]]" # Remove any oauth keys
+    }
+    # Replace each pattern
+    for pattern, repl in patterns.items():
+        inStr = re.sub(pattern, repl, inStr)
+
+    return inStr

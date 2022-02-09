@@ -35,7 +35,7 @@ from psychopy.iohub.client.eyetracker.validation import PositionGrid, Trigger, K
 getTime = Computer.getTime
 
 
-class TargetStim(object):
+class TargetStim:
     def __init__(self, win, radius=None, fillcolor=None, edgecolor=None, edgewidth=None,
                  dotcolor=None, dotradius=None, units=None, colorspace=None, opacity=1.0, contrast=1.0):
         """
@@ -75,6 +75,14 @@ class TargetStim(object):
         """
         for s in self.stim:
             s.setPos(pos)
+
+    @property
+    def pos(self):
+        return self.stim[0].pos
+
+    @pos.setter
+    def pos(self, value):
+        self.setPos(value)
 
     @property
     def radius(self):
@@ -159,8 +167,7 @@ def create17PointGrid():
     return [(0.0, 0.0), ] + sixteen_pos
 
 
-
-class ValidationProcedure(object):
+class ValidationProcedure:
     def __init__(self,
                  win=None,  # psychopy window
                  target=None,  # target stim
@@ -174,6 +181,7 @@ class ValidationProcedure(object):
                  unit_type=None,  # None == use window unit type (may need to enforce this for Validation)
                  progress_on_key=" ",  # str or None
                  gaze_cursor=None,  # None, color, or a stim object with setPos()
+                 text_color=None,
                  show_results_screen=True,  # bool
                  save_results_screen=False,  # bool
                  # args not used by Builder at this time
@@ -276,6 +284,18 @@ class ValidationProcedure(object):
         self.save_results_screen = save_results_screen
         self._validation_results = None
 
+        self.text_color = text_color
+        self.text_color_space = color_space
+
+        if text_color is None or text_color == 'auto':
+            # If no calibration text color provided, base it on the window background color
+            from psychopy.iohub.util import complement
+            sbcolor = win.color
+            from psychopy.colors import Color
+            tcolor_obj = Color(sbcolor, win.colorSpace)
+            self.text_color = complement(*tcolor_obj.rgb255)
+            self.text_color_space = 'rgb255'
+
         storeeventsfor = [self.io.devices.keyboard,
                           self.io.devices.tracker,
                           self.io.devices.experiment]
@@ -312,7 +332,7 @@ class ValidationProcedure(object):
         if self.show_intro_screen:
             # Display Validation Intro Screen
             self.showIntroScreen()
-            if self.terminate_key and self.terminate_key in keyboard.waitForReleases(keys=[' ', self.terminate_key]):
+            if self.terminate_key and self.terminate_key in keyboard.waitForReleases(keys=[' ', 'space',self.terminate_key]):
                 print("Escape key pressed. Exiting validation")
                 self._validation_results = None
                 return
@@ -330,15 +350,15 @@ class ValidationProcedure(object):
 
         if self.show_results_screen:
             self.showResultsScreen()
-            kb_presses = keyboard.waitForPresses(keys=[' ', self.terminate_key, self.targetsequence.gaze_cursor_key])
-            while ' ' not in kb_presses:
+            kb_presses = keyboard.waitForPresses(keys=['space',' ', self.terminate_key, self.targetsequence.gaze_cursor_key])
+            while 'space' not in kb_presses and ' ' not in kb_presses:
                 if self.targetsequence.gaze_cursor_key in kb_presses:
                     self.targetsequence.display_gaze = not self.targetsequence.display_gaze
                     self.showResultsScreen()
                 if self.terminate_key in kb_presses:
                     print("Escape key pressed. Exiting validation")
                     break
-                kb_presses = keyboard.waitForPresses(keys=[' ',
+                kb_presses = keyboard.waitForPresses(keys=['space', ' ',
                                                            self.terminate_key,
                                                            self.targetsequence.gaze_cursor_key])
 
@@ -359,13 +379,14 @@ class ValidationProcedure(object):
             self.intro_text_stim.setText(text)
             self.intro_text_stim.setPos(textpos)
         else:
-            self.intro_text_stim = visual.TextStim(self.win, text=text, pos=textpos, height=30, color=(0, 0, 0),
-                                                   colorSpace='rgb255', opacity=1.0, contrast=1.0, units='pix',
+            self.intro_text_stim = visual.TextStim(self.win, text=text, pos=textpos, height=30, color=self.text_color,
+                                                   colorSpace=self.text_color_space, opacity=1.0, contrast=1.0, units='pix',
                                                    ori=0.0, antialias=True, bold=False, italic=False,
                                                    anchorHoriz='center', anchorVert='center',
                                                    wrapWidth=self.win.size[0] * .8)
 
         self.intro_text_stim.draw()
+        self.win.flip()
         return self.win.flip()
 
     @property
@@ -633,19 +654,19 @@ class ValidationProcedure(object):
         results = self.getValidationResults()
 
         for tp in self.positions.getPositions():
-            self.targetsequence.target.setPos(tp)
+            self.targetsequence.target.pos = tp
             self.targetsequence.target.draw()
 
         title_txt = 'Validation Results\nMin: %.4f, Max: %.4f,' \
                     ' Mean %.4f (%s units)' % (results['min_error'], results['max_error'],
                                                results['mean_error'], results['reporting_unit_type'])
         title_stim = visual.TextStim(self.win, text=title_txt, height=24, pos=(0.0, (self.win.size[1] / 2.0) * .95),
-                                     color=(0, 0, 0), colorSpace='rgb255', units='pix', antialias=True,
+                                     color=self.text_color, colorSpace=self.text_color_space, units='pix', antialias=True,
                                      anchorVert='center', anchorHoriz='center', wrapWidth=self.win.size[0] * .8)
         title_stim.draw()
 
         exit_text = visual.TextStim(self.win, text='Press SPACE to continue.', opacity=1.0, units='pix', height=None,
-                                    pos=(0.0, -(self.win.size[1] / 2.0) * .95), color=(0, 0, 0), colorSpace='rgb255',
+                                    pos=(0.0, -(self.win.size[1] / 2.0) * .95), color=self.text_color, colorSpace=self.text_color_space,
                                     antialias=True, bold=True, anchorVert='center', anchorHoriz='center',
                                     wrapWidth=self.win.size[0] * .8)
         exit_text.draw()
@@ -686,7 +707,7 @@ class ValidationProcedure(object):
                     else:
                         g_pos = toPix(self.win, gaze_x[i], gaze_y[i])
                         g_pos = g_pos[0][0], g_pos[1][0]
-                    sample_gfx.setPos(g_pos)
+                    sample_gfx.pos = g_pos
                     sample_gfx.draw()
                 txt_bold = False
                 position_txt = "Gaze Error:\nMin: %.4f\nMax: %.4f\n" \
@@ -706,7 +727,7 @@ class ValidationProcedure(object):
             ci += 1
 
 
-class ValidationTargetRenderer(object):
+class ValidationTargetRenderer:
     TARGET_STATIONARY = 1
     TARGET_MOVING = 2
     TARGET_EXPANDING = 4
@@ -844,7 +865,7 @@ class ValidationTargetRenderer(object):
                     v2 = topos
                     t = 60.0 * ((1.0 / 10.0) * t ** 5 - (1.0 / 4.0) * t ** 4 + (1.0 / 6.0) * t ** 3)
                     moveTo = ((1.0 - t) * v1[0] + t * v2[0], (1.0 - t) * v1[1] + t * v2[1])
-                    self.target.setPos(moveTo)
+                    self.target.pos = moveTo
                     self._draw()
                     fliptime = self.win.flip()
                     io.sendMessageEvent('POS_UPDATE %.4f,%.4f' % (moveTo[0], moveTo[1]), self.msgcategory,
@@ -861,7 +882,7 @@ class ValidationTargetRenderer(object):
                     if self._terminate_requested:
                         return 0
 
-        self.target.setPos(topos)
+        self.target.pos = topos
         self._draw()
         fliptime = self.win.flip()
         io.sendMessageEvent('TARGET_POS %.4f,%.4f' % (topos[0], topos[1]), self.msgcategory, sec_time=fliptime)

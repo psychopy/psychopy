@@ -5,9 +5,6 @@
 Demo to illustrate encryption and decryption of a data file using pyFileSec
 """
 
-from __future__ import division
-from __future__ import print_function
-
 from pyfilesec import SecFile, GenRSA
 import os
 

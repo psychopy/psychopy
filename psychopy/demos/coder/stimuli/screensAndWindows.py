@@ -5,8 +5,6 @@
 Using multiple screens and windows with PsychoPy
 """
 
-from __future__ import division
-
 from psychopy import visual, event
 from numpy import sin, pi  # numeric python
 

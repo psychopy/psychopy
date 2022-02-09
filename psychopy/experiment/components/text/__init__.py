@@ -2,14 +2,10 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-
-from os import path
 from pathlib import Path
-from psychopy import logging
 from psychopy.alerts import alerttools
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy.localization import _localized as __localized
@@ -38,7 +34,7 @@ class TextComponent(BaseVisualComponent):
                  text=_translate('Any text\n\nincluding line breaks'),
                  font='Open Sans', units='from exp settings',
                  color='white', colorSpace='rgb',
-                 pos=(0, 0), letterHeight=0.1, ori=0,
+                 pos=(0, 0), letterHeight=0.05, ori=0,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  flip='None', startEstim='', durationEstim='', wrapWidth='',

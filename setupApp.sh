@@ -8,6 +8,9 @@ read -p "Version (def=$defVersion):" version
 version=${version:-$defVersion}
 echo "Building $version"
 
+echo "UNLOCKING KEYCHAIN"
+security unlock-keychain
+
 rm -r build
 sudo rm -r dist/PsychoPy*.app #the previous version
 sudo rm -r ../dist/PsychoPy*.app  # the previous version in outer location
@@ -16,7 +19,7 @@ python3.6 setup.py sdist --format=zip
 # then handle the mac app bundle
 rm psychopy/prefSite.cfg
 
-declare -a pythons=("python3.6")
+declare -a pythons=("python3.8")
 declare -a names=("PsychoPy")
 declare -a todo=(0) # or  (1 0) to do both
 TEST_ONLY=0

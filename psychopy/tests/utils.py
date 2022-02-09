@@ -1,9 +1,7 @@
-from __future__ import print_function
-from __future__ import division
-from builtins import str
-from builtins import range
+import sys
 from os.path import abspath, basename, dirname, isfile, join as pjoin
 import os.path
+from pathlib import Path
 import shutil
 import numpy as np
 import io
@@ -23,7 +21,7 @@ TESTS_DATA_PATH = pjoin(TESTS_PATH, 'data')
 TESTS_FONT = pjoin(TESTS_DATA_PATH, 'DejaVuSerif.ttf')
 
 
-def compareScreenshot(fileName, win, crit=5.0):
+def compareScreenshot(fileName, win, tag="", crit=5.0):
     """Compare the current back buffer of the given window with the file
 
     Screenshots are stored and compared against the files under path
@@ -52,7 +50,9 @@ def compareScreenshot(fileName, win, crit=5.0):
             imgDat = np.array(frame.getdata())
             crit += 5  # be more relaxed because of the interpolation
         rms = np.std(imgDat-expDat)
-        filenameLocal = fileName.replace('.png','_local.png')
+        if tag:
+            tag = "_" + tag
+        filenameLocal = fileName.replace('.png',f'{tag}_local.png')
         if rms >= crit/2:
             #there was SOME discrepancy
             logging.warning('PsychoPyTests: RMS=%.3g at threshold=%3.g'
@@ -213,7 +213,11 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
         raise IOError(error)
 
 
-def comparePixelColor(screen, color, coord=(0,0)):
+def comparePixelColor(screen, color, coord=(0, 0), context="color_comparison"):
+    ogCoord = coord
+    # Adjust for retina
+    coord = tuple(int(c * screen.getContentScaleFactor()) for c in ogCoord)
+
     if hasattr(screen, 'getMovieFrame'):  # check it is a Window class (without importing visual in this file)
         # If given a window, get frame from window
         screen.getMovieFrame(buffer='back')
@@ -226,14 +230,18 @@ def comparePixelColor(screen, color, coord=(0,0)):
     else:
         # If given anything else, throw error
         raise TypeError("Function comparePixelColor expected first input of type psychopy.visual.Window or str, received %s" % (type(screen)))
-    frame = np.array(frame)
+    frameArr = np.array(frame)
     # If given a Color object, convert to rgb255 (this is what PIL uses)
     if isinstance(color, colors.Color):
         color = color.rgb255
     color = np.array(color)
-    pixCol = frame[coord]
+    pixCol = frameArr[coord]
     # Compare observed color to desired color
     closeEnough = True
     for i in range(min(pixCol.size, color.size)):
         closeEnough = closeEnough and abs(pixCol[i] - color[i]) <= 1 # Allow for 1/255 lenience due to rounding up/down in rgb255
-    assert all(c for c in color == pixCol) or closeEnough, f"Pixel color {pixCol} not equal to target color {color}, "
+    # Assert
+    cond = all(c for c in color == pixCol) or closeEnough
+    if not cond:
+        frame.save(Path(TESTS_DATA_PATH) / (context + "_local.png"))
+        raise AssertionError(f"Pixel color {pixCol} at {ogCoord} (x{screen.getContentScaleFactor()}) not equal to target color {color}")

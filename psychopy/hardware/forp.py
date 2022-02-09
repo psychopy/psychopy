@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """fORP fibre optic (MR-compatible) response devices by CurrentDesigns:
@@ -16,9 +16,6 @@ E.g., use a Keyboard component, and typically listen for Allowed keys
 
 # Jeremy Gray and Dan Grupe developed the asKeys and baud parameters
 
-from __future__ import absolute_import, print_function
-
-from builtins import object
 from psychopy import logging, event
 import sys
 from collections import defaultdict
@@ -42,7 +39,7 @@ BUTTON_MAP = [
     (0x10, BUTTON_TRIGGER)]
 
 
-class ButtonBox(object):
+class ButtonBox:
     """Serial line interface to the fORP MRI response box.
 
     To use this object class, select the box use setting `serialPort`,

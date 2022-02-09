@@ -1,11 +1,9 @@
 """
-Python support for `BrainProducts <https://www.brainproducts.com>`_ hardware.
+Python support for `Brain Products GMBH <https://www.brainproducts.com>`_ hardware.
 
 Here we have implemented support for the Remote Control Server application,
 which allows you to control recordings, send annotations etc. all from Python.
 """
-
-from __future__ import division, unicode_literals
 
 import socket
 import time
@@ -39,7 +37,7 @@ _acquisitionStates = {
 }
 
 
-class RemoteControlServer(object):
+class RemoteControlServer:
     """
     Provides a remote-control interface to BrainProducts Recorder.
 
@@ -168,6 +166,7 @@ class RemoteControlServer(object):
                 "RCS Didn't receive expected response from RCS to "
                 "the message {}. Current stack of recent responses:{}."
                 .format(message, self._listener.messages))
+            logging.flush()
         else:
             return True
 
@@ -206,7 +205,8 @@ class RemoteControlServer(object):
             Name of the state (e.g. "applicationState")
         permitted : list
             List of values that are permitted before returning
-=        """
+
+        """
         if type(permitted) is not list:
             raise TypeError("permitted must be a list of permitted values")
         t0 = time.time()
@@ -378,7 +378,7 @@ class RemoteControlServer(object):
             self.waitForState("recordingState", ["Monitoring"])
             self.waitForState("acquisitionState", ["Running"])
         elif mode in ['test', 'tes']:
-            self.waitForState("recordingState", ["Monitoring"])
+            self.waitForState("recordingState", ["Calibration"])
             self.waitForState("acquisitionState", ["Running"])
         elif mode in ['default', 'def', None]:
             self.waitForState("recordingState", ["Idle"])
@@ -431,6 +431,7 @@ class RemoteControlServer(object):
         if amplifier == 'LiveAmp' and not serialNumber:
             logging.warning("LiveAmp may need a serial number. Use\n"
                           "  rcs.amplifier = 'LiveAmp', 'LA-serialNumberHere'")
+            logging.flush()
         if amplifier in ['actiCHamp', 'BrainAmp Family',
                          'LiveAmp', 'QuickAmp USB', 'Simulated Amplifier',
                          'V-Amp / FirstAmp']:
@@ -503,6 +504,7 @@ class RemoteControlServer(object):
                 self._RCSversion = reply.strip().replace("VS:")
             else:
                 logging.warning("Failed to retrieve the version of the RCS software")
+                logging.flush()
         return self._RCSversion
 
     def dcReset(self):

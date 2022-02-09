@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
@@ -96,7 +96,7 @@ runModeLevels = {
 }
 
 
-class AudioDeviceInfo(object):
+class AudioDeviceInfo:
     """Descriptor for an audio device (playback or recording) on this system.
 
     Properties associated with this class provide information about a specific
@@ -357,7 +357,7 @@ class AudioDeviceInfo(object):
         return self.isPlayback and self.isCapture
 
 
-class AudioDeviceStatus(object):
+class AudioDeviceStatus:
     """Descriptor for audio device status information.
 
     Properties of this class are standardized on the status information returned

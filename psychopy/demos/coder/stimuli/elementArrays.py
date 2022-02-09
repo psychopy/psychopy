@@ -16,9 +16,6 @@ would be too slow for a large array of stimuli like this.
 See also the starField demo.
 """
 
-from __future__ import division
-
-from builtins import range
 from psychopy import visual, core, event
 from psychopy.tools.coordinatetools import cart2pol
 

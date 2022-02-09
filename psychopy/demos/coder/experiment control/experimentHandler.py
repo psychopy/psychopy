@@ -5,8 +5,6 @@
 Demo of class data.ExperimentHandler
 """
 
-from __future__ import absolute_import, division, print_function
-
 from psychopy import data, logging
 from numpy import random
 logging.console.setLevel(logging.DEBUG)

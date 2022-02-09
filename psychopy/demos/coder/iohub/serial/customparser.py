@@ -8,7 +8,6 @@ custom parser function that the ioHub Serial device uses during runtime.
    is simply returned back (echoed) on the device serial port.**
 
 """
-from __future__ import print_function
 import time
 from psychopy import core, visual
 from psychopy.iohub import launchHubServer
@@ -82,5 +81,4 @@ while not keyboard.getPresses():
 serial_device.enableEventReporting(False)
 
 # Close the window and quit the program.
-io.quit()
 core.quit()

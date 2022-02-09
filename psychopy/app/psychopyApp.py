@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-
-from __future__ import absolute_import, print_function
 
 import sys
 
@@ -19,13 +17,13 @@ import psychopy.locale_setup  # noqa
 
 
 def start_app():
-    from psychopy.app._psychopyApp import PsychoPyApp
+    from psychopy.app import startApp
 
     showSplash = True
     if '--no-splash' in sys.argv:
         showSplash = False
         del sys.argv[sys.argv.index('--no-splash')]
-    app = PsychoPyApp(0, showSplash=showSplash)
+    app = startApp(showSplash=showSplash)
     app.MainLoop()
 
 

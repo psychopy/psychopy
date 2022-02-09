@@ -4,7 +4,7 @@ from psychopy.alerts._errorHandler import _BaseErrorHandler
 from psychopy.experiment import getAllComponents, Experiment
 
 
-class TestAlertTools(object):
+class TestAlertTools():
     """A class for testing the alerttools module"""
 
     def setup(self):

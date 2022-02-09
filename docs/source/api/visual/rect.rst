@@ -1,5 +1,5 @@
 :class:`psychopy.visual.Rect`
-----------------------------
+-----------------------------
 
 Stimulus class for drawing rectangles and squares.
 

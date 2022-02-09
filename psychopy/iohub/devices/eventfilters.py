@@ -2,11 +2,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import division, absolute_import
-from __future__ import print_function
 
-from past.builtins import basestring
-from builtins import object
 import numpy as np
 from collections import deque
 
@@ -16,7 +12,7 @@ from ..constants import EventConstants
 
 # Event Filter / Translator / Parser Class Prototype
 
-class DeviceEventFilter(object):
+class DeviceEventFilter():
     """Base class for creating a filtered / processed event stream from a
     device's iohub events. Any device event filter class MUST use this class as
     the base class type.
@@ -128,7 +124,7 @@ class DeviceEventFilter(object):
 ####################### Device Event Field Filter Types ##################
 
 
-class MovingWindowFilter(object):
+class MovingWindowFilter():
     """Maintains a moving window of size 'length', for a specific event field
     value, given by 'event_field_name'. knot_pos defines where in the window
     the next filtered value should always be returned from.
@@ -154,7 +150,7 @@ class MovingWindowFilter(object):
         length = kwargs.get('length')
         event_type = kwargs.get('event_type')
         event_field_name = kwargs.get('event_field_name')
-        if isinstance(knot_pos, basestring):
+        if isinstance(knot_pos, str):
             if knot_pos == 'center' and length % 2 == 0:
                 raise ValueError(
                     'MovingWindow length must be odd for a centered knot_pos.')

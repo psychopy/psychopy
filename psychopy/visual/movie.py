@@ -5,13 +5,9 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import next
-from builtins import str
 import sys
 import os
 
@@ -89,6 +85,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
                  units='pix',
                  size=None,
                  pos=(0.0, 0.0),
+                 anchor="center",
                  ori=0.0,
                  flipVert=False,
                  flipHoriz=False,
@@ -154,6 +151,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         self.loadMovie(self.filename)
         self.format = self._movie.video_format
         self.pos = numpy.asarray(pos, float)
+        self.anchor = anchor
         self.depth = depth
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz

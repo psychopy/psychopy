@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import glob
 import json
@@ -25,12 +25,12 @@ from subprocess import Popen, PIPE
 
 from psychopy import experiment
 from psychopy.app.utils import PsychopyPlateBtn, PsychopyToolbar, FrameSwitcher, FileDropTarget
-from psychopy.constants import PY3
 from psychopy.localization import _translate
 from psychopy.app.stdOutRich import StdOutRich
 from psychopy.projects.pavlovia import getProject
 from psychopy.scripts.psyexpCompile import generateScript
 from psychopy.app.runner.scriptProcess import ScriptProcess
+import psychopy.tools.versionchooser as versions
 
 folderColumn = 1
 filenameColumn = 0
@@ -90,7 +90,13 @@ class RunnerFrame(wx.Frame, ThemeMixin):
 
     @property
     def filename(self):
-        if self.panel.currentSelection or self.panel.currentSelection == 0:
+        """Presently selected file name in Runner (`str` or `None`). If `None`,
+        not file is presently selected or the task list is empty.
+        """
+        if not self.panel.currentSelection:  # no selection or empty list
+            return
+
+        if self.panel.currentSelection >= 0:  # has valid item selected
             return self.panel.expCtrl.GetItem(self.panel.currentSelection).Text
 
     def addTask(self, evt=None, fileName=None):
@@ -269,14 +275,42 @@ class RunnerFrame(wx.Frame, ThemeMixin):
             self, message=_translate("Open task list ..."), defaultDir=initPath,
             defaultFile=filename, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
             wildcard=wildcard)
-        if dlg.ShowModal() == wx.ID_OK:
+
+        fileOk = True
+        newPath = None
+        if dlg.ShowModal() == wx.ID_OK:  # file was selected
             newPath = dlg.GetPath()
             with open(newPath, 'r') as file:
-                experiments = json.load(file)
-            self.panel.expCtrl.DeleteAllItems()
-            for exp in experiments:
-                self.panel.addTask(fileName=os.path.join(exp['path'], exp['file']))
-            self.listname = newPath
+                try:
+                    experiments = json.load(file)
+                except Exception:  # broad catch, but lots of stuff can go wrong
+                    fileOk = False
+
+                if fileOk:
+                    self.panel.expCtrl.DeleteAllItems()
+                    for exp in experiments:
+                        self.panel.addTask(
+                            fileName=os.path.join(exp['path'], exp['file']))
+                    self.listname = newPath
+
+        dlg.Destroy()  # close the file browser
+
+        if newPath is None:  # user cancelled
+            if evt is not None:
+                evt.Skip()
+            return
+
+        if not fileOk:  # file failed to load, show an error dialog
+            errMsg = (
+                u"Failed to open file '{}', check if the file has the "
+                u"correct UTF-8 encoding and is the correct format."
+            )
+            errMsg = errMsg.format(str(newPath))
+            errDlg = wx.MessageDialog(
+                None, errMsg, 'Error',
+                wx.OK | wx.ICON_ERROR)
+            errDlg.ShowModal()
+            errDlg.Destroy()
 
     def clearTasks(self, evt=None):
         """Clear all items from the panels expCtrl ListCtrl."""
@@ -473,7 +507,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                                           name=title,
                                           )
         ScriptProcess.__init__(self, app)
-        self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
+        #self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(parent.IsDoubleBuffered())
@@ -640,9 +674,9 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.SetSizerAndFit(self.mainSizer)
         self.SetMinSize(self.Size)
 
-    def onProcessEnded(self):
-        ScriptProcess.onProcessEnded(self)
-        self.stopTask()
+    # def onProcessEnded(self):
+    #     ScriptProcess.onProcessEnded(self)
+    #     self.stopTask()
 
     def setAlertsVisible(self, new=True):
         if type(new) == bool:
@@ -678,7 +712,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         if self.currentSelection:
             self.runBtn.Enable()
 
-    def runLocal(self, evt):
+    def runLocal(self, evt, focusOnExit='runner'):
         """Run experiment from new process using inherited ScriptProcess class methods."""
         if self.currentSelection is None:
             return
@@ -687,7 +721,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         if self.currentFile.suffix == '.psyexp':
             generateScript(experimentPath=currentFile.replace('.psyexp', '_lastrun.py'),
                            exp=self.loadExperiment())
-        self.runFile(fileName=currentFile)
+        self.runFile(fileName=currentFile, focusOnExit=focusOnExit)
 
         # Enable/Disable btns
         self.runBtn.Disable()
@@ -724,9 +758,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.getPsychoJS()
 
         htmlPath = str(self.currentFile.parent / self.outputPath)
-        server = ["SimpleHTTPServer", "http.server"][PY3]
         pythonExec = Path(sys.executable)
-        command = [str(pythonExec), "-m", server, str(port)]
+        command = [str(pythonExec), "-m", "http.server", str(port)]
 
         if not os.path.exists(htmlPath):
             print('##### HTML output path: "{}" does not exist. '
@@ -751,14 +784,14 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
     def onURL(self, evt):
         self.parent.onURL(evt)
 
-    def getPsychoJS(self):
+    def getPsychoJS(self, useVersion=''):
         """
         Download and save the current version of the PsychoJS library.
 
         Useful for debugging, amending scripts.
         """
         libPath = self.currentFile.parent / self.outputPath / 'lib'
-        ver = '.'.join(self.app.version.split('.')[:3])
+        ver = versions.getPsychoJSVersionStr(self.app.version, useVersion)
         libFileExtensions = ['css', 'iife.js', 'iife.js.map', 'js', 'js.LEGAL.txt', 'js.map']
 
         try:  # ask-for-forgiveness rather than query-then-make
@@ -852,7 +885,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.currentFile = Path(folder, filename)
         self.currentExperiment = self.loadExperiment()
         self.currentProject = None  # until it's needed (slow to update)
-        thisItem = self.entries[self.currentFile]
+        # thisItem = self.entries[self.currentFile]
 
         if not self.running:  # if we aren't already running we can enable run button
             self.runBtn.Enable()

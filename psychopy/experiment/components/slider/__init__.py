@@ -5,10 +5,6 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-from builtins import super  # provides Py3-style super() using python-future
-
-from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, \
     getInitVals, _translate
@@ -157,9 +153,6 @@ class SliderComponent(BaseVisualComponent):
         self.params['borderColor'].label = _translate("Line Color")
         self.params['borderColor'].hint = _translate("Color of all lines on this slider (might be overridden by the style setting)")
 
-        # Disable units
-        self.params['units'].allowedVals = ['from exp settings']
-
         self.params['font'] = Param(
                 font, valType='str', inputType="single", categ='Formatting',
                 updates='constant',
@@ -225,9 +218,9 @@ class SliderComponent(BaseVisualComponent):
                    "    startValue={initVal}, size={size}, pos={pos}, units={units},\n"
                    "    labels={labels}, ticks={ticks}, granularity={granularity},\n"
                    "    style={styles}, styleTweaks={styleTweaks}, opacity={opacity},\n"
-                   "    color={color}, fillColor={fillColor}, borderColor={borderColor}, colorSpace={colorSpace},\n"
+                   "    labelColor={color}, markerColor={fillColor}, lineColor={borderColor}, colorSpace={colorSpace},\n"
                    "    font={font}, labelHeight={letterHeight},\n"
-                   "    flip={flip}, depth={depth}, readOnly={readOnly})\n"
+                   "    flip={flip}, ori={ori}, depth={depth}, readOnly={readOnly})\n"
                    .format(**inits))
         buff.writeIndented(initStr)
 

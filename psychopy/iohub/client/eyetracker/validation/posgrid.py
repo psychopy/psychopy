@@ -7,7 +7,7 @@ import numpy as np
 from psychopy.iohub.client import ioHubConnection
 
 
-class PositionGrid(object):
+class PositionGrid:
     def __init__(self,
                  bounds=None,
                  shape=None,  # Defines the number of columns and rows of

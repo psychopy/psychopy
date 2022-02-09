@@ -2,14 +2,11 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Dialog classes for the Builder Code component
 """
-
-from __future__ import absolute_import, division, print_function
-from builtins import str
 import sys
 
 import keyword
@@ -20,12 +17,7 @@ from psychopy.experiment.components.code import CodeComponent
 from ..validators import WarningManager
 from ...themes import ThemeMixin
 
-from psychopy.constants import PY3
-
-if PY3:
-    from importlib.util import find_spec as loader
-else:
-    from pkgutil import find_loader as loader
+from importlib.util import find_spec as loader
 hasMetapensiero = loader("metapensiero") is not None
 
 from .. import validators

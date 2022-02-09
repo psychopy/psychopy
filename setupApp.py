@@ -1,14 +1,17 @@
 #!/usr/bin/env python
 ################
 # see notes at bottom for requirements
-from __future__ import absolute_import, print_function
+
 import glob
 import os
 import sys
 from sys import platform
+import setuptools  # noqa: setuptools complains if it isn't implicitly imported before distutils
 from distutils.core import setup
 from pkg_resources import parse_version
-# import versioneer
+import bdist_mpkg  # noqa: needed to build bdist, even though not explicitly used here
+import py2app  # noqa: needed to build app bundle, even though not explicitly used here
+
 import psychopy
 version = psychopy.__version__
 
@@ -28,10 +31,8 @@ requires = []
 if platform != 'darwin':
     raise RuntimeError("setupApp.py is only for building Mac Standalone bundle")
 
-import bdist_mpkg
-import py2app
 resources = glob.glob('psychopy/app/Resources/*')
-frameworks = [
+frameworks = [ # these installed using homebrew
               "/usr/local/opt/libevent/lib/libevent.dylib", 
               "/usr/local/opt/lame/lib/libmp3lame.0.dylib",
               "/usr/local/opt/libffi/lib/libffi.dylib",
@@ -55,7 +56,8 @@ if parse_version(macholib.__version__) <= parse_version('1.7'):
         return dyld_find_1_7(name, **kwargs)
     macholib.MachOGraph.dyld_find = dyld_find
 
-includes = ['Tkinter', 'tkFileDialog',
+includes = ['_sitebuiltins',  # needed for help()
+            'Tkinter', 'tkFileDialog',
             'imp', 'subprocess', 'shlex',
             'shelve',  # for scipy.io
             '_elementtree', 'pyexpat',  # for openpyxl
@@ -70,7 +72,8 @@ includes = ['Tkinter', 'tkFileDialog',
             'msgpack_numpy',
             'configparser',
             ]
-packages = ['wx', 'psychopy',
+packages = ['pydoc',  # needed for help()
+            'wx', 'psychopy',
             'pyglet', 'pytz', 'OpenGL', 'glfw',
             'scipy', 'matplotlib', 'openpyxl',
             'xml', 'xmlschema', 'elementpath',
@@ -81,21 +84,20 @@ packages = ['wx', 'psychopy',
             'objc', 'Quartz', 'AppKit', 'QTKit', 'Cocoa',
             'Foundation', 'CoreFoundation',
             'pkg_resources',  # needed for objc
-            'pyolib', 'pyo',
+            'pyo',
             'requests', 'certifi', 'cryptography',
             # for unit testing
             'coverage',
             # handy external science libs
             'serial',
             'egi', 'pylink', 'tobiiresearch',
-            'pyxid', 'pyxid2', 'ftd2xx',  # ftd2xx is used by cedrus
+            'pyxid2', 'ftd2xx',  # ftd2xx is used by cedrus
             'pandas', 'tables',  # 'cython',
             'msgpack', 'yaml', 'gevent',  # for ioHub
             # these aren't needed, but liked
-            'psychopy_ext', 'pyfilesec',
             'bidi', 'arabic_reshaper',  # for right-left language conversions
             # for Py3 compatibility
-            'future', 'past', 'lib2to3',
+            'ujson',  # faster than built-in json
             'json_tricks',  # allows saving arrays/dates in json
             'git', 'gitlab',
             'astunparse', 'esprima',  # for translating/adapting py/JS
@@ -111,16 +113,8 @@ packages = ['wx', 'psychopy',
             'markdown_it',
             'speech_recognition', 'googleapiclient', 'pocketsphinx',
             'six',  # needed by configobj
+            'PyQt5',
             ]
-
-if sys.version_info.major >= 3:
-    packages.extend(['PyQt5'])
-else:
-    # not available or not working under Python3:
-    includes.extend(['UserString', 'ioLabs', 'FileDialog'])
-    packages.extend(['PyQt4', 'labjack', 'rusocsci'])
-    # is available but py2app can't seem to find it:
-    packages.extend(['OpenGL'])
 
 setup(
     app=['psychopy/app/psychopyApp.py'],

@@ -1,10 +1,5 @@
 """Test PsychoPy sound.py using pyo backend
 """
-from __future__ import division
-
-from builtins import object
-from past.utils import old_div
-
 import pytest
 from scipy.io import wavfile
 import shutil, os
@@ -15,10 +10,8 @@ from psychopy import prefs, core
 from psychopy import sound, microphone
 from psychopy.tests.utils import TESTS_DATA_PATH
 from psychopy.tests import skip_under_vm
-from psychopy.constants import PY3
 
-if PY3:
-    from importlib import reload
+from importlib import reload
 
 origSoundPref = prefs.hardware['audioLib']
 
@@ -27,7 +20,7 @@ origSoundPref = prefs.hardware['audioLib']
 
 @pytest.mark.needs_sound
 @skip_under_vm
-class TestPyo(object):
+class TestPyo():
     @classmethod
     def setup_class(self):
         prefs.hardware['audioLib'] = ['pyo']
@@ -68,7 +61,7 @@ class TestPyo(object):
             sound.setaudioLib('foo')
 
         points = 100
-        snd = old_div(np.ones(points), 20)
+        snd = np.ones(points) / 20
 
         s = sound.Sound(self.testFile)
 

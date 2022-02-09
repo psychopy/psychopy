@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import sys
 
@@ -100,6 +100,11 @@ class PavloviaMiniBrowser(wx.Dialog):
         if self.user:
             url = self.user.attributes['web_url']
             self.browser.LoadURL(url)
+
+    def editUserPage(self):
+        url = "https://gitlab.pavlovia.org/profile"
+        self.browser.LoadURL(url)
+        self.SetSizeWH(1240, 840)
 
     def gotoProjects(self):
         self.browser.LoadURL("https://pavlovia.org/projects.html")

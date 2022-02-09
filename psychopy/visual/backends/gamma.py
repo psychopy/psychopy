@@ -2,15 +2,11 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # set the gamma LUT using platform-specific hardware calls
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import map
-from builtins import range
 import numpy
 import sys
 import platform

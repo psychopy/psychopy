@@ -15,7 +15,7 @@ import copy
 from psychopy import platform_specific
 _sendStayAwake = platform_specific.sendStayAwake
 
-class SimulatedWinTabPacket(object):
+class SimulatedWinTabPacket:
     _next_pkt_id = 1
     def __init__(self, time, x, y, press, buttons=0):
         self.pkTime=time*1000.0
@@ -27,7 +27,7 @@ class SimulatedWinTabPacket(object):
         self.pkZ = 0                 
         self.pkNormalPressure=press          #('pressure',N.uint32),
         
-        class Orientation(object):
+        class Orientation:
             def __init__(self):
                 self.orAzimuth=0         #('orient_azimuth',N.int32),
                 self.orAltitude=0        #('orient_altitude;',N.int32),

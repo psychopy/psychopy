@@ -6,10 +6,6 @@ Created on Mon Jan 07 11:18:51 2013
 
 @author: Sol
 """
-from __future__ import absolute_import, print_function
-
-from builtins import range
-from builtins import object
 import numpy as np
 from weakref import proxy
 from psychopy import core
@@ -24,7 +20,7 @@ from . import parsedtext
 getTime = core.getTime
 
 
-class TextGrid(object):
+class TextGrid:
 
     def __init__(self, text_box, line_color=None, line_width=1,
                  font_color=(1, 1, 1, 1), shape=None,

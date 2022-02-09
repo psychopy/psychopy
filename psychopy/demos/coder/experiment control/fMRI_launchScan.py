@@ -9,10 +9,6 @@ offline, without requiring a scanner (or a hardware sync pulse generator).
 
 # Author: Jeremy R. Gray
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import str
-from builtins import range
 from psychopy import visual, event, core, gui
 from psychopy.hardware.emulator import launchScan
 

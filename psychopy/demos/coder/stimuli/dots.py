@@ -5,9 +5,6 @@
 Demo of dot kinematogram
 """
 
-from __future__ import division
-from __future__ import print_function
-
 from psychopy import visual, event, core
 
 win = visual.Window((600, 600), allowGUI=False, winType='pyglet')

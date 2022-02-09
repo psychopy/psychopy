@@ -5,8 +5,6 @@
 Demo of several visual stimuli depending on the mouse position.
 """
 
-from __future__ import division
-
 from psychopy import visual, event, core
 import numpy
 

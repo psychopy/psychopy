@@ -3,13 +3,10 @@
 
 """
 Part of the PsychoPy library
-Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
-from __future__ import absolute_import, print_function
-
-from builtins import str
 from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
@@ -30,7 +27,7 @@ class StaticComponent(BaseComponent):
     # override the categories property below
     # an attribute of the class, determines the section in the components panel
     categories = ['Custom']
-    targets = ['PsychoPy']
+    targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'static.png'
     tooltip = _translate('Static: Static screen period (e.g. an ISI). '
                          'Useful for pre-loading stimuli.')
@@ -58,13 +55,41 @@ class StaticComponent(BaseComponent):
         # have to do this in a loop rather than a simple remove
         target = {'compName': compName, 'fieldName': fieldName,
                   'routine': routine}
+
         for item in self.updatesList:
-            if item == target:
+            # check if dict has the same fields
+            for key in ('compName', 'fieldName', 'routine'):
+                if item[key] != target[key]:
+                    break
+            else:
                 self.updatesList.remove(item)
+
+            # NB - should we break out of it here if an item is found?
 
     def writeInitCode(self, buff):
         code = ("%(name)s = clock.StaticPeriod(win=win, "
                 "screenHz=expInfo['frameRate'], name='%(name)s')\n")
+        buff.writeIndented(code % self.params)
+
+    def writeInitCodeJS(self, buff):
+        code = (
+            "%(name)s = new core.MinimalStim({\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(+1, relative=True)
+        code = (
+                "name: \"%(name)s\", \n"
+                "win: psychoJS.window,\n"
+                "autoDraw: false, \n"
+                "autoLog: true, \n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "});\n"
+        )
         buff.writeIndented(code % self.params)
 
     def writeFrameCode(self, buff):
@@ -72,6 +97,56 @@ class StaticComponent(BaseComponent):
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
         self.writeStopTestCode(buff)
+
+    def writeFrameCodeJS(self, buff):
+        # Start test
+        self.writeStartTestCodeJS(buff)
+        self.writeParamUpdates(buff, target="PsychoJS")
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines("}\n")
+
+        # Stop test, with stop actions
+        self.writeStopTestCodeJS(buff)
+        for update in self.updatesList:
+
+            # Get params for update
+            compName = update['compName']
+            fieldName = update['fieldName']
+            # routine = self.exp.routines[update['routine']]
+            if hasattr(compName, 'params'):
+                prms = compName.params  # it's already a compon so get params
+            else:
+                # it's a name so get compon and then get params
+                prms = self.exp.getComponentFromName(str(compName)).params
+            if prms[fieldName].valType == "file":
+                # Check resource manager status
+                code = (
+                    f"if (psychoJS.serverManager.getResourceStatus(%({fieldName})s) === core.ServerManager.ResourceStatus.DOWNLOADED) {{\n"
+                )
+                buff.writeIndentedLines(code % prms)
+                # Print confirmation
+                buff.setIndentLevel(+1, relative=True)
+                code = (
+                    "console.log('finished downloading resources specified by component %(name)s');\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+                # else...
+                buff.setIndentLevel(-1, relative=True)
+                code = (
+                    "} else {\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+                # Print warning if not downloaded
+                buff.setIndentLevel(+1, relative=True)
+                code = (
+                    "console.log('resource specified in %(name)s took longer than expected to download');\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+                buff.setIndentLevel(-1, relative=True)
+                buff.writeIndentedLines("}\n")
+        # Escape stop code indent
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines("}\n")
 
     def writeStartTestCode(self, buff):
         """This will be executed as the final component in the routine
@@ -124,7 +199,7 @@ class StaticComponent(BaseComponent):
 
         # pass  # the clock.StaticPeriod class handles its own stopping
 
-    def writeParamUpdates(self, buff, updateType=None, paramNames=None):
+    def writeParamUpdates(self, buff, updateType=None, paramNames=None, target="PsychoPy"):
         """Write updates. Unlike most components, which us this method
         to update themselves, the Static Component uses this to update
         *other* components
@@ -132,30 +207,53 @@ class StaticComponent(BaseComponent):
         if updateType == 'set every repeat':
             return  # the static component doesn't need to change itself
         if len(self.updatesList):
-            code = "# updating other components during *%s*\n"
+            # Comment to mark start of updates
+            if target == "PsychoJS":
+                code = "// Updating other components during *%s*\n"
+            else:
+                code = "# Updating other components during *%s*\n"
             buff.writeIndented(code % self.params['name'])
+            # Do updates
             for update in self.updatesList:
                 # update = {'compName':compName,'fieldName':fieldName,
                 #    'routine':routine}
                 compName = update['compName']
                 fieldName = update['fieldName']
-                routine = self.exp.routines[update['routine']]
+                # routine = self.exp.routines[update['routine']]
                 if hasattr(compName, 'params'):
                     prms = compName.params  # it's already a compon so get params
                 else:
                     # it's a name so get compon and then get params
                     prms = self.exp.getComponentFromName(str(compName)).params
+                # If in JS, prepare resources
+                if target == "PsychoJS" and prms[fieldName].valType == "file":
+                    # Do resource manager stuff
+                    code = (
+                        f"console.log('register and start downloading resources specified by component %(name)s');\n"
+                        f"await psychoJS.serverManager.prepareResources(%({fieldName})s);\n"
+                    )
+                    buff.writeIndentedLines(code % prms)
+                # Set values
                 self.writeParamUpdate(buff, compName=compName,
                                       paramName=fieldName,
                                       val=prms[fieldName],
                                       updateType=prms[fieldName].updates,
                                       params=prms)
-            code = "# component updates done\n"
+            # Comment to mark end of updates
+            if target == "PsychoJS":
+                code = "// Component updates done\n"
+            else:
+                code = "# Component updates done\n"
+            buff.writeIndentedLines(code)
 
             # Write custom code
             if self.params['code']:
-                code += ("# Adding custom code for {name}\n"
-                         "{code}\n".format(name=self.params['name'],
-                                           code=self.params['code']))
-
-            buff.writeIndentedLines(code)
+                # Comment to mark start of custom code
+                if target == "PsychoJS":
+                    code = "// Adding custom code for %(name)s\n"
+                else:
+                    code = "# Adding custom code for %(name)s\n"
+                buff.writeIndentedLines(code % self.params)
+                # Write custom code
+                code = "%(code)s\n"
+                buff.writeIndentedLines(code % self.params)

@@ -2,12 +2,9 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-
-from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, \
     getInitVals, _translate
@@ -36,7 +33,7 @@ class GratingComponent(BaseVisualComponent):
     def __init__(self, exp, parentName, name='grating', image='sin',
                  mask='', sf='', interpolate='linear',
                  units='from exp settings', color='$[1,1,1]', colorSpace='rgb',
-                 contrast=1.0, pos=(0, 0), size=(0.5, 0.5), ori=0, phase=0.0, texRes='128',
+                 contrast=1.0, pos=(0, 0), size=(0.5, 0.5), anchor="center", ori=0, phase=0.0, texRes='128',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0, blendmode='avg',
                  startEstim='', durationEstim=''):
@@ -82,6 +79,22 @@ class GratingComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['sf'])
 
+        self.params['anchor'] = Param(
+            anchor, valType='str', inputType="choice", categ='Layout',
+            allowedVals=['center',
+                         'top-center',
+                         'bottom-center',
+                         'center-left',
+                         'center-right',
+                         'top-left',
+                         'top-right',
+                         'bottom-left',
+                         'bottom-right',
+                         ],
+            updates='constant',
+            hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
+            label=_translate('Anchor'))
+
         msg = _translate("Spatial positioning of the image on the grating "
                          "(wraps in range 0-1.0)")
         self.params['phase'] = Param(
@@ -106,7 +119,7 @@ class GratingComponent(BaseVisualComponent):
         self.params['interpolate'] = Param(
             interpolate, valType='str', inputType="choice", allowedVals=['linear', 'nearest'], categ='Texture',
             updates='constant', allowedUpdates=[],
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['interpolate'])
 
         msg = _translate("OpenGL Blendmode: avg gives traditional transparency,"
@@ -132,7 +145,7 @@ class GratingComponent(BaseVisualComponent):
         inits = getInitVals(self.params)
         code = ("%s = visual.GratingStim(\n" % inits['name'] +
                 "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
-                "    tex=%(tex)s, mask=%(mask)s,\n" % inits +
+                "    tex=%(tex)s, mask=%(mask)s, anchor=%(anchor)s,\n" % inits +
                 "    ori=%(ori)s, pos=%(pos)s, size=%(size)s, " % inits +
                 "sf=%(sf)s, phase=%(phase)s,\n" % inits +
                 "    color=%(color)s, colorSpace=%(colorSpace)s,\n" % inits +

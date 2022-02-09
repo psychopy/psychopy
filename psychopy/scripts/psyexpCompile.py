@@ -2,19 +2,17 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import io
 import sys
 import os
 import argparse
-import traceback
 from copy import deepcopy
 from subprocess import PIPE, Popen
 
-from psychopy.constants import PY3
-from psychopy import __version__, logging
+from psychopy import __version__
 
 # DO NOT IMPORT ANY OTHER PSYCHOPY SUB-PACKAGES OR THEY WON'T SWITCH VERSIONS
 
@@ -40,6 +38,7 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
     Returns
     -------
     """
+    import logging  # import here not at top of script (or useVersion fails)
     print("Generating {} script...\n".format(target))
     exp.expPath = os.path.abspath(experimentPath)
 
@@ -49,8 +48,6 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
         pythonExec = sys.executable.replace(' ', r'\ ')
 
     filename = experimentPath
-    if not PY3:  # encode path in Python2
-        filename = experimentPath = experimentPath.encode(sys.getfilesystemencoding())
 
     # Compile script from command line using version
     compiler = 'psychopy.scripts.psyexpCompile'
@@ -72,6 +69,7 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
         sys.stderr.write(stderr)
     else:
         compileScript(infile=exp, version=None, outfile=filename)
+
 
 def compileScript(infile=None, version=None, outfile=None):
     """
@@ -104,8 +102,8 @@ def compileScript(infile=None, version=None, outfile=None):
             from psychopy import useVersion
             useVersion(version)
 
+        # import logging here not at top of script (or useVersion fails)
         global logging
-
         from psychopy import logging
 
         if __name__ != '__main__' and version not in [None, 'None', 'none', '']:

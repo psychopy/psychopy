@@ -11,8 +11,6 @@ The combined plot uses every unique X value form the staircase, and alters the
 size of the points according to how many trials were run at that level
 """
 
-from __future__ import absolute_import, division, print_function
-
 from psychopy import data, gui, core
 from psychopy.tools.filetools import fromFile
 import pylab

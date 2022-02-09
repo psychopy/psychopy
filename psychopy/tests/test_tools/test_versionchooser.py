@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Tests for psychopy.tools.versionchooser"""
-from builtins import object
 import os
 import psychopy
 from psychopy.tools.versionchooser import useVersion
@@ -11,7 +10,7 @@ VER_SUBDIR = 'versions'
 VERSIONSDIR = os.path.join(USERDIR, VER_SUBDIR)
 
 
-class _baseVersionChooser(object):
+class _baseVersionChooser():
     def test_currentVersion(self):
         vers = useVersion('1.90.0')
         assert(vers == '1.90.0')
