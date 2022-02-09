@@ -590,7 +590,7 @@ class DetailsPanel(wx.Panel):
             self.project.save()
         if obj == self.status and self.project.editable:
             requests.put(f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
-                         data={"status": self.status.GetStringSelection()},
+                         data={"status2": self.status.GetStringSelection()},
                          headers={'OauthToken': self.session.getToken()})
         if obj == self.tags and self.project.editable:
             requests.put(f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
