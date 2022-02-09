@@ -56,7 +56,8 @@ if parse_version(macholib.__version__) <= parse_version('1.7'):
         return dyld_find_1_7(name, **kwargs)
     macholib.MachOGraph.dyld_find = dyld_find
 
-includes = ['Tkinter', 'tkFileDialog',
+includes = ['_sitebuiltins',  # needed for help()
+            'Tkinter', 'tkFileDialog',
             'imp', 'subprocess', 'shlex',
             'shelve',  # for scipy.io
             '_elementtree', 'pyexpat',  # for openpyxl
@@ -71,7 +72,8 @@ includes = ['Tkinter', 'tkFileDialog',
             'msgpack_numpy',
             'configparser',
             ]
-packages = ['wx', 'psychopy',
+packages = ['pydoc',  # needed for help()
+            'wx', 'psychopy',
             'pyglet', 'pytz', 'OpenGL', 'glfw',
             'scipy', 'matplotlib', 'openpyxl',
             'xml', 'xmlschema', 'elementpath',
