@@ -25,12 +25,12 @@ movie is long then audio will be huge and currently the whole thing gets
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
 
-from builtins import str
+
+
 reportNDroppedFrames = 10
 
 import os
@@ -80,6 +80,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
                  units='pix',
                  size=None,
                  pos=(0.0, 0.0),
+                 anchor="center",
                  ori=0.0,
                  flipVert=False,
                  flipHoriz=False,
@@ -115,6 +116,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
         self.pos = numpy.asarray(pos, float)
+        self.anchor = anchor
         self.depth = depth
         self.opacity = opacity
         self.interpolate = interpolate
@@ -393,10 +395,11 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             GL.glGenTextures(1, ctypes.byref(self._texID))
             useSubTex = False
 
-        # bind the texture in openGL
-        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
         # bind that name to the target
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
+        # bind the texture in openGL
+        GL.glEnable(GL.GL_TEXTURE_2D)
         # makes the texture map wrap (this is actually default anyway)
         GL.glTexParameteri(
             GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP)

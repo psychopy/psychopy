@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """
@@ -10,8 +10,6 @@ Discover all _localized strings from all Builder components, etc.
 
 Mainly used by validators.py -- need access to _translate()d field names.
 """
-from __future__ import absolute_import, print_function
-
 import copy
 import os
 import glob

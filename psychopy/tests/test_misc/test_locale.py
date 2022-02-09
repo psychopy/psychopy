@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from builtins import object
 import pytest
 import locale
 from psychopy import localization
@@ -15,7 +14,7 @@ trans = {'en': welcome,
 ### needs rewriting since localization.init() no longer sets the locale
 
 @pytest.mark.localization
-class XXXTestLocalization(object):
+class XXXTestLocalization():
     def setup_class(self):
         self.orig = localization.languageID
 

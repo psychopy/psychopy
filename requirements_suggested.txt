@@ -1,7 +1,12 @@
+pylsl
 python-vlc  # only for MovieStim2
 pyserial
 pyparallel
 egi
-iolabs
-pyfilesec
-markdown-it
+google-api-python-client
+pyxid2
+badapted
+darc-experiment-toolbox
+python-pygaze
+-i https://pypi.sr-support.com
+sr-research-pylink 

@@ -1,7 +1,11 @@
-from psychopy import sound, prefs
+#  in this test we're deliberately changing the sound lib in preferences which needs to be done before importing sound
+#  (otherwise the sound will be imported thinking it's a different preferred lib)
+from psychopy import prefs
+prefs.general['audioLib'] = ['sounddevice'] # noqa
+from psychopy import sound
 import numpy as np
 from psychopy import core  # import some libraries from PsychoPy
-prefs.general['audioLib'] = ['sounddevice']
+
 
 fs = 44100
 my_asio_device = 'ASIO Fireface USB'

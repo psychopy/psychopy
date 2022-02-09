@@ -2,12 +2,9 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-
-from os import path
 from pathlib import Path
 from psychopy.experiment.components import Param, getInitVals, _translate, BaseVisualComponent
 from psychopy.visual import form
@@ -39,7 +36,7 @@ class FormComponent(BaseVisualComponent):
     def __init__(self, exp, parentName,
                  name='form',
                  items='.csv',
-                 textHeight=.03,
+                 textHeight=0.03,
                  font="Open Sans",
                  randomize=False,
                  fillColor='',

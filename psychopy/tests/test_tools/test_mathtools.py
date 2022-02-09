@@ -148,6 +148,38 @@ def test_quatToMatrix():
 
 
 @pytest.mark.mathtools
+def test_reflect():
+    exemplars = [
+        # 1d array float64
+        {'v': np.array([1, 2, 3, 4]),
+         'n': np.array([5, 6, 7, 8]),
+         'dtype': np.float64,
+         'ans': np.array([-699., -838., -977., -1116.]),
+         },
+        # 2d array float64
+        {'v': np.array([[1, 2], [3, 4]]),
+         'n': np.array([[5, 6], [7, 8]]),
+         'dtype': np.float64,
+         'ans': np.array([[-169., -202.], [-739., -844.]]),
+         },
+    ]
+    tykes = [
+        # no dtype
+        {'v': np.array([1, 2, 3, 4]),
+         'n': np.array([5, 6, 7, 8]),
+         'dtype': None,
+         'ans': np.array([-699., -838., -977., -1116.]),
+         },
+    ]
+
+    for case in exemplars + tykes:
+        assert np.array_equal(
+            case['ans'],
+            reflect(v=case['v'], n=case['n'], dtype=case['dtype'])
+        )
+
+
+@pytest.mark.mathtools
 def test_length():
     """Test function `length()`."""
     np.random.seed(123456)
@@ -334,6 +366,149 @@ def test_cross():
             results1[i] = cross(vectors1[i, :], vectors2[0, :])
 
         assert np.allclose(results0, results1)
+
+
+@pytest.mark.mathtools
+def test_project():
+    exemplars = [
+        # 1d array float64
+        {'v0': np.array([1, 2, 3, 4]),
+         'v1': np.array([5, 6, 7, 8]),
+         'dtype': np.float64,
+         'ans': np.array([2.01149425, 2.4137931, 2.81609195, 3.2183908]),
+         },
+        # 2d array float64
+        {'v0': np.array([[1, 2], [3, 4]]),
+         'v1': np.array([[5, 6], [7, 8]]),
+         'dtype': np.float64,
+         'ans': np.array([[10.88313479, 13.05976175], [34.90074422, 39.88656482]]),
+         },
+    ]
+    tykes = [
+        # no dtype
+        {'v0': np.array([1, 2, 3, 4]),
+         'v1': np.array([5, 6, 7, 8]),
+         'dtype': None,
+         'ans': np.array([2.01149425, 2.4137931, 2.81609195, 3.2183908]),
+         },
+        # These should work, but don't
+        # # 2d on 1d
+        # {'v0': np.array([[1, 2], [3, 4]]),
+        #  'v1': np.array([5, 6, 7, 8]),
+        #  'dtype': np.float64,
+        #  'ans': np.array([[10.88313479, 13.05976175], [34.90074422, 39.88656482]]),
+        #  },
+        # #1d on 2d
+        # {'v0': np.array([1, 2, 3, 4]),
+        #  'v1': np.array([[5, 6], [7, 8]]),
+        #  'dtype': np.float64,
+        #  'ans': np.array([[10.88313479, 13.05976175], [34.90074422, 39.88656482]]),
+        #  },
+    ]
+
+    for case in exemplars + tykes:
+        assert np.allclose(
+            case['ans'],
+            project(v0=case['v0'], v1=case['v1'], dtype=case['dtype'])
+        )
+
+
+@pytest.mark.mathtools
+def test_lerp():
+    exemplars = [
+        # 1d array float64 t=1
+        {'v0': np.array([1, 2, 3, 4]),
+         'v1': np.array([5, 6, 7, 8]),
+         't': 1,
+         'dtype': np.float64,
+         'ans': np.array([5., 6., 7., 8.]),
+         },
+        # 2d array float64 t=1
+        {'v0': np.array([[1, 2], [3, 4]]),
+         'v1': np.array([[5, 6], [7, 8]]),
+         't': 1,
+         'dtype': np.float64,
+         'ans': np.array([[5., 6.], [7., 8.]]),
+         },
+        # 1d array float64 t=0.5
+        {'v0': np.array([1, 2, 3, 4]),
+         'v1': np.array([5, 6, 7, 8]),
+         't': 0.5,
+         'dtype': np.float64,
+         'ans': np.array([3., 4., 5., 6.]),
+         },
+        # 2d array float64 t=0.5
+        {'v0': np.array([[1, 2], [3, 4]]),
+         'v1': np.array([[5, 6], [7, 8]]),
+         't': 0.5,
+         'dtype': np.float64,
+         'ans': np.array([[3., 4.], [5., 6.]]),
+         },
+        # 1d array float64 t=0
+        {'v0': np.array([1, 2, 3, 4]),
+         'v1': np.array([5, 6, 7, 8]),
+         't': 0,
+         'dtype': np.float64,
+         'ans': np.array([1., 2., 3., 4.]),
+         },
+        # 2d array float64 t=0
+        {'v0': np.array([[1, 2], [3, 4]]),
+         'v1': np.array([[5, 6], [7, 8]]),
+         't': 0,
+         'dtype': np.float64,
+         'ans': np.array([[1., 2.], [3., 4.]]),
+         },
+    ]
+    tykes = [
+        # no dtype
+        {'v0': np.array([1, 2, 3, 4]),
+         'v1': np.array([5, 6, 7, 8]),
+         't': 1,
+         'dtype': None,
+         'ans': np.array([5., 6., 7., 8.]),
+         },
+    ]
+
+    for case in exemplars + tykes:
+        assert np.allclose(
+            case['ans'],
+            lerp(v0=case['v0'], v1=case['v1'], t=case['t'], dtype=case['dtype'])
+        )
+
+
+@pytest.mark.mathtools
+def test_perp():
+    exemplars = [
+        # 3d array float64 norm
+        {'v0': np.array([[1, 2, 3], [4, 5, 6]]),
+         'v1': np.array([[6, 5, 4], [3, 2, 1]]),
+         'norm': True,
+         'dtype': np.float64,
+         'ans': np.array([[-0.72914182, -0.56073762, -0.39233343], [-0.87763952, -0.47409942, -0.07055933]]),
+         },
+        # 3d array float64 not norm
+        {'v0': np.array([[1, 2, 3], [4, 5, 6]]),
+         'v1': np.array([[6, 5, 4], [3, 2, 1]]),
+         'norm': False,
+         'dtype': np.float64,
+         'ans': np.array([[-18.14537685, -13.9544807, -9.76358456], [-18.44994432, -9.96662955, -1.48331477]]),
+         },
+    ]
+    tykes = [
+        # no dtype
+        {'v0': np.array([[1, 2, 3], [4, 5, 6]]),
+         'v1': np.array([[6, 5, 4], [3, 2, 1]]),
+         'norm': True,
+         'dtype': None,
+         'ans': np.array([[-0.72914182, -0.56073762, -0.39233343], [-0.87763952, -0.47409942, -0.07055933]]),
+         },
+    ]
+
+    for case in exemplars + tykes:
+        np.allclose(
+            case['ans'],
+            perp(v=case['v0'], n=case['v1'], norm=case['norm'], dtype=case['dtype'])
+        )
 
 
 @pytest.mark.mathtools

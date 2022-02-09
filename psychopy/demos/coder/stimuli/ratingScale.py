@@ -7,9 +7,6 @@ Demo for the class psychopy.visual.RatingScale()
 author: Jeremy Gray, Example 4 by Henrik Singmann
 """
 
-from __future__ import division
-from __future__ import print_function
-
 from psychopy import visual, event, core, logging
 import os
 

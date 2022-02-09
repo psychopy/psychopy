@@ -8,16 +8,14 @@ Keyboard Reaction Time Calculation shown within a line length matching task.
 
 Initial Version: May 6th, 2013, Sol Simpson
 """
-from __future__ import absolute_import, division, print_function
 
-from psychopy import  core,  visual
+from psychopy import core,  visual
 from psychopy.iohub import launchHubServer
 from math import fabs
 
-io = launchHubServer(psychopy_monitor_name='default')
-display = io.devices.display
-win = visual.Window(display.getPixelResolution(), monitor='default',
-    units='pix', fullscr=True, allowGUI=False)
+win = visual.Window((1920, 1080), monitor='default', units='pix', fullscr=True, allowGUI=False)
+
+io = launchHubServer(window=win)
 
 # save some 'dots' during the trial loop
 keyboard = io.devices.keyboard
@@ -51,7 +49,7 @@ io.clearEvents('all')
 
 # Run until space bar is pressed, or larger than window
 spacebar_rt = last_len = 0.0
-while spacebar_rt == 0.0 or last_len >=  win.size[0]:
+while spacebar_rt == 0.0 or last_len >= win.size[0]:
     # check for RT
     for kb_event in keyboard.getEvents():
         if kb_event.char == ' ':

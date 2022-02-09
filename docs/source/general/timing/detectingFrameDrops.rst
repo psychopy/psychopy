@@ -12,8 +12,7 @@ Occasionally you will drop frames if you:
 Things to avoid:
 
 * recreating textures for stimuli
-* building new stimuli from scratch (create them once at the top of your script
-and then change them using :meth:`stim.setOri(ori)`, `stim.setPos([x,y]...)`
+* building new stimuli from scratch (create them once at the top of your script and then change them using :meth:`stim.setOri(ori)`, `stim.setPos([x,y]...)`
 
 Turn on frame time recording
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -39,8 +38,6 @@ Warn me if I drop a frame
 
 The simplest way to check if a frame has been dropped is to get PsychoPy to
 report a warning if it thinks a frame was dropped::
-
-    from __future__ import division, print_function
 
     from psychopy import visual, logging
     win = visual.Window([800,600])
@@ -77,8 +74,7 @@ Or you could save them to disk. A convenience function is provided for this::
     win.saveFrameIntervals(fileName=None, clear=True)
 
 The above will save the currently stored frame intervals (using the default
-filename, 'lastFrameIntervals.log') and then clears the data. The saved file is
- a simple text file.
+filename, 'lastFrameIntervals.log') and then clears the data. The saved file is a simple text file.
 
 At any time you can also retrieve the time of the /last/ frame flip using
 win.lastFrameT (the time is synchronised with logging.defaultClock so it will

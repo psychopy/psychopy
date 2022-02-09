@@ -17,8 +17,6 @@ Movie2 does require:
     http: //www.videolan.org/vlc/index.html
 """
 
-from __future__ import division
-
 from psychopy import visual, core, event, constants
 import time, os
 

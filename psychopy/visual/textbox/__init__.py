@@ -6,11 +6,7 @@ Created on Thu Mar 21 18:38:35 2013
 
 @author: Sol
 """
-from __future__ import absolute_import, division, print_function
 
-from builtins import str
-from past.builtins import basestring
-from builtins import object
 import os
 import inspect
 import numbers
@@ -80,7 +76,7 @@ def getGLInfo():
     return gl_info
 
 
-class TextBox(object):
+class TextBox:
     """
     Similar to the visual.TextStim component, TextBox can be used to display
     text within a psychopy window. TextBox and TextStim each have different
@@ -93,8 +89,7 @@ class TextBox(object):
     very likely bugs in the existing TextBox code and the TextBox API will
     be further enhanced and improved (i.e. changed) over the next couple months.
 
-    TextBox Features
-    ~~~~~~~~~~~~~~~~
+    **TextBox Features**
 
     * Text character placement is very well defined, useful when the exact
       positioning of each letter needs to be known.
@@ -107,13 +102,13 @@ class TextBox(object):
       and styles that are available on the computer being used.
 
     * TextBox is a composite stimulus type, with the following graphical
-      elements:
+      elements, many of which can be changed to control many aspects of how
+      the TextBox is displayed.:
+
          - TextBox Border / Outline
          - TextBox Fill Area
          - Text Grid Cell Lines
          - Text Glyphs
-      Attributes for each of the TextBox graphical elements can be changed
-      to control many aspects of how the TextBox is displayed.
 
     * When using 'rgb' or 'rgb255' color spaces, colors can be specified as
       a list/tuple of 3 elements (red, green, blue), or with four elements
@@ -126,13 +121,13 @@ class TextBox(object):
 
     * Text Line Spacing can be controlled.
 
-    Textbox Limitations
-    ~~~~~~~~~~~~~~~~~~~
+    **Textbox Limitations**
 
     * Only Monospace Fonts are supported.
 
     * TextBox component is not a completely **standard** psychopy visual
       stim and has the following functional difference:
+
           - TextBox attributes are never accessed directly; get* and set*
             methods are always used (this will be changed to use class
             properties in the future).
@@ -152,8 +147,7 @@ class TextBox(object):
 
     * Auto logging or auto drawing is not currently supported.
 
-    TextStim and TextBox Comparison
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    TextStim and TextBox Comparison:
 
     ============================ ============= ===========
     Feature                      TextBox       TextStim
@@ -177,9 +171,7 @@ class TextBox(object):
       used Windows 7 64 bit, PsychoPy 1.79, with a i7 3.4 Ghz CPU, 8 GB RAM,
       and NVIDIA 480 GTX 2GB graphics card.
 
-    Examples
-    --------
-    Demonstration of using `TextBox`::
+    Example::
 
         from psychopy import visual
 
@@ -950,7 +942,7 @@ class TextBox(object):
         """
         Specify if changes to textBox attribute values should be logged
         automatically by PsychoPy. True enables auto logging; False disables it.
-        *Currently not supported by TextBox.
+        *Currently not supported by TextBox.*
         """
         self._auto_log = v
 
@@ -1157,7 +1149,7 @@ class TextBox(object):
         #        "TextBox: %s is not a valid color." % (str(color)))
 
         valid_opacity = opacity >= 0.0 and opacity <= 1.0
-        if isinstance(color, basestring):
+        if isinstance(color, str):
             if color[0] == '#' or color[0:2].lower() == '0x':
                 rgb255color = colors.hex2rgb255(color)
                 if rgb255color and valid_opacity:

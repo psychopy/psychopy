@@ -14,25 +14,25 @@ Clock logic.
 @author: Sol
 @author: Jon
 """
-from __future__ import absolute_import, division, print_function
-from builtins import object
+
+# Part of the PsychoPy library
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
+
 import time
 import sys
 from pkg_resources import parse_version
-
 
 try:
     import pyglet
 except ImportError:
     pass  # pyglet is not installed
 
-from psychopy.constants import STARTED, NOT_STARTED, FINISHED, PY3
+from psychopy.constants import STARTED, NOT_STARTED, FINISHED
 import psychopy.logging  # Absolute import to work around circularity
-
 
 # set the default timing mechanism
 getTime = None
-
 
 # Select the timer to use as the psychopy high resolution time base. Selection
 # is based on OS and Python version.
@@ -61,8 +61,8 @@ except ImportError:
 
 if havePTB:
     # def getTime():
-        # secs, wallTime, error = psychtoolbox.GetSecs('allclocks')
-        # return wallTime
+    #     secs, wallTime, error = psychtoolbox.GetSecs('allclocks')
+    #     return wallTime
     getTime = psychtoolbox.GetSecs
 elif sys.platform == 'win32':
     from ctypes import byref, c_int64, windll
@@ -71,33 +71,41 @@ elif sys.platform == 'win32':
     windll.Kernel32.QueryPerformanceFrequency(byref(_qpfreq))
     _qpfreq = float(_qpfreq.value)
     _winQPC = windll.Kernel32.QueryPerformanceCounter
+
     def getTime():
         _winQPC(byref(_fcounter))
         return _fcounter.value / _qpfreq
+
 elif sys.platform == "darwin":
     # Monotonic getTime with absolute origin. Suggested by @aforren1, and
     # copied from github.com/aforren1/toon/blob/master/toon/input/mac_clock.py 
     import ctypes
     _libc = ctypes.CDLL('/usr/lib/libc.dylib', use_errno=True)
+
     # create helper class to store data
     class mach_timebase_info_data_t(ctypes.Structure):
-        _fields_ = (('numer', ctypes.c_uint32), ('denom', ctypes.c_uint32))
+        _fields_ = (('numer', ctypes.c_uint32),
+                    ('denom', ctypes.c_uint32))
+
     # get function and set response type
     _mach_absolute_time = _libc.mach_absolute_time
     _mach_absolute_time.restype = ctypes.c_uint64
+
     # calculate timebase
     _timebase = mach_timebase_info_data_t()
     _libc.mach_timebase_info(ctypes.byref(_timebase))
     _ticks_per_second = _timebase.numer / _timebase.denom * 1.0e9
-    #then define getTime func
+
+    # then define getTime func
     def getTime():
         return _mach_absolute_time() / _ticks_per_second
+
 else:
     import timeit
     getTime = timeit.default_timer
 
 
-class MonotonicClock(object):
+class MonotonicClock:
     """A convenient class to keep track of time in your experiments using a
     sub-millisecond timer.
 
@@ -111,12 +119,12 @@ class MonotonicClock(object):
     time since the start of the study.
 
     Version Notes: This class was added in PsychoPy 1.77.00
-    """
 
+    """
     def __init__(self, start_time=None):
         super(MonotonicClock, self).__init__()
         if start_time is None:
-            # this is sub-millisec timer in python
+            # this is sub-millisecond timer in python
             self._timeAtLastReset = getTime()
         else:
             self._timeAtLastReset = start_time
@@ -150,12 +158,12 @@ monotonicClock = MonotonicClock()
 class Clock(MonotonicClock):
     """A convenient class to keep track of time in your experiments.
     You can have as many independent clocks as you like (e.g. one
-    to time responses, one to keep track of stimuli...)
+    to time responses, one to keep track of stimuli ...)
 
     This clock is identical to the :class:`~psychopy.core.MonotonicClock`
     except that it can also be reset to 0 or another value at any point.
-    """
 
+    """
     def __init__(self):
         super(Clock, self).__init__()
 
@@ -185,15 +193,22 @@ class Clock(MonotonicClock):
 
 class CountdownTimer(Clock):
     """Similar to a :class:`~psychopy.core.Clock` except that time counts down
-    from the time of last reset
+    from the time of last reset.
 
-    Typical usage::
+    Parameters
+    ----------
+    start : float or int
+        Starting time in seconds to countdown on.
+
+    Examples
+    --------
+    Create a countdown clock with a 5 second duration::
 
         timer = core.CountdownTimer(5)
         while timer.getTime() > 0:  # after 5s will become negative
             # do stuff
-    """
 
+    """
     def __init__(self, start=0):
         super(CountdownTimer, self).__init__()
         self._countdown_duration = start
@@ -201,15 +216,21 @@ class CountdownTimer(Clock):
             self.add(start)
 
     def getTime(self):
-        """Returns the current time left on this timer in secs
-        (sub-ms precision)
+        """Returns the current time left on this timer in seconds with sub-ms
+        precision (`float`).
         """
         return self._timeAtLastReset - getTime()
 
     def reset(self, t=None):
-        """Reset the time on the clock. With no args, time will be set to the
-        time used for last reset (or start time if no previous resets). If a 
-        float is received, this will be the new time on the clock.
+        """Reset the time on the clock.
+
+        Parameters
+        ----------
+        t : float, int or None
+            With no args (`None`), time will be set to the time used for last
+            reset (or start time if no previous resets). If a number is
+            received, this will be the new time on the clock.
+
         """
         if t is None:
             Clock.reset(self, self._countdown_duration)
@@ -218,10 +239,23 @@ class CountdownTimer(Clock):
             Clock.reset(self, t)
 
 
-class StaticPeriod(object):
+class StaticPeriod:
     """A class to help insert a timing period that includes code to be run.
 
-    Typical usage::
+    Parameters
+    ----------
+    screenHz : int or None
+    the frame rate of the monitor (leave as None if you
+            don't want this accounted for)
+    win : :class:`~psychopy.visual.Window`
+        If a :class:`~psychopy.visual.Window` is given then
+        :class:`StaticPeriod` will also pause/restart frame interval recording.
+    name : str
+        Give this StaticPeriod a name for more informative logging messages.
+
+    Examples
+    --------
+    Typical usage for the static period::
 
         fixation.draw()
         win.flip()
@@ -237,31 +271,31 @@ class StaticPeriod(object):
 
     """
     def __init__(self, screenHz=None, win=None, name='StaticPeriod'):
-        """
-        :param screenHz: the frame rate of the monitor (leave as None if you
-            don't want this accounted for)
-        :param win: if a visual.Window is given then StaticPeriod will
-            also pause/restart frame interval recording
-        :param name: give this StaticPeriod a name for more informative
-            logging messages
-        """
         self.status = NOT_STARTED
         self.countdown = CountdownTimer()
         self.name = name
         self.win = win
+
         if screenHz is None:
             self.frameTime = 0
         else:
             self.frameTime = 1.0 / screenHz
 
+        self._winWasRecordingIntervals = False
+
     def start(self, duration):
         """Start the period. If this is called a second time, the timer will
         be reset and starts again
 
-        :param duration: The duration of the period, in seconds.
+        Parameters
+        ----------
+        duration : float or int
+            The duration of the period, in seconds.
+
         """
         self.status = STARTED
         self.countdown.reset(duration - self.frameTime)
+
         # turn off recording of frame intervals throughout static period
         if self.win:
             self._winWasRecordingIntervals = self.win.recordFrameIntervals
@@ -269,31 +303,39 @@ class StaticPeriod(object):
 
     def complete(self):
         """Completes the period, using up whatever time is remaining with a
-        call to wait()
+        call to `wait()`.
 
-        :return: 1 for success, 0 for fail (the period overran)
+        Returns
+        -------
+        float
+            `1` for success, `0` for fail (the period overran).
+
         """
         self.status = FINISHED
         timeRemaining = self.countdown.getTime()
+
         if self.win:
             self.win.recordFrameIntervals = self._winWasRecordingIntervals
+
         if timeRemaining < 0:
             msg = ('We overshot the intended duration of %s by %.4fs. The '
                    'intervening code took too long to execute.')
             vals = self.name, abs(timeRemaining)
             psychopy.logging.warn(msg % vals)
+
             return 0
-        else:
-            wait(timeRemaining)
-            return 1
+
+        wait(timeRemaining)
+
+        return 1
 
 
 def wait(secs, hogCPUperiod=0.2):
     """Wait for a given time period.
 
-    If secs=10 and hogCPU=0.2 then for 9.8s python's time.sleep function
+    If `secs=10` and `hogCPU=0.2` then for 9.8s Python's `time.sleep` function
     will be used, which is not especially precise, but allows the cpu to
-    perform housekeeping. In the final hogCPUperiod the more precise
+    perform housekeeping. In the final `hogCPUperiod` the more precise
     method of constantly polling the clock is used for greater precision.
 
     If you want to obtain key-presses during the wait, be sure to use
@@ -301,8 +343,8 @@ def wait(secs, hogCPUperiod=0.2):
     :func:`psychopy.event.getKeys()` after calling
     :func:`~.psychopy.core.wait()`
 
-    If you want to suppress checking for pyglet events during the wait,
-    do this once::
+    If you want to suppress checking for pyglet events during the wait, do this
+    once::
 
         core.checkPygletDuringWait = False
 
@@ -311,6 +353,12 @@ def wait(secs, hogCPUperiod=0.2):
         core.wait(sec)
 
     This will preserve terminal-window focus during command line usage.
+
+    Parameters
+    ----------
+    secs : float or int
+    hogCPUperiod : float or int
+
     """
     from . import core
 
@@ -344,19 +392,25 @@ def wait(secs, hogCPUperiod=0.2):
 
 
 def getAbsTime():
-    """Return unix time (i.e., whole seconds elapsed since Jan 1, 1970).
+    """Get the absolute time.
 
-    This uses the same clock-base as the other timing features,
-    like `getTime()`. The time (in seconds) ignores the time-zone
-    (like `time.time()` on linux). To take the timezone into account,
-    use `int(time.mktime(time.gmtime()))`.
+    This uses the same clock-base as the other timing features, like
+    `getTime()`. The time (in seconds) ignores the time-zone (like `time.time()`
+    on linux). To take the timezone into account, use
+    `int(time.mktime(time.gmtime()))`.
 
-    Absolute times in seconds are especially useful to add to generated
-    file names for being unique, informative (= a meaningful time stamp),
-    and because the resulting files will always sort as expected when
-    sorted in chronological, alphabetical, or numerical order, regardless
-    of locale and so on.
+    Absolute times in seconds are especially useful to add to generated file
+    names for being unique, informative (= a meaningful time stamp), and because
+    the resulting files will always sort as expected when sorted in
+    chronological, alphabetical, or numerical order, regardless of locale and so
+    on.
 
     Version Notes: This method was added in PsychoPy 1.77.00
+
+    Returns
+    -------
+    float
+        Absolute Unix time (i.e., whole seconds elapsed since Jan 1, 1970).
+
     """
     return int(time.mktime(time.localtime()))

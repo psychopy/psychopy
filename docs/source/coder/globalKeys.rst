@@ -28,6 +28,7 @@ Adding a global event key (simple)
 First, let's ensure no global event keys are currently set by calling
 func:`event.globalKeys.clear`.
 ::
+
     >>> from psychopy import event
     >>> event.globalKeys.clear()
 
@@ -35,6 +36,7 @@ To add a new global event key, you need to invoke
 func:`event.globalKeys.add`. This function has two required arguments: the
 key name, and the function to associate with that key.
 ::
+
     >>> key = 'a'
     >>> def myfunc():
     ...     pass

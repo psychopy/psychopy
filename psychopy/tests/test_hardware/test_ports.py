@@ -121,7 +121,7 @@ def test_getPhotometers():
 
 
 # I wish our PR650 would behave like this ;-)
-_MockPhotometer = type("MockPhotometer",(object,),{"OK": True,"type": "MockPhotometer"})
+_MockPhotometer = type("MockPhotometer",(),{"OK": True,"type": "MockPhotometer"})
 
 _workingPhotometer = lambda port: _MockPhotometer
 

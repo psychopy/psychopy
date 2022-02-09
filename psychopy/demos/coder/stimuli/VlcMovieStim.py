@@ -14,7 +14,6 @@ This requires:
 
 """
 
-from __future__ import division
 import os
 from psychopy import visual, core, event
 

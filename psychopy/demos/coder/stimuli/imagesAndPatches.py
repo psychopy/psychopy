@@ -5,9 +5,6 @@
 Demo of ImageStim and GratingStim with image contents.
 """
 
-from __future__ import division
-from __future__ import print_function
-
 from psychopy import core, visual, event
 
 # Create a window to draw in

@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
@@ -45,7 +45,7 @@ MOUSE_POS_CURRENT = 0
 MOUSE_POS_PREVIOUS = 1
 
 
-class Mouse(object):
+class Mouse:
     """Class for using pointing devices (e.g., mice, trackballs, etc.) as input.
 
     PsychoPy presently only supports one pointing device input at a time.

@@ -76,7 +76,11 @@ eyetracker.hw.tobii.EyeTracker:
         # should be a value between 0 and 255. 0 == black, 255 == white.
         #
         screen_background_color: [128,128,128]
-        
+
+        # text_color specifies the foreground color of any text used during calibration.
+        # If empty, text_color is calculated automatically based on screen_background_color.
+        text_color:
+
         # Target type defines what form of calibration graphic should be used
         # during calibration, validation, etc. modes.
         # Currently the Tobii implementation supports the following

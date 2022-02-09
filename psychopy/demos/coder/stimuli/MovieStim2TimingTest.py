@@ -18,9 +18,6 @@ The following variables control what video is played during the test as well as
 other configuration settings:
 """
 
-from __future__ import division
-from __future__ import print_function
-
 #   Test Config.
 
 # Relative path (from this scripts folder) for the video clip to be played .

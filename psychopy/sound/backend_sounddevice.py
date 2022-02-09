@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import str
-from builtins import object
 import sys
 import os
 import time
@@ -16,19 +12,19 @@ try:
 except ImportError:
     pass  # all that will happen is the stderr/stdout might get redirected
 
-from psychopy import logging, exceptions
+from psychopy import logging
 from psychopy.constants import (PLAYING, PAUSED, FINISHED, STOPPED,
-                                NOT_STARTED, PY3)
-from psychopy.exceptions import SoundFormatError, DependencyError
+                                NOT_STARTED)
+from .exceptions import SoundFormatError, DependencyError
 from ._base import _SoundBase, HammingWindow
 
 try:
     import sounddevice as sd
-except Exception:
+except (ImportError, OSError):
     raise DependencyError("sounddevice not working")
 try:
     import soundfile as sf
-except Exception:
+except (ImportError, OSError):
     raise DependencyError("soundfile not working")
 
 import numpy as np
@@ -129,7 +125,7 @@ class _StreamsDict(dict):
             pass
         # on some systems more than one stream isn't supported so check
         elif sys.platform == 'win32' and len(self):
-            raise exceptions.SoundFormatError(
+            raise SoundFormatError(
                 "Tried to create audio stream {} but {} already exists "
                 "and {} doesn't support multiple portaudio streams"
                     .format(label, list(self.keys())[0], sys.platform)
@@ -144,7 +140,7 @@ class _StreamsDict(dict):
 streams = _StreamsDict()
 
 
-class _SoundStream(object):
+class _SoundStream():
     def __init__(self, sampleRate, channels, blockSize,
                  device=None, duplex=False):
         # initialise thread
@@ -241,8 +237,7 @@ class _SoundStream(object):
             del self._sdStream
         if hasattr(sys, 'stdout'):
             sys.stdout.flush()
-        if PY3:
-            atexit.unregister(self.__del__)
+        atexit.unregister(self.__del__)
 
 
 class SoundDeviceSound(_SoundBase):

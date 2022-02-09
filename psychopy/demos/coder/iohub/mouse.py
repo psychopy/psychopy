@@ -4,8 +4,6 @@
 Demo of using the iohub mouse.
 """
 
-from __future__ import absolute_import, division, print_function
-
 import sys
 
 from psychopy import visual, core
@@ -92,9 +90,8 @@ while not kb_events:
     displayIdMsg.draw()
     flip_time = win.flip()  # redraw the buffer
 
-    # Check for keyboard orand mouse events.
-    # If 15 seconds passes without receiving any kb or mouse event,
-    # then exit the demo
+    # Check for keyboard and mouse events.
+    # If 15 seconds passes without receiving any mouse events, then exit the demo
     kb_events = keyboard.getEvents()
     mouse_events = mouse.getEvents()
     if mouse_events:

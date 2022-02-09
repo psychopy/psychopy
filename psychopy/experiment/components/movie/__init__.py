@@ -2,15 +2,12 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-
-from os import path
 from pathlib import Path
 import copy
-from psychopy import logging
+
 from psychopy.experiment.components import BaseVisualComponent, getInitVals, Param, _translate
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
@@ -34,7 +31,7 @@ class MovieComponent(BaseVisualComponent):
 
     def __init__(self, exp, parentName, name='movie', movie='',
                  units='from exp settings',
-                 pos=(0, 0), size='', ori=0,
+                 pos=(0, 0), size='', anchor="center", ori=0,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
@@ -71,7 +68,7 @@ class MovieComponent(BaseVisualComponent):
         self.params['backend'] = Param(
             backend, valType='str', inputType="choice", categ='Playback',
             allowedVals=['moviepy', 'avbin', 'opencv', 'vlc'],
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['backend'])
 
         msg = _translate("Prevent the audio stream from being loaded/processed "
@@ -95,6 +92,21 @@ class MovieComponent(BaseVisualComponent):
             loop, valType='bool', inputType="bool", categ='Playback',
             hint=msg,
             label=_translate('Loop playback'))
+        self.params['anchor'] = Param(
+            anchor, valType='str', inputType="choice", categ='Layout',
+            allowedVals=['center',
+                         'top-center',
+                         'bottom-center',
+                         'center-left',
+                         'center-right',
+                         'top-left',
+                         'top-right',
+                         'bottom-left',
+                         'bottom-right',
+                         ],
+            updates='constant',
+            hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
+            label=_translate('Anchor'))
 
         # these are normally added but we don't want them for a movie
         del self.params['color']
@@ -143,7 +155,7 @@ class MovieComponent(BaseVisualComponent):
 
         code += ("    filename=%(movie)s,\n"
                  "    ori=%(ori)s, pos=%(pos)s, opacity=%(opacity)s,\n"
-                 "    loop=%(loop)s,\n"
+                 "    loop=%(loop)s, anchor=%(anchor)s,\n"
                  % params)
 
         buff.writeIndentedLines(code)
@@ -223,8 +235,9 @@ class MovieComponent(BaseVisualComponent):
         # If needed then use _writeCreationCode()
         # Movie could be created here or in writeInitCode()
         if self.params['movie'].updates != 'constant':
-            # create the code using params, not vals
-            self._writeCreationCodeJS(buff, useInits=False)
+            # create the code using params, not vals (unless set during static component)
+            useInits = 'during' in self.params['movie'].updates
+            self._writeCreationCodeJS(buff, useInits=useInits)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame

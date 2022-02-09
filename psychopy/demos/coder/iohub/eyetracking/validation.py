@@ -5,7 +5,6 @@ Calibrate, validate, run with GC cursor demo / test.
 Select which tracker to use by setting the TRACKER variable below.
 """
 
-from __future__ import absolute_import, division, print_function
 from psychopy import core, visual
 from psychopy import iohub
 from psychopy.iohub.client.eyetracker.validation import TargetStim
@@ -249,6 +248,4 @@ while t < TRIAL_COUNT:
 # All Trials are done
 # End experiment
 tracker.setConnectionState(False)
-
-io.quit()
 core.quit()

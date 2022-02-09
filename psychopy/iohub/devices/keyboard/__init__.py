@@ -13,6 +13,22 @@ from .. import Device, Computer
 
 getTime = Computer.getTime
 
+psychopy_key_mappings = {'`': 'quoteleft',
+                         '[': 'bracketleft',
+                         ']': 'bracketright',
+                         '\\': 'backslash',
+                         '/': 'slash',
+                         ';': 'semicolon',
+                         "'": 'apostrophe',
+                         ',': 'comma',
+                         '.': 'period',
+                         '-': 'minus',
+                         '=': 'equal',
+                         '+': 'num_add',
+                         '*': 'num_multiply',
+                         ' ': 'space'
+                         }
+
 
 class ioHubKeyboardDevice(Device):
     """The Keyboard device is used to receive events from a standard USB or PS2
@@ -24,7 +40,7 @@ class ioHubKeyboardDevice(Device):
     originate from a single keyboard device in the experiment.
 
     """
-
+    use_psychopy_keymap = True
     EVENT_CLASS_NAMES = [
         'KeyboardInputEvent',
         'KeyboardPressEvent',
@@ -49,6 +65,8 @@ class ioHubKeyboardDevice(Device):
         self._log_events_file = None
 
         Device.__init__(self, *args, **kwargs)
+
+        ioHubKeyboardDevice.use_psychopy_keymap = self.getConfiguration().get('use_keymap') == 'psychopy'
 
     @classmethod
     def getModifierState(cls):

@@ -2,12 +2,10 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 """PsychoPy Version Chooser to specify version within experiment scripts.
 """
-
-from __future__ import absolute_import, print_function
 
 import os
 import sys
@@ -15,11 +13,10 @@ import subprocess  # for git commandline invocation
 from subprocess import CalledProcessError
 import psychopy  # for currently loaded version
 from psychopy import prefs
-from psychopy import logging, tools, web, constants
+# the following will all have been imported so import here and reload later
+from psychopy import logging, tools, web, constants, preferences
 from pkg_resources import parse_version
-from packaging.version import parse as parse_version
-if constants.PY3:
-    from importlib import reload
+from importlib import reload
 
 USERDIR = prefs.paths['userPrefsDir']
 VER_SUBDIR = 'versions'
@@ -37,6 +34,36 @@ def _translate(string):
     """placeholder (non)function
     """
     return string
+
+
+def getPsychoJSVersionStr(currentVersion, preferredVersion=''):
+    """Get the PsychoJS version string for a given PsychoPy version
+    taking into account:
+    - the current/requested version
+    - the fact that early PsychoJS versions did not include minor version
+    - PsychoJS versions do not use rc1 or dev1 suffixes"""
+    if preferredVersion == '':
+        useVerStr = currentVersion
+    elif preferredVersion == 'latest':
+        useVerStr = latestVersion()
+    else:
+        useVerStr = fullVersion(preferredVersion)
+
+    # do we shorten minor versions ('3.4.2' to '3.4')?
+    # only from 3.2 onwards
+    if (parse_version('3.2')) <= parse_version(useVerStr) < parse_version('2021') \
+            and len(useVerStr.split('.')) > 2:
+        # e.g. 2020.2 not 2021.2.5
+        useVerStr = '.'.join(useVerStr.split('.')[:2])
+    elif len(useVerStr.split('.')) > 3:
+        # e.g. 2021.1.0 not 2021.1.0.dev3
+        useVerStr = '.'.join(useVerStr.split('.')[:3])
+    # PsychoJS doesn't have additional rc1 or dev1 releases
+    for versionSuffix in ["rc", "dev"]:
+        if versionSuffix in useVerStr:
+            useVerStr = useVerStr.split(versionSuffix)[0]
+
+    return useVerStr
 
 
 def useVersion(requestedVersion):
@@ -86,17 +113,16 @@ def useVersion(requestedVersion):
     if not os.path.isdir(VERSIONSDIR):
         _clone(requestedVersion)  # Allow the versions subdirectory to be built
 
-    if constants.PY3:
-        py3Compatible = _versionFilter(versionOptions(local=False), None)
-        py3Compatible += _versionFilter(availableVersions(local=False), None)
-        py3Compatible.sort(reverse=True)
+    py3Compatible = _versionFilter(versionOptions(local=False), None)
+    py3Compatible += _versionFilter(availableVersions(local=False), None)
+    py3Compatible.sort(reverse=True)
 
-        if reqdMajorMinorPatch not in py3Compatible:
-            msg = _translate("Please request a version of PsychoPy that is compatible with Python 3. "
-                             "You can choose from the following versions: {}. "
-                             "Alternatively, run a Python 2 installation of PsychoPy < v1.9.0.\n")
-            logging.error(msg.format(py3Compatible))
-            return
+    if reqdMajorMinorPatch not in py3Compatible:
+        msg = _translate("Please request a version of PsychoPy that is compatible with Python 3. "
+                         "You can choose from the following versions: {}. "
+                         "Alternatively, run a Python 2 installation of PsychoPy < v1.9.0.\n")
+        logging.error(msg.format(py3Compatible))
+        return
 
     if psychopy.__version__ != reqdMajorMinorPatch:
         # Switching required, so make sure `git` is available.
@@ -109,6 +135,8 @@ def useVersion(requestedVersion):
 
         # Reload!
         reload(psychopy)
+        reload(preferences)
+        reload(constants)
         reload(logging)
         reload(web)
         if _versionTuple(reqdMajorMinorPatch) >= (1, 80):
@@ -217,14 +245,9 @@ def _remoteVersions(forceCheck=False):
         except (CalledProcessError, OSError):
             pass
         else:
-            if constants.PY3:
-                allTags = [line.split('refs/tags/')[1]
-                           for line in tagInfo.decode().splitlines()
-                           if '^{}' not in line]
-            else:
-                allTags = [line.split('refs/tags/')[1]
-                           for line in tagInfo.splitlines()
-                           if '^{}' not in line]
+            allTags = [line.split('refs/tags/')[1]
+                       for line in tagInfo.decode().splitlines()
+                       if '^{}' not in line]
             # ensure most recent (i.e., highest) first
             _remoteVersionsCache = sorted(allTags, key=parse_version, reverse=True)
     return _remoteVersionsCache
@@ -244,14 +267,12 @@ def _versionFilter(versions, wxVersion):
         All valid selections for the version to be chosen that are compatible with Python version used
     """
 
-    # Get Python 3 Compatibility
-    if constants.PY3:
-        # msg = _translate("Filtering versions of PsychoPy only compatible with Python 3.")
-        # logging.info(msg)
-        versions = [ver for ver in versions
-                    if ver == 'latest'
-                    or parse_version(ver) >= parse_version('1.90')
-                    and len(ver) > 1]
+    # msg = _translate("Filtering versions of PsychoPy only compatible with Python 3.")
+    # logging.info(msg)
+    versions = [ver for ver in versions
+                if ver == 'latest'
+                or parse_version(ver) >= parse_version('1.90')
+                and len(ver) > 1]
 
     # Get WX Compatibility
     compatibleWX = '4.0'

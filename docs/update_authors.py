@@ -3,10 +3,6 @@
 
 """Regenerate AUTHORS.md
 """
-
-from __future__ import absolute_import, print_function
-
-import os
 import codecs
 import warnings
 from datetime import datetime

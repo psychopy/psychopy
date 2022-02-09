@@ -15,7 +15,7 @@ Mouse:
     #   False: Only events indicating that a PsychoPy Window
     #       is the intended event target will be reported.
     report_system_wide_events: IOHUB_BOOL
-
+    enable_multi_window: IOHUB_BOOL
     event_buffer_length:
         IOHUB_INT:
             min: 1

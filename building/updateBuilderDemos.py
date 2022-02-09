@@ -4,7 +4,6 @@
 # this script replaces hashtags with a sphinx URL string (to the github issues or pull request)
 # written by Jon with regex code by Jeremy
 
-from __future__ import absolute_import, print_function
 import os
 from psychopy import experiment, __version__
 from pathlib import Path

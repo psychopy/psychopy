@@ -2,41 +2,20 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Audio capture and analysis using pyo"""
 
 # Author: Jeremy R. Gray, March 2012, March 2013
 
-from __future__ import absolute_import, division, print_function
-
-# from future import standard_library
-# standard_library.install_aliases()
-from builtins import str
-from past.builtins import basestring
-from builtins import object
 import os
 import glob
 import threading
-from psychopy.constants import PY3
 from psychopy.tools.filetools import pathToString
-
-if PY3:
-    import urllib.request
-    import urllib.error
-    import urllib.parse
-else:
-    import urllib2
-    # import urllib.request, urllib.error, urllib.parse
-
-    class FakeURLlib(object):
-
-        def __init__(self, lib):
-            self.request = lib
-            self.error = lib
-            self.parse = lib
-    urllib = FakeURLlib(urllib2)
+import urllib.request
+import urllib.error
+import urllib.parse
 
 import json
 import numpy as np
@@ -54,49 +33,56 @@ haveMic = False  # goes True in switchOn, if can import pyo
 FLAC_PATH = None  # set on first call to _getFlacPath()
 
 
-class AudioCapture(object):
+class AudioCapture:
     """Capture sound sample from the default sound input, and save to a file.
 
-        Untested whether you can have two recordings going on simultaneously.
+    Untested whether you can have two recordings going on simultaneously.
 
-        **Examples**::
+    **Examples**
+    .. code-block:: python
 
-            from psychopy import microphone
-            from psychopy import event, visual  # for key events
+        from psychopy import microphone
+        from psychopy import event, visual  # for key events
 
-            microphone.switchOn(sampleRate=16000)  # do once
+        microphone.switchOn(sampleRate=16000)  # do once
 
-            # Record for 1.000 seconds, save to mic.savedFile
-            mic = microphone.AudioCapture()
-            mic.record(1)
-            mic.playback()
+        # Record for 1.000 seconds, save to mic.savedFile
+        mic = microphone.AudioCapture()
+        mic.record(1)
+        mic.playback()
 
-            # Resample, creates a new file discards orig
-            mic.resample(48000, keep=False)
+        # Resample, creates a new file discards orig
+        mic.resample(48000, keep=False)
 
-            # Record new file for 60 sec or until key 'q'
-            w = visual.Window()  # needed for key-events
-            mic.reset()
-            mic.record(60, block=False)
-            while mic.recorder.running:
-                if 'q' in event.getKeys():
-                    mic.stop()
+        # Record new file for 60 sec or until key 'q'
+        w = visual.Window()  # needed for key-events
+        mic.reset()
+        mic.record(60, block=False)
+        while mic.recorder.running:
+            if 'q' in event.getKeys():
+                mic.stop()
 
-        Also see Builder Demo "voiceCapture".
+    Also see Builder Demo "voiceCapture".
 
-        :Author: Jeremy R. Gray, March 2012
+    :Author: Jeremy R. Gray, March 2012
     """
 
-    class _Recorder(object):
+    class _Recorder():
         """Class for internal object to make an audio recording using pyo.
 
-        Never needed by end-users; only used internally in __init__:
+        Never needed by end-users; only used internally in __init__::
+
             self.recorder = _Recorder(None) # instantiate, global
-        Then in record(), do:
+
+        Then in record(), do::
+
             self.recorder.run(filename, sec)
+
         This sets recording parameters, starts recording.
-        To stop a recording that is in progress, do
+        To stop a recording that is in progress, do::
+
             self.stop()
+
         This class never handles blocking; AudioCapture has to do that.
 
         Motivation: Doing pyo Record from within a function worked most of
@@ -133,21 +119,22 @@ class AudioCapture(object):
                  buffering=16, chnl=0, stereo=True, autoLog=True):
         """
         :Parameters:
-            name :
-                Stem for the output file, also used in logging.
-            filename :
-                optional file name to use; default = 'name-onsetTimeEpoch.wav'
-            saveDir :
-                Directory to use for output .wav files.
-                If a saveDir is given, it will return 'saveDir/file'.
-                If no saveDir, then return abspath(file)
-            sampletype : bit depth
-                pyo recording option:
-                0=16 bits int, 1=24 bits int; 2=32 bits int
-            buffering : pyo argument
-            chnl : which audio input channel to record (default=0)
-            stereo : how many channels to record
-                (default True, stereo; False = mono)
+
+        name :
+            Stem for the output file, also used in logging.
+        filename :
+            optional file name to use; default = 'name-onsetTimeEpoch.wav'
+        saveDir :
+            Directory to use for output .wav files. If a saveDir is given, it will return 'saveDir/file'.
+            If no saveDir, then return abspath(file)
+        sampletype : bit depth
+            pyo recording option: 0=16 bits int, 1=24 bits int; 2=32 bits int
+        buffering : pyo argument
+            Controls the buffering argument for pyo if necessary
+        chnl : int (default=0)
+            which audio input channel to record (default=0)
+        stereo : bool or nChannels (default = True)
+            how many channels to record
         """
         if not haveMic:
             raise MicrophoneError('Need to call microphone.switchOn()'
@@ -685,7 +672,7 @@ def getRMS(data):
         if len(data.shape) > 1:
             return np.std(data, axis=1)  # np.sqrt(np.mean(data ** 2, axis=1))
         return np.std(data)  # np.sqrt(np.mean(data ** 2))
-    if isinstance(data, basestring):
+    if isinstance(data, str):
         if not os.path.isfile(data):
             raise ValueError('getRMS: could not find file %s' % data)
         _junk, data = wavfile.read(data)
@@ -805,7 +792,7 @@ class _GSQueryThread(threading.Thread):
         self.running = False
 
 
-class Speech2Text(object):
+class Speech2Text():
     """Class for speech-recognition (voice to text), using Google's public API.
 
         Google's speech API is currently free to use, and seems to work well.

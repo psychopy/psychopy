@@ -21,7 +21,6 @@ dependencies:
 - javascripthon
 - jedi
 - json_tricks
-- lxml
 - matplotlib
 - moviepy
 - msgpack-numpy

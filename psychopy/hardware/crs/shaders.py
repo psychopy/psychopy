@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Acknowledgements:
@@ -11,9 +11,6 @@
 #    Based on shader code for mono++ and color++ modes code in Psythtoolbox
 #    (Mario Kleiner) but does not use that code directly
 #    It is, for example, Mario's idea to add the 0.01 to avoid rounding issues
-
-from __future__ import absolute_import, print_function
-from psychopy.visual.shaders import compileProgram, vertSimple
 
 bitsMonoModeFrag = """
 /* Mono++ output formatter

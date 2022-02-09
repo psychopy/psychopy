@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Idea: Run or debug an experiment script using exactly the same code,
@@ -11,9 +11,6 @@ you can emulate sync pulses and user responses.
 Limitations: pyglet only; keyboard events only.
 """
 
-from __future__ import absolute_import, print_function
-
-from builtins import range
 import threading
 
 from psychopy import visual, event, core, logging

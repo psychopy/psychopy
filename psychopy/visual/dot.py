@@ -6,7 +6,7 @@ determines how they change on every call to the .draw() method.
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Bugfix by Andrew Schofield.
@@ -18,11 +18,6 @@ determines how they change on every call to the .draw() method.
 # previous walking dots.
 # Provide a visible wrapper function to refresh all the dot locations so that 
 # the whole field can be more easily refreshed between trials.
-
-from __future__ import absolute_import, division, print_function
-
-from builtins import str
-from builtins import range
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -41,7 +36,8 @@ from psychopy import logging
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
 from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
-                                        ContainerMixin)
+                                        ContainerMixin, WindowMixin)
+from psychopy.layout import Size
 
 import numpy as np
 
@@ -134,6 +130,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  fieldPos=(0.0, 0.0),
                  fieldSize=(1.0, 1.0),
                  fieldShape='sqr',
+                 fieldAnchor="center",
                  dotSize=2.0,
                  dotLife=3,
                  dir=0.0,
@@ -255,7 +252,6 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.dotLife = dotLife
         self.signalDots = signalDots
 
-        self.useShaders = False  # not needed for dots?
         if rgb != None:
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
@@ -274,7 +270,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.noiseDots = noiseDots
 
         # initialise a random array of X,Y
-        self._verticesBase = self._dotsXY = self._newDotsXY(self.nDots)
+        self.vertices = self._verticesBase = self._dotsXY = self._newDotsXY(self.nDots)
         # all dots have the same speed
         self._dotsSpeed = np.ones(self.nDots, dtype=float) * self.speed
         # abs() means we can ignore the -1 case (no life)
@@ -286,6 +282,8 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._dotsDir[self._signalDots] = self.dir * _piOver180
 
         self._update_dotsXY()
+
+        self.anchor = fieldAnchor
 
         # set autoLog now that params have been initialised
         wantLog = autoLog is None and self.win.autoLog
@@ -307,11 +305,27 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """
         self.__dict__['fieldShape'] = fieldShape
 
-    @attributeSetter
-    def dotSize(self, dotSize):
+    @property
+    def anchor(self):
+        return WindowMixin.anchor.fget(self)
+
+    @anchor.setter
+    def anchor(self, value):
+        WindowMixin.anchor.fset(self, value)
+
+    def setAnchor(self, value, log=None):
+        setAttribute(self, 'anchor', value, log)
+
+    @property
+    def dotSize(self):
         """Float specified in pixels (overridden if `element` is specified).
         :ref:`operations <attrib-operations>` are supported."""
-        self.__dict__['dotSize'] = dotSize
+        if hasattr(self, "_dotSize"):
+            return getattr(self._dotSize, 'pix')[0]
+
+    @dotSize.setter
+    def dotSize(self, value):
+        self._dotSize = Size(value, units='pix', win=self.win)
 
     @attributeSetter
     def dotLife(self, dotLife):

@@ -2,17 +2,12 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # python text parser
 # this is really just for the purpose of constructing code analysis in
 # python scripts
-
-from __future__ import absolute_import, print_function
-
-from builtins import next
-from builtins import object
 import tokenize
 import re
 
@@ -21,7 +16,7 @@ import re
 # print(xx['makeRadialMatrix'].__doc__)
 
 
-class tokenBuffer(object):
+class tokenBuffer():
     # simple buffer to provide mechanism to step backwards through previous
     # tokens
 

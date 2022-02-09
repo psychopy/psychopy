@@ -5,13 +5,9 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-
-from builtins import str
-from past.builtins import basestring
 import os
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
@@ -32,7 +28,7 @@ from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.visual.shape import BaseShapeStim
 from psychopy.visual.image import ImageStim
-from psychopy.visual.basevisual import MinimalStim, ContainerMixin
+from psychopy.visual.basevisual import MinimalStim, ContainerMixin, WindowMixin
 
 import numpy
 from numpy import cos, sin, radians
@@ -48,14 +44,17 @@ class Aperture(MinimalStim, ContainerMixin):
     the Aperture. Once disabled, subsequent draw operations affect the whole
     screen as usual.
 
-    If shape is 'square' or 'triangle' then that is what will be used
-    If shape is 'circle' or `None` then a polygon with nVerts will be used (120 for a rough circle)
-    If shape is a list or numpy array (Nx2) then it will be used directly
-        as the vertices to a :class:`~psychopy.visual.ShapeStim`
-    If shape is a filename then it will be used to load and image as a
-        :class:`~psychopy.visual.ImageStim`. Note that transparent parts
-        in the image (e.g. in a PNG file) will not be included in the mask
-        shape. The color of the image will be ignored.
+    Supported shapes:
+
+    * 'square', 'triangle', 'circle' or `None`: a polygon with appropriate nVerts will be used
+      (120 for 'circle')
+    * integer: a polygon with that many vertices will be used
+    * list or numpy array (Nx2): it will be used directly as the vertices to a
+      :class:`~psychopy.visual.ShapeStim`
+    * a filename then it will be used to load and image as a
+      :class:`~psychopy.visual.ImageStim`. Note that transparent parts
+      in the image (e.g. in a PNG file) will not be included in the mask
+      shape. The color of the image will be ignored.
 
     See demos/stimuli/aperture.py for example usage
 
@@ -66,7 +65,7 @@ class Aperture(MinimalStim, ContainerMixin):
         2015, Thomas Emmerling added ImageStim option
     """
 
-    def __init__(self, win, size=1, pos=(0, 0), ori=0, nVert=120,
+    def __init__(self, win, size=1, pos=(0, 0), anchor=None, ori=0, nVert=120,
                  shape='circle', inverted=False, units=None,
                  name=None, autoLog=None):
         # what local vars are defined (these are the init params) for use by
@@ -82,8 +81,6 @@ class Aperture(MinimalStim, ContainerMixin):
             logging.error('Aperture has no effect in a window created '
                           'without allowStencil=True')
             core.quit()
-        self.__dict__['size'] = size
-        self.__dict__['pos'] = pos
         self.__dict__['ori'] = ori
         self.__dict__['inverted'] = inverted
         self.__dict__['filename'] = False
@@ -102,13 +99,17 @@ class Aperture(MinimalStim, ContainerMixin):
             # (sin,cos):
             vertices = [(0.5 * sin(radians(theta)), 0.5 * cos(radians(theta)))
                         for theta in numpy.linspace(0, 360, nVert, False)]
+        elif isinstance(shape, int):
+            # if given a number, take it as a number of vertices and behave as if shape=='circle and nVerts==shape
+            vertices = [(0.5 * sin(radians(theta)), 0.5 * cos(radians(theta)))
+                        for theta in numpy.linspace(0, 360, shape, False)]
         elif shape == 'square':
             vertices = [[0.5, -0.5], [-0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]]
         elif shape == 'triangle':
             vertices = [[0.5, -0.5], [0, 0.5], [-0.5, -0.5]]
         elif type(shape) in [tuple, list, numpy.ndarray] and len(shape) > 2:
             vertices = shape
-        elif isinstance(shape, basestring):
+        elif isinstance(shape, str):
             # is a string - see if it points to a file
             if os.path.isfile(shape):
                 self.__dict__['filename'] = shape
@@ -125,7 +126,7 @@ class Aperture(MinimalStim, ContainerMixin):
         else:
             self._shape = BaseShapeStim(
                 win=self.win, vertices=vertices, fillColor=1, lineColor=None, colorSpace='rgb',
-                interpolate=False, pos=pos, size=size, autoLog=False, units=self.units)
+                interpolate=False, pos=pos, size=size, anchor=anchor, autoLog=False, units=self.units)
             self.vertices = self._shape.vertices
             self._needVertexUpdate = True
 
@@ -133,6 +134,9 @@ class Aperture(MinimalStim, ContainerMixin):
         # implicitly runs a self.enabled = True. Also sets
         # self._needReset = True on every call
         self._reset()
+
+        self.size = size
+        self.pos = pos
 
         # set autoLog now that params have been initialised
         wantLog = autoLog is None and self.win.autoLog
@@ -162,7 +166,7 @@ class Aperture(MinimalStim, ContainerMixin):
             GL.glStencilFunc(GL.GL_NEVER, 0, 0)
             GL.glStencilOp(GL.GL_INCR, GL.GL_INCR, GL.GL_INCR)
 
-            if self.__dict__['filename']:
+            if isinstance(self._shape, ImageStim):
                 GL.glEnable(GL.GL_ALPHA_TEST)
                 GL.glAlphaFunc(GL.GL_GREATER, 0)
                 self._shape.draw()
@@ -179,8 +183,8 @@ class Aperture(MinimalStim, ContainerMixin):
 
             GL.glPopMatrix()
 
-    @attributeSetter
-    def size(self, size):
+    @property
+    def size(self):
         """Set the size (diameter) of the Aperture.
 
         This essentially controls a :class:`.ShapeStim` so see
@@ -191,8 +195,12 @@ class Aperture(MinimalStim, ContainerMixin):
 
         Use setSize() if you want to control logging and resetting.
         """
-        self.__dict__['size'] = size
-        self._shape.size = size  # _shape is a ShapeStim
+        return WindowMixin.size.fget(self)
+
+    @size.setter
+    def size(self, value):
+        WindowMixin.size.fset(self, value)
+        self._shape.size = value  # _shape is a ShapeStim
         self._reset()
 
     def setSize(self, size, needReset=True, log=None):
@@ -225,8 +233,8 @@ class Aperture(MinimalStim, ContainerMixin):
         self._needReset = needReset
         setAttribute(self, 'ori', ori, log)
 
-    @attributeSetter
-    def pos(self, pos):
+    @property
+    def pos(self):
         """Set the pos (centre) of the Aperture.
         :ref:`Operations <attrib-operations>` supported.
 
@@ -238,8 +246,12 @@ class Aperture(MinimalStim, ContainerMixin):
 
         Use setPos() if you want to control logging and resetting.
         """
-        self.__dict__['pos'] = numpy.array(pos)
-        self._shape.pos = self.pos  # a ShapeStim
+        return WindowMixin.pos.fget(self)
+
+    @pos.setter
+    def pos(self, value):
+        WindowMixin.pos.fset(self, value)
+        self._shape.pos = value  # a ShapeStim
         self._reset()
 
     def setPos(self, pos, needReset=True, log=None):
@@ -248,6 +260,34 @@ class Aperture(MinimalStim, ContainerMixin):
         """
         self._needReset = needReset
         setAttribute(self, 'pos', pos, log)
+
+    @property
+    def anchor(self):
+        return WindowMixin.anchor.fget(self._shape)
+
+    @anchor.setter
+    def anchor(self, value):
+        WindowMixin.anchor.fset(self._shape, value)
+
+    def setAnchor(self, value, log=None):
+        setAttribute(self, 'anchor', value, log)
+
+    @property
+    def vertices(self):
+        return WindowMixin.vertices.fget(self._shape)
+
+    @vertices.setter
+    def vertices(self, value):
+        WindowMixin.vertices.fset(self._shape, value)
+
+    @property
+    def flip(self):
+        return WindowMixin.flip.fget(self)
+
+    @flip.setter
+    def flip(self, value):
+        WindowMixin.flip.fset(self, value)
+        self._shape.flip = value  # a ShapeStim
 
     @attributeSetter
     def inverted(self, value):
@@ -269,13 +309,13 @@ class Aperture(MinimalStim, ContainerMixin):
     def posPix(self):
         """The position of the aperture in pixels
         """
-        return self._shape.posPix
+        return self._shape._pos.pix
 
     @property
     def sizePix(self):
         """The size of the aperture in pixels
         """
-        return self._shape.sizePix
+        return self._shape._size.pix
 
     @attributeSetter
     def enabled(self, value):

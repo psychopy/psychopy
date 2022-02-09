@@ -7,10 +7,6 @@ Copyright (C) 2015 Jonathan Peirce
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
-from __future__ import absolute_import, print_function
-from builtins import super  # provides Py3-style super() using python-future
-
-from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.localization import _localized as __localized
@@ -96,7 +92,7 @@ class VariableComponent(BaseComponent):
         self.params['saveFrameValue'] = Param(
             'never', valType='str', inputType="choice", categ='Data',
             allowedVals=['first', 'last', 'all', 'never'],
-            updates='constant',
+            updates='constant', direct=False,
             hint=hnt,
             label=_localized['saveFrameValue'])
 
@@ -122,7 +118,6 @@ class VariableComponent(BaseComponent):
     def writeFrameCode(self, buff):
         """Write the code that will be called at the start of the frame."""
         if not self.params['startFrameValue'] == '':
-            basestring = (str, bytes)
             # Create dict for hold start and end types and converting them from types to variables
             timeTypeDict = {'time (s)': 't', 'frame N': 'frameN', 'condition': self.params['startVal'].val,
                             'duration (s)': 't','duration (frames)': 'frameN'}
@@ -138,7 +133,7 @@ class VariableComponent(BaseComponent):
             if self.params['startVal'].val or self.params['stopVal'].val:
                 if self.params['startType'].val == 'time (s)':
                     # if startVal is an empty string then set to be 0.0
-                    if (isinstance(self.params['startVal'].val, basestring) and
+                    if (isinstance(self.params['startVal'].val, str) and
                             not self.params['startVal'].val.strip()):
                         self.params['startVal'].val = '0.0'
 

@@ -6,10 +6,8 @@ as a special case of a :class:`~psychopy.visual.Polygon`
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-
-from __future__ import absolute_import, print_function
 
 import psychopy  # so we can get the __path__
 
@@ -118,6 +116,7 @@ class Circle(Polygon):
                  fillColorSpace=None,
                  pos=(0, 0),
                  size=1.0,
+                 anchor=None,
                  ori=0.0,
                  opacity=None,
                  contrast=1.0,
@@ -149,6 +148,7 @@ class Circle(Polygon):
             fillColorSpace=fillColorSpace,
             pos=pos,
             size=size,
+            anchor=anchor,
             ori=ori,
             opacity=opacity,
             contrast=contrast,

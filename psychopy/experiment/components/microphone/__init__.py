@@ -2,15 +2,10 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Author: Jeremy R. Gray, 2012
-
-from __future__ import absolute_import, print_function
-from builtins import super  # provides Py3-style super() using python-future
-
-from os import path
 from pathlib import Path
 
 from psychopy.alerts import alert
@@ -104,7 +99,7 @@ class MicrophoneComponent(BaseComponent):
         self.params['sampleRate'] = Param(
             sampleRate, valType='num', inputType="choice", categ='Hardware',
             allowedVals=list(sampleRates),
-            hint=msg,
+            hint=msg, direct=False,
             label=_translate('Sample Rate (Hz)'))
 
         msg = _translate(
@@ -163,7 +158,7 @@ class MicrophoneComponent(BaseComponent):
 
         self.params['transcribeBackend'] = Param(
             transcribeBackend, valType='code', inputType='choice', categ='Transcription',
-            allowedVals=list(allTranscribers),
+            allowedVals=list(allTranscribers), direct=False,
             hint=_translate("What transcription service to use to transcribe audio?"),
             label=_translate("Transcription Backend")
         )
@@ -364,16 +359,18 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         if inits['transcribeBackend'].val:
             code = (
+                "tag = data.utils.getDateStr()\n"
                 "%(name)sClip, %(name)sScript = %(name)s.bank(\n"
             )
         else:
             code = (
+                "tag = data.utils.getDateStr()\n"
                 "%(name)sClip = %(name)s.bank(\n"
             )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-            "tag='%(loop)s', transcribe='%(transcribeBackend)s',\n"
+            "tag=tag, transcribe='%(transcribeBackend)s',\n"
         )
         buff.writeIndentedLines(code % inits)
         if transcribe:
@@ -388,7 +385,7 @@ class MicrophoneComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
         code = (
             ")\n"
-            "%(loop)s.addData('%(name)s.clip', os.path.join(%(name)sRecFolder, %(filename)s))\n"
+            "%(loop)s.addData('%(name)s.clip', os.path.join(%(name)sRecFolder, 'recording_%(name)s_%%s.%(outputType)s' %% tag))\n"
         )
         buff.writeIndentedLines(code % inits)
         if transcribe:
@@ -427,7 +424,7 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "tag: %(filename)s,\n"
+                "tag: %(filename)s + util.MonotonicClock.getDateStr(),\n"
                 "flush: false\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -487,7 +484,22 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                    "clip.save(os.path.join(%(name)sRecFolder, 'recording_%(name)s_%%s_%%s.%(outputType)s' %% (tag, i)))\n"
+                    "clipFilename = 'recording_%(name)s_%%s.%(outputType)s' %% tag\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        code = (
+                    "# if there's more than 1 clip with this tag, append a counter for all beyond the first\n"
+                    "if i > 0:\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                        "clipFilename += '_%%s' %% i"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+                    "clip.save(os.path.join(%(name)sRecFolder, clipFilename))\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-2, relative=True)

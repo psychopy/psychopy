@@ -5,8 +5,10 @@ Coder
 
 The coder view is designed for those wishing to make scripts from scratch, either to make their experiments or do other things. Coder view does not teach you about Python `per se`, and you are recommended also to learn about that (`Python <http://www.python.org/>`_ has many excellent tutorials for programmers and non-programmers alike). In particular, dictionaries, lists and numpy arrays are used a great deal in most PsychoPy experiments.
 
-.. image:: ../images/coder_small.gif
-   :alt: The Coder view
+.. only:: html
+
+    .. image:: /images/coder_small.gif
+       :alt: The Coder view
 
 You can use PsychoPy in any python development environment (e.g. `Pycharm <https://www.jetbrains.com/pycharm/>`_, `Spyder <https://www.spyder-ide.org/>`_, or python IDLE that comes with your standard `python installation <https://www.python.org/downloads/>`_).
 So, *why use coder view in PsychoPy?* the answer is that the PsychoPy as a standalone package also includes several common python libraries you would use when making experiments in python.
@@ -21,11 +23,12 @@ You can learn to use the scripting interface to PsychoPy in several ways, and yo
 - demos: in the demos menu of Coder view.
 - use the :ref:`builder` to :ref:`compile a script <compileScript>` and see how it works (you can actually compile to Python or Javascript to learn a bit of both!). This is also useful for understanding the :ref:`code`, you can write a snippet in a code component in builder and compile to see where it is written in the script (but remember exporting to coder is a one way street, you can't make edits in coder and hope that is reflected back in the builder experiment).
 
-.. image:: ../images/compile_code.gif
-   :alt: The Coder view
+.. only:: html
 
-- check the :ref:`api` for further details
-- ultimately go into `PsychoPy <https://github.com/psychopy/psychopy>`_ and start examining the source code. It's just regular python!
+    .. image:: /images/compile_code.gif
+       :alt: The Coder view
+
+You should check the :ref:`api` for further details and, ultimately, go into `PsychoPy <https://github.com/psychopy/psychopy>`_ and start examining the source code. It's just regular python!
 
 .. _concepts:
 

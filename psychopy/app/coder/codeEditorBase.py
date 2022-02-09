@@ -7,16 +7,11 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
 import wx.stc
-import sys
-from pkg_resources import parse_version
-from psychopy.constants import PY3
-from psychopy import logging
-from psychopy import prefs
 from ..themes import ThemeMixin
 
 from psychopy.localization import _translate
@@ -354,15 +349,6 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl, ThemeMixin):
         clip.Close()
         if success:
             txt = dataObj.GetText()
-            # dealing with unicode error in wx3 for Mac
-            if parse_version(wx.__version__) >= parse_version('3') and sys.platform == 'darwin' and not PY3:
-                try:
-                    # if we can decode from utf-8 then all is good
-                    txt.decode('utf-8')
-                except Exception as e:
-                    logging.error(str(e))
-                    # if not then wx conversion broke so get raw data instead
-                    txt = dataObj.GetDataHere()
             self.ReplaceSelection(txt.replace("\r\n", "\n").replace("\r", "\n"))
 
         self.analyseScript()

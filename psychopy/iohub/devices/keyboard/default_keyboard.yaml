@@ -39,6 +39,11 @@ Keyboard:
     #       is the intended event target will be reported.
     report_system_wide_events: True
 
+    # use_keymap: What key map set / heuristics should be used? Options:
+    #   psychopy: Use key map that is the same as used by event.getKeys()
+    #   legacy: Use original iohub key map
+    use_keymap: legacy
+
     # save_events: *If* the ioHubDataStore is enabled for the experiment, then
     #   indicate if events for this device should be saved to the
     #   data_collection/keyboard event group in the hdf5 event file.

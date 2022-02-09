@@ -6,14 +6,12 @@ local installation of VLC media player (https://www.videolan.org/).
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 #
 # VlcMovieStim originally contributed by Dan Fitch, April 2019. The `MovieStim2`
 # class was taken and rewritten to use only VLC.
 #
-
-from __future__ import absolute_import, division, print_function
 
 import os
 import sys
@@ -35,14 +33,17 @@ GL = pyglet.gl
 try:
     # check if the lib can be loaded
     import vlc
+    haveVLC = True
 except Exception as err:
+    haveVLC = False
+    # store the error but only raise it if the
     if "wrong architecture" in str(err):
         msg = ("Failed to import `vlc` module required by `vlcmoviestim`.\n"
                "You're using %i-bit python. Is your VLC install the same?"
                % 64 if sys.maxsize == 2 ** 64 else 32)
-        raise OSError(msg)
+        _vlcImportErr = OSError(msg)
     else:
-        raise err
+        _vlcImportErr = err
 
 # flip time, and time since last movie frame flip will be printed
 reportNDroppedFrames = 10
@@ -115,6 +116,9 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
                  noAudio=False,
                  interpolate=True,
                  autoStart=True):
+        # check if we have the VLC lib
+        if not haveVLC:
+            raise _vlcImportErr
         # what local vars are defined (these are the init params) for use
         # by __repr__
         self._initParams = dir()
@@ -1076,13 +1080,15 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
     def _drawRectangle(self):
         """Draw the frame to the window. This is called by the `draw()` method.
         """
-        # make sure that textures are on and GL_TEXTURE0 is active
-        GL.glActiveTexture(GL.GL_TEXTURE0)
+        # make sure that textures are on and GL_TEXTURE0 is activ
         GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+
         # sets opacity (1, 1, 1 = RGB placeholder)
         GL.glColor4f(1, 1, 1, self.opacity)
         GL.glPushMatrix()
         self.win.setScale('pix')
+
         # move to centre of stimulus and rotate
         vertsPix = self.verticesPix
 
@@ -1097,15 +1103,18 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
             vertsPix[3, 0], vertsPix[3, 1], 0.,
         )
         GL.glPushAttrib(GL.GL_ENABLE_BIT)
-        GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
         GL.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT)
+
         # 2D texture array, 3D vertex array
         GL.glInterleavedArrays(GL.GL_T2F_V3F, 0, array)
         GL.glDrawArrays(GL.GL_QUADS, 0, 4)
         GL.glPopClientAttrib()
         GL.glPopAttrib()
         GL.glPopMatrix()
+
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glEnable(GL.GL_TEXTURE_2D)
 
     def draw(self, win=None):
         """Draw the current frame to a particular
@@ -1182,7 +1191,9 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 
     def __del__(self):
         try:
-            self._releaseVLCInstance()
+            if hasattr(self, '_player'):
+                # false if crashed before creating instance
+                self._releaseVLCInstance()
         except (ImportError, ModuleNotFoundError, TypeError):
             pass  # has probably been garbage-collected already
 

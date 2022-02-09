@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Provides functions for logging error and other messages to one or more
@@ -33,17 +33,12 @@ messages, (which PsychoPy doesn't use) using the commands::
 # stack of log entries for later writing (don't want files written while
 # drawing)
 
-from __future__ import absolute_import, print_function
-
-from builtins import object
-from past.builtins import basestring
 from os import path
 import atexit
 import sys
 import codecs
 import locale
 from psychopy import clock
-from psychopy.constants import PY3
 
 _packagePath = path.split(__file__)[0]
 
@@ -121,7 +116,7 @@ def setDefaultClock(clock):
     defaultClock = clock
 
 
-class _LogEntry(object):
+class _LogEntry():
 
     def __init__(self, level, message, t=None, obj=None):
         super(_LogEntry, self).__init__()
@@ -137,7 +132,7 @@ class _LogEntry(object):
         self.obj = obj
 
 
-class LogFile(object):
+class LogFile():
     """A text stream to receive inputs from the logging system
     """
 
@@ -167,7 +162,7 @@ class LogFile(object):
             self.stream = 'stdout'
         elif hasattr(f, 'write'):
             self.stream = f
-        elif isinstance(f, basestring):
+        elif isinstance(f, str):
             self.stream = codecs.open(f, filemode, encoding)
         self.level = level
         if logger is None:
@@ -201,10 +196,7 @@ class LogFile(object):
         """
         # find the current stdout if we're the console logger
         if self.stream == 'stdout':
-            if PY3:
-                stream = sys.stdout
-            else:
-                stream = codecs.getwriter(_prefEncoding)(sys.stdout)
+            stream = sys.stdout
         else:
             stream = self.stream
         # try to write
@@ -228,7 +220,7 @@ class LogFile(object):
             pass
 
 
-class _Logger(object):
+class _Logger():
     """Maintains a set of log targets (text streams such as files of stdout)
 
     self.targets is a list of dicts {'stream':stream, 'level':level}
