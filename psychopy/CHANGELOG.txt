@@ -15,23 +15,59 @@ to run on the same PsychoPy version even where a different version is installed 
 That setting often even allows PsychoPy to run experiments from versions that have not yet
 been installed! If the dependencies haven't changed it will run.
 
-PsychoPy 2022.2
+PsychoPy 2022.1
 ---------------
 
 *Highlights:*
 
-- Template Routines
-- Improvements to VLC Movie backend
-- QUEST staircases now supported via multi-staircase in Loops
-- dynamic loading of stimuli now possible in online experiments rather
-  than loading all stimuli during the Exp Info dialog. Can now alter
-  the stimuli downloaded per-participant
+- Can now insert new Routines from templates (such as Fixation, 2-alternative 
+  forced choice, etc)
+- Improved interface for searching, syncing and viewing Pavlovia projects from 
+  within the PsychoPy app
+- In online experiments you can now dynamically choose the resources your 
+  participant needs as the experiment progresses rather than downloading them all in 
+  the first dialog box
+- QUEST handlers now available in PsychoJS including interleaved staircases
+- Most visual stimuli now have an "anchor" parameter to control how it's laid out 
+  relative to its position, and you can now set the alignment of text within a Textbox 
+  (with a handy demo to illustrate the difference between anchor and alignment!)
+- Added support for Pupil labs eye trackers (thanks to Pupil Labs themselves) directly from 
+  the Builder
 
 *Compatibility Changes:*
 
+- Python 2.x is no longer supported
 - Filename timestamps now have a different default format (based on ISO 8601):
   2022-01-14_14h39.36.092 for 2:39pm and 36s, 92ms
   See :func:`psychopy.utils.getDateStr` for details on the new functionality
+
+- Ability to customise the filename in online studies, using the same Experiment Settings 
+  option as local studies
+- Standalone distribution now using Python 3.8
+- Builder: Keyboard class now providing the option to select the underlying engine 
+  (iohub, psychtoolbox or pyglet) with `iohub` now being the recommended default
+- Filter components view by what works online vs locally
+- Eye Tracker Record Component can now be use to record across multiple routines.
+- Added Text Color setting to Eye Tracker Calibration and Validation procedures / Routines
+- Allow selection of which U3 register to write to when using a LabJack U3 with the 
+  Parallel Out Component.
+- Added non fullscreen window and multiple window support to iohub Mouse device.
+- Python shell within Coder view has been rewritten and is much more functional
+- Mouse now has the option to store only valid clicks
+- Added the option to refer to pre-canned image files, such as default.png and use 
+  as an image stimulus
+
+Many bug fixes, more than we have room for here, including:
+
+- Code / Builder: iohub keyboard mappings now match those used by event.getKeys(). 
+- Code: labjacks.U3.setData was not working
+- Builder: Region of Interest (ROI) Component does not depend on ETRecord component.
+- Builder: ROI Component 'look away' now ends routine after eyes have been outside 
+  ROI for 'Min look time' seconds. 
+- Code: 0.5 second blocking eyelink start / stop record caused iohub to drop 
+  keyboard events. 
+- Code: eyelink now uses calibration 'randomize' param.
+- Code: Layout of Form, Slider and Textbox now much more stable and consistent
 
 PsychoPy 2021.2
 ---------------
