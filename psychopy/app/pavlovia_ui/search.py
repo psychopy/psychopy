@@ -281,7 +281,7 @@ class SearchPanel(wx.Panel):
         self.filterBtn.Enable(not self._mine)
         self.searchCtrl.Enable(not self._mine)
         if self._mine:
-            self.filterOptions = {key: [] for key in self.filterOptions}
+            self.filterTerms = {key: [] for key in self.filterTerms}
             self.searchCtrl.Value = ""
         # Update
         self.filterLbl.update()
