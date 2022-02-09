@@ -29,7 +29,6 @@ class ResourceManagerComponent(BaseComponent):
                                stopType=stopType, stopVal=stopVal,
                                startEstim=startEstim, durationEstim=durationEstim,
                                saveStartStop=saveStartStop, syncScreenRefresh=syncScreenRefresh,
-                               forceEndRoutine=forceEndRoutine,
                                disabled=disabled)
         self.type = 'ResourceManager'
         self.url = "https://www.psychopy.org/builder/components/resourcemanager"
