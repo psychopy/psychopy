@@ -14,6 +14,7 @@ compiled from Builder.
 
 __all__ = ['ScriptProcess']
 
+import os.path
 import sys
 import psychopy.app.jobs as jobs
 from wx import BeginBusyCursor, EndBusyCursor
@@ -128,7 +129,8 @@ class ScriptProcess:
         BeginBusyCursor()  # visual feedback
 
         # start the subprocess
-        self.scriptProcess.start()
+        workingDir, _ = os.path.split(fullPath)
+        self.scriptProcess.start(cwd=workingDir)  # move set CWD to Job.__init__
         self.focusOnExit = focusOnExit
 
     def stopFile(self, event=None):

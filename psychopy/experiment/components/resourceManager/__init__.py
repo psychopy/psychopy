@@ -21,6 +21,7 @@ class ResourceManagerComponent(BaseComponent):
                  startEstim='', durationEstim='',
                  resources=None, actionType='Start and Check',
                  saveStartStop=True, syncScreenRefresh=False,
+                 forceEndRoutine=False,
                  disabled=False):
 
         BaseComponent.__init__(self, exp, parentName, name=name,
@@ -28,6 +29,7 @@ class ResourceManagerComponent(BaseComponent):
                                stopType=stopType, stopVal=stopVal,
                                startEstim=startEstim, durationEstim=durationEstim,
                                saveStartStop=saveStartStop, syncScreenRefresh=syncScreenRefresh,
+                               forceEndRoutine=forceEndRoutine,
                                disabled=disabled)
         self.type = 'ResourceManager'
         self.url = "https://www.psychopy.org/builder/components/resourcemanager"
@@ -52,6 +54,13 @@ class ResourceManagerComponent(BaseComponent):
             label=_translate("Preload Actions")
         )
 
+        msg = _translate("Should we end the Routine when the resource download is complete?")
+        self.params['forceEndRoutine'] = Param(
+            forceEndRoutine, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
+            updates='constant',
+            hint=msg,
+            label=_translate('forceEndRoutine'))
+
         self.params['stopVal'].label = "Check"
 
         self.depends.append(
@@ -69,7 +78,7 @@ class ResourceManagerComponent(BaseComponent):
               "true": "hide",  # what to do with param if condition is True
               "false": "show",  # permitted: hide, show, enable, disable
               }
-         )
+        )
         self.depends.append(
              {"dependsOn": "actionType",  # must be param name
               "condition": "=='Check Only'",  # val to check for
@@ -77,15 +86,10 @@ class ResourceManagerComponent(BaseComponent):
               "true": "hide",  # what to do with param if condition is True
               "false": "show",  # permitted: hide, show, enable, disable
               }
-         )
-        self.depends.append(
-             {"dependsOn": "checkAll",  # must be param name
-              "condition": "==True",  # val to check for
-              "param": "resources",  # param property to alter
-              "true": "disable",  # what to do with param if condition is True
-              "false": "enable",  # permitted: hide, show, enable, disable
-              }
-         )
+        )
+
+        del self.params['syncScreenRefresh']
+        del self.params['saveStartStop']
 
     def writeInitCodeJS(self, buff):
         # Get initial values
@@ -148,6 +152,8 @@ class ResourceManagerComponent(BaseComponent):
                         "console.log('finished downloading resources specified by component %(name)s');\n"
                         "%(name)s.status = PsychoJS.Status.FINISHED;\n"
             )
+            if self.params['forceEndRoutine']:
+                code += "continueRoutine = false;\n"
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(-1, relative=True)
             code = (

@@ -236,7 +236,7 @@ class PavloviaSession:
     def currentProject(self, value):
         self._currentProject = PavloviaProject(value)
 
-    def createProject(self, name, description="", tags=(), visibility='public',
+    def createProject(self, name, description="", tags=(), visibility='private',
                       localRoot='', namespace=''):
         """Returns a PavloviaProject object (derived from a gitlab.project)
 
@@ -562,6 +562,8 @@ class PavloviaProject(dict):
         except KeyError:
             if key in self.project.attributes:
                 value = self.project.attributes[key]
+            elif hasattr(self, "_info") and key in self._info:
+                return self._info[key]
             else:
                 value = None
         # Transform datetimes
@@ -597,7 +599,8 @@ class PavloviaProject(dict):
         self._info = None
         # for a new project it may take time for Pavlovia to register the new ID so try for a while
         while self._info is None and (time.time() - start) < 30:
-            requestVal = requests.get("https://pavlovia.org/api/v2/experiments/" + str(self.id)).json()
+            requestVal = requests.get(f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
+                                      headers={'OauthToken': self.session.getToken()}).json()
             self._info = requestVal['experiment']
         if self._info is None:
             raise ValueError(f"Could not find project with id `{self.id}` on Pavlovia: {requestVal}")
@@ -752,7 +755,7 @@ class PavloviaProject(dict):
         # Jot down start time
         t0 = time.time()
         # If first commit, do initial push
-        if not bool(self['default_branch']):
+        if not bool(self.project.attributes['default_branch']):
             self.firstPush(infoStream=infoStream)
         # Pull and push
         self.pull(infoStream)
@@ -936,6 +939,7 @@ class PavloviaProject(dict):
         if infoStream:
             infoStream.write("\nPushing to Pavlovia for the first time...")
         info = self.repo.git.push('-u', self.remoteWithToken, 'master')
+        self.project.attributes['default_branch'] = 'master'
         if infoStream:
             infoStream.write("\n{}".format(info))
             infoStream.write("\nSuccess!".format(info))
