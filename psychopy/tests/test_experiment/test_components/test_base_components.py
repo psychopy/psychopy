@@ -50,8 +50,7 @@ class _TestDisabledMixin:
         comp, rt, exp = _make_minimal_experiment(self)
         # Check whether it can be disabled
         assert 'disabled' in comp.params, (
-            f"{type(comp).__name__} does not have a 'disabled' attribute. If this is intentional, remove it from "
-            f"TestDisabledComponents.allComps for this test to pass."
+            f"{type(comp).__name__} does not have a 'disabled' attribute."
         )
         # Check that disabled defaults to False
         assert comp.params['disabled'].val is False, f"{type(comp).__name__} is defaulting to disabled."
