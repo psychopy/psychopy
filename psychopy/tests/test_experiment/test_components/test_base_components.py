@@ -18,7 +18,7 @@ class _TestBaseComponentsMixin:
         exp.flow.addRoutine(rt, 0)
         # Create instance of this component with all default params
         compClass = type(self.comp)
-        comp = compClass(exp=exp, parentName='TestRoutine', name="testComponent")
+        comp = compClass(exp=exp, parentName='TestRoutine', name=f"test{compClass.__name__}")
         rt.append(comp)
         # Return experiment, routine and component
         return comp, rt, exp
@@ -48,21 +48,21 @@ class _TestDisabledMixin(_TestBaseComponentsMixin):
         # Write experiment and check that component is written
         pyScript = exp.writeScript(target="PsychoPy")
         if "PsychoPy" in type(comp).targets:
-            assert "testComponent" in pyScript, (
+            assert comp.name in pyScript, (
                 f"{type(comp).__name__} not found in compiled Python script when enabled and PsychoPy in targets."
             )
         else:
-            assert "testComponent" not in pyScript, (
+            assert comp.name not in pyScript, (
                 f"{type(comp).__name__} found in compiled Python script when enabled but PsychoPy not in targets."
             )
         # ## disabled until js can compile without saving
         # jsScript = exp.writeScript(target="PsychoJS")
         # if "PsychoJS" in type(comp).targets:
-        #     assert "testComponent" in jsScript, (
+        #     assert comp.name in jsScript, (
         #         f"{type(comp).__name__} not found in compiled Python script when enabled and PsychoJS in targets."
         #     )
         # else:
-        #     assert "testComponent" not in jsScript, (
+        #     assert comp.name not in jsScript, (
         #         f"{type(comp).__name__} found in compiled Python script when enabled but PsychoJS not in targets."
         #     )
 
@@ -71,21 +71,21 @@ class _TestDisabledMixin(_TestBaseComponentsMixin):
 
         pyScript = exp.writeScript(target="PsychoPy")
         if "PsychoPy" in type(comp).targets:
-            assert "testComponent" not in pyScript, (
+            assert comp.name not in pyScript, (
                 f"{type(comp).__name__} found in compiled Python script when disabled but PsychoPy in targets."
             )
         else:
-            assert "testComponent" not in pyScript, (
+            assert comp.name not in pyScript, (
                 f"{type(comp).__name__} found in compiled Python script when disabled and PsychoPy not in targets."
             )
         # ## disabled until js can compile without saving
         # jsScript = exp.writeScript(target="PsychoJS")
         # if "PsychoJS" in type(comp).targets:
-        #     assert "testComponent" not in jsScript, (
+        #     assert comp.name not in jsScript, (
         #         f"{type(comp).__name__} found in compiled Python script when disabled but PsychoJS in targets."
         #     )
         # else:
-        #     assert "testComponent" not in jsScript, (
+        #     assert comp.name not in jsScript, (
         #         f"{type(comp).__name__} found in compiled Python script when disabled and PsychoJS not in targets."
         #     )
 
