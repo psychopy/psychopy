@@ -39,6 +39,37 @@ class _TestBaseStandaloneRoutinesMixin:
         for file in files:
             assert file.is_file()
 
+    def test_params_used(self):
+        # Make minimal experiment just for this test
+        rt, exp = _make_minimal_experiment(self)
+        # Try with PsychoPy and PsychoJS
+        for target in ("PsychoPy", "PsychoJS"):
+            ## Skip PsychoJS until can write script without saving
+            if target == "PsychoJS":
+                continue
+            # Skip unimplemented targets
+            if target not in rt.targets:
+                continue
+            # Compile script
+            script = exp.writeScript(target=target)
+            # Check that the string value of each param is present in the script
+            experiment.utils.scriptTarget = target
+            # Iterate through every param
+            for routine in exp.flow:
+                for name, param in experiment.getInitVals(routine.params, target).items():
+                    # Conditions to skip...
+                    if not param.direct:
+                        # Marked as not direct
+                        continue
+                    if any(name in depend['param'] for depend in routine.depends):
+                        # Dependent on another param
+                        continue
+                    # Check that param is used
+                    assert str(param) in script, (
+                        f"Value {param} of <psychopy.experiment.params.Param: val={param.val}, valType={param.valType}> "
+                        f"in {type(rt).__name__} not found in {target} script."
+                    )
+
 
 class _TestDisabledMixin:
     def test_disabled_default_val(self):
