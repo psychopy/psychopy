@@ -21,22 +21,6 @@ class TestStandaloneRoutines:
     def teardown(self):
         pass
 
-    def test_icons(self):
-        """Check that all components have icons for each app theme"""
-        # Iterate through component classes
-        for rt in self.routines.values():
-            # Pathify icon file path
-            icon = Path(rt.iconFile)
-            # Get paths for each theme
-            files = [
-                icon.parent / "light" / icon.name,
-                icon.parent / "dark" / icon.name,
-                icon.parent / "classic" / icon.name,
-            ]
-            # Check that each path is a file
-            for file in files:
-                assert file.is_file()
-
     def test_writing(self):
         # Test both python and JS
         for target, exp in {"PsychoPy": self.expPy, "PsychoJS": self.expJS}.items():
