@@ -40,6 +40,45 @@ class _TestBaseComponentsMixin:
         for file in files:
             assert file.is_file()
 
+    def test_params_used(self):
+        # Make minimal experiment just for this test
+        comp, rt, exp = _make_minimal_experiment(self)
+        # Try with PsychoPy and PsychoJS
+        for target in ("PsychoPy", "PsychoJS"):
+            ## Skip PsychoJS until can write script without saving
+            if target == "PsychoJS":
+                continue
+            # Skip if not valid for this (or any) target
+            if target not in comp.targets:
+                continue
+            if type(comp).__name__ == "SettingsComponent":
+                continue
+            if type(comp).__name__ in ['RatingScaleComponent', 'PatchComponent']:
+                continue
+            # Compile script
+            script = exp.writeScript(target=target)
+            # Check that the string value of each param is present in the script
+            experiment.utils.scriptTarget = target
+            # Iterate through every param
+            for paramName, param in experiment.getInitVals(comp.params, target).items():
+                # Conditions to skip...
+                if not param.direct:
+                    # Marked as not direct
+                    continue
+                if any(paramName in depend['param'] for depend in comp.depends):
+                    # Dependent on another param
+                    continue
+                if param.val in [
+                    "from exp settings",  # units and color space, aliased
+                    'default',  # most of the time will be aliased
+                ]:
+                    continue
+                # Check that param is used
+                assert str(param) in script, (
+                    f"Value {param} of <psychopy.experiment.params.Param: val={param.val}, valType={param.valType}> "
+                    f"in {type(comp).__name__} not found in {target} script."
+                )
+
 
 class _TestDisabledMixin:
     def test_disabled_default_val(self):
