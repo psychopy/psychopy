@@ -78,29 +78,6 @@ class TestExpt():
     def teardown_class(cls):
         shutil.rmtree(cls.tmp_dir, ignore_errors=True)
 
-    def test_xml(self):
-        # Get all psyexp files in demos folder
-        demosFolder = Path(self.exp.prefsPaths['demos']) / 'builder'
-        for file in demosFolder.glob("**/*.psyexp"):
-            # Create experiment and load from psyexp
-            exp = psychopy.experiment.Experiment()
-            exp.loadFromXML(file)
-            # Compile to get what script should look like
-            target = exp.writeScript()
-            # Save as XML
-            temp = str(Path(self.tmp_dir) / "testXML.psyexp")
-            exp.saveToXML(temp)
-            # Load again
-            exp.loadFromXML(temp)
-            # Compile again
-            test = exp.writeScript()
-            # Remove any timestamps from script (these can cause false errors if compile takes longer than a second)
-            test = re.sub(isTime, "", test)
-            target = re.sub(isTime, "", target)
-            # Compare two scripts to make sure saving and loading hasn't changed anything
-            diff = difflib.unified_diff(target.splitlines(), test.splitlines())
-            assert list(diff) == []
-
     def test_xsd(self):
         # get files
 
@@ -348,9 +325,6 @@ class TestExpt():
         # run:
         stdout, stderr = core.shellCall([sys.executable, lastrun], stderr=True)
         assert not stderr
-
-    def test_Exp_AddRoutine(self):
-        self.exp.addRoutine('instructions')
 
     def test_Exp_NameSpace(self):
         namespace = self.exp.namespace
