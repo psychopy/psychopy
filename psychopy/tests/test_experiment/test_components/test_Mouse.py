@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from . import _TestDisabledMixin
 from psychopy.experiment import Experiment
 from psychopy.experiment.loops import TrialHandler
 from psychopy.experiment.routines import Routine
@@ -8,7 +9,7 @@ from psychopy.experiment.components.polygon import PolygonComponent
 from psychopy.tests.utils import TESTS_DATA_PATH
 
 
-class TestMouseComponent:
+class TestMouseComponent(_TestDisabledMixin):
     """
     Test that Mouse coponents have the correct params and write as expected.
     """
