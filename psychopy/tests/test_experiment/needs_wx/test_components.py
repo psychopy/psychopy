@@ -161,22 +161,6 @@ class TestComponents():
         for mismatch in mismatched:
             warnings.warn("Non-identical Builder Param: {}".format(mismatch))
 
-    def test_icons(self):
-        """Check that all components have icons for each app theme"""
-        # Iterate through component classes
-        for comp in self.allComp.values():
-            # Pathify icon file path
-            icon = Path(comp.iconFile)
-            # Get paths for each theme
-            files = [
-                icon.parent / "light" / icon.name,
-                icon.parent / "dark" / icon.name,
-                icon.parent / "classic" / icon.name,
-            ]
-            # Check that each path is a file
-            for file in files:
-                assert file.is_file()
-
     def test_params_used(self):
         # Change eyetracking settings
         self.expPy.settings.params['eyetracker'].val = "MouseGaze"

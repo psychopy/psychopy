@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from psychopy import experiment
@@ -24,24 +26,19 @@ def _make_minimal_experiment(obj):
 
 
 class _TestBaseComponentsMixin:
-    def _make_minimal_experiment(self):
-        """
-        Make a minimal experiment with just one routine containing just one component, of the same class as the current
-        component but with all default params.
-        """
-        # Skip whole test if required attributes aren't present
-        if not hasattr(self, "comp"):
-            pytest.skip()
-        # Make blank experiment
-        exp = experiment.Experiment()
-        rt = exp.addRoutine(routineName='Test Routine')
-        exp.flow.addRoutine(rt, 0)
-        # Create instance of this component with all default params
-        compClass = type(self.comp)
-        comp = compClass(exp=exp, parentName='TestRoutine', name=f"test{compClass.__name__}")
-        rt.append(comp)
-        # Return experiment, routine and component
-        return comp, rt, exp
+    def test_icons(self):
+        """Check that component has icons for each app theme"""
+        # Pathify icon file path
+        icon = Path(self.comp.iconFile)
+        # Get paths for each theme
+        files = [
+            icon.parent / "light" / icon.name,
+            icon.parent / "dark" / icon.name,
+            icon.parent / "classic" / icon.name,
+        ]
+        # Check that each path is a file
+        for file in files:
+            assert file.is_file()
 
 
 class _TestDisabledMixin:
