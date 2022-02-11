@@ -922,6 +922,7 @@ class SettingsComponent:
         buff.writeIndented("expInfo = %s\n" % expInfoStr)
         if self.params['Show info dlg'].val:
             buff.writeIndentedLines(
+                f"# --- Show participant info dialog --\n"
                 f"dlg = gui.DlgFromDict(dictionary=expInfo, "
                 f"sortKeys={sorting}, title=expName)\n"
                 f"if dlg.OK == False:\n"
