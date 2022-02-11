@@ -1004,7 +1004,7 @@ class SettingsComponent:
 
         # Make ioConfig dict
         code = (
-            "# --- Setup ioHub ---\n"
+            "# --- Setup input devices ---\n"
             "ioConfig = {}\n"
         )
         buff.writeIndentedLines(code % inits)
