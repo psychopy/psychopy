@@ -1,14 +1,6 @@
 import re
-
+from ..utils import _q, _lb, _rb, _d, _sl
 from psychopy.experiment import Param, utils as exputils
-
-
-# Some regex shorthand
-_q = r"[\"']"  # quotes
-_lb = r"[\[\(]"  # left bracket
-_rb = r"[\]\)]"  # right bracket
-_d = r"\$"  # dollar (escaped for re)
-_sl = "\\"  # back slash
 
 
 def test_param_str():
