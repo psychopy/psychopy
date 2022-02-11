@@ -3,15 +3,18 @@ import re
 from psychopy.experiment import Param, utils as exputils
 
 
+# Some regex shorthand
+_q = r"[\"']"  # quotes
+_lb = r"[\[\(]"  # left bracket
+_rb = r"[\]\)]"  # right bracket
+_d = r"\$"  # dollar (escaped for re)
+_sl = "\\"  # back slash
+
+
 def test_param_str():
     """
     Test that params convert to str as expected in both Python and JS
     """
-    # Some regex shorthand
-    _q = r"[\"']"  # quotes
-    _lb = r"[\[\(]"  # left bracket
-    _rb = r"[\]\)]"  # right bracket
-    _sl = "\\"  # back slash
 
     cases = [
         # Regular string
@@ -134,3 +137,63 @@ def test_param_str():
                 f"`{repr(case['obj'])}` should match the regex `{case['js']}`, but it was `{case['obj']}`")
     # Set script target back to init
     exputils.scriptTarget = initTarget
+
+
+def test_dollar_sign_syntax():
+    # Define some param values, along with values which Param.dollarSyntax should return
+    cases = [
+        # Valid dollar and redundant dollar
+        {'val': f"$hello $there",
+         'ans': f"hello {_d}there",
+         'valid': False},
+        # Valid dollar and scaped dollar
+        {'val': f"$hello \$there",
+         'ans': f"hello {_sl}{_sl}{_d}there",
+         'valid': False},
+        # Just redundant dollar
+        {'val': f"hello $there",
+         'ans': f"hello {_d}there",
+         'valid': False},
+        # Just escaped dollar
+        {'val': f"\$hello there",
+         'ans': f"{_sl}{_sl}{_d}hello there",
+         'valid': True},
+        # Dollar in comment
+        {'val': f"#$hello there",
+         'ans': f"#{_d}hello there",
+         'valid': False},
+        # Comment after dollar
+        {'val': f"$#hello there",
+         'ans': f"#hello there",
+         'valid': True},
+        # Dollar and comment
+        {'val': f"$hello #there",
+         'ans': f"hello #there",
+         'valid': True},
+        # Valid dollar and redundtant dollar in comment
+        {'val': f"$hello #$there",
+         'ans': f"hello #{_d}there",
+         'valid': True},
+        # Valid dollar and escaped dollar in escaped d quotes
+        {'val': f"$hello \"\$there\"",
+         'ans': f"hello {_q}{_sl}{_sl}{_d}there{_q}",
+         'valid': True},
+        # Valid dollar and escaped dollar in escaped s quotes
+        {'val': f"$hello \'\$there\'",
+         'ans': f"hello {_q}{_sl}{_sl}{_d}there{_q}",
+         'valid': True},
+    ]
+    # Run dollar syntax on each case
+    for case in cases:
+        # Make str param from val
+        param = Param(case['val'], "str")
+        # Run dollar syntax method
+        valid, ans = param.dollarSyntax()
+        # Is the output correct?
+        assert re.fullmatch(case['ans'], ans), (
+            f"Dollar syntax for {repr(param)} should return `{case['ans']}`, but instead returns `{ans}`"
+        )
+        assert valid == case['valid'], (
+            f"Dollar syntax function should consider validity of {repr(param)} to be {case['valid']}, but instead "
+            f"received {valid}"
+        )

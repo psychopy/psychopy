@@ -98,30 +98,6 @@ class TestComponents:
         assert '___end_routine___;' in script
         assert '___end_experiment___;' in script
 
-    def test_dollar_sign_syntax(self):
-        # Define several "tykes" - values which are likely to cause confusion - along with whether or not they are valid syntax
-        tykes = {
-            "$hello $there": False,
-            "$hello \\$there": False,
-            "hello $there": False,
-            "\\$hello there": True,
-            "#$hello there": False,
-            "$#hello there": True,
-            "$hello #there": True,
-            "$hello #$there": True,
-            "$hello \"\\$there\"": True,
-            "$hello \'\\$there\'": True,
-        }
-        # Make a component with a str parameter for each tyke
-        tykeComponent = BaseComponent(None, None)
-        for (i, val) in enumerate(tykes):
-            tykeComponent.params.update({
-                str(i): Param(val, "str")
-            })
-        for (i, val) in enumerate(tykes):
-            # Check the validity of each tyke param against the expected value
-            assert tykeComponent.params[str(i)].dollarSyntax()[0] == tykes[val]
-
 
 def test_get_resources_js():
     cases = [
