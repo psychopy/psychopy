@@ -122,43 +122,6 @@ class TestComponents:
             # Check the validity of each tyke param against the expected value
             assert tykeComponent.params[str(i)].dollarSyntax()[0] == tykes[val]
 
-    def test_list_params(self):
-        # Define params and how they should compile
-        cases = [
-            {'val': "\"left\", \"down\", \"right\"",
-             'py': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}",
-             'js': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Double quotes naked list
-            {'val': "\'left\', \'down\', \'right\'",
-             'py': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}",
-             'js': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Single quotes naked list
-            {'val': "(\'left\', \'down\', \'right\')",
-             'py': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}",
-             'js': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Single quotes tuple syntax
-            {'val': "[\'left\', \'down\', \'right\']",
-             'py': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}",
-             'js': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Single quotes list syntax
-            {'val': "\"left\"",
-             'py': f"{_lb}{_q}left{_q}{_rb}",
-             'js': f"{_lb}{_q}left{_q}{_rb}"},  # Single value
-            {'val': "[\"left\"]",
-             'py': f"{_lb}{_q}left{_q}{_rb}",
-             'js': f"{_lb}{_q}left{_q}{_rb}"},  # Single value list syntax
-            {'val': "$left",
-             'py': r"left",
-             'js': r"left"},  # Variable name
-        ]
-        # Stringify each and check it compiles correctly
-        for case in cases:
-            param = Param(case['val'], "list")
-            # Test Python
-            utils.scriptTarget == "PsychoPy"
-            assert (re.fullmatch(case['py'], str(param)),
-                    f"`{case['val']}` should match the regex `{case['py']}`, but it was `{param}`")
-            # Test JS
-            utils.scriptTarget == "PsychoJS"
-            assert (re.fullmatch(case['js'],str(param)),
-                    f"`{case['val']}` should match the regex `{case['js']}`, but it was `{param}`")
-
 
 def test_get_resources_js():
     cases = [
