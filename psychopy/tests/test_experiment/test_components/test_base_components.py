@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 import pytest
@@ -25,9 +26,31 @@ def _make_minimal_experiment(obj):
     return comp, rt, exp
 
 
+def _find_global_resource_in_js_experiment(script, resource):
+    # If given multiple resources...
+    if isinstance(resource, (list, tuple)):
+        # Start off with a blank array
+        present = []
+        for res in resource:
+            # For each resource, run this function recursively and append the result
+            present.append(
+                _find_global_resource_in_js_experiment(script, res)
+            )
+        # Return array of bools
+        return present
+
+    # Extract resources def at start of experiment
+    resourcesStr = re.search("(?<=resources: \[)[^\]]*", script).group(0)
+    # Return bool for whether specified resource is present
+    return resource in resourcesStr
+
+
 class _TestBaseComponentsMixin:
     def test_icons(self):
         """Check that component has icons for each app theme"""
+        # Skip whole test if required attributes aren't present
+        if not hasattr(self, "comp"):
+            pytest.skip()
         # Pathify icon file path
         icon = Path(self.comp.iconFile)
         # Get paths for each theme
