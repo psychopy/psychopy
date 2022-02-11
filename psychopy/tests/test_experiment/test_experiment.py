@@ -33,9 +33,7 @@ class TestExperiment:
         for compName, compClass in experiment.getAllComponents().items():
             if compClass != SettingsComponent:
                 comp = compClass(exp=self.exp, parentName=self.rt.name, name=f"test{compName}")
-            else:
-                comp = compClass(exp=self.exp, parentName=self.rt.name)
-            self.rt.append(comp)
+                self.rt.append(comp)
         # Add one of every standalone routine
         for rtName, rtClass in experiment.getAllStandaloneRoutines().items():
             rt = rtClass(exp=self.exp, name=f"test{rtName}")
