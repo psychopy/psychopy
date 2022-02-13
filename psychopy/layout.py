@@ -29,15 +29,16 @@ unitTypes = [
     'cm',
     'pt',
     'norm',
-    'height',
+    'height'
 ]
 
-anchorAliases = {
+# anchor offsets and names
+_anchorAliases = {
     'top': -0.5,
     'bottom': 0.5,
     'left': 0.5,
     'right': -0.5,
-    'center': 0,
+    'center': 0
 }
 
 
@@ -770,7 +771,7 @@ class Vertices:
     def anchorAdjust(self):
         """Map anchor values to numeric vertices adjustments.
         """
-        return [anchorAliases[a] for a in self.anchor]
+        return [_anchorAliases[a] for a in self.anchor]
 
     def getas(self, units):
         assert units in unitTypes, f"Unrecognised unit type '{units}'"
