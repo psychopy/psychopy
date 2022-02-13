@@ -373,8 +373,7 @@ class Vector:
 
     @property
     def pix(self):
-        """
-
+        """Values in units of 'pix' (pixels).
         """
         # Check that object is valid
         assert self.valid, (
@@ -399,8 +398,7 @@ class Vector:
 
     @property
     def deg(self):
-        """
-
+        """Values in units of 'deg' (degrees of visual angle).
         """
         # Return cached value if present
         if 'deg' in self._cache:
@@ -419,9 +417,12 @@ class Vector:
 
     @property
     def degFlat(self):
-        """When dealing with positions/sizes in isolation; `'deg'`, `'degFlat'`
-        and `'degFlatPos'` are synonymous - as the conversion is done at the
-        vertex level.
+        """Values in units of 'degFlat' (degrees of visual angle corrected for
+        screen curvature).
+
+        When dealing with positions/sizes in isolation; 'deg', 'degFlat' and
+        'degFlatPos' are synonymous - as the conversion is done at the vertex
+        level.
         """
         return self.deg
 
@@ -431,9 +432,11 @@ class Vector:
 
     @property
     def degFlatPos(self):
-        """When dealing with positions/sizes in isolation; `'deg'`, `'degFlat'`
-        and `'degFlatPos'` are synonymous - as the conversion is done at the
-        vertex level.
+        """Values in units of 'degFlatPos'.
+
+        When dealing with positions/sizes in isolation; 'deg', 'degFlat' and
+        'degFlatPos' are synonymous - as the conversion is done at the vertex
+        level.
         """
         return self.degFlat
 
@@ -443,7 +446,7 @@ class Vector:
 
     @property
     def cm(self):
-        """Vector coordinates as centimeters.
+        """Values in units of 'cm' (centimeters).
         """
         # Return cached value if present
         if 'cm' in self._cache:
@@ -462,7 +465,7 @@ class Vector:
 
     @property
     def pt(self):
-        """Vector coordinates in Points (pt).
+        """Vector coordinates in 'pt' (points).
 
         Points are commonly used in print media to define text sizes. One point
         is equivalent to 1/72 inches, or around 0.35 mm.
@@ -484,7 +487,7 @@ class Vector:
 
     @property
     def norm(self):
-        """Vector coordinates in normalized device coordinates (NDC).
+        """Value in units of 'norm' (normalized device coordinates).
         """
         # Return cached value if present
         if 'norm' in self._cache:
@@ -520,8 +523,7 @@ class Vector:
 
     @property
     def height(self):
-        """
-
+        """Value in units of 'height' (normalized to the height of the window).
         """
         # Return cached value if present
         if 'height' in self._cache:
@@ -598,7 +600,9 @@ class Vertices:
     verts : ArrayLike
     obj : object or None
     size : ArrayLike or None
+        Scaling factors for vertices along each dimension.
     pos : ArrayLike or None
+        Offset for vertices along each dimension.
     units : str or None
         Units which `verts` has been specified in. Applicable values are
         `'pix'`, `'deg'`, `'degFlat'`, `'degFlatPos'`, `'cm'`, `'pt'`, `'norm'`,
@@ -606,7 +610,7 @@ class Vertices:
     flip : bool
         Apply mirroring to vertices.
     anchor : str or None
-        Anchor location for vertices.
+        Anchor location for vertices, specifies the origin for the vertices.
 
     """
     def __init__(self, verts, obj=None, size=None, pos=None, units=None,
@@ -884,3 +888,7 @@ class Vertices:
     @height.setter
     def height(self, value):
         self.setas(value, 'height')
+
+
+if __name__ == "__main__":
+    pass
