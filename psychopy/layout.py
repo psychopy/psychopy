@@ -540,11 +540,51 @@ class Vector:
 
 
 class Position(Vector):
+    """Class representing a position vector.
+
+    This class is used to specify the location of a point within some
+    coordinate system (e.g., `(x, y)`).
+
+    Parameters
+    ----------
+    value : ArrayLike
+        Array of coordinates representing positions within a coordinate system.
+        Positions are specified in a similar manner to `~psychopy.layout.Vector`
+        as either 1xN for single vectors, and Nx2 or Nx3 for multiple positions.
+    units : str or None
+        Units which `value` has been specified in. Applicable values are
+        `'pix'`, `'deg'`, `'degFlat'`, `'degFlatPos'`, `'cm'`, `'pt'`, `'norm'`,
+        `'height'`, or `None`.
+    win : `~psychopy.visual.Window` or None
+        Window associated with this position. This value must be specified if
+        you wish to map positions to coordinate systems that require additional
+        information about the monitor the window is being displayed on.
+
+    """
     def __init__(self, value, units, win=None):
         Vector.__init__(self, value, units, win)
 
 
 class Size(Vector):
+    """Class representing a size.
+
+    Parameters
+    ----------
+    value : ArrayLike
+        Array of values representing size axis-aligned bounding box within a
+        coordinate system. Sizes are specified in a similar manner to
+        `~psychopy.layout.Vector` as either 1xN for single vectors, and Nx2 or
+        Nx3 for multiple positions.
+    units : str or None
+        Units which `value` has been specified in. Applicable values are
+        `'pix'`, `'deg'`, `'degFlat'`, `'degFlatPos'`, `'cm'`, `'pt'`, `'norm'`,
+        `'height'`, or `None`.
+    win : `~psychopy.visual.Window` or None
+        Window associated with this size object. This value must be specified if
+        you wish to map sizes to coordinate systems that require additional
+        information about the monitor the window is being displayed on.
+
+    """
     def __init__(self, value, units, win=None):
         Vector.__init__(self, value, units, win)
 
@@ -556,15 +596,20 @@ class Vertices:
     ----------
     verts : ArrayLike
     obj : object or None
-    size : object or None
-    pos : object or None
-    units : object or None
+    size : ArrayLike or None
+    pos : ArrayLike or None
+    units : str or None
+        Units which `verts` has been specified in. Applicable values are
+        `'pix'`, `'deg'`, `'degFlat'`, `'degFlatPos'`, `'cm'`, `'pt'`, `'norm'`,
+        `'height'`, or `None`.
     flip : bool
+        Apply mirroring to vertices.
     anchor : str or None
+        Anchor location for vertices.
 
     """
     def __init__(self, verts, obj=None, size=None, pos=None, units=None,
-                 flip=False, anchor=None):
+                 flip=None, anchor=None):
 
         if obj is None and pos is None and size is None:
             raise ValueError(
