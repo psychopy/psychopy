@@ -281,7 +281,7 @@ class Vector:
             return Vector(self.pix / np.array(other), "pix", self.win)
 
     # --------------------------------------------------------------------------
-    # Class methods
+    # Class methods and properties
     #
 
     def copy(self):
