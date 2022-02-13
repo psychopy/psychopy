@@ -659,6 +659,8 @@ class Vertices:
 
     @property
     def pos(self):
+        """Positional offset of the vertices (`~psychopy.layout.Vector` or
+        ArrayLike)."""
         if isinstance(self._pos, Vector):
             return self._pos
         if hasattr(self.obj, "_pos"):
@@ -670,6 +672,8 @@ class Vertices:
 
     @property
     def size(self):
+        """Scaling factors for vertices (`~psychopy.layout.Vector` or
+        ArrayLike)."""
         if isinstance(self._size, Vector):
             return self._size
         if hasattr(self.obj, "_size"):
@@ -681,6 +685,8 @@ class Vertices:
 
     @property
     def units(self):
+        """Units which the vertices are specified in (`str`).
+        """
         if hasattr(self, "_units") and self._units is not None:
             return self._units
         if hasattr(self, "obj") and hasattr(self.obj, "units"):
