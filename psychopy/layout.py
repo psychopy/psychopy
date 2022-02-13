@@ -598,6 +598,7 @@ class Vertices:
     Parameters
     ----------
     verts : ArrayLike
+        Array of coordinates specifying the locations of vertices.
     obj : object or None
     size : ArrayLike or None
         Scaling factors for vertices along each dimension.
@@ -607,8 +608,9 @@ class Vertices:
         Units which `verts` has been specified in. Applicable values are
         `'pix'`, `'deg'`, `'degFlat'`, `'degFlatPos'`, `'cm'`, `'pt'`, `'norm'`,
         `'height'`, or `None`.
-    flip : bool
-        Apply mirroring to vertices.
+    flip : ArrayLike or None
+        Array of boolean values specifying which dimensions to flip/mirror.
+        Mirroring is applied prior to any other transformation.
     anchor : str or None
         Anchor location for vertices, specifies the origin for the vertices.
 
@@ -686,8 +688,8 @@ class Vertices:
 
     @property
     def flip(self):
-        """1x2 array for flipping vertices along each axis; set as True to flip
-        or False to not flip.
+        """1x2 array for flipping vertices along each axis; set as `True` to
+        flip or `False` to not flip (`ArrayLike`).
 
         If set as a single value, will duplicate across both axes. Accessing the
         protected attribute (`._flip`) will give an array of 1s and -1s with
@@ -724,6 +726,8 @@ class Vertices:
 
     @property
     def flipHoriz(self):
+        """Apply horizontal mirroring (`bool`)?
+        """
         return self.flip[0][0]
 
     @flipHoriz.setter
@@ -732,6 +736,8 @@ class Vertices:
 
     @property
     def flipVert(self):
+        """Apply vertical mirroring (`bool`)?
+        """
         return self.flip[0][1]
 
     @flipVert.setter
@@ -740,9 +746,11 @@ class Vertices:
 
     @property
     def anchor(self):
-        """Anchor is a string of terms, top, bottom, left, right, center
+        """Anchor location (`str`).
 
-        e.g. 'top_center', 'center-right', 'topleft', 'center' are all valid.
+        Possible values are on of `'top'`, `'bottom'`, `'left'`, `'right'`,
+        `'center'`. Combinations of these values may also be specified (e.g.,
+        `'top_center'`, `'center-right'`, `'topleft'`, etc. are all valid).
         """
         if hasattr(self, "_anchorX") and hasattr(self, "_anchorY"):
             # If set, return set values
@@ -852,6 +860,8 @@ class Vertices:
 
     @property
     def degFlat(self):
+        """Get absolute positions of vertices in 'degFlat' units.
+        """
         return self.getas('degFlat')
 
     @degFlat.setter
