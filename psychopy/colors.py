@@ -3,6 +3,15 @@
 
 """Classes and functions for working with colors.
 """
+
+__all__ = [
+    "colorExamples",
+    "colorNames",
+    "colorSpaces",
+    "isValidColor",
+    "Color"
+]
+
 import re
 from math import inf
 from psychopy import logging
