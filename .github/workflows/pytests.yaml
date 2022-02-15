@@ -8,13 +8,10 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false  # debugging builds lets see them all!
+      fail-fast: true
       matrix:
         os: [macos-latest]
-        python-version: [3.6, 3.8]  # 3.6 can't autodownload pyWinhook
-#        exclude:
-#          - os: windows-latest
-#            python-version: 3.6  # will fail because no pyWinhook
+        python-version: [3.8]
 
     steps:
     - uses: actions/checkout@v2
