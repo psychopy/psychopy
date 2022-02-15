@@ -96,7 +96,7 @@
 # Settings for the Builder window
 [builder]
     # whether to automatically reload a previously open experiment
-    reloadPrevExp = boolean(default=False)
+    reloadPrevExp = boolean(default=True)
     # Default to when writing code components
     codeComponentLanguage = option('Py', 'JS', 'Both', 'Auto->JS', default='Auto->JS')
     # if False will create scripts with an 'easier' but more cluttered namespace
