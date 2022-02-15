@@ -208,7 +208,7 @@ class MouseComponent(BaseComponent):
         """Write the code that will be called at the start of the routine"""
 
         code = ("// setup some python lists for storing info about the %(name)s\n")
-        if self.params['saveMouseState'].val in ['every frame', 'on click']:
+        if self.params['saveMouseState'].val in ['every frame', 'on click', 'on valid click']:
             code += ("// current position of the mouse:\n"
                      "%(name)s.x = [];\n"
                      "%(name)s.y = [];\n"

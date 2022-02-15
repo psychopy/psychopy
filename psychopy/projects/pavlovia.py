@@ -790,7 +790,7 @@ class PavloviaProject(dict):
         if self.repo is None:
             self.cloneRepo(infoStream)
         try:
-            info = self.repo.git.pull(self.project.http_url_to_repo, 'master')
+            info = self.repo.git.pull(self.remoteWithToken, 'master')
             if infoStream:
                 infoStream.write("\n{}".format(info))
         except git.exc.GitCommandError as e:
