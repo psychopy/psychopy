@@ -17,13 +17,13 @@ Steps
 - Enable the Speech API for that project: select the project in the manage resources page, go to https://console.cloud.google.com/apis/library/speech.googleapis.com click "enable".
 - Then click on Credentials and create Service Account credentials. 
 
-.. figure:: ../images/google_speech_service_acc.png
+.. figure:: /images/google_speech_service_acc.png
 	
 	Add credentials to your Google cloud project and select "Service Account".
 
 - Grant the service account access to Google Speech Client.
 
-.. figure:: ../images/service_acc_setup.png
+.. figure:: /images/service_acc_setup.png
 	
 	Search for "Google Speech Client" and give this account access to that API.
 
@@ -34,13 +34,13 @@ Steps
 	Be careful not to store the json file in the same location as any experiment folder that might later be shared on Pavlovia - this is a private file - so keep it somewhere safe.
 
 
-.. figure:: ../images/make_json.png
+.. figure:: /images/make_json.png
 	
 	Generate a downloadable JSON for this project.
 
 - Finally, in PsychoPy go fo File > Preferences and add the path to the JSON file in General > appKeyGoogleCloud.
 
-.. figure:: ../images/appkey_preferences.png
+.. figure:: /images/appkey_preferences.png
 	
 	Setup your PsychoPy preferences to use your downloaded JSON - this will apply to all experiments using the mic - not just this PsychoPy experiment. 
 

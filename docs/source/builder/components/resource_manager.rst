@@ -13,14 +13,14 @@ Most experiments need "resources" in order to run. Be it images, sounds, spreads
 
 .. only:: html
 
-    .. image:: ../images/load_gif.gif
+    .. image:: /images/load_gif.gif
         :width: 60%
 
 However, sometimes this loading can take a pretty long time. This happens either because you have a very large number of resources or because individual files are large (e.g. long movies) . In cases like this, it may be preferred to load these within your experiment, for example whilst your participants are reading through the instructions, in an inter-trial interval or during a break between blocks. This is where the *Resource Manager* component and/or the :ref:`static` come in.
 
 You can find the Resource Manager under "Custom" in the Component Panel. The component has many properties similar to any other component, a start time, a duration etc. The most important fields in the component are **Resources**, indicating the list of resources to load, and **Preload Actions**, indicating if we are initiating loading (Start), checking previously initiated loading has completed (Check), or both (Start and Check). For experiments where we might have several resource manager components, we can also check if the resources from *all* components currently exist in memory by selecting "Check All".
 
-.. image:: ../images/resource_manager.png
+.. image:: /images/resource_manager.png
         :width: 60%
 
 Example: Loading resources in the background of instructions

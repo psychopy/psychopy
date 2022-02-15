@@ -7,7 +7,7 @@ For the most part, making a study to go online is identical to making a study to
 
 So, you've made your study in Builder. To run the study online you want to start by configuring your online settings, these can be accessed through Experiment Settings:
 
-.. figure:: ../images/online_tab.png
+.. figure:: /images/online_tab.png
     
     The "Online" tab of Experiment settings.
 
