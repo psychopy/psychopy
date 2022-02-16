@@ -3,6 +3,6 @@
 Recruiting with Sona Systems
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sorry, the documentation for this hasn't yet been written, but Sona Systems have shared `a guide to get started <https://www.sona-systems.com/help/psychopy.aspx>`_.
+`Sona Systems <https://www.sona-systems.com>`_ is a great platform, particularly for the case where your students are all encouraged to sign up to the platform (e.g. for course credits) and the nrun studies for each other.
 
-The features are in place to do this, and the general description of how to make it work are on the page :ref:`recruitingOnline`.
+Sona Systems have shared an excellent `guide to using Sona with PsychoPy <https://www.sona-systems.com/help/psychopy.aspx>`_ and we would refer you to that for tips to get started.
