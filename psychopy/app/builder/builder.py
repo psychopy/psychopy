@@ -1365,6 +1365,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             return True
 
     def onPavloviaSync(self, evt=None):
+        self.fileSave(self.filename)
         if self._getExportPref('on sync'):
             htmlPath = self._getHtmlPath(self.filename)
             if htmlPath:

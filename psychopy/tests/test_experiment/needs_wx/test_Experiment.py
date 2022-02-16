@@ -78,29 +78,6 @@ class TestExpt():
     def teardown_class(cls):
         shutil.rmtree(cls.tmp_dir, ignore_errors=True)
 
-    def test_xml(self):
-        # Get all psyexp files in demos folder
-        demosFolder = Path(self.exp.prefsPaths['demos']) / 'builder'
-        for file in demosFolder.glob("**/*.psyexp"):
-            # Create experiment and load from psyexp
-            exp = psychopy.experiment.Experiment()
-            exp.loadFromXML(file)
-            # Compile to get what script should look like
-            target = exp.writeScript()
-            # Save as XML
-            temp = str(Path(self.tmp_dir) / "testXML.psyexp")
-            exp.saveToXML(temp)
-            # Load again
-            exp.loadFromXML(temp)
-            # Compile again
-            test = exp.writeScript()
-            # Remove any timestamps from script (these can cause false errors if compile takes longer than a second)
-            test = re.sub(isTime, "", test)
-            target = re.sub(isTime, "", target)
-            # Compare two scripts to make sure saving and loading hasn't changed anything
-            diff = difflib.unified_diff(target.splitlines(), test.splitlines())
-            assert list(diff) == []
-
     def test_xsd(self):
         # get files
 
@@ -349,9 +326,6 @@ class TestExpt():
         stdout, stderr = core.shellCall([sys.executable, lastrun], stderr=True)
         assert not stderr
 
-    def test_Exp_AddRoutine(self):
-        self.exp.addRoutine('instructions')
-
     def test_Exp_NameSpace(self):
         namespace = self.exp.namespace
         assert namespace.exists('psychopy') == "Psychopy module"
@@ -498,40 +472,3 @@ class TestRunOnce():
         # check it appears only once
         script = self.buff.getvalue()
         assert script.count(code) == 1
-
-class TestDisabledComponents():
-    def setup(self):
-        self.exp = psychopy.experiment.Experiment()
-        self.exp.addRoutine(routineName='Test Routine')
-        self.routine = self.exp.routines['Test Routine']
-        self.exp.flow.addRoutine(self.routine, 0)
-
-    def test_component_not_disabled_by_default(self):
-        self.text = TextComponent(exp=self.exp, parentName='Test Routine')
-        assert self.text.params['disabled'].val is False
-
-    def test_component_is_written_to_script(self):
-        self.text = TextComponent(exp=self.exp, parentName='Test Routine')
-        self.routine.addComponent(self.text)
-        script = self.exp.writeScript()
-        assert 'visual.TextStim' in script
-
-    def test_disabled_component_is_not_written_to_script(self):
-        self.text = TextComponent(exp=self.exp, parentName='Test Routine')
-        self.text.params['disabled'].val = True
-
-        self.routine.addComponent(self.text)
-        script = self.exp.writeScript()
-        assert 'visual.TextStim' not in script
-
-    def test_disabling_component_does_not_remove_it_from_original_routine(self):
-        self.text = TextComponent(exp=self.exp, parentName='Test Routine')
-        self.text.params['disabled'].val = True
-        self.routine.addComponent(self.text)
-
-        # This drops the disabled component -- if working correctly, only from
-        # a copy though, leaving the original unchanged!
-        self.exp.writeScript()
-
-        # Original routine should be unchanged.
-        assert self.text in self.routine
