@@ -182,11 +182,7 @@ class ParamCtrls():
         #     self.valueCtrl = dialogs.ListWidget(
         #         parent, val, order=['Field', 'Default'])
 
-        try:
-            self.valueCtrl.SetToolTip(wx.ToolTip(_translate(param.hint)))
-        except AttributeError as e:
-            self.valueCtrl.SetToolTipString(_translate(param.hint))
-
+        self.valueCtrl.SetToolTip(wx.ToolTip(_translate(param.hint)))
         if len(param.allowedVals) == 1 or param.readOnly:
             self.valueCtrl.Disable()  # visible but can't be changed
 
