@@ -1,5 +1,4 @@
 from .shape import ShapeStim
-from .circle import Circle
 from .basevisual import ColorMixin, WindowMixin
 from psychopy.colors import Color
 from .. import layout
