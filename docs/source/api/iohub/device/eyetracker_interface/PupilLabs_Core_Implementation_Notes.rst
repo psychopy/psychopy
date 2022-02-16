@@ -1,3 +1,5 @@
+.. _pupil_labs_core:
+
 #################
 Pupil Labs - Core
 #################
@@ -103,7 +105,7 @@ Setting Up PsychoPy
     :alt: Pupil Core eye tracking options, part of PsychoPy experiment settings
 
 Pupillometry + Gaze Mode
-======================
+========================
 
 To receive gaze, enable Pupil Capture's Surface Tracking
 plugin:
