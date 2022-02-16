@@ -31,6 +31,19 @@ class Test_RunnerFrame:
         assert runner.panel.expCtrl.FindItem(-1, self.tempFile)
 
     @pytest.mark.usefixtures("get_app")
+    def test_removeTask(self, get_app):
+        runner = self._getRunnerView(get_app)
+        runner.removeTask(runner.panel.currentSelection)
+        assert runner.panel.expCtrl.FindItem(-1, self.tempFile) == -1
+
+    @pytest.mark.usefixtures("get_app")
+    def test_clearItems(self, get_app):
+        runner = self._getRunnerView(get_app)
+        runner.addTask(fileName=self.tempFile)
+        runner.clearTasks()
+        assert runner.panel.expCtrl.FindItem(-1, self.tempFile) == -1
+
+    @pytest.mark.usefixtures("get_app")
     def test_runLocal(self, get_app):
         """Run a local experiment file. Tests the `Job` module and expands
         coverage.
@@ -66,8 +79,13 @@ class Test_RunnerFrame:
         )
 
         # wait until the the subprocess wakes up
+        timeOutCounter = 0
         while runnerPanel.scriptProcess is None:
+            # give a minute to start, raise exception otherwise
+            assert timeOutCounter < 6000, (
+                "Timeout starting subprocess. Process took too long to start.")
             time.sleep(0.01)
+            timeOutCounter += 1
             wx.Yield()
 
         # check button states during experiment
@@ -79,8 +97,13 @@ class Test_RunnerFrame:
             "experiment.")
 
         # wait until the subprocess ends
+        timeOutCounter = 0
         while runnerPanel.scriptProcess is not None:
+            # give a minute to stop, raise exception otherwise
+            assert timeOutCounter < 6000, (
+                "Timeout stopping subprocess. Process took too long to end.")
             time.sleep(0.01)
+            timeOutCounter += 1
             wx.Yield()
 
         # check button states after running the file, make sure they are
@@ -107,8 +130,12 @@ class Test_RunnerFrame:
         )
 
         # wait until the the subprocess wakes up
+        timeOutCounter = 0
         while runnerPanel.scriptProcess is None:
+            assert timeOutCounter < 6000, (
+                "Timeout starting subprocess. Process took too long to start.")
             time.sleep(0.01)
+            timeOutCounter += 1
             wx.Yield()
 
         # kill the process a bit through it
@@ -119,8 +146,12 @@ class Test_RunnerFrame:
         )
 
         # wait until the subprocess ends
+        timeOutCounter = 0
         while runnerPanel.scriptProcess is not None:
+            assert timeOutCounter < 6000, (
+                "Timeout stopping subprocess. Process took too long to end.")
             time.sleep(0.01)
+            timeOutCounter += 1
             wx.Yield()
 
         # check button states after running the file, make sure they are
@@ -133,16 +164,3 @@ class Test_RunnerFrame:
             "experiment.")
 
         runner.clearTasks()  # clear task list
-
-    @pytest.mark.usefixtures("get_app")
-    def test_removeTask(self, get_app):
-        runner = self._getRunnerView(get_app)
-        runner.removeTask(runner.panel.currentSelection)
-        assert runner.panel.expCtrl.FindItem(-1, self.tempFile) == -1
-
-    @pytest.mark.usefixtures("get_app")
-    def test_clearItems(self, get_app):
-        runner = self._getRunnerView(get_app)
-        runner.addTask(fileName=self.tempFile)
-        runner.clearTasks()
-        assert runner.panel.expCtrl.FindItem(-1, self.tempFile) == -1
