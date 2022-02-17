@@ -3,6 +3,16 @@
 
 """Classes and functions for working with colors.
 """
+
+__all__ = [
+    "colorExamples",
+    "colorNames",
+    "colorSpaces",
+    "isValidColor",
+    "hex2rgb255",
+    "Color"
+]
+
 import re
 from math import inf
 from psychopy import logging
@@ -230,8 +240,20 @@ for val in alphaSpaces:
 
 
 class Color:
-    """A class to store colour details, knows what colour space it's in and can
+    """A class to store color details, knows what colour space it's in and can
     supply colours in any space.
+
+    Parameters
+    ----------
+    color : ArrayLike or None
+        Color values (coordinates). Value must be in a format applicable to the
+        specified `space`.
+    space : str or None
+        Colorspace to interpret the value of `color` as being within.
+    contrast : int or float
+        Factor to modulate the contrast of the color.
+    conematrix : ArrayLike or None
+        Cone matrix for colorspaces which require it. Must be a 3x3 array.
 
     """
     def __init__(self, color=None, space=None, contrast=None, conematrix=None):
@@ -240,6 +262,11 @@ class Color:
         self.alpha = 1
         self.valid = False
         self.conematrix = conematrix
+
+        # defined here but set later
+        self._requested = None
+        self._requestedSpace = None
+
         self.set(color=color, space=space)
 
     def validate(self, color, space=None):
@@ -344,8 +371,8 @@ class Color:
             raise ValueError("{} is not a valid color space.".format(space))
 
     def render(self, space='rgb'):
-        """
-        Apply contrast to the base color value and return the adjusted color value
+        """Apply contrast to the base color value and return the adjusted color
+        value.
         """
         if space not in colorSpaces:
             raise ValueError(f"{space} is not a valid color space")
@@ -360,14 +387,20 @@ class Color:
         return getattr(buffer, space)
 
     def __repr__(self):
-        """If colour is printed, it will display its class and value"""
+        """If colour is printed, it will display its class and value.
+        """
         if self.valid:
             if self.named:
-                return f"<{self.__class__.__module__}.{self.__class__.__name__}: {self.named}, alpha={self.alpha}>"
+                return (f"<{self.__class__.__module__}."
+                        f"{self.__class__.__name__}: {self.named}, "
+                        f"alpha={self.alpha}>")
             else:
-                return f"<{self.__class__.__module__}.{self.__class__.__name__}: {tuple(np.round(self.rgba, 2))}>"
+                return (f"<{self.__class__.__module__}."
+                        f"{self.__class__.__name__}: "
+                        f"{tuple(np.round(self.rgba, 2))}>")
         else:
-            return f"<{self.__class__.__module__}.{self.__class__.__name__}: Invalid>"
+            return (f"<{self.__class__.__module__}."
+                    f"{self.__class__.__name__}: Invalid>")
 
     def __bool__(self):
         """Determines truth value of object"""
@@ -380,9 +413,12 @@ class Color:
         else:
             return int(bool(self.rgb.shape))
 
-    # ---rich comparisons---
+    # --------------------------------------------------------------------------
+    # Rich comparisons
+    #
+
     def __eq__(self, target):
-        """== will compare RGBA values, rounded to 2dp"""
+        """`==` will compare RGBA values, rounded to 2dp"""
         if isinstance(target, Color):
             return np.all(np.round(target.rgba, 2) == np.round(self.rgba, 2))
         elif target == None:
@@ -391,10 +427,13 @@ class Color:
             return False
 
     def __ne__(self, target):
-        """!= will return the opposite of =="""
+        """`!=` will return the opposite of `==`"""
         return not self == target
 
-    #--operators---
+    # --------------------------------------------------------------------------
+    # Operators
+    #
+
     def __add__(self, other):
         buffer = self.copy()
         # If target is a list or tuple, convert it to an array
@@ -431,6 +470,10 @@ class Color:
                 buffer.rgb = self.rgb - other.rgb
         return buffer
 
+    # --------------------------------------------------------------------------
+    # Methods and properties
+    #
+
     def copy(self):
         """Return a duplicate of this colour"""
         return self.__copy__()
@@ -447,8 +490,8 @@ class Color:
 
     @property
     def alpha(self):
-        """
-        How opaque (0) or transparent (0) this color is. Synonymous with `opacity`.
+        """How opaque (1) or transparent (0) this color is. Synonymous with
+        `opacity`.
         """
         return self._alpha
 
@@ -472,8 +515,8 @@ class Color:
 
     @property
     def opacity(self):
-        """
-        How opaque (0) or transparent (0) this color is. Synonymous with `alpha`.
+        """How opaque (1) or transparent (0) this color is (`float`). Synonymous
+        with `alpha`.
         """
         return self.alpha
 
@@ -500,8 +543,8 @@ class Color:
     # Lingua franca is rgb
     @property
     def rgba(self):
-        """
-        Color value expressed as an RGB triplet from -1 to 1, with alpha values (0 to 1)
+        """Color value expressed as an RGB triplet from -1 to 1, with alpha
+        values (0 to 1).
         """
         return self._appendAlpha('rgb')
 
@@ -511,8 +554,7 @@ class Color:
 
     @property
     def rgb(self):
-        """
-        Color value expressed as an RGB triplet from -1 to 1
+        """Color value expressed as an RGB triplet from -1 to 1.
         """
         if not self.valid:
             return
@@ -536,8 +578,8 @@ class Color:
 
     @property
     def rgba255(self):
-        """
-        Color value expressed as an RGB triplet from 0 to 255, with alpha value (0 to 1)
+        """Color value expressed as an RGB triplet from 0 to 255, with alpha
+        value (0 to 1).
         """
         return self._appendAlpha('rgb255')
 
@@ -547,8 +589,7 @@ class Color:
 
     @property
     def rgb255(self):
-        """
-        Color value expressed as an RGB triplet from 0 to 255
+        """Color value expressed as an RGB triplet from 0 to 255.
         """
         if not self.valid:
             return
@@ -571,8 +612,8 @@ class Color:
 
     @property
     def rgba1(self):
-        """
-        Color value expressed as an RGB triplet from 0 to 1, with alpha value (0 to 1)
+        """Color value expressed as an RGB triplet from 0 to 1, with alpha value
+        (0 to 1).
         """
         return self._appendAlpha('rgb1')
 
@@ -582,8 +623,7 @@ class Color:
 
     @property
     def rgb1(self):
-        """
-        Color value expressed as an RGB triplet from 0 to 1
+        """Color value expressed as an RGB triplet from 0 to 1.
         """
         if not self.valid:
             return
@@ -606,8 +646,8 @@ class Color:
 
     @property
     def hex(self):
-        """
-        Color value expressed as a hex string - a # followed by 6 values from 0 to F, e.g. #F2545B
+        """Color value expressed as a hex string. Can be a '#' followed by 6
+        values from 0 to F (e.g. #F2545B).
         """
         if not self.valid:
             return
@@ -677,8 +717,7 @@ class Color:
 
     @property
     def named(self):
-        """
-        The name of this color, if it has one.
+        """The name of this color, if it has one (`str`).
         """
         if 'named' not in self._cache:
             self._cache['named'] = None
@@ -739,8 +778,7 @@ class Color:
 
     @property
     def hsva(self):
-        """
-        Color value expressed as an HSV triplet, with alpha value (0 to 1)
+        """Color value expressed as an HSV triplet, with alpha value (0 to 1).
         """
         return self._appendAlpha('hsv')
 
@@ -750,8 +788,7 @@ class Color:
 
     @property
     def hsv(self):
-        """
-        Color value expressed as an HSV triplet
+        """Color value expressed as an HSV triplet.
         """
         if 'hsva' not in self._cache:
             self._cache['hsv'] = ct.rgb2hsv(self.rgb)
@@ -771,8 +808,7 @@ class Color:
 
     @property
     def lmsa(self):
-        """
-        Color value expressed as an LMS triplet, with alpha value (0 to 1)
+        """Color value expressed as an LMS triplet, with alpha value (0 to 1).
         """
         return self._appendAlpha('lms')
 
@@ -782,8 +818,7 @@ class Color:
 
     @property
     def lms(self):
-        """
-        Color value expressed as an LMS triplet
+        """Color value expressed as an LMS triplet.
         """
         if 'lms' not in self._cache:
             self._cache['lms'] = ct.rgb2lms(self.rgb)
@@ -803,8 +838,7 @@ class Color:
 
     @property
     def dkla(self):
-        """
-        Color value expressed as a DKL triplet, with alpha value (0 to 1)
+        """Color value expressed as a DKL triplet, with alpha value (0 to 1).
         """
         return self._appendAlpha('dkl')
 
@@ -814,8 +848,7 @@ class Color:
 
     @property
     def dkl(self):
-        """
-        Color value expressed as a DKL triplet
+        """Color value expressed as a DKL triplet.
         """
         if 'dkl' not in self._cache:
             raise NotImplementedError(
@@ -836,8 +869,8 @@ class Color:
 
     @property
     def dklaCart(self):
-        """
-        Color value expressed as a cartesian DKL triplet, with alpha value (0 to 1)
+        """Color value expressed as a cartesian DKL triplet, with alpha value
+        (0 to 1).
         """
         return self.dklCart
 
@@ -847,8 +880,7 @@ class Color:
 
     @property
     def dklCart(self):
-        """
-        Color value expressed as a cartesian DKL triplet
+        """Color value expressed as a cartesian DKL triplet.
         """
         if 'dklCart' not in self._cache:
             self._cache['dklCart'] = ct.rgb2dklCart(self.rgb)
@@ -910,6 +942,7 @@ class Color:
 # ------------------------------------------------------------------------------
 # Legacy functions
 #
+
 # Old reference tables
 colors = colorNames
 # colorsHex = {key: Color(key, 'named').hex for key in colors}
@@ -944,3 +977,7 @@ def isValidColor(color, space='rgb'):
         return bool(buffer)
     except:
         return False
+
+
+if __name__ == "__main__":
+    pass

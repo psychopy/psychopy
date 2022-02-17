@@ -3,7 +3,7 @@
 Resource Manager Component
 -------------------------------
 
-(added version 2022.1)
+(added version 2022.1.0)
 
 Pre-load resources into memory so that components using them can start without having to load first.
 
