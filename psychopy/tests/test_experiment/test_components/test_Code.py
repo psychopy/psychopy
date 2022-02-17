@@ -9,7 +9,7 @@ from psychopy.experiment.components.code import CodeComponent
 from psychopy.tests.utils import TESTS_DATA_PATH
 
 
-class TestMouseComponent(_TestBaseComponentsMixin, _TestDisabledMixin):
+class TestCodeComponent(_TestBaseComponentsMixin, _TestDisabledMixin):
     """
     Test that Code coponents have the correct params and write as expected.
     """
