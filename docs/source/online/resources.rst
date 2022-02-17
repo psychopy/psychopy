@@ -47,6 +47,7 @@ You can manually specify what resources your experiment will need when you :ref:
 
 Specify the files to download at the start
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+(added version 2022.1.0)
 
 **Example use case:** fetch a whole set of movies, possibly a custom list, for the participant *while they read your instructions* (i.e. within the experiment rather than at the start). You can start them loading before the first instructions screen and then make sure they have all downloaded before the trials actually begin. You could even load yor files in two sets - download a few files during instructions and then fetch the rest during practice trials!
 
@@ -60,6 +61,7 @@ While the automatic method is easy, it suffers if you have lots of resources (th
 
 Specify the files to download each trial
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+(added version 2022.1.0)
 
 **Example use case:** Fetch the image file during the fixation period on each trial.
 
