@@ -78,17 +78,6 @@ class TestExpt():
     def teardown_class(cls):
         shutil.rmtree(cls.tmp_dir, ignore_errors=True)
 
-    def test_xsd(self):
-        # get files
-
-        psyexp_files = []
-
-        for root, dirs, files in os.walk(os.path.join(self.exp.prefsPaths['demos'], 'builder')):
-            for f in files:
-                if f.endswith('.psyexp'):
-                    psyexp_files.append(os.path.join(root, f))
-
-        # get schema
 
         schema_name = path.join(self.exp.prefsPaths['psychopy'], 'experiment', 'experiment.xsd')
         schema = xmlschema.XMLSchema(schema_name)

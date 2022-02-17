@@ -131,6 +131,26 @@ class TestExperiment:
             diff = difflib.unified_diff(target.splitlines(), test.splitlines())
             assert list(diff) == []
 
+    def test_xsd(self):
+        # get files
+
+        psyexp_files = []
+
+        for root, dirs, files in os.walk(os.path.join(self.exp.prefsPaths['demos'], 'builder')):
+            for f in files:
+                if f.endswith('.psyexp'):
+                    psyexp_files.append(os.path.join(root, f))
+
+        # get schema
+
+        schema_name = Path(self.exp.prefsPaths['psychopy']) / 'experiment' / 'experiment.xsd'
+        schema = xmlschema.XMLSchema(str(schema_name))
+
+        for psyexp_file in psyexp_files:
+            assert schema.is_valid(psyexp_file), (
+                    f"Error in {psyexp_file}:\n" + "\n".join(err.reason for err in schema.iter_errors(psyexp_file))
+            )
+
     def test_problem_experiments(self):
         """
         Tests that some known troublemaker experiments compile as intended. Cases are structured like so:
