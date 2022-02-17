@@ -60,7 +60,7 @@ class ResourceManagerComponent(BaseComponent):
             hint=msg,
             label=_translate('forceEndRoutine'))
 
-        self.params['stopVal'].label = "Check"
+        self.params['stopVal'].label = _translate("Check")
 
         self.depends.append(
              {"dependsOn": "actionType",  # must be param name

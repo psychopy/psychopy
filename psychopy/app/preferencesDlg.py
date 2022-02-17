@@ -68,6 +68,7 @@ _localized = {
     'builderLayout': _translate('Builder layout'),
     'alwaysShowReadme': _translate('always show readme'),
     'maxFavorites': _translate('max favorites'),
+    'confirmRoutineClose': _translate('confirmRoutineClose'),
     # pref labels in Coder section
     'readonly': _translate('read-only'),
     'outputFont': _translate('output font'),
