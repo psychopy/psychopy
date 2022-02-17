@@ -1,8 +1,11 @@
+import codecs
 import difflib
 import io
 import os
 import re
 import shutil
+import py_compile
+import xmlschema
 from pathlib import Path
 from tempfile import mkdtemp
 from ..utils import _q, _lb, _rb, TESTS_DATA_PATH
@@ -44,6 +47,24 @@ class TestExperiment:
 
     def teardown_class(self):
         shutil.rmtree(self.tempDir)
+
+    # ---------
+    # Utilities
+
+    @staticmethod
+    def _checkCompile(py_file):
+        # compile the temp file to .pyc, catching error msgs
+        # (including no file at all):
+        py_file = str(py_file)
+        try:
+            py_compile.compile(py_file, doraise=True)
+        except py_compile.PyCompileError as err:
+            err.msg = py_file
+            raise err
+        return py_file + 'c'
+
+    # ---------
+    # Utilities
 
     def test_add_routine(self):
         exp = experiment.Experiment()
@@ -188,6 +209,23 @@ class TestExperiment:
                 assert re.fullmatch(case['ans'], outscript), (
                     f"Compile of {case['file'].name} did not match {case['ans']}. View compile here: {outfile}"
                 )
+
+    def test_future(self):
+        """An experiment file with made-up params and routines to see whether
+        future versions of experiments will get loaded.
+        """
+        # Load experiment from file
+        expfile = Path(self.exp.prefsPaths['tests']) / 'data' / 'futureParams.psyexp'
+        self.exp.loadFromXML(expfile) # reload the edited file
+        # Make sure it builds
+        script = self.exp.writeScript(expPath=expfile)
+        py_file = Path(self.tempDir) / 'testFutureFile.py'
+        # Save script
+        with codecs.open(py_file, 'w', 'utf-8-sig') as f:
+            f.write(script)
+
+        # Check it compiles to pyc
+        self._checkCompile(py_file)
 
     def test_all_code_component_tabs(self):
         psyexp_file = os.path.join(TESTS_DATA_PATH,
