@@ -278,6 +278,9 @@ class Param():
             raise TypeError("Can't represent a Param of type %s" %
                             self.valType)
 
+    def __repr__(self):
+        return f"<Param: val={self.val}, valType={self.valType}>"
+
     def __eq__(self, other):
         """Test for equivalence is needed for Params because what really
         typically want to test is whether the val is the same

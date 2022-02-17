@@ -211,6 +211,8 @@ class Routine(list):
     each of which knows when it starts and stops.
     """
 
+    targets = ["PsychoPy", "PsychoJS"]
+
     def __init__(self, name, exp, components=()):
         super(Routine, self).__init__()
         self.params = {'name': name}
