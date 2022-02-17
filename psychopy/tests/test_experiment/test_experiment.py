@@ -12,8 +12,7 @@ from ..utils import _q, _lb, _rb, TESTS_DATA_PATH
 
 from psychopy import experiment
 from psychopy.experiment.components.settings import SettingsComponent
-import random
-
+from psychopy.experiment.components.unknown import UnknownComponent
 from ...scripts import psyexpCompile
 
 
@@ -214,9 +213,75 @@ class TestExperiment:
         """An experiment file with made-up params and routines to see whether
         future versions of experiments will get loaded.
         """
+        # Define some component names which should be UnknownComponent
+        invComps = [
+            "Bomber",
+            "Banana"
+        ]
+        # Define some component names which should be known
+        validComps = [
+            "ISI",
+            "text",
+            "sound_1",
+            "buttonBox",
+        ]
+        # Define some param names which should be InvalidCtrl
+        invParams = [
+            "Wacky",
+        ]
+        # Define some param names which should be known
+        validParams = [
+            "pos",
+            "size",
+            "color",
+        ]
+
         # Load experiment from file
         expfile = Path(self.exp.prefsPaths['tests']) / 'data' / 'futureParams.psyexp'
         self.exp.loadFromXML(expfile) # reload the edited file
+        # Iterate through components to check recognition of component class and params
+        for comp in self.exp.routines['trial']:
+            if comp.name in invComps:
+                # If component should be unknown, make sure it is
+                assert isinstance(comp, UnknownComponent), (
+                    f"Component {comp.name} is a made-up component and so should not be recognised by PsychoPy, but "
+                    f"was recognised as {type(comp).__name__}."
+                )
+                # Iterate through all params in invalid component to check they aren't recognised
+                for paramName, param in comp.params.items():
+                    if paramName in list(UnknownComponent(self.exp, 'trial').params):
+                        # If param name is defined in UnknownComponent, it is always valid
+                        assert param.inputType != "inv", (
+                            f"Parameter {paramName} is defined in UnknownComponent, so should always be valid, but in "
+                            f"component {comp.name} it was not recognised."
+                        )
+                    else:
+                        # Otherwise, it should be invalid
+                        assert param.inputType == "inv", (
+                            f"In an UnknownComponent, all params save for those defined in UnknownComponent should be "
+                            f"invalid."
+                        )
+            if comp.name in validComps:
+                # If component should be known, make sure it is
+                assert not isinstance(comp, UnknownComponent), (
+                    f"Component {comp.name} should be recognised by PsychoPy, but was interpreted as UnknownComponent."
+                )
+                # Iterate through all params in valid component to check recognition
+                for paramName, param in comp.params.items():
+                    if paramName in invParams:
+                        # If param should be unknown, make sure it is
+                        assert param.inputType == "inv", (
+                            f"Param {paramName} of {comp.name} is a made-up param and so its input type should be `inv`, "
+                            f"but instead it is {param.inputType}"
+                        )
+                    if paramName in validParams:
+                        # If param should be known, make sure it is
+                        assert param.inputType != "inv", (
+                            f"Param {paramName} of {comp.name} should be known to PsychoPy, but its inputType was marked "
+                            f"as `inv`"
+                        )
+
+
         # Make sure it builds
         script = self.exp.writeScript(expPath=expfile)
         py_file = Path(self.tempDir) / 'testFutureFile.py'
