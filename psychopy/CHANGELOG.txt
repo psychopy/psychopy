@@ -688,6 +688,7 @@ NEW:
  - faster than `event.getKeys()` (polling is asynchronous with drawing loop and the calls go direct
    to the USB rather than going via the operating system key calls)
  - supports keyDuration fields as well as `rt` for key down time
+ 
 - Form class for combining text items and responses (currently ratings and radio items) in a scrollable list
 - each Builder Component is now outputting its start/stop times in the data file by default (can be turned
   off for )
