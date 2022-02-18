@@ -1,16 +1,18 @@
+import codecs
 import difflib
 import io
 import os
 import re
 import shutil
+import py_compile
+import xmlschema
 from pathlib import Path
 from tempfile import mkdtemp
 from ..utils import _q, _lb, _rb, TESTS_DATA_PATH
 
 from psychopy import experiment
 from psychopy.experiment.components.settings import SettingsComponent
-import random
-
+from psychopy.experiment.components.unknown import UnknownComponent
 from ...scripts import psyexpCompile
 
 
@@ -44,6 +46,24 @@ class TestExperiment:
 
     def teardown_class(self):
         shutil.rmtree(self.tempDir)
+
+    # ---------
+    # Utilities
+
+    @staticmethod
+    def _checkCompile(py_file):
+        # compile the temp file to .pyc, catching error msgs
+        # (including no file at all):
+        py_file = str(py_file)
+        try:
+            py_compile.compile(py_file, doraise=True)
+        except py_compile.PyCompileError as err:
+            err.msg = py_file
+            raise err
+        return py_file + 'c'
+
+    # ---------
+    # Utilities
 
     def test_add_routine(self):
         exp = experiment.Experiment()
@@ -131,6 +151,26 @@ class TestExperiment:
             diff = difflib.unified_diff(target.splitlines(), test.splitlines())
             assert list(diff) == []
 
+    def test_xsd(self):
+        # get files
+
+        psyexp_files = []
+
+        for root, dirs, files in os.walk(os.path.join(self.exp.prefsPaths['demos'], 'builder')):
+            for f in files:
+                if f.endswith('.psyexp'):
+                    psyexp_files.append(os.path.join(root, f))
+
+        # get schema
+
+        schema_name = Path(self.exp.prefsPaths['psychopy']) / 'experiment' / 'experiment.xsd'
+        schema = xmlschema.XMLSchema(str(schema_name))
+
+        for psyexp_file in psyexp_files:
+            assert schema.is_valid(psyexp_file), (
+                    f"Error in {psyexp_file}:\n" + "\n".join(err.reason for err in schema.iter_errors(psyexp_file))
+            )
+
     def test_problem_experiments(self):
         """
         Tests that some known troublemaker experiments compile as intended. Cases are structured like so:
@@ -169,34 +209,84 @@ class TestExperiment:
                     f"Compile of {case['file'].name} did not match {case['ans']}. View compile here: {outfile}"
                 )
 
-    def test_all_code_component_tabs(self):
-        psyexp_file = os.path.join(TESTS_DATA_PATH,
-                                   'CodeComponent_eachtab.psyexp')
-        # Check py code from each tab exists
-        outfile = os.path.join(self.tempDir, 'outfile.py')
-        psyexpCompile.compileScript(infile=psyexp_file, outfile=outfile)
-        with io.open(outfile, mode='r', encoding='utf-8-sig') as f:
-            script = f.read()
-        assert '___before_experiment___' in script
-        assert '___begin_experiment___' in script
-        assert '___begin_routine___' in script
-        assert '___each_frame___' in script
-        assert '___end_routine___' in script
-        assert '___end_experiment___' in script
-        # Check py code is in the right order
-        assert script.find('___before_experiment___') < script.find('___begin_experiment___') < script.find('___begin_routine___') < script.find('___each_frame___') < script.find('___end_routine___') < script.find('___end_experiment___')
-        assert script.find('___before_experiment___') < script.find('visual.Window') < script.find('___begin_experiment___') < script.find('continueRoutine = True')
-        assert script.find('continueRoutine = True') < script.find('___begin_routine___') < script.find('while continueRoutine:') < script.find('___each_frame___')
-        assert script.find('thisComponent.setAutoDraw(False)') < script.find('___end_routine___') < script.find('routineTimer.reset()') < script.find('___end_experiment___')
+    def test_future(self):
+        """An experiment file with made-up params and routines to see whether
+        future versions of experiments will get loaded.
+        """
+        # Define some component names which should be UnknownComponent
+        invComps = [
+            "Bomber",
+            "Banana"
+        ]
+        # Define some component names which should be known
+        validComps = [
+            "ISI",
+            "text",
+            "sound_1",
+            "buttonBox",
+        ]
+        # Define some param names which should be InvalidCtrl
+        invParams = [
+            "Wacky",
+        ]
+        # Define some param names which should be known
+        validParams = [
+            "pos",
+            "size",
+            "color",
+        ]
 
-        # Check js code from each tab exists
-        outfile = os.path.join(self.tempDir, 'outfile.js')
-        psyexpCompile.compileScript(infile=psyexp_file, outfile=outfile)
-        with io.open(outfile, mode='r', encoding='utf-8-sig') as f:
-            script = f.read()
-        assert '___before_experiment___;' in script
-        assert '___begin_experiment___;' in script
-        assert '___begin_routine___;' in script
-        assert '___each_frame___;' in script
-        assert '___end_routine___;' in script
-        assert '___end_experiment___;' in script
+        # Load experiment from file
+        expfile = Path(self.exp.prefsPaths['tests']) / 'data' / 'futureParams.psyexp'
+        self.exp.loadFromXML(expfile) # reload the edited file
+        # Iterate through components to check recognition of component class and params
+        for comp in self.exp.routines['trial']:
+            if comp.name in invComps:
+                # If component should be unknown, make sure it is
+                assert isinstance(comp, UnknownComponent), (
+                    f"Component {comp.name} is a made-up component and so should not be recognised by PsychoPy, but "
+                    f"was recognised as {type(comp).__name__}."
+                )
+                # Iterate through all params in invalid component to check they aren't recognised
+                for paramName, param in comp.params.items():
+                    if paramName in list(UnknownComponent(self.exp, 'trial').params):
+                        # If param name is defined in UnknownComponent, it is always valid
+                        assert param.inputType != "inv", (
+                            f"Parameter {paramName} is defined in UnknownComponent, so should always be valid, but in "
+                            f"component {comp.name} it was not recognised."
+                        )
+                    else:
+                        # Otherwise, it should be invalid
+                        assert param.inputType == "inv", (
+                            f"In an UnknownComponent, all params save for those defined in UnknownComponent should be "
+                            f"invalid."
+                        )
+            if comp.name in validComps:
+                # If component should be known, make sure it is
+                assert not isinstance(comp, UnknownComponent), (
+                    f"Component {comp.name} should be recognised by PsychoPy, but was interpreted as UnknownComponent."
+                )
+                # Iterate through all params in valid component to check recognition
+                for paramName, param in comp.params.items():
+                    if paramName in invParams:
+                        # If param should be unknown, make sure it is
+                        assert param.inputType == "inv", (
+                            f"Param {paramName} of {comp.name} is a made-up param and so its input type should be `inv`, "
+                            f"but instead it is {param.inputType}"
+                        )
+                    if paramName in validParams:
+                        # If param should be known, make sure it is
+                        assert param.inputType != "inv", (
+                            f"Param {paramName} of {comp.name} should be known to PsychoPy, but its inputType was marked "
+                            f"as `inv`"
+                        )
+
+        # Make sure it builds
+        script = self.exp.writeScript(expPath=expfile)
+        py_file = Path(self.tempDir) / 'testFutureFile.py'
+        # Save script
+        with codecs.open(py_file, 'w', 'utf-8-sig') as f:
+            f.write(script)
+
+        # Check it compiles to pyc
+        self._checkCompile(py_file)

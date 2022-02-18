@@ -66,17 +66,19 @@ class _TestBaseComponentsMixin:
     def test_params_used(self):
         # Make minimal experiment just for this test
         comp, rt, exp = _make_minimal_experiment(self)
+        # Skip if component shouldn't use all of its params
+        if type(comp).__name__ in ["SettingsComponent", "CodeComponent"]:
+            pytest.skip()
+        # Skip if component is deprecated
+        if type(comp).__name__ in ['RatingScaleComponent', 'PatchComponent']:
+            pytest.skip()
         # Try with PsychoPy and PsychoJS
         for target in ("PsychoPy", "PsychoJS"):
             ## Skip PsychoJS until can write script without saving
             if target == "PsychoJS":
                 continue
-            # Skip if not valid for this (or any) target
+            # Skip if not valid for this target
             if target not in comp.targets:
-                continue
-            if type(comp).__name__ == "SettingsComponent":
-                continue
-            if type(comp).__name__ in ['RatingScaleComponent', 'PatchComponent']:
                 continue
             # Compile script
             script = exp.writeScript(target=target)
@@ -123,6 +125,9 @@ class _TestDisabledMixin:
         """
         # Make minimal experiment just for this test
         comp, rt, exp = _make_minimal_experiment(self)
+        # Skip for Code components as these purely inject code, name isn't used
+        if type(comp).__name__ in ("CodeComponent"):
+            pytest.skip()
         # Write experiment and check that component is written
         pyScript = exp.writeScript(target="PsychoPy")
         if "PsychoPy" in type(comp).targets:
