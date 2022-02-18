@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 2020.1.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-02-17 18:32+0900\n"
-"PO-Revision-Date: 2022-02-17 18:54+0900\n"
+"POT-Creation-Date: 2022-02-18 11:57+0900\n"
+"PO-Revision-Date: 2022-02-18 12:03+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -413,7 +413,7 @@ msgstr "お気に入りから削除"
 msgid "edit"
 msgstr "編集"
 
-#: psychopy/app/builder/builder.py:80 psychopy/app/builder/builder.py:2943
+#: psychopy/app/builder/builder.py:80 psychopy/app/builder/builder.py:2944
 msgid "remove"
 msgstr "削除"
 
@@ -445,7 +445,7 @@ msgstr "ひとつ下へ"
 msgid "move to bottom"
 msgstr "一番下へ"
 
-#: psychopy/app/builder/builder.py:289 psychopy/app/builder/builder.py:2808
+#: psychopy/app/builder/builder.py:289 psychopy/app/builder/builder.py:2809
 #: psychopy/app/coder/coder.py:1424 psychopy/app/pavlovia_ui/_base.py:24
 #: psychopy/monitors/MonitorCenter.py:227
 msgid "&File"
@@ -548,12 +548,12 @@ msgstr "直前の操作を繰り返します"
 msgid "&Paste\t%s"
 msgstr "貼り付け(&P)\t%s"
 
-#: psychopy/app/builder/builder.py:390 psychopy/app/builder/builder.py:2817
+#: psychopy/app/builder/builder.py:390 psychopy/app/builder/builder.py:2818
 #, python-format
 msgid "&Toggle readme\t%s"
 msgstr "Readme表示ON/OFF(&T)\t%s"
 
-#: psychopy/app/builder/builder.py:392 psychopy/app/builder/builder.py:2819
+#: psychopy/app/builder/builder.py:392 psychopy/app/builder/builder.py:2820
 msgid "Toggle Readme"
 msgstr "Readmeファイルの表示ON/OFFを切り替えます"
 
@@ -872,7 +872,7 @@ msgstr "繰り返す %(action)s\t%(key)s"
 msgid "Location to unpack demos"
 msgstr "デモを展開する場所を選択してください"
 
-#: psychopy/app/builder/builder.py:1230 psychopy/app/builder/builder.py:2131
+#: psychopy/app/builder/builder.py:1230 psychopy/app/builder/builder.py:2132
 #, python-format
 msgid "New name for copy of \"%(copied)s\"?  [%(default)s]"
 msgstr "%(copied)sのコピーの名前は？ [%(default)s]"
@@ -889,96 +889,96 @@ msgstr "Routineの新しい名前を入力してください"
 msgid "Rename"
 msgstr "名前の変更"
 
-#: psychopy/app/builder/builder.py:1539
+#: psychopy/app/builder/builder.py:1540
 #: psychopy/app/builder/dialogs/__init__.py:1785
 msgid "What is the name for the new Routine? (e.g. instr, trial, feedback)"
 msgstr "新しいRoutineの名前(instr, trial, feedbackなど)を入力してください"
 
-#: psychopy/app/builder/builder.py:1568
+#: psychopy/app/builder/builder.py:1569
 msgid "Do you want to remove routine '{}' from the experiment?"
 msgstr "実験から{}というRoutineを削除しますか?"
 
-#: psychopy/app/builder/builder.py:1574
+#: psychopy/app/builder/builder.py:1575
 msgid "Remove routine?"
 msgstr "Routineを削除しますか?"
 
-#: psychopy/app/builder/builder.py:1788 psychopy/app/preferencesDlg.py:97
+#: psychopy/app/builder/builder.py:1789 psychopy/app/preferencesDlg.py:97
 msgid "paste"
 msgstr "貼り付け"
 
-#: psychopy/app/builder/builder.py:2135
+#: psychopy/app/builder/builder.py:2136
 msgid "Paste Component"
 msgstr "Componentの貼り付け"
 
-#: psychopy/app/builder/builder.py:2379
+#: psychopy/app/builder/builder.py:2380
 msgid "Cannot add component, experiment has no routines."
 msgstr "実験にRoutineがないのでコンポーネントを追加できません."
 
-#: psychopy/app/builder/builder.py:2380 psychopy/app/preferencesDlg.py:835
+#: psychopy/app/builder/builder.py:2381 psychopy/app/preferencesDlg.py:835
 msgid "Error"
 msgstr "エラー"
 
-#: psychopy/app/builder/builder.py:2559 psychopy/app/dialogs.py:80
+#: psychopy/app/builder/builder.py:2560 psychopy/app/dialogs.py:80
 #: psychopy/app/pavlovia_ui/project.py:747
 #: psychopy/app/pavlovia_ui/search.py:414 psychopy/app/pavlovia_ui/sync.py:34
 #: psychopy/app/pavlovia_ui/sync.py:129
 msgid "OK"
 msgstr "OK"
 
-#: psychopy/app/builder/builder.py:2811
+#: psychopy/app/builder/builder.py:2812
 msgid "Edit"
 msgstr "編集"
 
-#: psychopy/app/builder/builder.py:2814
+#: psychopy/app/builder/builder.py:2815
 #, python-format
 msgid "&Close readme\t%s"
 msgstr "Readmeを閉じる(&C)\t%s"
 
-#: psychopy/app/builder/builder.py:2944
+#: psychopy/app/builder/builder.py:2945
 msgid "rename"
 msgstr "名前の変更"
 
-#: psychopy/app/builder/builder.py:2956
+#: psychopy/app/builder/builder.py:2957
 msgid "Insert Routine "
 msgstr "Routineを挿入 "
 
-#: psychopy/app/builder/builder.py:2957
+#: psychopy/app/builder/builder.py:2958
 msgid "Insert Loop     "
 msgstr "Loopを挿入    "
 
-#: psychopy/app/builder/builder.py:3021
+#: psychopy/app/builder/builder.py:3022
 msgid "Insert Routine"
 msgstr "Routineを挿入"
 
-#: psychopy/app/builder/builder.py:3023
+#: psychopy/app/builder/builder.py:3024
 msgid "Insert Loop"
 msgstr "Loopを挿入"
 
-#: psychopy/app/builder/builder.py:3052
+#: psychopy/app/builder/builder.py:3053
 msgid "Select a Routine to insert (Esc to exit)"
 msgstr "挿入するRoutineを選んでください(Escで中止)"
 
-#: psychopy/app/builder/builder.py:3094
+#: psychopy/app/builder/builder.py:3095
 msgid "CANCEL Insert"
 msgstr "挿入を中止"
 
-#: psychopy/app/builder/builder.py:3096
+#: psychopy/app/builder/builder.py:3097
 msgid "Click where you want to insert the Routine, or CANCEL insert."
 msgstr "Routineを挿入する位置をクリックするか, 挿入を中止してください."
 
-#: psychopy/app/builder/builder.py:3127
+#: psychopy/app/builder/builder.py:3128
 msgid "CANCEL insert"
 msgstr "挿入を中止"
 
-#: psychopy/app/builder/builder.py:3130
+#: psychopy/app/builder/builder.py:3131
 msgid "Click where you want the loop to start/end, or CANCEL insert."
 msgstr "挿入するLoopの始点または終点をクリックするか, 挿入を中止してください."
 
-#: psychopy/app/builder/builder.py:3139
+#: psychopy/app/builder/builder.py:3140
 msgid "Click the other end for the loop"
 msgstr "挿入するLoopのもう一端をクリックしてください"
 
-#: psychopy/app/builder/builder.py:3368
+#: psychopy/app/builder/builder.py:3369
 #, python-format
 msgid ""
 "The \"%s\" Loop is about to be deleted as well (by collapsing). OK to "
@@ -987,7 +987,7 @@ msgstr ""
 "「%s」というLoopの内容が空になるため削除されようとしています. よろしいです"
 "か？"
 
-#: psychopy/app/builder/builder.py:3370
+#: psychopy/app/builder/builder.py:3371
 msgid "Impending Loop collapse"
 msgstr "Loopが空になろうとしています"
 
@@ -6135,8 +6135,8 @@ msgid ""
 "Pre-load some resources into memory so that components using them can start "
 "without having to load first"
 msgstr ""
-"リソースを最初にすべて読み込まずに実験を開始できるようにメモリへのリソースの"
-"先行読み込みをおこないます"
+"実験で使用するリソースを最初にすべて読み込まず, 実験途中で使用する前に読み込"
+"みます"
 
 #: psychopy/experiment/components/resourceManager/__init__.py:41
 msgid "Resources to download/check"
@@ -6159,12 +6159,12 @@ msgstr "すべて確認"
 #: psychopy/experiment/components/resourceManager/__init__.py:52
 msgid "Should this component start an / or check resource preloading?"
 msgstr ""
-"このコンポーネントで先行読み込みを開始するかリソースの確認をおこなうかを選択"
-"します"
+"このコンポーネントで読み込みを開始するかリソースの確認をおこなうかを選択しま"
+"す"
 
 #: psychopy/experiment/components/resourceManager/__init__.py:53
 msgid "Preload Actions"
-msgstr "先行読み込みの動作"
+msgstr "読み込み動作"
 
 #: psychopy/experiment/components/resourceManager/__init__.py:56
 msgid "Should we end the Routine when the resource download is complete?"
