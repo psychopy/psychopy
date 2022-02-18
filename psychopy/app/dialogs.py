@@ -619,12 +619,6 @@ class ListWidget(GlobSizer):
         """
         return self.getListOfDicts()
 
-    def SetToolTipString(self, tip):
-        """This isn't implemented yet.
-        Set every control to have the same tooltip?
-        """
-        pass
-
     def SetValidator(self, validator):
         # Set Validator on every applicable child element
         for child in self.Children:
