@@ -216,39 +216,6 @@ class TestExpt():
         #assert not diff_in_file_psyexp # was failing most times, uninformative
         #assert not diff_in_file_pyc    # oops, was failing every time despite identical .py file
 
-    def test_loopBlocks(self):
-        """An experiment file with made-up params and routines to see whether
-        future versions of experiments will get loaded.
-        """
-        #load the test experiment (with a stims loop, trials loop and blocks loop)
-        expfile = path.join(self.exp.prefsPaths['tests'], 'data', 'testLoopsBlocks.psyexp')
-        self.exp.loadFromXML(expfile) # reload the edited file
-        #alter the settings so the data goes to our tmp dir
-        datafileBase = os.path.join(self.tmp_dir, 'testLoopsBlocks')
-        datafileBaseRel = os.path.relpath(datafileBase,expfile)
-        self.exp.settings.params['Data filename'].val = repr(datafileBaseRel)
-        #write the script from the experiment
-        script = self.exp.writeScript(expPath=expfile)
-        py_file = os.path.join(self.tmp_dir, 'testLoopBlocks.py')
-
-        # save it
-        with codecs.open(py_file, 'w', 'utf-8-sig') as f:
-            f.write(script)
-
-        stdout, stderr = core.shellCall([sys.executable, py_file], stderr=True)
-        if stderr:
-            with codecs.open(expfile + "_local.py", "w", 'utf-8-sig') as f:
-                f.write(script)
-            raise AssertionError(f"File {py_file} raised error:\n {stderr}")
-
-        #load the data
-        print("searching..." +datafileBase)
-        print(glob.glob(datafileBase+'*'))
-        f = open(datafileBase+".csv", 'rb')
-        dat = numpy.recfromcsv(f, case_sensitive=True)
-        f.close()
-        assert len(dat)==8 # because 4 'blocks' with 2 trials each (3 stims per trial)
-
     def test_Run_FastStroopPsyExp(self):
         # start from a psyexp file, loadXML, execute, get keypresses from a emulator thread
         if sys.platform.startswith('linux'):
