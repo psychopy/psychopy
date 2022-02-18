@@ -48,16 +48,7 @@ class TestLoops:
                 f.write(pyScript)
 
             # Run Python script to generate data file
-            try:
-                stdout, stderr = core.shellCall([sys.executable, str(pyScriptFile)], stderr=True)
-                assert not stderr
-            except Exception as err:
-                # If experiment errors, write it for reference
-                with codecs.open(str(
-                        Path(TESTS_DATA_PATH) / "test_loops" / f"{filename}_local.py"
-                ), "w", 'utf-8-sig') as f:
-                    f.write(pyScript)
-                raise err
+            stdout, stderr = core.shellCall([sys.executable, str(pyScriptFile)], stderr=True)
             # Load data file
             with open(datafile, "rb") as f:
                 data = np.recfromcsv(f, case_sensitive=True)
