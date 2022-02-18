@@ -43,6 +43,10 @@ _translate(
 _translate(
     "Your stimulus {type} type {frameType} must be expressed as a whole number.")
 
+# Alert 4120
+_translate(
+    "Component {component} has stop time set as a duration, but doesn't have a start time")
+
 # Alert 4205
 _translate(
     "Python Syntax Error in '{codeTab}' tab. See '{code}' on line number {lineNumber} of the '{codeTab}' tab.")
@@ -74,6 +78,14 @@ _translate(
 _translate(
     "Recording device '{device}' not found, using default device instead.")
 
+# Alert 4335
+_translate(
+    "The component or routine '{comp}' is only implemented online, so will do nothing when running locally.")
+
+# Alert 4340
+_translate(
+    "The component or routine '{comp}' is only implemented locally, so will do nothing when running online.")
+
 # Alert 4405
 _translate(
     "Editable textbox component {textbox} and keyboard component {keyboard} in the same routine may compete for keypresses")
@@ -101,7 +113,7 @@ _translate(
 
 # Alert 4550
 _translate(
-    "Region Of Interest component {name} is not accompanied by an Eyetracker Record component. Without an Eyetracker Record component, eye position will not be available.")
+    "Eye tracker experiments should use 'ioHub' as the Input -> Keyboard Backend setting")
 
 # Alert 4605
 _translate(
