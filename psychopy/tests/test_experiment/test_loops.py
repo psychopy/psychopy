@@ -24,7 +24,8 @@ class TestLoops:
             cls.tempDir = mkdtemp(prefix='psychopy-tests-loops')
         # List of filenames for experiments to run
         filenames = [
-            'testLoopsBlocks'
+            'testLoopsBlocks',
+            'testStaircase',
         ]
         # Run each experiment to get data
         cls.cases = []
@@ -69,8 +70,12 @@ class TestLoops:
         # Define desired length for each case
         answers = {
             'testLoopsBlocks': 8,  # because 4 'blocks' with 2 trials each (3 stims per trial)
+            'testStaircase': 5,  # 5 reps
         }
         # Test each case
         for case in self.cases:
             if case['filename'] in answers:
-                assert len(case['data']) == answers[case['filename']]
+                assert len(case['data']) == answers[case['filename']], (
+                    f"Expected array {answers[case['filename']]} long, received:\n"
+                    f"{case['data']}"
+                )
