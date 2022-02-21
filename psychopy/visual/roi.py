@@ -1,3 +1,5 @@
+import numpy as np
+
 from .shape import ShapeStim
 from ..event import Mouse
 from ..core import Clock
@@ -88,7 +90,7 @@ class ROI(ShapeStim):
         try:
             # Get current device position
             pos = self.device.getPos()
-            if not isinstance(pos, (list, tuple)):
+            if not isinstance(pos, (list, tuple, np.ndarray)):
                 # If there's no valid device position, assume False
                 return False
             # Check contains
