@@ -124,6 +124,7 @@
     # Ask for confirmation when closing a routine tab.
     confirmRoutineClose = boolean(default=True)
 
+# Settings for hardware
 [hardware]
     # choice of audio library
     audioLib = list(default=list('sounddevice','PTB', 'pyo', 'pygame'))

@@ -208,7 +208,7 @@ class InvalidCtrl(SingleLineCtrl, _ValidatorMixin, _HideMixin):
         self._szr.Add(self.deleteLbl, border=6, proportion=1, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         # Add undo delete button
         self.undoBtn = wx.Button(parent, label="⟲", size=(24, 24))
-        self.deleteBtn.SetToolTip(_translate(
+        self.undoBtn.SetToolTip(_translate(
             "This parameter will not be deleted until you click Okay. "
             "Click this button to revert the deletion and keep the parameter."))
         self.undoBtn.Hide()
