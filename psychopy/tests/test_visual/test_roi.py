@@ -95,4 +95,4 @@ class TestROI(_TestUnitsMixin):
             np.isclose(self.obj.timesOff, looks[:, 1], 0.001)
         )
         # Check that convenience functios return correct values
-        assert self.obj.numLooks == looks.shape[1]
+        assert self.obj.numLooks == looks.shape[0]
