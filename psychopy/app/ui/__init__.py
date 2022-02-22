@@ -21,7 +21,7 @@ DEFAULT_AUI_STYLE_FLAGS = aui.AUI_MGR_DEFAULT | aui.AUI_MGR_RECTANGLE_HINT
 class BaseAuiFrame(wx.Frame):
     """Base class for AUI managed frames.
 
-    Takes the same same arguments as `wx.Frame`. This frame is AUI managed which
+    Takes the same arguments as `wx.Frame`. This frame is AUI managed which
     allows for sub-windows to be attached to it. No application logic should be
     implemented in this class, only its sub-classes.
 
