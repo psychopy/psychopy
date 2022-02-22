@@ -89,10 +89,10 @@ class TestROI(_TestUnitsMixin):
 
         # Check that times saved correctly
         assert all(
-            np.isclose(self.obj.timesOn, looks[:, 0], 0.001)
+            np.isclose(self.obj.timesOn, looks[:, 0], 0.01)
         )
         assert all(
-            np.isclose(self.obj.timesOff, looks[:, 1], 0.001)
+            np.isclose(self.obj.timesOff, looks[:, 1], 0.01)
         )
         # Check that convenience functios return correct values
         assert self.obj.numLooks == looks.shape[0]
