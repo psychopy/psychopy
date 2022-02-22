@@ -170,7 +170,7 @@ class BuilderFrame(BaseAuiFrame, ThemeMixin):
         if self.frameData['winY'] < 20:
             self.frameData['winY'] = 20
 
-        BaseAuiFrame.__init__(self, parent=parent, id_=id, title=title,
+        BaseAuiFrame.__init__(self, parent=parent, id=id, title=title,
                               pos=(int(self.frameData['winX']),
                                    int(self.frameData['winY'])),
                               size=(int(self.frameData['winW']),
