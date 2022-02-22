@@ -40,17 +40,17 @@ class BaseAuiFrame(wx.Frame):
         Initial sie of the window in desktop units.
     style : int
         Style flags for the window. Default is the combination of
-        wx.DEFAULT_FRAME_STYLE` and `wx.TAB_TRAVERSAL`.
+        `wx.DEFAULT_FRAME_STYLE` and `wx.TAB_TRAVERSAL`.
 
     """
     def __init__(self,
                  parent,
-                 id_=wx.ID_ANY,
+                 id=wx.ID_ANY,
                  title=DEFAULT_FRAME_TITLE,
                  pos=wx.DefaultPosition,
                  size=DEFAULT_FRAME_SIZE,
                  style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL):
-        wx.Frame.__init__(self, parent, id=id_, title=title, pos=pos, size=size,
+        wx.Frame.__init__(self, parent, id=id, title=title, pos=pos, size=size,
                           style=style)
 
         # defaults for window
