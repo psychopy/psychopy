@@ -48,6 +48,7 @@ from ... import experiment, prefs
 from .. import dialogs
 from ..themes import ThemeMixin
 from ..themes._themes import PsychopyDockArt, PsychopyTabArt, ThemeSwitcher
+from ..ui import BaseAuiFrame
 from psychopy import logging, data
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
@@ -117,7 +118,7 @@ class TemplateManager(dict):
                     self[categName][routineName] = copy.copy(thisExp.routines[routineName])
 
 
-class BuilderFrame(wx.Frame, ThemeMixin):
+class BuilderFrame(BaseAuiFrame, ThemeMixin):
     """Defines construction of the Psychopy Builder Frame"""
 
     routineTemplates = TemplateManager()
@@ -168,12 +169,14 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             self.frameData['winX'], self.frameData['winY'] = (0, 0)
         if self.frameData['winY'] < 20:
             self.frameData['winY'] = 20
-        wx.Frame.__init__(self, parent=parent, id=id, title=title,
-                          pos=(int(self.frameData['winX']), int(
-                              self.frameData['winY'])),
-                          size=(int(self.frameData['winW']), int(
-                              self.frameData['winH'])),
-                          style=style)
+
+        BaseAuiFrame.__init__(self, parent=parent, id_=id, title=title,
+                              pos=(int(self.frameData['winX']),
+                                   int(self.frameData['winY'])),
+                              size=(int(self.frameData['winW']),
+                                    int(self.frameData['winH'])),
+                              style=style)
+
         self.Bind(wx.EVT_CLOSE, self.closeFrame)
         #self.panel = wx.Panel(self)
 
@@ -214,9 +217,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.updateReadme()  # check/create frame as needed
 
         # control the panes using aui manager
-        self._mgr = aui.AuiManager(
-            self,
-            aui.AUI_MGR_DEFAULT | aui.AUI_MGR_RECTANGLE_HINT)
+        self._mgr = self.getAuiManager()
 
         #self._mgr.SetArtProvider(PsychopyDockArt())
         #self._art = self._mgr.GetArtProvider()

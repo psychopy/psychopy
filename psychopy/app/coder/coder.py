@@ -33,6 +33,7 @@ from psychopy import logging, prefs
 from psychopy.alerts._alerts import alert
 from psychopy.localization import _translate
 from ..utils import FileDropTarget, PsychopyToolbar, FrameSwitcher, updateDemosMenu
+from ..ui import BaseAuiFrame
 from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
 from psychopy.app.errorDlg import exceptionCallback
@@ -1138,7 +1139,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
             #     findDlg.Close()
 
 
-class CoderFrame(wx.Frame, ThemeMixin):
+class CoderFrame(BaseAuiFrame, ThemeMixin):
 
     def __init__(self, parent, ID, title, files=(), app=None):
         self.app = app  # type: psychopy.app.PsychoPyApp
@@ -1168,21 +1169,16 @@ class CoderFrame(wx.Frame, ThemeMixin):
         if self.appData['winX'] == -32000:
             self.appData['winX'], self.appData['winY'] = wx.DefaultPosition
             self.appData['winH'], self.appData['winW'] = wx.DefaultSize
-        wx.Frame.__init__(self, parent, ID, title,
-                          (self.appData['winX'], self.appData['winY']),
-                          size=(self.appData['winW'], self.appData['winH']))
+
+        BaseAuiFrame.__init__(
+            self, parent, ID, title,
+            (self.appData['winX'], self.appData['winY']),
+            (self.appData['winW'], self.appData['winH']))
 
         # detect retina displays (then don't use double-buffering)
         self.isRetina = \
             self.GetContentScaleFactor() != 1 and wx.Platform == '__WXMAC__'
 
-        # create a panel which the aui manager can hook onto
-        szr = wx.BoxSizer(wx.VERTICAL)
-        self.pnlMain = wx.Panel(self)
-        szr.Add(self.pnlMain, flag=wx.EXPAND | wx.ALL, proportion=1)
-        self.SetSizer(szr)
-
-        # self.panel = wx.Panel(self)
         self.Hide()  # ugly to see it all initialise
         # create icon
         if sys.platform == 'darwin':
@@ -1213,8 +1209,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.SetAcceleratorTable(accelTable)
 
         # Setup pane and art managers
-        self.paneManager = aui.AuiManager(
-            self.pnlMain, aui.AUI_MGR_DEFAULT | aui.AUI_MGR_RECTANGLE_HINT)
+        self.paneManager = self.getAuiManager()
 
         # Create toolbar
         self.toolbar = PsychopyToolbar(self)
@@ -1230,12 +1225,10 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.SetDropTarget(FileDropTarget(targetFrame=self))
 
         # Create editor notebook
-        #todo: Why is editor default background not same as usual frame backgrounds?
         self.notebook = aui.AuiNotebook(
-            self.pnlMain, -1, size=wx.Size(480, 480),
+            self, -1, size=wx.Size(480, 480),
             agwStyle=aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB)
 
-        #self.notebook.SetArtProvider(PsychopyTabArt())
         # Add editor panel
         self.paneManager.AddPane(self.notebook, aui.AuiPaneInfo().
                                  Name("Editor").
@@ -1250,7 +1243,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
 
         # Create source assistant notebook
         self.sourceAsst = aui.AuiNotebook(
-            self.pnlMain,
+            self,
             wx.ID_ANY,
             size = wx.Size(500, 600),
             agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS |
@@ -1301,7 +1294,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
 
         # Create shelf notebook
         self.shelf = aui.AuiNotebook(
-            self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600),
+            self, wx.ID_ANY, size=wx.Size(600, 600),
             agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS)
         #self.shelf.SetArtProvider(PsychopyTabArt())
 
