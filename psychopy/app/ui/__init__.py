@@ -80,7 +80,7 @@ class BaseAuiFrame(wx.Frame):
         return self.m_mgr
 
     # --------------------------------------------------------------------------
-    # Events for the Coder Frame
+    # Events for the AUI frame
     #
 
     def onAuiPaneActivate(self, event):
