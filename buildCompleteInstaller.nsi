@@ -122,11 +122,12 @@ Section "PsychoPy" SEC01
   uninst_query:
     IfSilent +3
     MessageBox MB_YESNO|MB_ICONEXCLAMATION \
-    "A version of ${PRODUCT_NAME} is already installed at that location. \
+    "A version of ${PRODUCT_NAME} is already installed. $\r$\n $\r$\n\
     Having 2 copies installed at the same time can cause 'surprising' \
-    results. Do you prefer your software not to do surprising things? \n\n \
-    Press `Yes` to remove the existing installation or \
-    `NO` not to install on top or alongside." \
+    results. Do you prefer your software not to do surprising things?$\r$\n $\r$\n\
+    Press $\r$\n\
+    - YES to remove the existing installation$\r$\n\
+    - NO to install without removing anything" \
     IDYES uninstall_first \
     IDNO continue_inst
 

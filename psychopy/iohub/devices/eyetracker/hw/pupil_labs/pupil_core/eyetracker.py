@@ -4,6 +4,8 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 import logging
 from collections import defaultdict
+from sys import flags
+from typing import Optional, Dict, Tuple, Union
 
 from psychopy.iohub.constants import EyeTrackerConstants
 from psychopy.iohub.devices import Computer, Device
@@ -22,30 +24,43 @@ logger = logging.getLogger(__name__)
 
 
 class EyeTracker(EyeTrackerDevice):
-    """The EyeTrackerDevice class is the main class for the ioHub Common Eye
-    Tracker interface.
+    """
+    Implementation of the :py:class:`Common Eye Tracker Interface <.EyeTrackerDevice>`
+    for the Pupil Core headset.
 
-    The Common Eye Tracker Interface--a set of common functions and methods
-    such that the same experiment script and data analyses can be shared,
-    used, and compared regardless of the actual eye tracker used--works by
-    extending the EyeTrackerDevice class to configure device monitoring and
-    data access to individual eye tracker manufacturers and models.
+    Uses ioHub's polling method to process data from `Pupil Capture's Network API
+    <https://docs.pupil-labs.com/developer/core/network-api/>`_.
 
-    Not every EyeTrackerDevice subclass will support all of the umbrella functionality
-    within the Common Eye Tracker Interface, but a core set of critical functions are
-    supported by all eye tracker models to date. Any Common Eye Tracker Interface
-    method not supported by the configured Eye Tracker hardware returns a constant
-    (EyeTrackerConstants.FUNCTIONALITY_NOT_SUPPORTED).
+    To synchronize time between Pupil Capture and PsychoPy, the integration estimates
+    the offset between their clocks and applies it to the incoming data. This step
+    effectively transforms time between the two softwares while taking the transmission
+    delay into account. For details, see this `real-time time-sync tutorial
+    <https://github.com/pupil-labs/pupil-helpers/blob/master/python/simple_realtime_time_sync.py>`_.
 
-    Methods in the EyeTrackerDevice class are broken down into several categories:
+    This class operates in two modes, depending on the ``pupillometry_only`` runtime
+    setting:
 
-    #. Initializing the Eye Tracker / Setting the Device State.
-    #. Defining the Graphics Layer for Calibration / System Setup.
-    #. Starting and Stopping of Data Recording.
-    #. Sending Messages or Codes to Synchronize the ioHub with the Eye Tracker.
-    #. Accessing Eye Tracker Data During Recording.
-    #. Accessing the Eye Tracker native time base.
-    #. Synchronizing the ioHub time base with the Eye Tracker time base
+    #. Pupillometry-only mode
+        If the ``pupillometry_only`` setting is to ``True``, the integration will only
+        receive eye-camera based metrics, e.g. pupil size, its location in eye camera
+        coordinates, etc. The advatage of this mode is that it does not require
+        calibrating the eye tracker or setting up AprilTag markers for the AoI tracking.
+        To receive gaze data in PsychoPy screen coordinates, see the Pupillometry+Gaze
+        mode below.
+
+        Internally, this is implemented by subscribing to the ``pupil.`` data topic.
+
+    #. Pupillometry+Gaze mode
+        If the ``Pupillometry only`` setting is set to ``False``, the integration will
+        receive positional data in addition to the pupillometry data mentioned above.
+        For this to work, one has to setup Pupil Capture's built-in AoI tracking system
+        and perform a calibration for each subject.
+
+        The integration takes care of translating the spatial coordinates to PsychoPy
+        display coordinates.
+
+        Internally, this mode is implemented by subscribing to the ``gaze.3d.`` and the
+        corresponding surface name data topics.only
 
     .. note::
 
@@ -71,7 +86,7 @@ class EyeTracker(EyeTrackerDevice):
         "BinocularEyeSampleEvent",
     ]
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         EyeTrackerDevice.__init__(self, *args, **kwargs)
 
         self._latest_sample = None
@@ -102,39 +117,34 @@ class EyeTracker(EyeTrackerDevice):
         self.setConnectionState(True)
 
     @property
-    def surface_topic(self):
+    def surface_topic(self) -> str:
+        """Read-ony Pupil Capture subscription topic to receive data from the configured
+        surface"""
         return f"surfaces.{self._surface_name}"
 
-    def trackerTime(self):
-        """trackerTime returns the current time reported by the eye tracker
-        device. The time base is implementation dependent.
+    def trackerTime(self) -> float:
+        """Returns the current time reported by the eye tracker device.
 
-        Args:
-            None
+        Implementation measures the current time in PsychoPy time and applies the
+        estimated clock offset to transform the measurement into tracker time.
 
-        Return:
-            float: The eye tracker hardware's reported current time.
+        :return: The eye tracker hardware's reported current time.
 
         """
         return self._psychopyTimeInTrackerTime(Computer.getTime())
 
-    def trackerSec(self):
+    def trackerSec(self) -> float:
         """
-        trackerSec takes the time received by the EyeTracker.trackerTime() method
-        and returns the time in sec.usec-msec format.
+        Returns :py:func:`.EyeTracker.trackerTime`
 
-        Args:
-            None
-
-        Return:
-            float: The eye tracker hardware's reported current time in sec.msec-usec format.
+        :return: The eye tracker hardware's reported current time in sec.msec-usec format.
         """
         return self.trackerTime()
 
-    def setConnectionState(self, enable):
-        """setConnectionState either connects ( setConnectionState(True) ) or
-        disables ( setConnectionState(False) ) active communication between the
-        ioHub and the Eye Tracker.
+    def setConnectionState(self, enable: bool) -> None:
+        """setConnectionState either connects (``setConnectionState(True)``) or
+        disables (``setConnectionState(False)``) active communication between the
+        ioHub and Pupil Capture.
 
         .. note::
             A connection to the Eye Tracker is automatically established
@@ -143,17 +153,16 @@ class EyeTracker(EyeTrackerDevice):
             explicitly call this method in the experiment script.
 
         .. note::
-            Connecting an Eye Tracker to the ioHub does **not** necessarily collect and send
-            eye sample data to the ioHub Process. To start actual data collection,
-            use the Eye Tracker method setRecordingState(bool) or the ioHub Device method (device type
-            independent) enableEventRecording(bool).
+            Connecting an Eye Tracker to the ioHub does **not** necessarily collect and
+            send eye sample data to the ioHub Process. To start actual data collection,
+            use the Eye Tracker method ``setRecordingState(bool)`` or the ioHub Device
+            method (device type independent) ``enableEventRecording(bool)``.
 
         Args:
             enable (bool): True = enable the connection, False = disable the connection.
 
-        Return:
+        :return:
             bool: indicates the current connection state to the eye tracking hardware.
-
         """
         if enable and self._pupil_remote is None:
             self._pupil_remote = pupil_remote.PupilRemote(
@@ -166,37 +175,41 @@ class EyeTracker(EyeTrackerDevice):
             self._pupil_remote.cleanup()
             self._pupil_remote = None
 
-    def isConnected(self):
+    def isConnected(self) -> bool:
         """isConnected returns whether the ioHub EyeTracker Device is connected
-        to the eye tracker hardware or not. An eye tracker must be connected to
-        the ioHub for any of the Common Eye Tracker Interface functionality to
-        work.
+        to Pupil Capture or not. A Pupil Core headset must be connected and working
+        properly for any of the Common Eye Tracker Interface functionality to work.
 
         Args:
             None
 
-        Return:
+        :return:
             bool:  True = the eye tracking hardware is connected. False otherwise.
 
         """
         return self._pupil_remote is not None
 
-    def runSetupProcedure(self, calibration_args={}):
+    def runSetupProcedure(self, calibration_args: Optional[Dict] =None) -> int:
         """
-        The runSetupProcedure method starts the eye tracker calibration
-        routine. If calibration_args are provided, they should be used to
-        update calibration related settings prior to starting the calibration.
-
-        The details of this method are implementation-specific.
+        The runSetupProcedure method starts the Pupil Capture calibration choreography.
 
         .. note::
-            This is a blocking call for the PsychoPy Process
-            and will not return to the experiment script until the necessary steps
-            have been completed so that the eye tracker is ready to start collecting
-            eye sample data when the method returns.
+            This is a blocking call for the PsychoPy Process and will not return to the
+            experiment script until the calibration procedure was either successful,
+            aborted, or failed.
 
-        Args:
-            None
+        :param calibration_args: This argument will be ignored and has only been added
+            for the purpose of compatibility with the Common Eye Tracker Interface
+        
+        :return:
+            - :py:attr:`.EyeTrackerConstants.EYETRACKER_OK`
+                if the calibration was succesful
+            - :py:attr:`.EyeTrackerConstants.EYETRACKER_SETUP_ABORTED`
+                if the choreography was aborted by the user
+            - :py:attr:`.EyeTrackerConstants.EYETRACKER_CALIBRATION_ERROR`
+                if the calibration failed, check logs for details
+            - :py:attr:`.EyeTrackerConstants.EYETRACKER_ERROR`
+                if any other error occured, check logs for details
         """
         self._pupil_remote.start_calibration()
         logger.info("Waiting for calibration to complete")
@@ -222,15 +235,22 @@ class EyeTracker(EyeTrackerDevice):
             printExceptionDetailsToStdErr()
         return EyeTrackerConstants.EYETRACKER_ERROR
 
-    def setRecordingState(self, should_be_recording):
+    def setRecordingState(self, should_be_recording: bool) -> bool:
         """The setRecordingState method is used to start or stop the recording
         and transmission of eye data from the eye tracking device to the ioHub
         Process.
 
-        Args:
-            recording (bool): if True, the eye tracker will start recordng data.; false = stop recording data.
+        If the ``pupil_capture_recording.enabled`` runtime setting is set to ``True``,
+        a corresponding raw recording within Pupil Capture will be started or stopped.
 
-        Return:
+        ``should_be_recording`` will also be passed to
+        :py:func:`.EyeTrackerDevice.enableEventReporting`.
+
+        Args:
+            recording (bool): if True, the eye tracker will start recordng data.;
+                false = stop recording data.
+
+        :return:
             bool: the current recording state of the eye tracking device
 
         """
@@ -255,42 +275,44 @@ class EyeTracker(EyeTrackerDevice):
 
         return EyeTrackerDevice.enableEventReporting(self, self._actively_recording)
 
-    def isRecordingEnabled(self):
+    def isRecordingEnabled(self) -> bool:
         """The isRecordingEnabled method indicates if the eye tracker device is
         currently recording data.
 
-        Args:
-           None
-
-        Return:
-            bool: True == the device is recording data; False == Recording is not occurring
+        :return: ``True`` == the device is recording data; ``False`` == Recording is not
+            occurring
 
         """
         if not self.isConnected():
             return False
         return self._actively_recording
 
-    def getLastSample(self):
+    def getLastSample(self) -> Union[
+        None,
+        "psychopy.iohub.devices.eyetracker.MonocularEyeSampleEvent",
+        "psychopy.iohub.devices.eyetracker.BinocularEyeSampleEvent",
+    ]:
         """The getLastSample method returns the most recent eye sample received
         from the Eye Tracker. The Eye Tracker must be in a recording state for
         a sample event to be returned, otherwise None is returned.
 
-        Args:
-            None
+        :return:
 
-        Returns:
-            int: If this method is not supported by the eye tracker interface, EyeTrackerConstants.FUNCTIONALITY_NOT_SUPPORTED is returned.
-
-            None: If the eye tracker is not currently recording data.
-
-            EyeSample: If the eye tracker is recording in a monocular tracking mode, the latest sample event of this event type is returned.
-
-            BinocularEyeSample:  If the eye tracker is recording in a binocular tracking mode, the latest sample event of this event type is returned.
+            - MonocularEyeSampleEvent:
+                Gaze mapping result from a single pupil detection.
+                Only emitted if a second eye camera is not being operated or the
+                confidence of the pupil detection was insufficient for a binocular pair.
+                See also this high-level overview of the `Pupil Capture Data Matching
+                algorithm <https://github.com/N-M-T/pupil-docs/commit/1dafe298565720a4bb7500a245abab7a6a2cd92f>`_
+            - BinocularEyeSample:
+                Gaze mapping result from two combined pupil detections
+            - None:
+                If the eye tracker is not currently recording data.
 
         """
         return self._latest_sample
 
-    def getLastGazePosition(self):
+    def getLastGazePosition(self) -> Optional[Tuple[float,float]]:
         """The getLastGazePosition method returns the most recent eye gaze
         position received from the Eye Tracker. This is the position on the
         calibrated 2D surface that the eye tracker is reporting as the current
@@ -303,15 +325,14 @@ class EyeTracker(EyeTrackerDevice):
         If no samples have been received from the eye tracker, or the
         eye tracker is not currently recording data, None is returned.
 
-        Args:
-            None
+        :return:
 
-        Returns:
-            int: If this method is not supported by the eye tracker interface, EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED is returned.
+            - None:
+                If the eye tracker is not currently recording data or no eye samples
+                have been received.
 
-            None: If the eye tracker is not currently recording data or no eye samples have been received.
-
-            tuple: Latest (gaze_x,gaze_y) position of the eye(s)
+            - tuple:
+                Latest (gaze_x,gaze_y) position of the eye(s)
         """
         return self._latest_gaze_position
 

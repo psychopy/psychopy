@@ -38,6 +38,7 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
     Returns
     -------
     """
+    import logging  # import here not at top of script (or useVersion fails)
     print("Generating {} script...\n".format(target))
     exp.expPath = os.path.abspath(experimentPath)
 
@@ -68,6 +69,7 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
         sys.stderr.write(stderr)
     else:
         compileScript(infile=exp, version=None, outfile=filename)
+
 
 def compileScript(infile=None, version=None, outfile=None):
     """
@@ -100,8 +102,8 @@ def compileScript(infile=None, version=None, outfile=None):
             from psychopy import useVersion
             useVersion(version)
 
+        # import logging here not at top of script (or useVersion fails)
         global logging
-
         from psychopy import logging
 
         if __name__ != '__main__' and version not in [None, 'None', 'none', '']:

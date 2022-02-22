@@ -470,7 +470,7 @@ class ButtonArray(wx.Window):
             self.addItem(item)
 
     def newItem(self, evt=None):
-        msg = _translate("Add ") + self.itemAlias + "..."
+        msg = _translate("Add {}...").format(self.itemAlias)
         if self.options is None:
             _dlg = wx.TextEntryDialog(self.parent, message=msg)
         else:

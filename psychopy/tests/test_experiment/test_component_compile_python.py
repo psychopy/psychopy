@@ -76,4 +76,6 @@ class TestComponentCompilerPython():
                 self.add_components(compName)
                 # Check component in exp
                 component = compName.split('Component')[0]
-                assert self.exp.getComponentFromType(component)
+                assert self.exp.getComponentFromType(component), (
+                    f"Could not find component of type {compName} in: {self.exp.flow}"
+                )

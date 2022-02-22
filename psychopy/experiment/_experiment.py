@@ -20,7 +20,7 @@ import os
 import codecs
 import xml.etree.ElementTree as xml
 from xml.dom import minidom
-from copy import deepcopy
+from copy import deepcopy, copy
 from pathlib import Path
 from pkg_resources import parse_version
 
@@ -966,11 +966,20 @@ class Experiment:
                 # find all loops and check for conditions filename
                 params = thisEntry.loop.params
                 if 'conditionsFile' in params:
+                    condsPaths = findPathsInFile(params['conditionsFile'].val)
+                    # If handled, remove non-conditions file resources
                     if handled:
-                        loopResources.append(getPaths(params['conditionsFile'].val))
-                    else:
-                        condsPaths = findPathsInFile(params['conditionsFile'].val)
-                        loopResources.extend(condsPaths)
+                        condsPathsRef = copy(condsPaths)  # copy of condsPaths for reference in loop
+                        for thisPath in condsPathsRef:
+                            isCondFile = any([
+                                str(thisPath['rel']).endswith('.xlsx'),
+                                str(thisPath['rel']).endswith('.xls'),
+                                str(thisPath['rel']).endswith('.csv'),
+                                str(thisPath['rel']).endswith('.tsv'),
+                            ])
+                            if not isCondFile:
+                                condsPaths.remove(thisPath)
+                    loopResources.extend(condsPaths)
 
         # Add files from additional resources box
         chosenResources = []

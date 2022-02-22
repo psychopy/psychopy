@@ -1,3 +1,4 @@
+import sys
 from os.path import abspath, basename, dirname, isfile, join as pjoin
 import os.path
 from pathlib import Path
@@ -18,6 +19,13 @@ import pytest
 TESTS_PATH = abspath(dirname(__file__))
 TESTS_DATA_PATH = pjoin(TESTS_PATH, 'data')
 TESTS_FONT = pjoin(TESTS_DATA_PATH, 'DejaVuSerif.ttf')
+
+# Some regex shorthand
+_q = r"[\"']"  # quotes
+_lb = r"[\[\(]"  # left bracket
+_rb = r"[\]\)]"  # right bracket
+_d = r"\$"  # dollar (escaped for re)
+_sl = "\\"  # back slash
 
 
 def compareScreenshot(fileName, win, tag="", crit=5.0):
@@ -212,7 +220,11 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
         raise IOError(error)
 
 
-def comparePixelColor(screen, color, coord=(0,0), context="color_comparison"):
+def comparePixelColor(screen, color, coord=(0, 0), context="color_comparison"):
+    ogCoord = coord
+    # Adjust for retina
+    coord = tuple(int(c * screen.getContentScaleFactor()) for c in ogCoord)
+
     if hasattr(screen, 'getMovieFrame'):  # check it is a Window class (without importing visual in this file)
         # If given a window, get frame from window
         screen.getMovieFrame(buffer='back')
@@ -239,4 +251,4 @@ def comparePixelColor(screen, color, coord=(0,0), context="color_comparison"):
     cond = all(c for c in color == pixCol) or closeEnough
     if not cond:
         frame.save(Path(TESTS_DATA_PATH) / (context + "_local.png"))
-        raise AssertionError(f"Pixel color {pixCol} at {coord} not equal to target color {color}")
+        raise AssertionError(f"Pixel color {pixCol} at {ogCoord} (x{screen.getContentScaleFactor()}) not equal to target color {color}")

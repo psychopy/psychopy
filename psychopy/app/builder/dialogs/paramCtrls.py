@@ -148,6 +148,11 @@ class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         wx.TextCtrl.__init__(self)
         self.Create(parent, -1, val, name=fieldName, size=size, style=style)
         self.valType = valType
+
+        # On MacOS, we need to disable smart quotes
+        if sys.platform == 'darwin':
+            self.OSXDisableAllSmartSubstitutions()
+
         # Add sizer
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         if not valType == "str" and not fieldName == "name":
@@ -190,7 +195,7 @@ class InvalidCtrl(SingleLineCtrl, _ValidatorMixin, _HideMixin):
         self.deleteBtn = wx.Button(parent, label="×", size=(24, 24))
         self.deleteBtn.SetForegroundColour("red")
         self.deleteBtn.Bind(wx.EVT_BUTTON, self.deleteParam)
-        self.deleteBtn.SetToolTipString(_translate(
+        self.deleteBtn.SetToolTip(_translate(
             "This parameter has come from an older version of PsychoPy. "
             "In the latest version of PsychoPy, it is not used. Click this "
             "button to delete it. WARNING: This may affect how this experiment "
@@ -203,7 +208,7 @@ class InvalidCtrl(SingleLineCtrl, _ValidatorMixin, _HideMixin):
         self._szr.Add(self.deleteLbl, border=6, proportion=1, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         # Add undo delete button
         self.undoBtn = wx.Button(parent, label="⟲", size=(24, 24))
-        self.deleteBtn.SetToolTipString(_translate(
+        self.undoBtn.SetToolTip(_translate(
             "This parameter will not be deleted until you click Okay. "
             "Click this button to revert the deletion and keep the parameter."))
         self.undoBtn.Hide()
@@ -530,7 +535,7 @@ class ColorCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
 
 def validate(obj, valType):
     val = str(obj.GetValue())
-    valid = False
+    valid = True
     if val.startswith("$"):
         # If indicated as code, treat as code
         valType = "code"

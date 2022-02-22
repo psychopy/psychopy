@@ -11,4 +11,4 @@ Having set up your monitor settings you should then tell PsychoPy which of your 
 
 .. only:: html
 
-    .. image:: ../images/monitorcenter.gif
+    .. image:: /images/monitorcenter.gif

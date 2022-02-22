@@ -1306,10 +1306,10 @@ class PsiHandler(StairHandler):
         """Saves the posterior array over probLambda as a pickle file
         with the specified name.
 
-        :Parameters:
+        Parameters
+        ----------
         fileCollisionMethod : string
-            Collision method passed to
-            :func:`~psychopy.tools.fileerrortools.handleFileCollision`
+            Collision method passed to :func:`~psychopy.tools.fileerrortools.handleFileCollision`
 
         """
         try:

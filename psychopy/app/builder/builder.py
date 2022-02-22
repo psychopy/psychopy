@@ -787,6 +787,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             # actually save
             self.fileSave(event=None, filename=newPath)
             self.filename = newPath
+            self.project = pavlovia.getProject(filename)
             returnVal = 1
         dlg.Destroy()
 
@@ -1364,6 +1365,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             return True
 
     def onPavloviaSync(self, evt=None):
+        self.fileSave(self.filename)
         if self._getExportPref('on sync'):
             htmlPath = self._getHtmlPath(self.filename)
             if htmlPath:
@@ -2555,7 +2557,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.sizer.Add(self.viewCtrl, border=6, flag=wx.ALL | wx.EXPAND)
             self.viewCtrl.SetValue(prefs.builder['componentFilter'])
             # OK
-            self.OKbtn = wx.Button(self, id=wx.ID_OK, label=_translate("Okay"))
+            self.OKbtn = wx.Button(self, id=wx.ID_OK, label=_translate("OK"))
             self.SetAffirmativeId(wx.ID_OK)
             self.border.Add(self.OKbtn, border=6, flag=wx.ALL | wx.ALIGN_RIGHT)
 

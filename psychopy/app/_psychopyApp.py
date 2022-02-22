@@ -57,7 +57,6 @@ import weakref
 # not actually needed; psychopy should never need anything except normal user
 # see older versions for code to detect admin (e.g., v 1.80.00)
 
-
 # Enable high-dpi support if on Windows. This fixes blurry text rendering.
 if sys.platform == 'win32':
     # get the preference for high DPI

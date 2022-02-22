@@ -281,7 +281,7 @@ class SearchPanel(wx.Panel):
         self.filterBtn.Enable(not self._mine)
         self.searchCtrl.Enable(not self._mine)
         if self._mine:
-            self.filterOptions = {key: [] for key in self.filterOptions}
+            self.filterTerms = {key: [] for key in self.filterTerms}
             self.searchCtrl.Value = ""
         # Update
         self.filterLbl.update()
@@ -411,7 +411,7 @@ class FilterDlg(wx.Dialog):
             self.sizer.Add(self.ctrls[key], border=6, flag=wx.EXPAND | wx.ALL)
         # Add Okay button
         self.sizer.AddStretchSpacer(1)
-        self.OkayBtn = wx.Button(self, id=wx.ID_OK, label=_translate("Okay"))
+        self.OkayBtn = wx.Button(self, id=wx.ID_OK, label=_translate("OK"))
         self.contentBox.Add(self.OkayBtn, border=6, flag=wx.ALL | wx.ALIGN_RIGHT)
         # Bind cancel
         self.Bind(wx.EVT_CLOSE, self.onCancel)

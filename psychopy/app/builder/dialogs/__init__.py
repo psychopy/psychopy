@@ -181,12 +181,8 @@ class ParamCtrls():
         # val = self.expInfoToListWidget(param.val)
         #     self.valueCtrl = dialogs.ListWidget(
         #         parent, val, order=['Field', 'Default'])
-
-        try:
+        if hasattr(self.valueCtrl, 'SetToolTip'):
             self.valueCtrl.SetToolTip(wx.ToolTip(_translate(param.hint)))
-        except AttributeError as e:
-            self.valueCtrl.SetToolTipString(_translate(param.hint))
-
         if len(param.allowedVals) == 1 or param.readOnly:
             self.valueCtrl.Disable()  # visible but can't be changed
 
@@ -1776,7 +1772,7 @@ class DlgNewRoutine(wx.Dialog):
         # Get templates
         self.templates = self.frame.routineTemplates
         self.templatesByID = {}
-        self.selectedTemplate = self.templates['Basic']['Blank']  # until we know otherwise
+        self.selectedTemplate = self.templates['Basic']['blank']  # until we know otherwise
         # New name ctrl
         self.nameLbl = wx.StaticText(self, -1, _translate("New Routine name:"))
         self.sizer.Add(self.nameLbl, border=6, flag=wx.ALL | wx.ALIGN_RIGHT)
@@ -1788,7 +1784,7 @@ class DlgNewRoutine(wx.Dialog):
         # Template picker
         self.templateLbl = wx.StaticText(self, -1, _translate("Routine Template:"))
         self.sizer.Add(self.templateLbl, border=6, flag=wx.ALL | wx.ALIGN_RIGHT)
-        self.templateCtrl = wx.Button(self, -1, "Basic:Blank", size=(200, -1))
+        self.templateCtrl = wx.Button(self, -1, "Basic:blank", size=(200, -1))
         self.templateCtrl.SetToolTip(_translate(
             "Select a template to base your new Routine on"
         ))
