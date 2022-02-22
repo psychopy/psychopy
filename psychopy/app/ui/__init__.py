@@ -25,6 +25,23 @@ class BaseAuiFrame(wx.Frame):
     allows for sub-windows to be attached to it. No application logic should be
     implemented in this class, only its sub-classes.
 
+    Parameter
+    ---------
+    parent : wx.Window or None
+        Parent window.
+    id : int
+        Unique ID for this window, default is `wx.ID_ANY`.
+    title : str
+        Window title to use. Can be set later.
+    pos : ArrayLike or `wx.Position`
+        Initial position of the window on the desktop. Default is
+        `wx.DefaultPosition`.
+    size : ArrayLike or `wx.Size`
+        Initial sie of the window in desktop units.
+    style : int
+        Style flags for the window. Default is the combination of
+        wx.DEFAULT_FRAME_STYLE` and `wx.TAB_TRAVERSAL`.
+
     """
     def __init__(self,
                  parent,
@@ -82,26 +99,45 @@ class BaseAuiFrame(wx.Frame):
     # --------------------------------------------------------------------------
     # Events for the AUI frame
     #
+    # AUI events can be used to monitor changes to the pane layout. These can
+    # then be used to update the appropriate menu item.
+    #
 
     def onAuiPaneActivate(self, event):
+        """Called when the pane gets focused or is activated.
+        """
         event.Skip()
 
     def onAuiPaneButton(self, event):
+        """Called when an AUI pane button is clicked.
+        """
         event.Skip()
 
     def onAuiPaneClose(self, event):
+        """Called when an AUI pane is closed.
+        """
         event.Skip()
 
     def onAuiPaneMaximize(self, event):
+        """Called when an AUI pane is maximized.
+        """
         event.Skip()
 
     def onAuiPaneRestore(self, event):
+        """Called when a AUI pane is restored.
+        """
         event.Skip()
 
     def onClose(self, event):
+        """Event handler for `EVT_CLOSE` events. This is usually called when the
+        user clicks the close button on the frame's title bar.
+        """
         event.Skip()
 
     def onIdle(self, event):
+        """Event handler for `EVT_IDLE` events. Called periodically when the
+        user is not interacting with the UI.
+        """
         event.Skip()
 
 
