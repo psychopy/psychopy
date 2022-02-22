@@ -238,13 +238,13 @@ The supported fields are described below.
         :type: float
 
         phi angle / horizontal rotation of the 3d eye model location in radians.
-        ``-π/2`` corresponds to looking directly into the eye camera
+        ``-pi/2`` corresponds to looking directly into the eye camera
 
     .. attribute:: angle_y
         :type: float
 
         theta angle / vertical rotation of the 3d eye model location in radians.
-        ``π/2`` corresponds to looking directly into the eye camera
+        ``pi/2`` corresponds to looking directly into the eye camera
 
     .. attribute:: raw_x
         :type: float
@@ -343,13 +343,13 @@ The supported fields are described below.
         :type: float
 
         phi angle / horizontal rotation of the 3d eye model location in radians.
-        ``-π/2`` corresponds to looking directly into the eye camera
+        ``-pi/2`` corresponds to looking directly into the eye camera
 
     .. attribute:: left_angle_y
         :type: float
 
         theta angle / vertical rotation of the 3d eye model location in radians.
-        ``π/2`` corresponds to looking directly into the eye camera
+        ``pi/2`` corresponds to looking directly into the eye camera
 
     .. attribute:: left_raw_x
         :type: float
@@ -419,13 +419,13 @@ The supported fields are described below.
         :type: float
 
         phi angle / horizontal rotation of the 3d eye model location in radians.
-        ``-π/2`` corresponds to looking directly into the eye camera
+        ``-pi/2`` corresponds to looking directly into the eye camera
 
     .. attribute:: right_angle_y
         :type: float
 
         theta angle / vertical rotation of the 3d eye model location in radians.
-        ``π/2`` corresponds to looking directly into the eye camera
+        ``pi/2`` corresponds to looking directly into the eye camera
 
     .. attribute:: right_raw_x
         :type: float

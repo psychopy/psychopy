@@ -395,7 +395,7 @@ def log(msg, level, t=None, obj=None):
     """Log a message
 
     usage::
-        log(level, msg, t=t, obj=obj)
+        log(msg, level, t=t, obj=obj)
 
     Log the msg, at a  given level on the root logger
     """

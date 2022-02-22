@@ -20,6 +20,7 @@ Utility functions:
 - :func:`importConditions` - to load a list of dicts from a csv/excel file
 - :func:`functionFromStaircase`- to convert a staircase into its psychopmetric function
 - :func:`bootStraps` - generate a set of bootstrap resamples from a dataset
+- :func:`~psychopy.data.utils.getDateStr` - provide a date string (in format suitable for filenames)
 
 Curve Fitting:
 
