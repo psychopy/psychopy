@@ -964,7 +964,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # Convert the vertices to be relative to content box and set
         self.vertices = vertices / self.contentBox._size.pix + (-0.5, 0.5)
         if len(_lineBottoms):
-            self._lineBottoms = max(self.contentBox._vertices.pix[:, 1]) + np.array(_lineBottoms)
+            if self.flipVert:
+                self._lineBottoms = min(self.contentBox._vertices.pix[:, 1]) - np.array(_lineBottoms)
+            else:
+                self._lineBottoms = max(self.contentBox._vertices.pix[:, 1]) + np.array(_lineBottoms)
             self._lineWidths = min(self.contentBox._vertices.pix[:, 0]) + np.array(_lineWidths)
         else:
             self._lineBottoms = np.array(_lineBottoms)
@@ -1396,7 +1399,10 @@ class Caret(ColorMixin):
             # Get top of this line
             bottom = textbox._lineBottoms[self.row]
         # Top will always be line bottom + font height
-        top = bottom + self.textbox.glFont.size
+        if self.textbox.flipVert:
+            top = bottom - self.textbox.glFont.size
+        else:
+            top = bottom + self.textbox.glFont.size
         return np.array([
             [x, bottom],
             [x, top]
