@@ -116,11 +116,11 @@ class BaseAuiFrame(wx.Frame):
         Set the window title for the new document::
 
             someFrame.setTitle(document='mycode.py')
-            # title set to: "PsychoPy - mycode.py"
+            # title set to: "mycode.py - PsychoPy"
 
         """
         if document is not None:
-            self.SetTitle(" - ".join([title, document]))
+            self.SetTitle(" - ".join([document, title]))
         else:
             self.SetTitle(title)
 

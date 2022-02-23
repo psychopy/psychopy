@@ -1159,6 +1159,9 @@ class CoderFrame(BaseAuiFrame, ThemeMixin):
         self.showingReloadDialog = False
         self.btnHandles = {}  # stores toolbar buttons so they can be altered
 
+        # default window title string
+        self.winTitle = "PsychoPy Coder (v{})".format(self.app.version)
+
         # we didn't have the key or the win was minimized/invalid
         if self.appData['winH'] == 0 or self.appData['winW'] == 0:
             self.appData['winH'], self.appData['winW'] = wx.DefaultSize
@@ -2044,7 +2047,7 @@ class CoderFrame(BaseAuiFrame, ThemeMixin):
         self.currentDoc = self.notebook.GetPage(new)
         self.app.updateWindowMenu()
         self.setFileModified(self.currentDoc.UNSAVED)
-        self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
+        self.setTitle(title=self.winTitle, document=self.currentDoc.filename)
 
         self.currentDoc.analyseScript()
 
@@ -2351,7 +2354,7 @@ class CoderFrame(BaseAuiFrame, ThemeMixin):
                 wx.stc.STC_WRAP_WORD if self.lineWrapChk.IsChecked() else wx.stc.STC_WRAP_NONE)
             self.statusBar.SetStatusText(fileType, 2)
         fname = Path(self.currentDoc.filename).name
-        self.SetLabel('%s - PsychoPy Coder (v%s)' % (fname, psychopy.__version__))
+        self.setTitle(title=self.winTitle, document=fname)
         #if len(self.getOpenFilenames()) > 0:
         self.currentDoc.analyseScript()
 
@@ -2540,7 +2543,8 @@ class CoderFrame(BaseAuiFrame, ThemeMixin):
             self.currentDoc.analyseScript()
             # Update status bar and title bar labels
             self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
-            self.SetLabel(f'{self.currentDoc.filename} - PsychoPy Coder')
+
+            self.setTitle(title=self.winTitle, document=self.currentDoc.filename)
 
         dlg.Destroy()
 
@@ -2583,8 +2587,9 @@ class CoderFrame(BaseAuiFrame, ThemeMixin):
             self.statusBar.SetStatusText("", 1)  # clear line pos
             self.statusBar.SetStatusText("", 2)  # clear file type in status bar
             self.statusBar.SetStatusText("", 3)  # psyhcopy version
+            # set window title
+            self.setTitle(title=self.winTitle, document=self.currentDoc)
             # clear the source tree
-            self.SetLabel("PsychoPy v%s (Coder)" % self.app.version)
             self.structureWindow.srcTree.DeleteAllItems()
         else:
             self.currentDoc = self.notebook.GetPage(newPageID)

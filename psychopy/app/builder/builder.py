@@ -148,6 +148,9 @@ class BuilderFrame(BaseAuiFrame, ThemeMixin):
         self.readmeFrame = None
         self.generateScript = generateScript
 
+        # default window title
+        self.winTitle = 'PsychoPy Builder (v{})'.format(self.app.version)
+
         if fileName in self.appData['frames']:
             self.frameData = self.appData['frames'][fileName]
         else:  # work out a new frame size/location
@@ -1013,8 +1016,7 @@ class BuilderFrame(BaseAuiFrame, ThemeMixin):
         """
         if newTitle is None:
             shortName = os.path.split(self.filename)[-1]
-            newTitle = '%s - PsychoPy Builder (v%s)' % (shortName, self.app.version)
-        self.SetTitle(newTitle)
+            self.setTitle(title=self.winTitle, document=shortName)
 
     def setIsModified(self, newVal=None):
         """Sets current modified status and updates save icon accordingly.
