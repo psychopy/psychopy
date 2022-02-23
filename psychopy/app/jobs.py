@@ -34,7 +34,7 @@ __all__ = [
 ]
 
 import wx
-import sys
+import os
 from subprocess import Popen, PIPE
 from threading import Thread, Event
 from queue import Queue, Empty
@@ -78,8 +78,6 @@ class PipeReader(Thread):
     ----------
     fdpipe : Any
         File descriptor for the pipe, either `Popen.stdout` or `Popen.stderr`.
-    pollMillis : int or float
-        Number of milliseconds to wait between pipe reads.
 
     """
     def __init__(self, fdpipe):
@@ -171,9 +169,6 @@ class Job:
     command : list or tuple
         Command to execute when the job is started. Similar to who you would
         specify the command to `Popen`.
-    flags : int
-        Execution flags for the subprocess. These are specified using symbolic
-        constants ``EXEC_*`` at the module level.
     terminateCallback : callable
         Callback function to call when the process exits. This can be used to
         inform the application that the subprocess is done.
@@ -197,14 +192,14 @@ class Job:
         pid = job.start()  # returns a PID for the sub process
 
     """
-    def __init__(self, parent, command='', flags=EXEC_ASYNC, terminateCallback=None,
+    def __init__(self, parent, command='', terminateCallback=None,
                  inputCallback=None, errorCallback=None):
 
         # command to be called, cannot be changed after spawning the process
         self.parent = parent
         self._command = command
         self._pid = None
-        self._flags = flags
+        # self._flags = flags  # unused right now
         self._process = None
         # self._pollMillis = None
         # self._pollTimer = wx.Timer()
@@ -299,7 +294,7 @@ class Job:
 
         # isOk = wx.Process.Kill(self._pid, signal, flags) is wx.KILL_OK
         #self._pollTimer.Stop()
-        self._process.terminate()  # kill the process
+        self._process.kill()  # kill the process
 
         # Wait for the process to exit completely, return code will be incorrect
         # if we don't.
