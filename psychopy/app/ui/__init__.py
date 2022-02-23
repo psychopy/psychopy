@@ -14,8 +14,8 @@ import wx.lib.agw.aui as aui
 # default values
 DEFAULT_FRAME_SIZE = wx.Size(800, 600)
 DEFAULT_FRAME_TITLE = u"PsychoPy"
-# flags for AUI
-DEFAULT_AUI_STYLE_FLAGS = aui.AUI_MGR_DEFAULT | aui.AUI_MGR_RECTANGLE_HINT
+DEFAULT_AUI_STYLE_FLAGS = (  # flags for AUI
+        aui.AUI_MGR_DEFAULT | aui.AUI_MGR_RECTANGLE_HINT)
 
 
 class BaseAuiFrame(wx.Frame):
@@ -50,6 +50,7 @@ class BaseAuiFrame(wx.Frame):
                  pos=wx.DefaultPosition,
                  size=DEFAULT_FRAME_SIZE,
                  style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL):
+        # subclass `wx.Frame`
         wx.Frame.__init__(self, parent, id=id, title=title, pos=pos, size=size,
                           style=style)
 
@@ -95,6 +96,44 @@ class BaseAuiFrame(wx.Frame):
 
         """
         return self.m_mgr
+
+    def setTitle(self, title=DEFAULT_FRAME_TITLE, document=None):
+        """Set the window title.
+
+        Use this method to set window titles to ensure that PsychoPy windows use
+        similar formatting for them.
+
+        Parameters
+        ----------
+        title : str
+            Window title to set. Default is `DEFAULT_FRAME_TITLE`.
+        document : str or None
+            Optional document file name or path. Will be appended to the title
+            bar with a `' - '` separator.
+
+        Examples
+        --------
+        Set the window title for the new document::
+
+            someFrame.setTitle(document='mycode.py')
+            # title set to: "PsychoPy - mycode.py"
+
+        """
+        if document is not None:
+            self.SetTitle(" - ".join([title, document]))
+        else:
+            self.SetTitle(title)
+
+    def getTitle(self):
+        """Get the window frame title.
+
+        Returns
+        -------
+        str
+            Current window frame title.
+
+        """
+        return self.GetTitle()
 
     # --------------------------------------------------------------------------
     # Events for the AUI frame
