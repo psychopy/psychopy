@@ -1296,12 +1296,6 @@ class WindowMixin:
     def pos(self, value):
         self._pos = Position(value, units=self.units, win=self.win)
 
-    def getPos(self):
-        return self.pos
-
-    def setPos(self, value):
-        self.pos = value
-
     @property
     def size(self):
         if hasattr(self, "_size"):
