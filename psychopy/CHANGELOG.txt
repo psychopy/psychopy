@@ -59,6 +59,13 @@ PsychoPy 2022.1
 - Added the option to refer to pre-canned image files, such as default.png and use 
   as an image stimulus
 
+PsychoPy 2022.1.1
+~~~~~~~~~~~~~~~~~
+
+- MacOS app failed to run experiments with dialog boxes (broken dependency being packaged)
+- the application would hang while trying to push any changes to Pavlovia
+- added Japanese translations of the new menu items etc
+
 PsychoPy 2022.1.0
 ~~~~~~~~~~~~~~~~~
 
