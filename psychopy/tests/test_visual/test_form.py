@@ -22,6 +22,9 @@ class Test_Form(_TestColorMixin):
     """Test suite for Form component"""
 
     def setup_class(self):
+        # Store different response types
+        self.respTypes = ['heading', 'description', 'rating', 'slider', 'free text', 'choice', 'radio']
+
         # Create temp files for storing items
         self.temp_dir = mkdtemp()
         self.fileName_xlsx = os.path.join(self.temp_dir, 'items.xlsx')
@@ -112,7 +115,6 @@ class Test_Form(_TestColorMixin):
         """
         Test that question options interact well
         """
-        types = ['heading', 'description', 'rating', 'slider', 'free text', 'choice', 'radio']
         # Define sets of each option
         exemplars = {
             'bigResp': [  # Resp is bigger than item
@@ -228,7 +230,7 @@ class Test_Form(_TestColorMixin):
         self.win.flip()
         for name, case in cases.items():
             # Test it for each type
-            for thisType in types:
+            for thisType in self.respTypes:
                 # Set type
                 for i, q in enumerate(case):
                     case[i]['type'] = thisType
@@ -241,6 +243,30 @@ class Test_Form(_TestColorMixin):
                 #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
                 utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
                 self.win.flip()
+
+    def test_reset(self):
+        """
+        Test that the reset function can reset all types of form item
+        """
+        items = []
+        # Add an item of each type
+        for thisType in self.respTypes:
+            items.append({
+                'type': thisType,
+                'itemText': "A PsychoPy zealot knows a smidge of wx but JavaScript is the question",
+                'options': [1, "a", "multiple word"],
+                'ticks': [1, 2, 3],
+                'layout': 'vert',
+                'itemColor': 'darkslateblue',
+                'itemWidth': 0.7,
+                'responseColor': 'darkred',
+                'responseWidth': 0.3,
+                'font': 'Open Sans',
+            })
+        # Create form
+        survey = Form(self.win, units="height", size=(1, 1), fillColor="white", items=items)
+        # Reset form to check it doesn't error
+        survey.reset()
 
     def test_scrolling(self):
         # Define basic question to test with
