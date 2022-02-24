@@ -1300,7 +1300,7 @@ class WindowMixin:
         else:
             log = False
         # Do attribute setting
-        setAttribute(self, '_pos', Position(value, units=self.units, win=self.win), log, "=")
+        setAttribute(self, '_pos', Position(value, units=self.units, win=self.win), log)
 
     @property
     def size(self):
@@ -1318,7 +1318,7 @@ class WindowMixin:
         else:
             log = False
         # Do attribute setting
-        setAttribute(self, '_size', Size(value, units=self.units, win=self.win), log, "=")
+        setAttribute(self, '_size', Size(value, units=self.units, win=self.win), log)
 
     @property
     def width(self):
