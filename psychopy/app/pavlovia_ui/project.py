@@ -355,6 +355,7 @@ class DetailsPanel(wx.Panel):
         if project is None:
             # Icon
             self.icon.SetBitmap(wx.Bitmap())
+            self.icon.SetBackgroundColour("#f2f2f2")
             self.icon.Disable()
             # Title
             self.title.SetValue("")
@@ -417,6 +418,7 @@ class DetailsPanel(wx.Panel):
             else:
                 icon = wx.Bitmap()
             self.icon.SetBitmap(icon)
+            self.icon.SetBackgroundColour("#f2f2f2")
             self.icon.Enable(project.editable)
             # Title
             self.title.SetValue(project['name'])
