@@ -25,9 +25,6 @@ from . import TextBox2
 from ..tools.attributetools import logAttrib, setAttribute, attributeSetter
 from ..constants import FINISHED, STARTED, NOT_STARTED
 
-# Set to True to make borders visible for debugging
-debug = False
-
 
 class Slider(MinimalStim, WindowMixin, ColorMixin):
     """A class for obtaining ratings, e.g., on a 1-to-7 or categorical scale.
@@ -76,6 +73,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
                  labelWrapWidth=None,
                  autoDraw=False,
                  autoLog=True,
+                 debug=False,
                  # Synonyms
                  color=False,
                  fillColor=False,
@@ -137,11 +135,18 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         name :
 
         autoLog :
+
+        debug : bool
+            Set to True to show outlines around each sub-element of the slider (labels, hitbox, etc.). This is
+            intended only for debugging experiments.
         """
         # what local vars are defined (these are the init params) for use by
         # __repr__
         self._initParams = dir()
         super(Slider, self).__init__(name=name, autoLog=False)
+
+        # Set to True to make borders visible for debugging
+        self.debug = debug
 
         self.win = win
         if ticks is None:
@@ -448,7 +453,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
                     pos=self.labelParams['pos'][n], size=self.labelParams['size'][n], padding=self.labelParams['padding'][n], units=self.units,
                     anchor=self.labelParams['anchor'][n], alignment=self.labelParams['alignment'][n],
                     color=self._foreColor.copy(), fillColor=None, colorSpace=self.colorSpace,
-                    borderColor="red" if debug else None,
+                    borderColor="red" if self.debug else None,
                     letterHeight=self.labelHeight,
                     autoLog=False
                 )
@@ -468,7 +473,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         self.validArea = Rect(
             self.win,
             pos=self.hitboxParams['pos'], size=self.hitboxParams['size'], units=self.units,
-            fillColor=None, lineColor="red" if debug else None,
+            fillColor=None, lineColor="red" if self.debug else None,
             autoLog=False
         )
 
@@ -772,7 +777,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         """Draw the Slider, with all its constituent elements on this frame
         """
         self.getMouseResponses()
-        if debug:
+        if self.debug:
             self.validArea.draw()
         self.line.draw()
         self.tickLines.draw()

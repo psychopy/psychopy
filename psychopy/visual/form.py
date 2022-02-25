@@ -57,9 +57,6 @@ _synonyms = {
     'free text': 'textBox'
 }
 
-# Setting debug to True will set the sub-elements on Form to be outlined in red, making it easier to determine their position
-debug = False
-
 
 class Form(BaseVisualStim, ContainerMixin, ColorMixin):
     """A class to add Forms to a `psychopy.visual.Window`
@@ -98,6 +95,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         units for stimuli - Currently, Form class only operates with 'height' units.
     randomize : bool
         Randomize order of Form elements
+    debug : bool
+        Set to True to show outlines around each sub-element of the slider (labels, hitbox, etc.). This is
+        intended only for debugging experiments.
     """
 
     knownStyles = {
@@ -138,12 +138,17 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                  units='height',
                  randomize=False,
                  autoLog=True,
+                 debug=False,
                  # legacy
                  color=None,
                  foreColor=None
                  ):
 
         super(Form, self).__init__(win, units, autoLog=False)
+
+        # Set to True to make borders visible for debugging
+        self.debug = debug
+
         self.win = win
         self.autoLog = autoLog
         self.name = name
@@ -419,7 +424,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 fillColor=None,
                 padding=0,  # handle this by padding between items
                 borderWidth=1,
-                borderColor='red' if debug else None,  # add borderColor to help debug
+                borderColor='red' if self.debug else None,  # add borderColor to help debug
                 editable=False,
                 bold=bold,
                 font=item['font'] or self.font)
@@ -640,7 +645,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 fillColor=None,
                 onTextCallback=self._layoutY,
         )
-        if debug:
+        if self.debug:
             resp.borderColor = "red"
         # Resize textbox to be at least as tall as the text
         resp._updateVertices()
@@ -853,7 +858,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                element._baseY - self._getScrollOffset())
                 if self._inRange(element):
                     element.draw()
-                    if debug and hasattr(element, "guide"):
+                    if self.debug and hasattr(element, "guide"):
                         # If debugging, draw position guide too
                         element.guide.pos = (element.guide.pos[0], element._baseY - self._getScrollOffset() + element.guide.size[1] / 2)
                         element.guide.draw()

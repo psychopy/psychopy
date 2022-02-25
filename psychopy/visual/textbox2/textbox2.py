@@ -52,9 +52,6 @@ wordBreaks = " -\n"  # what about ",."?
 
 END_OF_THIS_LINE = 983349843
 
-# Setting debug to True will make the sub-elements on TextBox2 to be outlined in red, making it easier to determine their position
-debug = False
-
 # If text is ". " we don't want to start next line with single space?
 
 class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
@@ -80,7 +77,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  lineBreaking='default',
                  name='',
                  autoLog=None,
-                 onTextCallback=None):
+                 onTextCallback=None,
+                 debug=False):
         """
 
         Parameters
@@ -116,9 +114,17 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             broken in accordance with UAX#14 (Unicode Line Breaking Algorithm).
         name
         autoLog
+        debug : bool
+            Set to True to display a tight outline around the test and an outline around the full text area (so not
+            including padding). This is intended only for debugging experiments, to change the textbox outline in an
+            experiment use `borderColor` instead.
         """
 
         BaseVisualStim.__init__(self, win, units=units, name=name)
+
+        # Set to True to make borders visible for debugging
+        self.debug = debug
+
         self.win = win
         self.colorSpace = colorSpace
         ColorMixin.foreColor.fset(self, color)  # Have to call the superclass directly on init as text has not been set
@@ -223,7 +229,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # caret
         self.editable = editable
         self.caret = Caret(self, color=self.color, width=2)
-
 
         self.autoLog = autoLog
 
@@ -988,7 +993,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.box.draw()
 
         # Draw sub-elements if in debug mode
-        if debug:
+        if self.debug:
             self.contentBox.draw()
             self.boundingBox.draw()
 
