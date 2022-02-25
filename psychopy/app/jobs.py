@@ -569,6 +569,7 @@ class Job:
         # poll the subprocess
         retCode = self._process.poll()
         if retCode is not None:  # process has exited?
+            time.sleep(0.1)  # give time for pipes to flush
             wx.CallAfter(self.onTerminate, retCode)
 
         # get data from pipes
@@ -591,7 +592,6 @@ class Job:
 
         # unbind the idle loop used to poll the subprocess
         self.parent.Bind(wx.EVT_IDLE, None)
-
         self._readPipes()  # read remaining data
 
         # stop the pipe reader threads now
@@ -605,7 +605,6 @@ class Job:
             wx.CallAfter(self._terminateCallback, self._pid, exitCode)
 
         self._process = self._pid = None  # reset
-        self._flags = 0
 
     # def onNotify(self):
     #     """Called when the polling timer elapses.
