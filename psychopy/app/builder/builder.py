@@ -1215,7 +1215,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         """copy the current routine from self.routinePanel
         to self.app.copiedRoutine.
         """
-        r = copy.deepcopy(self.routinePanel.getCurrentRoutine())
+        r = self.routinePanel.getCurrentRoutine().copy()
         if r is not None:
             self.app.copiedRoutine = r
 
@@ -1236,7 +1236,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             routineName = dlg.GetValue()
             if not routineName:
                 routineName = defaultName
-            newRoutine = copy.deepcopy(self.app.copiedRoutine)
+            newRoutine = self.app.copiedRoutine.copy()
             self.pasteRoutine(newRoutine, routineName)
         dlg.Destroy()
 
