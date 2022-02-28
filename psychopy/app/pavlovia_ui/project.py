@@ -389,7 +389,7 @@ class DetailsPanel(wx.Panel):
             self.syncLbl.Disable()
             # Local root
             self.localRootLabel.Disable()
-            self.localRoot.SetValue("")
+            wx.TextCtrl.SetValue(self.localRoot, "")  # use base method to avoid callback
             self.localRoot.Disable()
             # Description
             self.description.SetValue("")
@@ -452,7 +452,7 @@ class DetailsPanel(wx.Panel):
             self.syncLbl.Show(bool(project.localRoot) or (not project.editable))
             self.syncLbl.Enable(project.editable)
             # Local root
-            self.localRoot.SetValue(project.localRoot or "")
+            wx.TextCtrl.SetValue(self.localRoot, project.localRoot or "")  # use base method to avoid callback
             self.localRootLabel.Enable(project.editable)
             self.localRoot.Enable(project.editable)
             # Description
@@ -582,6 +582,8 @@ class DetailsPanel(wx.Panel):
                 self.localRoot.SetValue("")
                 self.project.localRoot = ""
                 dlg.ShowModal()
+            # Set project again to trigger a refresh
+            self.project = self.project
         if obj == self.description and self.project.editable:
             self.project['description'] = self.description.Value
             self.project.save()
