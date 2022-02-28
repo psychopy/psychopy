@@ -345,8 +345,8 @@ class Param():
                 if len(re.findall(r"\$", val)) == len(re.findall(r"\$", inComment)):
                     # Return if all $ are commented out
                     return True, val
-                if len(re.findall(r"\$", val)) - len(re.findall(r"\$", inComment)) == len(re.findall(r"\\\$", inQuotes)):
-                    # Return if all non-commended $ are in strings and escaped
+                if len(re.findall(r"\$", val)) - len(re.findall(r"\$", inComment)) == len(re.findall(r"\$", inQuotes)):
+                    # Return if all non-commended $ are in strings
                     return True, val
             else:
                 # If value does not begin with an unescaped $, treat it as a string
