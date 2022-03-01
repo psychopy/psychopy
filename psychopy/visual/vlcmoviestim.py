@@ -1114,7 +1114,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         GL.glPopMatrix()
 
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glDisable(GL.GL_TEXTURE_2D)
 
     def draw(self, win=None):
         """Draw the current frame to a particular
