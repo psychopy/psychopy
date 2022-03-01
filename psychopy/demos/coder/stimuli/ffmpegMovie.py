@@ -46,12 +46,12 @@ while not mov.isFinished:
                 mov.play()
             elif mov.isPlaying:
                 mov.pause()
-        # elif key == 'period':
-        #     # To skip ahead 1 second in movie ...
-        #     mov.fastForward(1.0)
-        # elif key == 'comma':
-        #     # To skip back 1 second in movie ...
-        #     mov.rewind(1.0)
+        elif key == 'period':
+            # To skip ahead 1 second in movie ...
+            mov.fastForward(1.0)
+        elif key == 'comma':
+            # To skip back 1 second in movie ...
+            mov.rewind(1.0)
         # elif key == 'minus':
         #     # To decrease movie sound a bit (5%) ...
         #     mov.decreaseVolume(5)

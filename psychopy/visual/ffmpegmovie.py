@@ -277,16 +277,17 @@ class FFMovieStim(BaseVisualStim, ContainerMixin):
 
         # create a new media player instance
         self._player = MediaPlayer(self._filename)
+        # pause the video and seek to the start
+        self._player.set_pause(True)
+        # self._player.seek(0.0)
+
         self.updateVideoFrame()  # get the first frame queued up
 
         # get metadata
         self._metadata = self._player.get_metadata()
 
-        if not self._autoStart:
-            self.pause()   # auto-plays by default, pause
-            self.status = NOT_STARTED
-        else:
-            self.status = PLAYING
+        # video loaded and waiting
+        self.status = NOT_STARTED
 
     @property
     def frameTexture(self):
@@ -396,6 +397,8 @@ class FFMovieStim(BaseVisualStim, ContainerMixin):
 
         """
         self._assertMediaPlayer()
+
+        self._freeBuffers()  # free buffer before creating a new one
 
         # get the size of the movie frame and compute the buffer size
         vidWidth, vidHeight = self.videoSize
@@ -594,6 +597,10 @@ class FFMovieStim(BaseVisualStim, ContainerMixin):
         if not self._hasPlayer:  # do nothing if a video is not loaded
             return True
 
+        # video is not started yet
+        if self._autoStart and self._hasPlayer:
+            self.play()
+
         # update the video frame and draw it to a quad
         _ = self.updateVideoFrame()
         self._drawRectangle()  # draw the texture to the target window
@@ -651,6 +658,10 @@ class FFMovieStim(BaseVisualStim, ContainerMixin):
 
         """
         self._assertMediaPlayer()
+
+        # if not started, reset the clock
+        if self.status == NOT_STARTED:
+            self._videoClock.reset(0.0)
 
         if self._player.get_pause():  # if paused, unpause to start playback
             self._player.set_pause(False)
@@ -728,45 +739,50 @@ class FFMovieStim(BaseVisualStim, ContainerMixin):
     #         if log:
     #             logAttrib(self, log, 'seek', timestamp)
 
-    # def rewind(self, seconds=5):
-    #     """Rewind the video.
-    #
-    #     Parameters
-    #     ----------
-    #     seconds : float
-    #         Time in seconds to rewind from the current position. Default is 5
-    #         seconds.
-    #
-    #     Returns
-    #     -------
-    #     float
-    #         Timestamp after rewinding the video.
-    #
-    #     """
-    #     self.seek(max(self.getCurrentFrameTime() - float(seconds), 0.0))
-    #
-    #     # after seeking
-    #     return self.getCurrentFrameTime()
-    #
-    # def fastForward(self, seconds=5):
-    #     """Fast-forward the video.
-    #
-    #     Parameters
-    #     ----------
-    #     seconds : float
-    #         Time in seconds to fast forward from the current position. Default
-    #         is 5 seconds.
-    #
-    #     Returns
-    #     -------
-    #     float
-    #         Timestamp at new position after fast forwarding the video.
-    #
-    #     """
-    #     self.seek(
-    #         min(self.getCurrentFrameTime() + float(seconds), self.duration))
-    #
-    #     return self.getCurrentFrameTime()
+    def rewind(self, seconds=5):
+        """Rewind the video.
+
+        Parameters
+        ----------
+        seconds : float
+            Time in seconds to rewind from the current position. Default is 5
+            seconds.
+
+        Returns
+        -------
+        float
+            Timestamp after rewinding the video.
+
+        """
+        self._assertMediaPlayer()
+
+        self._player.seek(-seconds, relative=True)
+        _ = self.updateVideoFrame()
+
+        # after seeking
+        return self.getCurrentFrameTime()
+
+    def fastForward(self, seconds=5):
+        """Fast-forward the video.
+
+        Parameters
+        ----------
+        seconds : float
+            Time in seconds to fast forward from the current position. Default
+            is 5 seconds.
+
+        Returns
+        -------
+        float
+            Timestamp at new position after fast forwarding the video.
+
+        """
+        self._assertMediaPlayer()
+
+        self._player.seek(seconds, relative=True)
+        _ = self.updateVideoFrame()
+
+        return self.getCurrentFrameTime()
 
     def replay(self, autoStart=True):
         """Replay the movie from the beginning.
