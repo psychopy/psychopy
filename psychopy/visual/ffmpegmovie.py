@@ -298,9 +298,15 @@ class FFMovieStim(BaseVisualStim, ContainerMixin):
         """
         return self._textureId
 
-    def updateVideoFrame(self):
+    def updateVideoFrame(self, forceUpdate=False):
         """Update the present video frame. The next call to `draw()` will make
         the retrieved frame appear.
+
+        Parameters
+        ----------
+        forceUpdate : bool
+            Force a frame update. This syncronizes the video with the video
+            timer. This should be set to `True` after seeking the video stream.
 
         Returns
         -------
@@ -313,16 +319,13 @@ class FFMovieStim(BaseVisualStim, ContainerMixin):
         self._assertMediaPlayer()  # make sure we have a media playback object
 
         # create a video texture after starting playback
-        if self._currentFrame < 0:  # movie is starting
-            self._videoClock.reset()
-            needsVideoTexture = True
-        else:
-            needsVideoTexture = False
+        needsVideoTexture = self._currentFrame < 0
 
         # Don't get a new frame if we haven't reached its presentation
         # timestamp yet. Just use the last frame again.
-        if self._videoClock.getTime() < self._lastFrameInfo.absTime:
-            return False
+        if not forceUpdate:
+            if self._videoClock.getTime() < self._lastFrameInfo.absTime:
+                return False
 
         # get the frame an playback status
         frame, playbackStatus = self._player.get_frame()
@@ -757,7 +760,8 @@ class FFMovieStim(BaseVisualStim, ContainerMixin):
         self._assertMediaPlayer()
 
         self._player.seek(-seconds, relative=True)
-        _ = self.updateVideoFrame()
+        self._videoClock.reset(self._player.get_pts())
+        _ = self.updateVideoFrame(forceUpdate=True)
 
         # after seeking
         return self.getCurrentFrameTime()
@@ -780,7 +784,8 @@ class FFMovieStim(BaseVisualStim, ContainerMixin):
         self._assertMediaPlayer()
 
         self._player.seek(seconds, relative=True)
-        _ = self.updateVideoFrame()
+        self._videoClock.reset(self._player.get_pts())
+        _ = self.updateVideoFrame(forceUpdate=True)
 
         return self.getCurrentFrameTime()
 
