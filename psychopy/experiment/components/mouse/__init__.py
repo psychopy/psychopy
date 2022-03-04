@@ -43,7 +43,7 @@ class MouseComponent(BaseComponent):
 
         self.type = 'Mouse'
         self.url = "https://www.psychopy.org/builder/components/mouse.html"
-        self.exp.requirePsychopyLibs(['event'])
+        self.exp.requirePsychopyLibs(['hardware'])
 
         self.order += [
             'forceEndRoutineOnPress',  # Basic tab
@@ -167,9 +167,9 @@ class MouseComponent(BaseComponent):
             buff.writeIndented('}\n')
 
     def writeInitCode(self, buff):
-        code = ("%(name)s = event.Mouse(win=win)\n"
-                "x, y = [None, None]\n"
-                "%(name)s.mouseClock = core.Clock()\n")
+        code = ("%(name)s = hardware.mouse.Mouse(win=win)\n"
+                "%(name)s.status = NOT_STARTED"
+                "x, y = [None, None]\n")
         buff.writeIndentedLines(code % self.params)
 
     def writeInitCodeJS(self, buff):
@@ -286,7 +286,7 @@ class MouseComponent(BaseComponent):
         def _buttonPressCode(buff, dedent):
             """Code compiler for mouse button events"""
             code = ("buttons = %(name)s.getPressed()\n"
-                    "if buttons != prevButtonState:  # button state changed?")
+                    "if any(buttons != prevButtonState):  # button state changed?")
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(1, relative=True)
             dedent += 1

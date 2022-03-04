@@ -575,6 +575,9 @@ class Mouse:
         assert len(value) == 3
         self._mouseButtons[:] = value
 
+    def getPressed(self):
+        return self.buttons
+
     def getButton(self, button):
         """Get button state.
 
@@ -620,6 +623,10 @@ class Mouse:
                 self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_CURRENT, :])
 
         self._velocityNeedsUpdate = True
+
+    @property
+    def mouseClock(self):
+        return self._clock
 
     def getPos(self):
         """Get the current position of the mouse pointer.
