@@ -34,7 +34,6 @@ __all__ = [
 ]
 
 import wx
-import os
 from subprocess import Popen, PIPE
 from threading import Thread, Event
 from queue import Queue, Empty
