@@ -361,6 +361,7 @@ class ButtonComponent(BaseVisualComponent):
         code = (
                         "// store time of first click\n"
                         "%(name)s.timesOn.push(%(name)s.clock.getTime());\n"
+                        "%(name)s.numClicks += 1;\n"
                         "// store time clicked until\n"
                         "%(name)s.timesOff.push(%(name)s.clock.getTime());\n"
         )
@@ -473,6 +474,7 @@ class ButtonComponent(BaseVisualComponent):
     def writeRoutineEndCodeJS(self, buff):
         # Save data
         code = (
+            "psychoJS.experiment.addData('%(name)s.numClicks', %(name)s.numClicks);\n"
             "psychoJS.experiment.addData('%(name)s.timesOn', %(name)s.timesOn);\n"
             "psychoJS.experiment.addData('%(name)s.timesOff', %(name)s.timesOff);\n"
         )
