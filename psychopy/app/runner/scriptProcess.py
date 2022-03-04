@@ -120,7 +120,7 @@ class ScriptProcess:
         self.scriptProcess = jobs.Job(
             self,
             command=command,
-            flags=execFlags,
+            # flags=execFlags,
             inputCallback=self._onInputCallback,  # both treated the same
             errorCallback=self._onErrorCallback,
             terminateCallback=self._onTerminateCallback
