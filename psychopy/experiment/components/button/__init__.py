@@ -418,7 +418,7 @@ class ButtonComponent(BaseVisualComponent):
         buff.setIndentLevel(1, relative=True)
         code = (
                     "// if %(name)s is clicked next frame, it is a new click\n"
-                    "%(name)s.wasClicked = false\n"
+                    "%(name)s.wasClicked = false;\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
@@ -469,6 +469,14 @@ class ButtonComponent(BaseVisualComponent):
                 f"   {currLoop.params['name']}.addData('{name}.timesOff', \"\")\n"
             )
             buff.writeIndentedLines(code)
+
+    def writeRoutineEndCodeJS(self, buff):
+        # Save data
+        code = (
+            "psychoJS.experiment.addData('%(name)s.timesOn', %(name)s.timesOn);\n"
+            "psychoJS.experiment.addData('%(name)s.timesOff', %(name)s.timesOff);\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def integrityCheck(self):
         super().integrityCheck()  # run parent class checks first
