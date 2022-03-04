@@ -238,6 +238,9 @@ class DetailsPanel(wx.Panel):
         self.icon.SetBackgroundColour("#f2f2f2")
         self.icon.Bind(wx.EVT_FILEPICKER_CHANGED, self.updateProject)
         self.headSizer.Add(self.icon, border=6, flag=wx.ALL)
+        self.icon.SetToolTip(_translate(
+            "An image to represent this project, this helps it stand out when browsing on Pavlovia."
+        ))
         # Title sizer
         self.titleSizer = wx.BoxSizer(wx.VERTICAL)
         self.headSizer.Add(self.titleSizer, proportion=1, flag=wx.EXPAND)
@@ -250,6 +253,10 @@ class DetailsPanel(wx.Panel):
             wx.Font(24, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         )
         self.titleSizer.Add(self.title, border=6, flag=wx.ALL | wx.EXPAND)
+        self.title.SetToolTip(_translate(
+            "Title of the project. Unlike the project name, this isn't used as a filename anywhere; so you can "
+            "add spaces, apostrophes and emojis to your heart's content! 🦕✨"
+        ))
         # Author
         self.author = wx.StaticText(self, size=(-1, -1), label="by ---")
         self.titleSizer.Add(self.author, border=6, flag=wx.LEFT | wx.RIGHT)
@@ -260,6 +267,9 @@ class DetailsPanel(wx.Panel):
                                        )
         self.link.SetBackgroundColour("white")
         self.titleSizer.Add(self.link, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM)
+        self.link.SetToolTip(_translate(
+            "Click to view the project in Pavlovia."
+        ))
         # Button sizer
         self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.titleSizer.Add(self.btnSizer, flag=wx.EXPAND)
@@ -269,6 +279,10 @@ class DetailsPanel(wx.Panel):
         self.starBtn = self.StarBtn(self, iconCache=iconCache)
         self.starBtn.Bind(wx.EVT_BUTTON, self.star)
         self.btnSizer.Add(self.starBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        self.starBtn.SetToolTip(_translate(
+            "'Star' this project to get back to it easily. Projects you've starred will appear first in your searches "
+            "and projects with more stars in total will appear higher in everyone's searches."
+        ))
         # Fork button
         self.forkLbl = wx.StaticText(self, label="-")
         self.btnSizer.Add(self.forkLbl, border=6, flag=wx.LEFT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
@@ -276,24 +290,42 @@ class DetailsPanel(wx.Panel):
         self.forkBtn.SetBitmap(iconCache.getBitmap(name="fork", size=16))
         self.forkBtn.Bind(wx.EVT_BUTTON, self.fork)
         self.btnSizer.Add(self.forkBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        self.forkBtn.SetToolTip(_translate(
+            "Create a copy of this project on your own Pavlovia account so that you can make changes without affecting "
+            "the original project."
+        ))
         # Create button
         self.createBtn = wx.Button(self, label=_translate("Create"))
         self.createBtn.SetBitmap(iconCache.getBitmap(name="plus", size=16))
         self.createBtn.Bind(wx.EVT_BUTTON, self.create)
         self.btnSizer.Add(self.createBtn, border=6, flag=wx.RIGHT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
+        self.createBtn.SetToolTip(_translate(
+            "Create a Pavlovia project for the current experiment."
+        ))
         # Sync button
         self.syncBtn = wx.Button(self, label=_translate("Sync"))
         self.syncBtn.SetBitmap(iconCache.getBitmap(name="view-refresh", size=16))
         self.syncBtn.Bind(wx.EVT_BUTTON, self.sync)
         self.btnSizer.Add(self.syncBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        self.syncBtn.SetToolTip(_translate(
+            "Synchronise this project's local files with their online counterparts. This will 'pull' changes from "
+            "Pavlovia and 'push' changes from your local files."
+        ))
         # Get button
         self.downloadBtn = wx.Button(self, label=_translate("Download"))
         self.downloadBtn.SetBitmap(iconCache.getBitmap(name="download", size=16))
         self.downloadBtn.Bind(wx.EVT_BUTTON, self.sync)
         self.btnSizer.Add(self.downloadBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        self.downloadBtn.SetToolTip(_translate(
+            "'Clone' this project, creating local copies of all its files and tracking any changes you make so that "
+            "they can be applied when you next 'sync' the project."
+        ))
         # Sync label
         self.syncLbl = wx.StaticText(self, size=(-1, -1), label="---")
         self.btnSizer.Add(self.syncLbl, border=6, flag=wx.RIGHT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
+        self.syncLbl.SetToolTip(_translate(
+            "Last synced at..."
+        ))
         self.btnSizer.AddStretchSpacer(1)
         # Sep
         self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
@@ -305,12 +337,19 @@ class DetailsPanel(wx.Panel):
         self.localRoot = utils.FileCtrl(self, dlgtype="dir")
         self.localRoot.Bind(wx.EVT_FILEPICKER_CHANGED, self.updateProject)
         self.rootSizer.Add(self.localRoot, proportion=1, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM)
+        self.localRoot.SetToolTip(_translate(
+            "Folder in which local files are stored for this project. Changes to files in this folder will be tracked "
+            "and applied to the project when you 'sync', so make sure the only files in this folder are relevant!"
+        ))
         # Sep
         self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
         # Description
         self.description = wx.TextCtrl(self, size=(-1, -1), value="", style=wx.TE_MULTILINE)
         self.description.Bind(wx.EVT_KILL_FOCUS, self.updateProject)
         self.sizer.Add(self.description, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        self.description.SetToolTip(_translate(
+            "Description of the project to be shown on Pavlovia. Note: This is different than a README file!"
+        ))
         # Sep
         self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
         # Visibility
@@ -321,6 +360,10 @@ class DetailsPanel(wx.Panel):
         self.visibility = wx.Choice(self, choices=["Private", "Public"])
         self.visibility.Bind(wx.EVT_CHOICE, self.updateProject)
         self.visSizer.Add(self.visibility, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
+        self.visibility.SetToolTip(_translate(
+            "Visibility of the current project; whether its visible only to its creator (Private) or to any user "
+            "(Public)."
+        ))
         # Status
         self.statusSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(self.statusSizer, flag=wx.EXPAND)
@@ -329,6 +372,10 @@ class DetailsPanel(wx.Panel):
         self.status = wx.Choice(self, choices=["Running", "Piloting", "Inactive"])
         self.status.Bind(wx.EVT_CHOICE, self.updateProject)
         self.statusSizer.Add(self.status, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
+        self.status.SetToolTip(_translate(
+            "Project status; whether it can be run to collect data (Running), run by its creator without saving "
+            "data (Piloting) or cannot be run (Inactive)."
+        ))
         # Tags
         self.tagSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(self.tagSizer, flag=wx.EXPAND)
@@ -338,6 +385,10 @@ class DetailsPanel(wx.Panel):
         self.tags.Bind(wx.EVT_LIST_INSERT_ITEM, self.updateProject)
         self.tags.Bind(wx.EVT_LIST_DELETE_ITEM, self.updateProject)
         self.tagSizer.Add(self.tags, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
+        self.tags.SetToolTip(_translate(
+            "Keywords associated with this project, helping others to find it. For example, if your experiment is "
+            "useful to psychophysicists, you may want to add the keyword 'psychophysics'."
+        ))
         # Populate
         if project is not None:
             project.refresh()
@@ -355,6 +406,7 @@ class DetailsPanel(wx.Panel):
         if project is None:
             # Icon
             self.icon.SetBitmap(wx.Bitmap())
+            self.icon.SetBackgroundColour("#f2f2f2")
             self.icon.Disable()
             # Title
             self.title.SetValue("")
@@ -417,6 +469,7 @@ class DetailsPanel(wx.Panel):
             else:
                 icon = wx.Bitmap()
             self.icon.SetBitmap(icon)
+            self.icon.SetBackgroundColour("#f2f2f2")
             self.icon.Enable(project.editable)
             # Title
             self.title.SetValue(project['name'])
