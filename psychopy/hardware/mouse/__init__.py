@@ -18,6 +18,7 @@ __all__ = [
 import numpy as np
 import psychopy.core as core
 import psychopy.visual.window as window
+from psychopy import layout
 from psychopy.tools.monitorunittools import pix2cm, pix2deg, cm2pix, deg2pix
 
 
@@ -366,23 +367,10 @@ class Mouse:
             Position `(x, y)` in window units.
 
         """
-        pos = np.asarray(pos, dtype=np.float32)
-
-        if self.win is None:
-            return pos
-
-        if self.win.units == 'pix':
-            if self.win.useRetina:
-                pos /= 2.0
-            return pos
-        elif self.win.units == 'norm':
-            return pos * 2.0 / self.win.size
-        elif self.win.units == 'cm':
-            return pix2cm(pos, self.win.monitor)
-        elif self.win.units == 'deg':
-            return pix2deg(pos, self.win.monitor)
-        elif self.win.units == 'height':
-            return pos / float(self.win.size[1])
+        # Create a space-agnostic position object
+        _pos = layout.Position(pos, 'pix', self.win)
+        # Get value in window's unit space
+        return getattr(_pos, self.win.units)
 
     def _windowUnitsToPix(self, pos):
         """Convert user specified window units to 'pix'. This method is the
@@ -399,21 +387,10 @@ class Mouse:
             Position `(x, y)` in window units.
 
         """
-        pos = np.asarray(pos, dtype=np.float32)
-
-        if self.win is None:
-            return pos
-
-        if self.win.units == 'pix':
-            return pos
-        elif self.win.units == 'norm':
-            return pos * self.win.size / 2.0
-        elif self.win.units == 'cm':
-            return cm2pix(pos, self.win.monitor)
-        elif self.win.units == 'deg':
-            return deg2pix(pos, self.win.monitor)
-        elif self.win.units == 'height':
-            return pos * float(self.win.size[1])
+        # Create a space-agnostic position object
+        _pos = layout.Position(pos, self.win.units, self.win)
+        # Get value in pix
+        return _pos.pix
 
     @property
     def win(self):

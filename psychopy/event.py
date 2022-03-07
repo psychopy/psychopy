@@ -63,7 +63,7 @@ if havePyglet:
 
 import psychopy.core
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
-from psychopy import logging
+from psychopy import logging, layout
 from psychopy.constants import NOT_STARTED
 
 if havePyglet or haveGLFW:
@@ -877,30 +877,22 @@ class Mouse():
         return any(wanted & pressed) and shape.contains(self)
 
     def _pix2windowUnits(self, pos):
-        if self.win.units == 'pix':
-            if self.win.useRetina:
-                pos /= 2.0
-            return pos
-        elif self.win.units == 'norm':
-            return pos * 2.0 / self.win.size
-        elif self.win.units == 'cm':
-            return pix2cm(pos, self.win.monitor)
-        elif self.win.units == 'deg':
-            return pix2deg(pos, self.win.monitor)
-        elif self.win.units == 'height':
-            return pos / float(self.win.size[1])
+        """
+        Get pixel coordinates in window's spatial unit space
+        """
+        # Create a space-agnostic position object
+        _pos = layout.Position(pos, 'pix', self.win)
+        # Get value in window's unit space
+        return getattr(_pos, self.win.units)
 
     def _windowUnits2pix(self, pos):
-        if self.win.units == 'pix':
-            return pos
-        elif self.win.units == 'norm':
-            return pos * self.win.size / 2.0
-        elif self.win.units == 'cm':
-            return cm2pix(pos, self.win.monitor)
-        elif self.win.units == 'deg':
-            return deg2pix(pos, self.win.monitor)
-        elif self.win.units == 'height':
-            return pos * float(self.win.size[1])
+        """
+        Get window unit space coordinates in pixels
+        """
+        # Create a space-agnostic position object
+        _pos = layout.Position(pos, self.win.units, self.win)
+        # Get value in pix
+        return _pos.pix
 
     def setExclusive(self, exclusivity):
         """Binds the mouse to the experiment window. Only works in Pyglet.
