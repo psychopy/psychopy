@@ -120,11 +120,10 @@ def getLumSeries(lumLevels=8,
     else:
         toTest = numpy.asarray(lumLevels)
 
-    # FIXME - this is a bit confusing here, `guns` might not be defined!
     if allGuns:
         guns = [0, 1, 2, 3]  # gun=0 is the white luminance measure
     else:
-        allGuns = [0]
+        guns = [0]
 
     # this will hold the measured luminance values
     lumsList = numpy.zeros((len(guns), len(toTest)), 'd')
