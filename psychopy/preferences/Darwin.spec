@@ -100,7 +100,7 @@
 # Settings for the Builder window
 [builder]
     # whether to automatically reload a previously open experiment
-    reloadPrevExp = boolean(default=False)
+    reloadPrevExp = boolean(default=True)
     # Default to when writing code components
     codeComponentLanguage = option('Py', 'JS', 'Both', 'Auto->JS', default='Auto->JS')
     # if False will create scripts with an 'easier' but more cluttered namespace
@@ -124,6 +124,7 @@
     # Ask for confirmation when closing a routine tab.
     confirmRoutineClose = boolean(default=True)
 
+# Settings for hardware
 [hardware]
     # choice of audio library
     audioLib = list(default=list('sounddevice','PTB', 'pyo', 'pygame'))

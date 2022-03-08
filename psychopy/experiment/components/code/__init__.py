@@ -201,59 +201,83 @@ class CodeComponent(BaseComponent):
     def writePreCode(self, buff):
         if len(str(self.params['Before Experiment'])) and not self.params['disabled']:
             alerttools.checkPythonSyntax(self, 'Before Experiment')
+            if self.params['Before Experiment']:
+                buff.writeIndentedLines("# Run 'Before Experiment' code from %(name)s" % self.params)
             buff.writeIndentedLines(str(self.params['Before Experiment']) + '\n')
 
     def writePreCodeJS(self, buff):
         if len(str(self.params['Before JS Experiment'])) and not self.params['disabled']:
             alerttools.checkJavaScriptSyntax(self, 'Before JS Experiment')
+            if self.params['Before Experiment']:
+                buff.writeIndentedLines("// Run 'Before Experiment' code from %(name)s" % self.params)
             buff.writeIndentedLines(str(self.params['Before JS Experiment']) + '\n')
 
     def writeInitCode(self, buff):
         if len(str(self.params['Begin Experiment'])) and not self.params['disabled']:
             alerttools.checkPythonSyntax(self, 'Begin Experiment')
+            if self.params['Begin Experiment']:
+                buff.writeIndentedLines("# Run 'Begin Experiment' code from %(name)s" % self.params)
             buff.writeIndentedLines(str(self.params['Begin Experiment']) + '\n')
 
     def writeInitCodeJS(self, buff):
         if len(str(self.params['Begin JS Experiment'])) and not self.params['disabled']:
             alerttools.checkJavaScriptSyntax(self, 'Begin JS Experiment')
+            if self.params['Begin Experiment']:
+                buff.writeIndentedLines("// Run 'Begin Experiment' code from %(name)s" % self.params)
             buff.writeIndentedLines(str(self.params['Begin JS Experiment']) + '\n')
 
     def writeRoutineStartCode(self, buff):
         if len(str(self.params['Begin Routine'])) and not self.params['disabled']:
             alerttools.checkPythonSyntax(self, 'Begin Routine')
+            if self.params['Begin Routine']:
+                buff.writeIndentedLines("# Run 'Begin Routine' code from %(name)s" % self.params)
             buff.writeIndentedLines(str(self.params['Begin Routine']) + '\n')
 
     def writeRoutineStartCodeJS(self, buff):
         if len(str(self.params['Begin JS Routine'])) and not self.params['disabled']:
             alerttools.checkJavaScriptSyntax(self, 'Begin JS Routine')
+            if self.params['Begin Routine']:
+                buff.writeIndentedLines("// Run 'Begin Routine' code from %(name)s" % self.params)
             buff.writeIndentedLines(str(self.params['Begin JS Routine']) + '\n')
 
     def writeFrameCode(self, buff):
         if len(str(self.params['Each Frame'])) and not self.params['disabled']:
             alerttools.checkPythonSyntax(self, 'Each Frame')
+            if self.params['Each Frame']:
+                buff.writeIndentedLines("# Run 'Each Frame' code from %(name)s" % self.params)
             buff.writeIndentedLines(str(self.params['Each Frame']) + '\n')
 
     def writeFrameCodeJS(self, buff):
         if len(str(self.params['Each JS Frame'])) and not self.params['disabled']:
             alerttools.checkJavaScriptSyntax(self, 'Each JS Frame')
+            if self.params['Each Frame']:
+                buff.writeIndentedLines("// Run 'Each Frame' code from %(name)s" % self.params)
             buff.writeIndentedLines(str(self.params['Each JS Frame']) + '\n')
 
     def writeRoutineEndCode(self, buff):
         if len(str(self.params['End Routine'])) and not self.params['disabled']:
             alerttools.checkPythonSyntax(self, 'End Routine')
+            if self.params['End Routine']:
+                buff.writeIndentedLines("# Run 'End Routine' code from %(name)s" % self.params)
             buff.writeIndentedLines(str(self.params['End Routine']) + '\n')
 
     def writeRoutineEndCodeJS(self, buff):
         if len(str(self.params['End JS Routine'])) and not self.params['disabled']:
             alerttools.checkJavaScriptSyntax(self, 'End JS Routine')
+            if self.params['End Routine']:
+                buff.writeIndentedLines("// Run 'End Routine' code from %(name)s" % self.params)
             buff.writeIndentedLines(str(self.params['End JS Routine']) + '\n')
 
     def writeExperimentEndCode(self, buff):
         if len(str(self.params['End Experiment'])) and not self.params['disabled']:
             alerttools.checkPythonSyntax(self, 'End Experiment')
+            if self.params['End Experiment']:
+                buff.writeIndentedLines("# Run 'End Experiment' code from %(name)s" % self.params)
             buff.writeIndentedLines(str(self.params['End Experiment']) + '\n')
 
     def writeExperimentEndCodeJS(self, buff):
         if len(str(self.params['End JS Experiment'])) and not self.params['disabled']:
             alerttools.checkJavaScriptSyntax(self, 'End JS Experiment')
+            if self.params['End Experiment']:
+                buff.writeIndentedLines("// Run 'End Experiment' code from %(name)s" % self.params)
             buff.writeIndentedLines(str(self.params['End JS Experiment']) + '\n')

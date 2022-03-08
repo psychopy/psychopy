@@ -12,7 +12,7 @@ that not be possible while the screen is being updated. Static periods are also 
 
 Typically a static period would be something like an inter-trial or inter-stimulus interval (ITI/ISI). During this period you should not have any other objects being presented that are being updated (this isn't checked for you - you have to make that check yourself), but you can have components being presented that are themselves static. For instance a fixation point never changes and so it can be presented during the static period (it will be presented and left on-screen while the other updates are being made).
 
-.. figure:: ../images/static_guide.png
+.. figure:: /images/static_guide.png
 
 	How to use a static component. 1) To use a static component first select it from the component panel. 2) highlights in red the time window you are treating as "static". If you click on the red highlighted window you can edit the static component. 3) To use the static window to load a resource, select the component where the resource will be load, and in the dropdown window choose "set during:trial.ISI" - here "trial" refers to the routine where the static component is and "ISI" refers to the name of the static component.
 

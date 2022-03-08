@@ -20,18 +20,18 @@ PsychoPy 2022.1
 
 *Highlights:*
 
-- Can now insert new Routines from templates (such as Fixation, 2-alternative 
-  forced choice, etc)
 - Improved interface for searching, syncing and viewing Pavlovia projects from 
   within the PsychoPy app
 - In online experiments you can now dynamically choose the resources your 
   participant needs as the experiment progresses rather than downloading them all in 
   the first dialog box
+- Can now insert new Routines from pre-packaged templates (such as Fixation, 2-alternative 
+  forced choice, feedback, etc)
 - QUEST handlers now available in PsychoJS including interleaved staircases
 - Most visual stimuli now have an "anchor" parameter to control how it's laid out 
   relative to its position, and you can now set the alignment of text within a Textbox 
   (with a handy demo to illustrate the difference between anchor and alignment!)
-- Added support for Pupil labs eye trackers (thanks to Pupil Labs themselves) directly from 
+- Added support for :ref:`Pupil labs eye trackers <pupil_labs_core>` (thanks to Pupil Labs themselves) directly from 
   the Builder
 
 *Compatibility Changes:*
@@ -40,6 +40,8 @@ PsychoPy 2022.1
 - Filename timestamps now have a different default format (based on ISO 8601):
   2022-01-14_14h39.36.092 for 2:39pm and 36s, 92ms
   See :func:`psychopy.utils.getDateStr` for details on the new functionality
+
+*New and Improved:*
 
 - Ability to customise the filename in online studies, using the same Experiment Settings 
   option as local studies
@@ -57,7 +59,10 @@ PsychoPy 2022.1
 - Added the option to refer to pre-canned image files, such as default.png and use 
   as an image stimulus
 
-Many bug fixes, more than we have room for here, including:
+PsychoPy 2022.1.0
+~~~~~~~~~~~~~~~~~
+
+Many bug fixes from 2021.x release, more than we have room for here, including:
 
 - Code / Builder: iohub keyboard mappings now match those used by event.getKeys(). 
 - Code: labjacks.U3.setData was not working

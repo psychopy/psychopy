@@ -20,6 +20,13 @@ TESTS_PATH = abspath(dirname(__file__))
 TESTS_DATA_PATH = pjoin(TESTS_PATH, 'data')
 TESTS_FONT = pjoin(TESTS_DATA_PATH, 'DejaVuSerif.ttf')
 
+# Some regex shorthand
+_q = r"[\"']"  # quotes
+_lb = r"[\[\(]"  # left bracket
+_rb = r"[\]\)]"  # right bracket
+_d = r"\$"  # dollar (escaped for re)
+_sl = "\\"  # back slash
+
 
 def compareScreenshot(fileName, win, tag="", crit=5.0):
     """Compare the current back buffer of the given window with the file
