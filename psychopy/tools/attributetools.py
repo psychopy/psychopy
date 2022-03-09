@@ -162,7 +162,7 @@ def logAttrib(obj, log, attrib, value=None):
             logging.log(message, level=logging.EXP, obj=obj)
 
 
-def resolveLegacy(extant, legacy, undef=None):
+def resolveLegacy(extant, legacy, undef=None, fallback=None):
     """
     Resolve any conflict between legacy params and the param which replaced them, will accept the extant param
     first but will accept legacy if the extant param is undefined.
@@ -178,20 +178,25 @@ def resolveLegacy(extant, legacy, undef=None):
     undef : any
         Value to treat as undefined, by default will be None. Value must have an __eq__ method.
 
+    fallback : any
+        Value to return if both extant and legacy parameters are undefined, by default will be None.
+
     Returns
     -------
     resolved : any
         Resolved value from extant and legacy param.
     """
 
-    # If extant is not None, return it as is
+    # If extant is defined, return it as is
     if undef != extant:
         return extant
     # Ensure legacy is a list
     if not isinstance(legacy, (list, tuple, numpy.ndarray)):
         legacy = [legacy]
     legacy = list(legacy)
-    # Return first non-None value from legacy
+    # Return first defined value from legacy
     for val in legacy:
         if undef != val:
             return val
+    # If everything is undefined, return fallback value
+    return fallback
