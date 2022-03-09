@@ -15,6 +15,8 @@ from .basevisual import MinimalStim
 
 __author__ = 'David Bridges'
 
+from ..tools.attributetools import resolveLegacy
+
 
 class Brush(MinimalStim):
     """A class for creating a freehand drawing tool.
@@ -24,14 +26,16 @@ class Brush(MinimalStim):
                  win,
                  lineWidth=1.5,
                  lineColor=(1.0, 1.0, 1.0),
-                 lineColorSpace='rgb',
+                 colorSpace='rgb',
                  opacity=1.0,
                  closeShape=False,
                  buttonRequired=True,
                  name=None,
                  depth=0,
                  autoLog=True,
-                 autoDraw=False
+                 autoDraw=False,
+                 # Legacy
+                 lineColorSpace=None
                  ):
 
         super(Brush, self).__init__(name=name,
@@ -41,7 +45,7 @@ class Brush(MinimalStim):
         self.name = name
         self.depth = depth
         self.lineColor = lineColor
-        self.lineColorSpace = lineColorSpace
+        self.lineColorSpace = self.colorSpace = resolveLegacy(colorSpace, [lineColorSpace])
         self.lineWidth = lineWidth
         self.opacity = opacity
         self.closeShape = closeShape
