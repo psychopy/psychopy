@@ -12,7 +12,7 @@ try:
 except ImportError:
     from collections import Iterable
 
-__all__ = ['forp', 'cedrus', 'minolta', 'pr', 'crs', 'iolab', 'eyetracker', 'mouse']
+__all__ = ['forp', 'cedrus', 'minolta', 'pr', 'crs', 'iolab', 'eyetracker', 'mouse', 'keyboard']
 
 
 def getSerialPorts():
