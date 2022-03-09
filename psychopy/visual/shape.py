@@ -430,7 +430,7 @@ class ShapeStim(BaseShapeStim):
 
         super(ShapeStim, self).__init__(
             # Basic
-            self, win,
+            win,
             name=name,
             # Layout
             pos=pos, anchor=anchor, size=size, units=units,
