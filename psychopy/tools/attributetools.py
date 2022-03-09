@@ -188,15 +188,26 @@ def resolveLegacy(extant, legacy, undef=None, fallback=None):
     """
 
     # If extant is defined, return it as is
-    if undef != extant:
-        return extant
+    try:
+        if undef != extant:
+            return extant
+    except (ValueError, AttributeError):
+        if undef is not extant:
+            return extant
+
+    # If extant is defined, return it as is
+
     # Ensure legacy is a list
     if not isinstance(legacy, (list, tuple, numpy.ndarray)):
         legacy = [legacy]
     legacy = list(legacy)
     # Return first defined value from legacy
     for val in legacy:
-        if undef != val:
-            return val
+        try:
+            if undef != val:
+                return val
+        except (ValueError, AttributeError):
+            if undef is not val:
+                return val
     # If everything is undefined, return fallback value
     return fallback
