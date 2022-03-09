@@ -404,60 +404,48 @@ class ShapeStim(BaseShapeStim):
     """
     # Author: Jeremy Gray, November 2015, using psychopy.contrib.tesselate
 
-    def __init__(self,
-                 win,
-                 units='',
-                 colorSpace='rgb',
-                 fillColor=False,
-                 lineColor=False,
-                 lineWidth=1.5,
-                 vertices=((-0.5, 0), (0, +0.5), (+0.5, 0)),
-                 windingRule=None,  # default GL.GLU_TESS_WINDING_ODD
-                 closeShape=True,  # False for a line
-                 pos=(0, 0),
-                 size=1,
-                 anchor=None,
-                 ori=0.0,
-                 opacity=1.0,
-                 contrast=1.0,
-                 depth=0,
-                 interpolate=True,
-                 name=None,
-                 autoLog=None,
-                 autoDraw=False,
-                 # legacy
-                 color=False,
-                 lineRGB=False,
-                 fillRGB=False,
-                 fillColorSpace=None,
-                 lineColorSpace=None
-                 ):
+    def __init__(
+            # Basic
+            self, win,
+            name=None,
+            # Layout
+            pos=(0, 0), anchor=None, size=1, units='',
+            ori=0.0, vertices=((-0.5, 0), (0, +0.5), (+0.5, 0)),
+            # Appearance
+            fillColor=False, borderColor=False,
+            colorSpace='rgb', contrast=1.0, opacity=None, depth=0,
+            lineWidth=1.5, closeShape=True, interpolate=True,
+            # Other
+            windingRule=None,  # default GL.GLU_TESS_WINDING_ODD
+            autoLog=None, autoDraw=False,
+            # Legacy
+            color=False, lineColor=False,
+            fillRGB=False, lineRGB=False,
+            fillColorSpace=None, lineColorSpace=None,
+    ):
 
         # what local vars are defined (init params, for use by __repr__)
         self._initParamsOrig = dir()
         self._initParamsOrig.remove('self')
 
-        super(ShapeStim, self).__init__(win,
-                                        units=units,
-                                        lineWidth=lineWidth,
-                                        colorSpace=colorSpace,
-                                        lineColor=lineColor,
-                                        lineColorSpace=lineColorSpace,
-                                        fillColor=fillColor,
-                                        fillColorSpace=fillColorSpace,
-                                        vertices=(),  # dummy verts
-                                        closeShape=self.closeShape,
-                                        pos=pos,
-                                        size=size,
-                                        anchor=anchor,
-                                        ori=ori,
-                                        opacity=opacity,
-                                        contrast=contrast,
-                                        depth=depth,
-                                        interpolate=interpolate,
-                                        name=name,
-                                        autoLog=False,
-                                        autoDraw=autoDraw)
+        super(ShapeStim, self).__init__(
+            # Basic
+            self, win,
+            name=name,
+            # Layout
+            pos=pos, anchor=anchor, size=size, units=units,
+            ori=ori, vertices=(),  # dummy verts
+            # Appearance
+            fillColor=fillColor, borderColor=borderColor,
+            colorSpace=colorSpace, contrast=contrast, opacity=opacity, depth=depth,
+            lineWidth=lineWidth, closeShape=closeShape, interpolate=interpolate,
+            # Other
+            autoLog=False, autoDraw=autoDraw,
+            # Legacy
+            color=color, lineColor=lineColor,
+            fillRGB=fillRGB, lineRGB=lineRGB,
+            fillColorSpace=fillColorSpace, lineColorSpace=lineColorSpace,
+        )
 
         self.closeShape = closeShape
         self.windingRule = windingRule
