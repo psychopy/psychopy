@@ -19,19 +19,43 @@ class ButtonStim(TextBox2):
 
     """
 
-    def __init__(self, win, text, font='Arvo',
-                 pos=(0, 0), size=None, padding=None, anchor='center', units=None,
-                 color='white', fillColor='darkgrey', borderColor=None, borderWidth=0, colorSpace='rgb', opacity=None,
-                 letterHeight=None, bold=True, italic=False,
-                 name="", autoLog=None, autoDraw=None
-                 ):
+    def __init__(
+            # Basic
+            self, win, text,
+            name='',
+            # Layout
+            pos=(0, 0), anchor='center', size=None, padding=None, units=None,
+            flipHoriz=False, flipVert=False,
+            # Appearance
+            color=(1.0, 1.0, 1.0), fillColor=None, borderColor=None,
+            colorSpace='rgb', contrast=1, opacity=None,
+            borderWidth=2,
+            # Formatting
+            font="Open Sans", bold=False, italic=False,
+            letterHeight=None, lineSpacing=None, alignment='left',
+            languageStyle="LTR", lineBreaking='default',
+            # Other
+            autoLog=None, autoDraw=None
+    ):
         # Initialise TextBox
-        TextBox2.__init__(self, win, text, font, name=name,
-                                 pos=pos, size=size, padding=padding, anchor=anchor, units=units,
-                                 color=color, fillColor=fillColor, borderColor=borderColor, borderWidth=borderWidth, colorSpace=colorSpace, opacity=opacity,
-                                 letterHeight=letterHeight, bold=bold, italic=italic,
-                                 alignment='center', editable=False, autoLog=autoLog,
-                 autoDraw=autoDraw)
+        TextBox2.__init__(
+            # Basic
+            self, win, text,
+            name=name, editable=False, onTextCallback=None,
+            # Layout
+            pos=pos, anchor=anchor, size=size, padding=padding, units=units,
+            flipHoriz=flipHoriz, flipVert=flipVert,
+            # Appearance
+            color=color, fillColor=fillColor, borderColor=borderColor,
+            colorSpace=colorSpace, contrast=contrast, opacity=opacity,
+            borderWidth=borderWidth,
+            # Formatting
+            font=font, bold=bold, italic=italic,
+            letterHeight=letterHeight, lineSpacing=lineSpacing, alignment=alignment,
+            languageStyle=languageStyle, lineBreaking=lineBreaking,
+            # Other
+            autoLog=autoLog, autoDraw=autoDraw
+        )
         self.listener = event.Mouse(win=win)
         self.buttonClock = core.Clock()
         self.wasClicked = False # Attribute to save whether button was previously clicked
