@@ -102,31 +102,24 @@ class Polygon(BaseShapeStim):
         `fillColor` are interpreted.
 
     """
-    def __init__(self,
-                 win,
-                 edges=3,
-                 radius=.5,
-                 units='',
-                 lineWidth=1.5,
-                 lineColor=None,
-                 lineColorSpace=None,
-                 fillColor='white',
-                 fillColorSpace=None,
-                 pos=(0, 0),
-                 size=1.0,
-                 anchor=None,
-                 ori=0.0,
-                 opacity=None,
-                 contrast=1.0,
-                 depth=0,
-                 interpolate=True,
-                 lineRGB=False,
-                 fillRGB=False,
-                 name=None,
-                 autoLog=None,
-                 autoDraw=False,
-                 color=None,
-                 colorSpace='rgb'):
+    def __init__(
+            # Basic
+            self, win,
+            name=None,
+            # Layout
+            pos=(0, 0), anchor=None, size=1, radius=.5, units='',
+            ori=0.0, edges=3, vertices=((-0.5, 0), (0, +0.5), (+0.5, 0)),
+            # Appearance
+            fillColor='white', borderColor=None,
+            colorSpace='rgb', contrast=1.0, opacity=None, depth=0,
+            lineWidth=1.5, interpolate=True,
+            # Other
+            autoLog=None, autoDraw=False,
+            # Legacy
+            color=False, lineColor=False,
+            fillRGB=False, lineRGB=False,
+            fillColorSpace=None, lineColorSpace=None,
+    ):
 
         # what local vars are defined (these are the init params) for use by
         # __repr__
@@ -139,30 +132,23 @@ class Polygon(BaseShapeStim):
         self._calcVertices()
 
         super(Polygon, self).__init__(
-            win,
-            units=units,
-            lineWidth=lineWidth,
-            lineColor=lineColor,
-            lineColorSpace=lineColorSpace,
-            fillColor=fillColor,
-            fillColorSpace=fillColorSpace,
-            vertices=self.vertices,
-            closeShape=True,
-            pos=pos,
-            size=size,
-            anchor=anchor,
-            ori=ori,
-            opacity=opacity,
-            contrast=contrast,
-            depth=depth,
-            interpolate=interpolate,
-            lineRGB=lineRGB,
-            fillRGB=fillRGB,
+            # Basic
+            self, win,
             name=name,
-            autoLog=autoLog,
-            autoDraw=autoDraw,
-            color=color,
-            colorSpace=colorSpace)
+            # Layout
+            pos=pos, anchor=anchor, size=size, units=units,
+            ori=ori,
+            # Appearance
+            fillColor=fillColor, borderColor=borderColor,
+            colorSpace=colorSpace, contrast=contrast, opacity=opacity, depth=depth,
+            lineWidth=lineWidth, closeShape=True, interpolate=interpolate,
+            # Other
+            autoLog=autoLog, autoDraw=autoDraw,
+            # Legacy
+            color=color, lineColor=lineColor,
+            fillRGB=fillRGB, lineRGB=lineRGB,
+            fillColorSpace=fillColorSpace, lineColorSpace=lineColorSpace
+        )
 
     def _calcVertices(self):
         self.vertices = self._calcEquilateralVertices(self.edges, self.radius)
