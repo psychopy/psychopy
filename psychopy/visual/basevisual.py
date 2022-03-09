@@ -1525,7 +1525,14 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
     that for simplicity & clarity.
 
     """
-    def __init__(self, win, units=None, name='', autoLog=None):
+    def __init__(
+            # Basic
+            self, win,
+            name='',
+            # Layout
+            units=None,
+            # Other
+            autoLog=None):
         self.autoLog = False  # just to start off during init, set at end
         self.win = win
         self.units = units
