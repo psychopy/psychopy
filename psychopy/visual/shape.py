@@ -24,7 +24,7 @@ from psychopy.colors import Color
 # (JWP has no idea why!)
 # from psychopy.tools.monitorunittools import cm2pix, deg2pix
 from psychopy.tools.attributetools import (attributeSetter,  # logAttrib,
-                                           setAttribute)
+                                           setAttribute, resolveLegacy)
 from psychopy.tools.arraytools import val2array
 from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
                                         ContainerMixin, WindowMixin)
@@ -97,33 +97,24 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
     v1.84.00: ShapeStim became BaseShapeStim.
 
     """
-    def __init__(self,
-                 win,
-                 units='',
-                 lineWidth=1.5,
-                 lineColor=False, # uses False in place of None to distinguish between "not set" and "transparent"
-                 fillColor=False, # uses False in place of None to distinguish between "not set" and "transparent"
-                 colorSpace='rgb',
-                 vertices=((-0.5, 0), (0, +0.5), (+0.5, 0)),
-                 closeShape=True,
-                 pos=(0, 0),
-                 size=1,
-                 anchor=None,
-                 ori=0.0,
-                 opacity=None,
-                 contrast=1.0,
-                 depth=0,
-                 interpolate=True,
-                 name=None,
-                 autoLog=None,
-                 autoDraw=False,
-                 # legacy
-                 color=False,
-                 lineRGB=False,
-                 fillRGB=False,
-                 fillColorSpace=None,
-                 lineColorSpace=None
-                 ):
+    def __init__(
+            # Basic
+            self, win,
+            name=None,
+            # Layout
+            pos=(0, 0), anchor=None, size=1, units='',
+            ori=0.0, vertices=((-0.5, 0), (0, +0.5), (+0.5, 0)),
+            # Appearance
+            fillColor=False, borderColor=False,
+            colorSpace='rgb', contrast=1.0, opacity=None, depth=0,
+            lineWidth=1.5, closeShape=True, interpolate=True,
+            # Other
+            autoLog=None, autoDraw=False,
+            # Legacy
+            color=False, lineColor=False,
+            fillRGB=False, lineRGB=False,
+            fillColorSpace=None, lineColorSpace=None
+    ):
         """ """  # all doc is in the attributes
         # what local vars are defined (these are the init params) for use by
         # __repr__
@@ -141,33 +132,20 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.interpolate = interpolate
 
         # Appearance
-        self.colorSpace = colorSpace
-        if fillColor is not False:
-            self.fillColor = fillColor
-        elif color is not False:
-            # Override fillColor with color if not set
-            self.fillColor = color
-        else:
-            # Default to None if neither are set
-            self.fillColor = None
-        if lineColor is not False:
-            self.lineColor = lineColor
-        elif color is not False:
-            # Override lineColor with color if not set
-            self.lineColor = color
-        else:
-            # Default to black if neither are set
-            self.lineColor = 'black'
+        self.colorSpace = resolveLegacy(colorSpace, [lineColorSpace, fillColorSpace])
+        self.fillColor = resolveLegacy(fillColor, [color], undef=False, fallback=None)
+        self.borderColor = resolveLegacy(borderColor, [lineColor], undef=False, fallback='black')
+
+        # Legacy: If set via RGB, override color value and space
         if lineRGB is not False:
-            # Override with RGB if set
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
             self.setLineColor(lineRGB, colorSpace='rgb', log=None)
         if fillRGB is not False:
-            # Override with RGB if set
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
             self.setFillColor(fillRGB, colorSpace='rgb', log=None)
+
         self.contrast = contrast
         if opacity:
             self.opacity = opacity
