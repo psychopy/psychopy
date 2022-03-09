@@ -108,7 +108,7 @@ class Polygon(BaseShapeStim):
             name=None,
             # Layout
             pos=(0, 0), anchor=None, size=1, radius=.5, units='',
-            ori=0.0, edges=3, vertices=((-0.5, 0), (0, +0.5), (+0.5, 0)),
+            ori=0.0, edges=3,
             # Appearance
             fillColor='white', borderColor=None,
             colorSpace='rgb', contrast=1.0, opacity=None, depth=0,
@@ -118,7 +118,7 @@ class Polygon(BaseShapeStim):
             # Legacy
             color=False, lineColor=False,
             fillRGB=False, lineRGB=False,
-            fillColorSpace=None, lineColorSpace=None,
+            fillColorSpace=None, lineColorSpace=None
     ):
 
         # what local vars are defined (these are the init params) for use by
@@ -133,7 +133,7 @@ class Polygon(BaseShapeStim):
 
         super(Polygon, self).__init__(
             # Basic
-            self, win,
+            win,
             name=name,
             # Layout
             pos=pos, anchor=anchor, size=size, units=units,
