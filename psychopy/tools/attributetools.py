@@ -160,3 +160,35 @@ def logAttrib(obj, log, attrib, value=None):
         except AttributeError:
             # the "win" attribute only exists if sync-to-visual (e.g. stimuli)
             logging.log(message, level=logging.EXP, obj=obj)
+
+
+def resolveLegacy(extant, legacy):
+    """
+    Resolve any conflict between legacy params and the param which replaced them, will accept the extant param
+    first but will accept legacy if the extant param is None.
+
+    Parameters
+    ----------
+    extant : any
+        Value of the extant parameter. If value is anything but None, will be returned unchanged.
+
+    legacy : list, tuple or numpy.ndarray
+        Set of legacy parameter values to be used if value of the extant parameter is None.
+
+    Returns
+    -------
+    resolved : any
+        Resolved value from extant and legacy param.
+    """
+
+    # If extant is not None, return it as is
+    if extant is not None:
+        return extant
+    # Ensure legacy is a list
+    if not isinstance(legacy, (list, tuple, numpy.ndarray)):
+        legacy = [legacy]
+    legacy = list(legacy)
+    # Return first non-None value from legacy
+    for val in legacy:
+        if val is not None:
+            return val
