@@ -21,7 +21,7 @@ from pyglet import gl
 from bidi import algorithm as bidi
 
 from ..basevisual import BaseVisualStim, ColorMixin, ContainerMixin, WindowMixin
-from psychopy.tools.attributetools import attributeSetter, setAttribute
+from psychopy.tools.attributetools import attributeSetter, setAttribute, resolveLegacy
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import convertToPix
 from .fontmanager import FontManager, GLFont
@@ -57,30 +57,28 @@ debug = False
 
 # If text is ". " we don't want to start next line with single space?
 
+
 class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
-    def __init__(self, win, text,
-                 font="Open Sans",
-                 pos=(0, 0), units=None, letterHeight=None,
-                 size=None,
-                 color=(1.0, 1.0, 1.0), colorSpace='rgb',
-                 fillColor=None, fillColorSpace=None,
-                 borderWidth=2, borderColor=None, borderColorSpace=None,
-                 contrast=1,
-                 opacity=None,
-                 bold=False,
-                 italic=False,
-                 lineSpacing=None,
-                 padding=None,  # gap between box and text
-                 anchor='center',
-                 alignment='left',
-                 flipHoriz=False,
-                 flipVert=False,
-                 languageStyle="LTR",
-                 editable=False,
-                 lineBreaking='default',
-                 name='',
-                 autoLog=None,
-                 onTextCallback=None):
+    def __init__(
+            # Basic
+            self, win, text,
+            name='', editable=False, onTextCallback=None,
+            # Layout
+            pos=(0, 0), anchor='center', size=None, padding=None, units=None,
+            flipHoriz=False, flipVert=False,
+            # Appearance
+            color=(1.0, 1.0, 1.0), fillColor=None, borderColor=None,
+            colorSpace='rgb', contrast=1, opacity=None,
+            borderWidth=2,
+            # Formatting
+            font="Open Sans", bold=False, italic=False,
+            letterHeight=None, lineSpacing=None, alignment='left',
+            languageStyle="LTR", lineBreaking='default',
+            # Other
+            autoLog=None, autoDraw=None,
+            # Legacy
+            fillColorSpace=None, borderColorSpace=None,
+    ):
         """
 
         Parameters
@@ -117,8 +115,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         name
         autoLog
         """
+        # Resolve legacy values
+        colorSpace = resolveLegacy(colorSpace, [fillColorSpace, borderColorSpace])
 
-        BaseVisualStim.__init__(self, win, units=units, name=name)
+        # Init base visual
+        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
         self.win = win
         self.colorSpace = colorSpace
         ColorMixin.foreColor.fset(self, color)  # Have to call the superclass directly on init as text has not been set
@@ -131,7 +132,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             colorSpace=colorSpace, lineColor=borderColor, fillColor=fillColor,
             lineWidth=borderWidth,
             opacity=self.opacity,
-            autoLog=False,
+            autoLog=False, autoDraw=autoDraw,
         )
         # Box around just the content area, excluding padding - not drawn
         self.contentBox = Rect(
@@ -223,9 +224,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # caret
         self.editable = editable
         self.caret = Caret(self, color=self.color, width=2)
-
-
-        self.autoLog = autoLog
 
     def __copy__(self):
         return TextBox2(
