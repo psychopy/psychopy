@@ -45,6 +45,9 @@ class EyetrackerControl:
 
     @property
     def pos(self):
+        """
+        Get the current position of the eyetracker
+        """
         return self.tracker.getPos()
 
     def getPos(self):
