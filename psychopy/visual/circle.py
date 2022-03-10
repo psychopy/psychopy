@@ -104,31 +104,24 @@ class Circle(Polygon):
         if radius != 0.5 which will result in undefined behavior.
 
     """
-    def __init__(self,
-                 win,
-                 radius=.5,
-                 edges=32,
-                 units='',
-                 lineWidth=1.5,
-                 lineColor=None,
-                 lineColorSpace=None,
-                 fillColor='white',
-                 fillColorSpace=None,
-                 pos=(0, 0),
-                 size=1.0,
-                 anchor=None,
-                 ori=0.0,
-                 opacity=None,
-                 contrast=1.0,
-                 depth=0,
-                 interpolate=True,
-                 lineRGB=False,
-                 fillRGB=False,
-                 name=None,
-                 autoLog=None,
-                 autoDraw=False,
-                 color=None,
-                 colorSpace='rgb'):
+    def __init__(
+            # Basic
+            self, win,
+            name=None,
+            # Layout
+            pos=(0, 0), anchor='center', size=1.0, radius=.5, units='',
+            ori=0, edges=32,
+            # Appearance
+            fillColor='white', borderColor=None,
+            colorSpace='rgb', contrast=1.0, opacity=None, depth=0,
+            lineWidth=1.5, interpolate=True,
+            # Other
+            autoLog=None, autoDraw=False,
+            # Legacy
+            color=False, lineColor=False,
+            fillColorSpace=None, lineColorSpace=None,
+            fillRGB=False, lineRGB=False,
+    ):
 
         # what local vars are defined (these are the init params) for use by
         # __repr__
@@ -137,27 +130,20 @@ class Circle(Polygon):
 
         # initialise parent class
         super(Circle, self).__init__(
+            # Basic
             win,
-            radius=radius,
-            edges=edges,
-            units=units,
-            lineWidth=lineWidth,
-            lineColor=lineColor,
-            lineColorSpace=lineColorSpace,
-            fillColor=fillColor,
-            fillColorSpace=fillColorSpace,
-            pos=pos,
-            size=size,
-            anchor=anchor,
-            ori=ori,
-            opacity=opacity,
-            contrast=contrast,
-            depth=depth,
-            interpolate=interpolate,
-            lineRGB=lineRGB,
-            fillRGB=fillRGB,
             name=name,
-            autoLog=autoLog,
-            autoDraw=autoDraw,
-            color=color,
-            colorSpace=colorSpace)
+            # Layout
+            pos=pos, anchor=anchor, size=size, radius=radius, units=units,
+            ori=ori, edges=edges,
+            # Appearance
+            fillColor=fillColor, borderColor=borderColor,
+            colorSpace=colorSpace, contrast=contrast, opacity=opacity, depth=depth,
+            lineWidth=lineWidth, interpolate=interpolate,
+            # Other
+            autoLog=autoLog, autoDraw=autoDraw,
+            # Legacy
+            color=color, lineColor=lineColor,
+            fillRGB=fillRGB, lineRGB=lineRGB,
+            fillColorSpace=fillColorSpace, lineColorSpace=lineColorSpace
+        )
