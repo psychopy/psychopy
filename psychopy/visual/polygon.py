@@ -137,7 +137,7 @@ class Polygon(BaseShapeStim):
             name=name,
             # Layout
             pos=pos, anchor=anchor, size=size, units=units,
-            ori=ori,
+            ori=ori, vertices=self.vertices,
             # Appearance
             fillColor=fillColor, borderColor=borderColor,
             colorSpace=colorSpace, contrast=contrast, opacity=opacity, depth=depth,
