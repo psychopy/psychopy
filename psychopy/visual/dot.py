@@ -122,30 +122,24 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         <attrib-operations>` are supported.
 
     """
-    def __init__(self,
-                 win,
-                 units='',
-                 nDots=1,
-                 coherence=0.5,
-                 fieldPos=(0.0, 0.0),
-                 fieldSize=(1.0, 1.0),
-                 fieldShape='sqr',
-                 fieldAnchor="center",
-                 dotSize=2.0,
-                 dotLife=3,
-                 dir=0.0,
-                 speed=0.5,
-                 rgb=None,
-                 color=(1.0, 1.0, 1.0),
-                 colorSpace='rgb',
-                 opacity=None,
-                 contrast=1.0,
-                 depth=0,
-                 element=None,
-                 signalDots='same',
-                 noiseDots='direction',
-                 name=None,
-                 autoLog=None):
+    def __init__(
+            self, win,
+            name=None,
+            element=None,
+            # Layout
+            fieldPos=(0.0, 0.0), fieldSize=(1.0, 1.0), fieldAnchor="center", units='',
+            dotSize=2.0, dir=0.0, speed=0.5,
+            # Appearance
+            fieldShape='sqr',
+            nDots=1, coherence=0.5, dotLife=3,
+            color=(1.0, 1.0, 1.0),
+            colorSpace='rgb', opacity=None, contrast=1.0, depth=0,
+            signalDots='same', noiseDots='direction',
+            # Other
+            autoLog=None,
+            # Legacy
+            rgb=None,
+    ):
         """
         Parameters
         ----------
