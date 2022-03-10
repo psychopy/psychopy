@@ -65,9 +65,17 @@ class Aperture(MinimalStim, ContainerMixin):
         2015, Thomas Emmerling added ImageStim option
     """
 
-    def __init__(self, win, size=1, pos=(0, 0), anchor=None, ori=0, nVert=120,
-                 shape='circle', inverted=False, units=None,
-                 name=None, autoLog=None):
+    def __init__(
+            # Basic
+            self, win,
+            name=None,
+            # Layout
+            pos=(0, 0), anchor=None, size=1, units=None,
+            ori=0, nVert=120,
+            # Appearance
+            shape='circle', inverted=False,
+            # Other
+            autoLog=None):
         # what local vars are defined (these are the init params) for use by
         # __repr__
         self._initParams = dir()
