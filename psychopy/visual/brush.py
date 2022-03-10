@@ -22,21 +22,20 @@ class Brush(MinimalStim):
     """A class for creating a freehand drawing tool.
 
     """
-    def __init__(self,
-                 win,
-                 lineWidth=1.5,
-                 lineColor=(1.0, 1.0, 1.0),
-                 colorSpace='rgb',
-                 opacity=1.0,
-                 closeShape=False,
-                 buttonRequired=True,
-                 name=None,
-                 depth=0,
-                 autoLog=True,
-                 autoDraw=False,
-                 # Legacy
-                 lineColorSpace=None
-                 ):
+    def __init__(
+            # Basic
+            self, win,
+            name="brush",
+            buttonRequired=True,
+            # Appearance
+            lineColor=(1.0, 1.0, 1.0),
+            colorSpace='rgb', opacity=1.0, depth=0,
+            lineWidth=1.5, closeShape=False,
+            # Other
+            autoLog=True, autoDraw=False,
+            # Legacy
+            lineColorSpace=None
+    ):
 
         super(Brush, self).__init__(name=name,
                                     autoLog=False)
