@@ -50,8 +50,9 @@ class MovieMetadata:
         '_mediaPath',
         '_title',
         '_duration',
-        '_frameRate',
         '_size',
+        '_frameRate',
+        '_pixelFormat',
         '_movieLib',
         '_userData'
     ]
@@ -62,6 +63,7 @@ class MovieMetadata:
                  duration=-1,
                  size=(-1, -1),
                  frameRate=-1,
+                 pixelFormat='unknown',
                  movieLib=u"",
                  userData=None):
 
@@ -70,6 +72,7 @@ class MovieMetadata:
         self.duration = duration
         self.frameRate = frameRate
         self.size = size
+        self.pixelFormat = pixelFormat
         self.movieLib = movieLib
         self.userData = userData
 
@@ -79,6 +82,7 @@ class MovieMetadata:
                 f"duration={self.duration}, "
                 f"size={self.size}, "
                 f"frameRate={self.frameRate}, "
+                f"pixelFormat={self.pixelFormat}, "
                 f"movieLib={repr(self.movieLib)}, "
                 f"userData={repr(self.userData)})")
 
@@ -151,14 +155,25 @@ class MovieMetadata:
 
     @property
     def movieLib(self):
-        """Title of the video (`str`). An empty string indicates this field is
-        not initialized.
+        """Movie library used to get this metadata (`str`). An empty string
+        indicates this field is not initialized.
         """
         return self._movieLib
 
     @movieLib.setter
     def movieLib(self, value):
         self._movieLib = str(value)
+
+    @property
+    def pixelFormat(self):
+        """Video pixel format (`str`). An empty string indicates this field is
+        not initialized.
+        """
+        return self._pixelFormat
+
+    @pixelFormat.setter
+    def pixelFormat(self, value):
+        self._pixelFormat = str(value)
 
     @property
     def userData(self):
