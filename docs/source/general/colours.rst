@@ -85,7 +85,7 @@ In the Derrington, Krauskopf and Lennie [#dkl1984]_ color space (based on the Ma
 
 In |PsychoPy| these values are specified in units of degrees for elevation and azimuth and as a float (ranging -1:1) for the contrast.
 
-Note that not all colors that can be specified in DKL color space can be reproduced on a monitor. `Here <https://youtu.be/xwoVrGoBaWg>`_ is a movie plotting in DKL space (showing `cartesian` coordinates, not spherical coordinates) the gamut of colors available on an example CRT monitor.
+Note that not all colors that can be specified in DKL color space can be reproduced on a monitor. You can see `here a movie plotting colors in DKL space <https://youtu.be/xwoVrGoBaWg>`_ (showing `cartesian` coordinates, not spherical coordinates) to show the gamut of colors available on an example monitor.
 
 Examples:
 

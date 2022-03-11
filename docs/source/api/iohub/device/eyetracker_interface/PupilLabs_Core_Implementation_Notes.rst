@@ -114,8 +114,8 @@ plugin:
    markers <https://docs.pupil-labs.com/assets/img/apriltags_tag36h11_0-23.37196546.jpg>`__
    and attaching them at the screen corners. Avoid occluding the screen
    and leave sufficient white space around the marker squares. Read more
-   about the general marker setup
-   `here <https://docs.pupil-labs.com/core/software/pupil-capture/#surface-tracking>`__.
+   about the
+   `general marker setup here <https://docs.pupil-labs.com/core/software/pupil-capture/#surface-tracking>`__.
 
 .. image:: https://raw.githubusercontent.com/wiki/pupil-labs/pupil/media/images/pc-sample-experiment.jpg
     :width: 700px

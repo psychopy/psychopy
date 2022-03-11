@@ -3,7 +3,7 @@ Preferences
 
 The Preferences dialog allows to adjust general settings for different parts of |PsychoPy|. The preferences settings are saved in the configuration file :ref:`userPrefs.cfg<cleanPrefs>`. The labels in brackets for the different options below represent the abbreviations used in the *userPrefs.cfg* file.
 
-In rare cases, you might want to adjust the preferences on a per-experiment basis. See the API reference for the Preferences class :doc:`here</api/preferences>`.
+In rare cases, you might want to adjust the preferences on a per-experiment basis. See the API reference for the :doc:`Preferences class here </api/preferences>`.
 
 .. _generalSettings:
 
@@ -22,7 +22,7 @@ allow GUI (allowGUI):
 	    When the window is created, should the frame of the window and the mouse pointer be visible. If set to False then both will be hidden.
 
 paths (paths):
-    Paths for additional Python packages can be specified. See more information :ref:`here<addModules>`.
+    Paths for additional Python packages can be specified. See more :ref:`information on paths here <addModules>`.
 
 flac audio compression (flac):
     Set flac audio compression.

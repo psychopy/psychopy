@@ -6,7 +6,7 @@ There is a basic XSD (XML Schema Definition) available in `psychopy/app/builder/
 
 The simplest way to understand the file format is probably simply to create an experiment, save it and open the file in an xml-aware editor/viewer (e.g. change the file extension from .psyexp to .xml and then open it in Firefox). An example (from the stroop demo) is shown below.
 
-The file format maps fairly obviously onto the structure of experiments constructed with the :ref:`builder` interface, as described :doc:`here <builder/concepts>`. There are general :ref:`settingsXML` for the experiment, then there is a list of :ref:`routinesXML` and a :ref:`flow` that describes how these are combined. 
+The file format maps fairly obviously onto the :doc:`structure of experiments <builder/concepts>` constructed with the :ref:`builder` interface. There are general :ref:`settingsXML` for the experiment, then there is a list of :ref:`routinesXML` and a :ref:`flow` that describes how these are combined.
 
 As with any xml file the format contains object `nodes` which can have direct properties and also child nodes. For instance the outermost node of the .psyexp file is the experiment node, with properties that specify the version of |PsychoPy| that was used to save the file most recently and the encoding of text within the file (ascii, unicode etc.), and with child nodes :ref:`settingsXML`, :ref:`routinesXML` and :ref:`flowXML`.
 

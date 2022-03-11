@@ -61,7 +61,7 @@ Counterbalancing different subtasks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The above example is useful when we have multiple blocks where the routines we present would be largely similar (i.e. both blocks present an image component), but what about situations where we have totally different tasks we need to counterbalance (e.g. an auditory stroop and an n-back task). The following method is an extension of the logic used in the 'branchedExp' demo available in |PsychoPy| builderview.
-A working version of the example we will work through here is available  `here <https://gitlab.pavlovia.org/lpxrh6/counterbalance_multiple_tasks_demo>`_
+You can download a `working version of the example <https://gitlab.pavlovia.org/lpxrh6/counterbalance_multiple_tasks_demo>`_ we will work through.
 
 So, imagine we have 4 very different tasks. Our flow might look something like this:
 

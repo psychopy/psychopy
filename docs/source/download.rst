@@ -168,7 +168,7 @@ Ensure you have Python 3.6 and the latest version of pip installed::
   python --version
   pip --version
 
-Next, follow instructions :ref:`here <usingRepos>` to fork and fetch the latest version of the |PsychoPy| repository.
+Next, follow the :ref:`instructions to fork and fetch <usingRepos>` the latest version of the |PsychoPy| repository.
 
 From the directory where you cloned the latest |PsychoPy| repository (i.e., where setup.py resides), run::
 
@@ -209,5 +209,5 @@ On Windows, if you get an error saying
 cause is that you need OpenGL drivers and your built-in Windows only has limited
 support for OpenGL (or possibly you have an Intel graphics card that isn't very
 good). Try installing new drivers for your graphics card **from its
-manufacturer's web page,** not from Microsoft. For example, NVIDIA provides
-drivers for its cards `here <https://www.nvidia.com/Download/index.aspx>`_
+manufacturer's web page,** not from Microsoft. For example, `NVIDIA provides
+drivers for its cards here <https://www.nvidia.com/Download/index.aspx>`_
