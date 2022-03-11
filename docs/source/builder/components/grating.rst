@@ -5,7 +5,7 @@ Grating Component
 
 The Grating stimulus allows a texture to be wrapped/cycled in 2 dimensions, optionally in conjunction with a mask (e.g. Gaussian window). The texture can be a bitmap image from a variety of standard file formats, or a synthetic texture such as a sinusoidal grating. The mask can also be derived from either an image, or mathematical form such as a Gaussian.
 
-When using gratings, if you want to use the `spatial frequency` setting then create just a single cycle of your texture and allow PsychoPy to handle the repetition of that texture (do not create the cycles you're expecting within the texture).
+When using gratings, if you want to use the `spatial frequency` setting then create just a single cycle of your texture and allow |PsychoPy| to handle the repetition of that texture (do not create the cycles you're expecting within the texture).
 
 Gratings can have their position, orientation, size and other settings manipulated on a frame-by-frame basis. There is a performance advantage (in terms of milliseconds) to using images which are square and powers of two (32, 64, 128, etc.), however this is slight and would not be noticed in the majority of experiments.
 
@@ -13,7 +13,7 @@ Parameters
 ~~~~~~~~~~~~
 
 Name : string
-    Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
+    Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
 
 Start :
     The time that the stimulus should first appear. See :ref:`startStop` for details.

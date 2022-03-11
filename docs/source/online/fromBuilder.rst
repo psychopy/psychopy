@@ -9,7 +9,7 @@ Creating online experiments from Builder
 Export the HTML files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To generate an online experiment from PsychoPy Builder you can either:
+To generate an online experiment from |PsychoPy| Builder you can either:
 
 - go to `>File>Export HTML`, or
 - press 'sync' from the globe icons (see :numref:`builderViewIndexed1`, button 2).
@@ -21,7 +21,7 @@ Both of these will generate all the necessary files (HTML and JS) that you need 
     :align: center
     :figclass: align-center
 
-    Buttons for running an online study from the PsychoPy Builder.
+    Buttons for running an online study from the |PsychoPy| Builder.
 
 Synchronizing for the first time
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -69,6 +69,6 @@ To run your experiment on `Pavlovia`_ via Builder, you must first ensure you hav
 
 Fetching your data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-By default. the data are saved in a data folder next to the html file. You should see CSV files there that are similar to PsychoPy output files. There won't be any psydat files though. You could just download the data folder, or synchronize your experiment using the PsychoPy Builder and your data will be fetched to your local computer. 
+By default. the data are saved in a data folder next to the html file. You should see CSV files there that are similar to |PsychoPy| output files. There won't be any psydat files though. You could just download the data folder, or synchronize your experiment using the |PsychoPy| Builder and your data will be fetched to your local computer.
 
 Alternatively, in the experiment dashboard, you can specify storing the data into a database. After specifying so, any data collected in the future can be downloaded as a ZIP file.

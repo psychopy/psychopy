@@ -10,7 +10,7 @@ key/modifiers combination) was pressed.
 
    Global event keys only work with the `pyglet` backend, which is the default.
 
-PsychoPy fully automatically monitors and processes key presses during most
+|PsychoPy| fully automatically monitors and processes key presses during most
 portions of the experimental run, for example during
 `core.wait()` periods, or when calling `win.flip()`. If a global
 event key press is detected, the specified function will be run
@@ -233,7 +233,7 @@ key could be found, for example if the item had already been removed previously.
 
 Global shutdown key
 -------------------
-The PsychoPy preferences for `shutdownKey` and `shutdownKeyModifiers`
+The |PsychoPy| preferences for `shutdownKey` and `shutdownKeyModifiers`
 (both unset by default) will be used to automatically create a global
 shutdown key. To demonstrate this automated behavior, let us first change
 the preferences programmatically (these changes will be lost when quitting the
@@ -258,7 +258,7 @@ What happened behind the scenes? When importing the `psychopy.event`
 module, the initialization of `event.globalKeys` checked for valid shutdown key
 preferences and automatically initialized a shutdown key accordingly.
 This key is associated with the :func:~`psychopy.core.quit` function, which will
-shut down PsychoPy.
+shut down |PsychoPy|.
 ::
 
    >>> from psychopy.core import quit

@@ -18,12 +18,12 @@ Pupil Core provides gaze data in its world camera's field of view, regardless of
 head position. As such, gaze can be analysed with the wearer looking and moving freely
 in their environment.
 
-Pupil Core differs from remote eye trackers often used with PsychoPy. Remote eye
+Pupil Core differs from remote eye trackers often used with |PsychoPy|. Remote eye
 trackers employ cameras mounted on or near a computer monitor. They provide gaze in
 screen-based coordinates, and this facilitates closed-loop analyses of gaze based on the
 known position of stimuli on-screen and eye gaze direction.
 
-In order to use Pupil Core for screen-based work in PsychoPy, the screen will need to be
+In order to use Pupil Core for screen-based work in |PsychoPy|, the screen will need to be
 robustly located within the world camera's field of view, and Pupil Core's gaze data
 subsequently transformed from world camera-based coordinates to screen-based coordinates.
 This is achieved with the use of
@@ -68,8 +68,8 @@ Setting Up the Eye Tracker
    guide <https://docs.pupil-labs.com/core/#getting-started>`__ to setup
    the headset and Capture software
 
-Setting Up PsychoPy
-===================
+Setting Up |PsychoPy|
+=====================
 
 1. Open ``experiment settings`` in the Builder Window (cog icon in top
    panel)
@@ -79,7 +79,7 @@ Setting Up PsychoPy
    -  Select ``Pupil Labs`` from the ``Eyetracker Device`` drop down menu
    -  ``Pupil Remote Address`` / ``Port`` - Defines how to connect to
       Pupil Capture. See Pupil Capture's *Network API* menu to check
-      address and port are correct. PsychoPy will wait the amount of
+      address and port are correct. |PsychoPy| will wait the amount of
       milliseconds declared in ``Pupil Remote Timeout (ms)`` for the
       connection to be established. An error will be raised if the
       timeout is reached.
@@ -102,7 +102,7 @@ Setting Up PsychoPy
 .. image:: https://raw.githubusercontent.com/wiki/pupil-labs/pupil/media/images/eye-tracker-properties.png
     :width: 700px
     :align: center
-    :alt: Pupil Core eye tracking options, part of PsychoPy experiment settings
+    :alt: Pupil Core eye tracking options, part of |PsychoPy| experiment settings
 
 Pupillometry + Gaze Mode
 ========================
@@ -131,7 +131,7 @@ plugin:
 3. Rename the surface to the name set in the ``Surface Name`` field of
    the eye tracking project settings (default:
    ``psychopy_iohub_surface``)
-4. Run the PsychoPy calibration component as part of your experiment
+4. Run the |PsychoPy| calibration component as part of your experiment
 
 
 *******************************
@@ -151,7 +151,7 @@ EyeTracker Class
 Supported Event Types
 =====================
 
-The Pupil Core–PsychoPy integration provides real-time access to monocular and binocular
+The Pupil Core–|PsychoPy| integration provides real-time access to monocular and binocular
 sample data. In pupillometry-only mode, all events will be emitted as
 :py:class:`MonocularEyeSampleEvents <psychopy.iohub.devices.eyetracker.MonocularEyeSampleEvent>`.
 In pupillometry+gaze mode, the software only emits :py:class:`BinocularEyeSampleEvents
@@ -174,7 +174,7 @@ The supported fields are described below.
     .. attribute:: logged_time
         :type: float
 
-        time at which the sample was received in PsychoPy, in sec.msec format, using
+        time at which the sample was received in |PsychoPy|, in sec.msec format, using
         PsychoPy clock
 
     .. attribute:: time

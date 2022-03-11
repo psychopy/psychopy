@@ -38,11 +38,11 @@ Steps
 	
 	Generate a downloadable JSON for this project.
 
-- Finally, in PsychoPy go fo File > Preferences and add the path to the JSON file in General > appKeyGoogleCloud.
+- Finally, in |PsychoPy| go fo File > Preferences and add the path to the JSON file in General > appKeyGoogleCloud.
 
 .. figure:: /images/appkey_preferences.png
 	
-	Setup your PsychoPy preferences to use your downloaded JSON - this will apply to all experiments using the mic - not just this PsychoPy experiment. 
+	Setup your |PsychoPy| preferences to use your downloaded JSON - this will apply to all experiments using the mic - not just this |PsychoPy| experiment.
 
 .. warning:: 
-	Remember to check that your accounts billing information stays up to date. Even if you haven't done enough recordings to warrant a large payment, if a card on your billing account expires this will invalidate the JSON key and raise a "billing" error in PsychoPy. 
+	Remember to check that your accounts billing information stays up to date. Even if you haven't done enough recordings to warrant a large payment, if a card on your billing account expires this will invalidate the JSON key and raise a "billing" error in |PsychoPy|.
