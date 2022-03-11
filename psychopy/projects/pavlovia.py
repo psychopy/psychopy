@@ -273,9 +273,9 @@ class PavloviaSession:
                 projDict['namespace_id'] = namespaceRaw.id
             else:
                 dlg = wx.MessageDialog(None, message=_translate(
-                    f"PavloviaSession.createProject was given a namespace ({namespace}) that couldn't be found "
-                    f"on gitlab."
-                ), style=wx.ICON_WARNING)
+                    "PavloviaSession.createProject was given a namespace ({namespace}) that couldn't be found "
+                    "on gitlab."
+                ).format(namespace=namespace), style=wx.ICON_WARNING)
                 dlg.ShowModal()
                 return
         # Create project on GitLab
@@ -284,8 +284,8 @@ class PavloviaSession:
         except gitlab.exceptions.GitlabCreateError as e:
             if 'has already been taken' in str(e.error_message):
                 dlg = wx.MessageDialog(None, message=_translate(
-                    f"Project `{namespace}/{name}` already exists, please choose another name."
-                ), style=wx.ICON_WARNING)
+                    "Project `{namespace}/{name}` already exists, please choose another name."
+                ).format(namespace=namespace, name=name), style=wx.ICON_WARNING)
                 dlg.ShowModal()
                 return
             else:
@@ -790,7 +790,7 @@ class PavloviaProject(dict):
         if self.repo is None:
             self.cloneRepo(infoStream)
         try:
-            info = self.repo.git.pull(self.project.http_url_to_repo, 'master')
+            info = self.repo.git.pull(self.remoteWithToken, 'master')
             if infoStream:
                 infoStream.write("\n{}".format(info))
         except git.exc.GitCommandError as e:

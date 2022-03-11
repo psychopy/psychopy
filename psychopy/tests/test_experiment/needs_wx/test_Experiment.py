@@ -78,46 +78,7 @@ class TestExpt():
     def teardown_class(cls):
         shutil.rmtree(cls.tmp_dir, ignore_errors=True)
 
-    def test_xml(self):
-        # Get all psyexp files in demos folder
-        demosFolder = Path(self.exp.prefsPaths['demos']) / 'builder'
-        for file in demosFolder.glob("**/*.psyexp"):
-            # Create experiment and load from psyexp
-            exp = psychopy.experiment.Experiment()
-            exp.loadFromXML(file)
-            # Compile to get what script should look like
-            target = exp.writeScript()
-            # Save as XML
-            temp = str(Path(self.tmp_dir) / "testXML.psyexp")
-            exp.saveToXML(temp)
-            # Load again
-            exp.loadFromXML(temp)
-            # Compile again
-            test = exp.writeScript()
-            # Remove any timestamps from script (these can cause false errors if compile takes longer than a second)
-            test = re.sub(isTime, "", test)
-            target = re.sub(isTime, "", target)
-            # Compare two scripts to make sure saving and loading hasn't changed anything
-            diff = difflib.unified_diff(target.splitlines(), test.splitlines())
-            assert list(diff) == []
 
-    def test_xsd(self):
-        # get files
-
-        psyexp_files = []
-
-        for root, dirs, files in os.walk(os.path.join(self.exp.prefsPaths['demos'], 'builder')):
-            for f in files:
-                if f.endswith('.psyexp'):
-                    psyexp_files.append(os.path.join(root, f))
-
-        # get schema
-
-        schema_name = path.join(self.exp.prefsPaths['psychopy'], 'experiment', 'experiment.xsd')
-        schema = xmlschema.XMLSchema(schema_name)
-
-        for psyexp_file in psyexp_files:
-            assert schema.is_valid(psyexp_file), f"Error in {psyexp_file}:\n" + "\n".join(err.reason for err in schema.iter_errors(psyexp_file))
 
     def _checkLoadSave(self, file):
         exp = self.exp
@@ -140,15 +101,7 @@ class TestExpt():
 
         return py_file, psyexp_file
 
-    def _checkCompile(self, py_file):
-        # compile the temp file to .pyc, catching error msgs
-        # (including no file at all):
-        try:
-            py_compile.compile(py_file, doraise=True)
-        except py_compile.PyCompileError as err:
-            err.msg = py_file
-            raise err
-        return py_file + 'c'
+
 
     def _checkPyDiff(self, file_py, file2_py):
         """return '' for no meaningful diff, or a diff patch"""
@@ -263,55 +216,6 @@ class TestExpt():
         #assert not diff_in_file_psyexp # was failing most times, uninformative
         #assert not diff_in_file_pyc    # oops, was failing every time despite identical .py file
 
-    def test_future(self):
-        """An experiment file with made-up params and routines to see whether
-        future versions of experiments will get loaded.
-        """
-        expfile = path.join(self.exp.prefsPaths['tests'], 'data', 'futureParams.psyexp')
-        self.exp.loadFromXML(expfile) # reload the edited file
-        # we don't test this script but make sure it builds
-        script = self.exp.writeScript(expPath=expfile)
-        py_file = os.path.join(self.tmp_dir, 'testFutureFile.py')
-        # save the script:
-        with codecs.open(py_file, 'w', 'utf-8-sig') as f:
-            f.write(script)
-
-        #check that files compiles too
-        self._checkCompile(py_file)
-
-    def test_loopBlocks(self):
-        """An experiment file with made-up params and routines to see whether
-        future versions of experiments will get loaded.
-        """
-        #load the test experiment (with a stims loop, trials loop and blocks loop)
-        expfile = path.join(self.exp.prefsPaths['tests'], 'data', 'testLoopsBlocks.psyexp')
-        self.exp.loadFromXML(expfile) # reload the edited file
-        #alter the settings so the data goes to our tmp dir
-        datafileBase = os.path.join(self.tmp_dir, 'testLoopsBlocks')
-        datafileBaseRel = os.path.relpath(datafileBase,expfile)
-        self.exp.settings.params['Data filename'].val = repr(datafileBaseRel)
-        #write the script from the experiment
-        script = self.exp.writeScript(expPath=expfile)
-        py_file = os.path.join(self.tmp_dir, 'testLoopBlocks.py')
-
-        # save it
-        with codecs.open(py_file, 'w', 'utf-8-sig') as f:
-            f.write(script)
-
-        stdout, stderr = core.shellCall([sys.executable, py_file], stderr=True)
-        if stderr:
-            with codecs.open(expfile + "_local.py", "w", 'utf-8-sig') as f:
-                f.write(script)
-            raise AssertionError(f"File {py_file} raised error:\n {stderr}")
-
-        #load the data
-        print("searching..." +datafileBase)
-        print(glob.glob(datafileBase+'*'))
-        f = open(datafileBase+".csv", 'rb')
-        dat = numpy.recfromcsv(f, case_sensitive=True)
-        f.close()
-        assert len(dat)==8 # because 4 'blocks' with 2 trials each (3 stims per trial)
-
     def test_Run_FastStroopPsyExp(self):
         # start from a psyexp file, loadXML, execute, get keypresses from a emulator thread
         if sys.platform.startswith('linux'):
@@ -348,9 +252,6 @@ class TestExpt():
         # run:
         stdout, stderr = core.shellCall([sys.executable, lastrun], stderr=True)
         assert not stderr
-
-    def test_Exp_AddRoutine(self):
-        self.exp.addRoutine('instructions')
 
     def test_Exp_NameSpace(self):
         namespace = self.exp.namespace
@@ -498,40 +399,3 @@ class TestRunOnce():
         # check it appears only once
         script = self.buff.getvalue()
         assert script.count(code) == 1
-
-class TestDisabledComponents():
-    def setup(self):
-        self.exp = psychopy.experiment.Experiment()
-        self.exp.addRoutine(routineName='Test Routine')
-        self.routine = self.exp.routines['Test Routine']
-        self.exp.flow.addRoutine(self.routine, 0)
-
-    def test_component_not_disabled_by_default(self):
-        self.text = TextComponent(exp=self.exp, parentName='Test Routine')
-        assert self.text.params['disabled'].val is False
-
-    def test_component_is_written_to_script(self):
-        self.text = TextComponent(exp=self.exp, parentName='Test Routine')
-        self.routine.addComponent(self.text)
-        script = self.exp.writeScript()
-        assert 'visual.TextStim' in script
-
-    def test_disabled_component_is_not_written_to_script(self):
-        self.text = TextComponent(exp=self.exp, parentName='Test Routine')
-        self.text.params['disabled'].val = True
-
-        self.routine.addComponent(self.text)
-        script = self.exp.writeScript()
-        assert 'visual.TextStim' not in script
-
-    def test_disabling_component_does_not_remove_it_from_original_routine(self):
-        self.text = TextComponent(exp=self.exp, parentName='Test Routine')
-        self.text.params['disabled'].val = True
-        self.routine.addComponent(self.text)
-
-        # This drops the disabled component -- if working correctly, only from
-        # a copy though, leaving the original unchanged!
-        self.exp.writeScript()
-
-        # Original routine should be unchanged.
-        assert self.text in self.routine

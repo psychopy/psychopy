@@ -31,7 +31,7 @@ PsychoPy 2022.1
 - Most visual stimuli now have an "anchor" parameter to control how it's laid out 
   relative to its position, and you can now set the alignment of text within a Textbox 
   (with a handy demo to illustrate the difference between anchor and alignment!)
-- Added support for Pupil labs eye trackers (thanks to Pupil Labs themselves) directly from 
+- Added support for :ref:`Pupil labs eye trackers <pupil_labs_core>` (thanks to Pupil Labs themselves) directly from 
   the Builder
 
 *Compatibility Changes:*
