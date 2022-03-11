@@ -67,6 +67,7 @@ rst_epilog = """
    :format: html
 
 .. |PsychoPy| replace:: :raw-html:`PsychoPy<sup>®</sup>`
+.. |Pavlovia| replace:: :raw-html:`<a href="https://pavlovia.org">Pavlovia<sup>®</sup></a>`
 """
 
 # The version info for the project you're documenting, acts as replacement for

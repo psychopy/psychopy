@@ -14,7 +14,7 @@ To generate an online experiment from |PsychoPy| Builder you can either:
 - go to `>File>Export HTML`, or
 - press 'sync' from the globe icons (see :numref:`builderViewIndexed1`, button 2).
 
-Both of these will generate all the necessary files (HTML and JS) that you need for your study, however sync will also create a project on `Pavlovia`_. NB - By default, the sync button exports an online experiment, but this can be changed via the experiment settings.  
+Both of these will generate all the necessary files (HTML and JS) that you need for your study, however sync will also create a project on |Pavlovia|. NB - By default, the sync button exports an online experiment, but this can be changed via the experiment settings.
 
 .. figure:: /images/builderViewIndexed.png
     :name: builderViewIndexed1
@@ -63,7 +63,7 @@ Running your experiment on Pavlovia.org from Builder
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 If you wish to run your experiment online, in a web-browser, you have two options. You can run your experiment directly from pavlovia.org, as described above, or you can run your experiment directly from Builder. There is also the option to send your experiment URL; more on that in :doc:`How to recruit participants and connect with online services <onlineParticipants>`.
 
-To run your experiment on `Pavlovia`_ via Builder, you must first ensure you have a valid internet connection, are logged in, and have created a repository for your project on `Pavlovia`_. Once you have completed these steps, simply click button 1 in :numref:`builderViewIndexed1`.
+To run your experiment on |Pavlovia| via Builder, you must first ensure you have a valid internet connection, are logged in, and have created a repository for your project on |Pavlovia|. Once you have completed these steps, simply click button 1 in :numref:`builderViewIndexed1`.
 
 .. _onlineFetchingYourData:
 

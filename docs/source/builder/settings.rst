@@ -62,7 +62,7 @@ Output path
     Where to export the compiled javascript experiment and associated html files. (note that in earlier versions of |PsychoPy| this was `html` by default, this is not necissary as it will duplicate your resources, associated discourse threads with this suggestion might now be outdated)
 
 Export html
-    When to export a html file and compile a javascript version of the experiment. This is on sync by default, meaning these files will be generated when a project is pushed/synced to pavlovia. Alternatively this can be "on save" or "manually" the latter might be used if you are making manual edits to the exported javascript file, though this is not recommended as changes will not be reflected back in your builder file.
+    When to export a html file and compile a javascript version of the experiment. This is on sync by default, meaning these files will be generated when a project is pushed/synced to |Pavlovia|. Alternatively this can be "on save" or "manually" the latter might be used if you are making manual edits to the exported javascript file, though this is not recommended as changes will not be reflected back in your builder file.
 
 Completed URL
     The URL to direct participants to upon completion (when they select "OK" in the green thank-you message online)

@@ -31,7 +31,7 @@ Steps
 - Once you have your service account set up you can add a key and make a downloadable JSON file. Store it somewhere (private) on your computer. You don't need to go through these steps for every new project - once you have a key you can use it for all of your projects.
 
 .. warning::
-	Be careful not to store the json file in the same location as any experiment folder that might later be shared on Pavlovia - this is a private file - so keep it somewhere safe.
+	Be careful not to store the json file in the same location as any experiment folder that might later be shared on |Pavlovia| - this is a private file - so keep it somewhere safe.
 
 
 .. figure:: /images/make_json.png
