@@ -3,11 +3,11 @@ Presenting Stimuli
 
 .. note::
 
-    Before you start, tell PsychoPy about your monitor(s) using the :ref:`monitorCenter`. That way you get to use units (like degrees of visual angle) that will transfer easily to other computers.
+    Before you start, tell |PsychoPy| about your monitor(s) using the :ref:`monitorCenter`. That way you get to use units (like degrees of visual angle) that will transfer easily to other computers.
 
 Stimulus objects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
-Python is an 'object-oriented' programming language, meaning that most stimuli in PsychoPy are represented by python objects, with various associated methods and information.
+Python is an 'object-oriented' programming language, meaning that most stimuli in |PsychoPy| are represented by python objects, with various associated methods and information.
 
 Typically you should create your stimulus with the initial desired attributes once, at the beginning of the script, and then change select attributes later (see section below on setting stimulus attributes). For instance, create your text and then change its color any time you like::
 
@@ -34,13 +34,13 @@ Stimulus attributes are typically set using either:
 
 **x,y-pair:**
 
-PsychoPy is very flexible in terms of input. You can specify the widely used x,y-pairs using these types:
+|PsychoPy| is very flexible in terms of input. You can specify the widely used x,y-pairs using these types:
 
 - A Tuple (x, y) with two elements
 - A List [x, y] with two elements
 - A numpy array([x, y]) with two elements
 
-However, PsychoPy always converts the x,y-pairs to numpy arrays internally. For example, all three assignments of pos are equivalent here::
+However, |PsychoPy| always converts the x,y-pairs to numpy arrays internally. For example, all three assignments of pos are equivalent here::
 
         stim.pos = (0.5, -0.2)  # Right and a bit up from the center
         print(stim.pos)  # array([0.5, -0.2])
@@ -110,7 +110,7 @@ Choose your favorite :-) However, you can't assign elementwise::
 
 Timing
 ~~~~~~~~~~~
-There are various ways to measure and control timing in PsychoPy:
+There are various ways to measure and control timing in |PsychoPy|:
     - using frame refresh periods (most accurate, least obvious)
     - checking the time on :class:`~core.Clock` objects
     - using :func:`core.wait()` commands (most obvious, least flexible/accurate)
