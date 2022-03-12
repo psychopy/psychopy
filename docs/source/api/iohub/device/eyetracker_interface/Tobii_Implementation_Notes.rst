@@ -22,7 +22,7 @@ Additional Software Requirements
 #################################
 
 To use the ioHub interface for Tobii, the Tobi Pro SDK must be installed
-in your Python environment. If a recent standalone installation of PsychoPy3,
+in your Python environment. If a recent standalone installation of |PsychoPy|,
 this package should already be included. 
 
 To install tobii-research type::

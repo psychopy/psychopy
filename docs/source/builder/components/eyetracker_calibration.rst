@@ -16,7 +16,7 @@ Parameters
 Basic
 ============
 Name : string
-    Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
+    Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
 Target Layout:
     How many targets do you want to be presented for calibration? Points will be displayed in a grid.
