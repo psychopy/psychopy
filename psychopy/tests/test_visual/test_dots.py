@@ -9,6 +9,10 @@ class TestDots:
         self.win = visual.Window([128, 128], pos=[50,50], allowGUI=False, autoLog=False)
 
     def test_movement(self):
+        # Window needs to be black so that adding 2 screens doesn't make a white screen
+        self.win.color = "black"
+        self.win.flip()
+        # Create dots
         obj = visual.DotStim(
             self.win, nDots=1,
             fieldPos=(0, 0), fieldSize=(1, 1), units="height",
