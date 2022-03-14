@@ -575,7 +575,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
     def refreshDots(self):
         """Callable user function to choose a new set of dots."""
-        self._verticesBase = self._dotsXY = self._newDotsXY(self.nDots)
+        self.vertices = self._verticesBase = self._dotsXY = self._newDotsXY(self.nDots)
 
         # Don't allocate another array if the new number of dots is equal to
         # the last.
@@ -659,6 +659,8 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         nOutOfBounds = outofbounds.sum()
         if nOutOfBounds:
             self._verticesBase[outofbounds, :] = self._newDotsXY(nOutOfBounds)
+
+        self.vertices = self._verticesBase
 
         # update the pixel XY coordinates in pixels (using _BaseVisual class)
         self._updateVertices()
