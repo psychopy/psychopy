@@ -21,14 +21,14 @@ class TestDots:
         )
         # Draw dots
         obj.draw()
-        self.win.flip()
         # Get screenshot 1
-        screen1 = np.array(self.win.screenshot)
+        screen1 = np.array(self.win._getFrame(buffer="back"))
+        self.win.flip()
         # Draw again, triggering position update
         obj.draw()
-        self.win.flip()
         # Get screenshot 2
-        screen2 = np.array(self.win.screenshot)
+        screen2 = np.array(self.win._getFrame(buffer="back"))
+        self.win.flip()
         # Create compound screenshot with a dot in BOTH positions
         compound = np.clip(screen1 + screen2, 0, 255)
         # If dots have moved, then there should be more white on the compound screen than on either original
