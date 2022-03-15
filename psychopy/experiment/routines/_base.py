@@ -223,12 +223,13 @@ class Routine(list):
             name,
             valType='code', inputType="single", categ='Basic',
             hint=_translate("Name of this routine"),
-            label=_translate('name')
+            label=_translate('Name')
         )
         self.params['description'] = Param(
             description,
             hint=_translate("Disable this routine"), allowedTypes=[], direct=False,
             valType='str', inputType="multi", categ='Basic',
+            label=_translate("Description")
         )
         self.params['disabled'] = Param(
             disabled,
