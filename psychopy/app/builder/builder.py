@@ -2941,11 +2941,10 @@ class FlowPanel(wx.ScrolledWindow):
         # the component (loop or routine)
         self.componentFromID = {}
         self.contextMenuLabels = {
-            'open': _translate('Open'),
             'edit': _translate('Edit info'),
             'remove': _translate('Remove')
         }
-        self.contextMenuItems = ['open', 'edit', 'remove']
+        self.contextMenuItems = ['edit', 'remove']
         self.contextItemFromID = {}
         self.contextIDFromItem = {}
         for item in self.contextMenuItems:
