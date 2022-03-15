@@ -234,7 +234,7 @@ class Experiment:
         # Remove disabled components, but leave original experiment unchanged.
         self_copy = deepcopy(self)
         for key, routine in list(self_copy.routines.items()):  # PY2/3 compat
-            if isinstance(routine, BaseStandaloneRoutine):
+            if isinstance(routine, (BaseStandaloneRoutine, Routine)):
                 # Remove disabled / unimplemented standalone routines
                 if routine.disabled or target not in routine.targets:
                     for node in self_copy.flow:
