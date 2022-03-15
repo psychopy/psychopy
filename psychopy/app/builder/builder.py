@@ -1638,6 +1638,7 @@ class RoutinePage(wx.Panel, ThemeMixin):
         # Make info controls
         self.infoCtrls = wx.Button(self, label="✏️", size=(36, 36), style=wx.BORDER_NONE)
         self.infoCtrls.Bind(wx.EVT_BUTTON, self.editInfo)
+        self.infoCtrls.SetToolTip(_translate("Edit routine info"))
         self.sizer.Add(self.infoCtrls, border=6, flag=wx.ALL | wx.ALIGN_BOTTOM)
 
     def _applyAppTheme(self, target=None):
