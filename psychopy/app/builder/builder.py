@@ -1521,7 +1521,7 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
         # Make page
         routinePage = None
         if isinstance(routine, Routine):
-            routinePage = RoutineCanvas(notebook=self, routine=routine)
+            routinePage = RoutinePage(parent=self, routine=routine)
         elif isinstance(routine, BaseStandaloneRoutine):
             routinePage = StandaloneRoutineCanvas(parent=self, routine=routine)
         # Add page
@@ -1621,16 +1621,66 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
             self.SetSelection(currPage)
 
 
+class RoutinePage(wx.Panel, ThemeMixin):
+    def __init__(self, parent, routine):
+        wx.Panel.__init__(self, parent, size=(-1, -1))
+        self.parent = parent
+        self.frame = parent.frame
+        self.dpi = parent.frame.dpi
+        self.app = parent.app
+        self.routine = routine
+        # Setup sizer
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.SetSizer(self.sizer)
+        # Make routine canvas
+        self.canvas = RoutineCanvas(self, routine=routine)
+        self.sizer.Add(self.canvas, proportion=1, flag=wx.EXPAND)
+        # Make info controls
+        self.infoCtrls = wx.Button(self, label="✏️", size=(36, 36), style=wx.BORDER_NONE)
+        self.infoCtrls.Bind(wx.EVT_BUTTON, self.editInfo)
+        self.sizer.Add(self.infoCtrls, border=6, flag=wx.ALL | wx.ALIGN_BOTTOM)
+
+    def _applyAppTheme(self, target=None):
+        # Do base theme setting
+        ThemeMixin._applyAppTheme(self)
+        # Restyle background
+        self.SetBackgroundColour(ThemeMixin.appColors['tab_bg'])
+        # Style button
+        self.infoCtrls.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+        self.infoCtrls.SetForegroundColour(ThemeMixin.appColors['text'])
+
+    def editInfo(self, evt=None):
+        # Show param dialog
+        dlg = DlgComponentProperties(
+            frame=self.frame,
+            element=self.routine,
+            experiment=self.routine.exp, editing=True
+        )
+        if dlg.ShowModal() == wx.ID_OK:
+            # Do safe rename, as the component panel will have set name directly (skipping important steps)
+            (oldName, newName) = self.routine.rename(self.routine.name)
+            # Add change to undo stack
+            self.frame.addToUndoStack("`RENAME Routine `%s`" % oldName)
+            # Refresh flow panel
+            self.frame.flowPanel.draw()
+            # Rename routine page
+            for i in range(self.parent.GetPageCount()):
+                # Check whether each frame corresponds to this routine
+                page = self.frame.routinePanel.GetPage(i)
+                if page is self:
+                    self.frame.routinePanel.renameRoutinePage(i, newName)
+
+
 class RoutineCanvas(wx.ScrolledWindow):
     """Represents a single routine (used as page in RoutinesNotebook)"""
 
-    def __init__(self, notebook, id=wx.ID_ANY, routine=None):
+    def __init__(self, parent, id=wx.ID_ANY, routine=None):
         """This window is based heavily on the PseudoDC demo of wxPython
         """
         wx.ScrolledWindow.__init__(
-            self, notebook, id, (0, 0), style=wx.BORDER_NONE | wx.VSCROLL)
+            self, parent, id, (0, 0), style=wx.BORDER_NONE | wx.VSCROLL)
 
-        self.frame = notebook.frame
+        self.frame = parent.frame
         self.app = self.frame.app
         self.dpi = self.app.dpi
         self.lines = []
@@ -2412,7 +2462,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                 name = comp.params['name'].val = namespace.makeValid(desiredName)
                 namespace.add(name)
                 # update the routine's view with the new component too
-                page.redrawRoutine()
+                page.canvas.redrawRoutine()
                 self.parent.frame.addToUndoStack(
                     "ADD `%s` to `%s`" % (name, routine.name))
             return True
