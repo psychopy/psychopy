@@ -645,47 +645,53 @@ class Experiment:
                     modifiedNames.append(routineNode.get('name'))
                 self.namespace.user.append(routineGoodName)
                 routine = Routine(name=routineGoodName, exp=self)
-                # self._getXMLparam(params=routine.params, paramNode=routineNode)
                 self.routines[routineNode.get('name')] = routine
-                for componentNode in routineNode:
-
-                    componentType = componentNode.tag
-                    if componentType in allCompons:
-                        # create an actual component of that type
-                        component = allCompons[componentType](
-                            name=componentNode.get('name'),
-                            parentName=routineNode.get('name'), exp=self)
+                # Populate routine
+                for childNode in routineNode:
+                    if childNode.tag == "Param":
+                        # Apply params
+                        self._getXMLparam(params=routine.params,
+                                          paramNode=childNode,
+                                          componentNode=routineNode)
                     else:
-                        # create UnknownComponent instead
-                        component = allCompons['UnknownComponent'](
-                            name=componentNode.get('name'),
-                            parentName=routineNode.get('name'), exp=self)
-                    # check for components that were absent in older versions of
-                    # the builder and change the default behavior
-                    # (currently only the new behavior of choices for RatingScale,
-                    # HS, November 2012)
-                    # HS's modification superseded Jan 2014, removing several
-                    # RatingScale options
-                    if componentType == 'RatingScaleComponent':
-                        if (componentNode.get('choiceLabelsAboveLine') or
-                                componentNode.get('lowAnchorText') or
-                                componentNode.get('highAnchorText')):
-                            pass
-                        # if not componentNode.get('choiceLabelsAboveLine'):
-                        #    # this rating scale was created using older version
-                        #    component.params['choiceLabelsAboveLine'].val=True
-                    # populate the component with its various params
-                    for paramNode in componentNode:
-                        self._getXMLparam(params=component.params,
-                                          paramNode=paramNode,
-                                          componentNode=componentNode)
-                    compGoodName = self.namespace.makeValid(
-                        componentNode.get('name'))
-                    if compGoodName != componentNode.get('name'):
-                        modifiedNames.append(componentNode.get('name'))
-                    self.namespace.add(compGoodName)
-                    component.params['name'].val = compGoodName
-                    routine.append(component)
+                        # Apply components
+                        componentType = childNode.tag
+                        if componentType in allCompons:
+                            # create an actual component of that type
+                            component = allCompons[componentType](
+                                name=childNode.get('name'),
+                                parentName=routineNode.get('name'), exp=self)
+                        else:
+                            # create UnknownComponent instead
+                            component = allCompons['UnknownComponent'](
+                                name=childNode.get('name'),
+                                parentName=routineNode.get('name'), exp=self)
+                        # check for components that were absent in older versions of
+                        # the builder and change the default behavior
+                        # (currently only the new behavior of choices for RatingScale,
+                        # HS, November 2012)
+                        # HS's modification superseded Jan 2014, removing several
+                        # RatingScale options
+                        if componentType == 'RatingScaleComponent':
+                            if (childNode.get('choiceLabelsAboveLine') or
+                                    childNode.get('lowAnchorText') or
+                                    childNode.get('highAnchorText')):
+                                pass
+                            # if not componentNode.get('choiceLabelsAboveLine'):
+                            #    # this rating scale was created using older version
+                            #    component.params['choiceLabelsAboveLine'].val=True
+                        # populate the component with its various params
+                        for paramNode in childNode:
+                            self._getXMLparam(params=component.params,
+                                              paramNode=paramNode,
+                                              componentNode=childNode)
+                        compGoodName = self.namespace.makeValid(
+                            childNode.get('name'))
+                        if compGoodName != childNode.get('name'):
+                            modifiedNames.append(childNode.get('name'))
+                        self.namespace.add(compGoodName)
+                        component.params['name'].val = compGoodName
+                        routine.append(component)
             else:
                 if routineNode.tag in allRoutines:
                     # If not a routine, may be a standalone routine

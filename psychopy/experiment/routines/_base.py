@@ -255,6 +255,13 @@ class Routine(list):
         # Make root element
         element = Element("Routine")
         element.set("name", self.name)
+        # Add an element for each parameter
+        for key, param in sorted(self.params.items()):
+            # Create node
+            paramNode = param._xml
+            paramNode.set("name", key)
+            # Add node
+            element.append(paramNode)
         # Add each component's element
         for comp in self:
             element.append(comp._xml)
@@ -289,6 +296,14 @@ class Routine(list):
             comp.parentName = newName
 
         return oldName, newName
+
+    @property
+    def disabled(self):
+        return self.params['disabled'].val
+
+    @disabled.setter
+    def disabled(self, value):
+        self.params['disabled'].val = value
 
     def integrityCheck(self):
         """Run tests on self and on all the Components inside"""
