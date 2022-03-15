@@ -7,6 +7,7 @@
 
 """Describes the Flow of an experiment
 """
+from copy import copy
 
 from psychopy.constants import FOREVER
 from xml.etree.ElementTree import Element
@@ -213,10 +214,33 @@ class Routine(list):
 
     targets = ["PsychoPy", "PsychoJS"]
 
-    def __init__(self, name, exp, components=()):
+    def __init__(self, name, exp, components=(), description="", disabled=False):
         super(Routine, self).__init__()
-        self.params = {'name': name}
-        self.name = name
+        # Initialise parameters
+        self.params = {}
+
+        self.params['name'] = Param(
+            name,
+            valType='code', inputType="single", categ='Basic',
+            hint=_translate("Name of this routine"),
+            label=_translate('name')
+        )
+        self.params['description'] = Param(
+            description,
+            hint=_translate("Disable this routine"), allowedTypes=[], direct=False,
+            valType='str', inputType="multi", categ='Basic',
+        )
+        self.params['disabled'] = Param(
+            disabled,
+            valType='bool', inputType="bool", categ="Testing",
+            hint=_translate("Disable this routine"), allowedTypes=[], direct=False,
+            label=_translate('Disable routine')
+        )
+
+        # Other attributes needed to create info dialog (simulated component/stdaln routine)
+        self.order = ['name', 'description', 'disabled']
+        self.depends = []
+
         self.exp = exp
         self._clockName = None  # for scripts e.g. "t = trialClock.GetTime()"
         self.type = 'Routine'
@@ -239,11 +263,32 @@ class Routine(list):
 
     @property
     def name(self):
-        return self.params['name']
+        return self.params['name'].val
 
     @name.setter
     def name(self, name):
-        self.params['name'] = name
+        self.rename(name)
+
+    def rename(self, newName):
+        """
+        Rename this routine safely, redirecting references in the experiment namespace.
+        """
+        # Set name in params
+        self.params['name'].val = newName
+        # Replace reference in experiment (note: it's important that this is only a shallow copy as we're using `is`)
+        oldName = newName
+        for thisName in copy(self.exp.routines):
+            if self.exp.routines[thisName] is self:
+                oldName = thisName
+                # Pop self into new dict entry
+                self.exp.routines[newName] = self.exp.routines.pop(oldName)
+                # Rename self in namespace
+                self.exp.namespace.rename(oldName, newName)
+        # Replace reference in components
+        for comp in self:
+            comp.parentName = newName
+
+        return oldName, newName
 
     def integrityCheck(self):
         """Run tests on self and on all the Components inside"""

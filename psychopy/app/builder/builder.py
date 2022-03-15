@@ -2941,9 +2941,11 @@ class FlowPanel(wx.ScrolledWindow):
         # the component (loop or routine)
         self.componentFromID = {}
         self.contextMenuLabels = {
-            'remove': _translate('remove'),
-            'rename': _translate('rename')}
-        self.contextMenuItems = ['remove', 'rename']
+            'open': _translate('Open'),
+            'edit': _translate('Edit info'),
+            'remove': _translate('Remove')
+        }
+        self.contextMenuItems = ['open', 'edit', 'remove']
         self.contextItemFromID = {}
         self.contextIDFromItem = {}
         for item in self.contextMenuItems:
@@ -3323,7 +3325,7 @@ class FlowPanel(wx.ScrolledWindow):
             menu.Destroy()
         else:
             for item in self.contextMenuItems:
-                if item == 'rename':
+                if item == 'edit':
                     continue
                 id = self.contextIDFromItem[item]
                 menu.Append(id, self.contextMenuLabels[item])
@@ -3344,12 +3346,32 @@ class FlowPanel(wx.ScrolledWindow):
         # if we have a Loop Initiator, remove the whole loop
         if component.getType() == 'LoopInitiator':
             component = component.loop
+        # If asked to remove this routine...
         if op == 'remove':
             self.removeComponent(component, compID)
             self.frame.addToUndoStack(
                 "REMOVE `%s` from Flow" % component.params['name'])
-        if op == 'rename':
-            self.frame.renameRoutine(component)
+        # If asked to edit this routine...
+        if op == 'edit':
+            # Show param dialog
+            dlg = DlgComponentProperties(
+                frame=self.frame,
+                element=component,
+                experiment=self.frame.exp, editing=True
+            )
+            if dlg.ShowModal() == wx.ID_OK:
+                # Do safe rename, as the component panel will have set name directly (skipping important steps)
+                (oldName, newName) = component.rename(component.name)
+                # Add change to undo stack
+                self.frame.addToUndoStack("`RENAME Routine `%s`" % oldName)
+                # Refresh flow panel
+                self.frame.flowPanel.draw()
+                # Rename routine page
+                for i in range(self.frame.routinePanel.GetPageCount()):
+                    # Check whether each frame corresponds to this routine
+                    page = self.frame.routinePanel.GetPage(i)
+                    if page.routine is component:
+                        self.frame.routinePanel.renameRoutinePage(i, newName)
 
     def removeComponent(self, component, compID):
         """Remove either a Routine or a Loop from the Flow
