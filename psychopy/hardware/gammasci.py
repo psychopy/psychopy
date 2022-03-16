@@ -40,7 +40,7 @@ class S470(object):
             number of repeated measures to average for getLum 
     """
     longName = "Gamma Scientific S470/S480/S490"
-    driverFor = ['S470', 'S480', 'S490']
+    driverFor = ['s470', 's480', 's490']  # psychopy expects lower-case
 
     def __init__(self, port: str, n_repeat: int = 10, baudrate=38400):
         super(S470, self).__init__()
