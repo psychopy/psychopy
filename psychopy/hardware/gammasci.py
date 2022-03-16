@@ -39,12 +39,11 @@ class S470(object):
 
             number of repeated measures to average for getLum 
     """
-    longName = "Gamma Scientific flexOptometer S470/S480/S490"
+    longName = "Gamma Scientific S470/S480/S490"
     driverFor = ['S470', 'S480', 'S490']
 
     def __init__(self, port: str, n_repeat: int = 10, baudrate=38400):
         super(S470, self).__init__()
-        self.port = port
         self.n_repeat = n_repeat
         
         if not serial:
@@ -54,9 +53,11 @@ class S470(object):
 
         if type(port) in [int, float]:
             # add one so that port 1=COM1
-            self.port = f'COM{port:d}'
+            self.portString = f'COM{port:d}'
+            self.portNumber = port
         else:
-            self.port = port
+            self.portString = str(port)
+            self.portNumber = None
         self.lastLum = None
         self.type = 'S470'
         self.terminator = '\r\n'
@@ -65,15 +66,16 @@ class S470(object):
         _linux = sys.platform.startswith('linux')
         if sys.platform in ('darwin', 'win32') or _linux:
             try:
-                self.com = serial.Serial(self.port, 
+                self.com = serial.Serial(self.portString, 
                                          baudrate=baudrate,
                                          timeout=2) # seconds
             except Exception:
-                msg = f"Couldn't connect to port {self.port}. Is it being used by another program?"
+                msg = f"Couldn't connect to port {self.portString}. Is it being used by another program?"
                 raise IOError(msg)
         else:
             msg = f"I don't know how to handle serial ports on {sys.platform}"
             raise IOError(msg)
+        self.OK = True  # required by psychopy
 
     def read_line(self) -> str:
         """ Read a line from the serial port."""
@@ -112,3 +114,6 @@ class S470(object):
         lums = self.measure(self.n_repeat)
         self.lastLum = sum(lums) / len(lums)
         return self.lastLum
+
+    def __del__(self):
+        self.com.close()
