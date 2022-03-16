@@ -25,7 +25,7 @@ _q = r"[\"']"  # quotes
 _lb = r"[\[\(]"  # left bracket
 _rb = r"[\]\)]"  # right bracket
 _d = r"\$"  # dollar (escaped for re)
-_sl = "\\"  # back slash
+_sl = r"\\"  # back slash
 
 
 def compareScreenshot(fileName, win, tag="", crit=5.0):
