@@ -1657,7 +1657,7 @@ class RoutinePage(wx.Panel, ThemeMixin):
             element=self.routine,
             experiment=self.routine.exp, editing=True
         )
-        if dlg.ShowModal() == wx.ID_OK:
+        if dlg.OK:
             # Do safe rename, as the component panel will have set name directly (skipping important steps)
             (oldName, newName) = self.routine.rename(self.routine.name)
             # Add change to undo stack
