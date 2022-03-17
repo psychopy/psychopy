@@ -12,6 +12,7 @@ from . import functions
 import re
 from pathlib import Path
 from psychopy.tools.versionchooser import _translate
+from ...tools.stringtools import valid_proj_name
 
 
 class SyncDialog(wx.Dialog):
@@ -144,7 +145,7 @@ class CreateDlg(wx.Dialog):
     def validate(self, evt=None):
         # Test name
         name = self.nameCtrl.GetValue()
-        nameValid = bool(re.fullmatch("\w+", name))
+        nameValid = bool(valid_proj_name.fullmatch(name))
         # Test path
         path = Path(self.rootCtrl.GetValue())
         pathValid = path.is_dir() and path not in self.invalidFolders
