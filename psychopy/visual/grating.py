@@ -67,33 +67,23 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
     stretched!).
     """
 
-    def __init__(self,
-                 win,
-                 tex="sin",
-                 mask="none",
-                 units=None,
-                 anchor="center",
-                 pos=(0.0, 0.0),
-                 size=None,
-                 sf=None,
-                 ori=0.0,
-                 phase=(0.0, 0.0),
-                 texRes=128,
-                 rgb=None,
-                 dkl=None,
-                 lms=None,
-                 color=(1.0, 1.0, 1.0),
-                 colorSpace='rgb',
-                 contrast=1.0,
-                 opacity=None,
-                 depth=0,
-                 rgbPedestal=(0.0, 0.0, 0.0),
-                 interpolate=False,
-                 blendmode='avg',
-                 name=None,
-                 autoLog=None,
-                 autoDraw=False,
-                 maskParams=None):
+    def __init__(
+            # Basic
+            self, win, name=None,
+            # Layout
+            size=None, pos=(0.0, 0.0),
+            units=None, anchor="center",  ori=0.0,
+            # Appearance
+            color=(1.0, 1.0, 1.0), rgbPedestal=(0.0, 0.0, 0.0), colorSpace='rgb',
+            contrast=1.0, opacity=None, blendmode='avg', depth=0,
+            # Texture
+            tex="sin", mask="none", maskParams=None,
+            phase=(0.0, 0.0), sf=None, texRes=128, interpolate=False,
+            # Other
+            autoLog=None, autoDraw=False,
+            # Legacy
+            rgb=None, dkl=None, lms=None,
+    ):
         """ """  # Empty docstring. All doc is in attributes
         # what local vars are defined (these are the init params) for use by
         # __repr__
