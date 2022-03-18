@@ -160,45 +160,27 @@ class NoiseStim(GratingStim):
     The phase parameter similarly shifts the sample around within the display window at render time and will not choose new random phases for the noise sample.
     """
 
-    def __init__(self,
-                 win,
-                 mask="none",
-                 units="",
-                 pos=(0.0, 0.0),
-                 size=None,
-                 sf=None,
-                 ori=0.0,
-                 phase=(0.0, 0.0),
-                 noiseType=None,
-                 noiseElementSize=16,
-                 noiseBaseSf=1,
-                 noiseBW=1,
-                 noiseBWO=30,
-                 noiseOri=0,
-                 noiseFractalPower=0.0,
-                 noiseFilterUpper=50,
-                 noiseFilterLower=0,
-                 noiseFilterOrder=0.0,
-                 noiseClip=1,
-                 noiseImage=None,
-                 imageComponent='Phase',
-                 filter=None,
-                 texRes=128,
-                 rgb=None,
-                 dkl=None,
-                 lms=None,
-                 color=(1.0, 1.0, 1.0),
-                 colorSpace='rgb',
-                 contrast=0.5,  # see doc
-                 opacity=1.0,
-                 depth=0,
-                 rgbPedestal=(0.0, 0.0, 0.0),
-                 interpolate=False,
-                 blendmode='avg',
-                 name=None,
-                 autoLog=None,
-                 autoDraw=False,
-                 maskParams=None):
+    def __init__(
+            # Basic
+            self, win, name=None,
+            noiseType=None, imageComponent='Phase',
+            # Layout
+            size=None, noiseElementSize=16, pos=(0.0, 0.0),
+            units="", ori=0.0,
+            # Appearance
+            color=(1.0, 1.0, 1.0), colorSpace='rgb',
+            contrast=0.5, opacity=1.0, blendmode='avg', depth=0,
+            # Texture
+            mask="none", maskParams=None, sf=None, phase=(0.0, 0.0),
+            noiseBaseSf=1, noiseBW=1, noiseBWO=30, noiseOri=0, noiseFractalPower=0.0,
+            noiseFilterUpper=50, noiseFilterLower=0, noiseFilterOrder=0.0, noiseClip=1,
+            noiseImage=None, filter=None, texRes=128, interpolate=False,
+            # Other
+            autoLog=None, autoDraw=False,
+            # Legacy
+            rgb=None, dkl=None, lms=None,
+            rgbPedestal=(0.0, 0.0, 0.0),
+    ):
         """ """  # Empty docstring. All doc is in attributes
         # what local vars are defined (these are the init params) for use by
         # __repr__
@@ -218,15 +200,23 @@ class NoiseStim(GratingStim):
         for unecess in ['self', 'rgb', 'dkl', 'lms']:
             self._initParams.remove(unecess)
         # initialise parent class
-        GratingStim.__init__(self, win, tex='sin',
-                             units=units, pos=pos, size=size, sf=sf,
-                             ori=ori, phase=phase,
-                             color=color, colorSpace=colorSpace,
-                             contrast=contrast, opacity=opacity,
-                             depth=depth, interpolate=interpolate,
-                             name=name, autoLog=autoLog, autoDraw=autoDraw,
-                             blendmode=blendmode,
-                             maskParams=None)
+        GratingStim.__init__(
+            # Basic
+            self, win, name=name,
+            # Layout
+            size=size, pos=pos,
+            units=units, ori=ori,
+            # Appearance
+            color=color, rgbPedestal=rgbPedestal, colorSpace=colorSpace,
+            contrast=contrast, opacity=opacity, blendmode=blendmode, depth=depth,
+            # Texture
+            tex='sin', mask=mask, maskParams=maskParams,
+            phase=phase, sf=sf, texRes=texRes, interpolate=interpolate,
+            # Other
+            autoLog=autoLog, autoDraw=autoDraw,
+            # Legacy
+            rgb=rgb, dkl=dkl, lms=lms,
+        )
 
         # UGLY HACK: Some parameters depend on each other for processing.
         # They are set "superficially" here.
