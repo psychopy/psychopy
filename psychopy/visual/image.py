@@ -38,27 +38,21 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
     """Display an image on a :class:`psychopy.visual.Window`
     """
 
-    def __init__(self,
-                 win,
-                 image=None,
-                 mask=None,
-                 units="",
-                 pos=(0.0, 0.0),
-                 size=None,
-                 anchor="center",
-                 ori=0.0,
-                 color=(1.0, 1.0, 1.0),
-                 colorSpace='rgb',
-                 contrast=1.0,
-                 opacity=None,
-                 depth=0,
-                 interpolate=False,
-                 flipHoriz=False,
-                 flipVert=False,
-                 texRes=128,
-                 name=None,
-                 autoLog=None,
-                 maskParams=None):
+    def __init__(
+            # Basic
+            self, win, name=None,
+            image=None,
+            # Layout
+            size=None, pos=(0.0, 0.0), units="",
+            anchor="center", ori=0.0, flipHoriz=False, flipVert=False,
+            # Appearance
+            color=(1.0, 1.0, 1.0), colorSpace='rgb',
+            contrast=1.0, opacity=None, depth=0,
+            # Texture
+            mask=None, texRes=128, interpolate=False,
+            # Other
+            autoLog=None, maskParams=None
+    ):
         """ """  # Empty docstring. All doc is in attributes
         # what local vars are defined (these are the init params) for use by
         # __repr__
