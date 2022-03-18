@@ -119,29 +119,22 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         },
     }
 
-    def __init__(self,
-                 win,
-                 name='default',
-                 colorSpace='rgb',
-                 fillColor=None,
-                 borderColor=None,
-                 itemColor='white',
-                 responseColor='white',
-                 markerColor='red',
-                 items=None,
-                 font=None,
-                 textHeight=.02,
-                 size=(.5, .5),
-                 pos=(0, 0),
-                 style=None,
-                 itemPadding=0.05,
-                 units='height',
-                 randomize=False,
-                 autoLog=True,
-                 # legacy
-                 color=None,
-                 foreColor=None
-                 ):
+    def __init__(
+            # Basic
+            self, win, name='default',
+            items=None, randomize=False,
+            # Layout
+            size=(.5, .5), pos=(0, 0), itemPadding=0.05, units='height',
+            # Appearance
+            fillColor=None, borderColor=None, itemColor='white', responseColor='white', markerColor='red',
+            style=None, colorSpace='rgb',
+            # Formatting
+            font=None, textHeight=.02,
+            # Other
+            autoLog=True,
+            # Legacy
+            color=None, foreColor=None
+    ):
 
         super(Form, self).__init__(win, units, autoLog=False)
         self.win = win
