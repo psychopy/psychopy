@@ -17,7 +17,7 @@ from psychopy import logging
 import numpy
 
 from psychopy.visual.shape import ShapeStim
-from psychopy.tools.attributetools import attributeSetter, setAttribute
+from psychopy.tools.attributetools import attributeSetter, setAttribute, resolveLegacy
 
 
 class Line(ShapeStim):
@@ -117,30 +117,26 @@ class Line(ShapeStim):
         Coordinates `(x, y)` for the start- and end-point of the line.
 
     """
-    def __init__(self,
-                 win,
-                 start=(-.5, -.5),
-                 end=(.5, .5),
-                 units=None,
-                 lineWidth=1.5,
-                 lineColor='white',
-                 fillColor=None, # Not used, but is supplied by Builder via Polygon
-                 lineColorSpace=None,
-                 pos=(0, 0),
-                 size=1.0,
-                 anchor="center",
-                 ori=0.0,
-                 opacity=None,
-                 contrast=1.0,
-                 depth=0,
-                 interpolate=True,
-                 lineRGB=False,
-                 fillRGB=False,
-                 name=None,
-                 autoLog=None,
-                 autoDraw=False,
-                 color=None,
-                 colorSpace='rgb'):
+    def __init__(
+            # Basic
+            self, win, name=None,
+            # Layout
+            start=(-.5, -.5), end=(.5, .5),
+            size=1.0, pos=(0, 0), units=None,
+            anchor="center", ori=0.0,
+            # Appearance
+            fillColor=None,  # Unused, but must be accepted as it's supplied from Builder
+            borderColor='white',
+            colorSpace='rgb', opacity=None, contrast=1.0, depth=0,
+            lineWidth=1.5,
+            # Texture
+            interpolate=True,
+            # Other
+            autoLog=None, autoDraw=False,
+            # Legacy
+            lineColor=False, lineRGB=False, lineColorSpace=None,
+            fillRGB=False, color=None,
+    ):
 
         """
 
@@ -153,31 +149,29 @@ class Line(ShapeStim):
         self.__dict__['start'] = numpy.array(start)
         self.__dict__['end'] = numpy.array(end)
 
+        # Resolve legacy
+        borderColor = resolveLegacy(borderColor, [lineColor, color], undef=False, fallback='white')
+
         super(Line, self).__init__(
-            win,
-            units=units,
+            # Basic
+            win, name=name,
+            # Layout
+            size=size, pos=pos, units=units,
+            anchor=anchor, ori=ori,
+            vertices=None, closeShape=False,
+            # Appearance
+            fillColor=fillColor,  # Unused, but must be accepted as it's supplied from Builder
+            borderColor=borderColor,
+            colorSpace=colorSpace, opacity=opacity, contrast=contrast, depth=depth,
             lineWidth=lineWidth,
-            lineColor=lineColor,
-            lineColorSpace=None,
-            fillColor=None,
-            fillColorSpace=lineColorSpace,  # have these set to the same
-            vertices=None,
-            anchor=anchor,
-            closeShape=False,
-            pos=pos,
-            size=size,
-            ori=ori,
-            opacity=opacity,
-            contrast=contrast,
-            depth=depth,
+            # Texture
             interpolate=interpolate,
-            lineRGB=lineRGB,
+            # Other
+            autoLog=autoLog, autoDraw=autoDraw,
+            # Legacy
+            lineRGB=lineRGB, lineColorSpace=lineColorSpace,
             fillRGB=fillRGB,
-            name=name,
-            autoLog=autoLog,
-            autoDraw=autoDraw,
-            color=color,
-            colorSpace=colorSpace)
+        )
 
         self._vertices.setas([start, end], self.units)
         del self._tesselVertices
