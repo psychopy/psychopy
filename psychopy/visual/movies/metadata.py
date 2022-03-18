@@ -20,7 +20,7 @@ class MovieMetadata:
     Parameters
     ----------
     mediaPath : str
-        Path the the file that has been loaded or is presently being played.
+        Path to the file that has been loaded or is presently being played.
         This may be a file path or URI to the location of the media.
     title : str
         Title of the clip stored in the metadata.
