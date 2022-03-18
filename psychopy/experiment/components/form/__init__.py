@@ -167,6 +167,9 @@ class FormComponent(BaseVisualComponent):
             hint=_translate("Color of markers and the scrollbar"),
             label=_translate("Marker Color"))
 
+        del self.params['opacity']
+        del self.params['contrast']
+
         self.params['pos'].allowedUpdates = []
         self.params['size'].allowedUpdates = []
 
