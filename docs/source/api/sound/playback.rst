@@ -6,7 +6,7 @@
 .. module:: psychopy.sound
 .. currentmodule:: psychopy.sound
 
-Audio playback is handled by the :class:`Sound` class. PsychoPy currently
+Audio playback is handled by the :class:`Sound` class. |PsychoPy| currently
 supports a choice of sound engines: *PTB*, *pyo*, *sounddevice* or *pygame*. You
 can select which will be used via the :ref:`audioLib<hardwareSettings>`
 preference. `sound.Sound()` will then refer to one of the following backends:
@@ -19,7 +19,7 @@ preference. `sound.Sound()` will then refer to one of the following backends:
 This preference can be set on a per-experiment basis by importing preferences,
 and :doc:`setting the audioLib option</api/preferences>` to use. Audio playback
 backends vary in performance due to all sorts of factors. Based on testing done
-by the PsychoPy team and reports from users, their performance can be summarized
+by the |PsychoPy| team and reports from users, their performance can be summarized
 as follows:
 
 * The `PTB` library has by far the lowest latencies and is strongly recommended
@@ -134,7 +134,7 @@ PTB Audio Latency Modes
 When using the PTB backend you get the option to choose the Latency Mode,
 referred to in PsychToolBox as the `reqlatencyclass`.
 
-PsychoPy uses Mode 3 in as a default, assuming that you want low latency and you
+|PsychoPy| uses Mode 3 in as a default, assuming that you want low latency and you
 don't care if other applications can't play sound at the same time (don't listen
 to iTunes while running your study!)
 

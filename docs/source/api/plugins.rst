@@ -1,4 +1,4 @@
-:mod:`psychopy.plugins` - utilities for extending PsychoPy with plugins
+:mod:`psychopy.plugins` - utilities for extending |PsychoPy| with plugins
 =======================================================================
 
 .. py:currentmodule:: psychopy.plugins

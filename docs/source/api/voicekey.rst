@@ -8,11 +8,11 @@
 Overview
 --------
 Hardware voice-keys are used to detect and signal acoustic properties in real
-time, e.g., the onset of a spoken word in word-naming studies. PsychoPy
+time, e.g., the onset of a spoken word in word-naming studies. |PsychoPy|
 provides two virtual voice-keys, one for detecting vocal onsets and one for vocal
 offsets.
 
-All PsychoPy voice-keys can take their input from a file or from a microphone.
+All |PsychoPy| voice-keys can take their input from a file or from a microphone.
 Event detection is typically quite similar is both cases.
 
 The base class is very general, and is best thought of as providing a toolkit

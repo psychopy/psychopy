@@ -22,7 +22,7 @@ Additional Software Requirements
 
 The SR Research EyeLink implementation of the ioHub common eye tracker 
 interface uses the pylink package written by SR Research. If using a 
-PsychoPy3 standalone installation, this package should already be included. 
+|PsychoPy|3 standalone installation, this package should already be included.
 
 If you are manually installing PsychPy3, please install
 the appropriate version of pylink. Downloads are available to SR Research

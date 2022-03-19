@@ -15,7 +15,7 @@ You can set preferences on a per-experiment basis. For example, if you would lik
 
 The output should be ``<class 'psychopy.sound.SoundPyo'>`` for pyo, or ``<class 'psychopy.sound.SoundPygame'>`` for pygame.
 
-You can find the names of the preferences sections and their different options :doc:`here</general/prefs>`.
+You can find the names of the :doc:`preferences sections and their different options here</general/prefs>`.
 
 :class:`Preferences`
 ------------------------------------

@@ -3,7 +3,7 @@
 Using Plugins to Extend PsychoPy
 ================================
 
-Plugins are packages which can be loaded to extend core PsychoPy, allowing
+Plugins are packages which can be loaded to extend core |PsychoPy|, allowing
 third-party developers to add optional features and customizations.
 
 PsychoPy's plugin system functions as a dynamic import mechanism where modules
@@ -17,40 +17,40 @@ Why use plugins?
 
 Plugins are the easiest way to extend and modify PsychoPy's default behaviour,
 without making permanent changes to the installed program files or contributing
-the changes to the PsychoPy project. You can use plugins created by others, or
+the changes to the |PsychoPy| project. You can use plugins created by others, or
 make them yourself for whatever purpose. For instance, plugins can be used to
 add new stimulus classes to `psychopy.visual`, or modify the behaviour of
 existing classes and modules. This can be leveraged to add new features or to
 fix bugs between release cycles. Since plugins are standard Python packages,
 changes can be easily applied across multiple systems and shared with the
-PsychoPy community.
+|PsychoPy| community.
 
 Consider using plugins to distribute code which cannot be contributed to the
-main PsychoPy project for reasons that may include:
+main |PsychoPy| project for reasons that may include:
 
 * **Niche use**, not many people use the feature and will add bloat to
-  PsychoPy which increases workload when testing and packaging.
+  |PsychoPy| which increases workload when testing and packaging.
 * Uses a **GPL incompatible license or contains proprietary** code. This allows
   users to distribute code with any licence they chose and permits compliance
   to non-disclosure agreements for companies. Using a plugin allows you to
   maintain complete ownership over your code.
 * **Requires special or uncommon configurations** to use (software or hardware).
   This includes features which are limited to specific operating systems, or
-  requires hardware which the PsychoPy dev team does not have regular access to.
+  requires hardware which the |PsychoPy| dev team does not have regular access to.
 * **Under heavy development** where PsychoPy's release cycle is inadequate to
   keep up with changes and bug fixes. Furthermore, the code may not be mature
-  enough for inclusion with core PsychoPy. Plugins provide an excellent way of
+  enough for inclusion with core |PsychoPy|. Plugins provide an excellent way of
   field testing features before attempting to contribute it to the main project.
 * **Contains changes that can possibly break PsychoPy** which can accidentally
   affect existing experiments. If something breaks, users can simply disable the
   plugin.
-* **Cannot be maintained long-term** by the PsychoPy developers.
+* **Cannot be maintained long-term** by the |PsychoPy| developers.
 
 Where can I find plugins?
 -------------------------
 
 Plugins are essentially Python packages and can be distributed, installed, and
-used like any other Python library. PsychoPy plugin packages can be uploaded to
+used like any other Python library. |PsychoPy| plugin packages can be uploaded to
 The Python Package Index (PyPI) and installed using `pip`. You can also
 distribute and download plugins as ZIP archives which can be installed or
 accessed from a local repository.
@@ -114,7 +114,7 @@ effects of other plugins loaded before it. Once a plugin is loaded, it cannot be
 unloaded until the Python session is restarted.
 
 Calling ``loadPlugin()`` should preferably happen *after* importing `psychopy`
-and all other ``import`` statements for PsychoPy modules. An example of loading
+and all other ``import`` statements for |PsychoPy| modules. An example of loading
 a plugin called `psychopy-plugin` looks like this::
 
     import psychopy
@@ -122,13 +122,13 @@ a plugin called `psychopy-plugin` looks like this::
     plugins.loadPlugin('psychopy-plugin')
 
 Some plugins may accept arguments for setup prior to attaching objects to
-PsychoPy. You can pass positional and keyword arguments to ``loadPlugin()`` if
+|PsychoPy|. You can pass positional and keyword arguments to ``loadPlugin()`` if
 you wish. Here is an example where we pass arguments to the plugin when loading
 it::
 
     plugins.loadPlugin('psychopy-plugin', 9600, debug=True)
 
-You can also have specific plugins loaded automatically when PsychoPy starts
+You can also have specific plugins loaded automatically when |PsychoPy| starts
 by specifying their names in Preferences. This can be done in programmatically
 by calling::
 
@@ -137,7 +137,7 @@ by calling::
     prefs.saveUserPrefs()
 
 Or by adding the name to "File" > "Preferences" > "General" > "startUpPlugins"
-in Builder or Coder. After restarting a PsychoPy session, the specified plugins
+in Builder or Coder. After restarting a |PsychoPy| session, the specified plugins
 will be loaded automatically, and the user does not need to call
 ``loadPlugin()`` to enable them.
 
@@ -150,7 +150,7 @@ How do I find installed plugins?
 --------------------------------
 
 The ``psychopy.plugins.listPlugins()`` function can be used to find all packages
-installed on the system which advertise themselves as PsychoPy plugins. The
+installed on the system which advertise themselves as |PsychoPy| plugins. The
 function returns a list of strings indicating the project names of the plugin
 packages. You can then pass each of these strings to ``loadPlugins()`` to load
 them into the current session.
@@ -169,6 +169,6 @@ using the following code::
 How do I make a plugin?
 -----------------------
 
-Have a cool idea you want to share with the world (or at least PsychoPy users)?
+Have a cool idea you want to share with the world (or at least |PsychoPy| users)?
 See :ref:`pluginDevGuide` in the developer documentation section for information
 about creating your own plugins.

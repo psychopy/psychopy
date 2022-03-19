@@ -1,4 +1,4 @@
-About PsychoPy
+About |PsychoPy|
 ====================
 
 .. only:: html
@@ -23,7 +23,7 @@ About PsychoPy
     
 .. _citingPsychoPy:
 
-Citing PsychoPy
+Citing |PsychoPy|
 -----------------
 
 If you use this software, please cite one of the publications that describe it. For most people **the 2019 paper is probably the most relevant** (the papers from 2009, 2007 did not mention Builder at all, for instance).
@@ -40,11 +40,11 @@ Citing these papers gives the reviewer/reader of your study information about ho
 License for use
 -----------------
 
-PsychoPy is licensed under a `GPL3 license <https://github.com/psychopy/psychopy/blob/master/LICENSE>`_
+|PsychoPy| is licensed under a `GPL3 license <https://github.com/psychopy/psychopy/blob/master/LICENSE>`_
 which means, essentially, that:
 
 - you can use it (and adapt it) for free in your work, and you can even release those versions
-- but you must include the original PsychoPy license
+- but you must include the original |PsychoPy| license
 - AND you must also make your release open source using the same license
 
 What that means is you're free to use PsychoPy's goodwill in being open source,
