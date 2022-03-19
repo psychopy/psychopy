@@ -3,30 +3,30 @@
 Troubleshooting Online Studies
 ==============================
 
-Experiments rarely work online the first time you try them, even if they work perfectly locally. While this page cannot hope to address all of the possible issues you may encounter, it should help you understand the different types of errors and help you give more detailed and useful information if you ask for support on the PsychoPy forums.
+Sometimes experiments might work perfectly locally, when created and run in the PsychoPy application, but the same experiment might not behave as you expect when you try to run them online, through pavlovia.ord. While this page cannot hope to address all of the possible issues you may encounter, it should help you understand the different types of errors and help you give more detailed information if you ask for support on the PsychoPy forums.
 
 Getting Started
 -----------------------
 
 PsychoPy Builder is your friend
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-1. Don’t try to code in PsychoJS directly.
-2. Don’t try to edit JavaScript files on Pavlovia directly. Make changes via Builder.
-3. Each Builder (psyexp) file should be in its own dedicated local folder, which should not be on a cloud drive (e.g. Google drive or Onedrive). This folder should only contain subfolders that pertain to the experiment.
-4. Upload your files to Gitlab by synchronising using PsychoPy Builder, rather than using Git commands.
-5. Code components should be set to Auto translate unless you know why you need to use different code for Python and JavaScript. All complex custom code should be in code components rather than in the parameters of other components.
-6. Code components should normally be moved to the top of their respective routines. Your code is executed in order from left to right (in the flow) and from top to bottom (within each routine).
-7. Experiment Settings / Online / Output path should be blank.
-8. Resources (spreadsheets, images, etc.) should be in the same folder as the psyexp file or a sub-folder. Resources that are selected via code components should be added via Experiment Settings / Online / Additional Resources or a Resource Manager Component. See :ref:`handlingOnlineResources` for more information.
-9. Check whether the features you are using are supported online via our :ref:`onlineStatus` page.
+1. Check whether the features you are using are supported online via our :ref:`onlineStatus` page.
+2. Don’t try to code in PsychoJS directly.
+3. Don’t try to edit JavaScript files on Pavlovia directly. Make changes via Builder.
+4. Each Builder (psyexp) file should be in its own dedicated local folder, which should not be in an area currently under version control  (e.g.a github project,  Google drive or Onedrive). This folder should only contain subfolders that pertain to the experiment.
+5. Upload your files to Gitlab by synchronising using PsychoPy Builder, rather than using Git commands.
+6. Code components should be set to Auto translate ("Code Type" > Auto > JS) unless you know why you need to use different code for Python and JavaScript. Do not include Python code in the parameters of other components.
+7. Code components should normally be moved to the top of their respective routines. Your code is executed in order from left to right (in the flow) and from top to bottom (within each routine).
+8. Experiment Settings / Online / Output path should be blank.
+9. Resources (spreadsheets, images, etc.) should be in the same folder as the psyexp file or a sub-folder. Resources that are selected via code components should be added via Experiment Settings / Online / Additional Resources or a Resource Manager Component. See :ref:`handlingOnlineResources` for more information.
 
 Running the latest version
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-When you synchronise changes to your experiment, you will only see those changes online if you clear the cache (using Ctrl-F5, Ctrl-Shift-R or equivalent). If this does not work, for example because you have made a change to a spreadsheet rather than the experiment file, use an incognito browser tab. A participant will not need to do this, so long as they have not already tried a previous version of your experiment. 
+When you synchronise changes to your experiment, you may need to clear your browser cache  to see those changes online (using Ctrl-F5, Ctrl-Shift-R or equivalent). If this does not work use an incognito browser tab. A participant will not need to do this, so long as they have not already tried a previous version of your experiment.
 
 Developer Tools
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Use Developer Tools (Ctl-Shift-I in Windows/Chrome, Cmd-Opt-J or Cmd-Opt-I in Mac/Chrome, F12 in IE/Edge, Ctrl-Shift-J in Windows/Safari, Ctrl-Opt-J in Mac/Safari) to view errors via the browser console if you aren’t getting sufficient information from PsychoPy. You can also add print(var) (which translates to console.log(var); ) to check the value of a variable var at a particular point. N.B. If you need to stop your participants viewing trial variables you may be loading from Excel, add log4javascript.setEnabled(false); to a JavaScript code component. This will prevent cheating on experiments with a performance based reward.
+Use Developer Tools (Ctl-Shift-I in Windows/Chrome, Cmd-Opt-J or Cmd-Opt-I in Mac/Chrome, F12 in IE/Edge, Ctrl-Shift-J in Windows/Safari, Ctrl-Opt-J in Mac/Safari) to view errors via the browser console if you aren’t getting sufficient information from PsychoPy. You can also add print(X) (which translates to console.log(X); where X refers to the name of your variable) to check the value of a variable var at a particular point. 
 :darkorange:`Tutorial` `tutorial_js_console_log <https://gitlab.pavlovia.org/tpronk/tutorial_js_console_log>`_
 
 .. _errorTypes:
