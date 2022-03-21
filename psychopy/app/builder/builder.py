@@ -47,6 +47,7 @@ from psychopy.localization import _translate
 from ... import experiment, prefs
 from .. import dialogs
 from ..themes import ThemeMixin
+from ..themes.icons import components as compIcons, appendBeta
 from ..themes._themes import PsychopyDockArt, PsychopyTabArt, ThemeSwitcher
 from ..ui import BaseAuiFrame
 from psychopy import logging, data
@@ -2450,11 +2451,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.SetForegroundColour(ThemeMixin.appColors['text'])
             self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
             # Set bitmap
-            iconCache = self.parent.app.iconCache
-            if hasattr(self.component, "beta"):
-                icon = iconCache.getBitmap(self.component.iconFile, beta=self.component.beta, size=48)
-            else:
-                icon = iconCache.getBitmap(self.component.iconFile, beta=False, size=48)
+            icon = compIcons._getComponentIcon(self.component, size=48)
+            if hasattr(self.component, "beta") and self.component.beta:
+                icon = appendBeta(icon)
             self.SetBitmap(icon)
             self.SetBitmapCurrent(icon)
             self.SetBitmapPressed(icon)
