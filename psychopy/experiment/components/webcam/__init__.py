@@ -19,6 +19,7 @@ class WebcamComponent(BaseComponent):
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'webcam.png'
     tooltip = _translate('Webcam: Record video from a webcam.')
+    beta = True
 
     def __init__(
             # Basic
