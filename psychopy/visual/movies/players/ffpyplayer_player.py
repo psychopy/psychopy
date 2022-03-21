@@ -12,15 +12,9 @@ from ._base import BaseMoviePlayer
 from ffpyplayer.player import MediaPlayer
 from ..metadata import MovieMetadata, NULL_MOVIE_METADATA
 from ..frame import MovieFrame, NULL_MOVIE_FRAME_INFO
-from psychopy import core, logging
-from psychopy.clock import Clock
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 from psychopy.tools.filetools import pathToString
-import pyglet
-import ctypes
 import numpy as np
-pyglet.options['debug_gl'] = False
-GL = pyglet.gl
 
 # constants for use with ffpyplayer
 FFPYPLAYER_STATUS_EOF = 'eof'

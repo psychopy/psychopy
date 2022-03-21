@@ -28,13 +28,16 @@ class MovieFrame:
     size : ArrayLike
         Width and height of the source video frame in pixels. This is needed to
         correctly interpret `colorData`.
+    colorFormat : str
+        Color format identifier. This is used to ensure the correct format for
+        the destination texture buffer is used to contain `colorData`.
     colorData : ArrayLike or None
         Movie frame color pixel data as an array. Set as `None` if no image data
         is available.
     audioChannels : int
         Number of audio channels present in `audioSamples` (`int`). Use `1` for
         mono and `2` for stereo. This is used to correctly format the data
-        contained in `audioSamples` to get passed to the desired audio sink.
+        contained in `audioSamples` to pass to the desired audio sink.
     audioSamples : ArrayLike or None
         Audio samples as an array. Set as `None` if audio data is unavailable.
     movieLib : str or None
@@ -48,6 +51,7 @@ class MovieFrame:
         "_absTime",
         "_displayTime",
         "_size",
+        "_colorFormat",
         "_colorData",
         "_audioSamples",
         "_audioChannels",
@@ -60,6 +64,7 @@ class MovieFrame:
                  absTime=0.0,
                  displayTime=0.0,
                  size=(-1, -1),
+                 colorFormat='rgb8',
                  colorData=None,
                  audioChannels=2,
                  audioSamples=None,
@@ -70,6 +75,7 @@ class MovieFrame:
         self.absTime = absTime
         self.displayTime = displayTime
         self.size = size
+        self.colorFormat = colorFormat
         self.colorData = colorData
         self.audioSamples = audioSamples
         self.audioChannels = audioChannels
@@ -82,6 +88,7 @@ class MovieFrame:
                 f"displayTime={self.displayTime}"
                 f"size={self.size}, "
                 f"colorData={repr(self.colorData)}, "
+                f"colorFormat={repr(self.colorFormat)}, "
                 f"audioChannels={self.audioChannels}, "
                 f"audioSamples={repr(self.audioSamples)}, "
                 f"movieLib={repr(self.movieLib)}, "
@@ -141,6 +148,16 @@ class MovieFrame:
             raise TypeError('Elements of `size` must all have type `int`.')
 
         self._size = tuple(value)
+
+    @property
+    def colorFormat(self):
+        """Color format of the frame color data (`str`). Default is `'rgb8'`.
+        """
+        return self._colorFormat
+
+    @colorFormat.setter
+    def colorFormat(self, value):
+        self._colorFormat = str(value)
 
     @property
     def colorData(self):
