@@ -9,7 +9,7 @@ import json
 import errno
 from psychopy.app.themes._themes import ThemeSwitcher
 
-from ..themes import ThemeMixin, IconCache
+from ..themes import ThemeMixin, LegacyIconCache
 
 import wx
 from wx.lib import platebtn
@@ -590,10 +590,10 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                 btn = btn.Window
                 btn.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
         # Add icons to buttons
-        bmp = IconCache.getBitmap(IconCache(), "stdout.png")
+        bmp = LegacyIconCache.getBitmap(LegacyIconCache(), "stdout.png")
         self.stdoutToggleBtn.SetBitmap(bmp)
         self.stdoutToggleBtn.SetBitmapMargins(x=6, y=0)
-        bmp = IconCache.getBitmap(IconCache(), "alerts.png")
+        bmp = LegacyIconCache.getBitmap(LegacyIconCache(), "alerts.png")
         self.alertsToggleBtn.SetBitmap(bmp)
         self.alertsToggleBtn.SetBitmapMargins(x=6, y=0)
 

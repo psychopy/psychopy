@@ -21,7 +21,7 @@ import wx.lib.mixins.listctrl as listmixin
 import requests
 
 from .. import utils
-from ..themes._themes import IconCache
+from ..themes._themes import LegacyIconCache
 
 _starred = u"\u2605"
 _unstarred = u"\u2606"

@@ -25,7 +25,7 @@ import psychopy
 from psychopy import logging
 from . import pavlovia_ui
 from . import icons
-from .themes import ThemeMixin, IconCache
+from .themes import ThemeMixin, LegacyIconCache
 from psychopy.localization import _translate
 from psychopy.tools.stringtools import prettyname
 from psychopy.tools.apptools import SortTerm
@@ -618,7 +618,7 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
     def __init__(self, parent, bitmap, size=(128, 128)):
         wx.lib.statbmp.GenStaticBitmap.__init__(self, parent, ID=wx.ID_ANY, bitmap=wx.Bitmap(), size=size)
         self.parent = parent
-        self.iconCache = IconCache()
+        self.iconCache = LegacyIconCache()
         # Set bitmap
         self.SetBitmap(bitmap)
         # Setup sizer
@@ -743,7 +743,7 @@ class FileCtrl(wx.TextCtrl):
         # Add button
         self.fileBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
         self.fileBtn.SetBackgroundColour(self.GetBackgroundColour())
-        self.fileBtn.SetBitmap(IconCache().getBitmap(name="folder", size=16))
+        self.fileBtn.SetBitmap(LegacyIconCache().getBitmap(name="folder", size=16))
         self.sizer.Add(self.fileBtn, border=4, flag=wx.ALL)
         # Bind browse function
         self.fileBtn.Bind(wx.EVT_BUTTON, self.browse)
