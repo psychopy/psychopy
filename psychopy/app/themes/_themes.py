@@ -147,7 +147,6 @@ class ThemeMixin:
                     if isinstance(submenu.SubMenu, ThemeSwitcher):
                         submenu.SubMenu._applyAppTheme()
 
-
         def applyToPanel(target):
             target.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
             target.SetForegroundColour(ThemeMixin.appColors['text'])
@@ -166,7 +165,7 @@ class ThemeMixin:
                 page = target.GetPage(index)
                 page.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
                 if page.GetName() in tabIcons:
-                    bmp = IconCache.getBitmap(IconCache(), tabIcons[page.GetName()])
+                    bmp = LegacyIconCache.getBitmap(LegacyIconCache(), tabIcons[page.GetName()])
                     target.SetPageBitmap(index, bmp)
                 page._applyAppTheme()
 
@@ -733,7 +732,7 @@ def getBitmap(name, theme, size=None,
     return _allIcons.getBitmap(name, theme, size, emblem, emblemPos)
 
 
-class IconCache:
+class LegacyIconCache:
     """A class to load icons and store them just once as a dict of wx.Bitmap
     objects according to theme"""
     _theme = ThemeMixin
@@ -840,18 +839,18 @@ class IconCache:
             size = 48
         identifier = _getIdentifier(name, theme=theme, emblem=emblem, size=size)
         # find/load the bitmaps first
-        if identifier not in IconCache._bitmaps:
+        if identifier not in LegacyIconCache._bitmaps:
             # load all size icons for this name
             self._loadBitmap(name, theme, emblem=emblem, size=size)
 
         if beta:
             # If needed, append beta tag
             betaID = _getIdentifier("beta", theme=theme, emblem=emblem, size=size)
-            if betaID not in IconCache._bitmaps:
+            if betaID not in LegacyIconCache._bitmaps:
                 self._loadBitmap("beta", theme, emblem=emblem, size=size)
             # Get base icon and beta overlay
-            betaImg = IconCache._bitmaps[betaID].ConvertToImage()
-            baseImg = IconCache._bitmaps[identifier].ConvertToImage()
+            betaImg = LegacyIconCache._bitmaps[betaID].ConvertToImage()
+            baseImg = LegacyIconCache._bitmaps[identifier].ConvertToImage()
             # Get color data and alphas
             betaData = numpy.array(betaImg.GetData())
             betaAlpha = numpy.array(betaImg.GetAlpha(), dtype=int)
@@ -875,9 +874,9 @@ class IconCache:
             combined.SetAlpha(combinedAlpha)
             # Replace icon
             identifier += "_beta"
-            IconCache._bitmaps[identifier] = combined.ConvertToBitmap()
+            LegacyIconCache._bitmaps[identifier] = combined.ConvertToBitmap()
 
-        return IconCache._bitmaps[identifier]
+        return LegacyIconCache._bitmaps[identifier]
 
     def makeBitmapButton(self, parent, filename,
                          name="",  # name of Component e.g. TextComponent
@@ -944,8 +943,8 @@ class IconCache:
                              .format(name))
 
     def setTheme(self, theme):
-        if theme.icons != IconCache._lastIcons:
-            for thisBtn in IconCache._buttons:
+        if theme.icons != LegacyIconCache._lastIcons:
+            for thisBtn in LegacyIconCache._buttons:
                 if thisBtn['btn']:  # Check that button hasn't been deleted
                     newBmp = self.getBitmap(name=thisBtn['filename'],
                                             size=thisBtn['size'],
@@ -957,15 +956,15 @@ class IconCache:
                     thisBtn['btn'].SetBitmapFocus(newBmp)
                     thisBtn['btn'].SetBitmapDisabled(newBmp)
                     thisBtn['btn'].SetBitmapPosition(wx.TOP)
-        IconCache._lastIcons = theme.icons
-        if theme.appColors['frame_bg'] != IconCache._lastBGColor:
-            for thisBtn in IconCache._buttons:
+        LegacyIconCache._lastIcons = theme.icons
+        if theme.appColors['frame_bg'] != LegacyIconCache._lastBGColor:
+            for thisBtn in LegacyIconCache._buttons:
                 try:
                     thisBtn['btn'].SetBackgroundColour(
                             theme.appColors['frame_bg'])
                 except RuntimeError:
                     pass
-        IconCache._lastBGColor = theme
+        LegacyIconCache._lastBGColor = theme
 
 
 def _getIdentifier(name, theme, emblem, size=None):
