@@ -12,94 +12,129 @@ retStr = ""
 resources = Path(prefs.paths['resources'])
 
 
+class Icon(wx.Icon):
+    def __init__(self, stem, size=None):
+        # Initialise self
+        wx.Icon.__init__(self)
+
+        # Get all files in the resource folder containing the given stem
+        matches = [f for f in resources.glob(f"**/{stem}*.png")]
+        # Create blank arrays to store retina and non-retina files
+        ret = {}
+        nret = {}
+        # Validate matches
+        for match in matches:
+            # Reject match if in unused theme folder
+            if match.parent.stem not in (theme, "Resources"):
+                continue
+            # Get appendix (any chars in file stem besides requested stem and retina string)
+            appendix = match.stem.replace(stem, "").replace(retStr, "") or None
+            # Reject non-numeric appendices (may be a longer word, e.g. requested "folder", got "folder-open")
+            if appendix is not None and not appendix.isnumeric():
+                continue
+            elif appendix is not None:
+                appendix = int(appendix)
+            # If valid, append to array according to retina
+            if "@2x" in match.stem:
+                if appendix in ret and match.parent.stem != theme:
+                    # Prioritise theme-specific if match is already present
+                    continue
+                ret[appendix] = match
+            else:
+                if appendix in nret and match.parent.stem != theme:
+                    # Prioritise theme-specific if match is already present
+                    continue
+                nret[appendix] = match
+        # Compare keys in retina and non-retina matches
+        retOnly = set(ret) - set(nret)
+        nretOnly = set(nret) - set(ret)
+        both = set(ret) & set(nret)
+        # Compare keys from both match dicts
+        retKeys = list(retOnly)
+        nretKeys = list(nretOnly)
+        if retStr:
+            # If using retina, prioritise retina matches
+            retKeys += list(both)
+        else:
+            # Otherwise, prioritise non-retina matches
+            nretKeys += list(both)
+        # Merge match dicts
+        files = {}
+        for key in retKeys:
+            files[key] = ret[key]
+        for key in nretKeys:
+            files[key] = nret[key]
+
+        # Create bitmap array for files
+        self.bitmaps = {}
+        for key, file in files.items():
+            self.bitmaps[key] = wx.Bitmap(str(file))
+        self._bitmap = None
+
+        # Set size (will pick appropriate bitmap)
+        self.size = size
+
+    @property
+    def size(self):
+        return self.GetWidth(), self.GetHeight()
+
+    @size.setter
+    def size(self, value):
+        if isinstance(value, (tuple, list)):
+            # If given an iterable, use first value as width
+            width = value[0]
+            height = value[1]
+        else:
+            # Otherwise, assume square
+            width = value
+            height = value
+        if width is not None and not isinstance(width, int):
+            # If width is not an integer, try to make it one
+            width = int(width)
+        if height is not None and not isinstance(height, int):
+            # If height is not an integer, try to make it one
+            height = int(height)
+
+        # If no stored bitmaps, do nothing (icon remains blank)
+        if not self.bitmaps:
+            return
+
+        # Find appropriate bitmap from list of bitmaps
+        if width in self.bitmaps:
+            # If value matches dict exactly, use match
+            bmp = self.bitmaps[width]
+        elif width is None:
+            # If given no size, use the largest image
+            i = max(self.bitmaps.keys())
+            bmp = self.bitmaps[i]
+        else:
+            # If any other size, use closest match
+            deltas = [(abs(width - sz), sz) for sz in self.bitmaps.keys() if sz is not None]
+            if deltas:
+                i = min(deltas)[1]
+            else:
+                i = None
+            bmp = self.bitmaps[i]
+
+        # Use appropriate sized bitmap
+        self.CopyFromBitmap(bmp)
+        self._bitmap = bmp
+        # Set own size
+        self.SetWidth(width)
+        self.SetHeight(height)
+
+
 class IconCache(dict):
-    def __getitem__(self, item):
-        if item in self:
-            return dict.__getitem__(self, item)
-        elif isinstance(item, (BaseComponent, BaseStandaloneRoutine)):
-            self[item] = self._getComponentIcon(item)
-        else:
-            self[item] = self._getResourcesIcon(item)
-
-    def _getResourcesIcon(self, stem, size=None):
-        def _validateMatch(match):
-            # Start off assuming valid and unsized
-            valid = True
-            sz = None
-            # If file is not in the root folder or correct theme folder, don't use it
-            if file.parent.stem not in [theme, resources.stem]:
-                valid = False
-            # Anything appended to stem must be numeric
-            appendage = match.stem.replace(stem, "").replace(retStr, "")
-            if appendage.isnumeric():
-                # If has a numeric appendage, store it as size
-                sz = int(appendage)
-            elif not appendage:
-                valid = False
-
-            return match, valid, sz
-
-        # If cached, return the cached object
-        if stem in self:
-            return dict.__getitem__(self, stem)
-
-        # Start blank list for possible matches
-        matches = {}
-        # Look for all retina-specific matches in Resources folder
-        for file in resources.glob(f"{stem}*{retStr}.png"):
-            # Check this file
-            file, valid, sz = _validateMatch(file)
-            # If valid, append along with size details (if any)
-            if valid:
-                matches[sz] = file
-        # Accept retina non-specific if no matches
-        if not matches:
-            for file in resources.glob(f"{stem}*.png"):
-                # Check this file
-                file, valid, sz = _validateMatch(file)
-                # If valid, append along with size details (if any)
-                if valid:
-                    matches[sz] = file
-        # Try theme folder if not in root
-        themeFolder = resources / theme
-        if not matches:
-            for file in themeFolder.glob(f"{stem}*{retStr}.png"):
-                # Check this file
-                file, valid, sz = _validateMatch(file)
-                # If valid, append along with size details (if any)
-                if valid:
-                    matches[sz] = file
-        # Accept retina non-specific if no matches in theme folder
-        if not matches:
-            for file in themeFolder.glob(f"{stem}*.png"):
-                # Check this file
-                file, valid, sz = _validateMatch(file)
-                # If valid, append along with size details (if any)
-                if valid:
-                    matches[sz] = file
-        # Prioritise unsized images, but accept closest sized image otherwise
-        if None in matches:
-            img = wx.Image(
-                str(matches[None])
-            )
-        elif matches:
-            deltas = [(abs(size[0] - sz), sz) for sz in matches.keys()]
-            sz = min(deltas)[1]
-            img = wx.Image(
-                str(matches[sz])
-            )
-        else:
-            raise FileNotFoundError(
-                f"Found no matches for stem {stem} in {resources}"
-            )
-        # Resize if needed
-        self._resizeImage(img, size)
-        # Convert to bitmap
-        bmp = wx.Bitmap(img)
-        # Cache bitmap handle
-        self[stem] = bmp
-        # Return bitmap
-        return bmp
+    def getBitmap(self, stem, size=None):
+        # If stem is a string, get from Resources folder
+        if isinstance(stem, str):
+            # If not cached, cache item
+            if stem not in self:
+                self[stem] = Icon(stem, size)
+            return self[stem]._bitmap
+        # If stem is a component/standalone routine, get from class def folder
+        if isinstance(stem, (BaseComponent, BaseStandaloneRoutine)):
+            self._getComponentIcon(stem, size)
 
     def _getComponentIcon(self, cls, size=None):
         """
@@ -143,6 +178,7 @@ class IconCache(dict):
 
 
 components = IconCache()
+buttons = IconCache()
 
 
 def appendBeta(bmp):
@@ -150,7 +186,7 @@ def appendBeta(bmp):
     Append beta sticker to a component icon
     """
     # Get appropriately sized beta sticker
-    betaImg = components._getResourcesIcon("beta", size=list(bmp.Size)).ConvertToImage()
+    betaImg = Icon("beta", size=list(bmp.Size))._bitmap.ConvertToImage()
     # Get bitmap as image
     baseImg = bmp.ConvertToImage()
     # Get color data and alphas
