@@ -8,7 +8,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from collections import deque
-from ..themes import ThemeMixin
+from ..themes import ThemeMixin, icons
 
 import wx
 import wx.stc
@@ -61,7 +61,6 @@ class SourceTreePanel(wx.Panel):
 
     def _applyAppTheme(self, target=None):
         cs = ThemeMixin.appColors
-        iconCache = self.app.iconCache
         self.srcTree.SetOwnBackgroundColour(cs['tab_bg'])
         self.srcTree.SetOwnForegroundColour(cs['text'])
 
@@ -69,17 +68,17 @@ class SourceTreePanel(wx.Panel):
         self._treeImgList = wx.ImageList(16, 16)
         self._treeGfx = {
             'class': self._treeImgList.Add(
-                iconCache.getBitmap(name='coderclass.png', size=16)),
+                icons.ButtonIcon('coderclass', size=16).bitmap),
             'def': self._treeImgList.Add(
-                iconCache.getBitmap(name='coderfunc.png', size=16)),
+                icons.ButtonIcon('coderfunc', size=16).bitmap),
             'attr': self._treeImgList.Add(
-                iconCache.getBitmap(name='codervar.png', size=16)),
+                icons.ButtonIcon('codervar', size=16).bitmap),
             'pyModule': self._treeImgList.Add(
-                iconCache.getBitmap(name='coderpython.png', size=16)),
+                icons.ButtonIcon('coderpython', size=16).bitmap),
             'jsModule': self._treeImgList.Add(
-                iconCache.getBitmap(name='coderjs.png', size=16)),
+                icons.ButtonIcon('coderjs', size=16).bitmap),
             'noDoc': self._treeImgList.Add(
-                iconCache.getBitmap(name='docclose.png', size=16))
+                icons.ButtonIcon('docclose', size=16).bitmap)
             # 'import': self._treeImgList.Add(
             #     wx.Bitmap(os.path.join(rc, 'coderimport16.png'), wx.BITMAP_TYPE_PNG)),
             # 'treeFolderClosed': _treeImgList.Add(
