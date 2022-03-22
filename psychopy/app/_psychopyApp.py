@@ -17,6 +17,8 @@ import time
 import io
 import argparse
 
+from psychopy.app.themes import icons
+
 profiling = False  # turning on will save profile files in currDir
 
 import psychopy
@@ -1095,6 +1097,10 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         prefs.app['theme'] = value
         self._currentThemeSpec = themes.ThemeMixin.spec
         codeFont = themes.ThemeMixin.codeColors['base']['font']
+
+        # Reset icon cache
+        icons.theme = themes.ThemeMixin.icons
+        icons.iconCache.clear()
 
         # On OSX 10.15 Catalina at least calling SetFaceName with 'AppleSystemUIFont' fails.
         # So this fix checks to see if changing the font name invalidates the font.
