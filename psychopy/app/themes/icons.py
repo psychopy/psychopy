@@ -101,7 +101,7 @@ class IconCache(dict):
         # Return bitmap
         return bmp
 
-    def _getComponentIcon(self, cls, size=None, beta=False):
+    def _getComponentIcon(self, cls, size=None):
         """
         Get the icon for a component or standalone routine from its class.
         """

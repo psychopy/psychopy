@@ -2468,7 +2468,6 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.parent = parent
             self.routine = rt
             self.category = cat
-            iconCache = parent.app.iconCache
             # Get a shorter, title case version of routine name
             label = name
             for redundant in ['routine', 'Routine', "ButtonBox"]:
@@ -2522,11 +2521,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.SetForegroundColour(ThemeMixin.appColors['text'])
             self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
             # Set bitmap
-            iconCache = self.parent.app.iconCache
-            if hasattr(self.routine, "beta"):
-                icon = iconCache.getBitmap(self.routine.iconFile, beta=self.routine.beta, size=48)
-            else:
-                icon = iconCache.getBitmap(self.routine.iconFile, beta=False, size=48)
+            icon = compIcons._getComponentIcon(self.routine, size=48)
+            if hasattr(self.routine, "beta") and self.routine.beta:
+                icon = appendBeta(icon)
             self.SetBitmap(icon)
             self.SetBitmapCurrent(icon)
             self.SetBitmapPressed(icon)
