@@ -1,4 +1,5 @@
 import re
+from abc import ABC
 
 import numpy
 import wx
@@ -10,13 +11,99 @@ from psychopy.experiment.routines import BaseStandaloneRoutine
 theme = "light"
 retStr = ""
 resources = Path(prefs.paths['resources'])
+iconCache = {}
 
 
-class Icon(wx.Icon):
+class BaseIcon(wx.Icon):
     def __init__(self, stem, size=None):
-        # Initialise self
-        wx.Icon.__init__(self)
+        if stem in iconCache:
+            # If already created, just copy instance
+            wx.Icon.__init__(self, iconCache[stem])
+            # Duplicate relevant attributes if relevant (depends on subclass)
+            iconCache[stem]._copyTo(self)
+        else:
+            # Initialise base class
+            wx.Icon.__init__(self)
+            self.bitmap = None
+            # Use subclass-specific populate call to create bitmaps
+            self._populate(stem)
+            # Set size
+            self.size = size
+            # Update from current bitmap
+            if self.bitmap:
+                self.CopyFromBitmap(self.bitmap)
+            # Store ref to self in iconCache
+            iconCache[stem] = self
 
+    def _copyTo(self, other):
+        raise NotImplementedError(
+            "BaseIcon should not be instanced directly; it serves only as a base class for ButtonIcon and ComponentIcon"
+        )
+
+    def _populate(self, stem):
+        raise NotImplementedError(
+            "BaseIcon should not be instanced directly; it serves only as a base class for ButtonIcon and ComponentIcon"
+        )
+
+    @property
+    def size(self):
+        return self._size
+
+    @size.setter
+    def size(self, value):
+        # Sanitize size value
+        if isinstance(value, (tuple, list)):
+            # If given an iterable, use first value as width
+            width = value[0]
+            height = value[1]
+        else:
+            # Otherwise, assume square
+            width = value
+            height = value
+        if width is not None and not isinstance(width, int):
+            # If width is not an integer, try to make it one
+            width = int(width)
+        if height is not None and not isinstance(height, int):
+            # If height is not an integer, try to make it one
+            height = int(height)
+
+        # Store value
+        self._size = (width, height)
+        # Do subclass-specific fitting method to adjust bitmap to desired size
+        self._fitBitmap()
+
+    def _fitBitmap(self):
+        raise NotImplementedError(
+            "BaseIcon should not be instanced directly; it serves only as a base class for ButtonIcon and ComponentIcon"
+        )
+
+    @staticmethod
+    def resizeBitmap(bmp, size=None):
+        assert isinstance(bmp, wx.Bitmap), (
+            "Bitmap supplied to `resizeBitmap()` must be a `wx.Bitmap` object."
+        )
+        # If size is None, return bitmap as is
+        if size is None:
+            return bmp
+        # Split up size value
+        width, height = size
+        # If size is unchanged, return bitmap as is
+        if width == bmp.GetWidth() and height == bmp.GetHeight():
+            return bmp
+        # Convert to an image
+        img = bmp.ConvertToImage()
+        # Resize image
+        img.Rescale(width, height, quality=wx.IMAGE_QUALITY_HIGH)
+        # Return as bitmap
+        return wx.Bitmap(img)
+
+
+class ButtonIcon(BaseIcon):
+    def _copyTo(self, other):
+        other.bitmaps = self.bitmaps
+        other.bitmap = self.bitmap
+
+    def _populate(self, stem):
         # Get all files in the resource folder containing the given stem
         matches = [f for f in resources.glob(f"**/{stem}*.png")]
         # Create blank arrays to store retina and non-retina files
@@ -69,36 +156,14 @@ class Icon(wx.Icon):
         self.bitmaps = {}
         for key, file in files.items():
             self.bitmaps[key] = wx.Bitmap(str(file))
-        self._bitmap = None
+        self.bitmap = None
 
-        # Set size (will pick appropriate bitmap)
-        self.size = size
-
-    @property
-    def size(self):
-        return self.GetWidth(), self.GetHeight()
-
-    @size.setter
-    def size(self, value):
-        if isinstance(value, (tuple, list)):
-            # If given an iterable, use first value as width
-            width = value[0]
-            height = value[1]
-        else:
-            # Otherwise, assume square
-            width = value
-            height = value
-        if width is not None and not isinstance(width, int):
-            # If width is not an integer, try to make it one
-            width = int(width)
-        if height is not None and not isinstance(height, int):
-            # If height is not an integer, try to make it one
-            height = int(height)
-
+    def _fitBitmap(self):
         # If no stored bitmaps, do nothing (icon remains blank)
         if not self.bitmaps:
             return
-
+        # Split up size value
+        width, height = self.size
         # Find appropriate bitmap from list of bitmaps
         if width in self.bitmaps:
             # If value matches dict exactly, use match
@@ -117,98 +182,79 @@ class Icon(wx.Icon):
             bmp = self.bitmaps[i]
 
         # Use appropriate sized bitmap
-        self.CopyFromBitmap(bmp)
-        self._bitmap = bmp
+        self.bitmap = self.resizeBitmap(bmp, self.size)
         # Set own size
         self.SetWidth(width)
         self.SetHeight(height)
 
 
-class IconCache(dict):
-    def getBitmap(self, stem, size=None):
-        # If stem is a string, get from Resources folder
-        if isinstance(stem, str):
-            # If not cached, cache item
-            if stem not in self:
-                self[stem] = Icon(stem, size)
-            return self[stem]._bitmap
-        # If stem is a component/standalone routine, get from class def folder
-        if isinstance(stem, (BaseComponent, BaseStandaloneRoutine)):
-            self._getComponentIcon(stem, size)
+class ComponentIcon(BaseIcon):
+    def _copyTo(self, other):
+        other.bitmap = self.bitmap
+        if hasattr(self, "_beta"):
+            other._beta = self._beta
 
-    def _getComponentIcon(self, cls, size=None):
-        """
-        Get the icon for a component or standalone routine from its class.
-        """
-        # If cached, return the cached object
-        if cls in self:
-            return dict.__getitem__(self, cls)
-
+    def _populate(self, cls):
         # Throw error if class doesn't have associated icon file
         if not hasattr(cls, "iconFile"):
             raise AttributeError(
                 f"Could not retrieve icon for {cls} as the class does not have an `iconFile` attribute."
             )
-        # Get icon file from class
-        iconFile = Path(cls.iconFile)
+        # Get file from class
+        filePath = Path(cls.iconFile)
         # Get icon file stem and root folder from iconFile value
-        iconStem = iconFile.stem
-        iconFolder = iconFile.parent
-        # Create an image from icon file
-        img = wx.Image(str(
-                iconFolder / theme / (iconStem + retStr + ".png")
-        ))
-        # Resize if needed
-        self._resizeImage(img, size)
-        # Convert to bitmap
-        bmp = wx.Bitmap(img)
-        # Cache bitmap handle
-        self[cls] = bmp
-        # Return bitmap
-        return bmp
+        stem = filePath.stem
+        folder = filePath.parent
+        # Look in appropriate theme folder for files
+        matches = {}
+        for match in (folder / theme).glob(f"{stem}*.png"):
+            appendix = match.stem.replace(stem, "")
+            matches[appendix] = match
+        # Choose / resize file according to retina
+        if retStr in matches:
+            file = matches[retStr]
+        else:
+            file = list(matches.values())[0]
+        img = wx.Image(str(file))
+        # Use appropriate sized bitmap
+        self.bitmap = wx.Bitmap(img)
 
-    @staticmethod
-    def _resizeImage(img, size):
-        # Make sure size is a 1x2 iterable
-        if isinstance(size, (int, float)):
-            size = (size, size)
-        # If width is given and is not the same as the image size, resize it
-        if size is not None and any(size[i] != img.GetSize()[i] for i in (0, 1)):
-            img.Rescale(*size, quality=wx.IMAGE_QUALITY_HIGH)
+    def _fitBitmap(self):
+        self.bitmap = self.resizeBitmap(self.bitmap, self.size)
+        # Set own size
+        width, height = self.size
+        self.SetWidth(width)
+        self.SetHeight(height)
 
+    @property
+    def beta(self):
+        if not hasattr(self, "_beta"):
+            # Get appropriately sized beta sticker
+            betaImg = ButtonIcon("beta", size=self.size).bitmap.ConvertToImage()
+            # Get bitmap as image
+            baseImg = self.bitmap.ConvertToImage()
+            # Get color data and alphas
+            betaData = numpy.array(betaImg.GetData())
+            betaAlpha = numpy.array(betaImg.GetAlpha(), dtype=int)
+            baseData = numpy.array(baseImg.GetData())
+            baseAlpha = numpy.array(baseImg.GetAlpha(), dtype=int)
+            # Overlay colors
+            combinedData = baseData
+            r = numpy.where(betaAlpha > 0)[0] * 3
+            g = numpy.where(betaAlpha > 0)[0] * 3 + 1
+            b = numpy.where(betaAlpha > 0)[0] * 3 + 2
+            combinedData[r] = betaData[r]
+            combinedData[g] = betaData[g]
+            combinedData[b] = betaData[b]
+            # Combine alphas
+            combinedAlpha = numpy.add(baseAlpha, betaAlpha)
+            combinedAlpha[combinedAlpha > 255] = 255
+            combinedAlpha = numpy.uint8(combinedAlpha)
+            # Set these back to the base image
+            combined = betaImg
+            combined.SetData(combinedData)
+            combined.SetAlpha(combinedAlpha)
 
-components = IconCache()
-buttons = IconCache()
+            self._beta = wx.Bitmap(combined)
 
-
-def appendBeta(bmp):
-    """
-    Append beta sticker to a component icon
-    """
-    # Get appropriately sized beta sticker
-    betaImg = Icon("beta", size=list(bmp.Size))._bitmap.ConvertToImage()
-    # Get bitmap as image
-    baseImg = bmp.ConvertToImage()
-    # Get color data and alphas
-    betaData = numpy.array(betaImg.GetData())
-    betaAlpha = numpy.array(betaImg.GetAlpha(), dtype=int)
-    baseData = numpy.array(baseImg.GetData())
-    baseAlpha = numpy.array(baseImg.GetAlpha(), dtype=int)
-    # Overlay colors
-    combinedData = baseData
-    r = numpy.where(betaAlpha > 0)[0] * 3
-    g = numpy.where(betaAlpha > 0)[0] * 3 + 1
-    b = numpy.where(betaAlpha > 0)[0] * 3 + 2
-    combinedData[r] = betaData[r]
-    combinedData[g] = betaData[g]
-    combinedData[b] = betaData[b]
-    # Combine alphas
-    combinedAlpha = numpy.add(baseAlpha, betaAlpha)
-    combinedAlpha[combinedAlpha > 255] = 255
-    combinedAlpha = numpy.uint8(combinedAlpha)
-    # Set these back to the base image
-    combined = betaImg
-    combined.SetData(combinedData)
-    combined.SetAlpha(combinedAlpha)
-
-    return wx.Bitmap(combined)
+        return self._beta
