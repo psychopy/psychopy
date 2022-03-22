@@ -46,8 +46,7 @@ if parse_version(wx.__version__) < parse_version('4.0.3'):
 from psychopy.localization import _translate
 from ... import experiment, prefs
 from .. import dialogs
-from ..themes import ThemeMixin
-from ..themes.icons import components as compIcons, appendBeta
+from ..themes import ThemeMixin, icons
 from ..themes._themes import PsychopyDockArt, PsychopyTabArt, ThemeSwitcher
 from ..ui import BaseAuiFrame
 from psychopy import logging, data
@@ -2451,9 +2450,11 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.SetForegroundColour(ThemeMixin.appColors['text'])
             self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
             # Set bitmap
-            icon = compIcons._getComponentIcon(self.component, size=48)
+            icon = icons.ComponentIcon(self.component, size=48)
             if hasattr(self.component, "beta") and self.component.beta:
-                icon = appendBeta(icon)
+                icon = icon.beta
+            else:
+                icon = icon.bitmap
             self.SetBitmap(icon)
             self.SetBitmapCurrent(icon)
             self.SetBitmapPressed(icon)
@@ -2521,9 +2522,11 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.SetForegroundColour(ThemeMixin.appColors['text'])
             self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
             # Set bitmap
-            icon = compIcons._getComponentIcon(self.routine, size=48)
+            icon = icons.ComponentIcon(self.routine, size=48)
             if hasattr(self.routine, "beta") and self.routine.beta:
-                icon = appendBeta(icon)
+                icon = icon.beta
+            else:
+                icon = icon.bitmap
             self.SetBitmap(icon)
             self.SetBitmapCurrent(icon)
             self.SetBitmapPressed(icon)
