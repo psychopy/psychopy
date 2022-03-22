@@ -1434,9 +1434,7 @@ class BuilderFrame(BaseAuiFrame, ThemeMixin):
         # Store original
         origBtn = self.btnHandles['pavloviaSync'].NormalBitmap
         # Create new feedback bitmap
-        feedbackBmp = self.app.iconCache.getBitmap(
-                name='{}globe.png'.format(colour[val]),
-                size=toolbarSize)
+        feedbackBmp = icons.ButtonIcon(f"{colour[val]}globe.png", size=toolbarSize).bitmap
 
         # Set feedback button
         self.btnHandles['pavloviaSync'].SetNormalBitmap(feedbackBmp)
@@ -2031,9 +2029,8 @@ class RoutineCanvas(wx.ScrolledWindow):
         dc.SetId(id)
 
         iconYOffset = (6, 6, 0)[self.drawSize]
-        icons = self.app.iconCache
         # get default icon and bar color
-        thisIcon = icons.getComponentBitmap(component, self.iconSize)
+        thisIcon = icons.ComponentIcon(component, size=self.iconSize).bitmap
         thisColor = ThemeMixin.appColors['rt_comp']
         thisStyle = wx.BRUSHSTYLE_SOLID
 
@@ -2346,7 +2343,6 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.parent = parent
             self.component = comp
             self.category = cat
-            iconCache = parent.app.iconCache
             # Get a shorter, title case version of component name
             label = name
             for redundant in ['component', 'Component', "ButtonBox"]:
@@ -2680,7 +2676,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # then apply to all children as well
         # Style filter button
         self.filterBtn.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
-        icon = self.app.iconCache.getBitmap("filter", size=16)
+        icon = icons.ButtonIcon("filter", size=16).bitmap
         self.filterBtn.SetBitmap(icon)
         self.filterBtn.SetBitmapCurrent(icon)
         self.filterBtn.SetBitmapPressed(icon)
