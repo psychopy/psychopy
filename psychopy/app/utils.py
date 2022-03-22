@@ -24,7 +24,6 @@ from wx.lib import platebtn
 import psychopy
 from psychopy import logging
 from . import pavlovia_ui
-from . import icons
 from .themes import ThemeMixin, LegacyIconCache
 from psychopy.localization import _translate
 from psychopy.tools.stringtools import prettyname

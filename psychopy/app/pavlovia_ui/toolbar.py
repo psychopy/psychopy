@@ -1,7 +1,6 @@
 import wx
 
 from os.path import join
-from .. import icons
 from .project import syncProject, ProjectFrame
 from .search import SearchFrame
 from .user import UserFrame
