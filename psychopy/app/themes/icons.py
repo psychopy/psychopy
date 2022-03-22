@@ -5,8 +5,6 @@ import numpy
 import wx
 from pathlib import Path
 from psychopy import prefs
-from psychopy.experiment.components import BaseComponent
-from psychopy.experiment.routines import BaseStandaloneRoutine
 
 theme = "light"
 retStr = ""
