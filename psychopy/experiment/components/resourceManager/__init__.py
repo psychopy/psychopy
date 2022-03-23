@@ -162,7 +162,6 @@ class ResourceManagerComponent(BaseComponent):
             buff.setIndentLevel(1, relative=True)
             code = (
                         "console.log('resource specified in %(name)s took longer than expected to download');\n"
-                        "await waitForResources(resources = %(resources)s)"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(-1, relative=True)
