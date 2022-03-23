@@ -122,7 +122,7 @@ def logout():
     """
     # create a new currentSession with no auth token
     global _existingSession
-    _existingSession.user = None
+    _existingSession = None
     # set appData to None
     prefs.appData['projects']['pavloviaUser'] = None
     prefs.saveAppData()
