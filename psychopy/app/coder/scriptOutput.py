@@ -14,12 +14,12 @@ import wx.richtext
 import webbrowser
 from psychopy.localization import _translate
 from psychopy.alerts._alerts import AlertEntry
-from psychopy.app.themes import ThemeMixin
+from psychopy.app.themes import LegacyThemeMixin
 
 _prefEncoding = locale.getpreferredencoding()
 
 
-class ScriptOutputPanel(wx.richtext.RichTextCtrl, ThemeMixin):
+class ScriptOutputPanel(wx.richtext.RichTextCtrl, LegacyThemeMixin):
     """Class for the script output window in Coder.
 
     Parameters

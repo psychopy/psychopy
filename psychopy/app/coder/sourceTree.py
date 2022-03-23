@@ -8,7 +8,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from collections import deque
-from ..themes import ThemeMixin, icons
+from ..themes import LegacyThemeMixin, icons
 
 import wx
 import wx.stc
@@ -60,7 +60,7 @@ class SourceTreePanel(wx.Panel):
         self._applyAppTheme()
 
     def _applyAppTheme(self, target=None):
-        cs = ThemeMixin.appColors
+        cs = LegacyThemeMixin.appColors
         self.srcTree.SetOwnBackgroundColour(cs['tab_bg'])
         self.srcTree.SetOwnForegroundColour(cs['text'])
 

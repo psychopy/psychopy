@@ -40,7 +40,7 @@ from psychopy.app.errorDlg import exceptionCallback
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 from psychopy.app.coder.fileBrowser import FileBrowserPanel
 from psychopy.app.coder.sourceTree import SourceTreePanel
-from psychopy.app.themes import ThemeMixin
+from psychopy.app.themes import LegacyThemeMixin
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
 from psychopy.app.coder.scriptOutput import ScriptOutputPanel
 from psychopy.app.coder.repl import PythonREPLCtrl
@@ -102,7 +102,7 @@ def fromPickle(filename):
     return contents
 
 
-class PsychopyPyShell(wx.py.shell.Shell, ThemeMixin):
+class PsychopyPyShell(wx.py.shell.Shell, LegacyThemeMixin):
     """Simple class wrapper for Pyshell which uses the Psychopy ThemeMixin."""
     def __init__(self, coder):
         msg = _translate('PyShell in PsychoPy - type some commands!')
@@ -563,7 +563,7 @@ class UnitTestFrame(wx.Frame):
         self.Destroy()
 
 
-class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
+class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, LegacyThemeMixin):
     """Code editor class for the Coder GUI.
     """
     def __init__(self, parent, ID, frame,
@@ -646,9 +646,9 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
                 self.caretLine + 1, self.caretColumn + 1), 1)
 
         # calltips
-        self.CallTipSetBackground(ThemeMixin.codeColors['base']['bg'])
-        self.CallTipSetForeground(ThemeMixin.codeColors['base']['fg'])
-        self.CallTipSetForegroundHighlight(ThemeMixin.codeColors['select']['fg'])
+        self.CallTipSetBackground(LegacyThemeMixin.codeColors['base']['bg'])
+        self.CallTipSetForeground(LegacyThemeMixin.codeColors['base']['fg'])
+        self.CallTipSetForegroundHighlight(LegacyThemeMixin.codeColors['select']['fg'])
         self.AutoCompSetIgnoreCase(True)
         self.AutoCompSetAutoHide(True)
         self.AutoCompStops('. ')
@@ -1139,7 +1139,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
             #     findDlg.Close()
 
 
-class CoderFrame(BaseAuiFrame, ThemeMixin):
+class CoderFrame(BaseAuiFrame, LegacyThemeMixin):
 
     def __init__(self, parent, ID, title, files=(), app=None):
         self.app = app  # type: psychopy.app.PsychoPyApp
@@ -2883,14 +2883,14 @@ class CoderFrame(BaseAuiFrame, ThemeMixin):
     def _applyAppTheme(self, target=None):
         """Overrides theme change from ThemeMixin.
         Don't call - this is called at the end of theme.setter"""
-        ThemeMixin._applyAppTheme(self)  # handles most recursive setting
-        ThemeMixin._applyAppTheme(self.toolbar)
-        ThemeMixin._applyAppTheme(self.statusBar)
+        LegacyThemeMixin._applyAppTheme(self)  # handles most recursive setting
+        LegacyThemeMixin._applyAppTheme(self.toolbar)
+        LegacyThemeMixin._applyAppTheme(self.statusBar)
         # updating sourceAsst will incl fileBrowser and sourcetree
-        ThemeMixin._applyAppTheme(self.sourceAsst)
-        ThemeMixin._applyAppTheme(self.notebook)
+        LegacyThemeMixin._applyAppTheme(self.sourceAsst)
+        LegacyThemeMixin._applyAppTheme(self.notebook)
         self.notebook.Refresh()
         if hasattr(self, 'shelf'):
-            ThemeMixin._applyAppTheme(self.shelf)
+            LegacyThemeMixin._applyAppTheme(self.shelf)
         if sys.platform == 'win32':
             self.Update()  # kills mac. Not sure about linux

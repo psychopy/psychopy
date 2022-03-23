@@ -83,7 +83,7 @@ if sys.platform == 'win32':
                 psychopy.prefs.saveUserPrefs()
 
 
-class MenuFrame(wx.Frame, themes.ThemeMixin):
+class MenuFrame(wx.Frame, themes.LegacyThemeMixin):
     """A simple empty frame with a menubar, should be last frame closed on mac
     """
 
@@ -159,7 +159,7 @@ class _Showgui_Hack():
         core.shellCall([sys.executable, noopPath])
 
 
-class PsychoPyApp(wx.App, themes.ThemeMixin):
+class PsychoPyApp(wx.App, themes.LegacyThemeMixin):
     _called_from_test = False  # pytest needs to change this
 
     def __init__(self, arg=0, testMode=False, **kwargs):
@@ -1093,17 +1093,17 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
     @theme.setter
     def theme(self, value):
         """The theme to be used through the application"""
-        themes.ThemeMixin.loadThemeSpec(self, themeName=value)
+        themes.LegacyThemeMixin.loadThemeSpec(self, themeName=value)
         prefs.app['theme'] = value
-        self._currentThemeSpec = themes.ThemeMixin.spec
-        codeFont = themes.ThemeMixin.codeColors['base']['font']
+        self._currentThemeSpec = themes.LegacyThemeMixin.spec
+        codeFont = themes.LegacyThemeMixin.codeColors['base']['font']
 
         # Reset icon cache
-        icons.theme = themes.ThemeMixin.icons
+        icons.theme = themes.LegacyThemeMixin.icons
         icons.iconCache.clear()
 
         # Set app colors
-        colors.theme = themes.ThemeMixin.mode
+        colors.theme = themes.LegacyThemeMixin.mode
 
         # On OSX 10.15 Catalina at least calling SetFaceName with 'AppleSystemUIFont' fails.
         # So this fix checks to see if changing the font name invalidates the font.
@@ -1120,7 +1120,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
 
     def _applyAppTheme(self):
         """Overrides ThemeMixin for this class"""
-        self.iconCache.setTheme(themes.ThemeMixin)
+        self.iconCache.setTheme(themes.LegacyThemeMixin)
 
         for frameRef in self._allFrames:
             frame = frameRef()

@@ -19,7 +19,7 @@ import os
 import sys
 import subprocess
 import imghdr
-from ..themes import ThemeMixin, icons
+from ..themes import LegacyThemeMixin, icons
 from psychopy.localization import _translate
 
 # enums for file types
@@ -78,7 +78,7 @@ class FileBrowserListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl):
         ListCtrlAutoWidthMixin.__init__(self)
 
     def _applyAppTheme(self, target=None):
-        cs = ThemeMixin.appColors
+        cs = LegacyThemeMixin.appColors
         self.SetBackgroundColour(wx.Colour(cs['frame_bg']))
         self.SetForegroundColour(wx.Colour(cs['text']))
 
@@ -175,7 +175,7 @@ class FileBrowserPanel(wx.Panel):
         self.gotoDir(os.getcwd())
 
     def _applyAppTheme(self, target=None):
-        cs = ThemeMixin.appColors
+        cs = LegacyThemeMixin.appColors
         # Set background for Directory bar
         self.SetBackgroundColour(wx.Colour(cs['tab_bg']))
         self.SetForegroundColour(wx.Colour(cs['text']))
@@ -183,8 +183,8 @@ class FileBrowserPanel(wx.Panel):
         self.toolBar.SetBackgroundColour(cs['tab_bg'])
         self.toolBar.SetForegroundColour(cs['text'])
         self.makeFileImgIcons()
-        ThemeMixin._applyAppTheme(self.coder, self.txtAddr)
-        self.lblDir.SetForegroundColour(ThemeMixin.codeColors['base']['fg'])
+        LegacyThemeMixin._applyAppTheme(self.coder, self.txtAddr)
+        self.lblDir.SetForegroundColour(LegacyThemeMixin.codeColors['base']['fg'])
 
 
     def makeFileImgIcons(self):
