@@ -62,7 +62,7 @@ for c in cLib['darker']:
     cLib['very']['darker'][c] = [max(0, n-30) for n in cLib['darker'][c]]
 
 
-class ThemeMixin:
+class LegacyThemeMixin:
     lexers = {
         stc.STC_LEX_PYTHON: "python",
         stc.STC_LEX_CPP: "c++",
@@ -88,30 +88,30 @@ class ThemeMixin:
         # first load the *theme* which contains the mode name for the app
         try:
             with open(str(themesPath / (themeName+".json")), "rb") as fp:
-                ThemeMixin.spec = themeSpec = json.load(fp)
+                LegacyThemeMixin.spec = themeSpec = json.load(fp)
         except FileNotFoundError:
             with open(str(themesPath / "PsychopyLight.json"), "rb") as fp:
-                ThemeMixin.spec = themeSpec = json.load(fp)
+                LegacyThemeMixin.spec = themeSpec = json.load(fp)
         appColorMode = themeSpec['app']
         # Get app spec
         try:
             with open(str(themesPath / "app/{}.json".format(appColorMode)), "rb") as fp:
-                ThemeMixin.spec = appColors = json.load(fp)
+                LegacyThemeMixin.spec = appColors = json.load(fp)
         except FileNotFoundError:
             with open(str(themesPath / "app/light.json"), "rb") as fp:
-                ThemeMixin.spec = appColors = json.load(fp)
+                LegacyThemeMixin.spec = appColors = json.load(fp)
 
         # Set app theme
-        ThemeMixin.mode = appColorMode
+        LegacyThemeMixin.mode = appColorMode
         self._setAppColors(appColors)
         # Set app icons
         if 'icons' in themeSpec:
-            ThemeMixin.icons = themeSpec['icons']
+            LegacyThemeMixin.icons = themeSpec['icons']
         else:
-            ThemeMixin.icons = themeSpec['app']
+            LegacyThemeMixin.icons = themeSpec['app']
         # Set coder theme
         codertheme = themeSpec
-        ThemeMixin.codetheme = themeName
+        LegacyThemeMixin.codetheme = themeName
         self._setCodeColors(codertheme)
 
     def _applyAppTheme(self, target=None):
@@ -127,7 +127,7 @@ class ThemeMixin:
 
         # Define subfunctions to handle different object types
         def applyToToolbar(target):
-            target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+            target.SetBackgroundColour(LegacyThemeMixin.appColors['frame_bg'])
             # Clear tools
             target.ClearTools()
             # Redraw tools
@@ -137,8 +137,8 @@ class ThemeMixin:
             target.SetBackgroundColour(cLib['white'])
 
         def applyToFrame(target):
-            target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
-            target.SetForegroundColour(ThemeMixin.appColors['text'])
+            target.SetBackgroundColour(LegacyThemeMixin.appColors['frame_bg'])
+            target.SetForegroundColour(LegacyThemeMixin.appColors['text'])
             if hasattr(target, 'GetAuiManager'):
                 target.GetAuiManager().SetArtProvider(PsychopyDockArt())
                 target.GetAuiManager().Update()
@@ -148,8 +148,8 @@ class ThemeMixin:
                         submenu.SubMenu._applyAppTheme()
 
         def applyToPanel(target):
-            target.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
-            target.SetForegroundColour(ThemeMixin.appColors['text'])
+            target.SetBackgroundColour(LegacyThemeMixin.appColors['panel_bg'])
+            target.SetForegroundColour(LegacyThemeMixin.appColors['text'])
 
         def applyToNotebook(target):
             # Dict of icons to apply to specific tabs
@@ -163,14 +163,14 @@ class ThemeMixin:
             target.GetAuiManager().SetArtProvider(PsychopyDockArt())
             for index in range(target.GetPageCount()):
                 page = target.GetPage(index)
-                page.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+                page.SetBackgroundColour(LegacyThemeMixin.appColors['panel_bg'])
                 if page.GetName() in tabIcons:
                     bmp = LegacyIconCache.getBitmap(LegacyIconCache(), tabIcons[page.GetName()])
                     target.SetPageBitmap(index, bmp)
                 page._applyAppTheme()
 
         def applyToCodeEditor(target):
-            spec = ThemeMixin.codeColors.copy()
+            spec = LegacyThemeMixin.codeColors.copy()
             base = spec['base']
             # Set margin size according to text size
             if not isinstance(target, wx.py.shell.Shell):
@@ -238,7 +238,7 @@ class ThemeMixin:
             target.SetExtraDescent(spacing)
 
         def applyToRichText(target):
-            base = ThemeMixin.codeColors['base']
+            base = LegacyThemeMixin.codeColors['base']
             # todo: Add element-specific styling (it must be possible...)
             # If dealing with a StdOut, set background from base
             target.SetBackgroundColour(
@@ -273,7 +273,7 @@ class ThemeMixin:
             target.SetStyle(0, i, _style)
 
         def applyToTextCtrl(target):
-            base = ThemeMixin.codeColors['base']
+            base = LegacyThemeMixin.codeColors['base']
             target.SetForegroundColour(base['fg'])
             target.SetBackgroundColour(base['bg'])
 
@@ -299,8 +299,8 @@ class ThemeMixin:
         else:
             self._recursionDepth += 1
 
-        appCS = ThemeMixin.appColors
-        base = ThemeMixin.codeColors['base']
+        appCS = LegacyThemeMixin.appColors
+        base = LegacyThemeMixin.codeColors['base']
         # Abort if target is immune
         if hasattr(target, 'immune'):
             return
@@ -315,8 +315,8 @@ class ThemeMixin:
         if not isHandled:
             # try and set colors for target
             try:
-                target.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
-                target.SetForegroundColour(ThemeMixin.appColors['text'])
+                target.SetBackgroundColour(LegacyThemeMixin.appColors['panel_bg'])
+                target.SetForegroundColour(LegacyThemeMixin.appColors['text'])
             except AttributeError:
                 pass
 
@@ -349,9 +349,9 @@ class ThemeMixin:
             else:
                 # if not then use our own recursive method to search
                 if hasattr(c, 'Window') and c.Window is not None:
-                    ThemeMixin._applyAppTheme(c.Window)
+                    LegacyThemeMixin._applyAppTheme(c.Window)
                 elif hasattr(c, 'Sizer') and c.Sizer is not None:
-                    ThemeMixin._applyAppTheme(c.Sizer)
+                    LegacyThemeMixin._applyAppTheme(c.Sizer)
                 # and then apply
                 # try:
                 #     ThemeMixin._applyAppTheme(c)
@@ -651,7 +651,7 @@ class ThemeMixin:
 
         # we have a valid theme so continue
         for key in spec:
-            ThemeMixin.codeColors[key] = spec[key]  # class attribute for all mixin subclasses
+            LegacyThemeMixin.codeColors[key] = spec[key]  # class attribute for all mixin subclasses
 
     def _setAppColors(self, spec):
 
@@ -701,7 +701,7 @@ class ThemeMixin:
                     if hex[0] == "#" and all([h in hexchars for h in hex[1:].lower()]):
                         # Convert hex colour
                         format = format.replace("|named", "")
-                        wxcolor = ThemeMixin.hex2rgb(None, hex)
+                        wxcolor = LegacyThemeMixin.hex2rgb(None, hex)
                         color = list(wxcolor[:3])
                     else:
                         format = "invalid"
@@ -722,7 +722,7 @@ class ThemeMixin:
                     or "invalid" in color:
                 raise Exception("Invalid app colour spec")
             else:
-                ThemeMixin.appColors[key] = wx.Colour(color + [opacity])
+                LegacyThemeMixin.appColors[key] = wx.Colour(color + [opacity])
 
 
 def getBitmap(name, theme, size=None,
@@ -735,7 +735,7 @@ def getBitmap(name, theme, size=None,
 class LegacyIconCache:
     """A class to load icons and store them just once as a dict of wx.Bitmap
     objects according to theme"""
-    _theme = ThemeMixin
+    _theme = LegacyThemeMixin
     _bitmaps = {}
     _buttons = []  # a list of all created buttons
     _lastBGColor = None
@@ -834,7 +834,7 @@ class LegacyIconCache:
         """Retrieves an icon based on its name, theme, size and emblem
         either from the cache or loading from file as needed"""
         if theme is None:
-            theme = ThemeMixin.icons
+            theme = LegacyThemeMixin.icons
         if size is None:
             size = 48
         identifier = _getIdentifier(name, theme=theme, emblem=emblem, size=size)
@@ -885,7 +885,7 @@ class LegacyIconCache:
                          toolbar=None, tip=None, size=None,
                          tbKind=wx.ITEM_NORMAL, theme=None):
         if theme is None:
-            theme = ThemeMixin.icons
+            theme = LegacyThemeMixin.icons
         bmp = self.getBitmap(filename, theme, size, emblem)
         if toolbar:
             if 'phoenix' in wx.PlatformInfo:
@@ -901,7 +901,7 @@ class LegacyIconCache:
                                label=label, name=name, style=wx.NO_BORDER)
             button.SetBitmap(bmp)
             button.SetBitmapPosition(wx.TOP)
-            button.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+            button.SetBackgroundColour(LegacyThemeMixin.appColors['frame_bg'])
             # just for regular buttons (not toolbar objects) we can re-use
             buttonInfo = {'btn': button,
                           'filename': filename,
@@ -974,7 +974,7 @@ def _getIdentifier(name, theme, emblem, size=None):
         return "{}_{}_{}_{}".format(name, theme, emblem, size)
 
 
-class PsychopyTabArt(aui.AuiDefaultTabArt, ThemeMixin):
+class PsychopyTabArt(aui.AuiDefaultTabArt, LegacyThemeMixin):
     def __init__(self):
         aui.AuiDefaultTabArt.__init__(self)
 
@@ -988,7 +988,7 @@ class PsychopyTabArt(aui.AuiDefaultTabArt, ThemeMixin):
         :param `base_colour`: an instance of :class:`wx.Colour`. If defaulted to ``None``, a colour
          is generated accordingly to the platform and theme.
         """
-        cs = ThemeMixin.appColors
+        cs = LegacyThemeMixin.appColors
         self.SetBaseColour( wx.Colour(cs['tab_bg']) )
         self._background_top_colour = wx.Colour(cs['panel_bg'])
         self._background_bottom_colour = wx.Colour(cs['panel_bg'])
@@ -1020,7 +1020,7 @@ class PsychopyTabArt(aui.AuiDefaultTabArt, ThemeMixin):
 class PsychopyDockArt(aui.AuiDefaultDockArt):
     def __init__(self):
         aui.AuiDefaultDockArt.__init__(self)
-        cs = ThemeMixin.appColors
+        cs = LegacyThemeMixin.appColors
         # Gradient
         self._gradient_type = aui.AUI_GRADIENT_NONE
         # Background
@@ -1104,4 +1104,4 @@ class ThemeSwitcher(wx.Menu):
     def _applyAppTheme(self):
         for item in self.GetMenuItems():
             if item.IsRadio():  # This means it will not attempt to check the separator
-                item.Check(item.ItemLabel.lower() == ThemeMixin.codetheme.lower())
+                item.Check(item.ItemLabel.lower() == LegacyThemeMixin.codetheme.lower())

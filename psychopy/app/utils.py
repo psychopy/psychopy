@@ -24,7 +24,7 @@ from wx.lib import platebtn
 import psychopy
 from psychopy import logging
 from . import pavlovia_ui
-from .themes import ThemeMixin, LegacyIconCache
+from .themes import LegacyThemeMixin, LegacyIconCache
 from psychopy.localization import _translate
 from psychopy.tools.stringtools import prettyname
 from psychopy.tools.apptools import SortTerm
@@ -126,7 +126,7 @@ def getSystemFonts(encoding='system', fixedWidthOnly=False):
     return fontEnum.GetFacenames(encoding, fixedWidthOnly=fixedWidthOnly)
 
 
-class PsychopyToolbar(wx.ToolBar, ThemeMixin):
+class PsychopyToolbar(wx.ToolBar, LegacyThemeMixin):
     """Toolbar for the Builder/Coder Frame"""
     def __init__(self, frame):
         wx.ToolBar.__init__(self, frame)
@@ -302,7 +302,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
         return self.buttons[name]
 
 
-class PsychopyPlateBtn(platebtn.PlateButton, ThemeMixin):
+class PsychopyPlateBtn(platebtn.PlateButton, LegacyThemeMixin):
     def __init__(self, parent, id=wx.ID_ANY, label='', bmp=None,
                  pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=1, name=wx.ButtonNameStr):
@@ -312,7 +312,7 @@ class PsychopyPlateBtn(platebtn.PlateButton, ThemeMixin):
         self._applyAppTheme()
 
     def _applyAppTheme(self):
-        cs = ThemeMixin.appColors
+        cs = LegacyThemeMixin.appColors
         self.__InitColors()
         self.SetBackgroundColour(wx.Colour(self.parent.GetBackgroundColour()))
         self.SetPressColor(cs['txtbutton_bg_hover'])
@@ -320,7 +320,7 @@ class PsychopyPlateBtn(platebtn.PlateButton, ThemeMixin):
                            cs['txtbutton_fg_hover'])
 
     def __InitColors(self):
-        cs = ThemeMixin.appColors
+        cs = LegacyThemeMixin.appColors
         """Initialize the default colors"""
         colors = dict(default=True,
                       hlight=cs['txtbutton_bg_hover'],
@@ -985,7 +985,7 @@ class HoverMixin:
     def ForegroundColourNoHover(self):
         if hasattr(self, "_ForegroundColourNoHover"):
             return self._ForegroundColourNoHover
-        return ThemeMixin.appColors['text']
+        return LegacyThemeMixin.appColors['text']
 
     @ForegroundColourNoHover.setter
     def ForegroundColourNoHover(self, value):
@@ -995,7 +995,7 @@ class HoverMixin:
     def BackgroundColourNoHover(self):
         if hasattr(self, "_BackgroundColourNoHover"):
             return self._BackgroundColourNoHover
-        return ThemeMixin.appColors['frame_bg']
+        return LegacyThemeMixin.appColors['frame_bg']
 
     @BackgroundColourNoHover.setter
     def BackgroundColourNoHover(self, value):
@@ -1005,7 +1005,7 @@ class HoverMixin:
     def ForegroundColourHover(self):
         if hasattr(self, "_ForegroundColourHover"):
             return self._ForegroundColourHover
-        return ThemeMixin.appColors['txtbutton_fg_hover']
+        return LegacyThemeMixin.appColors['txtbutton_fg_hover']
 
     @ForegroundColourHover.setter
     def ForegroundColourHover(self, value):
@@ -1015,7 +1015,7 @@ class HoverMixin:
     def BackgroundColourHover(self):
         if hasattr(self, "_BackgroundColourHover"):
             return self._BackgroundColourHover
-        return ThemeMixin.appColors['txtbutton_bg_hover']
+        return LegacyThemeMixin.appColors['txtbutton_bg_hover']
 
     @BackgroundColourHover.setter
     def BackgroundColourHover(self, value):
@@ -1030,13 +1030,13 @@ class ToggleButton(wx.ToggleButton, HoverMixin):
     def BackgroundColourNoHover(self):
         if self.GetValue():
             # Return a darker color if selected
-            return ThemeMixin.appColors['docker_bg']
+            return LegacyThemeMixin.appColors['docker_bg']
         else:
             # Return the default color otherwise
             return HoverMixin.BackgroundColourNoHover.fget(self)
 
 
-class ToggleButtonArray(wx.Window, ThemeMixin):
+class ToggleButtonArray(wx.Window, LegacyThemeMixin):
 
     def __init__(self, parent, labels=None, values=None, multi=False, ori=wx.HORIZONTAL):
         wx.Window.__init__(self, parent)
@@ -1100,7 +1100,7 @@ class ToggleButtonArray(wx.Window, ThemeMixin):
 
     def _applyAppTheme(self, target=None):
         # Set panel background
-        self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+        self.SetBackgroundColour(LegacyThemeMixin.appColors['panel_bg'])
         # Use OnHover event to set buttons to their default colors
         for btn in self.buttons.values():
             btn.OnHover()

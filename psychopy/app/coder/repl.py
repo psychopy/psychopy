@@ -9,12 +9,12 @@
 
 import sys
 import wx
-from psychopy.app.themes import ThemeMixin
+from psychopy.app.themes import LegacyThemeMixin
 from psychopy.preferences import prefs
 import os
 
 
-class ConsoleTextCtrl(wx.TextCtrl, ThemeMixin):
+class ConsoleTextCtrl(wx.TextCtrl, LegacyThemeMixin):
     """Class for the console text control. This is needed to allow for theming.
     """
     def __init__(self, parent, id_=wx.ID_ANY, value="", pos=wx.DefaultPosition,
@@ -26,7 +26,7 @@ class ConsoleTextCtrl(wx.TextCtrl, ThemeMixin):
             validator=wx.DefaultValidator, name=name)
 
 
-class PythonREPLCtrl(wx.Panel, ThemeMixin):
+class PythonREPLCtrl(wx.Panel, LegacyThemeMixin):
     """Class for a Python REPL control.
 
     An interactive shell (REPL) for interfacing with a Python interpreter in
@@ -123,7 +123,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
 
         # get the font to use
         if prefs.coder['outputFont'].lower() == "From Theme...".lower():
-            fontName = ThemeMixin.codeColors['base']['font'].replace("bold", "").replace("italic", "").replace(",", "")
+            fontName = LegacyThemeMixin.codeColors['base']['font'].replace("bold", "").replace("italic", "").replace(",", "")
         else:
             fontName = prefs.coder['outputFont']
 

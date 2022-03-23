@@ -9,7 +9,7 @@ import json
 import errno
 from psychopy.app.themes._themes import ThemeSwitcher
 
-from ..themes import ThemeMixin, LegacyIconCache
+from ..themes import LegacyThemeMixin, LegacyIconCache
 
 import wx
 from wx.lib import platebtn
@@ -36,7 +36,7 @@ folderColumn = 1
 filenameColumn = 0
 
 
-class RunnerFrame(wx.Frame, ThemeMixin):
+class RunnerFrame(wx.Frame, LegacyThemeMixin):
     """Construct the Psychopy Runner Frame."""
 
     def __init__(self, parent=None, id=wx.ID_ANY, title='', app=None):
@@ -439,7 +439,7 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         return temp
 
 
-class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
+class RunnerPanel(wx.Panel, ScriptProcess, LegacyThemeMixin):
 
     class SizerButton(wx.ToggleButton):
         """Button to show/hide a category of components"""
@@ -489,14 +489,14 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
             """Apply app theme to this button"""
             if self.hover:
                 # If hovered over currently, use hover colours
-                self.SetForegroundColour(ThemeMixin.appColors['txtbutton_fg_hover'])
+                self.SetForegroundColour(LegacyThemeMixin.appColors['txtbutton_fg_hover'])
                 # self.icon.SetForegroundColour(ThemeMixin.appColors['txtbutton_fg_hover'])
-                self.SetBackgroundColour(ThemeMixin.appColors['txtbutton_bg_hover'])
+                self.SetBackgroundColour(LegacyThemeMixin.appColors['txtbutton_bg_hover'])
             else:
                 # Otherwise, use regular colours
-                self.SetForegroundColour(ThemeMixin.appColors['text'])
+                self.SetForegroundColour(LegacyThemeMixin.appColors['text'])
                 # self.icon.SetForegroundColour(ThemeMixin.appColors['text'])
-                self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+                self.SetBackgroundColour(LegacyThemeMixin.appColors['panel_bg'])
 
     def __init__(self, parent=None, id=wx.ID_ANY, title='', app=None):
         super(RunnerPanel, self).__init__(parent=parent,
@@ -581,14 +581,14 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
     def _applyAppTheme(self, target=None):
         if target is None:
             target = self
-        ThemeMixin._applyAppTheme(self, self)
+        LegacyThemeMixin._applyAppTheme(self, self)
         self.alertsCtrl._applyAppTheme()
         self.stdoutCtrl._applyAppTheme()
-        ThemeMixin._applyAppTheme(self.expCtrl)
+        LegacyThemeMixin._applyAppTheme(self.expCtrl)
         for btn in self.buttonSizer.GetChildren():
             if btn.Window:
                 btn = btn.Window
-                btn.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+                btn.SetBackgroundColour(LegacyThemeMixin.appColors['panel_bg'])
         # Add icons to buttons
         bmp = LegacyIconCache.getBitmap(LegacyIconCache(), "stdout.png")
         self.stdoutToggleBtn.SetBitmap(bmp)
@@ -958,13 +958,13 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
             self.app.coder.setCurrentDoc(filepath)
 
     def onHover(self, evt):
-        cs = ThemeMixin.appColors
+        cs = LegacyThemeMixin.appColors
         btn = evt.GetEventObject()
         btn.SetBackgroundColour(cs['bmpbutton_bg_hover'])
         btn.SetForegroundColour(cs['bmpbutton_fg_hover'])
 
     def offHover(self, evt):
-        cs = ThemeMixin.appColors
+        cs = LegacyThemeMixin.appColors
         btn = evt.GetEventObject()
         btn.SetBackgroundColour(cs['panel_bg'])
         btn.SetForegroundColour(cs['text'])
@@ -1027,7 +1027,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self._currentProject = None
 
 
-class StdOutText(StdOutRich, ThemeMixin):
+class StdOutText(StdOutRich, LegacyThemeMixin):
     """StdOutRich subclass which also handles Git messages from Pavlovia projects."""
 
     def __init__(self, parent=None, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE, size=wx.DefaultSize):

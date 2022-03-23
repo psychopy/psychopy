@@ -46,7 +46,7 @@ if parse_version(wx.__version__) < parse_version('4.0.3'):
 from psychopy.localization import _translate
 from ... import experiment, prefs
 from .. import dialogs
-from ..themes import ThemeMixin, icons
+from ..themes import LegacyThemeMixin, icons
 from ..themes._themes import PsychopyDockArt, PsychopyTabArt, ThemeSwitcher
 from ..ui import BaseAuiFrame
 from psychopy import logging, data
@@ -88,7 +88,7 @@ _localized = {
     'move to bottom': _translate('move to bottom')
 }
 
-cs = ThemeMixin.appColors
+cs = LegacyThemeMixin.appColors
 
 # Components which are always hidden
 alwaysHidden = [
@@ -118,7 +118,7 @@ class TemplateManager(dict):
                     self[categName][routineName] = copy.copy(thisExp.routines[routineName])
 
 
-class BuilderFrame(BaseAuiFrame, ThemeMixin):
+class BuilderFrame(BaseAuiFrame, LegacyThemeMixin):
     """Defines construction of the Psychopy Builder Frame"""
 
     routineTemplates = TemplateManager()
@@ -1462,7 +1462,7 @@ class BuilderFrame(BaseAuiFrame, ThemeMixin):
         self._project = project
 
 
-class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
+class RoutinesNotebook(aui.AuiNotebook, LegacyThemeMixin):
     """A notebook that stores one or more routines
     """
 
@@ -1854,7 +1854,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.pdc.Clear()  # clear the screen
         self.pdc.RemoveAll()  # clear all objects (icon buttons)
 
-        self.SetBackgroundColour(ThemeMixin.appColors['tab_bg'])
+        self.SetBackgroundColour(LegacyThemeMixin.appColors['tab_bg'])
         # work out where the component names and icons should be from name
         # lengths
         self.setFontSize(self.fontBaseSize // self.dpi, self.pdc)
@@ -1912,8 +1912,8 @@ class RoutineCanvas(wx.ScrolledWindow):
         xEnd = self.timeXposEnd
 
         # dc.SetId(wx.NewIdRef())
-        dc.SetPen(wx.Pen(ThemeMixin.appColors['rt_timegrid']))
-        dc.SetTextForeground(wx.Colour(ThemeMixin.appColors['rt_timegrid']))
+        dc.SetPen(wx.Pen(LegacyThemeMixin.appColors['rt_timegrid']))
+        dc.SetTextForeground(wx.Colour(LegacyThemeMixin.appColors['rt_timegrid']))
         # draw horizontal lines on top and bottom
         dc.DrawLine(x1=xSt, y1=yPosTop,
                     x2=xEnd, y2=yPosTop)
@@ -1952,7 +1952,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             # y is y-half height of text
             dc.DrawText('t (sec)', xEnd + 5,
                         yPosBottom - self.GetFullTextExtent('t')[1] / 2.0)
-        dc.SetTextForeground(ThemeMixin.appColors['text'])
+        dc.SetTextForeground(LegacyThemeMixin.appColors['text'])
 
     def setFontSize(self, size, dc):
         font = self.GetFont()
@@ -1986,12 +1986,12 @@ class RoutineCanvas(wx.ScrolledWindow):
         xScale = self.getSecsPerPixel()
 
         if component.params['disabled'].val:
-            dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_static_disabled']))
-            dc.SetPen(wx.Pen(ThemeMixin.appColors['rt_static_disabled']))
+            dc.SetBrush(wx.Brush(LegacyThemeMixin.appColors['rt_static_disabled']))
+            dc.SetPen(wx.Pen(LegacyThemeMixin.appColors['rt_static_disabled']))
 
         else:
-            dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_static']))
-            dc.SetPen(wx.Pen(ThemeMixin.appColors['rt_static']))
+            dc.SetBrush(wx.Brush(LegacyThemeMixin.appColors['rt_static']))
+            dc.SetPen(wx.Pen(LegacyThemeMixin.appColors['rt_static']))
 
         xSt = self.timeXposStart + startTime // xScale
         w = duration // xScale + 1  # +1 b/c border alpha=0 in dc.SetPen
@@ -2031,25 +2031,25 @@ class RoutineCanvas(wx.ScrolledWindow):
         iconYOffset = (6, 6, 0)[self.drawSize]
         # get default icon and bar color
         thisIcon = icons.ComponentIcon(component, size=self.iconSize).bitmap
-        thisColor = ThemeMixin.appColors['rt_comp']
+        thisColor = LegacyThemeMixin.appColors['rt_comp']
         thisStyle = wx.BRUSHSTYLE_SOLID
 
         # check True/False on ForceEndRoutine
         if 'forceEndRoutine' in component.params:
             if component.params['forceEndRoutine'].val:
-                thisColor = ThemeMixin.appColors['rt_comp_force']
+                thisColor = LegacyThemeMixin.appColors['rt_comp_force']
         # check True/False on ForceEndRoutineOnPress
         if 'forceEndRoutineOnPress' in component.params:
             if component.params['forceEndRoutineOnPress'].val:
-                thisColor = ThemeMixin.appColors['rt_comp_force']
+                thisColor = LegacyThemeMixin.appColors['rt_comp_force']
         # check True aliases on EndRoutineOn
         if 'endRoutineOn' in component.params:
             if component.params['endRoutineOn'].val in ['look at', 'look away']:
-                thisColor = ThemeMixin.appColors['rt_comp_force']
+                thisColor = LegacyThemeMixin.appColors['rt_comp_force']
         # grey bar if comp is disabled
         if component.params['disabled'].val:
             thisIcon = thisIcon.ConvertToDisabled()
-            thisColor = ThemeMixin.appColors['rt_comp_disabled']
+            thisColor = LegacyThemeMixin.appColors['rt_comp_disabled']
 
         dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
         fullRect = wx.Rect(self.iconXpos, yPos,
@@ -2208,7 +2208,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         return self.getMaxTime() / pixels
 
 
-class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, ThemeMixin):
+class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, LegacyThemeMixin):
     def __init__(self, parent, routine=None):
         # Init super
         scrolledpanel.ScrolledPanel.__init__(
@@ -2443,8 +2443,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
 
         def _applyAppTheme(self):
             # Set colors
-            self.SetForegroundColour(ThemeMixin.appColors['text'])
-            self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+            self.SetForegroundColour(LegacyThemeMixin.appColors['text'])
+            self.SetBackgroundColour(LegacyThemeMixin.appColors['panel_bg'])
             # Set bitmap
             icon = icons.ComponentIcon(self.component, size=48)
             if hasattr(self.component, "beta") and self.component.beta:
@@ -2515,8 +2515,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
 
         def _applyAppTheme(self):
             # Set colors
-            self.SetForegroundColour(ThemeMixin.appColors['text'])
-            self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+            self.SetForegroundColour(LegacyThemeMixin.appColors['text'])
+            self.SetBackgroundColour(LegacyThemeMixin.appColors['panel_bg'])
             # Set bitmap
             icon = icons.ComponentIcon(self.routine, size=48)
             if hasattr(self.routine, "beta") and self.routine.beta:
@@ -2531,7 +2531,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # Refresh
             self.Refresh()
 
-    class FilterDialog(wx.Dialog, ThemeMixin):
+    class FilterDialog(wx.Dialog, LegacyThemeMixin):
         def __init__(self, parent, size=(200, 300)):
             wx.Dialog.__init__(self, parent, size=size)
             self.parent = parent
@@ -2663,7 +2663,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self._applyAppTheme()  # bitmaps only just loaded
 
     def _applyAppTheme(self, target=None):
-        cs = ThemeMixin.appColors
+        cs = LegacyThemeMixin.appColors
         # Style component panel
         self.SetForegroundColour(cs['text'])
         self.SetBackgroundColour(cs['panel_bg'])
@@ -2675,7 +2675,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.catLabels[lbl].SetForegroundColour(cs['text'])
             # then apply to all children as well
         # Style filter button
-        self.filterBtn.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+        self.filterBtn.SetBackgroundColour(LegacyThemeMixin.appColors['panel_bg'])
         icon = icons.ButtonIcon("filter", size=16).bitmap
         self.filterBtn.SetBitmap(icon)
         self.filterBtn.SetBitmapCurrent(icon)
@@ -2988,7 +2988,7 @@ class FlowPanel(wx.ScrolledWindow):
 
     def _applyAppTheme(self, target=None):
         """Apply any changes which have been made to the theme since panel was last loaded"""
-        cs = ThemeMixin.appColors
+        cs = LegacyThemeMixin.appColors
         # Style loop/routine buttons
         self.btnInsertLoop.SetBackgroundColour(cs['frame_bg'])
         self.btnInsertLoop.SetForegroundColour(cs['text'])
