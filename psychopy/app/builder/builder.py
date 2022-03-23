@@ -118,7 +118,7 @@ class TemplateManager(dict):
                     self[categName][routineName] = copy.copy(thisExp.routines[routineName])
 
 
-class BuilderFrame(BaseAuiFrame, LegacyThemeMixin):
+class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     """Defines construction of the Psychopy Builder Frame"""
 
     routineTemplates = TemplateManager()
@@ -264,15 +264,8 @@ class BuilderFrame(BaseAuiFrame, LegacyThemeMixin):
 
         self.app.trackFrame(self)
         self.SetDropTarget(FileDropTarget(targetFrame=self))
-        self._applyAppTheme()
 
-    # def _applyAppTheme(self, target=None):
-    #     # self.SetArtProvider(PsychopyDockArt())
-    #     for c in self.GetChildren():
-    #         if hasattr(c, '_applyAppTheme'):
-    #             c._applyAppTheme()
-    #     self.Refresh()
-    #     self.Update()
+        self.theme = colors.theme
 
     # Synonymise Aui manager for use with theme mixin
     def GetAuiManager(self):

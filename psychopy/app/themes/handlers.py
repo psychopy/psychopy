@@ -9,19 +9,20 @@ from ._themes import ThemeSwitcher
 
 
 def styleFrame(target):
+    # Set background color
     target.SetBackgroundColour(colors.app['frame_bg'])
+    # Set foreground color
     target.SetForegroundColour(colors.app['text'])
-    if hasattr(target, 'GetAuiManager'):
-        target.GetAuiManager().SetArtProvider(handlers.dock)
-        target.GetAuiManager().Update()
-    for menu in target.GetMenuBar().GetMenus():
-        for submenu in menu[0].MenuItems:
-            if isinstance(submenu.SubMenu, ThemeSwitcher):
-                submenu.SubMenu._applyAppTheme()
+    # Set aui art provider
+    if hasattr(target, 'getAuiManager'):
+        target.getAuiManager().SetArtProvider(handlers.PsychopyDockArt())
+        target.getAuiManager().Update()
 
 
 def stylePanel(target):
+    # Set background color
     target.SetBackgroundColour(colors.app['panel_bg'])
+    # Set text color
     target.SetForegroundColour(colors.app['text'])
 
 
@@ -75,6 +76,9 @@ class ThemeMixin:
                 children.append(child)
         if hasattr(self, 'paneManager'):
             for pane in self.paneManager.AllPanes:
+                children.append(pane.window)
+        if hasattr(self, 'getAuiManager'):
+            for pane in self.getAuiManager().GetAllPanes():
                 children.append(pane.window)
         if hasattr(self, 'GetSizer') and self.GetSizer():
             for child in self.GetSizer().GetChildren():
@@ -141,5 +145,3 @@ class PsychopyDockArt(aui.AuiDefaultDockArt):
         self._caption_size = 25
         self._button_size = 20
 
-
-dock = PsychopyDockArt()
