@@ -181,9 +181,6 @@ class ButtonIcon(BaseIcon):
 
         # Use appropriate sized bitmap
         self.bitmap = self.resizeBitmap(bmp, self.size)
-        # Set own size
-        self.SetWidth(width)
-        self.SetHeight(height)
 
 
 class ComponentIcon(BaseIcon):
@@ -219,10 +216,6 @@ class ComponentIcon(BaseIcon):
 
     def _fitBitmap(self):
         self.bitmap = self.resizeBitmap(self.bitmap, self.size)
-        # Set own size
-        width, height = self.size
-        self.SetWidth(width)
-        self.SetHeight(height)
 
     @property
     def beta(self):
