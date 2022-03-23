@@ -24,7 +24,7 @@ from wx.lib import platebtn
 import psychopy
 from psychopy import logging
 from . import pavlovia_ui
-from .themes import LegacyThemeMixin, LegacyIconCache
+from .themes import LegacyThemeMixin, LegacyIconCache, colors
 from psychopy.localization import _translate
 from psychopy.tools.stringtools import prettyname
 from psychopy.tools.apptools import SortTerm
@@ -987,7 +987,7 @@ class HoverMixin:
     def ForegroundColourNoHover(self):
         if hasattr(self, "_ForegroundColourNoHover"):
             return self._ForegroundColourNoHover
-        return LegacyThemeMixin.appColors['text']
+        return colors.app['text']
 
     @ForegroundColourNoHover.setter
     def ForegroundColourNoHover(self, value):
@@ -997,7 +997,7 @@ class HoverMixin:
     def BackgroundColourNoHover(self):
         if hasattr(self, "_BackgroundColourNoHover"):
             return self._BackgroundColourNoHover
-        return LegacyThemeMixin.appColors['frame_bg']
+        return colors.app['frame_bg']
 
     @BackgroundColourNoHover.setter
     def BackgroundColourNoHover(self, value):
@@ -1007,7 +1007,7 @@ class HoverMixin:
     def ForegroundColourHover(self):
         if hasattr(self, "_ForegroundColourHover"):
             return self._ForegroundColourHover
-        return LegacyThemeMixin.appColors['txtbutton_fg_hover']
+        return colors.app['txtbutton_fg_hover']
 
     @ForegroundColourHover.setter
     def ForegroundColourHover(self, value):
@@ -1017,7 +1017,7 @@ class HoverMixin:
     def BackgroundColourHover(self):
         if hasattr(self, "_BackgroundColourHover"):
             return self._BackgroundColourHover
-        return LegacyThemeMixin.appColors['txtbutton_bg_hover']
+        return colors.app['txtbutton_bg_hover']
 
     @BackgroundColourHover.setter
     def BackgroundColourHover(self, value):
