@@ -46,7 +46,7 @@ if parse_version(wx.__version__) < parse_version('4.0.3'):
 from psychopy.localization import _translate
 from ... import experiment, prefs
 from .. import dialogs
-from ..themes import LegacyThemeMixin, icons
+from ..themes import LegacyThemeMixin, icons, colors, handlers
 from ..themes._themes import PsychopyDockArt, PsychopyTabArt, ThemeSwitcher
 from ..ui import BaseAuiFrame
 from psychopy import logging, data
@@ -2260,10 +2260,10 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, LegacyThemeMixin):
         return self.ctrls.Validate()
 
 
-class ComponentsPanel(scrolledpanel.ScrolledPanel):
+class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
     """Panel containing buttons for each component, sorted by category"""
 
-    class CategoryButton(wx.ToggleButton, HoverMixin):
+    class CategoryButton(wx.ToggleButton, handlers.ThemeMixin, HoverMixin):
         """Button to show/hide a category of components"""
         def __init__(self, parent, name, cat):
             if sys.platform == 'darwin':
@@ -2331,13 +2331,13 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.parent.Layout()
             self.parent.SetupScrolling()
             # Restyle
-            self._applyAppTheme()
+            self.OnHover()
 
         def _applyAppTheme(self):
             """Apply app theme to this button"""
             self.OnHover()
 
-    class ComponentButton(wx.Button):
+    class ComponentButton(wx.Button, handlers.ThemeMixin):
         """Button to open component parameters dialog"""
         def __init__(self, parent, name, comp, cat):
             self.parent = parent
@@ -2443,8 +2443,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
 
         def _applyAppTheme(self):
             # Set colors
-            self.SetForegroundColour(LegacyThemeMixin.appColors['text'])
-            self.SetBackgroundColour(LegacyThemeMixin.appColors['panel_bg'])
+            self.SetForegroundColour(colors.app['text'])
+            self.SetBackgroundColour(colors.app['panel_bg'])
             # Set bitmap
             icon = icons.ComponentIcon(self.component, size=48)
             if hasattr(self.component, "beta") and self.component.beta:
@@ -2459,7 +2459,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # Refresh
             self.Refresh()
 
-    class RoutineButton(wx.Button):
+    class RoutineButton(wx.Button, handlers.ThemeMixin):
         """Button to open component parameters dialog"""
         def __init__(self, parent, name, rt, cat):
             self.parent = parent
@@ -2515,8 +2515,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
 
         def _applyAppTheme(self):
             # Set colors
-            self.SetForegroundColour(LegacyThemeMixin.appColors['text'])
-            self.SetBackgroundColour(LegacyThemeMixin.appColors['panel_bg'])
+            self.SetForegroundColour(colors.app['text'])
+            self.SetBackgroundColour(colors.app['panel_bg'])
             # Set bitmap
             icon = icons.ComponentIcon(self.routine, size=48)
             if hasattr(self.routine, "beta") and self.routine.beta:
@@ -2663,31 +2663,19 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self._applyAppTheme()  # bitmaps only just loaded
 
     def _applyAppTheme(self, target=None):
-        cs = LegacyThemeMixin.appColors
         # Style component panel
-        self.SetForegroundColour(cs['text'])
-        self.SetBackgroundColour(cs['panel_bg'])
-        # Style component buttons
-        for btn in self.compButtons:
-            btn._applyAppTheme()
+        self.SetForegroundColour(colors.app['text'])
+        self.SetBackgroundColour(colors.app['panel_bg'])
         # Style category labels
         for lbl in self.catLabels:
-            self.catLabels[lbl].SetForegroundColour(cs['text'])
-            # then apply to all children as well
+            self.catLabels[lbl].SetForegroundColour(colors.app['text'])
         # Style filter button
-        self.filterBtn.SetBackgroundColour(LegacyThemeMixin.appColors['panel_bg'])
+        self.filterBtn.SetBackgroundColour(colors.app['panel_bg'])
         icon = icons.ButtonIcon("filter", size=16).bitmap
         self.filterBtn.SetBitmap(icon)
         self.filterBtn.SetBitmapCurrent(icon)
         self.filterBtn.SetBitmapPressed(icon)
         self.filterBtn.SetBitmapFocus(icon)
-        # Refresh
-        for c in self.GetChildren():
-            if hasattr(c, '_applyAppTheme'):
-                # if the object understands themes then request that
-                c._applyAppTheme()
-        self.Refresh()
-        self.Update()
 
     def addToFavorites(self, comp):
         name = comp.__name__
