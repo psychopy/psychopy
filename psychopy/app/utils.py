@@ -980,6 +980,8 @@ class HoverMixin:
             self.SetBackgroundColour(self.BackgroundColourNoHover)
             # and mark as unhovered
             self.IsHovered = False
+        # Refresh
+        self.Refresh()
 
     @property
     def ForegroundColourNoHover(self):
