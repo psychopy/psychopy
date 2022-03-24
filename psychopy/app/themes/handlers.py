@@ -31,9 +31,7 @@ def stylePanel(target):
 def styleToolbar(target):
     # Set background color
     target.SetBackgroundColour(colors.app['frame_bg'])
-    # Clear tools
-    target.ClearTools()
-    # Redraw tools
+    # Recreate tools
     target.makeTools()
 
 
