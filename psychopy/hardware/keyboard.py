@@ -218,6 +218,7 @@ class Keyboard:
                 self.start()
 
         if Keyboard._backend in ['', 'event']:
+            from psychopy import event
             Keyboard._backend = 'event'
 
         logging.info('keyboard.Keyboard is using %s backend.' % Keyboard._backend)
@@ -239,10 +240,10 @@ class Keyboard:
             if backend in ['iohub', 'ptb', 'event', '']:
                 Keyboard._backend = backend
             else:
-                logging.warning("keyboard.Keyboard.setBackend failed. backend must be one of %s" % str(['iohub',
-                                                                                                        'ptb',
-                                                                                                        'event', '']))
-
+                logging.warning("keyboard.Keyboard.setBackend failed. backend must be one of %s"
+                                % str(['iohub', 'ptb', 'event', '']))
+            if backend == 'event':
+                from psychopy import event
         else:
             logging.warning("keyboard.Keyboard.setBackend already using '%s' backend. "
                             "Can not switch to '%s'" % (self._backend, backend))
