@@ -65,6 +65,8 @@ class ThemeMixin:
         # Skip method if theme value is unchanged
         if value == self.theme:
             return
+        # Store value
+        self._theme = value
 
         # Do own styling
         self._applyAppTheme()
