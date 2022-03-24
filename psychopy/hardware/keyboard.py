@@ -190,7 +190,7 @@ class Keyboard:
                 Keyboard._iohubOffset = Computer.global_clock.getLastResetTime()
                 Keyboard._backend = 'iohub'
 
-        if Keyboard._backend in ['', 'ptb'] and havePTB:
+        elif Keyboard._backend in ['', 'ptb'] and havePTB:
             Keyboard._backend = 'ptb'
             # get the necessary keyboard buffer(s)
             if sys.platform == 'win32':
@@ -217,7 +217,7 @@ class Keyboard:
             if not waitForStart:
                 self.start()
 
-        if Keyboard._backend in ['', 'event']:
+        elif Keyboard._backend in ['', 'event']:
             from psychopy import event
             Keyboard._backend = 'event'
 
