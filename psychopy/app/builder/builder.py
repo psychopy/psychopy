@@ -2652,8 +2652,6 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.Fit()
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(not self.frame.isRetina)
-        # Apply theme
-        self._applyAppTheme()  # bitmaps only just loaded
 
     def _applyAppTheme(self, target=None):
         # Style component panel
@@ -2964,8 +2962,6 @@ class FlowPanel(wx.ScrolledWindow):
 
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(not self.frame.isRetina)
-
-        self._applyAppTheme()
 
     def _applyAppTheme(self, target=None):
         """Apply any changes which have been made to the theme since panel was last loaded"""
