@@ -17,7 +17,7 @@ import time
 import io
 import argparse
 
-from psychopy.app.themes import icons, colors
+from psychopy.app.themes import icons, colors, handlers
 
 profiling = False  # turning on will save profile files in currDir
 
@@ -1116,16 +1116,10 @@ class PsychoPyApp(wx.App, themes.LegacyThemeMixin):
         if not (success):
             self._codeFont = beforesetface
         # Apply theme
-        self._applyAppTheme()
-
-    def _applyAppTheme(self):
-        """Overrides ThemeMixin for this class"""
-        self.iconCache.setTheme(themes.LegacyThemeMixin)
-
         for frameRef in self._allFrames:
             frame = frameRef()
-            if hasattr(frame, '_applyAppTheme'):
-                frame._applyAppTheme()
+            if isinstance(frame, handlers.ThemeMixin):
+                frame.theme = themes.LegacyThemeMixin.mode
 
 
 if __name__ == '__main__':
