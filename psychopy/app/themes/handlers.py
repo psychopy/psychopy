@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from . import colors
 from . import handlers
 
@@ -66,7 +68,7 @@ class ThemeMixin:
         if value == self.theme:
             return
         # Store value
-        self._theme = value
+        self._theme = deepcopy(value)
 
         # Do own styling
         self._applyAppTheme()
