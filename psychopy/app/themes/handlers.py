@@ -73,19 +73,27 @@ class ThemeMixin:
         children = []
         if hasattr(self, 'GetChildren'):
             for child in self.GetChildren():
-                children.append(child)
+                if child not in children:
+                    children.append(child)
         if hasattr(self, 'paneManager'):
             for pane in self.paneManager.AllPanes:
-                children.append(pane.window)
+                if child not in children:
+                    children.append(pane.window)
         if hasattr(self, 'getAuiManager'):
             for pane in self.getAuiManager().GetAllPanes():
-                children.append(pane.window)
+                if child not in children:
+                    children.append(pane.window)
         if hasattr(self, 'GetSizer') and self.GetSizer():
             for child in self.GetSizer().GetChildren():
-                children.append(child)
+                if child not in children:
+                    children.append(child)
         if hasattr(self, 'MenuItems'):
             for child in self.MenuItems:
-                children.append(child)
+                if child not in children:
+                    children.append(child)
+        if hasattr(self, "GetToolBar"):
+            if child not in children:
+                children.append(self.GetToolBar())
 
         # For each child, do styling
         for child in children:
