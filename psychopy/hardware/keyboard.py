@@ -154,15 +154,9 @@ class Keyboard:
         """
         global havePTB
 
-        if self._backend is None and backend in ['iohub', 'ptb', 'event', '']:
-            Keyboard._backend = backend
-
-        if self._backend is None:
-            Keyboard._backend = ''
-
-        if backend and self._backend != backend:
-            logging.warning("keyboard.Keyboard already using '%s' backend. Can not switch to '%s'" % (self._backend,
-                                                                                                      backend))
+        self.device = device
+        self.waitForStart = waitForStart
+        self.bufferSize = bufferSize
 
         self.status = NOT_STARTED
         # Initiate containers for storing responses
@@ -175,6 +169,30 @@ class Keyboard:
             self.clock = clock
         else:
             self.clock = psychopy.clock.Clock()
+
+
+    @classmethod
+    def getBackend(self):
+        """Return backend being used."""
+        return self._backend
+
+    @classmethod
+    def setBackend(self, backend):
+        """
+        Set backend event handler. Returns currently active handler.
+
+        :param backend: 'iohub', 'ptb', 'event', or ''
+        :return: str
+        """
+        if self._backend is None and backend in ['iohub', 'ptb', 'event', '']:
+            Keyboard._backend = backend
+
+        if self._backend is None:
+            Keyboard._backend = ''
+
+        if backend and self._backend != backend:
+            logging.warning("keyboard.Keyboard already using '%s' backend. "
+                            "Can not switch to '%s'" % (self._backend, backend))
 
         if Keyboard._backend in ['', 'iohub']:
             from psychopy.iohub.client import ioHubConnection
@@ -190,63 +208,38 @@ class Keyboard:
                 Keyboard._iohubOffset = Computer.global_clock.getLastResetTime()
                 Keyboard._backend = 'iohub'
 
-        elif Keyboard._backend in ['', 'ptb'] and havePTB:
+        if Keyboard._backend in ['', 'ptb'] and havePTB:
             Keyboard._backend = 'ptb'
             # get the necessary keyboard buffer(s)
             if sys.platform == 'win32':
                 self._ids = [-1]  # no indexing possible so get the combo keyboard
             else:
                 allInds, allNames, allKBs = hid.get_keyboard_indices()
-                if device == -1:
+                if self.device == -1:
                     self._ids = allInds
-                elif type(device) in [list, tuple]:
-                    self._ids = device
+                elif type(self.device) in [list, tuple]:
+                    self._ids = self.device
                 else:
-                    self._ids = [device]
+                    self._ids = [self.device]
 
             self._buffers = {}
             self._devs = {}
             for devId in self._ids:
                 # now we have a list of device IDs to monitor
                 if devId == -1 or devId in allInds:
-                    buffer = _keyBuffers.getBuffer(devId, bufferSize)
+                    buffer = _keyBuffers.getBuffer(devId, self.bufferSize)
                     self._buffers[devId] = buffer
                     self._devs[devId] = buffer.dev
 
             # Is this right, waiting if waitForStart=False??
-            if not waitForStart:
+            if not self.waitForStart:
                 self.start()
 
-        elif Keyboard._backend in ['', 'event']:
+        if Keyboard._backend in ['', 'event']:
             from psychopy import event
             Keyboard._backend = 'event'
 
         logging.info('keyboard.Keyboard is using %s backend.' % Keyboard._backend)
-
-    @classmethod
-    def getBackend(self):
-        """Return backend being used."""
-        return self._backend
-
-    @classmethod
-    def setBackend(self, backend):
-        """
-        Set backend event handler. Returns currently active handler.
-
-        :param backend: 'iohub', 'ptb', 'event', or ''
-        :return: str
-        """
-        if self._backend is None:
-            if backend in ['iohub', 'ptb', 'event', '']:
-                Keyboard._backend = backend
-            else:
-                logging.warning("keyboard.Keyboard.setBackend failed. backend must be one of %s"
-                                % str(['iohub', 'ptb', 'event', '']))
-            if backend == 'event':
-                from psychopy import event
-        else:
-            logging.warning("keyboard.Keyboard.setBackend already using '%s' backend. "
-                            "Can not switch to '%s'" % (self._backend, backend))
 
         return self._backend
 
