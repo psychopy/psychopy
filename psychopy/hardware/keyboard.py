@@ -157,6 +157,7 @@ class Keyboard:
         self.device = device
         self.waitForStart = waitForStart
         self.bufferSize = bufferSize
+        self.setBackend(backend)
 
         self.status = NOT_STARTED
         # Initiate containers for storing responses
