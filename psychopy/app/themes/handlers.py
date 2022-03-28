@@ -100,7 +100,7 @@ class ThemeMixin:
         if hasattr(self, 'GetSizer') and self.GetSizer():
             for child in self.GetSizer().GetChildren():
                 if child not in children:
-                    children.append(child)
+                    children.append(child.Window)
         if hasattr(self, 'MenuItems'):
             for child in self.MenuItems:
                 if child not in children:
