@@ -1228,7 +1228,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.SetDropTarget(FileDropTarget(targetFrame=self))
 
         # Create editor notebook
-        self.notebook = aui.AuiNotebook(
+        self.notebook = StyledNotebook(
             self, -1, size=wx.Size(480, 480),
             agwStyle=aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB)
 
@@ -1245,10 +1245,10 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                                  MaximizeButton(True))
 
         # Create source assistant notebook
-        self.sourceAsst = aui.AuiNotebook(
+        self.sourceAsst = StyledNotebook(
             self,
             wx.ID_ANY,
-            size = wx.Size(500, 600),
+            size=wx.Size(500, 600),
             agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS |
                      aui.AUI_NB_TAB_SPLIT |
                      aui.AUI_NB_TAB_MOVE)
@@ -1297,7 +1297,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 self.setCurrentDoc(filename, keepHidden=True)
 
         # Create shelf notebook
-        self.shelf = aui.AuiNotebook(
+        self.shelf = StyledNotebook(
             self, wx.ID_ANY, size=wx.Size(600, 600),
             agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS)
         self.shelf.GetAuiManager().SetArtProvider(handlers.PsychopyDockArt())
@@ -2881,3 +2881,10 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
             dlg.ShowModal()
         else:
             pass
+
+
+class StyledNotebook(aui.AuiNotebook, handlers.ThemeMixin):
+    """
+    Exactly the same as an aui.AuiNotebook, but with methods from handlers.ThemeMixin
+    """
+    pass
