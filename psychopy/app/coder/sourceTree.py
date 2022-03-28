@@ -8,7 +8,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from collections import deque
-from ..themes import LegacyThemeMixin, icons
+from ..themes import LegacyThemeMixin, icons, colors, handlers
 
 import wx
 import wx.stc
@@ -22,7 +22,7 @@ CPP_DEFS = ['void', 'int', 'float', 'double', 'short', 'byte', 'struct', 'enum',
 PYTHON_DEFS = ['def', 'class']
 
 
-class SourceTreePanel(wx.Panel):
+class SourceTreePanel(wx.Panel, handlers.ThemeMixin):
     """Panel for the source tree browser."""
     def __init__(self, parent, frame):
         wx.Panel.__init__(self, parent, -1)
@@ -58,10 +58,9 @@ class SourceTreePanel(wx.Panel):
         self.Bind(
             wx.EVT_TREE_ITEM_COLLAPSED, self.OnItemCollapsed, self.srcTree)
 
-    def _applyAppTheme(self, target=None):
-        cs = LegacyThemeMixin.appColors
-        self.srcTree.SetOwnBackgroundColour(cs['tab_bg'])
-        self.srcTree.SetOwnForegroundColour(cs['text'])
+    def _applyAppTheme(self):
+        self.srcTree.SetOwnBackgroundColour(colors.app['tab_bg'])
+        self.srcTree.SetOwnForegroundColour(colors.app['text'])
 
         # get graphics for toolbars and tree items
         self._treeImgList = wx.ImageList(16, 16)
