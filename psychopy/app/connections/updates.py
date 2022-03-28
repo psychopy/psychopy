@@ -273,9 +273,10 @@ class InstallUpdateDialog(wx.Dialog):
         self.runningVersion = app.updater.runningVersion
         wx.Dialog.__init__(self, parent, ID,
                            title=_translate('PsychoPy Updates'),
-                           size=(100, 200))
+                           size=(500, 300))
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(mainSizer)
         # set the actual content of status msg later in self.updateStatus()
         self.statusMessage = wx.StaticText(
             self, -1, "msg", style=wx.ALIGN_CENTER)
@@ -314,10 +315,10 @@ class InstallUpdateDialog(wx.Dialog):
             btns = [self.cancelBtn, self.installBtn]
         btnSizer.Add(btns[0], 0, flag=wx.LEFT, border=5)
         btnSizer.Add(btns[1], 0, flag=wx.LEFT, border=5)
+        mainSizer.AddStretchSpacer()
         mainSizer.Add(btnSizer, flag=wx.ALL | wx.EXPAND, border=5)
 
-        self.SetSizerAndFit(mainSizer)
-        self.SetAutoLayout(True)
+        self.Layout()
 
         # positioning and sizing
         self.updateStatus()
