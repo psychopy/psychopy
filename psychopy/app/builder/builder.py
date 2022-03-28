@@ -2859,7 +2859,7 @@ class ReadmeFrame(wx.Frame):
             self.Show()
 
 
-class FlowPanel(wx.ScrolledWindow):
+class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
 
     def __init__(self, frame, id=-1):
         """A panel that shows how the routines will fit together
@@ -2955,16 +2955,15 @@ class FlowPanel(wx.ScrolledWindow):
 
     def _applyAppTheme(self, target=None):
         """Apply any changes which have been made to the theme since panel was last loaded"""
-        cs = LegacyThemeMixin.appColors
         # Style loop/routine buttons
-        self.btnInsertLoop.SetBackgroundColour(cs['frame_bg'])
-        self.btnInsertLoop.SetForegroundColour(cs['text'])
+        self.btnInsertLoop.SetBackgroundColour(colors.app['frame_bg'])
+        self.btnInsertLoop.SetForegroundColour(colors.app['text'])
         self.btnInsertLoop.Update()
-        self.btnInsertRoutine.SetBackgroundColour(cs['frame_bg'])
-        self.btnInsertRoutine.SetForegroundColour(cs['text'])
+        self.btnInsertRoutine.SetBackgroundColour(colors.app['frame_bg'])
+        self.btnInsertRoutine.SetForegroundColour(colors.app['text'])
         self.btnInsertRoutine.Update()
         # Set background
-        self.SetBackgroundColour(cs['panel_bg'])
+        self.SetBackgroundColour(colors.app['panel_bg'])
 
         self.draw()
 
