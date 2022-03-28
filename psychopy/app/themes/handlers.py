@@ -92,10 +92,11 @@ class ThemeMixin:
             for child in self.GetChildren():
                 if child not in children:
                     children.append(child)
-        if hasattr(self, 'getAuiManager'):
-            for pane in self.getAuiManager().GetAllPanes():
-                if pane not in children:
-                    children.append(pane.window)
+        if isinstance(self, aui.AuiNotebook):
+            for index in range(self.GetPageCount()):
+                page = self.GetPage(index)
+                if page not in children:
+                    children.append(page.window)
         if hasattr(self, 'GetSizer') and self.GetSizer():
             for child in self.GetSizer().GetChildren():
                 if child not in children:
