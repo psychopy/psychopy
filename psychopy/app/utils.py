@@ -126,7 +126,7 @@ def getSystemFonts(encoding='system', fixedWidthOnly=False):
     return fontEnum.GetFacenames(encoding, fixedWidthOnly=fixedWidthOnly)
 
 
-class PsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
+class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
     """Toolbar for the Builder/Coder Frame"""
     def __init__(self, frame):
         # Initialise superclass
@@ -147,6 +147,10 @@ class PsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
         self.keys = {k: self.frame.app.keys[k].replace('Ctrl+', ctrlKey)
                 for k in self.frame.app.keys}
         self.keys['none'] = ''
+        # Initialise pavlovia tools object
+        self.pavButtons = pavlovia_ui.toolbar.PavloviaButtons(
+                self.frame, toolbar=self, tbSize=self.iconSize
+        )
 
         self.buttons = {}
 
@@ -156,205 +160,7 @@ class PsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
         """
         Make tools
         """
-        # Clear any existing tools
-        self.ClearTools()
-        self.buttons = {}
-
-        pavButtons = pavlovia_ui.toolbar.PavloviaButtons(
-                self.frame, toolbar=self, tbSize=self.iconSize
-        )
-        if self.frame.__class__.__name__ == 'BuilderFrame':
-            # New
-            self.buttons['filenew'] = self.makeTool(
-                    name='filenew',
-                    label=_translate('New'),
-                    shortcut='new',
-                    tooltip=_translate("Create new experiment file"),
-                    func=self.frame.app.newBuilderFrame
-            )
-            # Open
-            self.buttons['fileopen'] = self.makeTool(
-                    name='fileopen',
-                    label=_translate('Open'),
-                    shortcut='open',
-                    tooltip=_translate("Open an existing experiment file"),
-                    func=self.frame.fileOpen)
-            # Save
-            self.buttons['filesave'] = self.makeTool(
-                        name='filesave',
-                        label=_translate('Save'),
-                        shortcut='save',
-                        tooltip=_translate("Save current experiment file"),
-                        func=self.frame.fileSave)
-            self.frame.bldrBtnSave = self.buttons['filesave']
-            # SaveAs
-            self.buttons['filesaveas'] = self.makeTool(
-                    name='filesaveas',
-                    label=_translate('Save As...'),
-                    shortcut='saveAs',
-                    tooltip=_translate("Save current experiment file as..."),
-                    func=self.frame.fileSaveAs)
-            # Undo
-            self.buttons['undo'] = self.makeTool(
-                        name='undo',
-                        label=_translate('Undo'),
-                        shortcut='undo',
-                        tooltip=_translate("Undo last action"),
-                        func=self.frame.undo)
-            self.frame.bldrBtnUndo = self.buttons['undo']
-            # Redo
-            self.buttons['redo'] = self.makeTool(
-                        name='redo',
-                        label=_translate('Redo'),
-                        shortcut='redo',
-                        tooltip=_translate("Redo last action"),
-                        func=self.frame.redo)
-            self.frame.bldrBtnRedo = self.buttons['redo']
-
-            self.AddSeparator()
-
-            # Monitor Center
-            self.buttons['monitors'] = self.makeTool(
-                    name='monitors',
-                    label=_translate('Monitor Center'),
-                    shortcut='none',
-                    tooltip=_translate("Monitor settings and calibration"),
-                    func=self.frame.app.openMonitorCenter)
-            # Settings
-            self.buttons['cogwindow'] = self.makeTool(
-                    name='cogwindow',
-                    label=_translate('Experiment Settings'),
-                    shortcut='none',
-                    tooltip=_translate("Edit experiment settings"),
-                    func=self.frame.setExperimentSettings)
-
-            self.AddSeparator()
-
-            # Compile Py
-            self.buttons['compile_py'] = self.makeTool(
-                    name='compile_py',
-                    label=_translate('Compile Python Script'),
-                    shortcut='compileScript',
-                    tooltip=_translate("Compile to Python script"),
-                    func=self.frame.compileScript)
-            # Compile JS
-            self.buttons['compile_js'] = self.makeTool(
-                    name='compile_js',
-                    label=_translate('Compile JS Script'),
-                    shortcut='compileScript',
-                    tooltip=_translate("Compile to JS script"),
-                    func=self.frame.fileExport)
-            # Send to runner
-            self.buttons['runner'] = self.makeTool(
-                    name='runner',
-                    label=_translate('Runner'),
-                    shortcut='runnerScript',
-                    tooltip=_translate("Send experiment to Runner"),
-                    func=self.frame.runFile)
-            self.frame.bldrBtnRunner = self.buttons['runner']
-            # Run
-            self.buttons['run'] = self.makeTool(
-                    name='run',
-                    label=_translate('Run'),
-                    shortcut='runScript',
-                    tooltip=_translate("Run experiment"),
-                    func=self.frame.runFile)
-            self.frame.bldrBtnRun = self.buttons['run']
-
-            self.AddSeparator()
-
-            pavButtons.addPavloviaTools()
-
-        elif self.__class__.__name__ == 'CoderFrame':
-            # New
-            self.buttons['filenew'] = self.makeTool(
-                name='filenew',
-                label=_translate('New'),
-                shortcut='new',
-                tooltip=_translate("Create new experiment file"),
-                func=self.frame.fileNew)
-            # Open
-            self.buttons['fileopen'] = self.makeTool(
-                name='fileopen',
-                label=_translate('Open'),
-                shortcut='open',
-                tooltip=_translate("Open an existing experiment file"),
-                func=self.frame.fileOpen)
-            # Save
-            self.buttons['filesave'] = self.makeTool(
-                name='filesave',
-                label=_translate('Save'),
-                shortcut='save',
-                tooltip=_translate("Save current experiment file"),
-                func=self.frame.fileSave)
-            self.frame.cdrBtnSave = self.buttons['filesave']
-            # SaveAs
-            self.buttons['filesaveas'] = self.makeTool(
-                name='filesaveas',
-                label=_translate('Save As...'),
-                shortcut='saveAs',
-                tooltip=_translate("Save current experiment file as..."),
-                func=self.frame.fileSaveAs)
-            # Undo
-            self.buttons['undo'] = self.makeTool(
-                name='undo',
-                label=_translate('Undo'),
-                shortcut='undo',
-                tooltip=_translate("Undo last action"),
-                func=self.frame.undo)
-            self.frame.cdrBtnUndo = self.buttons['undo']
-            # Redo
-            self.buttons['redo'] = self.makeTool(
-                name='redo',
-                label=_translate('Redo'),
-                shortcut='redo',
-                tooltip=_translate("Redo last action"),
-                func=self.frame.redo)
-            self.frame.cdrBtnRedo = self.buttons['redo']
-
-            self.AddSeparator()  # Separator
-
-            # Monitor center
-            self.buttons['monitors'] = self.makeTool(
-                name='monitors',
-                label=_translate('Monitor Center'),
-                shortcut='none',
-                tooltip=_translate("Monitor settings and calibration"),
-                func=self.frame.app.openMonitorCenter)
-            # Color picker
-            self.buttons['color'] = self.makeTool(
-                name='color',
-                label=_translate('Color Picker'),
-                shortcut='none',
-                tooltip=_translate("Color Picker -> clipboard"),
-                func=self.frame.app.colorPicker)
-
-            self.AddSeparator()
-
-            # Send to runner
-            self.buttons['runner'] = self.makeTool(
-                    'runner', _translate('Runner'), 'runnerScript',
-                    _translate("Send experiment to Runner"),
-                    self.frame.runFile)
-            self.frame.cdrBtnRunner = self.buttons['runner']
-            self.buttons['run'] = self.makeTool(
-                    'run', _translate('Run'), 'runScript',
-                    _translate("Run experiment"),
-                    self.frame.runFile)
-            self.frame.cdrBtnRun = self.buttons['run']
-
-            self.AddSeparator()
-
-            pavButtons.addPavloviaTools(buttons=['pavloviaSync', 'pavloviaSearch', 'pavloviaUser'])
-        self.frame.btnHandles.update(pavButtons.btnHandles)
-
-        self.Realize()
-
-        # Disable compile buttons until an experiment is present
-        if 'compile_py' in self.buttons:
-            self.EnableTool(self.buttons['compile_py'].GetId(), Path(str(self.frame.filename)).is_file())
-        if 'compile_js' in self.buttons:
-            self.EnableTool(self.buttons['compile_js'].GetId(), Path(str(self.frame.filename)).is_file())
+        pass
 
     def makeTool(self, name, label, shortcut, tooltip, func):
         # Get icon
