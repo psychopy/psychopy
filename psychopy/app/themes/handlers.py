@@ -189,3 +189,14 @@ class PsychopyTabArt(aui.AuiDefaultTabArt):
         self._tab_disabled_text_colour = colors.app['text']
         self._tab_inactive_top_colour = colors.app['panel_bg']
         self._tab_inactive_bottom_colour = colors.app['panel_bg']
+
+    def DrawTab(self, dc, wnd, page, in_rect, close_button_state, paint_control=False):
+        """
+        Overloads AuiDefaultTabArt.DrawTab to add a transparent border to inactive tabs
+        """
+        if page.active:
+            self._border_pen = wx.Pen(self._border_colour)
+        else:
+            self._border_pen = wx.TRANSPARENT_PEN
+
+        return aui.AuiDefaultTabArt.DrawTab(self, dc, wnd, page, in_rect, close_button_state, paint_control)
