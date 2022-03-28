@@ -84,6 +84,9 @@ class FileBrowserListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl, handlers.ThemeMix
 
 class FileBrowserToolbar(wx.ToolBar, handlers.ThemeMixin):
     def makeTools(self):
+        # Clear tools
+        self.ClearTools()
+
         iconSize = 16
         parent = self.GetParent()
         # Create toolbar buttons
@@ -137,6 +140,12 @@ class FileBrowserToolbar(wx.ToolBar, handlers.ThemeMixin):
         # Realise
         self.Realize()
 
+    def _applyAppTheme(self):
+        # Do base themeing
+        handlers.ThemeMixin._applyAppTheme(self)
+        # Background needs to match tab
+        self.SetBackgroundColour(colors.app['tab_bg'])
+
 
 class FileBrowserPanel(wx.Panel, handlers.ThemeMixin):
     """Panel for a file browser.
@@ -173,8 +182,19 @@ class FileBrowserPanel(wx.Panel, handlers.ThemeMixin):
         self.isSubDir = False
         self.fileImgList = None  # will be a wx ImageList to store icons
         self.pathData = {}
+
+        # setup sizer
+        szr = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(szr)
+
+        # create an address bar
+        self.lblDir = wx.StaticText(self, label=_translate("Directory:"))
+        szr.Add(self.lblDir, border=5, flag=wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND)
+        self.txtAddr = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
+        self.Bind(wx.EVT_TEXT_ENTER, self.OnAddrEnter, self.txtAddr)
+        szr.Add(self.txtAddr, border=5, flag=wx.BOTTOM | wx.LEFT | wx.RIGHT | wx.EXPAND)
+
         # create the toolbar
-        szrToolbar = wx.BoxSizer(wx.HORIZONTAL)
         self.toolBar = FileBrowserToolbar(
             self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
             aui.AUI_TB_HORZ_LAYOUT | aui.AUI_TB_HORZ_TEXT | wx.BORDER_NONE |
@@ -184,12 +204,7 @@ class FileBrowserPanel(wx.Panel, handlers.ThemeMixin):
         self.Bind(wx.EVT_MENU, self.OnBrowse, id=ID_GOTO_BROWSE)
         self.Bind(wx.EVT_MENU, self.OnGotoCWD, id=ID_GOTO_CWD)
         self.Bind(wx.EVT_MENU, self.OnGotoFileLocation, id=ID_GOTO_FILE)
-
-        szrToolbar.Add(self.toolBar, 1, flag=wx.ALL | wx.EXPAND)
-
-        # create an address bar
-        self.lblDir = wx.StaticText(self, label=_translate("Directory:"))
-        self.txtAddr = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
+        szr.Add(self.toolBar, border=5, flag=wx.LEFT | wx.RIGHT | wx.EXPAND)
 
         # create the source tree control
         self.flId = wx.NewIdRef()
@@ -205,19 +220,8 @@ class FileBrowserPanel(wx.Panel, handlers.ThemeMixin):
             wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self.fileList)
         self.Bind(
             wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated, self.fileList)
-        self.Bind(
-            wx.EVT_TEXT_ENTER, self.OnAddrEnter, self.txtAddr)
 
-        # do layout
-        szrAddr = wx.BoxSizer(wx.HORIZONTAL)
-        szrAddr.Add(
-            self.lblDir, 0, flag=wx.RIGHT | wx.ALIGN_CENTRE_VERTICAL, border=5)
-        szrAddr.Add(self.txtAddr, 1, flag=wx.ALIGN_CENTRE_VERTICAL)
-        szr = wx.BoxSizer(wx.VERTICAL)
-        szr.Add(szrToolbar, 0, flag=wx.EXPAND | wx.ALL)
-        szr.Add(szrAddr, 0, flag=wx.EXPAND | wx.ALL, border=5)
         szr.Add(self.fileList, 1, flag=wx.EXPAND)
-        self.SetSizer(szr)
         self.makeFileImgIcons()
 
         # add columns
@@ -231,14 +235,15 @@ class FileBrowserPanel(wx.Panel, handlers.ThemeMixin):
         self.gotoDir(os.getcwd())
 
     def _applyAppTheme(self, target=None):
-        # Set background for Directory bar
+        # Set background
         self.SetBackgroundColour(colors.app['tab_bg'])
         self.SetForegroundColour(colors.app['text'])
-        self.fileList.theme = self.theme
-        self.toolBar.SetBackgroundColour(colors.app['tab_bg'])
-        self.toolBar.SetForegroundColour(colors.app['text'])
-        self.makeFileImgIcons()
+        # Make sure directory label is correct color
         self.lblDir.SetForegroundColour(colors.app['text'])
+        # Remake icons
+        self.makeFileImgIcons()
+        # Refresh
+        self.Refresh()
 
     def makeFileImgIcons(self):
         # handles for icon graphics in the image list
