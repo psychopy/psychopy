@@ -111,6 +111,8 @@ class FileBrowserPanel(wx.Panel):
         self.parent = parent
         self.coder = frame
         self.app = frame.app
+        self.tabIcon = "folder"
+
         self.currentPath = None
         self.selectedItem = None
         self.isSubDir = False

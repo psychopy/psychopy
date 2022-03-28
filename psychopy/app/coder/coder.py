@@ -40,7 +40,7 @@ from psychopy.app.errorDlg import exceptionCallback
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 from psychopy.app.coder.fileBrowser import FileBrowserPanel
 from psychopy.app.coder.sourceTree import SourceTreePanel
-from psychopy.app.themes import LegacyThemeMixin
+from psychopy.app.themes import LegacyThemeMixin, handlers, colors
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
 from psychopy.app.coder.scriptOutput import ScriptOutputPanel
 from psychopy.app.coder.repl import PythonREPLCtrl
@@ -1139,7 +1139,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, LegacyThemeMixin):
             #     findDlg.Close()
 
 
-class CoderFrame(BaseAuiFrame, LegacyThemeMixin):
+class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
     def __init__(self, parent, ID, title, files=(), app=None):
         self.app = app  # type: psychopy.app.PsychoPyApp
@@ -1252,6 +1252,7 @@ class CoderFrame(BaseAuiFrame, LegacyThemeMixin):
             agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS |
                      aui.AUI_NB_TAB_SPLIT |
                      aui.AUI_NB_TAB_MOVE)
+        self.sourceAsst.GetAuiManager().SetArtProvider(handlers.PsychopyDockArt())
 
         self.structureWindow = SourceTreePanel(self.sourceAsst, self)
         self.fileBrowserWindow = FileBrowserPanel(self.sourceAsst, self)
@@ -1299,7 +1300,7 @@ class CoderFrame(BaseAuiFrame, LegacyThemeMixin):
         self.shelf = aui.AuiNotebook(
             self, wx.ID_ANY, size=wx.Size(600, 600),
             agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS)
-        #self.shelf.SetArtProvider(PsychopyTabArt())
+        self.shelf.GetAuiManager().SetArtProvider(handlers.PsychopyDockArt())
 
         # Create shell
         self._useShell = 'pyshell'
@@ -1328,7 +1329,6 @@ class CoderFrame(BaseAuiFrame, LegacyThemeMixin):
                                  BottomDockable(True).TopDockable(True).
                                  CloseButton(False).
                                  Bottom())
-        self._applyAppTheme()
         if 'pavloviaSync' in self.btnHandles:
             self.toolbar.EnableTool(self.btnHandles['pavloviaSync'].Id, bool(self.filename))
         self.unitTestFrame = None
@@ -1364,6 +1364,8 @@ class CoderFrame(BaseAuiFrame, LegacyThemeMixin):
         #self.chkShowAutoComp.Check(self.prefs['autocomplete'])
         self.SendSizeEvent()
         self.app.trackFrame(self)
+
+        self.theme = colors.theme
 
     @property
     def useAutoComp(self):
@@ -2879,18 +2881,3 @@ class CoderFrame(BaseAuiFrame, LegacyThemeMixin):
             dlg.ShowModal()
         else:
             pass
-
-    def _applyAppTheme(self, target=None):
-        """Overrides theme change from ThemeMixin.
-        Don't call - this is called at the end of theme.setter"""
-        LegacyThemeMixin._applyAppTheme(self)  # handles most recursive setting
-        LegacyThemeMixin._applyAppTheme(self.toolbar)
-        LegacyThemeMixin._applyAppTheme(self.statusBar)
-        # updating sourceAsst will incl fileBrowser and sourcetree
-        LegacyThemeMixin._applyAppTheme(self.sourceAsst)
-        LegacyThemeMixin._applyAppTheme(self.notebook)
-        self.notebook.Refresh()
-        if hasattr(self, 'shelf'):
-            LegacyThemeMixin._applyAppTheme(self.shelf)
-        if sys.platform == 'win32':
-            self.Update()  # kills mac. Not sure about linux

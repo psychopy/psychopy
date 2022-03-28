@@ -29,6 +29,7 @@ class SourceTreePanel(wx.Panel):
         self.parent = parent
         self.coder = frame
         self.app = frame.app
+        self.tabIcon = "coderclass"
 
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(self.coder.IsDoubleBuffered())
@@ -56,8 +57,6 @@ class SourceTreePanel(wx.Panel):
             wx.EVT_TREE_ITEM_EXPANDED, self.OnItemExpanded, self.srcTree)
         self.Bind(
             wx.EVT_TREE_ITEM_COLLAPSED, self.OnItemCollapsed, self.srcTree)
-
-        self._applyAppTheme()
 
     def _applyAppTheme(self, target=None):
         cs = LegacyThemeMixin.appColors

@@ -56,6 +56,7 @@ class ScriptOutputPanel(wx.richtext.RichTextCtrl, LegacyThemeMixin):
             name=wx.TextCtrlNameStr)
 
         self.parent = parent
+        self.tabIcon = "stdout"
         self._font = font
         self._fontSize = fontSize
         self.Bind(wx.EVT_TEXT_URL, self.onURL)

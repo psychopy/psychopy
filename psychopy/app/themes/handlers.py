@@ -35,13 +35,6 @@ def styleToolbar(target):
 
 
 def styleNotebook(target):
-    # Dict of icons to apply to specific tabs
-    tabIcons = {
-        "Structure": "coderclass16.png",
-        "FileBrowser": "folder-open16.png",
-        "PythonShell": "coderpython16.png",
-        "ConsoleOutput": "stdout.png",
-    }
     # Set art provider to style tabs
     target.SetArtProvider(PsychopyTabArt())
     # Set dock art provider to get rid of outline
@@ -53,8 +46,8 @@ def styleNotebook(target):
         page.SetBackgroundColour(colors.app['panel_bg'])
         # If page points to an icon for the tab, set it
         if hasattr(page, "tabIcon"):
-            bmp = icons.ButtonIcon(page.tabIcon)
-            target.SetPageBitmap(index, bmp)
+            btn = icons.ButtonIcon(page.tabIcon, size=(16, 16))
+            target.SetPageBitmap(index, btn.bitmap)
 
 
 # Define dict linking object types to style functions
@@ -99,10 +92,6 @@ class ThemeMixin:
             for child in self.GetChildren():
                 if child not in children:
                     children.append(child)
-        if hasattr(self, 'paneManager'):
-            for pane in self.paneManager.AllPanes:
-                if pane not in children:
-                    children.append(pane.window)
         if hasattr(self, 'getAuiManager'):
             for pane in self.getAuiManager().GetAllPanes():
                 if pane not in children:
