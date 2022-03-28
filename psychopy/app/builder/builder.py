@@ -1455,7 +1455,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self._project = project
 
 
-class RoutinesNotebook(aui.AuiNotebook, LegacyThemeMixin):
+class RoutinesNotebook(aui.AuiNotebook, handlers.ThemeMixin):
     """A notebook that stores one or more routines
     """
 
@@ -1472,19 +1472,11 @@ class RoutinesNotebook(aui.AuiNotebook, LegacyThemeMixin):
 
         self.SetDoubleBuffered(not self.frame.isRetina)
 
-        self._applyAppTheme()
+        # This needs to be done on init, otherwise it gets an outline
+        self.GetAuiManager().SetArtProvider(handlers.PsychopyDockArt())
+
         if not hasattr(self.frame, 'exp'):
             return  # we haven't yet added an exp
-
-    def _applyAppTheme(self, target=None):
-        self.SetArtProvider(PsychopyTabArt())
-        self.GetAuiManager().SetArtProvider(PsychopyDockArt())
-        for index in range(self.GetPageCount()):
-            page = self.GetPage(index)
-            # double buffered better rendering except if retina
-            self.SetDoubleBuffered(not self.frame.isRetina)
-            page._applyAppTheme()
-        self.Refresh()
 
     def getCurrentRoutine(self):
         routinePage = self.getCurrentPage()
@@ -1612,7 +1604,7 @@ class RoutinesNotebook(aui.AuiNotebook, LegacyThemeMixin):
             self.SetSelection(currPage)
 
 
-class RoutineCanvas(wx.ScrolledWindow):
+class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
     """Represents a single routine (used as page in RoutinesNotebook)"""
 
     def __init__(self, notebook, id=wx.ID_ANY, routine=None):
@@ -1671,8 +1663,6 @@ class RoutineCanvas(wx.ScrolledWindow):
             id = wx.NewIdRef()
             self.contextItemFromID[id] = item
             self.contextIDFromItem[item] = id
-
-        self._applyAppTheme()
 
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda x: None)
@@ -1847,7 +1837,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.pdc.Clear()  # clear the screen
         self.pdc.RemoveAll()  # clear all objects (icon buttons)
 
-        self.SetBackgroundColour(LegacyThemeMixin.appColors['tab_bg'])
+        self.SetBackgroundColour(colors.app['tab_bg'])
         # work out where the component names and icons should be from name
         # lengths
         self.setFontSize(self.fontBaseSize // self.dpi, self.pdc)

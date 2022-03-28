@@ -1,7 +1,6 @@
 from copy import deepcopy
 
-from . import colors
-from . import handlers
+from . import colors, icons
 
 # --- Functions to handle specific subclasses of wx.Window ---
 import wx
@@ -17,7 +16,7 @@ def styleFrame(target):
     target.SetForegroundColour(colors.app['text'])
     # Set aui art provider
     if hasattr(target, 'getAuiManager'):
-        target.getAuiManager().SetArtProvider(handlers.PsychopyDockArt())
+        target.getAuiManager().SetArtProvider(PsychopyDockArt())
         target.getAuiManager().Update()
 
 
@@ -35,11 +34,34 @@ def styleToolbar(target):
     target.makeTools()
 
 
+def styleNotebook(target):
+    # Dict of icons to apply to specific tabs
+    tabIcons = {
+        "Structure": "coderclass16.png",
+        "FileBrowser": "folder-open16.png",
+        "PythonShell": "coderpython16.png",
+        "ConsoleOutput": "stdout.png",
+    }
+    # Set art provider to style tabs
+    target.SetArtProvider(PsychopyTabArt())
+    # Set dock art provider to get rid of outline
+    target.GetAuiManager().SetArtProvider(PsychopyDockArt())
+    # Iterate through each page
+    for index in range(target.GetPageCount()):
+        page = target.GetPage(index)
+        # Set page background
+        page.SetBackgroundColour(colors.app['panel_bg'])
+        # If page points to an icon for the tab, set it
+        if hasattr(page, "tabIcon"):
+            bmp = icons.ButtonIcon(page.tabIcon)
+            target.SetPageBitmap(index, bmp)
+
+
 # Define dict linking object types to style functions
 methods = {
     wx.Frame: styleFrame,
     wx.Panel: stylePanel,
-    # aui.AuiNotebook: styleNotebook,
+    aui.AuiNotebook: styleNotebook,
     # stc.StyledTextCtrl: styleCodeEditor,
     # wx.richtext.RichTextCtrl: styleRichText,
     # wx.py.shell.Shell: styleCodeEditor,
@@ -156,3 +178,25 @@ class PsychopyDockArt(aui.AuiDefaultDockArt):
         self._caption_size = 25
         self._button_size = 20
 
+
+class PsychopyTabArt(aui.AuiDefaultTabArt):
+    def __init__(self):
+        aui.AuiDefaultTabArt.__init__(self)
+
+        self.SetDefaultColours()
+        self.SetAGWFlags(aui.AUI_NB_NO_TAB_FOCUS)
+
+        self.SetBaseColour(colors.app['tab_bg'])
+        self._background_top_colour = colors.app['panel_bg']
+        self._background_bottom_colour = colors.app['panel_bg']
+
+        self._tab_text_colour = lambda page: colors.app['text']
+        self._tab_top_colour = colors.app['tab_bg']
+        self._tab_bottom_colour = colors.app['tab_bg']
+        self._tab_gradient_highlight_colour = colors.app['tab_bg']
+        self._border_colour = colors.app['tab_bg']
+        self._border_pen = wx.Pen(self._border_colour)
+
+        self._tab_disabled_text_colour = colors.app['text']
+        self._tab_inactive_top_colour = colors.app['panel_bg']
+        self._tab_inactive_bottom_colour = colors.app['panel_bg']
