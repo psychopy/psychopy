@@ -153,7 +153,7 @@ class ButtonIcon(BaseIcon):
         # Create bitmap array for files
         self.bitmaps = {}
         for key, file in files.items():
-            self.bitmaps[key] = wx.Bitmap(str(file))
+            self.bitmaps[key] = wx.Bitmap(str(file), wx.BITMAP_TYPE_PNG)
         self.bitmap = None
 
     def _fitBitmap(self):
