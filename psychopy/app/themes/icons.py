@@ -5,8 +5,8 @@ import numpy
 import wx
 from pathlib import Path
 from psychopy import prefs
+from . import theme
 
-theme = "light"
 retStr = ""
 resources = Path(prefs.paths['resources'])
 iconCache = {}
@@ -110,7 +110,7 @@ class ButtonIcon(BaseIcon):
         # Validate matches
         for match in matches:
             # Reject match if in unused theme folder
-            if match.parent.stem not in (theme, "Resources"):
+            if match.parent.stem not in (theme.icons, "Resources"):
                 continue
             # Get appendix (any chars in file stem besides requested stem and retina string)
             appendix = match.stem.replace(stem, "").replace(retStr, "") or None
@@ -121,12 +121,12 @@ class ButtonIcon(BaseIcon):
                 appendix = int(appendix)
             # If valid, append to array according to retina
             if "@2x" in match.stem:
-                if appendix in ret and match.parent.stem != theme:
+                if appendix in ret and match.parent.stem != theme.icons:
                     # Prioritise theme-specific if match is already present
                     continue
                 ret[appendix] = match
             else:
-                if appendix in nret and match.parent.stem != theme:
+                if appendix in nret and match.parent.stem != theme.icons:
                     # Prioritise theme-specific if match is already present
                     continue
                 nret[appendix] = match
@@ -203,7 +203,7 @@ class ComponentIcon(BaseIcon):
         folder = filePath.parent
         # Look in appropriate theme folder for files
         matches = {}
-        for match in (folder / theme).glob(f"{stem}*.png"):
+        for match in (folder / theme.icons).glob(f"{stem}*.png"):
             appendix = match.stem.replace(stem, "")
             matches[appendix] = match
         # Choose / resize file according to retina

@@ -1,7 +1,7 @@
 import numpy
 import wx
 
-theme = "light"
+from . import theme
 
 
 class BaseColor(wx.Colour):
@@ -169,7 +169,7 @@ class AppColors(dict):
 
     def __getitem__(self, item):
         # When getting an attribute of this object, return the key from the theme-appropriate dict
-        return getattr(self, theme)[item]
+        return getattr(self, theme.app)[item]
 
 
 app = AppColors()

@@ -457,7 +457,7 @@ class PsychoPyApp(wx.App, themes.LegacyThemeMixin):
 
         # that gets most of the properties of _codeFont but the FaceName
         # FaceName is set in the setting of the theme:
-        self.theme = self.prefs.app['theme']
+        self.theme = prefs.app['theme']
 
         # removed Aug 2017: on newer versions of wx (at least on mac)
         # this looks too big
@@ -1081,29 +1081,31 @@ class PsychoPyApp(wx.App, themes.LegacyThemeMixin):
         """Handles a theme change event (from a window with a themesMenu)"""
         win = event.EventObject.Window
         newTheme = win.themesMenu.FindItemById(event.GetId()).ItemLabel
-        prefs.app['theme'] = newTheme
-        prefs.saveUserPrefs()
         self.theme = newTheme
 
     @property
     def theme(self):
         """The theme to be used through the application"""
-        return prefs.app['theme']
+        return themes.theme
 
     @theme.setter
     def theme(self, value):
         """The theme to be used through the application"""
         themes.LegacyThemeMixin.loadThemeSpec(self, themeName=value)
-        prefs.app['theme'] = value
         self._currentThemeSpec = themes.LegacyThemeMixin.spec
         codeFont = themes.LegacyThemeMixin.codeColors['base']['font']
-
+        # Store new theme
+        prefs.app['theme'] = value
+        prefs.saveUserPrefs()
         # Reset icon cache
-        icons.theme = themes.LegacyThemeMixin.icons
         icons.iconCache.clear()
-
-        # Set app colors
-        colors.theme = themes.LegacyThemeMixin.mode
+        # Set theme at module level
+        themes.theme.set(value)
+        # Apply to frames
+        for frameRef in self._allFrames:
+            frame = frameRef()
+            if isinstance(frame, handlers.ThemeMixin):
+                frame.theme = themes.theme
 
         # On OSX 10.15 Catalina at least calling SetFaceName with 'AppleSystemUIFont' fails.
         # So this fix checks to see if changing the font name invalidates the font.
@@ -1115,11 +1117,6 @@ class PsychoPyApp(wx.App, themes.LegacyThemeMixin):
         success = self._codeFont.SetFaceName(codeFont)
         if not (success):
             self._codeFont = beforesetface
-        # Apply theme
-        for frameRef in self._allFrames:
-            frame = frameRef()
-            if isinstance(frame, handlers.ThemeMixin):
-                frame.theme = themes.LegacyThemeMixin.mode
 
 
 if __name__ == '__main__':
