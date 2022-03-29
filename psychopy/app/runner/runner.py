@@ -7,9 +7,9 @@
 import glob
 import json
 import errno
-from psychopy.app.themes._themes import LegacyThemeSwitcher
 
 from ..themes import LegacyThemeMixin, LegacyIconCache, handlers, colors, icons
+from ..themes.ui import ThemeSwitcher
 
 import wx
 from wx.lib import platebtn
@@ -197,7 +197,7 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
                 if item['label'].lower() in eachMenu['separators']:
                     eachMenu['menu'].AppendSeparator()
         # Add Theme Switcher
-        self.themesMenu = LegacyThemeSwitcher(self)
+        self.themesMenu = ThemeSwitcher(self)
         viewMenu.AppendSubMenu(self.themesMenu,
                            _translate("Themes"))
         # Add frame switcher

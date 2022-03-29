@@ -15,6 +15,8 @@ class Theme:
     app = "light"
     # Tag pointing to app icons
     icons = "light"
+    # Tooltip for theme menu
+    info = ""
 
     def __init__(self, name):
         self.set(name)
@@ -44,6 +46,9 @@ class Theme:
         # If spec file points to a set of app icons, update this object
         if "icons" in spec:
             self.icons = spec['icons']
+        # If spec file contains tooltip, store it
+        if "info" in spec:
+            self.info = spec['info']
 
     def __repr__(self):
         return f"<{self.code}: app={self.app}, icons={self.icons}>"
