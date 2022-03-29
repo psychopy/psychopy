@@ -162,7 +162,7 @@ class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
         """
         pass
 
-    def makeTool(self, name, label, shortcut, tooltip, func):
+    def makeTool(self, name, label="", shortcut=None, tooltip="", func=None):
         # Get icon
         icn = icons.ButtonIcon(name, size=self.iconSize)
         # Make button
@@ -179,9 +179,18 @@ class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
                 kind=wx.ITEM_NORMAL
             )
         # Bind tool to function
+        if func is None:
+            func = self.none
         self.Bind(wx.EVT_TOOL, func, btn)
 
         return btn
+
+    @staticmethod
+    def none():
+        """
+        Blank function to use when bound function is None
+        """
+        pass
 
 
 class PsychopyPlateBtn(platebtn.PlateButton, LegacyThemeMixin):
