@@ -159,6 +159,7 @@ class ButtonIcon(BaseIcon):
     def _fitBitmap(self):
         # If no stored bitmaps, do nothing (icon remains blank)
         if not self.bitmaps:
+            self.bitmap = wx.Bitmap()
             return
         # Split up size value
         width, height = self.size
