@@ -3855,7 +3855,7 @@ class BuilderToolbar(BasePsychopyToolbar):
 
         self.AddSeparator()
         # Pavlovia buttons
-        self.pavButtons.addPavloviaTools(buttons=['pavloviaSync', 'pavloviaSearch', 'pavloviaUser'])
+        self.pavButtons.addPavloviaTools()
         self.frame.btnHandles.update(self.pavButtons.btnHandles)
 
         # Disable compile buttons until an experiment is present
