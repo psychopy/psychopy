@@ -26,6 +26,9 @@ from wx.html import HtmlWindow
 
 from .validators import WarningManager
 from ..pavlovia_ui import sync
+from ..pavlovia_ui.project import ProjectFrame
+from ..pavlovia_ui.search import SearchFrame
+from ..pavlovia_ui.user import UserFrame
 from ...experiment.components import getAllCategories
 from ...experiment.routines import Routine, BaseStandaloneRoutine
 from ...tools.stringtools import prettyname
@@ -3854,15 +3857,61 @@ class BuilderToolbar(BasePsychopyToolbar):
         self.frame.bldrBtnRun = self.buttons['run']
 
         self.AddSeparator()
-        # Pavlovia buttons
-        self.pavButtons.addPavloviaTools()
-        self.frame.btnHandles.update(self.pavButtons.btnHandles)
+
+        # Pavlovia run
+        self.buttons['pavRun'] = self.makeTool(
+            name='globe_run',
+            label=_translate("Run online"),
+            tooltip=_translate("Run the study online (with pavlovia.org)"),
+            func=self.frame.onPavloviaRun)
+        # Pavlovia sync
+        self.buttons['pavSync'] = self.makeTool(
+            name='globe_greensync',
+            label=_translate("Sync online"),
+            tooltip=_translate("Sync with web project (at pavlovia.org)"),
+            func=self.frame.onPavloviaSync)
+        # Pavlovia search
+        self.buttons['pavSearch'] = self.makeTool(
+            name='globe_magnifier',
+            label=_translate("Search Pavlovia.org"),
+            tooltip=_translate("Find existing studies online (at pavlovia.org)"),
+            func=self.onPavloviaSearch)
+        # Pavlovia user
+        self.buttons['pavUser'] = self.makeTool(
+            name='globe_user',
+            label=_translate("Current Pavlovia user"),
+            tooltip=_translate("Log in/out of Pavlovia.org, view your user profile."),
+            func=self.onPavloviaUser)
+        # Pavlovia user
+        self.buttons['pavProject'] = self.makeTool(
+            name='globe_info',
+            label=_translate("View project"),
+            tooltip=_translate("View details of this project"),
+            func=self.onPavloviaProject)
 
         # Disable compile buttons until an experiment is present
         self.EnableTool(self.buttons['compile_py'].GetId(), Path(str(self.frame.filename)).is_file())
         self.EnableTool(self.buttons['compile_js'].GetId(), Path(str(self.frame.filename)).is_file())
 
         self.Realize()
+
+    def onPavloviaSearch(self, evt=None):
+        searchDlg = SearchFrame(
+                app=self.frame.app, parent=self.frame,
+                pos=self.frame.GetPosition())
+        searchDlg.Show()
+
+    def onPavloviaUser(self, evt=None):
+        userDlg = UserFrame(self.frame)
+        userDlg.ShowModal()
+
+    def onPavloviaProject(self, evt=None):
+        if self.frame.project is not None:
+            dlg = ProjectFrame(app=self.frame.app,
+                               project=self.frame.project)
+        else:
+            dlg = ProjectFrame(app=self.frame.app)
+        dlg.Show()
 
 
 def extractText(stream):
