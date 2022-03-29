@@ -6,7 +6,6 @@ from . import colors, icons
 import wx
 import wx.lib.agw.aui as aui
 import wx.stc as stc
-from ._themes import ThemeSwitcher
 
 
 def styleFrame(target):

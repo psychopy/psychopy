@@ -144,7 +144,7 @@ class LegacyThemeMixin:
                 target.GetAuiManager().Update()
             for menu in target.GetMenuBar().GetMenus():
                 for submenu in menu[0].MenuItems:
-                    if isinstance(submenu.SubMenu, ThemeSwitcher):
+                    if isinstance(submenu.SubMenu, LegacyThemeSwitcher):
                         submenu.SubMenu._applyAppTheme()
 
         def applyToPanel(target):
@@ -1054,7 +1054,7 @@ class PsychopyDockArt(aui.AuiDefaultDockArt):
         self._button_size = 20
 
 
-class ThemeSwitcher(wx.Menu):
+class LegacyThemeSwitcher(wx.Menu):
     """Class to make a submenu for switching theme, meaning that the menu will
     always be the same across frames."""
     def __init__(self, frame):

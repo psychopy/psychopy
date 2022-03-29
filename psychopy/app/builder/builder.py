@@ -50,7 +50,7 @@ from psychopy.localization import _translate
 from ... import experiment, prefs
 from .. import dialogs
 from ..themes import LegacyThemeMixin, icons, colors, handlers
-from ..themes._themes import PsychopyDockArt, PsychopyTabArt, ThemeSwitcher
+from ..themes._themes import PsychopyDockArt, PsychopyTabArt, LegacyThemeSwitcher
 from ..ui import BaseAuiFrame
 from psychopy import logging, data
 from psychopy.tools.filetools import mergeFolder
@@ -410,7 +410,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.Bind(wx.EVT_MENU, self.routinePanel.decreaseSize, item)
         menu.AppendSeparator()
         # Add Theme Switcher
-        self.themesMenu = ThemeSwitcher(self)
+        self.themesMenu = LegacyThemeSwitcher(self)
         menu.AppendSubMenu(self.themesMenu,
                                _translate("Themes"))
 

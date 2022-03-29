@@ -11,7 +11,7 @@ import wx
 import wx.stc
 import wx.richtext
 import psychopy.app
-from psychopy.app.themes._themes import ThemeSwitcher
+from psychopy.app.themes._themes import LegacyThemeSwitcher
 from wx.html import HtmlEasyPrinting
 
 import wx.lib.agw.aui as aui  # some versions of phoenix
@@ -1674,7 +1674,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.Bind(wx.EVT_MENU, self.onWordWrapCheck, self.lineWrapChk)
         menu.AppendSeparator()
         # Theme Switcher
-        self.themesMenu = ThemeSwitcher(self)
+        self.themesMenu = LegacyThemeSwitcher(self)
         menu.AppendSubMenu(self.themesMenu,
                            _translate("Themes"))
 
