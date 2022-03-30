@@ -408,6 +408,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         on each trial with a new stimulus)
         """
         self.markerPos = self.startValue
+        self.rating = None  # this is reset to None, whatever the startValue
         self.history = []
         self.rt = None
         self.responseClock.reset()
