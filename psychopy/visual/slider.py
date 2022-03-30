@@ -407,7 +407,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         """Resets the slider to its starting state (so that it can be restarted
         on each trial with a new stimulus)
         """
-        self.markerPos = self.rating = self.startValue
+        self.markerPos = self.startValue
         self.history = []
         self.rt = None
         self.responseClock.reset()
