@@ -33,6 +33,7 @@ from psychopy import logging, prefs
 from psychopy.alerts._alerts import alert
 from psychopy.localization import _translate
 from ..utils import FileDropTarget, PsychopyToolbar, FrameSwitcher, updateDemosMenu
+from ..ui import BaseAuiFrame
 from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
 from psychopy.app.errorDlg import exceptionCallback
@@ -1138,7 +1139,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
             #     findDlg.Close()
 
 
-class CoderFrame(wx.Frame, ThemeMixin):
+class CoderFrame(BaseAuiFrame, ThemeMixin):
 
     def __init__(self, parent, ID, title, files=(), app=None):
         self.app = app  # type: psychopy.app.PsychoPyApp
@@ -1158,6 +1159,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.showingReloadDialog = False
         self.btnHandles = {}  # stores toolbar buttons so they can be altered
 
+        # default window title string
+        self.winTitle = "PsychoPy Coder (v{})".format(self.app.version)
+
         # we didn't have the key or the win was minimized/invalid
         if self.appData['winH'] == 0 or self.appData['winW'] == 0:
             self.appData['winH'], self.appData['winW'] = wx.DefaultSize
@@ -1168,21 +1172,16 @@ class CoderFrame(wx.Frame, ThemeMixin):
         if self.appData['winX'] == -32000:
             self.appData['winX'], self.appData['winY'] = wx.DefaultPosition
             self.appData['winH'], self.appData['winW'] = wx.DefaultSize
-        wx.Frame.__init__(self, parent, ID, title,
-                          (self.appData['winX'], self.appData['winY']),
-                          size=(self.appData['winW'], self.appData['winH']))
+
+        BaseAuiFrame.__init__(
+            self, parent, ID, title,
+            (self.appData['winX'], self.appData['winY']),
+            (self.appData['winW'], self.appData['winH']))
 
         # detect retina displays (then don't use double-buffering)
         self.isRetina = \
             self.GetContentScaleFactor() != 1 and wx.Platform == '__WXMAC__'
 
-        # create a panel which the aui manager can hook onto
-        szr = wx.BoxSizer(wx.VERTICAL)
-        self.pnlMain = wx.Panel(self)
-        szr.Add(self.pnlMain, flag=wx.EXPAND | wx.ALL, proportion=1)
-        self.SetSizer(szr)
-
-        # self.panel = wx.Panel(self)
         self.Hide()  # ugly to see it all initialise
         # create icon
         if sys.platform == 'darwin':
@@ -1213,8 +1212,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.SetAcceleratorTable(accelTable)
 
         # Setup pane and art managers
-        self.paneManager = aui.AuiManager(
-            self.pnlMain, aui.AUI_MGR_DEFAULT | aui.AUI_MGR_RECTANGLE_HINT)
+        self.paneManager = self.getAuiManager()
 
         # Create toolbar
         self.toolbar = PsychopyToolbar(self)
@@ -1230,12 +1228,10 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.SetDropTarget(FileDropTarget(targetFrame=self))
 
         # Create editor notebook
-        #todo: Why is editor default background not same as usual frame backgrounds?
         self.notebook = aui.AuiNotebook(
-            self.pnlMain, -1, size=wx.Size(480, 480),
+            self, -1, size=wx.Size(480, 480),
             agwStyle=aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB)
 
-        #self.notebook.SetArtProvider(PsychopyTabArt())
         # Add editor panel
         self.paneManager.AddPane(self.notebook, aui.AuiPaneInfo().
                                  Name("Editor").
@@ -1250,7 +1246,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
 
         # Create source assistant notebook
         self.sourceAsst = aui.AuiNotebook(
-            self.pnlMain,
+            self,
             wx.ID_ANY,
             size = wx.Size(500, 600),
             agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS |
@@ -1301,7 +1297,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
 
         # Create shelf notebook
         self.shelf = aui.AuiNotebook(
-            self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600),
+            self, wx.ID_ANY, size=wx.Size(600, 600),
             agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS)
         #self.shelf.SetArtProvider(PsychopyTabArt())
 
@@ -2051,7 +2047,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.currentDoc = self.notebook.GetPage(new)
         self.app.updateWindowMenu()
         self.setFileModified(self.currentDoc.UNSAVED)
-        self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
+        self.setTitle(title=self.winTitle, document=self.currentDoc.filename)
 
         self.currentDoc.analyseScript()
 
@@ -2358,7 +2354,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 wx.stc.STC_WRAP_WORD if self.lineWrapChk.IsChecked() else wx.stc.STC_WRAP_NONE)
             self.statusBar.SetStatusText(fileType, 2)
         fname = Path(self.currentDoc.filename).name
-        self.SetLabel('%s - PsychoPy Coder (v%s)' % (fname, psychopy.__version__))
+        self.setTitle(title=self.winTitle, document=fname)
         #if len(self.getOpenFilenames()) > 0:
         self.currentDoc.analyseScript()
 
@@ -2547,7 +2543,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.currentDoc.analyseScript()
             # Update status bar and title bar labels
             self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
-            self.SetLabel(f'{self.currentDoc.filename} - PsychoPy Coder')
+
+            self.setTitle(title=self.winTitle, document=self.currentDoc.filename)
 
         dlg.Destroy()
 
@@ -2590,8 +2587,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.statusBar.SetStatusText("", 1)  # clear line pos
             self.statusBar.SetStatusText("", 2)  # clear file type in status bar
             self.statusBar.SetStatusText("", 3)  # psyhcopy version
+            # set window title
+            self.setTitle(title=self.winTitle, document=self.currentDoc)
             # clear the source tree
-            self.SetLabel("PsychoPy v%s (Coder)" % self.app.version)
             self.structureWindow.srcTree.DeleteAllItems()
         else:
             self.currentDoc = self.notebook.GetPage(newPageID)

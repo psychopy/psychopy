@@ -77,6 +77,7 @@ packages = ['pydoc',  # needed for help()
             'pyglet', 'pytz', 'OpenGL', 'glfw',
             'scipy', 'matplotlib', 'openpyxl',
             'xml', 'xmlschema', 'elementpath',
+            'ffpyplayer', 'cython',
             'moviepy', 'imageio', 'imageio_ffmpeg',
             '_sounddevice_data', '_soundfile_data',
             'cffi', 'pycparser',
@@ -142,6 +143,9 @@ setup(
                   NSHumanReadableCopyright   = "Open Science Tools Limited",
                   CFBundleDocumentTypes=[dict(CFBundleTypeExtensions=['*'],
                                               CFBundleTypeRole='Editor')],
+                  CFBundleURLTypes=[dict(CFBundleURLName='psychopy',  # respond to psychopy://
+                                         CFBundleURLSchemes='psychopy',
+                                         CFBundleTypeRole='Editor')],
                   LSEnvironment=dict(PATH="/usr/local/git/bin:/usr/local/bin:"
                                           "/usr/local:/usr/bin:/usr/sbin"),
             ),

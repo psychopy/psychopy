@@ -34,6 +34,7 @@ __all__ = [
 ]
 
 import wx
+import os
 from subprocess import Popen, PIPE
 from threading import Thread, Event
 from queue import Queue, Empty
@@ -122,7 +123,7 @@ class PipeReader(Thread):
         # read bytes in chunks until EOF
         while 1:
             self._fdpipe.flush()
-            pipeBytes = self._fdpipe.read()
+            pipeBytes = self._fdpipe.readline()
 
             # put bytes into the queue, handle overflows if the queue is full
             if not self._queue.full():
@@ -146,9 +147,6 @@ class PipeReader(Thread):
 
             # exit the loop
             if self._stopSignal.is_set():
-                if self._overflowBuffer:
-                    pipeBytes = "".join(self._overflowBuffer) + pipeBytes
-                    self._queue.put(pipeBytes)
                 break
 
             if pipeBytes == '':
@@ -261,15 +259,20 @@ class Job:
         # get the PID
         self._pid = self._process.pid
 
+        # bind the event called when the process ends
+        # self._process.Bind(wx.EVT_END_PROCESS, self.onTerminate)
+        self.parent.Bind(wx.EVT_IDLE, self.poll)
+
         # setup asynchronous readers of the subprocess pipes
         self._stdoutReader = PipeReader(self._process.stdout)
         self._stderrReader = PipeReader(self._process.stderr)
         self._stdoutReader.start()
         self._stderrReader.start()
 
-        # bind the event called when the process ends
-        # self._process.Bind(wx.EVT_END_PROCESS, self.onTerminate)
-        self.parent.Bind(wx.EVT_IDLE, self.poll)
+        # start polling for data from the subprocesses
+        # if self._pollMillis is not None:
+        #     self._pollTimer.Notify = self.onNotify  # override
+        #     self._pollTimer.Start(self._pollMillis, oneShot=wx.TIMER_CONTINUOUS)
 
         return self._pid
 
@@ -290,26 +293,19 @@ class Job:
         self.parent.Unbind(wx.EVT_IDLE)
 
         # isOk = wx.Process.Kill(self._pid, signal, flags) is wx.KILL_OK
+        #self._pollTimer.Stop()
         self._process.kill()  # kill the process
 
         # Wait for the process to exit completely, return code will be incorrect
         # if we don't.
-        if self._process is not None:
-            processStillRunning = True
-            while processStillRunning:
-                wx.Yield()  # yield to the GUI main loop
-                if self._process is None:
-                    processStillRunning = False
-                    continue
+        processStillRunning = True
+        while processStillRunning:
+            wx.Yield()  # yield to the GUI main loop
+            processStillRunning = self._process.poll() is None
+            time.sleep(0.1)  # sleep a bit to avoid CPU over-utilization
 
-                processStillRunning = self._process.poll() is None
-                time.sleep(0.1)  # sleep a bit to avoid CPU over-utilization
-
-            # get the return code of the subprocess
-            retcode = self._process.returncode
-        else:
-            retcode = 0
-
+        # get the return code of the subprocess
+        retcode = self._process.returncode
         self.onTerminate(retcode)
 
         return retcode is None
@@ -573,9 +569,6 @@ class Job:
         # poll the subprocess
         retCode = self._process.poll()
         if retCode is not None:  # process has exited?
-            # unbind the idle loop used to poll the subprocess
-            self.parent.Bind(wx.EVT_IDLE, None)
-            time.sleep(0.1)  # give time for pipes to flush
             wx.CallAfter(self.onTerminate, retCode)
 
         # get data from pipes
@@ -596,6 +589,9 @@ class Job:
         # if self._pollTimer.IsRunning():
         #     self._pollTimer.Stop()
 
+        # unbind the idle loop used to poll the subprocess
+        self.parent.Bind(wx.EVT_IDLE, None)
+
         self._readPipes()  # read remaining data
 
         # stop the pipe reader threads now
@@ -609,7 +605,7 @@ class Job:
             wx.CallAfter(self._terminateCallback, self._pid, exitCode)
 
         self._process = self._pid = None  # reset
-        # self._flags = 0
+        self._flags = 0
 
     # def onNotify(self):
     #     """Called when the polling timer elapses.
