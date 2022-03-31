@@ -50,9 +50,9 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
             self.borderBox = wx.BoxSizer(wx.VERTICAL)
             self.SetSizer(self.borderBox)
             self.sizer = wx.BoxSizer(wx.VERTICAL)
-            self.borderBox.Add(self.sizer, border=3, flag=wx.LEFT | wx.RIGHT)
+            self.borderBox.Add(self.sizer, border=3, flag=wx.ALL)
             # Start button
-            self.startBtn = wx.Button(self, size=(24, 24), style=wx.BORDER_NONE)
+            self.startBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
             self.startBtn.SetToolTip(_translate(
                 "Close the current shell."
             ))
@@ -69,17 +69,17 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
             self.restartBtn.SetBitmap(
                 iconCache.getBitmap(name="restart", size=16)
             )
-            self.sizer.Add(self.restartBtn)
+            self.sizer.Add(self.restartBtn, border=3, flag=wx.ALL)
             self.restartBtn.Bind(wx.EVT_BUTTON, self.parent.restart)
             # Stop button
-            self.stopBtn = wx.Button(self, size=(24, 24), style=wx.BORDER_NONE)
+            self.stopBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
             self.stopBtn.SetToolTip(_translate(
                 "Close the current shell."
             ))
             self.stopBtn.SetBitmap(
                 iconCache.getBitmap(name="stop", size=16)
             )
-            self.sizer.Add(self.stopBtn)
+            self.sizer.Add(self.stopBtn, border=3, flag=wx.ALL)
             self.stopBtn.Bind(wx.EVT_BUTTON, self.parent.close)
 
             self.update()
