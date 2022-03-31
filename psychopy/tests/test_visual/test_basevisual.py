@@ -363,6 +363,29 @@ class _TestUnitsMixin:
         del obj
         del win
 
+    def test_wh_setters(self):
+        """
+        Test that the width and height setters function the same as using the size setter
+        """
+        # Define some sizes to try out
+        cases = [
+            {'size': 100,
+             'units': 'pix'},
+            {'size': 200,
+             'units': 'pix'},
+        ]
+        # Create duplicate of object for safety
+        obj = copy(self.obj)
+        # Try each case
+        for case in cases:
+            # Set units
+            obj.units = case['units']
+            # Set width and height using setters
+            obj.width = case['size']
+            obj.height = case['size']
+            # Check that the resulting size is as desired
+            assert all(obj.size == case['size'])
+
     def test_unit_mismatch(self):
         """
         Test that a given stimulus can be drawn without error in all combinations of stimulus units x window units and
