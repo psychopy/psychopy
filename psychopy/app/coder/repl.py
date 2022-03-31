@@ -62,7 +62,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
             self.sizer.Add(self.startBtn, border=3, flag=wx.ALL)
             self.startBtn.Bind(wx.EVT_BUTTON, self.parent.start)
             # Restart button
-            self.restartBtn = wx.Button(self, size=(24, 24), style=wx.BORDER_NONE)
+            self.restartBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
             self.restartBtn.SetToolTip(_translate(
                 "Close the current shell and start a new one, this will clear any variables."
             ))
@@ -81,6 +81,16 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
             )
             self.sizer.Add(self.stopBtn, border=3, flag=wx.ALL)
             self.stopBtn.Bind(wx.EVT_BUTTON, self.parent.close)
+            # Clear button
+            self.clrBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
+            self.clrBtn.SetToolTip(_translate(
+                "Clear all previous output."
+            ))
+            # self.clrBtn.SetBitmap(
+            #     iconCache.getBitmap(name="clear", size=16)
+            # )
+            self.sizer.Add(self.clrBtn, border=3, flag=wx.ALL)
+            self.clrBtn.Bind(wx.EVT_BUTTON, self.parent.clear)
 
             self.update()
             self.Layout()
@@ -376,7 +386,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         self.close()
         self.start()
 
-    def clear(self):
+    def clear(self, evt=None):
         """Clear the contents of the console."""
         self.txtTerm.Clear()
         self._lastTextPos = self.txtTerm.GetLastPosition()
