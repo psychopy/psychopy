@@ -11,6 +11,8 @@ import wx
 import wx.stc
 import wx.richtext
 import psychopy.app
+from ..pavlovia_ui.search import SearchFrame
+from ..pavlovia_ui.user import UserFrame
 from ..themes.ui import ThemeSwitcher
 from wx.html import HtmlEasyPrinting
 
@@ -2975,8 +2977,33 @@ class CoderToolbar(BasePsychopyToolbar):
 
         self.AddSeparator()
 
-        # Pavlovia buttons
-        self.pavButtons.addPavloviaTools(buttons=['pavloviaSync', 'pavloviaSearch', 'pavloviaUser'])
-        self.frame.btnHandles.update(self.pavButtons.btnHandles)
+        # Pavlovia sync
+        self.buttons['pavSync'] = self.makeTool(
+            name='globe_greensync',
+            label=_translate("Sync online"),
+            tooltip=_translate("Sync with web project (at pavlovia.org)"),
+            func=self.frame.onPavloviaSync)
+        # Pavlovia search
+        self.buttons['pavSearch'] = self.makeTool(
+            name='globe_magnifier',
+            label=_translate("Search Pavlovia.org"),
+            tooltip=_translate("Find existing studies online (at pavlovia.org)"),
+            func=self.onPavloviaSearch)
+        # Pavlovia user
+        self.buttons['pavUser'] = self.makeTool(
+            name='globe_user',
+            label=_translate("Current Pavlovia user"),
+            tooltip=_translate("Log in/out of Pavlovia.org, view your user profile."),
+            func=self.onPavloviaUser)
 
         self.Realize()
+
+    def onPavloviaSearch(self, evt=None):
+        searchDlg = SearchFrame(
+                app=self.frame.app, parent=self.frame,
+                pos=self.frame.GetPosition())
+        searchDlg.Show()
+
+    def onPavloviaUser(self, evt=None):
+        userDlg = UserFrame(self.frame)
+        userDlg.ShowModal()
