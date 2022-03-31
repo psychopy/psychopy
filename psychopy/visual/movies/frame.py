@@ -8,7 +8,10 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = ["MovieFrame", "NULL_MOVIE_FRAME_INFO"]
+__all__ = ["MovieFrame", "NULL_MOVIE_FRAME_INFO", "MOVIE_FRAME_NOT_READY"]
+
+
+MOVIE_FRAME_NOT_READY = object()
 
 
 class MovieFrame:
@@ -17,8 +20,7 @@ class MovieFrame:
     Parameters
     ----------
     frameIndex : int
-        The index for this frame in the movie. A value of -1 indicates that this
-        value is uninitialized.
+        The index for this frame in the movie.
     absTime : float
         Absolute time in seconds in movie time which the frame is to appear
         on-screen.
@@ -30,7 +32,8 @@ class MovieFrame:
         correctly interpret `colorData`.
     colorFormat : str
         Color format identifier. This is used to ensure the correct format for
-        the destination texture buffer is used to contain `colorData`.
+        the destination texture buffer that will contain `colorData`. Default is
+        `'rgb8'` for 8-bit RGB.
     colorData : ArrayLike or None
         Movie frame color pixel data as an array. Set as `None` if no image data
         is available.
@@ -61,7 +64,7 @@ class MovieFrame:
 
     def __init__(self,
                  frameIndex=-1,
-                 absTime=0.0,
+                 absTime=-1.0,
                  displayTime=0.0,
                  size=(-1, -1),
                  colorFormat='rgb8',
@@ -83,9 +86,9 @@ class MovieFrame:
         self.userData = userData
 
     def __repr__(self):
-        return (f"MovieFrameInfo(frameIndex={self.frameIndex}, "
+        return (f"MovieFrame(frameIndex={self.frameIndex}, "
                 f"absTime={self.absTime}, "
-                f"displayTime={self.displayTime}"
+                f"displayTime={self.displayTime}, "
                 f"size={self.size}, "
                 f"colorData={repr(self.colorData)}, "
                 f"colorFormat={repr(self.colorFormat)}, "
@@ -108,7 +111,8 @@ class MovieFrame:
     @property
     def absTime(self):
         """Absolute time in seconds in movie time which the frame is to appear
-        on-screen (`float`).
+        on-screen (`float`). A value of -1.0 indicates that this value is not
+        valid.
         """
         return self._absTime
 
@@ -185,7 +189,7 @@ class MovieFrame:
     def audioChannels(self):
         """Number of audio channels present in `audioSamples` (`int`). Use
         `1` for mono and `2` for stereo. This is used to correctly format the
-        data contained in `audioSamples` to get passed to the desired audio
+        data contained in `audioSamples` to get past to the desired audio
         sink.
         """
         return self._audioChannels

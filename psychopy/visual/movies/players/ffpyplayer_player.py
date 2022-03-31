@@ -32,9 +32,7 @@ class FFPyPlayer(BaseMoviePlayer):
     """
     _movieLib = 'ffpyplayer'
 
-    def __init__(self, win=None):
-        super(FFPyPlayer, self).__init__(win)
-
+    def __init__(self):
         self._filename = u""
 
         # handle to `ffpyplayer`
@@ -44,23 +42,29 @@ class FFPyPlayer(BaseMoviePlayer):
         # status flags
         self._status = NOT_STARTED
 
-        # OpenGL buffers for video frame data
-        # self._textureId = GL.GLuint(0)
-        # self._pixbuffId = GL.GLuint(0)
+    def start(self, log=True):
+        """Initialize and start the decoder. This method will return when a
+        valid frame is made available.
 
-        # OpenGL texture options
-        # self._texFilterNeedsUpdate = True
-        # self.interpolate = False  # needs setter/getter in ABC
+        """
+        # open the media player
+        self._player = MediaPlayer(self._filename)
+        self._player.set_mute(True)
 
-    @property
-    def win(self):
-        """Window the video is being drawn to (`psychopy.visual.Window`) or
-        `None`)."""
-        return self._win
+        # Block until a valid frame is returned from the stream, needed or else
+        # we won't have the metadata needed to crete the pixel/texture buffers.
+        #
+        # NB - We should add a timeout here to prevent the application from
+        # locking up if we can't get a valid frame within a reasonable time.
+        #
+        frame = None
+        while frame is None:
+            frame, _ = self._player.get_frame()
 
-    @win.setter
-    def win(self, value):
-        self._win = value
+        # pause it once open since `ffpyplayer` plays the video automatically
+        self._player.set_pause(True)
+        self._player.seek(0.0)  # return to beginning
+        self._player.set_mute(False)  # unmute for the user
 
     def load(self, pathToMovie):
         """Load a movie file from disk.
@@ -90,11 +94,8 @@ class FFPyPlayer(BaseMoviePlayer):
 
             # self._selectWindow(self.win)  # free buffers here !!!
 
-        # open the media player
-        self._player = MediaPlayer(self._filename)
+        self.start()
 
-        # pause it once open since `ffpyplayer` plays the video automatically
-        self._player.set_pause(True)
         self._status = NOT_STARTED
 
     def unload(self):
@@ -129,7 +130,7 @@ class FFPyPlayer(BaseMoviePlayer):
             mediaPath=self._filename,
             title=metadata['title'],
             duration=metadata['duration'],
-            frameRate=metadata['frame_rate'],
+            # frameRate=metadata['frame_rate'],
             size=metadata['src_vid_size'],
             pixelFormat=metadata['src_pix_fmt'],
             movieLib=self._movieLib,
@@ -209,8 +210,8 @@ class FFPyPlayer(BaseMoviePlayer):
         self._assertMediaPlayer()
 
         # if not started, reset the clock
-        if self.status == NOT_STARTED:
-            self._videoClock.reset(0.0)
+        # if self.status == NOT_STARTED:
+        #     self._player.play()
 
         if self._player.get_pause():  # if paused, unpause to start playback
             self._player.set_pause(False)
@@ -276,7 +277,7 @@ class FFPyPlayer(BaseMoviePlayer):
         lastMovieFile = self._filename
 
         self._autoStart = autoStart
-        self.loadMovie(lastMovieFile)  # will play if auto start
+        self.load(lastMovieFile)  # will play if auto start
 
     def seek(self, timestamp, log=False):
         """Seek to a particular timestamp in the movie.
@@ -290,15 +291,9 @@ class FFPyPlayer(BaseMoviePlayer):
 
         """
         self._assertMediaPlayer()
+        self._player.seek(timestamp)
 
-        if self.isPlaying or self.isPaused:
-            player = self._player
-            if player and player.is_seekable():
-                # pause while seeking
-                player.set_time(int(timestamp * 1000.0))
-
-            # if log:
-            #     logAttrib(self, log, 'seek', timestamp)
+        return self._player.get_pts()
 
     def rewind(self, seconds=5, log=False):
         """Rewind the video.
@@ -324,7 +319,7 @@ class FFPyPlayer(BaseMoviePlayer):
         _ = self.updateVideoFrame(forceUpdate=True)
 
         # after seeking
-        return self.getCurrentFrameTime()
+        return self._player.get_pts()
 
     def fastForward(self, seconds=5, log=False):
         """Fast-forward the video.
@@ -349,7 +344,34 @@ class FFPyPlayer(BaseMoviePlayer):
         self._videoClock.reset(self._player.get_pts())
         _ = self.updateVideoFrame(forceUpdate=True)
 
-        return self.getCurrentFrameTime()
+        return self._player.get_pts()
+
+    def volumeUp(self, amount):
+        """Increase the volume by a fixed amount.
+
+        Parameters
+        ----------
+        amount : float or int
+            Amount to increase the volume relative to the current volume.
+
+        """
+        pass
+
+    def volumeDown(self, amount):
+        """Decrease the volume by a fixed amount.
+
+        Parameters
+        ----------
+        amount : float or int
+            Amount to decrease the volume relative to the current volume.
+
+        """
+        pass
+
+    def volume(self):
+        """Volume for the audio track for this movie (`int` or `float`).
+        """
+        pass
 
     @property
     def pts(self):
@@ -418,8 +440,12 @@ class FFPyPlayer(BaseMoviePlayer):
         """
         self._assertMediaPlayer()
 
-        # get the frame an playback status
-        frame, playbackStatus = self._player.get_frame()
+        # check if the frame needs to be presented
+        if self._lastFrameInfo.absTime > absTime:
+            return self._lastFrameInfo
+
+        # get the frame and playback status
+        frame, playbackStatus = self._player.get_frame(show=True)
 
         # NB - We could potentially buffer a bunch of frames in another thread
         # and pull them in here. Right now we're pulling one frame at a time.
@@ -438,10 +464,6 @@ class FFPyPlayer(BaseMoviePlayer):
 
         # process the new frame
         colorData, pts = frame
-
-        # check if the frame needs to be presented
-        if pts <= absTime:
-            return self._lastFrameInfo
 
         # if we have a new frame, update the frame information
         videoBuffer = colorData.to_bytearray()[0]

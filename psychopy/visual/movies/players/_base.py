@@ -25,19 +25,6 @@ class BaseMoviePlayer(ABC):
     """
     _movieLib = u''
 
-    def __init__(self, win=None):
-        self.win = win
-
-    @property
-    def win(self):
-        """Window the video is being drawn to (`psychopy.visual.Window` or
-        `None`)."""
-        return self._win
-
-    @win.setter
-    def win(self, value):
-        self._win = value
-
     # --------------------------------------------------------------------------
     # Movie loading and information
     #

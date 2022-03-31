@@ -23,7 +23,9 @@ from psychopy.tools.filetools import pathToString
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 
-from .player import getMoviePlayer
+from .players import getMoviePlayer
+from .metadata import MovieMetadata, NULL_MOVIE_METADATA
+from .frame import MovieFrame, NULL_MOVIE_FRAME_INFO
 
 import numpy as np
 import pyglet
@@ -77,7 +79,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
     def __init__(self,
                  win,
                  filename="",
-                 movieLib='ffpyplayer',
+                 movieLib=u'ffpyplayer',
                  units='pix',
                  size=None,
                  pos=(0.0, 0.0),
@@ -121,11 +123,24 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         # playback stuff
         self._filename = pathToString(filename)
         self._videoClock = Clock()
+        self._absMovieStartTime = -1.0
+
+        # time the video was started in experiment time
+        self._absStartTime = 0.0
+
         self._volume = volume
         self._noAudio = noAudio  # cannot be changed
         self._currentFrame = -1
         self._loopCount = 0
         self.loop = loop
+        self._recentFrame = NULL_MOVIE_FRAME_INFO
+
+        # OpenGL data
+        self.interpolate = True
+        self._texFilterNeedsUpdate = True
+        self._metadata = NULL_MOVIE_METADATA
+        self._pixbuffId = GL.GLuint(0)
+        self._textureId = GL.GLuint(0)
 
         # get the player interface for the desired `movieLib` and instance it
         self._player = getMoviePlayer(movieLib)()
@@ -175,6 +190,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         """
         self._filename = filename
         self._player.load(self._filename)
+        self._player.start()
 
     @property
     def frameTexture(self):
@@ -192,7 +208,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         Parameters
         ----------
         forceUpdate : bool
-            Force a frame update. This syncronizes the video with the video
+            Force a frame update. This synchronizes the video with the video
             timer. This should be set to `True` after seeking the video stream.
 
         Returns
@@ -205,70 +221,19 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         """
         # Don't get a new frame if we haven't reached its presentation
         # timestamp yet. Just use the last frame again.
-        movieTimeNow = self._videoClock.getTime()
+        nextMovieFrameTime = self.win.getFutureFlipTime() - self._absMovieStartTime
 
         # get the current movie frame for the video time
-        this_frame = self._player.getMovieFrame(absTime=movieTimeNow)
+        this_frame = self._player.getMovieFrame(absTime=nextMovieFrameTime)
 
-    def _freeBuffers(self):
-        """Free texture and pixel buffers. Call this when tearing down this
-        class or if a movie is stopped.
-        """
-        try:
-            # delete buffers and textures if previously created
-            if self._pixbuffId.value > 0:
-                GL.glDeleteBuffers(1, self._pixbuffId)
-                self._pixbuffId = GL.GLuint()
+        if this_frame is NULL_MOVIE_FRAME_INFO:
+            return self._recentFrame
 
-            # delete the old texture if present
-            if self._textureId.value > 0:
-                GL.glDeleteTextures(1, self._textureId)
-                self._textureId = GL.GLuint()
+        self._recentFrame = this_frame
+        self._setupTextureBuffers()
+        self._pixelTransfer()
 
-        except TypeError:  # can happen when unloading or shutting down
-            pass
-
-    def _drawRectangle(self):
-        """Draw the video frame to the window. This is called by the `draw()`
-        method.
-        """
-        # make sure that textures are on and GL_TEXTURE0 is activ
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-
-        # sets opacity (1, 1, 1 = RGB placeholder)
-        GL.glColor4f(1, 1, 1, self.opacity)
-        GL.glPushMatrix()
-        self.win.setScale('pix')
-
-        # move to centre of stimulus and rotate
-        vertsPix = self.verticesPix
-
-        array = (GL.GLfloat * 32)(
-            1, 1,  # texture coords
-            vertsPix[0, 0], vertsPix[0, 1], 0.,  # vertex
-            0, 1,
-            vertsPix[1, 0], vertsPix[1, 1], 0.,
-            0, 0,
-            vertsPix[2, 0], vertsPix[2, 1], 0.,
-            1, 0,
-            vertsPix[3, 0], vertsPix[3, 1], 0.,
-        )
-        GL.glPushAttrib(GL.GL_ENABLE_BIT)
-
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
-        GL.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT)
-
-        # 2D texture array, 3D vertex array
-        GL.glInterleavedArrays(GL.GL_T2F_V3F, 0, array)
-        GL.glDrawArrays(GL.GL_QUADS, 0, 4)
-        GL.glPopClientAttrib()
-        GL.glPopAttrib()
-        GL.glPopMatrix()
-
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glDisable(GL.GL_TEXTURE_2D)
+        return self._recentFrame
 
     def draw(self, win=None):
         """Draw the current frame to a particular
@@ -321,7 +286,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
 
     @property
     def isNotStarted(self):
-        """`True` if the video has not be started yet (`bool`). This status is
+        """`True` if the video may not have started yet (`bool`). This status is
         given after a video is loaded and play has yet to be called."""
         return self.status == NOT_STARTED
 
@@ -350,6 +315,9 @@ class MovieStim(BaseVisualStim, ContainerMixin):
             Log the play event.
 
         """
+        # get the absolute experiment time the first frame is to be presented
+        self._absMovieStartTime = self.win.getFutureFlipTime()
+        self._player.seek(0.0)
         self._player.play(log=log)
 
     def pause(self, log=True):
@@ -495,10 +463,10 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         """
         pass
 
-    @property
-    def frameTime(self):
-        """Current frame time in seconds (`float`)."""
-        return self._frameTime
+    # @property
+    # def frameTime(self):
+    #     """Current frame time in seconds (`float`)."""
+    #     return self._frameTime
 
     def getCurrentFrameTime(self):
         """Get the time that the movie file specified the current video frame as
@@ -524,6 +492,10 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         no video is loaded."""
         return self._metadata.get('src_vid_size', (0, 0))
 
+    # --------------------------------------------------------------------------
+    # OpenGL and rendering
+    #
+
     def _freeBuffers(self):
         """Free texture and pixel buffers. Call this when tearing down this
         class or if a movie is stopped.
@@ -532,12 +504,12 @@ class MovieStim(BaseVisualStim, ContainerMixin):
             # delete buffers and textures if previously created
             if self._pixbuffId.value > 0:
                 GL.glDeleteBuffers(1, self._pixbuffId)
-                self._pixbuffId = GL.GLuint(0)
+                self._pixbuffId = GL.GLuint()
 
             # delete the old texture if present
             if self._textureId.value > 0:
                 GL.glDeleteTextures(1, self._textureId)
-                self._textureId = GL.GLuint(0)
+                self._textureId = GL.GLuint()
 
         except TypeError:  # can happen when unloading or shutting down
             pass
@@ -614,6 +586,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         """
         # get the size of the movie frame and compute the buffer size
         vidWidth, vidHeight = self._player.getMetadata().size
+
         nBufferBytes = vidWidth * vidHeight * 3
 
         # bind pixel unpack buffer
@@ -639,7 +612,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
             shape=(nBufferBytes,))
 
         # copy data
-        bufferArray[:] = self._lastFrameInfo.video[:]
+        bufferArray[:] = self._recentFrame.colorData[:]
 
         # Very important that we unmap the buffer data after copying, but
         # keep the buffer bound for setting the texture.
@@ -679,6 +652,48 @@ class MovieStim(BaseVisualStim, ContainerMixin):
 
         # important to unbind the PBO
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+
+    def _drawRectangle(self):
+        """Draw the video frame to the window. This is called by the `draw()`
+        method.
+        """
+        # make sure that textures are on and GL_TEXTURE0 is activ
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+
+        # sets opacity (1, 1, 1 = RGB placeholder)
+        GL.glColor4f(1, 1, 1, self.opacity)
+        GL.glPushMatrix()
+        self.win.setScale('pix')
+
+        # move to centre of stimulus and rotate
+        vertsPix = self.verticesPix
+
+        array = (GL.GLfloat * 32)(
+            1, 1,  # texture coords
+            vertsPix[0, 0], vertsPix[0, 1], 0.,  # vertex
+            0, 1,
+            vertsPix[1, 0], vertsPix[1, 1], 0.,
+            0, 0,
+            vertsPix[2, 0], vertsPix[2, 1], 0.,
+            1, 0,
+            vertsPix[3, 0], vertsPix[3, 1], 0.,
+        )
+        GL.glPushAttrib(GL.GL_ENABLE_BIT)
+
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
+        GL.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT)
+
+        # 2D texture array, 3D vertex array
+        GL.glInterleavedArrays(GL.GL_T2F_V3F, 0, array)
+        GL.glDrawArrays(GL.GL_QUADS, 0, 4)
+        GL.glPopClientAttrib()
+        GL.glPopAttrib()
+        GL.glPopMatrix()
+
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glDisable(GL.GL_TEXTURE_2D)
 

@@ -45,6 +45,10 @@ class MovieMetadata:
         myMovie = MovieStim(win, '/path/to/my/movie.mpeg')
         clipDuration = myMovie.metadata.duration
 
+    Check if metadata is valid::
+
+        metadataValid = myMovie.metadata is not NULL_MOVIE_METADATA
+
     """
     __slots__ = [
         '_mediaPath',
@@ -118,6 +122,9 @@ class MovieMetadata:
 
     @duration.setter
     def duration(self, value):
+        if value is None:
+            value = 0.0
+
         self._duration = float(value)
 
     @property
@@ -129,7 +136,10 @@ class MovieMetadata:
 
     @frameRate.setter
     def frameRate(self, value):
-        self._frameRate = float(value)
+        if isinstance(value, (tuple, list,)):
+            self._frameRate = value[0] / float(value[1])
+        else:
+            self._frameRate = float(value)
 
     @property
     def size(self):
