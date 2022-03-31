@@ -3658,7 +3658,11 @@ class FlowPanel(wx.ScrolledWindow):
             font.SetPointSize(1000 / self.dpi - fontSizeDelta)
 
         maxTime, nonSlip = routine.getMaxTime()
-        if nonSlip:
+        if routine.disabled:
+            rtFill = cs['rt_comp_disabled']
+            rtEdge = cs['rt_comp_disabled']
+            rtText = cs['fl_routine_fg']
+        elif nonSlip:
             rtFill = cs['fl_routine_bg_nonslip']
             rtEdge = cs['fl_routine_bg_nonslip']
             rtText = cs['fl_routine_fg']
