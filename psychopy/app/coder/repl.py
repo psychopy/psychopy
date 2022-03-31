@@ -86,9 +86,9 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
             self.clrBtn.SetToolTip(_translate(
                 "Clear all previous output."
             ))
-            # self.clrBtn.SetBitmap(
-            #     iconCache.getBitmap(name="clear", size=16)
-            # )
+            self.clrBtn.SetBitmap(
+                iconCache.getBitmap(name="clear", size=16)
+            )
             self.sizer.Add(self.clrBtn, border=3, flag=wx.ALL)
             self.clrBtn.Bind(wx.EVT_BUTTON, self.parent.clear)
 
