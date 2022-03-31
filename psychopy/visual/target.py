@@ -1,12 +1,12 @@
 from .shape import ShapeStim
-from .basevisual import ColorMixin, WindowMixin
+from .basevisual import ColorMixin, WindowMixin, MinimalStim
 from psychopy.colors import Color
 from .. import layout
 
 knownStyles = ["circles", "cross", ]
 
 
-class TargetStim(ColorMixin, WindowMixin):
+class TargetStim(MinimalStim, ColorMixin, WindowMixin):
     """
     A target for use in eyetracker calibration, if converted to a dict will return in the correct format for ioHub
     """

@@ -77,6 +77,7 @@ packages = ['pydoc',  # needed for help()
             'pyglet', 'pytz', 'OpenGL', 'glfw',
             'scipy', 'matplotlib', 'openpyxl',
             'xml', 'xmlschema', 'elementpath',
+            'ffpyplayer', 'cython',
             'moviepy', 'imageio', 'imageio_ffmpeg',
             '_sounddevice_data', '_soundfile_data',
             'cffi', 'pycparser',
