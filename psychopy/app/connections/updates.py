@@ -272,11 +272,12 @@ class InstallUpdateDialog(wx.Dialog):
             self.latest = app.updater.latest
         self.runningVersion = app.updater.runningVersion
         wx.Dialog.__init__(self, parent, ID,
-                           title=_translate('PsychoPy Updates'),
-                           size=(500, 300))
+                           title=_translate('PsychoPy Updates'))
 
+        borderSizer = wx.BoxSizer(wx.VERTICAL)
         mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(mainSizer)
+        self.SetSizer(borderSizer)
+        borderSizer.Add(mainSizer, border=12, proportion=1, flag=wx.ALL | wx.EXPAND)
         # set the actual content of status msg later in self.updateStatus()
         self.statusMessage = wx.StaticText(
             self, -1, "msg", style=wx.ALIGN_CENTER)
@@ -286,7 +287,7 @@ class InstallUpdateDialog(wx.Dialog):
         self.useLatestBtn = wx.RadioButton(self, -1, msg,
                                            style=wx.RB_GROUP)
         self.Bind(wx.EVT_RADIOBUTTON, self.onRadioSelect, self.useLatestBtn)
-        self.progressBar = wx.Gauge(self, -1, 100, size=(250, 25))
+        self.progressBar = wx.Gauge(self, -1, 100, size=(250, 36))
         mainSizer.Add(self.useLatestBtn,
                       flag=wx.ALIGN_LEFT | wx.ALL, border=5)
         mainSizer.Add(self.progressBar, flag=wx.EXPAND | wx.ALL, border=5)
@@ -319,6 +320,7 @@ class InstallUpdateDialog(wx.Dialog):
         mainSizer.Add(btnSizer, flag=wx.ALL | wx.EXPAND, border=5)
 
         self.Layout()
+        self.Fit()
 
         # positioning and sizing
         self.updateStatus()
@@ -371,6 +373,7 @@ class InstallUpdateDialog(wx.Dialog):
         else:
             self.currentSelection = self.useLatestBtn
             self.useLatestBtn.SetValue(True)
+        self.Layout()
         self.Fit()
         # this will enable/disable additional controls for the above:
         self.onRadioSelect()
