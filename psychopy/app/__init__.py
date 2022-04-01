@@ -27,17 +27,16 @@ _psychopyApp = None
 def startApp(showSplash=True, testMode=False, safeMode=False):
     """Start the PsychoPy GUI.
 
-    This can be called only once per session. Additional calls after the app
-    starts will have no effect until `quitApp()` is called. After this function
-    returns, you can get the handle to the created `PsychoPyApp` instance by
-    calling :func:`getAppInstance`.
+    This function is idempotent, where additional calls after the app starts
+    will have no effect unless `quitApp()` was previously called. After this
+    function returns, you can get the handle to the created `PsychoPyApp`
+    instance by calling :func:`getAppInstance` (returns `None` otherwise).
 
-    Application crashes during initialization due to unhandled exceptions are
-    usually fatal. You can examine 'last_app_load.log' inside the 'psychopy3'
-    user directory (specified by preference 'userPrefsDir') to see the
-    traceback. After startup, unhandled exceptions will appear in a special
-    dialog box that shows the error traceback and provides some means to recover
-    their work.
+    Errors raised during initialization due to unhandled exceptions are usually
+    fatal. You can examine 'last_app_load.log' inside the 'psychopy3' user
+    directory (specified by preference 'userPrefsDir') to see the traceback.
+    After startup, unhandled exceptions will appear in a special dialog box that
+    shows the error traceback and provides some means to recover their work.
 
     Parameters
     ----------
@@ -72,8 +71,8 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
         # console, afterwards to 'last_app_load.log'.
         sys.stderr = sys.stdout = lastRunLog  # redirect output to file
 
-    # Create the application instance which starts loading it, if
-    # `testMode==True`, all messages and errors (i.e. exceptions) will log to
+    # Create the application instance which starts loading it.
+    # If `testMode==True`, all messages and errors (i.e. exceptions) will log to
     # console.
     from psychopy.app._psychopyApp import PsychoPyApp
     _psychopyApp = PsychoPyApp(
