@@ -25,11 +25,19 @@ _psychopyApp = None
 
 
 def startApp(showSplash=True, testMode=False, safeMode=False):
-    """Start the PsychoPy GUI. This can be called only once per session.
-    Additional calls after the app starts will have no effect.
+    """Start the PsychoPy GUI.
 
-    After calling this function, you can get the handle to the created app's
-    `PsychoPyApp` instance by calling :func:`getAppInstance`.
+    This can be called only once per session. Additional calls after the app
+    starts will have no effect until `quitApp()` is called. After this function
+    returns, you can get the handle to the created `PsychoPyApp` instance by
+    calling :func:`getAppInstance`.
+
+    Application crashes during initialization due to unhandled exceptions are
+    usually fatal. You can examine 'last_app_load.log' inside the 'psychopy3'
+    user directory (specified by preference 'userPrefsDir') to see the
+    traceback. After startup, unhandled exceptions will appear in a special
+    dialog box that shows the error traceback and provides some means to recover
+    their work.
 
     Parameters
     ----------
@@ -44,28 +52,46 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
 
     """
     global _psychopyApp
-    if _psychopyApp is None:
-        # Make sure logging is started before loading the bulk of the main
-        # application UI to catch as many errors as possible.
-        if not testMode:
-            from psychopy.preferences import prefs
-            from psychopy.logging import console, DEBUG
 
-            # construct path the preferences
-            userPrefsDir = prefs.paths['userPrefsDir']
-            prefPath = os.path.join(userPrefsDir, 'last_app_load.log')
-            lastRunLog = open(prefPath, 'w')  # open the file for writing
-            sys.stderr = sys.stdout = lastRunLog  # redirect output to file
-            console.setLevel(DEBUG)
+    if isAppStarted():  # do nothing it the app is already loaded
+        return  # NOP
 
-        # PsychoPyApp._called_from_test = testMode
-        # create the application instance which starts loading it
-        from psychopy.app._psychopyApp import PsychoPyApp
-        _psychopyApp = PsychoPyApp(
-            0, testMode=testMode, showSplash=showSplash)
+    # Make sure logging is started before loading the bulk of the main
+    # application UI to catch as many errors as possible.
+    if not testMode:
+        from psychopy.preferences import prefs
+        from psychopy.logging import console, DEBUG
 
-        if not testMode:
-            _psychopyApp.MainLoop()  # allow the UI to refresh itself
+        # construct path to log file from preferences
+        userPrefsDir = prefs.paths['userPrefsDir']
+        prefPath = os.path.join(userPrefsDir, 'last_app_load.log')
+        lastRunLog = open(prefPath, 'w')  # open the file for writing
+        console.setLevel(DEBUG)
+
+        # NOTE - messages and errors cropping up before this point will go to
+        # console, afterwards to 'last_app_load.log'.
+        sys.stderr = sys.stdout = lastRunLog  # redirect output to file
+
+    # Create the application instance which starts loading it, if
+    # `testMode==True`, all messages and errors (i.e. exceptions) will log to
+    # console.
+    from psychopy.app._psychopyApp import PsychoPyApp
+    _psychopyApp = PsychoPyApp(
+        0, testMode=testMode, showSplash=showSplash)
+
+    if not testMode:
+        # Setup redirection of errors to the error reporting dialog box. We
+        # don't want this in the test environment since the box will cause the
+        # app to stall on error.
+        from psychopy.app.errorDlg import exceptionCallback
+
+        # After this point, errors will appear in a dialog box. Messages will
+        # continue to be written to the dialog.
+        sys.excepthook = exceptionCallback
+
+        # Allow the UI to refresh itself. Don't do this during testing where the
+        # UI is exercised programmatically.
+        _psychopyApp.MainLoop()
 
 
 def quitApp():
@@ -83,14 +109,14 @@ def quitApp():
         # PsychoPyApp._called_from_test = False  # reset
         _psychopyApp = None
     else:
-        raise AttributeError(
-            'Object for `_psychopyApp` does not have attribute `quit`.')
+        raise AttributeError('Object `_psychopyApp` has no attribute `quit`.')
 
 
 def getAppInstance():
-    """Get a reference to the `PsychoPyApp` object. This function will return
-    `None` if PsychoPy has been imported as a library or the app has not been
-    fully realized.
+    """Get a reference to the `PsychoPyApp` object.
+
+    This function will return `None` if PsychoPy has been imported as a library
+    or the app has not been fully realized.
 
     Returns
     -------
@@ -137,7 +163,8 @@ def getAppFrame(frameName):
     object or None
         Reference to the frame instance (i.e. `CoderFrame`, `BuilderFrame` or
         `RunnerFrame`). `None` is returned if the frame has not been created or
-        the app is not running.
+        the app is not running. May return a list if more than one window is
+        opened.
 
     """
     if not isAppStarted():  # PsychoPy is not in GUI mode
@@ -147,3 +174,7 @@ def getAppFrame(frameName):
         raise ValueError('Invalid identifier specified as `frameName`.')
 
     return getattr(_psychopyApp, frameName, None)
+
+
+if __name__ == "__main__":
+    pass
