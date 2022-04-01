@@ -172,12 +172,7 @@ class GratingComponent(BaseVisualComponent):
         inits = getInitVals(self.params, 'PsychoJS')
 
         for paramName in inits:
-            val = inits[paramName].val
-            if val is True:
-                inits[paramName] = 'true'
-            elif val is False:
-                inits[paramName] = 'false'
-            elif val in [None, 'None', 'none', '', 'sin']:
+            if inits[paramName].val in [None, 'None', 'none', '', 'sin']:
                 inits[paramName].valType = 'code'
                 inits[paramName].val = 'undefined'
 
