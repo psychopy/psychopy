@@ -17,6 +17,7 @@ __all__ = [
 
 import sys
 import os
+from .console import StdStreamDispatcher
 from .frametracker import openFrames
 
 # Handle to the PsychoPy GUI application instance. We need to have this mainly
@@ -57,6 +58,7 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
 
     # Make sure logging is started before loading the bulk of the main
     # application UI to catch as many errors as possible.
+    prefPath = None
     if not testMode:
         from psychopy.preferences import prefs
         from psychopy.logging import console, DEBUG
@@ -77,6 +79,10 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
     from psychopy.app._psychopyApp import PsychoPyApp
     _psychopyApp = PsychoPyApp(
         0, testMode=testMode, showSplash=showSplash)
+
+    # singleton, creating this here will persist for the whole session
+    stdDisp = StdStreamDispatcher(_psychopyApp, prefPath)
+    stdDisp.redirect()
 
     if not testMode:
         # Setup redirection of errors to the error reporting dialog box. We
