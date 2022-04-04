@@ -267,6 +267,9 @@ class CodeTheme(dict):
                 # If tag is a lexer, store in a sub-dict
                 lex = lexerNames[key]
                 cache[lex] = {}
+                # If lexer isn't described in spec, skip
+                if key not in spec['code']:
+                    continue
                 for subkey, subtag in tag.items():
                     # For each subtag, extract font
                     if subkey in spec['code'][key]:
