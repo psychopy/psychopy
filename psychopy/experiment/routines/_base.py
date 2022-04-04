@@ -220,6 +220,7 @@ class Routine(list):
         self.exp = exp
         self._clockName = None  # for scripts e.g. "t = trialClock.GetTime()"
         self.type = 'Routine'
+        self.disabled = False
         list.__init__(self, list(components))
 
     def __repr__(self):
