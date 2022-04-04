@@ -73,7 +73,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
                  labelWrapWidth=None,
                  autoDraw=False,
                  autoLog=True,
-                 debug=False,
+                 layoutGuides=False,
                  # Synonyms
                  color=False,
                  fillColor=False,
@@ -136,7 +136,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
 
         autoLog :
 
-        debug : bool
+        layoutGuides : bool
             Set to True to show outlines around each sub-element of the slider (labels, hitbox, etc.). This is
             intended only for debugging experiments.
         """
@@ -146,7 +146,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         super(Slider, self).__init__(name=name, autoLog=False)
 
         # Set to True to make borders visible for debugging
-        self.debug = debug
+        self.layoutGuides = layoutGuides
 
         self.win = win
         if ticks is None:
@@ -453,7 +453,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
                     pos=self.labelParams['pos'][n], size=self.labelParams['size'][n], padding=self.labelParams['padding'][n], units=self.units,
                     anchor=self.labelParams['anchor'][n], alignment=self.labelParams['alignment'][n],
                     color=self._foreColor.copy(), fillColor=None, colorSpace=self.colorSpace,
-                    borderColor="red" if self.debug else None,
+                    borderColor="red" if self.layoutGuides else None,
                     letterHeight=self.labelHeight,
                     autoLog=False
                 )
@@ -473,7 +473,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         self.validArea = Rect(
             self.win,
             pos=self.hitboxParams['pos'], size=self.hitboxParams['size'], units=self.units,
-            fillColor=None, lineColor="red" if self.debug else None,
+            fillColor=None, lineColor="red" if self.layoutGuides else None,
             autoLog=False
         )
 
@@ -777,7 +777,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         """Draw the Slider, with all its constituent elements on this frame
         """
         self.getMouseResponses()
-        if self.debug:
+        if self.layoutGuides:
             self.validArea.draw()
         self.line.draw()
         self.tickLines.draw()

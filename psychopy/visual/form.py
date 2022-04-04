@@ -95,9 +95,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         units for stimuli - Currently, Form class only operates with 'height' units.
     randomize : bool
         Randomize order of Form elements
-    debug : bool
+    layoutGuides : bool
         Set to True to show outlines around each sub-element of the slider (labels, hitbox, etc.). This is
-        intended only for debugging experiments.
+        intended only for layoutGuidesging experiments.
     """
 
     knownStyles = {
@@ -138,7 +138,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                  units='height',
                  randomize=False,
                  autoLog=True,
-                 debug=False,
+                 layoutGuides=False,
                  # legacy
                  color=None,
                  foreColor=None
@@ -147,7 +147,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         super(Form, self).__init__(win, units, autoLog=False)
 
         # Set to True to make borders visible for debugging
-        self.debug = debug
+        self.layoutGuides = layoutGuides
 
         self.win = win
         self.autoLog = autoLog
@@ -424,7 +424,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 fillColor=None,
                 padding=0,  # handle this by padding between items
                 borderWidth=1,
-                borderColor='red' if self.debug else None,  # add borderColor to help debug
+                borderColor='red' if self.layoutGuides else None,  # add borderColor to help debug
                 editable=False,
                 bold=bold,
                 font=item['font'] or self.font)
@@ -645,7 +645,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 fillColor=None,
                 onTextCallback=self._layoutY,
         )
-        if self.debug:
+        if self.layoutGuides:
             resp.borderColor = "red"
         # Resize textbox to be at least as tall as the text
         resp._updateVertices()
@@ -858,7 +858,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                element._baseY - self._getScrollOffset())
                 if self._inRange(element):
                     element.draw()
-                    if self.debug and hasattr(element, "guide"):
+                    if self.layoutGuides and hasattr(element, "guide"):
                         # If debugging, draw position guide too
                         element.guide.pos = (element.guide.pos[0], element._baseY - self._getScrollOffset() + element.guide.size[1] / 2)
                         element.guide.draw()

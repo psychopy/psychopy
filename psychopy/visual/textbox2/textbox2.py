@@ -78,7 +78,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  name='',
                  autoLog=None,
                  onTextCallback=None,
-                 debug=False):
+                 layoutGuides=False):
         """
 
         Parameters
@@ -114,7 +114,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             broken in accordance with UAX#14 (Unicode Line Breaking Algorithm).
         name
         autoLog
-        debug : bool
+        layoutGuides : bool
             Set to True to display a tight outline around the test and an outline around the full text area (so not
             including padding). This is intended only for debugging experiments, to change the textbox outline in an
             experiment use `borderColor` instead.
@@ -123,7 +123,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         BaseVisualStim.__init__(self, win, units=units, name=name)
 
         # Set to True to make borders visible for debugging
-        self.debug = debug
+        self.layoutGuides = layoutGuides
 
         self.win = win
         self.colorSpace = colorSpace
@@ -144,7 +144,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             win,
             units=self.units, pos=(0, 0), size=(0, 0),  # set later by self.size and self.pos
             colorSpace=colorSpace, lineColor='red', fillColor=None,
-            lineWidth=1, opacity=int(debug),
+            lineWidth=1, opacity=1,
             autoLog=False
         )
         # Box around current content, wrapped tight - not drawn
@@ -152,7 +152,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             win,
             units='pix', pos=(0, 0), size=(0, 0),  # set later by self.size and self.pos
             colorSpace=colorSpace, lineColor='blue', fillColor=None,
-            lineWidth=1, opacity=int(debug),
+            lineWidth=1, opacity=1,
             autoLog=False
         )
         # Sizing params
@@ -992,12 +992,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if self.fillColor is not None or self.borderColor is not None:
             self.box.draw()
 
-        # Draw sub-elements if in debug mode
-        if self.debug:
+        # Draw sub-elements if showing layout guides
+        if self.layoutGuides:
             self.contentBox.draw()
             self.boundingBox.draw()
 
-        # self.boundingBox.draw()  # could draw for debug purposes
         gl.glPushMatrix()
         self.win.setScale('pix')
 
