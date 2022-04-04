@@ -7,6 +7,8 @@ import wx
 import wx.lib.agw.aui as aui
 import wx.stc as stc
 
+from ...preferences.preferences import prefs
+
 
 def styleFrame(target):
     # Set background color
@@ -49,12 +51,56 @@ def styleNotebook(target):
             target.SetPageBitmap(index, btn.bitmap)
 
 
+def styleCodeEditor(target):
+    from . import fonts
+
+    target.SetBackgroundColour(colors.app['tab_bg'])
+    # Set margin
+    margin = fonts.coderTheme.margin
+    target.SetFoldMarginColour(True, margin.backColor)
+    target.SetFoldMarginHiColour(True, margin.backColor)
+    # Set caret colour
+    caret = fonts.coderTheme.caret
+    target.SetCaretForeground(caret.foreColor)
+    target.SetCaretLineBackground(caret.backColor)
+    target.SetCaretWidth(1 + (caret.bold))
+    # Set selection colour
+    select = fonts.coderTheme.select
+    target.SetSelForeground(True, select.foreColor)
+    target.SetSelBackground(True, select.backColor)
+    # Set wrap point
+    target.edgeGuideColumn = prefs.coder['edgeGuideColumn']
+    target.edgeGuideVisible = target.edgeGuideColumn > 0
+    # Set line spacing
+    spacing = min(int(prefs.coder['lineSpacing'] / 2), 64)  # Max out at 64
+    target.SetExtraAscent(spacing)
+    target.SetExtraDescent(spacing)
+
+    # Set styles
+    for tag, font in fonts.coderTheme.items():
+        if tag is not None:
+            target.StyleSetSize(tag, font.pointSize)
+            target.StyleSetFaceName(tag, font.obj.GetFaceName())
+            target.StyleSetBold(tag, font.bold)
+            target.StyleSetItalic(tag, font.italic)
+            target.StyleSetForeground(tag, font.foreColor)
+            target.StyleSetBackground(tag, font.backColor)
+    # Update lexer keywords
+    lexer = target.GetLexer()
+    filename = ""
+    if hasattr(target, "filename"):
+        filename = target.filename
+    keywords = fonts.getLexerKeywords(lexer, filename)
+    for level, val in keywords.items():
+        target.SetKeyWords(level, " ".join(val))
+
+
 # Define dict linking object types to style functions
 methods = {
     wx.Frame: styleFrame,
     wx.Panel: stylePanel,
     aui.AuiNotebook: styleNotebook,
-    # stc.StyledTextCtrl: styleCodeEditor,
+    stc.StyledTextCtrl: styleCodeEditor,
     # wx.richtext.RichTextCtrl: styleRichText,
     # wx.py.shell.Shell: styleCodeEditor,
     wx.ToolBar: styleToolbar,
