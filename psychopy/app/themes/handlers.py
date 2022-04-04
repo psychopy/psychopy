@@ -78,7 +78,23 @@ def styleCodeEditor(target):
 
     # Set styles
     for tag, font in fonts.coderTheme.items():
-        if tag is not None:
+        if tag is None:
+            # Skip tags for e.g. margin, caret
+            continue
+        if isinstance(font, dict) and tag == target.GetLexer():
+            # If tag is the current lexer, then get styles from sub-dict
+            for subtag, subfont in font.items():
+                target.StyleSetSize(subtag, subfont.pointSize)
+                target.StyleSetFaceName(subtag, subfont.obj.GetFaceName())
+                target.StyleSetBold(subtag, subfont.bold)
+                target.StyleSetItalic(subtag, subfont.italic)
+                target.StyleSetForeground(subtag, subfont.foreColor)
+                target.StyleSetBackground(subtag, subfont.backColor)
+        elif isinstance(font, dict):
+            # If tag is another lexer, skip
+            continue
+        else:
+            # If tag is a direct style tag, apply
             target.StyleSetSize(tag, font.pointSize)
             target.StyleSetFaceName(tag, font.obj.GetFaceName())
             target.StyleSetBold(tag, font.bold)

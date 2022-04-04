@@ -93,6 +93,14 @@ tags = {
 }
 
 
+lexerNames = {
+    "python": stc.STC_LEX_PYTHON,
+    "c++": stc.STC_LEX_CPP,
+    "r": stc.STC_LEX_R,
+    "json": stc.STC_LEX_JSON,
+}
+
+
 def getLexerKeywords(lexer, filename=""):
     """
     Get the keywords to look for with a given lexer.
@@ -252,16 +260,21 @@ class CodeTheme(dict):
             self.select = CodeFont()
         # Find style associated with each tag
         for key, tag in tags.items():
-            if isinstance(tag, dict):
-                # If tag is a dict, then this is a category, not a tag
+            # Skip None
+            if tag is None:
+                continue
+            elif key.lower() in lexerNames:
+                # If tag is a lexer, store in a sub-dict
+                lex = lexerNames[key]
+                cache[lex] = {}
                 for subkey, subtag in tag.items():
                     # For each subtag, extract font
                     if subkey in spec['code'][key]:
                         # If font is directly specified, use it
-                        cache[subtag] = CodeFont(*extractAll(spec['code'][key][subkey]))
+                        cache[lex][subtag] = CodeFont(*extractAll(spec['code'][key][subkey]))
                     elif subkey in spec['code']:
                         # If font is not directly specified, use universal equivalent
-                        cache[subtag] = CodeFont(*extractAll(spec['code'][subkey]))
+                        cache[lex][subtag] = CodeFont(*extractAll(spec['code'][subkey]))
             elif key in spec['code']:
                 # If tag is a tag, extract font
                 cache[tag] = CodeFont(*extractAll(spec['code'][key]))
@@ -323,17 +336,14 @@ class CodeFont:
         if not success:
             self.obj.SetFaceName(wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT).GetFaceName())
 
-    def __str__(self):
-        fg = self.foreColor.GetAsString(flags=wx.C2S_HTML_SYNTAX)
-        bg = self.backColor.GetAsString(flags=wx.C2S_HTML_SYNTAX)
-        face = self.obj.GetFaceName()
-        bold = ""
-        if self.bold:
-            bold = "bold,"
-        italic = ""
-        if self.italic:
-            italic = "italic,"
-        return f"{bold}{italic}fore:{fg},back:{bg},face:{face},size:{self.pointSize}"
+    def __repr__(self):
+        return (
+            f"<{type(self).__name__}: "
+            f"pointSize={self.pointSize}, "
+            f"foreColor={self.foreColor}, backColor={self.backColor}, "
+            f"faceName={self.obj.GetFaceName()}, bold={self.bold}, italic={self.italic}"
+            f">"
+        )
 
 
 def extractAll(val):
