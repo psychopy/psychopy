@@ -199,118 +199,212 @@ class CodeTheme(dict):
         # Return value from theme cache
         return dict.__getitem__(self, theme.code)[item]
 
+    def items(self):
+        # If theme isn't cached yet, load & cache it
+        if theme.code not in self:
+            self.load(theme.code)
+        return dict.__getitem__(self, theme.code).items()
+
+    def values(self):
+        # If theme isn't cached yet, load & cache it
+        if theme.code not in self:
+            self.load(theme.code)
+        return dict.__getitem__(self, theme.code).values()
+
+    def keys(self):
+        # If theme isn't cached yet, load & cache it
+        if theme.code not in self:
+            self.load(theme.code)
+        return dict.__getitem__(self, theme.code).keys()
+
+    def __iter__(self):
+        # If theme isn't cached yet, load & cache it
+        if theme.code not in self:
+            self.load(theme.code)
+        return dict.__getitem__(self, theme.code).__iter__()
+
     def load(self, name):
         cache = {}
         # Load theme from file
         filename = Path(__file__).parent / "spec" / (theme.code + ".json")
         spec = loadSpec(filename)
-        # Go through each tag in the code dict
-        for key, style in spec['code'].items():
-            # Skip if key doesn't correspond to an stc tag
-            if key not in tags:
-                continue
-            # Get tag
-            tag = tags[key]
-            # If tag is a dict, this means it's a langauge so we need to look for sub-items
+        # Set base attributes
+        base = spec['code']['base']
+        CodeFont.pointSize = int(prefs.coder['codeFontSize'])
+        CodeFont.foreColor = extractColor(base['fg'])
+        CodeFont.backColor = extractColor(base['bg'])
+        CodeFont.faceNames = extractFaceNames(base['font'])
+        CodeFont.bold, CodeFont.italic = extractFontStyle(base['font'])
+        # Store caret spec
+        if 'caret' in spec['code']:
+            self.caret = CodeFont(*extractAll(spec['code']['caret']))
+        else:
+            self.caret = CodeFont()
+        # Store margin spec
+        if 'margin' in spec['code']:
+            self.margin = CodeFont(*extractAll(spec['code']['margin']))
+        else:
+            self.margin = CodeFont()
+        # Store select spec
+        if 'select' in spec['code']:
+            self.select = CodeFont(*extractAll(spec['code']['select']))
+        else:
+            self.select = CodeFont()
+        # Find style associated with each tag
+        for key, tag in tags.items():
             if isinstance(tag, dict):
-                for subkey, substyle in style.items():
-                    cache[tag[subkey]] = CodeFont(substyle)
-            # Otherwise, it points to a single style which we should store
+                # If tag is a dict, then this is a category, not a tag
+                for subkey, subtag in tag.items():
+                    # For each subtag, extract font
+                    if subkey in spec['code'][key]:
+                        # If font is directly specified, use it
+                        cache[subtag] = CodeFont(*extractAll(spec['code'][key][subkey]))
+                    elif subkey in spec['code']:
+                        # If font is not directly specified, use universal equivalent
+                        cache[subtag] = CodeFont(*extractAll(spec['code'][subkey]))
+            elif key in spec['code']:
+                # If tag is a tag, extract font
+                cache[tag] = CodeFont(*extractAll(spec['code'][key]))
             else:
-                cache[tag] = CodeFont(style)
+                cache[tag] = CodeFont()
+
         # Store cache
         dict.__setitem__(self, name, cache)
 
 
-class CodeFont(wx.Font):
-    def __init__(self, spec):
-        # Make FontInfo object to initialise with
-        info = wx.FontInfo(prefs.coder['codeFontSize'])
-        # Set style
-        if 'font' in spec:
-            bold, italic = self.getFontStyle(spec['font'])
-            info.Bold(bold)
-            info.Italic(italic)
-        # Initialise from info
-        wx.Font.__init__(self, info)
-        # Set face name
-        if 'font' in spec:
-            # Get font families
-            names = self.getFontName(spec['font'])
-            # Try faces sequentially until one works
-            success = False
-            for name in names:
-                success = self.SetFaceName(name)
-                if success:
-                    break
-            # If nothing worked, use the default monospace
-            if not success:
-                self.SetFaceName(wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT).GetFaceName())
+class CodeFont:
+    # Defaults are defined at class level, so they can change with theme
+    pointSize = 12
+    foreColor = "#000000"
+    backColor = "#FFFFFF"
+    faceNames = "JetBrains Mono"
+    bold = False
+    italic = False
 
-        # Store foreground color
-        if 'fg' in spec:
-            self.fg = self.getColor(spec['fg'])
-        else:
-            self.fg = colors.app['text']
-        # Store background color
-        if 'bg' in spec:
-            self.bg = self.getColor(spec['fg'])
-        else:
-            self.bg = colors.app['tab_bg']
+    def __init__(self, pointSize=None, foreColor=None, backColor=None, faceNames=None, bold=None, italic=None):
+        # Set point size
+        if pointSize in (None, ""):
+            pointSize = CodeFont.pointSize
+        self.pointSize = pointSize
+        # Set foreground color
+        if foreColor in (None, ""):
+            foreColor = CodeFont.foreColor
+        self.foreColor = foreColor
+        # Set background color
+        if backColor in (None, ""):
+            backColor = CodeFont.backColor
+        self.backColor = backColor
+        # Set font face
+        if faceNames in (None, ""):
+            faceNames = CodeFont.faceNames
+        self.faceNames = faceNames
+        # Set bold
+        if bold in (None, ""):
+            bold = CodeFont.bold
+        self.bold = bold
+        # Set italic
+        if italic in (None, ""):
+            italic = CodeFont.italic
+        self.italic = italic
 
-    @staticmethod
-    def getFontName(val):
-        # Make sure val is a list
-        if isinstance(val, str):
-            # Get rid of any perentheses
-            val = re.sub("[()[]]", "", val)
-            # Split by comma
-            val = val.split(",")
-        # Clear style markers
-        val = [p for p in val if val not in ("bold", "italic")]
+        # Make wx.FontInfo object
+        info = wx.FontInfo(self.pointSize).Bold(self.bold).Italic(self.italic)
+        # Make wx.Font object
+        self.obj = wx.Font(info)
 
-        return val
+        # Choose face from list
+        # Try faces sequentially until one works
+        success = False
+        for name in self.faceNames:
+            success = self.obj.SetFaceName(name)
+            if success:
+                break
+        # If nothing worked, use the default monospace
+        if not success:
+            self.obj.SetFaceName(wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT).GetFaceName())
 
-    @staticmethod
-    def getFontStyle(val):
-        bold = "bold" in val
-        italic = "italic" in val
+    def __str__(self):
+        fg = self.foreColor.GetAsString(flags=wx.C2S_HTML_SYNTAX)
+        bg = self.backColor.GetAsString(flags=wx.C2S_HTML_SYNTAX)
+        face = self.obj.GetFaceName()
+        bold = ""
+        if self.bold:
+            bold = "bold,"
+        italic = ""
+        if self.italic:
+            italic = "italic,"
+        return f"{bold}{italic}fore:{fg},back:{bg},face:{face},size:{self.pointSize}"
 
-        return bold, italic
 
-    @staticmethod
-    def getColor(val):
-        val = str(val)
-        # Split value according to operators, commas and spaces
-        val = val.replace("+", " + ").replace("-", " - ").replace("\\", " \\ ")
-        parts = re.split(r"[\\\s,()[]]", val)
-        parts = [p for p in parts if p]
-        # Set assumed values
-        color = colors.scheme['black']
-        modifier = +0
-        alpha = 255
-        for i, part in enumerate(parts):
-            # If value is a named psychopy color, get it
-            if part in colors.scheme:
-                color = colors.scheme[part]
-            # If assigned an operation, store it for application
-            if part == "+" and i < len(parts) and parts[i+1].isnumeric():
-                modifier = int(parts[i+1])
-            if part == "-" and i < len(parts) and parts[i+1].isnumeric():
-                modifier = -int(parts[i+1])
-            if part == "*" and i < len(parts) and parts[i + 1].isnumeric():
-                alpha = int(parts[i + 1])
-            # If given a hex value, make a color from it
-            if re.fullmatch(r"#(\dabcdefABCDEF){6}", part):
-                part = part.replace("#", "")
-                vals = [int(part[i:i+2], 16) for i in range(0, len(part), 2)] + [255]
-                color = colors.BaseColor(*vals)
-        # Apply modifier
-        color = color + modifier
-        # Apply alpha
-        color = wx.Colour(color.Red(), color.Green(), color.Blue(), alpha=alpha)
+def extractAll(val):
+    pointSize = int(prefs.coder['codeFontSize'])
+    foreColor = extractColor(val['fg'])
+    backColor = extractColor(val['bg'])
+    faceNames = extractFaceNames(val['font'])
+    bold, italic = extractFontStyle(val['font'])
 
-        return color
+    return pointSize, foreColor, backColor, faceNames, bold, italic
+
+
+def extractFaceNames(val):
+    # Make sure val is a list
+    if isinstance(val, str):
+        # Get rid of any perentheses
+        val = re.sub("[()[]]", "", val)
+        # Split by comma
+        val = val.split(",")
+    # Clear style markers
+    val = [p for p in val if val not in ("bold", "italic")]
+
+    # Add fallback font
+    val.append("JetBrains Mono")
+
+    return val
+
+
+def extractFontStyle(val):
+    bold = "bold" in val
+    italic = "italic" in val
+
+    return bold, italic
+
+
+def extractColor(val):
+    val = str(val)
+    # If val is blank, return None so further down the line we know to sub in defaults
+    if val in ("None", ""):
+        return None
+    # Split value according to operators, commas and spaces
+    val = val.replace("+", " + ").replace("-", " - ").replace("\\", " \\ ")
+    parts = re.split(r"[\\\s,()[]]", val)
+    parts = [p for p in parts if p]
+    # Set assumed values
+    color = colors.scheme['black']
+    modifier = +0
+    alpha = 255
+    for i, part in enumerate(parts):
+        # If value is a named psychopy color, get it
+        if part in colors.scheme:
+            color = colors.scheme[part]
+        # If assigned an operation, store it for application
+        if part == "+" and i < len(parts) and parts[i+1].isnumeric():
+            modifier = int(parts[i+1])
+        if part == "-" and i < len(parts) and parts[i+1].isnumeric():
+            modifier = -int(parts[i+1])
+        if part == "*" and i < len(parts) and parts[i + 1].isnumeric():
+            alpha = int(parts[i + 1])
+        # If given a hex value, make a color from it
+        if re.fullmatch(r"#[\dabcdefABCDEF]{6}", part):
+            part = part.replace("#", "")
+            vals = [int(part[i:i+2], 16) for i in range(0, len(part), 2)] + [255]
+            color = colors.BaseColor(*vals)
+    # Apply modifier
+    color = color + modifier
+    # Apply alpha
+    color = wx.Colour(color.Red(), color.Green(), color.Blue(), alpha=alpha)
+
+    return color
 
 
 coderTheme = CodeTheme()
+
