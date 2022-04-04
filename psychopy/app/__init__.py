@@ -33,11 +33,15 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
     function returns, you can get the handle to the created `PsychoPyApp`
     instance by calling :func:`getAppInstance` (returns `None` otherwise).
 
-    Errors raised during initialization due to unhandled exceptions are usually
-    fatal. You can examine 'last_app_load.log' inside the 'psychopy3' user
-    directory (specified by preference 'userPrefsDir') to see the traceback.
-    After startup, unhandled exceptions will appear in a special dialog box that
-    shows the error traceback and provides some means to recover their work.
+    Errors raised during initialization due to unhandled exceptions with respect
+    to the GUI application are usually fatal. You can examine
+    'last_app_load.log' inside the 'psychopy3' user directory (specified by
+    preference 'userPrefsDir') to see the traceback. After startup, unhandled
+    exceptions will appear in a special dialog box that shows the error
+    traceback and provides some means to recover their work. Regular logging
+    messages will appear in the log file or GUI. We use a separate error dialog
+    here is delineate errors occurring in the user's experiment scripts and
+    those of the application itself.
 
     Parameters
     ----------
@@ -57,16 +61,17 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
         return  # NOP
 
     # Make sure logging is started before loading the bulk of the main
-    # application UI to catch as many errors as possible.
-    prefPath = None
+    # application UI to catch as many errors as possible. After the app is
+    # loaded, messages are handled by the `StdStreamDispatcher` instance.
+    prefLogFilePath = None
     if not testMode:
         from psychopy.preferences import prefs
         from psychopy.logging import console, DEBUG
 
         # construct path to log file from preferences
         userPrefsDir = prefs.paths['userPrefsDir']
-        prefPath = os.path.join(userPrefsDir, 'last_app_load.log')
-        lastRunLog = open(prefPath, 'w')  # open the file for writing
+        prefLogFilePath = os.path.join(userPrefsDir, 'last_app_load.log')
+        lastRunLog = open(prefLogFilePath, 'w')  # open the file for writing
         console.setLevel(DEBUG)
 
         # NOTE - messages and errors cropping up before this point will go to
@@ -80,8 +85,11 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
     _psychopyApp = PsychoPyApp(
         0, testMode=testMode, showSplash=showSplash)
 
-    # singleton, creating this here will persist for the whole session
-    stdDisp = StdStreamDispatcher(_psychopyApp, prefPath)
+    # After the app is loaded, we hand off logging to the stream dispatcher
+    # using the provided log file path. The dispatcher will write out any log
+    # messages to the extant log file and any GUI windows to show them to the
+    # user.
+    stdDisp = StdStreamDispatcher(_psychopyApp, prefLogFilePath)
     stdDisp.redirect()
 
     if not testMode:
