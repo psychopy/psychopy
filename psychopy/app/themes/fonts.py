@@ -277,7 +277,7 @@ class CodeFont:
     pointSize = 12
     foreColor = "#000000"
     backColor = "#FFFFFF"
-    faceNames = "JetBrains Mono"
+    faceNames = ["JetBrains Mono"]
     bold = False
     italic = False
 
@@ -357,7 +357,7 @@ def extractFaceNames(val):
     val = [p for p in val if val not in ("bold", "italic")]
 
     # Add fallback font
-    val.append("JetBrains Mono")
+    val += CodeFont.faceNames
 
     return val
 
