@@ -89,6 +89,13 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
     # using the provided log file path. The dispatcher will write out any log
     # messages to the extant log file and any GUI windows to show them to the
     # user.
+
+    # ensure no instance was created before this one
+    if StdStreamDispatcher.getInstance() is not None:
+        raise RuntimeError(
+            '`StdStreamDispatcher` instance initialized outside of `startApp`, '
+            'this is not permitted.')
+
     stdDisp = StdStreamDispatcher(_psychopyApp, prefLogFilePath)
     stdDisp.redirect()
 
