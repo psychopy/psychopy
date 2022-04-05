@@ -127,7 +127,7 @@ def styleRichText(target):
     # Set background
     target.SetBackgroundColour(fonts.CodeFont.backColor)
     # Construct style
-    font = fonts.CodeFont()
+    font = fonts.coderTheme.base
     base = wx.TextAttr(
         colText=font.foreColor,
         colBack=font.backColor,
