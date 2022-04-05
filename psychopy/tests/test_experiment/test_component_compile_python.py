@@ -68,8 +68,8 @@ class TestComponentCompilerPython():
         psyexpCompile.compileScript(infile=self.exp, outfile=pyFilePath)
 
     def test_component_type_in_experiment(self):
-        for compName in self.allComp:
-            if compName not in ['SettingsComponent', 'UnknownComponent']:
+        for compName, compObj in self.allComp.items():
+            if compName not in ['SettingsComponent', 'UnknownComponent'] and "PsychoPy" in compObj.targets:
                 # reset exp
                 self.reset_experiment()
                 # Add components

@@ -14,12 +14,12 @@ import wx.richtext
 import webbrowser
 from psychopy.localization import _translate
 from psychopy.alerts._alerts import AlertEntry
-from psychopy.app.themes import handlers
+from psychopy.app.themes import handlers, icons
 
 _prefEncoding = locale.getpreferredencoding()
 
 
-class ScriptOutputPanel(wx.richtext.RichTextCtrl, handlers.ThemeMixin):
+class ScriptOutputPanel(wx.Panel, handlers.ThemeMixin):
     """Class for the script output window in Coder.
 
     Parameters
@@ -37,8 +37,57 @@ class ScriptOutputPanel(wx.richtext.RichTextCtrl, handlers.ThemeMixin):
         Point size of the font. If `None`, the theme defaults will be used.
 
     """
+    class OutputToolbar(wx.Panel, handlers.ThemeMixin):
+        def __init__(self, parent):
+            wx.Panel.__init__(self, parent, size=(30, -1))
+            self.parent = parent
+
+            # Setup sizer
+            self.borderBox = wx.BoxSizer(wx.VERTICAL)
+            self.SetSizer(self.borderBox)
+            self.sizer = wx.BoxSizer(wx.VERTICAL)
+            self.borderBox.Add(self.sizer, border=3, flag=wx.ALL)
+
+            # Clear button
+            self.clrBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
+            self.clrBtn.SetToolTip(_translate(
+                "Clear all previous output."
+            ))
+            self.clrBtn.SetBitmap(
+                icons.ButtonIcon(name="clear", size=16).bitmap
+            )
+            self.sizer.Add(self.clrBtn, border=3, flag=wx.ALL)
+            self.clrBtn.Bind(wx.EVT_BUTTON, self.parent.ctrl.clear)
+
+            self.Layout()
+
     def __init__(self,
                  parent,
+                 style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE,
+                 font=None,
+                 fontSize=None):
+        # Init superclass
+        wx.Panel.__init__(self, parent, size=(-1, -1), style=style)
+
+        # Setup sizer
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.SetSizer(self.sizer)
+
+        # Text control
+        self.ctrl = ScriptOutputCtrl(self,
+                                     style=style,
+                                     font=font,
+                                     fontSize=fontSize)
+        self.sizer.Add(self.ctrl, proportion=1, flag=wx.EXPAND)
+
+        # Toolbar
+        self.toolbar = self.OutputToolbar(self)
+        self.sizer.Prepend(self.toolbar, flag=wx.EXPAND)
+
+
+class ScriptOutputCtrl(wx.richtext.RichTextCtrl, handlers.ThemeMixin):
+
+    def __init__(self, parent,
                  style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE,
                  size=None,
                  font=None,
@@ -165,6 +214,10 @@ class ScriptOutputPanel(wx.richtext.RichTextCtrl, handlers.ThemeMixin):
             print("##### Could not open URL: {} #####\n".format(evt.String))
             print(e)
         wx.EndBusyCursor()
+
+    def clear(self, evt=None):
+        self.Clear()
+        self._applyAppTheme()
 
 
 if __name__ == "__main__":

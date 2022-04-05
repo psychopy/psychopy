@@ -1314,9 +1314,10 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.shelf.AddPage(self.shell, _translate('Shell'))
 
         # script output panel
-        self.consoleOutput = ScriptOutputPanel(self.shelf)
+        self.consoleOutputPanel = ScriptOutputPanel(self.shelf)
+        self.consoleOutput = self.consoleOutputPanel.ctrl
         self.consoleOutput.SetName("ConsoleOutput")
-        self.shelf.AddPage(self.consoleOutput, _translate('Output'))
+        self.shelf.AddPage(self.consoleOutputPanel, _translate('Output'))
 
         for i in range(self.shelf.GetPageCount()):
             self.shelf.SetCloseButton(i, False)
