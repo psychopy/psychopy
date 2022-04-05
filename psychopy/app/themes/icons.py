@@ -19,6 +19,8 @@ class BaseIcon(wx.Icon):
             wx.Icon.__init__(self, iconCache[stem])
             # Duplicate relevant attributes if relevant (depends on subclass)
             iconCache[stem]._copyTo(self)
+            # Set size, it may be different than cached
+            self.size = size
         else:
             # Initialise base class
             wx.Icon.__init__(self)
@@ -100,6 +102,7 @@ class ButtonIcon(BaseIcon):
     def _copyTo(self, other):
         other.bitmaps = self.bitmaps
         other.bitmap = self.bitmap
+        other.size = self.size
 
     def _populate(self, stem):
         # Get all files in the resource folder containing the given stem
