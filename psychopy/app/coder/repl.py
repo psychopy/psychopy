@@ -9,12 +9,12 @@
 
 import sys
 import wx
-from psychopy.app.themes import LegacyThemeMixin
+from psychopy.app.themes import LegacyThemeMixin, handlers
 from psychopy.preferences import prefs
 import os
 
 
-class ConsoleTextCtrl(wx.TextCtrl, LegacyThemeMixin):
+class ConsoleTextCtrl(wx.TextCtrl, handlers.ThemeMixin):
     """Class for the console text control. This is needed to allow for theming.
     """
     def __init__(self, parent, id_=wx.ID_ANY, value="", pos=wx.DefaultPosition,
@@ -26,7 +26,7 @@ class ConsoleTextCtrl(wx.TextCtrl, LegacyThemeMixin):
             validator=wx.DefaultValidator, name=name)
 
 
-class PythonREPLCtrl(wx.Panel, LegacyThemeMixin):
+class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
     """Class for a Python REPL control.
 
     An interactive shell (REPL) for interfacing with a Python interpreter in

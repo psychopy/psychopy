@@ -1,13 +1,13 @@
 from copy import deepcopy
 
 from . import colors, icons
+from ...preferences.preferences import prefs
 
 # --- Functions to handle specific subclasses of wx.Window ---
 import wx
 import wx.lib.agw.aui as aui
 import wx.stc as stc
-
-from ...preferences.preferences import prefs
+import wx.richtext
 
 
 def styleFrame(target):
@@ -111,13 +111,51 @@ def styleCodeEditor(target):
         target.SetKeyWords(level, " ".join(val))
 
 
+def styleSimpleText(target):
+    target.SetBackgroundColour(colors.app['tab_bg'])
+    target.SetForegroundColour(colors.app['text'])
+    # Update
+    target.Refresh()
+    target.Update()
+
+
+def styleRichText(target):
+    from . import fonts
+
+    # Set background
+    target.SetBackgroundColour(fonts.CodeFont.backColor)
+    # Construct style
+    font = fonts.CodeFont()
+    base = wx.TextAttr(
+        colText=font.foreColor,
+        colBack=font.backColor,
+        font=font.obj,
+    )
+    style = wx.richtext.RichTextAttr(base)
+    # Set base styles
+    target.SetBasicStyle(style)
+    target.SetDefaultStyle(style)
+    # Style existing content
+    i = 0
+    for ln in range(target.GetNumberOfLines()):
+        # Line length +1 (to include the \n)
+        i += target.GetLineLength(ln) + 1
+    target.SetStyle(start=0, end=i, style=style)
+    # Update
+    target.Refresh()
+    target.Update()
+    target.MoveEnd()
+    target.WriteText("")
+
+
 # Define dict linking object types to style functions
 methods = {
     wx.Frame: styleFrame,
     wx.Panel: stylePanel,
     aui.AuiNotebook: styleNotebook,
     stc.StyledTextCtrl: styleCodeEditor,
-    # wx.richtext.RichTextCtrl: styleRichText,
+    wx.TextCtrl: styleSimpleText,
+    wx.richtext.RichTextCtrl: styleRichText,
     # wx.py.shell.Shell: styleCodeEditor,
     wx.ToolBar: styleToolbar,
     # wx.StatusBar: styleStatusBar,
