@@ -1,7 +1,6 @@
 import json
 from pathlib import Path
 
-from ._themes import LegacyThemeMixin
 from ... import logging, prefs
 
 _cache = {}

@@ -10,6 +10,7 @@ from pathlib import Path
 import wx
 import wx.stc
 import wx.richtext
+import wx.py
 import psychopy.app
 from ..pavlovia_ui.search import SearchFrame
 from ..pavlovia_ui.user import UserFrame
