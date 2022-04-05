@@ -51,7 +51,6 @@ from ... import experiment, prefs
 from .. import dialogs
 from ..themes import icons, colors, handlers
 from ..themes.ui import ThemeSwitcher
-from ..themes._themes import PsychopyDockArt, PsychopyTabArt
 from ..ui import BaseAuiFrame
 from psychopy import logging, data
 from psychopy.tools.filetools import mergeFolder

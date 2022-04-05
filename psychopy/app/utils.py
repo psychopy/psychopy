@@ -147,10 +147,6 @@ class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
         self.keys = {k: self.frame.app.keys[k].replace('Ctrl+', ctrlKey)
                 for k in self.frame.app.keys}
         self.keys['none'] = ''
-        # Initialise pavlovia tools object
-        self.pavButtons = pavlovia_ui.toolbar.PavloviaButtons(
-                self.frame, toolbar=self, tbSize=self.iconSize
-        )
 
         self.buttons = {}
 
@@ -538,7 +534,7 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
             bitmap = wx.Bitmap(bitmap)
         # Sub in blank bitmaps
         if not bitmap.IsOk():
-            bitmap = self.iconCache.getBitmap(name="user_none", size=128)
+            bitmap = icons.ButtonIcon(stem="user_none", size=128).bitmap
         # Store full size bitmap
         self._fullBitmap = bitmap
         # Resize bitmap
@@ -631,7 +627,7 @@ class FileCtrl(wx.TextCtrl):
         # Add button
         self.fileBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
         self.fileBtn.SetBackgroundColour(self.GetBackgroundColour())
-        self.fileBtn.SetBitmap(icons.ButtonIcon(stem="folder", size=16))
+        self.fileBtn.SetBitmap(icons.ButtonIcon(stem="folder", size=16).bitmap)
         self.sizer.Add(self.fileBtn, border=4, flag=wx.ALL)
         # Bind browse function
         self.fileBtn.Bind(wx.EVT_BUTTON, self.browse)

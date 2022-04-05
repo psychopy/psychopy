@@ -26,6 +26,7 @@ import wx
 from wx.lib import scrolledpanel as scrlpanel
 
 from .. import utils
+from ..themes import icons
 from ...projects.pavlovia import PavloviaProject
 
 try:
@@ -189,12 +190,12 @@ class ProjectEditor(wx.Dialog):
 class DetailsPanel(wx.Panel):
 
     class StarBtn(wx.Button):
-        def __init__(self, parent, iconCache, value=False):
+        def __init__(self, parent, value=False):
             wx.Button.__init__(self, parent, label=_translate("Star"))
             # Setup icons
             self.icons = {
-                True: iconCache.getBitmap(name="starred", size=16),
-                False: iconCache.getBitmap(name="unstarred", size=16),
+                True: icons.ButtonIcon(stem="starred", size=16).bitmap,
+                False: icons.ButtonIcon(stem="unstarred", size=16).bitmap,
             }
             self.SetBitmapDisabled(self.icons[False])  # Always appear empty when disabled
             # Set start value
@@ -224,7 +225,6 @@ class DetailsPanel(wx.Panel):
                           size=size,
                           style=style)
         self.SetBackgroundColour("white")
-        iconCache = parent.app.iconCache
         # Setup sizer
         self.contentBox = wx.BoxSizer()
         self.SetSizer(self.contentBox)
@@ -266,29 +266,29 @@ class DetailsPanel(wx.Panel):
         # Star button
         self.starLbl = wx.StaticText(self, label="-")
         self.btnSizer.Add(self.starLbl, border=6, flag=wx.LEFT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
-        self.starBtn = self.StarBtn(self, iconCache=iconCache)
+        self.starBtn = self.StarBtn(self)
         self.starBtn.Bind(wx.EVT_BUTTON, self.star)
         self.btnSizer.Add(self.starBtn, border=6, flag=wx.ALL | wx.EXPAND)
         # Fork button
         self.forkLbl = wx.StaticText(self, label="-")
         self.btnSizer.Add(self.forkLbl, border=6, flag=wx.LEFT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
         self.forkBtn = wx.Button(self, label=_translate("Fork"))
-        self.forkBtn.SetBitmap(iconCache.getBitmap(name="fork", size=16))
+        self.forkBtn.SetBitmap(icons.ButtonIcon(stem="fork", size=16).bitmap)
         self.forkBtn.Bind(wx.EVT_BUTTON, self.fork)
         self.btnSizer.Add(self.forkBtn, border=6, flag=wx.ALL | wx.EXPAND)
         # Create button
         self.createBtn = wx.Button(self, label=_translate("Create"))
-        self.createBtn.SetBitmap(iconCache.getBitmap(name="plus", size=16))
+        self.createBtn.SetBitmap(icons.ButtonIcon(stem="plus", size=16).bitmap)
         self.createBtn.Bind(wx.EVT_BUTTON, self.create)
         self.btnSizer.Add(self.createBtn, border=6, flag=wx.RIGHT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
         # Sync button
         self.syncBtn = wx.Button(self, label=_translate("Sync"))
-        self.syncBtn.SetBitmap(iconCache.getBitmap(name="view-refresh", size=16))
+        self.syncBtn.SetBitmap(icons.ButtonIcon(stem="view-refresh", size=16).bitmap)
         self.syncBtn.Bind(wx.EVT_BUTTON, self.sync)
         self.btnSizer.Add(self.syncBtn, border=6, flag=wx.ALL | wx.EXPAND)
         # Get button
         self.downloadBtn = wx.Button(self, label=_translate("Download"))
-        self.downloadBtn.SetBitmap(iconCache.getBitmap(name="download", size=16))
+        self.downloadBtn.SetBitmap(icons.ButtonIcon(stem="download", size=16).bitmap)
         self.downloadBtn.Bind(wx.EVT_BUTTON, self.sync)
         self.btnSizer.Add(self.downloadBtn, border=6, flag=wx.ALL | wx.EXPAND)
         # Sync label

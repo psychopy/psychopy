@@ -192,7 +192,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         self._stdout = sys.stdout
         self._stderr = sys.stderr
         self._stdoutFrame = None
-        self.iconCache = themes.LegacyIconCache()
 
         # Shared memory used for messaging between app instances, this gets
         # allocated when `OnInit` is called.
