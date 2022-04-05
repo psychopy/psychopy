@@ -27,7 +27,7 @@ class Theme:
         # Ensure spec file exists
         if not specFile.is_file():
             # If no file, use PsychopyLight
-            logging.warn("Theme file for '{name}' not found, reverting to PsychopyLight")
+            logging.warn(f"Theme file for '{name}' not found, reverting to PsychopyLight")
             name = "PsychopyLight"
             specFile = Path(__file__).parent / "spec" / "PsychopyLight.json"
         # Load file
@@ -35,7 +35,7 @@ class Theme:
         # Ensure code spec is present
         if "code" not in spec:
             # If no code spec, use PsychopyLight
-            logging.warn("Code color spec for '{name}' not found, reverting to PsychopyLight")
+            logging.warn(f"Code color spec for '{name}' not found, reverting to PsychopyLight")
             default = loadSpec(Path(__file__).parent / "spec" / "PsychopyLight.json")
             spec['code'] = default
         # Store theme name as code colors
