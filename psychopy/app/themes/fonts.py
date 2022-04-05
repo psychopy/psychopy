@@ -198,6 +198,12 @@ def getLexerKeywords(lexer, filename=""):
 class CodeTheme(dict):
     def __init__(self):
         dict.__init__(self)
+        # Create base attributes
+        self._base = {}
+        self._caret = {}
+        self._margin = {}
+        self._select = {}
+        # Load theme
         self.load(theme.code)
 
     def __getitem__(self, item):
@@ -232,9 +238,47 @@ class CodeTheme(dict):
         self.load(theme.code)
         return dict.__getitem__(self, theme.code).__iter__()
 
+    @property
+    def base(self):
+        return self._base[theme.code]
+
+    @base.setter
+    def base(self, value):
+        self._base[theme.code] = value
+
+    @property
+    def caret(self):
+        return self._caret[theme.code]
+
+    @caret.setter
+    def caret(self, value):
+        self._caret[theme.code] = value
+
+    @property
+    def margin(self):
+        return self._margin[theme.code]
+
+    @margin.setter
+    def margin(self, value):
+        self._margin[theme.code] = value
+
+    @property
+    def select(self):
+        return self._select[theme.code]
+
+    @select.setter
+    def select(self, value):
+        self._select[theme.code] = value
+
     def load(self, name):
-        # Skip if already loaded
+        # If already loaded, just set base attributes, don't load again
         if theme.code in self:
+            CodeFont.pointSize = self.base.pointSize
+            CodeFont.foreColor = self.base.foreColor
+            CodeFont.backColor = self.base.backColor
+            CodeFont.faceNames = self.base.faceNames
+            CodeFont.bold = self.base.bold
+            CodeFont.italic = self.base.italic
             return
 
         cache = {}
@@ -242,27 +286,21 @@ class CodeTheme(dict):
         filename = Path(__file__).parent / "spec" / (theme.code + ".json")
         spec = loadSpec(filename)
         # Set base attributes
-        self.base = spec['code']['base']
-        CodeFont.pointSize = int(prefs.coder['codeFontSize'])
-        CodeFont.foreColor = extractColor(self.base['fg'])
-        CodeFont.backColor = extractColor(self.base['bg'])
-        CodeFont.faceNames = extractFaceNames(self.base['font'])
-        CodeFont.bold, CodeFont.italic = extractFontStyle(self.base['font'])
-        # Store caret spec
-        if 'caret' in spec['code']:
-            self.caret = CodeFont(*extractAll(spec['code']['caret']))
-        else:
-            self.caret = CodeFont()
-        # Store margin spec
-        if 'margin' in spec['code']:
-            self.margin = CodeFont(*extractAll(spec['code']['margin']))
-        else:
-            self.margin = CodeFont()
-        # Store select spec
-        if 'select' in spec['code']:
-            self.select = CodeFont(*extractAll(spec['code']['select']))
-        else:
-            self.select = CodeFont()
+        self.base = CodeFont(*extractAll(spec['code']['base']))
+        CodeFont.pointSize = self.base.pointSize
+        CodeFont.foreColor = self.base.foreColor
+        CodeFont.backColor = self.base.backColor
+        CodeFont.faceNames = self.base.faceNames
+        CodeFont.bold = self.base.bold
+        CodeFont.italic = self.base.italic
+        # Store other non-tag spec
+        for attr in ('caret', 'margin', 'select'):
+            if attr in spec['code']:
+                val = CodeFont(*extractAll(spec['code'][attr]))
+            else:
+                val = CodeFont()
+            setattr(self, attr, val)
+
         # Find style associated with each tag
         for key, tag in tags.items():
             # Skip None
