@@ -202,47 +202,52 @@ class CodeTheme(dict):
 
     def __getitem__(self, item):
         # If theme isn't cached yet, load & cache it
-        if theme.code not in self:
-            self.load(theme.code)
+        self.load(theme.code)
         # Return value from theme cache
         return dict.__getitem__(self, theme.code)[item]
 
+    def __getattr__(self, attr):
+        # If theme isn't cached yet, load & cache it
+        self.load(theme.code)
+        # Return value
+        return getattr(self, attr)
+
     def items(self):
         # If theme isn't cached yet, load & cache it
-        if theme.code not in self:
-            self.load(theme.code)
+        self.load(theme.code)
         return dict.__getitem__(self, theme.code).items()
 
     def values(self):
         # If theme isn't cached yet, load & cache it
-        if theme.code not in self:
-            self.load(theme.code)
+        self.load(theme.code)
         return dict.__getitem__(self, theme.code).values()
 
     def keys(self):
         # If theme isn't cached yet, load & cache it
-        if theme.code not in self:
-            self.load(theme.code)
+        self.load(theme.code)
         return dict.__getitem__(self, theme.code).keys()
 
     def __iter__(self):
         # If theme isn't cached yet, load & cache it
-        if theme.code not in self:
-            self.load(theme.code)
+        self.load(theme.code)
         return dict.__getitem__(self, theme.code).__iter__()
 
     def load(self, name):
+        # Skip if already loaded
+        if theme.code in self:
+            return
+
         cache = {}
         # Load theme from file
         filename = Path(__file__).parent / "spec" / (theme.code + ".json")
         spec = loadSpec(filename)
         # Set base attributes
-        base = spec['code']['base']
+        self.base = spec['code']['base']
         CodeFont.pointSize = int(prefs.coder['codeFontSize'])
-        CodeFont.foreColor = extractColor(base['fg'])
-        CodeFont.backColor = extractColor(base['bg'])
-        CodeFont.faceNames = extractFaceNames(base['font'])
-        CodeFont.bold, CodeFont.italic = extractFontStyle(base['font'])
+        CodeFont.foreColor = extractColor(self.base['fg'])
+        CodeFont.backColor = extractColor(self.base['bg'])
+        CodeFont.faceNames = extractFaceNames(self.base['font'])
+        CodeFont.bold, CodeFont.italic = extractFontStyle(self.base['font'])
         # Store caret spec
         if 'caret' in spec['code']:
             self.caret = CodeFont(*extractAll(spec['code']['caret']))

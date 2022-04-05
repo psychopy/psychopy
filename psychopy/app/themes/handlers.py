@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-from . import colors, icons
+from . import colors, icons, theme
 from ...preferences.preferences import prefs
 
 # --- Functions to handle specific subclasses of wx.Window ---
@@ -53,6 +53,7 @@ def styleNotebook(target):
 
 def styleCodeEditor(target):
     from . import fonts
+    fonts.coderTheme.load(theme.code)
 
     target.SetBackgroundColour(colors.app['tab_bg'])
     # Set margin
@@ -121,6 +122,7 @@ def styleSimpleText(target):
 
 def styleRichText(target):
     from . import fonts
+    fonts.coderTheme.load(theme.code)
 
     # Set background
     target.SetBackgroundColour(fonts.CodeFont.backColor)
