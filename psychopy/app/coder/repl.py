@@ -9,19 +9,20 @@
 
 import sys
 import wx
-from psychopy.app.themes import handlers
+import wx.richtext
+from psychopy.app.themes import handlers, colors
 from psychopy.preferences import prefs
 import os
 
 
-class ConsoleTextCtrl(wx.TextCtrl, handlers.ThemeMixin):
+class ConsoleTextCtrl(wx.richtext.RichTextCtrl, handlers.ThemeMixin):
     """Class for the console text control. This is needed to allow for theming.
     """
     def __init__(self, parent, id_=wx.ID_ANY, value="", pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=0,
                  name=wx.TextCtrlNameStr):
 
-        wx.TextCtrl.__init__(
+        wx.richtext.RichTextCtrl.__init__(
             self, parent, id=id_, value=value, pos=pos, size=size, style=style,
             validator=wx.DefaultValidator, name=name)
 
@@ -64,7 +65,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
             wx.DefaultPosition,
             wx.DefaultSize,
             styleFlags)
-        szrMain.Add(self.txtTerm, 1, wx.ALL | wx.EXPAND, 0)
+        szrMain.Add(self.txtTerm, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         self.SetSizer(szrMain)
         self.Layout()
 
@@ -376,6 +377,9 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
                 self._historyIdx = -1
 
         event.Skip()
+
+    def _applyAppTheme(self):
+        self.SetBackgroundColour(colors.app['tab_bg'])
 
 
 if __name__ == "__main__":
