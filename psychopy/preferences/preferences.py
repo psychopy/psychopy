@@ -129,7 +129,6 @@ class Preferences:
 
         # Define theme path
         self.paths['themes'] = join(self.paths['userPrefsDir'], 'themes')
-        baseAppThemes = join(self.paths['appDir'], 'themes', 'app')
         # Find / copy themes
         baseThemeDir = Path(self.paths['appDir']) / "themes" / "spec"
         for file in baseThemeDir.glob("*.json"):
@@ -164,14 +163,6 @@ class Preferences:
         except OSError as err:
             if err.errno != errno.EEXIST:
                 raise
-        # Make sure all the base themes are present in user's folder
-        #try:
-        for file in os.listdir(baseAppThemes):
-            if file.endswith('.json'):
-                shutil.copyfile(
-                    join(baseAppThemes, file),
-                    join(self.paths['themes'], "app", file)
-                    )
 
     def loadAll(self):
         """Load the user prefs and the application data
