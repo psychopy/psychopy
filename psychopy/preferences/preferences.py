@@ -5,6 +5,8 @@ import errno
 import os
 import sys
 import platform
+from pathlib import Path
+
 from pkg_resources import parse_version
 import shutil
 
@@ -125,10 +127,17 @@ class Preferences:
             self.paths['userPrefsDir'] = join(os.environ['HOME'],
                                               '.psychopy3')
 
-        # Find / copy themes
+        # Define theme path
         self.paths['themes'] = join(self.paths['userPrefsDir'], 'themes')
-        baseThemes = join(self.paths['appDir'], 'themes')
         baseAppThemes = join(self.paths['appDir'], 'themes', 'app')
+        # Find / copy themes
+        baseThemeDir = Path(self.paths['appDir']) / "themes" / "spec"
+        for file in baseThemeDir.glob("*.json"):
+            if not (Path(self.paths['themes']) / file.name).is_file():
+                shutil.copyfile(
+                    file,
+                    Path(self.paths['themes']) / file.name
+                )
         # Find / copy fonts
         self.paths['fonts'] = join(self.paths['userPrefsDir'], 'fonts')
         # avoid silent fail-to-launch-app if bad permissions:
@@ -157,12 +166,6 @@ class Preferences:
                 raise
         # Make sure all the base themes are present in user's folder
         #try:
-        for file in os.listdir(baseThemes):
-            if file.endswith('.json'):
-                shutil.copyfile(
-                    join(baseThemes, file),
-                    join(self.paths['themes'], file)
-                )
         for file in os.listdir(baseAppThemes):
             if file.endswith('.json'):
                 shutil.copyfile(

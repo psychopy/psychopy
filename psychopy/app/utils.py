@@ -24,7 +24,7 @@ from wx.lib import platebtn
 import psychopy
 from psychopy import logging
 from . import pavlovia_ui
-from .themes import LegacyThemeMixin, LegacyIconCache, colors, handlers, icons
+from .themes import colors, handlers, icons
 from psychopy.localization import _translate
 from psychopy.tools.stringtools import prettyname
 from psychopy.tools.apptools import SortTerm
@@ -193,7 +193,7 @@ class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
         pass
 
 
-class PsychopyPlateBtn(platebtn.PlateButton, LegacyThemeMixin):
+class PsychopyPlateBtn(platebtn.PlateButton, handlers.ThemeMixin):
     def __init__(self, parent, id=wx.ID_ANY, label='', bmp=None,
                  pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=1, name=wx.ButtonNameStr):
@@ -203,21 +203,19 @@ class PsychopyPlateBtn(platebtn.PlateButton, LegacyThemeMixin):
         self._applyAppTheme()
 
     def _applyAppTheme(self):
-        cs = LegacyThemeMixin.appColors
         self.__InitColors()
         self.SetBackgroundColour(wx.Colour(self.parent.GetBackgroundColour()))
-        self.SetPressColor(cs['txtbutton_bg_hover'])
-        self.SetLabelColor(cs['text'],
-                           cs['txtbutton_fg_hover'])
+        self.SetPressColor(colors.app['txtbutton_bg_hover'])
+        self.SetLabelColor(colors.app['text'],
+                           colors.app['txtbutton_fg_hover'])
 
     def __InitColors(self):
-        cs = LegacyThemeMixin.appColors
         """Initialize the default colors"""
-        colors = dict(default=True,
-                      hlight=cs['txtbutton_bg_hover'],
-                      press=cs['txtbutton_bg_hover'],
-                      htxt=cs['text'])
-        return colors
+        cols = dict(default=True,
+                      hlight=colors.app['txtbutton_bg_hover'],
+                      press=colors.app['txtbutton_bg_hover'],
+                      htxt=colors.app['text'])
+        return cols
 
 
 class ButtonArray(wx.Window):
@@ -508,7 +506,7 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
     def __init__(self, parent, bitmap, size=(128, 128)):
         wx.lib.statbmp.GenStaticBitmap.__init__(self, parent, ID=wx.ID_ANY, bitmap=wx.Bitmap(), size=size)
         self.parent = parent
-        self.iconCache = LegacyIconCache()
+        self.iconCache = icons.iconCache
         # Set bitmap
         self.SetBitmap(bitmap)
         # Setup sizer
@@ -633,7 +631,7 @@ class FileCtrl(wx.TextCtrl):
         # Add button
         self.fileBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
         self.fileBtn.SetBackgroundColour(self.GetBackgroundColour())
-        self.fileBtn.SetBitmap(LegacyIconCache().getBitmap(name="folder", size=16))
+        self.fileBtn.SetBitmap(icons.ButtonIcon(stem="folder", size=16))
         self.sizer.Add(self.fileBtn, border=4, flag=wx.ALL)
         # Bind browse function
         self.fileBtn.Bind(wx.EVT_BUTTON, self.browse)
@@ -923,13 +921,13 @@ class ToggleButton(wx.ToggleButton, HoverMixin):
     def BackgroundColourNoHover(self):
         if self.GetValue():
             # Return a darker color if selected
-            return LegacyThemeMixin.appColors['docker_bg']
+            return colors.app['docker_bg']
         else:
             # Return the default color otherwise
             return HoverMixin.BackgroundColourNoHover.fget(self)
 
 
-class ToggleButtonArray(wx.Window, LegacyThemeMixin):
+class ToggleButtonArray(wx.Window, handlers.ThemeMixin):
 
     def __init__(self, parent, labels=None, values=None, multi=False, ori=wx.HORIZONTAL):
         wx.Window.__init__(self, parent)
@@ -993,7 +991,7 @@ class ToggleButtonArray(wx.Window, LegacyThemeMixin):
 
     def _applyAppTheme(self, target=None):
         # Set panel background
-        self.SetBackgroundColour(LegacyThemeMixin.appColors['panel_bg'])
+        self.SetBackgroundColour(colors.app['panel_bg'])
         # Use OnHover event to set buttons to their default colors
         for btn in self.buttons.values():
             btn.OnHover()

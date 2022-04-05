@@ -8,7 +8,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from collections import deque
-from ..themes import LegacyThemeMixin, icons, colors, handlers
+from ..themes import icons, colors, handlers
 
 import wx
 import wx.stc

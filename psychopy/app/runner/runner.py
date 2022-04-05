@@ -8,7 +8,7 @@ import glob
 import json
 import errno
 
-from ..themes import LegacyThemeMixin, LegacyIconCache, handlers, colors, icons
+from ..themes import handlers, colors, icons
 from ..themes.ui import ThemeSwitcher
 
 import wx
@@ -960,16 +960,14 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
             self.app.coder.setCurrentDoc(filepath)
 
     def onHover(self, evt):
-        cs = LegacyThemeMixin.appColors
         btn = evt.GetEventObject()
-        btn.SetBackgroundColour(cs['bmpbutton_bg_hover'])
-        btn.SetForegroundColour(cs['bmpbutton_fg_hover'])
+        btn.SetBackgroundColour(colors.app['bmpbutton_bg_hover'])
+        btn.SetForegroundColour(colors.app['bmpbutton_fg_hover'])
 
     def offHover(self, evt):
-        cs = LegacyThemeMixin.appColors
         btn = evt.GetEventObject()
-        btn.SetBackgroundColour(cs['panel_bg'])
-        btn.SetForegroundColour(cs['text'])
+        btn.SetBackgroundColour(colors.app['panel_bg'])
+        btn.SetForegroundColour(colors.app['text'])
 
     @property
     def outputPath(self):
@@ -1029,7 +1027,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self._currentProject = None
 
 
-class StdOutText(StdOutRich, LegacyThemeMixin):
+class StdOutText(StdOutRich, handlers.ThemeMixin):
     """StdOutRich subclass which also handles Git messages from Pavlovia projects."""
 
     def __init__(self, parent=None, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE, size=wx.DefaultSize):

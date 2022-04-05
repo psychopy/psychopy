@@ -9,7 +9,7 @@
 
 import sys
 import wx
-from psychopy.app.themes import LegacyThemeMixin, handlers
+from psychopy.app.themes import handlers
 from psychopy.preferences import prefs
 import os
 
@@ -111,26 +111,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
 
     def setFonts(self):
         """Set the font for the console."""
-        # select the font size, either from prefs or platform defaults
-        if not prefs.coder['codeFontSize']:
-            if wx.Platform == '__WXMSW__':
-                fontSize = 10
-            elif wx.Platform == '__WXMAC__':
-                fontSize = 14
-            else:
-                fontSize = 12
-        else:
-            fontSize = int(prefs.coder['codeFontSize'])
-
-        # get the font to use
-        if prefs.coder['outputFont'].lower() == "From Theme...".lower():
-            fontName = LegacyThemeMixin.codeColors['base']['font'].replace("bold", "").replace("italic", "").replace(",", "")
-        else:
-            fontName = prefs.coder['outputFont']
-
-        # apply the font
-        self.txtTerm.SetFont(
-            wx.Font(fontSize, wx.MODERN, wx.NORMAL, wx.NORMAL, False, fontName))
+        self.txtTerm._applyAppTheme()
 
     def onTerminate(self, event):
         # hooks for the process we're communicating with

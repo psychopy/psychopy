@@ -90,7 +90,7 @@ class LegacyThemeMixin:
             with open(str(themesPath / (themeName+".json")), "rb") as fp:
                 LegacyThemeMixin.spec = themeSpec = json.load(fp)
         except FileNotFoundError:
-            with open(str(themesPath / "PsychopyLight.json"), "rb") as fp:
+            with open(str(Path(__file__).parent / "PsychopyLight.json"), "rb") as fp:
                 LegacyThemeMixin.spec = themeSpec = json.load(fp)
         appColorMode = themeSpec['app']
         # Get app spec
@@ -112,7 +112,7 @@ class LegacyThemeMixin:
         # Set coder theme
         codertheme = themeSpec
         LegacyThemeMixin.codetheme = themeName
-        self._setCodeColors(codertheme)
+        #self._setCodeColors(codertheme)
 
     def _applyAppTheme(self, target=None):
         """Applies colorScheme recursively to the target and its children

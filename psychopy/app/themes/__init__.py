@@ -2,8 +2,7 @@ import json
 from pathlib import Path
 
 from ._themes import LegacyThemeMixin, LegacyIconCache
-from ... import logging
-
+from ... import logging, prefs
 
 _cache = {}
 
@@ -23,7 +22,7 @@ class Theme:
 
     def set(self, name):
         # Get spec file from name
-        specFile = Path(__file__).parent / "spec" / (name.replace(" ", "") + ".json")
+        specFile = Path(prefs.paths['themes']) / (name.replace(" ", "") + ".json")
         # Ensure spec file exists
         if not specFile.is_file():
             # If no file, use PsychopyLight

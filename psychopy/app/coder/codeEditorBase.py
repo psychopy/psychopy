@@ -12,7 +12,7 @@
 
 import wx
 import wx.stc
-from ..themes import LegacyThemeMixin, handlers
+from ..themes import handlers
 
 from psychopy.localization import _translate
 

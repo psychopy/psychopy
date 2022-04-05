@@ -83,7 +83,7 @@ if sys.platform == 'win32':
                 psychopy.prefs.saveUserPrefs()
 
 
-class MenuFrame(wx.Frame, themes.LegacyThemeMixin):
+class MenuFrame(wx.Frame, themes.handlers.ThemeMixin):
     """A simple empty frame with a menubar, should be last frame closed on mac
     """
 
@@ -159,7 +159,7 @@ class _Showgui_Hack():
         core.shellCall([sys.executable, noopPath])
 
 
-class PsychoPyApp(wx.App, themes.LegacyThemeMixin):
+class PsychoPyApp(wx.App, handlers.ThemeMixin):
     _called_from_test = False  # pytest needs to change this
 
     def __init__(self, arg=0, testMode=False, **kwargs):
@@ -1091,9 +1091,6 @@ class PsychoPyApp(wx.App, themes.LegacyThemeMixin):
     @theme.setter
     def theme(self, value):
         """The theme to be used through the application"""
-        themes.LegacyThemeMixin.loadThemeSpec(self, themeName=value)
-        self._currentThemeSpec = themes.LegacyThemeMixin.spec
-        codeFont = themes.LegacyThemeMixin.codeColors['base']['font']
         # Store new theme
         prefs.app['theme'] = value
         prefs.saveUserPrefs()
@@ -1114,7 +1111,7 @@ class PsychoPyApp(wx.App, themes.LegacyThemeMixin):
         # with the wx.Font() call. Otherwise you just get reference to the font that gets borked by SetFaceName()
         # -Justin Ales
         beforesetface = wx.Font(self._codeFont)
-        success = self._codeFont.SetFaceName(codeFont)
+        success = self._codeFont.SetFaceName("JetBrains Mono")
         if not (success):
             self._codeFont = beforesetface
 

@@ -42,7 +42,7 @@ from psychopy.app.errorDlg import exceptionCallback
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 from psychopy.app.coder.fileBrowser import FileBrowserPanel
 from psychopy.app.coder.sourceTree import SourceTreePanel
-from psychopy.app.themes import LegacyThemeMixin, handlers, colors
+from psychopy.app.themes import handlers, colors
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
 from psychopy.app.coder.scriptOutput import ScriptOutputPanel
 from psychopy.app.coder.repl import PythonREPLCtrl
@@ -104,7 +104,7 @@ def fromPickle(filename):
     return contents
 
 
-class PsychopyPyShell(wx.py.shell.Shell, LegacyThemeMixin):
+class PsychopyPyShell(wx.py.shell.Shell, handlers.ThemeMixin):
     """Simple class wrapper for Pyshell which uses the Psychopy ThemeMixin."""
     def __init__(self, coder):
         msg = _translate('PyShell in PsychoPy - type some commands!')
@@ -565,7 +565,7 @@ class UnitTestFrame(wx.Frame):
         self.Destroy()
 
 
-class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, LegacyThemeMixin):
+class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, handlers.ThemeMixin):
     """Code editor class for the Coder GUI.
     """
     def __init__(self, parent, ID, frame,
@@ -648,9 +648,9 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, LegacyThemeMixin):
                 self.caretLine + 1, self.caretColumn + 1), 1)
 
         # calltips
-        self.CallTipSetBackground(LegacyThemeMixin.codeColors['base']['bg'])
-        self.CallTipSetForeground(LegacyThemeMixin.codeColors['base']['fg'])
-        self.CallTipSetForegroundHighlight(LegacyThemeMixin.codeColors['select']['fg'])
+        self.CallTipSetBackground(colors.app['tab_bg'])
+        self.CallTipSetForeground(colors.app['text'])
+        self.CallTipSetForegroundHighlight(colors.app['text'])
         self.AutoCompSetIgnoreCase(True)
         self.AutoCompSetAutoHide(True)
         self.AutoCompStops('. ')

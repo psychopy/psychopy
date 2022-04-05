@@ -13,7 +13,6 @@ import wx
 
 from psychopy.app.colorpicker import PsychoColorPicker
 from psychopy.app.dialogs import ListWidget
-from psychopy.app.themes import LegacyThemeMixin
 from psychopy.colors import Color
 from psychopy.localization import _translate
 from psychopy import data, prefs, experiment

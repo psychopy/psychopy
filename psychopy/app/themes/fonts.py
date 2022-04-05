@@ -283,7 +283,7 @@ class CodeTheme(dict):
 
         cache = {}
         # Load theme from file
-        filename = Path(__file__).parent / "spec" / (theme.code + ".json")
+        filename = Path(prefs.paths['themes']) / (theme.code + ".json")
         spec = loadSpec(filename)
         # Set base attributes
         self.base = CodeFont(*extractAll(spec['code']['base']))

@@ -14,7 +14,7 @@ import wx.richtext
 import webbrowser
 from psychopy.localization import _translate
 from psychopy.alerts._alerts import AlertEntry
-from psychopy.app.themes import LegacyThemeMixin, handlers
+from psychopy.app.themes import handlers
 
 _prefEncoding = locale.getpreferredencoding()
 

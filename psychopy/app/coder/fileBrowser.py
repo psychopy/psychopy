@@ -19,7 +19,7 @@ import os
 import sys
 import subprocess
 import imghdr
-from ..themes import LegacyThemeMixin, icons, colors, handlers
+from ..themes import icons, colors, handlers
 from psychopy.localization import _translate
 
 # enums for file types
