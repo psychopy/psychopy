@@ -129,14 +129,6 @@ class Preferences:
 
         # Define theme path
         self.paths['themes'] = join(self.paths['userPrefsDir'], 'themes')
-        # Find / copy themes
-        baseThemeDir = Path(self.paths['appDir']) / "themes" / "spec"
-        for file in baseThemeDir.glob("*.json"):
-            if not (Path(self.paths['themes']) / file.name).is_file():
-                shutil.copyfile(
-                    file,
-                    Path(self.paths['themes']) / file.name
-                )
         # Find / copy fonts
         self.paths['fonts'] = join(self.paths['userPrefsDir'], 'fonts')
         # avoid silent fail-to-launch-app if bad permissions:
@@ -163,6 +155,15 @@ class Preferences:
         except OSError as err:
             if err.errno != errno.EEXIST:
                 raise
+
+        # Find / copy themes
+        baseThemeDir = Path(self.paths['appDir']) / "themes" / "spec"
+        for file in baseThemeDir.glob("*.json"):
+            if not (Path(self.paths['themes']) / file.name).is_file():
+                shutil.copyfile(
+                    file,
+                    Path(self.paths['themes']) / file.name
+                )
 
     def loadAll(self):
         """Load the user prefs and the application data
