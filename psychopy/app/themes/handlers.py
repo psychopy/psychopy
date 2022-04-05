@@ -112,30 +112,23 @@ def styleCodeEditor(target):
         target.SetKeyWords(level, " ".join(val))
 
 
-def styleSimpleText(target):
-    target.SetBackgroundColour(colors.app['tab_bg'])
-    target.SetForegroundColour(colors.app['text'])
-    # Update
-    target.Refresh()
-    target.Update()
-
-
-def styleRichText(target):
+def styleTextCtrl(target):
     from . import fonts
     fonts.coderTheme.load(theme.code)
+    font = fonts.coderTheme.base
 
     # Set background
-    target.SetBackgroundColour(fonts.CodeFont.backColor)
+    target.SetBackgroundColour(font.backColor)
+    target.SetForegroundColour(font.foreColor)
     # Construct style
-    font = fonts.coderTheme.base
-    base = wx.TextAttr(
+    style = wx.TextAttr(
         colText=font.foreColor,
         colBack=font.backColor,
         font=font.obj,
     )
-    style = wx.richtext.RichTextAttr(base)
-    # Set base styles
-    target.SetBasicStyle(style)
+    if isinstance(target, wx.richtext.RichTextCtrl):
+        style = wx.richtext.RichTextAttr(style)
+    # Set base style
     target.SetDefaultStyle(style)
     # Style existing content
     i = 0
@@ -146,8 +139,6 @@ def styleRichText(target):
     # Update
     target.Refresh()
     target.Update()
-    target.MoveEnd()
-    target.WriteText("")
 
 
 # Define dict linking object types to style functions
@@ -156,12 +147,9 @@ methods = {
     wx.Panel: stylePanel,
     aui.AuiNotebook: styleNotebook,
     stc.StyledTextCtrl: styleCodeEditor,
-    wx.TextCtrl: styleSimpleText,
-    wx.richtext.RichTextCtrl: styleRichText,
-    # wx.py.shell.Shell: styleCodeEditor,
+    wx.TextCtrl: styleTextCtrl,
+    wx.richtext.RichTextCtrl: styleTextCtrl,
     wx.ToolBar: styleToolbar,
-    # wx.StatusBar: styleStatusBar,
-    # wx.TextCtrl: styleTextCtrl,
 }
 
 
