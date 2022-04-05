@@ -58,6 +58,8 @@ class SourceTreePanel(wx.Panel, handlers.ThemeMixin):
         self.Bind(
             wx.EVT_TREE_ITEM_COLLAPSED, self.OnItemCollapsed, self.srcTree)
 
+        self._applyAppTheme()
+
     def _applyAppTheme(self):
         self.srcTree.SetOwnBackgroundColour(colors.app['tab_bg'])
         self.srcTree.SetOwnForegroundColour(colors.app['text'])
