@@ -101,6 +101,15 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
             self.stopBtn.Show(self.parent.isStarted)
             self.Layout()
 
+        def _applyAppTheme(self):
+            # Set background
+            self.SetBackgroundColour(colors.app['tab_bg'])
+            # Style buttons
+            for btn in (self.startBtn, self.stopBtn, self.clrBtn, self.restartBtn):
+                btn.SetBackgroundColour(colors.app['tab_bg'])
+            self.Refresh()
+            self.Update()
+
     def __init__(self,
                  parent,
                  id_=wx.ID_ANY,
