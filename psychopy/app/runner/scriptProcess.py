@@ -19,6 +19,7 @@ import sys
 import psychopy.app.jobs as jobs
 from wx import BeginBusyCursor, EndBusyCursor, MessageDialog, ICON_ERROR, OK
 from psychopy.app.console import StdStreamDispatcher
+import psychopy.logging as logging
 
 
 class ScriptProcess:
@@ -90,11 +91,11 @@ class ScriptProcess:
         # full path to the script
         fullPath = fileName.replace('.psyexp', '_lastrun.py')
 
-        if not os.path.isdir(fullPath):
+        if not os.path.isfile(fullPath):
             fileNotFoundDlg = MessageDialog(
                 None,
-                "Cannot run '{}', no such directory!".format(fullPath),
-                caption="Directory Not Found Error",
+                "Cannot run script '{}', file not found!".format(fullPath),
+                caption="File Not Found Error",
                 style=OK | ICON_ERROR
             )
             fileNotFoundDlg.ShowModal()
@@ -150,10 +151,31 @@ class ScriptProcess:
 
         # start the subprocess
         workingDir, _ = os.path.split(fullPath)
+        workingDir = os.path.abspath(workingDir)  # make absolute
         # move set CWD to Job.__init__ later
         pid = self.scriptProcess.start(cwd=workingDir)
 
-        if pid < 0:  # error starting the process on negative PID
+        if pid < 1:  # error starting the process on zero or negative PID
+            errMsg = (
+                "Failed to run script '{}' in directory '{}'! Check whether "
+                "the file or its directory exists and is accessible.".format(
+                    fullPath, workingDir)
+            )
+            fileNotFoundDlg = MessageDialog(
+                None,
+                errMsg,
+                caption="Run Task Error",
+                style=OK | ICON_ERROR
+            )
+            fileNotFoundDlg.ShowModal()
+            fileNotFoundDlg.Destroy()
+
+            # also log the error
+            logging.error(errMsg)
+
+            if event is not None:
+                event.Skip()
+
             self.scriptProcess = None  # reset
             EndBusyCursor()
             return False
