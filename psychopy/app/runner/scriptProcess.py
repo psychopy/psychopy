@@ -17,7 +17,7 @@ __all__ = ['ScriptProcess']
 import os.path
 import sys
 import psychopy.app.jobs as jobs
-from wx import BeginBusyCursor, EndBusyCursor
+from wx import BeginBusyCursor, EndBusyCursor, MessageDialog, ICON_ERROR, OK
 from psychopy.app.console import StdStreamDispatcher
 
 
@@ -81,9 +81,29 @@ class ScriptProcess:
             Which output window to focus on when the application exits. Can be
             either 'coder' or 'runner'. Default is 'runner'.
 
+        Returns
+        -------
+        bool
+            True if the process has been started without error.
+
         """
         # full path to the script
         fullPath = fileName.replace('.psyexp', '_lastrun.py')
+
+        if not os.path.isdir(fullPath):
+            fileNotFoundDlg = MessageDialog(
+                None,
+                "Cannot run '{}', no such directory!".format(fullPath),
+                caption="Directory Not Found Error",
+                style=OK | ICON_ERROR
+            )
+            fileNotFoundDlg.ShowModal()
+            fileNotFoundDlg.Destroy()
+
+            if event is not None:
+                event.Skip()
+
+            return False
 
         # provide a message that the script is running
         # format the output message
@@ -130,8 +150,17 @@ class ScriptProcess:
 
         # start the subprocess
         workingDir, _ = os.path.split(fullPath)
-        self.scriptProcess.start(cwd=workingDir)  # move set CWD to Job.__init__
+        # move set CWD to Job.__init__ later
+        pid = self.scriptProcess.start(cwd=workingDir)
+
+        if pid < 0:  # error starting the process on negative PID
+            self.scriptProcess = None  # reset
+            EndBusyCursor()
+            return False
+
         self.focusOnExit = focusOnExit
+
+        return True
 
     def stopFile(self, event=None):
         """Stop the script process.
