@@ -788,25 +788,31 @@ class ContainerMixin:
         """Sets Stim.verticesPix and ._borderPix from pos, size, ori,
         flipVert, flipHoriz
         """
+        # Get vertices from available attribs
+        if hasattr(self, '_tesselVertices'):
+            # Shapes need to render from this
+            verts = self._tesselVertices
+        elif hasattr(self, "_vertices"):
+            # Non-shapes should use base vertices object
+            verts = self._vertices
+        else:
+            # We'll settle for base verts array
+            verts = self.vertices
 
-        verts = numpy.dot(self._vertices.pix, self._rotationMatrix)
-        # If needed, sub in missing values for flip and anchor
-        flip = None
-        if hasattr(self, "flip"):
-            flip = self.flip
-        anchor = None
-        if hasattr(self, "anchor"):
-            anchor = self.anchor
         # Convert to a vertices object if not already
+        if not isinstance(verts, Vertices):
+            verts = Vertices(verts, obj=self)
+
+        # If needed, sub in missing values for flip and anchor
+        if hasattr(self, "flip"):
+            verts.flip = self.flip
+        if hasattr(self, "anchor"):
+            verts.anchor = self.anchor
+        # Apply rotation
+        verts = numpy.dot(verts.pix, self._rotationMatrix)
+        # Set values
         self.__dict__['verticesPix'] = self.__dict__['_borderPix'] = verts
-
-        if hasattr(self, '_tesselVertices'):  # Shapes need to render from this
-            tesselVerts = self._tesselVertices
-            tesselVerts = numpy.dot(tesselVerts, self._rotationMatrix)
-            # Convert to a vertices object if not already
-            tesselVerts = Vertices(tesselVerts, obj=self, flip=self.flip, anchor=self.anchor).pix
-            self.__dict__['verticesPix'] = tesselVerts
-
+        # Mark as updated
         self._needVertexUpdate = False
         self._needUpdate = True  # but we presumably need to update the list
 
