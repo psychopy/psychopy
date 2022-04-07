@@ -789,7 +789,7 @@ class ContainerMixin:
         flipVert, flipHoriz
         """
 
-        verts = numpy.dot(self.vertices, self._rotationMatrix)
+        verts = numpy.dot(self._vertices.pix, self._rotationMatrix)
         # If needed, sub in missing values for flip and anchor
         flip = None
         if hasattr(self, "flip"):
@@ -798,7 +798,6 @@ class ContainerMixin:
         if hasattr(self, "anchor"):
             anchor = self.anchor
         # Convert to a vertices object if not already
-        verts = Vertices(verts, obj=self, flip=flip, anchor=anchor).pix
         self.__dict__['verticesPix'] = self.__dict__['_borderPix'] = verts
 
         if hasattr(self, '_tesselVertices'):  # Shapes need to render from this
