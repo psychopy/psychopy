@@ -314,7 +314,7 @@ class InstallUpdateDialog(wx.Dialog):
             btns = [self.cancelBtn, self.installBtn]
         btnSizer.Add(btns[0], 0, flag=wx.LEFT, border=5)
         btnSizer.Add(btns[1], 0, flag=wx.LEFT, border=5)
-        mainSizer.Add(btnSizer, flag=wx.ALL | wx.EXPAND, border=5)
+        mainSizer.Add(btnSizer, flag=wx.ALL | wx.EXPAND, border=15)
 
         self.SetSizerAndFit(mainSizer)
         self.SetAutoLayout(True)
