@@ -68,13 +68,16 @@ class TestSpeed:
         )
 
     def test_load_builder(self):
-        self._load_app("-b")
+        dur = self._load_app("-b")
+        assert dur < 10
 
     def test_load_coder(self):
-        self._load_app("-c")
+        dur = self._load_app("-c")
+        assert dur < 10
 
     def test_load_runner(self):
-        self._load_app("-r")
+        dur = self._load_app("-r")
+        assert dur < 10
 
     @staticmethod
     def _load_app(arg):
@@ -86,4 +89,4 @@ class TestSpeed:
         app.quit()
         finish = time.time()
         dur = finish - start
-        assert dur < 10
+        return dur
