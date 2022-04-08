@@ -715,7 +715,7 @@ class Vertices:
 
         # Convert to 1x2 numpy array
         value = np.array(value)
-        value = np.resize((1, 2))
+        value = np.resize(value, (1, 2))
 
         # Ensure values were bool
         assert value.dtype == bool, (
