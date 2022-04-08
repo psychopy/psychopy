@@ -15,7 +15,7 @@ Experiment name
     A name that will be stored in the metadata of the data file.
 
 Use PsychoPy version
-    Which version of PsychoPy was the task created in? if you are using a more recently installed version of PsychoPy this can compile using an archived, older version to run previously created tasks.
+    Which version of |PsychoPy| was the task created in? if you are using a more recently installed version of |PsychoPy| this can compile using an archived, older version to run previously created tasks.
 
 Show info dlg
     If this box is checked then a dialog will appear at the beginning of the experiment allowing the `Experiment Info` to be changed.
@@ -59,10 +59,10 @@ Force stereo
 Online
 ~~~~~~~~~~~~~~~~
 Output path
-    Where to export the compiled javascript experiment and associated html files. (note that in earlier versions of PsychoPy this was `html` by default, this is not necissary as it will duplicate your resources, associated discourse threads with this suggestion might now be outdated)
+    Where to export the compiled javascript experiment and associated html files. (note that in earlier versions of |PsychoPy| this was `html` by default, this is not necissary as it will duplicate your resources, associated discourse threads with this suggestion might now be outdated)
 
 Export html
-    When to export a html file and compile a javascript version of the experiment. This is on sync by default, meaning these files will be generated when a project is pushed/synced to pavlovia. Alternatively this can be "on save" or "manually" the latter might be used if you are making manual edits to the exported javascript file, though this is not recommended as changes will not be reflected back in your builder file.
+    When to export a html file and compile a javascript version of the experiment. This is on sync by default, meaning these files will be generated when a project is pushed/synced to |Pavlovia|. Alternatively this can be "on save" or "manually" the latter might be used if you are making manual edits to the exported javascript file, though this is not recommended as changes will not be reflected back in your builder file.
 
 Completed URL
     The URL to direct participants to upon completion (when they select "OK" in the green thank-you message online)
@@ -71,7 +71,7 @@ Incomplete URL
     The URL to direct participants to if they exit the task early (e.g. by pressing the escape key).
 
 Additional resources
-    Resources that your task will require (e.g. image files, excel sheets). Note that PsychoPy will attempt to populate this automatically, though if you encounter an "Unknown resource" error online, it is possible that you need to add resources to this list.
+    Resources that your task will require (e.g. image files, excel sheets). Note that |PsychoPy| will attempt to populate this automatically, though if you encounter an "Unknown resource" error online, it is possible that you need to add resources to this list.
 
 Eyetracking
 ~~~~~~~~~~~~~~~~

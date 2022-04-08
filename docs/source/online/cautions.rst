@@ -7,13 +7,13 @@ The first caution to be aware of here is that PsychoJS was only written in 2016.
 
 For an in-depth examination of the pros and cons of running studies online (including a consideration of timing issues) see `Woods et al (2015) <https://peerj.com/articles/1058/>`_
 
-Differences between PsychoPy and PsychoJS studies
+Differences between |PsychoPy| and PsychoJS studies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Most of the issues below affect your study if you have additional code components inserted into the study and do not affect pure Builder-based designs.
 
 - Builder does not convert your Python code into JavaScript. It writes the JavaScript from scratch from the experiment logic. If you use code in a Builder Component then that code will need to be valid JavaScript code. We hope, in the future, to perform rudimentary automated conversion. Even then, that will only convert the syntax but will not be able to find equivalent function names
-- Resources for your study (images, conditions files etc.) must be in the `resources` folder next to the html file that PsychoPy outputs. In most cases PsychoPy can find these and include them automatically but if your study
+- Resources for your study (images, conditions files etc.) must be in the `resources` folder next to the html file that |PsychoPy| outputs. In most cases |PsychoPy| can find these and include them automatically but if your study
 
 .. _onlineTiming:
 

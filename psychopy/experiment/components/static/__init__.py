@@ -121,9 +121,9 @@ class StaticComponent(BaseComponent):
             if prms[fieldName].valType == "file":
                 # Check resource manager status
                 code = (
-                    f"if (psychoJS.serverManager.getResourceStatus(%({fieldName})s) === core.ServerManager.ResourceStatus.DOWNLOADED) {{\n"
+                    f"if (psychoJS.serverManager.getResourceStatus({prms[fieldName]}) === core.ServerManager.ResourceStatus.DOWNLOADED) {{\n"
                 )
-                buff.writeIndentedLines(code % prms)
+                buff.writeIndentedLines(code % self.params)
                 # Print confirmation
                 buff.setIndentLevel(+1, relative=True)
                 code = (
@@ -139,7 +139,8 @@ class StaticComponent(BaseComponent):
                 # Print warning if not downloaded
                 buff.setIndentLevel(+1, relative=True)
                 code = (
-                    "console.log('resource specified in %(name)s took longer than expected to download');\n"
+                    f"console.log('resource specified in %(name)s took longer than expected to download');\n"
+                    f"await waitForResources(resources = {prms[fieldName]})"
                 )
                 buff.writeIndentedLines(code % self.params)
                 buff.setIndentLevel(-1, relative=True)

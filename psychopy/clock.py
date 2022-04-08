@@ -96,9 +96,12 @@ elif sys.platform == "darwin":
     _libc.mach_timebase_info(ctypes.byref(_timebase))
     _ticks_per_second = _timebase.numer / _timebase.denom * 1.0e9
 
+    # scaling factor so that timing works correctly on Intal and Apple Silicon
+    _scaling_factor = _timebase.numer / _timebase.denom
+
     # then define getTime func
     def getTime():
-        return _mach_absolute_time() / _ticks_per_second
+        return (_mach_absolute_time() * _scaling_factor) / 1.0e9
 
 else:
     import timeit

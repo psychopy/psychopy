@@ -233,7 +233,10 @@ class BaseBackend(ABC):
         # some other convention, that backend class should override this method
         # to ensure `_windowToPixCoords` returns the correct value.
         #
-        return np.array((pos[0], self.win.size[1] - pos[1]), dtype=np.float32)
+        invSf = 1.0 / self.win.getContentScaleFactor()
+        return np.array(
+            (pos[0] * invSf, (self.win.size[1] - pos[1]) * invSf),
+            dtype=np.float32)
 
     def _bufferToWindowCoords(self, pos):
         """OpenGL buffer coordinates to window coordinates.
@@ -255,7 +258,10 @@ class BaseBackend(ABC):
         # some other convention, that backend class should override this method
         # to ensure `_windowToPixCoords` returns the correct value.
         #
-        return np.array((pos[0], -pos[1] + self.win.size[1]), dtype=np.float32)
+        sf = self.win.getContentScaleFactor()
+        return np.array(
+            (pos[0] * sf, -pos[1] * sf + self.win.size[1]),
+            dtype=np.float32)
 
     def _windowCoordsToPix(self, pos):
         """Convert window coordinates to the PsychoPy 'pix' coordinate system.

@@ -59,6 +59,40 @@ PsychoPy 2022.1
 - Added the option to refer to pre-canned image files, such as default.png and use 
   as an image stimulus
 
+
+PsychoPy 2022.1.2
+~~~~~~~~~~~~~~~~~
+
+- URL redirection was failing at the end of the study for online experiments
+  where the JS code was generated using 2022.1.0-2022.1.1 due to an erroneous
+  replacement of `//` with `/` in `https://` #e8218b31f71
+- Hyphens can now be included in Pavlovia project names (the validator in the
+  PsychoPy GUI was being too strict) #bbe6bf5ed01
+- Static Components that are used for fetching online resources (e.g. using a
+  Movie Component that sets its stimulus during a Static) will now freeze and
+  wait until the resource is fully received if it takes longer than the set
+  duration. Using ResourceManager components the experiment will not freeze but
+  status can be checked `status==FINISHED` when download is complete
+- Fixed a bug where, after logging out of the Pavlovia Session in the PsychoPy
+  interface, PsychoPy would still provide the option to use the names/groups of
+  that user, but would not then allow access to their contents.
+  #bbe6bf5ed01d26
+- PsychoPy would crash if using the Classic Theme on a mac with a retina display
+  (missing icons) #495fddd814ce1e0
+- DotStim in local (Python) experiments was failing to update dots position #4694
+- Error raised when creating a new Pavlovia project from the menu item rather
+  than the toolbar button #4683
+- Crashing on MacOS when running experiment due to Keyboard a) 'iohub' not
+  loading due to gevent incompatibility and b) not then correctly falling back
+  to 'event' backend
+
+PsychoPy 2022.1.1
+~~~~~~~~~~~~~~~~~
+
+- MacOS app failed to run experiments with dialog boxes (broken dependency being packaged)
+- the application would hang while trying to push any changes to Pavlovia
+- added Japanese translations of the new menu items etc
+
 PsychoPy 2022.1.0
 ~~~~~~~~~~~~~~~~~
 
@@ -645,12 +679,14 @@ PsychoPy 3.1.2
 FIXED:
 
 - teething problems with new :class:`~psychopy.hardware.Keyboard`:
+
    - in Builder there was stuttering of sounds and lags in frame timing caused
-   by accidentally creating lots of Kyeboards while checking for 'escape'
+     by accidentally creating lots of Kyeboards while checking for 'escape'
    - durations were being reported with correct magnitude but as negative values #e43e474602b7f
    - problem on Windows if keyboard device name contained unicode (that problem
-   was actually in psychtoolbox package, now updated in Standalone)
+     was actually in psychtoolbox package, now updated in Standalone)
    - on Windows, the 'return' key was being called 'num_enter'
+
 - videos were not running online #9779579b60 #51b0824f755
 - fixed rounding error in filtering of NoiseStim #5d0e360d87b
 - iohub `waitKeys` should act like `getKeys` if maxWait<=0 #e33f733f317de
@@ -685,9 +721,11 @@ PsychoPy 3.1.0
 NEW:
 
 - hardware.keyboard.Keyboard class, based on C code from the Psychtoolbox project (ported to Python by Mario Kleiner)
+
  - faster than `event.getKeys()` (polling is asynchronous with drawing loop and the calls go direct
    to the USB rather than going via the operating system key calls)
  - supports keyDuration fields as well as `rt` for key down time
+
 - Form class for combining text items and responses (currently ratings and radio items) in a scrollable list
 - each Builder Component is now outputting its start/stop times in the data file by default (can be turned
   off for )
@@ -770,9 +808,9 @@ FIXED:
 
 - Force End Routine wasn't working with Slider when online #a0ca2e312
 - Fix to the online error about units: if an experiment is given units of "use preferences"
-this will switch to height during HTML export #a686dbf52
+  this will switch to height during HTML export #a686dbf52
 - First push of a new project to Pavlovia didn't note that remote now exists, so
-tried to "first push" again #f4134a670
+  tried to "first push" again #f4134a670
 - fixed detection of correct non-response in JavaScript outputs (so no-go works online) #0c3cea2b2
 - added workaround for strange clash of `sounddevice` with `input()` #f99bef4a9
 - various small fixes to iohub for Py3 #e6a2169d6 #4ca503399 #cf432bc3c
@@ -1168,7 +1206,7 @@ PsychoPy 1.84.0
 Released: Aug 2016
 
 ADDED:
-    * :ref:`Projects menu <projects>`, which can sync files with Open Science Framework
+    * Projects (new menu) which can sync files with Open Science Framework
     * Movies in Builder can now avoid loading audio (i.e. mute). As well as meaning your movie is genuinely silent this saves processing for the computer, so do it unless you need the sound!
     * menu item to create a .csv (data) file from a .psydat file; see Coder > Tools menu (also: Coder > Demo menu)
     * Builder experiments force a save before the end of the study so pressing the red stop button is less likely to lose data for you
@@ -1555,19 +1593,35 @@ Released: Mar 2014
     * dialog boxes in the Builder now have tabs for categories of controls
     * Code Components have much more space for each piece of code (again due to tabs)
 
-* ADDED: In Builder you can now customise the data filename/path in the Experiment Settings. Any variables in the `expInfo` dialog box can be used to create this path. See :ref:`dataFileName` for further info
-* ADDED: support for advanced rendering modes. Can now 'add' rather than average when using transparency. This is better for visual compound stimuli like plaids, and essential for colored anaglyph stimuli where the resulting image needs to be the sum of the left and right eye images.
-* ADDED: new visual unit options: 'degFlatPos' and 'degFlat' provide more accurate conversions from degrees to pixels for drawing stimuli (although they're more accurate, accounting for the flat screen, they may look strange because 1 degree gets larger with greater eccentricity on a flat screen). The previous unit 'deg' still exists and remains default as, for many studies, these are expected
-* ADDED: wider support for the functions `contains` and `overlaps`. Most stimuli now have these methods. Also they can now be used irrespective of whether the stimulus and other object have the same units (they used only to work for units of pix)
-* ADDED: support for other shapes in the Aperture stimulus (and its Builder Component). You can either specify the number of vertices `nVert` and a `size` to get a regular polygon aperture, or you can provide a set of arbitrary vertices as your `shape` argument
-* CHANGED: Size of 'square' or 'triangle' apertures used to represent the radius of the circle on which their vertices lay. It is now a height/width as you would more likely expect. This means aperture code in scripts may need rewriting to be smaller.
-* IMPROVED: stimulus duration is now more precise when using `duration (s)` or `time (s)` although using `nFrames` option is still advised for brief stimuli
+* ADDED: In Builder you can now customise the data filename/path in the Experiment Settings. Any variables in the `expInfo`
+  dialog box can be used to create this path. See `dataFileName` for further info
+* ADDED: support for advanced rendering modes. Can now 'add' rather than average when using transparency. This is better
+  for visual compound stimuli like plaids, and essential for colored anaglyph stimuli where the resulting image needs to
+  be the sum of the left and right eye images.
+* ADDED: new visual unit options: 'degFlatPos' and 'degFlat' provide more accurate conversions from degrees to pixels for
+  drawing stimuli (although they're more accurate, accounting for the flat screen, they may look strange because 1 degree
+  gets larger with greater eccentricity on a flat screen). The previous unit 'deg' still exists and remains default as, for
+  many studies, these are expected
+* ADDED: wider support for the functions `contains` and `overlaps`. Most stimuli now have these methods. Also they can
+  now be used irrespective of whether the stimulus and other object have the same units (they used only to work for
+  units of pix)
+* ADDED: support for other shapes in the Aperture stimulus (and its Builder Component). You can either specify the
+  number of vertices `nVert` and a `size` to get a regular polygon aperture, or you can provide a set of arbitrary
+  vertices as your `shape` argument
+* CHANGED: Size of 'square' or 'triangle' apertures used to represent the radius of the circle on which their vertices
+  lay. It is now a height/width as you would more likely expect. This means aperture code in scripts may need rewriting
+  to be smaller.
+* IMPROVED: stimulus duration is now more precise when using `duration (s)` or `time (s)` although using `nFrames`
+  option is still advised for brief stimuli
 * IMPROVED: there are now fewer irrelevant lines in the log file as stimuli are initially created
-* IMPROVED: Staircase loops in Builder now initialise just before the staircase is run, rather than at the start of the experiment. This means they can be controlled by an outer loop and, effectively, restarted
+* IMPROVED: Staircase loops in Builder now initialise just before the staircase is run, rather than at the start of the
+  experiment. This means they can be controlled by an outer loop and, effectively, restarted
 * FIXED: ElementArrayStim can take Nx3 or 1x3 values for colors again
-* FIXED: variable names in Builder are now case-sensitive again (they were being forced to lower case when importing csv files)
+* FIXED: variable names in Builder are now case-sensitive again (they were being forced to lower case when importing csv
+  files)
 * FIXED: incorrect equation for the Cumulative Normal fitting function
-* FIXED: If your variable had a new line character in it this was causing a new line to be started in the csv data file. These are now handled correctly
+* FIXED: If your variable had a new line character in it this was causing a new line to be started in the csv data file.
+  These are now handled correctly
 
 * ADDED: RatingScale markerStart position can be arbitrary, e.g., can start between items or beyond the end of scale
 * ADDED: RatingScale tickHeight can be used to control the height of tickMarks, including no tick marks (tickHeight=0)

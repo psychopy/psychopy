@@ -2,7 +2,7 @@
 :class:`ImageStim`
 ------------------------------------------------------------------------
 
-As of PsychoPy version 1.79.00 *some* of the properties for
+As of |PsychoPy| version 1.79.00 *some* of the properties for
 this stimulus can be set using the syntax::
 
     stim.pos = newPos

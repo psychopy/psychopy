@@ -1253,7 +1253,7 @@ class SettingsComponent:
                 buff.writeIndentedLines(code % inits)
         else:
             code = (
-                "ioSession = ioServer = None"
+                "ioSession = ioServer = eyetracker = None"
             )
             buff.writeIndentedLines(code % inits)
 

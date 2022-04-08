@@ -1,7 +1,7 @@
 Cedrus (response boxes)
 =============================================
 
-The pyxid package, written by Cedrus, is included in the Standalone PsychoPy distributions.
+The pyxid package, written by Cedrus, is included in the Standalone |PsychoPy| distributions.
 
 See https://github.com/cedrus-opensource/pyxid for further info.
 

@@ -25,7 +25,7 @@ Commonly used:
 
 * :class:`.ImageStim` to show images
 * :class:`.TextStim` to show text
-* :class:`.TextBox` rewrite of TextStim (faster/better but only monospace fonts)
+* :class:`.TextBox2` rewrite of TextStim (faster, editable with more layout options and formatting)
 
 Shapes (all special classes of :class:`ShapeStim`):
 

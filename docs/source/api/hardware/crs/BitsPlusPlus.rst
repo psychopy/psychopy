@@ -43,9 +43,9 @@ Finding the identity LUT
     'broken' in one way or another, with rounding errors and incorrect start
     points etc.
 
-    PsychoPy provides a few of the common variants of LUT and that can be
+    |PsychoPy| provides a few of the common variants of LUT and that can be
     chosen when you initialise the device using the parameter `rampType`. If no
-    `rampType` is specified then PsychoPy will choose one for you::
+    `rampType` is specified then |PsychoPy| will choose one for you::
 
         from psychopy import visual
         from psychopy.hardware import crs
@@ -56,6 +56,6 @@ Finding the identity LUT
     The Bits# is capable of reporting back the pixels in a line and this can be
     used to test that a particular LUT is indeed providing identity values.
     If you have previously connected a :class:`BitsSharp` device and used it with
-    PsychoPy then a file will have been stored with a LUT that has been tested
+    |PsychoPy| then a file will have been stored with a LUT that has been tested
     with that device. In this case set `rampType = "configFile"` for PsychoPy
     to use it if such a file is found.
