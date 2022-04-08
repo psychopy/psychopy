@@ -6,6 +6,7 @@ import os
 import sys
 import platform
 from pathlib import Path
+from .. import __version__
 
 from pkg_resources import parse_version
 import shutil
@@ -144,11 +145,6 @@ class Preferences:
         except OSError as err:
             if err.errno != errno.EEXIST:
                 raise
-        try:
-            os.makedirs(join(self.paths['themes'], "app"))
-        except OSError as err:
-            if err.errno != errno.EEXIST:
-                raise
         # Make fonts folder in user space if not one already
         try:
             os.makedirs(self.paths['fonts'])
@@ -156,10 +152,21 @@ class Preferences:
             if err.errno != errno.EEXIST:
                 raise
 
-        # Find / copy themes
+        # Get dir for base and user themes
         baseThemeDir = Path(self.paths['appDir']) / "themes" / "spec"
+        userThemeDir = Path(self.paths['themes'])
+        # Check what version user themes were last updated in
+        if (userThemeDir / "last.ver").is_file():
+            with open(userThemeDir / "last.ver", "r") as f:
+                lastVer = parse_version(f.read())
+        else:
+            # if no version available, assume it was the first version to have themes
+            lastVer = parse_version("2020.2.0")
+        # If version has changed since base themes last copied, they need updating
+        updateThemes = lastVer < parse_version(__version__)
+        # Copy base themes to user themes folder if missing or need update
         for file in baseThemeDir.glob("*.json"):
-            if not (Path(self.paths['themes']) / file.name).is_file():
+            if updateThemes or not (Path(self.paths['themes']) / file.name).is_file():
                 shutil.copyfile(
                     file,
                     Path(self.paths['themes']) / file.name
