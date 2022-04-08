@@ -1193,7 +1193,9 @@ class BuilderFrame(BaseAuiFrame, ThemeMixin):
 
     def runFile(self, event=None):
         """Open Runner for running the psyexp file."""
-        if not os.path.exists(self.filename):
+        # Check whether file is truly untitled (not just saved as untitled)
+        untitled = os.path.abspath("untitled.psyexp")
+        if not os.path.exists(self.filename) or os.path.abspath(self.filename) == untitled:
             ok = self.fileSave(self.filename)
             if not ok:
                 return  # save file before compiling script
@@ -1215,7 +1217,7 @@ class BuilderFrame(BaseAuiFrame, ThemeMixin):
         """copy the current routine from self.routinePanel
         to self.app.copiedRoutine.
         """
-        r = copy.deepcopy(self.routinePanel.getCurrentRoutine())
+        r = self.routinePanel.getCurrentRoutine().copy()
         if r is not None:
             self.app.copiedRoutine = r
 
@@ -1236,7 +1238,7 @@ class BuilderFrame(BaseAuiFrame, ThemeMixin):
             routineName = dlg.GetValue()
             if not routineName:
                 routineName = defaultName
-            newRoutine = copy.deepcopy(self.app.copiedRoutine)
+            newRoutine = self.app.copiedRoutine.copy()
             self.pasteRoutine(newRoutine, routineName)
         dlg.Destroy()
 
@@ -1246,6 +1248,7 @@ class BuilderFrame(BaseAuiFrame, ThemeMixin):
         """
         newRoutine.name = self.exp.namespace.makeValid(routineName, prefix="routine")
         newRoutine.params['name'] = newRoutine.name
+        newRoutine.exp = self.exp
         self.exp.namespace.add(newRoutine.name)
         # add to the experiment
         self.exp.addRoutine(newRoutine.name, newRoutine)
@@ -1253,6 +1256,7 @@ class BuilderFrame(BaseAuiFrame, ThemeMixin):
             newName = self.exp.namespace.makeValid(newComp.params['name'])
             self.exp.namespace.add(newName)
             newComp.params['name'].val = newName
+            newComp.exp = self.exp
         # could do redrawRoutines but would be slower?
         self.routinePanel.addRoutinePage(newRoutine.name, newRoutine)
         self.routinePanel.setCurrentRoutine(newRoutine)

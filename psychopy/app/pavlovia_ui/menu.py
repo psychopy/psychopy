@@ -16,6 +16,7 @@ from .search import SearchFrame
 from .project import ProjectEditor
 from psychopy.localization import _translate
 from psychopy.projects import pavlovia
+from psychopy.app.pavlovia_ui import sync
 
 
 class PavloviaMenu(wx.Menu):
@@ -110,9 +111,7 @@ class PavloviaMenu(wx.Menu):
             PavloviaMenu.searchDlg.updateUserProjs()
 
     def onSync(self, event):
-        retVal = syncProject(parent=self.parent, project=self.parent.project)
-        if hasattr(self.parent, 'gitFeedback'):
-            self.parent.gitFeedback(retVal)
+        syncProject(parent=self.parent, project=self.parent.project)
 
     def onSearch(self, event):
         PavloviaMenu.searchDlg = SearchFrame(app=self.parent.app)
@@ -124,13 +123,13 @@ class PavloviaMenu(wx.Menu):
     def onNew(self, event):
         """Create a new project
         """
-        if pavlovia.getCurrentSession().user.username:
-            projEditor = ProjectEditor()
-            if projEditor.ShowModal() == wx.ID_OK:
-                self.parent.project = projEditor.project
-                # do a first sync as well
-                retVal = syncProject(parent=self.parent, project=projEditor.project)
-                self.parent.gitFeedback(retVal)
+        # Get session
+        session = pavlovia.getCurrentSession()
+        # If logged in, create project
+        if session.user:
+            dlg = sync.CreateDlg(self.parent, user=session.user)
+            dlg.ShowModal()
+        # Otherwise, prompt user to log in
         else:
             infoDlg = dialogs.MessageDialog(parent=None, type='Info',
                                             message=_translate(

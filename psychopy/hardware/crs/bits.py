@@ -6,8 +6,8 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Acknowledgements:
-#    This code was mostly written by Jon Peirce.
-#    with substaintial additions by Andrew Schofield
+#    This code was initially written by Jon Peirce.
+#    with substantial additions by Andrew Schofield
 #    CRS Ltd provided support as needed.
 #    Shader code for mono++ and color++ modes was based on code in Psychtoolbox
 #    (Kleiner) but does not actually use that code directly
@@ -1015,7 +1015,7 @@ class BitsPlusPlus:
     def _drawLUTtoScreen(self):
         """(private) Used to set the LUT in 'bits++' mode.
         Should not be needed by user if attached to a
-        :class:`psychopy.visual.Window` since this will automatically
+        :class:`~psychopy.visual.Window` since this will automatically
         draw the LUT as part of the screen refresh.
         """
         # push the projection matrix and set to orthographic
@@ -1051,7 +1051,7 @@ class BitsPlusPlus:
     def _ResetClock(self):
         """(private) Used to reset Bits hardware clock.
         Should not be needed by user if attached to a 
-        :class:`psychopy.visual.Window`
+        :class:`~psychopy.visual.Window`
         since this will automatically draw the 
         reset code as part of the screen refresh.
         """
@@ -1088,7 +1088,7 @@ class BitsPlusPlus:
     def _drawTrigtoScreen(self, sendStr=None):
         """(private) Used to send a trigger pulse.
         Should not be needed by user if attached to a 
-        :class:`psychopy.visual.Window`
+        :class:`~psychopy.visual.Window`
         since this will automatically draw the trigger code as 
         part of the screen refresh.
         """
@@ -1123,7 +1123,7 @@ class BitsPlusPlus:
     def _Goggles(self):
         """(private) Used to set control the goggles.
         Should not be needed by user if attached to a 
-        :class:`psychopy.visual.Window`
+        :class:`~psychopy.visual.Window`
         """
         # Work out current goggles state value.
         gogglesState = self.gogglesRight*2+self.gogglesLeft
@@ -1218,7 +1218,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
     name = b'CRS Bits#'
 
     def __init__(self, win=None,
-                         portName=None, 
+                         portName=None,
                          mode='', 
                          checkConfigLevel=1,
                          gammaCorrect='hardware',
@@ -1230,13 +1230,17 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
 
         win : a PsychoPy :class:`~psychopy.visual.Window` object, required
 
-        portName : the (virtual) serial port to which the device is
+        portName : str or int
+            the (virtual) serial port to which the device is
             connected. If None then PsychoPy will search available
             serial ports and test communication (on OSX, the first
             match of `/dev/tty.usbmodemfa*` will be used and on
             linux `/dev/ttyS0` will be used
+
         mode : 'bits++', 'color++', 'mono++', 'status'
-        checkConfigLevel : integer
+
+        checkConfigLevel : int
+
             Allows you to specify how much checking of the device is
             done to ensure a valid identity look-up table. If you specify
             one level and it fails then the check will be escalated to
@@ -1251,13 +1255,16 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
                 - 3 search for a new identity look-up table (requires
                     switch to status mode)
 
-        gammaCorrect : string governing how gamma correction is performed
-            'hardware': use the gamma correction file stored on the
-                hardware
-            'FBO': gamma correct using shaders when rendering the FBO
-                to back buffer
-            'bitsMode': in bits++ mode there is a user-controlled LUT
-                that we can use for gamma correction
+        gammaCorrect : string
+
+            G overning how gamma correction is performed:
+            - 'hardware': use the gamma correction file stored on the
+              hardware
+            - 'FBO': gamma correct using shaders when rendering the FBO
+              to back buffer
+            - 'bitsMode': in bits++ mode there is a user-controlled LUT
+              that we can use for gamma correction
+
         noComms : bool
             If True then don't try to communicate with the device at all
             (passive mode). This can be useful if you want to debug the
@@ -4244,15 +4251,18 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         """Checks whether there is a configuration for this device and
         whether it's correct
 
-        :params:
-            level: integer
-                - 0: do nothing
-                - 1: check that we have a config file and that the graphics
-                    card and operating system match that specified in the
-                    file. Then assume identity LUT is correct
-                - 2: switch the box to status mode and check that the
-                    identity LUT is currently working
-                - 3: force a fresh search for the identity LUT
+        Parameters
+        ----------
+
+        level: integer
+
+            - 0: do nothing
+            - 1: check that we have a config file and that the graphics
+                card and operating system match that specified in the
+                file. Then assume identity LUT is correct
+            - 2: switch the box to status mode and check that the
+                identity LUT is currently working
+            - 3: force a fresh search for the identity LUT
         """
         
         if self.noComms:

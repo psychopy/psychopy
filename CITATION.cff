@@ -1,0 +1,68 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the preferred-citation"
+authors:
+  - family-names: Peirce
+    given-names: Jonathan
+    orcid: https://orcid.org/0000-0002-9504-4342
+  - family-names: Cutone
+    given-names: Matthew
+  - family-names: Gray
+    given-names: Jeremy
+  - family-names: Bridges
+    given-names: David
+  - family-names: Hirst
+    given-names: Rebecca
+  - family-names: Kastman
+    given-names: Erik
+    orcid: https://orcid.org/0000-0001-7221-9042
+  - family-names: Lindeløv
+    given-names: Jonas
+    orcid: https://orcid.org/0000-0003-4565-0595
+  - family-names: MacAskill
+    given-names: Michael
+  - family-names: Parsons
+    given-names: Todd
+    orcid: https://orcid.org/0000-0001-9073-0346
+  - family-names: Höchenberger
+    given-names: Richard
+    orcid: https://orcid.org/0000-0002-0380-4798
+  - family-names: Sogo
+    given-names: Hiroyuki
+  - family-names: Simpson
+    given-names: Sol
+title: "PsychoPy"
+type: software
+license: GPL-3.0-or-later
+repository-code: "https://github.com/psychopy/psychopy"
+url: "https://psychopy.org"
+preferred-citation:
+  title: "PsychoPy2: Experiments in behavior made easy"
+  type: article
+  doi: 10.3758/s13428-018-01193-y
+  date-released: "2019-02-07"
+  authors:
+    - family-names: Peirce
+      given-names: Jonathan
+      orcid: https://orcid.org/0000-0002-9504-4342
+    - family-names: Gray
+      given-names: Jeremy
+    - family-names: Simpson
+      given-names: Sol
+    - family-names: MacAskill
+      given-names: Michael
+      orcid: https://orcid.org/0000-0001-9073-0346
+    - family-names: Höchenberger
+      given-names: Richard
+      orcid: https://orcid.org/0000-0002-0380-4798
+    - family-names: Sogo
+      given-names: Hiroyuki
+    - family-names: Kastman
+      given-names: Erik
+      orcid: https://orcid.org/0000-0001-7221-9042
+    - family-names: Lindeløv
+      given-names: Jonas
+      orcid: https://orcid.org/0000-0003-4565-0595
+identifiers:
+  - description: "The first paper describing the initial work (Peirce, 2007)."
+    type: doi
+    value: 

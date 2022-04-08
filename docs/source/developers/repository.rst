@@ -3,7 +3,7 @@
 Using the repository
 ------------------------------
 
-Any code that you want to be included into PsychoPy is done via Git in the GitHub repository. There's something of a learning curve to this, but it's common to development in many other packages.
+Any code that you want to be included into |PsychoPy| is done via Git in the GitHub repository. There's something of a learning curve to this, but it's common to development in many other packages.
 
 **For developers experienced with Git from other projects** the only things you need to note are:
 
@@ -45,7 +45,7 @@ Around a major (feature) release the two trunks will generally become synchronis
 .. _commitMessages:
 
 PsychoPy commit messages
-~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Informative commit messages are really useful when we have to go back through the repository finding the time that a particular change to the code occurred. Precede your message with one or more of the following:
 
@@ -102,7 +102,7 @@ Then, in a folder of your choosing fetch your fork::
 
 The last line connects your copy (with read access) to the central server so you can easily fetch any updates to the central repository.
 
-Run PsychoPy using your local repo copy
+Run |PsychoPy| using your local repo copy
 ________________________________________________
 
 Now that you've fetched the latest version of psychopy using git, you should run this version in order to try out yours/others latest improvements. To use your github version all the time you should install that as a "developer" install so that the files stay in this location and as they get updated that is reflected in the installed version. This differs from a standard install where the files get copied to Python's site-packages and then changes you make have no effect until you install again. To run the developer install choose one of::
