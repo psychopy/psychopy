@@ -12,33 +12,23 @@ resources = Path(prefs.paths['resources'])
 iconCache = {}
 
 
-class BaseIcon(wx.Icon):
+class BaseIcon:
     def __init__(self, stem, size=None):
+        # Initialise bitmaps array
+        self.bitmaps = {}
+        self._bitmap = None
+        self.size = size
+
         if stem in iconCache:
-            # If already created, just copy instance
-            wx.Icon.__init__(self, iconCache[stem])
             # Duplicate relevant attributes if relevant (depends on subclass)
-            iconCache[stem]._copyTo(self)
-            # Set size, it may be different than cached
-            self.size = size
+            self.bitmaps = iconCache[stem].bitmaps
         else:
-            # Initialise base class
-            wx.Icon.__init__(self)
-            self.bitmap = None
             # Use subclass-specific populate call to create bitmaps
             self._populate(stem)
             # Set size
             self.size = size
-            # Update from current bitmap
-            if self.bitmap:
-                self.CopyFromBitmap(self.bitmap)
             # Store ref to self in iconCache
             iconCache[stem] = self
-
-    def _copyTo(self, other):
-        raise NotImplementedError(
-            "BaseIcon should not be instanced directly; it serves only as a base class for ButtonIcon and ComponentIcon"
-        )
 
     def _populate(self, stem):
         raise NotImplementedError(
@@ -69,13 +59,46 @@ class BaseIcon(wx.Icon):
 
         # Store value
         self._size = (width, height)
-        # Do subclass-specific fitting method to adjust bitmap to desired size
-        self._fitBitmap()
+        # Clear bitmap cache
+        self._bitmap = None
 
-    def _fitBitmap(self):
-        raise NotImplementedError(
-            "BaseIcon should not be instanced directly; it serves only as a base class for ButtonIcon and ComponentIcon"
-        )
+    @property
+    def bitmap(self):
+        if self._bitmap is None:
+            # Get list of sizes cached
+            cachedSizes = list(self.bitmaps)
+
+            if self.size in cachedSizes:
+                # If requested size is cached, return it
+                self._bitmap = self.bitmaps[self.size]
+            elif self.size[1] is None and self.size[0] is not None:
+                # If height is None, check for correct width
+                widths = [w for w, h in cachedSizes]
+                if self.size[0] in widths:
+                    i = widths.index(self.size[0])
+                    self._bitmap = self.bitmaps[cachedSizes[i]]
+            elif self.size[0] is None and self.size[1] is not None:
+                # If width is None, check for correct height
+                heights = [h for w, h in cachedSizes]
+                if self.size[1] in heights:
+                    i = heights.index(self.size[1])
+                    self._bitmap = self.bitmaps[cachedSizes[i]]
+            elif self.size[0] is None and self.size[1] is None:
+                # If both size values are None, use biggest bitmap
+                areas = [w * h for w, h in cachedSizes]
+                i = areas.index(max(areas))
+                self._bitmap = self.bitmaps[cachedSizes[i]]
+            else:
+                # Otherwise, resize the closest bitmap in size
+                areas = [w * h for w, h in cachedSizes]
+                area = self.size[0] * self.size[1]
+                deltas = [abs(area - a) for a in areas]
+                i = deltas.index(min(deltas))
+                bmp = self.bitmaps[cachedSizes[i]]
+                self._bitmap = self.resizeBitmap(bmp, self.size)
+                self.bitmaps[self._bitmap.GetWidth(), self._bitmap.GetHeight()] = self._bitmap
+
+        return self._bitmap
 
     @staticmethod
     def resizeBitmap(bmp, size=None):
@@ -83,7 +106,7 @@ class BaseIcon(wx.Icon):
             "Bitmap supplied to `resizeBitmap()` must be a `wx.Bitmap` object."
         )
         # If size is None, return bitmap as is
-        if size is None:
+        if size in (None, (None, None)):
             return bmp
         # Split up size value
         width, height = size
@@ -99,10 +122,6 @@ class BaseIcon(wx.Icon):
 
 
 class ButtonIcon(BaseIcon):
-    def _copyTo(self, other):
-        other.bitmaps = self.bitmaps
-        other.bitmap = self.bitmap
-        other.size = self.size
 
     def _populate(self, stem):
         # Get all files in the resource folder containing the given stem
@@ -155,43 +174,12 @@ class ButtonIcon(BaseIcon):
 
         # Create bitmap array for files
         self.bitmaps = {}
-        for key, file in files.items():
-            self.bitmaps[key] = wx.Bitmap(str(file), wx.BITMAP_TYPE_PNG)
-        self.bitmap = None
-
-    def _fitBitmap(self):
-        # If no stored bitmaps, do nothing (icon remains blank)
-        if not self.bitmaps:
-            self.bitmap = wx.Bitmap()
-            return
-        # Split up size value
-        width, height = self.size
-        # Find appropriate bitmap from list of bitmaps
-        if width in self.bitmaps:
-            # If value matches dict exactly, use match
-            bmp = self.bitmaps[width]
-        elif width is None:
-            # If given no size, use the largest image
-            i = max(self.bitmaps.keys())
-            bmp = self.bitmaps[i]
-        else:
-            # If any other size, use closest match
-            deltas = [(abs(width - sz), sz) for sz in self.bitmaps.keys() if sz is not None]
-            if deltas:
-                i = min(deltas)[1]
-            else:
-                i = None
-            bmp = self.bitmaps[i]
-
-        # Use appropriate sized bitmap
-        self.bitmap = self.resizeBitmap(bmp, self.size)
+        for file in files.values():
+            bmp = wx.Bitmap(str(file), wx.BITMAP_TYPE_PNG)
+            self.bitmaps[(bmp.GetWidth(), bmp.GetHeight())] = bmp
 
 
 class ComponentIcon(BaseIcon):
-    def _copyTo(self, other):
-        other.bitmap = self.bitmap
-        if hasattr(self, "_beta"):
-            other._beta = self._beta
 
     def _populate(self, cls):
         # Throw error if class doesn't have associated icon file
@@ -216,10 +204,8 @@ class ComponentIcon(BaseIcon):
             file = list(matches.values())[0]
         img = wx.Image(str(file))
         # Use appropriate sized bitmap
-        self.bitmap = wx.Bitmap(img)
-
-    def _fitBitmap(self):
-        self.bitmap = self.resizeBitmap(self.bitmap, self.size)
+        bmp = wx.Bitmap(img)
+        self.bitmaps[(bmp.GetWidth(), bmp.GetHeight())] = bmp
 
     @property
     def beta(self):
