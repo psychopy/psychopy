@@ -3,7 +3,7 @@
 Getting Started
 ===============
 
-As an application, PsychoPy has two main views: the :doc:`Builder <builder/index>` view, and the :doc:`Coder <coder/index>` view. It also has a underlying :ref:`api` that you can call directly.
+As an application, |PsychoPy| has two main views: the :doc:`Builder <builder/index>` view, and the :doc:`Coder <coder/index>` view. It also has a underlying :ref:`api` that you can call directly.
 
 #. :doc:`Builder <builder/index>`. You can generate a wide range of experiments easily from the Builder using its intuitive, graphical user interface (GUI). This might be all you ever need to do. But you can always compile your experiment into a python script for fine-tuning, and this is a quick way for experienced programmers to explore some of PsychoPy's libraries and conventions. **Note: if you are taking a study online we highly advise even experienced coders use Builder view, as the JS version of your experiment will also be generated**
 
@@ -21,9 +21,9 @@ As an application, PsychoPy has two main views: the :doc:`Builder <builder/index
 
 .. _python : http://www.python.org
 
-The Builder and Coder views are the two main aspects of the PsychoPy application. If you've installed the StandAlone version of PsychoPy on **MS Windows** then there should be an obvious link to PsychoPy in your > Start > Programs. If you installed the StandAlone version on **macOS** then the application is where you put it (!). On these two platforms you can open the Builder and Coder views from the View menu and the default view can be set from the preferences. **On Linux**, you can start PsychoPy from a command line, or make a launch icon (which can depend on the desktop and distro). If the PsychoPy app is started with flags ----coder (or -c), or ----builder (or -b), then the preferences will be overridden and that view will be created as the app opens.
+The Builder and Coder views are the two main aspects of the |PsychoPy| application. If you've installed the StandAlone version of |PsychoPy| on **MS Windows** then there should be an obvious link to |PsychoPy| in your > Start > Programs. If you installed the StandAlone version on **macOS** then the application is where you put it (!). On these two platforms you can open the Builder and Coder views from the View menu and the default view can be set from the preferences. **On Linux**, you can start |PsychoPy| from a command line, or make a launch icon (which can depend on the desktop and distro). If the |PsychoPy| app is started with flags ----coder (or -c), or ----builder (or -b), then the preferences will be overridden and that view will be created as the app opens.
 
-For experienced python programmers, it's possible to use PsychoPy without ever opening the Builder or Coder. Install the PsychoPy libraries and dependencies, and use your favorite IDE instead of the Coder.
+For experienced python programmers, it's possible to use |PsychoPy| without ever opening the Builder or Coder. Install the |PsychoPy| libraries and dependencies, and use your favorite IDE instead of the Coder.
 
 Builder
 ------------
@@ -33,7 +33,7 @@ When learning a new computer language, `the classic first program <http://en.wik
 A first program
 ~~~~~~~~~~~~~~~
 
-Start PsychoPy, and be sure to be in the Builder view.
+Start |PsychoPy|, and be sure to be in the Builder view.
 
 * If you have poked around a bit in the Builder already, be sure to start with a clean slate. To get a new Builder view, type `Ctrl-N` on Windows or Linux, or `Cmd-N` on Mac.
 * Click on a Text component and a Text Properties dialog will pop up.
@@ -64,14 +64,14 @@ What if you wanted to display your cheerful greeting for longer than the default
 * Click OK.
 * And finally `Run`.
 
-When running an experiment, you can quit by pressing the `escape` key (this can be configured or disabled). You can quit PsychoPy from the File menu, or typing `Ctrl-Q` / `Cmd-Q`.
+When running an experiment, you can quit by pressing the `escape` key (this can be configured or disabled). You can quit |PsychoPy| from the File menu, or typing `Ctrl-Q` / `Cmd-Q`.
 
 Getting beyond Hello
 ~~~~~~~~~~~~~~~~~~~~
 
 To do more, you can try things out and see what happens. You may want to consult the :doc:`Builder documentation<builder/index>`. Many people find it helpful to explore the Builder demos, in part to see what is possible, and especially to see how different things are done.
 
-A good way to develop your own first PsychoPy experiment is to base it on the Builder demo that seems closest. Copy it, and then adapt it step by step to become more and more like the program you have in mind. Being familiar with the Builder demos can only help this process.
+A good way to develop your own first |PsychoPy| experiment is to base it on the Builder demo that seems closest. Copy it, and then adapt it step by step to become more and more like the program you have in mind. Being familiar with the Builder demos can only help this process.
 
 You could stop here, and just use the Builder for creating your experiments. It provides a lot of the key features that people need to run a wide variety of studies. But it does have its limitations. When you want to have more complex designs or features, you'll want to investigate the Coder. As a segue to the Coder, lets start from the Builder, and see how Builder programs work.
 
@@ -79,7 +79,7 @@ You could stop here, and just use the Builder for creating your experiments. It 
 Builder-to-coder
 ---------------------
 
-Whenever you run a Builder experiment, PsychoPy will first translate it into python code, and then execute that code.
+Whenever you run a Builder experiment, |PsychoPy| will first translate it into python code, and then execute that code.
 
 To get a better feel for what was happening "behind the scenes" in the Builder program above:
 
@@ -99,7 +99,7 @@ Coder
 
 Being able to inspect Builder-generated code is nice, but it's possible to write code yourself, directly. With the Coder and various libraries, you can do virtually anything that your computer is capable of doing, using a full-featured modern programming language (python).
 
-For variety, lets say hello to the Spanish-speaking world. PsychoPy knows Unicode (UTF-8).
+For variety, lets say hello to the Spanish-speaking world. |PsychoPy| knows Unicode (UTF-8).
 
 If you are not in the Coder, switch to it now.
 
@@ -126,7 +126,7 @@ Note that the same events happen on-screen with this code version, despite the c
 
 The shell provides an interactive python interpreter, which means you can enter commands here to try them out. This provides yet another way to send your salutations to the world. By default, the Coder's output window is shown at the bottom of the Coder window. Click on the Shell tab, and you should see python's interactive prompt, `>>>`::
 
-    PyShell in PsychoPy - type some commands!
+    PyShell in |PsychoPy| - type some commands!
 
     Type "help", "copyright", "credits" or "license" for more information.
     >>>

@@ -20,7 +20,7 @@ Don't change the generated JS file
 When you export an experiment to HTML from the PsychoPy builder, it generates a JS file. We recommend *not* to edit this JS file, for the reasons below:
 
 - Changes you make in your .js file will not be reflected back in your builder file; it is a one way street.
-- It becomes more difficult to sync your experiment with pavlovia from the PsychoPy builder
+- It becomes more difficult to sync your experiment with |Pavlovia| from the |PsychoPy| builder
 - Researchers that would like to replicate your experiment but aren't very JavaScript-savvy might be better off using the PsychoPy Builder
 
 Working with JS Code Components

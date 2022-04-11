@@ -92,7 +92,7 @@ epub:
 	@echo "Build finished. The epub file is in $(BUILDDIR)/epub."
 
 latex:
-	export max_print_line=1000; export error_line=254; export error_line=238; 
+	export max_print_line=1000; export error_line=1000; export error_line=1000;
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
 	@echo
 	@echo "Build finished; the LaTeX files are in $(BUILDDIR)/latex."
@@ -100,7 +100,7 @@ latex:
 	      "(use \`make latexpdf' here to do that automatically)."
 
 latexpdf:
-	export max_print_line=1000; export error_line=254; export error_line=238; 
+	export max_print_line=1000; export error_line=1000; export error_line=1000;
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
 	@echo "Running LaTeX files through pdflatex..."
 	make -C $(BUILDDIR)/latex all-pdf

@@ -723,11 +723,14 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         if self.currentFile.suffix == '.psyexp':
             generateScript(experimentPath=currentFile.replace('.psyexp', '_lastrun.py'),
                            exp=self.loadExperiment())
-        self.runFile(fileName=currentFile, focusOnExit=focusOnExit)
+        procStarted = self.runFile(
+            fileName=currentFile,
+            focusOnExit=focusOnExit)
 
         # Enable/Disable btns
-        self.runBtn.Disable()
-        self.stopBtn.Enable()
+        if procStarted:
+            self.runBtn.Disable()
+            self.stopBtn.Enable()
 
     def runOnline(self, evt=None):
         """Run PsychoJS task from https://pavlovia.org."""

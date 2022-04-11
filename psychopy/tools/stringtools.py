@@ -13,6 +13,9 @@ import ast
 
 __all__ = ["prettyname"]
 
+# Regex for identifying a valid Pavlovia project name
+valid_proj_name = re.compile(r'(\w|-)+')
+
 
 def prettyname(name, wrap=False):
     """Convert a camelCase, TitleCase or underscore_delineated title to Full Title Case"""

@@ -83,7 +83,6 @@ class Cortex:
         self.get_user_login()
         self.get_cortex_info()
         self.has_access_right()
-        self.tt0 = time.time() - time.perf_counter()
         self.request_access()
         self.authorize()
         self.get_license_info()
@@ -97,12 +96,13 @@ class Cortex:
             time_str = datetime.datetime.now().isoformat()
             self.create_session(activate=True,
                                 headset_id=self.headsets[0])
+
+            self.tt0 = self.synchronise()
             self.create_record(title=f"Psychopy_{subject}_{time_str}".replace(":",""))
         else:
             logger.error("Not able to find a connected headset")
             raise CortexNoHeadsetException("No headset detected. Please connect the EMOTIV headset in Emotiv Launcher")
-        # EEG data 
-        self.synchronise()
+        # EEG data
         if EEG_ON:
             self.timestamps = []
             self.data = []
@@ -352,6 +352,7 @@ class Cortex:
     def synchronise(self):
         delta = 1.0
         logger.debug("Start synchronising")
+        t0 = time.time() - time.perf_counter()
         while delta > 0.001:
             params = {'headset': self.headsets[0],
                       'monotonicTime': time.perf_counter(),
@@ -369,9 +370,10 @@ class Cortex:
                     raise CortexApiException(msg)
             logger.debug(f"{__name__} resp:\n{resp}")
             new_t0 = resp['result']['adjustment']
-            delta = abs(self.tt0 - new_t0)
-            self.tt0 = new_t0
+            delta = abs(t0 - new_t0)
+            t0 = new_t0
         logger.debug("Synchronised")
+        return t0
 
     def inspectApi(self):
         """ Return a list of available cortex methods """

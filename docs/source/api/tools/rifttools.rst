@@ -6,7 +6,7 @@
 
 Various tools for working with the :py:class:`~psychopy.visual.rift.Rift` class.
 The documentation for classes in on this page originate from PsychXR and may
-make references to functions and objects not included with PsychoPy.
+make references to functions and objects not included with |PsychoPy|.
 
 Overview
 ========
