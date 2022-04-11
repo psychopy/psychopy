@@ -1,3 +1,5 @@
+import sys
+
 import numpy
 from pathlib import Path
 
@@ -64,3 +66,27 @@ class TestSpeed:
         assert avg < 1, (
             f"App took longer than acceptable to change theme. Expected <0.4s, allowed <1s, got {avg}."
         )
+
+    def test_load_builder(self):
+        dur = self._load_app("-b")
+        assert dur < 10
+
+    def test_load_coder(self):
+        dur = self._load_app("-c")
+        assert dur < 10
+
+    def test_load_runner(self):
+        dur = self._load_app("-r")
+        assert dur < 10
+
+    @staticmethod
+    def _load_app(arg):
+        # Test builder
+        start = time.time()
+        sys.argv.append(arg)
+        from psychopy.app._psychopyApp import PsychoPyApp
+        app = PsychoPyApp(0, testMode=True, showSplash=True)
+        app.quit()
+        finish = time.time()
+        dur = finish - start
+        return dur
