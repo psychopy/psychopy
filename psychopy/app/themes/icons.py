@@ -57,6 +57,10 @@ class BaseIcon:
             # If height is not an integer, try to make it one
             height = int(height)
 
+        # Adjust for retina
+        if retStr:
+            width = round(width * 2)
+            height = round(height * 2)
         # Store value
         self._size = (width, height)
         # Clear bitmap cache
