@@ -56,6 +56,8 @@ class TestSpeed:
             runs.append(finish - start)
         # Check times
         avg = float(numpy.mean(runs))
+        # Log result
+        logging.info(f"Average time to change theme: {avg} ({len(runs)} runs: {runs})")
         # <0.5 is the goal
         if avg >= 0.5:
             logging.warn(
@@ -67,16 +69,66 @@ class TestSpeed:
             f"App took longer than acceptable to change theme. Expected <0.4s, allowed <1s, got {avg}."
         )
 
+    @pytest.mark.usefixtures("get_app")
+    def test_open_frame(self, get_app):
+        # Close any open frames
+        for frame in get_app._allFrames:
+            frame().Close()
+        # Set theme
+        get_app.theme = "PsychopyLight"
+        # Open one of each frame (to populate icon cache)
+        get_app.newBuilderFrame()
+        get_app.showCoder()
+        get_app.newRunnerFrame()
+        # Close frames again
+        for frame in get_app._allFrames:
+            frame().Close()
+        # Open Builder frame
+        start = time.time()
+        get_app.newBuilderFrame()
+        finish = time.time()
+        dur = finish - start
+        logging.info(f"Time to open builder frame: {dur}")
+        # Check Builder frame load time
+        assert dur < 10
+
+        # Open Coder frame
+        start = time.time()
+        get_app.showCoder()
+        finish = time.time()
+        dur = finish - start
+        logging.info(f"Time to open coder frame: {dur}")
+        # Check Coder frame load time
+        assert dur < 10
+
+        # Open Runner frame
+        start = time.time()
+        get_app.newRunnerFrame()
+        finish = time.time()
+        dur = finish - start
+        logging.info(f"Time to open runner frame: {dur}")
+        # Check Runner frame load time
+        assert dur < 10
+
     def test_load_builder(self):
+        # Load Builder
         dur = self._load_app("-b")
+        logging.info(f"Time to open with -b tag: {dur}")
+        # Check that it's within acceptable bounds
         assert dur < 10
 
     def test_load_coder(self):
+        # Load Coder
         dur = self._load_app("-c")
+        logging.info(f"Time to open with -c tag: {dur}")
+        # Check that it's within acceptable bounds
         assert dur < 10
 
     def test_load_runner(self):
+        # Load Runner
         dur = self._load_app("-r")
+        logging.info(f"Time to with -r tag: {dur}")
+        # Check that it's within acceptable bounds
         assert dur < 10
 
     @staticmethod
