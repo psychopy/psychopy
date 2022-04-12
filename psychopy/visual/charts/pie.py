@@ -143,10 +143,21 @@ class PieChart(Circle):
             # Extract vertices from full circle's vertices according to proportion of values
             theta = math.ceil((value / total) * 360)
             stop = start + theta
-            obj.vertices = np.vstack([(0, 0), self.vertices[max(start-1, 0):min(stop+1, 360)]])
-            # Bridge the gap between first and last
             if i == 0:
-                obj.vertices = np.vstack([obj.vertices, self.vertices[-1]])
+                # Bridge the gap between first and last
+                obj.vertices = np.vstack([
+                    (0, 0),
+                    self.vertices[-1],
+                    self.vertices[max(start-1, 0):min(stop+1, 360)],
+                    (0, 0)])
+            else:
+                # Extract appropriate vertices and append the origin
+                obj.vertices = np.vstack([
+                    (0, 0),
+                    self.vertices[max(start-1, 0):min(stop+1, 360)],
+                    (0, 0)])
+
+
             # Store new start point
             start = stop
 
