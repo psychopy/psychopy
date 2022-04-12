@@ -36,7 +36,7 @@ class PieChart(Circle):
         # Create containing circle
         Circle.__init__(
             # Basic
-            self, win,
+            self, win, name=name,
             # Layout
             pos=pos, size=size, radius=radius, units=units,
             anchor=anchor, ori=ori,
