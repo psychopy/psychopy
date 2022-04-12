@@ -37,7 +37,7 @@ from bidi import algorithm as bidi_algorithm # sufficient for Hebrew
 # extra step needed to reshape Arabic/Farsi characters depending on
 # their neighbours:
 try:
-    import arabic_reshaper
+    from arabic_reshaper import ArabicReshaper
     haveArabic = True
 except ImportError:
     haveArabic = False
@@ -175,6 +175,10 @@ class TextStim(BaseVisualStim, ForeColorMixin, ContainerMixin):
         self.__dict__['flipHoriz'] = flipHoriz
         self.__dict__['flipVert'] = flipVert
         self.__dict__['languageStyle'] = languageStyle
+        if languageStyle.lower() == 'arabic':
+            arabic_config = {'delete_harakat': False,  # if present, retain any diacritics
+                             'shift_harakat_position': True}  # shift by 1 to be compatible with the bidi algorithm
+            self.__dict__['arabic_reshaper'] = ArabicReshaper(configuration = arabic_config)
         self._pygletTextObj = None
         self.pos = pos
         # deprecated attributes
@@ -359,8 +363,8 @@ class TextStim(BaseVisualStim, ForeColorMixin, ContainerMixin):
             if style == 'arabic' and haveArabic:
                 # reshape Arabic characters from their isolated form so that
                 # they flow and join correctly to their neighbours:
-                text = arabic_reshaper.reshape(text)
-            if style == 'rtl' or style == 'arabic' and haveArabic:
+                text = self.arabic_reshaper.reshape(text)
+            if style == 'rtl' or (style == 'arabic' and haveArabic):
                 # deal with right-to-left text presentation by applying the
                 # bidirectional algorithm:
                 text = bidi_algorithm.get_display(text)
