@@ -33,6 +33,8 @@ __all__ = [
     'Job'
 ]
 
+import os.path
+
 import wx
 from subprocess import Popen, PIPE
 from threading import Thread, Event
@@ -92,6 +94,7 @@ class PipeReader(Thread):
         self._overflowBuffer = []
         # used to signal to the thread that it's time to stop
         self._stopSignal = Event()
+        self._closedSignal = Event()
 
     @property
     def isAvailable(self):
@@ -120,10 +123,7 @@ class PipeReader(Thread):
         enqueues them.
         """
         # read bytes in chunks until EOF
-        while 1:
-            self._fdpipe.flush()
-            pipeBytes = self._fdpipe.read()
-
+        for pipeBytes in iter(self._fdpipe.readline, b''):
             # put bytes into the queue, handle overflows if the queue is full
             if not self._queue.full():
                 # we have room, check if we have a backlog of bytes to send
@@ -139,26 +139,18 @@ class PipeReader(Thread):
                 # space.
                 self._overflowBuffer.append(pipeBytes)
 
-            # Put the thread to sleep for a bit, not sure if we need this since
-            # this loop will block execution of this thread if there is nothing
-            # to read.
-            # time.sleep(PIPE_READER_POLL_INTERVAL)
-
-            # exit the loop
             if self._stopSignal.is_set():
-                if self._overflowBuffer:
-                    pipeBytes = "".join(self._overflowBuffer) + pipeBytes
-                    self._queue.put(pipeBytes)
                 break
 
-            if pipeBytes == '':
-                break
-
-        #self._fdpipe.close()  # close the pipe if stopped
+        self._closedSignal.set()
 
     def stop(self):
         """Call this to signal the thread to stop reading bytes."""
         self._stopSignal.set()
+        while not self._closedSignal.is_set():
+            time.sleep(0.01)
+
+        return self._fdpipe
 
 
 class Job:
@@ -243,20 +235,23 @@ class Job:
         # start the sub-process
         command = self._command
 
-        self._process = Popen(
-            args=command,
-            bufsize=1,
-            executable=None,
-            stdin=None,
-            stdout=PIPE,
-            stderr=PIPE,
-            preexec_fn=None,
-            shell=False,
-            cwd=cwd,
-            env=None,
-            universal_newlines=True,  # gives us back a string instead of bytes
-            creationflags=0
-        )
+        try:
+            self._process = Popen(
+                args=command,
+                bufsize=1,
+                executable=None,
+                stdin=None,
+                stdout=PIPE,
+                stderr=PIPE,
+                preexec_fn=None,
+                shell=False,
+                cwd=cwd,
+                env=None,
+                universal_newlines=True,  # gives us back a string instead of bytes
+                creationflags=0
+            )
+        except FileNotFoundError:
+            return -1  # negative PID means failure
 
         # get the PID
         self._pid = self._process.pid
@@ -598,11 +593,18 @@ class Job:
 
         self._readPipes()  # read remaining data
 
-        # stop the pipe reader threads now
-        self._stderrReader.stop()
-        self._stdoutReader.stop()
-        self._stderrReader.join(timeout=1)
+        # catch remaining data
+        for i, p in enumerate((self._stdoutReader, self._stderrReader)):
+            subprocPipeFd = p.stop()
+            subprocPipeFd.flush()
+            pipeBytes = subprocPipeFd.read()
+            wx.CallAfter(
+                self._inputCallback if i == 0 else self._errorCallback,
+                pipeBytes)
+
+        # flush remaining bytes, write out
         self._stdoutReader.join(timeout=1)
+        self._stderrReader.join(timeout=1)
 
         # if callback is provided, else nop
         if self._terminateCallback is not None:

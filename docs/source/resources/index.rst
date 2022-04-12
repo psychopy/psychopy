@@ -5,11 +5,11 @@ There are a number of further resources to help learn/teach about PsychoPy.
 
 If you also have PsychoPy materials/course then please let us know so that we can link to them from here too!
 
-.. image:: /images/BuildingExperimentsCover_sm.jpg
+.. image:: /images/BuildingExperimentsCover2_sm.jpg
     :align: right
     :width: 200px
     :alt: PsychoPy Builder book cover
-    :target: https://uk.sagepub.com/en-gb/eur/building-experiments-in-psychopy/book253480
+    :target: https://uk.sagepub.com/en-gb/eur/building-experiments-in-psychopy/book273700
 
 Workshops
 ---------------------------------------------------------------
@@ -34,7 +34,7 @@ Youtube tutorials
 Materials for Builder
 ---------------------
 
-The **most comprehensive guide** is the book `Building Experiments in PsychoPy`_ by Peirce and MacAskill.
+The **most comprehensive guide** is the book `Building Experiments in PsychoPy`_ by Peirce, Hirst, and MacAskill.
   The book is suitable for a wide range of needs and skill sets, with 3 sections for:
 
 - The Beginner (suitable for undergraduate teaching)
@@ -82,7 +82,7 @@ Previous events
 
 .. _School of Psychology, University of Nottingham: http://www.nottingham.ac.uk/psychology
 .. _Higher Education Academy Psychology Network: http://www.pnarchive.org/
-.. _Building Experiments in PsychoPy: https://uk.sagepub.com/en-gb/eur/building-experiments-in-psychopy/book253480
+.. _Building Experiments in PsychoPy: https://uk.sagepub.com/en-gb/eur/building-experiments-in-psychopy/book273700
 .. _Programming Illusions for Everyone: https://www.springer.com/gb/book/9783319640655
 .. _PsychoPy programming videos on YouTube: https://www.youtube.com/playlist?list=PLuqBA9VDSXk7Z06RtJ6Gh6Y5YznVrFrK6
 .. _PsychoPy Builder video tutorials: https://www.youtube.com/playlist?list=PL-KTa_GY7VEMehFKqnBgIg48KqbKwSj-a

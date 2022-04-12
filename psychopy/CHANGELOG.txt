@@ -59,6 +59,33 @@ PsychoPy 2022.1
 - Added the option to refer to pre-canned image files, such as default.png and use 
   as an image stimulus
 
+
+PsychoPy 2022.1.2
+~~~~~~~~~~~~~~~~~
+
+- URL redirection was failing at the end of the study for online experiments
+  where the JS code was generated using 2022.1.0-2022.1.1 due to an erroneous
+  replacement of `//` with `/` in `https://` #e8218b31f71
+- Hyphens can now be included in Pavlovia project names (the validator in the
+  PsychoPy GUI was being too strict) #bbe6bf5ed01
+- Static Components that are used for fetching online resources (e.g. using a
+  Movie Component that sets its stimulus during a Static) will now freeze and
+  wait until the resource is fully received if it takes longer than the set
+  duration. Using ResourceManager components the experiment will not freeze but
+  status can be checked `status==FINISHED` when download is complete
+- Fixed a bug where, after logging out of the Pavlovia Session in the PsychoPy
+  interface, PsychoPy would still provide the option to use the names/groups of
+  that user, but would not then allow access to their contents.
+  #bbe6bf5ed01d26
+- PsychoPy would crash if using the Classic Theme on a mac with a retina display
+  (missing icons) #495fddd814ce1e0
+- DotStim in local (Python) experiments was failing to update dots position #4694
+- Error raised when creating a new Pavlovia project from the menu item rather
+  than the toolbar button #4683
+- Crashing on MacOS when running experiment due to Keyboard a) 'iohub' not
+  loading due to gevent incompatibility and b) not then correctly falling back
+  to 'event' backend
+
 PsychoPy 2022.1.1
 ~~~~~~~~~~~~~~~~~
 
