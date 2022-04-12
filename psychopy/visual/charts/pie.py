@@ -54,6 +54,9 @@ class PieChart(Circle):
 
     @property
     def data(self):
+        """
+        The data to be displayed in this chart, can either be a list of values or a dict mapping labels to values.
+        """
         if hasattr(self, "_data"):
             return self._data
         else:
@@ -80,6 +83,10 @@ class PieChart(Circle):
 
     @property
     def colors(self):
+        """
+        The colors for each slice of this chart, can either be a list of values or a dict mapping labels to values. Any
+        values in `.data` which do not correspond to a value here will be substituted with default values.
+        """
         if hasattr(self, "_colors"):
             return self._colors
         else:
@@ -110,7 +117,7 @@ class PieChart(Circle):
 
     def update(self):
         """
-        Update appearance of slices to match data
+        Update appearance of slices to match data.
         """
         # Work out total of all data values
         total = sum(list(self.data.values()))
@@ -156,11 +163,10 @@ class PieChart(Circle):
                     (0, 0),
                     self.vertices[max(start-1, 0):min(stop+1, 360)],
                     (0, 0)])
-
-
             # Store new start point
             start = stop
 
     def draw(self, win=None, keepMatrix=False):
+        # Draw each slice
         for thisSlice in self.slices.values():
             thisSlice.draw(win=win, keepMatrix=keepMatrix)
