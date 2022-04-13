@@ -785,7 +785,7 @@ if not _travisTesting:
 class TestPygletNormFBO(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50],
+        self.win = visual.Window([128,128], units="norm", winType='pyglet', pos=[50,50],
                                  allowStencil=True, autoLog=False, useFBO=True)
         self.contextName='norm'
         self.scaleFactor=1#applied to size/pos values
@@ -794,7 +794,7 @@ class TestPygletNormFBO(_baseVisualTest):
 class TestPygletHeight(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,64], winType='pyglet', pos=[50,50],
+        self.win = visual.Window([128,64], units="height", winType='pyglet', pos=[50,50],
                                  allowStencil=False, autoLog=False)
         self.contextName='height'
         self.scaleFactor=1#applied to size/pos values
@@ -803,7 +803,7 @@ class TestPygletHeight(_baseVisualTest):
 class TestPygletNormStencil(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,128], monitor='testMonitor',
+        self.win = visual.Window([128,128], units="norm", monitor='testMonitor',
                                  winType='pyglet', pos=[50,50],
                                  allowStencil=True, autoLog=False)
         self.contextName='stencil'
@@ -817,8 +817,9 @@ class TestPygletPix(_baseVisualTest):
         mon.setDistance(57)
         mon.setWidth(40.0)
         mon.setSizePix([1024,768])
-        self.win = visual.Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], allowStencil=True,
-            units='pix', autoLog=False)
+        self.win = visual.Window([128,128], units="pix", monitor=mon,
+                                 winType='pyglet', pos=[50, 50],
+                                 allowStencil=True, autoLog=False)
         self.contextName='pix'
         self.scaleFactor=60#applied to size/pos values
 
@@ -830,8 +831,9 @@ class TestPygletCm(_baseVisualTest):
         mon.setDistance(57.0)
         mon.setWidth(40.0)
         mon.setSizePix([1024,768])
-        self.win = visual.Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], allowStencil=False,
-            units='cm', autoLog=False)
+        self.win = visual.Window([128,128], units="cm", monitor=mon,
+                                 winType='pyglet', pos=[50,50],
+                                 allowStencil=False, autoLog=False)
         self.contextName='cm'
         self.scaleFactor=2#applied to size/pos values
 
@@ -843,8 +845,9 @@ class TestPygletDeg(_baseVisualTest):
         mon.setDistance(57.0)
         mon.setWidth(40.0)
         mon.setSizePix([1024,768])
-        self.win = visual.Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], allowStencil=True,
-            units='deg', autoLog=False)
+        self.win = visual.Window([128,128], units="deg", monitor=mon,
+                                 winType='pyglet', pos=[50,50], allowStencil=True,
+                                 autoLog=False)
         self.contextName='deg'
         self.scaleFactor=2#applied to size/pos values
 
@@ -856,8 +859,9 @@ class TestPygletDegFlat(_baseVisualTest):
         mon.setDistance(10.0) #exaggerate the effect of flatness by setting the monitor close
         mon.setWidth(40.0)
         mon.setSizePix([1024,768])
-        self.win = visual.Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], allowStencil=True,
-            units='degFlat', autoLog=False)
+        self.win = visual.Window([128,128], units="degFlat", monitor=mon,
+                                 winType='pyglet', pos=[50,50],
+                                 allowStencil=True, autoLog=False)
         self.contextName='degFlat'
         self.scaleFactor=4#applied to size/pos values
 
@@ -869,8 +873,9 @@ class TestPygletDegFlatPos(_baseVisualTest):
         mon.setDistance(10.0) #exaggerate the effect of flatness by setting the monitor close
         mon.setWidth(40.0)
         mon.setSizePix([1024,768])
-        self.win = visual.Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], allowStencil=True,
-            units='degFlatPos', autoLog=False)
+        self.win = visual.Window([128,128], units='degFlatPos', monitor=mon,
+                                 winType='pyglet', pos=[50,50],
+                                 allowStencil=True, autoLog=False)
         self.contextName='degFlatPos'
         self.scaleFactor=4#applied to size/pos values
 
