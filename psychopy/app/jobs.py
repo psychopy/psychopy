@@ -33,7 +33,10 @@ __all__ = [
     'Job'
 ]
 
+import os.path
+
 import wx
+import os
 from subprocess import Popen, PIPE
 from threading import Thread, Event
 from queue import Queue, Empty
@@ -243,20 +246,23 @@ class Job:
         # start the sub-process
         command = self._command
 
-        self._process = Popen(
-            args=command,
-            bufsize=1,
-            executable=None,
-            stdin=None,
-            stdout=PIPE,
-            stderr=PIPE,
-            preexec_fn=None,
-            shell=False,
-            cwd=cwd,
-            env=None,
-            universal_newlines=True,  # gives us back a string instead of bytes
-            creationflags=0
-        )
+        try:
+            self._process = Popen(
+                args=command,
+                bufsize=1,
+                executable=None,
+                stdin=None,
+                stdout=PIPE,
+                stderr=PIPE,
+                preexec_fn=None,
+                shell=False,
+                cwd=cwd,
+                env=None,
+                universal_newlines=True,  # gives us back a string instead of bytes
+                creationflags=0
+            )
+        except FileNotFoundError:
+            return -1  # negative PID means failure
 
         # get the PID
         self._pid = self._process.pid
@@ -291,6 +297,7 @@ class Job:
 
         # isOk = wx.Process.Kill(self._pid, signal, flags) is wx.KILL_OK
         self._process.kill()  # kill the process
+        #self._pollTimer.Stop()
 
         # Wait for the process to exit completely, return code will be incorrect
         # if we don't.
