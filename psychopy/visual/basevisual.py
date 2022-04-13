@@ -810,8 +810,10 @@ class ContainerMixin:
             verts.anchor = self.anchor
         # Apply rotation
         verts = (verts.pix - self._pos.pix).dot(self._rotationMatrix) + self._pos.pix
+        borderVerts = (self._vertices.pix - self._pos.pix).dot(self._rotationMatrix) + self._pos.pix
         # Set values
-        self.__dict__['verticesPix'] = self.__dict__['_borderPix'] = verts
+        self.__dict__['verticesPix'] = verts
+        self.__dict__['_borderPix'] = borderVerts
         # Mark as updated
         self._needVertexUpdate = False
         self._needUpdate = True  # but we presumably need to update the list
