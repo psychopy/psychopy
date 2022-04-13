@@ -504,13 +504,17 @@ class Color:
         # Clip value(s) to within range
         if isinstance(value, np.ndarray):
             value = np.clip(value, 0, 1)
-        elif isinstance(value, (int, float)):
-            value = min(value,1)
-            value = max(value,0)
         else:
-            raise TypeError(
-                "Could not set alpha as value `{}` of type `{}`".format(
-                    value, type(value).__name__))
+            # If coercible to float, do so
+            try:
+                value = float(value)
+            except (TypeError, ValueError) as err:
+                raise TypeError(
+                    "Could not set alpha as value `{}` of type `{}`".format(value, type(value).__name__)
+                )
+            value = min(value, 1)
+            value = max(value, 0)
+        # Set value
         self._alpha = value
 
     @property

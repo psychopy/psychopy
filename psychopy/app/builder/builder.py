@@ -1193,7 +1193,9 @@ class BuilderFrame(wx.Frame, ThemeMixin):
 
     def runFile(self, event=None):
         """Open Runner for running the psyexp file."""
-        if not os.path.exists(self.filename):
+        # Check whether file is truly untitled (not just saved as untitled)
+        untitled = os.path.abspath("untitled.psyexp")
+        if not os.path.exists(self.filename) or os.path.abspath(self.filename) == untitled:
             ok = self.fileSave(self.filename)
             if not ok:
                 return  # save file before compiling script
