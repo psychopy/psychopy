@@ -788,26 +788,39 @@ class ContainerMixin:
         """Sets Stim.verticesPix and ._borderPix from pos, size, ori,
         flipVert, flipHoriz
         """
+        # Get vertices from available attribs
+        if hasattr(self, '_tesselVertices'):
+            # Shapes need to render from this
+            verts = self._tesselVertices
+        elif hasattr(self, "_vertices"):
+            # Non-shapes should use base vertices object
+            verts = self._vertices
+        else:
+            # We'll settle for base verts array
+            verts = self.vertices
 
-        verts = numpy.dot(self.vertices, self._rotationMatrix)
-        # If needed, sub in missing values for flip and anchor
-        flip = None
-        if hasattr(self, "flip"):
-            flip = self.flip
-        anchor = None
-        if hasattr(self, "anchor"):
-            anchor = self.anchor
         # Convert to a vertices object if not already
-        verts = Vertices(verts, obj=self, flip=flip, anchor=anchor).pix
-        self.__dict__['verticesPix'] = self.__dict__['_borderPix'] = verts
+        if not isinstance(verts, Vertices):
+            verts = Vertices(verts, obj=self)
 
-        if hasattr(self, '_tesselVertices'):  # Shapes need to render from this
-            tesselVerts = self._tesselVertices
-            tesselVerts = numpy.dot(tesselVerts, self._rotationMatrix)
-            # Convert to a vertices object if not already
-            tesselVerts = Vertices(tesselVerts, obj=self, flip=self.flip, anchor=self.anchor).pix
-            self.__dict__['verticesPix'] = tesselVerts
-
+        # If needed, sub in missing values for flip and anchor
+        if hasattr(self, "flip"):
+            verts.flip = self.flip
+        if hasattr(self, "anchor"):
+            verts.anchor = self.anchor
+        # Supply current object's pos and size objects
+        verts._size = self._size
+        verts._pos = self._pos
+        # Apply rotation
+        verts = (verts.pix - self._pos.pix).dot(self._rotationMatrix) + self._pos.pix
+        if hasattr(self, "_vertices"):
+            borderVerts = (self._vertices.pix - self._pos.pix).dot(self._rotationMatrix) + self._pos.pix
+        else:
+            borderVerts = verts
+        # Set values
+        self.__dict__['verticesPix'] = verts
+        self.__dict__['_borderPix'] = borderVerts
+        # Mark as updated
         self._needVertexUpdate = False
         self._needUpdate = True  # but we presumably need to update the list
 
@@ -1296,6 +1309,9 @@ class WindowMixin:
     def pos(self, value):
         self._pos = Position(value, units=self.units, win=self.win)
 
+        if hasattr(self, "_vertices"):
+            self._vertices._pos = self._pos
+
     @property
     def size(self):
         if hasattr(self, "_size"):
@@ -1306,6 +1322,9 @@ class WindowMixin:
         if value is None:
             value = (None, None)
         self._size = Size(value, units=self.units, win=self.win)
+
+        if hasattr(self, "_vertices"):
+            self._vertices._size = self._size
 
     @property
     def width(self):
