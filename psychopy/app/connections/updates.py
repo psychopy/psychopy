@@ -297,11 +297,10 @@ class InstallUpdateDialog(wx.Dialog):
         self.useZipBtn = wx.RadioButton(self, -1, msg)
         self.Bind(wx.EVT_RADIOBUTTON, self.onRadioSelect, self.useZipBtn)
         self.fileBrowseCtrl = wx.lib.filebrowsebutton.FileBrowseButton(
-            self, -1, size=(450, -1), changeCallback=self.onFileBrowse,
+            self, -1, size=(450, 48), changeCallback=self.onFileBrowse,
             fileMask='*.zip')
         mainSizer.Add(self.useZipBtn, flag=wx.ALIGN_LEFT | wx.ALL, border=5)
-        mainSizer.Add(self.fileBrowseCtrl,
-                      flag=wx.ALIGN_LEFT | wx.ALL, border=5)
+        mainSizer.Add(self.fileBrowseCtrl, flag=wx.ALIGN_LEFT | wx.ALL, border=5)
         # ctrls for buttons (install/cancel)
         self.installBtn = wx.Button(self, -1, _translate('Install'))
         self.Bind(wx.EVT_BUTTON, self.onInstall, self.installBtn)
