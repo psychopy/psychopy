@@ -810,7 +810,10 @@ class ContainerMixin:
             verts.anchor = self.anchor
         # Apply rotation
         verts = (verts.pix - self._pos.pix).dot(self._rotationMatrix) + self._pos.pix
-        borderVerts = (self._vertices.pix - self._pos.pix).dot(self._rotationMatrix) + self._pos.pix
+        if hasattr(self, "_vertices"):
+            borderVerts = (self._vertices.pix - self._pos.pix).dot(self._rotationMatrix) + self._pos.pix
+        else:
+            borderVerts = verts
         # Set values
         self.__dict__['verticesPix'] = verts
         self.__dict__['_borderPix'] = borderVerts
