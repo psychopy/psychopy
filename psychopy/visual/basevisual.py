@@ -1309,6 +1309,9 @@ class WindowMixin:
     def pos(self, value):
         self._pos = Position(value, units=self.units, win=self.win)
 
+        if hasattr(self, "_vertices"):
+            self._vertices._pos = self._pos
+
     @property
     def size(self):
         if hasattr(self, "_size"):
@@ -1319,6 +1322,9 @@ class WindowMixin:
         if value is None:
             value = (None, None)
         self._size = Size(value, units=self.units, win=self.win)
+
+        if hasattr(self, "_vertices"):
+            self._vertices._size = self._size
 
     @property
     def width(self):
