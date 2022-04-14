@@ -808,6 +808,9 @@ class ContainerMixin:
             verts.flip = self.flip
         if hasattr(self, "anchor"):
             verts.anchor = self.anchor
+        # Supply current object's pos and size objects
+        verts._size = self._size
+        verts._pos = self._pos
         # Apply rotation
         verts = (verts.pix - self._pos.pix).dot(self._rotationMatrix) + self._pos.pix
         if hasattr(self, "_vertices"):
