@@ -14,9 +14,8 @@ including the pointer graphic and bounding box."""
 import os
 
 import psychopy  # so we can get the __path__
-from psychopy import event, logging
+from psychopy import event, logging, visual, layout
 
-from psychopy.visual.image import ImageStim
 from psychopy.visual.basevisual import MinimalStim
 
 import numpy
@@ -101,11 +100,26 @@ class CustomMouse(MinimalStim):
 
         # the graphic to use as the 'mouse' icon (pointer)
         if pointer:
-            self.setPointer(pointer)
+            self.pointer = pointer
         else:
-            # self.pointer = TextStim(win, text='+')
-            img = os.path.join(os.path.split(__file__)[0], 'pointer.png')
-            self.pointer = ImageStim(win, image=img, autoLog=False)
+            self.pointer = vm = visual.ShapeStim(
+                win,
+                vertices=[
+                    [-0.5, 0.5],
+                    [-0.5, -0.35],
+                    [-0.3, -0.15],
+                    [-0.1, -0.5],
+                    [0.025, -0.425],
+                    [-0.175, -0.1],
+                    [0.1, -0.1],
+                    [-0.5, 0.5],
+                ],
+                fillColor="white",
+                lineColor="black",
+                lineWidth=1,
+                anchor="top left",
+                size=layout.Size((20, 20), 'pix', win),
+            )
         self.mouse.setVisible(False)  # hide the actual (system) mouse
         self.visible = visible  # the custom (virtual) mouse
 

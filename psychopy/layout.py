@@ -636,11 +636,10 @@ class Vertices:
         # Convert to numpy array
         verts = np.array(verts)
 
-        # Make sure it's coercible to a Nx2 numpy array
-        assert len(verts.shape) == 2, (
-            "Vertices must be coercible to a Nx2 numpy array")
-        assert verts.shape[1] == 2, (
-            "Vertices must be coercible to a Nx2 numpy array")
+        # Make sure it's coercible to a Nx2 or nxNx2 numpy array
+        assert (3 >= len(verts.shape) >= 2) and (verts.shape[-1] == 2), (
+            f"Expected vertices to be coercible to a Nx2 or nxNx2 numpy array, not {verts.shape}"
+        )
 
         # Store base vertices
         self.base = verts
