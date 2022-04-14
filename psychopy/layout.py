@@ -794,6 +794,7 @@ class Vertices:
         assert units in unitTypes, f"Unrecognised unit type '{units}'"
         # Start with base values
         verts = self.base.copy()
+        verts = verts.astype(float)
         # Apply anchor
         verts += self.anchorAdjust
         # Apply size
