@@ -406,7 +406,7 @@ def extractFaceNames(val):
     # Make sure val is a list
     if isinstance(val, str):
         # Get rid of any perentheses
-        val = re.sub("[()[]]", "", val)
+        val = re.sub("[\(\)\[\]]", "", val)
         # Split by comma
         val = val.split(",")
     # Clear style markers
@@ -432,7 +432,7 @@ def extractColor(val):
         return None
     # Split value according to operators, commas and spaces
     val = val.replace("+", " + ").replace("-", " - ").replace("\\", " \\ ")
-    parts = re.split(r"[\\\s,()[]]", val)
+    parts = re.split(r"[\\\s,\(\)\[\]]", val)
     parts = [p for p in parts if p]
     # Set assumed values
     color = colors.scheme['black']
