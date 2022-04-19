@@ -1678,7 +1678,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.Bind(wx.EVT_MENU, self.onWordWrapCheck, self.lineWrapChk)
         menu.AppendSeparator()
         # Theme Switcher
-        self.themesMenu = ThemeSwitcher(self)
+        self.themesMenu = ThemeSwitcher(app=self.app)
         menu.AppendSubMenu(self.themesMenu,
                            _translate("Themes"))
 

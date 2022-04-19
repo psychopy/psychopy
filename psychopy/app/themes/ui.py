@@ -9,14 +9,18 @@ from psychopy.localization import _translate
 from ... import prefs
 
 
+menuCache = []
+
+
 class ThemeSwitcher(wx.Menu):
     """Class to make a submenu for switching theme, meaning that the menu will
     always be the same across frames."""
     order = ["PsychopyDark", "PsychopyLight", "ClassicDark", "Classic"]
 
-    def __init__(self, frame):
+    def __init__(self, app):
+        self.app = app
         # Get list of themes
-        themeFolder = Path(__file__).parent / "spec"
+        themeFolder = Path(prefs.paths['themes'])
         themeList = []
         for file in themeFolder.glob("*.json"):
             themeList.append(Theme(file.stem))
@@ -36,11 +40,34 @@ class ThemeSwitcher(wx.Menu):
         for obj in self.themes:
             item = self.AppendRadioItem(id=wx.ID_ANY, item=obj.code, help=obj.info)
             item.Check(obj == theme)
-            frame.Bind(wx.EVT_MENU, frame.app.onThemeChange, item)
+            self.Bind(wx.EVT_MENU, self.onThemeChange, item)
         self.AppendSeparator()
         # Add Theme Folder button
         item = self.Append(wx.ID_ANY, _translate("Open theme folder"))
-        frame.Bind(wx.EVT_MENU, self.openThemeFolder, item)
+        self.Bind(wx.EVT_MENU, self.openThemeFolder, item)
+        # Cache self
+        menuCache.append(self)
+
+    def onThemeChange(self, evt):
+        """Handles a theme change event"""
+        # Set theme at app level
+        newTheme = self.FindItemById(evt.GetId()).ItemLabel
+        self.app.theme = newTheme
+        # Update other theme menus with new value
+        global menuCache
+        for menu in menuCache.copy():
+            # Skip deleted menus
+            try:
+                menu.GetRefData()
+            except RuntimeError:
+                menuCache.remove(menu)
+                continue
+            for item in menu.GetMenuItems():
+                # Skip non-checkable buttons (aka the Theme Folder button)
+                if not item.IsCheckable():
+                    continue
+                # Check or uncheck item to match current theme
+                item.Check(menu.GetLabelText(item.GetId()) == newTheme)
 
     def openThemeFolder(self, event):
         # Choose a command according to OS

@@ -197,7 +197,7 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
                 if item['label'].lower() in eachMenu['separators']:
                     eachMenu['menu'].AppendSeparator()
         # Add Theme Switcher
-        self.themesMenu = ThemeSwitcher(self)
+        self.themesMenu = ThemeSwitcher(app=self.app)
         viewMenu.AppendSubMenu(self.themesMenu,
                            _translate("Themes"))
         # Add frame switcher

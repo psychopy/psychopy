@@ -1078,12 +1078,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         idle.doIdleTasks(app=self)
         evt.Skip()
 
-    def onThemeChange(self, event):
-        """Handles a theme change event (from a window with a themesMenu)"""
-        win = event.EventObject.Window
-        newTheme = win.themesMenu.FindItemById(event.GetId()).ItemLabel
-        self.theme = newTheme
-
     @property
     def theme(self):
         """The theme to be used through the application"""
