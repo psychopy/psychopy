@@ -141,6 +141,12 @@ def styleTextCtrl(target):
     target.Update()
 
 
+def styleListCtrl(target):
+    target.SetBackgroundColour(colors.app['tab_bg'])
+    target.SetTextColour(colors.app['text'])
+    target.Refresh()
+
+
 # Define dict linking object types to style functions
 methods = {
     wx.Frame: styleFrame,
@@ -150,6 +156,7 @@ methods = {
     wx.TextCtrl: styleTextCtrl,
     wx.richtext.RichTextCtrl: styleTextCtrl,
     wx.ToolBar: styleToolbar,
+    wx.ListCtrl: styleListCtrl,
 }
 
 
