@@ -24,6 +24,9 @@ from wx.lib import platebtn
 import psychopy
 from psychopy import logging
 from . import pavlovia_ui
+from .pavlovia_ui.project import ProjectFrame
+from .pavlovia_ui.search import SearchFrame
+from .pavlovia_ui.user import UserFrame
 from .themes import colors, handlers, icons
 from psychopy.localization import _translate
 from psychopy.tools.stringtools import prettyname
@@ -126,14 +129,15 @@ def getSystemFonts(encoding='system', fixedWidthOnly=False):
     return fontEnum.GetFacenames(encoding, fixedWidthOnly=fixedWidthOnly)
 
 
-class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
+class PsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
     """Toolbar for the Builder/Coder Frame"""
-    def __init__(self, frame):
+    def __init__(self, frame, mode=""):
         # Initialise superclass
         wx.ToolBar.__init__(self, frame)
         # Store necessary refs
         self.frame = frame
         self.app = self.frame.app
+        self.mode = mode
         # Configure toolbar appearance
         self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER)
         # Set icon size
@@ -156,7 +160,244 @@ class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
         """
         Make tools
         """
-        pass
+        # Clear any existing tools
+        self.ClearTools()
+        self.buttons = {}
+
+        if self.mode == "b":
+            # New
+            self.buttons['filenew'] = self.makeTool(
+                name='filenew',
+                label=_translate('New'),
+                shortcut='new',
+                tooltip=_translate("Create new experiment file"),
+                func=self.frame.app.newBuilderFrame
+            )
+            # Open
+            self.buttons['fileopen'] = self.makeTool(
+                name='fileopen',
+                label=_translate('Open'),
+                shortcut='open',
+                tooltip=_translate("Open an existing experiment file"),
+                func=self.frame.fileOpen)
+            # Save
+            self.buttons['filesave'] = self.makeTool(
+                name='filesave',
+                label=_translate('Save'),
+                shortcut='save',
+                tooltip=_translate("Save current experiment file"),
+                func=self.frame.fileSave)
+            self.frame.bldrBtnSave = self.buttons['filesave']
+            # SaveAs
+            self.buttons['filesaveas'] = self.makeTool(
+                name='filesaveas',
+                label=_translate('Save As...'),
+                shortcut='saveAs',
+                tooltip=_translate("Save current experiment file as..."),
+                func=self.frame.fileSaveAs)
+            # Undo
+            self.buttons['undo'] = self.makeTool(
+                name='undo',
+                label=_translate('Undo'),
+                shortcut='undo',
+                tooltip=_translate("Undo last action"),
+                func=self.frame.undo)
+            self.frame.bldrBtnUndo = self.buttons['undo']
+            # Redo
+            self.buttons['redo'] = self.makeTool(
+                name='redo',
+                label=_translate('Redo'),
+                shortcut='redo',
+                tooltip=_translate("Redo last action"),
+                func=self.frame.redo)
+            self.frame.bldrBtnRedo = self.buttons['redo']
+
+            self.AddSeparator()
+
+            # Monitor Center
+            self.buttons['monitors'] = self.makeTool(
+                name='monitors',
+                label=_translate('Monitor Center'),
+                shortcut='none',
+                tooltip=_translate("Monitor settings and calibration"),
+                func=self.frame.app.openMonitorCenter)
+            # Settings
+            self.buttons['cogwindow'] = self.makeTool(
+                name='cogwindow',
+                label=_translate('Experiment Settings'),
+                shortcut='none',
+                tooltip=_translate("Edit experiment settings"),
+                func=self.frame.setExperimentSettings)
+
+            self.AddSeparator()
+
+            # Compile Py
+            self.buttons['compile_py'] = self.makeTool(
+                name='compile_py',
+                label=_translate('Compile Python Script'),
+                shortcut='compileScript',
+                tooltip=_translate("Compile to Python script"),
+                func=self.frame.compileScript)
+            # Compile JS
+            self.buttons['compile_js'] = self.makeTool(
+                name='compile_js',
+                label=_translate('Compile JS Script'),
+                shortcut='compileScript',
+                tooltip=_translate("Compile to JS script"),
+                func=self.frame.fileExport)
+            # Send to runner
+            self.buttons['runner'] = self.makeTool(
+                name='runner',
+                label=_translate('Runner'),
+                shortcut='runnerScript',
+                tooltip=_translate("Send experiment to Runner"),
+                func=self.frame.runFile)
+            self.frame.bldrBtnRunner = self.buttons['runner']
+            # Run
+            self.buttons['run'] = self.makeTool(
+                name='run',
+                label=_translate('Run'),
+                shortcut='runScript',
+                tooltip=_translate("Run experiment"),
+                func=self.frame.runFile)
+            self.frame.bldrBtnRun = self.buttons['run']
+
+            self.AddSeparator()
+
+            # Pavlovia run
+            self.buttons['pavRun'] = self.makeTool(
+                name='globe_run',
+                label=_translate("Run online"),
+                tooltip=_translate("Run the study online (with pavlovia.org)"),
+                func=self.frame.onPavloviaRun)
+            # Pavlovia sync
+            self.buttons['pavSync'] = self.makeTool(
+                name='globe_greensync',
+                label=_translate("Sync online"),
+                tooltip=_translate("Sync with web project (at pavlovia.org)"),
+                func=self.frame.onPavloviaSync)
+            # Pavlovia search
+            self.buttons['pavSearch'] = self.makeTool(
+                name='globe_magnifier',
+                label=_translate("Search Pavlovia.org"),
+                tooltip=_translate("Find existing studies online (at pavlovia.org)"),
+                func=self.onPavloviaSearch)
+            # Pavlovia user
+            self.buttons['pavUser'] = self.makeTool(
+                name='globe_user',
+                label=_translate("Current Pavlovia user"),
+                tooltip=_translate("Log in/out of Pavlovia.org, view your user profile."),
+                func=self.onPavloviaUser)
+            # Pavlovia user
+            self.buttons['pavProject'] = self.makeTool(
+                name='globe_info',
+                label=_translate("View project"),
+                tooltip=_translate("View details of this project"),
+                func=self.onPavloviaProject)
+
+            # Disable compile buttons until an experiment is present
+            self.EnableTool(self.buttons['compile_py'].GetId(), Path(str(self.frame.filename)).is_file())
+            self.EnableTool(self.buttons['compile_js'].GetId(), Path(str(self.frame.filename)).is_file())
+        elif self.mode == "c":
+            # New
+            self.buttons['filenew'] = self.makeTool(
+                name='filenew',
+                label=_translate('New'),
+                shortcut='new',
+                tooltip=_translate("Create new experiment file"),
+                func=self.frame.fileNew)
+            # Open
+            self.buttons['fileopen'] = self.makeTool(
+                name='fileopen',
+                label=_translate('Open'),
+                shortcut='open',
+                tooltip=_translate("Open an existing experiment file"),
+                func=self.frame.fileOpen)
+            # Save
+            self.buttons['filesave'] = self.makeTool(
+                name='filesave',
+                label=_translate('Save'),
+                shortcut='save',
+                tooltip=_translate("Save current experiment file"),
+                func=self.frame.fileSave)
+            self.frame.cdrBtnSave = self.buttons['filesave']
+            # SaveAs
+            self.buttons['filesaveas'] = self.makeTool(
+                name='filesaveas',
+                label=_translate('Save As...'),
+                shortcut='saveAs',
+                tooltip=_translate("Save current experiment file as..."),
+                func=self.frame.fileSaveAs)
+            # Undo
+            self.buttons['undo'] = self.makeTool(
+                name='undo',
+                label=_translate('Undo'),
+                shortcut='undo',
+                tooltip=_translate("Undo last action"),
+                func=self.frame.undo)
+            self.frame.cdrBtnUndo = self.buttons['undo']
+            # Redo
+            self.buttons['redo'] = self.makeTool(
+                name='redo',
+                label=_translate('Redo'),
+                shortcut='redo',
+                tooltip=_translate("Redo last action"),
+                func=self.frame.redo)
+            self.frame.cdrBtnRedo = self.buttons['redo']
+
+            self.AddSeparator()  # Separator
+
+            # Monitor center
+            self.buttons['monitors'] = self.makeTool(
+                name='monitors',
+                label=_translate('Monitor Center'),
+                shortcut='none',
+                tooltip=_translate("Monitor settings and calibration"),
+                func=self.frame.app.openMonitorCenter)
+            # Color picker
+            self.buttons['color'] = self.makeTool(
+                name='color',
+                label=_translate('Color Picker'),
+                shortcut='none',
+                tooltip=_translate("Color Picker -> clipboard"),
+                func=self.frame.app.colorPicker)
+
+            self.AddSeparator()
+
+            # Send to runner
+            self.buttons['runner'] = self.makeTool(
+                'runner', _translate('Runner'), 'runnerScript',
+                _translate("Send experiment to Runner"),
+                self.frame.runFile)
+            self.frame.cdrBtnRunner = self.buttons['runner']
+            self.buttons['run'] = self.makeTool(
+                'run', _translate('Run'), 'runScript',
+                _translate("Run experiment"),
+                self.frame.runFile)
+            self.frame.cdrBtnRun = self.buttons['run']
+
+            self.AddSeparator()
+
+            # Pavlovia sync
+            self.buttons['pavSync'] = self.makeTool(
+                name='globe_greensync',
+                label=_translate("Sync online"),
+                tooltip=_translate("Sync with web project (at pavlovia.org)"),
+                func=self.frame.onPavloviaSync)
+            # Pavlovia search
+            self.buttons['pavSearch'] = self.makeTool(
+                name='globe_magnifier',
+                label=_translate("Search Pavlovia.org"),
+                tooltip=_translate("Find existing studies online (at pavlovia.org)"),
+                func=self.onPavloviaSearch)
+            # Pavlovia user
+            self.buttons['pavUser'] = self.makeTool(
+                name='globe_user',
+                label=_translate("Current Pavlovia user"),
+                tooltip=_translate("Log in/out of Pavlovia.org, view your user profile."),
+                func=self.onPavloviaUser)
+
+        self.Realize()
 
     def makeTool(self, name, label="", shortcut=None, tooltip="", func=None):
         # Get icon
@@ -187,6 +428,24 @@ class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
         Blank function to use when bound function is None
         """
         pass
+
+    def onPavloviaSearch(self, evt=None):
+        searchDlg = SearchFrame(
+                app=self.frame.app, parent=self.frame,
+                pos=self.frame.GetPosition())
+        searchDlg.Show()
+
+    def onPavloviaUser(self, evt=None):
+        userDlg = UserFrame(self.frame)
+        userDlg.ShowModal()
+
+    def onPavloviaProject(self, evt=None):
+        if self.frame.project is not None:
+            dlg = ProjectFrame(app=self.frame.app,
+                               project=self.frame.project)
+        else:
+            dlg = ProjectFrame(app=self.frame.app)
+        dlg.Show()
 
 
 class PsychopyPlateBtn(platebtn.PlateButton, handlers.ThemeMixin):
