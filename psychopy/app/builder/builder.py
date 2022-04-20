@@ -26,6 +26,9 @@ from wx.html import HtmlWindow
 
 from .validators import WarningManager
 from ..pavlovia_ui import sync
+from ..pavlovia_ui.project import ProjectFrame
+from ..pavlovia_ui.search import SearchFrame
+from ..pavlovia_ui.user import UserFrame
 from ...experiment.components import getAllCategories
 from ...experiment.routines import Routine, BaseStandaloneRoutine
 from ...tools.stringtools import prettyname
@@ -46,15 +49,15 @@ if parse_version(wx.__version__) < parse_version('4.0.3'):
 from psychopy.localization import _translate
 from ... import experiment, prefs
 from .. import dialogs
-from ..themes import ThemeMixin
-from ..themes._themes import PsychopyDockArt, PsychopyTabArt, ThemeSwitcher
+from ..themes import icons, colors, handlers
+from ..themes.ui import ThemeSwitcher
 from ..ui import BaseAuiFrame
 from psychopy import logging, data
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties,
                       ParamNotebook, DlgNewRoutine)
-from ..utils import (PsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
+from ..utils import (BasePsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
                      FileDropTarget, FrameSwitcher, updateDemosMenu,
                      ToggleButtonArray, HoverMixin)
 
@@ -88,7 +91,6 @@ _localized = {
     'move to bottom': _translate('move to bottom')
 }
 
-cs = ThemeMixin.appColors
 
 # Components which are always hidden
 alwaysHidden = [
@@ -118,7 +120,7 @@ class TemplateManager(dict):
                     self[categName][routineName] = copy.copy(thisExp.routines[routineName])
 
 
-class BuilderFrame(BaseAuiFrame, ThemeMixin):
+class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     """Defines construction of the Psychopy Builder Frame"""
 
     routineTemplates = TemplateManager()
@@ -196,8 +198,9 @@ class BuilderFrame(BaseAuiFrame, ThemeMixin):
         self.routinePanel = RoutinesNotebook(self)
         self.componentButtons = ComponentsPanel(self)
         # menus and toolbars
-        self.toolbar = PsychopyToolbar(frame=self)
+        self.toolbar = BuilderToolbar(frame=self)
         self.SetToolBar(self.toolbar)
+        self.toolbar.Realize()
         self.makeMenus()
         self.CreateStatusBar()
         self.SetStatusText("")
@@ -264,15 +267,8 @@ class BuilderFrame(BaseAuiFrame, ThemeMixin):
 
         self.app.trackFrame(self)
         self.SetDropTarget(FileDropTarget(targetFrame=self))
-        self._applyAppTheme()
 
-    # def _applyAppTheme(self, target=None):
-    #     # self.SetArtProvider(PsychopyDockArt())
-    #     for c in self.GetChildren():
-    #         if hasattr(c, '_applyAppTheme'):
-    #             c._applyAppTheme()
-    #     self.Refresh()
-    #     self.Update()
+        self.theme = colors.theme
 
     # Synonymise Aui manager for use with theme mixin
     def GetAuiManager(self):
@@ -414,7 +410,7 @@ class BuilderFrame(BaseAuiFrame, ThemeMixin):
         self.Bind(wx.EVT_MENU, self.routinePanel.decreaseSize, item)
         menu.AppendSeparator()
         # Add Theme Switcher
-        self.themesMenu = ThemeSwitcher(self)
+        self.themesMenu = ThemeSwitcher(app=self.app)
         menu.AppendSubMenu(self.themesMenu,
                                _translate("Themes"))
 
@@ -1438,9 +1434,7 @@ class BuilderFrame(BaseAuiFrame, ThemeMixin):
         # Store original
         origBtn = self.btnHandles['pavloviaSync'].NormalBitmap
         # Create new feedback bitmap
-        feedbackBmp = self.app.iconCache.getBitmap(
-                name='{}globe.png'.format(colour[val]),
-                size=toolbarSize)
+        feedbackBmp = icons.ButtonIcon(f"{colour[val]}globe.png", size=toolbarSize).bitmap
 
         # Set feedback button
         self.btnHandles['pavloviaSync'].SetNormalBitmap(feedbackBmp)
@@ -1468,7 +1462,7 @@ class BuilderFrame(BaseAuiFrame, ThemeMixin):
         self._project = project
 
 
-class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
+class RoutinesNotebook(aui.AuiNotebook, handlers.ThemeMixin):
     """A notebook that stores one or more routines
     """
 
@@ -1485,19 +1479,11 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
 
         self.SetDoubleBuffered(not self.frame.isRetina)
 
-        self._applyAppTheme()
+        # This needs to be done on init, otherwise it gets an outline
+        self.GetAuiManager().SetArtProvider(handlers.PsychopyDockArt())
+
         if not hasattr(self.frame, 'exp'):
             return  # we haven't yet added an exp
-
-    def _applyAppTheme(self, target=None):
-        self.SetArtProvider(PsychopyTabArt())
-        self.GetAuiManager().SetArtProvider(PsychopyDockArt())
-        for index in range(self.GetPageCount()):
-            page = self.GetPage(index)
-            # double buffered better rendering except if retina
-            self.SetDoubleBuffered(not self.frame.isRetina)
-            page._applyAppTheme()
-        self.Refresh()
 
     def getCurrentRoutine(self):
         routinePage = self.getCurrentPage()
@@ -1625,7 +1611,7 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
             self.SetSelection(currPage)
 
 
-class RoutineCanvas(wx.ScrolledWindow):
+class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
     """Represents a single routine (used as page in RoutinesNotebook)"""
 
     def __init__(self, notebook, id=wx.ID_ANY, routine=None):
@@ -1684,8 +1670,6 @@ class RoutineCanvas(wx.ScrolledWindow):
             id = wx.NewIdRef()
             self.contextItemFromID[id] = item
             self.contextIDFromItem[item] = id
-
-        self._applyAppTheme()
 
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda x: None)
@@ -1860,7 +1844,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.pdc.Clear()  # clear the screen
         self.pdc.RemoveAll()  # clear all objects (icon buttons)
 
-        self.SetBackgroundColour(ThemeMixin.appColors['tab_bg'])
+        self.SetBackgroundColour(colors.app['tab_bg'])
         # work out where the component names and icons should be from name
         # lengths
         self.setFontSize(self.fontBaseSize // self.dpi, self.pdc)
@@ -1918,8 +1902,8 @@ class RoutineCanvas(wx.ScrolledWindow):
         xEnd = self.timeXposEnd
 
         # dc.SetId(wx.NewIdRef())
-        dc.SetPen(wx.Pen(ThemeMixin.appColors['rt_timegrid']))
-        dc.SetTextForeground(wx.Colour(ThemeMixin.appColors['rt_timegrid']))
+        dc.SetPen(wx.Pen(colors.app['rt_timegrid']))
+        dc.SetTextForeground(wx.Colour(colors.app['rt_timegrid']))
         # draw horizontal lines on top and bottom
         dc.DrawLine(x1=xSt, y1=yPosTop,
                     x2=xEnd, y2=yPosTop)
@@ -1958,7 +1942,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             # y is y-half height of text
             dc.DrawText('t (sec)', xEnd + 5,
                         yPosBottom - self.GetFullTextExtent('t')[1] / 2.0)
-        dc.SetTextForeground(ThemeMixin.appColors['text'])
+        dc.SetTextForeground(colors.app['text'])
 
     def setFontSize(self, size, dc):
         font = self.GetFont()
@@ -1992,12 +1976,12 @@ class RoutineCanvas(wx.ScrolledWindow):
         xScale = self.getSecsPerPixel()
 
         if component.params['disabled'].val:
-            dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_static_disabled']))
-            dc.SetPen(wx.Pen(ThemeMixin.appColors['rt_static_disabled']))
+            dc.SetBrush(wx.Brush(colors.app['rt_static_disabled']))
+            dc.SetPen(wx.Pen(colors.app['rt_static_disabled']))
 
         else:
-            dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_static']))
-            dc.SetPen(wx.Pen(ThemeMixin.appColors['rt_static']))
+            dc.SetBrush(wx.Brush(colors.app['rt_static']))
+            dc.SetPen(wx.Pen(colors.app['rt_static']))
 
         xSt = self.timeXposStart + startTime // xScale
         w = duration // xScale + 1  # +1 b/c border alpha=0 in dc.SetPen
@@ -2035,28 +2019,27 @@ class RoutineCanvas(wx.ScrolledWindow):
         dc.SetId(id)
 
         iconYOffset = (6, 6, 0)[self.drawSize]
-        icons = self.app.iconCache
         # get default icon and bar color
-        thisIcon = icons.getComponentBitmap(component, self.iconSize)
-        thisColor = ThemeMixin.appColors['rt_comp']
+        thisIcon = icons.ComponentIcon(component, size=self.iconSize).bitmap
+        thisColor = colors.app['rt_comp']
         thisStyle = wx.BRUSHSTYLE_SOLID
 
         # check True/False on ForceEndRoutine
         if 'forceEndRoutine' in component.params:
             if component.params['forceEndRoutine'].val:
-                thisColor = ThemeMixin.appColors['rt_comp_force']
+                thisColor = colors.app['rt_comp_force']
         # check True/False on ForceEndRoutineOnPress
         if 'forceEndRoutineOnPress' in component.params:
             if component.params['forceEndRoutineOnPress'].val:
-                thisColor = ThemeMixin.appColors['rt_comp_force']
+                thisColor = colors.app['rt_comp_force']
         # check True aliases on EndRoutineOn
         if 'endRoutineOn' in component.params:
             if component.params['endRoutineOn'].val in ['look at', 'look away']:
-                thisColor = ThemeMixin.appColors['rt_comp_force']
+                thisColor = colors.app['rt_comp_force']
         # grey bar if comp is disabled
         if component.params['disabled'].val:
             thisIcon = thisIcon.ConvertToDisabled()
-            thisColor = ThemeMixin.appColors['rt_comp_disabled']
+            thisColor = colors.app['rt_comp_disabled']
 
         dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
         fullRect = wx.Rect(self.iconXpos, yPos,
@@ -2215,7 +2198,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         return self.getMaxTime() / pixels
 
 
-class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, ThemeMixin):
+class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
     def __init__(self, parent, routine=None):
         # Init super
         scrolledpanel.ScrolledPanel.__init__(
@@ -2267,10 +2250,10 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, ThemeMixin):
         return self.ctrls.Validate()
 
 
-class ComponentsPanel(scrolledpanel.ScrolledPanel):
+class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
     """Panel containing buttons for each component, sorted by category"""
 
-    class CategoryButton(wx.ToggleButton, HoverMixin):
+    class CategoryButton(wx.ToggleButton, handlers.ThemeMixin, HoverMixin):
         """Button to show/hide a category of components"""
         def __init__(self, parent, name, cat):
             if sys.platform == 'darwin':
@@ -2338,19 +2321,18 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.parent.Layout()
             self.parent.SetupScrolling()
             # Restyle
-            self._applyAppTheme()
+            self.OnHover()
 
         def _applyAppTheme(self):
             """Apply app theme to this button"""
             self.OnHover()
 
-    class ComponentButton(wx.Button):
+    class ComponentButton(wx.Button, handlers.ThemeMixin):
         """Button to open component parameters dialog"""
         def __init__(self, parent, name, comp, cat):
             self.parent = parent
             self.component = comp
             self.category = cat
-            iconCache = parent.app.iconCache
             # Get a shorter, title case version of component name
             label = name
             for redundant in ['component', 'Component', "ButtonBox"]:
@@ -2451,14 +2433,14 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
 
         def _applyAppTheme(self):
             # Set colors
-            self.SetForegroundColour(ThemeMixin.appColors['text'])
-            self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+            self.SetForegroundColour(colors.app['text'])
+            self.SetBackgroundColour(colors.app['panel_bg'])
             # Set bitmap
-            iconCache = self.parent.app.iconCache
-            if hasattr(self.component, "beta"):
-                icon = iconCache.getBitmap(self.component.iconFile, beta=self.component.beta, size=48)
+            icon = icons.ComponentIcon(self.component, size=48)
+            if hasattr(self.component, "beta") and self.component.beta:
+                icon = icon.beta
             else:
-                icon = iconCache.getBitmap(self.component.iconFile, beta=False, size=48)
+                icon = icon.bitmap
             self.SetBitmap(icon)
             self.SetBitmapCurrent(icon)
             self.SetBitmapPressed(icon)
@@ -2467,13 +2449,12 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # Refresh
             self.Refresh()
 
-    class RoutineButton(wx.Button):
+    class RoutineButton(wx.Button, handlers.ThemeMixin):
         """Button to open component parameters dialog"""
         def __init__(self, parent, name, rt, cat):
             self.parent = parent
             self.routine = rt
             self.category = cat
-            iconCache = parent.app.iconCache
             # Get a shorter, title case version of routine name
             label = name
             for redundant in ['routine', 'Routine', "ButtonBox"]:
@@ -2524,14 +2505,14 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
 
         def _applyAppTheme(self):
             # Set colors
-            self.SetForegroundColour(ThemeMixin.appColors['text'])
-            self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+            self.SetForegroundColour(colors.app['text'])
+            self.SetBackgroundColour(colors.app['panel_bg'])
             # Set bitmap
-            iconCache = self.parent.app.iconCache
-            if hasattr(self.routine, "beta"):
-                icon = iconCache.getBitmap(self.routine.iconFile, beta=self.routine.beta, size=48)
+            icon = icons.ComponentIcon(self.routine, size=48)
+            if hasattr(self.routine, "beta") and self.routine.beta:
+                icon = icon.beta
             else:
-                icon = iconCache.getBitmap(self.routine.iconFile, beta=False, size=48)
+                icon = icon.bitmap
             self.SetBitmap(icon)
             self.SetBitmapCurrent(icon)
             self.SetBitmapPressed(icon)
@@ -2540,7 +2521,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # Refresh
             self.Refresh()
 
-    class FilterDialog(wx.Dialog, ThemeMixin):
+    class FilterDialog(wx.Dialog, handlers.ThemeMixin):
         def __init__(self, parent, size=(200, 300)):
             wx.Dialog.__init__(self, parent, size=size)
             self.parent = parent
@@ -2668,35 +2649,21 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.Fit()
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(not self.frame.isRetina)
-        # Apply theme
-        self._applyAppTheme()  # bitmaps only just loaded
 
     def _applyAppTheme(self, target=None):
-        cs = ThemeMixin.appColors
         # Style component panel
-        self.SetForegroundColour(cs['text'])
-        self.SetBackgroundColour(cs['panel_bg'])
-        # Style component buttons
-        for btn in self.compButtons:
-            btn._applyAppTheme()
+        self.SetForegroundColour(colors.app['text'])
+        self.SetBackgroundColour(colors.app['panel_bg'])
         # Style category labels
         for lbl in self.catLabels:
-            self.catLabels[lbl].SetForegroundColour(cs['text'])
-            # then apply to all children as well
+            self.catLabels[lbl].SetForegroundColour(colors.app['text'])
         # Style filter button
-        self.filterBtn.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
-        icon = self.app.iconCache.getBitmap("filter", size=16)
+        self.filterBtn.SetBackgroundColour(colors.app['panel_bg'])
+        icon = icons.ButtonIcon("filter", size=16).bitmap
         self.filterBtn.SetBitmap(icon)
         self.filterBtn.SetBitmapCurrent(icon)
         self.filterBtn.SetBitmapPressed(icon)
         self.filterBtn.SetBitmapFocus(icon)
-        # Refresh
-        for c in self.GetChildren():
-            if hasattr(c, '_applyAppTheme'):
-                # if the object understands themes then request that
-                c._applyAppTheme()
-        self.Refresh()
-        self.Update()
 
     def addToFavorites(self, comp):
         name = comp.__name__
@@ -2899,7 +2866,7 @@ class ReadmeFrame(wx.Frame):
             self.Show()
 
 
-class FlowPanel(wx.ScrolledWindow):
+class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
 
     def __init__(self, frame, id=-1):
         """A panel that shows how the routines will fit together
@@ -2993,20 +2960,17 @@ class FlowPanel(wx.ScrolledWindow):
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(not self.frame.isRetina)
 
-        self._applyAppTheme()
-
     def _applyAppTheme(self, target=None):
         """Apply any changes which have been made to the theme since panel was last loaded"""
-        cs = ThemeMixin.appColors
         # Style loop/routine buttons
-        self.btnInsertLoop.SetBackgroundColour(cs['frame_bg'])
-        self.btnInsertLoop.SetForegroundColour(cs['text'])
+        self.btnInsertLoop.SetBackgroundColour(colors.app['frame_bg'])
+        self.btnInsertLoop.SetForegroundColour(colors.app['text'])
         self.btnInsertLoop.Update()
-        self.btnInsertRoutine.SetBackgroundColour(cs['frame_bg'])
-        self.btnInsertRoutine.SetForegroundColour(cs['text'])
+        self.btnInsertRoutine.SetBackgroundColour(colors.app['frame_bg'])
+        self.btnInsertRoutine.SetForegroundColour(colors.app['text'])
         self.btnInsertRoutine.Update()
         # Set background
-        self.SetBackgroundColour(cs['panel_bg'])
+        self.SetBackgroundColour(colors.app['panel_bg'])
 
         self.draw()
 
@@ -3471,7 +3435,7 @@ class FlowPanel(wx.ScrolledWindow):
         # step through components in flow, get spacing from text size, etc
         currX = self.linePos[0]
         lineId = wx.NewIdRef()
-        pdc.SetPen(wx.Pen(colour=cs['fl_flowline_bg']))
+        pdc.SetPen(wx.Pen(colour=colors.app['fl_flowline_bg']))
         pdc.DrawLine(x1=self.linePos[0] - gap, y1=self.linePos[1],
                      x2=self.linePos[0], y2=self.linePos[1])
         # NB the loop is itself the key, value is further info about it
@@ -3499,7 +3463,7 @@ class FlowPanel(wx.ScrolledWindow):
             self.gapMidPoints.append(currX + gap / 2)
             self.gapNestLevels.append(nestLevel)
             pdc.SetId(lineId)
-            pdc.SetPen(wx.Pen(colour=cs['fl_flowline_bg']))
+            pdc.SetPen(wx.Pen(colour=colors.app['fl_flowline_bg']))
             pdc.DrawLine(x1=currX, y1=self.linePos[1],
                          x2=currX + gap, y2=self.linePos[1])
             currX += gap
@@ -3530,7 +3494,7 @@ class FlowPanel(wx.ScrolledWindow):
             if entry.getType() == 'Routine' or entry.getType() in getAllStandaloneRoutines():
                 currX = self.drawFlowRoutine(pdc, entry, id=ii,
                                              pos=[currX, self.linePos[1] - 10])
-            pdc.SetPen(wx.Pen(wx.Pen(colour=cs['fl_flowline_bg'])))
+            pdc.SetPen(wx.Pen(wx.Pen(colour=colors.app['fl_flowline_bg'])))
             pdc.DrawLine(x1=currX, y1=self.linePos[1],
                          x2=currX + gap, y2=self.linePos[1])
             currX += gap
@@ -3551,7 +3515,7 @@ class FlowPanel(wx.ScrolledWindow):
                 id = wx.NewIdRef()
                 self.entryPointIDlist.append(id)
                 self.pdc.SetId(id)
-                self.pdc.SetBrush(wx.Brush(cs['fl_flowline_bg']))
+                self.pdc.SetBrush(wx.Brush(colors.app['fl_flowline_bg']))
                 self.pdc.DrawCircle(pos, self.linePos[1], ptSize)
                 r = self.pdc.GetIdBounds(id)
                 self.OffsetRect(r)
@@ -3589,8 +3553,8 @@ class FlowPanel(wx.ScrolledWindow):
         # draw bar at start of timeline; circle looked bad, offset vertically
         ptSize = (9, 9, 12)[self.appData['flowSize']]
         thic = (1, 1, 2)[self.appData['flowSize']]
-        dc.SetBrush(wx.Brush(cs['fl_flowline_bg']))
-        dc.SetPen(wx.Pen(cs['fl_flowline_bg']))
+        dc.SetBrush(wx.Brush(colors.app['fl_flowline_bg']))
+        dc.SetPen(wx.Pen(colors.app['fl_flowline_bg']))
         dc.DrawPolygon([[0, -ptSize], [thic, -ptSize],
                         [thic, ptSize], [0, ptSize]], pos[0], pos[1])
 
@@ -3598,8 +3562,8 @@ class FlowPanel(wx.ScrolledWindow):
         # draws arrow at end of timeline
         # tmpId = wx.NewIdRef()
         # dc.SetId(tmpId)
-        dc.SetBrush(wx.Brush(cs['fl_flowline_bg']))
-        dc.SetPen(wx.Pen(cs['fl_flowline_bg']))
+        dc.SetBrush(wx.Brush(colors.app['fl_flowline_bg']))
+        dc.SetPen(wx.Pen(colors.app['fl_flowline_bg']))
         dc.DrawPolygon([[0, -3], [5, 0], [0, 3]], pos[0], pos[1])
         # dc.SetIdBounds(tmpId,wx.Rect(pos[0],pos[1]+3,5,6))
 
@@ -3625,8 +3589,8 @@ class FlowPanel(wx.ScrolledWindow):
         # draws direction arrow on left side of a loop
         tmpId = wx.NewIdRef()
         dc.SetId(tmpId)
-        dc.SetBrush(wx.Brush(cs['fl_flowline_bg']))
-        dc.SetPen(wx.Pen(cs['fl_flowline_bg']))
+        dc.SetBrush(wx.Brush(colors.app['fl_flowline_bg']))
+        dc.SetPen(wx.Pen(colors.app['fl_flowline_bg']))
         size = (3, 4, 5)[self.appData['flowSize']]
         offset = (3, 2, 0)[self.appData['flowSize']]
         if downwards:
@@ -3662,18 +3626,18 @@ class FlowPanel(wx.ScrolledWindow):
             font.SetPointSize(1000 / self.dpi - fontSizeDelta)
 
         maxTime, nonSlip = routine.getMaxTime()
-        if routine.disabled:
-            rtFill = cs['rt_comp_disabled']
-            rtEdge = cs['rt_comp_disabled']
-            rtText = cs['fl_routine_fg']
+        if hasattr(routine, "disabled") and routine.disabled:
+            rtFill = colors.app['rt_comp_disabled']
+            rtEdge = colors.app['rt_comp_disabled']
+            rtText = colors.app['fl_routine_fg']
         elif nonSlip:
-            rtFill = cs['fl_routine_bg_nonslip']
-            rtEdge = cs['fl_routine_bg_nonslip']
-            rtText = cs['fl_routine_fg']
+            rtFill = colors.app['fl_routine_bg_nonslip']
+            rtEdge = colors.app['fl_routine_bg_nonslip']
+            rtText = colors.app['fl_routine_fg']
         else:
-            rtFill = cs['fl_routine_bg_slip']
-            rtEdge = cs['fl_routine_bg_slip']
-            rtText = cs['fl_routine_fg']
+            rtFill = colors.app['fl_routine_bg_slip']
+            rtEdge = colors.app['fl_routine_bg_slip']
+            rtText = colors.app['fl_routine_fg']
 
         # get size based on text
         self.SetFont(font)
@@ -3721,7 +3685,7 @@ class FlowPanel(wx.ScrolledWindow):
         curve = (6, 11, 15)[self.appData['flowSize']]
         yy = [base, height + curve * up, height +
               curve * up / 2, height]  # for area
-        dc.SetPen(wx.Pen(cs['fl_flowline_bg']))
+        dc.SetPen(wx.Pen(colors.app['fl_flowline_bg']))
         vertOffset = 0  # 1 is interesting too
         area = wx.Rect(startX, base + vertOffset,
                        endX - startX, max(yy) - min(yy))
@@ -3783,18 +3747,177 @@ class FlowPanel(wx.ScrolledWindow):
         # draw box
         rect = wx.Rect(x, y, w + pad, h + pad)
         # the edge should match the text
-        dc.SetPen(wx.Pen(cs['fl_flowline_bg']))
+        dc.SetPen(wx.Pen(colors.app['fl_flowline_bg']))
         # try to make the loop fill brighter than the background canvas:
-        dc.SetBrush(wx.Brush(cs['fl_flowline_bg']))
+        dc.SetBrush(wx.Brush(colors.app['fl_flowline_bg']))
 
         dc.DrawRoundedRectangle(rect, (4, 6, 8)[flowsize])
         # draw text
-        dc.SetTextForeground(cs['fl_flowline_fg'])
+        dc.SetTextForeground(colors.app['fl_flowline_fg'])
         dc.DrawText(name, x + pad / 2, y + pad / 2)
 
         self.componentFromID[id] = loop
         # set the area for this component
         dc.SetIdBounds(id, rect)
+
+
+class BuilderToolbar(BasePsychopyToolbar):
+    def makeTools(self):
+        # Clear any existing tools
+        self.ClearTools()
+        self.buttons = {}
+
+        # New
+        self.buttons['filenew'] = self.makeTool(
+            name='filenew',
+            label=_translate('New'),
+            shortcut='new',
+            tooltip=_translate("Create new experiment file"),
+            func=self.frame.app.newBuilderFrame
+        )
+        # Open
+        self.buttons['fileopen'] = self.makeTool(
+            name='fileopen',
+            label=_translate('Open'),
+            shortcut='open',
+            tooltip=_translate("Open an existing experiment file"),
+            func=self.frame.fileOpen)
+        # Save
+        self.buttons['filesave'] = self.makeTool(
+            name='filesave',
+            label=_translate('Save'),
+            shortcut='save',
+            tooltip=_translate("Save current experiment file"),
+            func=self.frame.fileSave)
+        self.frame.bldrBtnSave = self.buttons['filesave']
+        # SaveAs
+        self.buttons['filesaveas'] = self.makeTool(
+            name='filesaveas',
+            label=_translate('Save As...'),
+            shortcut='saveAs',
+            tooltip=_translate("Save current experiment file as..."),
+            func=self.frame.fileSaveAs)
+        # Undo
+        self.buttons['undo'] = self.makeTool(
+            name='undo',
+            label=_translate('Undo'),
+            shortcut='undo',
+            tooltip=_translate("Undo last action"),
+            func=self.frame.undo)
+        self.frame.bldrBtnUndo = self.buttons['undo']
+        # Redo
+        self.buttons['redo'] = self.makeTool(
+            name='redo',
+            label=_translate('Redo'),
+            shortcut='redo',
+            tooltip=_translate("Redo last action"),
+            func=self.frame.redo)
+        self.frame.bldrBtnRedo = self.buttons['redo']
+
+        self.AddSeparator()
+
+        # Monitor Center
+        self.buttons['monitors'] = self.makeTool(
+            name='monitors',
+            label=_translate('Monitor Center'),
+            shortcut='none',
+            tooltip=_translate("Monitor settings and calibration"),
+            func=self.frame.app.openMonitorCenter)
+        # Settings
+        self.buttons['cogwindow'] = self.makeTool(
+            name='cogwindow',
+            label=_translate('Experiment Settings'),
+            shortcut='none',
+            tooltip=_translate("Edit experiment settings"),
+            func=self.frame.setExperimentSettings)
+
+        self.AddSeparator()
+
+        # Compile Py
+        self.buttons['compile_py'] = self.makeTool(
+            name='compile_py',
+            label=_translate('Compile Python Script'),
+            shortcut='compileScript',
+            tooltip=_translate("Compile to Python script"),
+            func=self.frame.compileScript)
+        # Compile JS
+        self.buttons['compile_js'] = self.makeTool(
+            name='compile_js',
+            label=_translate('Compile JS Script'),
+            shortcut='compileScript',
+            tooltip=_translate("Compile to JS script"),
+            func=self.frame.fileExport)
+        # Send to runner
+        self.buttons['runner'] = self.makeTool(
+            name='runner',
+            label=_translate('Runner'),
+            shortcut='runnerScript',
+            tooltip=_translate("Send experiment to Runner"),
+            func=self.frame.runFile)
+        self.frame.bldrBtnRunner = self.buttons['runner']
+        # Run
+        self.buttons['run'] = self.makeTool(
+            name='run',
+            label=_translate('Run'),
+            shortcut='runScript',
+            tooltip=_translate("Run experiment"),
+            func=self.frame.runFile)
+        self.frame.bldrBtnRun = self.buttons['run']
+
+        self.AddSeparator()
+
+        # Pavlovia run
+        self.buttons['pavRun'] = self.makeTool(
+            name='globe_run',
+            label=_translate("Run online"),
+            tooltip=_translate("Run the study online (with pavlovia.org)"),
+            func=self.frame.onPavloviaRun)
+        # Pavlovia sync
+        self.buttons['pavSync'] = self.makeTool(
+            name='globe_greensync',
+            label=_translate("Sync online"),
+            tooltip=_translate("Sync with web project (at pavlovia.org)"),
+            func=self.frame.onPavloviaSync)
+        # Pavlovia search
+        self.buttons['pavSearch'] = self.makeTool(
+            name='globe_magnifier',
+            label=_translate("Search Pavlovia.org"),
+            tooltip=_translate("Find existing studies online (at pavlovia.org)"),
+            func=self.onPavloviaSearch)
+        # Pavlovia user
+        self.buttons['pavUser'] = self.makeTool(
+            name='globe_user',
+            label=_translate("Current Pavlovia user"),
+            tooltip=_translate("Log in/out of Pavlovia.org, view your user profile."),
+            func=self.onPavloviaUser)
+        # Pavlovia user
+        self.buttons['pavProject'] = self.makeTool(
+            name='globe_info',
+            label=_translate("View project"),
+            tooltip=_translate("View details of this project"),
+            func=self.onPavloviaProject)
+
+        # Disable compile buttons until an experiment is present
+        self.EnableTool(self.buttons['compile_py'].GetId(), Path(str(self.frame.filename)).is_file())
+        self.EnableTool(self.buttons['compile_js'].GetId(), Path(str(self.frame.filename)).is_file())
+
+    def onPavloviaSearch(self, evt=None):
+        searchDlg = SearchFrame(
+                app=self.frame.app, parent=self.frame,
+                pos=self.frame.GetPosition())
+        searchDlg.Show()
+
+    def onPavloviaUser(self, evt=None):
+        userDlg = UserFrame(self.frame)
+        userDlg.ShowModal()
+
+    def onPavloviaProject(self, evt=None):
+        if self.frame.project is not None:
+            dlg = ProjectFrame(app=self.frame.app,
+                               project=self.frame.project)
+        else:
+            dlg = ProjectFrame(app=self.frame.app)
+        dlg.Show()
 
 
 def extractText(stream):

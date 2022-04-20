@@ -15,7 +15,7 @@ import wx
 from collections import OrderedDict
 from psychopy.experiment.components.code import CodeComponent
 from ..validators import WarningManager
-from ...themes import ThemeMixin
+from ...themes import handlers
 
 from importlib.util import find_spec as loader
 hasMetapensiero = loader("metapensiero") is not None
@@ -467,7 +467,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.app.followLink(url=self.helpUrl)
 
 
-class CodeBox(BaseCodeEditor, ThemeMixin):
+class CodeBox(BaseCodeEditor, handlers.ThemeMixin):
     # this comes mostly from the wxPython demo styledTextCtrl 2
 
     def __init__(self, parent, ID, prefs,

@@ -9,25 +9,26 @@
 
 import sys
 import wx
-from psychopy.app.themes._themes import ThemeMixin, IconCache
+import wx.richtext
+from psychopy.app.themes import handlers, colors, icons
 from psychopy.preferences import prefs
 from psychopy.localization import _translate
 import os
 
 
-class ConsoleTextCtrl(wx.TextCtrl, ThemeMixin):
+class ConsoleTextCtrl(wx.richtext.RichTextCtrl, handlers.ThemeMixin):
     """Class for the console text control. This is needed to allow for theming.
     """
     def __init__(self, parent, id_=wx.ID_ANY, value="", pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=0,
                  name=wx.TextCtrlNameStr):
 
-        wx.TextCtrl.__init__(
+        wx.richtext.RichTextCtrl.__init__(
             self, parent, id=id_, value=value, pos=pos, size=size, style=style,
             validator=wx.DefaultValidator, name=name)
 
 
-class PythonREPLCtrl(wx.Panel, ThemeMixin):
+class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
     """Class for a Python REPL control.
 
     An interactive shell (REPL) for interfacing with a Python interpreter in
@@ -40,11 +41,10 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
     shell using the script editor.
 
     """
-    class PythonREPLToolbar(wx.Panel, ThemeMixin):
+    class PythonREPLToolbar(wx.Panel, handlers.ThemeMixin):
         def __init__(self, parent):
             wx.Panel.__init__(self, parent, size=(30, -1))
             self.parent = parent
-            iconCache = IconCache()
 
             # Setup sizer
             self.borderBox = wx.BoxSizer(wx.VERTICAL)
@@ -57,7 +57,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
                 "Close the current shell."
             ))
             self.startBtn.SetBitmap(
-                iconCache.getBitmap(name="start", size=16)
+                icons.ButtonIcon(stem="start", size=16).bitmap
             )
             self.sizer.Add(self.startBtn, border=3, flag=wx.ALL)
             self.startBtn.Bind(wx.EVT_BUTTON, self.parent.start)
@@ -67,7 +67,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
                 "Close the current shell and start a new one, this will clear any variables."
             ))
             self.restartBtn.SetBitmap(
-                iconCache.getBitmap(name="restart", size=16)
+                icons.ButtonIcon(stem="restart", size=16).bitmap
             )
             self.sizer.Add(self.restartBtn, border=3, flag=wx.ALL)
             self.restartBtn.Bind(wx.EVT_BUTTON, self.parent.restart)
@@ -77,7 +77,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
                 "Close the current shell."
             ))
             self.stopBtn.SetBitmap(
-                iconCache.getBitmap(name="stop", size=16)
+                icons.ButtonIcon(stem="stop", size=16).bitmap
             )
             self.sizer.Add(self.stopBtn, border=3, flag=wx.ALL)
             self.stopBtn.Bind(wx.EVT_BUTTON, self.parent.close)
@@ -87,7 +87,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
                 "Clear all previous output."
             ))
             self.clrBtn.SetBitmap(
-                iconCache.getBitmap(name="clear", size=16)
+                icons.ButtonIcon(stem="clear", size=16).bitmap
             )
             self.sizer.Add(self.clrBtn, border=3, flag=wx.ALL)
             self.clrBtn.Bind(wx.EVT_BUTTON, self.parent.clear)
@@ -101,6 +101,15 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
             self.stopBtn.Show(self.parent.isStarted)
             self.Layout()
 
+        def _applyAppTheme(self):
+            # Set background
+            self.SetBackgroundColour(colors.app['tab_bg'])
+            # Style buttons
+            for btn in (self.startBtn, self.stopBtn, self.clrBtn, self.restartBtn):
+                btn.SetBackgroundColour(colors.app['tab_bg'])
+            self.Refresh()
+            self.Update()
+
     def __init__(self,
                  parent,
                  id_=wx.ID_ANY,
@@ -111,6 +120,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
 
         wx.Panel.__init__(self, parent, id=id_, pos=pos, size=size, style=style,
                           name=name)
+        self.tabIcon = "coderpython16"
 
         # sizer for the panel
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -129,8 +139,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
             wx.DefaultPosition,
             wx.DefaultSize,
             styleFlags)
-        self.sizer.Add(self.txtTerm, 1, wx.ALL | wx.EXPAND, 0)
-
+        self.sizer.Add(self.txtTerm, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         self.SetSizer(self.sizer)
         self.Layout()
 
@@ -165,9 +174,9 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
 
         # Disable smart substitutions for quotes and slashes, uses illegal
         # characters that cannot be evaluated by the interpreter correctly.
-        if wx.Platform == '__WXMAC__':
-            self.txtTerm.OSXDisableAllSmartSubstitutions()
-            self.txtTerm.MacCheckSpelling(False)
+        # if wx.Platform == '__WXMAC__':
+        #     self.txtTerm.OSXDisableAllSmartSubstitutions()
+        #     self.txtTerm.MacCheckSpelling(False)
 
         self.txtTerm.WriteText("Hit [Return] to start a Python session.")
         self._lastTextPos = self.txtTerm.GetLastPosition()
@@ -177,26 +186,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
 
     def setFonts(self):
         """Set the font for the console."""
-        # select the font size, either from prefs or platform defaults
-        if not prefs.coder['codeFontSize']:
-            if wx.Platform == '__WXMSW__':
-                fontSize = 10
-            elif wx.Platform == '__WXMAC__':
-                fontSize = 14
-            else:
-                fontSize = 12
-        else:
-            fontSize = int(prefs.coder['codeFontSize'])
-
-        # get the font to use
-        if prefs.coder['outputFont'].lower() == "From Theme...".lower():
-            fontName = ThemeMixin.codeColors['base']['font'].replace("bold", "").replace("italic", "").replace(",", "")
-        else:
-            fontName = prefs.coder['outputFont']
-
-        # apply the font
-        self.txtTerm.SetFont(
-            wx.Font(fontSize, wx.MODERN, wx.NORMAL, wx.NORMAL, False, fontName))
+        self.txtTerm._applyAppTheme()
 
     def onTerminate(self, event):
         # hooks for the process we're communicating with
@@ -465,6 +455,11 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
                 self._historyIdx = -1
 
         event.Skip()
+
+    def _applyAppTheme(self):
+        self.SetBackgroundColour(colors.app['tab_bg'])
+        self.Refresh()
+        self.Update()
 
 
 if __name__ == "__main__":

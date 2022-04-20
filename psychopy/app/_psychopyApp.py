@@ -17,6 +17,8 @@ import time
 import io
 import argparse
 
+from psychopy.app.themes import icons, colors, handlers
+
 profiling = False  # turning on will save profile files in currDir
 
 import psychopy
@@ -81,7 +83,7 @@ if sys.platform == 'win32':
                 psychopy.prefs.saveUserPrefs()
 
 
-class MenuFrame(wx.Frame, themes.ThemeMixin):
+class MenuFrame(wx.Frame, themes.handlers.ThemeMixin):
     """A simple empty frame with a menubar, should be last frame closed on mac
     """
 
@@ -157,7 +159,7 @@ class _Showgui_Hack():
         core.shellCall([sys.executable, noopPath])
 
 
-class PsychoPyApp(wx.App, themes.ThemeMixin):
+class PsychoPyApp(wx.App, handlers.ThemeMixin):
     _called_from_test = False  # pytest needs to change this
 
     def __init__(self, arg=0, testMode=False, **kwargs):
@@ -190,7 +192,6 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         self._stdout = sys.stdout
         self._stderr = sys.stderr
         self._stdoutFrame = None
-        self.iconCache = themes.IconCache()
 
         # Shared memory used for messaging between app instances, this gets
         # allocated when `OnInit` is called.
@@ -417,6 +418,8 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             fontScale = 1.2  # fonts are looking tiny on macos (only retina?) right now
         else:
             fontScale = 1
+        # mark icons as being retina
+        icons.retStr = "@2x"
         # adjust dpi to something reasonable
         if not (50 < self.dpi < 120):
             self.dpi = 80  # dpi was unreasonable, make one up
@@ -455,7 +458,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
 
         # that gets most of the properties of _codeFont but the FaceName
         # FaceName is set in the setting of the theme:
-        self.theme = self.prefs.app['theme']
+        self.theme = prefs.app['theme']
 
         # removed Aug 2017: on newer versions of wx (at least on mac)
         # this looks too big
@@ -1075,26 +1078,26 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         idle.doIdleTasks(app=self)
         evt.Skip()
 
-    def onThemeChange(self, event):
-        """Handles a theme change event (from a window with a themesMenu)"""
-        win = event.EventObject.Window
-        newTheme = win.themesMenu.FindItemById(event.GetId()).ItemLabel
-        prefs.app['theme'] = newTheme
-        prefs.saveUserPrefs()
-        self.theme = newTheme
-
     @property
     def theme(self):
         """The theme to be used through the application"""
-        return prefs.app['theme']
+        return themes.theme
 
     @theme.setter
     def theme(self, value):
         """The theme to be used through the application"""
-        themes.ThemeMixin.loadThemeSpec(self, themeName=value)
+        # Store new theme
         prefs.app['theme'] = value
-        self._currentThemeSpec = themes.ThemeMixin.spec
-        codeFont = themes.ThemeMixin.codeColors['base']['font']
+        prefs.saveUserPrefs()
+        # Reset icon cache
+        icons.iconCache.clear()
+        # Set theme at module level
+        themes.theme.set(value)
+        # Apply to frames
+        for frameRef in self._allFrames:
+            frame = frameRef()
+            if isinstance(frame, handlers.ThemeMixin):
+                frame.theme = themes.theme
 
         # On OSX 10.15 Catalina at least calling SetFaceName with 'AppleSystemUIFont' fails.
         # So this fix checks to see if changing the font name invalidates the font.
@@ -1103,20 +1106,9 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # with the wx.Font() call. Otherwise you just get reference to the font that gets borked by SetFaceName()
         # -Justin Ales
         beforesetface = wx.Font(self._codeFont)
-        success = self._codeFont.SetFaceName(codeFont)
+        success = self._codeFont.SetFaceName("JetBrains Mono")
         if not (success):
             self._codeFont = beforesetface
-        # Apply theme
-        self._applyAppTheme()
-
-    def _applyAppTheme(self):
-        """Overrides ThemeMixin for this class"""
-        self.iconCache.setTheme(themes.ThemeMixin)
-
-        for frameRef in self._allFrames:
-            frame = frameRef()
-            if hasattr(frame, '_applyAppTheme'):
-                frame._applyAppTheme()
 
 
 if __name__ == '__main__':
