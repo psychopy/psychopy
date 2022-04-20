@@ -200,6 +200,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # menus and toolbars
         self.toolbar = BuilderToolbar(frame=self)
         self.SetToolBar(self.toolbar)
+        self.toolbar.Realize()
         self.makeMenus()
         self.CreateStatusBar()
         self.SetStatusText("")
@@ -3899,8 +3900,6 @@ class BuilderToolbar(BasePsychopyToolbar):
         # Disable compile buttons until an experiment is present
         self.EnableTool(self.buttons['compile_py'].GetId(), Path(str(self.frame.filename)).is_file())
         self.EnableTool(self.buttons['compile_js'].GetId(), Path(str(self.frame.filename)).is_file())
-
-        self.Realize()
 
     def onPavloviaSearch(self, evt=None):
         searchDlg = SearchFrame(
