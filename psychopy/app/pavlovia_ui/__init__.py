@@ -19,4 +19,4 @@ from psychopy.projects import pavlovia
 from .functions import *
 from .project import ProjectEditor, syncProject
 from ._base import PavloviaMiniBrowser
-from . import menu, project, search, toolbar
+from . import menu, project, search

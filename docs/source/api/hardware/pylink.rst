@@ -3,7 +3,7 @@
 pylink (SR Research)
 ====================
 
-For now the SR Research ``pylink`` module is packaged with the Standalone flavours of PsychoPy and can be imported with::
+For now the SR Research ``pylink`` module is packaged with the Standalone flavours of |PsychoPy| and can be imported with::
 
     import pylink
 

@@ -185,7 +185,7 @@ class PolygonComponent(BaseVisualComponent):
             code = ("%s = visual.ShapeStim(\n" % inits['name'] +
                     "    win=win, name='%s', vertices='cross',%s\n" % (inits['name'], unitsStr) +
                     "    size=%(size)s,\n" % inits)
-        elif isinstance(vertices, (int, float, str)):
+        elif self.params['shape'] == 'regular polygon...':
             code = ("%s = visual.Polygon(\n" % inits['name'] +
                     "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
                     "    edges=%s," % str(inits['nVertices'].val) +

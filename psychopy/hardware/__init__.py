@@ -12,7 +12,7 @@ try:
 except ImportError:
     from collections import Iterable
 
-__all__ = ['forp', 'cedrus', 'minolta', 'pr', 'crs', 'iolab', 'eyetracker']
+__all__ = ['forp', 'cedrus', 'minolta', 'gammasci', 'pr', 'crs', 'iolab', 'eyetracker']
 
 
 def getSerialPorts():
@@ -70,10 +70,10 @@ def getAllPhotometers():
     :returns:
     A list of all photometer classes
     """
-    from . import minolta, pr
+    from . import minolta, pr, gammasci
     from . import crs
 
-    photometers = [pr.PR650, pr.PR655, minolta.LS100]
+    photometers = [pr.PR650, pr.PR655, minolta.LS100, gammasci.S470]
     if hasattr(crs, "ColorCAL"):
         photometers.append(crs.ColorCAL)
 
@@ -116,7 +116,7 @@ def findPhotometer(ports=None, device=None):
             likely port names on macOS and Linux.
 
         device : string giving expected device (e.g. 'PR650', 'PR655',
-            'LS100', 'LS110'). If this is not given then an attempt will be made
+            'LS100', 'LS110', 'S470'). If this is not given then an attempt will be made
             to find a device of any type, but this often fails
 
     :returns:

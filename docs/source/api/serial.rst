@@ -1,7 +1,7 @@
 :mod:`psychopy.serial` - functions for interacting with the serial port
 =================================================================================
 
-PsychoPy is compatible with Chris Liechti's `pyserial <https://github.com/pyserial/pyserial>`_ package. You can use it like this::
+|PsychoPy| is compatible with Chris Liechti's `pyserial <https://github.com/pyserial/pyserial>`_ package. You can use it like this::
     
     import serial
     ser = serial.Serial(0, 19200, timeout=1)  # open first serial port

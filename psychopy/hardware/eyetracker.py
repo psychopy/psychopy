@@ -4,8 +4,10 @@ from psychopy import logging
 from copy import copy
 import sys
 
+
 class EyetrackerControl:
     currentlyRecording = False
+
     def __init__(self, tracker, actionType="Start and Stop"):
         self.tracker = tracker
         self.actionType = actionType
@@ -40,6 +42,17 @@ class EyetrackerControl:
                 self.tracker.setRecordingState(False)
                 logging.exp("eyetracker.setRecordingState(False)")
                 EyetrackerControl.currentlyRecording = False
+
+    @property
+    def pos(self):
+        """
+        Get the current position of the eyetracker
+        """
+        return self.tracker.getPos()
+
+    def getPos(self):
+        return self.pos
+
 
 class EyetrackerCalibration:
     def __init__(self, win,

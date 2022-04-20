@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import numpy as np
+
 from psychopy import layout
 from psychopy.alerts._errorHandler import _BaseErrorHandler
 from psychopy.tests.test_visual.test_basevisual import _TestColorMixin, _TestUnitsMixin
@@ -20,7 +22,7 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin):
         self.error = _BaseErrorHandler()
         self.textbox = TextBox2(self.win,
                                 "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question.",
-                                "Noto Sans", alignment="top left", lineSpacing=1,
+                                "Noto Sans", alignment="top left", lineSpacing=1, padding=0.05,
                                 pos=(0, 0), size=(1, 1), units='height',
                                 letterHeight=0.1, colorSpace="rgb")
         self.obj = self.textbox  # point to textbox for mixin tests
@@ -95,8 +97,8 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin):
             if case['screenshot']:
                 # Uncomment to save current configuration as desired
                 filename = "textbox_{}_{}".format(self.textbox._lineBreaking, case['screenshot'])
-                #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
-                utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
+                self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+                #utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
 
     def test_colors(self):
         # Do base tests
@@ -151,6 +153,61 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin):
                 filename = "textbox_{}_{}".format(self.textbox._lineBreaking, case['screenshot'])
                 # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
                 utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
+
+    def test_caret_position(self):
+
+        # Identify key indices to test
+        indices = (
+            4,  # first line
+            30,  # wrapping line
+            64  # newline line
+        )
+        # One array for anchor and alignment as they use the same allowed vals
+        anchalign = (
+            'center',
+            'top-center',
+            'bottom-center',
+            'center-left',
+            'center-right',
+            'top-left',
+            'top-right',
+            'bottom-left',
+            'bottom-right',
+        )
+        # Try with all anchors
+        for anchor in anchalign:
+            # Try with all alignments
+            for align in anchalign:
+                # Try flipped horiz and unflipped
+                for flipHoriz in (True, False):
+                    # Try flipped vert and unflipped
+                    for flipVert in (True, False):
+                        # Create a textbox with multiple lines of differing length from both wrapping and a newline char
+                        textbox = TextBox2(
+                            self.win,
+                            text="A PsychoPy zealot knows a smidge of wx, but JavaScript is the \nquestion.",
+                            size=(128, 64), pos=(0, 0), units='pix',
+                            anchor=anchor, alignment=align, flipHoriz=flipHoriz, flipVert=flipVert
+                        )
+                        # Check that caret position at key indices matches character positions
+                        for i in indices:
+                            # Set caret index
+                            textbox.caret.index = i
+                            # Draw textbox to refresh verts
+                            textbox.draw()
+                            textbox.caret.draw()
+                            # Compare bottom vert of caret to bottom right vert of character (within 1 px)
+                            caretVerts = textbox.caret.vertices
+                            charVerts = textbox._vertices.pix[range((i-1) * 4, (i-1) * 4 + 4)]
+                            assert all(np.isclose(caretVerts[0], charVerts[2], 1)), (
+                                f"Textbox caret at index {i} didn't align with bottom right corner of "
+                                f"matching char when:\n"
+                                f"anchor={anchor}, alignment={align}, flipHoriz={flipHoriz}, flipVert={flipVert}.\n"
+                                f"Caret vertices were:\n"
+                                f"{caretVerts}\n"
+                                f"Char verts were \n"
+                                f"{charVerts}\n"
+                            )
 
     def test_typing(self):
         """Check that continuous typing doesn't break anything"""

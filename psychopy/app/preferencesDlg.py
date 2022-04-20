@@ -9,6 +9,7 @@ import platform
 import re
 import os
 
+from psychopy.app.themes import icons
 from . import dialogs
 from psychopy import localization, prefs
 from psychopy.localization import _translate
@@ -256,7 +257,7 @@ class PrefPropGrid(wx.Panel):
             if s not in self.sections.keys():
                 self.sections[s] = dict()
 
-        nbBitmap = self.app.iconCache.getBitmap(bitmap)
+        nbBitmap = icons.ButtonIcon(stem=bitmap).bitmap
         if nbBitmap.IsOk():
             self.prefsImages.Add(nbBitmap)
 
@@ -744,7 +745,7 @@ class PreferencesDlg(wx.Dialog):
                         item = self.proPrefs.sections[sectionName][prefName]
                         for i in range(len(item.GetChoices())):
                             choice = item.GetChoices()[i]
-                            icon = self.app.iconCache.getBitmap(choice.Text)
+                            icon = icons.ButtonIcon(stem=choice.Text).bitmap
                             choice.SetBitmap(icon)
                 # # lists are given a property that can edit and reorder items
                 elif thisSpec.startswith('list'):  # list

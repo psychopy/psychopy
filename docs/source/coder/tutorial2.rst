@@ -11,7 +11,7 @@ There are a great many modifications that can be made to this code, however this
 Get info from the user
 ---------------------------------
 
-The first lines of code import the necessary libraries. We need lots of the PsychoPy modules for a full experiment, as well as `numpy` (which handles various numerical/mathematical functions):
+The first lines of code import the necessary libraries. We need lots of the |PsychoPy| modules for a full experiment, as well as `numpy` (which handles various numerical/mathematical functions):
 
 .. literalinclude:: tutorial2.py
     :linenos:
@@ -45,7 +45,7 @@ If they hit *Cancel* then we'll simply quit the script and not save the values.
 Setup the information for trials
 ---------------------------------
 
-We'll create a file to which we can output some data as text during each trial (as well as :ref:`outputting a binary file <data-output>` at the end of the experiment). PsychoPy actually has supporting functions to do this automatically, but here we're showing you the manual way to do it.
+We'll create a file to which we can output some data as text during each trial (as well as :ref:`outputting a binary file <data-output>` at the end of the experiment). |PsychoPy| actually has supporting functions to do this automatically, but here we're showing you the manual way to do it.
 
 We'll create a filename from the subject+date+".csv" (note how easy it is to concatenate strings in python just by 'adding' them). :term:`csv` files can be opened in most spreadsheet packages. Having opened a text file for writing, the last line shows how easy it is to send text to this target document.
 
@@ -54,7 +54,7 @@ We'll create a filename from the subject+date+".csv" (note how easy it is to con
    :lineno-start: 18
    :lines: 18-21
 
-PsychoPy allows us to set up an object to handle the presentation of stimuli in a staircase procedure, the :class:`~psychopy.data.StairHandler`. This will define the increment of the orientation (i.e. how far it is from the reference orientation). The staircase can be configured in many ways, but we'll set it up to begin with an increment of 20deg (very detectable) and home in on the 80% threshold value. We'll step up our increment every time the subject gets a wrong answer and step down if they get three right answers in a row. The step size will also decrease after every 2 reversals, starting with an 8dB step (large) and going down to 1dB steps (smallish). We'll finish after 50 trials.
+|PsychoPy| allows us to set up an object to handle the presentation of stimuli in a staircase procedure, the :class:`~psychopy.data.StairHandler`. This will define the increment of the orientation (i.e. how far it is from the reference orientation). The staircase can be configured in many ways, but we'll set it up to begin with an increment of 20deg (very detectable) and home in on the 80% threshold value. We'll step up our increment every time the subject gets a wrong answer and step down if they get three right answers in a row. The step size will also decrease after every 2 reversals, starting with an 8dB step (large) and going down to 1dB steps (smallish). We'll finish after 50 trials.
 
 .. literalinclude:: tutorial2.py
    :linenos:
@@ -101,7 +101,7 @@ Wait for presentation time of 500ms and then blank the screen (by updating the s
    :lineno-start: 68
    :lines: 68-69
 
-(This is not the most precise way to time your stimuli - you'll probably overshoot by one frame - but its easy to understand. PsychoPy allows you to present a stimulus for acertian number of screen refreshes instead which is better for short stimuli.)
+(This is not the most precise way to time your stimuli - you'll probably overshoot by one frame - but its easy to understand. |PsychoPy| allows you to present a stimulus for acertian number of screen refreshes instead which is better for short stimuli.)
 
 Get input from the subject
 ---------------------------------

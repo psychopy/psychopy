@@ -10,8 +10,11 @@ from pathlib import Path
 import wx
 import wx.stc
 import wx.richtext
+import wx.py
 import psychopy.app
-from psychopy.app.themes._themes import ThemeSwitcher
+from ..pavlovia_ui.search import SearchFrame
+from ..pavlovia_ui.user import UserFrame
+from ..themes.ui import ThemeSwitcher
 from wx.html import HtmlEasyPrinting
 
 import wx.lib.agw.aui as aui  # some versions of phoenix
@@ -32,7 +35,7 @@ from .. import pavlovia_ui
 from psychopy import logging, prefs
 from psychopy.alerts._alerts import alert
 from psychopy.localization import _translate
-from ..utils import FileDropTarget, PsychopyToolbar, FrameSwitcher, updateDemosMenu
+from ..utils import FileDropTarget, BasePsychopyToolbar, FrameSwitcher, updateDemosMenu
 from ..ui import BaseAuiFrame
 from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
@@ -40,7 +43,7 @@ from psychopy.app.errorDlg import exceptionCallback
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 from psychopy.app.coder.fileBrowser import FileBrowserPanel
 from psychopy.app.coder.sourceTree import SourceTreePanel
-from psychopy.app.themes import ThemeMixin
+from psychopy.app.themes import handlers, colors
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
 from psychopy.app.coder.scriptOutput import ScriptOutputPanel
 from psychopy.app.coder.repl import PythonREPLCtrl
@@ -102,7 +105,7 @@ def fromPickle(filename):
     return contents
 
 
-class PsychopyPyShell(wx.py.shell.Shell, ThemeMixin):
+class PsychopyPyShell(wx.py.shell.Shell, handlers.ThemeMixin):
     """Simple class wrapper for Pyshell which uses the Psychopy ThemeMixin."""
     def __init__(self, coder):
         msg = _translate('PyShell in PsychoPy - type some commands!')
@@ -563,7 +566,7 @@ class UnitTestFrame(wx.Frame):
         self.Destroy()
 
 
-class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
+class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, handlers.ThemeMixin):
     """Code editor class for the Coder GUI.
     """
     def __init__(self, parent, ID, frame,
@@ -646,9 +649,9 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
                 self.caretLine + 1, self.caretColumn + 1), 1)
 
         # calltips
-        self.CallTipSetBackground(ThemeMixin.codeColors['base']['bg'])
-        self.CallTipSetForeground(ThemeMixin.codeColors['base']['fg'])
-        self.CallTipSetForegroundHighlight(ThemeMixin.codeColors['select']['fg'])
+        self.CallTipSetBackground(colors.app['tab_bg'])
+        self.CallTipSetForeground(colors.app['text'])
+        self.CallTipSetForegroundHighlight(colors.app['text'])
         self.AutoCompSetIgnoreCase(True)
         self.AutoCompSetAutoHide(True)
         self.AutoCompStops('. ')
@@ -1139,7 +1142,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
             #     findDlg.Close()
 
 
-class CoderFrame(BaseAuiFrame, ThemeMixin):
+class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
     def __init__(self, parent, ID, title, files=(), app=None):
         self.app = app  # type: psychopy.app.PsychoPyApp
@@ -1215,8 +1218,9 @@ class CoderFrame(BaseAuiFrame, ThemeMixin):
         self.paneManager = self.getAuiManager()
 
         # Create toolbar
-        self.toolbar = PsychopyToolbar(self)
+        self.toolbar = CoderToolbar(self)
         self.SetToolBar(self.toolbar)
+        self.toolbar.Realize()
         # Create menus and status bar
         self.makeMenus()
         self.makeStatusBar()
@@ -1228,7 +1232,7 @@ class CoderFrame(BaseAuiFrame, ThemeMixin):
         self.SetDropTarget(FileDropTarget(targetFrame=self))
 
         # Create editor notebook
-        self.notebook = aui.AuiNotebook(
+        self.notebook = StyledNotebook(
             self, -1, size=wx.Size(480, 480),
             agwStyle=aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB)
 
@@ -1245,13 +1249,14 @@ class CoderFrame(BaseAuiFrame, ThemeMixin):
                                  MaximizeButton(True))
 
         # Create source assistant notebook
-        self.sourceAsst = aui.AuiNotebook(
+        self.sourceAsst = StyledNotebook(
             self,
             wx.ID_ANY,
-            size = wx.Size(500, 600),
+            size=wx.Size(500, 600),
             agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS |
                      aui.AUI_NB_TAB_SPLIT |
                      aui.AUI_NB_TAB_MOVE)
+        self.sourceAsst.GetAuiManager().SetArtProvider(handlers.PsychopyDockArt())
 
         self.structureWindow = SourceTreePanel(self.sourceAsst, self)
         self.fileBrowserWindow = FileBrowserPanel(self.sourceAsst, self)
@@ -1296,10 +1301,10 @@ class CoderFrame(BaseAuiFrame, ThemeMixin):
                 self.setCurrentDoc(filename, keepHidden=True)
 
         # Create shelf notebook
-        self.shelf = aui.AuiNotebook(
+        self.shelf = StyledNotebook(
             self, wx.ID_ANY, size=wx.Size(600, 600),
             agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS)
-        #self.shelf.SetArtProvider(PsychopyTabArt())
+        self.shelf.GetAuiManager().SetArtProvider(handlers.PsychopyDockArt())
 
         # Create shell
         self._useShell = 'pyshell'
@@ -1310,9 +1315,10 @@ class CoderFrame(BaseAuiFrame, ThemeMixin):
         self.shelf.AddPage(self.shell, _translate('Shell'))
 
         # script output panel
-        self.consoleOutput = ScriptOutputPanel(self.shelf)
+        self.consoleOutputPanel = ScriptOutputPanel(self.shelf)
+        self.consoleOutput = self.consoleOutputPanel.ctrl
         self.consoleOutput.SetName("ConsoleOutput")
-        self.shelf.AddPage(self.consoleOutput, _translate('Output'))
+        self.shelf.AddPage(self.consoleOutputPanel, _translate('Output'))
 
         for i in range(self.shelf.GetPageCount()):
             self.shelf.SetCloseButton(i, False)
@@ -1328,7 +1334,6 @@ class CoderFrame(BaseAuiFrame, ThemeMixin):
                                  BottomDockable(True).TopDockable(True).
                                  CloseButton(False).
                                  Bottom())
-        self._applyAppTheme()
         if 'pavloviaSync' in self.btnHandles:
             self.toolbar.EnableTool(self.btnHandles['pavloviaSync'].Id, bool(self.filename))
         self.unitTestFrame = None
@@ -1364,6 +1369,8 @@ class CoderFrame(BaseAuiFrame, ThemeMixin):
         #self.chkShowAutoComp.Check(self.prefs['autocomplete'])
         self.SendSizeEvent()
         self.app.trackFrame(self)
+
+        self.theme = colors.theme
 
     @property
     def useAutoComp(self):
@@ -1672,7 +1679,7 @@ class CoderFrame(BaseAuiFrame, ThemeMixin):
         self.Bind(wx.EVT_MENU, self.onWordWrapCheck, self.lineWrapChk)
         menu.AppendSeparator()
         # Theme Switcher
-        self.themesMenu = ThemeSwitcher(self)
+        self.themesMenu = ThemeSwitcher(app=self.app)
         menu.AppendSubMenu(self.themesMenu,
                            _translate("Themes"))
 
@@ -2880,17 +2887,124 @@ class CoderFrame(BaseAuiFrame, ThemeMixin):
         else:
             pass
 
-    def _applyAppTheme(self, target=None):
-        """Overrides theme change from ThemeMixin.
-        Don't call - this is called at the end of theme.setter"""
-        ThemeMixin._applyAppTheme(self)  # handles most recursive setting
-        ThemeMixin._applyAppTheme(self.toolbar)
-        ThemeMixin._applyAppTheme(self.statusBar)
-        # updating sourceAsst will incl fileBrowser and sourcetree
-        ThemeMixin._applyAppTheme(self.sourceAsst)
-        ThemeMixin._applyAppTheme(self.notebook)
-        self.notebook.Refresh()
-        if hasattr(self, 'shelf'):
-            ThemeMixin._applyAppTheme(self.shelf)
-        if sys.platform == 'win32':
-            self.Update()  # kills mac. Not sure about linux
+
+class StyledNotebook(aui.AuiNotebook, handlers.ThemeMixin):
+    """
+    Exactly the same as an aui.AuiNotebook, but with methods from handlers.ThemeMixin
+    """
+    pass
+
+
+class CoderToolbar(BasePsychopyToolbar):
+    def makeTools(self):
+        # Clear any existing tools
+        self.ClearTools()
+        self.buttons = {}
+
+        # New
+        self.buttons['filenew'] = self.makeTool(
+            name='filenew',
+            label=_translate('New'),
+            shortcut='new',
+            tooltip=_translate("Create new experiment file"),
+            func=self.frame.fileNew)
+        # Open
+        self.buttons['fileopen'] = self.makeTool(
+            name='fileopen',
+            label=_translate('Open'),
+            shortcut='open',
+            tooltip=_translate("Open an existing experiment file"),
+            func=self.frame.fileOpen)
+        # Save
+        self.buttons['filesave'] = self.makeTool(
+            name='filesave',
+            label=_translate('Save'),
+            shortcut='save',
+            tooltip=_translate("Save current experiment file"),
+            func=self.frame.fileSave)
+        self.frame.cdrBtnSave = self.buttons['filesave']
+        # SaveAs
+        self.buttons['filesaveas'] = self.makeTool(
+            name='filesaveas',
+            label=_translate('Save As...'),
+            shortcut='saveAs',
+            tooltip=_translate("Save current experiment file as..."),
+            func=self.frame.fileSaveAs)
+        # Undo
+        self.buttons['undo'] = self.makeTool(
+            name='undo',
+            label=_translate('Undo'),
+            shortcut='undo',
+            tooltip=_translate("Undo last action"),
+            func=self.frame.undo)
+        self.frame.cdrBtnUndo = self.buttons['undo']
+        # Redo
+        self.buttons['redo'] = self.makeTool(
+            name='redo',
+            label=_translate('Redo'),
+            shortcut='redo',
+            tooltip=_translate("Redo last action"),
+            func=self.frame.redo)
+        self.frame.cdrBtnRedo = self.buttons['redo']
+
+        self.AddSeparator()  # Separator
+
+        # Monitor center
+        self.buttons['monitors'] = self.makeTool(
+            name='monitors',
+            label=_translate('Monitor Center'),
+            shortcut='none',
+            tooltip=_translate("Monitor settings and calibration"),
+            func=self.frame.app.openMonitorCenter)
+        # Color picker
+        self.buttons['color'] = self.makeTool(
+            name='color',
+            label=_translate('Color Picker'),
+            shortcut='none',
+            tooltip=_translate("Color Picker -> clipboard"),
+            func=self.frame.app.colorPicker)
+
+        self.AddSeparator()
+
+        # Send to runner
+        self.buttons['runner'] = self.makeTool(
+            'runner', _translate('Runner'), 'runnerScript',
+            _translate("Send experiment to Runner"),
+            self.frame.runFile)
+        self.frame.cdrBtnRunner = self.buttons['runner']
+        self.buttons['run'] = self.makeTool(
+            'run', _translate('Run'), 'runScript',
+            _translate("Run experiment"),
+            self.frame.runFile)
+        self.frame.cdrBtnRun = self.buttons['run']
+
+        self.AddSeparator()
+
+        # Pavlovia sync
+        self.buttons['pavSync'] = self.makeTool(
+            name='globe_greensync',
+            label=_translate("Sync online"),
+            tooltip=_translate("Sync with web project (at pavlovia.org)"),
+            func=self.frame.onPavloviaSync)
+        # Pavlovia search
+        self.buttons['pavSearch'] = self.makeTool(
+            name='globe_magnifier',
+            label=_translate("Search Pavlovia.org"),
+            tooltip=_translate("Find existing studies online (at pavlovia.org)"),
+            func=self.onPavloviaSearch)
+        # Pavlovia user
+        self.buttons['pavUser'] = self.makeTool(
+            name='globe_user',
+            label=_translate("Current Pavlovia user"),
+            tooltip=_translate("Log in/out of Pavlovia.org, view your user profile."),
+            func=self.onPavloviaUser)
+
+    def onPavloviaSearch(self, evt=None):
+        searchDlg = SearchFrame(
+                app=self.frame.app, parent=self.frame,
+                pos=self.frame.GetPosition())
+        searchDlg.Show()
+
+    def onPavloviaUser(self, evt=None):
+        userDlg = UserFrame(self.frame)
+        userDlg.ShowModal()

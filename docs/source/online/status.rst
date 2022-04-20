@@ -46,7 +46,7 @@ The table below shows you the current state of play of PsychoJS. Per feature we 
     :ref:`Code <code>`, :darkgreen:`Built-in`, Insert snippets of programming code\, which can be automatically translated from Python to JavaScript
     :ref:`Loops <loops>`, :darkgreen:`Built-in`, Loops allow randomization and importing condition files.
     :ref:`Staircases <loops>`, :darkorange:`Prototype`, Adapt aspects of a trial based on earlier responses of a participant. Try out a "Just Noticeable Difference" staircase via  `staircase-demo <https://pavlovia.org/demos/staircase-demo/>`_
-    :ref:`Multistair <loops>`, :darkorange:`Prototype`, Interleave several basic staircases. This is currently possible through interleaving basic stair prototype (note that in this prototype the staircase list is randomly shuffled each time). You can try a `pavlovia demo <https://pavlovia.org/demos/interleaved-staircase>`_
+    :ref:`Multistair <loops>`, :darkorange:`Prototype`, Interleave several basic staircases. This is currently possible through interleaving basic stair prototype (note that in this prototype the staircase list is randomly shuffled each time). You can try a `Pavlovia demo <https://pavlovia.org/demos/interleaved-staircase>`_
     :ref:`QUEST staircases <loops>`, :darkgreen:`Prototype`, This is currently supported via `jsQUEST <https://github.com/kurokida/jsQUEST>`_ you can `try a demo <https://run.pavlovia.org/tpronk/demo_jsquest/>`_ and access the `gitlab project <https://gitlab.pavlovia.org/tpronk/demo_jsquest>`_ to build on for your own research
   **External Tools**,,
     AMT, :darkgreen:`Built-in`, Amazon Mechanical Turk. See instructions in this `forum post <https://discourse.psychopy.org/t/how-to-use-mturk-for-recruiting/8486/7>`_

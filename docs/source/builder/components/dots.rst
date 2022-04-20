@@ -5,7 +5,7 @@ Dots (RDK) Component
 
 The Dots Component allows you to present a Random Dot Kinematogram (RDK) to the participant of your study. Note that this component is **not yet supported for online use** (see `status of online options <https://www.psychopy.org/online/status.html>`_) but users have contributed `work arounds for use online <https://gitlab.pavlovia.org/Francesco_Cabiddu/staircaserdk>`_. These are fields of dots that drift in different directions and subjects are typically required to identify the 'global motion' of the field.
 
-There are many ways to define the motion of the signal and noise dots. In PsychoPy the way the dots are configured follows `Scase, Braddick & Raymond (1996) <http://www.sciencedirect.com/science/article/pii/0042698995003258>`_. Although Scase et al (1996) show that the choice of algorithm for your dots actually makes relatively little difference there are some **potential** gotchas. Think carefully about whether each of these will affect your particular case:
+There are many ways to define the motion of the signal and noise dots. In |PsychoPy| the way the dots are configured follows `Scase, Braddick & Raymond (1996) <http://www.sciencedirect.com/science/article/pii/0042698995003258>`_. Although Scase et al (1996) show that the choice of algorithm for your dots actually makes relatively little difference there are some **potential** gotchas. Think carefully about whether each of these will affect your particular case:
 
 *   **limited dot lifetimes:** as your dots drift in one direction they go off the edge of the stimulus and are replaced randomly in the stimulus field. This could lead to a higher density of dots in the direction of motion providing subjects with an alternative cue to direction. Keeping dot lives relatively short prevents this.
 
@@ -13,13 +13,13 @@ There are many ways to define the motion of the signal and noise dots. In Psycho
 
 *   **signalDots='same':** on each frame the dots constituting the signal could be the same as on the previous frame or different. If 'different', participants could follow a single dot for a long time and calculate its average direction of motion to get the 'global' direction, because the dots would sometimes take a random direction and sometimes take the signal direction.
 
-As a result of these, the defaults for PsychoPy are to have signalDots that are from a 'different' population, noise dots that have random 'direction' and a dot life of 3 frames.
+As a result of these, the defaults for |PsychoPy| are to have signalDots that are from a 'different' population, noise dots that have random 'direction' and a dot life of 3 frames.
 
 Parameters
 ~~~~~~~~~~~~
 
 name :
-    Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
+    Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
 start :
     The time that the stimulus should first appear. See :ref:`startStop` for details.

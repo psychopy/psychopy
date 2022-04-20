@@ -6,7 +6,7 @@ Textbox Component
 This component can be used either to present text to the participant, or to allow free-text answers via the keyboard.
 
 name : string
-    Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
+    Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
 start :
     The time that the stimulus should first appear. See :ref:`startStop` for details.
@@ -75,7 +75,7 @@ Formatting
 Formatting text
 
 font : string
-    What font should the text be set in? Can be a font installed on your computer, saved to the "fonts" folder in your PsychoPy user folder or (if you are connected to the internet), a font from Google Fonts.
+    What font should the text be set in? Can be a font installed on your computer, saved to the "fonts" folder in your |PsychoPy| user folder or (if you are connected to the internet), a font from Google Fonts.
 
 language style : LTR, RTL, Arabic
     Should text be laid out from left to right (LTR), from right to left (RTL), or laid out like Arabic script?

@@ -53,7 +53,7 @@ following to be there, and they should only be used in the original way (or some
     t      # time within the trial loop, referenced to `trialClock`
     x,  y  # mouse coordinates, but only if the experimenter uses a mouse component
 
-Handling of variable names is under active development, so this list may well be out of date. (If so, you might consider updating it or posting a note to the PsychoPy Discourse developer forum.)
+Handling of variable names is under active development, so this list may well be out of date. (If so, you might consider updating it or posting a note to the |PsychoPy| Discourse developer forum.)
 
 Preliminary testing suggests that there are 600-ish names from numpy or numpy.random, plus the following::
 
@@ -86,7 +86,7 @@ Notes & gotchas
 ----------------
 
     *syntax errors in new_comp.py:*
-        The PsychoPy app will fail to start if there are syntax error in any of the components that are auto-detected. Just correct them and start the app again.
+        The |PsychoPy| app will fail to start if there are syntax error in any of the components that are auto-detected. Just correct them and start the app again.
 
     *param[].val:*
         If you have a boolean variable (e.g., `my_flag`) as one of your params, note that `self.param["my_flag"]` is always True (the param exists --> True). So in a boolean context you almost always want the `.val` part, e.g., `if self.param["my_flag"].val:`.
