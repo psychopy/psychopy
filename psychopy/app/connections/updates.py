@@ -82,7 +82,7 @@ class Updater():
             self.runningVersion = runningVersion
 
         # self.headers = {'User-Agent': psychopy.constants.PSYCHOPY_USERAGENT}
-        self.latest = None
+        self.latest = getLatestVersionInfo()
         if web.proxies is None:
             web.setupProxy()
 
