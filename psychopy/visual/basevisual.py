@@ -1339,13 +1339,22 @@ class WindowMixin:
     def width(self, value):
         # Convert to a numpy array
         value = numpy.array(value)
+        # Get original size
+        size = self.size
         # Set size
         if len(self.size.shape) == 1:
             # Set first value if a 1d array
-            self.size[0] = value
+            size[0] = value
         elif len(self.size.shape) == 2:
             # Set first column if a 2d array
-            self.size[:, 0] = value
+            size[:, 0] = value
+        else:
+            raise NotImplementedError(
+                f"Cannot set height and width for {type(self).__name__} objects with more than 2 dimensions. "
+                f"Please use .size instead."
+            )
+
+        self.size = size
 
     @property
     def height(self):
@@ -1360,13 +1369,22 @@ class WindowMixin:
     def height(self, value):
         # Convert to a numpy array
         value = numpy.array(value)
+        # Get original size
+        size = self.size
         # Set size
         if len(self.size.shape) == 1:
-            # Set first value if a 1d array
-            self.size[1] = value
+            # Set second value if a 1d array
+            size[1] = value
         elif len(self.size.shape) == 2:
-            # Set first column if a 2d array
-            self.size[:, 1] = value
+            # Set second column if a 2d array
+            size[:, 1] = value
+        else:
+            raise NotImplementedError(
+                f"Cannot set height and width for {type(self).__name__} objects with more than 2 dimensions. "
+                f"Please use .size instead."
+            )
+
+        self.size = size
 
     @property
     def vertices(self):
