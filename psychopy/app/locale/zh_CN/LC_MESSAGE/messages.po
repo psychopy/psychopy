@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2021.2.3\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2022-04-02 22:25+0800\n"
+"PO-Revision-Date: 2022-04-20 21:31+0800\n"
 "Last-Translator: Shun Wang <shuonwang@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -265,9 +265,9 @@ msgid ""
 "PsychoPy depends on your feedback. If something doesn't work\n"
 "then let us know at psychopy-users@googlegroups.com"
 msgstr ""
-"PsychoPy是用 Python 编写的刺激生成和实验控制程序。\n"
-"如果某项内容不能正常工作请告诉我们，非常感谢您的反馈。\n"
-"联系我们：psychopy-users@googlegroups.com"
+"用于 Python 中的刺激生成和实验控制。\n"
+"PsychoPy 非常感谢您的反馈。 如果某项内容不能正常工作\n"
+"请让我们知道，练习psychopy-users@googlegroups.com"
 
 #: ../app/builder/builder.py:76 ../app/builder/localizedStrings.py:111
 msgid "Field"
@@ -766,66 +766,66 @@ msgstr "编辑"
 #: ../app/builder/builder.py:2675
 #, python-format
 msgid "&Close readme\t%s"
-msgstr ""
+msgstr "&关闭 readme\t%s"
 
 #: ../app/builder/builder.py:2805
 msgid "rename"
-msgstr ""
+msgstr "重命名"
 
 #: ../app/builder/builder.py:2817
 msgid "Insert Routine "
-msgstr ""
+msgstr "插入例程 "
 
 #: ../app/builder/builder.py:2818
 msgid "Insert Loop     "
-msgstr ""
+msgstr "插入循环     "
 
 #: ../app/builder/builder.py:2882
 msgid "Insert Routine"
-msgstr ""
+msgstr "插入例程 "
 
 #: ../app/builder/builder.py:2884
 msgid "Insert Loop"
-msgstr ""
+msgstr "插入循环"
 
 #: ../app/builder/builder.py:2912
 msgid "Select a Routine to insert (Esc to exit)"
-msgstr ""
+msgstr "选择一个要插入的例程(按 Esc 退出)"
 
 #: ../app/builder/builder.py:2955
 msgid "CANCEL Insert"
-msgstr ""
+msgstr "取消插入"
 
 #: ../app/builder/builder.py:2956
 msgid "Click where you want to insert the Routine, or CANCEL insert."
-msgstr ""
+msgstr "单击要插入例程的位置，或取消插入。"
 
 #: ../app/builder/builder.py:2988
 msgid "CANCEL insert"
-msgstr ""
+msgstr "取消插入"
 
 #: ../app/builder/builder.py:2990
 msgid "Click where you want the loop to start/end, or CANCEL insert."
-msgstr ""
+msgstr "单击您希望循环 开始/结束 的位置，或取消插入。"
 
 #: ../app/builder/builder.py:2999
 msgid "Click the other end for the loop"
-msgstr ""
+msgstr "单击循环的其他结尾"
 
 #: ../app/builder/builder.py:3229
 #, python-format
 msgid ""
 "The \"%s\" Loop is about to be deleted as well (by collapsing). OK to "
 "proceed?"
-msgstr ""
+msgstr "“%s” 循环也即将被删除（由于崩溃）。 需要继续吗？"
 
 #: ../app/builder/builder.py:3231
 msgid "Impending Loop collapse"
-msgstr ""
+msgstr "即将到来的循环崩溃"
 
 #: ../app/builder/dialogs/__init__.py:224
 msgid "set during: "
-msgstr ""
+msgstr "期间设置："
 
 #: ../app/builder/dialogs/__init__.py:699
 #: ../app/builder/dialogs/__init__.py:701
@@ -864,22 +864,22 @@ msgstr " 取消 "
 #: ../app/builder/dialogs/__init__.py:990
 #, python-format
 msgid "That name is in use (it's a %s). Try another name."
-msgstr ""
+msgstr "该名称正在使用中（它是 %s）。 试试别的名字。"
 
 #: ../app/builder/dialogs/__init__.py:994
 #: ../app/builder/dialogs/dlgsConditions.py:304
 #: ../app/builder/dialogs/dlgsConditions.py:591
 msgid "Name must be alphanumeric or _, no spaces"
-msgstr ""
+msgstr "名称必须是字母数字或 下划线_，不能有空格"
 
 #: ../app/builder/dialogs/__init__.py:1213
 #: ../app/builder/dialogs/__init__.py:1387
 msgid "No parameters set"
-msgstr ""
+msgstr "未设置参数"
 
 #: ../app/builder/dialogs/__init__.py:1289
 msgid "No parameters set (select a file above)"
-msgstr ""
+msgstr "未设置参数（选择上面的文件）"
 
 #: ../app/builder/dialogs/__init__.py:1376
 #, python-format
@@ -887,31 +887,33 @@ msgid ""
 "%(nCondition)i conditions, with %(nParam)i parameters\n"
 "%(paramStr)s"
 msgstr ""
+"%(nCondition)i 个条件，带有 %(nParam)i 个参数\n"
+"%(paramStr)s"
 
 #: ../app/builder/dialogs/__init__.py:1385
 #: ../app/builder/dialogs/__init__.py:1611
 msgid "No parameters set (conditionsFile not found)"
-msgstr ""
+msgstr "未设置参数（未找到 conditionsFile）"
 
 #: ../app/builder/dialogs/__init__.py:1459
 msgid "Could not read conditions from:\n"
-msgstr ""
+msgstr "无法从以下位置读取条件：\n"
 
 #: ../app/builder/dialogs/__init__.py:1479
 msgid "Configuration error in conditions file"
-msgstr ""
+msgstr "条件文件中存在配置错误"
 
 #: ../app/builder/dialogs/__init__.py:1484
 msgid "Bad condition name(s) in file:\n"
-msgstr ""
+msgstr "文件中的错误条件名称:\n"
 
 #: ../app/builder/dialogs/__init__.py:1500
 msgid "Builder variable(s) ({}) in file:{}"
-msgstr ""
+msgstr "Builder 变量 ({})在文件：{}"
 
 #: ../app/builder/dialogs/__init__.py:1599
 msgid "Badly formed condition name(s) in file:\n"
-msgstr ""
+msgstr "错误的格式条件名称位于文件：\n"
 
 #: ../app/builder/dialogs/__init__.py:1601
 msgid ""
@@ -923,7 +925,7 @@ msgstr ""
 
 #: ../app/builder/dialogs/dlgsCode.py:118
 msgid "disabled"
-msgstr ""
+msgstr "禁用"
 
 #: ../app/builder/dialogs/dlgsCode.py:242
 msgid ""
