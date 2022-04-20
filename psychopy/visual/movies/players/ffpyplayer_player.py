@@ -130,7 +130,7 @@ class FFPyPlayer(BaseMoviePlayer):
             mediaPath=self._filename,
             title=metadata['title'],
             duration=metadata['duration'],
-            # frameRate=metadata['frame_rate'],
+            frameRate=metadata['frame_rate'],
             size=metadata['src_vid_size'],
             pixelFormat=metadata['src_pix_fmt'],
             movieLib=self._movieLib,

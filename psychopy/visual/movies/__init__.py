@@ -15,9 +15,10 @@ import sys
 import threading
 import ctypes
 import weakref
+import math
 
 from psychopy import core, logging
-from psychopy.clock import Clock
+from psychopy.clock import Clock, getTime
 from psychopy.tools.attributetools import logAttrib, setAttribute
 from psychopy.tools.filetools import pathToString
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
@@ -125,8 +126,8 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         self._videoClock = Clock()
         self._absMovieStartTime = -1.0
 
-        # time the video was started in experiment time
-        self._absStartTime = 0.0
+        # absolute experiment time playback was last started
+        self._lastPlayStartAbsTime = -1.0
 
         self._volume = volume
         self._noAudio = noAudio  # cannot be changed
@@ -316,9 +317,10 @@ class MovieStim(BaseVisualStim, ContainerMixin):
 
         """
         # get the absolute experiment time the first frame is to be presented
-        self._absMovieStartTime = self.win.getFutureFlipTime()
+        self._videoClock = Clock()
         self._player.seek(0.0)
         self._player.play(log=log)
+        self._absMovieStartTime = getTime()
 
     def pause(self, log=True):
         """Pause the current point in the movie. The image of the last frame
@@ -467,6 +469,55 @@ class MovieStim(BaseVisualStim, ContainerMixin):
     # def frameTime(self):
     #     """Current frame time in seconds (`float`)."""
     #     return self._frameTime
+
+    # --------------------------------------------------------------------------
+    # Timing related methods
+    #
+    # The methods here are used to handle timing data to pass along to the
+    # player. Eventually we may want to move these methods out to the player
+    # classes themselves as each may handle this stuff differently.
+    #
+
+    def getStartAbsTime(self):
+        """Get the absolute experiment time in seconds the movie starts at
+        (`float`).
+
+        This value reflects the time which the movie would have started if
+        played continuously from the start. Seeking and pausing the movie causes
+        this value to change.
+        """
+        if not self._hasPlayer:
+            return -1.0
+
+        # get the time the movie was started
+        tMovieStartAbsTime = getTime() - self._player.pts
+
+        return tMovieStartAbsTime
+
+    def getCurrentFrameIndex(self):
+        """Get the index of the frame that should be presented now (`int`)."""
+        if not self._hasPlayer:
+            return -1.0
+
+        frameRate = self._player.getMetadata().frameRate
+        frameIdx = math.floor(self._player.pts / (1.0 / frameRate))
+
+        return frameIdx
+
+    def getNextFrameAbsTime(self):
+        """Get the absolute experiment time the next frame should be displayed
+        at (`float`).
+        """
+        if not self._hasPlayer:
+            return -1.0
+
+    def getElapsedTime(self):
+        """Elapsed movie time in seconds (`float`).
+        """
+        if not self._hasPlayer:
+            return -1.0
+
+        return self.getStartAbsTime()
 
     def getCurrentFrameTime(self):
         """Get the time that the movie file specified the current video frame as
