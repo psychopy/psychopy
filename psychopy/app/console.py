@@ -13,7 +13,7 @@ consoles/terminals within the PsychoPy GUI suite.
 # This module can be expanded to centralize management for all console related
 # actions in the future.
 #
-
+import os.path
 import sys
 
 
@@ -40,11 +40,13 @@ class StdStreamDispatcher:
     _instance = None
     _initialized = False
     _app = None  # reference to parent app
+    _logFile = None
 
-    def __init__(self, app):
+    def __init__(self, app, logFile=None):
         # only setup if previously not instanced
         if not self._initialized:
             self._app = app
+            self._logFile = logFile
             self._initialized = True
 
     def __new__(cls, *args, **kwargs):
@@ -81,8 +83,19 @@ class StdStreamDispatcher:
         """
         return cls._initialized
 
+    @property
+    def logFile(self):
+        """Log file for standard streams (`str` or `None`).
+        """
+        return self._logFile
+
+    @logFile.setter
+    def logFile(self, val):
+        self._logFile = val
+
     def redirect(self):
-        """Redirect `stdout` and `stderr` to listeners."""
+        """Redirect `stdout` and `stderr` to listeners.
+        """
         sys.stdout = sys.stderr = self
 
     def write(self, text):
@@ -119,6 +132,12 @@ class StdStreamDispatcher:
         runner = self._app.runner
         if runner is not None:
             runner.stdOut.write(text)
+
+        # write to log file
+        if self._logFile is not None:
+            with open(self._logFile, 'a') as lf:
+                lf.write(text)
+                lf.flush()
 
     def flush(self):
         pass
