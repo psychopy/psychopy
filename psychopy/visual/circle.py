@@ -12,6 +12,7 @@ as a special case of a :class:`~psychopy.visual.Polygon`
 import psychopy  # so we can get the __path__
 
 from psychopy.visual.polygon import Polygon
+import numpy as np
 
 
 class Circle(Polygon):
@@ -161,3 +162,38 @@ class Circle(Polygon):
             autoDraw=autoDraw,
             color=color,
             colorSpace=colorSpace)
+
+    def getSector(self, theta):
+        """
+        Return a copy of this Circle, whose vertices are reduced such that only a sector of angle theta is visible.
+        """
+        assert theta <= 360, "When retrieving a sector of a circle, its angle cannot exceed 360."
+        # Copy this circle, but with 360 edges
+        sector = Polygon(
+            self.win,
+            radius=self.radius,
+            edges=360,
+            units=self.units,
+            lineWidth=self.lineWidth,
+            lineColor=self._borderColor,
+            fillColor=self._fillColor,
+            pos=self.pos,
+            size=self.size,
+            anchor=self.anchor,
+            ori=self.ori,
+            contrast=self.contrast or 1,
+            depth=self.depth,
+            interpolate=self.interpolate,
+            autoLog=self.autoLog,
+            autoDraw=self.autoDraw,
+        )
+        # Get vertices of arc
+        arc = sector.vertices[:int(theta)]
+        # Add midpoint to start and end of vertices and apply
+        sector.vertices = np.vstack([
+            (0, 0),
+            arc,
+            (0, 0)]
+        )
+
+        return sector
