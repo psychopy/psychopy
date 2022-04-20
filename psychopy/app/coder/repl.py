@@ -174,9 +174,9 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
 
         # Disable smart substitutions for quotes and slashes, uses illegal
         # characters that cannot be evaluated by the interpreter correctly.
-        if wx.Platform == '__WXMAC__':
-            self.txtTerm.OSXDisableAllSmartSubstitutions()
-            self.txtTerm.MacCheckSpelling(False)
+        # if wx.Platform == '__WXMAC__':
+        #     self.txtTerm.OSXDisableAllSmartSubstitutions()
+        #     self.txtTerm.MacCheckSpelling(False)
 
         self.txtTerm.WriteText("Hit [Return] to start a Python session.")
         self._lastTextPos = self.txtTerm.GetLastPosition()
