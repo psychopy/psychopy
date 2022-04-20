@@ -33,6 +33,7 @@ def styleToolbar(target):
     target.SetBackgroundColour(colors.app['frame_bg'])
     # Recreate tools
     target.makeTools()
+    target.Realize()
 
 
 def styleNotebook(target):
