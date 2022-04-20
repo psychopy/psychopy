@@ -363,40 +363,28 @@ class _TestUnitsMixin:
         del obj
         del win
 
-    def test_wh_setters(self):
-        """
-        Test that the width and height setters function the same as using the size setter
-        """
-        # Define some sizes to try out
-        cases = [
-            {'size': 100,
-             'units': 'pix'},
-            {'size': 200,
-             'units': 'pix'},
-        ]
-        # Setup window for this test
-        monitor = Monitor("testMonitor")
-        monitor.setSizePix((256, 128))
-        monitor.setWidth(4)
-        monitor.setDistance(50)
-        win = visual.Window(size=(256, 128), monitor=monitor)
-        win.useRetina = False
-        # Create duplicate of object for safety
-        obj = copy(self.obj)
-        obj.win = win
-        # Try each case
-        for case in cases:
-            # Set units
-            obj.units = case['units']
-            # Set width and height using setters
-            obj.width = case['size']
-            obj.height = case['size']
-            # Check that the resulting size is as desired
-            assert all(obj.size == case['size'])
-        # Cleanup
-        win.close()
-        del obj
-        del win
+    # def test_wh_setters(self):
+    #     """
+    #     Test that the width and height setters function the same as using the size setter
+    #     """
+    #     # Define some sizes to try out
+    #     cases = [
+    #         {'size': 100,
+    #          'units': 'pix'},
+    #         {'size': 200,
+    #          'units': 'pix'},
+    #     ]
+    #     # Create duplicate of object for safety
+    #     obj = copy(self.obj)
+    #     # Try each case
+    #     for case in cases:
+    #         # Set units
+    #         obj.units = case['units']
+    #         # Set width and height using setters
+    #         obj.width = case['size']
+    #         obj.height = case['size']
+    #         # Check that the resulting size is as desired
+    #         assert all(obj.size == case['size'])
 
     def test_unit_mismatch(self):
         """
