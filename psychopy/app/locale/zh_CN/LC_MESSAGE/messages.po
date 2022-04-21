@@ -521,7 +521,7 @@ msgstr "&实验"
 #: ../app/builder/builder.py:439
 #, python-format
 msgid "&New Routine\t%s"
-msgstr "&New Routine\t%s"
+msgstr "&新建例程\t%s"
 
 #: ../app/builder/builder.py:440
 msgid "Create a new routine (e.g. the trial definition)"
@@ -965,16 +965,16 @@ msgstr ""
 
 #: ../app/builder/dialogs/dlgsConditions.py:169
 msgid "Params:"
-msgstr ""
+msgstr "参数:"
 
 #: ../app/builder/dialogs/dlgsConditions.py:178
 msgid "type:"
-msgstr ""
+msgstr "类型:"
 
 #: ../app/builder/dialogs/dlgsConditions.py:234
 #, python-format
 msgid "cond %s:"
-msgstr ""
+msgstr "条件 %s:"
 
 #: ../app/builder/dialogs/dlgsConditions.py:270
 msgid "Should be legal as a variable name (alphanumeric)"
@@ -986,7 +986,7 @@ msgstr ""
 
 #: ../app/builder/dialogs/dlgsConditions.py:448
 msgid "PREVIEW"
-msgstr ""
+msgstr "预览"
 
 #: ../app/builder/dialogs/dlgsConditions.py:485
 msgid "+cond."
@@ -1008,7 +1008,7 @@ msgstr ""
 
 #: ../app/builder/dialogs/dlgsConditions.py:499
 msgid "Preview"
-msgstr ""
+msgstr "预览"
 
 #: ../app/builder/dialogs/dlgsConditions.py:500
 msgid ""
@@ -1018,15 +1018,15 @@ msgstr ""
 
 #: ../app/builder/dialogs/dlgsConditions.py:506
 msgid "Save as"
-msgstr ""
+msgstr "另存为"
 
 #: ../app/builder/dialogs/dlgsConditions.py:518
 msgid "Go to online help"
-msgstr ""
+msgstr "转到在线帮助"
 
 #: ../app/builder/dialogs/dlgsConditions.py:525
 msgid "Save and exit"
-msgstr ""
+msgstr "保存并退出"
 
 #: ../app/builder/dialogs/dlgsConditions.py:532
 msgid "Exit, discard any edits"
@@ -1068,7 +1068,7 @@ msgstr ""
 
 #: ../app/builder/localizedStrings.py:22
 msgid "Basic"
-msgstr ""
+msgstr "基础"
 
 #: ../app/builder/localizedStrings.py:23
 #: ../experiment/components/settings/__init__.py:56
@@ -1077,16 +1077,16 @@ msgstr "颜色"
 
 #: ../app/builder/localizedStrings.py:24
 msgid "Layout"
-msgstr ""
+msgstr "布局"
 
 #: ../app/builder/localizedStrings.py:25
 msgid "Data"
-msgstr ""
+msgstr "数据"
 
 #: ../app/builder/localizedStrings.py:26
 #: ../experiment/components/settings/__init__.py:54
 msgid "Screen"
-msgstr ""
+msgstr "屏幕"
 
 #: ../app/builder/localizedStrings.py:27
 msgid "Dots"
@@ -1098,7 +1098,7 @@ msgstr ""
 
 #: ../app/builder/localizedStrings.py:29
 msgid "Advanced"
-msgstr ""
+msgstr "高级"
 
 #: ../app/builder/localizedStrings.py:31
 msgid "Carrier"
@@ -1114,11 +1114,11 @@ msgstr ""
 
 #: ../app/builder/localizedStrings.py:35
 msgid "Online"
-msgstr ""
+msgstr "在线"
 
 #: ../app/builder/localizedStrings.py:36
 msgid "Testing"
-msgstr ""
+msgstr "测试"
 
 #: ../app/builder/localizedStrings.py:37 ../tools/wizard.py:51
 msgid "Audio"
@@ -1126,7 +1126,7 @@ msgstr "音频"
 
 #: ../app/builder/localizedStrings.py:38
 msgid "Format"
-msgstr ""
+msgstr "格式"
 
 #: ../app/builder/localizedStrings.py:39
 msgid "Formatting"
@@ -1134,11 +1134,11 @@ msgstr ""
 
 #: ../app/builder/localizedStrings.py:40
 msgid "Eyetracking"
-msgstr ""
+msgstr "眼动追踪"
 
 #: ../app/builder/localizedStrings.py:41
 msgid "Target"
-msgstr ""
+msgstr "目标"
 
 #: ../app/builder/localizedStrings.py:42
 msgid "Animation"
@@ -1158,7 +1158,7 @@ msgstr ""
 
 #: ../app/builder/localizedStrings.py:51
 msgid "linear"
-msgstr ""
+msgstr "线性"
 
 #: ../app/builder/localizedStrings.py:52
 msgid "nearest"
@@ -1262,7 +1262,7 @@ msgstr ""
 
 #: ../app/builder/localizedStrings.py:81
 msgid "time (s)"
-msgstr ""
+msgstr "时间 (s)"
 
 #: ../app/builder/localizedStrings.py:82
 msgid "frame N"
@@ -1298,7 +1298,7 @@ msgstr "添加"
 
 #: ../app/builder/localizedStrings.py:98 ../app/builder/localizedStrings.py:140
 msgid "average"
-msgstr ""
+msgstr "平均"
 
 #: ../app/builder/localizedStrings.py:99
 msgid "use preferences"
@@ -1322,7 +1322,7 @@ msgstr ""
 
 #: ../app/builder/localizedStrings.py:105
 msgid "info"
-msgstr ""
+msgstr "信息"
 
 #: ../app/builder/localizedStrings.py:106
 msgid "exp"
@@ -1334,11 +1334,11 @@ msgstr ""
 
 #: ../app/builder/localizedStrings.py:108
 msgid "warning"
-msgstr ""
+msgstr "警告"
 
 #: ../app/builder/localizedStrings.py:109
 msgid "error"
-msgstr ""
+msgstr "错误"
 
 #: ../app/builder/localizedStrings.py:114
 msgid "any click"
@@ -1406,11 +1406,11 @@ msgstr ""
 
 #: ../app/builder/localizedStrings.py:134
 msgid "rows"
-msgstr ""
+msgstr "行"
 
 #: ../app/builder/localizedStrings.py:135
 msgid "columns"
-msgstr ""
+msgstr "列"
 
 #: ../app/builder/localizedStrings.py:137
 msgid "first"
@@ -1434,19 +1434,19 @@ msgstr " 避免在名称中使用 `this`、`these`、`continue`、`Clock` 或 `c
 
 #: ../app/builder/localizedStrings.py:146
 msgid "Builder variable"
-msgstr ""
+msgstr "Builder 变量"
 
 #: ../app/builder/localizedStrings.py:147
 msgid "Psychopy module"
-msgstr ""
+msgstr "Psychopy 模块"
 
 #: ../app/builder/localizedStrings.py:148
 msgid "numpy function"
-msgstr ""
+msgstr "numpy 函数"
 
 #: ../app/builder/localizedStrings.py:149
 msgid "python keyword"
-msgstr ""
+msgstr "python 关键字"
 
 #: ../app/builder/localizedStrings.py:151
 msgid "look at"
@@ -1511,7 +1511,7 @@ msgstr ""
 
 #: ../app/coder/codeEditorBase.py:117 ../app/coder/coder.py:156
 msgid "Cut"
-msgstr ""
+msgstr "剪切"
 
 #: ../app/coder/codeEditorBase.py:118 ../app/coder/coder.py:157
 msgid "Copy"
@@ -1519,24 +1519,24 @@ msgstr "复制"
 
 #: ../app/coder/codeEditorBase.py:119 ../app/coder/coder.py:159
 msgid "Paste"
-msgstr ""
+msgstr "粘贴"
 
 #: ../app/coder/codeEditorBase.py:120 ../app/coder/fileBrowser.py:236
 #: ../monitors/MonitorCenter.py:274 ../monitors/MonitorCenter.py:295
 msgid "Delete"
-msgstr ""
+msgstr "删除"
 
 #: ../app/coder/codeEditorBase.py:121 ../app/coder/coder.py:165
 msgid "Select All"
-msgstr ""
+msgstr "全选"
 
 #: ../app/coder/coder.py:81 ../app/runner/runner.py:354
 msgid "basic"
-msgstr ""
+msgstr "基础"
 
 #: ../app/coder/coder.py:82 ../app/runner/runner.py:355
 msgid "input"
-msgstr ""
+msgstr "输入"
 
 #: ../app/coder/coder.py:83 ../app/runner/runner.py:356
 msgid "stimuli"
@@ -1548,7 +1548,7 @@ msgstr ""
 
 #: ../app/coder/coder.py:86 ../app/runner/runner.py:359
 msgid "hardware"
-msgstr ""
+msgstr "硬件"
 
 #: ../app/coder/coder.py:87 ../app/runner/runner.py:360
 msgid "timing"
@@ -1568,7 +1568,7 @@ msgstr ""
 
 #: ../app/coder/coder.py:160
 msgid "Paste And Run"
-msgstr ""
+msgstr "粘贴并运行"
 
 #: ../app/coder/coder.py:161
 msgid "Clear"
@@ -1663,7 +1663,7 @@ msgstr ""
 
 #: ../app/coder/coder.py:1339
 msgid "Output"
-msgstr ""
+msgstr "输出"
 
 #: ../app/coder/coder.py:1348
 msgid "Shelf"
@@ -1696,11 +1696,11 @@ msgstr ""
 #: ../app/coder/coder.py:1481
 #, python-format
 msgid "Print\t%s"
-msgstr ""
+msgstr "打印"
 
 #: ../app/coder/coder.py:1496
 msgid "Close PsychoPy Coder"
-msgstr ""
+msgstr "关闭 Psychopy Coder"
 
 #: ../app/coder/coder.py:1510
 #, python-format
