@@ -163,30 +163,48 @@ class Circle(Polygon):
             color=color,
             colorSpace=colorSpace)
 
-    def getSector(self, theta):
+    def getSector(self, theta, useCache=True):
         """
         Return a copy of this Circle, whose vertices are reduced such that only a sector of angle theta is visible.
         """
+        def _newSector(parent):
+            """
+            Copy this circle, but with 360 edges
+            """
+            return Polygon(
+                parent.win,
+                radius=parent.radius,
+                edges=360,
+                units=parent.units,
+                lineWidth=parent.lineWidth,
+                lineColor=parent._borderColor,
+                fillColor=parent._fillColor,
+                pos=parent.pos,
+                size=parent.size,
+                anchor=parent.anchor,
+                ori=parent.ori,
+                contrast=parent.contrast or 1,
+                depth=parent.depth,
+                interpolate=parent.interpolate,
+                autoLog=parent.autoLog,
+                autoDraw=parent.autoDraw,
+            )
+
         assert theta <= 360, "When retrieving a sector of a circle, its angle cannot exceed 360."
-        # Copy this circle, but with 360 edges
-        sector = Polygon(
-            self.win,
-            radius=self.radius,
-            edges=360,
-            units=self.units,
-            lineWidth=self.lineWidth,
-            lineColor=self._borderColor,
-            fillColor=self._fillColor,
-            pos=self.pos,
-            size=self.size,
-            anchor=self.anchor,
-            ori=self.ori,
-            contrast=self.contrast or 1,
-            depth=self.depth,
-            interpolate=self.interpolate,
-            autoLog=self.autoLog,
-            autoDraw=self.autoDraw,
-        )
+
+        if useCache:
+            # If useCache, use last cached sector object
+            if hasattr(self, "_lastSector"):
+                sector = self._lastSector
+            else:
+                sector = self._lastSector = _newSector(self)
+        else:
+            # Otherwise, make a new one
+            sector = _newSector(self)
+
+        # Get 360 point circular vertices
+        sector.edges = 360
+        sector._calcVertices()
         # Get vertices of arc
         arc = sector.vertices[:int(theta)]
         # Add midpoint to start and end of vertices and apply
@@ -195,5 +213,6 @@ class Circle(Polygon):
             arc,
             (0, 0)]
         )
+        sector._updateVertices()
 
         return sector
