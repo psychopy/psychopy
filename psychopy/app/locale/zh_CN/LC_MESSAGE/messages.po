@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2021.2.3\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2022-04-20 21:31+0800\n"
+"PO-Revision-Date: 2022-04-22 22:22+0800\n"
 "Last-Translator: Shun Wang <shuonwang@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -782,7 +782,7 @@ msgstr "插入循环     "
 
 #: ../app/builder/builder.py:2882
 msgid "Insert Routine"
-msgstr "插入例程 "
+msgstr "插入例程"
 
 #: ../app/builder/builder.py:2884
 msgid "Insert Loop"
@@ -825,7 +825,7 @@ msgstr "即将到来的循环崩溃"
 
 #: ../app/builder/dialogs/__init__.py:224
 msgid "set during: "
-msgstr "期间设置："
+msgstr "期间设置: "
 
 #: ../app/builder/dialogs/__init__.py:699
 #: ../app/builder/dialogs/__init__.py:701
@@ -843,7 +843,7 @@ msgstr " 帮助 "
 #: ../app/builder/dialogs/__init__.py:794
 #: ../app/builder/dialogs/dlgsCode.py:147
 msgid "Go to online help about this component"
-msgstr ""
+msgstr "转到有关此组件的在线帮助"
 
 #: ../app/builder/dialogs/__init__.py:800
 #: ../app/builder/dialogs/dlgsCode.py:149
@@ -939,7 +939,7 @@ msgstr ""
 
 #: ../app/builder/dialogs/dlgsCode.py:244
 msgid "Warning: requires the metapensiero library"
-msgstr ""
+msgstr "警告：需要 metapensiero 库"
 
 #: ../app/builder/dialogs/dlgsCode.py:276
 msgid ""
@@ -953,7 +953,7 @@ msgstr ""
 
 #: ../app/builder/dialogs/dlgsCode.py:278
 msgid "Warning: Python to JavaScript Translation"
-msgstr ""
+msgstr "警告：Python 到 JavaScript 的转译"
 
 #: ../app/builder/dialogs/dlgsConditions.py:88
 msgid "New (no file)"
@@ -990,21 +990,21 @@ msgstr "预览"
 
 #: ../app/builder/dialogs/dlgsConditions.py:485
 msgid "+cond."
-msgstr ""
+msgstr "+条件"
 
 #: ../app/builder/dialogs/dlgsConditions.py:486
 msgid "Add a condition (row); to delete a condition, delete all of its values."
-msgstr ""
+msgstr "添加条件（行）； 要删除条件，请删除其所有值。"
 
 #: ../app/builder/dialogs/dlgsConditions.py:492
 msgid "+param"
-msgstr ""
+msgstr "+参数"
 
 #: ../app/builder/dialogs/dlgsConditions.py:493
 msgid ""
 "Add a parameter (column); to delete a param, set its type to None, or delete "
 "all of its values."
-msgstr ""
+msgstr "添加参数（列）； 删除参数，将其类型设置为 None，或删除其所有值。"
 
 #: ../app/builder/dialogs/dlgsConditions.py:499
 msgid "Preview"
@@ -1030,33 +1030,33 @@ msgstr "保存并退出"
 
 #: ../app/builder/dialogs/dlgsConditions.py:532
 msgid "Exit, discard any edits"
-msgstr ""
+msgstr "退出，放弃所有编辑"
 
 #: ../app/builder/dialogs/dlgsConditions.py:604
 msgid "Param name(s) adjusted to be legal. Look ok?"
-msgstr ""
+msgstr "参数名称已调整为合法的。 这样看起来OK吗？"
 
 #: ../app/builder/dialogs/paramCtrls.py:145
 #: ../app/builder/dialogs/paramCtrls.py:421
 msgid ""
 "This parameter will be treated as code - we have already put in the $, so "
 "you don't have to."
-msgstr ""
+msgstr "此参数将被视为代码 - 我们已经放入 $,因此您不必这样做。"
 
 #: ../app/builder/dialogs/paramCtrls.py:259
 #: ../app/builder/dialogs/paramCtrls.py:334
 msgid "Specify file ..."
-msgstr ""
+msgstr "指定文件..."
 
 #: ../app/builder/dialogs/paramCtrls.py:340
 msgid "Open/create in your default table editor"
-msgstr ""
+msgstr "在您的默认表格编辑器中打开/创建"
 
 #: ../app/builder/dialogs/paramCtrls.py:383
 msgid ""
 "Once you have created and saved your table,please remember to add it to "
 "{name}"
-msgstr ""
+msgstr "创建并保存表格后，请记住将其添加到 {name}"
 
 #: ../app/builder/dialogs/paramCtrls.py:386
 msgid "Reminder"
@@ -1580,26 +1580,26 @@ msgstr ""
 
 #: ../app/coder/coder.py:383
 msgid "&Tests"
-msgstr ""
+msgstr "&测试"
 
 #: ../app/coder/coder.py:386
 #, python-format
 msgid "&Run tests\t%s"
-msgstr ""
+msgstr "&运行测试\t%s"
 
 #: ../app/coder/coder.py:389
 #, python-format
 msgid "&Close tests panel\t%s"
-msgstr ""
+msgstr "&关闭测试面板\t%s"
 
 #: ../app/coder/coder.py:394
 #, python-format
 msgid "Go to &Coder view\t%s"
-msgstr ""
+msgstr "转到 &Coder 视图\t%s"
 
 #: ../app/coder/coder.py:395
 msgid "Go to the Coder view"
-msgstr ""
+msgstr "跳转到 Coder 视图"
 
 #: ../app/coder/coder.py:402
 msgid "Terminate PsychoPy"
@@ -1607,7 +1607,7 @@ msgstr ""
 
 #: ../app/coder/coder.py:405
 msgid "&Preferences"
-msgstr ""
+msgstr "&首选项"
 
 #: ../app/coder/coder.py:425
 msgid ""
@@ -1696,7 +1696,7 @@ msgstr ""
 #: ../app/coder/coder.py:1481
 #, python-format
 msgid "Print\t%s"
-msgstr "打印"
+msgstr "打印\t%s"
 
 #: ../app/coder/coder.py:1496
 msgid "Close PsychoPy Coder"
@@ -2737,7 +2737,7 @@ msgstr ""
 
 #: ../app/preferencesDlg.py:30 ../app/preferencesDlg.py:38
 msgid "Hardware"
-msgstr ""
+msgstr "硬件"
 
 #: ../app/preferencesDlg.py:31 ../app/preferencesDlg.py:39
 msgid "Connections"
