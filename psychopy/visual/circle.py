@@ -190,7 +190,8 @@ class Circle(Polygon):
                 autoDraw=parent.autoDraw,
             )
 
-        assert theta <= 360, "When retrieving a sector of a circle, its angle cannot exceed 360."
+        # Use modulus to account for multiple/negative rotations of theta
+        theta = theta % 360
 
         if useCache:
             # If useCache, use last cached sector object
