@@ -1239,6 +1239,20 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         """
         setAttribute(self, 'font', font, log)
 
+    # -------- legacy attributes --------
+
+    @property
+    def startText(self):
+        """
+        In v2022.1.4, `.startText` was replaced by `.placeholder` for consistency with PsychoJS. The two attributes
+        are fully interchangeable.
+        """
+        return self.placeholder
+
+    @startText.setter
+    def startText(self, value):
+        self.placeholder = value
+
 
 class Caret(ColorMixin):
     """
@@ -1408,18 +1422,3 @@ class Caret(ColorMixin):
             [x, bottom],
             [x, top]
         ])
-
-    # -------- legacy attributes --------
-
-    @property
-    def startText(self):
-        """
-        In v2022.1.4, `.startText` was replaced by `.placeholder` for consistency with PsychoJS. The two attributes
-        are fully interchangeable.
-        """
-        return self.placeholder
-
-    @startText.setter
-    def startText(self, value):
-        self.placeholder = value
-
