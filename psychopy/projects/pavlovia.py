@@ -477,22 +477,25 @@ class PavloviaSearch(pandas.DataFrame):
         filterBy = self.FilterTerm(filterBy)
         # Do search
         try:
+            session = getCurrentSession()
             if mine:
                 # Display experiments by current user
-                session = getCurrentSession()
                 data = requests.get(
                     f"https://pavlovia.org/api/v2/designers/{session.userID}/experiments?search={term}{filterBy}",
+                    headers={'OauthToken': session.getToken()},
                     timeout=5
                 ).json()
             elif term or filterBy:
                 data = requests.get(
                     f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}",
+                    headers={'OauthToken': session.getToken()},
                     timeout=5
                 ).json()
             else:
                 # Display demos for blank search
                 data = requests.get(
                     "https://pavlovia.org/api/v2/experiments?search=demos&designer=demos",
+                    headers={'OauthToken': session.getToken()},
                     timeout=5
                 ).json()
         except requests.exceptions.ReadTimeout:
