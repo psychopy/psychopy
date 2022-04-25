@@ -141,7 +141,10 @@ class User(dict):
         # Get info from Pavlovia
         if isinstance(id, (float, int, str)):
             # If given a number or string, treat it as a user ID / username
-            self.info = requests.get("https://pavlovia.org/api/v2/designers/" + str(id)).json()['designer']
+            self.info = requests.get(
+                "https://pavlovia.org/api/v2/designers/" + str(id),
+                headers={'OauthToken': self.session.getToken()},
+            ).json()['designer']
         elif isinstance(id, dict) and 'gitlabId' in id:
             # If given a dict from Pavlovia rather than an ID, store it rather than requesting again
             self.info = id
@@ -602,8 +605,10 @@ class PavloviaProject(dict):
         self._info = None
         # for a new project it may take time for Pavlovia to register the new ID so try for a while
         while self._info is None and (time.time() - start) < 30:
-            requestVal = requests.get(f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
-                                      headers={'OauthToken': self.session.getToken()}).json()
+            requestVal = requests.get(
+                f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
+                headers={'OauthToken': self.session.getToken()}
+            ).json()
             self._info = requestVal['experiment']
         if self._info is None:
             raise ValueError(f"Could not find project with id `{self.id}` on Pavlovia: {requestVal}")
