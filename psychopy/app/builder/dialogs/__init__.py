@@ -32,7 +32,7 @@ from psychopy.tools import versionchooser as vc
 from ...colorpicker import PsychoColorPicker
 from pathlib import Path
 
-from ...themes import handlers
+from ...themes import handlers, icons
 
 white = wx.Colour(255, 255, 255, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
@@ -221,16 +221,13 @@ class ParamCtrls():
                         routineName, static.params['name'])
                     allowedUpdates.append(msg + fullName)
                     updateLabels.append(localizedMsg + fullName)
-            self.updateCtrl = wx.Choice(parent, choices=updateLabels)
-            # stash non-localized choices to allow retrieval by index:
-            self.updateCtrl._choices = copy.copy(allowedUpdates)
             # If parameter isn't in list, default to the first choice
             if param.updates not in allowedUpdates:
                 param.updates = allowedUpdates[0]
-            # get index of the currently set update value, set display:
-            index = allowedUpdates.index(param.updates)
-            # set by integer index, not string value
-            self.updateCtrl.SetSelection(index)
+            # Make updates ctrl
+            self.updateCtrl = UpdatesCtrl(parent, choices=updateLabels, initial=param.updates)
+            # stash non-localized choices to allow retrieval by index:
+            self.updateCtrl._choices = copy.copy(allowedUpdates)
 
         if param.allowedUpdates != None and len(param.allowedUpdates) == 1:
             self.updateCtrl.Disable()  # visible but can't be changed
@@ -315,7 +312,7 @@ class ParamCtrls():
         """Get the current value of the updates ctrl
         """
         if self.updateCtrl:
-            return self._getCtrlValue(self.updateCtrl)
+            return self.updateCtrl.getValue()
 
     def setVisible(self, newVal=True):
         self._visible = newVal
@@ -383,6 +380,130 @@ class ParamCtrls():
         else:
             print("setChangesCallback doesn't know how to handle ctrl {}"
                   .format(type(self.valueCtrl)))
+
+
+class UpdatesCtrl(wx.Button):
+    """
+    Control for the kind of updates for a parameter in a ParamNotebook.
+
+    Displays only the icon associated with the current choice, with a tooltip on hover. On click, opens a menu
+    with options listed by text and associated icons.
+    """
+    bitmaps = {
+        "constant": icons.ButtonIcon(stem="constant", size=(16, 16)),
+        "set every repeat": icons.ButtonIcon(stem="everyrepeat", size=(16, 16)),
+        "set every frame": icons.ButtonIcon(stem="everyframe", size=(16, 16)),
+        "static": icons.ButtonIcon(stem="setduring", size=(16, 16)),
+        None: wx.Bitmap(),
+    }
+
+    tooltips = {
+        "constant": _translate("Value will be set just once at the start of the experiment."),
+        "set every repeat": _translate("Value will be set at the start of this routine, each time it repeats."),
+        "set every frame": _translate("Value will be set every frame that the component is active."),
+        "static": _translate("Value will be set during the static component '{}'"),
+        None: "",
+    }
+
+    def __init__(self, parent, choices, size=(48, 24), initial="constant"):
+        wx.Button.__init__(self, parent, label="▼", size=size)
+        self.parent = parent
+        # Setup bitmap
+        self.SetBitmap(self._getBitmapFromValue(initial))
+        self.SetBitmapPosition(wx.LEFT)
+        self.SetBitmapMargins(4, 4)
+        self.setValue(initial)
+        # Make arrow smaller
+        self.SetFont(
+            self.GetFont().MakeSmaller().MakeSmaller()
+        )
+        # Make menu
+        self.menu = wx.Menu()
+        self.menu.Bind(wx.EVT_MENU, self.onMenuSelect)
+        for choice in choices:
+            btn = self.menu.Append(id=wx.ID_ANY, item=choice)
+            bmp = self._getBitmapFromValue(choice)
+            btn.SetBitmap(bmp)
+        self.Bind(wx.EVT_BUTTON, self.popupMenu)
+
+    def popupMenu(self, evt=None):
+        """
+        Open menu like in wx.Choice
+        """
+        self.PopupMenu(self.menu)
+
+    def onMenuSelect(self, evt=None):
+        """
+        Take a wx.EVT_MENU event and set the appropriate value from it
+        """
+        # Get button
+        id = evt.GetId()
+        btn = self.menu.FindItemById(id)
+        # Get value
+        val = btn.GetItemLabel()
+        # Set value
+        self.setValue(val)
+
+    def setValue(self, value):
+        """
+        Set the value of this control, will also update the bitmap
+        """
+        # Cache value
+        self._value = value
+        # Set tooltip
+        tt = self._getTooltipFromValue(value)
+        self.SetToolTipString(tt)
+        # Get appropriate bitmap
+        bmp = self._getBitmapFromValue(value)
+        # Set bitmaps
+        self.SetBitmap(bmp)
+        self.SetBitmapPressed(bmp)
+        self.SetBitmapLabel(bmp)
+        self.SetBitmapCurrent(bmp)
+        self.SetBitmapFocus(bmp)
+        self.SetBitmapDisabled(bmp.ConvertToDisabled())
+        self.Refresh()
+
+    def getValue(self):
+        """
+        Get value, if set, otherwise will return None.
+        """
+        if hasattr(self, "_value"):
+            # Return cached value
+            return self._value
+
+    def _getBitmapFromValue(self, value):
+        """
+        Work out what bitmap corresponds to a given value
+        """
+        if value in self.bitmaps:
+            # If value is in bitmap dict, return from dict
+            icn = self.bitmaps[value]
+        elif "set during" in value:
+            # If we're setting during a static component, return bitmap for static
+            icn = self.bitmaps["static"]
+        else:
+            # Otherwise, use fallback bitmap
+            icn = self.bitmaps[None]
+
+        return icn.bitmap
+
+    def _getTooltipFromValue(self, value):
+        """
+        Work out what tooltip corresponds to a given value
+        """
+        if value in self.tooltips:
+            # If value is in tooltips dict, return from dict
+            tt = self.tooltips[value]
+        elif "set during" in value:
+            # If we're setting during a static component, return tooltip for static
+            compName = value.replace("set during: ", "")
+            tt = self.tooltips["static"].format(compName)
+        else:
+            # Otherwise, use fallback
+            tt = self.tooltips[None]
+
+        return tt
 
 
 class StartStopCtrls(wx.GridBagSizer):
@@ -683,7 +804,7 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
             # Get update type
             if hasattr(ctrl, "updateCtrl"):
                 if ctrl.updateCtrl:
-                    updates = ctrl.updateCtrl._choices[ctrl.updateCtrl.GetSelection()]
+                    updates = ctrl.updateCtrl.getValue()
                     # may also need to update a static
                     if param.updates != updates:
                         self._updateStaticUpdates(fieldName,
