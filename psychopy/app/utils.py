@@ -959,7 +959,8 @@ class IconCtrl(wx.Button):
         """
         Open menu like in wx.Choice
         """
-        self.PopupMenu(self.menu)
+        w, h = self.GetSize()
+        self.PopupMenu(self.menu, (0, h))
 
     def onMenuSelect(self, evt=None):
         """
