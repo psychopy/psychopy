@@ -1302,7 +1302,7 @@ msgstr "平均"
 
 #: ../app/builder/localizedStrings.py:99
 msgid "use preferences"
-msgstr ""
+msgstr "使用首选项设置"
 
 #: ../app/builder/localizedStrings.py:100
 msgid "on Sync"
@@ -1330,7 +1330,7 @@ msgstr ""
 
 #: ../app/builder/localizedStrings.py:107
 msgid "data"
-msgstr ""
+msgstr "数据"
 
 #: ../app/builder/localizedStrings.py:108
 msgid "warning"
@@ -1572,11 +1572,11 @@ msgstr "粘贴并运行"
 
 #: ../app/coder/coder.py:161
 msgid "Clear"
-msgstr ""
+msgstr ""清除
 
 #: ../app/coder/coder.py:355
 msgid "PsychoPy unit testing"
-msgstr ""
+msgstr "PsychoPy 单元测试"
 
 #: ../app/coder/coder.py:383
 msgid "&Tests"
@@ -1617,7 +1617,7 @@ msgstr ""
 
 #: ../app/coder/coder.py:433
 msgid "Run tests"
-msgstr ""
+msgstr "运行测试"
 
 #: ../app/coder/coder.py:441
 msgid "Coverage Report"
@@ -1671,19 +1671,19 @@ msgstr ""
 
 #: ../app/coder/coder.py:1364 ../tools/wizard.py:515
 msgid "Welcome to PsychoPy3!"
-msgstr ""
+msgstr "欢迎使用 PsychoPy3!"
 
 #: ../app/coder/coder.py:1463
 msgid "Save current file"
-msgstr ""
+msgstr "保存当前文件"
 
 #: ../app/coder/coder.py:1466
 msgid "Save current python file as..."
-msgstr ""
+msgstr "将当前 python 文件另存为"
 
 #: ../app/coder/coder.py:1469
 msgid "Close current file"
-msgstr ""
+msgstr "关闭当前文件"
 
 #: ../app/coder/coder.py:1471
 msgid "Close all files"
@@ -1691,7 +1691,7 @@ msgstr "关闭所有文件"
 
 #: ../app/coder/coder.py:1472
 msgid "Close all files in the editor."
-msgstr ""
+msgstr "关闭编辑器中所有文件"
 
 #: ../app/coder/coder.py:1481
 #, python-format
@@ -1710,7 +1710,7 @@ msgstr ""
 #: ../app/coder/coder.py:1512
 #, python-format
 msgid "&Copy\t%s"
-msgstr ""
+msgstr "&复制\t%s"
 
 #: ../app/coder/coder.py:1516
 msgid "Duplicate the current line (or current selection)"
@@ -1814,7 +1814,7 @@ msgstr ""
 
 #: ../app/coder/coder.py:1597
 msgid "Reset font"
-msgstr ""
+msgstr "重置字体"
 
 #: ../app/coder/coder.py:1598
 msgid "Return fonts to their original size."
@@ -1831,11 +1831,11 @@ msgstr ""
 
 #: ../app/coder/coder.py:1620 ../app/coder/fileBrowser.py:328
 msgid "Choose directory ..."
-msgstr ""
+msgstr "选择目录..."
 
 #: ../app/coder/coder.py:1624
 msgid "Change working directory to ..."
-msgstr ""
+msgstr "更改工作目录为..."
 
 #: ../app/coder/coder.py:1645
 msgid "Panels"
@@ -1934,12 +1934,12 @@ msgstr ""
 
 #: ../app/coder/coder.py:2002 ../app/coder/coder.py:2056
 msgid "Reloading file"
-msgstr ""
+msgstr "重新加载文件"
 
 #: ../app/coder/coder.py:2136 ../app/coder/coder.py:2547
 #, python-format
 msgid "Save changes to %s before quitting?"
-msgstr ""
+msgstr "在退出前是否保存 %s ？"
 
 #: ../app/coder/coder.py:2273
 msgid "Failed to open `{}`. Make sure that encoding of the file is utf-8."
@@ -1947,7 +1947,7 @@ msgstr ""
 
 #: ../app/coder/coder.py:2380
 msgid "Loading file"
-msgstr ""
+msgstr "正在加载文件"
 
 #: ../app/coder/coder.py:2439
 #, python-format
@@ -1966,7 +1966,7 @@ msgstr ""
 
 #: ../app/coder/coder.py:2459
 msgid "Saving file"
-msgstr ""
+msgstr "正在保存文件"
 
 #: ../app/coder/coder.py:2502
 msgid ""
@@ -1987,47 +1987,47 @@ msgstr ""
 
 #: ../app/coder/fileBrowser.py:136
 msgid "Directory:"
-msgstr ""
+msgstr "目录:"
 
 #: ../app/coder/fileBrowser.py:219
 msgid "New Folder"
-msgstr ""
+msgstr "新建文件夹"
 
 #: ../app/coder/fileBrowser.py:222
 msgid "Create a new folder in the current folder"
-msgstr ""
+msgstr "在当前路径中新建一个文件夹"
 
 #: ../app/coder/fileBrowser.py:230
 msgid "Rename the selected folder or file"
-msgstr ""
+msgstr "重命名所选的文件或文件夹"
 
 #: ../app/coder/fileBrowser.py:238
 msgid "Delete the selected folder or file"
-msgstr ""
+msgstr "删除所选的文件或文件夹"
 
 #: ../app/coder/fileBrowser.py:244
 msgid "Goto"
-msgstr ""
+msgstr "转到"
 
 #: ../app/coder/fileBrowser.py:246
 msgid "Jump to another folder"
-msgstr ""
+msgstr "跳转到其他文件夹"
 
 #: ../app/coder/fileBrowser.py:254 ../app/coder/fileBrowser.py:310
 msgid "Browse ..."
-msgstr ""
+msgstr "浏览 ..."
 
 #: ../app/coder/fileBrowser.py:255 ../app/coder/fileBrowser.py:311
 msgid "Browse the file system for a directory to open"
-msgstr ""
+msgstr "浏览要打开的文件夹"
 
 #: ../app/coder/fileBrowser.py:260 ../app/coder/fileBrowser.py:315
 msgid "Current working directory"
-msgstr ""
+msgstr "当前工作目录"
 
 #: ../app/coder/fileBrowser.py:261 ../app/coder/fileBrowser.py:316
 msgid "Open the current working directory"
-msgstr ""
+msgstr "打开当前工作目录"
 
 #: ../app/coder/fileBrowser.py:266 ../app/coder/fileBrowser.py:320
 msgid "Open the directory the current editor file is located"
@@ -2041,15 +2041,15 @@ msgstr ""
 
 #: ../app/coder/fileBrowser.py:339
 msgid "Enter folder name:"
-msgstr ""
+msgstr "输入文件夹名称:"
 
 #: ../app/coder/fileBrowser.py:340
 msgid "New folder"
-msgstr ""
+msgstr "新建文件夹"
 
 #: ../app/coder/fileBrowser.py:351
 msgid "Folder name cannot be empty."
-msgstr ""
+msgstr "文件夹名称不能为空"
 
 #: ../app/coder/fileBrowser.py:363
 msgid "Cannot create folder `{}`, already exists."
@@ -2065,7 +2065,7 @@ msgstr ""
 
 #: ../app/coder/fileBrowser.py:419
 msgid "Rename Folder"
-msgstr ""
+msgstr "重命名文件夹"
 
 #: ../app/coder/fileBrowser.py:429 ../app/coder/fileBrowser.py:465
 msgid "Cannot rename `{}` to `{}`."
@@ -2077,7 +2077,7 @@ msgstr ""
 
 #: ../app/coder/fileBrowser.py:453
 msgid "Rename file"
-msgstr ""
+msgstr "重命名文件"
 
 #: ../app/coder/fileBrowser.py:490
 msgid "Are you sure you want to PERMANENTLY delete folder `{}`?"
@@ -2129,7 +2129,7 @@ msgstr ""
 
 #: ../app/colorpicker/__init__.py:219
 msgid "&Insert"
-msgstr ""
+msgstr "&插入"
 
 #: ../app/colorpicker/__init__.py:225
 msgid "Canc&el"
@@ -2137,11 +2137,11 @@ msgstr ""
 
 #: ../app/colorpicker/__init__.py:228
 msgid "Insert color value."
-msgstr ""
+msgstr "插入色彩值"
 
 #: ../app/colorpicker/__init__.py:230
 msgid "Copy color value to clipboard."
-msgstr ""
+msgstr "复制色值到剪贴板"
 
 #: ../app/connections/updates.py:102
 msgid "Couldn't connect to psychopy.org to check for updates. \n"
@@ -2154,7 +2154,7 @@ msgstr ""
 #: ../app/connections/updates.py:108 ../app/connections/updates.py:157
 #: ../app/connections/updates.py:176
 msgid "PsychoPy updates"
-msgstr ""
+msgstr "Psychopy 升级"
 
 #: ../app/connections/updates.py:147
 #, python-format
@@ -2174,11 +2174,11 @@ msgstr ""
 
 #: ../app/connections/updates.py:158
 msgid "Go to downloads"
-msgstr ""
+msgstr "转到下载"
 
 #: ../app/connections/updates.py:160
 msgid "Go to changelog"
-msgstr ""
+msgstr "转到更新日志"
 
 #: ../app/connections/updates.py:161
 msgid "Later"
@@ -2211,7 +2211,7 @@ msgstr ""
 
 #: ../app/connections/updates.py:215
 msgid "View complete Changelog"
-msgstr ""
+msgstr "查看完整更新日志"
 
 #: ../app/connections/updates.py:219
 msgid "You can update PsychoPy with your package manager"
@@ -2223,23 +2223,23 @@ msgstr ""
 
 #: ../app/connections/updates.py:237
 msgid "Keep warning me"
-msgstr ""
+msgstr "继续为我警告"
 
 #: ../app/connections/updates.py:240
 msgid "Stop warning me"
-msgstr ""
+msgstr "停止为我警告"
 
 #: ../app/connections/updates.py:245
 msgid "Not now"
-msgstr ""
+msgstr "现在不要"
 
 #: ../app/connections/updates.py:247
 msgid "Skip this version"
-msgstr ""
+msgstr "跳过此版本"
 
 #: ../app/connections/updates.py:284
 msgid "PsychoPy Updates"
-msgstr ""
+msgstr "Psychopy 升级"
 
 #: ../app/connections/updates.py:293
 msgid " Auto-update (will fetch latest version)"
@@ -2389,25 +2389,25 @@ msgstr ""
 
 #: ../app/connections/updates.py:242 ../app/dialogs.py:51 ../app/dialogs.py:71
 msgid "Yes"
-msgstr ""
+msgstr "是"
 
 #: ../app/coder/coder.py:435 ../app/dialogs.py:54
 #: ../app/pavlovia_ui/project.py:100 ../app/pavlovia_ui/project.py:629
 msgid "Cancel"
-msgstr ""
+msgstr "取消"
 
 #: ../app/dialogs.py:55 ../app/dialogs.py:73
 msgid "No"
-msgstr ""
+msgstr "否"
 
 #: ../app/dialogs.py:84 ../app/pavlovia_ui/project.py:627
 #: ../app/pavlovia_ui/user.py:65
 msgid "OK"
-msgstr ""
+msgstr "好的"
 
 #: ../app/errorDlg.py:27
 msgid "PsychoPy3 Error"
-msgstr ""
+msgstr "Psychopy 错误"
 
 #: ../app/errorDlg.py:34
 msgid ""
