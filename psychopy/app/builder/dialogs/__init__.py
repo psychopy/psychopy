@@ -406,6 +406,27 @@ class UpdatesCtrl(IconCtrl):
         None: "",
     }
 
+    def _getBitmapFromValue(self, value):
+        if "set during" in value:
+            # If we're setting during a static, intercept value before getting bitmap
+            bmp = IconCtrl._getBitmapFromValue(self, "static")
+        else:
+            bmp = IconCtrl._getBitmapFromValue(self, value)
+
+        return bmp
+
+    def _getTooltipFromValue(self, value):
+        if "set during" in value:
+            # If we're setting during a static, intercept value before getting tooltip...
+            compName = value.replace("set during: ", "")
+            tt = IconCtrl._getTooltipFromValue(self, "static")
+            # ...and fill in the component name
+            tt = tt.format(compName)
+        else:
+            tt = IconCtrl._getTooltipFromValue(self, value)
+
+        return tt
+
 
 class StartStopCtrls(wx.GridBagSizer):
     def __init__(self, parent, params):
