@@ -33,6 +33,7 @@ from ...colorpicker import PsychoColorPicker
 from pathlib import Path
 
 from ...themes import handlers, icons
+from ...utils import IconCtrl
 
 white = wx.Colour(255, 255, 255, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
@@ -382,7 +383,7 @@ class ParamCtrls():
                   .format(type(self.valueCtrl)))
 
 
-class UpdatesCtrl(wx.Button):
+class UpdatesCtrl(IconCtrl):
     """
     Control for the kind of updates for a parameter in a ParamNotebook.
 
@@ -404,106 +405,6 @@ class UpdatesCtrl(wx.Button):
         "static": _translate("Value will be set during the static component '{}'"),
         None: "",
     }
-
-    def __init__(self, parent, choices, size=(48, 24), initial="constant"):
-        wx.Button.__init__(self, parent, label="▼", size=size)
-        self.parent = parent
-        # Setup bitmap
-        self.SetBitmap(self._getBitmapFromValue(initial))
-        self.SetBitmapPosition(wx.LEFT)
-        self.SetBitmapMargins(4, 4)
-        self.setValue(initial)
-        # Make arrow smaller
-        self.SetFont(
-            self.GetFont().MakeSmaller().MakeSmaller()
-        )
-        # Make menu
-        self.menu = wx.Menu()
-        self.menu.Bind(wx.EVT_MENU, self.onMenuSelect)
-        for choice in choices:
-            btn = self.menu.Append(id=wx.ID_ANY, item=choice)
-            bmp = self._getBitmapFromValue(choice)
-            btn.SetBitmap(bmp)
-        self.Bind(wx.EVT_BUTTON, self.popupMenu)
-
-    def popupMenu(self, evt=None):
-        """
-        Open menu like in wx.Choice
-        """
-        self.PopupMenu(self.menu)
-
-    def onMenuSelect(self, evt=None):
-        """
-        Take a wx.EVT_MENU event and set the appropriate value from it
-        """
-        # Get button
-        id = evt.GetId()
-        btn = self.menu.FindItemById(id)
-        # Get value
-        val = btn.GetItemLabel()
-        # Set value
-        self.setValue(val)
-
-    def setValue(self, value):
-        """
-        Set the value of this control, will also update the bitmap
-        """
-        # Cache value
-        self._value = value
-        # Set tooltip
-        tt = self._getTooltipFromValue(value)
-        self.SetToolTipString(tt)
-        # Get appropriate bitmap
-        bmp = self._getBitmapFromValue(value)
-        # Set bitmaps
-        self.SetBitmap(bmp)
-        self.SetBitmapPressed(bmp)
-        self.SetBitmapLabel(bmp)
-        self.SetBitmapCurrent(bmp)
-        self.SetBitmapFocus(bmp)
-        self.SetBitmapDisabled(bmp.ConvertToDisabled())
-        self.Refresh()
-
-    def getValue(self):
-        """
-        Get value, if set, otherwise will return None.
-        """
-        if hasattr(self, "_value"):
-            # Return cached value
-            return self._value
-
-    def _getBitmapFromValue(self, value):
-        """
-        Work out what bitmap corresponds to a given value
-        """
-        if value in self.bitmaps:
-            # If value is in bitmap dict, return from dict
-            icn = self.bitmaps[value]
-        elif "set during" in value:
-            # If we're setting during a static component, return bitmap for static
-            icn = self.bitmaps["static"]
-        else:
-            # Otherwise, use fallback bitmap
-            icn = self.bitmaps[None]
-
-        return icn.bitmap
-
-    def _getTooltipFromValue(self, value):
-        """
-        Work out what tooltip corresponds to a given value
-        """
-        if value in self.tooltips:
-            # If value is in tooltips dict, return from dict
-            tt = self.tooltips[value]
-        elif "set during" in value:
-            # If we're setting during a static component, return tooltip for static
-            compName = value.replace("set during: ", "")
-            tt = self.tooltips["static"].format(compName)
-        else:
-            # Otherwise, use fallback
-            tt = self.tooltips[None]
-
-        return tt
 
 
 class StartStopCtrls(wx.GridBagSizer):
