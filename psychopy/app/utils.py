@@ -973,6 +973,11 @@ class IconCtrl(wx.Button):
         val = btn.GetItemLabel()
         # Set value
         self.setValue(val)
+        # Emit event
+        evt = wx.CommandEvent(wx.EVT_CHOICE.typeId)
+        evt.SetEventObject(self)
+        evt.SetString(val)
+        wx.PostEvent(self, evt)
 
     def setValue(self, value):
         """
