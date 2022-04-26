@@ -202,15 +202,9 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         """
         return self._textureId
 
-    def updateVideoFrame(self, forceUpdate=False):
+    def updateVideoFrame(self):
         """Update the present video frame. The next call to `draw()` will make
         the retrieved frame appear.
-
-        Parameters
-        ----------
-        forceUpdate : bool
-            Force a frame update. This synchronizes the video with the video
-            timer. This should be set to `True` after seeking the video stream.
 
         Returns
         -------
@@ -220,12 +214,10 @@ class MovieStim(BaseVisualStim, ContainerMixin):
             on-screen.
 
         """
-        # Don't get a new frame if we haven't reached its presentation
-        # timestamp yet. Just use the last frame again.
-        nextMovieFrameTime = self.win.getFutureFlipTime() - self._absMovieStartTime
-
         # get the current movie frame for the video time
-        this_frame = self._player.getMovieFrame(absTime=nextMovieFrameTime)
+        this_frame = self._player.getMovieFrame(
+            absTime=self._player.absToMovieTime(
+                self.win.getFutureFlipTime()))
 
         if this_frame is NULL_MOVIE_FRAME_INFO:
             return self._recentFrame
@@ -469,73 +461,6 @@ class MovieStim(BaseVisualStim, ContainerMixin):
     # def frameTime(self):
     #     """Current frame time in seconds (`float`)."""
     #     return self._frameTime
-
-    # --------------------------------------------------------------------------
-    # Timing related methods
-    #
-    # The methods here are used to handle timing data to pass along to the
-    # player. Eventually we may want to move these methods out to the player
-    # classes themselves as each may handle this stuff differently.
-    #
-
-    def getStartAbsTime(self):
-        """Get the absolute experiment time in seconds the movie starts at
-        (`float`).
-
-        This value reflects the time which the movie would have started if
-        played continuously from the start. Seeking and pausing the movie causes
-        this value to change.
-        """
-        if not self._hasPlayer:
-            return -1.0
-
-        # get the time the movie was started
-        tMovieStartAbsTime = getTime() - self._player.pts
-
-        return tMovieStartAbsTime
-
-    def getCurrentFrameIndex(self):
-        """Get the index of the frame that should be presented now (`int`)."""
-        if not self._hasPlayer:
-            return -1.0
-
-        frameRate = self._player.getMetadata().frameRate
-        frameIdx = math.floor(self._player.pts / (1.0 / frameRate))
-
-        return frameIdx
-
-    def getNextFrameAbsTime(self):
-        """Get the absolute experiment time the next frame should be displayed
-        at (`float`).
-        """
-        if not self._hasPlayer:
-            return -1.0
-
-    def getElapsedTime(self):
-        """Elapsed movie time in seconds (`float`).
-        """
-        if not self._hasPlayer:
-            return -1.0
-
-        return self.getStartAbsTime()
-
-    def getCurrentFrameTime(self):
-        """Get the time that the movie file specified the current video frame as
-        having.
-
-        Returns
-        -------
-        float
-            Current video time in seconds.
-
-        """
-        pass
-
-    def getPercentageComplete(self):
-        """Provides a value between 0.0 and 100.0, indicating the amount of the
-        movie that has been already played.
-        """
-        pass
 
     @property
     def videoSize(self):

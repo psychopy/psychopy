@@ -8,12 +8,14 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from psychopy.core import getTime
 from ._base import BaseMoviePlayer
 from ffpyplayer.player import MediaPlayer
 from ..metadata import MovieMetadata, NULL_MOVIE_METADATA
 from ..frame import MovieFrame, NULL_MOVIE_FRAME_INFO
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 from psychopy.tools.filetools import pathToString
+import math
 import numpy as np
 
 # constants for use with ffpyplayer
@@ -24,10 +26,10 @@ FFPYPLAYER_STATUS_PAUSED = 'paused'
 class FFPyPlayer(BaseMoviePlayer):
     """Interface class for the FFPyPlayer library for use with `MovieStim`.
 
-    Parameters
-    ----------
-    win : `psychopy.visual.Window` or `None`
-        Window the video is being rendered to, required for OpenGL.
+    This class also serves as the reference implementation for classes which
+    interface with movie codec libraries for use with `MovieStim`. Creating new
+    player classes which closely replicate the behaviour of this one should
+    allow them to smoothly plug into `MovieStim`.
 
     """
     _movieLib = 'ffpyplayer'
@@ -36,7 +38,7 @@ class FFPyPlayer(BaseMoviePlayer):
         self._filename = u""
 
         # handle to `ffpyplayer`
-        self._player = None
+        self._handle = None
         self._lastFrameInfo = NULL_MOVIE_FRAME_INFO
 
         # status flags
@@ -48,23 +50,10 @@ class FFPyPlayer(BaseMoviePlayer):
 
         """
         # open the media player
-        self._player = MediaPlayer(self._filename)
-        self._player.set_mute(True)
+        self._handle = MediaPlayer(self._filename)
+        self._handle.set_mute(True)
 
-        # Block until a valid frame is returned from the stream, needed or else
-        # we won't have the metadata needed to crete the pixel/texture buffers.
-        #
-        # NB - We should add a timeout here to prevent the application from
-        # locking up if we can't get a valid frame within a reasonable time.
-        #
-        frame = None
-        while frame is None:
-            frame, _ = self._player.get_frame()
-
-        # pause it once open since `ffpyplayer` plays the video automatically
-        self._player.set_pause(True)
-        self._player.seek(0.0)  # return to beginning
-        self._player.set_mute(False)  # unmute for the user
+        self.enqueueFrame()
 
     def load(self, pathToMovie):
         """Load a movie file from disk.
@@ -81,13 +70,13 @@ class FFPyPlayer(BaseMoviePlayer):
 
         # Check if the player is already started. Close it and load a new
         # instance if so.
-        if self._player is not None:  # player already started
+        if self._handle is not None:  # player already started
             # make sure it's the correct type
-            if not isinstance(self._player, MediaPlayer):
+            if not isinstance(self._handle, MediaPlayer):
                 raise TypeError(
                     'Incorrect type for `FFMovieStim._player`, expected '
                     '`ffpyplayer.player.MediaPlayer`. Got type `{}` '
-                    'instead.'.format(type(self._player).__name__))
+                    'instead.'.format(type(self._handle).__name__))
 
             # close the player and reset
             self.unload()
@@ -101,13 +90,20 @@ class FFPyPlayer(BaseMoviePlayer):
     def unload(self):
         """Unload the video stream and reset.
         """
-        self._player.close_player()
+        self._handle.close_player()
         self._filename = u""
-        self._player = None  # reset
+        self._handle = None  # reset
+
+    @property
+    def handle(self):
+        """Handle to the `MediaPlayer` object exposed by FFPyPlayer. If `None`,
+        no media player object has yet been initialized.
+        """
+        return self._handle
 
     @property
     def isLoaded(self):
-        return self._player is not None
+        return self._handle is not None
 
     def getMetadata(self):
         """Get metadata from the movie stream.
@@ -123,7 +119,7 @@ class FFPyPlayer(BaseMoviePlayer):
         """
         self._assertMediaPlayer()
 
-        metadata = self._player.get_metadata()
+        metadata = self._handle.get_metadata()
 
         # write metadata to the fields of a `MovieMetadata` object
         toReturn = MovieMetadata(
@@ -143,7 +139,7 @@ class FFPyPlayer(BaseMoviePlayer):
         """Ensure the media player instance is available. Raises a
         `RuntimeError` if no movie is loaded.
         """
-        if isinstance(self._player, MediaPlayer):
+        if isinstance(self._handle, MediaPlayer):
             return  # nop if we're good
 
         raise RuntimeError(
@@ -182,7 +178,7 @@ class FFPyPlayer(BaseMoviePlayer):
         """
         self._assertMediaPlayer()
 
-        return self._player.get_pause()
+        return self._handle.get_pause()
 
     @property
     def isFinished(self):
@@ -213,8 +209,8 @@ class FFPyPlayer(BaseMoviePlayer):
         # if self.status == NOT_STARTED:
         #     self._player.play()
 
-        if self._player.get_pause():  # if paused, unpause to start playback
-            self._player.set_pause(False)
+        if self._handle.get_pause():  # if paused, unpause to start playback
+            self._handle.set_pause(False)
 
         self._status = PLAYING
 
@@ -233,7 +229,7 @@ class FFPyPlayer(BaseMoviePlayer):
         """
         self._assertMediaPlayer()
 
-        self._player.close_player()
+        self._handle.close_player()
         self._status = STOPPED
 
     def pause(self, log=False):
@@ -249,11 +245,74 @@ class FFPyPlayer(BaseMoviePlayer):
         self._assertMediaPlayer()
 
         if not self.isPaused:
-            self._player.set_pause(True)
+            self._handle.set_pause(True)
 
         self._status = PAUSED
 
         return False
+
+    def seek(self, timestamp, log=False):
+        """Seek to a particular timestamp in the movie.
+
+        Parameters
+        ----------
+        timestamp : float
+            Time in seconds.
+        log : bool
+            Log the seek event.
+
+        """
+        self._assertMediaPlayer()
+        self._handle.seek(timestamp)
+
+        return self._handle.get_pts()
+
+    def rewind(self, seconds=5, log=False):
+        """Rewind the video.
+
+        Parameters
+        ----------
+        seconds : float
+            Time in seconds to rewind from the current position. Default is 5
+            seconds.
+        log : bool
+            Log this event.
+
+        Returns
+        -------
+        float
+            Timestamp after rewinding the video.
+
+        """
+        self._assertMediaPlayer()
+
+        self._handle.seek(-seconds, relative=True)
+
+        # after seeking
+        return self._handle.get_pts()
+
+    def fastForward(self, seconds=5, log=False):
+        """Fast-forward the video.
+
+        Parameters
+        ----------
+        seconds : float
+            Time in seconds to fast forward from the current position. Default
+            is 5 seconds.
+        log : bool
+            Log this event.
+
+        Returns
+        -------
+        float
+            Timestamp at new position after fast forwarding the video.
+
+        """
+        self._assertMediaPlayer()
+
+        self._handle.seek(seconds, relative=True)
+
+        return self._handle.get_pts()
 
     def replay(self, autoStart=True, log=False):
         """Replay the movie from the beginning.
@@ -279,72 +338,19 @@ class FFPyPlayer(BaseMoviePlayer):
         self._autoStart = autoStart
         self.load(lastMovieFile)  # will play if auto start
 
-    def seek(self, timestamp, log=False):
-        """Seek to a particular timestamp in the movie.
+    # --------------------------------------------------------------------------
+    # Audio stream control methods
+    #
 
-        Parameters
-        ----------
-        timestamp : float
-            Time in seconds.
-        log : bool
-            Log the seek event.
-
+    @property
+    def muted(self):
+        """`True` if the stream audio is muted (`bool`).
         """
-        self._assertMediaPlayer()
-        self._player.seek(timestamp)
+        return self._handle.get_mute()
 
-        return self._player.get_pts()
-
-    def rewind(self, seconds=5, log=False):
-        """Rewind the video.
-
-        Parameters
-        ----------
-        seconds : float
-            Time in seconds to rewind from the current position. Default is 5
-            seconds.
-        log : bool
-            Log this event.
-
-        Returns
-        -------
-        float
-            Timestamp after rewinding the video.
-
-        """
-        self._assertMediaPlayer()
-
-        self._player.seek(-seconds, relative=True)
-        self._videoClock.reset(self._player.get_pts())
-        _ = self.updateVideoFrame(forceUpdate=True)
-
-        # after seeking
-        return self._player.get_pts()
-
-    def fastForward(self, seconds=5, log=False):
-        """Fast-forward the video.
-
-        Parameters
-        ----------
-        seconds : float
-            Time in seconds to fast forward from the current position. Default
-            is 5 seconds.
-        log : bool
-            Log this event.
-
-        Returns
-        -------
-        float
-            Timestamp at new position after fast forwarding the video.
-
-        """
-        self._assertMediaPlayer()
-
-        self._player.seek(seconds, relative=True)
-        self._videoClock.reset(self._player.get_pts())
-        _ = self.updateVideoFrame(forceUpdate=True)
-
-        return self._player.get_pts()
+    @muted.setter
+    def muted(self, value):
+        self._handle.set_mute(value)
 
     def volumeUp(self, amount):
         """Increase the volume by a fixed amount.
@@ -355,7 +361,12 @@ class FFPyPlayer(BaseMoviePlayer):
             Amount to increase the volume relative to the current volume.
 
         """
-        pass
+        self._assertMediaPlayer()
+
+        # get the current volume from the player
+        self.volume = self.volume + amount
+
+        return self.volume
 
     def volumeDown(self, amount):
         """Decrease the volume by a fixed amount.
@@ -366,12 +377,33 @@ class FFPyPlayer(BaseMoviePlayer):
             Amount to decrease the volume relative to the current volume.
 
         """
-        pass
+        self._assertMediaPlayer()
 
+        # get the current volume from the player
+        self.volume = self.volume - amount
+
+        return self.volume
+
+    @property
     def volume(self):
         """Volume for the audio track for this movie (`int` or `float`).
         """
-        pass
+        self._assertMediaPlayer()
+
+        return self._handle.get_volume()
+
+    @volume.setter
+    def volume(self, value):
+        self._assertMediaPlayer()
+
+        self._handle.set_volume(max(min(value, 1.0), 0.0))
+
+    # --------------------------------------------------------------------------
+    # Timing related methods
+    #
+    # The methods here are used to handle timing data to pass along to the
+    # player.
+    #
 
     @property
     def pts(self):
@@ -381,10 +413,127 @@ class FFPyPlayer(BaseMoviePlayer):
         invalid.
 
         """
-        if self._player is None:
+        if self._handle is None:
             return -1.0
 
-        return self._player.get_pts()
+        return self._handle.get_pts()
+
+    def getStartAbsTime(self):
+        """Get the absolute experiment time in seconds the movie starts at
+        (`float`).
+
+        This value reflects the time which the movie would have started if
+        played continuously from the start. Seeking and pausing the movie causes
+        this value to change.
+
+        Returns
+        -------
+        float
+            Start time of the movie in absolute experiment time.
+
+        """
+        self._assertMediaPlayer()
+
+        return getTime() - self._handle.get_pts()
+
+    def movieToAbsTime(self, movieTime):
+        """Convert a movie timestamp to absolute experiment timestamp.
+
+        Parameters
+        ----------
+        movieTime : float
+            Movie timestamp to convert to absolute experiment time.
+
+        Returns
+        -------
+        float
+            Timestamp in experiment time which is coincident with the provided
+            `movieTime` timestamp.
+
+        """
+        self._assertMediaPlayer()
+
+        # type checks on parameters
+        if not isinstance(movieTime, float):
+            raise TypeError(
+                "Value for parameter `movieTime` must have type `float` or "
+                "`int`.")
+
+        return self.getStartAbsTime() + movieTime
+
+    def absToMovieTime(self, absTime):
+        """Convert absolute experiment timestamp to a movie timestamp.
+
+        Parameters
+        ----------
+        absTime : float
+            Absolute experiment time to convert to movie time.
+
+        Returns
+        -------
+        float
+            Movie time referenced to absolute experiment time. If the value is
+            negative then provided `absTime` happens before the beginning of the
+            movie from the current time stamp.
+
+        Examples
+        --------
+        Get the movie timestamp which is coincident with the next screen refresh
+        (flip)::
+
+            showNextFrameTime = self.absToMovieTime(win.getFutureFlipTime())
+            self.getMovieFrame(showNextFrameTime)
+
+        """
+        self._assertMediaPlayer()
+
+        # type checks on parameters
+        if not isinstance(absTime, float):
+            raise TypeError(
+                "Value for parameter `absTime` must have type `float` or "
+                "`int`.")
+
+        return (absTime - getTime()) + self._handle.get_pts()
+
+    def movieTimeFromFrameIndex(self, frameIdx):
+        """Get the movie time a specific a frame with a given index is
+        scheduled to be presented.
+
+        This is used to handle logic for seeking through a video feed (if
+        permitted by the player).
+
+        Parameters
+        ----------
+        frameIdx : int
+            Frame index. Negative values are accepted but they will return
+            negative timestamps.
+
+        """
+        self._assertMediaPlayer()
+
+        metadata = self.getMetadata()
+
+        return frameIdx * metadata.frameInterval
+
+    def frameIndexFromMovieTime(self, movieTime):
+        """Get the frame index of a given movie time.
+
+        Parameters
+        ----------
+        movieTime : float
+            Timestamp in movie time to convert to a frame index.
+
+        Returns
+        -------
+        int
+            Frame index that should be presented at the specified movie time.
+
+        """
+        self._assertMediaPlayer()
+
+        metadata = self.getMetadata()
+
+        return math.floor(movieTime / metadata.frameInterval)
 
     @property
     def isSeekable(self):
@@ -399,27 +548,123 @@ class FFPyPlayer(BaseMoviePlayer):
         is derived from the framerate information in the metadata. If not movie
         is loaded, the returned value will be invalid.
         """
-        frameRate = self.getMetadata().frameRate
+        metadata = self.getMetadata()
 
-        # could be in numerator+denominator format, else always a float
-        if isinstance(frameRate, tuple):
-            numer, denom = frameRate
-            frameRate = numer / float(denom)
+        return metadata.frameInterval
 
-        return 1.0 / frameRate
+    # @property
+    # def frameIndex(self):
+    #     """Current frame index (`int`).
+    #
+    #     Index of the current frame in the stream. If playing from a file or any
+    #     other seekable source, this value may not increase monotonically with
+    #     time. A value of `-1` is invalid, meaning either the video is not
+    #     started or there is some issue with the stream.
+    #
+    #     """
+    #     return self.getCurrentFrameIndex()
 
-    @property
-    def frameIndex(self):
-        """Current frame index (`int`).
+    def getNextFrameAbsTime(self):
+        """Get the absolute experiment time the next frame should be displayed
+        at (`float`).
+        """
+        # move to main class, needs `win` attribute to work
+        if self._handle is None:
+            return -1.0
 
-        Index of the current frame in the stream. If playing from a file or any
-        other seekable source, this value may not increase monotonically with
-        time. A value of `-1` is invalid, meaning either the video is not
-        started or there is some issue with the stream.
+    def getPercentageComplete(self):
+        """Provides a value between 0.0 and 100.0, indicating the amount of the
+        movie that has been already played (`float`).
+        """
+        duration = self.getMetadata().duration
+
+        return (self._handle.get_pts() / duration) * 100.0
+
+    # --------------------------------------------------------------------------
+    # Methods for getting video frames from the encoder
+    #
+
+    def _enqueueFrame(self, movieTime, blockUntilValidFrame=False):
+        """Enqueue a frame from the decoder.
+
+        This pulls the frame scheduled to be presented at the specified
+        `movieTime` timestamp and queues it to be displayed or processed.
+
+        Parameters
+        ----------
+        movieTime : float
+            Timestamp of the frame to enqueue. If the timestamp is greater than
+            the one of the next scheduled flip time, the movie will seek to the
+            required timestamp automatically.
+        blockUntilValidFrame : bool
+            Block until the codec yields a valid frame.
 
         """
-        if self._player is None:
-            return -1
+        self._assertMediaPlayer()
+
+        # seek needed to catch up to specified timestamp?
+        metadata = self.getMetadata()
+        needsCatchupSeek = movieTime > self.pts + metadata.frameInterval
+
+        # are we paused?
+        wasPaused = self._handle.get_pause()
+
+        # if we need to seek, we need to mute and pause
+        if needsCatchupSeek:
+            self._handle.set_pause(True)
+            self._handle.set_mute(True)
+            self._handle.seek(movieTime)  # advance to the desired frame
+
+        # Block until a valid frame is returned from the stream, needed or else
+        # we won't have the metadata needed to crete the pixel/texture buffers.
+        #
+        # NB - We should add a timeout here to prevent the application from
+        # locking up if we can't get a valid frame within a reasonable time.
+        #
+        frame = None
+        playbackStatus = ''
+        while frame is None:
+            frame, playbackStatus = self._handle.get_frame(show=True)
+
+        # NB - We could potentially buffer a bunch of frames in another
+        # thread and pull them in here. Right now we're pulling one frame at
+        # a time.
+
+        # set status flags accordingly
+        if playbackStatus == FFPYPLAYER_STATUS_EOF:
+            self._status = FINISHED
+        elif playbackStatus == FFPYPLAYER_STATUS_PAUSED:
+            self._status = PAUSED
+        else:
+            self._status = PLAYING
+
+        # unmute and pause
+        if needsCatchupSeek:
+            self._handle.seek(movieTime)  # seek back to start of frame
+            self._handle.set_mute(False)
+            self._handle.set_pause(wasPaused)  # unpause if originally doing so
+
+        # process the new frame
+        colorData, pts = frame
+
+        # if we have a new frame, update the frame information
+        videoBuffer = colorData.to_bytearray()[0]
+        videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
+
+        # create data structure to hold frame information
+        recentMetadata = self.getMetadata()
+        toReturn = MovieFrame(
+            frameIndex=self.frameIndexFromMovieTime(pts),
+            absTime=pts,
+            displayTime=recentMetadata.frameInterval,
+            size=recentMetadata.size,
+            colorData=videoFrameArray,
+            audioChannels=0,
+            audioSamples=None,
+            movieLib=self._movieLib,
+            userData=None)
+
+        return toReturn
 
     def getMovieFrame(self, absTime):
         """Get the movie frame scheduled to be displayed at the current movie
@@ -445,7 +690,7 @@ class FFPyPlayer(BaseMoviePlayer):
             return self._lastFrameInfo
 
         # get the frame and playback status
-        frame, playbackStatus = self._player.get_frame(show=True)
+        frame, playbackStatus = self._handle.get_frame(show=True)
 
         # NB - We could potentially buffer a bunch of frames in another thread
         # and pull them in here. Right now we're pulling one frame at a time.
@@ -470,11 +715,12 @@ class FFPyPlayer(BaseMoviePlayer):
         videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
 
         # create data structure to hold frame information
+        recentMetadata = self.getMetadata()
         toReturn = MovieFrame(
-            frameIndex=-1,
+            frameIndex=self.frameIndexFromMovieTime(pts),
             absTime=pts,
-            displayTime=self.frameInterval,
-            size=self.getMetadata().size,
+            displayTime=recentMetadata.frameInterval,
+            size=recentMetadata.size,
             colorData=videoFrameArray,
             audioChannels=0,
             audioSamples=None,

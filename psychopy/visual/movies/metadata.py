@@ -56,6 +56,7 @@ class MovieMetadata:
         '_duration',
         '_size',
         '_frameRate',
+        '_frameInterval',
         '_pixelFormat',
         '_movieLib',
         '_userData'
@@ -89,6 +90,21 @@ class MovieMetadata:
                 f"pixelFormat={self.pixelFormat}, "
                 f"movieLib={repr(self.movieLib)}, "
                 f"userData={repr(self.userData)})")
+
+    def compare(self, metadata):
+        """Get a list of attribute names that differ between this and another
+        metadata object.
+
+        Returns
+        -------
+        list of str
+
+        """
+        if not isinstance(metadata, MovieMetadata):
+            raise TypeError(
+                'Value for `metadata` must have type `MovieMetadata`.')
+
+        return []
 
     @property
     def mediaPath(self):
@@ -140,6 +156,17 @@ class MovieMetadata:
             self._frameRate = value[0] / float(value[1])
         else:
             self._frameRate = float(value)
+
+        # compute the frame interval from the frame rate
+        self._frameInterval = 1.0 / self._frameRate
+
+    @property
+    def frameInterval(self):
+        """Frame interval in seconds (`float`). This is the amount of time the
+        frame is to remain onscreen given the framerate. This value is computed
+        after the `frameRate` attribute is set.
+        """
+        return self._frameInterval
 
     @property
     def size(self):
