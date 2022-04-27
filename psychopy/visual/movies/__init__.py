@@ -72,7 +72,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         `float`, values between 0 and 1 may be used.
     loop : bool
         Whether to start the movie over from the beginning if draw is called and
-        the movie is done. Default is `False.
+        the movie is done. Default is `False`.
     autoStart : bool
         Automatically begin playback of the video when `flip()` is called.
 
@@ -192,6 +192,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         self._filename = filename
         self._player.load(self._filename)
         self._player.start()
+        self.updateVideoFrame()  # make sure the first frame is shown
 
     @property
     def frameTexture(self):
@@ -215,27 +216,23 @@ class MovieStim(BaseVisualStim, ContainerMixin):
 
         """
         # get the current movie frame for the video time
-        this_frame = self._player.getMovieFrame(
-            absTime=self._player.absToMovieTime(
-                self.win.getFutureFlipTime()))
+        self._recentFrame = self._player.getMovieFrame(
+            absTime=self.win.getFutureFlipTime())
 
-        if this_frame is NULL_MOVIE_FRAME_INFO:
-            return self._recentFrame
-
-        self._recentFrame = this_frame
-        self._setupTextureBuffers()
-        self._pixelTransfer()
+        # only do a pixel transfer on valid frames
+        if self._recentFrame is not NULL_MOVIE_FRAME_INFO:
+            self._setupTextureBuffers()
+            self._pixelTransfer()
 
         return self._recentFrame
 
     def draw(self, win=None):
-        """Draw the current frame to a particular
-        :class:`~psychopy.visual.Window` (or to the default win for this object
-        if not specified).
+        """Draw the current frame to a particular window.
 
         The current position in the movie will be determined automatically. This
         method should be called on every frame that the movie is meant to
-        appear.
+        appear. If `.autoStart==True` the video will begin playing when this is
+        called.
 
         Parameters
         ----------
@@ -251,12 +248,10 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         """
         self._selectWindow(self.win if win is None else win)
 
-        if not self._hasPlayer:  # do nothing if a video is not loaded
-            return True
-
-        # video is not started yet
-        if self._autoStart and self._hasPlayer:
-            self.play()
+        if self._hasPlayer:  # do nothing if a video is not loaded
+            # video is not started yet
+            if self._autoStart and self._hasPlayer:
+                self.play()
 
         # update the video frame and draw it to a quad
         _ = self.updateVideoFrame()
@@ -309,8 +304,6 @@ class MovieStim(BaseVisualStim, ContainerMixin):
 
         """
         # get the absolute experiment time the first frame is to be presented
-        self._videoClock = Clock()
-        self._player.seek(0.0)
         self._player.play(log=log)
         self._absMovieStartTime = getTime()
 
@@ -413,13 +406,59 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         self._player.replay(autoStart, log=log)
 
     # --------------------------------------------------------------------------
+    # Audio stream control methods
+    #
+
+    @property
+    def muted(self):
+        """`True` if the stream audio is muted (`bool`).
+        """
+        return self._player.muted
+
+    @muted.setter
+    def muted(self, value):
+        self._player.muted = value
+
+    def volumeUp(self, amount=0.05):
+        """Increase the volume by a fixed amount.
+
+        Parameters
+        ----------
+        amount : float or int
+            Amount to increase the volume relative to the current volume.
+
+        """
+        self._player.volumeUp(amount)
+
+    def volumeDown(self, amount=0.05):
+        """Decrease the volume by a fixed amount.
+
+        Parameters
+        ----------
+        amount : float or int
+            Amount to decrease the volume relative to the current volume.
+
+        """
+        self._player.volumeDown(amount)
+
+    @property
+    def volume(self):
+        """Volume for the audio track for this movie (`int` or `float`).
+        """
+        return self._player.volume
+
+    @volume.setter
+    def volume(self, value):
+        self._player.volume = value
+
+    # --------------------------------------------------------------------------
     # Video and playback information
     #
 
     @property
     def frameIndex(self):
         """Current frame index being displayed (`int`)."""
-        return 0  # for now
+        return self._player.frameIndex
 
     def getCurrentFrameNumber(self):
         """Get the current movie frame number (`int`), same as `frameIndex`.
