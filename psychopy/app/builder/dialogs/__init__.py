@@ -875,13 +875,6 @@ class _BaseParamsDlg(wx.Dialog):
             buttons.Add(helpBtn, 0,
                         flag=wx.LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL,
                         border=3)
-
-        if isinstance(self, DlgExperimentProperties):
-            # Add button to show screen numbers
-            screenNsBtn = wx.Button(self, label=_translate("Show screen numbers"))
-            buttons.Add(screenNsBtn, border=3, flag=wx.LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-            screenNsBtn.Bind(wx.EVT_BUTTON, self.showScreenNumbers)
-
         self.OKbtn = wx.Button(self, wx.ID_OK, _translate(" OK "))
         # intercept OK button if a loop dialog, in case file name was edited:
         if type(self) == DlgLoopProperties:
@@ -1758,6 +1751,13 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.onFullScrChange(event=None)
         self.Bind(wx.EVT_CHECKBOX, self.onFullScrChange,
                   self.paramCtrls['Full-screen window'].valueCtrl)
+
+        # Add button to show screen numbers
+        scrNumCtrl = self.paramCtrls['Screen'].valueCtrl
+        self.screenNsBtn = wx.Button(scrNumCtrl.GetParent(), label=_translate("Show screen numbers"))
+        scrNumCtrl._szr.Add(self.screenNsBtn, border=5, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
+        scrNumCtrl.Layout()
+        self.screenNsBtn.Bind(wx.EVT_BUTTON, self.showScreenNumbers)
 
         if timeout is not None:
             wx.FutureCall(timeout, self.Destroy)
