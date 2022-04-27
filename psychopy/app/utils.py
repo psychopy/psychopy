@@ -923,7 +923,7 @@ class ToggleButton(wx.ToggleButton, HoverMixin):
             return HoverMixin.BackgroundColourNoHover.fget(self)
 
 
-class IconCtrl(wx.Button):
+class IconChoiceCtrl(wx.Button):
     """
     Custom built Choice ctrl which uses a wx.Menu, allowing for items to have an associated bitmap.
 

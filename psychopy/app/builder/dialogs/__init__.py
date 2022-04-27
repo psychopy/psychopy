@@ -33,7 +33,7 @@ from ...colorpicker import PsychoColorPicker
 from pathlib import Path
 
 from ...themes import handlers, icons
-from ...utils import IconCtrl
+from ...utils import IconChoiceCtrl
 
 white = wx.Colour(255, 255, 255, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
@@ -383,7 +383,7 @@ class ParamCtrls():
                   .format(type(self.valueCtrl)))
 
 
-class UpdatesCtrl(IconCtrl):
+class UpdatesCtrl(IconChoiceCtrl):
     """
     Control for the kind of updates for a parameter in a ParamNotebook.
 
@@ -409,9 +409,9 @@ class UpdatesCtrl(IconCtrl):
     def _getBitmapFromValue(self, value):
         if "set during" in value:
             # If we're setting during a static, intercept value before getting bitmap
-            bmp = IconCtrl._getBitmapFromValue(self, "static")
+            bmp = IconChoiceCtrl._getBitmapFromValue(self, "static")
         else:
-            bmp = IconCtrl._getBitmapFromValue(self, value)
+            bmp = IconChoiceCtrl._getBitmapFromValue(self, value)
 
         return bmp
 
@@ -419,11 +419,11 @@ class UpdatesCtrl(IconCtrl):
         if "set during" in value:
             # If we're setting during a static, intercept value before getting tooltip...
             compName = value.replace("set during: ", "")
-            tt = IconCtrl._getTooltipFromValue(self, "static")
+            tt = IconChoiceCtrl._getTooltipFromValue(self, "static")
             # ...and fill in the component name
             tt = tt.format(compName)
         else:
-            tt = IconCtrl._getTooltipFromValue(self, value)
+            tt = IconChoiceCtrl._getTooltipFromValue(self, value)
 
         return tt
 
