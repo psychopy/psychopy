@@ -776,8 +776,7 @@ class PreferencesDlg(wx.Dialog):
                         self.fontList[thisPref]
                     continue
                 if prefName in ('theme',):
-                    self.prefsCfg[sectionName][prefName] = \
-                        self.themeList[thisPref]
+                    self.app.theme = self.prefsCfg[sectionName][prefName] = self.themeList[thisPref]
                     continue
                 elif prefName == 'audioDevice':
                     self.prefsCfg[sectionName][prefName] = \
@@ -855,7 +854,6 @@ class PreferencesDlg(wx.Dialog):
             self.app.builder.updateAllViews()
 
         # after validation, update the UI
-        self.app.theme = self.app.theme
         self.updateFramesUI()
 
     def updateFramesUI(self):
