@@ -7,6 +7,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
+import time
 
 from psychopy.core import getTime
 from ._base import BaseMoviePlayer
@@ -53,7 +54,8 @@ class FFPyPlayer(BaseMoviePlayer):
         self._handle = MediaPlayer(self._filename)
         self._handle.set_mute(True)
 
-        self.enqueueFrame()
+        # queue up the first frame, this is needed to get the metadata
+        self._enqueueFrame(movieTime=0.0)
 
     def load(self, pathToMovie):
         """Load a movie file from disk.
@@ -230,6 +232,7 @@ class FFPyPlayer(BaseMoviePlayer):
         self._assertMediaPlayer()
 
         self._handle.close_player()
+        self._handle = None  # clear player
         self._status = STOPPED
 
     def pause(self, log=False):
@@ -263,7 +266,7 @@ class FFPyPlayer(BaseMoviePlayer):
 
         """
         self._assertMediaPlayer()
-        self._handle.seek(timestamp)
+        self._enqueueFrame(timestamp)
 
         return self._handle.get_pts()
 
@@ -286,7 +289,8 @@ class FFPyPlayer(BaseMoviePlayer):
         """
         self._assertMediaPlayer()
 
-        self._handle.seek(-seconds, relative=True)
+        timestamp = self.pts - seconds
+        self._enqueueFrame(timestamp)
 
         # after seeking
         return self._handle.get_pts()
@@ -310,7 +314,8 @@ class FFPyPlayer(BaseMoviePlayer):
         """
         self._assertMediaPlayer()
 
-        self._handle.seek(seconds, relative=True)
+        timestamp = self.pts + seconds
+        self._enqueueFrame(timestamp)
 
         return self._handle.get_pts()
 
@@ -597,7 +602,8 @@ class FFPyPlayer(BaseMoviePlayer):
             the one of the next scheduled flip time, the movie will seek to the
             required timestamp automatically.
         blockUntilValidFrame : bool
-            Block until the codec yields a valid frame.
+            Block until the codec yields a valid frame. This function will block
+            until a new frame comes in.
 
         """
         self._assertMediaPlayer()
@@ -622,21 +628,29 @@ class FFPyPlayer(BaseMoviePlayer):
         # locking up if we can't get a valid frame within a reasonable time.
         #
         frame = None
-        playbackStatus = ''
-        while frame is None:
-            frame, playbackStatus = self._handle.get_frame(show=True)
+        status = ''
+        if blockUntilValidFrame:
+            while frame is None:
+                frame, status = self._handle.get_frame(show=True)
+                # break on other conditions
+                if status != 'not ready':
+                    break
+
+                time.sleep(0.1)  # wait a bit for a new frame
+        else:
+            frame, status = self._handle.get_frame(show=True)
 
         # NB - We could potentially buffer a bunch of frames in another
         # thread and pull them in here. Right now we're pulling one frame at
         # a time.
 
         # set status flags accordingly
-        if playbackStatus == FFPYPLAYER_STATUS_EOF:
+        if status == FFPYPLAYER_STATUS_EOF:
             self._status = FINISHED
-        elif playbackStatus == FFPYPLAYER_STATUS_PAUSED:
+        elif status == FFPYPLAYER_STATUS_PAUSED:
             self._status = PAUSED
         else:
-            self._status = PLAYING
+            self._status = PLAYING  # could be not ready too, but still playing
 
         # unmute and pause
         if needsCatchupSeek:
@@ -652,12 +666,11 @@ class FFPyPlayer(BaseMoviePlayer):
         videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
 
         # create data structure to hold frame information
-        recentMetadata = self.getMetadata()
         toReturn = MovieFrame(
             frameIndex=self.frameIndexFromMovieTime(pts),
             absTime=pts,
-            displayTime=recentMetadata.frameInterval,
-            size=recentMetadata.size,
+            displayTime=metadata.frameInterval,
+            size=metadata.size,
             colorData=videoFrameArray,
             audioChannels=0,
             audioSamples=None,
@@ -667,15 +680,12 @@ class FFPyPlayer(BaseMoviePlayer):
         return toReturn
 
     def getMovieFrame(self, absTime):
-        """Get the movie frame scheduled to be displayed at the current movie
-        time.
+        """Get the movie frame scheduled to be displayed at the current time.
 
         Parameters
         ----------
         absTime : float
-            Absolute movie time in seconds the frame is scheduled to appear. A
-            new frame is returned only when movie time is beyond `absTime`,
-            otherwise the previous frame is returned.
+            Current experiment time.
 
         Returns
         -------
@@ -685,51 +695,7 @@ class FFPyPlayer(BaseMoviePlayer):
         """
         self._assertMediaPlayer()
 
-        # check if the frame needs to be presented
-        if self._lastFrameInfo.absTime > absTime:
-            return self._lastFrameInfo
-
-        # get the frame and playback status
-        frame, playbackStatus = self._handle.get_frame(show=True)
-
-        # NB - We could potentially buffer a bunch of frames in another thread
-        # and pull them in here. Right now we're pulling one frame at a time.
-
-        # set status flags accordingly
-        if playbackStatus == FFPYPLAYER_STATUS_EOF:
-            self._status = FINISHED
-            return self._lastFrameInfo
-        elif playbackStatus == FFPYPLAYER_STATUS_PAUSED:
-            self._status = PAUSED
-            return self._lastFrameInfo
-        elif frame is None:
-            return self._lastFrameInfo  # NOT_STARTED?
-        else:
-            self._status = PLAYING
-
-        # process the new frame
-        colorData, pts = frame
-
-        # if we have a new frame, update the frame information
-        videoBuffer = colorData.to_bytearray()[0]
-        videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
-
-        # create data structure to hold frame information
-        recentMetadata = self.getMetadata()
-        toReturn = MovieFrame(
-            frameIndex=self.frameIndexFromMovieTime(pts),
-            absTime=pts,
-            displayTime=recentMetadata.frameInterval,
-            size=recentMetadata.size,
-            colorData=videoFrameArray,
-            audioChannels=0,
-            audioSamples=None,
-            movieLib=self._movieLib,
-            userData=None)
-
-        self._lastFrameInfo = toReturn
-
-        return self._lastFrameInfo
+        return self._enqueueFrame(self.absToMovieTime(absTime))
 
 
 if __name__ == "__main__":
