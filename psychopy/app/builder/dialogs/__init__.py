@@ -391,11 +391,10 @@ class UpdatesCtrl(IconChoiceCtrl):
     with options listed by text and associated icons.
     """
     bitmaps = {
-        "constant": icons.ButtonIcon(stem="constant", size=(16, 16)),
-        "set every repeat": icons.ButtonIcon(stem="everyrepeat", size=(16, 16)),
-        "set every frame": icons.ButtonIcon(stem="everyframe", size=(16, 16)),
-        "static": icons.ButtonIcon(stem="setduring", size=(16, 16)),
-        None: wx.Bitmap(),
+        "constant": "constant",
+        "set every repeat": "everyrepeat",
+        "set every frame": "everyframe",
+        "static": "setduring",
     }
 
     tooltips = {
@@ -403,7 +402,6 @@ class UpdatesCtrl(IconChoiceCtrl):
         "set every repeat": _translate("Value will be set at the start of this routine, each time it repeats."),
         "set every frame": _translate("Value will be set every frame that the component is active."),
         "static": _translate("Value will be set during the static component '{}'"),
-        None: "",
     }
 
     def _getBitmapFromValue(self, value):

@@ -1012,11 +1012,11 @@ class IconChoiceCtrl(wx.Button):
         Work out what bitmap corresponds to a given value
         """
         if value in self.bitmaps:
-            # If value is in bitmap dict, return from dict
-            icn = self.bitmaps[value]
+            # If value is in bitmap dict, construct bitmap from dict
+            icn = icons.ButtonIcon(stem=self.bitmaps[value], size=(16, 16))
         else:
             # Otherwise, use fallback bitmap
-            icn = self.bitmaps[None]
+            icn = icons.ButtonIcon(stem="", size=(16, 16))
 
         return icn.bitmap
 
