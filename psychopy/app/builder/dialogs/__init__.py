@@ -402,6 +402,7 @@ class UpdatesCtrl(IconChoiceCtrl):
         "set every repeat": _translate("Value will be set at the start of this routine, each time it repeats."),
         "set every frame": _translate("Value will be set every frame that the component is active."),
         "static": _translate("Value will be set during the static component '{}'"),
+        None: "",
     }
 
     def _getBitmapFromValue(self, value):

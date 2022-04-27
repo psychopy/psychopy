@@ -932,7 +932,9 @@ class IconChoiceCtrl(wx.Button):
     """
     bitmaps = {}
 
-    tooltips = {}
+    tooltips = {
+        None: "",
+    }
 
     def __init__(self, parent, choices, size=(48, 24), initial="constant"):
         wx.Button.__init__(self, parent, label="▼", size=size)
