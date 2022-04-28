@@ -1086,6 +1086,9 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
     @theme.setter
     def theme(self, value):
         """The theme to be used through the application"""
+        # Make sure we just have a name
+        if isinstance(value, themes.Theme):
+            value = value.code
         # Store new theme
         prefs.app['theme'] = value
         prefs.saveUserPrefs()
