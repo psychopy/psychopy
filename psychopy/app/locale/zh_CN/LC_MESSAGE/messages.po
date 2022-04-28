@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2021.2.3\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2022-04-22 22:22+0800\n"
+"PO-Revision-Date: 2022-04-28 21:32+0800\n"
 "Last-Translator: Shun Wang <shuonwang@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -957,11 +957,11 @@ msgstr "警告：Python 到 JavaScript 的转译"
 
 #: ../app/builder/dialogs/dlgsConditions.py:88
 msgid "New (no file)"
-msgstr ""
+msgstr "新建(无文件)"
 
 #: ../app/builder/dialogs/dlgsConditions.py:96
 msgid "Conditions data (no file)"
-msgstr ""
+msgstr "条件数据(无文件)"
 
 #: ../app/builder/dialogs/dlgsConditions.py:169
 msgid "Params:"
@@ -978,11 +978,11 @@ msgstr "条件 %s:"
 
 #: ../app/builder/dialogs/dlgsConditions.py:270
 msgid "Should be legal as a variable name (alphanumeric)"
-msgstr ""
+msgstr "变量名应该合法（字母和数字）"
 
 #: ../app/builder/dialogs/dlgsConditions.py:282
 msgid "extra white-space"
-msgstr ""
+msgstr "额外的空格"
 
 #: ../app/builder/dialogs/dlgsConditions.py:448
 msgid "PREVIEW"
@@ -1060,11 +1060,11 @@ msgstr "创建并保存表格后，请记住将其添加到 {name}"
 
 #: ../app/builder/dialogs/paramCtrls.py:386
 msgid "Reminder"
-msgstr ""
+msgstr "提醒"
 
 #: ../app/builder/dialogs/paramCtrls.py:428
 msgid "Specify color ..."
-msgstr ""
+msgstr "指定颜色..."
 
 #: ../app/builder/localizedStrings.py:22
 msgid "Basic"
@@ -1090,11 +1090,11 @@ msgstr "屏幕"
 
 #: ../app/builder/localizedStrings.py:27
 msgid "Dots"
-msgstr ""
+msgstr "点(Dot)"
 
 #: ../app/builder/localizedStrings.py:28
 msgid "Grating"
-msgstr ""
+msgstr "光栅(Grating)"
 
 #: ../app/builder/localizedStrings.py:29
 msgid "Advanced"
@@ -1102,15 +1102,15 @@ msgstr "高级"
 
 #: ../app/builder/localizedStrings.py:31
 msgid "Carrier"
-msgstr ""
+msgstr "载波(Carrier)"
 
 #: ../app/builder/localizedStrings.py:32
 msgid "Envelope"
-msgstr ""
+msgstr "包络(Envelope)"
 
 #: ../app/builder/localizedStrings.py:33
 msgid "Appearance"
-msgstr ""
+msgstr "外观"
 
 #: ../app/builder/localizedStrings.py:35
 msgid "Online"
@@ -1130,7 +1130,7 @@ msgstr "格式"
 
 #: ../app/builder/localizedStrings.py:39
 msgid "Formatting"
-msgstr ""
+msgstr "格式化"
 
 #: ../app/builder/localizedStrings.py:40
 msgid "Eyetracking"
@@ -1142,19 +1142,19 @@ msgstr "目标"
 
 #: ../app/builder/localizedStrings.py:42
 msgid "Animation"
-msgstr ""
+msgstr "动画"
 
 #: ../app/builder/localizedStrings.py:43
 msgid "Transcription"
-msgstr ""
+msgstr "转录(Transcription)"
 
 #: ../app/builder/localizedStrings.py:44
 msgid "Timing"
-msgstr ""
+msgstr "定时(Timing)"
 
 #: ../app/builder/localizedStrings.py:45
 msgid "Playback"
-msgstr ""
+msgstr "回放"
 
 #: ../app/builder/localizedStrings.py:51
 msgid "linear"
@@ -1162,79 +1162,79 @@ msgstr "线性"
 
 #: ../app/builder/localizedStrings.py:52
 msgid "nearest"
-msgstr ""
+msgstr "邻近的"
 
 #: ../app/builder/localizedStrings.py:54
 msgid "named"
-msgstr ""
+msgstr "命名的"
 
 #: ../app/builder/localizedStrings.py:56
 msgid "last key"
-msgstr ""
+msgstr "最后一个键"
 
 #: ../app/builder/localizedStrings.py:57
 msgid "first key"
-msgstr ""
+msgstr "最前一个键"
 
 #: ../app/builder/localizedStrings.py:58
 msgid "all keys"
-msgstr ""
+msgstr "所有键"
 
 #: ../app/builder/localizedStrings.py:59
 msgid "nothing"
-msgstr ""
+msgstr "无"
 
 #: ../app/builder/localizedStrings.py:60
 msgid "last button"
-msgstr ""
+msgstr "最后的按钮"
 
 #: ../app/builder/localizedStrings.py:61
 msgid "first button"
-msgstr ""
+msgstr "最前的按钮"
 
 #: ../app/builder/localizedStrings.py:62
 msgid "all buttons"
-msgstr ""
+msgstr "所有按钮"
 
 #: ../app/builder/localizedStrings.py:63
 msgid "final"
-msgstr ""
+msgstr "最终"
 
 #: ../app/builder/localizedStrings.py:64
 msgid "on click"
-msgstr ""
+msgstr "点击"
 
 #: ../app/builder/localizedStrings.py:65
 msgid "every frame"
-msgstr ""
+msgstr "每一帧"
 
 #: ../app/builder/localizedStrings.py:66
 msgid "never"
-msgstr ""
+msgstr "从不"
 
 #: ../app/builder/localizedStrings.py:67
 msgid "from exp settings"
-msgstr ""
+msgstr "从 实验 设置"
 
 #: ../app/builder/localizedStrings.py:68
 msgid "from preferences"
-msgstr ""
+msgstr "从首选项"
 
 #: ../app/builder/localizedStrings.py:69
 msgid "circle"
-msgstr ""
+msgstr "圆形"
 
 #: ../app/builder/localizedStrings.py:70
 msgid "square"
-msgstr ""
+msgstr "方形"
 
 #: ../app/builder/localizedStrings.py:72
 msgid "direction"
-msgstr ""
+msgstr "方向"
 
 #: ../app/builder/localizedStrings.py:73
 msgid "position"
-msgstr ""
+msgstr "位置"
 
 #: ../app/builder/localizedStrings.py:74
 msgid "walk"
@@ -1242,23 +1242,23 @@ msgstr ""
 
 #: ../app/builder/localizedStrings.py:75
 msgid "same"
-msgstr ""
+msgstr "相同"
 
 #: ../app/builder/localizedStrings.py:76
 msgid "different"
-msgstr ""
+msgstr "不同"
 
 #: ../app/builder/localizedStrings.py:77
 msgid "Experiment"
-msgstr ""
+msgstr "实验"
 
 #: ../app/builder/localizedStrings.py:78
 msgid "repeat"
-msgstr ""
+msgstr "重复"
 
 #: ../app/builder/localizedStrings.py:79
 msgid "none"
-msgstr ""
+msgstr "无"
 
 #: ../app/builder/localizedStrings.py:81
 msgid "time (s)"
@@ -1266,31 +1266,31 @@ msgstr "时间 (s)"
 
 #: ../app/builder/localizedStrings.py:82
 msgid "frame N"
-msgstr ""
+msgstr "第N帧"
 
 #: ../app/builder/localizedStrings.py:83
 msgid "condition"
-msgstr ""
+msgstr "条件"
 
 #: ../app/builder/localizedStrings.py:84
 msgid "duration (s)"
-msgstr ""
+msgstr "持续时间(s)"
 
 #: ../app/builder/localizedStrings.py:85
 msgid "duration (frames)"
-msgstr ""
+msgstr "持续时间(帧)"
 
 #: ../app/builder/localizedStrings.py:93
 msgid "constant"
-msgstr ""
+msgstr "恒定"
 
 #: ../app/builder/localizedStrings.py:94
 msgid "set every repeat"
-msgstr ""
+msgstr "设置每次重复"
 
 #: ../app/builder/localizedStrings.py:95
 msgid "set every frame"
-msgstr ""
+msgstr "设置每一帧"
 
 #: ../app/builder/localizedStrings.py:97
 msgid "add"
@@ -1306,19 +1306,19 @@ msgstr "使用首选项设置"
 
 #: ../app/builder/localizedStrings.py:100
 msgid "on Sync"
-msgstr ""
+msgstr "在 同步"
 
 #: ../app/builder/localizedStrings.py:101
 msgid "on Save"
-msgstr ""
+msgstr "在 保存"
 
 #: ../app/builder/localizedStrings.py:102
 msgid "manually"
-msgstr ""
+msgstr "手动"
 
 #: ../app/builder/localizedStrings.py:104
 msgid "debug"
-msgstr ""
+msgstr "调试"
 
 #: ../app/builder/localizedStrings.py:105
 msgid "info"
@@ -1326,7 +1326,7 @@ msgstr "信息"
 
 #: ../app/builder/localizedStrings.py:106
 msgid "exp"
-msgstr ""
+msgstr "实验(exp)"
 
 #: ../app/builder/localizedStrings.py:107
 msgid "data"
@@ -1342,67 +1342,67 @@ msgstr "错误"
 
 #: ../app/builder/localizedStrings.py:114
 msgid "any click"
-msgstr ""
+msgstr "任何点击"
 
 #: ../app/builder/localizedStrings.py:115
 msgid "valid click"
-msgstr ""
+msgstr "有效点击"
 
 #: ../app/builder/localizedStrings.py:116
 msgid "mouse onset"
-msgstr ""
+msgstr "鼠标动作"
 
 #: ../app/builder/localizedStrings.py:117
 msgid "Routine"
-msgstr ""
+msgstr "例程"
 
 #: ../app/builder/localizedStrings.py:119
 msgid "joystick onset"
-msgstr ""
+msgstr "操纵杆动作"
 
 #: ../app/builder/localizedStrings.py:121
 msgid "every click"
-msgstr ""
+msgstr "每次点击"
 
 #: ../app/builder/localizedStrings.py:122
 msgid "first click"
-msgstr ""
+msgstr "首次点击"
 
 #: ../app/builder/localizedStrings.py:123
 msgid "last click"
-msgstr ""
+msgstr "末次点击"
 
 #: ../app/builder/localizedStrings.py:124
 msgid "button onset"
-msgstr ""
+msgstr "按钮动作"
 
 #: ../app/builder/localizedStrings.py:126
 msgid "line"
-msgstr ""
+msgstr "线"
 
 #: ../app/builder/localizedStrings.py:127
 msgid "triangle"
-msgstr ""
+msgstr "三角形"
 
 #: ../app/builder/localizedStrings.py:128
 msgid "rectangle"
-msgstr ""
+msgstr "长方形"
 
 #: ../app/builder/localizedStrings.py:129
 msgid "cross"
-msgstr ""
+msgstr "叉"
 
 #: ../app/builder/localizedStrings.py:130
 msgid "star"
-msgstr ""
+msgstr "星形"
 
 #: ../app/builder/localizedStrings.py:131
 msgid "regular polygon..."
-msgstr ""
+msgstr "正多边形..."
 
 #: ../app/builder/localizedStrings.py:132
 msgid "custom polygon..."
-msgstr ""
+msgstr "自定义多边形..."
 
 #: ../app/builder/localizedStrings.py:134
 msgid "rows"
@@ -1414,11 +1414,11 @@ msgstr "列"
 
 #: ../app/builder/localizedStrings.py:137
 msgid "first"
-msgstr ""
+msgstr "首个"
 
 #: ../app/builder/localizedStrings.py:138
 msgid "last"
-msgstr ""
+msgstr "末尾"
 
 #: ../app/builder/localizedStrings.py:139
 msgid "all"
@@ -1426,7 +1426,7 @@ msgstr "全部"
 
 #: ../app/builder/localizedStrings.py:143
 msgid "one of your Components, Routines, or condition parameters"
-msgstr ""
+msgstr "您的组件、例程或条件参数之一"
 
 #: ../app/builder/localizedStrings.py:145
 msgid " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"
@@ -1450,23 +1450,23 @@ msgstr "python 关键字"
 
 #: ../app/builder/localizedStrings.py:151
 msgid "look at"
-msgstr ""
+msgstr "注视"
 
 #: ../app/builder/localizedStrings.py:152
 msgid "look away"
-msgstr ""
+msgstr "移开视线"
 
 #: ../app/builder/localizedStrings.py:153
 msgid "every look"
-msgstr ""
+msgstr "每次注视"
 
 #: ../app/builder/localizedStrings.py:154
 msgid "first look"
-msgstr ""
+msgstr "首次注视"
 
 #: ../app/builder/localizedStrings.py:155
 msgid "last look"
-msgstr ""
+msgstr "最后注视"
 
 #: ../app/builder/localizedStrings.py:156
 msgid "roi onset"
@@ -1474,7 +1474,7 @@ msgstr ""
 
 #: ../app/builder/dialogs/__init__.py:984 ../app/builder/validators.py:381
 msgid "Missing name"
-msgstr ""
+msgstr "缺少名称"
 
 #: ../app/builder/validators.py:390
 msgid "That name is in use (by {used}). Try another name."
@@ -1572,7 +1572,7 @@ msgstr "粘贴并运行"
 
 #: ../app/coder/coder.py:161
 msgid "Clear"
-msgstr ""清除
+msgstr "\"清"
 
 #: ../app/coder/coder.py:355
 msgid "PsychoPy unit testing"
@@ -1679,7 +1679,7 @@ msgstr "保存当前文件"
 
 #: ../app/coder/coder.py:1466
 msgid "Save current python file as..."
-msgstr "将当前 python 文件另存为"
+msgstr "将当前 python 文件另存为..."
 
 #: ../app/coder/coder.py:1469
 msgid "Close current file"
@@ -2247,7 +2247,7 @@ msgstr " 自动更新（将获取最新版本）"
 
 #: ../app/connections/updates.py:302
 msgid " Use zip file below (download a PsychoPy release file ending .zip)"
-msgstr "使用下面的 zip 文件（下载以 .zip 结尾的 PsychoPy 发布版本文件）"
+msgstr " 使用下面的 zip 文件（下载以 .zip 结尾的 PsychoPy 发布版本文件）"
 
 #: ../app/connections/updates.py:313
 msgid "Install"
