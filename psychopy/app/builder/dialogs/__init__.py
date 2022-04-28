@@ -136,7 +136,8 @@ class ParamCtrls():
             #                                     limits=param.allowedVals)
         elif param.inputType == 'choice':
             self.valueCtrl = paramCtrls.ChoiceCtrl(parent,
-                                                   val=str(param.val), valType=param.valType, choices=param.allowedVals,
+                                                   val=str(param.val), valType=param.valType,
+                                                   choices=param.allowedVals, labels=param.allowedLabels,
                                                    fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
         elif param.inputType == 'multiChoice':
             self.valueCtrl = paramCtrls.MultiChoiceCtrl(parent, valType=param.valType,
@@ -257,11 +258,6 @@ class ParamCtrls():
             return val
         elif hasattr(ctrl, 'GetCheckedStrings'):
             return ctrl.GetCheckedStrings()
-        elif hasattr(ctrl, 'GetSelection'):  # for wx.Choice
-            # _choices is defined during __init__ for all wx.Choice() ctrls
-            # NOTE: add untranslated value to _choices if
-            # _choices[ctrl.GetSelection()] fails.
-            return ctrl._choices[ctrl.GetSelection()]
         elif hasattr(ctrl, 'GetLabel'):  # for wx.StaticText
             return ctrl.GetLabel()
         else:
