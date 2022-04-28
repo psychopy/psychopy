@@ -254,9 +254,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         """
         self.SetAppName('PsychoPy3')
 
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
-
         # Single instance check is done here prior to loading any GUI stuff.
         # This permits one instance of PsychoPy from running at any time.
         # Clicking on files will open them in the extant instance rather than
