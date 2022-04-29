@@ -336,7 +336,7 @@ class CodeFont:
     pointSize = 12
     foreColor = "#000000"
     backColor = "#FFFFFF"
-    faceNames = ["JetBrains Mono"]
+    faceNames = ["JetBrains Mono", "Monaco", "Consolas"]
     bold = False
     italic = False
 
@@ -380,7 +380,7 @@ class CodeFont:
                 break
         # If nothing worked, use the default monospace
         if not success:
-            self.obj.SetFaceName(wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT).GetFaceName())
+            self.obj = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
 
     def __repr__(self):
         return (
