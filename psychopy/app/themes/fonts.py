@@ -240,6 +240,8 @@ class CodeTheme(dict):
 
     @property
     def base(self):
+        if theme.code not in self._base:
+            self.load(theme.code)
         return self._base[theme.code]
 
     @base.setter
@@ -248,6 +250,8 @@ class CodeTheme(dict):
 
     @property
     def caret(self):
+        if theme.code not in self._caret:
+            self.load(theme.code)
         return self._caret[theme.code]
 
     @caret.setter
@@ -256,6 +260,8 @@ class CodeTheme(dict):
 
     @property
     def margin(self):
+        if theme.code not in self._margin:
+            self.load(theme.code)
         return self._margin[theme.code]
 
     @margin.setter
@@ -264,6 +270,8 @@ class CodeTheme(dict):
 
     @property
     def select(self):
+        if theme.code not in self._select:
+            self.load(theme.code)
         return self._select[theme.code]
 
     @select.setter
