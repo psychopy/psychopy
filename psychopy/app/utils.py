@@ -10,6 +10,7 @@
 import glob
 import os
 import re
+import webbrowser
 from pathlib import Path
 
 import numpy
@@ -223,7 +224,6 @@ class MarkdownCtrl(wx.Window):
     def __init__(self, parent, size=(-1, -1), value="", style=wx.DEFAULT):
         # Initialise superclass
         wx.Window.__init__(self, parent, size=size)
-        self.SetBackgroundColour(parent.GetBackgroundColour())
         # Setup sizers
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self.sizer)
@@ -238,6 +238,7 @@ class MarkdownCtrl(wx.Window):
 
         # Make HTML preview
         self.htmlPreview = HtmlWindow(self, wx.ID_ANY)
+        self.htmlPreview.Bind(wx.html.EVT_HTML_LINK_CLICKED, self.onUrl)
         self.contentSizer.Add(self.htmlPreview, proportion=1, flag=wx.EXPAND)
 
         # Make switch
@@ -248,6 +249,7 @@ class MarkdownCtrl(wx.Window):
         # Set initial view
         self.editBtn.SetValue(False)
         self.toggleView(False)
+        self._applyAppTheme()
 
     def getValue(self):
         return self.rawTextCtrl.GetValue()
@@ -271,6 +273,24 @@ class MarkdownCtrl(wx.Window):
         self.htmlPreview.Show(not edit)
 
         self.Layout()
+
+    @staticmethod
+    def onUrl(evt=None):
+        webbrowser.open(evt.LinkInfo.Href)
+
+    def _applyAppTheme(self):
+        from psychopy.app.themes import fonts
+        spec = fonts.coderTheme.base
+        # Set raw text font from coder theme
+        self.rawTextCtrl.SetFont(spec.obj)
+        # Set all background colours from coder theme
+        self.SetBackgroundColour(spec.backColor)
+        self.rawTextCtrl.SetBackgroundColour(spec.backColor)
+        self.htmlPreview.SetBackgroundColour(spec.backColor)
+        # Set all foreground colours from coder theme
+        self.SetForegroundColour(spec.foreColor)
+        self.rawTextCtrl.SetForegroundColour(spec.foreColor)
+        self.htmlPreview.SetForegroundColour(spec.foreColor)
 
 
 class ButtonArray(wx.Window):
