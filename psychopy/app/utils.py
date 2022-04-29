@@ -221,7 +221,7 @@ class PsychopyPlateBtn(platebtn.PlateButton, handlers.ThemeMixin):
 
 
 class MarkdownCtrl(wx.Window, handlers.ThemeMixin):
-    def __init__(self, parent, size=(-1, -1), value="", style=wx.DEFAULT):
+    def __init__(self, parent, size=(-1, -1), value="", file=None, style=wx.DEFAULT):
         # Initialise superclass
         wx.Window.__init__(self, parent, size=size)
         # Setup sizers
@@ -242,9 +242,16 @@ class MarkdownCtrl(wx.Window, handlers.ThemeMixin):
         self.contentSizer.Add(self.htmlPreview, proportion=1, flag=wx.EXPAND)
 
         # Make switch
-        self.editBtn = wx.ToggleButton(self, size=(24, 24), label="✏️")
+        self.editBtn = wx.ToggleButton(self, size=(24, 24), style=wx.BORDER_NONE)
         self.editBtn.Bind(wx.EVT_TOGGLEBUTTON, self.toggleView)
-        self.btnSizer.Add(self.editBtn)
+        self.btnSizer.Add(self.editBtn, border=3, flag=wx.BOTTOM)
+
+        # Make save button
+        self.file = file
+        self.saveBtn = wx.Button(self, size=(24, 24), style=wx.BORDER_NONE)
+        self.saveBtn.Bind(wx.EVT_BUTTON, self.save)
+        self.btnSizer.Add(self.saveBtn, border=3, flag=wx.BOTTOM)
+        self.saveBtn.Show(self.file is not None)
 
         # Set initial view
         self.editBtn.SetValue(False)
@@ -271,7 +278,15 @@ class MarkdownCtrl(wx.Window, handlers.ThemeMixin):
         self.rawTextCtrl.Show(edit)
         self.htmlPreview.Show(not edit)
 
+        self._applyAppTheme()
         self.Layout()
+
+    def save(self, evt=None):
+        if self.file is None:
+            return
+        # Write current contents to file
+        with open(self.file, "w") as f:
+            f.write(self.rawTextCtrl.GetValue())
 
     @staticmethod
     def onUrl(evt=None):
@@ -286,10 +301,28 @@ class MarkdownCtrl(wx.Window, handlers.ThemeMixin):
         self.SetBackgroundColour(spec.backColor)
         self.rawTextCtrl.SetBackgroundColour(spec.backColor)
         self.htmlPreview.SetBackgroundColour(spec.backColor)
+        self.saveBtn.SetBackgroundColour(spec.backColor)
+        self.editBtn.SetBackgroundColour(spec.backColor)
         # Set all foreground colours from coder theme
         self.SetForegroundColour(spec.foreColor)
         self.rawTextCtrl.SetForegroundColour(spec.foreColor)
         self.htmlPreview.SetForegroundColour(spec.foreColor)
+
+        # Set save button icon
+        self.saveBtn.SetBitmap(
+            icons.ButtonIcon(stem="savebtn", size=(16, 16)).bitmap
+        )
+        # Set edit toggle icon
+        if self.editBtn.Value:
+            self.editBtn.SetBitmap(
+                icons.ButtonIcon(stem="viewbtn", size=(16, 16)).bitmap
+            )
+        else:
+            self.editBtn.SetBitmap(
+                icons.ButtonIcon(stem="editbtn", size=(16, 16)).bitmap
+            )
+
+        self.Refresh()
 
 
 class ButtonArray(wx.Window):

@@ -836,9 +836,6 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def updateReadme(self):
         """Check whether there is a readme file in this folder and try to show
         """
-        # create the frame if we don't have one yet
-        if self.readmeFrame is None:
-            self.readmeFrame = ReadmeFrame(parent=self)
         # look for a readme file
         if self.filename and self.filename != 'untitled.psyexp':
             dirname = os.path.dirname(self.filename)
@@ -854,7 +851,9 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 self.readmeFilename = possibles[0]  # take the first one found
         else:
             self.readmeFilename = None
-        self.readmeFrame.setFile(self.readmeFilename)
+        # create the frame if we don't have one yet
+        if self.readmeFrame is None:
+            self.readmeFrame = ReadmeFrame(parent=self, filename=self.readmeFilename)
         content = self.readmeFrame.ctrl.getValue()
         if content and self.prefs['alwaysShowReadme']:
             self.showReadme()
@@ -2733,7 +2732,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
 class ReadmeFrame(wx.Frame, handlers.ThemeMixin):
     """Defines construction of the Readme Frame"""
 
-    def __init__(self, parent):
+    def __init__(self, parent, filename=None):
         """
         A frame for presenting/loading/saving readme files
         """
@@ -2757,13 +2756,13 @@ class ReadmeFrame(wx.Frame, handlers.ThemeMixin):
             iconFile = os.path.join(parent.paths['resources'], 'coder.ico')
             if os.path.isfile(iconFile):
                 self.SetIcon(wx.Icon(iconFile, wx.BITMAP_TYPE_ICO))
-
-        self.ctrl = utils.MarkdownCtrl(self, style=wx.BORDER_NONE)
+        self.ctrl = utils.MarkdownCtrl(self, file=filename, style=wx.BORDER_NONE)
         self.sizer.Add(self.ctrl, border=6, proportion=1, flag=wx.ALL | wx.EXPAND)
 
     def _applyAppTheme(self):
         from psychopy.app.themes import fonts
         self.SetBackgroundColour(fonts.coderTheme.base.backColor)
+        self.Refresh()
 
     def onClose(self, evt=None):
         """
