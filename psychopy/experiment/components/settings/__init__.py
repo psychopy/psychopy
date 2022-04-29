@@ -911,12 +911,28 @@ class SettingsComponent:
                     " this script\n")
             buff.writeIndented(code % self.params['expName'])
 
-        sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
-        expInfoStr = "{"
+        # Construct exp info string
+        expInfoDict = self.getInfo()
+        code = (
+            "expInfo = {"
+        )
+        if len(expInfoDict):
+            # Only make the dict multiline if it actually has contents
+            code += "\n"
+        buff.writeIndented(code)
+        buff.setIndentLevel(1, relative=True)
         for key, value in self.getInfo().items():
-            expInfoStr += f"'{key}': {value}, "
-        expInfoStr = expInfoStr[:-2] + "}"
-        buff.writeIndented("expInfo = %s\n" % expInfoStr)
+            code = (
+                f"'{key}': {value},\n"
+            )
+            buff.writeIndented(code)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "}\n"
+        )
+        buff.writeIndented(code)
+
+        sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
         if self.params['Show info dlg'].val:
             buff.writeIndentedLines(
                 f"dlg = gui.DlgFromDict(dictionary=expInfo, "
