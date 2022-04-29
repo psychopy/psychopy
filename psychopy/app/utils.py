@@ -220,7 +220,7 @@ class PsychopyPlateBtn(platebtn.PlateButton, handlers.ThemeMixin):
         return cols
 
 
-class MarkdownCtrl(wx.Window):
+class MarkdownCtrl(wx.Window, handlers.ThemeMixin):
     def __init__(self, parent, size=(-1, -1), value="", style=wx.DEFAULT):
         # Initialise superclass
         wx.Window.__init__(self, parent, size=size)
@@ -249,7 +249,6 @@ class MarkdownCtrl(wx.Window):
         # Set initial view
         self.editBtn.SetValue(False)
         self.toggleView(False)
-        self._applyAppTheme()
 
     def getValue(self):
         return self.rawTextCtrl.GetValue()
