@@ -224,21 +224,16 @@ class ScriptProcess:
 
         # Where are we outputting to? Usually this is the Runner window, but if
         # not available we just write to `sys.stdout`.
-        if hasattr(self.app, 'runner'):
-            # get any remaining data on the pipes
-            stdOut = StdStreamDispatcher.getInstance()
-            # backup if we don't have an instance for some reason
-            if stdOut is None:
-                stdOut = self.app.runner.stdOut
-
-            self.app.runner.Show()
-        else:
-            stdOut = sys.stdout
-
-        # write and flush if needed
-        stdOut.write(text)
-        if hasattr(stdOut, 'flush') and flush:
-            stdOut.flush()
+        # if hasattr(self.app, 'runner'):
+        #     # get any remaining data on the pipes
+        #     stdOut = self.app.runner.stdOut
+        # else:
+        stdOut = StdStreamDispatcher.getInstance()
+        if stdOut is not None:
+            # write and flush if needed
+            stdOut.write(text)
+            if hasattr(stdOut, 'flush') and flush:
+                stdOut.flush()
 
     # --------------------------------------------------------------------------
     # Callbacks for subprocess events

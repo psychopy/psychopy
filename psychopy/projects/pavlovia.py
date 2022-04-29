@@ -482,21 +482,25 @@ class PavloviaSearch(pandas.DataFrame):
                 session = getCurrentSession()
                 data = requests.get(
                     f"https://pavlovia.org/api/v2/designers/{session.userID}/experiments?search={term}{filterBy}",
-                    timeout=5
+                    timeout=10
                 ).json()
             elif term or filterBy:
                 data = requests.get(
                     f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}",
-                    timeout=5
+                    timeout=10
                 ).json()
             else:
                 # Display demos for blank search
                 data = requests.get(
                     "https://pavlovia.org/api/v2/experiments?search=demos&designer=demos",
-                    timeout=5
+                    timeout=10
                 ).json()
         except requests.exceptions.ReadTimeout:
-            msg = "Could not connect to Pavlovia server. Please check that you are connected to the internet. If you are connected, then the Pavlovia servers may be down. You can check their status here: https://pavlovia.org/status"
+            msg = _translate(
+                "Could not connect to Pavlovia server within an acceptable amount of time (10s). Please check that you "
+                "are connected to the internet. If you are connected, then the Pavlovia servers may be down. You can "
+                "check their status here: https://pavlovia.org/status"
+            )
             raise ConnectionError(msg)
         # Construct dataframe
         pandas.DataFrame.__init__(self, data=data['experiments'])

@@ -236,11 +236,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             profile.dump_stats('profileLaunchApp.profile')
         logging.flush()
 
-        if not self.testMode:  # NB class variable not self
-            # set the exception hook to present unhandled errors in a dialog
-            from psychopy.app.errorDlg import exceptionCallback
-            sys.excepthook = exceptionCallback
-
         # if we're on linux, check if we have the permissions file setup
         from psychopy.app.linuxconfig import (
             LinuxConfigDialog, linuxConfigFileExists)
@@ -258,9 +253,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
           testMode: bool
         """
         self.SetAppName('PsychoPy3')
-
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
 
         # Single instance check is done here prior to loading any GUI stuff.
         # This permits one instance of PsychoPy from running at any time.
@@ -500,8 +492,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 view.runner = True
 
         # set the dispatcher for standard output
-        self.stdStreamDispatcher = console.StdStreamDispatcher(self)
-        self.stdStreamDispatcher.redirect()
+        # self.stdStreamDispatcher = console.StdStreamDispatcher(self)
+        # self.stdStreamDispatcher.redirect()
 
         # Create windows
         if view.runner:
@@ -775,8 +767,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             self.runner.Raise()
             self.SetTopWindow(self.runner)
         # Runner captures standard streams until program closed
-        if self.runner and not self.testMode:
-            sys.stderr = sys.stdout = self.stdStreamDispatcher
+        # if self.runner and not self.testMode:
+        #     sys.stderr = sys.stdout = self.stdStreamDispatcher
 
     def newRunnerFrame(self, event=None):
         # have to reimport because it is only local to __init__ so far
