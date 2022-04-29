@@ -218,6 +218,8 @@ class Keyboard:
                 self.start()
 
         if Keyboard._backend in ['', 'event']:
+            global event
+            from psychopy import event
             Keyboard._backend = 'event'
 
         logging.info('keyboard.Keyboard is using %s backend.' % Keyboard._backend)
@@ -239,10 +241,11 @@ class Keyboard:
             if backend in ['iohub', 'ptb', 'event', '']:
                 Keyboard._backend = backend
             else:
-                logging.warning("keyboard.Keyboard.setBackend failed. backend must be one of %s" % str(['iohub',
-                                                                                                        'ptb',
-                                                                                                        'event', '']))
-
+                logging.warning("keyboard.Keyboard.setBackend failed. backend must be one of %s"
+                                % str(['iohub', 'ptb', 'event', '']))
+            if backend == 'event':
+                global event
+                from psychopy import event
         else:
             logging.warning("keyboard.Keyboard.setBackend already using '%s' backend. "
                             "Can not switch to '%s'" % (self._backend, backend))
@@ -320,6 +323,7 @@ class Keyboard:
 
                 keys.append(kpress)
         else:  # Keyboard.backend == 'event'
+            global event
             name = event.getKeys(keyList, modifiers=False, timeStamped=False)
             rt = self.clock.getTime()
             if len(name):
@@ -380,6 +384,7 @@ class Keyboard:
         elif Keyboard._backend == 'iohub':
             Keyboard._iohubKeyboard.clearEvents()
         else:
+            global event
             event.clearEvents(eventType)
 
 

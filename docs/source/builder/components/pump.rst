@@ -5,7 +5,7 @@ Pump Component
 
 This component allows you to deliver liquid stimuli using a Cetoni neMESYS syringe pump.
 
-Please specify the name of the pump configuration to use in the PsychoPy
+Please specify the name of the pump configuration to use in the |PsychoPy|
 preferences under ``Hardware / Qmix pump configuration``. See the `readme file`_ of
 the ``pyqmix`` project for details on how to set up your computer and create
 the configuration file.
@@ -15,7 +15,7 @@ Properties
 ~~~~~~~~~~
 
 Name : string
-    Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
+    Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
 
 Start :
     The time that the stimulus should first appear.

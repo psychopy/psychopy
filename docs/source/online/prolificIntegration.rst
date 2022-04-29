@@ -48,7 +48,7 @@ In each of the boxes in :numref:`prolificSettingsInsertParams`, you can see the 
 Setting the completion URL in PsychoPy
 ----------------------------------------
 
-The last thing you need to do is copy the `Completion URL` from the main control panel above and paste that into the online tab for your PsychoPy `Experiment Settings` as in :numref:`prolificCompletionURLexpSettings`:
+Do not show the completion code to your participants before they have completed your study. Displaying the completion code may result in data loss, since it encourages your participants to return to Prolific before they have completed your study. Instead copy the `Completion URL` from the main control panel above and paste that into the online tab for your PsychoPy `Experiment Settings` as in :numref:`prolificCompletionURLexpSettings`:
 
 .. figure:: /images/prolificCompletionURLexpSettings.png
     :name: prolificCompletionURLexpSettings

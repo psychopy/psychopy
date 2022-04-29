@@ -914,6 +914,24 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self._complete = (nIncomplete == 0)
         return copy.copy(self.items)  # don't want users changing orig
 
+    def reset(self):
+        """
+        Clear all responses and set all items to their initial values.
+        """
+        # Iterate through all items
+        for item in self.items:
+            # If item doesn't have a response ctrl, skip it
+            if "responseCtrl" not in item:
+                continue
+            # If response ctrl is a slider, set its rating to None
+            if isinstance(item['responseCtrl'], psychopy.visual.Slider):
+                item['responseCtrl'].rating = None
+            # If response ctrl is a textbox, set its text to blank
+            elif isinstance(item['responseCtrl'], psychopy.visual.TextBox2):
+                item['responseCtrl'].text = ""
+        # Set scrollbar to top
+        self.scrollbar.rating = 1
+
     def addDataToExp(self, exp, itemsAs='rows'):
         """Gets the current Form data and inserts into an
         :class:`~psychopy.experiment.ExperimentHandler` object either as rows

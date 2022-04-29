@@ -1,3 +1,5 @@
+import numpy as np
+
 from .shape import ShapeStim
 from ..event import Mouse
 from ..core import Clock
@@ -87,8 +89,13 @@ class ROI(ShapeStim):
         """Is this ROI currently being looked at"""
         try:
             # Get current device position
-            pos = self.device.getPos()
-            if not isinstance(pos, (list, tuple)):
+            if hasattr(self.device, "getPos"):
+                pos = self.device.getPos()
+            elif hasattr(self.device, "pos"):
+                pos = self.device.pos
+            else:
+                raise AttributeError(f"ROI device ({self.device}) does not have any method for getting position.")
+            if not isinstance(pos, (list, tuple, np.ndarray)):
                 # If there's no valid device position, assume False
                 return False
             # Check contains

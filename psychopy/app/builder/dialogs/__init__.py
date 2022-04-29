@@ -32,7 +32,7 @@ from psychopy.tools import versionchooser as vc
 from ...colorpicker import PsychoColorPicker
 from pathlib import Path
 
-from ...themes import ThemeMixin
+from ...themes import handlers
 
 white = wx.Colour(255, 255, 255, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
@@ -454,8 +454,8 @@ class StartStopCtrls(wx.GridBagSizer):
             obj.SetFont(self.parent.GetTopLevelParent().app._mainFont)
 
 
-class ParamNotebook(wx.Notebook, ThemeMixin):
-    class CategoryPage(wx.Panel, ThemeMixin):
+class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
+    class CategoryPage(wx.Panel, handlers.ThemeMixin):
         def __init__(self, parent, dlg, params):
             wx.Panel.__init__(self, parent, size=(600, -1))
             self.parent = parent

@@ -17,8 +17,9 @@ __all__ = ['ScriptProcess']
 import os.path
 import sys
 import psychopy.app.jobs as jobs
-from wx import BeginBusyCursor, EndBusyCursor
+from wx import BeginBusyCursor, EndBusyCursor, MessageDialog, ICON_ERROR, OK
 from psychopy.app.console import StdStreamDispatcher
+import psychopy.logging as logging
 
 
 class ScriptProcess:
@@ -81,9 +82,29 @@ class ScriptProcess:
             Which output window to focus on when the application exits. Can be
             either 'coder' or 'runner'. Default is 'runner'.
 
+        Returns
+        -------
+        bool
+            True if the process has been started without error.
+
         """
         # full path to the script
         fullPath = fileName.replace('.psyexp', '_lastrun.py')
+
+        if not os.path.isfile(fullPath):
+            fileNotFoundDlg = MessageDialog(
+                None,
+                "Cannot run script '{}', file not found!".format(fullPath),
+                caption="File Not Found Error",
+                style=OK | ICON_ERROR
+            )
+            fileNotFoundDlg.ShowModal()
+            fileNotFoundDlg.Destroy()
+
+            if event is not None:
+                event.Skip()
+
+            return False
 
         # provide a message that the script is running
         # format the output message
@@ -120,7 +141,7 @@ class ScriptProcess:
         self.scriptProcess = jobs.Job(
             self,
             command=command,
-            flags=execFlags,
+            # flags=execFlags,
             inputCallback=self._onInputCallback,  # both treated the same
             errorCallback=self._onErrorCallback,
             terminateCallback=self._onTerminateCallback
@@ -130,8 +151,38 @@ class ScriptProcess:
 
         # start the subprocess
         workingDir, _ = os.path.split(fullPath)
-        self.scriptProcess.start(cwd=workingDir)  # move set CWD to Job.__init__
+        workingDir = os.path.abspath(workingDir)  # make absolute
+        # move set CWD to Job.__init__ later
+        pid = self.scriptProcess.start(cwd=workingDir)
+
+        if pid < 1:  # error starting the process on zero or negative PID
+            errMsg = (
+                "Failed to run script '{}' in directory '{}'! Check whether "
+                "the file or its directory exists and is accessible.".format(
+                    fullPath, workingDir)
+            )
+            fileNotFoundDlg = MessageDialog(
+                None,
+                errMsg,
+                caption="Run Task Error",
+                style=OK | ICON_ERROR
+            )
+            fileNotFoundDlg.ShowModal()
+            fileNotFoundDlg.Destroy()
+
+            # also log the error
+            logging.error(errMsg)
+
+            if event is not None:
+                event.Skip()
+
+            self.scriptProcess = None  # reset
+            EndBusyCursor()
+            return False
+
         self.focusOnExit = focusOnExit
+
+        return True
 
     def stopFile(self, event=None):
         """Stop the script process.
