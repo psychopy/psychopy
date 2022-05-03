@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 from . import colors, icons, theme
+from ..accessibility import scaling
 from ...preferences.preferences import prefs
 
 # --- Functions to handle specific subclasses of wx.Window ---
@@ -48,7 +49,7 @@ def styleNotebook(target):
         page.SetBackgroundColour(colors.app['panel_bg'])
         # If page points to an icon for the tab, set it
         if hasattr(page, "tabIcon"):
-            btn = icons.ButtonIcon(page.tabIcon, size=(16, 16))
+            btn = icons.ButtonIcon(page.tabIcon, size=scaling.Scaled(16, 16))
             target.SetPageBitmap(index, btn.bitmap)
 
 
@@ -261,9 +262,11 @@ class PsychopyDockArt(aui.AuiDefaultDockArt):
         self._active_caption_colour = colors.app['docker_bg']
         self._active_caption_gradient_colour = colors.app['docker_bg']
         self._active_caption_text_colour = colors.app['docker_fg']
-        # self._caption_font
-        self._caption_size = 25
-        self._button_size = 20
+
+        from ..themes.fonts import AppFont
+        self._caption_font = AppFont()
+        self._caption_size = scaling.Scaled(25)
+        self._button_size = scaling.Scaled(20)
 
 
 class PsychopyTabArt(aui.AuiDefaultTabArt):
@@ -287,6 +290,11 @@ class PsychopyTabArt(aui.AuiDefaultTabArt):
         self._tab_disabled_text_colour = colors.app['text']
         self._tab_inactive_top_colour = colors.app['panel_bg']
         self._tab_inactive_bottom_colour = colors.app['panel_bg']
+
+        from ..themes.fonts import AppFont
+        self._normal_font = AppFont()
+        self._selected_font = AppFont(bold=True)
+        self._measuring_font = self._selected_font
 
     def DrawTab(self, dc, wnd, page, in_rect, close_button_state, paint_control=False):
         """
