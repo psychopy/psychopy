@@ -416,10 +416,10 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         self.isRetina = self.dpi>80 and wx.Platform == '__WXMAC__'
         if self.isRetina:
             fontScale = 1.2  # fonts are looking tiny on macos (only retina?) right now
+            # mark icons as being retina
+            icons.retStr = "@2x"
         else:
             fontScale = 1
-        # mark icons as being retina
-        icons.retStr = "@2x"
         # adjust dpi to something reasonable
         if not (50 < self.dpi < 120):
             self.dpi = 80  # dpi was unreasonable, make one up
