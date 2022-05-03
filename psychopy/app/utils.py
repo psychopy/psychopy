@@ -24,6 +24,7 @@ from wx.lib import platebtn
 import psychopy
 from psychopy import logging
 from . import pavlovia_ui
+from .accessibility import scaling
 from .themes import colors, handlers, icons
 from psychopy.localization import _translate
 from psychopy.tools.stringtools import prettyname
@@ -137,7 +138,7 @@ class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
         # Configure toolbar appearance
         self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER)
         # Set icon size
-        self.iconSize = 32
+        self.iconSize = scaling.Scaled(32)
         self.SetToolBitmapSize((self.iconSize, self.iconSize))
         # OS-dependent tool-tips
         ctrlKey = 'Ctrl+'
