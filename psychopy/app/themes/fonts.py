@@ -1,5 +1,6 @@
 import builtins
 import keyword
+import sys
 from pathlib import Path
 
 import wx
@@ -465,18 +466,31 @@ def extractColor(val):
 
 coderTheme = CodeTheme()
 
+# Get default system font
+if sys.platform == 'win32':
+    # wx.SYS_DEFAULT_GUI_FONT is default GUI font in Win32
+    sysFont = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+else:
+    sysFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
+
 
 class AppFont(wx.Font):
     # Defaults are defined at class level, so they can change if needed
-    pointSize = 8
+    pointSize = sysFont.GetPointSize()
+    family = sysFont.GetFamily()
+    faceName = sysFont.GetFaceName()
     italic = False
     bold = False
     underline = False
 
-    def __init__(self, pointSize=None, italic=None, bold=None, underline=None):
+    def __init__(self, pointSize=None, family=None, faceName=None, italic=None, bold=None, underline=None):
         # Set values
         if pointSize is not None:
             self.pointSize = pointSize
+        if family is not None:
+            self.family = family
+        if faceName is not None:
+            self.faceName = faceName
         if italic is not None:
             self.italic = italic
         if bold is not None:
@@ -495,13 +509,13 @@ class AppFont(wx.Font):
 
         # Create font
         wx.Font.__init__(
-            self, family=wx.FONTFAMILY_DEFAULT,
+            self, family=self.family, faceName=self.faceName,
             pointSize=scaling.Scaled(self.pointSize),
             style=style, weight=weight, underline=self.underline)
 
     def GetUnscaledPointSize(self):
-        return scaling.Scaled(self._pointSize)
+        return scaling.Scaled(self.pointSize)
 
     def SetUnscaledPointSize(self, pointSize):
-        self._pointSize = pointSize
+        self.pointSize = pointSize
         self.SetPointSize(scaling.Scaled(pointSize))
