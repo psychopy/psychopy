@@ -6,6 +6,7 @@ import wx
 import wx.stc as stc
 import re
 
+from ..accessibility import scaling
 from ... import prefs
 from . import colors, theme, loadSpec
 
@@ -464,3 +465,43 @@ def extractColor(val):
 
 coderTheme = CodeTheme()
 
+
+class AppFont(wx.Font):
+    # Defaults are defined at class level, so they can change if needed
+    pointSize = 8
+    italic = False
+    bold = False
+    underline = False
+
+    def __init__(self, pointSize=None, italic=None, bold=None, underline=None):
+        # Set values
+        if pointSize is not None:
+            self.pointSize = pointSize
+        if italic is not None:
+            self.italic = italic
+        if bold is not None:
+            self.bold = bold
+        if underline is not None:
+            self.underline = underline
+
+        # Convert bold from bool
+        weight = wx.FONTWEIGHT_NORMAL
+        if self.bold:
+            weight = wx.FONTWEIGHT_BOLD
+        # Convert italic from bool
+        style = wx.FONTSTYLE_NORMAL
+        if self.italic:
+            style = wx.FONTSTYLE_ITALIC
+
+        # Create font
+        wx.Font.__init__(
+            self, family=wx.FONTFAMILY_DEFAULT,
+            pointSize=scaling.Scaled(self.pointSize),
+            style=style, weight=weight, underline=self.underline)
+
+    def GetUnscaledPointSize(self):
+        return scaling.Scaled(self._pointSize)
+
+    def SetUnscaledPointSize(self, pointSize):
+        self._pointSize = pointSize
+        self.SetPointSize(scaling.Scaled(pointSize))
