@@ -57,6 +57,8 @@
     showStartupTips = boolean(default='True')
     # what windows to display when PsychoPy starts
     defaultView = option('builder', 'coder', 'runner', 'all', default='all')
+    # Apply percentage size adjustment to icons and text
+    appScale = integer(50, 150, default=100)
     # reset preferences to defaults on next restart of PsychoPy
     resetPrefs = boolean(default='False') # default must be False!
     # save any unsaved preferences before closing the window

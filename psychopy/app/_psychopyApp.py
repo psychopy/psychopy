@@ -7,6 +7,7 @@
 
 from pathlib import Path
 
+from psychopy.app.accessibility import scaling
 from psychopy.app.colorpicker import PsychoColorPicker
 
 import sys
@@ -404,6 +405,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
         self.dpi = int(wx.GetDisplaySize()[0] /
                        float(wx.GetDisplaySizeMM()[0]) * 25.4)
+        # set scale from prefs
+        scaling.factor = self.prefs.app['appScale'] / 100
         # detect retina displays
         self.isRetina = self.dpi>80 and wx.Platform == '__WXMAC__'
         if self.isRetina:
