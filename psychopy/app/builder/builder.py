@@ -1633,20 +1633,20 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         self.drawSize = self.app.prefs.appData['routineSize']
         # auto-rescale based on number of components and window size is jumpy
         # when switch between routines of diff drawing sizes
-        self.iconSize = (24, 24, 48)[self.drawSize]  # only 24, 48 so far
-        self.fontBaseSize = (1100, 1200, 1300)[self.drawSize]  # depends on OS?
+        self.iconSize = scaling.Scaled(48)  # only 24, 48 so far
+        self.fontBaseSize = scaling.Scaled(1300)  # depends on OS?
         #self.scroller = PsychopyScrollbar(self, wx.VERTICAL)
         self.SetVirtualSize((self.maxWidth, self.maxHeight))
         self.SetScrollRate(self.dpi / 4, self.dpi / 4)
 
         self.routine = routine
         self.yPositions = None
-        self.yPosTop = (25, 40, 60)[self.drawSize]
+        self.yPosTop = scaling.Scaled(60)
         # the step in Y between each component
-        self.componentStep = (25, 32, 50)[self.drawSize]
-        self.timeXposStart = (150, 150, 200)[self.drawSize]
+        self.componentStep = scaling.Scaled(50)
+        self.timeXposStart = scaling.Scaled(200)
         # the left hand edge of the icons:
-        _scale = (1.3, 1.5, 1.5)[self.drawSize]
+        _scale = scaling.Scaled(1.5)
         self.iconXpos = self.timeXposStart - self.iconSize * _scale
         self.timeXposEnd = self.timeXposStart + 400  # onResize() overrides
 
@@ -1686,8 +1686,8 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
 
     def onResize(self, event):
         self.sizePix = event.GetSize()
-        self.timeXposStart = (150, 150, 200)[self.drawSize]
-        self.timeXposEnd = self.sizePix[0] - (60, 80, 100)[self.drawSize]
+        self.timeXposStart = scaling.Scaled(200)
+        self.timeXposEnd = self.sizePix[0] - scaling.Scaled(100)
         self.redrawRoutine()  # then redraw visible
 
     def ConvertEventCoords(self, event):
@@ -1856,7 +1856,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             if len(name) > longest:
                 longest = len(name)
                 w = self.GetFullTextExtent(name)[0]
-        self.timeXpos = w + (50, 50, 90)[self.drawSize]
+        self.timeXpos = w + scaling.Scaled(90)
 
         # separate components according to whether they are drawn in separate
         # row
@@ -1996,7 +1996,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             name += ' ???'
         nameW, nameH = self.GetFullTextExtent(name)[0:2]
         x = xSt + w // 2
-        staticLabelTop = (0, 50, 60)[self.drawSize]
+        staticLabelTop = scaling.Scaled(60)
         y = staticLabelTop - nameH * 3
         fullRect = wx.Rect(x - 20, y, nameW, nameH)
         # draw the rectangle, draw text on top:
@@ -2019,7 +2019,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             self.componentFromID[id] = component
         dc.SetId(id)
 
-        iconYOffset = (6, 6, 0)[self.drawSize]
+        iconYOffset = 0
         # get default icon and bar color
         thisIcon = icons.ComponentIcon(component, size=self.iconSize).bitmap
         thisColor = colors.app['rt_comp']
@@ -2066,7 +2066,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         # - FULL width of text
         # + slight adjustment for whitespace
         x = self.iconXpos - thisIcon.GetWidth()/2 - w + thisIcon.GetWidth()/3
-        _adjust = (5, 5, -2)[self.drawSize]
+        _adjust = scaling.Scaled(-2)
         y = yPos + thisIcon.GetHeight() // 2 - h // 2 + _adjust
         dc.DrawText(name, x, y)
         fullRect.Union(wx.Rect(x - 20, y, w, h))
@@ -2093,8 +2093,8 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
 
             if startTime is not None:
                 xScale = self.getSecsPerPixel()
-                yOffset = (3.5, 3.5, 0.5)[self.drawSize]
-                h = self.componentStep // (4, 3.25, 2.5)[self.drawSize]
+                yOffset = scaling.Scaled(3.5)
+                h = self.componentStep * scaling.Scaled(0.4)
                 xSt = self.timeXposStart + startTime // xScale
                 w = duration // xScale + 1
                 if w > 10000:
@@ -3492,7 +3492,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
                       thisNest * dBetweenLoops)
             self.drawLoop(pdc, thisLoop, id=thisId,
                           startX=thisInit, endX=thisTerm,
-                          base=self.linePos[1], height=height)
+                          base=self.linePos[1], height=scaling.Scaled(height))
             self.drawLoopStart(pdc, pos=[thisInit, self.linePos[1]])
             self.drawLoopEnd(pdc, pos=[thisTerm, self.linePos[1]])
             if height > maxHeight:
@@ -3626,14 +3626,14 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
             dc.SetId(id)
         font = self.GetFont()
         if sys.platform == 'darwin':
-            fontSizeDelta = (9, 6, 0)[self.appData['flowSize']]
-            font.SetPointSize(1400 / self.dpi - fontSizeDelta)
+            fontSizeDelta = scaling.Scaled(9, 6, 0)[self.appData['flowSize']]
+            font.SetPointSize(scaling.Scaled(1400) / self.dpi - fontSizeDelta)
         elif sys.platform.startswith('linux'):
-            fontSizeDelta = (6, 4, 0)[self.appData['flowSize']]
-            font.SetPointSize(1400 / self.dpi - fontSizeDelta)
+            fontSizeDelta = scaling.Scaled(6, 4, 0)[self.appData['flowSize']]
+            font.SetPointSize(scaling.Scaled(1400) / self.dpi - fontSizeDelta)
         else:
-            fontSizeDelta = (8, 4, 0)[self.appData['flowSize']]
-            font.SetPointSize(1000 / self.dpi - fontSizeDelta)
+            fontSizeDelta = scaling.Scaled(8, 4, 0)[self.appData['flowSize']]
+            font.SetPointSize(scaling.Scaled(1000) / self.dpi - fontSizeDelta)
 
         maxTime, nonSlip = routine.getMaxTime()
         if hasattr(routine, "disabled") and routine.disabled:
@@ -3654,7 +3654,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         if draw:
             dc.SetFont(font)
         w, h = self.GetFullTextExtent(name)[0:2]
-        pad = (5, 10, 20)[self.appData['flowSize']]
+        pad = scaling.Scaled(5, 10, 20)[self.appData['flowSize']]
         # draw box
         rect = wx.Rect(pos[0], pos[1] + 2 - self.appData['flowSize'],
                        w + pad, h + pad)
@@ -3739,11 +3739,11 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         dc.SetId(id)
         font = self.GetFont()
         if sys.platform == 'darwin':
-            basePtSize = (650, 750, 900)[flowsize]
+            basePtSize = scaling.Scaled(650, 750, 900)[flowsize]
         elif sys.platform.startswith('linux'):
-            basePtSize = (750, 850, 1000)[flowsize]
+            basePtSize = scaling.Scaled(750, 850, 1000)[flowsize]
         else:
-            basePtSize = (700, 750, 800)[flowsize]
+            basePtSize = scaling.Scaled(700, 750, 800)[flowsize]
         font.SetPointSize(basePtSize / self.dpi)
         self.SetFont(font)
         dc.SetFont(font)
