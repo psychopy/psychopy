@@ -25,6 +25,7 @@ from wx.lib import platebtn
 from wx.html import HtmlWindow
 
 from .validators import WarningManager
+from ..accessibility import scaling
 from ..pavlovia_ui import sync
 from ..pavlovia_ui.project import ProjectFrame
 from ..pavlovia_ui.search import SearchFrame
@@ -49,7 +50,7 @@ if parse_version(wx.__version__) < parse_version('4.0.3'):
 from psychopy.localization import _translate
 from ... import experiment, prefs
 from .. import dialogs
-from ..themes import icons, colors, handlers
+from ..themes import icons, colors, handlers, fonts
 from ..themes.ui import ThemeSwitcher
 from ..ui import BaseAuiFrame
 from psychopy import logging, data
@@ -2262,8 +2263,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
                 label = "   "+name
             # Initialise button
             wx.ToggleButton.__init__(self, parent,
-                                     label=label, size=(-1, 24),
-                                     style= wx.BORDER_NONE | wx.BU_LEFT)
+                                     label=label, size=scaling.Scaled(-1, 24),
+                                     style=wx.BORDER_NONE | wx.BU_LEFT)
             self.parent = parent
             # Link to category of buttons
             self.menu = self.parent.catSizers[cat]
@@ -2325,7 +2326,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
 
         def _applyAppTheme(self):
             """Apply app theme to this button"""
+            # Color according to hover state
             self.OnHover()
+            # Set font
+            self.SetFont(fonts.AppFont())
 
     class ComponentButton(wx.Button, handlers.ThemeMixin):
         """Button to open component parameters dialog"""
@@ -2341,7 +2345,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             # Make button
             wx.Button.__init__(self, parent, wx.ID_ANY,
                                label=label, name=name,
-                               size=(68, 68+12*label.count("\n")),
+                               size=scaling.Scaled(68, 68 + 12 * label.count("\n")),
                                style=wx.NO_BORDER)
             self.SetToolTip(wx.ToolTip(comp.tooltip or name))
             # Style
@@ -2436,7 +2440,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.SetForegroundColour(colors.app['text'])
             self.SetBackgroundColour(colors.app['panel_bg'])
             # Set bitmap
-            icon = icons.ComponentIcon(self.component, size=48)
+            icon = icons.ComponentIcon(self.component, size=scaling.Scaled(48))
             if hasattr(self.component, "beta") and self.component.beta:
                 icon = icon.beta
             else:
@@ -2446,6 +2450,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.SetBitmapPressed(icon)
             self.SetBitmapFocus(icon)
             self.SetBitmapPosition(wx.TOP)
+            # Set font size
+            self.SetFont(fonts.AppFont())
             # Refresh
             self.Refresh()
 
@@ -2463,7 +2469,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             # Make button
             wx.Button.__init__(self, parent, wx.ID_ANY,
                                label=label, name=name,
-                               size=(68, 68+12*label.count("\n")),
+                               size=scaling.Scaled(68, 68 + 12 * label.count("\n")),
                                style=wx.NO_BORDER)
             self.SetToolTip(wx.ToolTip(rt.tooltip or name))
             # Style
@@ -2508,7 +2514,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.SetForegroundColour(colors.app['text'])
             self.SetBackgroundColour(colors.app['panel_bg'])
             # Set bitmap
-            icon = icons.ComponentIcon(self.routine, size=48)
+            icon = icons.ComponentIcon(self.routine, size=scaling.Scaled(48))
             if hasattr(self.routine, "beta") and self.routine.beta:
                 icon = icon.beta
             else:
@@ -2518,12 +2524,14 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.SetBitmapPressed(icon)
             self.SetBitmapFocus(icon)
             self.SetBitmapPosition(wx.TOP)
+            # Set font size
+            self.SetFont(fonts.AppFont())
             # Refresh
             self.Refresh()
 
     class FilterDialog(wx.Dialog, handlers.ThemeMixin):
         def __init__(self, parent, size=(200, 300)):
-            wx.Dialog.__init__(self, parent, size=size)
+            wx.Dialog.__init__(self, parent, size=scaling.Scaled(size))
             self.parent = parent
             # Setup sizer
             self.border = wx.BoxSizer(wx.VERTICAL)
@@ -2568,7 +2576,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         scrolledpanel.ScrolledPanel.__init__(self,
                                              frame,
                                              id,
-                                             size=(panelWidth, 10 * self.dpi),
+                                             size=scaling.Scaled(panelWidth, 10),
                                              style=wx.BORDER_NONE)
         # Get filter from prefs
         self.filter = prefs.builder['componentFilter']
@@ -2576,7 +2584,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
         # Add filter button
-        self.filterBtn = wx.Button(self, size=(24, 24), style=wx.BORDER_NONE)
+        self.filterBtn = wx.Button(self, size=scaling.Scaled(24, 24), style=wx.BORDER_NONE)
         self.sizer.Add(self.filterBtn, border=0, flag=wx.ALL | wx.ALIGN_RIGHT)
         self.filterBtn.Bind(wx.EVT_BUTTON, self.onFilterBtn)
         # Get components
@@ -2659,7 +2667,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.catLabels[lbl].SetForegroundColour(colors.app['text'])
         # Style filter button
         self.filterBtn.SetBackgroundColour(colors.app['panel_bg'])
-        icon = icons.ButtonIcon("filter", size=16).bitmap
+        icon = icons.ButtonIcon("filter", size=scaling.Scaled(16)).bitmap
         self.filterBtn.SetBitmap(icon)
         self.filterBtn.SetBitmapCurrent(icon)
         self.filterBtn.SetBitmapPressed(icon)
@@ -2930,13 +2938,13 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         btnHeight = 50
         # Create add routine button
         self.btnInsertRoutine = PsychopyPlateBtn(
-            self, -1, labelRoutine, pos=(10, 10), size=(120, btnHeight),
+            self, -1, labelRoutine, pos=scaling.Scaled(10, 10), size=scaling.Scaled(120, btnHeight),
             style=platebtn.PB_STYLE_SQUARE
         )
         # Create add loop button
         self.btnInsertLoop = PsychopyPlateBtn(
-            self, -1, labelLoop, pos=(10, btnHeight+20),
-            size=(120, btnHeight),
+            self, -1, labelLoop, pos=scaling.Scaled(10, btnHeight+20),
+            size=scaling.Scaled(120, btnHeight),
             style=platebtn.PB_STYLE_SQUARE
         )  # spaces give size for CANCEL
 
@@ -2965,9 +2973,11 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         # Style loop/routine buttons
         self.btnInsertLoop.SetBackgroundColour(colors.app['frame_bg'])
         self.btnInsertLoop.SetForegroundColour(colors.app['text'])
+        self.btnInsertLoop.SetFont(fonts.AppFont())
         self.btnInsertLoop.Update()
         self.btnInsertRoutine.SetBackgroundColour(colors.app['frame_bg'])
         self.btnInsertRoutine.SetForegroundColour(colors.app['text'])
+        self.btnInsertRoutine.SetFont(fonts.AppFont())
         self.btnInsertRoutine.Update()
         # Set background
         self.SetBackgroundColour(colors.app['panel_bg'])
@@ -3416,7 +3426,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         font = self.GetFont()
 
         # draw the main time line
-        self.linePos = (2.5 * self.dpi, 0.5 * self.dpi)  # x,y of start
+        self.linePos = scaling.Scaled(2.5 * self.dpi, 0.5 * self.dpi)  # x,y of start
         gap = self.dpi / (6, 4, 2)[self.appData['flowSize']]
         dLoopToBaseLine = (15, 25, 43)[self.appData['flowSize']]
         dBetweenLoops = (20, 24, 30)[self.appData['flowSize']]
