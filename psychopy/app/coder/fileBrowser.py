@@ -10,6 +10,8 @@
 import wx
 from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
 
+from ..accessibility import scaling
+
 try:
     from wx import aui
 except Exception:
@@ -19,7 +21,7 @@ import os
 import sys
 import subprocess
 import imghdr
-from ..themes import icons, colors, handlers
+from ..themes import icons, colors, handlers, fonts
 from psychopy.localization import _translate
 
 # enums for file types
@@ -80,6 +82,7 @@ class FileBrowserListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl, handlers.ThemeMix
     def _applyAppTheme(self, target=None):
         self.SetBackgroundColour(colors.app['frame_bg'])
         self.SetForegroundColour(colors.app['text'])
+        self.SetFont(fonts.AppFont())
 
 
 class FileBrowserToolbar(wx.ToolBar, handlers.ThemeMixin):
@@ -87,7 +90,7 @@ class FileBrowserToolbar(wx.ToolBar, handlers.ThemeMixin):
         # Clear tools
         self.ClearTools()
 
-        iconSize = 16
+        iconSize = scaling.Scaled(16)
         parent = self.GetParent()
         # Create toolbar buttons
         parent.newFolderTool = self.AddTool(
@@ -242,6 +245,9 @@ class FileBrowserPanel(wx.Panel, handlers.ThemeMixin):
         self.lblDir.SetForegroundColour(colors.app['text'])
         # Remake icons
         self.makeFileImgIcons()
+        # Set font
+        self.lblDir.SetFont(fonts.AppFont())
+        self.txtAddr.SetFont(fonts.AppFont())
         # Refresh
         self.Refresh()
 
@@ -251,10 +257,10 @@ class FileBrowserPanel(wx.Panel, handlers.ThemeMixin):
         if self.fileImgList:
             self.fileImgList.RemoveAll()
         else:
-            self.fileImgList = wx.ImageList(16, 16)
+            self.fileImgList = wx.ImageList(*scaling.Scaled(16, 16))
         for key in self.fileImgExt:
             self.fileImgInds[key] = self.fileImgList.Add(
-                    icons.ButtonIcon(self.fileImgExt[key], size=(16, 16)).bitmap
+                    icons.ButtonIcon(self.fileImgExt[key], size=scaling.Scaled(16, 16)).bitmap
             )
         self.fileList.SetImageList(self.fileImgList, wx.IMAGE_LIST_SMALL)
         self.Update()

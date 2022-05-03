@@ -10,6 +10,8 @@
 import sys
 import wx
 import wx.richtext
+
+from psychopy.app.accessibility import scaling
 from psychopy.app.themes import handlers, colors, icons
 from psychopy.preferences import prefs
 from psychopy.localization import _translate
@@ -52,42 +54,42 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
             self.sizer = wx.BoxSizer(wx.VERTICAL)
             self.borderBox.Add(self.sizer, border=3, flag=wx.ALL)
             # Start button
-            self.startBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
+            self.startBtn = wx.Button(self, size=scaling.Scaled(16, 16), style=wx.BORDER_NONE)
             self.startBtn.SetToolTip(_translate(
                 "Close the current shell."
             ))
             self.startBtn.SetBitmap(
-                icons.ButtonIcon(stem="start", size=16).bitmap
+                icons.ButtonIcon(stem="start", size=scaling.Scaled(16)).bitmap
             )
             self.sizer.Add(self.startBtn, border=3, flag=wx.ALL)
             self.startBtn.Bind(wx.EVT_BUTTON, self.parent.start)
             # Restart button
-            self.restartBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
+            self.restartBtn = wx.Button(self, size=scaling.Scaled(16, 16), style=wx.BORDER_NONE)
             self.restartBtn.SetToolTip(_translate(
                 "Close the current shell and start a new one, this will clear any variables."
             ))
             self.restartBtn.SetBitmap(
-                icons.ButtonIcon(stem="restart", size=16).bitmap
+                icons.ButtonIcon(stem="restart", size=scaling.Scaled(16)).bitmap
             )
             self.sizer.Add(self.restartBtn, border=3, flag=wx.ALL)
             self.restartBtn.Bind(wx.EVT_BUTTON, self.parent.restart)
             # Stop button
-            self.stopBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
+            self.stopBtn = wx.Button(self, size=scaling.Scaled(16, 16), style=wx.BORDER_NONE)
             self.stopBtn.SetToolTip(_translate(
                 "Close the current shell."
             ))
             self.stopBtn.SetBitmap(
-                icons.ButtonIcon(stem="stop", size=16).bitmap
+                icons.ButtonIcon(stem="stop", size=scaling.Scaled(16)).bitmap
             )
             self.sizer.Add(self.stopBtn, border=3, flag=wx.ALL)
             self.stopBtn.Bind(wx.EVT_BUTTON, self.parent.close)
             # Clear button
-            self.clrBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
+            self.clrBtn = wx.Button(self, size=scaling.Scaled(16, 16), style=wx.BORDER_NONE)
             self.clrBtn.SetToolTip(_translate(
                 "Clear all previous output."
             ))
             self.clrBtn.SetBitmap(
-                icons.ButtonIcon(stem="clear", size=16).bitmap
+                icons.ButtonIcon(stem="clear", size=scaling.Scaled(16)).bitmap
             )
             self.sizer.Add(self.clrBtn, border=3, flag=wx.ALL)
             self.clrBtn.Bind(wx.EVT_BUTTON, self.parent.clear)
