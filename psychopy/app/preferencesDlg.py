@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 import json
 import sys
+from pathlib import Path
+
 import wx
 import wx.propgrid as pg
 import wx.py
@@ -543,17 +545,8 @@ class PreferencesDlg(wx.Dialog):
         # valid themes
         themePath = self.GetTopLevelParent().app.prefs.paths['themes']
         self.themeList = []
-        for themeFile in os.listdir(themePath):
-            try:
-                # Load theme from json file
-                with open(os.path.join(themePath, themeFile), "rb") as fp:
-                    theme = json.load(fp)
-                # Add themes to list only if min spec is defined
-                base = theme['base']
-                if all(key in base for key in ['bg', 'fg', 'font']):
-                    self.themeList += [themeFile.replace('.json', '')]
-            except:
-                pass
+        for file in Path(themePath).glob("*.json"):
+            self.themeList.append(file.stem)
 
         # get sound devices for "audioDevice" property
         try:
@@ -783,8 +776,7 @@ class PreferencesDlg(wx.Dialog):
                         self.fontList[thisPref]
                     continue
                 if prefName in ('theme',):
-                    self.prefsCfg[sectionName][prefName] = \
-                        self.themeList[thisPref]
+                    self.app.theme = self.prefsCfg[sectionName][prefName] = self.themeList[thisPref]
                     continue
                 elif prefName == 'audioDevice':
                     self.prefsCfg[sectionName][prefName] = \
@@ -862,7 +854,6 @@ class PreferencesDlg(wx.Dialog):
             self.app.builder.updateAllViews()
 
         # after validation, update the UI
-        self.app.theme = self.app.theme
         self.updateFramesUI()
 
     def updateFramesUI(self):

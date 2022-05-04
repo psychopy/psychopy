@@ -39,6 +39,7 @@ from ..utils import FileDropTarget, BasePsychopyToolbar, FrameSwitcher, updateDe
 from ..ui import BaseAuiFrame
 from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
+from psychopy.app.console import StdStreamDispatcher
 from psychopy.app.errorDlg import exceptionCallback
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 from psychopy.app.coder.fileBrowser import FileBrowserPanel
@@ -1341,7 +1342,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # Link to Runner output
         if self.app.runner is None:
             self.app.showRunner()
-        self.outputWindow = self.app.stdStreamDispatcher
+        self.outputWindow = self.consoleOutput
         self.outputWindow.write(_translate('Welcome to PsychoPy3!') + '\n')
         self.outputWindow.write("v%s\n" % self.app.version)
 

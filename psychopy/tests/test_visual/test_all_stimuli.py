@@ -498,10 +498,7 @@ class _baseVisualTest():
         mov = visual.MovieStim3(win, fileName, pos=pos, noAudio=True)
         mov.setFlipVert(True)
         mov.setFlipHoriz(True)
-        if sys.platform == 'darwin':
-            threshold = 30
-        else:
-            threshold = 11
+        threshold = 30
         for frameN in range(10):
             mov.draw()
 
