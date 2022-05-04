@@ -20,7 +20,8 @@ from psychopy.localization import _translate
 from psychopy.experiment import py2js
 import psychopy.logging as logging
 
-excludeComponents = ['BaseComponent', 'BaseVisualComponent', 'BaseStandaloneRoutine'  # templates only
+excludeComponents = ['BaseComponent', 'BaseVisualComponent', 'BaseStandaloneRoutine',  # templates only
+                     'EmotivRecordingComponent',  # deprecated
                      ]  # this one isn't ready yet
 
 pluginComponents = {}  # components registered by loaded plugins

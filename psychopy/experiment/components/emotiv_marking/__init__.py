@@ -11,7 +11,7 @@ from psychopy.experiment.components import (BaseComponent, Param, getInitVals,
                                             _translate)
 # overwrite (filemode='w') a detailed log of the last run in this dir
 # lastLog = logging.LogFile("lastRun.log", level=logging.DEBUG, filemode='w')
-from ..emotiv_record import CORTEX_OBJ
+from psychopy.experiment.routines.emotiv_record import CORTEX_OBJ
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 
