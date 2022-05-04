@@ -1028,6 +1028,9 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         if style in self.knownStyleTweaks + self.legacyStyleTweaks:
             self.styleTweaks.append(style)
 
+        # Refresh style tweaks (as these override some aspects of style)
+        self.styleTweaks = self.styleTweaks
+
         return style
 
     @attributeSetter
@@ -1054,6 +1057,9 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             Style tweaks can be combined in a list e.g. `['labels45']`
 
         """
+        if not isinstance(styleTweaks, (list, tuple, np.ndarray)):
+            styleTweaks = [styleTweaks]
+
         self.__dict__['styleTweaks'] = styleTweaks
 
         if 'triangleMarker' in styleTweaks:
