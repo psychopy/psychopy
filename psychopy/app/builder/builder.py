@@ -2045,7 +2045,7 @@ class RoutineCanvas(wx.ScrolledWindow):
                 thisColor = ThemeMixin.appColors['rt_comp_force']
         # check True/False on ForceEndRoutineOnPress
         if 'forceEndRoutineOnPress' in component.params:
-            if component.params['forceEndRoutineOnPress'].val:
+            if component.params['forceEndRoutineOnPress'].val in ['any click', 'valid click']:
                 thisColor = ThemeMixin.appColors['rt_comp_force']
         # check True aliases on EndRoutineOn
         if 'endRoutineOn' in component.params:
