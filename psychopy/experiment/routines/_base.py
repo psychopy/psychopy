@@ -259,6 +259,9 @@ class Routine(list):
     @name.setter
     def name(self, name):
         self.params['name'] = name
+        # Update references in components
+        for comp in self:
+            comp.parentName = name
 
     def integrityCheck(self):
         """Run tests on self and on all the Components inside"""
