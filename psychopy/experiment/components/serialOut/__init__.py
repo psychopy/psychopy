@@ -40,8 +40,8 @@ class SerialOutComponent(BaseComponent):
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim)
 
-        self.type = 'ParallelOut'
-        self.url = "https://www.psychopy.org/builder/components/parallelout.html"
+        self.type = 'SerialOut'
+        self.url = "https://www.psychopy.org/builder/components/serialout.html"
         self.exp.requirePsychopyLibs(['hardware'])
 
         self.params['port'] = Param(
