@@ -662,6 +662,18 @@ class BaseComponent:
     def disabled(self, value):
         self.params['disabled'].val = value
 
+    @property
+    def currentLoop(self):
+        # Get list of active loops
+        loopList = self.exp.flow._loopList
+
+        if len(loopList):
+            # If there are any active loops, return the highest level
+            return self.exp.flow._loopList[-1].params['name']
+        else:
+            # Otherwise, we are not in a loop, so loop handler is just experiment handler
+            return "thisExp"
+
 
 class BaseVisualComponent(BaseComponent):
     """Base class for most visual stimuli
