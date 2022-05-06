@@ -53,10 +53,10 @@ To communicate with your NetStation EEG hardware, you'll need to add in some Pyt
     eci_client.begin_rec()
     eci_client.send_event(event_type = 'STRT', start = 0.0)
 
-* Now, copy and paste the following code component to your trials routine in the Begin Routine tab to send a trigger OF NO MORE THAN FOUR CHARACTERS when your stimulus routine begins (or whichever routine you want to send triggers from)::
+* Now, copy and paste the following code component to your trials routine in the Begin Routine tab to send a trigger when your stimulus routine begins (or whichever routine you want to send triggers from)::
 
     #Send trigger to NetStation - Change 'stim' to
-    #a meaningful trigger for your experiment OF NO MORE THAN FOUR CHARACTERS. You can
+    #a meaningful trigger for your experiment. You can
     #also set the trigger in a conditions file.
 
     eci_client.send_event(event_type = 'stim')
