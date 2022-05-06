@@ -42,7 +42,7 @@ class SerialOutComponent(BaseComponent):
 
         self.type = 'SerialOut'
         self.url = "https://www.psychopy.org/builder/components/serialout.html"
-        self.exp.requirePsychopyLibs(['hardware'])
+        self.exp.requireImport('serial')
 
         self.params['port'] = Param(
             port, valType='str', inputType="single", categ='Basic',
@@ -104,7 +104,7 @@ class SerialOutComponent(BaseComponent):
 
         code = (
             "# Create serial object for Component \"%(name)s\"\n"
-            "%(name)s = hardware.serial.Serial(\n"
+            "%(name)s = serial.Serial(\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(+1, relative=True)
@@ -132,17 +132,17 @@ class SerialOutComponent(BaseComponent):
         params = copy(self.params)
         # Get containing loop
         params['loop'] = self.currentLoop
-        # Get screen to sync / None according to syncScreen param
-        if self.params['syncScreen']:
-            params['screenToSync'] = "win"
-        else:
-            params['screenToSync'] = "None"
 
         # On component start, send start bits
         self.writeStartTestCode(buff)
-        code = (
-                "%(name)s.write(%(startdata)s, screenSync=%(screenToSync)s)\n"
-        )
+        if self.params['syncScreen']:
+            code = (
+                "win.callOnFlip(%(name)s.write, %(startdata)s)\n"
+            )
+        else:
+            code = (
+                "%(name)s.write(%(startdata)s)\n"
+            )
         buff.writeIndented(code % params)
         # If we want responses, get them
         if self.params['getResponse']:
@@ -153,11 +153,16 @@ class SerialOutComponent(BaseComponent):
         # Dedent
         buff.setIndentLevel(-1, relative=True)
 
-        # On component stop, sent stop pulse
+        # On component stop, send stop pulse
         self.writeStopTestCode(buff)
-        code = (
-                "%(name)s.write(%(stopdata)s, screenSync=%(screenToSync)s)\n"
-        )
+        if self.params['syncScreen']:
+            code = (
+                "win.callOnFlip(%(name)s.write, %(stopdata)s)\n"
+            )
+        else:
+            code = (
+                "%(name)s.write(%(stopdata)s)\n"
+            )
         buff.writeIndented(code % params)
         # If we want responses, get them
         if self.params['getResponse']:
