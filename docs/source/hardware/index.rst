@@ -17,7 +17,8 @@ Although these guides will talk you through how to communicate with EEG hardware
 
 - Communicating via parallel port and USB (link)
 - Communicating via serial port (link)
-- Communicating with specific EEG systems (e.g., EGI Netstation, Emotiv) (link - TBC)
+- Communicating with EGI Netstation (link)
+- Communicating with Emotiv (link)
 
 
 Communicating with an eyetracker
@@ -31,4 +32,4 @@ Communicating with an eyetracker
 Communicating with other devices
 ------------------------------------------
 
-- Biopac (link)
+- Recording GSR or Heart Rate via an Arduino
