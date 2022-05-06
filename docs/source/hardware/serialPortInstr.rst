@@ -33,7 +33,7 @@ To communicate via the serial port you'll need to add in some Python code compon
 
 * First, add in a code component to your Instructions routine (or something similar, at the start of your experiment):
 
-.. figure:: /images/addCode.png
+.. figure:: /images/insertCode.png
 
     Select the code component from the Custom component drop-down
 
