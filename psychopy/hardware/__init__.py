@@ -5,14 +5,14 @@ import sys
 import glob
 from itertools import chain
 from psychopy import logging
-from . import eyetracker, serial
+from . import eyetracker
 
 try:
     from collections.abc import Iterable
 except ImportError:
     from collections import Iterable
 
-__all__ = ['forp', 'serial', 'cedrus', 'minolta', 'gammasci', 'pr', 'crs', 'iolab', 'eyetracker']
+__all__ = ['forp', 'cedrus', 'minolta', 'gammasci', 'pr', 'crs', 'iolab', 'eyetracker']
 
 
 def getSerialPorts():
