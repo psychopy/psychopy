@@ -111,7 +111,7 @@ class SettingsComponent:
     def __init__(self, parentName, exp, expName='', fullScr=True,
                  winSize=(1024, 768), screen=1, monitor='testMonitor',
                  showMouse=False, saveLogFile=True, showExpInfo=True,
-                 expInfo="{'participant':'', 'session':'001'}",
+                 expInfo="{'participant':'$pid', 'session':'001'}",
                  units='height', logging='exp',
                  color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
                  blendMode='avg',
@@ -910,6 +910,13 @@ class SettingsComponent:
             code = ("expName = %s  # from the Builder filename that created"
                     " this script\n")
             buff.writeIndented(code % self.params['expName'])
+
+        # generate random participant id
+        code = (
+            "# Generate a 6-digit random number which we can use as a unique participant id\n"
+            "pid = str(randint(0, 999999)).zfill(6)\n"
+        )
+        buff.writeIndentedLines(code)
 
         # Construct exp info string
         expInfoDict = self.getInfo()
