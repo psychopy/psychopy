@@ -1,8 +1,7 @@
-Sending triggers via EGI NetStation
+Setting up your Eye-tracker
 =================================================
 
-Communicating via EGI NetStation is very similar to communicating via a serial port, in that you'll need to add some code components into your experiment. You'll also need to install the EGI NetStation Python library if you don't already have it installed.
-
+PsychoPy
 
 Step one: Install EGI NetStation Python Library
 -------------------------------------------------------------

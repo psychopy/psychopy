@@ -59,7 +59,7 @@ To communicate with your NetStation EEG hardware, you'll need to add in some Pyt
     #a meaningful trigger for your experiment OF NO MORE THAN FOUR CHARACTERS. You can
     #also set the trigger in a conditions file.
 
-    eci_client.send_event(event_type = 'stim')
+    win.callOnFlip(eci_client.send_event, event_type = 'stim')
 
 * Finally, in a routine at the end of your experiment (the 'Thanks for participating' screen for example) copy and paste the following::
 
