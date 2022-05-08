@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2021.2.3\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2022-04-28 21:32+0800\n"
+"PO-Revision-Date: 2022-05-08 20:39+0800\n"
 "Last-Translator: Shun Wang <shuonwang@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -821,7 +821,7 @@ msgstr "“%s” 循环也即将被删除（由于崩溃）。 需要继续吗�
 
 #: ../app/builder/builder.py:3231
 msgid "Impending Loop collapse"
-msgstr "即将到来的循环崩溃"
+msgstr "循环即将发生崩溃"
 
 #: ../app/builder/dialogs/__init__.py:224
 msgid "set during: "
@@ -1478,36 +1478,36 @@ msgstr "缺少名称"
 
 #: ../app/builder/validators.py:390
 msgid "That name is in use (by {used}). Try another name."
-msgstr ""
+msgstr "该名称已被占用（由 {used} ）。 试试别的名字。"
 
 #: ../app/builder/validators.py:395
 msgid ""
 "Name can only contain letters, numbers and underscores (_), no spaces or "
 "other symbols"
-msgstr ""
+msgstr "名称只能包含字母、数字和下划线 (_)，不能包含空格或其他符号"
 
 #: ../app/builder/validators.py:496
 msgid ""
 "Font `{val}` not found locally, will attempt to retrieve from Google Fonts "
 "when this experiment next runs"
-msgstr ""
+msgstr "本地未找到字体“{val}”，下次运行此实验时将尝试从 Google 字体检索"
 
 #: ../app/builder/validators.py:516
 msgid "Python syntax error in field `{}`:  {}"
-msgstr ""
+msgstr "字段“{}”中的 Python 语法错误：{}"
 
 #: ../app/builder/validators.py:530
 msgid ""
 "Looks like your variable '{code}' in '{displayName}' should be set to update."
-msgstr ""
+msgstr "看起来应该将“{displayName}”中的变量“{code}”设置为更新。"
 
 #: ../app/builder/validators.py:550
 msgid "Python var `{}` in `{}` is same as Name"
-msgstr ""
+msgstr "`{}` 中的 Python var `{}` 与 Name 相同"
 
 #: ../app/builder/validators.py:573
 msgid "Variable name ${newName} is in use (by {used}). Try another name."
-msgstr ""
+msgstr "变量名 ${newName} 正在使用中（由 {used} 使用）。 试试别的名字。"
 
 #: ../app/coder/codeEditorBase.py:117 ../app/coder/coder.py:156
 msgid "Cut"
@@ -1540,11 +1540,11 @@ msgstr "输入"
 
 #: ../app/coder/coder.py:83 ../app/runner/runner.py:356
 msgid "stimuli"
-msgstr ""
+msgstr "刺激"
 
 #: ../app/coder/coder.py:84 ../app/runner/runner.py:357
 msgid "exp control"
-msgstr ""
+msgstr "实验控制"
 
 #: ../app/coder/coder.py:86 ../app/runner/runner.py:359
 msgid "hardware"
@@ -1552,19 +1552,19 @@ msgstr "硬件"
 
 #: ../app/coder/coder.py:87 ../app/runner/runner.py:360
 msgid "timing"
-msgstr ""
+msgstr "定时"
 
 #: ../app/coder/coder.py:88 ../app/runner/runner.py:361
 msgid "misc"
-msgstr ""
+msgstr "杂项"
 
 #: ../app/coder/coder.py:113
 msgid "PyShell in PsychoPy - type some commands!"
-msgstr ""
+msgstr "PyShell in PsychoPy - 输入命令!"
 
 #: ../app/coder/coder.py:158
 msgid "Copy With Prompts"
-msgstr ""
+msgstr "带提示复制"
 
 #: ../app/coder/coder.py:160
 msgid "Paste And Run"
@@ -1572,7 +1572,7 @@ msgstr "粘贴并运行"
 
 #: ../app/coder/coder.py:161
 msgid "Clear"
-msgstr "\"清"
+msgstr "清除"
 
 #: ../app/coder/coder.py:355
 msgid "PsychoPy unit testing"
@@ -1603,7 +1603,7 @@ msgstr "跳转到 Coder 视图"
 
 #: ../app/coder/coder.py:402
 msgid "Terminate PsychoPy"
-msgstr ""
+msgstr "终止 PsychoPy"
 
 #: ../app/coder/coder.py:405
 msgid "&Preferences"
@@ -1614,6 +1614,8 @@ msgid ""
 "Select the test(s) to run, from:\n"
 "psychopy/tests/test*"
 msgstr ""
+"选择要运行的测试，从：\n"
+"psychopy/tests/test*"
 
 #: ../app/coder/coder.py:433
 msgid "Run tests"
@@ -1621,45 +1623,45 @@ msgstr "运行测试"
 
 #: ../app/coder/coder.py:441
 msgid "Coverage Report"
-msgstr ""
+msgstr "覆盖报告(Coverage Report)"
 
 #: ../app/coder/coder.py:442
 msgid "Include coverage report (requires coverage module)"
-msgstr ""
+msgstr "包括覆盖率报告（需要覆盖率模块）"
 
 #: ../app/coder/coder.py:446
 msgid "ALL stdout"
-msgstr ""
+msgstr "所有 stdout"
 
 #: ../app/coder/coder.py:447
 msgid "Report all printed output & show any new rms-test images"
-msgstr ""
+msgstr "报告所有打印输出并显示任何新的 rms-test 图像"
 
 #: ../app/coder/coder.py:1040
 msgid "Analyzing code"
-msgstr ""
+msgstr "分析代码"
 
 #: ../app/coder/coder.py:1129
 #, python-format
 msgid "Unable to find \"%s\""
-msgstr ""
+msgstr "找不到 “%s”"
 
 #: ../app/coder/coder.py:1247 ../app/coder/coder.py:1372
 msgid "Editor"
-msgstr ""
+msgstr "编辑器"
 
 #: ../app/coder/coder.py:1287 ../app/coder/coder.py:1371
 #: ../app/coder/coder.py:1657
 msgid "Source Assistant"
-msgstr ""
+msgstr "源码助手"
 
 #: ../app/coder/coder.py:1324
 msgid "IPython failed as shell, using pyshell (IPython v0.12 can fail on wx)"
-msgstr ""
+msgstr "IPython failed as shell, using pyshell (IPython v0.12 can fail on wx)"
 
 #: ../app/coder/coder.py:1333
 msgid "Shell"
-msgstr ""
+msgstr "Shell"
 
 #: ../app/coder/coder.py:1339
 msgid "Output"
@@ -1667,7 +1669,7 @@ msgstr "输出"
 
 #: ../app/coder/coder.py:1348
 msgid "Shelf"
-msgstr ""
+msgstr "Shelf"
 
 #: ../app/coder/coder.py:1364 ../tools/wizard.py:515
 msgid "Welcome to PsychoPy3!"
@@ -1705,7 +1707,7 @@ msgstr "关闭 Psychopy Coder"
 #: ../app/coder/coder.py:1510
 #, python-format
 msgid "Cu&t\t%s"
-msgstr ""
+msgstr "剪切&t\t%s"
 
 #: ../app/coder/coder.py:1512
 #, python-format
@@ -1714,103 +1716,103 @@ msgstr "&复制\t%s"
 
 #: ../app/coder/coder.py:1516
 msgid "Duplicate the current line (or current selection)"
-msgstr ""
+msgstr "重建当前行（或当前选择）"
 
 #: ../app/coder/coder.py:1518
 #, python-format
 msgid "&Duplicate\t%s"
-msgstr ""
+msgstr "&重建\t%s"
 
 #: ../app/coder/coder.py:1524
 #, python-format
 msgid "&Find\t%s"
-msgstr ""
+msgstr "&查找\t%s"
 
 #: ../app/coder/coder.py:1527
 #, python-format
 msgid "Find &Next\t%s"
-msgstr ""
+msgstr "查找 &下一个\t%s"
 
 #: ../app/coder/coder.py:1532
 #, python-format
 msgid "Comment\t%s"
-msgstr ""
+msgstr "评论\t%s"
 
 #: ../app/coder/coder.py:1533
 msgid "Comment selected lines"
-msgstr ""
+msgstr "评论所选行"
 
 #: ../app/coder/coder.py:1537
 #, python-format
 msgid "Uncomment\t%s"
-msgstr ""
+msgstr "取消评论\t%s"
 
 #: ../app/coder/coder.py:1538
 msgid "Un-comment selected lines"
-msgstr ""
+msgstr "取消所选行的评论"
 
 #: ../app/coder/coder.py:1543
 #, python-format
 msgid "Toggle comment\t%s"
-msgstr ""
+msgstr "切换评论 %s"
 
 #: ../app/coder/coder.py:1544
 msgid "Toggle commenting of selected lines"
-msgstr ""
+msgstr "切换选定行的注释"
 
 #: ../app/coder/coder.py:1549
 #, python-format
 msgid "Toggle fold\t%s"
-msgstr ""
+msgstr "切换折叠 %s"
 
 #: ../app/coder/coder.py:1550
 msgid "Toggle folding of top level"
-msgstr ""
+msgstr "切换顶层折叠"
 
 #: ../app/coder/coder.py:1556
 #, python-format
 msgid "Indent selection\t%s"
-msgstr ""
+msgstr "缩进所选\t%s"
 
 #: ../app/coder/coder.py:1557
 msgid "Increase indentation of current line"
-msgstr ""
+msgstr "增加当前行的缩进"
 
 #: ../app/coder/coder.py:1561
 #, python-format
 msgid "Dedent selection\t%s"
-msgstr ""
+msgstr "反向缩进所选\t%s"
 
 #: ../app/coder/coder.py:1562
 msgid "Decrease indentation of current line"
-msgstr ""
+msgstr "减少当前行的缩进"
 
 #: ../app/coder/coder.py:1565
 msgid "Try to indent to the correct position w.r.t. last line"
-msgstr ""
+msgstr "尝试缩进到正确的位置 w.r.t. 最后一行"
 
 #: ../app/coder/coder.py:1568
 #, python-format
 msgid "SmartIndent\t%s"
-msgstr ""
+msgstr "智能缩进\t%s"
 
 #: ../app/coder/coder.py:1587
 #, python-format
 msgid "Enlarge font\t%s"
-msgstr ""
+msgstr "放大字体\t%s"
 
 #: ../app/coder/coder.py:1588
 msgid "Increase font size"
-msgstr ""
+msgstr "增加字体的尺寸"
 
 #: ../app/coder/coder.py:1592
 #, python-format
 msgid "Shrink font\t%s"
-msgstr ""
+msgstr "缩小字体\t%s"
 
 #: ../app/coder/coder.py:1593
 msgid "Decrease font size"
-msgstr ""
+msgstr "减小字体的尺寸"
 
 #: ../app/coder/coder.py:1597
 msgid "Reset font"
@@ -1818,16 +1820,16 @@ msgstr "重置字体"
 
 #: ../app/coder/coder.py:1598
 msgid "Return fonts to their original size."
-msgstr ""
+msgstr "将字体恢复为原始大小。"
 
 #: ../app/coder/coder.py:1607 ../app/coder/fileBrowser.py:265
 #: ../app/coder/fileBrowser.py:319
 msgid "Editor file location"
-msgstr ""
+msgstr "编辑器文件位置"
 
 #: ../app/coder/coder.py:1613
 msgid "File browser pane location"
-msgstr ""
+msgstr "文件浏览器面板位置"
 
 #: ../app/coder/coder.py:1620 ../app/coder/fileBrowser.py:328
 msgid "Choose directory ..."
@@ -1839,38 +1841,38 @@ msgstr "更改工作目录为..."
 
 #: ../app/coder/coder.py:1645
 msgid "Panels"
-msgstr ""
+msgstr "面板"
 
 #: ../app/coder/coder.py:1648
 msgid "Shows the output and shell panes (and starts capturing stdout)"
-msgstr ""
+msgstr "显示输出和 shell 面板（并开始捕获标准输出）"
 
 #: ../app/coder/coder.py:1651
 #, python-format
 msgid "&Output/Shell\t%s"
-msgstr ""
+msgstr "&输出/Shell\t%s"
 
 #: ../app/coder/coder.py:1655
 msgid "Hide/show the source assistant pane."
-msgstr ""
+msgstr "隐藏/显示源助手窗格。"
 
 #: ../app/coder/coder.py:1665
 msgid "Shows guides in the editor for your indentation level"
-msgstr ""
+msgstr "在编辑器中显示缩进级别的指南"
 
 #: ../app/coder/coder.py:1668
 #, python-format
 msgid "&Indentation guides\t%s"
-msgstr ""
+msgstr "&缩进指南\t%s"
 
 #: ../app/coder/coder.py:1674
 msgid "Show whitespace characters in the code"
-msgstr ""
+msgstr "在代码中显示空白字符"
 
 #: ../app/coder/coder.py:1676
 #, python-format
 msgid "&Whitespace\t%s"
-msgstr ""
+msgstr "&空格\t%s"
 
 #: ../app/coder/coder.py:1682
 msgid "Show End Of Line markers in the code"
