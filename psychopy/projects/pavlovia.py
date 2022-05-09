@@ -1202,7 +1202,7 @@ def getNameWithNamespace(p):
                             universal_newlines=True)  # newlines forces stdout to unicode
     stdout, stderr = proc.communicate()
     # Find a gitlab url in the response
-    url = re.match("https:\/\/gitlab\.pavlovia\.org\/\w*\/\w*\.git", stdout)
+    url = re.match("https:\/\/gitlab\.pavlovia\.org\/.*\/.*\.git", stdout)
     if url:
         # Get contents of url from response
         url = url.string[url.pos:url.endpos]
@@ -1213,8 +1213,6 @@ def getNameWithNamespace(p):
         return path
     else:
         return None
-
-
 
 def getProject(filename):
     """Will try to find (locally synced) pavlovia Project for the filename
