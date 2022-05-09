@@ -21,7 +21,7 @@ from psychopy import core, logging
 from psychopy.clock import Clock, getTime
 from psychopy.tools.attributetools import logAttrib, setAttribute
 from psychopy.tools.filetools import pathToString
-from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
+from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin, ColorMixin
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 
 from .players import getMoviePlayer
@@ -43,7 +43,7 @@ FFPYPLAYER_STATUS_PAUSED = 'paused'
 PREFERRED_VIDEO_LIB = 'ffpyplayer'
 
 
-class MovieStim(BaseVisualStim, ContainerMixin):
+class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
     """Class for presenting movie clips as stimuli.
 
     Parameters
@@ -85,11 +85,13 @@ class MovieStim(BaseVisualStim, ContainerMixin):
                  size=None,
                  pos=(0.0, 0.0),
                  ori=0.0,
+                 anchor="center",
                  flipVert=False,
                  flipHoriz=False,
                  color=(1.0, 1.0, 1.0),  # remove?
                  colorSpace='rgb',
                  opacity=1.0,
+                 contrast=1,
                  volume=1.0,
                  name='',
                  loop=False,
@@ -115,11 +117,14 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         # drawing stuff
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
-        self.pos = np.asarray(pos, float)
+        self.pos = pos
         self.ori = ori
-        self.size = np.asarray(size, float)
+        self.size = size
         self.depth = depth
-        self.opacity = float(opacity)
+        self.opacity = opacity
+        self.anchor = anchor
+        self.colorSpace = colorSpace
+        self.color = color
 
         # playback stuff
         self._filename = pathToString(filename)

@@ -8,7 +8,9 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import time
+from pathlib import Path
 
+from psychopy import prefs
 from psychopy.core import getTime
 from ._base import BaseMoviePlayer
 from ffpyplayer.player import MediaPlayer
@@ -89,6 +91,9 @@ class FFPyPlayer(BaseMoviePlayer):
             FFMPEG supports.
 
         """
+        # If given `untitled.mp4`, sub in full path
+        if self._filename == "untitled.mp4":
+            self._filename = str(Path(prefs.paths['resources']) / "untitled.mp4")
         # set the file path
         self._filename = pathToString(pathToMovie)
 
