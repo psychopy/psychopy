@@ -861,6 +861,13 @@ class SettingsComponent:
             expInfoStr += f"'{key}': {value}, "
         expInfoStr = expInfoStr[:-2] + "}"
 
+        # generate random participant id
+        code = (
+            "// Generate a 6-digit random number which we can use as a unique participant id\n"
+            "const pid = String(Math.floor(Math.random() * 999999)).padStart(6, '0');\n"
+        )
+        buff.writeIndentedLines(code)
+
         code = ("\n// store info about the experiment session:\n"
                 "let expName = '%s';  // from the Builder filename that created this script\n"
                 "let expInfo = %s;\n"
