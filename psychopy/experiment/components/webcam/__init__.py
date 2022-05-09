@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from pathlib import Path
-from psychopy.experiment.components import BaseComponent, Param, _translate
+from psychopy.experiment.components import BaseComponent, Param, _translate, getInitVals
 from psychopy import prefs
 
 # only use _localized values for label values, nothing functional:
@@ -56,12 +56,22 @@ class WebcamComponent(BaseComponent):
         pass
 
     def writeInitCode(self, buff):
+        inits = getInitVals(self.params, "PsychoPy")
+
         code = (
-            "\n"
-            "# Unknown component ignored: %(name)s\n"
-            "\n"
+            "%(name)s = hardware.webcam.Webcam(\n"
         )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(+1, relative=True)
+        code = (
+            "win, name=%(name)s,\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            ")\n"
+        )
+        buff.writeIndentedLines(code % inits)
 
     def writeInitCodeJS(self, buff):
         code = (
@@ -72,26 +82,24 @@ class WebcamComponent(BaseComponent):
         buff.writeIndentedLines(code % self.params)
 
     def writeFrameCode(self, buff):
-        pass
+        # Start webcam at component start
+        self.writeStartTestCode(buff)
+        code = (
+            "%(name)s.start()\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(-1, relative=True)
+
+        # Stop webcam at component stop
+        self.writeStopTestCode(buff)
+        code = (
+            "%(name)s.stop()\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(-1, relative=True)
 
     def writeRoutineEndCode(self, buff):
         pass
 
     def writeExperimentEndCode(self, buff):
-        pass
-
-    def writeTimeTestCode(self, buff):
-        pass
-
-    def writeStartTestCode(self, buff):
-        pass
-
-    def writeStopTestCode(self, buff):
-        pass
-
-    def writeParamUpdates(self, buff, updateType, paramNames=None):
-        pass
-
-    def writeParamUpdate(self, buff, compName, paramName, val, updateType,
-                         params=None):
         pass
