@@ -9,7 +9,7 @@ Serial port addresses are different depending on whether you're using a Mac or a
 
 **If you're using a Mac**
 
-* Open a terminal window and type::
+* Open a `Terminal` window and type::
 
     ls dev/tty*
 
@@ -23,7 +23,7 @@ Serial port addresses are different depending on whether you're using a Mac or a
 
 **If you're using Windows**
 
-* Open the Device Manager and click on the Ports drop down to show available ports like in the screenshot below:
+* Open the `Device Manager` and click on the `Ports` drop down to show available ports like in the screenshot below:
 
 .. figure:: /images/deviceManager.png
 
@@ -33,23 +33,23 @@ Step two: Add code components into your Builder experiment
 -------------------------------------------------------------
 To communicate via the serial port you'll need to add in some Python code components to your experiment.
 
-* First, add in a code component to your Instructions routine (or something similar, at the start of your experiment):
+* First, add in a code component to your `Instructions` routine (or something similar, at the start of your experiment):
 
 .. figure:: /images/insertCode.png
 
-    Select the code component from the Custom component drop-down
+    Select the `Code component` from the `Custom` component drop-down
 
-* In the Begin Experiment tab, copy and paste the following code which will import the serial library and initiate PsychoPy's communication with your serial port - be sure to change 'COM3' to the correct serial port address for your device::
+* In the `Begin Experiment` tab, copy and paste the following code which will import the serial library and initiate PsychoPy's communication with your serial port - be sure to change ``COM3`` to the correct serial port address for your device::
 
     import serial #Import the serial library
     port = serial.Serial('COM3') #Change 'COM3' here to your serial port address
 
-* Now, copy and paste the following code component to your trials routine in the Begin Routine tab (or whichever routine you want to send triggers from)::
+* Now, copy and paste the following code component to your trials routine in the `Begin Routine` tab (or whichever routine you want to send triggers from)::
 
     stimulus_pulse_started = False
     stimulus_pulse_ended = False
 
-* In the same routine, copy and paste the following code in the Each Frame tab - be sure to change 'stimulus' in line 1 to match the name of the component that you want to send the triggers for::
+* In the same routine, copy and paste the following code in the `Each Frame` tab - be sure to change `stimulus` in line 1 to match the name of the component that you want to send the triggers for::
 
     if stimulus.status == STARTED and not stimulus_pulse_started: #Change 'stimulus' to match the name of the component that you want to send the trigger for
         win.callOnFlip(port.write, str.encode('1'))
@@ -63,7 +63,7 @@ To communicate via the serial port you'll need to add in some Python code compon
 
 * This code will send a '1' to your device at the onset of the stimulus component, and then reset back to '0'. You can change these values to whatever is meaningful to your data, including asking PsychoPy to pull the value from your conditions file.
 
-* Finally, in a routine at the end of your experiment (the 'Thanks for participating' screen for example) copy and paste the following::
+* Finally, in a routine at the end of your experiment (the `Thanks for participating` screen for example) copy and paste the following::
 
     port.close()
 

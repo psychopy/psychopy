@@ -10,14 +10,14 @@ Step one: Know Your Eyetracker
 
 PsychoPy supports many of the commonly used eyetrackers, you can find out if yours is supported by following these steps:
 
-* Click on the Experiment Settings icon (the one that looks like a cog, near the top left-hand side of the Builder window).
-* Click on the Eyetracking tab:
+* Click on the `Experiment Settings` icon (the one that looks like a cog, near the top left-hand side of the Builder window).
+* Click on the `Eyetracking` tab:
 
 .. figure:: /images/eyeTrackers.png
 
-* The 'SR Research' option is also known as Eyelink, so if you have an Eyelink device this is the option to choose.
-* When you've found your eyetracker, just select it and click 'OK'.
-* If you want to test out your eyetracking experiment but don't have an eyetracker with you, you can select 'MouseGaze'. This will allow your mouse cursor to act as a gaze point on your screen, and so allow you to simulate eye movements without using an eyetracker. Then, when you're ready to use your eyetracker, you can just select it from the Experiment Settings and run your experiment in the same way.
+* The `SR Research` option is also known as `Eyelink`, so if you have an Eyelink device this is the option to choose.
+* When you've found your eyetracker, just select it and click `OK`.
+* If you want to test out your eyetracking experiment but don't have an eyetracker with you, you can select `MouseGaze`. This will allow your mouse cursor to act as a gaze point on your screen, and so allow you to simulate eye movements without using an eyetracker. Then, when you're ready to use your eyetracker, you can just select it from the Experiment Settings and run your experiment in the same way.
 
 Step two: Set up your Eyetracker
 -------------------------------------------------------------
@@ -26,8 +26,8 @@ When you've selected your eyetracker from the drop-down menu, a set of options t
 .. figure:: /images/mouseGaze.png
 
 * Choose which mouse button you'd like to use to simulate blinks by clicking on the boxes.
-* The 'Move Button' option allows you to select whether PsychoPy monitors your mouse movement continuously, or just when you press and hold one of the mouse buttons.
-* The 'Saccade Threshold' is the threshold, in degrees of visual angle, before a saccade is recorded.
+* The `Move Button` option allows you to select whether PsychoPy monitors your mouse movement continuously, or just when you press and hold one of the mouse buttons.
+* The `Saccade Threshold` is the threshold, in degrees of visual angle, before a saccade is recorded.
 
 Step three: Add Eyetracker components to your Builder experiment
 --------------------------------------------------------------------
@@ -48,7 +48,7 @@ You can find the eyetracker components in the eyetracker component drop-down on 
 
     Here there are lots of options - you can choose what you want to happen when the participant looks at or away from a certain part of the screen, what shape your ROI is etc. All of which can also be defined in your conditions file, just like any other component. Choose the options that fit the needs of your experiment. Here, the component is set such that when a participant looks at a circular target for at least 0.1s (set by the min look time), the trial will end.
 
-* On the 'layout' tab of the ROI component, you set the position and size of the ROI in the same way as you would set the position of any visual component:
+* On the `layout` tab of the ROI component, you set the position and size of the ROI in the same way as you would set the position of any visual component:
 
 .. figure:: /images/eyeROIPos.png
 

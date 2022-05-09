@@ -11,8 +11,8 @@ Step one: Install EGI NetStation Python Library
 
 If you're using PsychoPy version 2022.1.3 or older, you'll need to install the EGI NetStation library using the Command Prompt in Windows. You will only need to do this once.
 
-* To access the Command Prompt, just type 'Command Prompt' into the search bar next to your Start Menu icon and select it.
-* You now need to copy the file path to the file 'python.exe' that is **inside** your PsychoPy folder (usually this is installed in ``C:\Program Files\PsychoPy``).
+* To access the Command Prompt, just type `Command Prompt `into the search bar next to your `Start Menu` icon and select it.
+* You now need to copy the file path to the file `python.exe` that is **inside** your PsychoPy folder (usually this is installed in ``C:\Program Files\PsychoPy``).
 * When you've found the PsychoPy folder, copy the file path and paste it into the Command Prompt, surrounded by quotation marks (" ").
 * Now, add ``\python.exe`` to the line, so that the line reads: ``"C:\Program Files\PsychoPy\python.exe"`` (or similar, depending on where your PsychoPy is saved).
 * Finally, add ``-m pip install egi-pynetstation`` to the line.
@@ -26,13 +26,13 @@ Step two: Add code components into your Builder experiment
 -------------------------------------------------------------
 To communicate with your NetStation EEG hardware, you'll need to add in some Python code components to your experiment.
 
-* First, add in a code component to your Instructions routine (or something similar, at the start of your experiment):
+* First, add in a code component to your `Instructions` routine (or something similar, at the start of your experiment):
 
 .. figure:: /images/insertCode.png
 
-    Select the code component from the Custom component drop-down
+    Select the `Code component` from the `Custom` component drop-down
 
-* In the Begin Experiment tab, copy and paste the following code which will import the relevant libraries and set up the communication with your NetStation - be sure to change the IP address of the NetStation so that it matches that of your own NetStation::
+* In the `Begin Experiment` tab, copy and paste the following code which will import the relevant libraries and set up the communication with your NetStation - be sure to change the IP address of the NetStation so that it matches that of your own NetStation::
 
     #Import Netstation library
     from egi_pynetstation.NetStation import NetStation
@@ -55,7 +55,7 @@ To communicate with your NetStation EEG hardware, you'll need to add in some Pyt
     eci_client.begin_rec()
     eci_client.send_event(event_type = 'STRT', start = 0.0)
 
-* Now, copy and paste the following code component to your trials routine in the Begin Routine tab to send a trigger OF NO MORE THAN FOUR CHARACTERS when your stimulus routine begins (or whichever routine you want to send triggers from)::
+* Now, copy and paste the following code component to your trials routine in the `Begin Routine` tab to send a trigger OF NO MORE THAN FOUR CHARACTERS when your stimulus routine begins (or whichever routine you want to send triggers from)::
 
     #Send trigger to NetStation - Change 'stim' to
     #a meaningful trigger for your experiment OF NO MORE THAN FOUR CHARACTERS. You can
@@ -63,7 +63,7 @@ To communicate with your NetStation EEG hardware, you'll need to add in some Pyt
 
     win.callOnFlip(eci_client.send_event, event_type = 'stim')
 
-* Finally, in a routine at the end of your experiment (the 'Thanks for participating' screen for example) copy and paste the following::
+* Finally, in a routine at the end of your experiment (the `Thanks for participating` screen for example) copy and paste the following::
 
     #Stop recording and disconnect
     eci_client.end_rec()

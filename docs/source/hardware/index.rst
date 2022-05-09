@@ -20,6 +20,8 @@ Although these guides will talk you through how to communicate with EEG hardware
 - `Communicating with EGI NetStation <https://psychopy.org/hardware/egiNetStation.html>`_
 -  `Communicating with Emotiv <https://www.psychopy.org/builder/components/emotiv_record.html>`_
 
+.. note::
+    If you'd like to use a `Parallel Port` to **record** responses (for example from a button box) please read `this excellent thread <https://discourse.psychopy.org/t/issue-reading-parallel-port-pin-for-button-box/9759>`_ from our Discourse Forum user `jtseng <https://discourse.psychopy.org/u/jtseng>`_.
 
 Communicating with an eye-tracker
 ------------------------------------------
