@@ -1241,15 +1241,14 @@ def getProject(filename):
         localRepo = git.Repo(gitRoot)
         for remote in localRepo.remotes:
             for url in remote.urls:
-                if "gitlab.pavlovia.org" in url:
-                    # Get Namespace/Name from standard style url
-                    nameSearch = re.search(r"(?<=https:\/\/gitlab\.pavlovia\.org\/).*\/.*(?=\.git)", url)
-                elif "git@gitlab.pavlovia.org:" in url:
-                    # Get Namespace/Name from @ stye url
-                    nameSearch = re.search(r"(?<=git@gitlab\.pavlovia\.org:).*\/.*(?=\.git)", url)
-                else:
-                    # Attempt to get Namespace/Name from unhandled style
-                    nameSearch = re.search(r"[\w\-]*\\[\w\-]*\.git", url)
+                # Get Namespace/Name from standard style url
+                nameSearch = url.split('gitlab.pavlovia.org')[1]
+                # remove the first char (: or /)
+                if nameSearch[0] in ['/', ':']:
+                    nameSearch = nameSearch[1:]
+                # remove the .git at the end if present
+                nameSearch = nameSearch.replace('.git', '')
+
                 if nameSearch is not None:
                     # Get name from search
                     name = nameSearch.group(0)
