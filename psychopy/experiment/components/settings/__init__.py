@@ -921,7 +921,7 @@ class SettingsComponent:
         # generate random participant id
         code = (
             "# Generate a 6-digit random number which we can use as a unique participant id\n"
-            "pid = str(randint(0, 999999)).zfill(6)\n"
+            "pid = f\"{randint(0, 999999):06.0f}\"\n"
         )
         buff.writeIndentedLines(code)
 
