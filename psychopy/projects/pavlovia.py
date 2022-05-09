@@ -1251,7 +1251,14 @@ def getProject(filename):
                     # Attempt to get Namespace/Name from unhandled style
                     nameSearch = re.search(r"[\w\-]*\\[\w\-]*\.git", url)
                 if nameSearch is not None:
+                    # Get name from search
                     name = nameSearch.group(0)
+                    # Make sure we are logged in, if we can be
+                    if not session.user:
+                        nameSpace = name.split('/')[0]
+                        if nameSpace in knownUsers:  # Log in if user is known
+                            login(nameSpace)
+                    # Get project
                     project = session.gitlab.projects.get(name)
                     return PavloviaProject(project.id)
 
