@@ -141,9 +141,8 @@ class User(dict):
         # Get info from Pavlovia
         if isinstance(id, (float, int, str)):
             # If given a number or string, treat it as a user ID / username
-            self.info = requests.get(
-                "https://pavlovia.org/api/v2/designers/" + str(id),
-                headers={'OauthToken': self.session.getToken()},
+            self.info = self.session.http.get(
+                "https://pavlovia.org/api/v2/designers/" + str(id)
             ).json()['designer']
         elif isinstance(id, dict) and 'gitlabId' in id:
             # If given a dict from Pavlovia rather than an ID, store it rather than requesting again
@@ -395,6 +394,7 @@ class PavloviaSession:
                         "Trying to login with token {} which is shorter "
                         "than expected length ({} not 64) for gitlab token"
                             .format(repr(token), len(token)))
+            # Setup gitlab session
             if parse_version(gitlab.__version__) > parse_version("1.4"):
                 self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=10, per_page=100)
             else:
@@ -404,11 +404,17 @@ class PavloviaSession:
             self.userID = self.gitlab.user.id  # populate when token property is set
             self.userFullName = self.gitlab.user.name
             self.authenticated = True
+            # Setup http session
+            self.http = requests.Session()
+            self.http.headers = {'OauthToken': token}
         else:
+            # Setup gitlab session
             if parse_version(gitlab.__version__) > parse_version("1.4"):
                 self.gitlab = gitlab.Gitlab(rootURL, timeout=10, per_page=100)
             else:
                 self.gitlab = gitlab.Gitlab(rootURL, timeout=10)
+            # Setup http session
+            self.http = requests.Session()
 
     @property
     def user(self):
@@ -483,22 +489,19 @@ class PavloviaSearch(pandas.DataFrame):
             session = getCurrentSession()
             if mine:
                 # Display experiments by current user
-                data = requests.get(
+                data = session.http.get(
                     f"https://pavlovia.org/api/v2/designers/{session.userID}/experiments?search={term}{filterBy}",
-                    headers={'OauthToken': session.getToken()},
                     timeout=10
                 ).json()
             elif term or filterBy:
-                data = requests.get(
+                data = session.http.get(
                     f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}",
-                    headers={'OauthToken': session.getToken()},
                     timeout=10
                 ).json()
             else:
                 # Display demos for blank search
-                data = requests.get(
+                data = session.http.get(
                     "https://pavlovia.org/api/v2/experiments?search=demos&designer=demos",
-                    headers={'OauthToken': session.getToken()},
                     timeout=10
                 ).json()
         except requests.exceptions.ReadTimeout:
@@ -609,9 +612,8 @@ class PavloviaProject(dict):
         self._info = None
         # for a new project it may take time for Pavlovia to register the new ID so try for a while
         while self._info is None and (time.time() - start) < 30:
-            requestVal = requests.get(
+            requestVal = self.session.http.get(
                 f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
-                headers={'OauthToken': self.session.getToken()}
             ).json()
             self._info = requestVal['experiment']
         if self._info is None:
