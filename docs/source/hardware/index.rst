@@ -15,19 +15,20 @@ If you use EEG in your research, you'll know that it is essential to make timing
 
 Although these guides will talk you through how to communicate with EEG hardware, they can really be used to communicate with any device that is connected via the same method:
 
-- Communicating via parallel port and USB
-- Communicating via serial port
-- Communicating with EGI Netstation
-- Communicating with Emotiv
+- `Communicating via parallel port and USB <https://psychopy.org/hardware/parallelPortInstr.html>`_
+- `Communicating via serial port <https://psychopy.org/hardware/serialPortInstr.html>`_
+- `Communicating with EGI NetStation <https://psychopy.org/hardware/egiNetStation.html>`_
+-  `Communicating with Emotiv <https://www.psychopy.org/builder/components/emotiv_record.html>`_
 
 
 Communicating with an eye-tracker
 ------------------------------------------
 
-- Communicating with an eye-tracker using Builder components
+- `Communicating with an eye-tracker using Builder components <https://psychopy.org/hardware/eyeTracking.html>`_
 
 
 Communicating with other devices
 ------------------------------------------
 
-- Recording information from an Arduino microcontroller
+- `Recording information from an Arduino microcontroller <https://psychopy.org/hardware/arduino.html>`_
+
