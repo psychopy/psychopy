@@ -18,7 +18,7 @@ Although these guides will talk you through how to communicate with EEG hardware
 - `Communicating via parallel port and USB <https://psychopy.org/hardware/parallelPortInstr.html>`_
 - `Communicating via serial port <https://psychopy.org/hardware/serialPortInstr.html>`_
 - `Communicating with EGI NetStation <https://psychopy.org/hardware/egiNetStation.html>`_
--  `Communicating with Emotiv <https://www.psychopy.org/builder/components/emotiv_record.html>`_
+-  `Communicating with Emotiv <https://www.psychopy.org/builder/components/emotiv_record.html>`_ please also see `this video tutorial <https://www.youtube.com/watch?v=rRoqGa4PoN8>`_.
 
 .. note::
     If you'd like to use a `Parallel Port` to **record** responses (for example from a button box) please read `this excellent thread <https://discourse.psychopy.org/t/issue-reading-parallel-port-pin-for-button-box/9759>`_ from our Discourse Forum user `jtseng <https://discourse.psychopy.org/u/jtseng>`_.
