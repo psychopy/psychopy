@@ -1,3 +1,5 @@
+.. _eyetracking:
+
 Communicating with an Eyetracker
 =================================================
 

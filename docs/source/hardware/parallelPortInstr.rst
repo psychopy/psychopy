@@ -1,3 +1,5 @@
+.. _parallel:
+
 Sending triggers via a Parallel Port (or USB)
 =================================================
 

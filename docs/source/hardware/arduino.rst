@@ -1,3 +1,5 @@
+.. _arduino:
+
 Recording information from an Arduino via serial port
 ========================================================================
 

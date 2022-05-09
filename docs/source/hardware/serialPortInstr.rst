@@ -1,3 +1,5 @@
+.. _serial:
+
 Sending triggers via a Serial Port
 =================================================
 

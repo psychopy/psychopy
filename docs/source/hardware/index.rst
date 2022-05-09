@@ -13,7 +13,7 @@ Communicating with EEG
 
 If you use EEG in your research, you'll know that it is essential to make timing very precise in your experiments. We recommend that you read `this timing megastudy <https://peerj.com/articles/9414/>`_ by Bridges et al (2020) and run calibration tests to understand the timing lag, and more importantly the variability of that lag, on the hardware you're using before conducting EEG research with PsychoPy or indeed any other software. 
 
-Although these guides will talk you through how to communicate with EEG hardware, they can be used to communicate with any device that is connected via the same method:
+Although these guides will talk you through how to communicate with EEG hardware, they can really be used to communicate with any device that is connected via the same method:
 
 - Communicating via parallel port and USB
 - Communicating via serial port

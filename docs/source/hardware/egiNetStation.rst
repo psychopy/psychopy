@@ -1,3 +1,5 @@
+.. _egi:
+
 Sending triggers via EGI NetStation
 =================================================
 
