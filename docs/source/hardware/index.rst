@@ -15,21 +15,19 @@ If you use EEG in your research, you'll know that it is essential to make timing
 
 Although these guides will talk you through how to communicate with EEG hardware, they can be used to communicate with any device that is connected via the same method:
 
-- Communicating via parallel port and USB (link)
-- Communicating via serial port (link)
-- Communicating with EGI Netstation (link)
-- Communicating with Emotiv (link)
+- Communicating via parallel port and USB
+- Communicating via serial port
+- Communicating with EGI Netstation
+- Communicating with Emotiv
 
 
-Communicating with an eyetracker
+Communicating with an eye-tracker
 ------------------------------------------
 
-- Setting up (link)
-- Calibration (link)
-- Recording (link)
+- Communicating with an eye-tracker using Builder components
 
 
 Communicating with other devices
 ------------------------------------------
 
-- Recording GSR or Heart Rate via an Arduino
+- Recording information from an Arduino microcontroller

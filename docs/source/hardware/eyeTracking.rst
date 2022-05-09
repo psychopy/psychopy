@@ -1,88 +1,90 @@
-Setting up your Eye-tracker
+Communicating with an Eyetracker
 =================================================
 
-PsychoPy
+PsychoPy has components that allow you to connect and communicate with eyetrackers directly from Builder - without any code! These steps will guide you through how to set up, calibrate, and record from your eyetracker.
 
-Step one: Install EGI NetStation Python Library
+Step one: Know Your Eyetracker
 -------------------------------------------------------------
 
-If you're using PsychoPy version 2022.1.3 or older, you'll need to install the EGI NetStation library using the Command Prompt in Windows. You will only need to do this once.
+PsychoPy supports many of the commonly used eyetrackers, you can find out if yours is supported by following these steps:
 
-* To access the Command Prompt, just type 'Command Prompt' into the search bar next to your Start Menu icon and select it.
-* You now need to copy the file path to the file 'python.exe' that is **inside** your PsychoPy folder (usually this is installed in ``C:\Program Files\PsychoPy``).
-* When you've found the PsychoPy folder, copy the file path and paste it into the Command Prompt, surrounded by quotation marks (" ").
-* Now, add ``\python.exe`` to the line, so that the line reads: ``"C:\Program Files\PsychoPy\python.exe"`` (or similar, depending on where your PsychoPy is saved).
-* Finally, add ``-m pip install egi-pynetstation`` to the line.
-* Your line should now look similar to this: ``"C:\Program Files\PsychoPy\python.exe" -m pip install egi-pynetstation`` as shown in the following screenshot:
+* Click on the Experiment Settings icon (the one that looks like a cog, near the top left-hand side of the Builder window).
+* Click on the Eyetracking tab:
 
-.. figure:: /images/cmd.png
+.. figure:: /images/eyeTrackers.png
 
-You're now ready to go!
+* The 'SR Research' option is also known as Eyelink, so if you have an Eyelink device this is the option to choose.
+* When you've found your eyetracker, just select it and click 'OK'.
+* If you want to test out your eyetracking experiment but don't have an eyetracker with you, you can select 'MouseGaze'. This will allow your mouse cursor to act as a gaze point on your screen, and so allow you to simulate eye movements without using an eyetracker. Then, when you're ready to use your eyetracker, you can just select it from the Experiment Settings and run your experiment in the same way.
 
-Step two: Add code components into your Builder experiment
+Step two: Set up your Eyetracker
 -------------------------------------------------------------
-To communicate with your NetStation EEG hardware, you'll need to add in some Python code components to your experiment.
+When you've selected your eyetracker from the drop-down menu, a set of options that are specific to that device will appear, such as the model and serial number of your device. Here we will follow through with the MouseGaze options:
 
-* First, add in a code component to your Instructions routine (or something similar, at the start of your experiment):
+.. figure:: /images/mouseGaze.png
 
-.. figure:: /images/insertCode.png
+* Choose which mouse button you'd like to use to simulate blinks by clicking on the boxes.
+* The 'Move Button' option allows you to select whether PsychoPy monitors your mouse movement continuously, or just when you press and hold one of the mouse buttons.
+* The 'Saccade Threshold' is the threshold, in degrees of visual angle, before a saccade is recorded.
 
-    Select the code component from the Custom component drop-down
+Step three: Add Eyetracker components to your Builder experiment
+--------------------------------------------------------------------
+You can find the eyetracker components in the eyetracker component drop-down on the right-hand side of the Builder window.
 
-* In the Begin Experiment tab, copy and paste the following code which will import the relevant libraries and set up the communication with your NetStation - be sure to change the IP address of the NetStation so that it matches that of your own NetStation::
+* The first component to add is the **'Eyetracker Record'** component as this starts and stops the eyetracker recording. Usually, you would add this component to your instructions routine or something similar, so that your eyetracker is set off recording before your trials start, but you can add them in wherever makes sense for your experiment:
 
-    #Import Netstation library
-    from egi_pynetstation.NetStation import NetStation
+.. figure:: /images/eyeRecord.png
 
-    #IP address of NetStation - CHANGE THIS TO MATCH THE IP ADDRESS OF YOUR NETSTATION
-    IP_ns = '10.0.0.42'
+    You can choose whether you want this component to just start your eyetracker recording, just stop the recording, or whether you want the component to start the recording and then stop it after a certain duration.
 
-    #IP address of amplifier (if using 300
-    #series, this is the same as the IP address of
-    #NetStation. If using newer series, the amplifier
-    #has its own IP address)
-    IP_amp = '10.0.0.42'
+.. note::
+	If you've started the eyetracker recording at the start of your experiment, be sure to add in another eyetracker record component at the end of your experiment to stop the recording too!
 
-    #Port configured for ECI in NetStation - CHANGE THIS IF NEEDED
-    port_ns = 55513
+* If you want to record information on gaze position, or you want your trial to move on when your participant has looked at or away from a target, you'll need to add in an **ROI component**:
 
-    #Start recording and send trigger to show this
-    eci_client = NetStation(IP_ns, port_ns)
-    eci_client.connect(ntp_ip = IP_amp)
-    eci_client.begin_rec()
-    eci_client.send_event(event_type = 'STRT', start = 0.0)
+.. figure:: /images/eyeROI.png
 
-* Now, copy and paste the following code component to your trials routine in the Begin Routine tab to send a trigger when your stimulus routine begins (or whichever routine you want to send triggers from)::
+    Here there are lots of options - you can choose what you want to happen when the participant looks at or away from a certain part of the screen, what shape your ROI is etc. All of which can also be defined in your conditions file, just like any other component. Choose the options that fit the needs of your experiment. Here, the component is set such that when a participant looks at a circular target for at least 0.1s (set by the min look time), the trial will end.
 
-    #Send trigger to NetStation - Change 'stim' to
-    #a meaningful trigger for your experiment. You can
-    #also set the trigger in a conditions file.
+* On the 'layout' tab of the ROI component, you set the position and size of the ROI in the same way as you would set the position of any visual component:
 
-    eci_client.send_event(event_type = 'stim')
+.. figure:: /images/eyeROIPos.png
 
-* Finally, in a routine at the end of your experiment (the 'Thanks for participating' screen for example) copy and paste the following::
+* It's also vitally important that you calibrate and validate your eyetracker. To do this, you will use two standalone components: **Eyetracker calibrate** and **Eyetracker validate**.
+* These are a little different from other components in that they form a routine all on their own. You'll need to add them in right at the start of your experiment Flow.
+* The **Eyetracker calibrate** component has all of the options you would expect from an eyetracker calibration:
 
-    #Stop recording and disconnect
-    eci_client.end_rec()
-    eci_client.disconnect()
+.. figure:: /images/eyeCaliBasic.png
 
+    Set the basic properties of the calibration routine here.
 
-Step three: Test your triggers
--------------------------------------------------------------
+.. figure:: /images/eyeCaliTarget.png
 
-* To check that everything works, we recommend that you set up a very basic experiment that looks similar to this:
+    Set the properties of the target on this tab.
 
-.. figure:: /images/serialExp.png
+.. figure:: /images/eyeCaliAni.png
+
+    This tab allows you to set the properties of the target animation.
+
+* The **Eyetracker validate** component, you'll notice, is pretty much identical to the calibration component - that's because it will use the calibration information to present the same screen to the participant to cross-check the recorded gaze position with the calibrated gaze position.
+* The Eyetracker validate component will then show the offset between the recorded and calibrated gaze positions. You'll want these to be as close as possible to ensure that your eyetracker is recording gaze accurately.
 
 
+What about the data?
+--------------------------------------------------------------------
+* The eyetracking data from the ROI will be saved in your usual data file. Extra columns are created and populated by PsychoPy, depending on what you've asked to record.
+* In the example below, the trial ended when a participant looked at a target on the screen. You can see what each column represents in the figure below:
 
-* Turn on your EEG recording device and start recording as you would in your actual experiment, and just check that you see triggers coming through.
-* It's a good idea at this point to also check the timing of your stimulus presentation and your triggers using, for example, a photodiode for visual stimuli.
-* Doing these checks with a very basic experiment just means that you don't accidentally change something on your real experiment file that you don't want to, and also means you don't have to disable components or sit through lots of instructions etc!
+.. figure:: /images/eyeData.png
+
+    The data output will vary according to what you've asked PsychoPy to record about gaze.
+
+* PsychoPy also provides the option to save your eyetracking data as a hdf5 file, which is particularly useful if you are recording a large amount of eyetracking data, such as gaze position on every frame for example.
+* To save eyetracking data as a hdf5 file, just click on the Experiment Settings icon, and in the 'Data' tab check the box next to 'Save hdf5 file'.
 
 
 If there is a problem - We want to know!
 -------------------------------------------------------------
-If you have followed the steps above and are having an issue with triggers, please post details of this on the `PsychoPy Forum <https://discourse.psychopy.org/>`_.
+If you have followed the steps above and are having an issue, please post details of this on the `PsychoPy Forum <https://discourse.psychopy.org/>`_.
 
 We are constantly looking to update our documentation so that it's easy for you to use PsychoPy in the way that you want to. Posting in our forum allows us to see what issues users are having, offer solutions, and to update our documentation to hopefully prevent those issues from occurring again!
