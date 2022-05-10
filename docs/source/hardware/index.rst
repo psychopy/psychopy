@@ -8,11 +8,23 @@ PsychoPy is able to communicate with a range of external hardware, like EEG reco
 This page provides step-by-step instructions on how to communicate with some of the more commonly used hardware. The page is being updated regularly so if you don't see your device listed here please do post in the forum as we keep an eye on commonly-faced issues (and solutions!) there.
 
 
-Communicating with EEG
+Understand your timing
 -----------------------------
 
-If you use EEG in your research, you'll know that it is essential to make timing very precise in your experiments. We recommend that you read `this timing megastudy <https://peerj.com/articles/9414/>`_ by Bridges et al (2020) and run calibration tests to understand the timing lag, and more importantly the variability of that lag, on the hardware you're using before conducting EEG research with PsychoPy or indeed any other software. 
+It is essential to make timing very precise in your experiments, especially if you're looking to collect EEG data.
+There are certain steps that we strongly advise you to take before running an experiment that needs to be temporally precise in PsychoPy, or indeed any other software:
 
+* Read `this timing megastudy <https://peerj.com/articles/9414/>`_ by Bridges et al (2020) which compares several pieces of behavioural software in terms of their temporal precision.
+* Check that your stimulus presentation monitor is not dropping frames. You can do this by running the timeByFrames.py demo. Find this demo in the `Coder` window > demos > timing. The timeByFrames demo examines the precision of your frame flips, and shows the results in a plot similar to the one below:
+
+.. figure:: /images/timeByFrameRes.png
+
+    The results here are for a 60Hz monitor, and you can see that there are no dropped frames from the left hand side of the screen, and also the timing of each frame is 16.7ms (shown on the right-hand side of the screen) which is what we would expect from a 60Hz monitor (1000ms/60 = 16.66ms).
+
+* Use a photodiode or other physical stimulus detector to fully understand the lag, and more importantly the variability of that lag, between any triggers that you send to indicate the start of your stimulus and when the stimulus actually starts.
+
+Communicating with EEG
+-----------------------------
 Although these guides will talk you through how to communicate with EEG hardware, they can really be used to communicate with any device that is connected via the same method:
 
 - `Communicating via parallel port and USB <https://psychopy.org/hardware/parallelPortInstr.html>`_
