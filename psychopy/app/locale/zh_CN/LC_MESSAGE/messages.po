@@ -2221,7 +2221,7 @@ msgstr ""
 
 #: ../app/connections/updates.py:223
 msgid "Should PsychoPy update itself?"
-msgstr ""
+msgstr "Psychopy 需要自己升级吗？"
 
 #: ../app/connections/updates.py:237
 msgid "Keep warning me"
@@ -2420,23 +2420,23 @@ msgstr ""
 
 #: ../app/errorDlg.py:56
 msgid "&OK"
-msgstr ""
+msgstr "&OK"
 
 #: ../app/errorDlg.py:59
 msgid "E&xit PsychoPy"
-msgstr ""
+msgstr "退出 Psychopy(&E)"
 
 #: ../app/errorDlg.py:66
 msgid "&Details"
-msgstr ""
+msgstr "详情(&D)"
 
 #: ../app/colorpicker/__init__.py:222 ../app/errorDlg.py:78
 msgid "&Copy"
-msgstr ""
+msgstr "复制(&C)"
 
 #: ../app/errorDlg.py:82
 msgid "&Save"
-msgstr ""
+msgstr "保存(&S)"
 
 #: ../app/errorDlg.py:125
 msgid ""
@@ -2446,20 +2446,20 @@ msgstr ""
 
 #: ../app/errorDlg.py:127
 msgid "Exit PsychoPy?"
-msgstr ""
+msgstr "要退出 Psychopy 吗？"
 
 #: ../app/errorDlg.py:163
 msgid "Save error traceback"
-msgstr ""
+msgstr "保存错误跟踪"
 
 #: ../app/errorDlg.py:180
 #, python-format
 msgid "Cannot save to file '%s'."
-msgstr ""
+msgstr "无法保存到文件 '%s'"
 
 #: ../app/errorDlg.py:181
 msgid "File save error"
-msgstr ""
+msgstr "文件保存出错"
 
 #: ../app/pavlovia_ui/_base.py:33
 #, python-format
@@ -2468,15 +2468,15 @@ msgstr ""
 
 #: ../app/pavlovia_ui/_base.py:34
 msgid "Close current window"
-msgstr ""
+msgstr "关闭当前窗口"
 
 #: ../app/pavlovia_ui/_base.py:159 ../app/pavlovia_ui/functions.py:109
 msgid "Committing changes"
-msgstr ""
+msgstr "正在提交变更"
 
 #: ../app/pavlovia_ui/_base.py:161
 msgid "Summary of changes"
-msgstr ""
+msgstr "变更摘要"
 
 #: ../app/pavlovia_ui/_base.py:163
 msgid ""
@@ -2514,7 +2514,7 @@ msgstr ""
 
 #: ../app/pavlovia_ui/menu.py:56
 msgid "User"
-msgstr ""
+msgstr "用户"
 
 #: ../app/pavlovia_ui/menu.py:60
 msgid "Search Pavlovia\t{}"
@@ -2542,7 +2542,7 @@ msgstr ""
 
 #: ../app/pavlovia_ui/project.py:72
 msgid "Description:"
-msgstr ""
+msgstr "描述："
 
 #: ../app/pavlovia_ui/project.py:76
 msgid "Local folder:"
@@ -2578,11 +2578,11 @@ msgstr ""
 
 #: ../app/pavlovia_ui/project.py:219 ../app/pavlovia_ui/project.py:308
 msgid "Sync..."
-msgstr ""
+msgstr "同步…"
 
 #: ../app/pavlovia_ui/project.py:254
 msgid "Ready to sync"
-msgstr ""
+msgstr "同步已就绪"
 
 #: ../app/pavlovia_ui/project.py:257
 msgid "This file doesn't belong to a project yet"
@@ -2623,7 +2623,7 @@ msgstr ""
 
 #: ../app/pavlovia_ui/project.py:393
 msgid "Project info"
-msgstr ""
+msgstr "项目信息"
 
 #: ../app/pavlovia_ui/project.py:471
 msgid "This file doesn't belong to any existing project."
@@ -2631,7 +2631,7 @@ msgstr ""
 
 #: ../app/pavlovia_ui/project.py:474
 msgid "Create a project"
-msgstr ""
+msgstr "创建项目"
 
 #: ../app/pavlovia_ui/project.py:613
 msgid "points to a remote that doesn't exist (deleted?)."
@@ -2651,7 +2651,7 @@ msgstr ""
 
 #: ../app/pavlovia_ui/project.py:618
 msgid "not yet supported"
-msgstr ""
+msgstr "目前不支持"
 
 #: ../app/pavlovia_ui/project.py:619
 msgid "Forget the local git repository (deletes history keeps files)"
@@ -2659,35 +2659,35 @@ msgstr ""
 
 #: ../app/pavlovia_ui/search.py:36
 msgid "Search for projects online"
-msgstr ""
+msgstr "在线搜索项目"
 
 #: ../app/pavlovia_ui/search.py:51
 msgid "Search:"
-msgstr ""
+msgstr "搜索："
 
 #: ../app/pavlovia_ui/search.py:54
 msgid "Search"
-msgstr ""
+msgstr "搜索"
 
 #: ../app/pavlovia_ui/toolbar.py:27
 msgid "Run online"
-msgstr ""
+msgstr "在线运行"
 
 #: ../app/pavlovia_ui/toolbar.py:28
 msgid "Run the study online (with pavlovia.org)"
-msgstr ""
+msgstr "在线运行研究项目(通过pavlovia.org)"
 
 #: ../app/pavlovia_ui/toolbar.py:32
 msgid "Sync online"
-msgstr ""
+msgstr "在线同步"
 
 #: ../app/pavlovia_ui/toolbar.py:33
 msgid "Sync with web project (at pavlovia.org)"
-msgstr ""
+msgstr "同步web项目(到pavlovia.org)"
 
 #: ../app/pavlovia_ui/toolbar.py:37
 msgid "Search Pavlovia.org"
-msgstr ""
+msgstr "同步 Pavlovia.org"
 
 #: ../app/pavlovia_ui/toolbar.py:38
 msgid "Find existing studies online (at pavlovia.org)"
@@ -2695,7 +2695,7 @@ msgstr ""
 
 #: ../app/pavlovia_ui/toolbar.py:42
 msgid "Log in to Pavlovia"
-msgstr ""
+msgstr "登录到 Pavlovia"
 
 #: ../app/pavlovia_ui/toolbar.py:43
 msgid "Log in to (or create user at) Pavlovia.org"
@@ -2703,11 +2703,11 @@ msgstr ""
 
 #: ../app/pavlovia_ui/toolbar.py:47
 msgid "View project"
-msgstr ""
+msgstr "查看项目"
 
 #: ../app/pavlovia_ui/toolbar.py:48
 msgid "View details of this project"
-msgstr ""
+msgstr "查看此项目的详情"
 
 #: ../app/pavlovia_ui/user.py:45
 msgid "Logout"
@@ -2715,19 +2715,19 @@ msgstr ""
 
 #: ../app/pavlovia_ui/user.py:48
 msgid "Full name:"
-msgstr ""
+msgstr "完整名称："
 
 #: ../app/pavlovia_ui/user.py:57
 msgid "Organization:"
-msgstr ""
+msgstr "组织："
 
 #: ../app/pavlovia_ui/user.py:61
 msgid "Bio (250 chrs):"
-msgstr ""
+msgstr "Bio (250 字符):"
 
 #: ../app/preferencesDlg.py:27
 msgid "General"
-msgstr ""
+msgstr "通用"
 
 #: ../app/preferencesDlg.py:28
 msgid "Application"
@@ -2743,19 +2743,19 @@ msgstr "硬件"
 
 #: ../app/preferencesDlg.py:31 ../app/preferencesDlg.py:39
 msgid "Connections"
-msgstr ""
+msgstr "连接"
 
 #: ../app/preferencesDlg.py:33
 msgid "general"
-msgstr ""
+msgstr "通用"
 
 #: ../app/preferencesDlg.py:34
 msgid "app"
-msgstr ""
+msgstr "应用程序"
 
 #: ../app/preferencesDlg.py:42
 msgid "window type"
-msgstr ""
+msgstr "窗口类型"
 
 #: ../app/preferencesDlg.py:43
 msgid "units"
@@ -2763,15 +2763,15 @@ msgstr ""
 
 #: ../app/preferencesDlg.py:44 ../tools/wizard.py:37
 msgid "full-screen"
-msgstr ""
+msgstr "全屏"
 
 #: ../app/preferencesDlg.py:45
 msgid "allow GUI"
-msgstr ""
+msgstr "允许 GUI"
 
 #: ../app/preferencesDlg.py:46
 msgid "paths"
-msgstr ""
+msgstr "路径"
 
 #: ../app/preferencesDlg.py:47
 msgid "flac audio compression"
@@ -2807,19 +2807,19 @@ msgstr ""
 
 #: ../app/preferencesDlg.py:56
 msgid "default view"
-msgstr ""
+msgstr "默认视图"
 
 #: ../app/preferencesDlg.py:57
 msgid "reset preferences"
-msgstr ""
+msgstr "重置首选项"
 
 #: ../app/preferencesDlg.py:58
 msgid "auto-save prefs"
-msgstr ""
+msgstr "自动保存设置"
 
 #: ../app/preferencesDlg.py:59
 msgid "debug mode"
-msgstr ""
+msgstr "调试模式"
 
 #: ../app/preferencesDlg.py:60 ../tools/wizard.py:42
 msgid "locale"
@@ -2831,7 +2831,7 @@ msgstr ""
 
 #: ../app/preferencesDlg.py:62
 msgid "theme"
-msgstr ""
+msgstr "主题"
 
 #: ../app/preferencesDlg.py:64
 msgid "reload previous exp"
@@ -2879,23 +2879,23 @@ msgstr ""
 
 #: ../app/preferencesDlg.py:76
 msgid "read-only"
-msgstr ""
+msgstr "只读"
 
 #: ../app/preferencesDlg.py:77
 msgid "output font"
-msgstr ""
+msgstr "输出字体"
 
 #: ../app/preferencesDlg.py:78
 msgid "code font"
-msgstr ""
+msgstr "代码字体"
 
 #: ../app/preferencesDlg.py:79
 msgid "output font size"
-msgstr ""
+msgstr "输出字体大小"
 
 #: ../app/preferencesDlg.py:80
 msgid "code font size"
-msgstr ""
+msgstr "代码字体大小"
 
 #: ../app/preferencesDlg.py:81
 msgid "lineSpacing"
@@ -2911,11 +2911,11 @@ msgstr ""
 
 #: ../app/preferencesDlg.py:84
 msgid "show output"
-msgstr ""
+msgstr "显示输出"
 
 #: ../app/preferencesDlg.py:85
 msgid "auto complete"
-msgstr ""
+msgstr "自动补全"
 
 #: ../app/preferencesDlg.py:86
 msgid "reload previous files"
@@ -2927,23 +2927,23 @@ msgstr ""
 
 #: ../app/preferencesDlg.py:89
 msgid "open"
-msgstr ""
+msgstr "打开"
 
 #: ../app/preferencesDlg.py:90
 msgid "new"
-msgstr ""
+msgstr "新建"
 
 #: ../app/preferencesDlg.py:91
 msgid "save"
-msgstr ""
+msgstr "保存"
 
 #: ../app/preferencesDlg.py:92
 msgid "save as"
-msgstr ""
+msgstr "另存为"
 
 #: ../app/preferencesDlg.py:93
 msgid "print"
-msgstr ""
+msgstr "打印"
 
 #: ../app/preferencesDlg.py:94
 msgid "close"
@@ -2951,31 +2951,31 @@ msgstr "关闭"
 
 #: ../app/preferencesDlg.py:95
 msgid "quit"
-msgstr ""
+msgstr "退出"
 
 #: ../app/preferencesDlg.py:96
 msgid "preferences"
-msgstr ""
+msgstr "首选项"
 
 #: ../app/preferencesDlg.py:97
 msgid "export HTML"
-msgstr ""
+msgstr "导出为 HTML"
 
 #: ../app/preferencesDlg.py:98
 msgid "cut"
-msgstr ""
+msgstr "剪切"
 
 #: ../app/builder/builder.py:88 ../app/preferencesDlg.py:99
 msgid "copy"
-msgstr ""
+msgstr "复制"
 
 #: ../app/preferencesDlg.py:100
 msgid "paste"
-msgstr ""
+msgstr "粘贴"
 
 #: ../app/preferencesDlg.py:101
 msgid "duplicate"
-msgstr ""
+msgstr "重建"
 
 #: ../app/preferencesDlg.py:102
 msgid "indent"
@@ -2991,19 +2991,19 @@ msgstr ""
 
 #: ../app/preferencesDlg.py:105
 msgid "find"
-msgstr ""
+msgstr "查找"
 
 #: ../app/preferencesDlg.py:106
 msgid "find again"
-msgstr ""
+msgstr "再次查找"
 
 #: ../app/preferencesDlg.py:107
 msgid "undo"
-msgstr ""
+msgstr "撤销"
 
 #: ../app/preferencesDlg.py:108
 msgid "redo"
-msgstr ""
+msgstr "重做"
 
 #: ../app/preferencesDlg.py:109
 msgid "comment"
@@ -3039,7 +3039,7 @@ msgstr ""
 
 #: ../app/preferencesDlg.py:117
 msgid "run script"
-msgstr ""
+msgstr "运行脚本"
 
 #: ../app/preferencesDlg.py:118
 msgid "runner script"
@@ -3047,7 +3047,7 @@ msgstr ""
 
 #: ../app/preferencesDlg.py:119
 msgid "stop script"
-msgstr ""
+msgstr "停止脚本"
 
 #: ../app/preferencesDlg.py:120
 msgid "toggle whitespace"
@@ -3063,15 +3063,15 @@ msgstr ""
 
 #: ../app/preferencesDlg.py:123
 msgid "new Routine"
-msgstr ""
+msgstr "新建例程"
 
 #: ../app/preferencesDlg.py:124
 msgid "copy Routine"
-msgstr ""
+msgstr "复制例程"
 
 #: ../app/preferencesDlg.py:125
 msgid "paste Routine"
-msgstr ""
+msgstr "粘贴例程"
 
 #: ../app/preferencesDlg.py:126
 msgid "paste Component"
@@ -3083,7 +3083,7 @@ msgstr ""
 
 #: ../app/preferencesDlg.py:128
 msgid "rename Routine"
-msgstr ""
+msgstr "重命名例程"
 
 #: ../app/preferencesDlg.py:129
 msgid "cycle windows"
@@ -3127,27 +3127,27 @@ msgstr ""
 
 #: ../app/preferencesDlg.py:139
 msgid "open projects"
-msgstr ""
+msgstr "打开项目"
 
 #: ../app/preferencesDlg.py:140
 msgid "new projects"
-msgstr ""
+msgstr "新建项目"
 
 #: ../app/preferencesDlg.py:142
 msgid "audio library"
-msgstr ""
+msgstr "音频库"
 
 #: ../app/preferencesDlg.py:143
 msgid "audio latency mode"
-msgstr ""
+msgstr "音频时延模式"
 
 #: ../app/preferencesDlg.py:144
 msgid "audio driver"
-msgstr ""
+msgstr "音频驱动"
 
 #: ../app/preferencesDlg.py:145
 msgid "audio device"
-msgstr ""
+msgstr "音频设备"
 
 #: ../app/preferencesDlg.py:146
 msgid "parallel ports"
@@ -3163,11 +3163,11 @@ msgstr ""
 
 #: ../app/preferencesDlg.py:150
 msgid "proxy"
-msgstr ""
+msgstr "代理"
 
 #: ../app/preferencesDlg.py:151
 msgid "auto-proxy"
-msgstr ""
+msgstr "自动代理"
 
 #: ../app/preferencesDlg.py:152
 msgid "allow usage stats"
@@ -3175,11 +3175,11 @@ msgstr ""
 
 #: ../app/preferencesDlg.py:153
 msgid "check for updates"
-msgstr ""
+msgstr "检查更新"
 
 #: ../app/preferencesDlg.py:154
 msgid "timeout"
-msgstr ""
+msgstr "超时"
 
 #: ../app/preferencesDlg.py:156
 msgid "Builder, Coder and Runner"
@@ -3199,15 +3199,15 @@ msgstr ""
 
 #: ../app/preferencesDlg.py:169
 msgid "large icons"
-msgstr ""
+msgstr "大图标"
 
 #: ../app/preferencesDlg.py:170
 msgid "dark mode"
-msgstr ""
+msgstr "暗色模式"
 
 #: ../app/preferencesDlg.py:171
 msgid "highDPI"
-msgstr ""
+msgstr "高DPI显示"
 
 #: ../app/preferencesDlg.py:172
 msgid "comment font"
@@ -3289,7 +3289,7 @@ msgstr ""
 
 #: ../app/runner/runner.py:127
 msgid "Clear all"
-msgstr ""
+msgstr "清除全部"
 
 #: ../app/runner/runner.py:128
 msgid "Clearing tasks"
