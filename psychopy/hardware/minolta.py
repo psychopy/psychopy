@@ -104,6 +104,7 @@ class CS100A:
         self.lastCode = None
         self.lastXColor = None
         self.lastYColor = None
+        self.lastXY = None
         self.type = 'CS100A'
         self.com = False
         self.OK = True  # until we fail
@@ -133,7 +134,6 @@ class CS100A:
         # setup the params for comms
         if self.OK:
             self.com.close()  # not sure why this helps but on win32 it does!!
-            # this is a slightly odd characteristic of the Minolta LS100 (and maybe CS100A?)
             self.com.bytesize = 7
             self.com.baudrate = 4800
             self.com.parity = serial.PARITY_EVEN  # none
@@ -142,7 +142,7 @@ class CS100A:
                 if not self.com.isOpen():
                     self.com.open()
             except Exception:
-                msg = "Opened serial port %s, but couldn't connect to LS100"
+                msg = "Opened serial port %s, but couldn't connect to CS100A"
                 self._error(msg % self.portString)
             else:
                 self.isOpen = 1
@@ -185,14 +185,14 @@ class CS100A:
             # Parse args returned by photometer
             parsed = reply.split(',')
             code = parsed[0] #status code string (e.g., 'OK00')
-            lum = float(parsed[1]) #luminance value
-            #extract chromaticity data if available (i.e., Minolta CS100A)
+            self.lastCode = code
+            lum = float(parsed[1])
+            self.lastLum = lum
+            #extract chromaticity data if available
             if len(parsed) == 4:
                 self.lastXColor = float(parsed[2]) #x coordinate
                 self.lastYColor = float(parsed[3]) #y coordinate
-                #save all measurement data in persistent class variables
-                self.lastLum = lum
-                self.lastCode = code
+                self.lastXY = [float(parsed[2]), float(parsed[3])]
             return lum
         else:
             return -1
@@ -223,10 +223,10 @@ class CS100A:
         # also check that the reply is what was expected
         if msg[0:2] != 'OK':
             if msg == '':
-                logging.error('No reply from LS100')
+                logging.error('No reply from CS100A')
                 sys.stdout.flush()
             else:
-                logging.error('Error message from LS100:' + self.codes[msg])
+                logging.error('Error message from CS100A:' + self.codes[msg])
                 sys.stdout.flush()
             return False
         else:
