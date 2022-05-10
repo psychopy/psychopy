@@ -55,13 +55,19 @@ To communicate with your NetStation EEG hardware, you'll need to add in some Pyt
     eci_client.begin_rec()
     eci_client.send_event(event_type = 'STRT', start = 0.0)
 
-* Now, copy and paste the following code component to your trials routine in the `Begin Routine` tab to send a trigger OF NO MORE THAN FOUR CHARACTERS when your stimulus routine begins (or whichever routine you want to send triggers from)::
+* Now, copy and paste the following code component to your trials routine in the `Begin Routine` tab, this just (re)sets a value at the start of the routine to indicate that no trigger has yet been sent::
+
+    triggerSent = False
+
+* Now, in the `Each Frame` tab of that same code component, add the following code to send a trigger OF NO MORE THAN FOUR CHARACTERS when your stimulus is presented. The .status attribute here is checking whether the our stimulus has started, and if it has, PsychoPy sends the trigger to EGI NetStation. Note that most components in PsychoPy have the .status attribute, so you could easily adapt this code to, for example, send a trigger when a response key is pressed::
 
     #Send trigger to NetStation - Change 'stim' to
     #a meaningful trigger for your experiment OF NO MORE THAN FOUR CHARACTERS. You can
     #also set the trigger in a conditions file.
 
-    win.callOnFlip(eci_client.send_event, event_type = 'stim')
+    if stimulus.status == STARTED and not triggerSent: #If the stimulus component has started and the trigger has not yet been sent. Change 'stimulus' to match the name of the component you want the trigger to be sent at the same time as
+        win.callOnFlip(eci_client.send_event, event_type = 'stim') #Send the trigger, synced to the screen refresh
+        triggerSent = True #The trigger has now been sent, so we set this to true to avoid a trigger being sent on each frame
 
 * Finally, in a routine at the end of your experiment (the `Thanks for participating` screen for example) copy and paste the following::
 
