@@ -3,7 +3,7 @@
 Aperture Component
 -------------------------------
 
-This component can be used to filter the visual display, as if the subject is looking at it through an opening (i.e. add an image component, as the background image, then add an aperture to show part of the image). Currently, in builder, only circular apertures are supported (you can change the shape by specifying your aperture in a code component- we are hoping to make it easier to do this through builder soon!). Moreover, only one aperture is enabled at a time. You can't "double up": a second aperture takes precedence. Currently this component **does not run online**  (`see the status of online options <https://www.psychopy.org/online/status.html>`_, but you can achieve something similar online using an image with a mask: see an `example demo here <https://run.pavlovia.org/demos/dynamic_selective_inspect/html/>`_ with corresponding experiment files `here <https://gitlab.pavlovia.org/demos/dynamic_selective_inspect>`_ or by using the `MouseView plugin <https://run.pavlovia.org/demos/mouseview_demo/>`_.
+This component can be used to filter the visual display, as if the subject is looking at it through an opening (i.e. add an image component, as the background image, then add an aperture to show part of the image). Currently, in builder, only circular apertures are supported (you can change the shape by specifying your aperture in a code component- we are hoping to make it easier to do this through builder soon!). Moreover, only one aperture is enabled at a time. You can't "double up": a second aperture takes precedence. Currently this component **does not run online**  (`see the status of online options <https://www.psychopy.org/online/status.html>`_, but you can achieve something similar online using an image with a mask: see an `example demo here <https://run.pavlovia.org/demos/dynamic_selective_inspect/html/>`_ with corresponding `PsychoPy experiment files here <https://gitlab.pavlovia.org/demos/dynamic_selective_inspect>`_ or by using the `MouseView plugin <https://run.pavlovia.org/demos/mouseview_demo/>`_.
 
 .. only:: html
 
@@ -14,7 +14,7 @@ Basic
 ======
 
 name : string
-    Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
+    Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
 start : float or integer
     The time that the aperture should start having its effect. See :ref:`startStop` for details.

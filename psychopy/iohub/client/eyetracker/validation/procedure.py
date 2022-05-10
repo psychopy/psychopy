@@ -1182,7 +1182,7 @@ class ValidationTargetRenderer:
         def getSampleData(s):
             sampledata = [s.time, s.status]
             binoc_sample_types = [EventConstants.BINOCULAR_EYE_SAMPLE, EventConstants.GAZEPOINT_SAMPLE]
-            if self.sample_type in binoc_sample_types:
+            if s.type in binoc_sample_types:
                 sampledata.extend((s.left_gaze_x, s.left_gaze_y, s.left_pupil_measure1,
                                    s.right_gaze_x, s.right_gaze_y, s.right_pupil_measure1))
                 return sampledata

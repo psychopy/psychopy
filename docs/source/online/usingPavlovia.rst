@@ -12,16 +12,16 @@ Launch your study on Pavlovia.org
 - share studies with other scientists with collaborators of publicly (and find public studies shared by others)
 - version control your work (using Git)
 
-Site licenses and credits purchased from pavlovia also provide a source of revenue to sustain what is a free software for the majority of our users. Read more about our `sustainable open-source model here <https://psychopy.org/about/overview.html#a-sustainable-open-source-model>`_. 
+Site licenses and credits purchased from |Pavlovia| also provide a source of revenue to sustain what is a free software for the majority of our users. Read more about our `sustainable open-source model here <https://psychopy.org/about/overview.html#a-sustainable-open-source-model>`_.
 
-Most of the main tasks you will perform with `Pavlovia`_ can be carried out either in the PsychoPy application or on the `Pavlovia`_ website. Synchronizing your files can also be done with any Git client if you prefer.
+Most of the main tasks you will perform with |Pavlovia| can be carried out either in the PsychoPy application or on the |Pavlovia| website. Synchronizing your files can also be done with any Git client if you prefer.
 
-To create and log in to your account on `Pavlovia`_, you will need an active Internet connection. If you have not created your account, you can either 
+To create and log in to your account on |Pavlovia|, you will need an active Internet connection. If you have not created your account, you can either
 
-- go to `Pavlovia`_ and create your account, or
+- go to |Pavlovia| and create your account, or
 - click the login button highlighted in :numref:`loginPavlovia`, and create an account through the dialog box. 
 
-Once you have an account on `Pavlovia`_ and are logged in, your user name should appear in the corresponding menu (tpronk in :numref:`loginPavlovia`). 
+Once you have an account on |Pavlovia| and are logged in, your user name should appear in the corresponding menu (tpronk in :numref:`loginPavlovia`).
 
 .. figure:: /images/loginPavlovia.png
     :name: loginPavlovia
@@ -30,17 +30,17 @@ Once you have an account on `Pavlovia`_ and are logged in, your user name should
 
     Logging in on Pavlovia via the PsychoPy 3 Builder
 
-Interacting with Pavlovia from the Builder App
+Interacting with |Pavlovia| from the Builder App
 ------------------------------------------------
 
-When running your study online, the globe icons will allow you to directly interact with pavlovia from the Builder GUI.  
+When running your study online, the globe icons will allow you to directly interact with |Pavlovia| from the Builder GUI.
 
 .. figure:: /images/pavlovia_icons_2022.png
     :name: builderViewIndexed1
     :align: center
     :figclass: align-center
 
-    Buttons for running an online study from the PsychoPy Builder. From left to right 1) Run study in browser directly (not project status must be "running", not "piloting" or "inactive"). 2) Sync project/create project on pavlovia 3) Browse existing projects shared by others on pavlovia 3) Check what account you are signed in on 4) Project information (note this will only be populated if the currently opened psyexp file has been synced to pavlovia.org)
+    Buttons for running an online study from the PsychoPy Builder. From left to right 1) Run study in browser directly (not project status must be "running", not "piloting" or "inactive"). 2) Sync project/create project on |Pavlovia| 3) Browse existing projects shared by others on |Pavlovia| 3) Check what account you are signed in on 4) Project information (note this will only be populated if the currently opened psyexp file has been synced to pavlovia.org)
 
 Synchronizing for the first time (creating a project)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -108,7 +108,7 @@ Running your experiment on Pavlovia.org from Builder
 
 If you wish to run your experiment online, in a web-browser, you have two options. You can run your experiment directly from pavlovia.org, as described above, or you can run your experiment directly from Builder. There is also the option to send your experiment URL; more on that in :doc:`How to recruit participants and connect with online services <onlineParticipants>`.
 
-To run your experiment on `Pavlovia`_ via Builder, you must first ensure you have a valid internet connection, are logged in, and have created a repository for your project on `Pavlovia`_. Once you have completed these steps, simply click button 1 in :numref:`builderViewIndexed1`.
+To run your experiment on |Pavlovia| via Builder, you must first ensure you have a valid internet connection, are logged in, and have created a repository for your project on |Pavlovia|. Once you have completed these steps, simply click button 1 in :numref:`builderViewIndexed1`.
 
 .. _onlineFetchingYourData:
 
@@ -119,7 +119,7 @@ Once you have run your study online, there are three ways you can fetch your dat
 
 1. You can use the "download results" button on your experiment dashboard in browser.
 2. You can sync your project from psychopy builder. Syncing is bi-directional, it *pushes* things that don't exist online but do locally to your online project, and *pulls* things that exist online in your repository but not locally (i.e. data) to your local repository. 
-3. You can select "view code" from your pavlovia page and look at the data file in the repository. This is handy if you only want to download a single file or two. 
+3. You can select "view code" from your |Pavlovia| page and look at the data file in the repository. This is handy if you only want to download a single file or two.
 
 .. note:: Options 2 and 3 here will only work if you have data saving set to "csv" rather than "database". If you are using a component that stores data files other than a csv (for example a microphone component that saves audio recordings) you should also use option 1 only. 
 

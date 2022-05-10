@@ -212,8 +212,8 @@ class Param():
                     # If param is a path or pathlike use Path to make sure it's valid (with / not \)
                     isPathLike = bool(re.findall(r"[\\/](?!\W)", val))
                     if self.valType in ['file', 'table'] or (isPathLike and self.canBePath):
-                        val = Path(val).as_posix()
-                        val = val.replace("\\", "/").replace("//", "/")
+                        val = val.replace("\\\\", "/")
+                        val = val.replace("\\", "/")
                     # Hide escape char on escaped $ (other escaped chars are handled by wx but $ is unique to us)
                     val = re.sub(r"\\\$", "$", val)
                     # Replace line breaks with escaped line break character
@@ -345,8 +345,8 @@ class Param():
                 if len(re.findall(r"\$", val)) == len(re.findall(r"\$", inComment)):
                     # Return if all $ are commented out
                     return True, val
-                if len(re.findall(r"\$", val)) - len(re.findall(r"\$", inComment)) == len(re.findall(r"\\\$", inQuotes)):
-                    # Return if all non-commended $ are in strings and escaped
+                if len(re.findall(r"\$", val)) - len(re.findall(r"\$", inComment)) == len(re.findall(r"\$", inQuotes)):
+                    # Return if all non-commended $ are in strings
                     return True, val
             else:
                 # If value does not begin with an unescaped $, treat it as a string

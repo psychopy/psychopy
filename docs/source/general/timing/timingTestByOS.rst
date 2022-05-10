@@ -1,9 +1,9 @@
 .. _osComparison:
 
-Comparing Operating Systems under PsychoPy
+Comparing Operating Systems under |PsychoPy|
 ================================================
 
-This is an attempt to quantify the ability of PsychoPy draw without dropping frames on a variety of hardware/software. The following tests were conducted using the script at the bottom of the page. Note, of course that the hardware fully differs between the Mac and Linux/Windows systems below, but that both are standard off-the-shelf machines.
+This is an attempt to quantify the ability of |PsychoPy| draw without dropping frames on a variety of hardware/software. The following tests were conducted using the script at the bottom of the page. Note, of course that the hardware fully differs between the Mac and Linux/Windows systems below, but that both are standard off-the-shelf machines.
 
 All of the below tests were conducted with 'normal' systems rather than anything that had been specifically optimised:
     - the machines were connected to network

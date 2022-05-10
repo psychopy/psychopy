@@ -407,7 +407,8 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         """Resets the slider to its starting state (so that it can be restarted
         on each trial with a new stimulus)
         """
-        self.markerPos = self.rating = self.startValue
+        self.markerPos = self.startValue
+        self.rating = None  # this is reset to None, whatever the startValue
         self.history = []
         self.rt = None
         self.responseClock.reset()
@@ -1027,6 +1028,9 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         if style in self.knownStyleTweaks + self.legacyStyleTweaks:
             self.styleTweaks.append(style)
 
+        # Refresh style tweaks (as these override some aspects of style)
+        self.styleTweaks = self.styleTweaks
+
         return style
 
     @attributeSetter
@@ -1053,6 +1057,9 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             Style tweaks can be combined in a list e.g. `['labels45']`
 
         """
+        if not isinstance(styleTweaks, (list, tuple, np.ndarray)):
+            styleTweaks = [styleTweaks]
+
         self.__dict__['styleTweaks'] = styleTweaks
 
         if 'triangleMarker' in styleTweaks:

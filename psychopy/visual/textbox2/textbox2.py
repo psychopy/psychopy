@@ -254,6 +254,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @property
     def editable(self):
+        """Determines whether or not the TextBox2 instance can receive typed text"""
         return self._editable
     
     @editable.setter
@@ -268,6 +269,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @property
     def palette(self):
+        """Describes the current visual properties of the TextBox in a dict"""
         self._palette = {
             False: {
                 'lineColor': self._borderColor,
@@ -350,6 +352,13 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @property
     def size(self):
+        """The (requested) size of the TextBox (w,h) in whatever units the stimulus is using
+
+        This determines the outer extent of the area.
+
+        If the width is set to None then the text will continue extending and not wrap.
+        If the height is set to None then the text will continue to grow downwards as needed.
+        """
         return WindowMixin.size.fget(self)
 
     @size.setter
@@ -596,6 +605,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._layout()
 
     def addCharAtCaret(self, char):
+        """Allows a character to be added programmatically at the current caret"""
         txt = self._text
         txt = txt[:self.caret.index] + char + txt[self.caret.index:]
         cstyle = NONE
@@ -607,6 +617,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._layout()
 
     def deleteCaretLeft(self):
+        """Deletes 1 character to the left of the caret"""
         if self.caret.index > 0:
             txt = self._text
             ci = self.caret.index
@@ -617,6 +628,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self._layout()
 
     def deleteCaretRight(self):
+        """Deletes 1 character to the right of the caret"""
         ci = self.caret.index
         if ci < len(self._text):
             txt = self._text
@@ -952,7 +964,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # Convert the vertices to be relative to content box and set
         self.vertices = vertices / self.contentBox._size.pix + (-0.5, 0.5)
         if len(_lineBottoms):
-            self._lineBottoms = max(self.contentBox._vertices.pix[:, 1]) + np.array(_lineBottoms)
+            if self.flipVert:
+                self._lineBottoms = min(self.contentBox._vertices.pix[:, 1]) - np.array(_lineBottoms)
+            else:
+                self._lineBottoms = max(self.contentBox._vertices.pix[:, 1]) + np.array(_lineBottoms)
             self._lineWidths = min(self.contentBox._vertices.pix[:, 0]) + np.array(_lineWidths)
         else:
             self._lineBottoms = np.array(_lineBottoms)
@@ -1034,10 +1049,12 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         gl.glPopMatrix()
 
     def reset(self):
+        """Resets the TextBox2 to hold **whatever it was given on initialisation**"""
         # Reset contents
         self.text = self.startText
 
     def clear(self):
+        """Resets the TextBox2 to a blank string"""
         # Clear contents
         self.text = ""
 
@@ -1382,7 +1399,10 @@ class Caret(ColorMixin):
             # Get top of this line
             bottom = textbox._lineBottoms[self.row]
         # Top will always be line bottom + font height
-        top = bottom + self.textbox.glFont.size
+        if self.textbox.flipVert:
+            top = bottom - self.textbox.glFont.size
+        else:
+            top = bottom + self.textbox.glFont.size
         return np.array([
             [x, bottom],
             [x, top]

@@ -10,7 +10,7 @@ Parameters
 ~~~~~~~~~~~~
 
 Name : string
-    Everything in a PsychoPy experiment needs a unique name.
+    Everything in a |PsychoPy| experiment needs a unique name.
     The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     The variable name references the value stored in memory, so that your stored values can be used in your experiments.
 

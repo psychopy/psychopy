@@ -37,12 +37,29 @@ __all__ = []
 
 import sys
 import os
+import traceback
 from psychopy import logging, prefs, constants
 from .exceptions import DependencyError, SoundFormatError
 from .audiodevice import *
 from .audioclip import *  # import objects related to AudioClip
-from .microphone import *  # import objects related to the microphone class
-from .transcribe import *  # import transcription engine stuff
+
+# import microphone if possible
+try:
+    from .microphone import *  # import objects related to the microphone class
+except ImportError as err:
+    formatted_tb = ''.join(traceback.format_exception(type(err), err, err.__traceback__))
+    logging.error("Failed to import psychopy.sound.microphone. Mic recordings will not be"
+                  "possible on this machine. For details see stack trace below:\n"
+                  f"{formatted_tb}")
+
+# import transcription if possible
+try:
+    from .transcribe import *  # import transcription engine stuff
+except ImportError as err:
+    formatted_tb = ''.join(traceback.format_exception(type(err), err, err.__traceback__))
+    logging.error("Failed to import psychopy.sound.transcribe. Transcription will not be"
+                  "possible on this machine. For details see stack trace below:\n"
+                  f"{formatted_tb}")
 
 pyoSndServer = None
 Sound = None

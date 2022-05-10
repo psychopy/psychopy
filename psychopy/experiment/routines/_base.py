@@ -7,6 +7,7 @@
 
 """Describes the Flow of an experiment
 """
+import copy
 
 from psychopy.constants import FOREVER
 from xml.etree.ElementTree import Element
@@ -226,6 +227,20 @@ class Routine(list):
         _rep = "psychopy.experiment.Routine(name='%s', exp=%s, components=%s)"
         return _rep % (self.name, self.exp, str(list(self)))
 
+    def copy(self):
+        # Create a new routine with the same experiment and name as this one
+        dupe = type(self)(self.name, self.exp, components=())
+        # Iterate through components
+        for comp in self:
+            # Create a deep copy of each component...
+            newComp = copy.deepcopy(comp)
+            # ...but retain original exp reference
+            newComp.exp = self.exp
+            # Append to new routine
+            dupe.append(newComp)
+
+        return dupe
+
     @property
     def _xml(self):
         # Make root element
@@ -244,6 +259,9 @@ class Routine(list):
     @name.setter
     def name(self, name):
         self.params['name'] = name
+        # Update references in components
+        for comp in self:
+            comp.parentName = name
 
     def integrityCheck(self):
         """Run tests on self and on all the Components inside"""
