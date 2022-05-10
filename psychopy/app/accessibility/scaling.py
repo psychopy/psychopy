@@ -1,6 +1,17 @@
 import numpy as np
 
 factor = 1
+pixPerMM = 3
+
+
+def _scaleValue(val, units="pix"):
+    # Multiply by scale factor
+    val *= factor
+    # If not in pix, convert to pix
+    if units == "mm":
+        return val * pixPerMM
+    else:
+        return val
 
 
 class Scaled:
@@ -35,6 +46,12 @@ class Scaled:
     }
 
     def __new__(cls, *args):
+        # Assume pixels if no units given
+        units = "pix"
+        # If final value is a unit string, pop it
+        if args[-1] in ("pix", "mm"):
+            units = args[-1]
+            args = args[:-1]
         # Blank array for output arguments
         argout = []
         # Iterate through all arguments given
@@ -49,7 +66,7 @@ class Scaled:
                 continue
             # If given a float or int, multiply by factor
             if isinstance(value, (int, float)):
-                value *= factor
+                value = _scaleValue(value, units)
             # If given a list/tuple, make a new list/tuple with each (non-special) value multiplied by factor
             if isinstance(value, (tuple, list, np.ndarray)):
                 buffer = []
@@ -57,7 +74,7 @@ class Scaled:
                     if value == -1:
                         buffer.append(subval)
                     else:
-                        buffer.append(subval * factor)
+                        buffer.append(_scaleValue(subval, units))
                 value = type(value)(buffer)
             # If possible, make special scaled object to mark as already scaled
             if type(value) in cls.map:

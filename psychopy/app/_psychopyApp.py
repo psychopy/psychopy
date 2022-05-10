@@ -407,6 +407,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                        float(wx.GetDisplaySizeMM()[0]) * 25.4)
         # set scale from prefs
         scaling.factor = self.prefs.app['appScale'] / 100
+        # calculate pixels per mm
+        scaling.pixPerMM = wx.GetDisplaySize()[0] / wx.GetDisplaySizeMM()[0]
         # detect retina displays
         self.isRetina = self.dpi>80 and wx.Platform == '__WXMAC__'
         if self.isRetina:
