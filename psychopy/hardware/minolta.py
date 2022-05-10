@@ -204,8 +204,7 @@ class CS100A:
 
     def get_xyY(self):
         lum = self.measure()
-        #package and return Minolta CS100A status code|luminance|x|y measurements
-        return [self.lastCode, self.lastLum, self.lastXColor, self.lastYColor]
+        return [self.lastXColor, self.lastYColor, self.lastLum]
 
     def clearMemory(self):
         """Clear the memory of the device from previous measurements
