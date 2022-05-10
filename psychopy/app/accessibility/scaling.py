@@ -57,7 +57,7 @@ class Scaled:
                     if value == -1:
                         buffer.append(subval)
                     else:
-                        buffer.append(subval * 2)
+                        buffer.append(subval * factor)
                 value = type(value)(buffer)
             # If possible, make special scaled object to mark as already scaled
             if type(value) in cls.map:
