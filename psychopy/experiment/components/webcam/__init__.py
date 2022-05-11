@@ -5,8 +5,7 @@ from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate, getInitVals
 from psychopy import prefs
 
-# only use _localized values for label values, nothing functional:
-_localized = {'name': _translate('Name')}
+devices = ["default"]
 
 
 class WebcamComponent(BaseComponent):
@@ -14,7 +13,7 @@ class WebcamComponent(BaseComponent):
 
     """
     categories = ['Responses']
-    targets = []
+    targets = ["PsychoPy"]
     iconFile = Path(__file__).parent / 'webcam.png'
     tooltip = _translate('Webcam: Record video from a webcam.')
     beta = True
@@ -25,7 +24,9 @@ class WebcamComponent(BaseComponent):
             name='webcam',
             startType='time (s)', startVal='0', startEstim='',
             stopType='duration (s)', stopVal='', durationEstim='',
+            device="Default",
             # Data
+            outputFileType=".mp4",
             saveStartStop=True, syncScreenRefresh=False,
             # Testing
             disabled=False,
@@ -47,7 +48,23 @@ class WebcamComponent(BaseComponent):
             disabled=disabled,
         )
         # Define parameters
-        pass
+        msg = _translate("What webcam device would you like the use to record? This will only affect local "
+                         "experiments - online experiments ask the participant which webcam to use.")
+        self.params['device'] = Param(
+            device, valType='str', inputType="choice", categ="Basic",
+            allowedVals=list(devices),
+            allowedLabels=[d.title() for d in list(devices)],
+            hint=msg,
+            label=_translate("Device")
+        )
+
+        msg = _translate("What file format would you like the video to be saved as?")
+        self.params['outputFileType'] = Param(
+            outputFileType, valType='str', inputType="choice", categ="Data",
+            allowedVals=[".mp4", ".mov", ".mpeg", ".mkv"],
+            hint=msg,
+            label=_translate("Output File Type")
+        )
 
     def writeRoutineStartCode(self, buff):
         pass
