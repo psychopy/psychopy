@@ -5,7 +5,7 @@
 Running and sharing studies online
 =======================================
 
-Online studies are realized via PsychoJS; the online counterpart of PsychoPy. To run your study online, these are the basic steps:
+Online studies are realized via PsychoJS; the online counterpart of |PsychoPy|. To run your study online, these are the basic steps:
 
 .. toctree::
   :maxdepth: 1
@@ -29,4 +29,4 @@ Besides the basics, we've got the following tutorials:
   Manually coding PsychoJS studies <psychojsCode>
 
 
-The first generation of PsychoJS was realized by a `Wellcome Trust <https://wellcome.org/>`_ grant, awarded in January 2018.  to make online studies possible from PsychoPy. This is what we call PsychoPy3 - the 3rd major phase of PsychoPy's development.
+The first generation of PsychoJS was realized by a `Wellcome Trust <https://wellcome.org/>`_ grant, awarded in January 2018.  to make online studies possible from |PsychoPy|. This is what we call PsychoPy3 - the 3rd major phase of PsychoPy's development.

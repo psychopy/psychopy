@@ -21,7 +21,7 @@ import wx.lib.mixins.listctrl as listmixin
 import requests
 
 from .. import utils
-from ..themes._themes import IconCache
+from ..themes import icons
 
 _starred = u"\u2605"
 _unstarred = u"\u2606"
@@ -115,7 +115,6 @@ class SearchPanel(wx.Panel):
                           size=size,
                           style=style
                           )
-        iconCache = parent.app.iconCache
         self.session = pavlovia.getCurrentSession()
         # Setup sizer
         self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -129,9 +128,9 @@ class SearchPanel(wx.Panel):
         self.sizer.Add(self.btnSizer, border=4, flag=wx.EXPAND | wx.ALL)
         # Add "me mode" button
         self.mineBtn = wx.ToggleButton(self, size=(64, -1), label=_translate("Me"))
-        self.mineBtn.SetBitmap(iconCache.getBitmap("person_off", size=16))
-        self.mineBtn.SetBitmapFocus(iconCache.getBitmap("person_on", size=16))
-        self.mineBtn.SetBitmapPressed(iconCache.getBitmap("person_on", size=16))
+        self.mineBtn.SetBitmap(icons.ButtonIcon(stem="person_off", size=16).bitmap)
+        self.mineBtn.SetBitmapFocus(icons.ButtonIcon(stem="person_on", size=16).bitmap)
+        self.mineBtn.SetBitmapPressed(icons.ButtonIcon(stem="person_on", size=16).bitmap)
         self._mine = False
         self.mineBtn.Bind(wx.EVT_TOGGLEBUTTON, self.onMineBtn)
         self.mineBtn.Enable(self.session.userID is not None)

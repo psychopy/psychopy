@@ -18,6 +18,7 @@ import os
 import wx
 import wx.lib.statbmp
 
+from ..themes import icons
 from ...projects.pavlovia import User
 
 try:
@@ -50,7 +51,6 @@ class UserPanel(wx.Panel):
         self.parent = parent
         self.SetBackgroundColour("white")
         self.session = pavlovia.getCurrentSession()
-        iconCache = parent.app.iconCache
         # Setup sizer
         self.contentBox = wx.BoxSizer()
         self.SetSizer(self.contentBox)
@@ -60,7 +60,7 @@ class UserPanel(wx.Panel):
         self.headSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(self.headSizer, border=0, flag=wx.EXPAND)
         # Icon
-        self.icon = wx.lib.statbmp.GenStaticBitmap(self, ID=wx.ID_ANY, bitmap=iconCache.getBitmap(name="user_none", size=128), size=(128, 128))
+        self.icon = wx.lib.statbmp.GenStaticBitmap(self, ID=wx.ID_ANY, bitmap=icons.ButtonIcon(stem="user_none", size=128).bitmap, size=(128, 128))
         self.icon.SetBackgroundColour("#f2f2f2")
         self.headSizer.Add(self.icon, border=6, flag=wx.ALL)
         # Title sizer
@@ -99,12 +99,12 @@ class UserPanel(wx.Panel):
         self.btnSizer.Add(self.edit, border=3, flag=wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL)
         # Login
         self.login = wx.Button(self, label=_translate("Login"))
-        self.login.SetBitmap(iconCache.getBitmap(name="person_off", size=16))
+        self.login.SetBitmap(icons.ButtonIcon(stem="person_off", size=16).bitmap)
         self.login.Bind(wx.EVT_BUTTON, self.onLogin)
         self.btnSizer.Add(self.login, border=3, flag=wx.LEFT | wx.EXPAND)
         # Logout
         self.logout = wx.Button(self, label=_translate("Logout"))
-        self.logout.SetBitmap(iconCache.getBitmap(name="person_off", size=16))
+        self.logout.SetBitmap(icons.ButtonIcon(stem="person_off", size=16).bitmap)
         self.logout.Bind(wx.EVT_BUTTON, self.onLogout)
         self.btnSizer.Add(self.logout, border=3, flag=wx.LEFT | wx.EXPAND)
         # Sep
@@ -127,9 +127,8 @@ class UserPanel(wx.Panel):
         self._user = user
 
         if user is None:
-            iconCache = self.parent.app.iconCache
             # Icon
-            self.icon.SetBitmap(iconCache.getBitmap(name="user_none", size=128))
+            self.icon.SetBitmap(icons.ButtonIcon(stem="user_none", size=128).bitmap)
             self.icon.Disable()
             # Full name
             self.fullName.SetLabelText("---")

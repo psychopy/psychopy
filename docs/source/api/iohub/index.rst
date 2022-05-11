@@ -1,16 +1,16 @@
 :mod:`psychopy.iohub` - ioHub event monitoring framework
 =========================================================
 
-ioHub monitors for device events in parallel with the PsychoPy experiment
-execution by running in a separate process than the main PsychoPy script. This
+ioHub monitors for device events in parallel with the |PsychoPy| experiment
+execution by running in a separate process than the main |PsychoPy| script. This
 means, for instance, that keyboard and mouse event timing is not quantized
 by the rate at which the window.flip() method is called.
 
-ioHub reports device events to the PsychoPy experiment runtime as they occur.
+ioHub reports device events to the |PsychoPy| experiment runtime as they occur.
 Optionally, events can be saved to a `HDF5 <http://www.hdfgroup.org/HDF5/>`_
 file.
 
-All iohub events are timestamped using the PsychoPy global time base
+All iohub events are timestamped using the |PsychoPy| global time base
 (psychopy.core.getTime()). Events can be accessed as a device independent
 event stream, or from a specific device of interest.
 

@@ -227,7 +227,7 @@ class MovieComponent(BaseVisualComponent):
     def writeRoutineStartCode(self, buff):
         # If needed then use _writeCreationCode()
         # Movie could be created here or in writeInitCode()
-        if self.params['movie'].updates != 'constant':
+        if self.params['movie'].updates == 'set every repeat':
             # create the code using params, not vals
             self._writeCreationCode(buff, useInits=False)
 

@@ -665,11 +665,15 @@ def findFontFiles(folders=(), recursive=True):
     fontPaths = []
     for thisFolder in searchPaths:
         thisFolder = Path(thisFolder)
-        for thisExt in supportedExtensions:
-            if recursive:
-                fontPaths.extend(thisFolder.rglob("*.{}".format(thisExt)))
-            else:
-                fontPaths.extend(thisFolder.glob("*.{}".format(thisExt)))
+        try:
+            for thisExt in supportedExtensions:
+                if recursive:
+                    fontPaths.extend(thisFolder.rglob("*.{}".format(thisExt)))
+                else:
+                    fontPaths.extend(thisFolder.glob("*.{}".format(thisExt)))
+        except PermissionError:
+            logging.warning(f"The fonts folder '{thisFolder}' exists but the current user doesn't have read "
+                            "access to it. Fonts from that folder won't be available to TextBox")
 
     # if we failed let matplotlib have a go
     if not fontPaths:

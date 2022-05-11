@@ -61,6 +61,15 @@ master_doc = 'documentation'
 project = u'PsychoPy'
 copyright = u'2002-18, Jonathan Peirce; 2019-21 Open Science Tools Ltd.'
 
+# use restructured text epilog to get around problem with not being able to use replace and superscript together
+rst_epilog = """
+.. role:: raw-html(raw)
+   :format: html
+
+.. |PsychoPy| replace:: :raw-html:`PsychoPy<sup>®</sup>`
+.. |Pavlovia| replace:: :raw-html:`<a href="https://pavlovia.org">Pavlovia<sup>®</sup></a>`
+"""
+
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.

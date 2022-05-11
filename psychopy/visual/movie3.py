@@ -27,9 +27,7 @@ movie is long then audio will be huge and currently the whole thing gets
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-
-
-
+from pathlib import Path
 
 reportNDroppedFrames = 10
 
@@ -223,6 +221,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         filename = pathToString(filename)
         self.reset()  # set status and timestamps etc
 
+        self._mov = None
         # Create Video Stream stuff
         if os.path.isfile(filename):
             self._mov = VideoFileClip(filename, audio=(1 - self.noAudio))
@@ -244,7 +243,11 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
                     del(jwe_tmp)
             else:  # make sure we set to None (in case prev clip had audio)
                 self._audioStream = None
+        elif not filename.startswith(prefs.paths['resources']):
+            # If not found, and we aren't already looking in the Resources folder, try again in the Resources folder
+            self.loadMovie(Path(prefs.paths['resources']) / filename, log=False)
         else:
+            # Raise error if *still* not found
             raise IOError("Movie file '%s' was not found" % filename)
         # mov has attributes:
             # size, duration, fps

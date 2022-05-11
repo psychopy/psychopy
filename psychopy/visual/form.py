@@ -929,6 +929,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             # If response ctrl is a textbox, set its text to blank
             elif isinstance(item['responseCtrl'], psychopy.visual.TextBox2):
                 item['responseCtrl'].text = ""
+        # Set scrollbar to top
+        self.scrollbar.rating = 1
 
     def addDataToExp(self, exp, itemsAs='rows'):
         """Gets the current Form data and inserts into an

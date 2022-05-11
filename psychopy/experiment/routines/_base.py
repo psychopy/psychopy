@@ -7,6 +7,7 @@
 
 """Describes the Flow of an experiment
 """
+import copy
 
 from psychopy.constants import FOREVER
 from xml.etree.ElementTree import Element
@@ -54,7 +55,7 @@ class BaseStandaloneRoutine:
             label=_translate('Stop Type...'))
 
         # Testing
-        msg = _translate("Disable this component")
+        msg = _translate("Disable this routine")
         self.params['disabled'] = Param(disabled,
             valType='bool', inputType="bool", categ="Testing",
             hint=msg, allowedTypes=[], direct=False,
@@ -213,9 +214,17 @@ class Routine(list):
 
     targets = ["PsychoPy", "PsychoJS"]
 
-    def __init__(self, name, exp, components=()):
+    def __init__(self, name, exp, components=(), disabled=False):
         super(Routine, self).__init__()
         self.params = {'name': name}
+
+        # Testing
+        msg = _translate("Disable this component")
+        self.params['disabled'] = Param(disabled,
+            valType='bool', inputType="bool", categ="Testing",
+            hint=msg, allowedTypes=[], direct=False,
+            label=_translate('Disable component'))
+
         self.name = name
         self.exp = exp
         self._clockName = None  # for scripts e.g. "t = trialClock.GetTime()"
@@ -225,6 +234,20 @@ class Routine(list):
     def __repr__(self):
         _rep = "psychopy.experiment.Routine(name='%s', exp=%s, components=%s)"
         return _rep % (self.name, self.exp, str(list(self)))
+
+    def copy(self):
+        # Create a new routine with the same experiment and name as this one
+        dupe = type(self)(self.name, self.exp, components=())
+        # Iterate through components
+        for comp in self:
+            # Create a deep copy of each component...
+            newComp = copy.deepcopy(comp)
+            # ...but retain original exp reference
+            newComp.exp = self.exp
+            # Append to new routine
+            dupe.append(newComp)
+
+        return dupe
 
     @property
     def _xml(self):
@@ -713,3 +736,11 @@ class Routine(list):
             maxTime = 10
             nonSlipSafe = False
         return maxTime, nonSlipSafe
+
+    @property
+    def disabled(self):
+        return bool(self.params['disabled'])
+
+    @disabled.setter
+    def disabled(self, value):
+        self.params['disabled'].val = value

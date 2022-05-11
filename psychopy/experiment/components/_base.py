@@ -498,6 +498,47 @@ class BaseComponent:
                 if stopVal in ['', None, -1, 'None']:
                     stopVal = '-1'
                 buff.writeIndented(f"{compName}.setSound({params['sound']}, secs={stopVal}){endStr}\n")
+            elif paramName == 'movie':
+                # we're going to do this for now ...
+                if params['units'].val == 'from exp settings':
+                    unitsStr = "units=''"
+                else:
+                    unitsStr = "units=%(units)s" % params
+
+                if params['backend'].val == 'moviepy':
+                    code = ("%s = visual.MovieStim3(\n" % params['name'] +
+                            "    win=win, name='%s', %s,\n" % (
+                                params['name'], unitsStr) +
+                            "    noAudio = %(No audio)s,\n" % params)
+                elif params['backend'].val == 'avbin':
+                    code = ("%s = visual.MovieStim(\n" % params['name'] +
+                            "    win=win, name='%s', %s,\n" % (
+                                params['name'], unitsStr))
+                elif params['backend'].val == 'vlc':
+                    code = ("%s = visual.VlcMovieStim(\n" % params['name'] +
+                            "    win=win, name='%s', %s,\n" % (
+                                params['name'], unitsStr))
+                else:
+                    code = ("%s = visual.MovieStim2(\n" % params['name'] +
+                            "    win=win, name='%s', %s,\n" % (
+                                params['name'], unitsStr) +
+                            "    noAudio=%(No audio)s,\n" % params)
+
+                code += ("    filename=%(movie)s,\n"
+                         "    ori=%(ori)s, pos=%(pos)s, opacity=%(opacity)s,\n"
+                         "    loop=%(loop)s, anchor=%(anchor)s,\n"
+                         % params)
+
+                buff.writeIndentedLines(code)
+
+                if params['size'].val != '':
+                    buff.writeIndented("    size=%(size)s,\n" % params)
+
+                depth = -self.getPosInRoutine()
+                code = ("    depth=%.1f,\n"
+                        "    )\n")
+                buff.writeIndentedLines(code % depth)
+
             else:
                 buff.writeIndented(f"{compName}.set{paramCaps}({val}{loggingStr}){endStr}\n")
         elif target == 'PsychoJS':
@@ -620,6 +661,18 @@ class BaseComponent:
     @disabled.setter
     def disabled(self, value):
         self.params['disabled'].val = value
+
+    @property
+    def currentLoop(self):
+        # Get list of active loops
+        loopList = self.exp.flow._loopList
+
+        if len(loopList):
+            # If there are any active loops, return the highest level
+            return self.exp.flow._loopList[-1].params['name']
+        else:
+            # Otherwise, we are not in a loop, so loop handler is just experiment handler
+            return "thisExp"
 
 
 class BaseVisualComponent(BaseComponent):
