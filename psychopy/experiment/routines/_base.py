@@ -103,6 +103,14 @@ class BaseStandaloneRoutine:
 
         return element
 
+    def copy(self):
+        # Create a deep copy of self
+        dupe = copy.deepcopy(self)
+        # ...but retain original exp reference
+        dupe.exp = self.exp
+
+        return dupe
+
     def writePreCode(self, buff):
         return
 
