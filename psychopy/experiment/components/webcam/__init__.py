@@ -133,8 +133,7 @@ class WebcamComponent(BaseComponent):
         buff.setIndentLevel(+1, relative=True)
         code = (
             "win, name=%(name)s,\n"
-            "resolution=%(resolution)s, frameRate=%(frameRate)s,\n"
-            "codec=%(codec)s\n"
+            "resolution=%(resolution)s, frameRate=%(frameRate)s\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
