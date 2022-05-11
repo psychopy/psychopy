@@ -43,6 +43,9 @@ class FFPyPlayer(BaseMoviePlayer):
         self._queuedFrame = NULL_MOVIE_FRAME_INFO
         self._frameIndex = -1
 
+        # flag when random access has been invoked
+        self._needsNewFrame = False
+
         # status flags
         self._status = NOT_STARTED
 
@@ -129,6 +132,12 @@ class FFPyPlayer(BaseMoviePlayer):
     @property
     def isLoaded(self):
         return self._handle is not None
+
+    @property
+    def metadata(self):
+        """Most recent metadata (`MovieMetadata`).
+        """
+        return self.getMetadata()
 
     def getMetadata(self):
         """Get metadata from the movie stream.
