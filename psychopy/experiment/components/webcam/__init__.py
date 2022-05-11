@@ -25,8 +25,11 @@ class WebcamComponent(BaseComponent):
             startType='time (s)', startVal='0', startEstim='',
             stopType='duration (s)', stopVal='', durationEstim='',
             device="Default",
+            # Hardware
+            resolution=None, frameRate=None,
             # Data
-            outputFileType=".mp4",
+            saveFile=True,
+            outputFileType=".mp4", codec="h263",
             saveStartStop=True, syncScreenRefresh=False,
             # Testing
             disabled=False,
@@ -47,7 +50,8 @@ class WebcamComponent(BaseComponent):
             # Testing
             disabled=disabled,
         )
-        # Define parameters
+
+        # Basic
         msg = _translate("What webcam device would you like the use to record? This will only affect local "
                          "experiments - online experiments ask the participant which webcam to use.")
         self.params['device'] = Param(
@@ -58,6 +62,45 @@ class WebcamComponent(BaseComponent):
             label=_translate("Device")
         )
 
+        # Hardware
+        msg = _translate("Resolution (w x h) to record to, leave blank to use device default.")
+        self.params['resolution'] = Param(
+            resolution, valType='list', inputType="single", categ="Hardware",
+            hint=msg,
+            label=_translate("Resolution")
+        )
+
+        msg = _translate("Frame rate (frames per second) to record at, leave blank to use device default.")
+        self.params['frameRate'] = Param(
+            frameRate, valType='int', inputType="num", categ="Hardware",
+            hint=msg,
+            label=_translate("Frame Rate")
+        )
+
+        # Data
+        msg = _translate("Save webcam output to a file?")
+        self.params['saveFile'] = Param(
+            saveFile, valType='bool', inputType="bool", categ="Data",
+            hint=msg,
+            label=_translate("Save File?")
+        )
+
+        msg = _translate("What kind of video codec should the output file be encoded as?")
+        self.params['codec'] = Param(
+            codec, valType='str', inputType="choice", categ="Data",
+            allowedVals=['a64multi', 'a64multi5', 'alias_pix', 'amv', 'apng', 'asv1', 'asv2', 'avrp', 'avui', 'ayuv', 'bmp', 'cinepak', 'cljr', 'dnxhd', 'dpx', 'dvvideo', 'ffv1', 'ffvhuff', 'fits', 'flashsv', 'flashsv2', 'flv', 'gif', 'h261', 'h263', 'h263_v4l2m2m', 'h263p', 'h264_nvenc', 'h264_omx', 'h264_v4l2m2m', 'h264_vaapi', 'hap', 'hevc_nvenc', 'hevc_v4l2m2m', 'hevc_vaapi', 'huffyuv', 'jpeg2000', 'jpegls', 'libaom-av1', 'libopenjpeg', 'libtheora', 'libvpx', 'libvpx-vp9', 'libwebp', 'libwebp_anim', 'libx264', 'libx264rgb', 'libx265', 'libxvid', 'ljpeg', 'magicyuv', 'mjpeg', 'mjpeg_vaapi', 'mpeg1video', 'mpeg2_vaapi', 'mpeg2video', 'mpeg4', 'mpeg4_v4l2m2m', 'msmpeg4', 'msmpeg4v2', 'msvideo1', 'nvenc', 'nvenc_h264', 'nvenc_hevc', 'pam', 'pbm', 'pcx', 'pgm', 'pgmyuv', 'png', 'ppm', 'prores', 'prores_aw', 'prores_ks', 'qtrle', 'r10k', 'r210', 'rawvideo', 'roqvideo', 'rv10', 'rv20', 'sgi', 'snow', 'sunrast', 'svq1', 'targa', 'tiff', 'utvideo', 'v210', 'v308', 'v408', 'v410', 'vc2', 'vp8_v4l2m2m', 'vp8_vaapi', 'vp9_vaapi', 'wmv1', 'wmv2', 'wrapped_avframe', 'xbm', 'xface', 'xwd', 'y41p', 'yuv4', 'zlib', 'zmbv'],
+            hint=msg,
+            label=_translate("Output Codec")
+        )
+
+        self.depends.append({
+            "dependsOn": "saveFile",
+            "condition": "==True",
+            "param": 'codec',
+            "true": "show",  # what to do with param if condition is True
+            "false": "hide",  # permitted: hide, show, enable, disable
+        })
+
         msg = _translate("What file format would you like the video to be saved as?")
         self.params['outputFileType'] = Param(
             outputFileType, valType='str', inputType="choice", categ="Data",
@@ -65,6 +108,14 @@ class WebcamComponent(BaseComponent):
             hint=msg,
             label=_translate("Output File Type")
         )
+
+        self.depends.append({
+            "dependsOn": "saveFile",
+            "condition": "==True",
+            "param": 'outputFileType',
+            "true": "show",  # what to do with param if condition is True
+            "false": "hide",  # permitted: hide, show, enable, disable
+        })
 
     def writeRoutineStartCode(self, buff):
         pass
@@ -82,11 +133,14 @@ class WebcamComponent(BaseComponent):
         buff.setIndentLevel(+1, relative=True)
         code = (
             "win, name=%(name)s,\n"
+            "resolution=%(resolution)s, frameRate=%(frameRate)s,\n"
+            "codec=%(codec)s\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
         code = (
             ")\n"
+            "%(name)s.initialize()\n"
         )
         buff.writeIndentedLines(code % inits)
 
