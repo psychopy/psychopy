@@ -362,7 +362,7 @@ class FFPyPlayer(BaseMoviePlayer):
         """
         lastMovieFile = self._filename
         self.stop()  # stop the movie
-        self._autoStart = autoStart
+        # self._autoStart = autoStart
         self.load(lastMovieFile)  # will play if auto start
 
         self.start()
