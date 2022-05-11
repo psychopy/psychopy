@@ -26,7 +26,7 @@ class WebcamComponent(BaseComponent):
             stopType='duration (s)', stopVal='', durationEstim='',
             device="Default",
             # Hardware
-            resolution=None, frameRate=None,
+            resolution="", frameRate="",
             # Data
             saveFile=True,
             outputFileType=".mp4", codec="h263",
