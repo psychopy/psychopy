@@ -5,11 +5,12 @@ from pathlib import Path
 from tempfile import mkdtemp
 
 import numpy as np
+import pytest
 
 from ..utils import TESTS_DATA_PATH
 from psychopy import experiment, core
 
-
+@pytest.mark.needs_sound
 class TestLoops:
     @classmethod
     def setup_class(cls):
