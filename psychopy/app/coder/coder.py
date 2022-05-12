@@ -1740,6 +1740,10 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate("Update PsychoPy to the latest, or a specific, version"))
         self.Bind(wx.EVT_MENU, self.app.openUpdater, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
+                           _translate("PIP install..."),
+                           _translate("Use PIP to install Python packages to your PsychoPy environment."))
+        self.Bind(wx.EVT_MENU, self.app.openPipInstaller, item)
+        item = menu.Append(wx.ID_ANY,
                            _translate("Benchmark wizard"),
                            _translate("Check software & hardware, generate report"))
         self.Bind(wx.EVT_MENU, self.app.benchmarkWizard, id=item.GetId())
