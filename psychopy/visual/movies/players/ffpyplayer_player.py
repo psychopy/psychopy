@@ -25,6 +25,10 @@ import numpy as np
 FFPYPLAYER_STATUS_EOF = 'eof'
 FFPYPLAYER_STATUS_PAUSED = 'paused'
 
+# Options that PsychoPy devs picked to provide better performance, these can
+# be overridden, but it might result in undefined behavior.
+DEFAULT_FF_OPTS = {'sync': 'video'}
+
 
 class FFPyPlayer(BaseMoviePlayer):
     """Interface class for the FFPyPlayer library for use with `MovieStim`.
@@ -61,7 +65,7 @@ class FFPyPlayer(BaseMoviePlayer):
         self._frameIndex = -1
 
         # open the media player
-        self._handle = MediaPlayer(self._filename)
+        self._handle = MediaPlayer(self._filename, ff_opts=DEFAULT_FF_OPTS)
 
         # Pull the first frame to get metadata. NB - `_enqueueFrame` should be
         # able to do this but the logic in there depends on having access to

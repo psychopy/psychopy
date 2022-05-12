@@ -13,8 +13,8 @@ from psychopy import visual, core, event, constants
 win = visual.Window((800, 600))
 
 # create a new movie stimulus instance
-mov = visual.MovieStim(win, 'jwpIntro.mp4', size=(320, 240), flipVert=False,
-                       flipHoriz=False, loop=False)
+mov = visual.MovieStim(win, 'jwpIntro.mp4', size=(800, 600), flipVert=False,
+                       flipHoriz=False, loop=False, fullscr=False)
 
 # print('orig movie size=%s' % mov.size)
 # print('duration=%.2fs' % mov.duration)
