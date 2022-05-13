@@ -1,7 +1,9 @@
 .. _parallel:
 
-Communicating via a Parallel Port
+Communicating with fMRI
 =================================================
+
+
 
 Step one: Set up your Parallel Port component in Builder
 -------------------------------------------------------------
@@ -16,7 +18,7 @@ If you'd like to use a `Parallel Port` to **record** responses (for example from
 
 	Select the `Parallel Port` component from the `I/O` or `EEG` component drop-down menus.
 
-* Now, imagine we want our trigger sent to indicate stimulus onset. We *could* do this by simply setting the onset time of the trigger to match that of our stimulus. But this is not the **most** precise way to do this. Also, this doesn't help us if we want to send our trigger to indicate something with variable timing, such as when a response is made.
+* Now, we want our trigger sent at the same time as our stimulus. We *could* do this by simply setting the onset time of the trigger to match that of our stimulus onset. But this is not the **most** precise way to do this.
 * For maximum precision, we'll set the trigger to be sent when the status of our stimulus is set to `started`:
 
 .. figure:: /images/parallel1b.png
