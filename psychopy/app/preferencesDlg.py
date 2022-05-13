@@ -259,7 +259,7 @@ class PrefPropGrid(wx.Panel):
             if s not in self.sections.keys():
                 self.sections[s] = dict()
 
-        nbBitmap = icons.ButtonIcon(stem=bitmap).bitmap
+        nbBitmap = icons.ButtonIcon(stem=bitmap, size=(48, 48)).bitmap
         if nbBitmap.IsOk():
             self.prefsImages.Add(nbBitmap)
 
@@ -476,18 +476,18 @@ class PreferencesDlg(wx.Dialog):
         # add property pages to the manager
         self.proPrefs.addPage(
             'General', 'general', ['general'],
-            'preferences-general48.png')
+            'preferences-general')
         self.proPrefs.addPage(
             'Application', 'app', ['app', 'builder', 'coder'],
-            'preferences-app48.png')
+            'preferences-app')
         self.proPrefs.addPage(
             'Key Bindings', 'keyBindings', ['keyBindings'],
-            'preferences-keyboard48.png')
+            'preferences-keyboard')
         self.proPrefs.addPage(
-            'Hardware', 'hardware', ['hardware'], 'preferences-hardware48.png')
+            'Hardware', 'hardware', ['hardware'], 'preferences-hardware')
         self.proPrefs.addPage(
             'Connections', 'connections', ['connections'],
-            'preferences-conn48.png')
+            'preferences-conn')
         self.proPrefs.populateGrid()
 
         sbPrefs.Add(self.proPrefs, 1, wx.EXPAND)
