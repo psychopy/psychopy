@@ -10,12 +10,28 @@ PsychoPy has a Parallel Port component in Builder view. This can be found in the
 
 If you'd like to use a `Parallel Port` to **record** responses (for example from a button box) please read `this excellent thread <https://discourse.psychopy.org/t/issue-reading-parallel-port-pin-for-button-box/9759>`_ from our Discourse Forum user `jtseng <https://discourse.psychopy.org/u/jtseng>`_.
 
-* Add your Parallel Port component to your routine in the same way that you would with any other component. We're now going to set the component up to run the way we want it to. 
-* In the example below, let's imagine we want a trigger to be sent to our EEG recording device when a stimulus appears on screen: 
+* Add your Parallel Port component to your routine in the same way that you would with any other component:
 
-.. figure:: /images/parallel1.png
+.. figure:: /images/parallel1a.png
 
-	Select the `Parallel Port` component from the `I/O` or `EEG` component drop-down menus, then complete each tab as shown in this diagram.
+	Select the `Parallel Port` component from the `I/O` or `EEG` component drop-down menus.
+
+* Now, we want our trigger sent at the same time as our stimulus. We *could* do this by simply setting the onset time of the trigger to match that of our stimulus onset. But this is not the **most** precise way to do this.
+* For maximum precision, we'll set the trigger to be sent when the status of our stimulus is set to `started`:
+
+.. figure:: /images/parallel1b.png
+
+    In the `Basic` tab, we'll choose to start our trigger when a condition is met by selecting `condition` from the `Start` drop down.
+
+* Now we set that condition by inserting the following code::
+
+    stimulus.status == STARTED #Change 'stimulus' here to match the name of your own component
+
+* Now, in the `Data` tab, we set the data we want the trigger to actually send:
+
+.. figure:: /images/parallel1c.png
+
+    Set the data to be sent by the trigger
 
 * So our component is added and we've set it up the way we want. We now need to make sure that the trigger is going to be sent to the right place! 
 * To do this, we're firstly going to check our port address.
