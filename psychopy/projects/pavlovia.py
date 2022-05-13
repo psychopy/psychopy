@@ -141,7 +141,7 @@ class User(dict):
         # Get info from Pavlovia
         if isinstance(id, (float, int, str)):
             # If given a number or string, treat it as a user ID / username
-            self.info = self.session.http.get(
+            self.info = self.session.session.get(
                 "https://pavlovia.org/api/v2/designers/" + str(id)
             ).json()['designer']
             # Make sure self.info has necessary keys
@@ -410,8 +410,8 @@ class PavloviaSession:
             self.userFullName = self.gitlab.user.name
             self.authenticated = True
             # Setup http session
-            self.http = requests.Session()
-            self.http.headers = {'OauthToken': token}
+            self.session = requests.Session()
+            self.session.headers = {'OauthToken': token}
         else:
             # Setup gitlab session
             if parse_version(gitlab.__version__) > parse_version("1.4"):
@@ -419,7 +419,7 @@ class PavloviaSession:
             else:
                 self.gitlab = gitlab.Gitlab(rootURL, timeout=10)
             # Setup http session
-            self.http = requests.Session()
+            self.session = requests.Session()
 
     @property
     def user(self):
@@ -494,18 +494,18 @@ class PavloviaSearch(pandas.DataFrame):
             session = getCurrentSession()
             if mine:
                 # Display experiments by current user
-                data = session.http.get(
+                data = session.session.get(
                     f"https://pavlovia.org/api/v2/designers/{session.userID}/experiments?search={term}{filterBy}",
                     timeout=10
                 ).json()
             elif term or filterBy:
-                data = session.http.get(
+                data = session.session.get(
                     f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}",
                     timeout=10
                 ).json()
             else:
                 # Display demos for blank search
-                data = session.http.get(
+                data = session.session.get(
                     "https://pavlovia.org/api/v2/experiments?search=demos&designer=demos",
                     timeout=10
                 ).json()
@@ -617,7 +617,7 @@ class PavloviaProject(dict):
         self._info = None
         # for a new project it may take time for Pavlovia to register the new ID so try for a while
         while self._info is None and (time.time() - start) < 30:
-            requestVal = self.session.http.get(
+            requestVal = self.session.session.get(
                 f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
             ).json()
             self._info = requestVal['experiment']
