@@ -103,6 +103,19 @@ class ExperimentHandler(_ComparisonMixin):
     def __del__(self):
         self.close()
 
+    @property
+    def currentLoop(self):
+        """
+        Return the loop which we are currently in, this will either be a handle to a loop, such as
+        a :class:`~psychopy.data.TrialHandler` or :class:`~psychopy.data.StairHandler`, or the handle
+        of the :class:`~psychopy.data.ExperimentHandler` itself if we are not in a loop.
+        """
+        # If there are unfinished (aka currently active) loops, return the most recent
+        if len(self.loopsUnfinished):
+            return self.loopsUnfinished[-1]
+        # If we are not in a loop, return handle to experiment handler
+        return self
+
     def addLoop(self, loopHandler):
         """Add a loop such as a :class:`~psychopy.data.TrialHandler`
         or :class:`~psychopy.data.StairHandler`
