@@ -169,7 +169,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                             " Please use color and colorSpace args instead")
             self.setFillColor(fillRGB, colorSpace='rgb', log=None)
         self.contrast = contrast
-        if opacity:
+        if opacity is not None:
             self.opacity = opacity
 
         # Other stuff
