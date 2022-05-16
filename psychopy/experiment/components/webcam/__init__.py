@@ -34,11 +34,6 @@ class WebcamComponent(BaseComponent):
             # Testing
             disabled=False,
     ):
-        # Mark as type
-        self.type = 'Webcam'
-        # Store exp references
-        self.exp = exp
-        self.parentName = parentName
         # Initialise superclass
         super(WebcamComponent, self).__init__(
             exp, parentName,
@@ -50,6 +45,11 @@ class WebcamComponent(BaseComponent):
             # Testing
             disabled=disabled,
         )
+        # Mark as type
+        self.type = 'Webcam'
+        # Store exp references
+        self.exp = exp
+        self.parentName = parentName
 
         # Basic
         msg = _translate("What webcam device would you like the use to record? This will only affect local "
