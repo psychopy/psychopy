@@ -29,7 +29,7 @@ class WebcamComponent(BaseComponent):
             resolution="", frameRate="",
             # Data
             saveFile=True,
-            outputFileType=".mp4", codec="h263",
+            outputFileType="mp4", codec="h263",
             saveStartStop=True, syncScreenRefresh=False,
             # Testing
             disabled=False,
@@ -103,8 +103,8 @@ class WebcamComponent(BaseComponent):
 
         msg = _translate("What file format would you like the video to be saved as?")
         self.params['outputFileType'] = Param(
-            outputFileType, valType='str', inputType="choice", categ="Data",
-            allowedVals=[".mp4", ".mov", ".mpeg", ".mkv"],
+            outputFileType, valType='code', inputType="choice", categ="Data",
+            allowedVals=["mp4", "mov", "mpeg", "mkv"],
             hint=msg,
             label=_translate("Output File Type")
         )
@@ -121,7 +121,20 @@ class WebcamComponent(BaseComponent):
         pass
 
     def writeStartCode(self, buff):
-        pass
+        inits = getInitVals(self.params)
+        # Use filename with a suffix to store recordings
+        code = (
+            "# Make folder to store recordings from %(name)s\n"
+            "%(name)sRecFolder = filename + '_%(name)s_recorded'\n"
+            "if not os.path.isdir(%(name)sRecFolder):\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "os.mkdir(%(name)sRecFolder)\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
 
     def writeInitCode(self, buff):
         inits = getInitVals(self.params, "PsychoPy")
@@ -169,7 +182,19 @@ class WebcamComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
 
     def writeRoutineEndCode(self, buff):
-        pass
+        code = (
+            "# Make sure %(name)s has stopped recording\n"
+            "%(name)s.stop()\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        if self.params['saveFile']:
+            code = (
+            "# Save %(name)s recording\n"
+            "%(name)sFilename = os.path.join(%(name)sRecFolder, 'recording_%(name)s_%%s.%(outputFileType)s' %% data.utils.getDateStr())\n"
+            "%(name)s.lastClip.save(%(name)sFilename, codec=%(codec)s)\n"
+            "thisExperiment.currentLoop.addData('%(name)s.clip', %(name)sFilename)\n"
+            )
+            buff.writeIndentedLines(code % self.params)
 
     def writeExperimentEndCode(self, buff):
         pass
