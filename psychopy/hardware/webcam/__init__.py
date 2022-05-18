@@ -199,6 +199,9 @@ class Webcam:
 
         # parameters for the writer
         self._writer = None
+        self._tempVideoFilePath = u'.'
+        self._tempAudioFilePath = u'.'
+
         self._initVideoWriter()  # open the file for writing
 
     @property
@@ -465,22 +468,66 @@ class Webcam:
     def stop(self):
         """Stop recording frames.
         """
-        pass
+        self._assertMediaPlayer()
+
+        self._status = STOPPED
+        self._player.close_player()
+
+        if self._writer is not None:
+            self._writer.close()
 
     def close(self):
         """Close the camera.
         """
-        pass
+        if not self._hasPlayer:
+            raise RuntimeError("Cannot close stream, not opened yet.")
+
+        self._player.close_player()
+        self._player = None  # reset
+
+        # close the file writer
+        if self._writer is not None:
+            self._writer.close()
 
     @property
     def lastFrame(self):
-        """Most recent frame pulled from the webcam (`VideoFrame`)."""
-        return 0
-
-    def getVideoFrame(self):
-        """Get the current video frame.
+        """Most recent frame pulled from the webcam (`VideoFrame`) since the
+        last call of `getVideoFrame`.
         """
-        pass
+        return self._lastFrame
+
+    def getVideoFrame(self, timeout=0.0):
+        """Pull the next frame from the stream (if available).
+
+        Returns
+        -------
+        MovieFrame
+            Most recent video frame. Returns `NULL_MOVIE_FRAME_INFO` if no
+            frame was available, or we timed out.
+
+        """
+        self._assertMediaPlayer()
+
+        self._enqueueFrame(timeout=timeout)
+
+        return self._lastFrame
+
+    def __del__(self):
+        """Try to cleanly close the camera and output file.
+        """
+        if hasattr(self, '_player'):
+            if self._player is not None:
+                try:
+                    self._player.close_player()
+                except AttributeError:
+                    pass
+
+        if hasattr(self, '_writer'):
+            if self._writer is not None:
+                try:
+                    self._writer.close()
+                except AttributeError:
+                    pass
 
 
 # ------------------------------------------------------------------------------
