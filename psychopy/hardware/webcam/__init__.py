@@ -13,11 +13,13 @@ experimenter to create movie stimuli or instructions.
 
 __all__ = ['CameraNotFoundError', 'Webcam', 'CameraInfo', 'getWebcams']
 
-import os
 import platform
 import glob
-from psychopy.constants import PLAYING, PAUSED, STOPPED, STOPPING, NOT_STARTED
+import numpy as np
+from psychopy.constants import PAUSED, STOPPED, STOPPING, NOT_STARTED, RECORDING
 from psychopy.core import getTime
+from psychopy.visual.movies.metadata import MovieMetadata, NULL_MOVIE_METADATA
+from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
 from ffpyplayer.player import MediaPlayer
 from ffpyplayer.writer import MediaWriter
 from ffpyplayer.pic import SWScale
@@ -131,7 +133,8 @@ class Webcam:
         Interface library (backend) to use for accessing the webcam. Only
         `ffpyplayer` is available at this time.
     libOpts : dict or None
-        Additional options to configure the camera interface library.
+        Additional options to configure the camera interface library (if
+        applicable).
 
     Examples
     --------
@@ -182,13 +185,40 @@ class Webcam:
         self._player = None  # media player instance
         self._status = NOT_STARTED
         self._frameIndex = -1
+        self._isRecording = False
 
         # timestamp data
         self._absPts = 0.0  # timestamp of the video stream in absolute time
         self._pts = 0.0  # timestamp used for writing the video stream
 
+        # video metadata
+        self._recentMetadata = None
+
+        # last frame
+        self._lastFrame = NULL_MOVIE_FRAME_INFO
+
         # parameters for the writer
         self._writer = None
+        self._initVideoWriter()  # open the file for writing
+
+    @property
+    def metadata(self):
+        """Video metadata retrieved during the last frame update
+        (`MovieMetadata`).
+        """
+        return self._recentMetadata
+
+    def getMetadata(self):
+        """Get stream metadata.
+
+        Returns
+        -------
+        MovieMetadata
+            Metadata about the video stream, retrieved during the last frame
+            update (`_enqueueFrame` call).
+
+        """
+        return self._recentMetadata
 
     @staticmethod
     def getWebcams():
@@ -204,16 +234,34 @@ class Webcam:
 
     def _initVideoWriter(self):
         """Initialize and configure the media writer.
-        """
-        pass
 
-    # @property
-    # def win(self):
-    #     return self._win
-    #
-    # @win.setter
-    # def win(self, value):
-    #     self._win = value
+        Must be called after the video stream has been opened and
+        `_enqueueFrame` called at least once prior.
+        """
+        if self._writer is not None:
+            raise RuntimeError(
+                "Stream writer instance has already been created.")
+
+        self._assertMediaPlayer()
+
+        if self._outFile is None:
+            return  # nop if there is no output path
+
+        frameWidth, frameHeight = self._recentMetadata.size
+        frameRate = self._recentMetadata.frameRate
+
+        writerOptions = {
+            'pix_fmt_in': 'yuv420p',  # default for now
+            'width_in': frameWidth,
+            'height_in': frameHeight,
+            'frame_rate': frameRate
+        }
+
+        # initialize the writer to transcode the video stream to file
+        self._writer = MediaWriter(self._outFile, [writerOptions])
+
+        # recording timestamp
+        self._pts = 0.0
 
     @property
     def status(self):
@@ -233,6 +281,9 @@ class Webcam:
 
     @outFile.setter
     def outFile(self, value):
+        if self._writer is not None:
+            raise ValueError("Cannot change `outFile` while recording.")
+
         self._outFile = value
 
     @property
@@ -268,6 +319,12 @@ class Webcam:
         """
         return self._player is not None
 
+    @property
+    def _hasWriter(self):
+        """`True` if we have an active file writer instance.
+        """
+        return self._writer is not None
+
     def _assertMediaPlayer(self):
         """Assert that we have a media player instance open.
 
@@ -279,6 +336,27 @@ class Webcam:
             return
 
         raise PlayerNotAvailableError('Media player not initialized.')
+
+    def _writeFrame(self, colorData, timestamp):
+        """Write the presently enqueued frame to the output file.
+
+        Parameters
+        ----------
+        colorData : object
+            Image frame to write.
+        timestamp : float
+            Timestamp of the frame in seconds.
+
+        """
+        if not self._hasWriter:  # NOP if no writer
+            return
+
+        # convert the image to the appropriate format for the encoder
+        frameWidth, frameHeight = self._recentMetadata.size
+        pixelFormat = self._recentMetadata.pixelFormat
+        sws = SWScale(frameWidth, frameHeight, pixelFormat, ofmt='yuv420p')
+        self._writer.write_frame(
+            img=sws.scale(colorData), pts=timestamp, stream=0)
 
     def _enqueueFrame(self, timeout=-1.0):
         """Grab the latest frame from the stream.
@@ -299,26 +377,56 @@ class Webcam:
         """
         self._assertMediaPlayer()
 
+        # update metadata
+        self._recentMetadata = self._player.get_metadata()
+
+        if self._player.is_paused():
+            self._status = PAUSED
+            return self._lastFrame
+
         # todo - if paused, return the last queued frame instead of pulling a new one
 
         # grab a frame from the camera
+        frame = None
+        status = ''
+        timedOut = False
         tStart = getTime()
-        while 1:  # not frame available
+        while timedOut:  # not frame available
             timedOut = (getTime() - tStart) < timeout
-            frame, val = self._player.get_frame()
-
-            if frame is None and timedOut:
-                return False
-
-            if val == 'eof':  # end of stream but there is a valid frame
+            frame, status = self._player.get_frame()
+            # got a valid frame within the timeout period
+            if frame is not None:
                 break
 
-        # img, t = frame
-        # scl = SWScale(frame_size[0], frame_size[1], img.get_pixel_format(), ofmt='yuv420p')
-        # img2 = scl.scale(img)
-        # print(t)
-        # tvid += 1 / 30.
-        # print(writer.write_frame(img=img2, pts=tvid, stream=0))
+        if timedOut:  # we timed out and don't have a frame
+            return False
+
+        if status == 'eof':  # end of stream but there is a valid frame
+            self._status = STOPPING  # last frame, stopping ...
+
+        # process the frame
+        colorData, absPts = frame
+        self._absPts = absPts
+
+        # if we have a new frame, update the frame information
+        videoBuffer = colorData.to_bytearray()[0]
+        videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
+
+        # provide the last frame
+        self._lastFrame = MovieFrame(
+            frameIndex=self._frameIndex,
+            absTime=self._absPts,
+            displayTime=self._recentMetadata.frameInterval,
+            size=self._recentMetadata.size,
+            colorData=videoFrameArray,
+            audioChannels=0,
+            audioSamples=None,
+            movieLib=u'ffpyplayer',
+            userData=None)
+
+        self._writeFrame(colorData, self._pts)  # write the frame to the file
+
+        return True
 
     def open(self):
         """Open the webcam stream and begin decoding frames (if available).
@@ -332,11 +440,26 @@ class Webcam:
 
         # open a stream and pause it until ready
         self._player = MediaPlayer(self._camera)
+        self._enqueueFrame(timeout=1.0)  # pull a frame, gets metadata too
+
+    def pause(self):
+        """Pause an active recording.
+        """
+        self._assertMediaPlayer()
+
+        if self._player.is_paused():
+            return  # paused, so nop
+
         self._player.set_pause(True)
 
-    def start(self):
+    def record(self):
         """Start recording frames.
         """
+        self._assertMediaPlayer()
+
+        if self._player.is_paused():
+            self._player.set_pause(False)
+
         pass
 
     def stop(self):
@@ -348,6 +471,11 @@ class Webcam:
         """Close the camera.
         """
         pass
+
+    @property
+    def lastFrame(self):
+        """Most recent frame pulled from the webcam (`VideoFrame`)."""
+        return 0
 
     def getVideoFrame(self):
         """Get the current video frame.
