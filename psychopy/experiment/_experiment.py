@@ -22,6 +22,8 @@ import xml.etree.ElementTree as xml
 from xml.dom import minidom
 from copy import deepcopy, copy
 from pathlib import Path
+
+import requests
 from pkg_resources import parse_version
 
 import psychopy
@@ -49,6 +51,9 @@ RequiredImport = namedtuple('RequiredImport',
                             field_names=('importName',
                                          'importFrom',
                                          'importAs'))
+
+# Root of the Pavlovia fonts repository
+pavloviaFonts = "https://fonts.pavlovia.org/"
 
 
 # Some params have previously had types which cause errors compiling in new versions, so we need to keep track of them and force them to the new type if needed
@@ -882,6 +887,58 @@ class Experiment:
                 if len(thisFile['abs']) <= 256 and os.path.isfile(thisFile['abs']):
                     return thisFile
 
+        def getFonts(fontName):
+            # Check for font file in repo / specified resources
+            localFile = getPaths(fontName)
+            if localFile:
+                # If param refers to locally saved font file, include path in resources
+                return localFile
+
+            # Check for web safe fonts
+            sanitizedName = fontName.lower()
+            sanitizedName = sanitizedName.replace(" ", "")
+            sanitizedName = sanitizedName.replace("+", "")
+            if sanitizedName in (
+                    "arial",
+                    "verdana",
+                    "helvetica",
+                    "tahoma",
+                    "trebuchet",
+                    "trebuchetms",
+                    "timesnewroman",
+                    "georgia",
+                    "garamond",
+                    "couriernew",
+                    "brushscript",
+                    "brushscriptmt",
+            ):
+                # If font is web safe, don't add to resources as it doesn't need installing
+                return None
+
+            # Check for the font on Pavlovia
+            status = requests.get(
+                pavloviaFonts + "availability",
+                params={"family": fontName},
+                timeout=10
+            )
+            # Alias response codes
+            unavailable = 0  # Font is not stored on Pavlovia or retrievable from any external source
+            onPavlovia = 1  # Font is stored in Pavlovia fonts repo
+            onGoogle = 2  # Font can be retrieved from Google
+
+            if status in (onPavlovia, onGoogle):
+                # If font is in Pavlovia repo, or can be added to Pavlovia repo from Google, include name in resources
+                return fontName
+
+            elif status == unavailable:
+                # If font is unavailable, print alert and don't include in resources
+                alert(5110, strFields={"font": fontName})
+                return None
+            else:
+                # If we got any other code, print alert but append font name
+                alert(5115, strFields={"font": fontName})
+                return fontName
+
         def findPathsInFile(filePath):
             """Recursively search a conditions file (xlsx or csv)
              extracting valid file paths in any param/cond
@@ -948,7 +1005,11 @@ class Experiment:
                     for paramName in thisComp.params:
                         thisParam = thisComp.params[paramName]
                         thisFile = ''
-                        if isinstance(thisParam, str):
+                        if paramName in ("font"):
+                            # add font to resource spec if param is a font name
+                            thisFile = getFonts(thisParam)
+                        elif isinstance(thisParam, str):
+                            # otherwise, handle file paths
                             thisFile = getPaths(thisParam)
                         elif isinstance(thisParam.val, str):
                             thisFile = getPaths(thisParam.val)

@@ -1,0 +1,31 @@
+
+code: 5115
+cat: Could not query font availability online
+msg: Could not contact the Pavlovia servers to check availability of the font {font}.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Could not contact Pavlovia servers to check font availability
+
+synopsis: |
+  PsychoPy could not connect to the Pavlovia servers to check the availability of one of the fonts used in your experiment.
+
+details: |
+  When you compile your experiment to JavaScript, PsychoPy checks the fonts used (e.g. in Text, Textbox and Slider components) to see whether they are available online. You are receiving this alert because, when PsychoPy sent the query to Pavlovia to check a font, Pavlovia did not respond.
+
+solutions: |
+  You may not be connected to the internet. If you are not expecting to be connected to the internet, you can ignore this alert - otherwise, check your internet connection and then try again. The Pavlovia servers may also be down, you can check their status at https://pavlovia.org
+  
+  If you have the font saved as a file, you can add it to the experiment folder and refer to it by its filename instead, meaning PsychoPy does not need to contact Pavlovia to check its availability. You can also use a web-safe font, which PsychoPy does not need to check for as they are installed on most browsers by default. The following fonts are considered web-safe:
+  - Arial (sans-serif)
+  - Verdana (sans-serif)
+  - Helvetica (sans-serif)
+  - Tahoma (sans-serif)
+  - Trebuchet MS (sans-serif)
+  - Times New Roman (serif)
+  - Georgia (serif)
+  - Garamond (serif)
+  - Courier New (monospace)
+  - Brush Script MT (cursive)
+
+versions: |
+  > 2022.2.0

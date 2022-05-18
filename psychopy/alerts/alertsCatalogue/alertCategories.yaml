@@ -78,6 +78,10 @@
   5050:
     cat: Parameters not used online
     5055: Microphone device not applicable online
+  5100:
+    cat: Onlie Fonts
+    5110: Font not available online
+    5115: Could not query font availability online
 
 6000:
   cat: Interface

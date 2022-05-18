@@ -1,0 +1,33 @@
+
+code: 5110
+cat: Font not available online
+msg: The font {font}, this font is not currently available on Pavlovia so this component may look different online.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Font not available on Pavlovia
+
+synopsis: |
+  One of the components in your experiment uses a font which is not currently available on Pavlovia, so this component may look different online. 
+
+details: |
+  When a font isn't available on Pavlovia, it will be substituted for the default font specified by whatever browser the experiment is running in.
+  
+  For online studies, the following fonts are installed on most browsers by default, so are considered "web safe":
+  - Arial (sans-serif)
+  - Verdana (sans-serif)
+  - Helvetica (sans-serif)
+  - Tahoma (sans-serif)
+  - Trebuchet MS (sans-serif)
+  - Times New Roman (serif)
+  - Georgia (serif)
+  - Garamond (serif)
+  - Courier New (monospace)
+  - Brush Script MT (cursive)
+  
+  Pavlovia also has the ability to use fonts from Google Fonts, so you can choose a font from the Google Fonts library (fonts.google.com) and Pavlovia will either have this font cached, or will retrieve it from Google Fonts. The only request sent to the Google servers when running online comes from Pavlovia - once requested, fonts are stored internally within Pavlovia and are only ever served to the participant from this internal storage, never direct from Google, so your participants' IP is not sent to any external servers.
+
+solutions: |
+  If you have the font saved as a file, you can add it to the experiment folder and refer to it by its filename instead. Otherwise, please use either a web-safe font or a font which can be retrieved by Pavlovia from Google Fonts (fonts.google.com)
+
+versions: |
+  > 2022.2.0
