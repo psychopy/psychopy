@@ -23,6 +23,7 @@ from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
 from ffpyplayer.player import MediaPlayer
 from ffpyplayer.writer import MediaWriter
 from ffpyplayer.pic import SWScale
+from ffpyplayer.tools import list_dshow_devices
 
 
 # ------------------------------------------------------------------------------
@@ -201,8 +202,6 @@ class Webcam:
         self._writer = None
         self._tempVideoFilePath = u'.'
         self._tempAudioFilePath = u'.'
-
-        self._initVideoWriter()  # open the file for writing
 
     @property
     def metadata(self):
@@ -445,6 +444,8 @@ class Webcam:
         self._player = MediaPlayer(self._camera)
         self._enqueueFrame(timeout=1.0)  # pull a frame, gets metadata too
 
+        self._initVideoWriter()  # open the file for writing stream to
+
     def pause(self):
         """Pause an active recording.
         """
@@ -557,7 +558,11 @@ def getWebcams():
         # ensure the glob gives values in the same order
         foundCameras.sort()
     elif systemName == 'Windows':
-        pass
+        videoDevs, _, names = list_dshow_devices()
+        for dev in videoDevs:
+            nameHR = videoDevs.get(dev, None)
+            ident = dev if nameHR is None else nameHR
+            foundCameras.append(ident)
     else:
         raise OSError(
             "Cannot get cameras, unsupported platform '{}'.".format(
