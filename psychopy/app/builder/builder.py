@@ -1323,8 +1323,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                 # Swap old with new names
                 self.exp.routines[oldName].name = name
                 self.exp.routines[name] = self.exp.routines.pop(oldName)
-                for comp in self.exp.routines[name]:
-                    comp.parentName = name
                 self.exp.namespace.rename(oldName, name)
                 self.routinePanel.renameRoutinePage(currentRoutineIndex, name)
                 self.addToUndoStack("`RENAME Routine `%s`" % oldName)
@@ -2047,7 +2045,7 @@ class RoutineCanvas(wx.ScrolledWindow):
                 thisColor = ThemeMixin.appColors['rt_comp_force']
         # check True/False on ForceEndRoutineOnPress
         if 'forceEndRoutineOnPress' in component.params:
-            if component.params['forceEndRoutineOnPress'].val:
+            if component.params['forceEndRoutineOnPress'].val in ['any click', 'valid click']:
                 thisColor = ThemeMixin.appColors['rt_comp_force']
         # check True aliases on EndRoutineOn
         if 'endRoutineOn' in component.params:

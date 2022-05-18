@@ -19,6 +19,8 @@ class VirtualJoyButtons:
         self.modifierKeys=['ctrl','alt']
         self.mouse = event.Mouse()
         event.Mouse(visible=False)
+        # Create .corr property with placeholder value
+        self.corr = False
 
     def getNumButtons(self):
         return len(self.numberKeys)
