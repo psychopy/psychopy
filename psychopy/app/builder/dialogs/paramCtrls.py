@@ -272,31 +272,38 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
     def __init__(self, parent, valType,
                  val="", choices=[], labels=[], fieldName="",
                  size=wx.Size(-1, 24)):
-        # If not given any labels, alias values
-        if not labels:
-            labels = choices
-        # Map labels to values
-        self._choices = {}
+        # translate and add labels to the dropdown
+        choiceLabels = []
         for i, value in enumerate(choices):
             if i < len(labels):
-                self._choices[labels[i]] = value
+                label = labels[i]
             else:
-                self._choices[value] = value
+                label = value
+            try:
+                choiceLabels.append(_localized[label])
+            except:
+                choiceLabels.append(label)
+
         # Create choice ctrl from labels
         wx.Choice.__init__(self)
-        self.Create(parent, -1, size=size, choices=list(self._choices), name=fieldName)
+        self.Create(parent, -1, size=size, choices=choiceLabels, name=fieldName)
+        self._choices = choices
         self.valType = valType
         self.SetStringSelection(val)
 
     def SetStringSelection(self, string):
         if string not in self._choices:
-            self._choices[string] = string
-            self.SetItems(list(self._choices))
-        wx.Choice.SetStringSelection(self, string)
-
+            self._choices.append(string)
+            self.SetItems(self._choices)
+        # Don't use wx.Choice.SetStringSelection here
+        # because label string is localized.
+        wx.Choice.SetSelection(self, self._choices.index(string))
+    
     def GetValue(self):
-        lbl = self.GetStringSelection()
-        return self._choices[lbl]
+        # Don't use wx.Choice.GetStringSelection here
+        # because label string is localized.
+        return self._choices[self.GetSelection()]
+
 
 
 class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin, _HideMixin):

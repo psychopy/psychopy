@@ -1318,6 +1318,9 @@ class WindowMixin:
         if hasattr(self, "_vertices"):
             self._vertices._pos = self._pos
 
+        if hasattr(self, "_vertices"):
+            self._vertices._pos = self._pos
+
     @property
     def size(self):
         if hasattr(self, "_size"):
@@ -1335,6 +1338,9 @@ class WindowMixin:
             log = False
         # Do attribute setting
         setAttribute(self, '_size', Size(value, units=self.units, win=self.win), log)
+
+        if hasattr(self, "_vertices"):
+            self._vertices._size = self._size
 
         if hasattr(self, "_vertices"):
             self._vertices._size = self._size

@@ -82,7 +82,8 @@ def getVariables(code):
         if hasattr(line, "targets") and hasattr(line, "value"):
             # Append targets and values this line to arguments dict
             for target in line.targets:
-                vars[target.id] = _actualizeAstValue(line.value)
+                if hasattr(target, "id"):
+                    vars[target.id] = _actualizeAstValue(line.value)
 
     return vars
 
