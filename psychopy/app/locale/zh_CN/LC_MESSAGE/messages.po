@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2021.2.3\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2022-05-08 20:39+0800\n"
+"PO-Revision-Date: 2022-05-19 22:44+0800\n"
 "Last-Translator: Shun Wang <shuonwang@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -1707,7 +1707,7 @@ msgstr "关闭 Psychopy Coder"
 #: ../app/coder/coder.py:1510
 #, python-format
 msgid "Cu&t\t%s"
-msgstr "剪切&t\t%s"
+msgstr "剪切\t%s"
 
 #: ../app/coder/coder.py:1512
 #, python-format
@@ -1876,52 +1876,52 @@ msgstr "&空格\t%s"
 
 #: ../app/coder/coder.py:1682
 msgid "Show End Of Line markers in the code"
-msgstr ""
+msgstr "在代码中显示行尾标记(EOL)"
 
 #: ../app/coder/coder.py:1685
 #, python-format
 msgid "Show &EOLs\t%s"
-msgstr ""
+msgstr "显示 &EOLs\t%s"
 
 #: ../app/coder/coder.py:1690
 msgid "Enable/disable line wrapping in editors."
-msgstr ""
+msgstr "在编辑器中启用/禁用换行"
 
 #: ../app/coder/coder.py:1693
 msgid "Line wrapping"
-msgstr ""
+msgstr "换行"
 
 #: ../app/coder/coder.py:1744
 msgid "csv from psydat"
-msgstr ""
+msgstr "来自psydat的csv"
 
 #: ../app/coder/coder.py:1745
 msgid "Create a .csv file from an existing .psydat file"
-msgstr ""
+msgstr "从现有的 .psydat 文件创建 .csv 文件"
 
 #: ../app/coder/coder.py:1750
 msgid "Unit &testing...\tCtrl-T"
-msgstr ""
+msgstr "单元测试(&T)... \tCtrl-T"
 
 #: ../app/coder/coder.py:1751
 msgid "Show dialog to run unit tests"
-msgstr ""
+msgstr "显示对话框以运行单元测试"
 
 #: ../app/coder/coder.py:1800
 msgid "&PsychoPy Coder Tutorial"
-msgstr ""
+msgstr "PsychoPy 编码器教程(&P)"
 
 #: ../app/coder/coder.py:1801
 msgid "Go to the online PsychoPy tutorial"
-msgstr ""
+msgstr "转到在线 PsychoPy 教程"
 
 #: ../app/coder/coder.py:1805
 msgid "&PsychoPy API (reference)"
-msgstr ""
+msgstr "&PsychoPy API（参考）"
 
 #: ../app/coder/coder.py:1806
 msgid "Go to the online PsychoPy reference manual"
-msgstr ""
+msgstr "转到在线 PsychoPy 参考手册"
 
 #: ../app/coder/coder.py:1998 ../app/coder/coder.py:2052
 #, python-format
@@ -1945,7 +1945,7 @@ msgstr "在退出前是否保存 %s ？"
 
 #: ../app/coder/coder.py:2273
 msgid "Failed to open `{}`. Make sure that encoding of the file is utf-8."
-msgstr ""
+msgstr "未能打开'{}'。 确保文件的编码是 utf-8。"
 
 #: ../app/coder/coder.py:2380
 msgid "Loading file"
@@ -1958,6 +1958,9 @@ msgid ""
 "   %s\n"
 "OK to overwrite?"
 msgstr ""
+"文件似乎已在 PsychoPy 之外进行了修改：\n"
+"    %s\n"
+"可以覆盖吗？"
 
 #: ../app/coder/coder.py:2448
 #, python-format
@@ -1965,6 +1968,8 @@ msgid ""
 "File '%s' lacks write-permission:\n"
 "Will try save-as instead."
 msgstr ""
+"文件 '%s' 缺少写权限:\n"
+"将尝试另存为。"
 
 #: ../app/coder/coder.py:2459
 msgid "Saving file"
@@ -1975,17 +1980,21 @@ msgid ""
 "Python script (*.py)|*.py|JavaScript file (*.js)|*.js|Text file (*.txt)|*."
 "txt|Any file (*.*)|*.*"
 msgstr ""
+"Python 脚本(*.py)|*.py|JavaScript 文件(*.js)|*.js|文本文件(*.txt)|*.txt|所有"
+"文件 (*.*)|*.*"
 
 #: ../app/coder/coder.py:2507
 msgid ""
 "Python script (*.py)|*.py|JavaScript file (*.js)|*.js|Text file (*.txt)|*."
 "txt|Any file (*.*)|*"
 msgstr ""
+"Python 脚本(*.py)|*.py|JavaScript 文件(*.js)|*.js|文本文件 (*.txt)|*.txt|所有"
+"文件 (*.*)|*"
 
 #: ../app/coder/coder.py:2601
 #, python-format
 msgid "Save changes to %s before running?"
-msgstr ""
+msgstr "运行前保存对 %s 的更改？"
 
 #: ../app/coder/fileBrowser.py:136
 msgid "Directory:"
@@ -2510,7 +2519,7 @@ msgstr ""
 
 #: ../app/pavlovia_ui/menu.py:53
 msgid "Log in to Pavlovia...\t{}"
-msgstr ""
+msgstr "登录到 Pavlovia...\t{}"
 
 #: ../app/pavlovia_ui/menu.py:56
 msgid "User"
@@ -2518,27 +2527,27 @@ msgstr "用户"
 
 #: ../app/pavlovia_ui/menu.py:60
 msgid "Search Pavlovia\t{}"
-msgstr ""
+msgstr "在Pavlovia搜索\t{}"
 
 #: ../app/pavlovia_ui/menu.py:66
 msgid "New...\t{}"
-msgstr ""
+msgstr "新建...\t{}"
 
 #: ../app/pavlovia_ui/menu.py:70
 msgid "Sync\t{}"
-msgstr ""
+msgstr "同步\t{}"
 
 #: ../app/pavlovia_ui/menu.py:133
 msgid "You need to log in to create a project"
-msgstr ""
+msgstr "您需要登录才能创建项目"
 
 #: ../app/pavlovia_ui/project.py:55
 msgid "Name:"
-msgstr ""
+msgstr "名称:"
 
 #: ../app/pavlovia_ui/project.py:68
 msgid "Group/owner:"
-msgstr ""
+msgstr "组/所有者："
 
 #: ../app/pavlovia_ui/project.py:72
 msgid "Description:"
@@ -2546,7 +2555,7 @@ msgstr "描述："
 
 #: ../app/pavlovia_ui/project.py:76
 msgid "Local folder:"
-msgstr ""
+msgstr "Local folder:"
 
 #: ../app/pavlovia_ui/project.py:79 ../app/pavlovia_ui/project.py:203
 msgid "Browse..."
@@ -2554,7 +2563,7 @@ msgstr "浏览..."
 
 #: ../app/pavlovia_ui/project.py:86
 msgid "Tags (comma separated):"
-msgstr ""
+msgstr "标签（逗号分隔）："
 
 #: ../app/pavlovia_ui/project.py:90
 msgid "Public:"
