@@ -169,7 +169,7 @@ class WebcamComponent(BaseComponent):
 
         # Write code
         code = (
-            "%(name)s = new hardware.Webcam({\n"
+            "%(name)s = new visual.Camera({\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
