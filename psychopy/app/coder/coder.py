@@ -1161,7 +1161,6 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.fileStatusLastChecked = time.time()
         self.fileStatusCheckInterval = 5 * 60  # sec
         self.showingReloadDialog = False
-        self.btnHandles = {}  # stores toolbar buttons so they can be altered
 
         # default window title string
         self.winTitle = "PsychoPy Coder (v{})".format(self.app.version)
@@ -1220,6 +1219,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         # Create toolbar
         self.toolbar = CoderToolbar(self)
+        self.btnHandles = self.toolbar.buttons  # stores toolbar buttons so they can be altered
         self.SetToolBar(self.toolbar)
         self.toolbar.Realize()
         # Create menus and status bar
@@ -2982,19 +2982,19 @@ class CoderToolbar(BasePsychopyToolbar):
         self.AddSeparator()
 
         # Pavlovia sync
-        self.buttons['pavSync'] = self.makeTool(
+        self.buttons['pavloviaSync'] = self.makeTool(
             name='globe_greensync',
             label=_translate("Sync online"),
             tooltip=_translate("Sync with web project (at pavlovia.org)"),
             func=self.frame.onPavloviaSync)
         # Pavlovia search
-        self.buttons['pavSearch'] = self.makeTool(
+        self.buttons['pavloviaSearch'] = self.makeTool(
             name='globe_magnifier',
             label=_translate("Search Pavlovia.org"),
             tooltip=_translate("Find existing studies online (at pavlovia.org)"),
             func=self.onPavloviaSearch)
         # Pavlovia user
-        self.buttons['pavUser'] = self.makeTool(
+        self.buttons['pavloviaUser'] = self.makeTool(
             name='globe_user',
             label=_translate("Current Pavlovia user"),
             tooltip=_translate("Log in/out of Pavlovia.org, view your user profile."),
