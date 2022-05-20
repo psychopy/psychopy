@@ -1230,7 +1230,6 @@ def getNameWithNamespace(p):
         return None
 
 
-
 def getProject(filename):
     """Will try to find (locally synced) pavlovia Project for the filename
     """
@@ -1244,6 +1243,8 @@ def getProject(filename):
     path = getNameWithNamespace(filename)
     # Get session
     session = getCurrentSession()
+    # Start off with proj as None
+    proj = None
     # If already found, return
     if (knownProjects is not None) and (path in knownProjects) and ('idNumber' in knownProjects[path]):
         try:
@@ -1258,19 +1259,69 @@ def getProject(filename):
         localRepo = git.Repo(gitRoot)
         for remote in localRepo.remotes:
             for url in remote.urls:
-                if "gitlab.pavlovia.org" in url:
-                    # Get Namespace/Name from standard style url
-                    nameSearch = re.search(r"(?<=https:\/\/gitlab\.pavlovia\.org\/).*\/.*(?=\.git)", url)
-                elif "git@gitlab.pavlovia.org:" in url:
-                    # Get Namespace/Name from @ stye url
-                    nameSearch = re.search(r"(?<=git@gitlab\.pavlovia\.org:).*\/.*(?=\.git)", url)
+                # Get namespace from url
+                # could be 'https://gitlab.pavlovia.org/NameSpace/Name.git'
+                # or may be 'git@gitlab.pavlovia.org:NameSpace/Name.git'
+                namespaceName = url.split('gitlab.pavlovia.org')[1]
+                # remove the first char if it's : or /
+                if namespaceName[0] in ['/', ':']:
+                    namespaceName = namespaceName[1:]
+                # Remove .git
+                namespaceName = namespaceName.replace(".git", "")
+                # Split to get namespace
+                nameSpace, projectName = namespaceName.split('/')
+                # Get current session
+                pavSession = getCurrentSession()
+                # Try to log in if not logged in
+                if not pavSession.user:
+                    if nameSpace in knownUsers:
+                        # Log in if user is known
+                        login(nameSpace, rememberMe=True)
+                    else:
+                        # Check whether project repo is found in any of the known users accounts
+                        for user in knownUsers:
+                            try:
+                                login(user)
+                            except requests.exceptions.ConnectionError:
+                                break
+                            foundProject = False
+                            for repo in pavSession.findUserProjects():
+                                if namespaceName in repo['id']:
+                                    foundProject = True
+                                    logging.info("Logging in as {}".format(user))
+                                    break
+                            if not foundProject:
+                                logging.warning("Could not find {namespace} in your Pavlovia accounts. "
+                                                "Logging in as {user}.".format(namespace=namespaceName,
+                                                                               user=user))
+
+                if pavSession.user:
+                    # If we are now logged in, get project id via session
+                    requestVal = pavSession.session.get(
+                        f"https://pavlovia.org/api/v2/experiments/{namespaceName}",
+                    ).json()
+                    expInfo = requestVal['experiment']
+                    if expInfo is not None:
+                        # Get PavloviaProject via id
+                        proj = pavSession.getProject(expInfo['gitlabId'])
+                        proj.repo = localRepo
+                    else:
+                        # Warn user if there is a repo but no project
+                        logging.warning(
+                            _translate("We found a repository pointing to {} "
+                                       "but no project was found there (deleted?)").format(url))
                 else:
-                    # Attempt to get Namespace/Name from unhandled style
-                    nameSearch = re.search(r"[\w\-]*\\[\w\-]*\.git", url)
-                if nameSearch is not None:
-                    name = nameSearch.group(0)
-                    project = session.gitlab.projects.get(name)
-                    return PavloviaProject(project.id)
+                    # If we are still logged out, prompt user
+                    logging.warning(_translate("We found a repository pointing to {} "
+                                               "but no user is logged in for us to check it".format(url)))
+                return proj
+
+            if proj is None:
+                # Warn user if still no project
+                logging.warning("We found a repository at {} but it "
+                                "doesn't point to gitlab.pavlovia.org. "
+                                "You could create that as a remote to "
+                                "sync from PsychoPy.".format(gitRoot))
 
 
 global _existingSession
