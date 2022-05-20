@@ -176,8 +176,8 @@ class WebcamComponent(BaseComponent):
         code = (
                 "win : psychoJS.window, \n"
                 "name:'%(name)s',\n"
-                "resolution=%(resolution)s,\n"
-                "frameRate=%(frameRate)s\n"
+                "resolution:%(resolution)s,\n"
+                "frameRate:%(frameRate)s\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
@@ -212,6 +212,10 @@ class WebcamComponent(BaseComponent):
         )
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(-1, relative=True)
+        code = (
+            "};\n"
+        )
+        buff.writeIndentedLines(code)
 
         # Stop webcam at component stop
         self.writeStopTestCodeJS(buff)
@@ -220,6 +224,10 @@ class WebcamComponent(BaseComponent):
         )
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(-1, relative=True)
+        code = (
+            "};\n"
+        )
+        buff.writeIndentedLines(code)
 
     def writeRoutineEndCode(self, buff):
         code = (
@@ -238,7 +246,7 @@ class WebcamComponent(BaseComponent):
 
     def writeRoutineEndCodeJS(self, buff):
         code = (
-            "# Make sure %(name)s has stopped recording\n"
+            "// Make sure %(name)s has stopped recording\n"
             "%(name)s.stop()\n"
         )
         buff.writeIndentedLines(code % self.params)
