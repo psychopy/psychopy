@@ -1219,7 +1219,6 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         # Create toolbar
         self.toolbar = CoderToolbar(self)
-        self.btnHandles = self.toolbar.buttons  # stores toolbar buttons so they can be altered
         self.SetToolBar(self.toolbar)
         self.toolbar.Realize()
         # Create menus and status bar
@@ -2999,6 +2998,8 @@ class CoderToolbar(BasePsychopyToolbar):
             label=_translate("Current Pavlovia user"),
             tooltip=_translate("Log in/out of Pavlovia.org, view your user profile."),
             func=self.onPavloviaUser)
+
+        self.frame.btnHandles = self.buttons
 
     def onPavloviaSearch(self, evt=None):
         searchDlg = SearchFrame(
