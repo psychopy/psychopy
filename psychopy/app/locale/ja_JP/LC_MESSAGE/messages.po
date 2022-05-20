@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 2020.1.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-02-18 11:57+0900\n"
-"PO-Revision-Date: 2022-02-18 12:03+0900\n"
+"POT-Creation-Date: 2022-03-07 17:01+0900\n"
+"PO-Revision-Date: 2022-03-07 18:15+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -818,7 +818,7 @@ msgid "PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*"
 msgstr "PsychoPy実験ファイル (*.psyexp)|*.psyexp|すべてのファイル (*.*)|*"
 
 #: psychopy/app/builder/builder.py:693
-#: psychopy/app/builder/dialogs/__init__.py:1472
+#: psychopy/app/builder/dialogs/__init__.py:1468
 #: psychopy/app/coder/coder.py:2392
 msgid "Open file ..."
 msgstr "ファイルを開く..."
@@ -890,7 +890,7 @@ msgid "Rename"
 msgstr "名前の変更"
 
 #: psychopy/app/builder/builder.py:1540
-#: psychopy/app/builder/dialogs/__init__.py:1785
+#: psychopy/app/builder/dialogs/__init__.py:1781
 msgid "What is the name for the new Routine? (e.g. instr, trial, feedback)"
 msgstr "新しいRoutineの名前(instr, trial, feedbackなど)を入力してください"
 
@@ -919,7 +919,7 @@ msgid "Error"
 msgstr "エラー"
 
 #: psychopy/app/builder/builder.py:2560 psychopy/app/dialogs.py:80
-#: psychopy/app/pavlovia_ui/project.py:747
+#: psychopy/app/pavlovia_ui/project.py:802
 #: psychopy/app/pavlovia_ui/search.py:414 psychopy/app/pavlovia_ui/sync.py:34
 #: psychopy/app/pavlovia_ui/sync.py:129
 msgid "OK"
@@ -991,30 +991,30 @@ msgstr ""
 msgid "Impending Loop collapse"
 msgstr "Loopが空になろうとしています"
 
-#: psychopy/app/builder/dialogs/__init__.py:223
+#: psychopy/app/builder/dialogs/__init__.py:219
 msgid "set during: "
 msgstr "更新期間: "
 
-#: psychopy/app/builder/dialogs/__init__.py:737
-#: psychopy/app/builder/dialogs/__init__.py:739
-#: psychopy/app/builder/dialogs/__init__.py:1055
+#: psychopy/app/builder/dialogs/__init__.py:733
+#: psychopy/app/builder/dialogs/__init__.py:735
+#: psychopy/app/builder/dialogs/__init__.py:1051
 #: psychopy/app/builder/dialogs/dlgsCode.py:40
 #: psychopy/app/builder/dialogs/dlgsCode.py:42
 msgid " Properties"
 msgstr " のプロパティ"
 
-#: psychopy/app/builder/dialogs/__init__.py:831
+#: psychopy/app/builder/dialogs/__init__.py:827
 #: psychopy/app/builder/dialogs/dlgsCode.py:138
 #: psychopy/app/builder/dialogs/dlgsConditions.py:508
 msgid " Help "
 msgstr " ヘルプ "
 
-#: psychopy/app/builder/dialogs/__init__.py:832
+#: psychopy/app/builder/dialogs/__init__.py:828
 #: psychopy/app/builder/dialogs/dlgsCode.py:139
 msgid "Go to online help about this component"
 msgstr "このコンポーネントのオンラインヘルプを開きます"
 
-#: psychopy/app/builder/dialogs/__init__.py:838
+#: psychopy/app/builder/dialogs/__init__.py:834
 #: psychopy/app/builder/dialogs/dlgsCode.py:141
 #: psychopy/app/builder/dialogs/dlgsConditions.py:514 psychopy/gui/qtgui.py:85
 #: psychopy/gui/wxgui.py:68 psychopy/monitors/MonitorCenter.py:1109
@@ -1022,7 +1022,7 @@ msgstr "このコンポーネントのオンラインヘルプを開きます"
 msgid " OK "
 msgstr " OK "
 
-#: psychopy/app/builder/dialogs/__init__.py:843
+#: psychopy/app/builder/dialogs/__init__.py:839
 #: psychopy/app/builder/dialogs/dlgsCode.py:144
 #: psychopy/app/builder/dialogs/dlgsConditions.py:521 psychopy/gui/qtgui.py:86
 #: psychopy/gui/wxgui.py:69 psychopy/monitors/MonitorCenter.py:1111
@@ -1030,32 +1030,32 @@ msgstr " OK "
 msgid " Cancel "
 msgstr " キャンセル "
 
-#: psychopy/app/builder/dialogs/__init__.py:1022
+#: psychopy/app/builder/dialogs/__init__.py:1018
 #: psychopy/app/builder/validators.py:379
 msgid "Missing name"
 msgstr "名前がありません"
 
-#: psychopy/app/builder/dialogs/__init__.py:1029
+#: psychopy/app/builder/dialogs/__init__.py:1025
 #, python-format
 msgid "That name is in use (it's a %s). Try another name."
 msgstr "その名前は使用されています(%s). 名前を変更してください."
 
-#: psychopy/app/builder/dialogs/__init__.py:1032
+#: psychopy/app/builder/dialogs/__init__.py:1028
 #: psychopy/app/builder/dialogs/dlgsConditions.py:296
 #: psychopy/app/builder/dialogs/dlgsConditions.py:583
 msgid "Name must be alphanumeric or _, no spaces"
 msgstr "名前に使えるのは英数字と_です. スペースを含んではいけません."
 
-#: psychopy/app/builder/dialogs/__init__.py:1251
-#: psychopy/app/builder/dialogs/__init__.py:1425
+#: psychopy/app/builder/dialogs/__init__.py:1247
+#: psychopy/app/builder/dialogs/__init__.py:1421
 msgid "No parameters set"
 msgstr "パラメータが定義されていません"
 
-#: psychopy/app/builder/dialogs/__init__.py:1328
+#: psychopy/app/builder/dialogs/__init__.py:1324
 msgid "No parameters set (select a file above)"
 msgstr "パラメータが定義されていません(ファイルを選んでください)"
 
-#: psychopy/app/builder/dialogs/__init__.py:1414
+#: psychopy/app/builder/dialogs/__init__.py:1410
 #, python-format
 msgid ""
 "%(nCondition)i conditions, with %(nParam)i parameters\n"
@@ -1064,32 +1064,32 @@ msgstr ""
 "%(nParam)iパラメータ, %(nCondition)i条件\n"
 "%(paramStr)s"
 
-#: psychopy/app/builder/dialogs/__init__.py:1423
-#: psychopy/app/builder/dialogs/__init__.py:1653
+#: psychopy/app/builder/dialogs/__init__.py:1419
+#: psychopy/app/builder/dialogs/__init__.py:1649
 msgid "No parameters set (conditionsFile not found)"
 msgstr "パラメータが定義されていません (条件ファイルが見つかりません)"
 
-#: psychopy/app/builder/dialogs/__init__.py:1497
+#: psychopy/app/builder/dialogs/__init__.py:1493
 msgid "Could not read conditions from:\n"
 msgstr "条件を読み込めません\n"
 
-#: psychopy/app/builder/dialogs/__init__.py:1518
+#: psychopy/app/builder/dialogs/__init__.py:1514
 msgid "Configuration error in conditions file"
 msgstr "条件ファイルにエラーがあります"
 
-#: psychopy/app/builder/dialogs/__init__.py:1522
+#: psychopy/app/builder/dialogs/__init__.py:1518
 msgid "Bad condition name(s) in file:\n"
 msgstr "不適切な条件名がファイルに含まれています:\n"
 
-#: psychopy/app/builder/dialogs/__init__.py:1538
+#: psychopy/app/builder/dialogs/__init__.py:1534
 msgid "Builder variable(s) ({}) in file:{}"
 msgstr "Builderの変数名({})が{}で使用されています"
 
-#: psychopy/app/builder/dialogs/__init__.py:1641
+#: psychopy/app/builder/dialogs/__init__.py:1637
 msgid "Badly formed condition name(s) in file:\n"
 msgstr "不適切な条件名がファイルに含まれています:\n"
 
-#: psychopy/app/builder/dialogs/__init__.py:1642
+#: psychopy/app/builder/dialogs/__init__.py:1638
 msgid ""
 ".\n"
 "Need to be legal as var name; edit file, try again."
@@ -1097,19 +1097,19 @@ msgstr ""
 ".\n"
 "条件名はPythonの変数として使用できる文字列でなければいけません."
 
-#: psychopy/app/builder/dialogs/__init__.py:1769
+#: psychopy/app/builder/dialogs/__init__.py:1765
 msgid "New Routine"
 msgstr "新しいRoutine"
 
-#: psychopy/app/builder/dialogs/__init__.py:1781
+#: psychopy/app/builder/dialogs/__init__.py:1777
 msgid "New Routine name:"
 msgstr "新しいRoutineの名前:"
 
-#: psychopy/app/builder/dialogs/__init__.py:1789
+#: psychopy/app/builder/dialogs/__init__.py:1785
 msgid "Routine Template:"
 msgstr "Routineのテンプレート"
 
-#: psychopy/app/builder/dialogs/__init__.py:1793
+#: psychopy/app/builder/dialogs/__init__.py:1789
 msgid "Select a template to base your new Routine on"
 msgstr "新しいRoutineに適用するテンプレートを選択してください"
 
@@ -1926,7 +1926,7 @@ msgstr "テストの実行"
 
 #: psychopy/app/coder/coder.py:429 psychopy/app/dialogs.py:50
 #: psychopy/app/pavlovia_ui/project.py:110
-#: psychopy/app/pavlovia_ui/project.py:749 psychopy/app/pavlovia_ui/sync.py:132
+#: psychopy/app/pavlovia_ui/project.py:804 psychopy/app/pavlovia_ui/sync.py:132
 msgid "Cancel"
 msgstr "キャンセル"
 
@@ -2923,39 +2923,151 @@ msgstr "Pavloviaに変更を送信"
 msgid "Star"
 msgstr "スター"
 
-#: psychopy/app/pavlovia_ui/project.py:275
+#: psychopy/app/pavlovia_ui/project.py:242
+msgid ""
+"An image to represent this project, this helps it stand out when browsing on "
+"Pavlovia."
+msgstr ""
+"プロジェクトのアバター: 設定しておくとPavlovia上でプロジェクトを見つけやすく"
+"なります."
+
+#: psychopy/app/pavlovia_ui/project.py:257
+msgid ""
+"Title of the project. Unlike the project name, this isn't used as a filename "
+"anywhere; so you can add spaces, apostrophes and emojis to your heart's "
+"content! 🦕✨"
+msgstr ""
+"プロジェクトのタイトル: プロジェクト名と異なり, タイトルはファイル名などに使"
+"用されないので, 空白文字, アポストロフィ, 絵文字などを自由に使うことができま"
+"す! 🦕✨"
+
+#: psychopy/app/pavlovia_ui/project.py:271
+msgid "Click to view the project in Pavlovia."
+msgstr "クリックするとPavlovia上でこのプロジェクトを閲覧できます."
+
+#: psychopy/app/pavlovia_ui/project.py:283
+msgid ""
+"'Star' this project to get back to it easily. Projects you've starred will "
+"appear first in your searches and projects with more stars in total will "
+"appear higher in everyone's searches."
+msgstr ""
+"「スター」をプロジェクトにつけて, 後で見つけやすいようにします. あなたがス"
+"ターをつけたプロジェクトはあなたの検索結果の最上位に表示されます. 多くのス"
+"ターがつけられたプロジェクトは検索結果の上位に表示されます."
+
+#: psychopy/app/pavlovia_ui/project.py:289
 msgid "Fork"
 msgstr "フォーク"
 
-#: psychopy/app/pavlovia_ui/project.py:280
+#: psychopy/app/pavlovia_ui/project.py:294
+msgid ""
+"Create a copy of this project on your own Pavlovia account so that you can "
+"make changes without affecting the original project."
+msgstr ""
+"このプロジェクトのコピーをあなた自身のアカウントに作成します. これによって, "
+"元のプロジェクトに影響を与えることなくプロジェクトに変更を加えることができま"
+"す."
+
+#: psychopy/app/pavlovia_ui/project.py:298
 msgid "Create"
 msgstr "新規作成"
 
-#: psychopy/app/pavlovia_ui/project.py:285
+#: psychopy/app/pavlovia_ui/project.py:303
+msgid "Create a Pavlovia project for the current experiment."
+msgstr "この実験のためのPavloviaプロジェクトを作成します."
+
+#: psychopy/app/pavlovia_ui/project.py:306
 msgid "Sync"
 msgstr "同期"
 
-#: psychopy/app/pavlovia_ui/project.py:290
+#: psychopy/app/pavlovia_ui/project.py:311
+msgid ""
+"Synchronise this project's local files with their online counterparts. This "
+"will 'pull' changes from Pavlovia and 'push' changes from your local files."
+msgstr ""
+"このプロジェクトのローカルファイルをオンライン上のファイルと同期させます. こ"
+"の操作によりPavlovia上での変更点ローカルに反映され(pull), 続いてローカルファ"
+"イルの変更がPavloviaに反映されます(push)."
+
+#: psychopy/app/pavlovia_ui/project.py:315
 msgid "Download"
 msgstr "ダウンロード"
 
-#: psychopy/app/pavlovia_ui/project.py:319
+#: psychopy/app/pavlovia_ui/project.py:320
+msgid ""
+"'Clone' this project, creating local copies of all its files and tracking "
+"any changes you make so that they can be applied when you next 'sync' the "
+"project."
+msgstr ""
+"プロジェクトを「クローン」, つまりプロジェクトの複製をこのコンピュータに作成"
+"し, プロジェクトへの変更を記録できるようにします. これにより, 変更内容を"
+"Pavlovia上のプロジェクトに「同期」できるようになります."
+
+#: psychopy/app/pavlovia_ui/project.py:327
+msgid "Last synced at..."
+msgstr "最終同期日時..."
+
+#: psychopy/app/pavlovia_ui/project.py:341
+msgid ""
+"Folder in which local files are stored for this project. Changes to files in "
+"this folder will be tracked and applied to the project when you 'sync', so "
+"make sure the only files in this folder are relevant!"
+msgstr ""
+"このプロジェクトのローカルファイルが保存されるフォルダを指定します. このフォ"
+"ルダに含まれるファイルを変更すると, 「同期」を行ったときにPavlovia上のプロ"
+"ジェクトに反映されます. 無関係なファイルはフォルダ内に置かないでください!"
+
+#: psychopy/app/pavlovia_ui/project.py:351
+msgid ""
+"Description of the project to be shown on Pavlovia. Note: This is different "
+"than a README file!"
+msgstr ""
+"Pavlovia上でプロジェクトの説明として表示されます. READMEファイルとは別のもの"
+"です!"
+
+#: psychopy/app/pavlovia_ui/project.py:358
 msgid "Visibility:"
 msgstr "公開範囲:"
 
-#: psychopy/app/pavlovia_ui/project.py:327
+#: psychopy/app/pavlovia_ui/project.py:364
+msgid ""
+"Visibility of the current project; whether its visible only to its creator "
+"(Private) or to any user (Public)."
+msgstr ""
+"このプロジェクトの公開範囲: Privateならプロジェクトのメンバーのみ, Publicなら"
+"すべてのユーザーが見ることができます."
+
+#: psychopy/app/pavlovia_ui/project.py:370
 msgid "Status:"
 msgstr "状態:"
 
-#: psychopy/app/pavlovia_ui/project.py:335
+#: psychopy/app/pavlovia_ui/project.py:376
+msgid ""
+"Project status; whether it can be run to collect data (Running), run by its "
+"creator without saving data (Piloting) or cannot be run (Inactive)."
+msgstr ""
+"プロジェクトのステータス: データの収集が可能な状態(Running), オーナーがデータ"
+"保存なしで動作確認できる状態(Piloting), 実行不能な状態(Inactive)のいずれかで"
+"す."
+
+#: psychopy/app/pavlovia_ui/project.py:382
 msgid "Keywords:"
 msgstr "キーワード:"
 
-#: psychopy/app/pavlovia_ui/project.py:337
+#: psychopy/app/pavlovia_ui/project.py:384
 msgid "tag"
 msgstr "タグ"
 
-#: psychopy/app/pavlovia_ui/project.py:577
+#: psychopy/app/pavlovia_ui/project.py:389
+msgid ""
+"Keywords associated with this project, helping others to find it. For "
+"example, if your experiment is useful to psychophysicists, you may want to "
+"add the keyword 'psychophysics'."
+msgstr ""
+"プロジェクトのキーワード: 例えばこのプロジェクトが心理物理学の実験なら, "
+"'psychophysics'をキーワードに加えておけば他のユーザーが見つけやすいでしょう."
+
+#: psychopy/app/pavlovia_ui/project.py:630
 #, python-brace-format
 msgid ""
 "Could not find folder {directory}, please select a different local root."
@@ -2963,48 +3075,48 @@ msgstr ""
 "{directory}というフォルダが見つかりません. 別のローカルフォルダを指定してくだ"
 "さい."
 
-#: psychopy/app/pavlovia_ui/project.py:611
+#: psychopy/app/pavlovia_ui/project.py:666
 msgid "Project info"
 msgstr "プロジェクトの情報"
 
-#: psychopy/app/pavlovia_ui/project.py:642
+#: psychopy/app/pavlovia_ui/project.py:697
 msgid "This file doesn't belong to any existing project."
 msgstr "このファイルは既存のプロジェクトに属していません."
 
-#: psychopy/app/pavlovia_ui/project.py:644
+#: psychopy/app/pavlovia_ui/project.py:699
 msgid "Create a project"
 msgstr "プロジェクトを作成"
 
-#: psychopy/app/pavlovia_ui/project.py:668
+#: psychopy/app/pavlovia_ui/project.py:723
 msgid "Project root folder is not yet specified, specify one now?"
 msgstr "プロジェクトのルートフォルダが設定されていません. 今設定しますか?"
 
-#: psychopy/app/pavlovia_ui/project.py:671 psychopy/app/utils.py:758
+#: psychopy/app/pavlovia_ui/project.py:726 psychopy/app/utils.py:758
 msgid "Specify folder..."
 msgstr "ファイルを選択..."
 
-#: psychopy/app/pavlovia_ui/project.py:733
+#: psychopy/app/pavlovia_ui/project.py:788
 msgid "points to a remote that doesn't exist (deleted?)."
 msgstr ""
 "存在しないリモートプロジェクトを指しています(削除された可能性があります)"
 
-#: psychopy/app/pavlovia_ui/project.py:734
+#: psychopy/app/pavlovia_ui/project.py:789
 msgid "What shall we do?"
 msgstr "どうしますか？"
 
-#: psychopy/app/pavlovia_ui/project.py:736
+#: psychopy/app/pavlovia_ui/project.py:791
 msgid "(Re)create a project"
 msgstr "プロジェクトを(再)作成"
 
-#: psychopy/app/pavlovia_ui/project.py:737
+#: psychopy/app/pavlovia_ui/project.py:792
 msgid "Point to an different location"
 msgstr "異なる場所を指定"
 
-#: psychopy/app/pavlovia_ui/project.py:738
+#: psychopy/app/pavlovia_ui/project.py:793
 msgid "not yet supported"
 msgstr "まだサポートされていません"
 
-#: psychopy/app/pavlovia_ui/project.py:739
+#: psychopy/app/pavlovia_ui/project.py:794
 msgid "Forget the local git repository (deletes history keeps files)"
 msgstr ""
 "ローカルなgitレポジトリを無視する(履歴は削除されるがファイルはそのまま)"
