@@ -694,7 +694,10 @@ class SettingsComponent:
                 customImports.append(import_)
 
         buff.writelines(
-            "\nfrom psychopy import locale_setup\n"
+            "\n"
+            "# --- Import packages ---"
+            "\n"
+            "from psychopy import locale_setup\n"
             "from psychopy import prefs\n"
         )
         # adjust the prefs for this study if needed
@@ -919,6 +922,7 @@ class SettingsComponent:
         buff.writeIndented("expInfo = %s\n" % expInfoStr)
         if self.params['Show info dlg'].val:
             buff.writeIndentedLines(
+                f"# --- Show participant info dialog --\n"
                 f"dlg = gui.DlgFromDict(dictionary=expInfo, "
                 f"sortKeys={sorting}, title=expName)\n"
                 f"if dlg.OK == False:\n"
@@ -1001,7 +1005,7 @@ class SettingsComponent:
 
         # Make ioConfig dict
         code = (
-            "# Setup ioHub\n"
+            "# --- Setup input devices ---\n"
             "ioConfig = {}\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -1268,7 +1272,7 @@ class SettingsComponent:
     def writeWindowCode(self, buff):
         """Setup the window code.
         """
-        buff.writeIndentedLines("\n# Setup the Window\n")
+        buff.writeIndentedLines("\n# --- Setup the Window ---\n")
         # get parameters for the Window
         fullScr = self.params['Full-screen window'].val
         # if fullscreen then hide the mouse, unless its requested explicitly
@@ -1360,7 +1364,10 @@ class SettingsComponent:
     def writeEndCode(self, buff):
         """Write code for end of experiment (e.g. close log file).
         """
-        code = ('\n# Flip one final time so any remaining win.callOnFlip() \n'
+        code = ('\n'
+                '# --- End experiment ---'
+                '\n'
+                '# Flip one final time so any remaining win.callOnFlip() \n'
                 '# and win.timeOnFlip() tasks get executed before quitting\n'
                 'win.flip()\n\n')
         buff.writeIndentedLines(code)

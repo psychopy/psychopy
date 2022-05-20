@@ -362,7 +362,7 @@ class Routine(list):
                 thisCompon.writeRunOnceInitCode(buff)
 
     def writeInitCode(self, buff):
-        code = '\n# Initialize components for Routine "%s"\n'
+        code = '\n# --- Initialize components for Routine "%s" ---\n'
         buff.writeIndentedLines(code % self.name)
         self._clockName = self.name + "Clock"
         buff.writeIndented('%s = core.Clock()\n' % self._clockName)
@@ -382,7 +382,7 @@ class Routine(list):
         """This defines the code for the frames of a single routine
         """
         # create the frame loop for this routine
-        code = ('\n# ------Prepare to start Routine "%s"-------\n')
+        code = ('\n# --- Prepare to start Routine "%s" ---\n')
         buff.writeIndentedLines(code % (self.name))
         code = 'continueRoutine = True\n'
         buff.writeIndentedLines(code)
@@ -417,7 +417,7 @@ class Routine(list):
                 '_timeToFirstFrame = win.getFutureFlipTime(clock="now")\n'
                 '{clockName}.reset(-_timeToFirstFrame)  # t0 is time of first possible flip\n'
                 'frameN = -1\n'
-                '\n# -------Run Routine "{name}"-------\n')
+                '\n# --- Run Routine "{name}" ---\n')
         buff.writeIndentedLines(code.format(name=self.name,
                                             clockName=self._clockName))
         if useNonSlip:
@@ -480,7 +480,7 @@ class Routine(list):
         buff.setIndentLevel(-1, True)
 
         # write the code for each component for the end of the routine
-        code = ('\n# -------Ending Routine "%s"-------\n'
+        code = ('\n# --- Ending Routine "%s" ---\n'
                 'for thisComponent in %sComponents:\n'
                 '    if hasattr(thisComponent, "setAutoDraw"):\n'
                 '        thisComponent.setAutoDraw(False)\n')
@@ -499,7 +499,7 @@ class Routine(list):
         buff.setIndentLevel(1, relative=True)
 
         code = ("TrialHandler.fromSnapshot(snapshot); // ensure that .thisN vals are up to date\n\n"
-                "//------Prepare to start Routine '%(name)s'-------\n"
+                "//--- Prepare to start Routine '%(name)s' ---\n"
                 "t = 0;\n"
                 "%(name)sClock.reset(); // clock\n"
                 "frameN = -1;\n"
@@ -558,7 +558,7 @@ class Routine(list):
         buff.writeIndentedLines("return async function () {\n")
         buff.setIndentLevel(1, relative=True)
 
-        code = ("//------Loop for each frame of Routine '%(name)s'-------\n"
+        code = ("//--- Loop for each frame of Routine '%(name)s' ---\n"
                 "// get current time\n"
                 "t = %(name)sClock.getTime();\n"
                 "frameN = frameN + 1;"
@@ -644,14 +644,14 @@ class Routine(list):
         buff.setIndentLevel(1, relative=True)
 
         if modular:
-            code = ("//------Ending Routine '%(name)s'-------\n"
+            code = ("//--- Ending Routine '%(name)s' ---\n"
                     "for (const thisComponent of %(name)sComponents) {\n"
                     "  if (typeof thisComponent.setAutoDraw === 'function') {\n"
                     "    thisComponent.setAutoDraw(false);\n"
                     "  }\n"
                     "}\n")
         else:
-            code = ("//------Ending Routine '%(name)s'-------\n"
+            code = ("//--- Ending Routine '%(name)s' ---\n"
                     "%(name)sComponents.forEach( function(thisComponent) {\n"
                     "  if (typeof thisComponent.setAutoDraw === 'function') {\n"
                     "    thisComponent.setAutoDraw(false);\n"
