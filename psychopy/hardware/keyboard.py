@@ -306,20 +306,29 @@ class Keyboard:
             if waitRelease:
                 key_events = Keyboard._iohubKeyboard.getReleases(keys=watchForKeys, clear=clear)
             else:
-                key_events = Keyboard._iohubKeyboard.getPresses(keys=watchForKeys, clear=clear)
+                key_events = [] #Preparing All Key Event Array
+                key_events_presses = Keyboard._iohubKeyboard.getPresses(keys=watchForKeys, clear=clear) #Get all Presses
+                key_events_releases = Keyboard._iohubKeyboard.getReleases(keys=watchForKeys, clear=clear) #Get  Release Events with Durations
+                #The Documentation says: "If [waitRelease=]False then all keys will be presses will be returned, but only those with a corresponding release will contain a duration value            
+                if len(key_events_presses) > len(key_events_releases): #If there are more Presses than Releases one Key is still pressed
+                    last_key_press = key_events_presses[len(key_events_presses)-1] #Get the last Press
+                    key_events_releases.append(last_key_press) # Append this still pressed Key to the releases
+                key_events = key_events_releases #Unify output by storing everything in key_events
 
             for k in key_events:
                 kname = k.key
-
-                if waitRelease:
+                if hasattr(k, 'duration'): #Dont use waitRelease but check for duration attribute to decide what to give back in tDown
                     tDown = k.time-k.duration
                 else:
                     tDown = k.time
 
                 kpress = KeyPress(code=None, tDown=tDown, name=kname)
                 kpress.rt = kpress.tDown - self.clock.getLastResetTime() + Keyboard._iohubOffset
-                if waitRelease:
-                    kpress.duration = k.duration
+                if hasattr(k, 'duration'):
+                    kpress.duration = k.duration #Dont use waitRelease but check for duration attribute to decide what to give back in duration
+                else:
+                    kpress.duration = None
+
 
                 keys.append(kpress)
         else:  # Keyboard.backend == 'event'
