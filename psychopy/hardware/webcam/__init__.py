@@ -13,11 +13,12 @@ experimenter to create movie stimuli or instructions.
 
 __all__ = ['CameraNotFoundError', 'Webcam', 'CameraInfo', 'getWebcams']
 
-import platform
 import glob
-import numpy as np
 import platform
-from psychopy.constants import PAUSED, STOPPED, STOPPING, NOT_STARTED, RECORDING
+import numpy as np
+import tempfile
+import os
+from psychopy.constants import STOPPED, STOPPING, NOT_STARTED, RECORDING
 from psychopy.core import getTime
 from psychopy.visual.movies.metadata import MovieMetadata, NULL_MOVIE_METADATA
 from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
@@ -25,6 +26,9 @@ from ffpyplayer.player import MediaPlayer
 from ffpyplayer.writer import MediaWriter
 from ffpyplayer.pic import SWScale
 from ffpyplayer.tools import list_dshow_devices
+from moviepy.editor import VideoFileClip, AudioFileClip, CompositeAudioClip
+import uuid
+from psychopy.preferences import prefs
 
 
 # ------------------------------------------------------------------------------
@@ -32,7 +36,8 @@ from ffpyplayer.tools import list_dshow_devices
 #
 
 VIDEO_DEVICE_ROOT_LINUX = '/dev'
-WEBCAM_UNKNOWN_STR_VALUE = u'Unknown'
+WEBCAM_UNKNOWN_VALUE = u'Unknown'  # fields where we couldn't get a value
+WEBCAM_NULL_VALUE = u'Null'  # fields where we couldn't get a value
 
 
 # ------------------------------------------------------------------------------
@@ -84,13 +89,13 @@ class CameraInfo:
     ]
 
     def __init__(self,
-                 name=u'Null',
+                 name=WEBCAM_NULL_VALUE,
                  frameSize=(-1, -1),
                  frameRateRange=(-1, -1),
-                 pixelFormat=WEBCAM_UNKNOWN_STR_VALUE,
-                 codecFormat=WEBCAM_UNKNOWN_STR_VALUE,
-                 cameraLib=u'Null',
-                 cameraAPI=u'Null'):
+                 pixelFormat=WEBCAM_UNKNOWN_VALUE,
+                 codecFormat=WEBCAM_UNKNOWN_VALUE,
+                 cameraLib=WEBCAM_NULL_VALUE,
+                 cameraAPI=WEBCAM_NULL_VALUE):
 
         self.name = name
         self.frameSize = frameSize
@@ -233,7 +238,7 @@ class Webcam:
 
     """
     def __init__(self, camera=0, mic=None, outFile=None,
-                 cameraLib=u'ffpyplayer', libOpts=None):
+                 cameraLib=u'ffpyplayer', ffOpts=None, libOpts=None):
 
         # add attributes for setters
         self.__dict__.update(
@@ -241,6 +246,7 @@ class Webcam:
              '_mic': None,
              '_outFile': None,
              '_cameraLib': u'',
+             '_ffOpts': None,
              '_libOpts': None})
 
         # resolve getting the camera identifier
@@ -260,10 +266,15 @@ class Webcam:
         # camera library in use
         self._cameraLib = cameraLib
 
+        # FFMPEG and FFPyPlayer options
+        self._ffOpts = ffOpts if ffOpts is not None else {}
+        self._libOpts = libOpts if libOpts is not None else {}
+
         # parameters for the writer
         self._writer = None
-        self._tempVideoFilePath = u'.'
-        self._tempAudioFilePath = u'.'
+        self._tempVideoFileName = u''
+        self._tempAudioFileName = u''
+        self._tempRootDir = u'.'
 
         self.mic = mic
         self.outFile = outFile
@@ -275,9 +286,9 @@ class Webcam:
         self._isRecording = False
 
         # timestamp data
-        self._startPts = 0.0  # absolute stream time at recording
-        self._absPts = 0.0  # timestamp of the video stream in absolute time
-        self._pts = 0.0  # timestamp used for writing the video stream
+        self._startPts = -1.0  # absolute stream time at recording
+        self._absPts = -1.0  # timestamp of the video stream in absolute time
+        self._pts = -1.0  # timestamp used for writing the video stream
 
         # video metadata
         self._recentMetadata = None
@@ -331,6 +342,19 @@ class Webcam:
         if self._outFile is None:
             return  # nop if there is no output path
 
+        # configure the temp directory and files for the recordings
+        randFileName = str(uuid.uuid4().hex)
+        self._tempRootDir = tempfile.mkdtemp(
+            suffix=randFileName,
+            prefix='psychopy-',
+            dir=None)
+        self._tempVideoFileName = os.path.join(
+            self._tempRootDir,
+            'video-' + randFileName + '.mp4')
+        self._tempAudioFileName = os.path.join(
+            self._tempRootDir,
+            'audio-' + randFileName + '.wav')
+
         frameWidth, frameHeight = self._recentMetadata.size
         frameRate = self._recentMetadata.frameRate
 
@@ -342,10 +366,46 @@ class Webcam:
         }
 
         # initialize the writer to transcode the video stream to file
-        self._writer = MediaWriter(self._outFile, [writerOptions])
+        self._writer = MediaWriter(self._tempVideoFileName, [writerOptions])
 
         # recording timestamp
-        self._pts = 0.0
+        self._pts = -1.0
+
+    def _closeWriter(self):
+        """Close the video writer.
+        """
+        if self._writer is None:
+            return
+
+        # cleanup
+        self._writer.close()
+        self._writer = None
+
+        # reset properties for a new recording
+        self._startPts = self._pts = self._absPts = -1.0
+
+    def _renderVideo(self):
+        """Combine video and audio tracks of temporary video and audio files.
+        Outputs a new file at `outFile` with merged video and audio tracks.
+        """
+        # do nothing if there is no output file
+        if self._outFile is None:
+            return False
+
+        # this can only happen when stopped
+        if self._status != STOPPED:
+            raise RuntimeError(
+                "Cannot render video, `stop` has not been called yet.")
+
+        # merge audio and video tracks, we use MoviePy for this
+        videoClip = VideoFileClip(self._tempVideoFileName)
+        audioClip = AudioFileClip(self._tempAudioFileName)
+
+        # add audio track to the video
+        videoClip.audio = CompositeAudioClip([audioClip])
+        videoClip.write_videofile(self._outFile)
+
+        return True
 
     @property
     def status(self):
@@ -409,6 +469,24 @@ class Webcam:
         """
         return self._writer is not None
 
+    @property
+    def streamTime(self):
+        """Current stream time in seconds (`float`). This time increases
+        monotonically from startup.
+        """
+        return self._absPts
+
+    @property
+    def recordingTime(self):
+        """Current recording timestamp (`float`).
+
+        This value increases monotonically from the last `record()` call. It
+        will reset once `stop()` is called. This value is invalid outside
+        `record()` and `stop()` calls.
+
+        """
+        return self._pts
+
     def _assertMediaPlayer(self):
         """Assert that we have a media player instance open.
 
@@ -435,12 +513,19 @@ class Webcam:
         if not self._hasWriter:  # NOP if no writer
             return
 
+        if self._status != RECORDING:  # nop if not recording
+            return
+
         # convert the image to the appropriate format for the encoder
         frameWidth, frameHeight = self._recentMetadata.size
         pixelFormat = self._recentMetadata.pixelFormat
         sws = SWScale(frameWidth, frameHeight, pixelFormat, ofmt='yuv420p')
+
+        # write the frame to the file
         self._writer.write_frame(
-            img=sws.scale(colorData), pts=timestamp, stream=0)
+            img=sws.scale(colorData),
+            pts=timestamp,
+            stream=0)
 
     def _enqueueFrame(self, timeout=1.0):
         """Grab the latest frame from the stream.
@@ -464,10 +549,6 @@ class Webcam:
         # update metadata
         self._recentMetadata = self._player.get_metadata()
 
-        # if self._player.is_paused():
-        #     self._status = PAUSED
-        #     return self._lastFrame
-
         # todo - if paused, return the last queued frame instead of pulling a new one
 
         # grab a frame from the camera
@@ -485,12 +566,20 @@ class Webcam:
         if timedOut:  # we timed out and don't have a frame
             return False
 
-        if status == 'eof':  # end of stream but there is a valid frame
-            self._status = STOPPING  # last frame, stopping ...
-
         # process the frame
         colorData, absPts = frame
+
+        # compute timestamps if needed
         self._absPts = absPts
+        if self._status == RECORDING:
+            if self._lastFrame is NULL_MOVIE_FRAME_INFO:
+                self._startPts = absPts
+
+            # compute new recording timestamp
+            self._pts = self._absPts - self._startPts
+        else:
+            # if not recording, return negative timestamp
+            self._startPts = self._pts = -1.0
 
         # if we have a new frame, update the frame information
         videoBuffer = colorData.to_bytearray()[0]
@@ -508,7 +597,11 @@ class Webcam:
             movieLib=u'ffpyplayer',
             userData=None)
 
-        self._writeFrame(colorData, self._pts)  # write the frame to the file
+        # write the frame to the file
+        self._writeFrame(colorData, self.recordingTime)
+
+        if status == 'eof':  # end of stream but there is a valid frame
+            self._status = STOPPING  # last frame, stopping ...
 
         return True
 
@@ -568,8 +661,7 @@ class Webcam:
         self._status = STOPPED
         self._player.close_player()
 
-        if self._writer is not None:
-            self._writer.close()
+        self._closeWriter()  # close the writer
 
     def close(self):
         """Close the camera.
@@ -583,6 +675,44 @@ class Webcam:
         # close the file writer
         if self._writer is not None:
             self._writer.close()
+
+    def save(self, filename):
+        """Save the last recording to file.
+
+        This will write the last video recording to `filename`. Method `stop()`
+        must be called prior to saving a video. If `record()` is called again
+        before `save()`, the previous recording will be deleted and lost.
+
+        Returns
+        -------
+        int
+            Size of the output file at `filename` in bytes.
+
+        """
+        if self._status != STOPPED:
+            raise RuntimeError(
+                "Attempted to call `save()` a file before calling `stop()`.")
+
+        # render the video
+        if not self._renderVideo():
+            raise RuntimeError(
+                "Failed to write file `filename`, check if the output path is "
+                "writeable.")
+
+        # make sure that `filename` is valid
+        self._outFile = filename
+
+        return os.path.getsize(self._outFile)
+
+    @property
+    def lastRecordingFilePath(self):
+        """File path to the last recording (`str` or `None`).
+
+        This value is only valid if a previous recording has been saved
+        successfully, otherwise it will be set to `None`.
+
+        """
+        return self._outFile  # change this to the actual value eventually
 
     @property
     def lastFrame(self):
