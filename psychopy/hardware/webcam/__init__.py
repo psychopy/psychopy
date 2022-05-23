@@ -411,8 +411,7 @@ class Webcam:
     def status(self):
         """Status flag for the webcam (`int`).
 
-        Can be either `PLAYING`, `PAUSED`, `STOPPED`, `STOPPING`, or
-        `NOT_STARTED`.
+        Can be either `RECORDING`, `STOPPED`, `STOPPING`, or `NOT_STARTED`.
 
         """
         return self._status
