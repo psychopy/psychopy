@@ -306,28 +306,33 @@ class Keyboard:
             if waitRelease:
                 key_events = Keyboard._iohubKeyboard.getReleases(keys=watchForKeys, clear=clear)
             else:
-                key_events = [] #Preparing All Key Event Array
-                key_events_presses = Keyboard._iohubKeyboard.getPresses(keys=watchForKeys, clear=clear) #Get all Presses
-                key_events_releases = Keyboard._iohubKeyboard.getReleases(keys=watchForKeys, clear=clear) #Get  Release Events with Durations
-                #The Documentation says: "If [waitRelease=]False then all keys will be presses will be returned, but only those with a corresponding release will contain a duration value            
-                if len(key_events_presses) > len(key_events_releases): #If there are more Presses than Releases one Key is still pressed
-                    last_key_press = key_events_presses[len(key_events_presses)-1] #Get the last Press
-                    key_events_releases.append(last_key_press) # Append this still pressed Key to the releases
-                key_events = key_events_releases #Unify output by storing everything in key_events
+                key_events = []
+                released_press_evt_ids = []
+
+                all_key_events = Keyboard._iohubKeyboard.getKeys(keys=watchForKeys, clear=clear)
+                all_key_events.reverse()
+
+                for k in all_key_events:
+                    if hasattr(k, 'pressEventID'):
+                        released_press_evt_ids.append(k.pressEventID)
+                        key_events.append(k)
+                    elif k.id not in released_press_evt_ids:
+                        key_events.append(k)
+
+                key_events.reverse()
 
             for k in key_events:
                 kname = k.key
-                if hasattr(k, 'duration'): #Dont use waitRelease but check for duration attribute to decide what to give back in tDown
+
+                if hasattr(k, 'duration'):
                     tDown = k.time-k.duration
                 else:
                     tDown = k.time
 
-                kpress = KeyPress(code=None, tDown=tDown, name=kname)
+                kpress = KeyPress(code=k.char, tDown=tDown, name=kname)
                 kpress.rt = kpress.tDown - self.clock.getLastResetTime() + Keyboard._iohubOffset
                 if hasattr(k, 'duration'):
-                    kpress.duration = k.duration #Dont use waitRelease but check for duration attribute to decide what to give back in duration
-                else:
-                    kpress.duration = None
+                    kpress.duration = k.duration
 
 
                 keys.append(kpress)
