@@ -223,7 +223,8 @@ class Webcam:
         `'photo'`. Use `'video'` for recording live-feeds to produce movies,
         `'cv'` for computer vision applications (same as `'video'` but frames
         are not buffered on disk, reduces CPU load), and `'photo'` for taking
-        snapshots with the webcam. Default operating mode is `'video'`.
+        snapshots with the webcam. Default operating mode is `'video'`, cannot
+        be set after initialization.
     cameraLib : str
         Interface library (backend) to use for accessing the webcam. Only
         `ffpyplayer` is available at this time.
@@ -274,6 +275,13 @@ class Webcam:
 
         # camera library in use
         self._cameraLib = cameraLib
+
+        # operating mode
+        if mode not in (WEBCAM_MODE_VIDEO, WEBCAM_MODE_CV, WEBCAM_MODE_PHOTO):
+            raise ValueError(
+                "Invalid value for parameter `mode`, expected one of `'video'` "
+                "`'cv'` or `'photo'`.")
+        self._mode = mode
 
         # FFMPEG and FFPyPlayer options
         self._ffOpts = ffOpts if ffOpts is not None else {}
@@ -341,7 +349,7 @@ class Webcam:
         """
         return getWebcams()
 
-    def _initVideoWriter(self):
+    def _openWriter(self):
         """Initialize and configure the media writer.
 
         Must be called after the video stream has been opened and
@@ -653,7 +661,7 @@ class Webcam:
         self._player = MediaPlayer(_camera, ff_opts=ff_opts, lib_opts=lib_opts)
         self._enqueueFrame(timeout=1.0)  # pull a frame, gets metadata too
 
-        self._initVideoWriter()  # open the file for writing stream to
+        self._openWriter()  # open the file for writing stream to
 
     def record(self, streamOnly=False):
         """Start recording frames.
@@ -670,7 +678,9 @@ class Webcam:
         self._assertMediaPlayer()
 
         if not streamOnly:  # don't save anything to disk
-            self._initVideoWriter()
+            self._openWriter()
+
+        self._lastFrame = NULL_MOVIE_FRAME_INFO
 
         self._status = RECORDING
 
