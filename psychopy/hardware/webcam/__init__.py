@@ -39,6 +39,11 @@ VIDEO_DEVICE_ROOT_LINUX = '/dev'
 WEBCAM_UNKNOWN_VALUE = u'Unknown'  # fields where we couldn't get a value
 WEBCAM_NULL_VALUE = u'Null'  # fields where we couldn't get a value
 
+# webcam operating modes
+WEBCAM_MODE_VIDEO = u'video'
+WEBCAM_MODE_CV = u'cv'
+WEBCAM_MODE_PHOTO = u'photo'
+
 
 # ------------------------------------------------------------------------------
 # Exceptions
@@ -213,9 +218,12 @@ class Webcam:
     mic : :class:`~psychopy.sound.microphone.Microphone` or None
         Microphone to record audio samples from during recording. The microphone
         input device must not be in use when `record()` is called.
-    outFile : str or None
-        File name to write video frames to. If `None`, the video will only be
-        decoded and no video will be written to disk.
+    mode : str
+        Camera operating mode to use. Value can be either `'video'`, `'cv'` or
+        `'photo'`. Use `'video'` for recording live-feeds to produce movies,
+        `'cv'` for computer vision applications (same as `'video'` but frames
+        are not buffered on disk, reduces CPU load), and `'photo'` for taking
+        snapshots with the webcam. Default operating mode is `'video'`.
     cameraLib : str
         Interface library (backend) to use for accessing the webcam. Only
         `ffpyplayer` is available at this time.
@@ -237,7 +245,7 @@ class Webcam:
         webcam.close()
 
     """
-    def __init__(self, camera=0, mic=None, outFile=None,
+    def __init__(self, camera=0, mic=None, mode='video',
                  cameraLib=u'ffpyplayer', ffOpts=None, libOpts=None):
 
         # add attributes for setters
@@ -245,6 +253,7 @@ class Webcam:
             {'_camera': None,
              '_mic': None,
              '_outFile': None,
+             '_mode': u'video',
              '_cameraLib': u'',
              '_ffOpts': None,
              '_libOpts': None})
@@ -277,7 +286,6 @@ class Webcam:
         self._tempRootDir = u'.'
 
         self.mic = mic
-        self.outFile = outFile
 
         # current camera frame since the start of recording
         self._player = None  # media player instance
@@ -314,6 +322,12 @@ class Webcam:
 
         """
         return self._recentMetadata
+
+    @property
+    def mode(self):
+        """Operating mode in use for this camera.
+        """
+        return self._mode
 
     @staticmethod
     def getWebcams():
@@ -641,16 +655,34 @@ class Webcam:
 
         self._initVideoWriter()  # open the file for writing stream to
 
-    def record(self):
+    def record(self, streamOnly=False):
         """Start recording frames.
+
+        Parameters
+        ----------
+        streamOnly : bool
+            Set as `True` to prevent writing any video stream data to disk. This
+            can be used to reduce CPU load if the camera is being used for
+            applications other than video recording (e.g., computer vision,
+            etc.) Default value is `False`.
+
         """
         self._assertMediaPlayer()
+
+        if not streamOnly:  # don't save anything to disk
+            self._initVideoWriter()
 
         self._status = RECORDING
 
         # start audio recording if possible
         if self._mic is not None:
             self._mic.record()
+
+    def snapshot(self):
+        """Take a photo with the webcam. The camera must be in `'photo'` mode
+        to use this method.
+        """
+        pass
 
     def stop(self):
         """Stop recording frames.
