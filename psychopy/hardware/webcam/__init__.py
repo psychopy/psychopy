@@ -16,6 +16,7 @@ __all__ = ['CameraNotFoundError', 'Webcam', 'CameraInfo', 'getWebcams']
 import platform
 import glob
 import numpy as np
+import platform
 from psychopy.constants import PAUSED, STOPPED, STOPPING, NOT_STARTED, RECORDING
 from psychopy.core import getTime
 from psychopy.visual.movies.metadata import MovieMetadata, NULL_MOVIE_METADATA
@@ -31,6 +32,7 @@ from ffpyplayer.tools import list_dshow_devices
 #
 
 VIDEO_DEVICE_ROOT_LINUX = '/dev'
+WEBCAM_UNKNOWN_STR_VALUE = u'Unknown'
 
 
 # ------------------------------------------------------------------------------
@@ -55,15 +57,26 @@ class CameraInfo:
     Parameters
     ----------
     name : str
-        Camera name retrieved by the OS.
+        Camera name retrieved by the OS. This may be a human-readable name
+        (i.e. DirectShow on Windows) or a path (e.g., `/dev/video0` on Linux).
+    frameSize : ArrayLike
+        Resolution of the frame `(w, h)` in pixels.
+    frameRateRange : ArrayLike
+        Minimum and maximum frame rate supported by the camera at the specified
+        color/pixel format and resolution.
+    pixelFormat : str
+        Pixel format for the stream. If `u'Null'`, then `codecFormat` is being
+        used to configure the camera.
+    codecFormat : str
+        Codec format for the stream.  If `u'Null'`, then `pixelFormat` is being
+        used to configure the camera. Usually this value is used for high-def
+        stream formats.
 
     """
     __slots__ = [
         '_name',
-        '_frameWidth',
-        '_frameHeight',
-        '_frameRateMin',
-        '_frameRateMax',
+        '_frameSize',
+        '_frameRateRange',
         '_pixelFormat',
         '_codecFormat',
         '_cameraLib',
@@ -73,20 +86,17 @@ class CameraInfo:
     def __init__(self,
                  name=u'Null',
                  frameSize=(-1, -1),
-                 frameRateMin=-1,
-                 frameRateMax=-1,
-                 pixelFormat=u'rgb',
-                 codecFormat=u'Null',
+                 frameRateRange=(-1, -1),
+                 pixelFormat=WEBCAM_UNKNOWN_STR_VALUE,
+                 codecFormat=WEBCAM_UNKNOWN_STR_VALUE,
                  cameraLib=u'Null',
                  cameraAPI=u'Null'):
 
         self.name = name
-        self._frameWidth = frameSize[0]
-        self._frameHeight = frameSize[1]
-        self._frameRateMin = frameRateMin
-        self._frameRateMax = frameRateMax
-        self._pixelFormat = pixelFormat
-        self._codecFormat = codecFormat
+        self.frameSize = frameSize
+        self.frameRateRange = frameRateRange
+        self.pixelFormat = pixelFormat
+        self.codecFormat = codecFormat
         self._cameraLib = cameraLib
         self._cameraAPI = cameraAPI
 
@@ -99,6 +109,77 @@ class CameraInfo:
     @name.setter
     def name(self, value):
         self._name = str(value)
+
+    @property
+    def frameSize(self):
+        """Resolution (w, h) in pixels (`ArrayLike`).
+        """
+        return self._frameSize
+
+    @frameSize.setter
+    def frameSize(self, value):
+        assert len(value) == 2, "Value for `frameSize` must have length 2."
+        assert all([isinstance(i, int) for i in value]), (
+            "Values for `frameSize` must be integers.")
+
+        self._frameSize = value
+
+    @property
+    def frameRateRange(self):
+        """Resolution (min, max) in pixels (`ArrayLike`).
+        """
+        return self._frameRateRange
+
+    @frameRateRange.setter
+    def frameRateRange(self, value):
+        assert len(value) == 2, "Value for `frameRateRange` must have length 2."
+        assert all([isinstance(i, int) for i in value]), (
+            "Values for `frameRateRange` must be integers.")
+        assert value[0] <= value[1], (
+            "Value for `frameRateRange` must be `min` <= `max`.")
+
+        self._frameRateRange = value
+
+    @property
+    def pixelFormat(self):
+        """Video pixel format (`str`). An empty string indicates this field is
+        not initialized.
+        """
+        return self._pixelFormat
+
+    @pixelFormat.setter
+    def pixelFormat(self, value):
+        self._pixelFormat = str(value)
+
+    @property
+    def codecFormat(self):
+        """Codec format, may be used instead of `pixelFormat` for some
+        configurations. Default is `''`.
+        """
+        return self._codecFormat
+
+    @codecFormat.setter
+    def codecFormat(self, value):
+        self._codecFormat = str(value)
+
+    def supportedFrameRate(self, frameRate):
+        """Check if the specified frame rate is supported by the camera
+        configuration.
+
+        Parameter
+        ---------
+        frameRate : int or float
+            Framerate in Hertz (Hz).
+
+        Returns
+        -------
+        bool
+            `True` if the specified framerate is supported by the camera.
+
+        """
+        frameRateMin, frameRateMax = self._frameRateRange
+
+        return frameRateMin <= frameRate <= frameRateMax
 
 
 # ------------------------------------------------------------------------------
@@ -179,6 +260,11 @@ class Webcam:
         # camera library in use
         self._cameraLib = cameraLib
 
+        # parameters for the writer
+        self._writer = None
+        self._tempVideoFilePath = u'.'
+        self._tempAudioFilePath = u'.'
+
         self.mic = mic
         self.outFile = outFile
 
@@ -189,6 +275,7 @@ class Webcam:
         self._isRecording = False
 
         # timestamp data
+        self._startPts = 0.0  # absolute stream time at recording
         self._absPts = 0.0  # timestamp of the video stream in absolute time
         self._pts = 0.0  # timestamp used for writing the video stream
 
@@ -197,11 +284,6 @@ class Webcam:
 
         # last frame
         self._lastFrame = NULL_MOVIE_FRAME_INFO
-
-        # parameters for the writer
-        self._writer = None
-        self._tempVideoFilePath = u'.'
-        self._tempAudioFilePath = u'.'
 
     @property
     def metadata(self):
@@ -229,7 +311,7 @@ class Webcam:
         Returns
         -------
         list
-            List of camera identifiers.
+            Camera identifiers.
 
         """
         return getWebcams()
@@ -360,7 +442,7 @@ class Webcam:
         self._writer.write_frame(
             img=sws.scale(colorData), pts=timestamp, stream=0)
 
-    def _enqueueFrame(self, timeout=-1.0):
+    def _enqueueFrame(self, timeout=1.0):
         """Grab the latest frame from the stream.
 
         Parameters
@@ -382,9 +464,9 @@ class Webcam:
         # update metadata
         self._recentMetadata = self._player.get_metadata()
 
-        if self._player.is_paused():
-            self._status = PAUSED
-            return self._lastFrame
+        # if self._player.is_paused():
+        #     self._status = PAUSED
+        #     return self._lastFrame
 
         # todo - if paused, return the last queued frame instead of pulling a new one
 
@@ -393,7 +475,7 @@ class Webcam:
         status = ''
         timedOut = False
         tStart = getTime()
-        while timedOut:  # not frame available
+        while not timedOut:  # not frame available
             timedOut = (getTime() - tStart) < timeout
             frame, status = self._player.get_frame()
             # got a valid frame within the timeout period
@@ -418,8 +500,8 @@ class Webcam:
         self._lastFrame = MovieFrame(
             frameIndex=self._frameIndex,
             absTime=self._absPts,
-            displayTime=self._recentMetadata.frameInterval,
-            size=self._recentMetadata.size,
+            # displayTime=self._recentMetadata['frame_size'],
+            size=self._recentMetadata['src_vid_size'],
             colorData=videoFrameArray,
             audioChannels=0,
             audioSamples=None,
@@ -433,38 +515,50 @@ class Webcam:
     def open(self):
         """Open the webcam stream and begin decoding frames (if available).
 
-        The value of `currentFrame` will be updated as new frames from the
-        camera arrive.
+        The value of `lastFrame` will be updated as new frames from the camera
+        arrive.
 
         """
         if self._hasPlayer:
             raise RuntimeError('Cannot open `MediaPlayer`, already opened.')
 
+        ff_opts = {}  # ffmpeg options
+        lib_opts = {}  # ffpyplayer options
+        if platform.system() == 'Windows':  # DirectShow specific stuff
+            ff_opts['f'] = 'dshow'
+
+            # library options
+            framerate = str(30)
+            videoSize = '{width}x{height}'.format(width=320, height=240)
+            bufferSize = 320 * 240 * 4
+
+            # build dict for library options
+            lib_opts.update({
+                'framerate': framerate,
+                'video_size': videoSize,
+                'pixel_format': 'yuyv422',
+                'rtbufsize': str(bufferSize)}
+            )
+            _camera = 'video={}'.format(self._camera)
+        else:
+            _camera = self._camera
+
         # open a stream and pause it until ready
-        self._player = MediaPlayer(self._camera)
+        self._player = MediaPlayer(_camera, ff_opts=ff_opts, lib_opts=lib_opts)
         self._enqueueFrame(timeout=1.0)  # pull a frame, gets metadata too
 
         self._initVideoWriter()  # open the file for writing stream to
-
-    def pause(self):
-        """Pause an active recording.
-        """
-        self._assertMediaPlayer()
-
-        if self._player.is_paused():
-            return  # paused, so nop
-
-        self._player.set_pause(True)
 
     def record(self):
         """Start recording frames.
         """
         self._assertMediaPlayer()
 
-        if self._player.is_paused():
-            self._player.set_pause(False)
+        self._status = RECORDING
 
-        pass
+        # start audio recording if possible
+        if self._mic is not None:
+            self._mic.record()
 
     def stop(self):
         """Stop recording frames.
@@ -541,7 +635,7 @@ def getWebcams():
     Returns
     -------
     list
-        List of camera identifiers.
+        Camera identifiers.
 
     """
     systemName = platform.system()  # get the system name
@@ -559,9 +653,9 @@ def getWebcams():
         foundCameras.sort()
     elif systemName == 'Windows':
         videoDevs, _, names = list_dshow_devices()
-        for dev in videoDevs:
-            nameHR = videoDevs.get(dev, None)
-            ident = dev if nameHR is None else nameHR
+        for devKey in videoDevs.keys():
+            nameHR = names.get(devKey, None)
+            ident = devKey if nameHR is None else nameHR
             foundCameras.append(ident)
     else:
         raise OSError(
