@@ -546,6 +546,12 @@ class MultiStairHandler:
     def name(self):
         return self.params['name'].val
 
+    def writePreCodeJS(self, buff):
+        if self.params['stairType'] == 'QUEST':
+            buff.writeOnceIndentedLines(
+                "import jsQUEST from 'https://www.hes.kyushu-u.ac.jp/~kurokid/QUEST/dist/jsQUEST.js';"
+            )
+
     def writeLoopStartCode(self, buff):
         # create a 'thisName' for use in "for thisTrial in trials:"
         makeLoopIndex = self.exp.namespace.makeLoopIndex
