@@ -767,11 +767,17 @@ class LoopInitiator:
     def getType(self):
         return 'LoopInitiator'
 
+    def writePreCodeJS(self, buff):
+        if hasattr(self.loop, 'writePreCodeJS'):
+            self.loop.writePreCodeJS(buff)
+
     def writeInitCode(self, buff):
         self.loop.writeInitCode(buff)
 
     def writeInitCodeJS(self, buff):
-        self.loop.writeInitCodeJS(buff)
+        if hasattr(self.loop, "writeInitCodeJS"):
+            # the loop may not have/need this option
+            self.loop.writeInitCodeJS(buff)
 
     def writeMainCode(self, buff):
         self.loop.writeLoopStartCode(buff)
