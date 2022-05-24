@@ -730,6 +730,15 @@ class LoopInitiator:
         self.exp = loop.exp
         loop.initiator = self
 
+    def __eq__(self, obj):
+        if isinstance(obj, str):
+            return self.loop.name == obj
+        elif isinstance(obj, LoopInitiator):
+            return self.loop.name == obj.loop.name
+
+    def __ne__(self, obj):
+        return not (self == obj)
+
     @property
     def _xml(self):
         # Make root element
