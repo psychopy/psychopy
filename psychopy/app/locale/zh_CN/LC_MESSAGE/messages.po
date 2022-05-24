@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2021.2.3\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2022-05-19 22:44+0800\n"
+"PO-Revision-Date: 2022-05-24 22:56+0800\n"
 "Last-Translator: Shun Wang <shuonwang@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -2392,11 +2392,11 @@ msgstr ""
 
 #: ../app/dialogs.py:39
 msgid "Info"
-msgstr ""
+msgstr "信息"
 
 #: ../app/dialogs.py:40
 msgid "Query"
-msgstr ""
+msgstr "查询"
 
 #: ../app/connections/updates.py:242 ../app/dialogs.py:51 ../app/dialogs.py:71
 msgid "Yes"
@@ -2426,6 +2426,8 @@ msgid ""
 "under \"Details\" to the developers with a description of what you were "
 "doing with the software when the error occurred."
 msgstr ""
+"PsychoPy 遇到未处理的内部错误！ 请将“详细信息”下的报告发送给开发人员，并详细"
+"说明错误发生时您对软件所做的操作步骤。"
 
 #: ../app/errorDlg.py:56
 msgid "&OK"
@@ -2473,7 +2475,7 @@ msgstr "文件保存出错"
 #: ../app/pavlovia_ui/_base.py:33
 #, python-format
 msgid "&Close View\t%s"
-msgstr ""
+msgstr "关闭视图(&C)\t%s"
 
 #: ../app/pavlovia_ui/_base.py:34
 msgid "Close current window"
@@ -2492,6 +2494,8 @@ msgid ""
 "Details of changes\n"
 " (optional)"
 msgstr ""
+"变更详情\n"
+" （可选）"
 
 #: ../app/pavlovia_ui/_base.py:178
 msgid "Title summarizing the changes you're making in these files"
@@ -2567,15 +2571,15 @@ msgstr "标签（逗号分隔）："
 
 #: ../app/pavlovia_ui/project.py:90
 msgid "Public:"
-msgstr ""
+msgstr "发布："
 
 #: ../app/pavlovia_ui/project.py:95
 msgid "Create project on Pavlovia"
-msgstr ""
+msgstr "在 Pavlovia 上创建项目"
 
 #: ../app/pavlovia_ui/project.py:97
 msgid "Submit changes to Pavlovia"
-msgstr ""
+msgstr "向 Pavlovia 提交更改"
 
 #: ../app/pavlovia_ui/project.py:201
 msgid "Local root: "
@@ -2583,7 +2587,7 @@ msgstr ""
 
 #: ../app/pavlovia_ui/project.py:212
 msgid "Select a project for details"
-msgstr ""
+msgstr "选择项目了解详情"
 
 #: ../app/pavlovia_ui/project.py:219 ../app/pavlovia_ui/project.py:308
 msgid "Sync..."
@@ -2720,7 +2724,7 @@ msgstr "查看此项目的详情"
 
 #: ../app/pavlovia_ui/user.py:45
 msgid "Logout"
-msgstr ""
+msgstr "登出"
 
 #: ../app/pavlovia_ui/user.py:48
 msgid "Full name:"
@@ -2744,7 +2748,7 @@ msgstr "应用程序"
 
 #: ../app/preferencesDlg.py:29 ../app/preferencesDlg.py:40
 msgid "Key Bindings"
-msgstr ""
+msgstr "指定快捷键"
 
 #: ../app/preferencesDlg.py:30 ../app/preferencesDlg.py:38
 msgid "Hardware"
@@ -2768,7 +2772,7 @@ msgstr "窗口类型"
 
 #: ../app/preferencesDlg.py:43
 msgid "units"
-msgstr ""
+msgstr "单位"
 
 #: ../app/preferencesDlg.py:44 ../tools/wizard.py:37
 msgid "full-screen"
@@ -2784,35 +2788,35 @@ msgstr "路径"
 
 #: ../app/preferencesDlg.py:47
 msgid "flac audio compression"
-msgstr ""
+msgstr "flac 音频压缩"
 
 #: ../app/preferencesDlg.py:48
 msgid "shutdown key"
-msgstr ""
+msgstr "关机键"
 
 #: ../app/preferencesDlg.py:49
 msgid "shutdown key modifier keys"
-msgstr ""
+msgstr "关机键修饰键"
 
 #: ../app/preferencesDlg.py:50
 msgid "gammaErrorPolicy"
-msgstr ""
+msgstr "语法错误策略"
 
 #: ../app/preferencesDlg.py:51
 msgid "start up plugins"
-msgstr ""
+msgstr "启动插件"
 
 #: ../app/preferencesDlg.py:52
 msgid "appKeyGoogleCloud"
-msgstr ""
+msgstr "Google Cloud 应用密钥"
 
 #: ../app/preferencesDlg.py:53
 msgid "transcrKeyAzure"
-msgstr ""
+msgstr "Azure transcr 密钥"
 
 #: ../app/preferencesDlg.py:55
 msgid "show start-up tips"
-msgstr ""
+msgstr "显示启动提示"
 
 #: ../app/preferencesDlg.py:56
 msgid "default view"
@@ -2832,11 +2836,11 @@ msgstr "调试模式"
 
 #: ../app/preferencesDlg.py:60 ../tools/wizard.py:42
 msgid "locale"
-msgstr ""
+msgstr "本地化"
 
 #: ../app/preferencesDlg.py:61
 msgid "error dialog"
-msgstr ""
+msgstr "错误对话框"
 
 #: ../app/preferencesDlg.py:62
 msgid "theme"
@@ -2844,19 +2848,19 @@ msgstr "主题"
 
 #: ../app/preferencesDlg.py:64
 msgid "reload previous exp"
-msgstr ""
+msgstr "重新加载之前的试验"
 
 #: ../app/preferencesDlg.py:65
 msgid "Code component language"
-msgstr ""
+msgstr "代码组件语言"
 
 #: ../app/preferencesDlg.py:66
 msgid "uncluttered namespace"
-msgstr ""
+msgstr "整洁的命名空间"
 
 #: ../app/preferencesDlg.py:67
 msgid "components folders"
-msgstr ""
+msgstr "组件文件夹"
 
 #: ../app/preferencesDlg.py:68
 msgid "componentFilter"
@@ -2872,15 +2876,15 @@ msgstr ""
 
 #: ../app/preferencesDlg.py:71
 msgid "saved data folder"
-msgstr ""
+msgstr "保存的数据文件夹"
 
 #: ../app/preferencesDlg.py:72
 msgid "Builder layout"
-msgstr ""
+msgstr "Builder 布局"
 
 #: ../app/preferencesDlg.py:73
 msgid "always show readme"
-msgstr ""
+msgstr "总是显示 readme"
 
 #: ../app/preferencesDlg.py:74
 msgid "max favorites"
@@ -2908,15 +2912,15 @@ msgstr "代码字体大小"
 
 #: ../app/preferencesDlg.py:81
 msgid "lineSpacing"
-msgstr ""
+msgstr "行间距"
 
 #: ../app/preferencesDlg.py:82
 msgid "edgeGuideColumn"
-msgstr ""
+msgstr "边缘引导列"
 
 #: ../app/preferencesDlg.py:83
 msgid "show source asst"
-msgstr ""
+msgstr "显示源 asst"
 
 #: ../app/preferencesDlg.py:84
 msgid "show output"
@@ -2928,11 +2932,11 @@ msgstr "自动补全"
 
 #: ../app/preferencesDlg.py:86
 msgid "reload previous files"
-msgstr ""
+msgstr "重新加载以前的文件"
 
 #: ../app/preferencesDlg.py:87
 msgid "preferred shell"
-msgstr ""
+msgstr "首选 shell"
 
 #: ../app/preferencesDlg.py:89
 msgid "open"
@@ -2988,15 +2992,15 @@ msgstr "重建"
 
 #: ../app/preferencesDlg.py:102
 msgid "indent"
-msgstr ""
+msgstr "缩进"
 
 #: ../app/preferencesDlg.py:103
 msgid "dedent"
-msgstr ""
+msgstr "减少缩进"
 
 #: ../app/preferencesDlg.py:104
 msgid "smart indent"
-msgstr ""
+msgstr "自动缩进"
 
 #: ../app/preferencesDlg.py:105
 msgid "find"
@@ -3016,35 +3020,35 @@ msgstr "重做"
 
 #: ../app/preferencesDlg.py:109
 msgid "comment"
-msgstr ""
+msgstr "评论"
 
 #: ../app/preferencesDlg.py:110
 msgid "uncomment"
-msgstr ""
+msgstr "取消评论"
 
 #: ../app/preferencesDlg.py:111
 msgid "toggle comment"
-msgstr ""
+msgstr "切换评论"
 
 #: ../app/preferencesDlg.py:112
 msgid "fold"
-msgstr ""
+msgstr "折叠"
 
 #: ../app/preferencesDlg.py:113
 msgid "enlarge Font"
-msgstr ""
+msgstr "放大字体"
 
 #: ../app/preferencesDlg.py:114
 msgid "shrink Font"
-msgstr ""
+msgstr "缩小字体"
 
 #: ../app/preferencesDlg.py:115
 msgid "analyze code"
-msgstr ""
+msgstr "分析代码"
 
 #: ../app/preferencesDlg.py:116
 msgid "compile script"
-msgstr ""
+msgstr "编译脚本"
 
 #: ../app/preferencesDlg.py:117
 msgid "run script"
@@ -3052,7 +3056,7 @@ msgstr "运行脚本"
 
 #: ../app/preferencesDlg.py:118
 msgid "runner script"
-msgstr ""
+msgstr "runner 脚本"
 
 #: ../app/preferencesDlg.py:119
 msgid "stop script"
@@ -3060,15 +3064,15 @@ msgstr "停止脚本"
 
 #: ../app/preferencesDlg.py:120
 msgid "toggle whitespace"
-msgstr ""
+msgstr "切换空格"
 
 #: ../app/preferencesDlg.py:121
 msgid "toggle EOLs"
-msgstr ""
+msgstr "toggle EOLs"
 
 #: ../app/preferencesDlg.py:122
 msgid "toggle indent guides"
-msgstr ""
+msgstr "切换缩进指南"
 
 #: ../app/preferencesDlg.py:123
 msgid "new Routine"
@@ -3084,11 +3088,11 @@ msgstr "粘贴例程"
 
 #: ../app/preferencesDlg.py:126
 msgid "paste Component"
-msgstr ""
+msgstr "粘贴组件"
 
 #: ../app/preferencesDlg.py:127
 msgid "toggle output panel"
-msgstr ""
+msgstr "切换输出面板"
 
 #: ../app/preferencesDlg.py:128
 msgid "rename Routine"
@@ -3096,43 +3100,43 @@ msgstr "重命名例程"
 
 #: ../app/preferencesDlg.py:129
 msgid "cycle windows"
-msgstr ""
+msgstr "cycle windows"
 
 #: ../app/preferencesDlg.py:130
 msgid "larger Flow"
-msgstr ""
+msgstr "放大流程"
 
 #: ../app/preferencesDlg.py:131
 msgid "smaller Flow"
-msgstr ""
+msgstr "缩小流程"
 
 #: ../app/preferencesDlg.py:132
 msgid "larger routine"
-msgstr ""
+msgstr "放大例程"
 
 #: ../app/preferencesDlg.py:133
 msgid "smaller routine"
-msgstr ""
+msgstr "缩小例程"
 
 #: ../app/preferencesDlg.py:134
 msgid "toggle readme"
-msgstr ""
+msgstr "切换 readme"
 
 #: ../app/preferencesDlg.py:135
 msgid "login to pavlovia"
-msgstr ""
+msgstr "登录到 pavlovia"
 
 #: ../app/preferencesDlg.py:136
 msgid "login to OSF"
-msgstr ""
+msgstr "登录到 OSF"
 
 #: ../app/preferencesDlg.py:137
 msgid "sync projects"
-msgstr ""
+msgstr "同步项目"
 
 #: ../app/preferencesDlg.py:138
 msgid "find projects"
-msgstr ""
+msgstr "查找项目"
 
 #: ../app/preferencesDlg.py:139
 msgid "open projects"
@@ -3160,15 +3164,15 @@ msgstr "音频设备"
 
 #: ../app/preferencesDlg.py:146
 msgid "parallel ports"
-msgstr ""
+msgstr "并行端口"
 
 #: ../app/preferencesDlg.py:147
 msgid "Qmix configuration"
-msgstr ""
+msgstr "Qmix 配置"
 
 #: ../app/preferencesDlg.py:148
 msgid "Try to support display high DPI"
-msgstr ""
+msgstr "尝试支持显示高 DPI"
 
 #: ../app/preferencesDlg.py:150
 msgid "proxy"
@@ -3180,7 +3184,7 @@ msgstr "自动代理"
 
 #: ../app/preferencesDlg.py:152
 msgid "allow usage stats"
-msgstr ""
+msgstr "允许使用情况统计"
 
 #: ../app/preferencesDlg.py:153
 msgid "check for updates"
@@ -3196,7 +3200,7 @@ msgstr ""
 
 #: ../app/preferencesDlg.py:157
 msgid "same as in the file"
-msgstr ""
+msgstr "和文件中保持一致"
 
 #: ../app/preferencesDlg.py:158
 msgid "abort"
