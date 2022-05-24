@@ -62,20 +62,21 @@ class WebcamComponent(BaseComponent):
             label=_translate("Device")
         )
 
-        # Hardware
-        msg = _translate("Resolution (w x h) to record to, leave blank to use device default.")
-        self.params['resolution'] = Param(
-            resolution, valType='list', inputType="single", categ="Hardware",
-            hint=msg,
-            label=_translate("Resolution")
-        )
-
-        msg = _translate("Frame rate (frames per second) to record at, leave blank to use device default.")
-        self.params['frameRate'] = Param(
-            frameRate, valType='int', inputType="num", categ="Hardware",
-            hint=msg,
-            label=_translate("Frame Rate")
-        )
+        # Not implemented (yet!)
+        # # Hardware
+        # msg = _translate("Resolution (w x h) to record to, leave blank to use device default.")
+        # self.params['resolution'] = Param(
+        #     resolution, valType='list', inputType="single", categ="Hardware",
+        #     hint=msg,
+        #     label=_translate("Resolution")
+        # )
+        #
+        # msg = _translate("Frame rate (frames per second) to record at, leave blank to use device default.")
+        # self.params['frameRate'] = Param(
+        #     frameRate, valType='int', inputType="num", categ="Hardware",
+        #     hint=msg,
+        #     label=_translate("Frame Rate")
+        # )
 
         # Data
         msg = _translate("Save webcam output to a file?")
@@ -176,14 +177,11 @@ class WebcamComponent(BaseComponent):
         code = (
                 "win : psychoJS.window, \n"
                 "name:'%(name)s',\n"
-                "resolution:%(resolution)s,\n"
-                "frameRate:%(frameRate)s\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
         code = (
             "});\n"
-            "%(name)s.initialize()\n"
         )
         buff.writeIndentedLines(code % inits)
 
@@ -208,7 +206,7 @@ class WebcamComponent(BaseComponent):
         # Start webcam at component start
         self.writeStartTestCodeJS(buff)
         code = (
-            "%(name)s.start()\n"
+            "await %(name)s.start()\n"
         )
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(-1, relative=True)
@@ -220,7 +218,7 @@ class WebcamComponent(BaseComponent):
         # Stop webcam at component stop
         self.writeStopTestCodeJS(buff)
         code = (
-            "%(name)s.stop()\n"
+            "await %(name)s.stop()\n"
         )
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(-1, relative=True)
@@ -253,8 +251,8 @@ class WebcamComponent(BaseComponent):
         if self.params['saveFile']:
             code = (
             "// Save %(name)s recording\n"
-            "let %(name)sFilename = os.path.join(%(name)sRecFolder, 'recording_%(name)s_%%s.%(outputFileType)s' %% data.utils.getDateStr());\n"
-            "%(name)s.lastClip.save(%(name)sFilename, codec=%(codec)s);\n"
-            "psychojs.experiment.currentLoop.addData('%(name)s.clip', %(name)sFilename);\n"
+            "let %(name)sFilename = `recording_%(name)s_${expInfo['date']}.%(outputFileType)s`;\n"
+            "await %(name)s.download(%(name)sFilename);\n"
+            "psychoJS.experiment.addData('%(name)s.clip', %(name)sFilename);\n"
             )
             buff.writeIndentedLines(code % self.params)
