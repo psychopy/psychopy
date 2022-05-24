@@ -287,13 +287,14 @@ class Experiment:
                                                localDateTime, modular)
 
             script.writeIndentedLines("// Start code blocks for 'Before Experiment'")
-            routinesToWrite = list(self_copy.routines)
+            toWrite = list(self_copy.routines)
+            toWrite.extend(list(self_copy.flow))
             for entry in self_copy.flow:
                 # NB each entry is a routine or LoopInitiator/Terminator
                 self_copy._currentRoutine = entry
-                if hasattr(entry, 'writePreCodeJS') and entry.name in routinesToWrite:
+                if hasattr(entry, 'writePreCodeJS') and entry.name in toWrite:
                     entry.writePreCodeJS(script)
-                    routinesToWrite.remove(entry.name)  # this one's done
+                    toWrite.remove(entry.name)  # this one's done
 
             # Write window code
             self_copy.settings.writeWindowCodeJS(script)
@@ -307,13 +308,14 @@ class Experiment:
             script.setIndentLevel(1, relative=True)
 
             # routine init sections
-            routinesToWrite = list(self_copy.routines)
+            toWrite = list(self_copy.routines)
+            toWrite.extend(list(self_copy.flow))
             for entry in self_copy.flow:
                 # NB each entry is a routine or LoopInitiator/Terminator
                 self_copy._currentRoutine = entry
-                if hasattr(entry, 'writeInitCodeJS') and entry.name in routinesToWrite:
+                if hasattr(entry, 'writeInitCodeJS') and entry.name in toWrite:
                     entry.writeInitCodeJS(script)
-                    routinesToWrite.remove(entry.name)  # this one's done
+                    toWrite.remove(entry.name)  # this one's done
 
             # create globalClock etc
             code = ("// Create some handy timers\n"
@@ -330,16 +332,16 @@ class Experiment:
             # Routines once (whether or not they get used) because we're using
             # functions that may or may not get called later.
             # Do the Routines of the experiment first
-            routinesToWrite = list(self_copy.routines)
+            toWrite = list(self_copy.routines)
             for thisItem in self_copy.flow:
                 if thisItem.getType() in ['LoopInitiator', 'LoopTerminator']:
                     self_copy.flow.writeLoopHandlerJS(script, modular)
-                elif thisItem.name in routinesToWrite:
+                elif thisItem.name in toWrite:
                     self_copy._currentRoutine = self_copy.routines[thisItem.name]
                     self_copy._currentRoutine.writeRoutineBeginCodeJS(script, modular)
                     self_copy._currentRoutine.writeEachFrameCodeJS(script, modular)
                     self_copy._currentRoutine.writeRoutineEndCodeJS(script, modular)
-                    routinesToWrite.remove(thisItem.name)
+                    toWrite.remove(thisItem.name)
             self_copy.settings.writeEndCodeJS(script)
 
             # Add JS variable declarations e.g., var msg;
