@@ -24,12 +24,13 @@ Overview
     Camera.close
     Camera.record
     Camera.stop
-    Camera.save
-    Camera.lastRecordingFilePath
     Camera.streamTime
     Camera.recordingTime
     Camera.getVideoFrame
     Camera.lastFrame
+    Camera.save
+    Camera.lastClip
+
 
 Details
 =======

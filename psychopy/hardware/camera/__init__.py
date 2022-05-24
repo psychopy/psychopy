@@ -209,7 +209,7 @@ class Camera:
         Camera to open a stream with. If the ID is not valid, an error will be
         raised when `start()` is called. Value can be a string or number. String
         values are platform-dependent: a DirectShow URI on Windows, a path
-        on GNU/Linux (e.g., '/dev/video0`), and a camera name on MacOS.
+        on GNU/Linux (e.g., `'/dev/video0'`), and a camera name on MacOS.
         Specifying a number (>=0) is a platform-independent means of selecting a
         camera. PsychoPy enumerates possible camera devices and makes them
         selectable without explicitly having the name of the cameras attached to
@@ -314,6 +314,16 @@ class Camera:
 
         # last frame
         self._lastFrame = NULL_MOVIE_FRAME_INFO
+
+    def authorize(self):
+        """Get permission to access the camera. Not implemented locally yet.
+        """
+        pass  # NOP
+
+    @property
+    def isReady(self):
+        """Is the camera ready (`bool`)?"""
+        return True
 
     @property
     def metadata(self):
@@ -747,11 +757,11 @@ class Camera:
         return os.path.getsize(self._outFile)
 
     @property
-    def lastRecordingFilePath(self):
+    def lastClip(self):
         """File path to the last recording (`str` or `None`).
 
         This value is only valid if a previous recording has been saved
-        successfully, otherwise it will be set to `None`.
+        successfully (`save()` was called), otherwise it will be set to `None`.
 
         """
         return self._outFile  # change this to the actual value eventually
