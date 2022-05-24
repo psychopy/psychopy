@@ -762,6 +762,12 @@ class Camera:
         """
         pass  # NOP
 
+    def _download(self):
+        """Download video file to an online repository. Not implemented locally,
+        needed for auto translate to JS.
+        """
+        pass  # NOP
+
     @property
     def lastClip(self):
         """File path to the last recording (`str` or `None`).
