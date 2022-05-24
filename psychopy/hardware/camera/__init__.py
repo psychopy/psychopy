@@ -756,6 +756,12 @@ class Camera:
 
         return os.path.getsize(self._outFile)
 
+    def _upload(self):
+        """Upload video file to an online repository. Not implemented locally,
+        needed for auto translate to JS.
+        """
+        pass  # NOP
+
     @property
     def lastClip(self):
         """File path to the last recording (`str` or `None`).
