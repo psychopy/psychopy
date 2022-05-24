@@ -49,7 +49,15 @@ WEBCAM_MODE_PHOTO = u'photo'
 # Exceptions
 #
 
-class CameraNotFoundError(Exception):
+class CameraError(Exception):
+    """Base class for errors around the camera."""
+
+
+class CameraNotReadyError(CameraError):
+    """Camera is not ready."""
+
+
+class CameraNotFoundError(CameraError):
     """Raised when a camera cannot be found on the system."""
 
 
@@ -322,8 +330,30 @@ class Camera:
 
     @property
     def isReady(self):
-        """Is the camera ready (`bool`)?"""
-        return True
+        """Is the camera ready (`bool`)?
+
+        The camera is ready when the following conditions are met. First, we've
+        created a player interface and opened it. Second, we have received
+        metadata about the stream. At this point we can assume that the camera
+        is 'hot' and the stream is being read.
+
+        """
+        # The camera is ready when the following conditions are met. First,
+        # we've created a player interface and opened it. Second, we have
+        # received metadata about the stream. At this point we can assume that
+        # the camera is 'hot' and the stream is being read.
+        #
+        hasPlayer = self._player is not None
+        streamReady = self._recentMetadata is not NULL_MOVIE_METADATA
+
+        return hasPlayer and streamReady
+
+    def _assertCameraReady(self):
+        """Assert that the camera is ready. Raises a `CameraNotReadyError` if
+        the camera is not ready.
+        """
+        if not self.isReady:
+            raise CameraNotReadyError("Camera is not ready.")
 
     @property
     def metadata(self):
@@ -784,6 +814,13 @@ class Camera:
         last call of `getVideoFrame`.
         """
         return self._lastFrame
+
+    def update(self):
+        """Acquire the newest data from the camera stream. If the `Camera`
+        object is not being monitored by a `ImageStim`, this must be explicitly
+        called.
+        """
+        pass
 
     def getVideoFrame(self, timeout=0.0):
         """Pull the next frame from the stream (if available).
