@@ -154,14 +154,13 @@ class WebcamComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(+1, relative=True)
         code = (
-            "win, name=%(name)s,\n"
-            "resolution=%(resolution)s, frameRate=%(frameRate)s\n"
+            "device=%(device)s, name=%(name)s,\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
         code = (
             ")\n"
-            "%(name)s.initialize()\n"
+            "%(name)s.open()\n"
         )
         buff.writeIndentedLines(code % inits)
 
