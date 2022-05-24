@@ -94,7 +94,7 @@ class FFPyPlayer(BaseMoviePlayer):
         Parameters
         ----------
         pathToMovie : str
-            Path to movie file, stream (URI) or webcam. Must be a format that
+            Path to movie file, stream (URI) or camera. Must be a format that
             FFMPEG supports.
 
         """

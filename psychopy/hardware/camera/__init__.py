@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Classes and functions for reading and writing webcam streams.
+"""Classes and functions for reading and writing camera streams.
 
-A webcam may be used to document participant responses on video or used by the
+A camera may be used to document participant responses on video or used by the
 experimenter to create movie stimuli or instructions.
 
 """
@@ -11,7 +11,7 @@ experimenter to create movie stimuli or instructions.
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = ['CameraNotFoundError', 'Webcam', 'CameraInfo', 'getWebcams']
+__all__ = ['CameraNotFoundError', 'Camera', 'CameraInfo', 'getCameras']
 
 import glob
 import platform
@@ -39,7 +39,7 @@ VIDEO_DEVICE_ROOT_LINUX = '/dev'
 WEBCAM_UNKNOWN_VALUE = u'Unknown'  # fields where we couldn't get a value
 WEBCAM_NULL_VALUE = u'Null'  # fields where we couldn't get a value
 
-# webcam operating modes
+# camera operating modes
 WEBCAM_MODE_VIDEO = u'video'
 WEBCAM_MODE_CV = u'cv'
 WEBCAM_MODE_PHOTO = u'photo'
@@ -197,21 +197,21 @@ class CameraInfo:
 #
 
 
-class Webcam:
+class Camera:
     """Class of displaying and recording video from a USB/PCI connected camera
-    (usually a webcam).
+    (usually a camera).
 
-    This class is capable of opening and recording webcam video streams.
+    This class is capable of opening and recording camera video streams.
 
     Parameters
     ----------
-    camera : str or int
+    device : str or int
         Camera to open a stream with. If the ID is not valid, an error will be
         raised when `start()` is called. Value can be a string or number. String
         values are platform-dependent: a DirectShow URI on Windows, a path
         on GNU/Linux (e.g., '/dev/video0`), and a camera name on MacOS.
         Specifying a number (>=0) is a platform-independent means of selecting a
-        webcam. PsychoPy enumerates possible camera devices and makes them
+        camera. PsychoPy enumerates possible camera devices and makes them
         selectable without explicitly having the name of the cameras attached to
         the system. Use caution when specifying a number, as the same index may
         not reference the same camera everytime.
@@ -223,52 +223,55 @@ class Webcam:
         `'photo'`. Use `'video'` for recording live-feeds to produce movies,
         `'cv'` for computer vision applications (same as `'video'` but frames
         are not buffered on disk, reduces CPU load), and `'photo'` for taking
-        snapshots with the webcam. Default operating mode is `'video'`, cannot
+        snapshots with the camera. Default operating mode is `'video'`, cannot
         be set after initialization.
     cameraLib : str
-        Interface library (backend) to use for accessing the webcam. Only
+        Interface library (backend) to use for accessing the camera. Only
         `ffpyplayer` is available at this time.
+    codecOpts : dict or None
+        Options to pass to the codec. See the documentation for the camera
+        library for details. Some options may be set by this class.
     libOpts : dict or None
         Additional options to configure the camera interface library (if
         applicable).
 
     Examples
     --------
-    Opening a webcam stream and closing it::
+    Opening a camera stream and closing it::
 
-        webcam = Webcam(camera='/dev/video0')
-        webcam.open()  # exception here on invalid camera
-        # webcam.status == NOT_STARTED
-        webcam.start()
-        # webcam.status == PLAYING
-        webcam.stop()
-        # webcam.status == STOPPED
-        webcam.close()
+        camera = Webcam(camera='/dev/video0')
+        camera.open()  # exception here on invalid camera
+        # camera.status == NOT_STARTED
+        camera.start()
+        # camera.status == PLAYING
+        camera.stop()
+        # camera.status == STOPPED
+        camera.close()
 
     """
-    def __init__(self, camera=0, mic=None, mode='video',
-                 cameraLib=u'ffpyplayer', ffOpts=None, libOpts=None):
+    def __init__(self, device=0, mic=None, mode='video',
+                 cameraLib=u'ffpyplayer', codecOpts=None, libOpts=None):
 
         # add attributes for setters
         self.__dict__.update(
-            {'_camera': None,
+            {'_device': None,
              '_mic': None,
              '_outFile': None,
              '_mode': u'video',
              '_cameraLib': u'',
-             '_ffOpts': None,
+             '_codecOpts': None,
              '_libOpts': None})
 
         # resolve getting the camera identifier
-        if isinstance(camera, int):  # get camera if integer
+        if isinstance(device, int):  # get camera if integer
             try:
-                self.camera = getWebcams()[camera]
+                self.device = getCameras()[device]
             except IndexError:  # catch as
                 raise CameraNotFoundError(
                     'Could not enumerate camera with index `{}`.'.format(
-                        camera))
-        elif isinstance(camera, str):  # get camera if integer
-            self.camera = camera
+                        device))
+        elif isinstance(device, str):  # get camera if integer
+            self.device = device
         else:
             raise TypeError(
                 "Incorrect type for `camera`, expected `int` or `str`.")
@@ -284,7 +287,7 @@ class Webcam:
         self._mode = mode
 
         # FFMPEG and FFPyPlayer options
-        self._ffOpts = ffOpts if ffOpts is not None else {}
+        self._codecOpts = codecOpts if codecOpts is not None else {}
         self._libOpts = libOpts if libOpts is not None else {}
 
         # parameters for the writer
@@ -347,7 +350,7 @@ class Webcam:
             Camera identifiers.
 
         """
-        return getWebcams()
+        return getCameras()
 
     def _openWriter(self):
         """Initialize and configure the media writer.
@@ -431,7 +434,7 @@ class Webcam:
 
     @property
     def status(self):
-        """Status flag for the webcam (`int`).
+        """Status flag for the camera (`int`).
 
         Can be either `RECORDING`, `STOPPED`, `STOPPING`, or `NOT_STARTED`.
 
@@ -452,7 +455,7 @@ class Webcam:
         self._outFile = value
 
     @property
-    def camera(self):
+    def device(self):
         """Camera to use (`str` or `None`).
 
         String specifying the name of the camera to open a stream with. This
@@ -460,11 +463,11 @@ class Webcam:
         error will be raised when `start()` is called.
 
         """
-        return self._camera
+        return self._device
 
-    @camera.setter
-    def camera(self, value):
-        self._camera = value
+    @device.setter
+    def device(self, value):
+        self._device = value
 
     @property
     def mic(self):
@@ -570,8 +573,6 @@ class Webcam:
         # update metadata
         self._recentMetadata = self._player.get_metadata()
 
-        # todo - if paused, return the last queued frame instead of pulling a new one
-
         # grab a frame from the camera
         frame = None
         status = ''
@@ -627,7 +628,7 @@ class Webcam:
         return True
 
     def open(self):
-        """Open the webcam stream and begin decoding frames (if available).
+        """Open the camera stream and begin decoding frames (if available).
 
         The value of `lastFrame` will be updated as new frames from the camera
         arrive.
@@ -653,9 +654,9 @@ class Webcam:
                 'pixel_format': 'yuyv422',
                 'rtbufsize': str(bufferSize)}
             )
-            _camera = 'video={}'.format(self._camera)
+            _camera = 'video={}'.format(self._device)
         else:
-            _camera = self._camera
+            _camera = self._device
 
         # open a stream and pause it until ready
         self._player = MediaPlayer(_camera, ff_opts=ff_opts, lib_opts=lib_opts)
@@ -689,7 +690,7 @@ class Webcam:
             self._mic.record()
 
     def snapshot(self):
-        """Take a photo with the webcam. The camera must be in `'photo'` mode
+        """Take a photo with the camera. The camera must be in `'photo'` mode
         to use this method.
         """
         pass
@@ -757,7 +758,7 @@ class Webcam:
 
     @property
     def lastFrame(self):
-        """Most recent frame pulled from the webcam (`VideoFrame`) since the
+        """Most recent frame pulled from the camera (`VideoFrame`) since the
         last call of `getVideoFrame`.
         """
         return self._lastFrame
@@ -800,7 +801,7 @@ class Webcam:
 # Functions
 #
 
-def getWebcams():
+def getCameras():
     """Get information about installed cameras on this system.
 
     Returns

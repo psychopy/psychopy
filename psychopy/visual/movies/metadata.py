@@ -109,7 +109,7 @@ class MovieMetadata:
     @property
     def mediaPath(self):
         """Path to the video (`str`). May be either a path to a file on the
-        local machine, URI, or webcam enumeration. An empty string indicates
+        local machine, URI, or camera enumeration. An empty string indicates
         this field is uninitialized.
         """
         return self._mediaPath
