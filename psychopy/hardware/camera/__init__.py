@@ -28,6 +28,9 @@ from ffpyplayer.pic import SWScale
 from ffpyplayer.tools import list_dshow_devices
 from moviepy.editor import VideoFileClip, AudioFileClip, CompositeAudioClip
 import uuid
+import threading
+import queue
+import time
 from psychopy.preferences import prefs
 
 
@@ -205,6 +208,138 @@ class CameraInfo:
 #
 
 
+class MovieStreamIOThread(threading.Thread):
+    """Class for reading and writing streams asynchronously.
+
+    The rate of which frames are read is controlled dynamically based on the
+    metadata. This will ensure that CPU load is kept to a minimum, only polling
+    for new frames at the rate they are being made available.
+
+    Parameters
+    ----------
+    player : `ffpyplayer.player.MediaPlayer`
+        Media player instance, should be configured and initialized. Note that
+        player instance methods might not be thread-safe after handing off the
+        object to this thread.
+    writer : `ffpyplayer.player.MediaWriter` or `None`
+        Media writer instance, should be configured and initialized.
+
+    """
+    def __init__(self, player, writer=None):
+        threading.Thread.__init__(self)
+        self.daemon = True
+
+        self._player = player  # player interface to FFMPEG
+        self._writer = writer  # writer interface
+        self._frameQueue = queue.Queue(maxsize=1)  # frames for the monitor
+
+        self._isReadyEvent = threading.Event()
+        self._isRecording = threading.Event()
+        self._isStreamingEvent = threading.Event()
+
+    def run(self):
+        """Main sub-routine for this thread.
+
+        When the thread is running, data about captured frames are put into the
+        `frameQueue` as `(metadata, img, pts)`. If the queue is empty, that
+        means the main application thread is running faster than the encoder
+        can get frames.
+
+        """
+        if self._player is None:
+            return  # exit thread if no player
+
+        self._isStreamingEvent.set()
+        frameInterval = 0.001  # dynamic poll interval, start at 1ms
+        frameIndex = 0  # valid frame index
+        ptsStart = 0.0
+        recordingJustStarted = True
+        streaming = True
+        while streaming:
+            # consume frames until we get a valid one
+            frameData = None
+            val = ''
+            while frameData is None or val == 'not ready':
+                frameData, val = self._player.get_frame()
+                time.sleep(frameInterval)  # sleep a bit to warm-up
+
+            # after getting a frame, we can get accurate metadata
+            metadata = self._player.get_metadata()
+
+            # compute frame interval for dynamic polling rate
+            frameRate = metadata['frame_rate']
+            numer, denom = frameRate
+
+            if denom == 0:  # no valid framerate from metadata yet
+                continue
+
+            frameInterval = 1.0 / (numer / float(denom))
+
+            # put the frame in the queue
+            if not self._frameQueue.full():
+                toReturn = (metadata, frameData, val)
+                self._frameQueue.put(toReturn)  # put frame data in here
+
+            # handle writing to file
+            if self._isRecording.is_set():
+                _, pts = frameData
+                if recordingJustStarted:
+                    ptsStart = pts
+                    recordingJustStarted = False
+
+                # compute timestamp for the writer for the current frame
+                recordingTime = pts - ptsStart
+            else:
+                ptsStart = 0.0
+                recordingJustStarted = True
+
+            # end of stream, close
+            if val == 'eof':
+                break
+
+            # write out the frame if needed ...
+            frameIndex += 1
+
+        # out of this loop, we're done
+        self._isReadyEvent.clear()
+        self._isStreamingEvent.clear()
+
+    @property
+    def isReady(self):
+        """`True` if the stream reader is ready (`bool`).
+        """
+        return self._isReadyEvent.is_set()
+
+    def record(self):
+        """Start recording frames to the output video file.
+        """
+        self._isRecording.set()
+
+    def stop(self):
+        """Stop recording frames to the output file.
+        """
+        self._isRecording.clear()
+
+    def getRecentFrame(self):
+        """Get the most recent frame data from the feed (`tuple`).
+
+        Returns
+        -------
+        tuple or None
+            Frame data formatted as `(metadata, frameData, val)`. The `metadata`
+            is a `dict`, `frameData` is a `tuple` with format (`colorData`,
+            `pts`) and `val` is a `str` returned by the
+            `MediaPlayer.get_frame()` method. Returns `None` if there is no
+            frame data.
+
+        """
+        if self._frameQueue.empty():
+            return None
+
+        # hold only last frame and return that instead of None?
+        return self._frameQueue.get_nowait()
+
+
 class Camera:
     """Class of displaying and recording video from a USB/PCI connected camera
     (usually a camera).
@@ -311,14 +446,20 @@ class Camera:
         self._status = NOT_STARTED
         self._frameIndex = -1
         self._isRecording = False
+        self._isReady = False
 
         # timestamp data
         self._startPts = -1.0  # absolute stream time at recording
         self._absPts = -1.0  # timestamp of the video stream in absolute time
         self._pts = -1.0  # timestamp used for writing the video stream
+        self._lastPts = 0.0  # last timestamp
+        self._isMonotonic = False
+
+        # thread for reading a writing streams
+        self._tStream = None
 
         # video metadata
-        self._recentMetadata = None
+        self._recentMetadata = NULL_MOVIE_METADATA
 
         # last frame
         self._lastFrame = NULL_MOVIE_FRAME_INFO
@@ -343,10 +484,7 @@ class Camera:
         # received metadata about the stream. At this point we can assume that
         # the camera is 'hot' and the stream is being read.
         #
-        hasPlayer = self._player is not None
-        streamReady = self._recentMetadata is not NULL_MOVIE_METADATA
-
-        return hasPlayer and streamReady
+        return self._isReady
 
     def _assertCameraReady(self):
         """Assert that the camera is ready. Raises a `CameraNotReadyError` if
@@ -404,24 +542,17 @@ class Camera:
 
         self._assertMediaPlayer()
 
-        if self._outFile is None:
-            return  # nop if there is no output path
-
         # configure the temp directory and files for the recordings
         randFileName = str(uuid.uuid4().hex)
         self._tempRootDir = tempfile.mkdtemp(
             suffix=randFileName,
             prefix='psychopy-',
             dir=None)
-        self._tempVideoFileName = os.path.join(
-            self._tempRootDir,
-            'video-' + randFileName + '.mp4')
-        self._tempAudioFileName = os.path.join(
-            self._tempRootDir,
-            'audio-' + randFileName + '.wav')
+        self._tempVideoFileName = os.path.join(self._tempRootDir, 'video.avi')
+        self._tempAudioFileName = os.path.join(self._tempRootDir, 'audio.wav')
 
-        frameWidth, frameHeight = self._recentMetadata.size
-        frameRate = self._recentMetadata.frameRate
+        frameWidth, frameHeight = self._recentMetadata['src_vid_size']
+        frameRate = self._recentMetadata['frame_rate']
 
         writerOptions = {
             'pix_fmt_in': 'yuv420p',  # default for now
@@ -580,9 +711,16 @@ class Camera:
         if self._status != RECORDING:  # nop if not recording
             return
 
+        isMonotonic = self._lastPts > timestamp
+
+        if not isMonotonic:
+            return
+
+        self._lastPts = timestamp
+
         # convert the image to the appropriate format for the encoder
-        frameWidth, frameHeight = self._recentMetadata.size
-        pixelFormat = self._recentMetadata.pixelFormat
+        frameWidth, frameHeight = colorData.get_size()
+        pixelFormat = colorData.get_pixel_format()
         sws = SWScale(frameWidth, frameHeight, pixelFormat, ofmt='yuv420p')
 
         # write the frame to the file
@@ -591,7 +729,7 @@ class Camera:
             pts=timestamp,
             stream=0)
 
-    def _enqueueFrame(self, timeout=1.0):
+    def _enqueueFrame(self):
         """Grab the latest frame from the stream.
 
         Parameters
@@ -610,38 +748,49 @@ class Camera:
         """
         self._assertMediaPlayer()
 
-        # update metadata
-        self._recentMetadata = self._player.get_metadata()
+        # # update metadata
+        # self._recentMetadata = self._player.get_metadata()
+        #
+        # # grab a frame from the camera
+        # frame, status = self._player.get_frame()
+        #
+        # # got a valid frame within the timeout period
+        # self._isReady = True
+        # if frame is None or status == 'not ready':
+        #     self._isReady = False
+        #     return False
+        #
+        # # process the frame
+        # colorData, absPts = frame
+        #
+        # # ready if we're getting frames and the pts is monotonic
+        # if self._lastPts >= absPts:
+        #     self._isReady = False
+        #     return False
+        #
+        # self._lastPts = absPts
+        #
+        # # compute timestamps if needed
+        # self._absPts = absPts
+        # if self._status == RECORDING:
+        #     if self._lastFrame is NULL_MOVIE_FRAME_INFO:
+        #         self._startPts = absPts
+        #
+        #     # compute new recording timestamp
+        #     self._pts = self._absPts - self._startPts
+        # else:
+        #     # if not recording, return negative timestamp
+        #     self._startPts = self._pts = -1.0
 
-        # grab a frame from the camera
-        frame = None
-        status = ''
-        timedOut = False
-        tStart = getTime()
-        while not timedOut:  # not frame available
-            timedOut = (getTime() - tStart) < timeout
-            frame, status = self._player.get_frame()
-            # got a valid frame within the timeout period
-            if frame is not None:
-                break
-
-        if timedOut:  # we timed out and don't have a frame
+        # If the queue is empty, the decoder thread has not yielded a new frame
+        # since the last call.
+        enqueuedFrame = self._tStream.getRecentFrame()
+        if enqueuedFrame is None:
             return False
 
-        # process the frame
-        colorData, absPts = frame
-
-        # compute timestamps if needed
-        self._absPts = absPts
-        if self._status == RECORDING:
-            if self._lastFrame is NULL_MOVIE_FRAME_INFO:
-                self._startPts = absPts
-
-            # compute new recording timestamp
-            self._pts = self._absPts - self._startPts
-        else:
-            # if not recording, return negative timestamp
-            self._startPts = self._pts = -1.0
+        # unpack the data we got back
+        metadata, frameData, val = enqueuedFrame
+        colorData, pts = frameData
 
         # if we have a new frame, update the frame information
         videoBuffer = colorData.to_bytearray()[0]
@@ -650,20 +799,26 @@ class Camera:
         # provide the last frame
         self._lastFrame = MovieFrame(
             frameIndex=self._frameIndex,
-            absTime=self._absPts,
+            absTime=pts,
             # displayTime=self._recentMetadata['frame_size'],
-            size=self._recentMetadata['src_vid_size'],
+            size=colorData.get_size(),
             colorData=videoFrameArray,
             audioChannels=0,
             audioSamples=None,
             movieLib=u'ffpyplayer',
             userData=None)
 
+        print(self._lastFrame)
+
+        self._streamTime = pts  # stream time for the camera
+        self._recordingTime = pts
+        self._pts = 0.0
+
         # write the frame to the file
         self._writeFrame(colorData, self.recordingTime)
 
-        if status == 'eof':  # end of stream but there is a valid frame
-            self._status = STOPPING  # last frame, stopping ...
+        # if status == 'eof':  # end of stream but there is a valid frame
+        #     self._status = STOPPING  # last frame, stopping ...
 
         return True
 
@@ -700,9 +855,12 @@ class Camera:
 
         # open a stream and pause it until ready
         self._player = MediaPlayer(_camera, ff_opts=ff_opts, lib_opts=lib_opts)
-        self._enqueueFrame(timeout=1.0)  # pull a frame, gets metadata too
 
-        self._openWriter()  # open the file for writing stream to
+        # pass off the player to the thread which will process the stream
+        self._tStream = MovieStreamIOThread(self._player, None)
+        self._tStream.start()
+
+        self._enqueueFrame()  # pull a frame, gets metadata too
 
     def record(self, streamOnly=False):
         """Start recording frames.
@@ -718,10 +876,8 @@ class Camera:
         """
         self._assertMediaPlayer()
 
-        if not streamOnly:  # don't save anything to disk
-            self._openWriter()
-
         self._lastFrame = NULL_MOVIE_FRAME_INFO
+        self._tStream.record()
 
         self._status = RECORDING
 
@@ -741,9 +897,7 @@ class Camera:
         self._assertMediaPlayer()
 
         self._status = STOPPED
-        self._player.close_player()
-
-        self._closeWriter()  # close the writer
+        self._tStream.stop()
 
     def close(self):
         """Close the camera.
@@ -820,7 +974,7 @@ class Camera:
         object is not being monitored by a `ImageStim`, this must be explicitly
         called.
         """
-        pass
+        self._assertMediaPlayer()
 
     def getVideoFrame(self, timeout=0.0):
         """Pull the next frame from the stream (if available).
@@ -834,7 +988,7 @@ class Camera:
         """
         self._assertMediaPlayer()
 
-        self._enqueueFrame(timeout=timeout)
+        self._enqueueFrame()
 
         return self._lastFrame
 
