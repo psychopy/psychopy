@@ -46,10 +46,12 @@ class CameraComponent(BaseComponent):
             disabled=disabled,
         )
         # Mark as type
-        self.type = 'Webcam'
+        self.type = 'Camera'
         # Store exp references
         self.exp = exp
         self.parentName = parentName
+        # Add requirement
+        self.exp.requireImport(importName="camera", importFrom="psychopy.hardware")
 
         # Basic
         msg = _translate("What webcam device would you like the use to record? This will only affect local "
@@ -144,7 +146,7 @@ class CameraComponent(BaseComponent):
         inits = getInitVals(self.params, "PsychoPy")
 
         code = (
-            "%(name)s = hardware.camera.Camera(\n"
+            "%(name)s = camera.Camera(\n"
             "    device=%(device)s, name=%(name)s,\n"
             ")\n"
             "# Switch on %(name)s\n"
