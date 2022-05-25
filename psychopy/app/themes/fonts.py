@@ -138,7 +138,7 @@ def getLexerKeywords(lexer, filename=""):
                 0: ['var', 'const', 'let', 'import', 'function', 'if',
                     'else', 'return', 'struct', 'for', 'while', 'do',
                     'finally', 'throw', 'try', 'switch', 'case',
-                    'break'],
+                    'break', 'await'],
                 1: ['null', 'false', 'true']
             }
         elif any([filename.lower().endswith(ext) for ext in (
