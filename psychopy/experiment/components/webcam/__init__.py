@@ -128,14 +128,9 @@ class CameraComponent(BaseComponent):
             "# Make folder to store recordings from %(name)s\n"
             "%(name)sRecFolder = filename + '_%(name)s_recorded'\n"
             "if not os.path.isdir(%(name)sRecFolder):\n"
+            "    os.mkdir(%(name)sRecFolder)\n"
         )
         buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                "os.mkdir(%(name)sRecFolder)\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
 
     def writeStartCodeJS(self, buff):
         inits = getInitVals(self.params)
@@ -150,15 +145,7 @@ class CameraComponent(BaseComponent):
 
         code = (
             "%(name)s = hardware.camera.Camera(\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(+1, relative=True)
-        code = (
-            "device=%(device)s, name=%(name)s,\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
+            "    device=%(device)s, name=%(name)s,\n"
             ")\n"
             "# Switch on %(name)s\n"
             "%(name)s.open()\n"
@@ -172,15 +159,7 @@ class CameraComponent(BaseComponent):
         # Write code
         code = (
             "%(name)s = new hardware.Camera({\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                "name:'%(name)s',\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
+            "    name:'%(name)s',\n"
             "});\n"
             "// Get permission from participant to access their camera\n"
             "%(name)s.authorize()\n"
@@ -243,7 +222,10 @@ class CameraComponent(BaseComponent):
         if self.params['saveFile']:
             code = (
             "# Save %(name)s recording\n"
-            "%(name)sFilename = os.path.join(%(name)sRecFolder, 'recording_%(name)s_%%s.%(outputFileType)s' %% data.utils.getDateStr())\n"
+            "%(name)sFilename = os.path.join(\n"
+            "    %(name)sRecFolder, \n"
+            "    'recording_%(name)s_%%s.%(outputFileType)s' %% data.utils.getDateStr()\n"
+            ")\n"
             "%(name)s.lastClip.save(%(name)sFilename)\n"
             "thisExperiment.currentLoop.addData('%(name)s.clip', %(name)sFilename)\n"
             )
