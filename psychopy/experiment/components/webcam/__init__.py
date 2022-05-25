@@ -8,7 +8,7 @@ from psychopy import prefs
 devices = ["default"]
 
 
-class WebcamComponent(BaseComponent):
+class CameraComponent(BaseComponent):
     """
 
     """
@@ -21,7 +21,7 @@ class WebcamComponent(BaseComponent):
     def __init__(
             # Basic
             self, exp, parentName,
-            name='webcam',
+            name='cam',
             startType='time (s)', startVal='0', startEstim='',
             stopType='duration (s)', stopVal='', durationEstim='',
             device="Default",
@@ -35,7 +35,7 @@ class WebcamComponent(BaseComponent):
             disabled=False,
     ):
         # Initialise superclass
-        super(WebcamComponent, self).__init__(
+        super(CameraComponent, self).__init__(
             exp, parentName,
             name=name,
             startType=startType, startVal=startVal, startEstim=startEstim,
@@ -86,13 +86,13 @@ class WebcamComponent(BaseComponent):
             label=_translate("Save File?")
         )
 
-        msg = _translate("What kind of video codec should the output file be encoded as?")
-        self.params['codec'] = Param(
-            codec, valType='str', inputType="choice", categ="Data",
-            allowedVals=['a64multi', 'a64multi5', 'alias_pix', 'amv', 'apng', 'asv1', 'asv2', 'avrp', 'avui', 'ayuv', 'bmp', 'cinepak', 'cljr', 'dnxhd', 'dpx', 'dvvideo', 'ffv1', 'ffvhuff', 'fits', 'flashsv', 'flashsv2', 'flv', 'gif', 'h261', 'h263', 'h263_v4l2m2m', 'h263p', 'h264_nvenc', 'h264_omx', 'h264_v4l2m2m', 'h264_vaapi', 'hap', 'hevc_nvenc', 'hevc_v4l2m2m', 'hevc_vaapi', 'huffyuv', 'jpeg2000', 'jpegls', 'libaom-av1', 'libopenjpeg', 'libtheora', 'libvpx', 'libvpx-vp9', 'libwebp', 'libwebp_anim', 'libx264', 'libx264rgb', 'libx265', 'libxvid', 'ljpeg', 'magicyuv', 'mjpeg', 'mjpeg_vaapi', 'mpeg1video', 'mpeg2_vaapi', 'mpeg2video', 'mpeg4', 'mpeg4_v4l2m2m', 'msmpeg4', 'msmpeg4v2', 'msvideo1', 'nvenc', 'nvenc_h264', 'nvenc_hevc', 'pam', 'pbm', 'pcx', 'pgm', 'pgmyuv', 'png', 'ppm', 'prores', 'prores_aw', 'prores_ks', 'qtrle', 'r10k', 'r210', 'rawvideo', 'roqvideo', 'rv10', 'rv20', 'sgi', 'snow', 'sunrast', 'svq1', 'targa', 'tiff', 'utvideo', 'v210', 'v308', 'v408', 'v410', 'vc2', 'vp8_v4l2m2m', 'vp8_vaapi', 'vp9_vaapi', 'wmv1', 'wmv2', 'wrapped_avframe', 'xbm', 'xface', 'xwd', 'y41p', 'yuv4', 'zlib', 'zmbv'],
-            hint=msg,
-            label=_translate("Output Codec")
-        )
+        # msg = _translate("What kind of video codec should the output file be encoded as?")
+        # self.params['codec'] = Param(
+        #     codec, valType='str', inputType="choice", categ="Data",
+        #     allowedVals=['a64multi', 'a64multi5', 'alias_pix', 'amv', 'apng', 'asv1', 'asv2', 'avrp', 'avui', 'ayuv', 'bmp', 'cinepak', 'cljr', 'dnxhd', 'dpx', 'dvvideo', 'ffv1', 'ffvhuff', 'fits', 'flashsv', 'flashsv2', 'flv', 'gif', 'h261', 'h263', 'h263_v4l2m2m', 'h263p', 'h264_nvenc', 'h264_omx', 'h264_v4l2m2m', 'h264_vaapi', 'hap', 'hevc_nvenc', 'hevc_v4l2m2m', 'hevc_vaapi', 'huffyuv', 'jpeg2000', 'jpegls', 'libaom-av1', 'libopenjpeg', 'libtheora', 'libvpx', 'libvpx-vp9', 'libwebp', 'libwebp_anim', 'libx264', 'libx264rgb', 'libx265', 'libxvid', 'ljpeg', 'magicyuv', 'mjpeg', 'mjpeg_vaapi', 'mpeg1video', 'mpeg2_vaapi', 'mpeg2video', 'mpeg4', 'mpeg4_v4l2m2m', 'msmpeg4', 'msmpeg4v2', 'msvideo1', 'nvenc', 'nvenc_h264', 'nvenc_hevc', 'pam', 'pbm', 'pcx', 'pgm', 'pgmyuv', 'png', 'ppm', 'prores', 'prores_aw', 'prores_ks', 'qtrle', 'r10k', 'r210', 'rawvideo', 'roqvideo', 'rv10', 'rv20', 'sgi', 'snow', 'sunrast', 'svq1', 'targa', 'tiff', 'utvideo', 'v210', 'v308', 'v408', 'v410', 'vc2', 'vp8_v4l2m2m', 'vp8_vaapi', 'vp9_vaapi', 'wmv1', 'wmv2', 'wrapped_avframe', 'xbm', 'xface', 'xwd', 'y41p', 'yuv4', 'zlib', 'zmbv'],
+        #     hint=msg,
+        #     label=_translate("Output Codec")
+        # )
 
         self.depends.append({
             "dependsOn": "saveFile",
@@ -149,7 +149,7 @@ class WebcamComponent(BaseComponent):
         inits = getInitVals(self.params, "PsychoPy")
 
         code = (
-            "%(name)s = hardware.webcam.Webcam(\n"
+            "%(name)s = hardware.camera.Camera(\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(+1, relative=True)
@@ -160,7 +160,9 @@ class WebcamComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
         code = (
             ")\n"
+            "# Switch on %(name)s\n"
             "%(name)s.open()\n"
+            "\n"
         )
         buff.writeIndentedLines(code % inits)
 
@@ -169,18 +171,22 @@ class WebcamComponent(BaseComponent):
 
         # Write code
         code = (
-            "%(name)s = new visual.Camera({\n"
+            "%(name)s = new hardware.Camera({\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "win : psychoJS.window, \n"
                 "name:'%(name)s',\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
         code = (
             "});\n"
+            "// Get permission from participant to access their camera\n"
+            "%(name)s.authorize()\n"
+            "// Switch on %(name)s\n"
+            "%(name)s.open()\n"
+            "\n"
         )
         buff.writeIndentedLines(code % inits)
 
@@ -188,7 +194,8 @@ class WebcamComponent(BaseComponent):
         # Start webcam at component start
         self.writeStartTestCode(buff)
         code = (
-            "%(name)s.start()\n"
+            "# Start %(name)s recording\n"
+            "%(name)s.record()\n"
         )
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(-1, relative=True)
@@ -196,6 +203,7 @@ class WebcamComponent(BaseComponent):
         # Stop webcam at component stop
         self.writeStopTestCode(buff)
         code = (
+            "# Stop %(name)s recording\n"
             "%(name)s.stop()\n"
         )
         buff.writeIndentedLines(code % self.params)
@@ -205,7 +213,7 @@ class WebcamComponent(BaseComponent):
         # Start webcam at component start
         self.writeStartTestCodeJS(buff)
         code = (
-            "await %(name)s.start()\n"
+            "await %(name)s.record()\n"
         )
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(-1, relative=True)
@@ -236,7 +244,7 @@ class WebcamComponent(BaseComponent):
             code = (
             "# Save %(name)s recording\n"
             "%(name)sFilename = os.path.join(%(name)sRecFolder, 'recording_%(name)s_%%s.%(outputFileType)s' %% data.utils.getDateStr())\n"
-            "%(name)s.lastClip.save(%(name)sFilename, codec=%(codec)s)\n"
+            "%(name)s.lastClip.save(%(name)sFilename)\n"
             "thisExperiment.currentLoop.addData('%(name)s.clip', %(name)sFilename)\n"
             )
             buff.writeIndentedLines(code % self.params)
@@ -244,14 +252,28 @@ class WebcamComponent(BaseComponent):
     def writeRoutineEndCodeJS(self, buff):
         code = (
             "// Make sure %(name)s has stopped recording\n"
-            "%(name)s.stop()\n"
+            "%(name)s.close()\n"
         )
         buff.writeIndentedLines(code % self.params)
         if self.params['saveFile']:
             code = (
             "// Save %(name)s recording\n"
-            "let %(name)sFilename = `recording_%(name)s_${expInfo['date']}.%(outputFileType)s`;\n"
-            "await %(name)s.download(%(name)sFilename);\n"
+            "let %(name)sFilename = `${%(name)sRecFolder}/recording_%(name)s_${expInfo['date']}.%(outputFileType)s`;\n"
+            "await %(name)s.save(%(name)sFilename);\n"
             "psychoJS.experiment.addData('%(name)s.clip', %(name)sFilename);\n"
             )
             buff.writeIndentedLines(code % self.params)
+
+    def writeExperimentEndCode(self, buff):
+        code = (
+            "# Switch off %(name)s\n"
+            "%(name)s.close()\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+    def writeExperimentEndCodeJS(self, buff):
+        code = (
+            "// Switch off %(name)s\n"
+            "%(name)s.close()\n"
+        )
+        buff.writeIndentedLines(code % self.params)
