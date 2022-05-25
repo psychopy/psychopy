@@ -841,17 +841,16 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self.readmeFrame = ReadmeFrame(parent=self)
         # look for a readme file
         if self.filename and self.filename != 'untitled.psyexp':
-            dirname = os.path.dirname(self.filename)
-            possibles = glob.glob(os.path.join(dirname, 'readme*'))
+            dirname = Path(self.filename).parent
+            possibles = list(dirname.glob('readme*'))
             if len(possibles) == 0:
-                possibles = glob.glob(os.path.join(dirname, 'Readme*'))
-                possibles.extend(glob.glob(os.path.join(dirname, 'README*')))
+                possibles = list(dirname.glob('Readme*'))
+                possibles.extend(dirname.glob('README*'))
             # still haven't found a file so use default name
             if len(possibles) == 0:
-                self.readmeFilename = os.path.join(
-                    dirname, 'readme.md')  # use this as our default
+                self.readmeFilename = str(dirname / 'readme.md')  # use this as our default
             else:
-                self.readmeFilename = possibles[0]  # take the first one found
+                self.readmeFilename = str(possibles[0])  # take the first one found
         else:
             self.readmeFilename = None
         self.readmeFrame.setFile(self.readmeFilename)
@@ -1319,8 +1318,6 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 # Swap old with new names
                 self.exp.routines[oldName].name = name
                 self.exp.routines[name] = self.exp.routines.pop(oldName)
-                for comp in self.exp.routines[name]:
-                    comp.parentName = name
                 self.exp.namespace.rename(oldName, name)
                 self.routinePanel.renameRoutinePage(currentRoutineIndex, name)
                 self.addToUndoStack("`RENAME Routine `%s`" % oldName)
@@ -2030,7 +2027,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                 thisColor = colors.app['rt_comp_force']
         # check True/False on ForceEndRoutineOnPress
         if 'forceEndRoutineOnPress' in component.params:
-            if component.params['forceEndRoutineOnPress'].val:
+            if component.params['forceEndRoutineOnPress'].val in ['any click', 'valid click']:
                 thisColor = colors.app['rt_comp_force']
         # check True aliases on EndRoutineOn
         if 'endRoutineOn' in component.params:
