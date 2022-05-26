@@ -1868,7 +1868,7 @@ DotsComponent.units.staticUpdater:None
 DotsComponent.units.updates:None
 DotsComponent.units.val:from exp settings
 DotsComponent.units.valType:str
-EmotivMarkingComponent.order:['name', 'startVal', 'startEstim', 'startType', 'stopVal', 'durationEstim', 'stopType', 'marker_label', 'marker_value', 'stop_marker']
+EmotivMarkingComponent.order:['name', 'startVal', 'startEstim', 'startType', 'stopVal', 'durationEstim', 'stopType', 'emotiv_marker_label', 'emotiv_marker_value', 'emotiv_stop_marker']
 EmotivMarkingComponent.disabled.default:False
 EmotivMarkingComponent.disabled.allowedLabels:[]
 EmotivMarkingComponent.disabled.allowedTypes:[]
@@ -1903,40 +1903,40 @@ EmotivMarkingComponent.durationEstim.staticUpdater:None
 EmotivMarkingComponent.durationEstim.updates:None
 EmotivMarkingComponent.durationEstim.val:0.01
 EmotivMarkingComponent.durationEstim.valType:code
-EmotivMarkingComponent.marker_label.default:'label'
-EmotivMarkingComponent.marker_label.allowedLabels:[]
-EmotivMarkingComponent.marker_label.allowedTypes:[]
-EmotivMarkingComponent.marker_label.allowedUpdates:['constant', 'set every repeat']
-EmotivMarkingComponent.marker_label.allowedVals:[]
-EmotivMarkingComponent.marker_label.canBePath:True
-EmotivMarkingComponent.marker_label.categ:Basic
-EmotivMarkingComponent.marker_label.codeWanted:False
-EmotivMarkingComponent.marker_label.direct:True
-EmotivMarkingComponent.marker_label.hint:Label of the marker to be inserted (interpreted as a string)
-EmotivMarkingComponent.marker_label.inputType:single
-EmotivMarkingComponent.marker_label.label:Marker Label
-EmotivMarkingComponent.marker_label.readOnly:False
-EmotivMarkingComponent.marker_label.staticUpdater:None
-EmotivMarkingComponent.marker_label.updates:constant
-EmotivMarkingComponent.marker_label.val:label
-EmotivMarkingComponent.marker_label.valType:str
-EmotivMarkingComponent.marker_value.default:'1'
-EmotivMarkingComponent.marker_value.allowedLabels:[]
-EmotivMarkingComponent.marker_value.allowedTypes:[]
-EmotivMarkingComponent.marker_value.allowedUpdates:['constant', 'set every repeat']
-EmotivMarkingComponent.marker_value.allowedVals:[]
-EmotivMarkingComponent.marker_value.canBePath:True
-EmotivMarkingComponent.marker_value.categ:Basic
-EmotivMarkingComponent.marker_value.codeWanted:False
-EmotivMarkingComponent.marker_value.direct:True
-EmotivMarkingComponent.marker_value.hint:Value of the marker to be inserted (interpreted as a string)
-EmotivMarkingComponent.marker_value.inputType:single
-EmotivMarkingComponent.marker_value.label:Marker Value
-EmotivMarkingComponent.marker_value.readOnly:False
-EmotivMarkingComponent.marker_value.staticUpdater:None
-EmotivMarkingComponent.marker_value.updates:constant
-EmotivMarkingComponent.marker_value.val:1
-EmotivMarkingComponent.marker_value.valType:str
+EmotivMarkingComponent.emotiv_marker_label.default:'label'
+EmotivMarkingComponent.emotiv_marker_label.allowedLabels:[]
+EmotivMarkingComponent.emotiv_marker_label.allowedTypes:[]
+EmotivMarkingComponent.emotiv_marker_label.allowedUpdates:['constant', 'set every repeat']
+EmotivMarkingComponent.emotiv_marker_label.allowedVals:[]
+EmotivMarkingComponent.emotiv_marker_label.canBePath:True
+EmotivMarkingComponent.emotiv_marker_label.categ:Basic
+EmotivMarkingComponent.emotiv_marker_label.codeWanted:False
+EmotivMarkingComponent.emotiv_marker_label.direct:True
+EmotivMarkingComponent.emotiv_marker_label.hint:Label of the marker to be inserted (interpreted as a string)
+EmotivMarkingComponent.emotiv_marker_label.inputType:single
+EmotivMarkingComponent.emotiv_marker_label.label:Marker Label
+EmotivMarkingComponent.emotiv_marker_label.readOnly:False
+EmotivMarkingComponent.emotiv_marker_label.staticUpdater:None
+EmotivMarkingComponent.emotiv_marker_label.updates:constant
+EmotivMarkingComponent.emotiv_marker_label.val:label
+EmotivMarkingComponent.emotiv_marker_label.valType:str
+EmotivMarkingComponent.emotiv_marker_value.default:'1'
+EmotivMarkingComponent.emotiv_marker_value.allowedLabels:[]
+EmotivMarkingComponent.emotiv_marker_value.allowedTypes:[]
+EmotivMarkingComponent.emotiv_marker_value.allowedUpdates:['constant', 'set every repeat']
+EmotivMarkingComponent.emotiv_marker_value.allowedVals:[]
+EmotivMarkingComponent.emotiv_marker_value.canBePath:True
+EmotivMarkingComponent.emotiv_marker_value.categ:Basic
+EmotivMarkingComponent.emotiv_marker_value.codeWanted:False
+EmotivMarkingComponent.emotiv_marker_value.direct:True
+EmotivMarkingComponent.emotiv_marker_value.hint:Value of the marker to be inserted (interpreted as a string)
+EmotivMarkingComponent.emotiv_marker_value.inputType:single
+EmotivMarkingComponent.emotiv_marker_value.label:Marker Value
+EmotivMarkingComponent.emotiv_marker_value.readOnly:False
+EmotivMarkingComponent.emotiv_marker_value.staticUpdater:None
+EmotivMarkingComponent.emotiv_marker_value.updates:constant
+EmotivMarkingComponent.emotiv_marker_value.val:1
+EmotivMarkingComponent.emotiv_marker_value.valType:str
 EmotivMarkingComponent.name.default:eeg_marker
 EmotivMarkingComponent.name.allowedLabels:[]
 EmotivMarkingComponent.name.allowedTypes:[]
@@ -2055,23 +2055,23 @@ EmotivMarkingComponent.stopVal.staticUpdater:None
 EmotivMarkingComponent.stopVal.updates:constant
 EmotivMarkingComponent.stopVal.val:1
 EmotivMarkingComponent.stopVal.valType:code
-EmotivMarkingComponent.stop_marker.default:False
-EmotivMarkingComponent.stop_marker.allowedLabels:[]
-EmotivMarkingComponent.stop_marker.allowedTypes:[]
-EmotivMarkingComponent.stop_marker.allowedUpdates:[]
-EmotivMarkingComponent.stop_marker.allowedVals:[True, False]
-EmotivMarkingComponent.stop_marker.canBePath:True
-EmotivMarkingComponent.stop_marker.categ:Basic
-EmotivMarkingComponent.stop_marker.codeWanted:False
-EmotivMarkingComponent.stop_marker.direct:True
-EmotivMarkingComponent.stop_marker.hint:Check this box to include a stop marker
-EmotivMarkingComponent.stop_marker.inputType:bool
-EmotivMarkingComponent.stop_marker.label:Stop Marker
-EmotivMarkingComponent.stop_marker.readOnly:False
-EmotivMarkingComponent.stop_marker.staticUpdater:None
-EmotivMarkingComponent.stop_marker.updates:constant
-EmotivMarkingComponent.stop_marker.val:False
-EmotivMarkingComponent.stop_marker.valType:bool
+EmotivMarkingComponent.emotiv_stop_marker.default:False
+EmotivMarkingComponent.emotiv_stop_marker.allowedLabels:[]
+EmotivMarkingComponent.emotiv_stop_marker.allowedTypes:[]
+EmotivMarkingComponent.emotiv_stop_marker.allowedUpdates:[]
+EmotivMarkingComponent.emotiv_stop_marker.allowedVals:[True, False]
+EmotivMarkingComponent.emotiv_stop_marker.canBePath:True
+EmotivMarkingComponent.emotiv_stop_marker.categ:Basic
+EmotivMarkingComponent.emotiv_stop_marker.codeWanted:False
+EmotivMarkingComponent.emotiv_stop_marker.direct:True
+EmotivMarkingComponent.emotiv_stop_marker.hint:Check this box to include a stop marker
+EmotivMarkingComponent.emotiv_stop_marker.inputType:bool
+EmotivMarkingComponent.emotiv_stop_marker.label:Stop Marker
+EmotivMarkingComponent.emotiv_stop_marker.readOnly:False
+EmotivMarkingComponent.emotiv_stop_marker.staticUpdater:None
+EmotivMarkingComponent.emotiv_stop_marker.updates:constant
+EmotivMarkingComponent.emotiv_stop_marker.val:False
+EmotivMarkingComponent.emotiv_stop_marker.valType:bool
 EmotivMarkingComponent.syncScreenRefresh.default:False
 EmotivMarkingComponent.syncScreenRefresh.allowedLabels:[]
 EmotivMarkingComponent.syncScreenRefresh.allowedTypes:[]

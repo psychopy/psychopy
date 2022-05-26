@@ -546,6 +546,12 @@ class MultiStairHandler:
     def name(self):
         return self.params['name'].val
 
+    def writePreCodeJS(self, buff):
+        if self.params['stairType'] == 'QUEST':
+            buff.writeOnceIndentedLines(
+                "import jsQUEST from 'https://www.hes.kyushu-u.ac.jp/~kurokid/QUEST/dist/jsQUEST.js';"
+            )
+
     def writeLoopStartCode(self, buff):
         # create a 'thisName' for use in "for thisTrial in trials:"
         makeLoopIndex = self.exp.namespace.makeLoopIndex
@@ -730,6 +736,15 @@ class LoopInitiator:
         self.exp = loop.exp
         loop.initiator = self
 
+    def __eq__(self, obj):
+        if isinstance(obj, str):
+            return self.loop.name == obj
+        elif isinstance(obj, LoopInitiator):
+            return self.loop.name == obj.loop.name
+
+    def __ne__(self, obj):
+        return not (self == obj)
+
     @property
     def _xml(self):
         # Make root element
@@ -758,11 +773,17 @@ class LoopInitiator:
     def getType(self):
         return 'LoopInitiator'
 
+    def writePreCodeJS(self, buff):
+        if hasattr(self.loop, 'writePreCodeJS'):
+            self.loop.writePreCodeJS(buff)
+
     def writeInitCode(self, buff):
         self.loop.writeInitCode(buff)
 
     def writeInitCodeJS(self, buff):
-        self.loop.writeInitCodeJS(buff)
+        if hasattr(self.loop, "writeInitCodeJS"):
+            # the loop may not have/need this option
+            self.loop.writeInitCodeJS(buff)
 
     def writeMainCode(self, buff):
         self.loop.writeLoopStartCode(buff)
