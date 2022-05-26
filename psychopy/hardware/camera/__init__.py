@@ -19,7 +19,6 @@ import numpy as np
 import tempfile
 import os
 from psychopy.constants import STOPPED, STOPPING, NOT_STARTED, RECORDING
-from psychopy.core import getTime
 from psychopy.visual.movies.metadata import MovieMetadata, NULL_MOVIE_METADATA
 from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
 from ffpyplayer.player import MediaPlayer
@@ -203,6 +202,76 @@ class CameraInfo:
         return frameRateMin <= frameRate <= frameRateMax
 
 
+class StreamStatus:
+    """Descriptor class for stream status.
+
+    This class is used to report the current status of the stream read/writer.
+
+    Parameters
+    ----------
+    status : int
+        Status flag for the stream.
+    streamTime : float
+        Current stream time in seconds. This value increases monotonically and
+        is common to all webcams attached to the system.
+    recTime : float
+        If recording, this field will report the current timestamp within the
+        output file. Otherwise, this value is zero.
+    recBytes : float
+        If recording, this value indicates the number of bytes that have been
+        written out to file.
+
+    """
+    __slots__ = ['_status',
+                 '_streamTime',
+                 '_recTime',
+                 '_recBytes']
+
+    def __init__(self,
+                 status=NOT_STARTED,
+                 streamTime=0.0,
+                 recTime=0.0,
+                 recBytes=0):
+
+        self._status = int(status)
+        self._streamTime = float(streamTime)
+        self._recTime = float(recTime)
+        self._recBytes = int(recBytes)
+
+    @property
+    def status(self):
+        """Status flag for the stream (`int`).
+        """
+        return self._status
+
+    @property
+    def streamTime(self):
+        """Current stream time in seconds (`float`).
+
+        This value increases monotonically and is common timebase for all
+        cameras attached to the system.
+        """
+        return self._streamTime
+
+    @property
+    def recTime(self):
+        """Current recording size on disk (`float`).
+
+        If recording, this value indicates the number of bytes that have been
+        written out to file.
+        """
+        return self._recTime
+
+    @property
+    def recBytes(self):
+        """Current recording time (`float`).
+
+        If recording, this field will report the current timestamp within the
+        output file. Otherwise, this value is zero.
+        """
+        return self._recBytes
+
+
 # ------------------------------------------------------------------------------
 # Classes
 #
@@ -211,9 +280,9 @@ class CameraInfo:
 class MovieStreamIOThread(threading.Thread):
     """Class for reading and writing streams asynchronously.
 
-    The rate of which frames are read is controlled dynamically based on the
-    metadata. This will ensure that CPU load is kept to a minimum, only polling
-    for new frames at the rate they are being made available.
+    The rate of which frames are read is controlled dynamically based on values
+    within stream metadata. This will ensure that CPU load is kept to a minimum,
+    only polling for new frames at the rate they are being made available.
 
     Parameters
     ----------
@@ -232,6 +301,12 @@ class MovieStreamIOThread(threading.Thread):
         self._player = player  # player interface to FFMPEG
         self._writer = writer  # writer interface
         self._frameQueue = queue.Queue(maxsize=1)  # frames for the monitor
+
+        # some values the user might want
+        self._status = NOT_STARTED
+        self._recordingTime = 0.0
+        self._recordingBytes = 0
+        self._streamTime = 0.0
 
         self._isReadyEvent = threading.Event()
         self._isRecording = threading.Event()
@@ -282,16 +357,34 @@ class MovieStreamIOThread(threading.Thread):
 
             # handle writing to file
             if self._isRecording.is_set():
-                _, pts = frameData
+                colorData, pts = frameData
                 if recordingJustStarted:
                     ptsStart = pts
+                    self._status = RECORDING
                     recordingJustStarted = False
 
                 # compute timestamp for the writer for the current frame
-                recordingTime = pts - ptsStart
+                self._streamTime = pts
+                self._recordingTime = pts - ptsStart
+
+                if self._writer is not None:
+                    frameWidth, frameHeight = colorData.get_size()
+                    pixelFormat = colorData.get_pixel_format()
+                    sws = SWScale(
+                        frameWidth,
+                        frameHeight,
+                        pixelFormat,
+                        ofmt='yuv420p')
+
+                    # write the frame to the file
+                    self._recordingBytes = self._writer.write_frame(
+                        img=sws.scale(colorData),
+                        pts=self._recordingTime,
+                        stream=0)
             else:
                 ptsStart = 0.0
                 recordingJustStarted = True
+                self._status = STOPPED
 
             # end of stream, close
             if val == 'eof':
@@ -319,6 +412,16 @@ class MovieStreamIOThread(threading.Thread):
         """Stop recording frames to the output file.
         """
         self._isRecording.clear()
+
+    def getStatus(self):
+        """Current recording time in seconds (`float`).
+        """
+        # thread-safe since value is immutable type and not settable
+        return StreamStatus(
+            NOT_STARTED,
+            self._streamTime,
+            self._recordingTime,
+            self._recordingBytes)
 
     def getRecentFrame(self):
         """Get the most recent frame data from the feed (`tuple`).
@@ -356,11 +459,12 @@ class Camera:
         Specifying a number (>=0) is a platform-independent means of selecting a
         camera. PsychoPy enumerates possible camera devices and makes them
         selectable without explicitly having the name of the cameras attached to
-        the system. Use caution when specifying a number, as the same index may
-        not reference the same camera everytime.
+        the system. Use caution when specifying an integer, as the same index
+        may not reference the same camera everytime.
     mic : :class:`~psychopy.sound.microphone.Microphone` or None
         Microphone to record audio samples from during recording. The microphone
-        input device must not be in use when `record()` is called.
+        input device must not be in use when `record()` is called. The audio
+        track will be merged with the video upon calling `save()`.
     mode : str
         Camera operating mode to use. Value can be either `'video'`, `'cv'` or
         `'photo'`. Use `'video'` for recording live-feeds to produce movies,
@@ -551,8 +655,8 @@ class Camera:
         self._tempVideoFileName = os.path.join(self._tempRootDir, 'video.avi')
         self._tempAudioFileName = os.path.join(self._tempRootDir, 'audio.wav')
 
-        frameWidth, frameHeight = self._recentMetadata['src_vid_size']
-        frameRate = self._recentMetadata['frame_rate']
+        frameWidth, frameHeight = 320, 240
+        frameRate = (32, 1)
 
         writerOptions = {
             'pix_fmt_in': 'yuv420p',  # default for now
@@ -576,9 +680,6 @@ class Camera:
         # cleanup
         self._writer.close()
         self._writer = None
-
-        # reset properties for a new recording
-        self._startPts = self._pts = self._absPts = -1.0
 
     def _renderVideo(self):
         """Combine video and audio tracks of temporary video and audio files.
@@ -669,7 +770,7 @@ class Camera:
         """Current stream time in seconds (`float`). This time increases
         monotonically from startup.
         """
-        return self._absPts
+        return self._tStream.streamTime
 
     @property
     def recordingTime(self):
@@ -680,7 +781,13 @@ class Camera:
         `record()` and `stop()` calls.
 
         """
-        return self._pts
+        return self._tStream.recordingTime
+
+    @property
+    def recordingBytes(self):
+        """Current size of the recording in bytes (`int`).
+        """
+        return self._tStream.recordingBytes
 
     def _assertMediaPlayer(self):
         """Assert that we have a media player instance open.
@@ -748,40 +855,6 @@ class Camera:
         """
         self._assertMediaPlayer()
 
-        # # update metadata
-        # self._recentMetadata = self._player.get_metadata()
-        #
-        # # grab a frame from the camera
-        # frame, status = self._player.get_frame()
-        #
-        # # got a valid frame within the timeout period
-        # self._isReady = True
-        # if frame is None or status == 'not ready':
-        #     self._isReady = False
-        #     return False
-        #
-        # # process the frame
-        # colorData, absPts = frame
-        #
-        # # ready if we're getting frames and the pts is monotonic
-        # if self._lastPts >= absPts:
-        #     self._isReady = False
-        #     return False
-        #
-        # self._lastPts = absPts
-        #
-        # # compute timestamps if needed
-        # self._absPts = absPts
-        # if self._status == RECORDING:
-        #     if self._lastFrame is NULL_MOVIE_FRAME_INFO:
-        #         self._startPts = absPts
-        #
-        #     # compute new recording timestamp
-        #     self._pts = self._absPts - self._startPts
-        # else:
-        #     # if not recording, return negative timestamp
-        #     self._startPts = self._pts = -1.0
-
         # If the queue is empty, the decoder thread has not yielded a new frame
         # since the last call.
         enqueuedFrame = self._tStream.getRecentFrame()
@@ -808,14 +881,9 @@ class Camera:
             movieLib=u'ffpyplayer',
             userData=None)
 
-        print(self._lastFrame)
-
         self._streamTime = pts  # stream time for the camera
         self._recordingTime = pts
         self._pts = 0.0
-
-        # write the frame to the file
-        self._writeFrame(colorData, self.recordingTime)
 
         # if status == 'eof':  # end of stream but there is a valid frame
         #     self._status = STOPPING  # last frame, stopping ...
@@ -840,7 +908,7 @@ class Camera:
             # library options
             framerate = str(30)
             videoSize = '{width}x{height}'.format(width=320, height=240)
-            bufferSize = 320 * 240 * 4
+            bufferSize = 320 * 240 * 3 * 10
 
             # build dict for library options
             lib_opts.update({
@@ -855,28 +923,21 @@ class Camera:
 
         # open a stream and pause it until ready
         self._player = MediaPlayer(_camera, ff_opts=ff_opts, lib_opts=lib_opts)
+        self._openWriter()
 
         # pass off the player to the thread which will process the stream
-        self._tStream = MovieStreamIOThread(self._player, None)
+        self._tStream = MovieStreamIOThread(self._player, self._writer)
         self._tStream.start()
 
         self._enqueueFrame()  # pull a frame, gets metadata too
 
-    def record(self, streamOnly=False):
+    def record(self):
         """Start recording frames.
-
-        Parameters
-        ----------
-        streamOnly : bool
-            Set as `True` to prevent writing any video stream data to disk. This
-            can be used to reduce CPU load if the camera is being used for
-            applications other than video recording (e.g., computer vision,
-            etc.) Default value is `False`.
-
         """
         self._assertMediaPlayer()
 
         self._lastFrame = NULL_MOVIE_FRAME_INFO
+        # self._openWriter()
         self._tStream.record()
 
         self._status = RECORDING
@@ -897,7 +958,14 @@ class Camera:
         self._assertMediaPlayer()
 
         self._status = STOPPED
-        self._tStream.stop()
+        self._tStream.join()
+        self._tStream.stop()  # close the stream
+        # NB - blocking lock here until thread closes before calling join?
+
+        self._closeWriter()
+
+        if self._writer is not None:
+            self._writer.close()
 
     def close(self):
         """Close the camera.
