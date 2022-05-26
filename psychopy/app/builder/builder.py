@@ -144,7 +144,6 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.filename = fileName
         self.htmlPath = None
         self.session = pavlovia.getCurrentSession()
-        self.btnHandles = {}  # stores toolbar buttons so they can be altered
         self.scriptProcess = None
         self.stdoutBuffer = None
         self.readmeFrame = None
@@ -3867,31 +3866,31 @@ class BuilderToolbar(BasePsychopyToolbar):
         self.AddSeparator()
 
         # Pavlovia run
-        self.buttons['pavRun'] = self.makeTool(
+        self.buttons['pavloviaRun'] = self.makeTool(
             name='globe_run',
             label=_translate("Run online"),
             tooltip=_translate("Run the study online (with pavlovia.org)"),
             func=self.frame.onPavloviaRun)
         # Pavlovia sync
-        self.buttons['pavSync'] = self.makeTool(
+        self.buttons['pavloviaSync'] = self.makeTool(
             name='globe_greensync',
             label=_translate("Sync online"),
             tooltip=_translate("Sync with web project (at pavlovia.org)"),
             func=self.frame.onPavloviaSync)
         # Pavlovia search
-        self.buttons['pavSearch'] = self.makeTool(
+        self.buttons['pavloviaSearch'] = self.makeTool(
             name='globe_magnifier',
             label=_translate("Search Pavlovia.org"),
             tooltip=_translate("Find existing studies online (at pavlovia.org)"),
             func=self.onPavloviaSearch)
         # Pavlovia user
-        self.buttons['pavUser'] = self.makeTool(
+        self.buttons['pavloviaUser'] = self.makeTool(
             name='globe_user',
             label=_translate("Current Pavlovia user"),
             tooltip=_translate("Log in/out of Pavlovia.org, view your user profile."),
             func=self.onPavloviaUser)
         # Pavlovia user
-        self.buttons['pavProject'] = self.makeTool(
+        self.buttons['pavloviaProject'] = self.makeTool(
             name='globe_info',
             label=_translate("View project"),
             tooltip=_translate("View details of this project"),
@@ -3900,6 +3899,8 @@ class BuilderToolbar(BasePsychopyToolbar):
         # Disable compile buttons until an experiment is present
         self.EnableTool(self.buttons['compile_py'].GetId(), Path(str(self.frame.filename)).is_file())
         self.EnableTool(self.buttons['compile_js'].GetId(), Path(str(self.frame.filename)).is_file())
+
+        self.frame.btnHandles = self.buttons
 
     def onPavloviaSearch(self, evt=None):
         searchDlg = SearchFrame(
