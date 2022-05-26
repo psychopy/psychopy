@@ -1432,6 +1432,7 @@ class WindowMixin:
             ]
         # Create Vertices object
         self._vertices = Vertices(value, obj=self, flip=self.flip, anchor=self.anchor)
+        self._needVertexUpdate = True
 
     @property
     def flip(self):
