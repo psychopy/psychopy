@@ -95,30 +95,30 @@ class CameraComponent(BaseComponent):
         #     hint=msg,
         #     label=_translate("Output Codec")
         # )
-
-        self.depends.append({
-            "dependsOn": "saveFile",
-            "condition": "==True",
-            "param": 'codec',
-            "true": "show",  # what to do with param if condition is True
-            "false": "hide",  # permitted: hide, show, enable, disable
-        })
-
-        msg = _translate("What file format would you like the video to be saved as?")
-        self.params['outputFileType'] = Param(
-            outputFileType, valType='code', inputType="choice", categ="Data",
-            allowedVals=["mp4", "mov", "mpeg", "mkv"],
-            hint=msg,
-            label=_translate("Output File Type")
-        )
-
-        self.depends.append({
-            "dependsOn": "saveFile",
-            "condition": "==True",
-            "param": 'outputFileType',
-            "true": "show",  # what to do with param if condition is True
-            "false": "hide",  # permitted: hide, show, enable, disable
-        })
+        #
+        # self.depends.append({
+        #     "dependsOn": "saveFile",
+        #     "condition": "==True",
+        #     "param": 'codec',
+        #     "true": "show",  # what to do with param if condition is True
+        #     "false": "hide",  # permitted: hide, show, enable, disable
+        # })
+        #
+        # msg = _translate("What file format would you like the video to be saved as?")
+        # self.params['outputFileType'] = Param(
+        #     outputFileType, valType='code', inputType="choice", categ="Data",
+        #     allowedVals=["mp4", "mov", "mpeg", "mkv"],
+        #     hint=msg,
+        #     label=_translate("Output File Extension")
+        # )
+        #
+        # self.depends.append({
+        #     "dependsOn": "saveFile",
+        #     "condition": "==True",
+        #     "param": 'outputFileType',
+        #     "true": "show",  # what to do with param if condition is True
+        #     "false": "hide",  # permitted: hide, show, enable, disable
+        # })
 
     def writeRoutineStartCode(self, buff):
         pass
@@ -131,14 +131,6 @@ class CameraComponent(BaseComponent):
             "%(name)sRecFolder = filename + '_%(name)s_recorded'\n"
             "if not os.path.isdir(%(name)sRecFolder):\n"
             "    os.mkdir(%(name)sRecFolder)\n"
-        )
-        buff.writeIndentedLines(code % inits)
-
-    def writeStartCodeJS(self, buff):
-        inits = getInitVals(self.params)
-        code = (
-            "// Define folder to store recordings from %(name)s"
-            "%(name)sRecFolder = filename + '_%(name)s_recorded"
         )
         buff.writeIndentedLines(code % inits)
 
@@ -226,7 +218,7 @@ class CameraComponent(BaseComponent):
             "# Save %(name)s recording\n"
             "%(name)sFilename = os.path.join(\n"
             "    %(name)sRecFolder, \n"
-            "    'recording_%(name)s_%%s.%(outputFileType)s' %% data.utils.getDateStr()\n"
+            "    'recording_%(name)s_%%s.mp4' %% data.utils.getDateStr()\n"
             ")\n"
             "%(name)s.lastClip.save(%(name)sFilename)\n"
             "thisExperiment.currentLoop.addData('%(name)s.clip', %(name)sFilename)\n"
@@ -234,16 +226,16 @@ class CameraComponent(BaseComponent):
             buff.writeIndentedLines(code % self.params)
 
     def writeRoutineEndCodeJS(self, buff):
-        code = (
-            "// Make sure %(name)s has stopped recording\n"
-            "%(name)s.close()\n"
-        )
-        buff.writeIndentedLines(code % self.params)
         if self.params['saveFile']:
             code = (
             "// Save %(name)s recording\n"
-            "let %(name)sFilename = `${%(name)sRecFolder}/recording_%(name)s_${expInfo['date']}.%(outputFileType)s`;\n"
-            "await %(name)s.save(%(name)sFilename);\n"
+            "let %(name)sFilename = `recording_%(name)s_${util.MonotonicClock.getDateStr()}`;\n"
+            "await %(name)s.save({\n"
+            "    tag: %(name)sFilename,\n"
+            "    waitForCompletion: true,\n"
+            "    showDialog: true,\n"
+            "    dialogMsg: \"Please wait a few moments while the video is uploading to the server...\"\n"
+            "});\n"
             "psychoJS.experiment.addData('%(name)s.clip', %(name)sFilename);\n"
             )
             buff.writeIndentedLines(code % self.params)
