@@ -283,10 +283,10 @@ def getInitVals(params, target="PsychoPy"):
         elif name == 'noiseType':
             inits[name].val = 'Binary'
             inits[name].valType = 'str'
-        elif name == 'marker_label':
+        elif name == 'emotiv_marker_label':
             inits[name].val = 'Label'
             inits[name].valType = 'str'
-        elif name == 'marker_value':
+        elif name == 'emotiv_marker_value':
             inits[name].val = 'Value'
             inits[name].valType = 'str'
         elif name == 'buttonRequired':
