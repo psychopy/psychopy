@@ -141,7 +141,14 @@ class User(dict):
         # Get info from Pavlovia
         if isinstance(id, (float, int, str)):
             # If given a number or string, treat it as a user ID / username
-            self.info = requests.get("https://pavlovia.org/api/v2/designers/" + str(id)).json()['designer']
+            self.info = self.session.session.get(
+                "https://pavlovia.org/api/v2/designers/" + str(id)
+            ).json()['designer']
+            # Make sure self.info has necessary keys
+            assert 'gitlabId' in self.info, _translate(
+                f"Could not retrieve user info for user {id}, server returned:\n"
+                f"{self.info}"
+            )
         elif isinstance(id, dict) and 'gitlabId' in id:
             # If given a dict from Pavlovia rather than an ID, store it rather than requesting again
             self.info = id
@@ -392,6 +399,7 @@ class PavloviaSession:
                         "Trying to login with token {} which is shorter "
                         "than expected length ({} not 64) for gitlab token"
                             .format(repr(token), len(token)))
+            # Setup gitlab session
             if parse_version(gitlab.__version__) > parse_version("1.4"):
                 self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=10, per_page=100)
             else:
@@ -401,11 +409,17 @@ class PavloviaSession:
             self.userID = self.gitlab.user.id  # populate when token property is set
             self.userFullName = self.gitlab.user.name
             self.authenticated = True
+            # Setup http session
+            self.session = requests.Session()
+            self.session.headers = {'OauthToken': token}
         else:
+            # Setup gitlab session
             if parse_version(gitlab.__version__) > parse_version("1.4"):
                 self.gitlab = gitlab.Gitlab(rootURL, timeout=10, per_page=100)
             else:
                 self.gitlab = gitlab.Gitlab(rootURL, timeout=10)
+            # Setup http session
+            self.session = requests.Session()
 
     @property
     def user(self):
@@ -477,21 +491,21 @@ class PavloviaSearch(pandas.DataFrame):
         filterBy = self.FilterTerm(filterBy)
         # Do search
         try:
+            session = getCurrentSession()
             if mine:
                 # Display experiments by current user
-                session = getCurrentSession()
-                data = requests.get(
+                data = session.session.get(
                     f"https://pavlovia.org/api/v2/designers/{session.userID}/experiments?search={term}{filterBy}",
                     timeout=10
                 ).json()
             elif term or filterBy:
-                data = requests.get(
+                data = session.session.get(
                     f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}",
                     timeout=10
                 ).json()
             else:
                 # Display demos for blank search
-                data = requests.get(
+                data = session.session.get(
                     "https://pavlovia.org/api/v2/experiments?search=demos&designer=demos",
                     timeout=10
                 ).json()
@@ -603,8 +617,9 @@ class PavloviaProject(dict):
         self._info = None
         # for a new project it may take time for Pavlovia to register the new ID so try for a while
         while self._info is None and (time.time() - start) < 30:
-            requestVal = requests.get(f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
-                                      headers={'OauthToken': self.session.getToken()}).json()
+            requestVal = self.session.session.get(
+                f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
+            ).json()
             self._info = requestVal['experiment']
         if self._info is None:
             raise ValueError(f"Could not find project with id `{self.id}` on Pavlovia: {requestVal}")
@@ -1215,7 +1230,6 @@ def getNameWithNamespace(p):
         return None
 
 
-
 def getProject(filename):
     """Will try to find (locally synced) pavlovia Project for the filename
     """
@@ -1229,6 +1243,8 @@ def getProject(filename):
     path = getNameWithNamespace(filename)
     # Get session
     session = getCurrentSession()
+    # Start off with proj as None
+    proj = None
     # If already found, return
     if (knownProjects is not None) and (path in knownProjects) and ('idNumber' in knownProjects[path]):
         try:
@@ -1244,18 +1260,69 @@ def getProject(filename):
         for remote in localRepo.remotes:
             for url in remote.urls:
                 if "gitlab.pavlovia.org" in url:
-                    # Get Namespace/Name from standard style url
-                    nameSearch = re.search(r"(?<=https:\/\/gitlab\.pavlovia\.org\/).*\/.*(?=\.git)", url)
-                elif "git@gitlab.pavlovia.org:" in url:
-                    # Get Namespace/Name from @ stye url
-                    nameSearch = re.search(r"(?<=git@gitlab\.pavlovia\.org:).*\/.*(?=\.git)", url)
-                else:
-                    # Attempt to get Namespace/Name from unhandled style
-                    nameSearch = re.search(r"[\w\-]*\\[\w\-]*\.git", url)
-                if nameSearch is not None:
-                    name = nameSearch.group(0)
-                    project = session.gitlab.projects.get(name)
-                    return PavloviaProject(project.id)
+                    # Get namespace from url
+                    # could be 'https://gitlab.pavlovia.org/NameSpace/Name.git'
+                    # or may be 'git@gitlab.pavlovia.org:NameSpace/Name.git'
+                    namespaceName = url.split('gitlab.pavlovia.org')[1]
+                    # remove the first char if it's : or /
+                    if namespaceName[0] in ['/', ':']:
+                        namespaceName = namespaceName[1:]
+                    # Remove .git
+                    namespaceName = namespaceName.replace(".git", "")
+                    # Split to get namespace
+                    nameSpace, projectName = namespaceName.split('/')
+                    # Get current session
+                    pavSession = getCurrentSession()
+                    # Try to log in if not logged in
+                    if not pavSession.user:
+                        if nameSpace in knownUsers:
+                            # Log in if user is known
+                            login(nameSpace, rememberMe=True)
+                        else:
+                            # Check whether project repo is found in any of the known users accounts
+                            for user in knownUsers:
+                                try:
+                                    login(user)
+                                except requests.exceptions.ConnectionError:
+                                    break
+                                foundProject = False
+                                for repo in pavSession.findUserProjects():
+                                    if namespaceName in repo['id']:
+                                        foundProject = True
+                                        logging.info("Logging in as {}".format(user))
+                                        break
+                                if not foundProject:
+                                    logging.warning("Could not find {namespace} in your Pavlovia accounts. "
+                                                    "Logging in as {user}.".format(namespace=namespaceName,
+                                                                                   user=user))
+
+                    if pavSession.user:
+                        # If we are now logged in, get project id via session
+                        requestVal = pavSession.session.get(
+                            f"https://pavlovia.org/api/v2/experiments/{namespaceName}",
+                        ).json()
+                        expInfo = requestVal['experiment']
+                        if expInfo is not None:
+                            # Get PavloviaProject via id
+                            proj = pavSession.getProject(expInfo['gitlabId'])
+                            proj.repo = localRepo
+                        else:
+                            # Warn user if there is a repo but no project
+                            logging.warning(
+                                _translate("We found a repository pointing to {} "
+                                           "but no project was found there (deleted?)").format(url))
+                    else:
+                        # If we are still logged out, prompt user
+                        logging.warning(_translate("We found a repository pointing to {} "
+                                                   "but no user is logged in for us to check it".format(url)))
+                    return proj
+
+            if proj is None:
+                # Warn user if still no project
+                logging.warning("We found a repository at {} but it "
+                                "doesn't point to gitlab.pavlovia.org. "
+                                "You could create that as a remote to "
+                                "sync from PsychoPy.".format(gitRoot))
 
 
 global _existingSession
