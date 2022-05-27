@@ -21,6 +21,7 @@ import os
 from psychopy.constants import STOPPED, STOPPING, NOT_STARTED, RECORDING
 from psychopy.visual.movies.metadata import MovieMetadata, NULL_MOVIE_METADATA
 from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
+from psychopy.sound.microphone import Microphone
 from ffpyplayer.player import MediaPlayer
 from ffpyplayer.writer import MediaWriter
 from ffpyplayer.pic import SWScale
@@ -296,7 +297,7 @@ class MovieStreamIOThread(threading.Thread):
     """
     def __init__(self, player, writer=None):
         threading.Thread.__init__(self)
-        self.daemon = True
+        self.daemon = False
 
         self._player = player  # player interface to FFMPEG
         self._writer = writer  # writer interface
@@ -311,6 +312,7 @@ class MovieStreamIOThread(threading.Thread):
         self._isReadyEvent = threading.Event()
         self._isRecording = threading.Event()
         self._isStreamingEvent = threading.Event()
+        self._stopSignal = threading.Event()
 
     def run(self):
         """Main sub-routine for this thread.
@@ -326,7 +328,6 @@ class MovieStreamIOThread(threading.Thread):
 
         self._isStreamingEvent.set()
         frameInterval = 0.001  # dynamic poll interval, start at 1ms
-        frameIndex = 0  # valid frame index
         ptsStart = 0.0
         recordingJustStarted = True
         streaming = True
@@ -386,12 +387,9 @@ class MovieStreamIOThread(threading.Thread):
                 recordingJustStarted = True
                 self._status = STOPPED
 
-            # end of stream, close
-            if val == 'eof':
-                break
-
-            # write out the frame if needed ...
-            frameIndex += 1
+            # signal to close a thread
+            if self._stopSignal.is_set() or val == 'eof':
+                streaming = False
 
         # out of this loop, we're done
         self._isReadyEvent.clear()
@@ -412,6 +410,11 @@ class MovieStreamIOThread(threading.Thread):
         """Stop recording frames to the output file.
         """
         self._isRecording.clear()
+
+    def shutdown(self):
+        """Stop the thread.
+        """
+        self._stopSignal.set()
 
     def getStatus(self):
         """Current recording time in seconds (`float`).
@@ -543,6 +546,8 @@ class Camera:
         self._tempAudioFileName = u''
         self._tempRootDir = u'.'
 
+        if not isinstance(mic, Microphone):
+            TypeError("Expected type `Microphone` for parameter `mic`.")
         self.mic = mic
 
         # current camera frame since the start of recording
@@ -557,6 +562,9 @@ class Camera:
         self._absPts = -1.0  # timestamp of the video stream in absolute time
         self._pts = -1.0  # timestamp used for writing the video stream
         self._lastPts = 0.0  # last timestamp
+        self._recordingTime = 0.0
+        self._recordingBytes = 0
+        self._streamTime = 0.0
         self._isMonotonic = False
 
         # thread for reading a writing streams
@@ -668,6 +676,10 @@ class Camera:
         # initialize the writer to transcode the video stream to file
         self._writer = MediaWriter(self._tempVideoFileName, [writerOptions])
 
+        # initialize audio recording if available
+        if self._mic is not None:
+            self._mic.start()
+
         # recording timestamp
         self._pts = -1.0
 
@@ -770,7 +782,7 @@ class Camera:
         """Current stream time in seconds (`float`). This time increases
         monotonically from startup.
         """
-        return self._tStream.streamTime
+        return self._streamTime
 
     @property
     def recordingTime(self):
@@ -781,13 +793,13 @@ class Camera:
         `record()` and `stop()` calls.
 
         """
-        return self._tStream.recordingTime
+        return self._recordingTime
 
     @property
     def recordingBytes(self):
         """Current size of the recording in bytes (`int`).
         """
-        return self._tStream.recordingBytes
+        return self._recordingBytes
 
     def _assertMediaPlayer(self):
         """Assert that we have a media player instance open.
@@ -857,6 +869,7 @@ class Camera:
 
         # If the queue is empty, the decoder thread has not yielded a new frame
         # since the last call.
+        streamStatus = self._tStream.getStatus()
         enqueuedFrame = self._tStream.getRecentFrame()
         if enqueuedFrame is None:
             return False
@@ -881,9 +894,10 @@ class Camera:
             movieLib=u'ffpyplayer',
             userData=None)
 
-        self._streamTime = pts  # stream time for the camera
-        self._recordingTime = pts
-        self._pts = 0.0
+        # status information
+        self._streamTime = streamStatus.streamTime  # stream time for the camera
+        self._recordingTime = streamStatus.recTime
+        self._recordingBytes = streamStatus.recBytes
 
         # if status == 'eof':  # end of stream but there is a valid frame
         #     self._status = STOPPING  # last frame, stopping ...
@@ -958,11 +972,14 @@ class Camera:
         self._assertMediaPlayer()
 
         self._status = STOPPED
-        self._tStream.join()
-        self._tStream.stop()  # close the stream
-        # NB - blocking lock here until thread closes before calling join?
+        self._tStream.shutdown()  # close the stream
+        self._tStream.join()  # wait until thread exits
 
         self._closeWriter()
+
+        # initialize audio recording if available
+        if self._mic is not None:
+            self._mic.stop()
 
         if self._writer is not None:
             self._writer.close()
