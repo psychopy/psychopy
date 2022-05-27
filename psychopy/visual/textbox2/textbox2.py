@@ -57,6 +57,7 @@ debug = False
 
 # If text is ". " we don't want to start next line with single space?
 
+
 class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def __init__(self, win, text,
                  font="Open Sans",
@@ -219,7 +220,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # then layout the text (setting text triggers _layout())
         self.languageStyle = languageStyle
         self._text = ''
-        self.text = self.startText = text if text is not None else ""
+        self.text = self.placeholder = text if text is not None else ""
 
         # caret
         self.editable = editable
@@ -1238,6 +1239,20 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         but use this method if you need to suppress the log message.
         """
         setAttribute(self, 'font', font, log)
+
+    # -------- legacy attributes --------
+
+    @property
+    def startText(self):
+        """
+        In v2022.1.4, `.startText` was replaced by `.placeholder` for consistency with PsychoJS. The two attributes
+        are fully interchangeable.
+        """
+        return self.placeholder
+
+    @startText.setter
+    def startText(self, value):
+        self.placeholder = value
 
 
 class Caret(ColorMixin):
