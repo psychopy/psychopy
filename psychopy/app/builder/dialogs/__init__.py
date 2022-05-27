@@ -459,13 +459,13 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
             self.dlg = dlg
             self.app = self.dlg.app
             # Setup sizer
+            self.border = wx.BoxSizer()
+            self.SetSizer(self.border)
             self.sizer = wx.GridBagSizer(0, 0)
-            self.SetSizer(self.sizer)
-            # Add empty row for spacing
-            self.sizer.Add(wx.StaticText(self, label=""), (0, 0))
+            self.border.Add(self.sizer, border=12, proportion=1, flag=wx.ALL | wx.EXPAND)
             # Add controls
             self.ctrls = {}
-            self.row = 1
+            self.row = 0
             # Sort params
             sortedParams = OrderedDict(params)
             for name in reversed(self.parent.element.order):
