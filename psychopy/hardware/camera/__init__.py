@@ -566,6 +566,7 @@ class Camera:
         self._recordingBytes = 0
         self._streamTime = 0.0
         self._isMonotonic = False
+        self._outFile = ''
 
         # thread for reading a writing streams
         self._tStream = None
@@ -728,10 +729,13 @@ class Camera:
 
         # merge audio and video tracks, we use MoviePy for this
         videoClip = VideoFileClip(self._tempVideoFileName)
-        audioClip = AudioFileClip(self._tempAudioFileName)
 
-        # add audio track to the video
-        videoClip.audio = CompositeAudioClip([audioClip])
+        if self._mic is not None:
+            audioClip = AudioFileClip(self._tempAudioFileName)
+            # add audio track to the video
+            videoClip.audio = CompositeAudioClip([audioClip])
+
+        # transcode with the format the user wants
         videoClip.write_videofile(self._outFile)
 
         return True
