@@ -2,8 +2,10 @@ from pathlib import Path
 
 import pytest
 import tempfile
-from psychopy import visual, hardware, event
+from psychopy import visual, event
+from psychopy.hardware import camera
 import time
+
 
 @pytest.mark.skip_under_vm
 class TestWebcam:
@@ -15,18 +17,18 @@ class TestWebcam:
         # Make window
         self.win = visual.Window()
         # Make webcam object
-        self.obj = hardware.Webcam(self.win, name="testWebcam")
+        self.obj = camera.Camera(name="testWebcam")
         # Make textbox to display instructiosn in
         self.instr = visual.TextBox2(
             self.win, "",
             pos=(0, -1), anchor="bottom center", alignment="bottom center", size=(2, 0.5), units="norm"
         )
         # Initialise webcam
-        self.obj.initialize()
+        self.obj.open()
 
     def _record(self, dur):
         # Start recording
-        self.obj.start()
+        self.obj.record()
         # Update instructions
         self.instr.text = "Webcam is recording..."
         self.instr.draw()
@@ -53,7 +55,7 @@ class TestWebcam:
         # Try with and without syntactic sugar
         for withSugar in (True, False):
             # Start recording webcam
-            self.obj.start()
+            self.obj.record()
             # Set image as webcam obj if using sugar
             if withSugar:
                 img.image = self.obj
