@@ -207,6 +207,7 @@ class TrialHandler():
                         seed=seed))
         buff.writeIndentedLines(code)
         buff.setIndentLevel(2, relative=True)
+        if
         code = ("TrialHandler.fromSnapshot(snapshot); // update internal variables (.thisN etc) of the loop\n\n"
                 "// set up handler to look after randomisation of conditions etc\n"
                 "{loopName} = new TrialHandler({{\n"
@@ -229,12 +230,12 @@ class TrialHandler():
         if modular:
             code = ("\n// Schedule all the trials in the trialList:\n"
                     "for (const {thisName} of {loopName}) {{\n"
-                    "  const snapshot = {loopName}.getSnapshot();\n"
+                    "  snapshot = {loopName}.getSnapshot();\n"
                     "  {loopName}LoopScheduler.add(importConditions(snapshot));\n")
         else:
             code = ("\n// Schedule all the trials in the trialList:\n"
                     "{loopName}.forEach(function() {{\n"
-                    "  const snapshot = {loopName}.getSnapshot();\n\n"
+                    "  snapshot = {loopName}.getSnapshot();\n\n"
                     "  {loopName}LoopScheduler.add(importConditions(snapshot));\n")
         buff.writeIndentedLines(code.format(loopName=self.params['name'],
                                             thisName=self.thisName))
@@ -630,7 +631,7 @@ class MultiStairHandler:
         for thisChild in thisLoop:
             if thisChild.getType() == 'Routine':
                 code = (
-                        "const snapshot = %(name)s.getSnapshot();\n"
+                        "snapshot = %(name)s.getSnapshot();\n"
                         "{loopName}LoopScheduler.add(importConditions(snapshot));\n"
                         "{loopName}LoopScheduler.add({childName}RoutineBegin(snapshot));\n"
                         "{loopName}LoopScheduler.add({childName}RoutineEachFrame());\n"
@@ -641,7 +642,7 @@ class MultiStairHandler:
                     )
             else:  # for a LoopInitiator
                 code = (
-                        "const snapshot = %(name)s.getSnapshot();\n"
+                        "snapshot = %(name)s.getSnapshot();\n"
                         "const {childName}LoopScheduler = new Scheduler(psychoJS);\n"
                         "{loopName}LoopScheduler.add(importConditions(snapshot));\n"
                         "{loopName}LoopScheduler.add({childName}LoopBegin({childName}LoopScheduler, snapshot));\n"
