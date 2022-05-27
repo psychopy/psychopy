@@ -272,7 +272,7 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
     def __init__(self, parent, valType,
                  val="", choices=[], labels=[], fieldName="",
                  size=wx.Size(-1, 24)):
-        self._choices = choices
+        self._choices = list(choices)
         # If not given any labels, alias values
         if not labels:
             labels = self._choices
