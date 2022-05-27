@@ -24,5 +24,5 @@ def testGenerateSpec():
     assert prefs.app['theme'] == "PsychopyDark"
     # Check that the app still loads
 
-    app.startApp(testMode=True, showSplash=False)
-    app.quitApp()
+    # app.startApp(testMode=True, showSplash=False)
+    # app.quitApp()
