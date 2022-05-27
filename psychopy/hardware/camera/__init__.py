@@ -499,7 +499,7 @@ class Camera:
         camera.close()
 
     """
-    def __init__(self, device=0, mic=None, mode='video',
+    def __init__(self, name="cam", device=0, mic=None, mode='video',
                  cameraLib=u'ffpyplayer', codecOpts=None, libOpts=None):
 
         # add attributes for setters
@@ -511,6 +511,9 @@ class Camera:
              '_cameraLib': u'',
              '_codecOpts': None,
              '_libOpts': None})
+
+        # store name
+        self.name = name
 
         # resolve getting the camera identifier
         if isinstance(device, int):  # get camera if integer
@@ -748,6 +751,10 @@ class Camera:
 
         """
         return self._status
+
+    @status.setter
+    def status(self, value):
+        self._status = value
 
     @property
     def outFile(self):
