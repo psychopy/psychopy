@@ -606,6 +606,26 @@ class Camera:
             raise CameraNotReadyError("Camera is not ready.")
 
     @property
+    def isRecording(self):
+        """`True` if the video is presently recording (`bool`)."""
+        # Status flags as properties are pretty useful for users since they are
+        # self documenting and prevent the user from touching the status flag
+        # attribute directly.
+        #
+        return self.status == RECORDING
+
+    @property
+    def isNotStarted(self):
+        """`True` if the stream may not have started yet (`bool`). This status
+        is given after a video is loaded and play has yet to be called."""
+        return self.status == NOT_STARTED
+
+    @property
+    def isStopped(self):
+        """`True` if the recording has stopped (`bool`)."""
+        return self.status == STOPPED
+
+    @property
     def metadata(self):
         """Video metadata retrieved during the last frame update
         (`MovieMetadata`).
