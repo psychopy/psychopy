@@ -1,3 +1,4 @@
+.. _overview:
 
 Overview
 =====================================
@@ -28,6 +29,7 @@ There are many advantages to using |PsychoPy|, but here are some of the key ones
 - Compatible with a range of hardware (EEG, Eyetracking, fMRI, Spectrascan, Minolta, Cambridge Research Systems Bits++, Cedrus response boxes (RB7xx series))
 - Multi-monitor support
 - Automated monitor calibration (for supported photometers)
+
 
 A sustainable open-source model
 --------------------------------

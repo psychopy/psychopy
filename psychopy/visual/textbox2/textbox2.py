@@ -80,6 +80,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  lineBreaking='default',
                  name='',
                  autoLog=None,
+                 autoDraw=False,
                  onTextCallback=None):
         """
 
@@ -111,8 +112,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         flipHoriz
         flipVert
         editable
-        lineBreaking: Specifying 'default', text will be broken at a set of 
-            characters defined in the module. Specifying 'uax14', text will be 
+        lineBreaking: Specifying 'default', text will be broken at a set of
+            characters defined in the module. Specifying 'uax14', text will be
             broken in accordance with UAX#14 (Unicode Line Breaking Algorithm).
         name
         autoLog
@@ -224,7 +225,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.editable = editable
         self.caret = Caret(self, color=self.color, width=2)
 
-
+        self.autoDraw = autoDraw
         self.autoLog = autoLog
 
     def __copy__(self):
