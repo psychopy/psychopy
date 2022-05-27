@@ -139,7 +139,7 @@ class CameraComponent(BaseComponent):
 
         code = (
             "%(name)s = camera.Camera(\n"
-            "    device=%(device)s, name=%(name)s,\n"
+            "    device=%(device)s, name='%(name)s',\n"
             ")\n"
             "# Switch on %(name)s\n"
             "%(name)s.open()\n"
