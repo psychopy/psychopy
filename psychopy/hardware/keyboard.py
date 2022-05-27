@@ -306,20 +306,34 @@ class Keyboard:
             if waitRelease:
                 key_events = Keyboard._iohubKeyboard.getReleases(keys=watchForKeys, clear=clear)
             else:
-                key_events = Keyboard._iohubKeyboard.getPresses(keys=watchForKeys, clear=clear)
+                key_events = []
+                released_press_evt_ids = []
+
+                all_key_events = Keyboard._iohubKeyboard.getKeys(keys=watchForKeys, clear=clear)
+                all_key_events.reverse()
+
+                for k in all_key_events:
+                    if hasattr(k, 'pressEventID'):
+                        released_press_evt_ids.append(k.pressEventID)
+                        key_events.append(k)
+                    elif k.id not in released_press_evt_ids:
+                        key_events.append(k)
+
+                key_events.reverse()
 
             for k in key_events:
                 kname = k.key
 
-                if waitRelease:
+                if hasattr(k, 'duration'):
                     tDown = k.time-k.duration
                 else:
                     tDown = k.time
 
-                kpress = KeyPress(code=None, tDown=tDown, name=kname)
+                kpress = KeyPress(code=k.char, tDown=tDown, name=kname)
                 kpress.rt = kpress.tDown - self.clock.getLastResetTime() + Keyboard._iohubOffset
-                if waitRelease:
+                if hasattr(k, 'duration'):
                     kpress.duration = k.duration
+
 
                 keys.append(kpress)
         else:  # Keyboard.backend == 'event'
