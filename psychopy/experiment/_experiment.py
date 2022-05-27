@@ -957,6 +957,11 @@ class Experiment:
                         # then check if it's a valid path and not yet included
                         if thisFile and thisFile not in compResources:
                             compResources.append(thisFile)
+            elif thisEntry.getType() == 'LoopInitiator' and "Stair" in thisEntry.loop.type:
+                url = 'https://lib.pavlovia.org/vendors/jsQUEST.min.js'
+                compResources.append({
+                    'rel': url, 'abs': url,
+                })
         if handled:
             # If resources are handled, clear all component resources
             compResources = []
@@ -995,7 +1000,7 @@ class Experiment:
         resources = loopResources + compResources + chosenResources
         resources = [res for res in resources if res is not None]
         for res in resources:
-            if srcRoot not in res['abs']:
+            if srcRoot not in res['abs'] and 'https://' not in res['abs']:
                 psychopy.logging.warning("{} is not in the experiment path and "
                                          "so will not be copied to Pavlovia"
                                          .format(res['rel']))
