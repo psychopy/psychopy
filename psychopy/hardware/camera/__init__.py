@@ -1081,7 +1081,7 @@ class Camera:
         """
         self._assertMediaPlayer()
 
-    def getVideoFrame(self, timeout=0.0):
+    def getVideoFrame(self):
         """Pull the next frame from the stream (if available).
 
         Returns
