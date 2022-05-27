@@ -26,6 +26,9 @@ class TestWebcam:
         # Initialise webcam
         self.obj.open()
 
+    def teardown(self):
+        self.obj.close()
+
     def _record(self, dur):
         # Start recording
         self.obj.record()
