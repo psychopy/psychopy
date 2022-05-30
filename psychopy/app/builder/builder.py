@@ -1361,13 +1361,14 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             return True
 
     def onPavloviaSync(self, evt=None):
-        self.fileSave(self.filename)
-        if self._getExportPref('on sync'):
-            htmlPath = self._getHtmlPath(self.filename)
-            if htmlPath:
-                self.fileExport(htmlPath=htmlPath)
-            else:
-                return
+        if Path(self.filename).is_file():
+            self.fileSave(self.filename)
+            if self._getExportPref('on sync'):
+                htmlPath = self._getHtmlPath(self.filename)
+                if htmlPath:
+                    self.fileExport(htmlPath=htmlPath)
+                else:
+                    return
 
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
         pavlovia_ui.syncProject(parent=self, file=self.filename, project=self.project)

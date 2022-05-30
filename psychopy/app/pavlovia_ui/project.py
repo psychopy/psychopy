@@ -716,11 +716,17 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
                 return
         else:
             return
-    # If no local root, prompt to make one
-    if not project.localRoot:
+    # If no local root or dead local root, prompt to make one
+    if not project.localRoot or not Path(project.localRoot).is_dir():
         defaultRoot = Path(file).parent
+        if not project.localRoot:
+            # If there is no local root at all, prompt user to make one
+            msg = _translate("Project root folder is not yet specified, specify one now?")
+        elif not Path(project.localRoot).is_dir():
+            # If there is a local root but the folder is gone, prompt user to change it
+            msg = _translate("Project root folder does not exist, change project root now?")
         # Ask user if they want to
-        dlg = wx.MessageDialog(parent, message=_translate("Project root folder is not yet specified, specify one now?"), style=wx.YES_NO)
+        dlg = wx.MessageDialog(parent, message=msg, style=wx.YES_NO)
         # Open folder picker
         if dlg.ShowModal() == wx.ID_YES:
             dlg = wx.DirDialog(parent, message=_translate("Specify folder..."), defaultPath=str(defaultRoot))
