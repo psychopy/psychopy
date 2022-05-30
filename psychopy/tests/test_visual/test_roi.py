@@ -1,10 +1,11 @@
 import numpy as np
 
 from .test_basevisual import _TestUnitsMixin
+from psychopy.tests.test_experiment.test_component_compile_python import _TestBoilerplateMixin
 from psychopy import visual, core
 
 
-class TestROI(_TestUnitsMixin):
+class TestROI(_TestUnitsMixin, _TestBoilerplateMixin):
 
     def setup(self):
         self.win = visual.Window([128,128], pos=[50,50], units="pix", allowGUI=False, autoLog=False)
