@@ -1258,8 +1258,17 @@ def getProject(filename):
     proj = None
     # If already found, return
     if (knownProjects is not None) and (path in knownProjects) and ('idNumber' in knownProjects[path]):
+        thisId = knownProjects[path]['idNumber']
+        # Check that project still exists on Pavlovia
+        requestVal = session.session.get(
+            f"https://pavlovia.org/api/v2/experiments/{thisId}",
+        ).json()
+        if requestVal['experiment'] is None:
+            # If project has been deleted, return None
+            return None
+        # If project is still there, get it
         try:
-            return PavloviaProject(knownProjects[path]['idNumber'])
+            return PavloviaProject(thisId)
         except LookupError as err:
             # If project not found, print warning and return None
             logging.warn(str(err))
