@@ -333,6 +333,33 @@ class StaticPeriod:
         return 1
 
 
+def _hogCPUactivity():
+    """Helper function for :func:`~.psychopy.core.wait
+
+       Handles window event if needed or returns otherwise.
+    """
+    from . import core
+
+    if not (core.havePyglet and core.checkPygletDuringWait):
+        continue
+    # let's see if pyglet collected any event in meantime
+    try:
+        # this takes focus away from command line terminal window:
+        if parse_version(pyglet.version) < parse_version('1.2'):
+            # events for sounds/video should run independently of wait()
+            pyglet.media.dispatch_events()
+    except AttributeError:
+        # see http://www.pyglet.org/doc/api/pyglet.media-module.html#dispatch_events
+        # Deprecated: Since pyglet 1.1, Player objects schedule themselves
+        # on the default clock automatically. Applications should not call
+        # pyglet.media.dispatch_events().
+        pass
+    for winWeakRef in core.openWindows:
+        win = winWeakRef()
+        if (win.winType == "pyglet" and
+                hasattr(win.winHandle, "dispatch_events")):
+            win.winHandle.dispatch_events()  # pump events
+
 def wait(secs, hogCPUperiod=0.2):
     """Wait for a given time period.
 
@@ -363,36 +390,21 @@ def wait(secs, hogCPUperiod=0.2):
     hogCPUperiod : float or int
 
     """
-    from . import core
+
+    t0 = getTime()
 
     # initial relaxed period, using sleep (better for system resources etc)
     if secs > hogCPUperiod:
-        time.sleep(secs - hogCPUperiod)
-        secs = hogCPUperiod  # only this much is now left
+        tenths = int((secs - hogCPUperiod) * 10)
+        leftover = secs - tenths * .0998 - hogCPUperiod
+        for tenths in range(int((secs - hogCPUperiod) * 10)):
+            time.sleep(.0998)
+            _hogCPUactivity()
+        time.sleep(leftover)
 
     # hog the cpu, checking time
-    t0 = getTime()
     while (getTime() - t0) < secs:
-        if not (core.havePyglet and core.checkPygletDuringWait):
-            continue
-        # let's see if pyglet collected any event in meantime
-        try:
-            # this takes focus away from command line terminal window:
-            if parse_version(pyglet.version) < parse_version('1.2'):
-                # events for sounds/video should run independently of wait()
-                pyglet.media.dispatch_events()
-        except AttributeError:
-            # see http://www.pyglet.org/doc/api/pyglet.media-module.html#dispatch_events
-            # Deprecated: Since pyglet 1.1, Player objects schedule themselves
-            # on the default clock automatically. Applications should not call
-            # pyglet.media.dispatch_events().
-            pass
-        for winWeakRef in core.openWindows:
-            win = winWeakRef()
-            if (win.winType == "pyglet" and
-                    hasattr(win.winHandle, "dispatch_events")):
-                win.winHandle.dispatch_events()  # pump events
-
+        _hogCPUactivity()
 
 def getAbsTime():
     """Get the absolute time.
