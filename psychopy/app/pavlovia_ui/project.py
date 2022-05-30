@@ -691,6 +691,13 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
         0 for fail
         -1 for cancel at some point in the process
     """
+    # Error catch logged out
+    if not project.session.user:
+        dlg = wx.MessageDialog(None, message=_translate(
+            "You are not logged in to Pavlovia. Please log in to sync project."
+        ), style=wx.ICON_ERROR | wx.OK)
+        dlg.ShowModal()
+        return
     # If not in a project, make one
     if project is None:
         msgDlg = wx.MessageDialog(parent,

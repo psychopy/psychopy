@@ -768,7 +768,18 @@ class PavloviaProject(dict):
         """
         # Error catch local root
         if not self.localRoot:
-            raise gitlab.GitlabGetError("Can't sync project without a local root.")
+            dlg = wx.MessageDialog(self, message=_translate(
+                "Can't sync project without a local root. Please specify a local root then try again."
+            ), style=wx.ICON_ERROR | wx.OK)
+            dlg.ShowModal()
+            return
+        # Error catch logged out
+        if not self.session.user:
+            dlg = wx.MessageDialog(self, message=_translate(
+                "You are not logged in to Pavlovia. Please log in to sync project."
+            ), style=wx.ICON_ERROR | wx.OK)
+            dlg.ShowModal()
+            return
         # Reset local repo so it checks again (rather than erroring if it's been deleted without an app restart)
         self._repo = None
         # Jot down start time
