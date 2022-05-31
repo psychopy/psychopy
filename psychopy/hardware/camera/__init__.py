@@ -274,7 +274,7 @@ class StreamStatus:
         return self._recTime
 
 
-class VideoFrame:  # rename to `StreamData`
+class StreamData:  # rename to `StreamData`
     """Descriptor for video frame data.
 
     Instances of this class are produced by the stream reader/writer thread
@@ -463,7 +463,7 @@ class MovieStreamIOThread(threading.Thread):
                 # Object to pass video frame data back to the application thread
                 # for presentation or processing.
                 img, _ = frameData
-                toReturn = VideoFrame(metadata, img, streamStatus)
+                toReturn = StreamData(metadata, img, streamStatus)
                 self._frameQueue.put(toReturn)  # put frame data in here
 
             # signal to close a thread
