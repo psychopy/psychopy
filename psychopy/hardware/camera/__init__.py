@@ -11,7 +11,8 @@ experimenter to create movie stimuli or instructions.
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = ['CameraNotFoundError', 'Camera', 'CameraInfo', 'getCameras']
+__all__ = ['CameraNotFoundError', 'Camera', 'CameraInfo', 'VideoFrame',
+           'getCameras']
 
 import glob
 import platform
@@ -255,23 +256,88 @@ class StreamStatus:
         return self._streamTime
 
     @property
-    def recTime(self):
-        """Current recording size on disk (`float`).
+    def recBytes(self):
+        """Current recording size on disk (`int`).
 
         If recording, this value indicates the number of bytes that have been
         written out to file.
         """
-        return self._recTime
+        return self._recBytes
 
     @property
-    def recBytes(self):
+    def recTime(self):
         """Current recording time (`float`).
 
         If recording, this field will report the current timestamp within the
         output file. Otherwise, this value is zero.
         """
-        return self._recBytes
+        return self._recTime
 
+
+class VideoFrame:  # rename to `StreamData`
+    """Descriptor for video frame data.
+
+    Instances of this class are produced by the stream reader/writer thread
+    which contain: metadata about the stream, frame image data (i.e. pixel
+    values), and the stream status.
+
+    Parameters
+    ----------
+    metadata : MovieMetadata
+        Stream metadata.
+    frameImage : object
+        Video frame image data.
+    streamStatus : StreamStatus
+        Video stream status.
+
+    """
+    __slots__ = ['_metadata',
+                 '_frameImage',
+                 '_streamStatus']
+
+    def __init__(self, metadata, frameImage, streamStatus):
+        self._metadata = metadata
+        self._frameImage = frameImage
+        self._streamStatus = streamStatus
+
+    @property
+    def metadata(self):
+        """Stream metadata at the time the video frame was acquired
+        (`MovieMetadata`).
+        """
+        return self._metadata
+
+    @metadata.setter
+    def metadata(self, value):
+        if not isinstance(value, MovieMetadata) or value is not None:
+            raise TypeError("Incorrect type for property `metadata`, expected "
+                            "`MovieMetadata` or `None`.")
+
+        self._metadata = value
+
+    @property
+    def frameImage(self):
+        """Frame image data from the codec (`ffpyplayer.pic.Image`).
+        """
+        return self._frameImage
+
+    @frameImage.setter
+    def frameImage(self, value):
+        self._frameImage = value
+
+    @property
+    def streamStatus(self):
+        """Stream status (`StreamStatus`).
+        """
+        return self._streamStatus
+
+    @streamStatus.setter
+    def streamStatus(self, value):
+        if not isinstance(value, StreamStatus) or value is not None:
+            raise TypeError("Incorrect type for property `metadata`, expected "
+                            "`StreamStatus` or `None`.")
+
+        self._streamStatus = value
 
 # ------------------------------------------------------------------------------
 # Classes
@@ -292,7 +358,8 @@ class MovieStreamIOThread(threading.Thread):
         player instance methods might not be thread-safe after handing off the
         object to this thread.
     writer : `ffpyplayer.player.MediaWriter` or `None`
-        Media writer instance, should be configured and initialized.
+        Media writer instance, should be configured and initialized. Do not
+        manipulate this object while a recording is in progress.
 
     """
     def __init__(self, player, writer=None):
@@ -327,6 +394,7 @@ class MovieStreamIOThread(threading.Thread):
             return  # exit thread if no player
 
         self._isStreamingEvent.set()
+        self._isReadyEvent.clear()
         frameInterval = 0.001  # dynamic poll interval, start at 1ms
         ptsStart = 0.0
         recordingJustStarted = True
@@ -338,6 +406,8 @@ class MovieStreamIOThread(threading.Thread):
             while frameData is None or val == 'not ready':
                 frameData, val = self._player.get_frame()
                 time.sleep(frameInterval)  # sleep a bit to warm-up
+            else:
+                self._isReadyEvent.set()
 
             # after getting a frame, we can get accurate metadata
             metadata = self._player.get_metadata()
@@ -350,11 +420,6 @@ class MovieStreamIOThread(threading.Thread):
                 continue
 
             frameInterval = 1.0 / (numer / float(denom))
-
-            # put the frame in the queue
-            if not self._frameQueue.full():
-                toReturn = (metadata, frameData, val)
-                self._frameQueue.put(toReturn)  # put frame data in here
 
             # handle writing to file
             if self._isRecording.is_set():
@@ -387,6 +452,20 @@ class MovieStreamIOThread(threading.Thread):
                 recordingJustStarted = True
                 self._status = STOPPED
 
+            # put the frame in the queue
+            if not self._frameQueue.full():
+                streamStatus = StreamStatus(
+                    self._status,
+                    self._streamTime,
+                    self._recordingTime,
+                    self._recordingBytes)
+
+                # Object to pass video frame data back to the application thread
+                # for presentation or processing.
+                img, _ = frameData
+                toReturn = VideoFrame(metadata, img, streamStatus)
+                self._frameQueue.put(toReturn)  # put frame data in here
+
             # signal to close a thread
             if self._stopSignal.is_set() or val == 'eof':
                 streaming = False
@@ -415,16 +494,6 @@ class MovieStreamIOThread(threading.Thread):
         """Stop the thread.
         """
         self._stopSignal.set()
-
-    def getStatus(self):
-        """Current recording time in seconds (`float`).
-        """
-        # thread-safe since value is immutable type and not settable
-        return StreamStatus(
-            NOT_STARTED,
-            self._streamTime,
-            self._recordingTime,
-            self._recordingBytes)
 
     def getRecentFrame(self):
         """Get the most recent frame data from the feed (`tuple`).
@@ -893,35 +962,35 @@ class Camera:
 
         # If the queue is empty, the decoder thread has not yielded a new frame
         # since the last call.
-        streamStatus = self._tStream.getStatus()
         enqueuedFrame = self._tStream.getRecentFrame()
         if enqueuedFrame is None:
             return False
 
         # unpack the data we got back
-        metadata, frameData, val = enqueuedFrame
-        colorData, pts = frameData
-
-        # if we have a new frame, update the frame information
-        videoBuffer = colorData.to_bytearray()[0]
-        videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
-
-        # provide the last frame
-        self._lastFrame = MovieFrame(
-            frameIndex=self._frameIndex,
-            absTime=pts,
-            # displayTime=self._recentMetadata['frame_size'],
-            size=colorData.get_size(),
-            colorData=videoFrameArray,
-            audioChannels=0,
-            audioSamples=None,
-            movieLib=u'ffpyplayer',
-            userData=None)
+        metadata = enqueuedFrame.metadata
+        frameImage = enqueuedFrame.frameImage
+        streamStatus = enqueuedFrame.streamStatus
 
         # status information
         self._streamTime = streamStatus.streamTime  # stream time for the camera
         self._recordingTime = streamStatus.recTime
         self._recordingBytes = streamStatus.recBytes
+
+        # if we have a new frame, update the frame information
+        videoBuffer = frameImage.to_bytearray()[0]
+        videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
+
+        # provide the last frame
+        self._lastFrame = MovieFrame(
+            frameIndex=self._frameIndex,
+            absTime=streamStatus.recTime,
+            # displayTime=self._recentMetadata['frame_size'],
+            size=frameImage.get_size(),
+            colorData=videoFrameArray,
+            audioChannels=0,
+            audioSamples=None,
+            movieLib=u'ffpyplayer',
+            userData=None)
 
         # if status == 'eof':  # end of stream but there is a valid frame
         #     self._status = STOPPING  # last frame, stopping ...
@@ -1001,12 +1070,11 @@ class Camera:
 
         self._closeWriter()
 
-        # initialize audio recording if available
+        # stop audio recording if `mic` is available
         if self._mic is not None:
             self._mic.stop()
-
-        if self._writer is not None:
-            self._writer.close()
+            audioTrack = self._mic.getRecording()
+            audioTrack.save(self._tempAudioFileName, 'wav')
 
     def close(self):
         """Close the camera.
