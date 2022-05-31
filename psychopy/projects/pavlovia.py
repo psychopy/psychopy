@@ -25,6 +25,7 @@ from psychopy import app
 from psychopy.localization import _translate
 import wx
 
+from ..app.errorDlg import exceptionCallback
 from ..tools.apptools import SortTerm
 
 try:
@@ -93,7 +94,8 @@ def login(tokenOrUsername, rememberMe=True):
     """
     currentSession = getCurrentSession()
     if not currentSession:
-        raise requests.exceptions.ConnectionError("Failed to connect to Pavlovia.org. No network?")
+        exceptionCallback(exc_type=requests.exceptions.ConnectionError)
+        return
     # would be nice here to test whether this is a token or username
     logging.debug('pavloviaTokensCurrently: {}'.format(knownUsers))
     if tokenOrUsername in knownUsers:
@@ -490,32 +492,24 @@ class PavloviaSearch(pandas.DataFrame):
         # Ensure filter is a FilterTerm
         filterBy = self.FilterTerm(filterBy)
         # Do search
-        try:
-            session = getCurrentSession()
-            if mine:
-                # Display experiments by current user
-                data = session.session.get(
-                    f"https://pavlovia.org/api/v2/designers/{session.userID}/experiments?search={term}{filterBy}",
-                    timeout=10
-                ).json()
-            elif term or filterBy:
-                data = session.session.get(
-                    f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}",
-                    timeout=10
-                ).json()
-            else:
-                # Display demos for blank search
-                data = session.session.get(
-                    "https://pavlovia.org/api/v2/experiments?search=demos&designer=demos",
-                    timeout=10
-                ).json()
-        except requests.exceptions.ReadTimeout:
-            msg = _translate(
-                "Could not connect to Pavlovia server within an acceptable amount of time (10s). Please check that you "
-                "are connected to the internet. If you are connected, then the Pavlovia servers may be down. You can "
-                "check their status here: https://pavlovia.org/status"
-            )
-            raise ConnectionError(msg)
+        session = getCurrentSession()
+        if mine:
+            # Display experiments by current user
+            data = session.session.get(
+                f"https://pavlovia.org/api/v2/designers/{session.userID}/experiments?search={term}{filterBy}",
+                timeout=10
+            ).json()
+        elif term or filterBy:
+            data = session.session.get(
+                f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}",
+                timeout=10
+            ).json()
+        else:
+            # Display demos for blank search
+            data = session.session.get(
+                "https://pavlovia.org/api/v2/experiments?search=demos&designer=demos",
+                timeout=10
+            ).json()
         # Construct dataframe
         pandas.DataFrame.__init__(self, data=data['experiments'])
         # Do any requested sorting
