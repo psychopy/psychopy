@@ -7,6 +7,8 @@ This component allows you to to control a Phidget Relay.
 
 Please install the standard Phidgets (22) drivers, and install the python library Phidgets22
 
+This component is a community contribution and not affiliated with Phidgets Inc.
+
 Properties
 ~~~~~~~~~~
 
@@ -37,9 +39,9 @@ channelList : list
     using a list looking like [#,#,#] for multiple relays or [#] for a single relay
     
 reversedRelay : boolean
-    Relays have two circuits, one that is "normally closed" and one that is "normally open". In the unpowered, 
-    disconnected state, the "normally closed" circuit is complete and current will flow through it. Typically, 
-    turning a relay "on" changes the circle to the "normally open" circuit. In some cases, you want a relay to 
+    Relays have two circuits, one that is "Normally Closed" and one that is "Normally Open". In the unpowered,
+    disconnected state, the "Normally Closed" circuit is complete and current will flow through it. Typically,
+    turning a relay "on" switches operation to the "normally open" circuit. In some cases, you want a relay to
     default to the "Normally Open" circuit except for when it is activated (e.g., a relay that limits power to
     the rest of your setup). If you want a circuit to be in the "Normally Open" state except where specified
     you would "reverse the relay"
