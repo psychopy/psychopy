@@ -1137,6 +1137,210 @@ ButtonComponent.units.staticUpdater:None
 ButtonComponent.units.updates:None
 ButtonComponent.units.val:from exp settings
 ButtonComponent.units.valType:str
+CameraComponent.order:['name', 'startVal', 'startEstim', 'startType', 'stopVal', 'durationEstim', 'stopType']
+CameraComponent.device.default:'Default'
+CameraComponent.device.allowedLabels:['Default']
+CameraComponent.device.allowedTypes:[]
+CameraComponent.device.allowedUpdates:None
+CameraComponent.device.allowedVals:['default']
+CameraComponent.device.canBePath:True
+CameraComponent.device.categ:Basic
+CameraComponent.device.codeWanted:False
+CameraComponent.device.direct:True
+CameraComponent.device.hint:What webcam device would you like the use to record? This will only affect local experiments - online experiments ask the participant which webcam to use.
+CameraComponent.device.inputType:choice
+CameraComponent.device.label:Device
+CameraComponent.device.readOnly:False
+CameraComponent.device.staticUpdater:None
+CameraComponent.device.updates:None
+CameraComponent.device.val:Default
+CameraComponent.device.valType:str
+CameraComponent.disabled.default:False
+CameraComponent.disabled.allowedLabels:[]
+CameraComponent.disabled.allowedTypes:[]
+CameraComponent.disabled.allowedUpdates:None
+CameraComponent.disabled.allowedVals:[]
+CameraComponent.disabled.canBePath:True
+CameraComponent.disabled.categ:Testing
+CameraComponent.disabled.codeWanted:False
+CameraComponent.disabled.direct:False
+CameraComponent.disabled.hint:Disable this component
+CameraComponent.disabled.inputType:bool
+CameraComponent.disabled.label:Disable component
+CameraComponent.disabled.readOnly:False
+CameraComponent.disabled.staticUpdater:None
+CameraComponent.disabled.updates:None
+CameraComponent.disabled.val:False
+CameraComponent.disabled.valType:bool
+CameraComponent.durationEstim.default:
+CameraComponent.durationEstim.allowedLabels:[]
+CameraComponent.durationEstim.allowedTypes:[]
+CameraComponent.durationEstim.allowedUpdates:None
+CameraComponent.durationEstim.allowedVals:[]
+CameraComponent.durationEstim.canBePath:True
+CameraComponent.durationEstim.categ:Basic
+CameraComponent.durationEstim.codeWanted:False
+CameraComponent.durationEstim.direct:False
+CameraComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
+CameraComponent.durationEstim.inputType:single
+CameraComponent.durationEstim.label:Expected duration (s)
+CameraComponent.durationEstim.readOnly:False
+CameraComponent.durationEstim.staticUpdater:None
+CameraComponent.durationEstim.updates:None
+CameraComponent.durationEstim.val:
+CameraComponent.durationEstim.valType:code
+CameraComponent.name.default:cam
+CameraComponent.name.allowedLabels:[]
+CameraComponent.name.allowedTypes:[]
+CameraComponent.name.allowedUpdates:None
+CameraComponent.name.allowedVals:[]
+CameraComponent.name.canBePath:True
+CameraComponent.name.categ:Basic
+CameraComponent.name.codeWanted:False
+CameraComponent.name.direct:True
+CameraComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
+CameraComponent.name.inputType:single
+CameraComponent.name.label:Name
+CameraComponent.name.readOnly:False
+CameraComponent.name.staticUpdater:None
+CameraComponent.name.val:cam
+CameraComponent.name.valType:code
+CameraComponent.saveFile.default:True
+CameraComponent.saveFile.allowedLabels:[]
+CameraComponent.saveFile.allowedTypes:[]
+CameraComponent.saveFile.allowedUpdates:None
+CameraComponent.saveFile.allowedVals:[]
+CameraComponent.saveFile.canBePath:True
+CameraComponent.saveFile.categ:Data
+CameraComponent.saveFile.codeWanted:False
+CameraComponent.saveFile.direct:True
+CameraComponent.saveFile.hint:Save webcam output to a file?
+CameraComponent.saveFile.inputType:bool
+CameraComponent.saveFile.label:Save File?
+CameraComponent.saveFile.readOnly:False
+CameraComponent.saveFile.staticUpdater:None
+CameraComponent.saveFile.updates:None
+CameraComponent.saveFile.val:True
+CameraComponent.saveFile.valType:bool
+CameraComponent.saveStartStop.default:True
+CameraComponent.saveStartStop.allowedLabels:[]
+CameraComponent.saveStartStop.allowedTypes:[]
+CameraComponent.saveStartStop.allowedUpdates:None
+CameraComponent.saveStartStop.allowedVals:[]
+CameraComponent.saveStartStop.canBePath:True
+CameraComponent.saveStartStop.categ:Data
+CameraComponent.saveStartStop.codeWanted:False
+CameraComponent.saveStartStop.direct:True
+CameraComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+CameraComponent.saveStartStop.inputType:bool
+CameraComponent.saveStartStop.label:Save onset/offset times
+CameraComponent.saveStartStop.readOnly:False
+CameraComponent.saveStartStop.staticUpdater:None
+CameraComponent.saveStartStop.updates:None
+CameraComponent.saveStartStop.val:True
+CameraComponent.saveStartStop.valType:bool
+CameraComponent.startEstim.default:
+CameraComponent.startEstim.allowedLabels:[]
+CameraComponent.startEstim.allowedTypes:[]
+CameraComponent.startEstim.allowedUpdates:None
+CameraComponent.startEstim.allowedVals:[]
+CameraComponent.startEstim.canBePath:True
+CameraComponent.startEstim.categ:Basic
+CameraComponent.startEstim.codeWanted:False
+CameraComponent.startEstim.direct:False
+CameraComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
+CameraComponent.startEstim.inputType:single
+CameraComponent.startEstim.label:Expected start (s)
+CameraComponent.startEstim.readOnly:False
+CameraComponent.startEstim.staticUpdater:None
+CameraComponent.startEstim.updates:None
+CameraComponent.startEstim.val:
+CameraComponent.startEstim.valType:code
+CameraComponent.startType.default:'time (s)'
+CameraComponent.startType.allowedLabels:[]
+CameraComponent.startType.allowedTypes:[]
+CameraComponent.startType.allowedUpdates:None
+CameraComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
+CameraComponent.startType.canBePath:True
+CameraComponent.startType.categ:Basic
+CameraComponent.startType.codeWanted:False
+CameraComponent.startType.direct:False
+CameraComponent.startType.hint:How do you want to define your start point?
+CameraComponent.startType.inputType:choice
+CameraComponent.startType.label:start type
+CameraComponent.startType.readOnly:False
+CameraComponent.startType.staticUpdater:None
+CameraComponent.startType.updates:None
+CameraComponent.startType.val:time (s)
+CameraComponent.startType.valType:str
+CameraComponent.startVal.default:0
+CameraComponent.startVal.allowedLabels:[]
+CameraComponent.startVal.allowedTypes:[]
+CameraComponent.startVal.allowedUpdates:None
+CameraComponent.startVal.allowedVals:[]
+CameraComponent.startVal.canBePath:True
+CameraComponent.startVal.categ:Basic
+CameraComponent.startVal.codeWanted:False
+CameraComponent.startVal.direct:True
+CameraComponent.startVal.hint:When does the component start?
+CameraComponent.startVal.inputType:single
+CameraComponent.startVal.label:Start
+CameraComponent.startVal.readOnly:False
+CameraComponent.startVal.staticUpdater:None
+CameraComponent.startVal.updates:None
+CameraComponent.startVal.val:0
+CameraComponent.startVal.valType:code
+CameraComponent.stopType.default:'duration (s)'
+CameraComponent.stopType.allowedLabels:[]
+CameraComponent.stopType.allowedTypes:[]
+CameraComponent.stopType.allowedUpdates:None
+CameraComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+CameraComponent.stopType.canBePath:True
+CameraComponent.stopType.categ:Basic
+CameraComponent.stopType.codeWanted:False
+CameraComponent.stopType.direct:False
+CameraComponent.stopType.hint:How do you want to define your end point?
+CameraComponent.stopType.inputType:choice
+CameraComponent.stopType.label:stop type
+CameraComponent.stopType.readOnly:False
+CameraComponent.stopType.staticUpdater:None
+CameraComponent.stopType.updates:None
+CameraComponent.stopType.val:duration (s)
+CameraComponent.stopType.valType:str
+CameraComponent.stopVal.default:
+CameraComponent.stopVal.allowedLabels:[]
+CameraComponent.stopVal.allowedTypes:[]
+CameraComponent.stopVal.allowedUpdates:[]
+CameraComponent.stopVal.allowedVals:[]
+CameraComponent.stopVal.canBePath:True
+CameraComponent.stopVal.categ:Basic
+CameraComponent.stopVal.codeWanted:False
+CameraComponent.stopVal.direct:True
+CameraComponent.stopVal.hint:When does the component end? (blank is endless)
+CameraComponent.stopVal.inputType:single
+CameraComponent.stopVal.label:Stop
+CameraComponent.stopVal.readOnly:False
+CameraComponent.stopVal.staticUpdater:None
+CameraComponent.stopVal.updates:constant
+CameraComponent.stopVal.val:
+CameraComponent.stopVal.valType:code
+CameraComponent.syncScreenRefresh.default:False
+CameraComponent.syncScreenRefresh.allowedLabels:[]
+CameraComponent.syncScreenRefresh.allowedTypes:[]
+CameraComponent.syncScreenRefresh.allowedUpdates:None
+CameraComponent.syncScreenRefresh.allowedVals:[]
+CameraComponent.syncScreenRefresh.canBePath:True
+CameraComponent.syncScreenRefresh.categ:Data
+CameraComponent.syncScreenRefresh.codeWanted:False
+CameraComponent.syncScreenRefresh.direct:True
+CameraComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+CameraComponent.syncScreenRefresh.inputType:bool
+CameraComponent.syncScreenRefresh.label:Sync timing with screen refresh
+CameraComponent.syncScreenRefresh.readOnly:False
+CameraComponent.syncScreenRefresh.staticUpdater:None
+CameraComponent.syncScreenRefresh.updates:None
+CameraComponent.syncScreenRefresh.val:False
+CameraComponent.syncScreenRefresh.valType:bool
 CodeComponent.order:['name', 'Code Type', 'disabled', 'Before Experiment', 'Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment', 'Before JS Experiment', 'Begin JS Experiment', 'Begin JS Routine', 'Each JS Frame', 'End JS Routine', 'End JS Experiment']
 CodeComponent.Before Experiment.default:
 CodeComponent.Before Experiment.allowedLabels:[]
@@ -1937,6 +2141,23 @@ EmotivMarkingComponent.emotiv_marker_value.staticUpdater:None
 EmotivMarkingComponent.emotiv_marker_value.updates:constant
 EmotivMarkingComponent.emotiv_marker_value.val:1
 EmotivMarkingComponent.emotiv_marker_value.valType:str
+EmotivMarkingComponent.emotiv_stop_marker.default:False
+EmotivMarkingComponent.emotiv_stop_marker.allowedLabels:[]
+EmotivMarkingComponent.emotiv_stop_marker.allowedTypes:[]
+EmotivMarkingComponent.emotiv_stop_marker.allowedUpdates:[]
+EmotivMarkingComponent.emotiv_stop_marker.allowedVals:[True, False]
+EmotivMarkingComponent.emotiv_stop_marker.canBePath:True
+EmotivMarkingComponent.emotiv_stop_marker.categ:Basic
+EmotivMarkingComponent.emotiv_stop_marker.codeWanted:False
+EmotivMarkingComponent.emotiv_stop_marker.direct:True
+EmotivMarkingComponent.emotiv_stop_marker.hint:Check this box to include a stop marker
+EmotivMarkingComponent.emotiv_stop_marker.inputType:bool
+EmotivMarkingComponent.emotiv_stop_marker.label:Stop Marker
+EmotivMarkingComponent.emotiv_stop_marker.readOnly:False
+EmotivMarkingComponent.emotiv_stop_marker.staticUpdater:None
+EmotivMarkingComponent.emotiv_stop_marker.updates:constant
+EmotivMarkingComponent.emotiv_stop_marker.val:False
+EmotivMarkingComponent.emotiv_stop_marker.valType:bool
 EmotivMarkingComponent.name.default:eeg_marker
 EmotivMarkingComponent.name.allowedLabels:[]
 EmotivMarkingComponent.name.allowedTypes:[]
@@ -2055,23 +2276,6 @@ EmotivMarkingComponent.stopVal.staticUpdater:None
 EmotivMarkingComponent.stopVal.updates:constant
 EmotivMarkingComponent.stopVal.val:1
 EmotivMarkingComponent.stopVal.valType:code
-EmotivMarkingComponent.emotiv_stop_marker.default:False
-EmotivMarkingComponent.emotiv_stop_marker.allowedLabels:[]
-EmotivMarkingComponent.emotiv_stop_marker.allowedTypes:[]
-EmotivMarkingComponent.emotiv_stop_marker.allowedUpdates:[]
-EmotivMarkingComponent.emotiv_stop_marker.allowedVals:[True, False]
-EmotivMarkingComponent.emotiv_stop_marker.canBePath:True
-EmotivMarkingComponent.emotiv_stop_marker.categ:Basic
-EmotivMarkingComponent.emotiv_stop_marker.codeWanted:False
-EmotivMarkingComponent.emotiv_stop_marker.direct:True
-EmotivMarkingComponent.emotiv_stop_marker.hint:Check this box to include a stop marker
-EmotivMarkingComponent.emotiv_stop_marker.inputType:bool
-EmotivMarkingComponent.emotiv_stop_marker.label:Stop Marker
-EmotivMarkingComponent.emotiv_stop_marker.readOnly:False
-EmotivMarkingComponent.emotiv_stop_marker.staticUpdater:None
-EmotivMarkingComponent.emotiv_stop_marker.updates:constant
-EmotivMarkingComponent.emotiv_stop_marker.val:False
-EmotivMarkingComponent.emotiv_stop_marker.valType:bool
 EmotivMarkingComponent.syncScreenRefresh.default:False
 EmotivMarkingComponent.syncScreenRefresh.allowedLabels:[]
 EmotivMarkingComponent.syncScreenRefresh.allowedTypes:[]
@@ -3603,7 +3807,7 @@ GratingComponent.interpolate.staticUpdater:None
 GratingComponent.interpolate.updates:constant
 GratingComponent.interpolate.val:linear
 GratingComponent.interpolate.valType:str
-GratingComponent.mask.default:'.'
+GratingComponent.mask.default:''
 GratingComponent.mask.allowedLabels:[]
 GratingComponent.mask.allowedTypes:[]
 GratingComponent.mask.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -4045,7 +4249,7 @@ ImageComponent.flipVert.staticUpdater:None
 ImageComponent.flipVert.updates:constant
 ImageComponent.flipVert.val:False
 ImageComponent.flipVert.valType:bool
-ImageComponent.image.default:'.'
+ImageComponent.image.default:''
 ImageComponent.image.allowedLabels:[]
 ImageComponent.image.allowedTypes:[]
 ImageComponent.image.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -5188,7 +5392,7 @@ MicrophoneComponent.device.default:'default'
 MicrophoneComponent.device.allowedLabels:[]
 MicrophoneComponent.device.allowedTypes:[]
 MicrophoneComponent.device.allowedUpdates:None
-MicrophoneComponent.device.allowedVals:['Logitech BRIO', 'NDI Audio', 'MacBook Pro Microphone', 'Echo360 System Audio', 'default']
+MicrophoneComponent.device.allowedVals:['Microphone (MPOW HC6)', 'Microphone (USB Microphone)', 'default']
 MicrophoneComponent.device.canBePath:True
 MicrophoneComponent.device.categ:Basic
 MicrophoneComponent.device.codeWanted:False
@@ -5627,7 +5831,7 @@ MouseComponent.newClicksOnly.staticUpdater:None
 MouseComponent.newClicksOnly.updates:constant
 MouseComponent.newClicksOnly.val:True
 MouseComponent.newClicksOnly.valType:bool
-MouseComponent.saveMouseState.default:'final'
+MouseComponent.saveMouseState.default:'on click'
 MouseComponent.saveMouseState.allowedLabels:[]
 MouseComponent.saveMouseState.allowedTypes:[]
 MouseComponent.saveMouseState.allowedUpdates:None
@@ -5642,7 +5846,7 @@ MouseComponent.saveMouseState.label:Save mouse state
 MouseComponent.saveMouseState.readOnly:False
 MouseComponent.saveMouseState.staticUpdater:None
 MouseComponent.saveMouseState.updates:None
-MouseComponent.saveMouseState.val:final
+MouseComponent.saveMouseState.val:on click
 MouseComponent.saveMouseState.valType:str
 MouseComponent.saveParamsClickable.default:[name,]
 MouseComponent.saveParamsClickable.allowedLabels:[]
@@ -5832,11 +6036,11 @@ MovieComponent.anchor.staticUpdater:None
 MovieComponent.anchor.updates:constant
 MovieComponent.anchor.val:center
 MovieComponent.anchor.valType:str
-MovieComponent.backend.default:'moviepy'
+MovieComponent.backend.default:'ffpyplayer'
 MovieComponent.backend.allowedLabels:[]
 MovieComponent.backend.allowedTypes:[]
 MovieComponent.backend.allowedUpdates:None
-MovieComponent.backend.allowedVals:['moviepy', 'avbin', 'opencv', 'vlc']
+MovieComponent.backend.allowedVals:['ffpyplayer', 'moviepy', 'avbin', 'opencv', 'vlc']
 MovieComponent.backend.canBePath:True
 MovieComponent.backend.categ:Playback
 MovieComponent.backend.codeWanted:False
@@ -5847,7 +6051,7 @@ MovieComponent.backend.label:Backend
 MovieComponent.backend.readOnly:False
 MovieComponent.backend.staticUpdater:None
 MovieComponent.backend.updates:None
-MovieComponent.backend.val:moviepy
+MovieComponent.backend.val:ffpyplayer
 MovieComponent.backend.valType:str
 MovieComponent.contrast.default:1.0
 MovieComponent.contrast.allowedLabels:[]
@@ -5934,7 +6138,7 @@ MovieComponent.loop.staticUpdater:None
 MovieComponent.loop.updates:None
 MovieComponent.loop.val:False
 MovieComponent.loop.valType:bool
-MovieComponent.movie.default:'.'
+MovieComponent.movie.default:''
 MovieComponent.movie.allowedLabels:[]
 MovieComponent.movie.allowedTypes:[]
 MovieComponent.movie.allowedUpdates:['constant', 'set every repeat']
@@ -6171,6 +6375,23 @@ MovieComponent.units.staticUpdater:None
 MovieComponent.units.updates:None
 MovieComponent.units.val:from exp settings
 MovieComponent.units.valType:str
+MovieComponent.volume.default:1.0
+MovieComponent.volume.allowedLabels:[]
+MovieComponent.volume.allowedTypes:[]
+MovieComponent.volume.allowedUpdates:None
+MovieComponent.volume.allowedVals:[]
+MovieComponent.volume.canBePath:True
+MovieComponent.volume.categ:Playback
+MovieComponent.volume.codeWanted:False
+MovieComponent.volume.direct:True
+MovieComponent.volume.hint:How loud should audio be played?
+MovieComponent.volume.inputType:float
+MovieComponent.volume.label:Volume
+MovieComponent.volume.readOnly:False
+MovieComponent.volume.staticUpdater:None
+MovieComponent.volume.updates:None
+MovieComponent.volume.val:1
+MovieComponent.volume.valType:num
 NoiseStimComponent.order:['name', 'startVal', 'startEstim', 'startType', 'stopVal', 'durationEstim', 'stopType', 'color', 'fillColor', 'borderColor', 'colorSpace', 'opacity', 'size', 'noiseElementSize', 'pos', 'units', 'anchor', 'ori', 'blendmode', 'noiseElementSize', 'noiseNewSample', 'noiseNewSampleWhen', 'noiseOri', 'mask']
 NoiseStimComponent.blendmode.default:'avg'
 NoiseStimComponent.blendmode.allowedLabels:[]
@@ -6856,7 +7077,7 @@ ParallelOutComponent.address.default:'0x0378'
 ParallelOutComponent.address.allowedLabels:[]
 ParallelOutComponent.address.allowedTypes:[]
 ParallelOutComponent.address.allowedUpdates:None
-ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', '/dev/parport0', '/dev/parport1', 'LabJack U3', 'USB2TTL8']
+ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', 'LabJack U3', 'USB2TTL8']
 ParallelOutComponent.address.canBePath:True
 ParallelOutComponent.address.categ:Hardware
 ParallelOutComponent.address.codeWanted:False
@@ -7553,7 +7774,7 @@ PeristalticPumpComponent.com_port.default:'Select pump com port'
 PeristalticPumpComponent.com_port.allowedLabels:[]
 PeristalticPumpComponent.com_port.allowedTypes:[]
 PeristalticPumpComponent.com_port.allowedUpdates:None
-PeristalticPumpComponent.com_port.allowedVals:['/dev/cu.wlan-debug', '/dev/cu.debug-console', '/dev/cu.Bluetooth-Incoming-Port']
+PeristalticPumpComponent.com_port.allowedVals:['COM1', 'COM3']
 PeristalticPumpComponent.com_port.canBePath:True
 PeristalticPumpComponent.com_port.categ:Basic
 PeristalticPumpComponent.com_port.codeWanted:False
@@ -7837,6 +8058,244 @@ PeristalticPumpComponent.syncScreenRefresh.staticUpdater:None
 PeristalticPumpComponent.syncScreenRefresh.updates:None
 PeristalticPumpComponent.syncScreenRefresh.val:False
 PeristalticPumpComponent.syncScreenRefresh.valType:bool
+PhidgetRelayComponent.order:['name', 'startVal', 'startEstim', 'startType', 'stopVal', 'durationEstim', 'stopType', 'syncToScreen', 'channelList', 'serialNumber', 'reversedRelay']
+PhidgetRelayComponent.channelList.default:[]
+PhidgetRelayComponent.channelList.allowedLabels:[]
+PhidgetRelayComponent.channelList.allowedTypes:[]
+PhidgetRelayComponent.channelList.allowedUpdates:None
+PhidgetRelayComponent.channelList.allowedVals:[]
+PhidgetRelayComponent.channelList.canBePath:True
+PhidgetRelayComponent.channelList.categ:Hardware
+PhidgetRelayComponent.channelList.codeWanted:False
+PhidgetRelayComponent.channelList.direct:True
+PhidgetRelayComponent.channelList.hint:The list of channels controlled by this component
+PhidgetRelayComponent.channelList.inputType:single
+PhidgetRelayComponent.channelList.label:Channel List
+PhidgetRelayComponent.channelList.readOnly:False
+PhidgetRelayComponent.channelList.staticUpdater:None
+PhidgetRelayComponent.channelList.updates:None
+PhidgetRelayComponent.channelList.val:
+PhidgetRelayComponent.channelList.valType:list
+PhidgetRelayComponent.disabled.default:False
+PhidgetRelayComponent.disabled.allowedLabels:[]
+PhidgetRelayComponent.disabled.allowedTypes:[]
+PhidgetRelayComponent.disabled.allowedUpdates:None
+PhidgetRelayComponent.disabled.allowedVals:[]
+PhidgetRelayComponent.disabled.canBePath:True
+PhidgetRelayComponent.disabled.categ:Testing
+PhidgetRelayComponent.disabled.codeWanted:False
+PhidgetRelayComponent.disabled.direct:False
+PhidgetRelayComponent.disabled.hint:Disable this component
+PhidgetRelayComponent.disabled.inputType:bool
+PhidgetRelayComponent.disabled.label:Disable component
+PhidgetRelayComponent.disabled.readOnly:False
+PhidgetRelayComponent.disabled.staticUpdater:None
+PhidgetRelayComponent.disabled.updates:None
+PhidgetRelayComponent.disabled.val:False
+PhidgetRelayComponent.disabled.valType:bool
+PhidgetRelayComponent.durationEstim.default:
+PhidgetRelayComponent.durationEstim.allowedLabels:[]
+PhidgetRelayComponent.durationEstim.allowedTypes:[]
+PhidgetRelayComponent.durationEstim.allowedUpdates:None
+PhidgetRelayComponent.durationEstim.allowedVals:[]
+PhidgetRelayComponent.durationEstim.canBePath:True
+PhidgetRelayComponent.durationEstim.categ:Basic
+PhidgetRelayComponent.durationEstim.codeWanted:False
+PhidgetRelayComponent.durationEstim.direct:False
+PhidgetRelayComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
+PhidgetRelayComponent.durationEstim.inputType:single
+PhidgetRelayComponent.durationEstim.label:Expected duration (s)
+PhidgetRelayComponent.durationEstim.readOnly:False
+PhidgetRelayComponent.durationEstim.staticUpdater:None
+PhidgetRelayComponent.durationEstim.updates:None
+PhidgetRelayComponent.durationEstim.val:
+PhidgetRelayComponent.durationEstim.valType:code
+PhidgetRelayComponent.name.default:phidgetRelay
+PhidgetRelayComponent.name.allowedLabels:[]
+PhidgetRelayComponent.name.allowedTypes:[]
+PhidgetRelayComponent.name.allowedUpdates:None
+PhidgetRelayComponent.name.allowedVals:[]
+PhidgetRelayComponent.name.canBePath:True
+PhidgetRelayComponent.name.categ:Basic
+PhidgetRelayComponent.name.codeWanted:False
+PhidgetRelayComponent.name.direct:True
+PhidgetRelayComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
+PhidgetRelayComponent.name.inputType:single
+PhidgetRelayComponent.name.label:Name
+PhidgetRelayComponent.name.readOnly:False
+PhidgetRelayComponent.name.staticUpdater:None
+PhidgetRelayComponent.name.val:phidgetRelay
+PhidgetRelayComponent.name.valType:code
+PhidgetRelayComponent.reversedRelay.default:False
+PhidgetRelayComponent.reversedRelay.allowedLabels:[]
+PhidgetRelayComponent.reversedRelay.allowedTypes:[]
+PhidgetRelayComponent.reversedRelay.allowedUpdates:None
+PhidgetRelayComponent.reversedRelay.allowedVals:[True, False]
+PhidgetRelayComponent.reversedRelay.canBePath:True
+PhidgetRelayComponent.reversedRelay.categ:Hardware
+PhidgetRelayComponent.reversedRelay.codeWanted:False
+PhidgetRelayComponent.reversedRelay.direct:True
+PhidgetRelayComponent.reversedRelay.hint:Set reversed if you want the relay to start on and turn off for the indicated duration
+PhidgetRelayComponent.reversedRelay.inputType:bool
+PhidgetRelayComponent.reversedRelay.label:Reversed Relay
+PhidgetRelayComponent.reversedRelay.readOnly:False
+PhidgetRelayComponent.reversedRelay.staticUpdater:None
+PhidgetRelayComponent.reversedRelay.updates:None
+PhidgetRelayComponent.reversedRelay.val:False
+PhidgetRelayComponent.reversedRelay.valType:bool
+PhidgetRelayComponent.saveStartStop.default:True
+PhidgetRelayComponent.saveStartStop.allowedLabels:[]
+PhidgetRelayComponent.saveStartStop.allowedTypes:[]
+PhidgetRelayComponent.saveStartStop.allowedUpdates:None
+PhidgetRelayComponent.saveStartStop.allowedVals:[]
+PhidgetRelayComponent.saveStartStop.canBePath:True
+PhidgetRelayComponent.saveStartStop.categ:Data
+PhidgetRelayComponent.saveStartStop.codeWanted:False
+PhidgetRelayComponent.saveStartStop.direct:True
+PhidgetRelayComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+PhidgetRelayComponent.saveStartStop.inputType:bool
+PhidgetRelayComponent.saveStartStop.label:Save onset/offset times
+PhidgetRelayComponent.saveStartStop.readOnly:False
+PhidgetRelayComponent.saveStartStop.staticUpdater:None
+PhidgetRelayComponent.saveStartStop.updates:None
+PhidgetRelayComponent.saveStartStop.val:True
+PhidgetRelayComponent.saveStartStop.valType:bool
+PhidgetRelayComponent.serialNumber.default:None
+PhidgetRelayComponent.serialNumber.allowedLabels:[]
+PhidgetRelayComponent.serialNumber.allowedTypes:[]
+PhidgetRelayComponent.serialNumber.allowedUpdates:None
+PhidgetRelayComponent.serialNumber.allowedVals:[]
+PhidgetRelayComponent.serialNumber.canBePath:True
+PhidgetRelayComponent.serialNumber.categ:Hardware
+PhidgetRelayComponent.serialNumber.codeWanted:False
+PhidgetRelayComponent.serialNumber.direct:True
+PhidgetRelayComponent.serialNumber.hint:Serial number for your Phidget Output relay (leave empty if only one Phidget attached to PC)
+PhidgetRelayComponent.serialNumber.inputType:int
+PhidgetRelayComponent.serialNumber.label:Serial Number
+PhidgetRelayComponent.serialNumber.readOnly:False
+PhidgetRelayComponent.serialNumber.staticUpdater:None
+PhidgetRelayComponent.serialNumber.updates:None
+PhidgetRelayComponent.serialNumber.val:
+PhidgetRelayComponent.serialNumber.valType:num
+PhidgetRelayComponent.startEstim.default:
+PhidgetRelayComponent.startEstim.allowedLabels:[]
+PhidgetRelayComponent.startEstim.allowedTypes:[]
+PhidgetRelayComponent.startEstim.allowedUpdates:None
+PhidgetRelayComponent.startEstim.allowedVals:[]
+PhidgetRelayComponent.startEstim.canBePath:True
+PhidgetRelayComponent.startEstim.categ:Basic
+PhidgetRelayComponent.startEstim.codeWanted:False
+PhidgetRelayComponent.startEstim.direct:False
+PhidgetRelayComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
+PhidgetRelayComponent.startEstim.inputType:single
+PhidgetRelayComponent.startEstim.label:Expected start (s)
+PhidgetRelayComponent.startEstim.readOnly:False
+PhidgetRelayComponent.startEstim.staticUpdater:None
+PhidgetRelayComponent.startEstim.updates:None
+PhidgetRelayComponent.startEstim.val:
+PhidgetRelayComponent.startEstim.valType:code
+PhidgetRelayComponent.startType.default:'time (s)'
+PhidgetRelayComponent.startType.allowedLabels:[]
+PhidgetRelayComponent.startType.allowedTypes:[]
+PhidgetRelayComponent.startType.allowedUpdates:None
+PhidgetRelayComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
+PhidgetRelayComponent.startType.canBePath:True
+PhidgetRelayComponent.startType.categ:Basic
+PhidgetRelayComponent.startType.codeWanted:False
+PhidgetRelayComponent.startType.direct:False
+PhidgetRelayComponent.startType.hint:How do you want to define your start point?
+PhidgetRelayComponent.startType.inputType:choice
+PhidgetRelayComponent.startType.label:start type
+PhidgetRelayComponent.startType.readOnly:False
+PhidgetRelayComponent.startType.staticUpdater:None
+PhidgetRelayComponent.startType.updates:None
+PhidgetRelayComponent.startType.val:time (s)
+PhidgetRelayComponent.startType.valType:str
+PhidgetRelayComponent.startVal.default:0.0
+PhidgetRelayComponent.startVal.allowedLabels:[]
+PhidgetRelayComponent.startVal.allowedTypes:[]
+PhidgetRelayComponent.startVal.allowedUpdates:None
+PhidgetRelayComponent.startVal.allowedVals:[]
+PhidgetRelayComponent.startVal.canBePath:True
+PhidgetRelayComponent.startVal.categ:Basic
+PhidgetRelayComponent.startVal.codeWanted:False
+PhidgetRelayComponent.startVal.direct:True
+PhidgetRelayComponent.startVal.hint:When does the component start?
+PhidgetRelayComponent.startVal.inputType:single
+PhidgetRelayComponent.startVal.label:Start
+PhidgetRelayComponent.startVal.readOnly:False
+PhidgetRelayComponent.startVal.staticUpdater:None
+PhidgetRelayComponent.startVal.updates:None
+PhidgetRelayComponent.startVal.val:0.0
+PhidgetRelayComponent.startVal.valType:code
+PhidgetRelayComponent.stopType.default:'duration (s)'
+PhidgetRelayComponent.stopType.allowedLabels:[]
+PhidgetRelayComponent.stopType.allowedTypes:[]
+PhidgetRelayComponent.stopType.allowedUpdates:None
+PhidgetRelayComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+PhidgetRelayComponent.stopType.canBePath:True
+PhidgetRelayComponent.stopType.categ:Basic
+PhidgetRelayComponent.stopType.codeWanted:False
+PhidgetRelayComponent.stopType.direct:False
+PhidgetRelayComponent.stopType.hint:How do you want to define your end point?
+PhidgetRelayComponent.stopType.inputType:choice
+PhidgetRelayComponent.stopType.label:stop type
+PhidgetRelayComponent.stopType.readOnly:False
+PhidgetRelayComponent.stopType.staticUpdater:None
+PhidgetRelayComponent.stopType.updates:None
+PhidgetRelayComponent.stopType.val:duration (s)
+PhidgetRelayComponent.stopType.valType:str
+PhidgetRelayComponent.stopVal.default:3.0
+PhidgetRelayComponent.stopVal.allowedLabels:[]
+PhidgetRelayComponent.stopVal.allowedTypes:[]
+PhidgetRelayComponent.stopVal.allowedUpdates:[]
+PhidgetRelayComponent.stopVal.allowedVals:[]
+PhidgetRelayComponent.stopVal.canBePath:True
+PhidgetRelayComponent.stopVal.categ:Basic
+PhidgetRelayComponent.stopVal.codeWanted:False
+PhidgetRelayComponent.stopVal.direct:True
+PhidgetRelayComponent.stopVal.hint:When does the component end? (blank is endless)
+PhidgetRelayComponent.stopVal.inputType:single
+PhidgetRelayComponent.stopVal.label:Stop
+PhidgetRelayComponent.stopVal.readOnly:False
+PhidgetRelayComponent.stopVal.staticUpdater:None
+PhidgetRelayComponent.stopVal.updates:constant
+PhidgetRelayComponent.stopVal.val:3.0
+PhidgetRelayComponent.stopVal.valType:code
+PhidgetRelayComponent.syncScreenRefresh.default:False
+PhidgetRelayComponent.syncScreenRefresh.allowedLabels:[]
+PhidgetRelayComponent.syncScreenRefresh.allowedTypes:[]
+PhidgetRelayComponent.syncScreenRefresh.allowedUpdates:None
+PhidgetRelayComponent.syncScreenRefresh.allowedVals:[]
+PhidgetRelayComponent.syncScreenRefresh.canBePath:True
+PhidgetRelayComponent.syncScreenRefresh.categ:Data
+PhidgetRelayComponent.syncScreenRefresh.codeWanted:False
+PhidgetRelayComponent.syncScreenRefresh.direct:True
+PhidgetRelayComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+PhidgetRelayComponent.syncScreenRefresh.inputType:bool
+PhidgetRelayComponent.syncScreenRefresh.label:Sync timing with screen refresh
+PhidgetRelayComponent.syncScreenRefresh.readOnly:False
+PhidgetRelayComponent.syncScreenRefresh.staticUpdater:None
+PhidgetRelayComponent.syncScreenRefresh.updates:None
+PhidgetRelayComponent.syncScreenRefresh.val:False
+PhidgetRelayComponent.syncScreenRefresh.valType:bool
+PhidgetRelayComponent.syncToScreen.default:True
+PhidgetRelayComponent.syncToScreen.allowedLabels:[]
+PhidgetRelayComponent.syncToScreen.allowedTypes:[]
+PhidgetRelayComponent.syncToScreen.allowedUpdates:None
+PhidgetRelayComponent.syncToScreen.allowedVals:[True, False]
+PhidgetRelayComponent.syncToScreen.canBePath:True
+PhidgetRelayComponent.syncToScreen.categ:Basic
+PhidgetRelayComponent.syncToScreen.codeWanted:False
+PhidgetRelayComponent.syncToScreen.direct:True
+PhidgetRelayComponent.syncToScreen.hint:Sync relay events to the screen refresh
+PhidgetRelayComponent.syncToScreen.inputType:bool
+PhidgetRelayComponent.syncToScreen.label:Sync to screen
+PhidgetRelayComponent.syncToScreen.readOnly:False
+PhidgetRelayComponent.syncToScreen.staticUpdater:None
+PhidgetRelayComponent.syncToScreen.updates:None
+PhidgetRelayComponent.syncToScreen.val:True
+PhidgetRelayComponent.syncToScreen.valType:bool
 PolygonComponent.order:['name', 'startVal', 'startEstim', 'startType', 'stopVal', 'durationEstim', 'stopType', 'color', 'fillColor', 'lineColor', 'borderColor', 'colorSpace', 'opacity', 'size', 'pos', 'units', 'anchor', 'ori', 'shape', 'nVertices']
 PolygonComponent.anchor.default:'center'
 PolygonComponent.anchor.allowedLabels:[]
@@ -9641,6 +10100,346 @@ ResourceManagerComponent.stopVal.staticUpdater:None
 ResourceManagerComponent.stopVal.updates:constant
 ResourceManagerComponent.stopVal.val:
 ResourceManagerComponent.stopVal.valType:code
+SerialOutComponent.order:['name', 'startVal', 'startEstim', 'startType', 'stopVal', 'durationEstim', 'stopType']
+SerialOutComponent.baudrate.default:9600
+SerialOutComponent.baudrate.allowedLabels:[]
+SerialOutComponent.baudrate.allowedTypes:[]
+SerialOutComponent.baudrate.allowedUpdates:None
+SerialOutComponent.baudrate.allowedVals:[]
+SerialOutComponent.baudrate.canBePath:True
+SerialOutComponent.baudrate.categ:Hardware
+SerialOutComponent.baudrate.codeWanted:False
+SerialOutComponent.baudrate.direct:True
+SerialOutComponent.baudrate.hint:The baud rate, or speed, of the connection.
+SerialOutComponent.baudrate.inputType:num
+SerialOutComponent.baudrate.label:Baud rate
+SerialOutComponent.baudrate.readOnly:False
+SerialOutComponent.baudrate.staticUpdater:None
+SerialOutComponent.baudrate.updates:None
+SerialOutComponent.baudrate.val:9600
+SerialOutComponent.baudrate.valType:int
+SerialOutComponent.bytesize.default:8
+SerialOutComponent.bytesize.allowedLabels:[]
+SerialOutComponent.bytesize.allowedTypes:[]
+SerialOutComponent.bytesize.allowedUpdates:None
+SerialOutComponent.bytesize.allowedVals:[]
+SerialOutComponent.bytesize.canBePath:True
+SerialOutComponent.bytesize.categ:Hardware
+SerialOutComponent.bytesize.codeWanted:False
+SerialOutComponent.bytesize.direct:True
+SerialOutComponent.bytesize.hint:Size of bits to be sent.
+SerialOutComponent.bytesize.inputType:num
+SerialOutComponent.bytesize.label:Data bits
+SerialOutComponent.bytesize.readOnly:False
+SerialOutComponent.bytesize.staticUpdater:None
+SerialOutComponent.bytesize.updates:None
+SerialOutComponent.bytesize.val:8
+SerialOutComponent.bytesize.valType:int
+SerialOutComponent.disabled.default:False
+SerialOutComponent.disabled.allowedLabels:[]
+SerialOutComponent.disabled.allowedTypes:[]
+SerialOutComponent.disabled.allowedUpdates:None
+SerialOutComponent.disabled.allowedVals:[]
+SerialOutComponent.disabled.canBePath:True
+SerialOutComponent.disabled.categ:Testing
+SerialOutComponent.disabled.codeWanted:False
+SerialOutComponent.disabled.direct:False
+SerialOutComponent.disabled.hint:Disable this component
+SerialOutComponent.disabled.inputType:bool
+SerialOutComponent.disabled.label:Disable component
+SerialOutComponent.disabled.readOnly:False
+SerialOutComponent.disabled.staticUpdater:None
+SerialOutComponent.disabled.updates:None
+SerialOutComponent.disabled.val:False
+SerialOutComponent.disabled.valType:bool
+SerialOutComponent.durationEstim.default:
+SerialOutComponent.durationEstim.allowedLabels:[]
+SerialOutComponent.durationEstim.allowedTypes:[]
+SerialOutComponent.durationEstim.allowedUpdates:None
+SerialOutComponent.durationEstim.allowedVals:[]
+SerialOutComponent.durationEstim.canBePath:True
+SerialOutComponent.durationEstim.categ:Basic
+SerialOutComponent.durationEstim.codeWanted:False
+SerialOutComponent.durationEstim.direct:False
+SerialOutComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
+SerialOutComponent.durationEstim.inputType:single
+SerialOutComponent.durationEstim.label:Expected duration (s)
+SerialOutComponent.durationEstim.readOnly:False
+SerialOutComponent.durationEstim.staticUpdater:None
+SerialOutComponent.durationEstim.updates:None
+SerialOutComponent.durationEstim.val:
+SerialOutComponent.durationEstim.valType:code
+SerialOutComponent.getResponse.default:True
+SerialOutComponent.getResponse.allowedLabels:[]
+SerialOutComponent.getResponse.allowedTypes:[]
+SerialOutComponent.getResponse.allowedUpdates:None
+SerialOutComponent.getResponse.allowedVals:[]
+SerialOutComponent.getResponse.canBePath:True
+SerialOutComponent.getResponse.categ:Data
+SerialOutComponent.getResponse.codeWanted:False
+SerialOutComponent.getResponse.direct:True
+SerialOutComponent.getResponse.hint:After sending a signal, should PsychoPy read and record a response from the port?
+SerialOutComponent.getResponse.inputType:bool
+SerialOutComponent.getResponse.label:Get response?
+SerialOutComponent.getResponse.readOnly:False
+SerialOutComponent.getResponse.staticUpdater:None
+SerialOutComponent.getResponse.updates:None
+SerialOutComponent.getResponse.val:True
+SerialOutComponent.getResponse.valType:bool
+SerialOutComponent.name.default:serial
+SerialOutComponent.name.allowedLabels:[]
+SerialOutComponent.name.allowedTypes:[]
+SerialOutComponent.name.allowedUpdates:None
+SerialOutComponent.name.allowedVals:[]
+SerialOutComponent.name.canBePath:True
+SerialOutComponent.name.categ:Basic
+SerialOutComponent.name.codeWanted:False
+SerialOutComponent.name.direct:True
+SerialOutComponent.name.hint:Name of this component (alphanumeric or _, no spaces)
+SerialOutComponent.name.inputType:single
+SerialOutComponent.name.label:Name
+SerialOutComponent.name.readOnly:False
+SerialOutComponent.name.staticUpdater:None
+SerialOutComponent.name.val:serial
+SerialOutComponent.name.valType:code
+SerialOutComponent.parity.default:'None'
+SerialOutComponent.parity.allowedLabels:('None', 'Even', 'Off', 'Mark', 'Space')
+SerialOutComponent.parity.allowedTypes:[]
+SerialOutComponent.parity.allowedUpdates:None
+SerialOutComponent.parity.allowedVals:('N', 'E', 'O', 'M', 'S')
+SerialOutComponent.parity.canBePath:True
+SerialOutComponent.parity.categ:Hardware
+SerialOutComponent.parity.codeWanted:False
+SerialOutComponent.parity.direct:True
+SerialOutComponent.parity.hint:Parity mode.
+SerialOutComponent.parity.inputType:choice
+SerialOutComponent.parity.label:Parity
+SerialOutComponent.parity.readOnly:False
+SerialOutComponent.parity.staticUpdater:None
+SerialOutComponent.parity.updates:None
+SerialOutComponent.parity.val:None
+SerialOutComponent.parity.valType:str
+SerialOutComponent.port.default:'COM3'
+SerialOutComponent.port.allowedLabels:[]
+SerialOutComponent.port.allowedTypes:[]
+SerialOutComponent.port.allowedUpdates:None
+SerialOutComponent.port.allowedVals:[]
+SerialOutComponent.port.canBePath:True
+SerialOutComponent.port.categ:Basic
+SerialOutComponent.port.codeWanted:False
+SerialOutComponent.port.direct:True
+SerialOutComponent.port.hint:Serial port to connect to
+SerialOutComponent.port.inputType:single
+SerialOutComponent.port.label:Port
+SerialOutComponent.port.readOnly:False
+SerialOutComponent.port.staticUpdater:None
+SerialOutComponent.port.updates:None
+SerialOutComponent.port.val:COM3
+SerialOutComponent.port.valType:str
+SerialOutComponent.saveStartStop.default:True
+SerialOutComponent.saveStartStop.allowedLabels:[]
+SerialOutComponent.saveStartStop.allowedTypes:[]
+SerialOutComponent.saveStartStop.allowedUpdates:None
+SerialOutComponent.saveStartStop.allowedVals:[]
+SerialOutComponent.saveStartStop.canBePath:True
+SerialOutComponent.saveStartStop.categ:Data
+SerialOutComponent.saveStartStop.codeWanted:False
+SerialOutComponent.saveStartStop.direct:True
+SerialOutComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+SerialOutComponent.saveStartStop.inputType:bool
+SerialOutComponent.saveStartStop.label:Save onset/offset times
+SerialOutComponent.saveStartStop.readOnly:False
+SerialOutComponent.saveStartStop.staticUpdater:None
+SerialOutComponent.saveStartStop.updates:None
+SerialOutComponent.saveStartStop.val:True
+SerialOutComponent.saveStartStop.valType:bool
+SerialOutComponent.startEstim.default:
+SerialOutComponent.startEstim.allowedLabels:[]
+SerialOutComponent.startEstim.allowedTypes:[]
+SerialOutComponent.startEstim.allowedUpdates:None
+SerialOutComponent.startEstim.allowedVals:[]
+SerialOutComponent.startEstim.canBePath:True
+SerialOutComponent.startEstim.categ:Basic
+SerialOutComponent.startEstim.codeWanted:False
+SerialOutComponent.startEstim.direct:False
+SerialOutComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
+SerialOutComponent.startEstim.inputType:single
+SerialOutComponent.startEstim.label:Expected start (s)
+SerialOutComponent.startEstim.readOnly:False
+SerialOutComponent.startEstim.staticUpdater:None
+SerialOutComponent.startEstim.updates:None
+SerialOutComponent.startEstim.val:
+SerialOutComponent.startEstim.valType:code
+SerialOutComponent.startType.default:'time (s)'
+SerialOutComponent.startType.allowedLabels:[]
+SerialOutComponent.startType.allowedTypes:[]
+SerialOutComponent.startType.allowedUpdates:None
+SerialOutComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
+SerialOutComponent.startType.canBePath:True
+SerialOutComponent.startType.categ:Basic
+SerialOutComponent.startType.codeWanted:False
+SerialOutComponent.startType.direct:False
+SerialOutComponent.startType.hint:How do you want to define your start point?
+SerialOutComponent.startType.inputType:choice
+SerialOutComponent.startType.label:start type
+SerialOutComponent.startType.readOnly:False
+SerialOutComponent.startType.staticUpdater:None
+SerialOutComponent.startType.updates:None
+SerialOutComponent.startType.val:time (s)
+SerialOutComponent.startType.valType:str
+SerialOutComponent.startVal.default:0.0
+SerialOutComponent.startVal.allowedLabels:[]
+SerialOutComponent.startVal.allowedTypes:[]
+SerialOutComponent.startVal.allowedUpdates:None
+SerialOutComponent.startVal.allowedVals:[]
+SerialOutComponent.startVal.canBePath:True
+SerialOutComponent.startVal.categ:Basic
+SerialOutComponent.startVal.codeWanted:False
+SerialOutComponent.startVal.direct:True
+SerialOutComponent.startVal.hint:When does the component start?
+SerialOutComponent.startVal.inputType:single
+SerialOutComponent.startVal.label:Start
+SerialOutComponent.startVal.readOnly:False
+SerialOutComponent.startVal.staticUpdater:None
+SerialOutComponent.startVal.updates:None
+SerialOutComponent.startVal.val:0.0
+SerialOutComponent.startVal.valType:code
+SerialOutComponent.startdata.default:1
+SerialOutComponent.startdata.allowedLabels:[]
+SerialOutComponent.startdata.allowedTypes:[]
+SerialOutComponent.startdata.allowedUpdates:None
+SerialOutComponent.startdata.allowedVals:[]
+SerialOutComponent.startdata.canBePath:True
+SerialOutComponent.startdata.categ:Basic
+SerialOutComponent.startdata.codeWanted:False
+SerialOutComponent.startdata.direct:True
+SerialOutComponent.startdata.hint:Data to be sent at start of pulse
+SerialOutComponent.startdata.inputType:single
+SerialOutComponent.startdata.label:Start data
+SerialOutComponent.startdata.readOnly:False
+SerialOutComponent.startdata.staticUpdater:None
+SerialOutComponent.startdata.updates:None
+SerialOutComponent.startdata.val:1
+SerialOutComponent.startdata.valType:code
+SerialOutComponent.stopType.default:'duration (s)'
+SerialOutComponent.stopType.allowedLabels:[]
+SerialOutComponent.stopType.allowedTypes:[]
+SerialOutComponent.stopType.allowedUpdates:None
+SerialOutComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+SerialOutComponent.stopType.canBePath:True
+SerialOutComponent.stopType.categ:Basic
+SerialOutComponent.stopType.codeWanted:False
+SerialOutComponent.stopType.direct:False
+SerialOutComponent.stopType.hint:How do you want to define your end point?
+SerialOutComponent.stopType.inputType:choice
+SerialOutComponent.stopType.label:stop type
+SerialOutComponent.stopType.readOnly:False
+SerialOutComponent.stopType.staticUpdater:None
+SerialOutComponent.stopType.updates:None
+SerialOutComponent.stopType.val:duration (s)
+SerialOutComponent.stopType.valType:str
+SerialOutComponent.stopVal.default:1.0
+SerialOutComponent.stopVal.allowedLabels:[]
+SerialOutComponent.stopVal.allowedTypes:[]
+SerialOutComponent.stopVal.allowedUpdates:[]
+SerialOutComponent.stopVal.allowedVals:[]
+SerialOutComponent.stopVal.canBePath:True
+SerialOutComponent.stopVal.categ:Basic
+SerialOutComponent.stopVal.codeWanted:False
+SerialOutComponent.stopVal.direct:True
+SerialOutComponent.stopVal.hint:When does the component end? (blank is endless)
+SerialOutComponent.stopVal.inputType:single
+SerialOutComponent.stopVal.label:Stop
+SerialOutComponent.stopVal.readOnly:False
+SerialOutComponent.stopVal.staticUpdater:None
+SerialOutComponent.stopVal.updates:constant
+SerialOutComponent.stopVal.val:1.0
+SerialOutComponent.stopVal.valType:code
+SerialOutComponent.stopbits.default:1
+SerialOutComponent.stopbits.allowedLabels:[]
+SerialOutComponent.stopbits.allowedTypes:[]
+SerialOutComponent.stopbits.allowedUpdates:None
+SerialOutComponent.stopbits.allowedVals:[]
+SerialOutComponent.stopbits.canBePath:True
+SerialOutComponent.stopbits.categ:Hardware
+SerialOutComponent.stopbits.codeWanted:False
+SerialOutComponent.stopbits.direct:True
+SerialOutComponent.stopbits.hint:Size of bits to be sent on stop.
+SerialOutComponent.stopbits.inputType:num
+SerialOutComponent.stopbits.label:Stop bits
+SerialOutComponent.stopbits.readOnly:False
+SerialOutComponent.stopbits.staticUpdater:None
+SerialOutComponent.stopbits.updates:None
+SerialOutComponent.stopbits.val:1
+SerialOutComponent.stopbits.valType:int
+SerialOutComponent.stopdata.default:0
+SerialOutComponent.stopdata.allowedLabels:[]
+SerialOutComponent.stopdata.allowedTypes:[]
+SerialOutComponent.stopdata.allowedUpdates:None
+SerialOutComponent.stopdata.allowedVals:[]
+SerialOutComponent.stopdata.canBePath:True
+SerialOutComponent.stopdata.categ:Basic
+SerialOutComponent.stopdata.codeWanted:False
+SerialOutComponent.stopdata.direct:True
+SerialOutComponent.stopdata.hint:Data to be sent at end of pulse
+SerialOutComponent.stopdata.inputType:single
+SerialOutComponent.stopdata.label:Stop data
+SerialOutComponent.stopdata.readOnly:False
+SerialOutComponent.stopdata.staticUpdater:None
+SerialOutComponent.stopdata.updates:None
+SerialOutComponent.stopdata.val:0
+SerialOutComponent.stopdata.valType:code
+SerialOutComponent.syncScreen.default:True
+SerialOutComponent.syncScreen.allowedLabels:[]
+SerialOutComponent.syncScreen.allowedTypes:[]
+SerialOutComponent.syncScreen.allowedUpdates:[]
+SerialOutComponent.syncScreen.allowedVals:[True, False]
+SerialOutComponent.syncScreen.canBePath:True
+SerialOutComponent.syncScreen.categ:Data
+SerialOutComponent.syncScreen.codeWanted:False
+SerialOutComponent.syncScreen.direct:True
+SerialOutComponent.syncScreen.hint:If the serial port data relates to visual stimuli then sync its pulse to the screen refresh
+SerialOutComponent.syncScreen.inputType:bool
+SerialOutComponent.syncScreen.label:Sync screen
+SerialOutComponent.syncScreen.readOnly:False
+SerialOutComponent.syncScreen.staticUpdater:None
+SerialOutComponent.syncScreen.updates:constant
+SerialOutComponent.syncScreen.val:True
+SerialOutComponent.syncScreen.valType:bool
+SerialOutComponent.syncScreenRefresh.default:False
+SerialOutComponent.syncScreenRefresh.allowedLabels:[]
+SerialOutComponent.syncScreenRefresh.allowedTypes:[]
+SerialOutComponent.syncScreenRefresh.allowedUpdates:None
+SerialOutComponent.syncScreenRefresh.allowedVals:[]
+SerialOutComponent.syncScreenRefresh.canBePath:True
+SerialOutComponent.syncScreenRefresh.categ:Data
+SerialOutComponent.syncScreenRefresh.codeWanted:False
+SerialOutComponent.syncScreenRefresh.direct:True
+SerialOutComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+SerialOutComponent.syncScreenRefresh.inputType:bool
+SerialOutComponent.syncScreenRefresh.label:Sync timing with screen refresh
+SerialOutComponent.syncScreenRefresh.readOnly:False
+SerialOutComponent.syncScreenRefresh.staticUpdater:None
+SerialOutComponent.syncScreenRefresh.updates:None
+SerialOutComponent.syncScreenRefresh.val:False
+SerialOutComponent.syncScreenRefresh.valType:bool
+SerialOutComponent.timeout.default:
+SerialOutComponent.timeout.allowedLabels:[]
+SerialOutComponent.timeout.allowedTypes:[]
+SerialOutComponent.timeout.allowedUpdates:None
+SerialOutComponent.timeout.allowedVals:[]
+SerialOutComponent.timeout.canBePath:True
+SerialOutComponent.timeout.categ:Hardware
+SerialOutComponent.timeout.codeWanted:False
+SerialOutComponent.timeout.direct:True
+SerialOutComponent.timeout.hint:Time at which to give up listening for a response (leave blank for no limit)
+SerialOutComponent.timeout.inputType:single
+SerialOutComponent.timeout.label:Timeout
+SerialOutComponent.timeout.readOnly:False
+SerialOutComponent.timeout.staticUpdater:None
+SerialOutComponent.timeout.updates:None
+SerialOutComponent.timeout.val:
+SerialOutComponent.timeout.valType:int
 SettingsComponent.order:['expName', 'Use version', 'Show info dlg', 'Enable Escape', 'Experiment info', 'Data filename', 'Data file delimiter', 'Save excel file', 'Save csv file', 'Save wide csv file', 'Save psydat file', 'Save hdf5 file', 'Save log file', 'logging level', 'Audio lib', 'Audio latency priority', 'Force stereo', 'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'Resources', 'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Units', 'color', 'colorSpace', 'eyetracker', 'gpAddress', 'gpPort', 'elModel', 'elAddress', 'elSimMode']
 SettingsComponent.Audio latency priority.default:'use prefs'
 SettingsComponent.Audio latency priority.allowedLabels:['use prefs', '0: Latency not important', '1: Share low-latency driver', '2: Exclusive low-latency', '3: Aggressive low-latency', '4: Latency critical']
@@ -10039,7 +10838,7 @@ SettingsComponent.Use version.default:''
 SettingsComponent.Use version.allowedLabels:[]
 SettingsComponent.Use version.allowedTypes:[]
 SettingsComponent.Use version.allowedUpdates:None
-SettingsComponent.Use version.allowedVals:['latest', '2021', '2020', '2021.2', '2021.1', '2020.2', '2020.1', '3.2', '3.1', '3.0', '1.90', '', '2021.2.3', '2021.2.2', '2021.2.1', '2021.2.0', '2021.1.4', '2021.1.0', '2020.2.10', '2020.2.9', '2020.2.8', '2020.2.7', '2020.2.6', '2020.2.5', '2020.2.4', '2020.2.3', '2020.2.2', '2020.2.1', '2020.2.0', '2020.1.3', '2020.1.2', '2020.1.1', '3.2.4', '3.2.3', '3.2.2', '3.2.1', '3.2.0', '3.1.5', '3.1.4', '3.1.3', '3.1.2', '3.1.1', '3.1.0', '3.0.7', '3.0.6', '3.0.5', '3.0.4', '3.0.3', '3.0.2', '3.0.1', '3.0.0', '1.90.2', '1.90.1', '1.90.0']
+SettingsComponent.Use version.allowedVals:['latest', '2022', '2021', '2020', '2022.1', '2021.2', '2021.1', '2020.2', '2020.1', '3.2', '3.1', '3.0', '1.90', '', '2022.1.4', '2022.1.3', '2022.1.2', '2022.1.1', '2022.1.0', '2021.2.3', '2021.2.2', '2021.2.1', '2021.2.0', '2021.1.4', '2021.1.0', '2020.2.10', '2020.2.9', '2020.2.8', '2020.2.7', '2020.2.6', '2020.2.5', '2020.2.4', '2020.2.3', '2020.2.2', '2020.2.1', '2020.2.0', '2020.1.3', '2020.1.2', '2020.1.1', '3.2.4', '3.2.3', '3.2.2', '3.2.1', '3.2.0', '3.1.5', '3.1.4', '3.1.3', '3.1.2', '3.1.1', '3.1.0', '3.0.7', '3.0.6', '3.0.5', '3.0.4', '3.0.3', '3.0.2', '3.0.1', '3.0.0', '1.90.2', '1.90.1', '1.90.0']
 SettingsComponent.Use version.canBePath:True
 SettingsComponent.Use version.categ:Basic
 SettingsComponent.Use version.codeWanted:False
@@ -10328,7 +11127,7 @@ SettingsComponent.eyetracker.default:'None'
 SettingsComponent.eyetracker.allowedLabels:[]
 SettingsComponent.eyetracker.allowedTypes:[]
 SettingsComponent.eyetracker.allowedUpdates:None
-SettingsComponent.eyetracker.allowedVals:['GazePoint', 'Pupil Labs', 'SR Research Ltd', 'MouseGaze', 'Tobii Technology', 'None']
+SettingsComponent.eyetracker.allowedVals:['GazePoint', 'MouseGaze', 'Pupil Labs', 'SR Research Ltd', 'Tobii Technology', 'None']
 SettingsComponent.eyetracker.canBePath:True
 SettingsComponent.eyetracker.categ:Eyetracking
 SettingsComponent.eyetracker.codeWanted:False
