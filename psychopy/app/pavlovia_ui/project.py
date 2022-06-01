@@ -551,10 +551,19 @@ class DetailsPanel(wx.Panel):
         # Enable ctrl now that there is a local root
         self.localRoot.Enable()
         self.localRootLabel.Enable()
-        # Show sync dlg (does sync)
+        # Show sync dlg
         dlg = sync.SyncDialog(self, self.project)
+        # Commit changes
+        committed = functions.showCommitDialog(self, self.project, initMsg="", infoStream=dlg.status)
+        # Cancel sync if commit cancelled
+        if committed == -1:
+            dlg.status.write(_translate(
+                "\n"
+                "Sync cancelled by user."
+            ))
+            return
+        # Do sync
         dlg.sync()
-        functions.showCommitDialog(self, self.project, initMsg="", infoStream=dlg.status)
         # Update project
         self.project.refresh()
         # Update last sync date & show
