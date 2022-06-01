@@ -870,11 +870,16 @@ class SettingsComponent:
                     "\n").format(version=useVer)
             buff.writeIndentedLines(code)
 
+        # Get expInfo as a dict
+        expInfoDict = self.getInfo().items()
         # Convert each item to str
         expInfoStr = "{"
+        if len(expInfoDict):
+            # Only make the dict multiline if it actually has contents
+            expInfoStr += "\n"
         for key, value in self.getInfo().items():
-            expInfoStr += f"'{key}': {value}, "
-        expInfoStr = expInfoStr[:-2] + "}"
+            expInfoStr += f"    '{key}': {value},\n"
+        expInfoStr += "}"
 
         code = ("\n// store info about the experiment session:\n"
                 "let expName = '%s';  // from the Builder filename that created this script\n"
