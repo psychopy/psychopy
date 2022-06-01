@@ -694,11 +694,20 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
     # Error catch logged out
     session = pavlovia.getCurrentSession()
     if not session or not session.user:
+        # If not logged in, prompt to login
         dlg = wx.MessageDialog(None, message=_translate(
             "You are not logged in to Pavlovia. Please log in to sync project."
-        ), style=wx.ICON_ERROR | wx.OK)
-        dlg.ShowModal()
-        return
+        ), style=wx.ICON_AUTH_NEEDED | wx.OK | wx.CANCEL)
+        dlg.SetOKLabel(_translate("Login..."))
+        if dlg.ShowModal() == wx.ID_OK:
+            # If they click Login, open login screen
+            user = functions.logInPavlovia(None)
+            # If they cancelled out of login screen, cancel sync
+            if not user:
+                return
+        else:
+            # If they cancel out of login prompt, cancel sync
+            return
     # If not in a project, make one
     if project is None:
         msgDlg = wx.MessageDialog(parent,
