@@ -20,6 +20,8 @@ while webcam.recordingTime < 5.0:
     time.sleep(0.05)  # sleep a bit
 
 webcam.stop()  # stop the webcam recording
-# webcam.save('myVideo.mp4')  # save the file
+
+# webcam.save('myVideo.mp4')  # uncomment to save the file
+
 webcam.close()  # close the webcam stream
 core.quit()
