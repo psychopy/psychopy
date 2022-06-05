@@ -42,11 +42,9 @@ You can find the eyetracker components in the eyetracker component drop-down on 
 .. note::
 	If you've started the eyetracker recording at the start of your experiment, be sure to add in another eyetracker record component at the end of your experiment to stop the recording too!
 
-* If you want to record information on gaze position, or you want your trial to move on when your participant has looked at or away from a target, you'll need to add in an **ROI component**:
+* If you want to record information on gaze position, or you want your trial to move on when your participant has looked at or away from a target, you'll need to add in an **ROI component**. The ROI component has lots of options - you can choose what you want to happen when the participant looks at or away from a certain part of the screen, what shape your ROI is etc. All of which can also be defined in your conditions file, just like any other component. Choose the options that fit the needs of your experiment. Here, the component is set such that when a participant looks at a circular target for at least 0.1s (set by the min look time), the trial will end:
 
 .. figure:: /images/eyeROI.png
-
-    Here there are lots of options - you can choose what you want to happen when the participant looks at or away from a certain part of the screen, what shape your ROI is etc. All of which can also be defined in your conditions file, just like any other component. Choose the options that fit the needs of your experiment. Here, the component is set such that when a participant looks at a circular target for at least 0.1s (set by the min look time), the trial will end.
 
 * On the `layout` tab of the ROI component, you set the position and size of the ROI in the same way as you would set the position of any visual component:
 
@@ -57,14 +55,17 @@ You can find the eyetracker components in the eyetracker component drop-down on 
 * The **Eyetracker calibrate** component has all of the options you would expect from an eyetracker calibration:
 
 .. figure:: /images/eyeCaliBasic.png
+    :scale: 20%
 
     Set the basic properties of the calibration routine here.
 
 .. figure:: /images/eyeCaliTarget.png
+    :scale: 20%
 
     Set the properties of the target on this tab.
 
 .. figure:: /images/eyeCaliAni.png
+    :scale: 20%
 
     This tab allows you to set the properties of the target animation.
 
@@ -78,6 +79,7 @@ What about the data?
 * In the example below, the trial ended when a participant looked at a target on the screen. You can see what each column represents in the figure below:
 
 .. figure:: /images/eyeData.png
+    :scale: 20%
 
     The data output will vary according to what you've asked PsychoPy to record about gaze.
 
