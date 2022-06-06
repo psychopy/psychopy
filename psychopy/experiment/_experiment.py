@@ -222,7 +222,7 @@ class Experiment:
         # set this so that params write for approp target
         utils.scriptTarget = target
         self.expPath = expPath
-        script = IndentingBuffer(u'')  # a string buffer object
+        script = IndentingBuffer(target=target)  # a string buffer object
 
         # get date info, in format preferred by current locale as set by app:
         if hasattr(locale, 'nl_langinfo'):

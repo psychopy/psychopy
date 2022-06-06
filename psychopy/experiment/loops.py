@@ -207,7 +207,7 @@ class TrialHandler():
                         seed=seed))
         buff.writeIndentedLines(code)
         buff.setIndentLevel(2, relative=True)
-        if
+
         code = ("TrialHandler.fromSnapshot(snapshot); // update internal variables (.thisN etc) of the loop\n\n"
                 "// set up handler to look after randomisation of conditions etc\n"
                 "{loopName} = new TrialHandler({{\n"
