@@ -341,7 +341,7 @@ def _hogCPUactivity():
     from . import core
 
     if not (core.havePyglet and core.checkPygletDuringWait):
-        continue
+        pass
     # let's see if pyglet collected any event in meantime
     try:
         # this takes focus away from command line terminal window:
