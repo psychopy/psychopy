@@ -612,7 +612,19 @@ class SettingsComponent:
             for key in infoDict:
                 val = infoDict[key]
                 if exputils.list_like_re.search(str(val)):
-                    infoDict[key] = Param(val=val, valType='list')
+                    # Try to call it with ast, if it produces a list/tuple, treat val type as list
+                    try:
+                        isList = ast.literal_eval(str(val))
+                    except ValueError:
+                        # If ast errors, treat as code
+                        infoDict[key] = Param(val=val, valType='code')
+                    else:
+                        if isinstance(isList, (list, tuple)):
+                            # If ast produces a list, treat as list
+                            infoDict[key] = Param(val=val, valType='list')
+                        else:
+                            # If ast produces anything else, treat as code
+                            infoDict[key] = Param(val=val, valType='code')
                 elif val in ['True', 'False']:
                     infoDict[key] = Param(val=val, valType='bool')
                 elif isinstance(val, str):
@@ -858,11 +870,16 @@ class SettingsComponent:
                     "\n").format(version=useVer)
             buff.writeIndentedLines(code)
 
+        # Get expInfo as a dict
+        expInfoDict = self.getInfo().items()
         # Convert each item to str
         expInfoStr = "{"
+        if len(expInfoDict):
+            # Only make the dict multiline if it actually has contents
+            expInfoStr += "\n"
         for key, value in self.getInfo().items():
-            expInfoStr += f"'{key}': {value}, "
-        expInfoStr = expInfoStr[:-2] + "}"
+            expInfoStr += f"    '{key}': {value},\n"
+        expInfoStr += "}"
 
         code = ("\n// store info about the experiment session:\n"
                 "let expName = '%s';  // from the Builder filename that created this script\n"
