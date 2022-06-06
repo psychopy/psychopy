@@ -369,9 +369,6 @@ class MovieStreamIOThread(threading.Thread):
         Media player instance, should be configured and initialized. Note that
         player instance methods might not be thread-safe after handing off the
         object to this thread.
-    writer : `ffpyplayer.player.MediaWriter` or `None`
-        Media writer instance, should be configured and initialized. Do not
-        manipulate this object while a recording is in progress.
 
     """
     def __init__(self, player):
