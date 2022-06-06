@@ -46,9 +46,9 @@ WEBCAM_UNKNOWN_VALUE = u'Unknown'  # fields where we couldn't get a value
 WEBCAM_NULL_VALUE = u'Null'  # fields where we couldn't get a value
 
 # camera operating modes
-WEBCAM_MODE_VIDEO = u'video'
-WEBCAM_MODE_CV = u'cv'
-WEBCAM_MODE_PHOTO = u'photo'
+CAMERA_MODE_VIDEO = u'video'
+CAMERA_MODE_CV = u'cv'
+CAMERA_MODE_PHOTO = u'photo'
 
 
 # ------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ class PlayerNotAvailableError(Exception):
 
 
 # ------------------------------------------------------------------------------
-# Descriptors
+# Classes
 #
 
 class CameraInfo:
@@ -276,7 +276,7 @@ class StreamStatus:
         return self._recTime
 
 
-class StreamData:  # rename to `StreamData`
+class StreamData:
     """Descriptor for video frame data.
 
     Instances of this class are produced by the stream reader/writer thread
@@ -356,11 +356,6 @@ class StreamData:  # rename to `StreamData`
         return u''
 
 
-# ------------------------------------------------------------------------------
-# Classes
-#
-
-
 class MovieStreamIOThread(threading.Thread):
     """Class for reading and writing streams asynchronously.
 
@@ -379,12 +374,13 @@ class MovieStreamIOThread(threading.Thread):
         manipulate this object while a recording is in progress.
 
     """
-    def __init__(self, player, writer=None):
+    def __init__(self, player):
         threading.Thread.__init__(self)
         self.daemon = False
 
         self._player = player  # player interface to FFMPEG
-        self._writer = writer  # writer interface
+        self._writer = None  # writer interface
+        self._mic = None
         self._frameQueue = queue.Queue(maxsize=1)  # frames for the monitor
 
         # some values the user might want
@@ -414,9 +410,7 @@ class MovieStreamIOThread(threading.Thread):
         self._isReadyEvent.clear()
         frameInterval = 0.001  # dynamic poll interval, start at 1ms
         ptsStart = 0.0
-        writer = None  # writer instance
-        tempVideoFileName = tempAudioFileName = 'null'
-        tempRootDir = '.'
+        recordingJustStarted = True
         streaming = True
         while streaming:
             # consume frames until we get a valid one
@@ -444,46 +438,22 @@ class MovieStreamIOThread(threading.Thread):
             colorData, pts = frameData
             self._streamTime = pts
 
-            # handle writing to file if the user requested to record the stream
+            # handle writing to file
             if self._isRecording.is_set():
-                pix_fmt_in = 'yuv420p'
-                # called once when recording is started
-                if writer is None:
-                    # configure the temp directory and files for the recordings
-                    randFileName = str(uuid.uuid4().hex)
-                    tempRootDir = tempfile.mkdtemp(
-                        suffix=randFileName,
-                        prefix='psychopy-',
-                        dir=None)
-                    tempVideoFileName = os.path.join(tempRootDir, 'video.mp4')
-                    tempAudioFileName = os.path.join(tempRootDir, 'audio.wav')
-
-                    # codec that best suits the output file type
-                    useCodec = get_format_codec(tempVideoFileName)
-                    frameWidth, frameHeight = metadata['src_vid_size']
-
-                    # options to configure the writer, we use some default
-                    # params for now until we sort how to configure this easily
-                    # for users
-                    writerOptions = {
-                        'pix_fmt_in': pix_fmt_in,  # default for now
-                        # 'pix_fmt_in': 'rgb24',
-                        'width_in': frameWidth,
-                        'height_in': frameHeight,
-                        'codec': useCodec,
-                        'frame_rate': frameRate
-                    }
-
-                    # initialize the writer to transcode the video stream to
-                    # file
-                    writer = MediaWriter(tempVideoFileName, [writerOptions])
-                    ptsStart = pts
-
+                if recordingJustStarted:
+                    ptsStart = self._streamTime
                     self._status = RECORDING
 
-                # If we have a writer object and we're recording, write the
-                # frame we got to file.
-                else:
+                    # start the microphone
+                    if self._mic is not None:
+                        self._mic.record()
+
+                    recordingJustStarted = False
+
+                # compute timestamp for the writer for the current frame
+                self._recordingTime = self._streamTime - ptsStart
+
+                if self._writer is not None:
                     frameWidth, frameHeight = colorData.get_size()
                     pixelFormat = colorData.get_pixel_format()
 
@@ -492,29 +462,30 @@ class MovieStreamIOThread(threading.Thread):
                         frameWidth,
                         frameHeight,
                         pixelFormat,
-                        ofmt=pix_fmt_in)
-
-                    # Compute timestamp for the writer for the current frame,
-                    # only valid during a recording.
-                    self._recordingTime = pts - ptsStart
+                        ofmt='yuv420p')
 
                     # write the frame to the file
                     self._recordingBytes = self._writer.write_frame(
                         img=sws.scale(colorData),
                         pts=self._recordingTime,
                         stream=0)
+
+                # poll the mic if available to flush the sample buffer
+                if self._mic is not None:
+                    self._mic.poll()
+
             else:
-                # close the writer file
-                if writer is not None:
-                    writer.close()
-                    writer = None
-                    tempVideoFileName = tempAudioFileName = 'null'
-                    tempRootDir = '.'
+                if not recordingJustStarted:
+                    # start the microphone
+                    if self._mic is not None:
+                        self._mic.stop()
+
                     # reset stream recording vars when done
                     ptsStart = 0.0
-                    self._status = STOPPED
                     self._recordingBytes = 0
                     self._recordingTime = 0.0
+                    self._status = STOPPED
+                    recordingJustStarted = True
 
             # Put the frame in the queue to allow the main thread to safely
             # access it. If the queue is full, the frame data will be discarded
@@ -547,27 +518,34 @@ class MovieStreamIOThread(threading.Thread):
         """
         return self._isReadyEvent.is_set()
 
-    def record(self, writer):
+    def record(self, writer, mic=None):
         """Start recording frames to the output video file.
 
         Parameters
         ----------
         writer : MediaWriter
             Media writer object to record with.
+        mic : Microphone or None
+            Option audio capture device to use with the camera. This object will
+            be controlled by the thread.
 
         """
         self._writer = writer
+        self._mic = mic
 
-        if self._writer is not None:
-            self._isRecording.set()
-        else:
-            self._isRecording.clear()
+        # need at least a writer to use this
+        if not isinstance(self._writer, MediaWriter):
+            raise TypeError(
+                "Expected type `MediaWriter` for parameter `writer`.")
+
+        self._isRecording.set()
 
     def stop(self):
         """Stop recording frames to the output file.
         """
         self._isRecording.clear()
         self._writer = None
+        self._mic = None
 
     def shutdown(self):
         """Stop the thread.
@@ -685,7 +663,7 @@ class Camera:
         self._cameraLib = cameraLib
 
         # operating mode
-        if mode not in (WEBCAM_MODE_VIDEO, WEBCAM_MODE_CV, WEBCAM_MODE_PHOTO):
+        if mode not in (CAMERA_MODE_VIDEO, CAMERA_MODE_CV, CAMERA_MODE_PHOTO):
             raise ValueError(
                 "Invalid value for parameter `mode`, expected one of `'video'` "
                 "`'cv'` or `'photo'`.")
@@ -702,7 +680,8 @@ class Camera:
         self._tempRootDir = u'.'
 
         if not isinstance(mic, Microphone):
-            TypeError("Expected type `Microphone` for parameter `mic`.")
+            TypeError(
+                "Expected type for parameter `mic`, expected `Microphone`.")
         self.mic = mic
 
         # current camera frame since the start of recording
@@ -860,13 +839,6 @@ class Camera:
         # initialize the writer to transcode the video stream to file
         self._writer = MediaWriter(self._tempVideoFileName, [writerOptions])
 
-        # initialize audio recording if available
-        if self._mic is not None:
-            self._mic.start()
-
-        # recording timestamp
-        self._pts = -1.0
-
     def _closeWriter(self):
         """Close the video writer.
         """
@@ -903,7 +875,7 @@ class Camera:
 
         # delete the temp directory and files to clean up after composing the
         # video
-        shutil.rmtree(self._tempRootDir)
+        # shutil.rmtree(self._tempRootDir)
 
         return True
 
@@ -1003,41 +975,6 @@ class Camera:
             return
 
         raise PlayerNotAvailableError('Media player not initialized.')
-
-    def _writeFrame(self, colorData, timestamp):
-        """Write the presently enqueued frame to the output file.
-
-        Parameters
-        ----------
-        colorData : object
-            Image frame to write.
-        timestamp : float
-            Timestamp of the frame in seconds.
-
-        """
-        if not self._hasWriter:  # NOP if no writer
-            return
-
-        if self._status != RECORDING:  # nop if not recording
-            return
-
-        isMonotonic = self._lastPts > timestamp
-
-        if not isMonotonic:
-            return
-
-        self._lastPts = timestamp
-
-        # convert the image to the appropriate format for the encoder
-        frameWidth, frameHeight = colorData.get_size()
-        pixelFormat = colorData.get_pixel_format()
-        sws = SWScale(frameWidth, frameHeight, pixelFormat, ofmt='yuv420p')
-
-        # write the frame to the file
-        self._writer.write_frame(
-            img=sws.scale(colorData),
-            pts=timestamp,
-            stream=0)
 
     def _enqueueFrame(self, blockUntilFrame=True):
         """Grab the latest frame from the stream.
@@ -1147,15 +1084,14 @@ class Camera:
         while not self._enqueueFrame():
             time.sleep(0.001)
 
-        self._tStream.record(self._writer)
+        self._openWriter()
+
+        self._tStream.record(self._writer, self._mic)
         self._status = RECORDING
 
-        # start audio recording if possible
-        if self._mic is not None:
-            self._mic.record()
-
     def snapshot(self):
-        """Take a photo with the camera. The camera must be in `'photo'` mode
+        """Take a photo with the camera. The c
+        amera must be in `'photo'` mode
         to use this method.
         """
         pass
@@ -1166,6 +1102,8 @@ class Camera:
         self._assertMediaPlayer()
         self._tStream.stop()
         self._status = STOPPED
+
+        self._closeWriter()
 
         # stop audio recording if `mic` is available
         if self._mic is not None:

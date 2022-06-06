@@ -7,21 +7,23 @@
 import psychopy
 import psychopy.core as core
 from psychopy.hardware.camera import Camera
-import time
+from psychopy.sound.microphone import Microphone
+
+mic = Microphone(Microphone.getDevices()[0])
 
 # Open a camera
-webcam = Camera(0)
+webcam = Camera(0, mic=mic)
 webcam.open()
 
 webcam.record()  # start recording frames
 
-# record for 5 seconds
+# record for (close to) 5 seconds
 while webcam.recordingTime < 5.0:
-    time.sleep(0.05)  # sleep a bit
+    print(webcam.getVideoFrame())  # get video frame data, print it
 
 webcam.stop()  # stop the webcam recording
 
-# webcam.save('myVideo.mp4')  # uncomment to save the file
+# webcam.save('myVideo.mp4')  # uncomment to save the file, just specify the path
 
 webcam.close()  # close the webcam stream
 core.quit()
