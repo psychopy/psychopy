@@ -609,7 +609,7 @@ class MultiStairHandler:
         code = (
                         "psychoJS: psychoJS,\n"
                         "name: '%(name)s',\n"
-                        "varName: '%(name)sVal',\n"
+                        "varName: 'intensity',\n"
                         "nTrials: %(nReps)s,\n"
                         "conditions: %(name)sConditions,\n"
                         "method: TrialHandler.Method.%(switchMethod)s\n"
@@ -628,6 +628,8 @@ class MultiStairHandler:
 
         buff.setIndentLevel(1, relative=True)
         thisLoop = self.exp.flow.loopDict[self]
+        buff.writeIndentedLines(
+                        "%(name)sLoopScheduler.add(%(name)sLoopStartIteration(snapshot));\n" % inits)
         for thisChild in thisLoop:
             if thisChild.getType() == 'Routine':
                 code = (
@@ -674,6 +676,10 @@ class MultiStairHandler:
         )
         buff.writeIndentedLines(code % inits)
 
+        # for multistair we also need to write the function to start each loop iteration
+        self.writeLoopStartIterationJS(buff)
+
+
     def writeLoopEndCode(self, buff):
         # Just within the loop advance data line if loop is whole trials
         if self.params['isTrials'].val:
@@ -691,6 +697,16 @@ class MultiStairHandler:
                 code = ("%(name)s.saveAsText(filename + '%(name)s.csv', "
                         "delim=',')\n")
                 buff.writeIndented(code % self.params)
+
+    def writeLoopStartIterationJS(self, buff):
+        startLoopInteration = (f"\nfunction {self.name}LoopStartIteration(snapshot) {{\n"
+                               f"  return async function() {{\n"
+                               f"    // ------Prepare for next entry------\n"
+                               f"    level = {self.name}.intensity;\n\n"
+                               f"    return Scheduler.Event.NEXT;\n"
+                               f"  }}\n"
+                               f"}}\n")
+        buff.writeIndentedLines(startLoopInteration % self.params)
 
     def writeLoopEndCodeJS(self, buff):
         code = (
