@@ -737,14 +737,14 @@ class PavloviaProject(dict):
     def localRoot(self, value):
         if self.project.path_with_namespace in knownProjects:
             # If project has known local store, update its root
-            knownProjects[self.project.path_with_namespace]['localRoot'] = value
+            knownProjects[self.project.path_with_namespace]['localRoot'] = str(value)
             knownProjects.save()
         else:
             # If project has no known local store, create one
             knownProjects[self.project.path_with_namespace] = {
                 'id': self['path_with_namespace'],
                 'idNumber': self.id,
-                'localRoot': value,
+                'localRoot': str(value),
                 'remoteHTTPS': f"https://gitlab.pavlovia.org/{self['path_with_namespace']}.git",
                 'remoteSSH': f"git@gitlab.pavlovia.org:{self['path_with_namespace']}.git"
             }

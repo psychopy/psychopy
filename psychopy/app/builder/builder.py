@@ -3913,7 +3913,8 @@ class BuilderToolbar(BasePsychopyToolbar):
     def onPavloviaProject(self, evt=None):
         if self.frame.project is not None:
             dlg = ProjectFrame(app=self.frame.app,
-                               project=self.frame.project)
+                               project=self.frame.project,
+                               parent=self.frame)
         else:
             dlg = ProjectFrame(app=self.frame.app)
         dlg.Show()

@@ -225,6 +225,7 @@ class DetailsPanel(wx.Panel):
                           size=size,
                           style=style)
         self.SetBackgroundColour("white")
+        self.parent = parent
         # Setup sizer
         self.contentBox = wx.BoxSizer()
         self.SetSizer(self.contentBox)
@@ -551,8 +552,13 @@ class DetailsPanel(wx.Panel):
         # Enable ctrl now that there is a local root
         self.localRoot.Enable()
         self.localRootLabel.Enable()
+        # Get filename if available
+        if hasattr(self.GetTopLevelParent(), "filename"):
+            file = self.parent.filename
+        else:
+            file = ""
         # Do sync
-        syncProject(self, self.project)
+        syncProject(self, self.project, file=file)
         # Update project
         self.project.refresh()
         # Update last sync date & show
@@ -736,21 +742,26 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
         defaultRoot = Path(file).parent
         if not project.localRoot:
             # If there is no local root at all, prompt user to make one
-            msg = _translate("Project root folder is not yet specified, specify one now?")
+            msg = _translate("Project root folder is not yet specified, specify project root now?")
         elif not Path(project.localRoot).is_dir():
             # If there is a local root but the folder is gone, prompt user to change it
             msg = _translate("Project root folder does not exist, change project root now?")
         # Ask user if they want to
-        dlg = wx.MessageDialog(parent, message=msg, style=wx.YES_NO)
-        # Open folder picker
-        if dlg.ShowModal() == wx.ID_YES:
-            dlg = wx.DirDialog(parent, message=_translate("Specify folder..."), defaultPath=str(defaultRoot))
-            if dlg.ShowModal() == wx.ID_OK:
-                localRoot = Path(dlg.GetPath())
-                project.localRoot = str(localRoot)
+        dlg = wx.MessageDialog(parent, message=msg, style=wx.OK | wx.CANCEL)
+        # Get response
+        if dlg.ShowModal() == wx.ID_OK:
+            # Attempt to get folder of current file
+            if file and defaultRoot.is_dir():
+                # If we have a reference to the current folder, use it
+                project.localRoot = defaultRoot
             else:
-                # If cancelled, cancel sync
-                return
+                # Otherwise, ask designer to specify manually
+                dlg = wx.DirDialog(parent, message=_translate("Specify folder..."), defaultPath=str(defaultRoot))
+                if dlg.ShowModal() == wx.ID_OK:
+                    project.localRoot = str(dlg.GetPath())
+                else:
+                    # If cancelled, cancel sync
+                    return
         else:
             # If they don't want to specify, cancel sync
             return
