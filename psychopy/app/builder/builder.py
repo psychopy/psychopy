@@ -1361,13 +1361,14 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             return True
 
     def onPavloviaSync(self, evt=None):
-        self.fileSave(self.filename)
-        if self._getExportPref('on sync'):
-            htmlPath = self._getHtmlPath(self.filename)
-            if htmlPath:
-                self.fileExport(htmlPath=htmlPath)
-            else:
-                return
+        if Path(self.filename).is_file():
+            self.fileSave(self.filename)
+            if self._getExportPref('on sync'):
+                htmlPath = self._getHtmlPath(self.filename)
+                if htmlPath:
+                    self.fileExport(htmlPath=htmlPath)
+                else:
+                    return
 
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
         pavlovia_ui.syncProject(parent=self, file=self.filename, project=self.project)
@@ -3912,7 +3913,8 @@ class BuilderToolbar(BasePsychopyToolbar):
     def onPavloviaProject(self, evt=None):
         if self.frame.project is not None:
             dlg = ProjectFrame(app=self.frame.app,
-                               project=self.frame.project)
+                               project=self.frame.project,
+                               parent=self.frame)
         else:
             dlg = ProjectFrame(app=self.frame.app)
         dlg.Show()

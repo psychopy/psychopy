@@ -225,6 +225,7 @@ class DetailsPanel(wx.Panel):
                           size=size,
                           style=style)
         self.SetBackgroundColour("white")
+        self.parent = parent
         # Setup sizer
         self.contentBox = wx.BoxSizer()
         self.SetSizer(self.contentBox)
@@ -551,10 +552,13 @@ class DetailsPanel(wx.Panel):
         # Enable ctrl now that there is a local root
         self.localRoot.Enable()
         self.localRootLabel.Enable()
-        # Show sync dlg (does sync)
-        dlg = sync.SyncDialog(self, self.project)
-        dlg.sync()
-        functions.showCommitDialog(self, self.project, initMsg="", infoStream=dlg.status)
+        # Get filename if available
+        if hasattr(self.GetTopLevelParent(), "filename"):
+            file = self.parent.filename
+        else:
+            file = ""
+        # Do sync
+        syncProject(self, self.project, file=file)
         # Update project
         self.project.refresh()
         # Update last sync date & show
@@ -691,6 +695,23 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
         0 for fail
         -1 for cancel at some point in the process
     """
+    # Error catch logged out
+    session = pavlovia.getCurrentSession()
+    if not session or not session.user:
+        # If not logged in, prompt to login
+        dlg = wx.MessageDialog(None, message=_translate(
+            "You are not logged in to Pavlovia. Please log in to sync project."
+        ), style=wx.ICON_AUTH_NEEDED | wx.OK | wx.CANCEL)
+        dlg.SetOKLabel(_translate("Login..."))
+        if dlg.ShowModal() == wx.ID_OK:
+            # If they click Login, open login screen
+            user = functions.logInPavlovia(None)
+            # If they cancelled out of login screen, cancel sync
+            if not user:
+                return
+        else:
+            # If they cancel out of login prompt, cancel sync
+            return
     # If not in a project, make one
     if project is None:
         msgDlg = wx.MessageDialog(parent,
@@ -716,20 +737,31 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
                 return
         else:
             return
-    # If no local root, prompt to make one
-    if not project.localRoot:
+    # If no local root or dead local root, prompt to make one
+    if not project.localRoot or not Path(project.localRoot).is_dir():
         defaultRoot = Path(file).parent
+        if not project.localRoot:
+            # If there is no local root at all, prompt user to make one
+            msg = _translate("Project root folder is not yet specified, specify project root now?")
+        elif not Path(project.localRoot).is_dir():
+            # If there is a local root but the folder is gone, prompt user to change it
+            msg = _translate("Project root folder does not exist, change project root now?")
         # Ask user if they want to
-        dlg = wx.MessageDialog(parent, message=_translate("Project root folder is not yet specified, specify one now?"), style=wx.YES_NO)
-        # Open folder picker
-        if dlg.ShowModal() == wx.ID_YES:
-            dlg = wx.DirDialog(parent, message=_translate("Specify folder..."), defaultPath=str(defaultRoot))
-            if dlg.ShowModal() == wx.ID_OK:
-                localRoot = Path(dlg.GetPath())
-                project.localRoot = str(localRoot)
+        dlg = wx.MessageDialog(parent, message=msg, style=wx.OK | wx.CANCEL)
+        # Get response
+        if dlg.ShowModal() == wx.ID_OK:
+            # Attempt to get folder of current file
+            if file and defaultRoot.is_dir():
+                # If we have a reference to the current folder, use it
+                project.localRoot = defaultRoot
             else:
-                # If cancelled, cancel sync
-                return
+                # Otherwise, ask designer to specify manually
+                dlg = wx.DirDialog(parent, message=_translate("Specify folder..."), defaultPath=str(defaultRoot))
+                if dlg.ShowModal() == wx.ID_OK:
+                    project.localRoot = str(dlg.GetPath())
+                else:
+                    # If cancelled, cancel sync
+                    return
         else:
             # If they don't want to specify, cancel sync
             return
@@ -737,8 +769,19 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
     parent.project = project
     # If there is (now) a project, do sync
     if project is not None:
+        # Show sync dlg
         dlg = sync.SyncDialog(parent, project)
-        functions.showCommitDialog(parent, project, initMsg="", infoStream=dlg.status)
+        # Commit changes
+        committed = functions.showCommitDialog(parent, project, initMsg="", infoStream=dlg.status)
+        # Cancel sync if commit cancelled
+        if committed == -1:
+            dlg.status.write(_translate(
+                "\n"
+                "Sync cancelled by user."
+            ))
+            dlg.OKbtn.Enable(True)
+            return
+        # Do sync
         dlg.sync()
 
 
