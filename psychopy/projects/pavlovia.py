@@ -25,6 +25,7 @@ from psychopy import app
 from psychopy.localization import _translate
 import wx
 
+from ..app.errorDlg import exceptionCallback
 from ..tools.apptools import SortTerm
 
 try:
@@ -93,7 +94,8 @@ def login(tokenOrUsername, rememberMe=True):
     """
     currentSession = getCurrentSession()
     if not currentSession:
-        raise requests.exceptions.ConnectionError("Failed to connect to Pavlovia.org. No network?")
+        exceptionCallback(exc_type=requests.exceptions.ConnectionError)
+        return
     # would be nice here to test whether this is a token or username
     logging.debug('pavloviaTokensCurrently: {}'.format(knownUsers))
     if tokenOrUsername in knownUsers:
@@ -490,32 +492,24 @@ class PavloviaSearch(pandas.DataFrame):
         # Ensure filter is a FilterTerm
         filterBy = self.FilterTerm(filterBy)
         # Do search
-        try:
-            session = getCurrentSession()
-            if mine:
-                # Display experiments by current user
-                data = session.session.get(
-                    f"https://pavlovia.org/api/v2/designers/{session.userID}/experiments?search={term}{filterBy}",
-                    timeout=10
-                ).json()
-            elif term or filterBy:
-                data = session.session.get(
-                    f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}",
-                    timeout=10
-                ).json()
-            else:
-                # Display demos for blank search
-                data = session.session.get(
-                    "https://pavlovia.org/api/v2/experiments?search=demos&designer=demos",
-                    timeout=10
-                ).json()
-        except requests.exceptions.ReadTimeout:
-            msg = _translate(
-                "Could not connect to Pavlovia server within an acceptable amount of time (10s). Please check that you "
-                "are connected to the internet. If you are connected, then the Pavlovia servers may be down. You can "
-                "check their status here: https://pavlovia.org/status"
-            )
-            raise ConnectionError(msg)
+        session = getCurrentSession()
+        if mine:
+            # Display experiments by current user
+            data = session.session.get(
+                f"https://pavlovia.org/api/v2/designers/{session.userID}/experiments?search={term}{filterBy}",
+                timeout=10
+            ).json()
+        elif term or filterBy:
+            data = session.session.get(
+                f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}",
+                timeout=10
+            ).json()
+        else:
+            # Display demos for blank search
+            data = session.session.get(
+                "https://pavlovia.org/api/v2/experiments?search=demos&designer=demos",
+                timeout=10
+            ).json()
         # Construct dataframe
         pandas.DataFrame.__init__(self, data=data['experiments'])
         # Do any requested sorting
@@ -743,14 +737,14 @@ class PavloviaProject(dict):
     def localRoot(self, value):
         if self.project.path_with_namespace in knownProjects:
             # If project has known local store, update its root
-            knownProjects[self.project.path_with_namespace]['localRoot'] = value
+            knownProjects[self.project.path_with_namespace]['localRoot'] = str(value)
             knownProjects.save()
         else:
             # If project has no known local store, create one
             knownProjects[self.project.path_with_namespace] = {
                 'id': self['path_with_namespace'],
                 'idNumber': self.id,
-                'localRoot': value,
+                'localRoot': str(value),
                 'remoteHTTPS': f"https://gitlab.pavlovia.org/{self['path_with_namespace']}.git",
                 'remoteSSH': f"git@gitlab.pavlovia.org:{self['path_with_namespace']}.git"
             }
@@ -768,7 +762,18 @@ class PavloviaProject(dict):
         """
         # Error catch local root
         if not self.localRoot:
-            raise gitlab.GitlabGetError("Can't sync project without a local root.")
+            dlg = wx.MessageDialog(self, message=_translate(
+                "Can't sync project without a local root. Please specify a local root then try again."
+            ), style=wx.ICON_ERROR | wx.OK)
+            dlg.ShowModal()
+            return
+        # Error catch logged out
+        if not self.session.user:
+            dlg = wx.MessageDialog(self, message=_translate(
+                "You are not logged in to Pavlovia. Please log in to sync project."
+            ), style=wx.ICON_ERROR | wx.OK)
+            dlg.ShowModal()
+            return
         # Reset local repo so it checks again (rather than erroring if it's been deleted without an app restart)
         self._repo = None
         # Jot down start time
@@ -1247,8 +1252,17 @@ def getProject(filename):
     proj = None
     # If already found, return
     if (knownProjects is not None) and (path in knownProjects) and ('idNumber' in knownProjects[path]):
+        thisId = knownProjects[path]['idNumber']
+        # Check that project still exists on Pavlovia
+        requestVal = session.session.get(
+            f"https://pavlovia.org/api/v2/experiments/{thisId}",
+        ).json()
+        if requestVal['experiment'] is None:
+            # If project has been deleted, return None
+            return None
+        # If project is still there, get it
         try:
-            return PavloviaProject(knownProjects[path]['idNumber'])
+            return PavloviaProject(thisId)
         except LookupError as err:
             # If project not found, print warning and return None
             logging.warn(str(err))

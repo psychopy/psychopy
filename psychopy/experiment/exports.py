@@ -31,11 +31,12 @@ from .utils import nonalphanumeric_re, valid_var_re
 
 class IndentingBuffer(io.StringIO):
 
-    def __init__(self, *args, **kwargs):
-        io.StringIO.__init__(self, *args, **kwargs)
+    def __init__(self, target='PsychoPy', initial_value='', newline='\n'):
+        io.StringIO.__init__(self, initial_value, newline)
         self.oneIndent = "    "
         self.indentLevel = 0
         self._writtenOnce = []
+        self.target = target  # useful to keep track of what language is written here
 
     def writeIndented(self, text):
         """Write to the StringIO buffer, but add the current indent.
