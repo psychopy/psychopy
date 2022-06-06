@@ -51,6 +51,12 @@ class Display(Device):
 
         if Display._computer_display_runtime_info_list is None:
             Display._computer_display_runtime_info_list = Display._createAllRuntimeInfoDicts()
+
+        if self.getIndex() >= self.getDisplayCount():
+            # Requested Display index is invalid. Use Display / Screen index 0.
+            print2err("WARNING: Requested display index does not exist. Using display index 0.")
+            self.device_number = 0
+
         self._addRuntimeInfoToDisplayConfig()
 
     def getDeviceNumber(self):
@@ -575,7 +581,7 @@ class Display(Device):
         else:
             print2err(' *** iohub error: Unknown Display / Monitor coordinate type: {0}'.format(coord_type))
             return
-        
+
         self._pix2coord = None
 
         # For now, use psychopy unit conversions so that drawing positions match
