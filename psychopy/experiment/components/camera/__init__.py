@@ -154,6 +154,7 @@ class CameraComponent(BaseComponent):
         code = (
             "%(name)s = new hardware.Camera({\n"
             "    name:'%(name)s',\n"
+            "    win:win,\n"
             "});\n"
             "// Get permission from participant to access their camera\n"
             "%(name)s.authorize()\n"
