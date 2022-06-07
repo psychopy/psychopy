@@ -3868,6 +3868,12 @@ class BuilderToolbar(BasePsychopyToolbar):
             label=_translate("Run online"),
             tooltip=_translate("Run the study online (with pavlovia.org)"),
             func=self.frame.onPavloviaRun)
+        # Pavlovia debug
+        self.buttons['pavloviaDebug'] = self.makeTool(
+            name='globe_bug',
+            label=_translate("Run in local browser"),
+            tooltip=_translate("Run the study in PsychoJS on a local browser, not through pavlovia.org"),
+            func=self.onPavloviaDebug)
         # Pavlovia sync
         self.buttons['pavloviaSync'] = self.makeTool(
             name='globe_greensync',
@@ -3898,6 +3904,20 @@ class BuilderToolbar(BasePsychopyToolbar):
         self.EnableTool(self.buttons['compile_js'].GetId(), Path(str(self.frame.filename)).is_file())
 
         self.frame.btnHandles = self.buttons
+
+    def onPavloviaDebug(self, evt=None):
+        # Open runner
+        self.frame.app.showRunner()
+        runner = self.frame.app.runner
+        # Make sure we have a current file
+        if self.frame.getIsModified() or not Path(self.frame.filename).is_file():
+            saved = self.frame.fileSave()
+            if not saved:
+                return
+        # Send current file to runner
+        runner.addTask(fileName=self.frame.filename)
+        # Run debug function from runner
+        self.frame.app.runner.panel.runOnlineDebug(evt=evt)
 
     def onPavloviaSearch(self, evt=None):
         searchDlg = SearchFrame(
