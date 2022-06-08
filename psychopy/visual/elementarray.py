@@ -117,8 +117,8 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         self.interpolate = interpolate
         self.__dict__['fieldDepth'] = fieldDepth
         self.__dict__['depths'] = depths
-        if self.win.winType != 'pyglet':
-            raise TypeError('ElementArrayStim requires a pyglet context')
+        if self.win.winType == 'pygame':
+            raise TypeError('ElementArrayStim is not supported in a pygame context')
         if not self.win._haveShaders:
             raise Exception("ElementArrayStim requires shaders support"
                             " and floating point textures")

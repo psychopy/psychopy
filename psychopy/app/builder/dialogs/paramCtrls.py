@@ -270,16 +270,21 @@ BoolCtrl = wx.CheckBox
 
 class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
     def __init__(self, parent, valType,
-                 val="", choices=[], fieldName="",
+                 val="", choices=[], labels=[], fieldName="",
                  size=wx.Size(-1, 24)):
-        # translate add each label to the dropdown
+        # translate and add labels to the dropdown
         choiceLabels = []
-        for item in choices:
+        for i, value in enumerate(choices):
+            if i < len(labels):
+                label = labels[i]
+            else:
+                label = value
             try:
-                choiceLabels.append(_localized[item])
-            except KeyError:
-                choiceLabels.append(item)
+                choiceLabels.append(_localized[label])
+            except:
+                choiceLabels.append(label)
 
+        # Create choice ctrl from labels
         wx.Choice.__init__(self)
         self.Create(parent, -1, size=size, choices=choiceLabels, name=fieldName)
         self._choices = choices
@@ -293,6 +298,12 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
         # Don't use wx.Choice.SetStringSelection here
         # because label string is localized.
         wx.Choice.SetSelection(self, self._choices.index(string))
+    
+    def GetValue(self):
+        # Don't use wx.Choice.GetStringSelection here
+        # because label string is localized.
+        return self._choices[self.GetSelection()]
+
 
 
 class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin, _HideMixin):

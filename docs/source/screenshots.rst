@@ -5,7 +5,7 @@ Screenshots
 
 A few screenshots are provided here to give you a flavour, but it's easier to download the software and run the demos (from the demos menus in each view) to see the variety of stimuli that can be generated. 
 
-PsychoPy is one of very few packages that allows a choice of interface. Use the :ref:`coder` view, for those that like to program from scratch (or just use your own editor)
+|PsychoPy| is one of very few packages that allows a choice of interface. Use the :ref:`coder` view, for those that like to program from scratch (or just use your own editor)
 
 .. only:: html
 
@@ -19,7 +19,7 @@ and the :ref:`builder` view for those that prefer a touch and click interface. I
    :target: builder/index.html
    :alt: The Builder view
    
-PsychoPy can handle every type of stimulus you can imagine...
+|PsychoPy| can handle every type of stimulus you can imagine...
 
 Images and movies of most formats:
 

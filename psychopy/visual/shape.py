@@ -169,7 +169,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                             " Please use color and colorSpace args instead")
             self.setFillColor(fillRGB, colorSpace='rgb', log=None)
         self.contrast = contrast
-        if opacity:
+        if opacity is not None:
             self.opacity = opacity
 
         # Other stuff
@@ -193,7 +193,11 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         :ref:`Operations <attrib-operations>` supported.
         """
-        if isinstance(self, psychopy.visual.Line) and isinstance(value, (int, float)):
+        # Enforce float
+        if not isinstance(value, (float, int)):
+            value = float(value)
+
+        if isinstance(self, psychopy.visual.Line):
             if value > 127:
                 logging.warning("lineWidth is greater than max width supported by OpenGL. For lines thicker than 127px, please use a filled Rect instead.")
         self.__dict__['lineWidth'] = value

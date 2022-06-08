@@ -3,7 +3,7 @@
 General Advice
 --------------
 
--	Python and therefore PsychoPy is CASE SENSITIVE
+-	Python and therefore |PsychoPy| is CASE SENSITIVE
 -	To use a dollar sign ($) for anything other than to indicate a code snippet for example in a :ref:`text`, precede it with a backslash ``\$`` (the backslash won't be printed)
 -	Have you entered your the settings for your :ref:`monitor <builderMonitors>`? If you are using degrees as a unit of measurement and have not entered your monitor settings, the size of stimuli will not be accurate.
 -	If your experiment is not behaving in the way that you expect. Have you looked at the :ref:`log file <logFile>`? This can point you in the right direction. Did you know you can change the type of information that is stored in the log file in preferences by changing the :ref:`logging level <codeLogging>`.
