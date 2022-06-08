@@ -117,6 +117,7 @@ class SerialOutComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
         code = (
             ")\n"
+            "%(name)s.status = NOT_STARTED\n"
         )
         buff.writeIndented(code % inits)
 
