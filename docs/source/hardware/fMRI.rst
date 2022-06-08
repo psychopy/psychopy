@@ -12,23 +12,21 @@ Step one: Know your Scanner!
 
 Rather than programming your PsychoPy experiment to send triggers *to* some hardware in the same way as EEG, with fMRI you would want to set up your experiment so that it waits until it has detected when the scanner has sent out a trigger before moving on to present trials.
 
-Before doing anything else, it's important that you know **how** the scanner you'll be using will emit these triggers, and whether these are converted to some other signal such as characters on a serial port or a simulated keypress.
+Before doing anything else, it's important that you know **how** the scanner you'll be using will emit these triggers, and whether these are converted to some other signal such as characters on a serial port or a simulated keypress. In general, there are at least 3 ways a scanner might send a trigger to your experiment:
 
-This guide will cover how to detect triggers from an fMRI scanner that are sent as characters on a serial port, or simulated keypresses.
+1. Emmulate a keypress.
+2. Via parallel port
+3. Via serial port
 
 
-Step two: Create a Routine
+Step two: Create a Routine to wait for scanner triggers
 -------------------------------------------------------------
 
-A Routine to detect fMRI triggers is really simple to set up. Regardless of the method your scanner uses to send the triggers, you'll just need a Routine that waits until it's detected the trigger before moving on.
+A Routine to detect fMRI triggers is really simple to set up. Regardless of the method your scanner uses to send the triggers, you'll just need a Routine that waits until it's detected the trigger before moving on. Create a new Routine and insert a Text component that says 'Waiting for Scanner'.
 
-* The first thing to do here is create a new Routine and insert a Text component:
-
-.. figure:: /images/fMRI1.png
-
-    Insert a Text component and set its duration to infinite (by leaving the `Stop` field blank). Add some useful text to display at this point, such as "Waiting for scanner...".
-
-* Now, you want to end this 'Waiting for Scanner' Routine when the scanner has sent its trigger. How you'll do that, depends on how the scanner transmits those triggers.
+* **If your scanner emulates key presses:** *This is the simplest of all communication methods!*
+    * Insert a Keyboard component to your 'Waiting for Scanner' Routine. In 'allowed keys' use the key that the scanner will send e.g. if the scanner sends '5' allowed keys will be '5'.
+    * Now, when the keypress is detected, the 'Waiting for Scanner' screen will end. Although, be careful! PsychoPy doesn't know the difference between the emulated key presses sent from the scanner and key presses made by a human being! So take care not to type on the keyboard connected to the PsychoPy computer whilst your experiment runs to avoid your key presses being mistaken for triggers.
 
 * **If your scanner communicates via a Parallel Port:**
     * Insert a code component to your 'Waiting for Scanner' Routine
@@ -62,15 +60,6 @@ A Routine to detect fMRI triggers is really simple to set up. Regardless of the 
 
     * The 'Waiting for Scanner' message will now remain on the screen until the trigger is received from the scanner.
 
-* **If your scanner emulates key presses:**
-    * Rather than a code component, you'll insert a Keyboard component set up with the only 'allowed key' being the one that the scanner will send.
-    * Insert this Keyboard component into your 'Waiting for Scanner' Routine:
-
-.. figure:: /images/fMRI2.png
-
-        Set up your Keyboard component so that it has a blank duration and is set to `Force end of Routine` when the key is pressed. Set the 'Allowed keys' to be only what the scanner will send.
-
-    * Now, when the keypress is detected, the 'Waiting for Scanner' screen will end. Although, be careful! PsychoPy doesn't know the difference between the emulated key presses sent from the scanner and key presses made by a human being! So take care not to type on the keyboard connected to the PsychoPy computer whilst your experiment runs to avoid your key presses being mistaken for triggers.
 
 Timing in fMRI
 -------------------------------------------------------------
