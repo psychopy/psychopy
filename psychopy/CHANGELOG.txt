@@ -59,10 +59,46 @@ PsychoPy 2022.1
 - Added the option to refer to pre-canned image files, such as default.png and use 
   as an image stimulus
 
+PsychoPy 2022.1.4
+~~~~~~~~~~~~~~~~~
+
+Fixes:
+- experiments using iohub were not running on MacOS standalone due to broken version of the gevent library
+- fixes to connection from Builder to Pavlovia in certain circumstances (e.g. certain usernames or when
+  project has moved) #22963a9
+- fixes searches of Pavlovia for private projects by the logged in user
+- fix to use of correct answers for Joystick Buttons Component #2e66dc1 #f9ef1be
+- Builder crashing when a Routine had been copied over #4592876
+- some parameters in Builder dialogs were missing their label names #c8cd380
+- ShapeStim was not obeying requests for zero opacity #8030b2f
+- fixed "currentLoop is not defined" error for online studies #a261d04
+- in certain circumstances, mic recordings were not saving for each trial, only for the last trial,
+  when online #5e23a0a
+
+PsychoPy 2022.1.3
+~~~~~~~~~~~~~~~~~
+
+Fixes:
+- TextStim (and Button, which is derived from TextStim) was not easily clickable online due to incorrect bounding box psychopy/psychojs#492
+- Slider styleTweaks were not being applied #4773
+- Check that file is saved before trying to Run #4759
+- Mouse coordinate mapping was incorrect for MacOS Retina displays which meant that Slider and Brush wasn't working, for instance #4755
+- Allow the Sound Component to be used if transcription libs were not available #4747
+- Form Component excel template was corrupted (by google sheets export) #4742
+- Copying a Routine from one experiment to another was causing a compile error #4740
+- Better logging of errors during application load for debugging purposes #4750
+- Setting the Slider to reset() was looking like a response when it shouldn't #4738
+- Fixed core.getTime() for M1 native installations (does not affect Standalone or Intel-based installations on M1)  b839a32da52b
+- Allow 3-dimensional arrays for ShapeStim vertices 31ca663bf2
+- Fix dependency definition for Poetry installations 77cb7c92eac4
+- Fix use of `event` module for keyboard as fallback for iohub/ptb 5c3672804f1
+- If HomeBrew has a broken fonts folder ignore it #4719
+- If user specifies a line width of `"2"`make it `2` 389bfd4692
 
 PsychoPy 2022.1.2
 ~~~~~~~~~~~~~~~~~
 
+Fixes:
 - URL redirection was failing at the end of the study for online experiments
   where the JS code was generated using 2022.1.0-2022.1.1 due to an erroneous
   replacement of `//` with `/` in `https://` #e8218b31f71
@@ -89,6 +125,7 @@ PsychoPy 2022.1.2
 PsychoPy 2022.1.1
 ~~~~~~~~~~~~~~~~~
 
+Fixes:
 - MacOS app failed to run experiments with dialog boxes (broken dependency being packaged)
 - the application would hang while trying to push any changes to Pavlovia
 - added Japanese translations of the new menu items etc
@@ -103,7 +140,7 @@ Many bug fixes from 2021.x release, more than we have room for here, including:
 - Builder: Region of Interest (ROI) Component does not depend on ETRecord component.
 - Builder: ROI Component 'look away' now ends routine after eyes have been outside 
   ROI for 'Min look time' seconds. 
-- Code: 0.5 second blocking eyelink start / stop record caused iohub to drop 
+- Code: 0.5 second blocking eyelink start/stop/record caused iohub to drop
   keyboard events. 
 - Code: eyelink now uses calibration 'randomize' param.
 - Code: Layout of Form, Slider and Textbox now much more stable and consistent

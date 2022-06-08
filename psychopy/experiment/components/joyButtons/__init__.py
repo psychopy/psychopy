@@ -89,6 +89,15 @@ class JoyButtonsComponent(BaseComponent):
             hint=msg,
             label=_localized['storeCorrect'])
 
+        self.depends += [  # allows params to turn each other off/on
+            {"dependsOn": "storeCorrect",  # must be param name
+             "condition": "== True",  # val to check for
+             "param": "correctAns",  # param property to alter
+             "true": "enable",  # what to do with param if condition is True
+             "false": "disable",  # permitted: hide, show, enable, disable
+             }
+        ]
+
         msg = _translate(
             "What is the 'correct' key? Might be helpful to add a "
             "correctAns column and use $correctAns to compare to the key "

@@ -47,3 +47,36 @@ class TestSettingsComponent(_TestBaseComponentsMixin):
                 assert not _find_global_resource_in_js_experiment(script, phrase), (
                     f"'{phrase}' was found in resources for {case['exp']}.psyexp"
                 )
+
+    def test_get_info(self):
+        # List of values for expInfo fields, with expected compiled values for python and js
+        cases = [
+            # Function call with multiple inputs
+            {'val': 'randint(0, 999)',
+             'py': "randint(0, 999)",
+             'js': "util.randint(0, 999)"}
+        ]
+
+        # Construct exp with one big expInfo string from cases
+        exp = experiment.Experiment()
+        exp.settings.params['Experiment info'].val = "{"
+        i = 0
+        for case in cases:
+            exp.settings.params['Experiment info'].val += f"'{i}': '{case['val']}',"
+            i += 1
+        exp.settings.params['Experiment info'].val += "}"
+
+        # Compile to py
+        pyScript = exp.writeScript(target="PsychoPy")
+        # Check py
+        expInfoStr = pyScript.split("expInfo = {")[1]
+        expInfoStr = expInfoStr.split("}")[0]
+        i = 0
+        for case in cases:
+            wanted = f"'{i}': {case['py']},"
+            assert wanted in expInfoStr, (
+                f"Could not find `{wanted}` in ```\n"
+                f"{expInfoStr}\n"
+                f"```"
+            )
+            i += 1

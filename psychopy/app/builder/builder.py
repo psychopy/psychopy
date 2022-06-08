@@ -144,7 +144,6 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.filename = fileName
         self.htmlPath = None
         self.session = pavlovia.getCurrentSession()
-        self.btnHandles = {}  # stores toolbar buttons so they can be altered
         self.scriptProcess = None
         self.stdoutBuffer = None
         self.readmeFrame = None
@@ -841,17 +840,16 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self.readmeFrame = ReadmeFrame(parent=self)
         # look for a readme file
         if self.filename and self.filename != 'untitled.psyexp':
-            dirname = os.path.dirname(self.filename)
-            possibles = glob.glob(os.path.join(dirname, 'readme*'))
+            dirname = Path(self.filename).parent
+            possibles = list(dirname.glob('readme*'))
             if len(possibles) == 0:
-                possibles = glob.glob(os.path.join(dirname, 'Readme*'))
-                possibles.extend(glob.glob(os.path.join(dirname, 'README*')))
+                possibles = list(dirname.glob('Readme*'))
+                possibles.extend(dirname.glob('README*'))
             # still haven't found a file so use default name
             if len(possibles) == 0:
-                self.readmeFilename = os.path.join(
-                    dirname, 'readme.md')  # use this as our default
+                self.readmeFilename = str(dirname / 'readme.md')  # use this as our default
             else:
-                self.readmeFilename = possibles[0]  # take the first one found
+                self.readmeFilename = str(possibles[0])  # take the first one found
         else:
             self.readmeFilename = None
         self.readmeFrame.setFile(self.readmeFilename)
@@ -1319,8 +1317,6 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 # Swap old with new names
                 self.exp.routines[oldName].name = name
                 self.exp.routines[name] = self.exp.routines.pop(oldName)
-                for comp in self.exp.routines[name]:
-                    comp.parentName = name
                 self.exp.namespace.rename(oldName, name)
                 self.routinePanel.renameRoutinePage(currentRoutineIndex, name)
                 self.addToUndoStack("`RENAME Routine `%s`" % oldName)
@@ -1365,13 +1361,14 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             return True
 
     def onPavloviaSync(self, evt=None):
-        self.fileSave(self.filename)
-        if self._getExportPref('on sync'):
-            htmlPath = self._getHtmlPath(self.filename)
-            if htmlPath:
-                self.fileExport(htmlPath=htmlPath)
-            else:
-                return
+        if Path(self.filename).is_file():
+            self.fileSave(self.filename)
+            if self._getExportPref('on sync'):
+                htmlPath = self._getHtmlPath(self.filename)
+                if htmlPath:
+                    self.fileExport(htmlPath=htmlPath)
+                else:
+                    return
 
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
         pavlovia_ui.syncProject(parent=self, file=self.filename, project=self.project)
@@ -2030,7 +2027,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                 thisColor = colors.app['rt_comp_force']
         # check True/False on ForceEndRoutineOnPress
         if 'forceEndRoutineOnPress' in component.params:
-            if component.params['forceEndRoutineOnPress'].val:
+            if component.params['forceEndRoutineOnPress'].val in ['any click', 'valid click']:
                 thisColor = colors.app['rt_comp_force']
         # check True aliases on EndRoutineOn
         if 'endRoutineOn' in component.params:
@@ -3867,31 +3864,37 @@ class BuilderToolbar(BasePsychopyToolbar):
         self.AddSeparator()
 
         # Pavlovia run
-        self.buttons['pavRun'] = self.makeTool(
+        self.buttons['pavloviaRun'] = self.makeTool(
             name='globe_run',
             label=_translate("Run online"),
             tooltip=_translate("Run the study online (with pavlovia.org)"),
             func=self.frame.onPavloviaRun)
+        # Pavlovia debug
+        self.buttons['pavloviaDebug'] = self.makeTool(
+            name='globe_bug',
+            label=_translate("Run in local browser"),
+            tooltip=_translate("Run the study in PsychoJS on a local browser, not through pavlovia.org"),
+            func=self.onPavloviaDebug)
         # Pavlovia sync
-        self.buttons['pavSync'] = self.makeTool(
+        self.buttons['pavloviaSync'] = self.makeTool(
             name='globe_greensync',
             label=_translate("Sync online"),
             tooltip=_translate("Sync with web project (at pavlovia.org)"),
             func=self.frame.onPavloviaSync)
         # Pavlovia search
-        self.buttons['pavSearch'] = self.makeTool(
+        self.buttons['pavloviaSearch'] = self.makeTool(
             name='globe_magnifier',
             label=_translate("Search Pavlovia.org"),
             tooltip=_translate("Find existing studies online (at pavlovia.org)"),
             func=self.onPavloviaSearch)
         # Pavlovia user
-        self.buttons['pavUser'] = self.makeTool(
+        self.buttons['pavloviaUser'] = self.makeTool(
             name='globe_user',
             label=_translate("Current Pavlovia user"),
             tooltip=_translate("Log in/out of Pavlovia.org, view your user profile."),
             func=self.onPavloviaUser)
         # Pavlovia user
-        self.buttons['pavProject'] = self.makeTool(
+        self.buttons['pavloviaProject'] = self.makeTool(
             name='globe_info',
             label=_translate("View project"),
             tooltip=_translate("View details of this project"),
@@ -3900,6 +3903,22 @@ class BuilderToolbar(BasePsychopyToolbar):
         # Disable compile buttons until an experiment is present
         self.EnableTool(self.buttons['compile_py'].GetId(), Path(str(self.frame.filename)).is_file())
         self.EnableTool(self.buttons['compile_js'].GetId(), Path(str(self.frame.filename)).is_file())
+
+        self.frame.btnHandles = self.buttons
+
+    def onPavloviaDebug(self, evt=None):
+        # Open runner
+        self.frame.app.showRunner()
+        runner = self.frame.app.runner
+        # Make sure we have a current file
+        if self.frame.getIsModified() or not Path(self.frame.filename).is_file():
+            saved = self.frame.fileSave()
+            if not saved:
+                return
+        # Send current file to runner
+        runner.addTask(fileName=self.frame.filename)
+        # Run debug function from runner
+        self.frame.app.runner.panel.runOnlineDebug(evt=evt)
 
     def onPavloviaSearch(self, evt=None):
         searchDlg = SearchFrame(
@@ -3914,7 +3933,8 @@ class BuilderToolbar(BasePsychopyToolbar):
     def onPavloviaProject(self, evt=None):
         if self.frame.project is not None:
             dlg = ProjectFrame(app=self.frame.app,
-                               project=self.frame.project)
+                               project=self.frame.project,
+                               parent=self.frame)
         else:
             dlg = ProjectFrame(app=self.frame.app)
         dlg.Show()

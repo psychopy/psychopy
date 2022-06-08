@@ -111,7 +111,7 @@ class SettingsComponent:
     def __init__(self, parentName, exp, expName='', fullScr=True,
                  winSize=(1024, 768), screen=1, monitor='testMonitor',
                  showMouse=False, saveLogFile=True, showExpInfo=True,
-                 expInfo="{'participant':'', 'session':'001'}",
+                 expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'001'}",
                  units='height', logging='exp',
                  color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
                  blendMode='avg',
@@ -612,7 +612,19 @@ class SettingsComponent:
             for key in infoDict:
                 val = infoDict[key]
                 if exputils.list_like_re.search(str(val)):
-                    infoDict[key] = Param(val=val, valType='list')
+                    # Try to call it with ast, if it produces a list/tuple, treat val type as list
+                    try:
+                        isList = ast.literal_eval(str(val))
+                    except ValueError:
+                        # If ast errors, treat as code
+                        infoDict[key] = Param(val=val, valType='code')
+                    else:
+                        if isinstance(isList, (list, tuple)):
+                            # If ast produces a list, treat as list
+                            infoDict[key] = Param(val=val, valType='list')
+                        else:
+                            # If ast produces anything else, treat as code
+                            infoDict[key] = Param(val=val, valType='code')
                 elif val in ['True', 'False']:
                     infoDict[key] = Param(val=val, valType='bool')
                 elif isinstance(val, str):
@@ -848,7 +860,7 @@ class SettingsComponent:
         # Write imports if modular
         if modular:
             code = (
-                    "import {{ core, data, sound, util, visual }} from './lib/psychojs-{version}.js';\n"
+                    "import {{ core, data, sound, util, visual, hardware }} from './lib/psychojs-{version}.js';\n"
                     "const {{ PsychoJS }} = core;\n"
                     "const {{ TrialHandler, MultiStairHandler }} = data;\n"
                     "const {{ Scheduler }} = util;\n"
@@ -858,11 +870,16 @@ class SettingsComponent:
                     "\n").format(version=useVer)
             buff.writeIndentedLines(code)
 
+        # Get expInfo as a dict
+        expInfoDict = self.getInfo().items()
         # Convert each item to str
         expInfoStr = "{"
+        if len(expInfoDict):
+            # Only make the dict multiline if it actually has contents
+            expInfoStr += "\n"
         for key, value in self.getInfo().items():
-            expInfoStr += f"'{key}': {value}, "
-        expInfoStr = expInfoStr[:-2] + "}"
+            expInfoStr += f"    '{key}': {value},\n"
+        expInfoStr += "}"
 
         code = ("\n// store info about the experiment session:\n"
                 "let expName = '%s';  // from the Builder filename that created this script\n"
@@ -914,12 +931,28 @@ class SettingsComponent:
                     " this script\n")
             buff.writeIndented(code % self.params['expName'])
 
-        sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
-        expInfoStr = "{"
+        # Construct exp info string
+        expInfoDict = self.getInfo()
+        code = (
+            "expInfo = {"
+        )
+        if len(expInfoDict):
+            # Only make the dict multiline if it actually has contents
+            code += "\n"
+        buff.writeIndented(code)
+        buff.setIndentLevel(1, relative=True)
         for key, value in self.getInfo().items():
-            expInfoStr += f"'{key}': {value}, "
-        expInfoStr = expInfoStr[:-2] + "}"
-        buff.writeIndented("expInfo = %s\n" % expInfoStr)
+            code = (
+                f"'{key}': {value},\n"
+            )
+            buff.writeIndented(code)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "}\n"
+        )
+        buff.writeIndented(code)
+
+        sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
         if self.params['Show info dlg'].val:
             buff.writeIndentedLines(
                 f"# --- Show participant info dialog --\n"

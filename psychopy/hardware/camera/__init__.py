@@ -369,6 +369,8 @@ class MovieStreamIOThread(threading.Thread):
         Media player instance, should be configured and initialized. Note that
         player instance methods might not be thread-safe after handing off the
         object to this thread.
+    writer : `ffpyplayer.player.MediaWriter` or `None`
+        Media writer instance, should be configured and initialized.
 
     """
     def __init__(self, player):
@@ -629,8 +631,7 @@ class Camera:
 
     """
     def __init__(self, device=0, mic=None, mode='video',
-                 cameraLib=u'ffpyplayer', codecOpts=None, libOpts=None,
-                 bufferSecs=5):
+                 cameraLib=u'ffpyplayer', codecOpts=None, libOpts=None, win=None):
 
         # add attributes for setters
         self.__dict__.update(
@@ -698,6 +699,9 @@ class Camera:
         self._streamTime = 0.0
         self._isMonotonic = False
         self._outFile = ''
+
+        # store win (unused but needs to be set/got safely for parity with JS)
+        self.win = win
 
         # thread for reading a writing streams
         self._tStream = None

@@ -71,6 +71,7 @@ includes = ['_sitebuiltins',  # needed for help()
             'vlc',  # install with pip install python-vlc
             'msgpack_numpy',
             'configparser',
+            'ntplib',
             ]
 packages = ['pydoc',  # needed for help()
             'wx', 'psychopy',

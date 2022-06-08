@@ -175,6 +175,11 @@ class MovieComponent(BaseVisualComponent):
         # Get init values
         params = getInitVals(self.params)
 
+        # synonymise "from experiment settings" with None
+        if params["units"].val.lower() == "from exp settings":
+            params["units"].valType = "code"
+            params["units"].val = None
+
         code = (
             "%(name)s = visual.MovieStim(\n"
         )
@@ -183,7 +188,7 @@ class MovieComponent(BaseVisualComponent):
         code = (
             "win, name='%(name)s',\n"
             "filename=%(movie)s, movieLib=%(backend)s,\n"
-            "loop=%(loop)s, volume=%(volume)s\n"
+            "loop=%(loop)s, volume=%(volume)s,\n"
             "pos=%(pos)s, size=%(size)s, units=%(units)s,\n"
             "ori=%(ori)s, anchor=%(anchor)s,"
             "opacity=%(opacity)s, contrast=%(contrast)s,\n"
