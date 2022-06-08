@@ -59,7 +59,7 @@ To communicate with your NetStation EEG hardware, you'll need to add in some Pyt
 
     triggerSent = False
 
-* Now, in the `Each Frame` tab of that same code component, add the following code to send a trigger OF NO MORE THAN FOUR CHARACTERS when your stimulus is presented. The .status attribute here is checking whether the our stimulus has started, and if it has, PsychoPy sends the trigger to EGI NetStation. Note that most components in PsychoPy have the .status attribute, so you could easily adapt this code to, for example, send a trigger when a response key is pressed::
+* Now, in the `Each Frame` tab of that same code component, add the following code to send a trigger OF NO MORE THAN FOUR CHARACTERS when your stimulus is presented. The :code:`.status` attribute here is checking whether the our stimulus has started, and if it has, PsychoPy sends the trigger to EGI NetStation. Note that most components in PsychoPy have the :code:`.status` attribute, so you could easily adapt this code to, for example, send a trigger when a response key is pressed::
 
     #Send trigger to NetStation - Change 'stim' to
     #a meaningful trigger for your experiment OF NO MORE THAN FOUR CHARACTERS. You can
