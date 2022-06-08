@@ -239,9 +239,11 @@ class TextboxComponent(BaseVisualComponent):
                 "  size: %(size)s," + unitsStr +
                 "  color: %(color)s, colorSpace: %(colorSpace)s,\n"
                 "  fillColor: %(fillColor)s, borderColor: %(borderColor)s,\n"
+                "  languageStyle: %(languageStyle)s,\n"
                 "  bold: %(bold)s, italic: %(italic)s,\n"
                 "  opacity: %(opacity)s,\n"
                 "  padding: %(padding)s,\n"
+                "  alignment: %(alignment)s,\n"
                 "  editable: %(editable)s,\n"
                 "  multiline: true,\n"
                 "  anchor: %(anchor)s,\n")
