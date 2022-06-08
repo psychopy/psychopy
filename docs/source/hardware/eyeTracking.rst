@@ -29,6 +29,25 @@ When you've selected your eyetracker from the drop-down menu, a set of options t
 * The `Move Button` option allows you to select whether PsychoPy monitors your mouse movement continuously, or just when you press and hold one of the mouse buttons.
 * The `Saccade Threshold` is the threshold, in degrees of visual angle, before a saccade is recorded.
 
+
+EyeLink
+-----------
+When setting up your EyeLink you will first need to make sure you have the following set up:
+
+1. An "Experiment" computer (this is the computer the experiment is run on) - set the IP address of this computer to 100.1.1.2
+2. A "Host" computer (this is the computer where the EyeLink software runs) - set the IP address of this computer to 100.1.1.1
+3. In your PsychoPy Experiment Settings > Eyetracking ensure you have SR Research selected, in the IP address use 100.1.1.1 (the IP of the host computer).
+
+Before any communication can happen between the eyetracker and your experiment, the two computers must be connected via an ethernet cable and you need to check the two devices can communicate with one another. You can check the connection by opening the command prompt/terminal on the experiment computer and typing :code:`ping 100.1.1.1` if the connection is successful you will see that the pings are successfully returned. If you have trouble connecting at this phase you will want to trouble shoot by searching the returned error message.
+
+Sometimes different eyetracking systems will have their own set of "screens" or "protocols" that they present. These are independant of what we can currently control from PsychoPy, which means that if you have made your experiment using MouseGaze, then move to the lab with the EyeLink and change the eyetracker to SR Research the instructions that you see at the start of the calibration may appear a little different to what you were expecting!
+
+The general protocol you will see is shown below.
+
+.. figure:: /images/eyelink_calibration_flow.png
+
+    The set of screens that will appear on your experiment presentation screen during calibration/validation, and what to press when.
+
 Step three: Add Eyetracker components to your Builder experiment
 --------------------------------------------------------------------
 You can find the eyetracker components in the eyetracker component drop-down on the right-hand side of the Builder window.
