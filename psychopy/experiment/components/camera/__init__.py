@@ -167,11 +167,12 @@ class CameraComponent(BaseComponent):
         code = (
             "%(name)s = new hardware.Camera({\n"
             "    name:'%(name)s',\n"
+            "    win: psychoJS.window,"
             "});\n"
             "// Get permission from participant to access their camera\n"
-            "%(name)s.authorize()\n"
+            "await %(name)s.authorize()\n"
             "// Switch on %(name)s\n"
-            "%(name)s.open()\n"
+            "await %(name)s.open()\n"
             "\n"
         )
         buff.writeIndentedLines(code % inits)
