@@ -6,6 +6,7 @@ from psychopy.experiment.components import BaseComponent, Param, _translate, get
 from psychopy import prefs
 
 devices = ["default"]
+mics = ["default"]
 
 
 class CameraComponent(BaseComponent):
@@ -24,7 +25,7 @@ class CameraComponent(BaseComponent):
             name='cam',
             startType='time (s)', startVal='0', startEstim='',
             stopType='duration (s)', stopVal='', durationEstim='',
-            device="Default",
+            device="Default", mic="Default",
             # Hardware
             resolution="", frameRate="",
             # Data
@@ -52,17 +53,29 @@ class CameraComponent(BaseComponent):
         self.parentName = parentName
         # Add requirement
         self.exp.requireImport(importName="camera", importFrom="psychopy.hardware")
+        self.exp.requireImport(importName="microphone", importFrom="psychopy.sound")
 
         # Basic
-        msg = _translate("What webcam device would you like the use to record? This will only affect local "
-                         "experiments - online experiments ask the participant which webcam to use.")
+        msg = _translate("What device would you like to use to record video? This will only affect local "
+                         "experiments - online experiments ask the participant which device to use.")
         self.params['device'] = Param(
             device, valType='str', inputType="choice", categ="Basic",
             allowedVals=list(devices),
             allowedLabels=[d.title() for d in list(devices)],
             hint=msg,
-            label=_translate("Device")
+            label=_translate("Video Device")
         )
+
+        msg = _translate("What device would you like to use to record audio? This will only affect local "
+                         "experiments - online experiments ask the participant which device to use.")
+        self.params['mic'] = Param(
+            mic, valType='str', inputType="choice", categ="Basic",
+            allowedVals=list(mics),
+            allowedLabels=[d.title() for d in list(mics)],
+            hint=msg,
+            label=_translate("Audio Device")
+        )
+
 
         # Not implemented (yet!)
         # # Hardware
@@ -139,7 +152,7 @@ class CameraComponent(BaseComponent):
 
         code = (
             "%(name)s = camera.Camera(\n"
-            "    device=%(device)s, name='%(name)s',\n"
+            "    device=%(device)s, name='%(name)s', mic=microphone.Microphone(device=%(mic)s),\n"
             ")\n"
             "# Switch on %(name)s\n"
             "%(name)s.open()\n"
@@ -154,12 +167,12 @@ class CameraComponent(BaseComponent):
         code = (
             "%(name)s = new hardware.Camera({\n"
             "    name:'%(name)s',\n"
-            "    win:win,\n"
+            "    win: psychoJS.window,"
             "});\n"
             "// Get permission from participant to access their camera\n"
-            "%(name)s.authorize()\n"
+            "await %(name)s.authorize()\n"
             "// Switch on %(name)s\n"
-            "%(name)s.open()\n"
+            "await %(name)s.open()\n"
             "\n"
         )
         buff.writeIndentedLines(code % inits)
