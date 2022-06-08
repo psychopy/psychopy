@@ -233,8 +233,10 @@ class BaseComponent:
             else:
                 currLoop = self.exp._expHandler
 
-            if 'Stair' in currLoop.type:
+            if 'Stair' in currLoop.type and buff.target == 'PsychoPy':
                 addDataFunc = 'addOtherData'
+            elif 'Stair' in currLoop.type and buff.target == 'PsychoJS':
+                addDataFunc = 'psychojs.experiment.addData'
             else:
                 addDataFunc = 'addData'
 
