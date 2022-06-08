@@ -2,6 +2,9 @@
 
 Sending triggers via a Serial Port
 =================================================
+Note that if you are using PsychoPy version 2022.2 onwards, you may use the serial port component. If you are using an earlier version you will need to use code components (described below). For both use cases you will need to know your serial port address.
+
+.. _serial_address:
 
 Step one: Find out the address of your serial port 
 -------------------------------------------------------------
@@ -17,6 +20,7 @@ Serial port addresses are different depending on whether you're using a Mac or a
 * In the terminal window, you'll see a long list of port names like in the screenshot below:
 
 .. figure:: /images/terminalPorts.png
+    :scale: 50%
 
 * To find out which one your device is connected to, you can remove and replace your device to see which port name is changing.
 
@@ -28,6 +32,8 @@ Serial port addresses are different depending on whether you're using a Mac or a
 .. figure:: /images/deviceManager.png
 
 * If it's not obvious which port your device is connected to, remove and replace your device to see which port name changes.
+
+.. _serial_code:
 
 Step two: Add code components into your Builder experiment
 -------------------------------------------------------------
