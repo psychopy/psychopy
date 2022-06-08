@@ -29,5 +29,6 @@ Communicating with an eye-tracker
 Communicating with other devices
 ------------------------------------------
 
+- :ref:`_fmri`
 - :ref:`arduino`
 
