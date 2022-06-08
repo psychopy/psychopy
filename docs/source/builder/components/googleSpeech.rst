@@ -9,6 +9,11 @@ https://cloud.google.com/speech-to-text
 
 Note that You might be asked to enter card details but you are not charged an auto update unless you manually enter the card details when prompted
 
+.. raw:: html
+
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/VRDtj9S9pu8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+
 Steps
 ------
 

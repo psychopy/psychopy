@@ -129,6 +129,7 @@ class Keyboard:
     _backend = None
     _iohubKeyboard = None
     _iohubOffset = 0.0
+    _ptbOffset = 0.0
 
     def __init__(self, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None):
         """Create the device (default keyboard or select one)
@@ -192,6 +193,7 @@ class Keyboard:
 
         if Keyboard._backend in ['', 'ptb'] and havePTB:
             Keyboard._backend = 'ptb'
+            Keyboard._ptbOffset = self.clock.getLastResetTime()
             # get the necessary keyboard buffer(s)
             if sys.platform == 'win32':
                 self._ids = [-1]  # no indexing possible so get the combo keyboard
@@ -300,6 +302,7 @@ class Keyboard:
                     # calculate rt from time and self.timer
                     thisKey = copy.copy(origKey)  # don't alter the original
                     thisKey.rt = thisKey.tDown - self.clock.getLastResetTime()
+                    thisKey.tDown = thisKey.tDown - self._ptbOffset 
                     keys.append(thisKey)
         elif Keyboard._backend == 'iohub':
             watchForKeys = keyList
@@ -543,11 +546,12 @@ class _KeyBuffer(object):
         if not keyList and not waitRelease:
             keyPresses = list(self._keysStillDown)
             for k in list(self._keys):
-                if k not in keyPresses:
+                if not any(x.name == k.name and x.tDown == k.tDown  for x in keyPresses):
                     keyPresses.append(k)
             if clear:
                 self._keys = deque()
                 self._keysStillDown = deque()
+            keyPresses.sort(key=lambda x: x.tDown, reverse=False)
             return keyPresses
 
         # otherwise loop through and check each key
