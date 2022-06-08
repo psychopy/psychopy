@@ -618,6 +618,8 @@ class Camera:
     win : :class:`~psychopy.visual.Window` or None
         Optional window associated with this camera. Some functionality may
         require an OpenGL context.
+    name : str
+        Label for the camera for logging purposes.
 
     Examples
     --------
@@ -635,7 +637,7 @@ class Camera:
     """
     def __init__(self, device=0, mic=None, mode='video', size=(320, 240),
                  frameRate=30, cameraLib=u'ffpyplayer', codecOpts=None,
-                 libOpts=None, bufferSecs=4, win=None):
+                 libOpts=None, bufferSecs=4, win=None, name='cam'):
 
         # add attributes for setters
         self.__dict__.update(
@@ -682,7 +684,6 @@ class Camera:
         # get camera mode information, see if the values specified by the user
         # match something that is supported
         devModes = getCameraInfo(self._device)
-        print(devModes)
         for devMode in devModes:
             if (devMode.frameRate == self._frameRateFrac and
                     devMode.frameSize == self._size):
@@ -695,6 +696,9 @@ class Camera:
                     self._device
                 )
             )
+
+        # name for builder
+        self.name = name
 
         # camera library in use
         self._cameraLib = cameraLib
