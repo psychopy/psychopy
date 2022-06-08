@@ -85,6 +85,7 @@ _localizedDialogs = {
     # units not translated:
     'pix': 'pix', 'deg': 'deg', 'cm': 'cm',
     'norm': 'norm', 'height': 'height',
+    'degFlat': 'degFlat', 'degFlatPos':'degFlatPos',
     # anchor
     'center': _translate('center'),
     'top-center': _translate('top-center'),

@@ -16,7 +16,7 @@ def _make_minimal_experiment(obj):
         pytest.skip()
     # Make blank experiment
     exp = experiment.Experiment()
-    rt = exp.addRoutine(routineName='Test Routine')
+    rt = exp.addRoutine(routineName='TestRoutine')
     exp.flow.addRoutine(rt, 0)
     # Create instance of this component with all default params
     compClass = type(obj.comp)

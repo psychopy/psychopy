@@ -844,17 +844,16 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             self.readmeFrame = ReadmeFrame(parent=self)
         # look for a readme file
         if self.filename and self.filename != 'untitled.psyexp':
-            dirname = os.path.dirname(self.filename)
-            possibles = glob.glob(os.path.join(dirname, 'readme*'))
+            dirname = Path(self.filename).parent
+            possibles = list(dirname.glob('readme*'))
             if len(possibles) == 0:
-                possibles = glob.glob(os.path.join(dirname, 'Readme*'))
-                possibles.extend(glob.glob(os.path.join(dirname, 'README*')))
+                possibles = list(dirname.glob('Readme*'))
+                possibles.extend(dirname.glob('README*'))
             # still haven't found a file so use default name
             if len(possibles) == 0:
-                self.readmeFilename = os.path.join(
-                    dirname, 'readme.md')  # use this as our default
+                self.readmeFilename = str(dirname / 'readme.md')  # use this as our default
             else:
-                self.readmeFilename = possibles[0]  # take the first one found
+                self.readmeFilename = str(possibles[0])  # take the first one found
         else:
             self.readmeFilename = None
         self.readmeFrame.setFile(self.readmeFilename)
@@ -1193,7 +1192,9 @@ class BuilderFrame(wx.Frame, ThemeMixin):
 
     def runFile(self, event=None):
         """Open Runner for running the psyexp file."""
-        if not os.path.exists(self.filename):
+        # Check whether file is truly untitled (not just saved as untitled)
+        untitled = os.path.abspath("untitled.psyexp")
+        if not os.path.exists(self.filename) or os.path.abspath(self.filename) == untitled:
             ok = self.fileSave(self.filename)
             if not ok:
                 return  # save file before compiling script
@@ -1215,7 +1216,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         """copy the current routine from self.routinePanel
         to self.app.copiedRoutine.
         """
-        r = copy.deepcopy(self.routinePanel.getCurrentRoutine())
+        r = self.routinePanel.getCurrentRoutine().copy()
         if r is not None:
             self.app.copiedRoutine = r
 
@@ -1236,7 +1237,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             routineName = dlg.GetValue()
             if not routineName:
                 routineName = defaultName
-            newRoutine = copy.deepcopy(self.app.copiedRoutine)
+            newRoutine = self.app.copiedRoutine.copy()
             self.pasteRoutine(newRoutine, routineName)
         dlg.Destroy()
 
@@ -1246,6 +1247,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         """
         newRoutine.name = self.exp.namespace.makeValid(routineName, prefix="routine")
         newRoutine.params['name'] = newRoutine.name
+        newRoutine.exp = self.exp
         self.exp.namespace.add(newRoutine.name)
         # add to the experiment
         self.exp.addRoutine(newRoutine.name, newRoutine)
@@ -1253,6 +1255,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             newName = self.exp.namespace.makeValid(newComp.params['name'])
             self.exp.namespace.add(newName)
             newComp.params['name'].val = newName
+            newComp.exp = self.exp
         # could do redrawRoutines but would be slower?
         self.routinePanel.addRoutinePage(newRoutine.name, newRoutine)
         self.routinePanel.setCurrentRoutine(newRoutine)
@@ -1319,8 +1322,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                 # Swap old with new names
                 self.exp.routines[oldName].name = name
                 self.exp.routines[name] = self.exp.routines.pop(oldName)
-                for comp in self.exp.routines[name]:
-                    comp.parentName = name
                 self.exp.namespace.rename(oldName, name)
                 self.routinePanel.renameRoutinePage(currentRoutineIndex, name)
                 self.addToUndoStack("`RENAME Routine `%s`" % oldName)
@@ -2043,7 +2044,7 @@ class RoutineCanvas(wx.ScrolledWindow):
                 thisColor = ThemeMixin.appColors['rt_comp_force']
         # check True/False on ForceEndRoutineOnPress
         if 'forceEndRoutineOnPress' in component.params:
-            if component.params['forceEndRoutineOnPress'].val:
+            if component.params['forceEndRoutineOnPress'].val in ['any click', 'valid click']:
                 thisColor = ThemeMixin.appColors['rt_comp_force']
         # check True aliases on EndRoutineOn
         if 'endRoutineOn' in component.params:

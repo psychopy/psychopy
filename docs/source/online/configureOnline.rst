@@ -3,7 +3,7 @@
 Configure the online settings of your experiment
 --------------------------------------------------
 
-For the most part, making a study to go online is identical to making a study to run locally. However, if you are making a study to run online, you *cannot code your experiment in pure python*. This is because your experiment needs to be created in a programming language that can be interpreted by your browser, and most browsers don't understand python, they understand JavaScript. If you make your experiment in Builder view, this GUI will write both a python and JavaScript version of your experiment. So it can be run online - without needing to learn JavaScript! So, to get started, we highly recommend you familiarize yourself with the Builder components of PsychoPy Builder. 
+For the most part, making a study to go online is identical to making a study to run locally. However, if you are making a study to run online, you *cannot code your experiment in pure python*. This is because your experiment needs to be created in a programming language that can be interpreted by your browser, and most browsers don't understand python, they understand JavaScript. If you make your experiment in Builder view, this GUI will write both a python and JavaScript version of your experiment. So it can be run online - without needing to learn JavaScript! So, to get started, we highly recommend you familiarize yourself with the Builder components of |PsychoPy| Builder.
 
 So, you've made your study in Builder. To run the study online you want to start by configuring your online settings, these can be accessed through Experiment Settings:
 

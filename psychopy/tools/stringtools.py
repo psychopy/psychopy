@@ -13,6 +13,9 @@ import ast
 
 __all__ = ["prettyname"]
 
+# Regex for identifying a valid Pavlovia project name
+valid_proj_name = re.compile(r'(\w|-)+')
+
 
 def prettyname(name, wrap=False):
     """Convert a camelCase, TitleCase or underscore_delineated title to Full Title Case"""
@@ -79,7 +82,8 @@ def getVariables(code):
         if hasattr(line, "targets") and hasattr(line, "value"):
             # Append targets and values this line to arguments dict
             for target in line.targets:
-                vars[target.id] = _actualizeAstValue(line.value)
+                if hasattr(target, "id"):
+                    vars[target.id] = _actualizeAstValue(line.value)
 
     return vars
 

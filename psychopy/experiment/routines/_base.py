@@ -7,11 +7,13 @@
 
 """Describes the Flow of an experiment
 """
+import copy
 
 from psychopy.constants import FOREVER
 from xml.etree.ElementTree import Element
 from pathlib import Path
 
+from psychopy.experiment.components.static import StaticComponent
 from psychopy.localization import _translate
 from psychopy.experiment import Param
 
@@ -101,6 +103,14 @@ class BaseStandaloneRoutine:
             element.append(paramNode)
 
         return element
+
+    def copy(self):
+        # Create a deep copy of self
+        dupe = copy.deepcopy(self)
+        # ...but retain original exp reference
+        dupe.exp = self.exp
+
+        return dupe
 
     def writePreCode(self, buff):
         return
@@ -226,6 +236,20 @@ class Routine(list):
         _rep = "psychopy.experiment.Routine(name='%s', exp=%s, components=%s)"
         return _rep % (self.name, self.exp, str(list(self)))
 
+    def copy(self):
+        # Create a new routine with the same experiment and name as this one
+        dupe = type(self)(self.name, self.exp, components=())
+        # Iterate through components
+        for comp in self:
+            # Create a deep copy of each component...
+            newComp = copy.deepcopy(comp)
+            # ...but retain original exp reference
+            newComp.exp = self.exp
+            # Append to new routine
+            dupe.append(newComp)
+
+        return dupe
+
     @property
     def _xml(self):
         # Make root element
@@ -244,6 +268,9 @@ class Routine(list):
     @name.setter
     def name(self, name):
         self.params['name'] = name
+        # Update references in components
+        for comp in self:
+            comp.parentName = name
 
     def integrityCheck(self):
         """Run tests on self and on all the Components inside"""
@@ -275,6 +302,14 @@ class Routine(list):
         """Remove a component from the end of the routine"""
         name = component.params['name']
         self.remove(component)
+        # if this is a static component, we need to remove references to it
+        if isinstance(component, StaticComponent):
+            for update in component.updatesList:
+                # remove reference in component
+                comp = self.exp.getComponentFromName(update['compName'])
+                if comp:
+                    param = comp.params[update['fieldName']]
+                    param.updates = None
         # check if the component was using any Static Components for updates
         for thisParamName, thisParam in list(component.params.items()):
             if (hasattr(thisParam, 'updates') and

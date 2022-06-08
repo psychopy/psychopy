@@ -22,7 +22,7 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin):
         self.error = _BaseErrorHandler()
         self.textbox = TextBox2(self.win,
                                 "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question.",
-                                "Noto Sans", alignment="top left", lineSpacing=1,
+                                "Noto Sans", alignment="top left", lineSpacing=1, padding=0.05,
                                 pos=(0, 0), size=(1, 1), units='height',
                                 letterHeight=0.1, colorSpace="rgb")
         self.obj = self.textbox  # point to textbox for mixin tests
@@ -97,8 +97,8 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin):
             if case['screenshot']:
                 # Uncomment to save current configuration as desired
                 filename = "textbox_{}_{}".format(self.textbox._lineBreaking, case['screenshot'])
-                #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
-                utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
+                self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+                #utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
 
     def test_colors(self):
         # Do base tests

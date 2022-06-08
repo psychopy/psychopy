@@ -3,7 +3,7 @@
 labjacks (USB I/O devices)
 =============================================
 
-PsychoPy provides an interface to the labjack U3 class with a couple of minor
+|PsychoPy| provides an interface to the labjack U3 class with a couple of minor
 additions.
 
 This is accessible by::

@@ -1,4 +1,4 @@
-Contributing to the PsychoPy Test Suite
+Contributing to the |PsychoPy| Test Suite
 ==========================================
 
 Why do we need a test suite?
@@ -24,7 +24,7 @@ The more bugs the test suite finds, the better!
 
 How does it work?
 ------------------------------------------
-The test suite uses a Python module called [pytest](https://pypi.org/project/pytest/) to run tests on various parts of the PsychoPy code. These tests work by calling functions, initialising objects and generally trying to use as much of the code in the PsychoPy repo as possible - then, if an uncaught error is hit at any point, `pytest` will spit out some informative text on what went wrong. This means that, if the test suite can run without error, then the software can do everything done in the test suite without error.
+The test suite uses a Python module called [pytest](https://pypi.org/project/pytest/) to run tests on various parts of the |PsychoPy| code. These tests work by calling functions, initialising objects and generally trying to use as much of the code in the PsychoPy repo as possible - then, if an uncaught error is hit at any point, `pytest` will spit out some informative text on what went wrong. This means that, if the test suite can run without error, then the software can do everything done in the test suite without error.
 
 To mark something as a test, it needs three things:
 

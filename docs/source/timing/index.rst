@@ -1,7 +1,7 @@
 Timing information for PsychoPy
 =======================================
 
-There is documentation about how to optimize timing in PsychoPy at :ref:`timing`
+There is documentation about how to optimize timing in |PsychoPy| at :ref:`timing`
 
 We recently ran a study `testing the timing on a wide range of software packages <https://peerj.com/articles/9414/>`_,
 online and offline. The data for that study are available below:
