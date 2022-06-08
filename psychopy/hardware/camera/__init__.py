@@ -592,13 +592,6 @@ class Camera:
         Microphone to record audio samples from during recording. The microphone
         input device must not be in use when `record()` is called. The audio
         track will be merged with the video upon calling `save()`.
-    mode : str
-        Camera operating mode to use. Value can be either `'video'`, `'cv'` or
-        `'photo'`. Use `'video'` for recording live-feeds to produce movies,
-        `'cv'` for computer vision applications (same as `'video'` but frames
-        are not buffered on disk, reduces CPU load), and `'photo'` for taking
-        snapshots with the camera. Default operating mode is `'video'`, cannot
-        be set after initialization.
     size : ArrayLike
         Requested resolution `(w, h)` of the camera video.
     frameRate : int
@@ -703,12 +696,12 @@ class Camera:
         # camera library in use
         self._cameraLib = cameraLib
 
-        # operating mode
-        if mode not in (CAMERA_MODE_VIDEO, CAMERA_MODE_CV, CAMERA_MODE_PHOTO):
-            raise ValueError(
-                "Invalid value for parameter `mode`, expected one of `'video'` "
-                "`'cv'` or `'photo'`.")
-        self._mode = mode
+        # # operating mode
+        # if mode not in (CAMERA_MODE_VIDEO, CAMERA_MODE_CV, CAMERA_MODE_PHOTO):
+        #     raise ValueError(
+        #         "Invalid value for parameter `mode`, expected one of `'video'` "
+        #         "`'cv'` or `'photo'`.")
+        # self._mode = mode
 
         # FFMPEG and FFPyPlayer options
         self._codecOpts = codecOpts if codecOpts is not None else {}
