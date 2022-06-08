@@ -42,13 +42,15 @@ from psychopy.preferences import prefs
 #
 
 VIDEO_DEVICE_ROOT_LINUX = '/dev'
-WEBCAM_UNKNOWN_VALUE = u'Unknown'  # fields where we couldn't get a value
-WEBCAM_NULL_VALUE = u'Null'  # fields where we couldn't get a value
-
+CAMERA_UNKNOWN_VALUE = u'Unknown'  # fields where we couldn't get a value
+CAMERA_NULL_VALUE = u'Null'  # fields where we couldn't get a value
 # camera operating modes
 CAMERA_MODE_VIDEO = u'video'
 CAMERA_MODE_CV = u'cv'
 CAMERA_MODE_PHOTO = u'photo'
+# default names for video and audio tracks in the temp directory
+CAMERA_TEMP_FILE_VIDEO = u'video.mp4'
+CAMERA_TEMP_FILE_AUDIO = u'audio.wav'
 
 
 # ------------------------------------------------------------------------------
@@ -67,6 +69,10 @@ class CameraNotFoundError(CameraError):
     """Raised when a camera cannot be found on the system."""
 
 
+class CameraModeNotSupportedError(CameraError):
+    """Raised when a camera cannot use the settings requested by the user."""
+
+
 class PlayerNotAvailableError(Exception):
     """Raised when a player object is not available but is required."""
 
@@ -76,7 +82,8 @@ class PlayerNotAvailableError(Exception):
 #
 
 class CameraInfo:
-    """Descriptor for cameras connected to the system (such as webcams).
+    """Information about a specific operating mode for a camera attached to the
+    system.
 
     Parameters
     ----------
@@ -85,9 +92,8 @@ class CameraInfo:
         (i.e. DirectShow on Windows) or a path (e.g., `/dev/video0` on Linux).
     frameSize : ArrayLike
         Resolution of the frame `(w, h)` in pixels.
-    frameRateRange : ArrayLike
-        Minimum and maximum frame rate supported by the camera at the specified
-        color/pixel format and resolution.
+    frameRate : ArrayLike
+        Allowable framerate for this camera mode.
     pixelFormat : str
         Pixel format for the stream. If `u'Null'`, then `codecFormat` is being
         used to configure the camera.
@@ -100,7 +106,7 @@ class CameraInfo:
     __slots__ = [
         '_name',
         '_frameSize',
-        '_frameRateRange',
+        '_frameRate',
         '_pixelFormat',
         '_codecFormat',
         '_cameraLib',
@@ -108,21 +114,30 @@ class CameraInfo:
     ]
 
     def __init__(self,
-                 name=WEBCAM_NULL_VALUE,
+                 name=CAMERA_NULL_VALUE,
                  frameSize=(-1, -1),
-                 frameRateRange=(-1, -1),
-                 pixelFormat=WEBCAM_UNKNOWN_VALUE,
-                 codecFormat=WEBCAM_UNKNOWN_VALUE,
-                 cameraLib=WEBCAM_NULL_VALUE,
-                 cameraAPI=WEBCAM_NULL_VALUE):
+                 frameRate=(-1, -1),
+                 pixelFormat=CAMERA_UNKNOWN_VALUE,
+                 codecFormat=CAMERA_UNKNOWN_VALUE,
+                 cameraLib=CAMERA_NULL_VALUE,
+                 cameraAPI=CAMERA_NULL_VALUE):
 
         self.name = name
         self.frameSize = frameSize
-        self.frameRateRange = frameRateRange
+        self.frameRate = frameRate
         self.pixelFormat = pixelFormat
         self.codecFormat = codecFormat
         self._cameraLib = cameraLib
         self._cameraAPI = cameraAPI
+
+    def __repr__(self):
+        return (f"CameraInfo(name={repr(self.name)}, "
+                f"frameSize={repr(self.frameSize)}, "
+                f"frameRate={self.frameRate}, "
+                f"pixelFormat={repr(self.pixelFormat)}, "
+                f"codecFormat={repr(self.codecFormat)}, "
+                f"cameraLib={repr(self._cameraLib)}, "
+                f"cameraAPI={repr(self._cameraAPI)})")
 
     @property
     def name(self):
@@ -149,20 +164,20 @@ class CameraInfo:
         self._frameSize = value
 
     @property
-    def frameRateRange(self):
+    def frameRate(self):
         """Resolution (min, max) in pixels (`ArrayLike`).
         """
-        return self._frameRateRange
+        return self._frameRate
 
-    @frameRateRange.setter
-    def frameRateRange(self, value):
-        assert len(value) == 2, "Value for `frameRateRange` must have length 2."
-        assert all([isinstance(i, int) for i in value]), (
-            "Values for `frameRateRange` must be integers.")
-        assert value[0] <= value[1], (
-            "Value for `frameRateRange` must be `min` <= `max`.")
+    @frameRate.setter
+    def frameRate(self, value):
+        # assert len(value) == 2, "Value for `frameRateRange` must have length 2."
+        # assert all([isinstance(i, int) for i in value]), (
+        #     "Values for `frameRateRange` must be integers.")
+        # assert value[0] <= value[1], (
+        #     "Value for `frameRateRange` must be `min` <= `max`.")
 
-        self._frameRateRange = value
+        self._frameRate = value
 
     @property
     def pixelFormat(self):
@@ -185,25 +200,6 @@ class CameraInfo:
     @codecFormat.setter
     def codecFormat(self, value):
         self._codecFormat = str(value)
-
-    def supportedFrameRate(self, frameRate):
-        """Check if the specified frame rate is supported by the camera
-        configuration.
-
-        Parameter
-        ---------
-        frameRate : int or float
-            Framerate in Hertz (Hz).
-
-        Returns
-        -------
-        bool
-            `True` if the specified framerate is supported by the camera.
-
-        """
-        frameRateMin, frameRateMax = self._frameRateRange
-
-        return frameRateMin <= frameRate <= frameRateMax
 
 
 class StreamStatus:
@@ -369,18 +365,18 @@ class MovieStreamIOThread(threading.Thread):
         Media player instance, should be configured and initialized. Note that
         player instance methods might not be thread-safe after handing off the
         object to this thread.
-    writer : `ffpyplayer.player.MediaWriter` or `None`
-        Media writer instance, should be configured and initialized.
+    bufferFrames : int
+        Number of frames to buffer. Sets the frame queue size for the thread.
 
     """
-    def __init__(self, player):
+    def __init__(self, player, bufferFrames=1):
         threading.Thread.__init__(self)
         self.daemon = False
 
         self._player = player  # player interface to FFMPEG
         self._writer = None  # writer interface
         self._mic = None
-        self._frameQueue = queue.Queue(maxsize=1)  # frames for the monitor
+        self._frameQueue = queue.Queue(maxsize=bufferFrames)  # frames for the monitor
 
         # some values the user might want
         self._status = NOT_STARTED
@@ -603,6 +599,10 @@ class Camera:
         are not buffered on disk, reduces CPU load), and `'photo'` for taking
         snapshots with the camera. Default operating mode is `'video'`, cannot
         be set after initialization.
+    size : ArrayLike
+        Requested resolution `(w, h)` of the camera video.
+    frameRate : int
+        Requested framerate for the camera video.
     cameraLib : str
         Interface library (backend) to use for accessing the camera. Only
         `ffpyplayer` is available at this time.
@@ -615,6 +615,9 @@ class Camera:
     bufferSecs : float
         Size of the camera stream buffer specified in seconds (only valid on
         Windows).
+    win : :class:`~psychopy.visual.Window` or None
+        Optional window associated with this camera. Some functionality may
+        require an OpenGL context.
 
     Examples
     --------
@@ -630,8 +633,9 @@ class Camera:
         camera.close()
 
     """
-    def __init__(self, device=0, mic=None, mode='video',
-                 cameraLib=u'ffpyplayer', codecOpts=None, libOpts=None, win=None):
+    def __init__(self, device=0, mic=None, mode='video', size=(320, 240),
+                 frameRate=30, cameraLib=u'ffpyplayer', codecOpts=None,
+                 libOpts=None, bufferSecs=4, win=None):
 
         # add attributes for setters
         self.__dict__.update(
@@ -639,6 +643,9 @@ class Camera:
              '_mic': None,
              '_outFile': None,
              '_mode': u'video',
+             '_frameRate': None,
+             '_frameRateFrac': None,
+             '_size': None,
              '_cameraLib': u'',
              '_codecOpts': None,
              '_libOpts': None})
@@ -656,6 +663,38 @@ class Camera:
         else:
             raise TypeError(
                 "Incorrect type for `camera`, expected `int` or `str`.")
+
+        # get the frame rate, needs to be fractional and float to config
+        if isinstance(frameRate, (int, float)):  # atomic
+            self._frameRate = int(frameRate)
+            self._frameRateFrac = (self._frameRate, 1)
+        elif isinstance(frameRate, (tuple, list, np.ndarray)):  # sequence
+            if len(frameRate) != 2:
+                raise ValueError(
+                    "Value for parameter `size` must be length 2 if a sequence."
+                )
+            self._frameRateFrac = numer, denom = [int(i) for i in frameRate]
+            self._frameRate = numer / denom
+
+        assert len(size) == 2, "Value for parameter `size` must be length 2"
+        self._size = tuple(size)  # needs to be hashable
+
+        # get camera mode information, see if the values specified by the user
+        # match something that is supported
+        devModes = getCameraInfo(self._device)
+        print(devModes)
+        for devMode in devModes:
+            if (devMode.frameRate == self._frameRateFrac and
+                    devMode.frameSize == self._size):
+                break
+        else:
+            raise CameraModeNotSupportedError(
+                "Camera '{}' does not support the specified framerate and "
+                "frame size. Call `getCameraInfo() to query the system for "
+                "valid configurations for the desired capture device.".format(
+                    self._device
+                )
+            )
 
         # camera library in use
         self._cameraLib = cameraLib
@@ -688,22 +727,17 @@ class Camera:
         self._frameIndex = -1
         self._isRecording = False
         self._isReady = False
+        self._bufferSecs = float(bufferSecs)
 
         # timestamp data
-        self._startPts = -1.0  # absolute stream time at recording
-        self._absPts = -1.0  # timestamp of the video stream in absolute time
-        self._pts = -1.0  # timestamp used for writing the video stream
-        self._lastPts = 0.0  # last timestamp
         self._recordingTime = 0.0
         self._recordingBytes = 0
         self._streamTime = 0.0
-        self._isMonotonic = False
-        self._outFile = ''
 
         # store win (unused but needs to be set/got safely for parity with JS)
         self.win = win
 
-        # thread for reading a writing streams
+        # thread for reading and writing streams
         self._tStream = None
 
         # video metadata
@@ -711,6 +745,10 @@ class Camera:
 
         # last frame
         self._lastFrame = NULL_MOVIE_FRAME_INFO
+
+        # last video file that has been saved, makes it easy to pass this value
+        # along to a movie player
+        self._lastClip = None
 
     def authorize(self):
         """Get permission to access the camera. Not implemented locally yet.
@@ -802,7 +840,9 @@ class Camera:
         """Initialize and configure the media writer.
 
         Must be called after the video stream has been opened and
-        `_enqueueFrame` called at least once prior.
+        `_enqueueFrame` called at least once prior. This is needed since the
+        stream metadata is required to configure the writer.
+
         """
         if self._writer is not None:
             raise RuntimeError(
@@ -817,8 +857,10 @@ class Camera:
             suffix=randFileName,
             prefix='psychopy-',
             dir=None)
-        self._tempVideoFileName = os.path.join(self._tempRootDir, 'video.mp4')
-        self._tempAudioFileName = os.path.join(self._tempRootDir, 'audio.wav')
+        self._tempVideoFileName = os.path.join(
+            self._tempRootDir, CAMERA_TEMP_FILE_VIDEO)
+        self._tempAudioFileName = os.path.join(
+            self._tempRootDir, CAMERA_TEMP_FILE_AUDIO)
 
         # codec that best suits the output file type
         useCodec = get_format_codec(self._tempVideoFileName)
@@ -829,7 +871,7 @@ class Camera:
         # options to configure the writer, we use some default params for now
         # until we sort how to configure this easily for users
         writerOptions = {
-            'pix_fmt_in': 'yuv420p',  # default for now
+            'pix_fmt_in': 'yuv420p',  # default for now using mp4
             # 'pix_fmt_in': 'rgb24',
             'width_in': frameWidth,
             'height_in': frameHeight,
@@ -853,11 +895,13 @@ class Camera:
     def _renderVideo(self, outFile):
         """Combine video and audio tracks of temporary video and audio files.
         Outputs a new file at `outFile` with merged video and audio tracks.
-        """
-        # do nothing if there is no output file
-        if self._outFile is None:
-            return False
 
+        Parameters
+        ----------
+        outFile : str
+            Output file path for the composited video.
+
+        """
         # this can only happen when stopped
         if self._status != STOPPED:
             raise RuntimeError(
@@ -866,6 +910,7 @@ class Camera:
         # merge audio and video tracks, we use MoviePy for this
         videoClip = VideoFileClip(self._tempVideoFileName)
 
+        # if we have a microphone, merge the audio track in
         if self._mic is not None:
             audioClip = AudioFileClip(self._tempAudioFileName)
             # add audio track to the video
@@ -876,7 +921,7 @@ class Camera:
 
         # delete the temp directory and files to clean up after composing the
         # video
-        # shutil.rmtree(self._tempRootDir)
+        shutil.rmtree(self._tempRootDir)
 
         return True
 
@@ -1032,9 +1077,6 @@ class Camera:
             movieLib=u'ffpyplayer',
             userData=None)
 
-        # if status == 'eof':  # end of stream but there is a valid frame
-        #     self._status = STOPPING  # last frame, stopping ...
-
         return True
 
     def open(self):
@@ -1052,16 +1094,20 @@ class Camera:
         if platform.system() == 'Windows':  # DirectShow specific stuff
             ff_opts['f'] = 'dshow'
 
+            # get device configuration options
+            camW, camH = self._size
+            pixelFormat = 'yuyv422'
+
             # library options
-            framerate = str(30)
-            videoSize = '{width}x{height}'.format(width=320, height=240)
-            bufferSize = 320 * 240 * 3 * 10
+            framerate = str(self._frameRate)
+            videoSize = '{width}x{height}'.format(width=camW, height=camH)
+            bufferSize = camW * camH * 3 * self._bufferSecs
 
             # build dict for library options
             lib_opts.update({
                 'framerate': framerate,
                 'video_size': videoSize,
-                'pixel_format': 'yuyv422',
+                'pixel_format': pixelFormat,  # e.g. 'yuyv422'
                 'rtbufsize': str(bufferSize)}
             )
             _camera = 'video={}'.format(self._device)
@@ -1140,7 +1186,7 @@ class Camera:
         Returns
         -------
         int
-            Size of the output file at `filename` in bytes.
+            Final size of the output file at `filename` in bytes.
 
         """
         if self._status != STOPPED:
@@ -1154,9 +1200,9 @@ class Camera:
                 "writeable.")
 
         # make sure that `filename` is valid
-        self._outFile = filename
+        self._lastClip = os.path.abspath(filename)
 
-        return os.path.getsize(self._outFile)
+        return os.path.getsize(self._lastClip)
 
     def _upload(self):
         """Upload video file to an online repository. Not implemented locally,
@@ -1178,7 +1224,7 @@ class Camera:
         successfully (`save()` was called), otherwise it will be set to `None`.
 
         """
-        return self._outFile  # change this to the actual value eventually
+        return self._lastClip
 
     @property
     def lastFrame(self):
@@ -1227,10 +1273,74 @@ class Camera:
                 except AttributeError:
                     pass
 
+        # close the microphone during teardown too
+        if hasattr(self, '_mic'):
+            if self._mic is not None:
+                try:
+                    self._mic.close()
+                except AttributeError:
+                    pass
+
 
 # ------------------------------------------------------------------------------
 # Functions
 #
+
+def getCameraInfo(camera):
+    """Query the system to get information about a specified camera.
+
+    Parameters
+    ----------
+    camera : int or str
+        Camera index or name.
+
+    Returns
+    -------
+    List or CameraInfo
+        Camera information descriptors for the specified camera.
+
+    """
+    systemName = platform.system()  # get the system name
+    supportedModes = []
+    if systemName == 'Windows':
+        videoDevs, _, names = list_dshow_devices()
+        names = {v: k for k, v in names.items()}  # flip since we use HR names
+        if isinstance(camera, (int, float)):
+            name = list(names.keys())[int(camera)]
+        else:
+            name = camera
+
+        # get all the supported modes for the camera
+        videoDevModes = videoDevs[names[name]]
+
+        for mode in videoDevModes:
+            pixelFormat, codec, frameSize, frameRate = mode
+
+            # Make sure the frame rate is in a reasonable format, usually the
+            # ranges are not reported, so we just convert them into fractions
+            # here.
+            frameRateMin, frameRateMax = frameRate
+            if frameRateMin == frameRateMax:
+                frameRate = (frameRateMax, 1)
+            else:
+                continue  # do nothing if they don't match for now
+
+            # object to return with camera settings
+            temp = CameraInfo(
+                name=name,
+                pixelFormat=pixelFormat,
+                codecFormat=codec,
+                frameSize=frameSize,
+                frameRate=frameRate
+            )
+            supportedModes.append(temp)
+    else:
+        raise OSError(
+            "Cannot get cameras, unsupported platform '{}'.".format(
+                systemName))
+
+    return supportedModes
+
 
 def getCameras():
     """Get information about installed cameras on this system.
