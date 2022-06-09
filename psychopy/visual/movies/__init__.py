@@ -210,7 +210,6 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         self._filename = filename
         self._player.load(self._filename)
-        self._player.start()
 
     @property
     def frameTexture(self):
@@ -234,8 +233,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         """
         # get the current movie frame for the video time
-        self._recentFrame = self._player.getMovieFrame(
-            absTime=self.win.getFutureFlipTime())
+        self._recentFrame = self._player.getMovieFrame()
 
         # only do a pixel transfer on valid frames
         if self._recentFrame is not NULL_MOVIE_FRAME_INFO:
@@ -266,10 +264,10 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """
         self._selectWindow(self.win if win is None else win)
 
-        if self._hasPlayer:  # do nothing if a video is not loaded
+        #if self._hasPlayer:  # do nothing if a video is not loaded
             # video is not started yet
-            if self._autoStart and self._hasPlayer:
-                self.play()
+            # if self._autoStart and self._hasPlayer:
+            #     self.play()
 
         # update the video frame and draw it to a quad
         _ = self.updateVideoFrame()

@@ -16,6 +16,7 @@ STOPPED = -1
 FINISHED = STOPPED
 SKIP = -2
 STOPPING = -3
+INVALID = -9999
 
 # for button box:
 PRESSED = 1
