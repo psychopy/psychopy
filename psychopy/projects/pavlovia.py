@@ -1252,6 +1252,21 @@ def getProject(filename):
     proj = None
     # If already found, return
     if (knownProjects is not None) and (path in knownProjects) and ('idNumber' in knownProjects[path]):
+        # Make sure we are logged in
+        nameSpace, projectName = path.split("/")
+        # Try to log in if not logged in
+        if not session.user:
+            if nameSpace in knownUsers:
+                # Log in if user is known
+                login(nameSpace, rememberMe=True)
+            else:
+                # Check whether project repo is found in any of the known users accounts
+                for user in knownUsers:
+                    try:
+                        login(user)
+                    except requests.exceptions.ConnectionError:
+                        break
+
         thisId = knownProjects[path]['idNumber']
         # Check that project still exists on Pavlovia
         requestVal = session.session.get(
