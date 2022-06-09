@@ -197,6 +197,7 @@ class MovieStreamThread(threading.Thread):
         object to this thread.
     bufferFrames : int
         Number of frames to buffer. Sets the frame queue size for the thread.
+        Use a queue size >1 for video recorded with a framerate above 60Hz.
 
     """
 
@@ -205,7 +206,7 @@ class MovieStreamThread(threading.Thread):
         self.daemon = False
 
         self._player = player  # player interface to FFMPEG
-        self._frameQueue = queue.Queue(maxsize=bufferFrames)  # frames for the monitor
+        self._frameQueue = queue.Queue(maxsize=bufferFrames)
 
         # some values the user might want
         self._status = NOT_STARTED
