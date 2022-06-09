@@ -16,8 +16,9 @@ import threading
 import ctypes
 import weakref
 import math
+from pathlib import Path
 
-from psychopy import core, logging
+from psychopy import core, logging, prefs
 from psychopy.clock import Clock, getTime
 from psychopy.tools.attributetools import logAttrib, setAttribute
 from psychopy.tools.filetools import pathToString
@@ -194,6 +195,10 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
             Path to movie file. Must be a format that FFMPEG supports.
 
         """
+        # If given `default.mp4`, sub in full path
+        if filename == "default.mp4":
+            filename = Path(prefs.paths['resources']) / "default.mp4"
+
         self._filename = filename
         self._player.load(self._filename)
         self._player.start()
