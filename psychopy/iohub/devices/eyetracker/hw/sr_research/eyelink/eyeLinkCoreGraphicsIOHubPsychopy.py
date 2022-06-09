@@ -538,8 +538,10 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         self.window.flip()
 
     def exit_cal_display(self):
-        """Exits calibration display."""
-        self.clear_cal_display()
+        """Exits calibration display and return to initial menu with
+        instructions."""
+        self.setup_cal_display()
+
 
     def clear_cal_display(self):
         """Clears the calibration display."""
