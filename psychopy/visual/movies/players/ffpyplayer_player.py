@@ -98,9 +98,6 @@ class FFPyPlayer(BaseMoviePlayer):
             FFMPEG supports.
 
         """
-        # If given `untitled.mp4`, sub in full path
-        if self._filename == "untitled.mp4":
-            self._filename = str(Path(prefs.paths['resources']) / "untitled.mp4")
         # set the file path
         self._filename = pathToString(pathToMovie)
 
