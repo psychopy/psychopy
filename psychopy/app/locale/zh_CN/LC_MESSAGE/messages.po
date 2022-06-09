@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2021.2.3\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2022-05-24 22:56+0800\n"
+"PO-Revision-Date: 2022-06-09 21:03+0800\n"
 "Last-Translator: Shun Wang <shuonwang@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "Generated-By: Babel 2.6.0\n"
-"X-Generator: Poedit 3.0.1\n"
+"X-Generator: Poedit 3.1\n"
 
 #: __init__.py:48
 msgid "Welcome to PsychoPy2!"
@@ -2042,13 +2042,13 @@ msgstr "打开当前工作目录"
 
 #: ../app/coder/fileBrowser.py:266 ../app/coder/fileBrowser.py:320
 msgid "Open the directory the current editor file is located"
-msgstr ""
+msgstr "打开当前编辑器文件所在的目录"
 
 #: ../app/coder/fileBrowser.py:298
 msgid ""
 "Cannot change working directory to location of file `{}`. It needs to be "
 "saved first."
-msgstr ""
+msgstr "无法将工作目录更改为文件'{}'的位置。 需要先保存。"
 
 #: ../app/coder/fileBrowser.py:339
 msgid "Enter folder name:"
@@ -2064,15 +2064,15 @@ msgstr "文件夹名称不能为空"
 
 #: ../app/coder/fileBrowser.py:363
 msgid "Cannot create folder `{}`, already exists."
-msgstr ""
+msgstr "无法创建文件夹 `{}`, 因为已经存在。"
 
 #: ../app/coder/fileBrowser.py:376
 msgid "Cannot create folder `{}`, permission denied."
-msgstr ""
+msgstr "无法创建文件夹`{}`，因为没有权限。"
 
 #: ../app/coder/fileBrowser.py:418
 msgid "Rename folder `{}` to:"
-msgstr ""
+msgstr "将文件夹`{}`重命名为："
 
 #: ../app/coder/fileBrowser.py:419
 msgid "Rename Folder"
@@ -2080,11 +2080,11 @@ msgstr "重命名文件夹"
 
 #: ../app/coder/fileBrowser.py:429 ../app/coder/fileBrowser.py:465
 msgid "Cannot rename `{}` to `{}`."
-msgstr ""
+msgstr "无法将`{}`重命名为`{}`。"
 
 #: ../app/coder/fileBrowser.py:452
 msgid "Rename file `{}` to:"
-msgstr ""
+msgstr "重命名文件`{}`为："
 
 #: ../app/coder/fileBrowser.py:453
 msgid "Rename file"
@@ -2092,23 +2092,23 @@ msgstr "重命名文件"
 
 #: ../app/coder/fileBrowser.py:490
 msgid "Are you sure you want to PERMANENTLY delete folder `{}`?"
-msgstr ""
+msgstr "您确定要永久删除文件夹 `{}`吗？"
 
 #: ../app/coder/fileBrowser.py:500
 msgid "Cannot delete folder `{}`, directory does not exist."
-msgstr ""
+msgstr "无法删除文件夹`{}`，目录不存在。"
 
 #: ../app/coder/fileBrowser.py:507
 msgid "Cannot delete folder `{}`, directory is not empty or permission denied."
-msgstr ""
+msgstr "无法删除文件夹`{}`，目录不为空或权限被拒绝。"
 
 #: ../app/coder/fileBrowser.py:519
 msgid "Are you sure you want to PERMANENTLY delete file `{}`?"
-msgstr ""
+msgstr "您确定要永久删除文件“{}”吗？"
 
 #: ../app/coder/fileBrowser.py:529
 msgid "Cannot delete folder `{}`, file does not exist."
-msgstr ""
+msgstr "无法删除文件夹“{}”，文件不存在。"
 
 #: ../app/coder/fileBrowser.py:536
 msgid "Cannot delete file `{}`, permission denied."
@@ -2128,23 +2128,23 @@ msgstr ""
 
 #: ../app/colorpicker/__init__.py:121
 msgid "RGB"
-msgstr ""
+msgstr "RGB"
 
 #: ../app/colorpicker/__init__.py:122
 msgid "HSV"
-msgstr ""
+msgstr "HSV"
 
 #: ../app/colorpicker/__init__.py:196
 msgid "Output Space:"
-msgstr ""
+msgstr "输出空间："
 
 #: ../app/colorpicker/__init__.py:219
 msgid "&Insert"
-msgstr "&插入"
+msgstr "插入&I"
 
 #: ../app/colorpicker/__init__.py:225
 msgid "Canc&el"
-msgstr ""
+msgstr "取消&E"
 
 #: ../app/colorpicker/__init__.py:228
 msgid "Insert color value."
@@ -2193,7 +2193,7 @@ msgstr "转到更新日志"
 
 #: ../app/connections/updates.py:161
 msgid "Later"
-msgstr ""
+msgstr "稍后"
 
 #: ../app/connections/updates.py:171
 #, python-format
@@ -2274,6 +2274,8 @@ msgid ""
 "You are running PsychoPy v%s.\n"
 " "
 msgstr ""
+"您正在运行 PsychoPy 版本 v%s.\n"
+" "
 
 #: ../app/connections/updates.py:343
 msgid ""
@@ -2864,15 +2866,15 @@ msgstr "组件文件夹"
 
 #: ../app/preferencesDlg.py:68
 msgid "componentFilter"
-msgstr ""
+msgstr "组件过滤器"
 
 #: ../app/preferencesDlg.py:69
 msgid "hidden components"
-msgstr ""
+msgstr "隐藏组件"
 
 #: ../app/preferencesDlg.py:70
 msgid "unpacked demos dir"
-msgstr ""
+msgstr "解压演示目录"
 
 #: ../app/preferencesDlg.py:71
 msgid "saved data folder"
@@ -3196,7 +3198,7 @@ msgstr "超时"
 
 #: ../app/preferencesDlg.py:156
 msgid "Builder, Coder and Runner"
-msgstr ""
+msgstr "Builder, Coder 和 Runner"
 
 #: ../app/preferencesDlg.py:157
 msgid "same as in the file"
@@ -3204,11 +3206,11 @@ msgstr "和文件中保持一致"
 
 #: ../app/preferencesDlg.py:158
 msgid "abort"
-msgstr ""
+msgstr "中止"
 
 #: ../app/preferencesDlg.py:159
 msgid "warn"
-msgstr ""
+msgstr "警告"
 
 #: ../app/preferencesDlg.py:169
 msgid "large icons"
@@ -3224,56 +3226,56 @@ msgstr "高DPI显示"
 
 #: ../app/preferencesDlg.py:172
 msgid "comment font"
-msgstr ""
+msgstr "评论字体"
 
 #: ../app/preferencesDlg.py:173
 msgid "switch to Builder"
-msgstr ""
+msgstr "切换到 Builder"
 
 #: ../app/preferencesDlg.py:174
 msgid "switch to Coder"
-msgstr ""
+msgstr "切换到 Coder"
 
 #: ../app/preferencesDlg.py:175
 msgid "switch to Runner"
-msgstr ""
+msgstr "切换到 Runner"
 
 #: ../app/preferencesDlg.py:176
 msgid "login to projects"
-msgstr ""
+msgstr "登录到项目"
 
 #: ../app/preferencesDlg.py:177
 msgid "use Runner"
-msgstr ""
+msgstr "使用 Runner"
 
 #: ../app/preferencesDlg.py:182
 #: ../experiment/components/settings/__init__.py:256
 msgid "Latency not important"
-msgstr ""
+msgstr "延迟不重要"
 
 #: ../app/preferencesDlg.py:183
 #: ../experiment/components/settings/__init__.py:257
 msgid "Share low-latency driver"
-msgstr ""
+msgstr "共享低延迟驱动程序"
 
 #: ../app/preferencesDlg.py:184
 #: ../experiment/components/settings/__init__.py:258
 msgid "Exclusive low-latency"
-msgstr ""
+msgstr "独占低延迟模式"
 
 #: ../app/preferencesDlg.py:185
 #: ../experiment/components/settings/__init__.py:259
 msgid "Aggressive low-latency"
-msgstr ""
+msgstr "激进低延迟模式（推荐）"
 
 #: ../app/preferencesDlg.py:186
 #: ../experiment/components/settings/__init__.py:260
 msgid "Latency critical"
-msgstr ""
+msgstr "延迟关键模式"
 
 #: ../app/preferencesDlg.py:453
 msgid "PsychoPy Preferences"
-msgstr ""
+msgstr "PsychoPy 首选项"
 
 #: ../app/preferencesDlg.py:657
 msgid "system locale"
@@ -3286,19 +3288,19 @@ msgstr ""
 
 #: ../app/preferencesDlg.py:838
 msgid "Error"
-msgstr ""
+msgstr "错误"
 
 #: ../app/runner/runner.py:121
 msgid "Add task"
-msgstr ""
+msgstr "添加任务"
 
 #: ../app/runner/runner.py:122
 msgid "Adding task"
-msgstr ""
+msgstr "正在添加任务"
 
 #: ../app/runner/runner.py:124
 msgid "Remove task"
-msgstr ""
+msgstr "移除任务"
 
 #: ../app/runner/runner.py:127
 msgid "Clear all"
@@ -3306,51 +3308,51 @@ msgstr "清除全部"
 
 #: ../app/runner/runner.py:128
 msgid "Clearing tasks"
-msgstr ""
+msgstr "正在清除任务"
 
 #: ../app/runner/runner.py:131
 msgid "Save list"
-msgstr ""
+msgstr "保存列表"
 
 #: ../app/runner/runner.py:132
 msgid "Saving task"
-msgstr ""
+msgstr "正在保存列表"
 
 #: ../app/runner/runner.py:134
 msgid "Open list"
-msgstr ""
+msgstr "打开列表"
 
 #: ../app/runner/runner.py:135
 msgid "Loading task"
-msgstr ""
+msgstr "任务加载中"
 
 #: ../app/runner/runner.py:138
 msgid "Closing Runner"
-msgstr ""
+msgstr "正在关闭 Runner"
 
 #: ../app/runner/runner.py:141
 msgid "Quitting PsychoPy"
-msgstr ""
+msgstr "正在退出 PsychoPy"
 
 #: ../app/runner/runner.py:146
 msgid "Open &Builder view"
-msgstr ""
+msgstr "打开 Builder 视图(&B)"
 
 #: ../app/runner/runner.py:147
 msgid "Opening Builder"
-msgstr ""
+msgstr "正在打开 Builder"
 
 #: ../app/runner/runner.py:148
 msgid "Open &Coder view"
-msgstr ""
+msgstr "打开编码器视图​​(&C)"
 
 #: ../app/runner/runner.py:149
 msgid "Opening Coder"
-msgstr ""
+msgstr "正在打开 Coder"
 
 #: ../app/runner/runner.py:155
 msgid "Running experiment"
-msgstr ""
+msgstr "正在运行试验"
 
 #: ../app/runner/runner.py:158
 msgid "Run JS for local debug"
