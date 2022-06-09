@@ -719,6 +719,11 @@ class MultiStairHandler:
         code = (
                 "// terminate loop\n"
                 "psychoJS.experiment.removeLoop(%(name)s);\n"
+                "// update the current loop from the ExperimentHandler"
+                "if (len(psychoJS.experiment._unfinishedLoops)>0)\n"
+                "  currentLoop = psychoJS.experiment._unfinishedLoops[-1]\n"
+                "else\n"
+                "  currentLoop = psychoJS.experiment  // so we use addData from the experiment"
                 "return Scheduler.Event.NEXT;\n"
         )
         buff.writeIndentedLines(code % self.params)
