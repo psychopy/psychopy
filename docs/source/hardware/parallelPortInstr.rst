@@ -41,14 +41,14 @@ If you'd like to use a `Parallel Port` to **record** responses (for example from
 	The **address** of the port is not the same as the **name** of the port. For instance, the name of the port could be "LPT 1" but the address might be "0378". 
 * Now, in the `Hardware` tab of the parallel port component in PsychoPy, select the correct parallel port address:
 
-.. figure:: /images/parallel2.png
+.. figure:: /images/parallel2.PNG
 
 	Select your port from the drop down, if you don't see it listed just follow the next step.
 
 
 * If you do not see the correct address in the drop down, in PsychoPy navigate to: `File > Preferences > Hardware > Parallel Ports > Click the "..." icon > Click the New Item icon > Enter the parallel port address > OK > Apply`:
 
-.. figure:: /images/parallel3.png
+.. figure:: /images/parallel3.PNG
 
 	Follow these steps to add your port address, only if it was not already in the drop-down menu.
 
@@ -65,7 +65,7 @@ If you're using a Mac, it's recommended that you skip this step. For Windows use
 
 * Download the InpOutx64.dll and InpOutx32.dll files from `here <https://www.highrez.co.uk/Downloads/InpOut32/>`_. You need to use the "Binaries only - x86 & x64 DLLs and libs" option under the `Download Links` subheading near the bottom of the page:
 
-.. figure:: /images/parallel4.png
+.. figure:: /images/parallel4.PNG
 
 	The correct folder to select is shown here.
 
