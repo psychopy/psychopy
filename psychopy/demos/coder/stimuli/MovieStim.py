@@ -14,8 +14,8 @@ win = visual.Window((800, 600))
 
 # create a new movie stimulus instance
 mov = visual.MovieStim(win, 'jwpIntro.mp4', size=(800, 600), flipVert=False,
-                       flipHoriz=False, loop=False, fullscr=False)
-
+                       flipHoriz=False, loop=False)
+mov.play()
 # print('orig movie size=%s' % mov.size)
 # print('duration=%.2fs' % mov.duration)
 
@@ -23,9 +23,10 @@ mov = visual.MovieStim(win, 'jwpIntro.mp4', size=(800, 600), flipVert=False,
 while mov.status != constants.FINISHED:
     mov.draw()
     win.flip()
-    if event.getKeys():
+    if event.getKeys('q'):
         break
 
+mov.stop()
 # clean up and exit
 win.close()
 core.quit()

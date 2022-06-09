@@ -16,13 +16,15 @@ import threading
 import ctypes
 import weakref
 import math
+import time
+import queue
 
 from psychopy import core, logging
 from psychopy.clock import Clock, getTime
 from psychopy.tools.attributetools import logAttrib, setAttribute
 from psychopy.tools.filetools import pathToString
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin, ColorMixin
-from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
+from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED, STOPPING
 
 from .players import getMoviePlayer
 from .metadata import MovieMetadata, NULL_MOVIE_METADATA
@@ -41,6 +43,11 @@ FFPYPLAYER_STATUS_EOF = 'eof'
 FFPYPLAYER_STATUS_PAUSED = 'paused'
 
 PREFERRED_VIDEO_LIB = 'ffpyplayer'
+
+
+# ------------------------------------------------------------------------------
+# Classes
+#
 
 
 class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
@@ -141,6 +148,8 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.loop = loop
         self._recentFrame = NULL_MOVIE_FRAME_INFO
 
+        self._tStream = None
+
         # OpenGL data
         self.interpolate = True
         self._texFilterNeedsUpdate = True
@@ -197,7 +206,6 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._filename = filename
         self._player.load(self._filename)
         self._player.start()
-        self.updateVideoFrame()  # make sure the first frame is shown
 
     @property
     def frameTexture(self):

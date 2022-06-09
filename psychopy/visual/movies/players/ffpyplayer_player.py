@@ -16,10 +16,13 @@ from ._base import BaseMoviePlayer
 from ffpyplayer.player import MediaPlayer
 from ..metadata import MovieMetadata, NULL_MOVIE_METADATA
 from ..frame import MovieFrame, NULL_MOVIE_FRAME_INFO
-from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
+from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED, STOPPING
 from psychopy.tools.filetools import pathToString
 import math
 import numpy as np
+import threading
+import queue
+
 
 # constants for use with ffpyplayer
 FFPYPLAYER_STATUS_EOF = 'eof'
@@ -28,6 +31,327 @@ FFPYPLAYER_STATUS_PAUSED = 'paused'
 # Options that PsychoPy devs picked to provide better performance, these can
 # be overridden, but it might result in undefined behavior.
 DEFAULT_FF_OPTS = {'sync': 'video'}
+
+
+class StreamStatus:
+    """Descriptor class for stream status.
+
+    This class is used to report the current status of the stream read/writer.
+
+    Parameters
+    ----------
+    status : int
+        Status flag for the stream.
+    streamTime : float
+        Current stream time in seconds. This value increases monotonically and
+        is common to all webcams attached to the system.
+    recTime : float
+        If recording, this field will report the current timestamp within the
+        output file. Otherwise, this value is zero.
+    recBytes : float
+        If recording, this value indicates the number of bytes that have been
+        written out to file.
+
+    """
+    __slots__ = ['_status',
+                 '_streamTime',
+                 '_recTime',
+                 '_recBytes']
+
+    def __init__(self,
+                 status=NOT_STARTED,
+                 streamTime=0.0,
+                 recTime=0.0,
+                 recBytes=0):
+        self._status = int(status)
+        self._streamTime = float(streamTime)
+        self._recTime = float(recTime)
+        self._recBytes = int(recBytes)
+
+    @property
+    def status(self):
+        """Status flag for the stream (`int`).
+        """
+        return self._status
+
+    @property
+    def streamTime(self):
+        """Current stream time in seconds (`float`).
+
+        This value increases monotonically and is common timebase for all
+        cameras attached to the system.
+        """
+        return self._streamTime
+
+    @property
+    def recBytes(self):
+        """Current recording size on disk (`int`).
+
+        If recording, this value indicates the number of bytes that have been
+        written out to file.
+        """
+        return self._recBytes
+
+    @property
+    def recTime(self):
+        """Current recording time (`float`).
+
+        If recording, this field will report the current timestamp within the
+        output file. Otherwise, this value is zero.
+        """
+        return self._recTime
+
+
+class StreamData:
+    """Descriptor for video frame data.
+
+    Instances of this class are produced by the stream reader/writer thread
+    which contain: metadata about the stream, frame image data (i.e. pixel
+    values), and the stream status.
+
+    Parameters
+    ----------
+    metadata : MovieMetadata
+        Stream metadata.
+    frameImage : object
+        Video frame image data.
+    streamStatus : StreamStatus
+        Video stream status.
+    cameraLib : str
+        Camera library in use to process the stream.
+
+    """
+    __slots__ = ['_metadata',
+                 '_frameImage',
+                 '_streamStatus',
+                 '_cameraLib']
+
+    def __init__(self, metadata, frameImage, streamStatus, cameraLib):
+        self._metadata = metadata
+        self._frameImage = frameImage
+        self._streamStatus = streamStatus
+        self._cameraLib = cameraLib
+
+    @property
+    def metadata(self):
+        """Stream metadata at the time the video frame was acquired
+        (`MovieMetadata`).
+        """
+        return self._metadata
+
+    @metadata.setter
+    def metadata(self, value):
+        if not isinstance(value, MovieMetadata) or value is not None:
+            raise TypeError("Incorrect type for property `metadata`, expected "
+                            "`MovieMetadata` or `None`.")
+
+        self._metadata = value
+
+    @property
+    def frameImage(self):
+        """Frame image data from the codec (`ffpyplayer.pic.Image`).
+        """
+        return self._frameImage
+
+    @frameImage.setter
+    def frameImage(self, value):
+        self._frameImage = value
+
+    @property
+    def streamStatus(self):
+        """Stream status (`StreamStatus`).
+        """
+        return self._streamStatus
+
+    @streamStatus.setter
+    def streamStatus(self, value):
+        if not isinstance(value, StreamStatus) or value is not None:
+            raise TypeError("Incorrect type for property `streamStatus`, "
+                            "expected `StreamStatus` or `None`.")
+
+        self._streamStatus = value
+
+    @property
+    def cameraLib(self):
+        """Camera library in use to obtain the stream (`str`). Value is
+        blank if `metadata` is `None`.
+        """
+        if self._metadata is not None:
+            return self._metadata.movieLib
+
+        return u''
+
+
+class MovieStreamThread(threading.Thread):
+    """Class for reading movie streams asynchronously.
+
+    The rate of which frames are read is controlled dynamically based on values
+    within stream metadata. This will ensure that CPU load is kept to a minimum,
+    only polling for new frames at the rate they are being made available.
+
+    Parameters
+    ----------
+    player : `ffpyplayer.player.MediaPlayer`
+        Media player instance, should be configured and initialized. Note that
+        player instance methods might not be thread-safe after handing off the
+        object to this thread.
+    bufferFrames : int
+        Number of frames to buffer. Sets the frame queue size for the thread.
+
+    """
+
+    def __init__(self, player, bufferFrames=1):
+        threading.Thread.__init__(self)
+        self.daemon = False
+
+        self._player = player  # player interface to FFMPEG
+        self._frameQueue = queue.Queue(maxsize=bufferFrames)  # frames for the monitor
+
+        # some values the user might want
+        self._status = NOT_STARTED
+        self._streamTime = 0.0
+
+        self._isReadyEvent = threading.Event()
+        self._isPlaying = threading.Event()
+        self._isStreamingEvent = threading.Event()
+        self._stopSignal = threading.Event()
+
+    def run(self):
+        """Main sub-routine for this thread.
+
+        When the thread is running, data about captured frames are put into the
+        `frameQueue` as `(metadata, img, pts)`. If the queue is empty, that
+        means the main application thread is running faster than the encoder
+        can get frames. Recommended behaviour in such cases it to return the
+        last valid frame when the queue is empty.
+
+        """
+        if self._player is None:
+            return  # exit thread if no player
+
+        self._isPlaying.clear()
+        self._isReadyEvent.clear()
+        frameInterval = 0.001  # dynamic poll interval, start at 1ms
+        playbackJustStarted = True
+        statusFlag = NOT_STARTED
+
+        while statusFlag != STOPPED:
+            # unpause to start playback
+            if statusFlag == NOT_STARTED:
+                self._player.set_pause(False)
+                statusFlag = PLAYING
+                continue  # start the loop again with PLAYING flag
+
+            # request to play or pause from main thread
+            if self._isPlaying.is_set():
+                statusFlag = PLAYING
+            else:
+                statusFlag = PAUSED
+
+            if statusFlag == PLAYING:  # routine to handle playing of video
+                # resume if previously paused
+                if self._player.get_pause():
+                    self._player.set_pause(False)
+
+                # consume frames until we get a valid one, need its metadata
+                frameData = None
+                val = ''
+                while frameData is None or val == 'not ready':
+                    frameData, val = self._player.get_frame()
+                    time.sleep(frameInterval)  # sleep a bit to warm-up
+                else:
+                    self._isReadyEvent.set()
+
+                # after getting a frame, we can get accurate metadata
+                metadata = self._player.get_metadata()
+
+                # compute frame interval for dynamic polling rate
+                frameRate = metadata['frame_rate']
+                numer, denom = frameRate
+                if denom == 0:  # no valid framerate from metadata yet
+                    continue
+
+                # compute the frame interval that will be used
+                frameInterval = 1.0 / (numer / float(denom))
+
+                # split the data
+                colorData, pts = frameData
+                self._streamTime = pts
+
+                # Put the frame in the queue to allow the main thread to safely
+                # access it. If the queue is full, the frame data will be
+                # discarded at this point.
+                if not self._frameQueue.full():
+                    streamStatus = StreamStatus(
+                        status=statusFlag,
+                        streamTime=self._streamTime,
+                        recTime=0.0,
+                        recBytes=0)
+
+                    # Object to pass video frame data back to the application
+                    # thread for presentation or processing.
+                    img, _ = frameData
+                    toReturn = StreamData(
+                        metadata, img, streamStatus, u'ffpyplayer')
+                    self._frameQueue.put(toReturn)  # put frame data in here
+
+                if val == 'eof':  # end of file, we should prepare to stop now
+                    statusFlag = STOPPING
+
+            elif statusFlag == PAUSED:  # handle when paused
+                # pause if not already
+                if not self._player.get_pause():
+                    self._player.set_pause(True)
+                time.sleep(0.001)
+
+            # signal to close a thread
+            if self._stopSignal.is_set() or statusFlag == STOPPING:
+                statusFlag = STOPPED  # done getting video frames
+
+        # out of this loop, we're done
+        self._isReadyEvent.clear()
+        self._isStreamingEvent.clear()
+
+    @property
+    def isReady(self):
+        """`True` if the stream reader is ready (`bool`).
+        """
+        return self._isReadyEvent.is_set()
+
+    def play(self):
+        """Start playing the video from the stream.
+
+        """
+        self._isPlaying.set()
+
+    def pause(self):
+        """Stop recording frames to the output file.
+        """
+        self._isPlaying.clear()
+
+    def shutdown(self):
+        """Stop the thread.
+        """
+        self._stopSignal.set()
+
+    def getRecentFrame(self):
+        """Get the most recent frame data from the feed (`tuple`).
+
+        Returns
+        -------
+        tuple or None
+            Frame data formatted as `(metadata, frameData, val)`. The `metadata`
+            is a `dict`, `frameData` is a `tuple` with format (`colorData`,
+            `pts`) and `val` is a `str` returned by the
+            `MediaPlayer.get_frame()` method. Returns `None` if there is no
+            frame data.
+
+        """
+        if self._frameQueue.empty():
+            return None
+
+        # hold only last frame and return that instead of None?
+        return self._frameQueue.get_nowait()
 
 
 class FFPyPlayer(BaseMoviePlayer):
@@ -54,6 +378,9 @@ class FFPyPlayer(BaseMoviePlayer):
 
         # status flags
         self._status = NOT_STARTED
+
+        # thread for reading frames asynchronously
+        self._tStream = None
 
     def start(self, log=True):
         """Initialize and start the decoder. This method will return when a
@@ -83,10 +410,11 @@ class FFPyPlayer(BaseMoviePlayer):
         self._handle.seek(0.0, relative=False)  # advance to the desired frame
         self._handle.set_mute(False)
 
-        # get the first frame
-        self._enqueueFrame(0.0, blockUntilValidFrame=True)
-
         self._status = NOT_STARTED
+
+        # hand off the player interface to the thread
+        self._tStream = MovieStreamThread(self._handle)
+        self._tStream.start()
 
     def load(self, pathToMovie):
         """Load a movie file from disk.
@@ -248,12 +576,7 @@ class FFPyPlayer(BaseMoviePlayer):
         """
         self._assertMediaPlayer()
 
-        # if not started
-        if self.status == NOT_STARTED:
-            self._handle.seek(0.0, relative=False)
-
-        if self._handle.get_pause():  # if paused, unpause to start playback
-            self._handle.set_pause(False)
+        self._tStream.play()
 
         self._status = PLAYING
 
@@ -270,10 +593,16 @@ class FFPyPlayer(BaseMoviePlayer):
             Log the stop event.
 
         """
-        self._assertMediaPlayer()
+        if self._handle is None:
+            raise RuntimeError("Cannot close stream, not opened yet.")
 
-        self._status = STOPPED
-        self.unload()
+        # close the thread
+        self._tStream.shutdown()  # close the stream
+        self._tStream.join()  # wait until thread exits
+        self._tStream = None
+
+        self._handle.close_player()
+        self._handle = None  # reset
 
     def pause(self, log=False):
         """Pause the current point in the movie. The image of the last frame
@@ -287,10 +616,7 @@ class FFPyPlayer(BaseMoviePlayer):
         """
         self._assertMediaPlayer()
 
-        if not self.isPaused:
-            self._handle.set_pause(True)
-
-        self._status = PAUSED
+        self._tStream.pause()
 
         return False
 
@@ -633,90 +959,65 @@ class FFPyPlayer(BaseMoviePlayer):
     # Methods for getting video frames from the encoder
     #
 
-    def _enqueueFrame(self, movieTime, blockUntilValidFrame=False):
-        """Enqueue a frame from the decoder.
-
-        This pulls the frame scheduled to be presented at the specified
-        `movieTime` timestamp and queues it to be displayed or processed.
+    def _enqueueFrame(self, blockUntilFrame=True):
+        """Grab the latest frame from the stream.
 
         Parameters
         ----------
-        movieTime : float
-            Timestamp of the frame to enqueue. If the timestamp is greater than
-            the one of the next scheduled flip time, the movie will seek to the
-            required timestamp automatically.
-        blockUntilValidFrame : bool
-            Block until the codec yields a valid frame. This function will block
-            until a new frame comes in.
+        blockUntilFrame : bool
+            Block until the decoder thread returns a valid frame. This can be
+            used to hold the application thread until frames are available.
+
+        Returns
+        -------
+        bool
+            `True` if a frame has been enqueued. Returns `False` if the camera
+            is not ready or if the stream was closed.
 
         """
         self._assertMediaPlayer()
 
-        # check if we are in the range to pull a new frame
-        frameIntervalStart = self._queuedFrame.absTime
-        metadata = self.getMetadata()
-
-        # do we show the frame we already decoded or do we need a new one?
-        if frameIntervalStart >= movieTime:
-            return self._queuedFrame
-
-        # are we paused?
-        # wasPaused = self._handle.get_pause()
-
-        # Block until a valid frame is returned from the stream, needed or else
-        # we won't have the metadata needed to crete the pixel/texture buffers.
-        #
-        # NB - We should add a timeout here to prevent the application from
-        # locking up if we can't get a valid frame within a reasonable time.
-        #
-        frame = None
-        status = ''
-        if blockUntilValidFrame:
-            while frame is None:
-                frame, status = self._handle.get_frame(show=True)
-                # break on other conditions
-                if status != 'not ready':
-                    break
-
-                time.sleep(0.1)  # wait a bit for a new frame
+        # If the queue is empty, the decoder thread has not yielded a new frame
+        # since the last call.
+        enqueuedFrame = None
+        if blockUntilFrame:
+            while enqueuedFrame is None:
+                enqueuedFrame = self._tStream.getRecentFrame()
+                time.sleep(0.001)  # sleep a bit
         else:
-            frame, status = self._handle.get_frame(show=True)
+            enqueuedFrame = self._tStream.getRecentFrame()
 
-        # NB - We could potentially buffer a bunch of frames in another
-        # thread and pull them in here. Right now we're pulling one frame at
-        # a time.
+        if enqueuedFrame is None:
+            return False
 
-        # set status flags accordingly
-        if status == FFPYPLAYER_STATUS_EOF:
-            self._status = FINISHED
-        elif status == FFPYPLAYER_STATUS_PAUSED:
-            self._status = PAUSED
-        else:
-            self._status = PLAYING  # could be not ready too, but still playing
+        # unpack the data we got back
+        metadata = enqueuedFrame.metadata
+        frameImage = enqueuedFrame.frameImage
+        streamStatus = enqueuedFrame.streamStatus
 
-        if frame is None:
-            return self._queuedFrame
-
-        # process the new frame
-        colorData, pts = frame
+        # status information
+        self._streamTime = streamStatus.streamTime  # stream time for the camera
+        self._recordingTime = streamStatus.recTime
+        self._recordingBytes = streamStatus.recBytes
 
         # if we have a new frame, update the frame information
-        videoBuffer = colorData.to_bytearray()[0]
+        videoBuffer = frameImage.to_bytearray()[0]
         videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
 
-        # create data structure to hold frame information
-        self._queuedFrame = MovieFrame(
-            frameIndex=self.frameIndexFromMovieTime(pts),
-            absTime=pts,
-            displayTime=metadata.frameInterval,
-            size=metadata.size,
+        # provide the last frame
+        self._lastFrame = MovieFrame(
+            frameIndex=self._frameIndex,
+            absTime=streamStatus.recTime,
+            # displayTime=self._recentMetadata['frame_size'],
+            size=frameImage.get_size(),
             colorData=videoFrameArray,
             audioChannels=0,
             audioSamples=None,
-            movieLib=self._movieLib,
+            metadata=metadata,
+            movieLib=u'ffpyplayer',
             userData=None)
 
-        return self._queuedFrame
+        return True
 
     def getMovieFrame(self, absTime):
         """Get the movie frame scheduled to be displayed at the current time.
@@ -734,7 +1035,9 @@ class FFPyPlayer(BaseMoviePlayer):
         """
         self._assertMediaPlayer()
 
-        return self._enqueueFrame(self.absToMovieTime(absTime))
+        self._enqueueFrame()
+
+        return self._lastFrame
 
 
 if __name__ == "__main__":
