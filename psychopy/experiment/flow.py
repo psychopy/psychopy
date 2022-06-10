@@ -266,6 +266,7 @@ class Flow(list):
                 "\n"
                 "const flowScheduler = new Scheduler(psychoJS);\n"
                 "const dialogCancelScheduler = new Scheduler(psychoJS);\n"
+                "var currentLoop = psychoJS.experiment;\n"
                 "psychoJS.scheduleCondition(function() { return (psychoJS.gui.dialogComponent.button === 'OK'); }, flowScheduler, dialogCancelScheduler);\n"
                 "\n")
         script.writeIndentedLines(code)

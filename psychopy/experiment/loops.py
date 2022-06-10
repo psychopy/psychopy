@@ -312,13 +312,30 @@ class TrialHandler():
                 buff.writeIndentedLines(code % self.params)
 
     def writeLoopEndCodeJS(self, buff):
-        # Just within the loop advance data line if loop is whole trials
-        code = ("\nasync function {funName}LoopEnd() {{\n"
-                "  psychoJS.experiment.removeLoop({name});\n\n".format(funName=self.params['name'].val,
-                                                                       name=self.params['name']))
-        code += ("  return Scheduler.Event.NEXT;\n"
-                "}\n")
-        buff.writeIndentedLines(code)
+        code = (
+            "\n"
+            "async function %(name)sLoopEnd() {\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "// terminate loop\n"
+                "psychoJS.experiment.removeLoop(%(name)s);\n"
+                "// update the current loop from the ExperimentHandler\n"
+                "if (psychoJS.experiment._unfinishedLoops.length>0)\n"
+                "  currentLoop = psychoJS.experiment._unfinishedLoops.at(-1);\n"
+                "else\n"
+                "  currentLoop = psychoJS.experiment;  // so we use addData from the experiment\n"
+                "return Scheduler.Event.NEXT;\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "}"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def getType(self):
         return 'TrialHandler'
@@ -719,6 +736,11 @@ class MultiStairHandler:
         code = (
                 "// terminate loop\n"
                 "psychoJS.experiment.removeLoop(%(name)s);\n"
+                "// update the current loop from the ExperimentHandler\n"
+                "if (psychoJS.experiment._unfinishedLoops.length>0)\n"
+                "  currentLoop = psychoJS.experiment._unfinishedLoops.at(-1);\n"
+                "else\n"
+                "  currentLoop = psychoJS.experiment;  // so we use addData from the experiment\n"
                 "return Scheduler.Event.NEXT;\n"
         )
         buff.writeIndentedLines(code % self.params)
