@@ -16,6 +16,8 @@ import threading
 import ctypes
 import weakref
 import math
+import time
+import queue
 from pathlib import Path
 
 from psychopy import core, logging, prefs
@@ -23,7 +25,7 @@ from psychopy.clock import Clock, getTime
 from psychopy.tools.attributetools import logAttrib, setAttribute
 from psychopy.tools.filetools import pathToString
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin, ColorMixin
-from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
+from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED, STOPPING
 
 from .players import getMoviePlayer
 from .metadata import MovieMetadata, NULL_MOVIE_METADATA
@@ -42,6 +44,11 @@ FFPYPLAYER_STATUS_EOF = 'eof'
 FFPYPLAYER_STATUS_PAUSED = 'paused'
 
 PREFERRED_VIDEO_LIB = 'ffpyplayer'
+
+
+# ------------------------------------------------------------------------------
+# Classes
+#
 
 
 class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
@@ -150,7 +157,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._textureId = GL.GLuint(0)
 
         # get the player interface for the desired `movieLib` and instance it
-        self._player = getMoviePlayer(movieLib)()
+        self._player = getMoviePlayer(movieLib)(self)
 
         self.nDroppedFrames = 0
         self._autoStart = autoStart
@@ -159,6 +166,15 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._filename = pathToString(filename)
         if self._filename:  # load a movie if provided
             self.loadMovie(self._filename)
+
+    # @property
+    # def status(self):
+    #     """Status flag for playback (`int`).
+    #     """
+    #     if self._player is not None:
+    #         return self._player.status
+    #
+    #     return NOT_STARTED
 
     @property
     def filename(self):
@@ -201,8 +217,6 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         self._filename = filename
         self._player.load(self._filename)
-        self._player.start()
-        self.updateVideoFrame()  # make sure the first frame is shown
 
     @property
     def frameTexture(self):
@@ -226,8 +240,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         """
         # get the current movie frame for the video time
-        self._recentFrame = self._player.getMovieFrame(
-            absTime=self.win.getFutureFlipTime())
+        self._recentFrame = self._player.getMovieFrame()
 
         # only do a pixel transfer on valid frames
         if self._recentFrame is not NULL_MOVIE_FRAME_INFO:
@@ -258,10 +271,10 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """
         self._selectWindow(self.win if win is None else win)
 
-        if self._hasPlayer:  # do nothing if a video is not loaded
+        #if self._hasPlayer:  # do nothing if a video is not loaded
             # video is not started yet
-            if self._autoStart and self._hasPlayer:
-                self.play()
+            # if self._autoStart and self._hasPlayer:
+            #     self.play()
 
         # update the video frame and draw it to a quad
         _ = self.updateVideoFrame()

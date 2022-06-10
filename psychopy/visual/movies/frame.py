@@ -43,6 +43,8 @@ class MovieFrame:
         contained in `audioSamples` to pass to the desired audio sink.
     audioSamples : ArrayLike or None
         Audio samples as an array. Set as `None` if audio data is unavailable.
+    metadata : MovieMetadata
+        Metadata of the stream at the time this movie frame was obtained.
     movieLib : str or None
         Movie library used to obtain this frame (e.g., `'ffpyplayer'`).
     userData : dict or None
@@ -50,6 +52,7 @@ class MovieFrame:
 
     """
     __slots__ = [
+        "_metadata",
         "_frameIndex",
         "_absTime",
         "_displayTime",
@@ -71,6 +74,7 @@ class MovieFrame:
                  colorData=None,
                  audioChannels=2,
                  audioSamples=None,
+                 metadata=None,
                  movieLib=u"",
                  userData=None):
 
@@ -82,6 +86,7 @@ class MovieFrame:
         self.colorData = colorData
         self.audioSamples = audioSamples
         self.audioChannels = audioChannels
+        self._metadata = metadata
         self.movieLib = movieLib
         self.userData = userData
 
@@ -94,6 +99,7 @@ class MovieFrame:
                 f"colorFormat={repr(self.colorFormat)}, "
                 f"audioChannels={self.audioChannels}, "
                 f"audioSamples={repr(self.audioSamples)}, "
+                f"metadata={repr(self._metadata)}, "
                 f"movieLib={repr(self.movieLib)}, "
                 f"userData={repr(self.userData)})")
 
@@ -197,6 +203,17 @@ class MovieFrame:
     @audioChannels.setter
     def audioChannels(self, val):
         self._audioChannels = int(val)
+
+    @property
+    def metadata(self):
+        """Movie library used to get this metadata (`str`). An empty string
+        indicates this field is not initialized.
+        """
+        return self._metadata
+
+    @metadata.setter
+    def metadata(self, value):
+        self._metadata = value
 
     @property
     def movieLib(self):

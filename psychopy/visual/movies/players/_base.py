@@ -348,16 +348,8 @@ class BaseMoviePlayer(ABC):
         pass
 
     @abstractmethod
-    def getMovieFrame(self, absTime):
-        """Get the movie frame scheduled to be displayed at the current movie
-        time.
-
-        Parameters
-        ----------
-        absTime : float
-            Absolute movie time in seconds the frame is scheduled to appear. A
-            new frame is returned only when movie time is beyond `absTime`,
-            otherwise the previous frame is returned.
+    def getMovieFrame(self):
+        """Get the most recent movie frame from the player.
 
         Returns
         -------
