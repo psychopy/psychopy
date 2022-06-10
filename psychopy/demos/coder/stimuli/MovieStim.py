@@ -27,12 +27,8 @@ while mov.status != constants.FINISHED:
         break
     if event.getKeys('m'):
         mov.play()
-        print('play')
     if event.getKeys('n'):
         mov.pause()
-        print('pause')
-
-    print(mov.status, constants.FINISHED)
 
 mov.stop()
 # clean up and exit

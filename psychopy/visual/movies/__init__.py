@@ -149,8 +149,6 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.loop = loop
         self._recentFrame = NULL_MOVIE_FRAME_INFO
 
-        self._tStream = None
-
         # OpenGL data
         self.interpolate = True
         self._texFilterNeedsUpdate = True
@@ -159,7 +157,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._textureId = GL.GLuint(0)
 
         # get the player interface for the desired `movieLib` and instance it
-        self._player = getMoviePlayer(movieLib)()
+        self._player = getMoviePlayer(movieLib)(self)
 
         self.nDroppedFrames = 0
         self._autoStart = autoStart
@@ -168,6 +166,15 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._filename = pathToString(filename)
         if self._filename:  # load a movie if provided
             self.loadMovie(self._filename)
+
+    # @property
+    # def status(self):
+    #     """Status flag for playback (`int`).
+    #     """
+    #     if self._player is not None:
+    #         return self._player.status
+    #
+    #     return NOT_STARTED
 
     @property
     def filename(self):
