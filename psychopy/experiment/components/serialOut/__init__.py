@@ -178,6 +178,8 @@ class SerialOutComponent(BaseComponent):
     def writeRoutineEndCode(self, buff):
         # Close the port
         code = (
-            "%(name)s.close()\n"
+            "# Close serial port\n"
+            "if %(name)s.is_open:\n"
+            "    %(name)s.close()\n"
         )
-        buff.writeIndented(code % self.params)
+        buff.writeIndentedLines(code % self.params)
