@@ -153,6 +153,7 @@ class TextComponent(BaseVisualComponent):
                 "  font: %(font)s,\n" + unitsStr +
                 "  pos: %(pos)s, height: %(letterHeight)s,"
                 "  wrapWidth: %(wrapWidth)s, ori: %(ori)s,\n"
+                "  languageStyle: %(languageStyle)s,\n"
                 "  color: new util.Color(%(color)s),"
                 "  opacity: %(opacity)s,")
         buff.writeIndentedLines(code % inits)

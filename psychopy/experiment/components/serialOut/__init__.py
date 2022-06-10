@@ -124,10 +124,11 @@ class SerialOutComponent(BaseComponent):
     def writeRoutineStartCode(self, buff):
         # Open the port
         code = (
-            "# Open serial port"
-            "%(name)s.open()\n"
+            "# Open serial port\n"
+            "if not %(name)s.is_open:\n"
+            "    %(name)s.open()\n"
         )
-        buff.writeIndented(code % self.params)
+        buff.writeIndentedLines(code % self.params)
 
     def writeFrameCode(self, buff):
         params = copy(self.params)
@@ -177,6 +178,8 @@ class SerialOutComponent(BaseComponent):
     def writeRoutineEndCode(self, buff):
         # Close the port
         code = (
-            "%(name)s.close()\n"
+            "# Close serial port\n"
+            "if %(name)s.is_open:\n"
+            "    %(name)s.close()\n"
         )
-        buff.writeIndented(code % self.params)
+        buff.writeIndentedLines(code % self.params)
