@@ -275,11 +275,11 @@ class SliderComponent(BaseVisualComponent):
         # build up an initialization string for Slider():
         initStr = ("{name} = new visual.Slider({{\n"
                    "  win: psychoJS.window, name: '{name}',\n"
-                   "  size: {size}, pos: {pos}, units: {units},\n"
+                   "  size: {size}, pos: {pos}, ori: {ori}, units: {units},\n"
                    "  labels: {labels}, fontSize: {letterHeight}, ticks: {ticks},\n"
                    "  granularity: {granularity}, style: {styles},\n"
                    "  color: new util.Color({color}), markerColor: new util.Color({fillColor}), lineColor: new util.Color({borderColor}), \n"
-                   "  fontFamily: {font}, bold: true, italic: false, depth: {depth}, \n"
+                   "  opacity: {opacity}, fontFamily: {font}, bold: true, italic: false, depth: {depth}, \n"
                    ).format(**inits)
         initStr += ("  flip: {flip},\n"
                     "}});\n\n").format(flip=boolConverter[inits['flip'].val])

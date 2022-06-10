@@ -222,7 +222,7 @@ class Experiment:
         # set this so that params write for approp target
         utils.scriptTarget = target
         self.expPath = expPath
-        script = IndentingBuffer(u'')  # a string buffer object
+        script = IndentingBuffer(target=target)  # a string buffer object
 
         # get date info, in format preferred by current locale as set by app:
         if hasattr(locale, 'nl_langinfo'):
@@ -234,17 +234,17 @@ class Experiment:
         # Remove disabled components, but leave original experiment unchanged.
         self_copy = deepcopy(self)
         for key, routine in list(self_copy.routines.items()):  # PY2/3 compat
-            if isinstance(routine, BaseStandaloneRoutine):
-                # Remove disabled / unimplemented standalone routines
-                if routine.disabled or target not in routine.targets:
-                    for node in self_copy.flow:
-                        if node == routine:
-                            self_copy.flow.removeComponent(node)
-                            if target not in routine.targets:
-                                # If this routine isn't implemented in target library, print alert and mute it
-                                alertCode = 4335 if target == "PsychoPy" else 4340
-                                alert(alertCode, strFields={'comp': type(routine).__name__})
-            else:
+            # Remove disabled / unimplemented routines
+            if routine.disabled or target not in routine.targets:
+                for node in self_copy.flow:
+                    if node == routine:
+                        self_copy.flow.removeComponent(node)
+                        if target not in routine.targets:
+                            # If this routine isn't implemented in target library, print alert and mute it
+                            alertCode = 4335 if target == "PsychoPy" else 4340
+                            alert(alertCode, strFields={'comp': type(routine).__name__})
+            # Remove disabled / unimplemented components within routine
+            if isinstance(routine, Routine):
                 for component in [comp for comp in routine]:
                     if component.disabled or target not in component.targets:
                         routine.removeComponent(component)
@@ -287,13 +287,14 @@ class Experiment:
                                                localDateTime, modular)
 
             script.writeIndentedLines("// Start code blocks for 'Before Experiment'")
-            routinesToWrite = list(self_copy.routines)
+            toWrite = list(self_copy.routines)
+            toWrite.extend(list(self_copy.flow))
             for entry in self_copy.flow:
                 # NB each entry is a routine or LoopInitiator/Terminator
                 self_copy._currentRoutine = entry
-                if hasattr(entry, 'writePreCodeJS') and entry.name in routinesToWrite:
+                if hasattr(entry, 'writePreCodeJS') and entry.name in toWrite:
                     entry.writePreCodeJS(script)
-                    routinesToWrite.remove(entry.name)  # this one's done
+                    toWrite.remove(entry.name)  # this one's done
 
             # Write window code
             self_copy.settings.writeWindowCodeJS(script)
@@ -307,13 +308,14 @@ class Experiment:
             script.setIndentLevel(1, relative=True)
 
             # routine init sections
-            routinesToWrite = list(self_copy.routines)
+            toWrite = list(self_copy.routines)
+            toWrite.extend(list(self_copy.flow))
             for entry in self_copy.flow:
                 # NB each entry is a routine or LoopInitiator/Terminator
                 self_copy._currentRoutine = entry
-                if hasattr(entry, 'writeInitCodeJS') and entry.name in routinesToWrite:
+                if hasattr(entry, 'writeInitCodeJS') and entry.name in toWrite:
                     entry.writeInitCodeJS(script)
-                    routinesToWrite.remove(entry.name)  # this one's done
+                    toWrite.remove(entry.name)  # this one's done
 
             # create globalClock etc
             code = ("// Create some handy timers\n"
@@ -330,16 +332,16 @@ class Experiment:
             # Routines once (whether or not they get used) because we're using
             # functions that may or may not get called later.
             # Do the Routines of the experiment first
-            routinesToWrite = list(self_copy.routines)
+            toWrite = list(self_copy.routines)
             for thisItem in self_copy.flow:
                 if thisItem.getType() in ['LoopInitiator', 'LoopTerminator']:
                     self_copy.flow.writeLoopHandlerJS(script, modular)
-                elif thisItem.name in routinesToWrite:
+                elif thisItem.name in toWrite:
                     self_copy._currentRoutine = self_copy.routines[thisItem.name]
                     self_copy._currentRoutine.writeRoutineBeginCodeJS(script, modular)
                     self_copy._currentRoutine.writeEachFrameCodeJS(script, modular)
                     self_copy._currentRoutine.writeRoutineEndCodeJS(script, modular)
-                    routinesToWrite.remove(thisItem.name)
+                    toWrite.remove(thisItem.name)
             self_copy.settings.writeEndCodeJS(script)
 
             # Add JS variable declarations e.g., var msg;
@@ -955,6 +957,11 @@ class Experiment:
                         # then check if it's a valid path and not yet included
                         if thisFile and thisFile not in compResources:
                             compResources.append(thisFile)
+            elif thisEntry.getType() == 'LoopInitiator' and "Stair" in thisEntry.loop.type:
+                url = 'https://lib.pavlovia.org/vendors/jsQUEST.min.js'
+                compResources.append({
+                    'rel': url, 'abs': url,
+                })
         if handled:
             # If resources are handled, clear all component resources
             compResources = []
@@ -993,7 +1000,7 @@ class Experiment:
         resources = loopResources + compResources + chosenResources
         resources = [res for res in resources if res is not None]
         for res in resources:
-            if srcRoot not in res['abs']:
+            if srcRoot not in res['abs'] and 'https://' not in res['abs']:
                 psychopy.logging.warning("{} is not in the experiment path and "
                                          "so will not be copied to Pavlovia"
                                          .format(res['rel']))

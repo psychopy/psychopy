@@ -233,8 +233,10 @@ class BaseComponent:
             else:
                 currLoop = self.exp._expHandler
 
-            if 'Stair' in currLoop.type:
+            if 'Stair' in currLoop.type and buff.target == 'PsychoPy':
                 addDataFunc = 'addOtherData'
+            elif 'Stair' in currLoop.type and buff.target == 'PsychoJS':
+                addDataFunc = 'psychojs.experiment.addData'
             else:
                 addDataFunc = 'addData'
 
@@ -557,7 +559,7 @@ class BaseComponent:
                 if stopVal in ['', None, -1, 'None']:
                     stopVal = '-1'
                 buff.writeIndented(f"{compName}.setSound({params['sound']}, secs={stopVal}){endStr}\n")
-            elif compName == 'eeg_marker':
+            elif paramName == 'emotiv_marker_label' or paramName == "emotiv_marker_value" or paramName == "emotiv_stop_marker":
                 # This allows the eeg_marker to be updated by a code component or a conditions file
                 # There is no setMarker_label or setMarker_value function in the eeg_marker object
                 # The marker label and value are set by the variables set in the dialogue
@@ -661,6 +663,18 @@ class BaseComponent:
     @disabled.setter
     def disabled(self, value):
         self.params['disabled'].val = value
+
+    @property
+    def currentLoop(self):
+        # Get list of active loops
+        loopList = self.exp.flow._loopList
+
+        if len(loopList):
+            # If there are any active loops, return the highest level
+            return self.exp.flow._loopList[-1].params['name']
+        else:
+            # Otherwise, we are not in a loop, so loop handler is just experiment handler
+            return "thisExp"
 
 
 class BaseVisualComponent(BaseComponent):

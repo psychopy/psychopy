@@ -1307,7 +1307,16 @@ class WindowMixin:
 
     @pos.setter
     def pos(self, value):
-        self._pos = Position(value, units=self.units, win=self.win)
+        # If no autolog attribute, assume silent
+        if hasattr(self, "autoLog"):
+            log = self.autoLog
+        else:
+            log = False
+        # Do attribute setting
+        setAttribute(self, '_pos', Position(value, units=self.units, win=self.win), log)
+
+        if hasattr(self, "_vertices"):
+            self._vertices._pos = self._pos
 
         if hasattr(self, "_vertices"):
             self._vertices._pos = self._pos
@@ -1319,9 +1328,19 @@ class WindowMixin:
 
     @size.setter
     def size(self, value):
+        # Convert None to a 2x1 tuple
         if value is None:
             value = (None, None)
-        self._size = Size(value, units=self.units, win=self.win)
+        # If no autolog attribute, assume silent
+        if hasattr(self, "autoLog"):
+            log = self.autoLog
+        else:
+            log = False
+        # Do attribute setting
+        setAttribute(self, '_size', Size(value, units=self.units, win=self.win), log)
+
+        if hasattr(self, "_vertices"):
+            self._vertices._size = self._size
 
         if hasattr(self, "_vertices"):
             self._vertices._size = self._size

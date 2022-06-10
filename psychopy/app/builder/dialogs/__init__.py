@@ -11,6 +11,7 @@ import sys
 
 import os
 import copy
+import time
 from collections import OrderedDict
 
 import numpy
@@ -32,7 +33,7 @@ from psychopy.tools import versionchooser as vc
 from ...colorpicker import PsychoColorPicker
 from pathlib import Path
 
-from ...themes import ThemeMixin
+from ...themes import handlers
 
 white = wx.Colour(255, 255, 255, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
@@ -450,21 +451,21 @@ class StartStopCtrls(wx.GridBagSizer):
             obj.SetFont(self.parent.GetTopLevelParent().app._mainFont)
 
 
-class ParamNotebook(wx.Notebook, ThemeMixin):
-    class CategoryPage(wx.Panel, ThemeMixin):
+class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
+    class CategoryPage(wx.Panel, handlers.ThemeMixin):
         def __init__(self, parent, dlg, params):
             wx.Panel.__init__(self, parent, size=(600, -1))
             self.parent = parent
             self.dlg = dlg
             self.app = self.dlg.app
             # Setup sizer
+            self.border = wx.BoxSizer()
+            self.SetSizer(self.border)
             self.sizer = wx.GridBagSizer(0, 0)
-            self.SetSizer(self.sizer)
-            # Add empty row for spacing
-            self.sizer.Add(wx.StaticText(self, label=""), (0, 0))
+            self.border.Add(self.sizer, border=12, proportion=1, flag=wx.ALL | wx.EXPAND)
             # Add controls
             self.ctrls = {}
-            self.row = 1
+            self.row = 0
             # Sort params
             sortedParams = OrderedDict(params)
             for name in reversed(self.parent.element.order):
@@ -806,6 +807,49 @@ class _BaseParamsDlg(wx.Dialog):
         dlg = PsychoColorPicker(self.frame)
         dlg.ShowModal()
         dlg.Destroy()
+
+    @staticmethod
+    def showScreenNumbers(evt=None, dur=5):
+        """
+        Spawn some PsychoPy windows to display each monitor's number.
+        """
+        from psychopy import visual
+        for n in range(wx.Display.GetCount()):
+            start = time.time()
+            # Open a window on the appropriate screen
+            win = visual.Window(
+                pos=(0, 0),
+                size=(128, 128),
+                units="norm",
+                screen=n,
+                color="black"
+            )
+            # Draw screen number to the window
+            screenNum = visual.TextBox2(
+                win, text=str(n + 1),
+                size=1, pos=0,
+                alignment="center", anchor="center",
+                letterHeight=0.5, bold=True,
+                fillColor=None, color="white"
+            )
+            # Progress bar
+            progBar = visual.Rect(
+                win, anchor="bottom left",
+                pos=(-1, -1), size=(0, 0.1)
+            )
+
+            # Frame loop
+            t = 0
+            while t < dur:
+                t = time.time() - start
+                # Set progress bar size
+                progBar.size = (t / 5 * 2, 0.1)
+                # Draw
+                progBar.draw()
+                screenNum.draw()
+                win.flip()
+            # Close window
+            win.close()
 
     def onNewTextSize(self, event):
         self.Fit()  # for ExpandoTextCtrl this is needed
@@ -1703,6 +1747,13 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.onFullScrChange(event=None)
         self.Bind(wx.EVT_CHECKBOX, self.onFullScrChange,
                   self.paramCtrls['Full-screen window'].valueCtrl)
+
+        # Add button to show screen numbers
+        scrNumCtrl = self.paramCtrls['Screen'].valueCtrl
+        self.screenNsBtn = wx.Button(scrNumCtrl.GetParent(), label=_translate("Show screen numbers"))
+        scrNumCtrl._szr.Add(self.screenNsBtn, border=5, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
+        scrNumCtrl.Layout()
+        self.screenNsBtn.Bind(wx.EVT_BUTTON, self.showScreenNumbers)
 
         if timeout is not None:
             wx.FutureCall(timeout, self.Destroy)

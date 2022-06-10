@@ -1000,7 +1000,10 @@ def getLumSeries(lumLevels=8,
         message.setText('Spacebar for next patch')
 
     # LS100 likes to take at least one bright measurement
+    # assuming the same for the CS100A
     if havePhotom and photometer.type == 'LS100':
+        junk = photometer.getLum()
+    if havePhotom and photometer.type == 'CS100A':
         junk = photometer.getLum()
 
     # what are the test values of luminance

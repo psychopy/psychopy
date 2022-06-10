@@ -9,10 +9,18 @@ from pathlib import Path
 
 from psychopy.app.colorpicker import PsychoColorPicker
 
+import sys
+import pickle
+import tempfile
+import mmap
+import time
+import io
+import argparse
+
+from psychopy.app.themes import icons, colors, handlers
+
 profiling = False  # turning on will save profile files in currDir
 
-import sys
-import argparse
 import psychopy
 from psychopy import prefs
 from pkg_resources import parse_version
@@ -21,7 +29,6 @@ from . import frametracker
 from . import themes
 from . import console
 
-import io
 
 if not hasattr(sys, 'frozen'):
     try:
@@ -69,14 +76,14 @@ if sys.platform == 'win32':
                 ctypes.windll.shcore.SetProcessDpiAwareness(enableHighDPI)
             except OSError:
                 logging.warn(
-                    "High DPI support is not appear to be supported by this version"
-                    " of Windows. Disabling in preferences.")
+                    "High DPI support is not appear to be supported by this "
+                    "version of Windows. Disabling in preferences.")
 
                 psychopy.prefs.app['highDPI'] = False
                 psychopy.prefs.saveUserPrefs()
 
 
-class MenuFrame(wx.Frame, themes.ThemeMixin):
+class MenuFrame(wx.Frame, themes.handlers.ThemeMixin):
     """A simple empty frame with a menubar, should be last frame closed on mac
     """
 
@@ -116,6 +123,7 @@ class IDStore(dict):
     """
     def __getattr__(self, attr):
         return self[attr]
+
     def __setattr__(self, attr, value):
         self[attr] = value
 
@@ -151,7 +159,7 @@ class _Showgui_Hack():
         core.shellCall([sys.executable, noopPath])
 
 
-class PsychoPyApp(wx.App, themes.ThemeMixin):
+class PsychoPyApp(wx.App, handlers.ThemeMixin):
     _called_from_test = False  # pytest needs to change this
 
     def __init__(self, arg=0, testMode=False, **kwargs):
@@ -159,7 +167,8 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         then some further code is launched in OnInit() which occurs after
         """
         if profiling:
-            import cProfile, time
+            import cProfile
+            import time
             profile = cProfile.Profile()
             profile.enable()
             t0 = time.time()
@@ -183,7 +192,15 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         self._stdout = sys.stdout
         self._stderr = sys.stderr
         self._stdoutFrame = None
-        self.iconCache = themes.IconCache()
+
+        # Shared memory used for messaging between app instances, this gets
+        # allocated when `OnInit` is called.
+        self._sharedMemory = None
+        self._singleInstanceChecker = None  # checker for instances
+        self._timer = None
+        # Size of the memory map buffer, needs to be large enough to hold UTF-8
+        # encoded long file paths.
+        self.mmap_sz = 2048
 
         # mdc - removed the following and put it in `app.startApp()` to have
         #       error logging occur sooner.
@@ -236,19 +253,116 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
           testMode: bool
         """
         self.SetAppName('PsychoPy3')
-        if showSplash: #showSplash:
+
+        # Single instance check is done here prior to loading any GUI stuff.
+        # This permits one instance of PsychoPy from running at any time.
+        # Clicking on files will open them in the extant instance rather than
+        # loading up a new one.
+        #
+        # Inter-process messaging is done via a memory-mapped file created by
+        # the first instance. Successive instances will write their args to
+        # this file and promptly close. The main instance will read this file
+        # periodically for data and open and file names stored to this buffer.
+        #
+        # This uses similar logic to this example:
+        # https://github.com/wxWidgets/wxPython-Classic/blob/master/wx/lib/pydocview.py
+
+        # Create the memory-mapped file if not present, this is handled
+        # differently between Windows and UNIX-likes.
+        if wx.Platform == '__WXMSW__':
+            tfile = tempfile.TemporaryFile(prefix="ag", suffix="tmp")
+            fno = tfile.fileno()
+            self._sharedMemory = mmap.mmap(fno, self.mmap_sz, "shared_memory")
+        else:
+            tfile = open(
+                os.path.join(
+                    tempfile.gettempdir(),
+                    tempfile.gettempprefix() + self.GetAppName() + '-' +
+                    wx.GetUserId() + "AGSharedMemory"),
+                'w+b')
+
+            # insert markers into the buffer
+            tfile.write(b"*")
+            tfile.seek(self.mmap_sz)
+            tfile.write(b" ")
+            tfile.flush()
+            fno = tfile.fileno()
+            self._sharedMemory = mmap.mmap(fno, self.mmap_sz)
+
+        # use wx to determine if another instance is running
+        self._singleInstanceChecker = wx.SingleInstanceChecker(
+            self.GetAppName() + '-' + wx.GetUserId(),
+            tempfile.gettempdir())
+
+        # If another instance is running, message our args to it by writing the
+        # path the the buffer.
+        if self._singleInstanceChecker.IsAnotherRunning():
+            # Message the extant running instance the arguments we want to
+            # process.
+            args = sys.argv[1:]
+
+            # if there are no args, tell the user another instance is running
+            if not args:
+                errMsg = "Another instance of PsychoPy is already running."
+                errDlg = wx.MessageDialog(
+                    None, errMsg, caption="PsychoPy Error",
+                    style=wx.OK | wx.ICON_ERROR, pos=wx.DefaultPosition)
+                errDlg.ShowModal()
+                errDlg.Destroy()
+
+                self.quit(None)
+
+            # serialize the data
+            data = pickle.dumps(args)
+
+            # Keep alive until the buffer is free for writing, this allows
+            # multiple files to be opened in succession. Times out after 5
+            # seconds.
+            attempts = 0
+            while attempts < 5:
+                # try to write to the buffer
+                self._sharedMemory.seek(0)
+                marker = self._sharedMemory.read(1)
+                if marker == b'\0' or marker == b'*':
+                    self._sharedMemory.seek(0)
+                    self._sharedMemory.write(b'-')
+                    self._sharedMemory.write(data)
+                    self._sharedMemory.seek(0)
+                    self._sharedMemory.write(b'+')
+                    self._sharedMemory.flush()
+                    break
+                else:
+                    # wait a bit for the buffer to become free
+                    time.sleep(1)
+                    attempts += 1
+            else:
+                # error that we could not access the memory-mapped file
+                errMsg = "Cannot communicate with running PsychoPy instance!"
+                errDlg = wx.MessageDialog(
+                    None, errMsg, caption="PsychoPy Error",
+                    style=wx.OK | wx.ICON_ERROR, pos=wx.DefaultPosition)
+                errDlg.ShowModal()
+                errDlg.Destroy()
+
+            # since were not the main instance, exit ...
+            self.quit(None)
+
+        # ----
+
+        if showSplash:
             # show splash screen
             splashFile = os.path.join(
                 self.prefs.paths['resources'], 'psychopySplash.png')
             splashImage = wx.Image(name=splashFile)
             splashImage.ConvertAlphaToMask()
-            splash = AS.AdvancedSplash(None, bitmap=splashImage.ConvertToBitmap(),
-                                       timeout=3000,
-                                       agwStyle=AS.AS_TIMEOUT | AS.AS_CENTER_ON_SCREEN,
-                                       )  # transparency?
+            splash = AS.AdvancedSplash(
+                None, bitmap=splashImage.ConvertToBitmap(),
+                timeout=3000, agwStyle=AS.AS_TIMEOUT | AS.AS_CENTER_ON_SCREEN
+            )
             w, h = splashImage.GetSize()
-            splash.SetTextPosition((int(340), h-30))
-            splash.SetText(_translate("Copyright (C) 2021 OpenScienceTools.org"))
+            splash.SetTextPosition((340, h - 30))
+            splash.SetText(
+                _translate("Copyright (C) 2021 OpenScienceTools.org"))
         else:
             splash = None
 
@@ -294,6 +408,8 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         self.isRetina = self.dpi>80 and wx.Platform == '__WXMAC__'
         if self.isRetina:
             fontScale = 1.2  # fonts are looking tiny on macos (only retina?) right now
+            # mark icons as being retina
+            icons.retStr = "@2x"
         else:
             fontScale = 1
         # adjust dpi to something reasonable
@@ -314,7 +430,9 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
                 if fontFile.suffix in ['.ttf', '.truetype']:
                     wx.Font.AddPrivateFont(str(fontFile))
             # Set fonts as those loaded
-            self._codeFont = wx.Font(wx.FontInfo(self._mainFont.GetPointSize()).FaceName("JetBrains Mono"))
+            self._codeFont = wx.Font(
+                wx.FontInfo(self._mainFont.GetPointSize()).FaceName(
+                    "JetBrains Mono"))
         else:
             # Get system defaults if can't load fonts
             try:
@@ -332,7 +450,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
 
         # that gets most of the properties of _codeFont but the FaceName
         # FaceName is set in the setting of the theme:
-        self.theme = self.prefs.app['theme']
+        self.theme = prefs.app['theme']
 
         # removed Aug 2017: on newer versions of wx (at least on mac)
         # this looks too big
@@ -447,7 +565,42 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         if not self.prefs.app['debugMode']:
             logging.console.setLevel(logging.INFO)
 
+        # if the program gets here, there are no other instances running
+        self._timer = wx.PyTimer(self._bgCheckAndLoad)
+        self._timer.Start(250)
+
         return True
+
+    def _bgCheckAndLoad(self):
+        """Check shared memory for messages from other instances. This only is
+        called periodically in the first and only instance of PsychoPy.
+
+        """
+        if not self._appLoaded:  # only open files if we have a UI
+            return
+
+        self._timer.Stop()
+
+        self._sharedMemory.seek(0)
+        if self._sharedMemory.read(1) == b'+':  # available data
+            data = self._sharedMemory.read(self.mmap_sz - 1)
+            self._sharedMemory.seek(0)
+            self._sharedMemory.write(b"*")
+            self._sharedMemory.flush()
+
+            # decode file path from data
+            filePaths = pickle.loads(data)
+            for fileName in filePaths:
+                self.MacOpenFile(fileName)
+
+            # force display of running app
+            topWindow = wx.GetApp().GetTopWindow()
+            if topWindow.IsIconized():
+                topWindow.Iconize(False)
+            else:
+                topWindow.Raise()
+
+        self._timer.Start(1000)  # 1 second interval
 
     @property
     def appLoaded(self):
@@ -917,26 +1070,29 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         idle.doIdleTasks(app=self)
         evt.Skip()
 
-    def onThemeChange(self, event):
-        """Handles a theme change event (from a window with a themesMenu)"""
-        win = event.EventObject.Window
-        newTheme = win.themesMenu.FindItemById(event.GetId()).ItemLabel
-        prefs.app['theme'] = newTheme
-        prefs.saveUserPrefs()
-        self.theme = newTheme
-
     @property
     def theme(self):
         """The theme to be used through the application"""
-        return prefs.app['theme']
+        return themes.theme
 
     @theme.setter
     def theme(self, value):
         """The theme to be used through the application"""
-        themes.ThemeMixin.loadThemeSpec(self, themeName=value)
+        # Make sure we just have a name
+        if isinstance(value, themes.Theme):
+            value = value.code
+        # Store new theme
         prefs.app['theme'] = value
-        self._currentThemeSpec = themes.ThemeMixin.spec
-        codeFont = themes.ThemeMixin.codeColors['base']['font']
+        prefs.saveUserPrefs()
+        # Reset icon cache
+        icons.iconCache.clear()
+        # Set theme at module level
+        themes.theme.set(value)
+        # Apply to frames
+        for frameRef in self._allFrames:
+            frame = frameRef()
+            if isinstance(frame, handlers.ThemeMixin):
+                frame.theme = themes.theme
 
         # On OSX 10.15 Catalina at least calling SetFaceName with 'AppleSystemUIFont' fails.
         # So this fix checks to see if changing the font name invalidates the font.
@@ -945,20 +1101,9 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # with the wx.Font() call. Otherwise you just get reference to the font that gets borked by SetFaceName()
         # -Justin Ales
         beforesetface = wx.Font(self._codeFont)
-        success = self._codeFont.SetFaceName(codeFont)
+        success = self._codeFont.SetFaceName("JetBrains Mono")
         if not (success):
             self._codeFont = beforesetface
-        # Apply theme
-        self._applyAppTheme()
-
-    def _applyAppTheme(self):
-        """Overrides ThemeMixin for this class"""
-        self.iconCache.setTheme(themes.ThemeMixin)
-
-        for frameRef in self._allFrames:
-            frame = frameRef()
-            if hasattr(frame, '_applyAppTheme'):
-                frame._applyAppTheme()
 
 
 if __name__ == '__main__':

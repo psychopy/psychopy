@@ -320,7 +320,12 @@ class Flow(list):
             script.setIndentLevel(1, relative=True)
             code = ""
             for idx, resource in enumerate(resourceFiles):
-                temp = "{{'name': '{0}', 'path': '{1}{0}'}}".format(resource, resourceFolderStr)
+                if "https://" in resource:
+                    name = resource.split('/')[-1]
+                    fullPath = resource
+                    temp = f"{{'name': '{name}', 'path': '{fullPath}'}}"
+                else:
+                    temp = "{{'name': '{0}', 'path': '{1}{0}'}}".format(resource, resourceFolderStr)
                 code += temp
                 if idx != (len(resourceFiles)-1):
                     code += ",\n"  # Trailing comma

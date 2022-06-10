@@ -24,8 +24,7 @@ from wx.lib import platebtn
 import psychopy
 from psychopy import logging
 from . import pavlovia_ui
-from . import icons
-from .themes import ThemeMixin, IconCache
+from .themes import colors, handlers, icons
 from psychopy.localization import _translate
 from psychopy.tools.stringtools import prettyname
 from psychopy.tools.apptools import SortTerm
@@ -127,18 +126,18 @@ def getSystemFonts(encoding='system', fixedWidthOnly=False):
     return fontEnum.GetFacenames(encoding, fixedWidthOnly=fixedWidthOnly)
 
 
-class PsychopyToolbar(wx.ToolBar, ThemeMixin):
+class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
     """Toolbar for the Builder/Coder Frame"""
     def __init__(self, frame):
+        # Initialise superclass
         wx.ToolBar.__init__(self, frame)
+        # Store necessary refs
         self.frame = frame
         self.app = self.frame.app
-        self._needMakeTools = True
         # Configure toolbar appearance
         self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER)
-        # self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
-        # Set icon size (16 for win/linux small mode, 32 for everything else
-        self.iconSize = 32  # mac: 16 either doesn't work, or looks bad
+        # Set icon size
+        self.iconSize = 32
         self.SetToolBitmapSize((self.iconSize, self.iconSize))
         # OS-dependent tool-tips
         ctrlKey = 'Ctrl+'
@@ -148,162 +147,49 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
         self.keys = {k: self.frame.app.keys[k].replace('Ctrl+', ctrlKey)
                 for k in self.frame.app.keys}
         self.keys['none'] = ''
-        # self.makeTools()  # will be done when theme is applied
+
         self.buttons = {}
-        # Finished setup. Make it happen
+
+        self.makeTools()
 
     def makeTools(self):
-        frame = self.frame
-        # Create tools
-        cl = frame.__class__.__name__
-        pavButtons = pavlovia_ui.toolbar.PavloviaButtons(
-                frame, toolbar=self, tbSize=self.iconSize)
-        if frame.__class__.__name__ == 'BuilderFrame':
-            self.addPsychopyTool(
-                    name='filenew',
-                    label=_translate('New'),
-                    shortcut='new',
-                    tooltip=_translate("Create new experiment file"),
-                    func=self.frame.app.newBuilderFrame)  # New
-            self.addPsychopyTool(
-                    name='fileopen',
-                    label=_translate('Open'),
-                    shortcut='open',
-                    tooltip=_translate("Open an existing experiment file"),
-                    func=self.frame.fileOpen)  # Open
-            self.frame.bldrBtnSave = self.addPsychopyTool(
-                        name='filesave',
-                        label=_translate('Save'),
-                        shortcut='save',
-                        tooltip=_translate("Save current experiment file"),
-                        func=self.frame.fileSave)  # Save
-            self.addPsychopyTool(
-                    name='filesaveas',
-                    label=_translate('Save As...'),
-                    shortcut='saveAs',
-                    tooltip=_translate("Save current experiment file as..."),
-                    func=self.frame.fileSaveAs)  # SaveAs
-            self.frame.bldrBtnUndo = self.addPsychopyTool(
-                        name='undo',
-                        label=_translate('Undo'),
-                        shortcut='undo',
-                        tooltip=_translate("Undo last action"),
-                        func=self.frame.undo)  # Undo
-            self.frame.bldrBtnRedo = self.addPsychopyTool(
-                        name='redo',
-                        label=_translate('Redo'),
-                        shortcut='redo',
-                        tooltip=_translate("Redo last action"),
-                        func=self.frame.redo)  # Redo
-            self.AddSeparator()  # Separator
-            self.addPsychopyTool(
-                    name='monitors',
-                    label=_translate('Monitor Center'),
-                    shortcut='none',
-                    tooltip=_translate("Monitor settings and calibration"),
-                    func=self.frame.app.openMonitorCenter)  # Monitor Center
-            self.addPsychopyTool(
-                    name='cogwindow',
-                    label=_translate('Experiment Settings'),
-                    shortcut='none',
-                    tooltip=_translate("Edit experiment settings"),
-                    func=self.frame.setExperimentSettings)  # Settings
-            self.AddSeparator()
-            self.addPsychopyTool(
-                    name='compile_py',
-                    label=_translate('Compile Python Script'),
-                    shortcut='compileScript',
-                    tooltip=_translate("Compile to Python script"),
-                    func=self.frame.compileScript)  # Compile
-            self.addPsychopyTool(
-                    name='compile_js',
-                    label=_translate('Compile JS Script'),
-                    shortcut='compileScript',
-                    tooltip=_translate("Compile to JS script"),
-                    func=self.frame.fileExport)  # Compile
-            self.frame.bldrBtnRunner = self.addPsychopyTool(
-                    name='runner',
-                    label=_translate('Runner'),
-                    shortcut='runnerScript',
-                    tooltip=_translate("Send experiment to Runner"),
-                    func=self.frame.runFile)  # Run
-            self.frame.bldrBtnRun = self.addPsychopyTool(
-                    name='run',
-                    label=_translate('Run'),
-                    shortcut='runScript',
-                    tooltip=_translate("Run experiment"),
-                    func=self.frame.runFile)  # Run
-            self.AddSeparator()  # Separator
-            pavButtons.addPavloviaTools()
-        elif frame.__class__.__name__ == 'CoderFrame':
-            self.addPsychopyTool('filenew', _translate('New'), 'new',
-                                 _translate("Create new experiment file"),
-                                 self.frame.fileNew)  # New
-            self.addPsychopyTool('fileopen', _translate('Open'), 'open',
-                                 _translate("Open an existing experiment file"),
-                                 self.frame.fileOpen)  # Open
-            self.frame.cdrBtnSave = \
-                self.addPsychopyTool('filesave', _translate('Save'), 'save',
-                                     _translate("Save current experiment file"),
-                                     self.frame.fileSave)  # Save
-            self.addPsychopyTool('filesaveas', _translate('Save As...'), 'saveAs',
-                                 _translate("Save current experiment file as..."),
-                                 self.frame.fileSaveAs)  # SaveAs
-            self.frame.cdrBtnUndo = \
-                self.addPsychopyTool('undo', _translate('Undo'), 'undo',
-                                     _translate("Undo last action"),
-                                     self.frame.undo)  # Undo
-            self.frame.cdrBtnRedo = \
-                self.addPsychopyTool('redo', _translate('Redo'), 'redo',
-                                     _translate("Redo last action"),
-                                     self.frame.redo)  # Redo
-            self.AddSeparator()  # Separator
-            self.addPsychopyTool('monitors', _translate('Monitor Center'), 'none',
-                                 _translate("Monitor settings and calibration"),
-                                 self.frame.app.openMonitorCenter)
-            self.addPsychopyTool('color', _translate('Color Picker'), 'none',
-                                 _translate("Color Picker -> clipboard"),
-                                 self.frame.app.colorPicker)
-            self.AddSeparator()
-            self.frame.cdrBtnRunner = self.addPsychopyTool(
-                    'runner', _translate('Runner'), 'runnerScript',
-                    _translate("Send experiment to Runner"),
-                    self.frame.runFile)
-            self.frame.cdrBtnRun = self.addPsychopyTool(
-                    'run', _translate('Run'), 'runScript',
-                    _translate("Run experiment"),
-                    self.frame.runFile)
-            self.AddSeparator()
-            pavButtons.addPavloviaTools(
-                buttons=['pavloviaSync', 'pavloviaSearch', 'pavloviaUser'])
-        frame.btnHandles.update(pavButtons.btnHandles)
-        self.Realize()
-        # Disable compile buttons until an experiment is present
-        if 'compile_py' in self.buttons:
-            self.EnableTool(self.buttons['compile_py'].GetId(), Path(self.frame.filename).is_file())
-        if 'compile_js' in self.buttons:
-            self.EnableTool(self.buttons['compile_js'].GetId(), Path(self.frame.filename).is_file())
+        """
+        Make tools
+        """
+        pass
 
-    def addPsychopyTool(self, name, label, shortcut, tooltip, func,
-                        emblem=None):
-        if not name.endswith('.png'):
-            filename = name + '.png'
+    def makeTool(self, name, label="", shortcut=None, tooltip="", func=None):
+        # Get icon
+        icn = icons.ButtonIcon(name, size=self.iconSize)
+        # Make button
+        if 'phoenix' in wx.PlatformInfo:
+            btn = self.AddTool(
+                wx.ID_ANY, label=label,
+                bitmap=icn.bitmap, shortHelp=tooltip,
+                kind=wx.ITEM_NORMAL
+            )
         else:
-            filename = name
-        self.buttons[name] = self.app.iconCache.makeBitmapButton(parent=self, filename=filename,
-                                                   name=label,
-                                                   label=("%s [%s]" % (
-                                                       label,
-                                                       self.keys[shortcut])),
-                                                   emblem=emblem, toolbar=self,
-                                                   tip=tooltip,
-                                                   size=self.iconSize)
-        # Bind function
-        self.Bind(wx.EVT_TOOL, func, self.buttons[name])
-        return self.buttons[name]
+            btn = self.AddSimpleTool(
+                wx.ID_ANY, label=label,
+                bitmap=icn.bitmap, shortHelp=tooltip,
+                kind=wx.ITEM_NORMAL
+            )
+        # Bind tool to function
+        if func is None:
+            func = self.none
+        self.Bind(wx.EVT_TOOL, func, btn)
+
+        return btn
+
+    @staticmethod
+    def none():
+        """
+        Blank function to use when bound function is None
+        """
+        pass
 
 
-class PsychopyPlateBtn(platebtn.PlateButton, ThemeMixin):
+class PsychopyPlateBtn(platebtn.PlateButton, handlers.ThemeMixin):
     def __init__(self, parent, id=wx.ID_ANY, label='', bmp=None,
                  pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=1, name=wx.ButtonNameStr):
@@ -313,21 +199,19 @@ class PsychopyPlateBtn(platebtn.PlateButton, ThemeMixin):
         self._applyAppTheme()
 
     def _applyAppTheme(self):
-        cs = ThemeMixin.appColors
         self.__InitColors()
         self.SetBackgroundColour(wx.Colour(self.parent.GetBackgroundColour()))
-        self.SetPressColor(cs['txtbutton_bg_hover'])
-        self.SetLabelColor(cs['text'],
-                           cs['txtbutton_fg_hover'])
+        self.SetPressColor(colors.app['txtbutton_bg_hover'])
+        self.SetLabelColor(colors.app['text'],
+                           colors.app['txtbutton_fg_hover'])
 
     def __InitColors(self):
-        cs = ThemeMixin.appColors
         """Initialize the default colors"""
-        colors = dict(default=True,
-                      hlight=cs['txtbutton_bg_hover'],
-                      press=cs['txtbutton_bg_hover'],
-                      htxt=cs['text'])
-        return colors
+        cols = dict(default=True,
+                      hlight=colors.app['txtbutton_bg_hover'],
+                      press=colors.app['txtbutton_bg_hover'],
+                      htxt=colors.app['text'])
+        return cols
 
 
 class ButtonArray(wx.Window):
@@ -618,7 +502,7 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
     def __init__(self, parent, bitmap, size=(128, 128)):
         wx.lib.statbmp.GenStaticBitmap.__init__(self, parent, ID=wx.ID_ANY, bitmap=wx.Bitmap(), size=size)
         self.parent = parent
-        self.iconCache = IconCache()
+        self.iconCache = icons.iconCache
         # Set bitmap
         self.SetBitmap(bitmap)
         # Setup sizer
@@ -650,7 +534,7 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
             bitmap = wx.Bitmap(bitmap)
         # Sub in blank bitmaps
         if not bitmap.IsOk():
-            bitmap = self.iconCache.getBitmap(name="user_none", size=128)
+            bitmap = icons.ButtonIcon(stem="user_none", size=128).bitmap
         # Store full size bitmap
         self._fullBitmap = bitmap
         # Resize bitmap
@@ -743,7 +627,7 @@ class FileCtrl(wx.TextCtrl):
         # Add button
         self.fileBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
         self.fileBtn.SetBackgroundColour(self.GetBackgroundColour())
-        self.fileBtn.SetBitmap(IconCache().getBitmap(name="folder", size=16))
+        self.fileBtn.SetBitmap(icons.ButtonIcon(stem="folder", size=16).bitmap)
         self.sizer.Add(self.fileBtn, border=4, flag=wx.ALL)
         # Bind browse function
         self.fileBtn.Bind(wx.EVT_BUTTON, self.browse)
@@ -981,12 +865,14 @@ class HoverMixin:
             self.SetBackgroundColour(self.BackgroundColourNoHover)
             # and mark as unhovered
             self.IsHovered = False
+        # Refresh
+        self.Refresh()
 
     @property
     def ForegroundColourNoHover(self):
         if hasattr(self, "_ForegroundColourNoHover"):
             return self._ForegroundColourNoHover
-        return ThemeMixin.appColors['text']
+        return colors.app['text']
 
     @ForegroundColourNoHover.setter
     def ForegroundColourNoHover(self, value):
@@ -996,7 +882,7 @@ class HoverMixin:
     def BackgroundColourNoHover(self):
         if hasattr(self, "_BackgroundColourNoHover"):
             return self._BackgroundColourNoHover
-        return ThemeMixin.appColors['frame_bg']
+        return colors.app['frame_bg']
 
     @BackgroundColourNoHover.setter
     def BackgroundColourNoHover(self, value):
@@ -1006,7 +892,7 @@ class HoverMixin:
     def ForegroundColourHover(self):
         if hasattr(self, "_ForegroundColourHover"):
             return self._ForegroundColourHover
-        return ThemeMixin.appColors['txtbutton_fg_hover']
+        return colors.app['txtbutton_fg_hover']
 
     @ForegroundColourHover.setter
     def ForegroundColourHover(self, value):
@@ -1016,7 +902,7 @@ class HoverMixin:
     def BackgroundColourHover(self):
         if hasattr(self, "_BackgroundColourHover"):
             return self._BackgroundColourHover
-        return ThemeMixin.appColors['txtbutton_bg_hover']
+        return colors.app['txtbutton_bg_hover']
 
     @BackgroundColourHover.setter
     def BackgroundColourHover(self, value):
@@ -1031,13 +917,13 @@ class ToggleButton(wx.ToggleButton, HoverMixin):
     def BackgroundColourNoHover(self):
         if self.GetValue():
             # Return a darker color if selected
-            return ThemeMixin.appColors['docker_bg']
+            return colors.app['docker_bg']
         else:
             # Return the default color otherwise
             return HoverMixin.BackgroundColourNoHover.fget(self)
 
 
-class ToggleButtonArray(wx.Window, ThemeMixin):
+class ToggleButtonArray(wx.Window, handlers.ThemeMixin):
 
     def __init__(self, parent, labels=None, values=None, multi=False, ori=wx.HORIZONTAL):
         wx.Window.__init__(self, parent)
@@ -1101,7 +987,7 @@ class ToggleButtonArray(wx.Window, ThemeMixin):
 
     def _applyAppTheme(self, target=None):
         # Set panel background
-        self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+        self.SetBackgroundColour(colors.app['panel_bg'])
         # Use OnHover event to set buttons to their default colors
         for btn in self.buttons.values():
             btn.OnHover()

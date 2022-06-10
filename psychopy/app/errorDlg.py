@@ -7,7 +7,7 @@
 
 """Error dialog for showing unhandled exceptions that occur within the PsychoPy
 app."""
-
+from requests.exceptions import ConnectionError, ReadTimeout
 import wx
 import traceback
 import psychopy.preferences
@@ -207,6 +207,18 @@ def exceptionCallback(exc_type: object, exc_value: object, exc_traceback: object
     exceptions will result in a dialog being displayed.
 
     """
+    # Catch connection errors
+    if exc_type in (ConnectionError, ReadTimeout):
+        dlg = wx.MessageDialog(parent=None, caption=_translate("Connection Error"), message=_translate(
+            "Could not connect to Pavlovia server. \n"
+            "\n"
+            "Please check that you are connected to the internet. If you are connected, then the Pavlovia servers may be down. You can check their status here: \n"
+            "\n"
+            "https://pavlovia.org/status"
+        ), style=wx.ICON_ERROR)
+        dlg.ShowModal()
+        return
+
     if psychopy.preferences.prefs.app['errorDialog'] is False:
         # have the error go out to stdout if dialogs are disabled
         traceback.print_exception(

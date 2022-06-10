@@ -26,6 +26,7 @@ import wx
 from wx.lib import scrolledpanel as scrlpanel
 
 from .. import utils
+from ..themes import icons
 from ...projects.pavlovia import PavloviaProject
 
 try:
@@ -189,12 +190,12 @@ class ProjectEditor(wx.Dialog):
 class DetailsPanel(wx.Panel):
 
     class StarBtn(wx.Button):
-        def __init__(self, parent, iconCache, value=False):
+        def __init__(self, parent, value=False):
             wx.Button.__init__(self, parent, label=_translate("Star"))
             # Setup icons
             self.icons = {
-                True: iconCache.getBitmap(name="starred", size=16),
-                False: iconCache.getBitmap(name="unstarred", size=16),
+                True: icons.ButtonIcon(stem="starred", size=16).bitmap,
+                False: icons.ButtonIcon(stem="unstarred", size=16).bitmap,
             }
             self.SetBitmapDisabled(self.icons[False])  # Always appear empty when disabled
             # Set start value
@@ -224,7 +225,7 @@ class DetailsPanel(wx.Panel):
                           size=size,
                           style=style)
         self.SetBackgroundColour("white")
-        iconCache = parent.app.iconCache
+        self.parent = parent
         # Setup sizer
         self.contentBox = wx.BoxSizer()
         self.SetSizer(self.contentBox)
@@ -276,7 +277,7 @@ class DetailsPanel(wx.Panel):
         # Star button
         self.starLbl = wx.StaticText(self, label="-")
         self.btnSizer.Add(self.starLbl, border=6, flag=wx.LEFT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
-        self.starBtn = self.StarBtn(self, iconCache=iconCache)
+        self.starBtn = self.StarBtn(self)
         self.starBtn.Bind(wx.EVT_BUTTON, self.star)
         self.btnSizer.Add(self.starBtn, border=6, flag=wx.ALL | wx.EXPAND)
         self.starBtn.SetToolTip(_translate(
@@ -287,7 +288,7 @@ class DetailsPanel(wx.Panel):
         self.forkLbl = wx.StaticText(self, label="-")
         self.btnSizer.Add(self.forkLbl, border=6, flag=wx.LEFT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
         self.forkBtn = wx.Button(self, label=_translate("Fork"))
-        self.forkBtn.SetBitmap(iconCache.getBitmap(name="fork", size=16))
+        self.forkBtn.SetBitmap(icons.ButtonIcon(stem="fork", size=16).bitmap)
         self.forkBtn.Bind(wx.EVT_BUTTON, self.fork)
         self.btnSizer.Add(self.forkBtn, border=6, flag=wx.ALL | wx.EXPAND)
         self.forkBtn.SetToolTip(_translate(
@@ -296,7 +297,7 @@ class DetailsPanel(wx.Panel):
         ))
         # Create button
         self.createBtn = wx.Button(self, label=_translate("Create"))
-        self.createBtn.SetBitmap(iconCache.getBitmap(name="plus", size=16))
+        self.createBtn.SetBitmap(icons.ButtonIcon(stem="plus", size=16).bitmap)
         self.createBtn.Bind(wx.EVT_BUTTON, self.create)
         self.btnSizer.Add(self.createBtn, border=6, flag=wx.RIGHT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
         self.createBtn.SetToolTip(_translate(
@@ -304,7 +305,7 @@ class DetailsPanel(wx.Panel):
         ))
         # Sync button
         self.syncBtn = wx.Button(self, label=_translate("Sync"))
-        self.syncBtn.SetBitmap(iconCache.getBitmap(name="view-refresh", size=16))
+        self.syncBtn.SetBitmap(icons.ButtonIcon(stem="view-refresh", size=16).bitmap)
         self.syncBtn.Bind(wx.EVT_BUTTON, self.sync)
         self.btnSizer.Add(self.syncBtn, border=6, flag=wx.ALL | wx.EXPAND)
         self.syncBtn.SetToolTip(_translate(
@@ -313,7 +314,7 @@ class DetailsPanel(wx.Panel):
         ))
         # Get button
         self.downloadBtn = wx.Button(self, label=_translate("Download"))
-        self.downloadBtn.SetBitmap(iconCache.getBitmap(name="download", size=16))
+        self.downloadBtn.SetBitmap(icons.ButtonIcon(stem="download", size=16).bitmap)
         self.downloadBtn.Bind(wx.EVT_BUTTON, self.sync)
         self.btnSizer.Add(self.downloadBtn, border=6, flag=wx.ALL | wx.EXPAND)
         self.downloadBtn.SetToolTip(_translate(
@@ -551,10 +552,13 @@ class DetailsPanel(wx.Panel):
         # Enable ctrl now that there is a local root
         self.localRoot.Enable()
         self.localRootLabel.Enable()
-        # Show sync dlg (does sync)
-        dlg = sync.SyncDialog(self, self.project)
-        dlg.sync()
-        functions.showCommitDialog(self, self.project, initMsg="", infoStream=dlg.status)
+        # Get filename if available
+        if hasattr(self.GetTopLevelParent(), "filename"):
+            file = self.parent.filename
+        else:
+            file = ""
+        # Do sync
+        syncProject(self, self.project, file=file)
         # Update project
         self.project.refresh()
         # Update last sync date & show
@@ -691,6 +695,23 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
         0 for fail
         -1 for cancel at some point in the process
     """
+    # Error catch logged out
+    session = pavlovia.getCurrentSession()
+    if not session or not session.user:
+        # If not logged in, prompt to login
+        dlg = wx.MessageDialog(None, message=_translate(
+            "You are not logged in to Pavlovia. Please log in to sync project."
+        ), style=wx.ICON_AUTH_NEEDED | wx.OK | wx.CANCEL)
+        dlg.SetOKLabel(_translate("Login..."))
+        if dlg.ShowModal() == wx.ID_OK:
+            # If they click Login, open login screen
+            user = functions.logInPavlovia(None)
+            # If they cancelled out of login screen, cancel sync
+            if not user:
+                return
+        else:
+            # If they cancel out of login prompt, cancel sync
+            return
     # If not in a project, make one
     if project is None:
         msgDlg = wx.MessageDialog(parent,
@@ -716,20 +737,31 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
                 return
         else:
             return
-    # If no local root, prompt to make one
-    if not project.localRoot:
+    # If no local root or dead local root, prompt to make one
+    if not project.localRoot or not Path(project.localRoot).is_dir():
         defaultRoot = Path(file).parent
+        if not project.localRoot:
+            # If there is no local root at all, prompt user to make one
+            msg = _translate("Project root folder is not yet specified, specify project root now?")
+        elif not Path(project.localRoot).is_dir():
+            # If there is a local root but the folder is gone, prompt user to change it
+            msg = _translate("Project root folder does not exist, change project root now?")
         # Ask user if they want to
-        dlg = wx.MessageDialog(parent, message=_translate("Project root folder is not yet specified, specify one now?"), style=wx.YES_NO)
-        # Open folder picker
-        if dlg.ShowModal() == wx.ID_YES:
-            dlg = wx.DirDialog(parent, message=_translate("Specify folder..."), defaultPath=str(defaultRoot))
-            if dlg.ShowModal() == wx.ID_OK:
-                localRoot = Path(dlg.GetPath())
-                project.localRoot = str(localRoot)
+        dlg = wx.MessageDialog(parent, message=msg, style=wx.OK | wx.CANCEL)
+        # Get response
+        if dlg.ShowModal() == wx.ID_OK:
+            # Attempt to get folder of current file
+            if file and defaultRoot.is_dir():
+                # If we have a reference to the current folder, use it
+                project.localRoot = defaultRoot
             else:
-                # If cancelled, cancel sync
-                return
+                # Otherwise, ask designer to specify manually
+                dlg = wx.DirDialog(parent, message=_translate("Specify folder..."), defaultPath=str(defaultRoot))
+                if dlg.ShowModal() == wx.ID_OK:
+                    project.localRoot = str(dlg.GetPath())
+                else:
+                    # If cancelled, cancel sync
+                    return
         else:
             # If they don't want to specify, cancel sync
             return
@@ -737,8 +769,19 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
     parent.project = project
     # If there is (now) a project, do sync
     if project is not None:
+        # Show sync dlg
         dlg = sync.SyncDialog(parent, project)
-        functions.showCommitDialog(parent, project, initMsg="", infoStream=dlg.status)
+        # Commit changes
+        committed = functions.showCommitDialog(parent, project, initMsg="", infoStream=dlg.status)
+        # Cancel sync if commit cancelled
+        if committed == -1:
+            dlg.status.write(_translate(
+                "\n"
+                "Sync cancelled by user."
+            ))
+            dlg.OKbtn.Enable(True)
+            return
+        # Do sync
         dlg.sync()
 
 

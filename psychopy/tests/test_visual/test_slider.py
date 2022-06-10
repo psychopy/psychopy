@@ -4,6 +4,7 @@ from pathlib import Path
 
 from psychopy.tests import utils
 from psychopy.tests.test_visual.test_basevisual import _TestColorMixin
+from psychopy.tests.test_experiment.test_component_compile_python import _TestBoilerplateMixin
 from psychopy.visual.window import Window
 from psychopy.visual.slider import Slider
 from psychopy.visual.elementarray import ElementArrayStim
@@ -14,7 +15,7 @@ from numpy import array_equal
 import random
 
 
-class Test_Slider(_TestColorMixin):
+class Test_Slider(_TestColorMixin, _TestBoilerplateMixin):
     def setup_class(self):
         self.win = Window([128,128], pos=[50,50], monitor="testMonitor", allowGUI=False,
                           autoLog=False)

@@ -7,9 +7,9 @@
 import glob
 import json
 import errno
-from psychopy.app.themes._themes import ThemeSwitcher
 
-from ..themes import ThemeMixin, IconCache
+from ..themes import handlers, colors, icons
+from ..themes.ui import ThemeSwitcher
 
 import wx
 from wx.lib import platebtn
@@ -24,7 +24,7 @@ from pathlib import Path
 from subprocess import Popen, PIPE
 
 from psychopy import experiment
-from psychopy.app.utils import PsychopyPlateBtn, PsychopyToolbar, FrameSwitcher, FileDropTarget
+from psychopy.app.utils import PsychopyPlateBtn, BasePsychopyToolbar, FrameSwitcher, FileDropTarget
 from psychopy.localization import _translate
 from psychopy.app.stdOutRich import StdOutRich
 from psychopy.projects.pavlovia import getProject
@@ -36,7 +36,7 @@ folderColumn = 1
 filenameColumn = 0
 
 
-class RunnerFrame(wx.Frame, ThemeMixin):
+class RunnerFrame(wx.Frame, handlers.ThemeMixin):
     """Construct the Psychopy Runner Frame."""
 
     def __init__(self, parent=None, id=wx.ID_ANY, title='', app=None):
@@ -86,6 +86,7 @@ class RunnerFrame(wx.Frame, ThemeMixin):
             if os.path.exists(filePath):
                 self.addTask(fileName=filePath)
         self.Bind(wx.EVT_CLOSE, self.onClose)
+
         self.theme = app.theme
 
     @property
@@ -196,7 +197,7 @@ class RunnerFrame(wx.Frame, ThemeMixin):
                 if item['label'].lower() in eachMenu['separators']:
                     eachMenu['menu'].AppendSeparator()
         # Add Theme Switcher
-        self.themesMenu = ThemeSwitcher(self)
+        self.themesMenu = ThemeSwitcher(app=self.app)
         viewMenu.AppendSubMenu(self.themesMenu,
                            _translate("Themes"))
         # Add frame switcher
@@ -439,9 +440,9 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         return temp
 
 
-class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
+class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
-    class SizerButton(wx.ToggleButton):
+    class SizerButton(wx.ToggleButton, handlers.ThemeMixin):
         """Button to show/hide a category of components"""
 
         def __init__(self, parent, label, sizer):
@@ -489,14 +490,96 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
             """Apply app theme to this button"""
             if self.hover:
                 # If hovered over currently, use hover colours
-                self.SetForegroundColour(ThemeMixin.appColors['txtbutton_fg_hover'])
+                self.SetForegroundColour(colors.app['txtbutton_fg_hover'])
                 # self.icon.SetForegroundColour(ThemeMixin.appColors['txtbutton_fg_hover'])
-                self.SetBackgroundColour(ThemeMixin.appColors['txtbutton_bg_hover'])
+                self.SetBackgroundColour(colors.app['txtbutton_bg_hover'])
             else:
                 # Otherwise, use regular colours
-                self.SetForegroundColour(ThemeMixin.appColors['text'])
+                self.SetForegroundColour(colors.app['text'])
                 # self.icon.SetForegroundColour(ThemeMixin.appColors['text'])
-                self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+                self.SetBackgroundColour(colors.app['panel_bg'])
+
+    class RunnerToolbar(wx.Panel, handlers.ThemeMixin):
+        def __init__(self, parent):
+            wx.Panel.__init__(self, parent)
+            # Setup sizer
+            self.sizer = wx.BoxSizer(wx.VERTICAL)
+            self.SetSizer(self.sizer)
+
+            # Plus
+            btn = parent.plusBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
+            btn.SetToolTip(
+                _translate("Add experiment to list")
+            )
+            btn.Bind(wx.EVT_BUTTON, parent.addTask)
+            btn.stem = "addExp"
+            self.sizer.Add(btn, border=5, flag=wx.ALL)
+            # Minus
+            btn = parent.negBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
+            btn.SetToolTip(
+                _translate("Remove experiment from list")
+            )
+            btn.Bind(wx.EVT_BUTTON, parent.removeTask)
+            btn.stem = "removeExp"
+            self.sizer.Add(btn, border=5, flag=wx.ALL)
+            # Save
+            btn = parent.saveBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
+            btn.SetToolTip(
+                _translate("Save task list to a file")
+            )
+            btn.Bind(wx.EVT_BUTTON, parent.parent.saveTaskList)
+            btn.stem = "filesaveas"
+            self.sizer.Add(btn, border=5, flag=wx.ALL)
+            # Load
+            btn = parent.loadBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
+            btn.SetToolTip(
+                _translate("Load tasks from a file")
+            )
+            btn.Bind(wx.EVT_BUTTON, parent.parent.loadTaskList)
+            btn.stem = "fileopen"
+            self.sizer.Add(btn, border=5, flag=wx.ALL)
+            # Run
+            btn = parent.runBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
+            btn.SetToolTip(
+                _translate("Run the current script in Python")
+            )
+            btn.Bind(wx.EVT_BUTTON, parent.runLocal)
+            btn.stem = "run"
+            self.sizer.Add(btn, border=5, flag=wx.ALL)
+            # Stop
+            btn = parent.stopBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
+            btn.SetToolTip(
+                _translate("Stop task")
+            )
+            btn.Bind(wx.EVT_BUTTON, parent.stopTask)
+            btn.stem = "stop"
+            self.sizer.Add(btn, border=5, flag=wx.ALL)
+            # Run online
+            btn = parent.onlineBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
+            btn.SetToolTip(
+                _translate("Run PsychoJS task from Pavlovia")
+            )
+            btn.Bind(wx.EVT_BUTTON, parent.runOnline)
+            btn.stem = "globe_run"
+            self.sizer.Add(btn, border=5, flag=wx.ALL)
+            # Debug online
+            btn = parent.onlineDebugBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
+            btn.SetToolTip(
+                _translate("Run PsychoJS task in local debug mode")
+            )
+            btn.Bind(wx.EVT_BUTTON, parent.runOnlineDebug)
+            btn.stem = "globe_bug"
+            self.sizer.Add(btn, border=5, flag=wx.ALL)
+
+        def _applyAppTheme(self):
+            # Iterate through buttons
+            for child in self.GetChildren():
+                child.SetBackgroundColour(colors.app['panel_bg'])
+                if isinstance(child, wx.Button) and hasattr(child, "stem"):
+                    # For each button, recreate bitmap from stored stem
+                    child.SetBitmap(
+                        icons.ButtonIcon(child.stem, size=(32, 32)).bitmap
+                    )
 
     def __init__(self, parent=None, id=wx.ID_ANY, title='', app=None):
         super(RunnerPanel, self).__init__(parent=parent,
@@ -573,110 +656,29 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.mainSizer.Add(self.stdoutToggleBtn, 0, wx.TOP | wx.EXPAND, 10)
         self.mainSizer.Add(self.stdoutCtrl, 1, wx.EXPAND | wx.ALL, 10)
 
-        self.buttonSizer = wx.BoxSizer(wx.VERTICAL)
-        self.upperSizer.Add(self.buttonSizer, 0, wx.ALL | wx.EXPAND, 5)
-        self.makeButtons()
-        self._applyAppTheme()
+        # Make buttons
+        self.toolbar = self.RunnerToolbar(self)
+        self.upperSizer.Add(self.toolbar, 0, wx.ALL | wx.EXPAND, 15)
 
-    def _applyAppTheme(self, target=None):
-        if target is None:
-            target = self
-        ThemeMixin._applyAppTheme(self, self)
-        self.alertsCtrl._applyAppTheme()
-        self.stdoutCtrl._applyAppTheme()
-        ThemeMixin._applyAppTheme(self.expCtrl)
-        for btn in self.buttonSizer.GetChildren():
-            if btn.Window:
-                btn = btn.Window
-                btn.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
-        # Add icons to buttons
-        bmp = IconCache.getBitmap(IconCache(), "stdout.png")
-        self.stdoutToggleBtn.SetBitmap(bmp)
-        self.stdoutToggleBtn.SetBitmapMargins(x=6, y=0)
-        bmp = IconCache.getBitmap(IconCache(), "alerts.png")
-        self.alertsToggleBtn.SetBitmap(bmp)
-        self.alertsToggleBtn.SetBitmapMargins(x=6, y=0)
-
-    def makeButtons(self):
-        # Set buttons
-        icons = self.app.iconCache
-        self.plusBtn = icons.makeBitmapButton(
-                parent=self,
-                filename='addExp.png',
-                name='addExp',
-                tip=_translate(
-                        "Add experiment to list"),
-                size=32)
-        self.Bind(wx.EVT_BUTTON, self.addTask, self.plusBtn)
-        self.negBtn = icons.makeBitmapButton(
-                parent=self,
-                filename='removeExp.png',
-                name='removeExp',
-                tip=_translate(
-                        "Remove experiment from list"),
-                size=32)
-        self.Bind(wx.EVT_BUTTON, self.removeTask, self.negBtn)
-        self.saveBtn = icons.makeBitmapButton(
-            parent=self,
-            filename='filesaveas.png',
-            name='saveTasks',
-            tip=_translate(
-                "Save task list to a file"),
-            size=32)
-        self.Bind(wx.EVT_BUTTON, self.parent.saveTaskList, self.saveBtn)
-        self.loadBtn = icons.makeBitmapButton(
-            parent=self,
-            filename='fileopen.png',
-            name='loadTasks',
-            tip=_translate(
-                "Load tasks from a file"),
-            size=32)
-        self.Bind(wx.EVT_BUTTON, self.parent.loadTaskList, self.loadBtn)
-        self.runBtn = icons.makeBitmapButton(
-                parent=self, filename='run.png',
-                name='run',
-                tip=_translate(
-                        "Run the current script in Python"),
-                size=32)
-        self.Bind(wx.EVT_BUTTON, self.runLocal, self.runBtn)
-        self.stopBtn = icons.makeBitmapButton(
-                parent=self, filename='stop.png',
-                name='stop',
-                tip=_translate("Stop task"),
-                size=32)
-        self.Bind(wx.EVT_BUTTON, self.stopTask, self.stopBtn)
-        self.onlineBtn = icons.makeBitmapButton(
-                parent=self,
-                filename='globe.png',
-                emblem='run', tip=_translate(
-                        "Run PsychoJS task from Pavlovia"), size=32)
-        self.Bind(wx.EVT_BUTTON, self.runOnline, self.onlineBtn)
-        self.onlineDebugBtn = icons.makeBitmapButton(
-                parent=self,
-                filename='globe.png',
-                name='globe',
-                emblem='bug',
-                tip=_translate(
-                        "Run PsychoJS task in local debug mode"),
-                size=32)
-        self.Bind(wx.EVT_BUTTON, self.runOnlineDebug, self.onlineDebugBtn)
-        # Add buttons to sizer
-        self.buttonSizer.AddMany([(self.plusBtn, 0, wx.ALL | wx.ALIGN_TOP, 5),
-                                      (self.negBtn, 0, wx.ALL | wx.ALIGN_TOP, 5),
-                                      (self.saveBtn, 0, wx.ALL, 5),
-                                      (self.loadBtn, 0, wx.ALL, 5),
-                                      (self.runBtn, 0, wx.ALL, 5),
-                                      (self.stopBtn, 0, wx.ALL, 5),
-                                      (self.onlineBtn, 0, wx.ALL, 5),
-                                      (self.onlineDebugBtn, 0, wx.ALL, 5),
-                                      ])
-        self.stopBtn.Disable()
         self.SetSizerAndFit(self.mainSizer)
         self.SetMinSize(self.Size)
 
-    # def onProcessEnded(self):
-    #     ScriptProcess.onProcessEnded(self)
-    #     self.stopTask()
+        self.theme = parent.theme
+
+    def _applyAppTheme(self):
+        # Srt own background
+        self.SetBackgroundColour(colors.app['panel_bg'])
+        # Theme buttons
+        self.toolbar.theme = self.theme
+        # Add icons to buttons
+        bmp = icons.ButtonIcon("stdout", size=(16, 16)).bitmap
+        self.stdoutToggleBtn.SetBitmap(bmp)
+        self.stdoutToggleBtn.SetBitmapMargins(x=6, y=0)
+        bmp = icons.ButtonIcon("alerts", size=(16, 16)).bitmap
+        self.alertsToggleBtn.SetBitmap(bmp)
+        self.alertsToggleBtn.SetBitmapMargins(x=6, y=0)
+
+        self.Refresh()
 
     def setAlertsVisible(self, new=True):
         if type(new) == bool:
@@ -712,7 +714,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         if self.currentSelection:
             self.runBtn.Enable()
 
-    def runLocal(self, evt, focusOnExit='runner'):
+    def runLocal(self, evt=None, focusOnExit='runner'):
         """Run experiment from new process using inherited ScriptProcess class methods."""
         if self.currentSelection is None:
             return
@@ -730,7 +732,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
             self.runBtn.Disable()
             self.stopBtn.Enable()
 
-    def runOnline(self, evt):
+    def runOnline(self, evt=None):
         """Run PsychoJS task from https://pavlovia.org."""
         if self.currentProject not in [None, "None", ''] and self.currentFile.suffix == '.psyexp':
             webbrowser.open(
@@ -961,16 +963,14 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
             self.app.coder.setCurrentDoc(filepath)
 
     def onHover(self, evt):
-        cs = ThemeMixin.appColors
         btn = evt.GetEventObject()
-        btn.SetBackgroundColour(cs['bmpbutton_bg_hover'])
-        btn.SetForegroundColour(cs['bmpbutton_fg_hover'])
+        btn.SetBackgroundColour(colors.app['bmpbutton_bg_hover'])
+        btn.SetForegroundColour(colors.app['bmpbutton_fg_hover'])
 
     def offHover(self, evt):
-        cs = ThemeMixin.appColors
         btn = evt.GetEventObject()
-        btn.SetBackgroundColour(cs['panel_bg'])
-        btn.SetForegroundColour(cs['text'])
+        btn.SetBackgroundColour(colors.app['panel_bg'])
+        btn.SetForegroundColour(colors.app['text'])
 
     @property
     def outputPath(self):
@@ -1030,7 +1030,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self._currentProject = None
 
 
-class StdOutText(StdOutRich, ThemeMixin):
+class StdOutText(StdOutRich, handlers.ThemeMixin):
     """StdOutRich subclass which also handles Git messages from Pavlovia projects."""
 
     def __init__(self, parent=None, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE, size=wx.DefaultSize):
