@@ -125,7 +125,8 @@ class SerialOutComponent(BaseComponent):
         # Open the port
         code = (
             "# Open serial port\n"
-            "%(name)s.open()\n"
+            "if not %(name)s.is_open:\n"
+            "    %(name)s.open()\n"
         )
         buff.writeIndented(code % self.params)
 
