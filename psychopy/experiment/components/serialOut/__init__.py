@@ -120,11 +120,8 @@ class SerialOutComponent(BaseComponent):
             "%(name)s.status = NOT_STARTED\n"
         )
         buff.writeIndented(code % inits)
-
-    def writeRoutineStartCode(self, buff):
         # Open the port
         code = (
-            "# Open serial port\n"
             "if not %(name)s.is_open:\n"
             "    %(name)s.open()\n"
         )
@@ -175,10 +172,10 @@ class SerialOutComponent(BaseComponent):
         # Dedent
         buff.setIndentLevel(-1, relative=True)
 
-    def writeRoutineEndCode(self, buff):
+    def writeExperimentEndCode(self, buff):
         # Close the port
         code = (
-            "# Close serial port\n"
+            "# Close %(name)s\n"
             "if %(name)s.is_open:\n"
             "    %(name)s.close()\n"
         )
