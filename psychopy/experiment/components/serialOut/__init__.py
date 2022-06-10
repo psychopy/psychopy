@@ -128,7 +128,7 @@ class SerialOutComponent(BaseComponent):
             "if not %(name)s.is_open:\n"
             "    %(name)s.open()\n"
         )
-        buff.writeIndented(code % self.params)
+        buff.writeIndentedLines(code % self.params)
 
     def writeFrameCode(self, buff):
         params = copy(self.params)
