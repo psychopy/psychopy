@@ -124,7 +124,7 @@ class SerialOutComponent(BaseComponent):
     def writeRoutineStartCode(self, buff):
         # Open the port
         code = (
-            "# Open serial port"
+            "# Open serial port\n"
             "%(name)s.open()\n"
         )
         buff.writeIndented(code % self.params)
