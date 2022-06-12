@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2021.2.3\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2022-06-09 21:03+0800\n"
+"PO-Revision-Date: 2022-06-12 15:50+0800\n"
 "Last-Translator: Shun Wang <shuonwang@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -3356,35 +3356,35 @@ msgstr "正在运行试验"
 
 #: ../app/runner/runner.py:158
 msgid "Run JS for local debug"
-msgstr ""
+msgstr "运行 JS 进行本地调试"
 
 #: ../app/runner/runner.py:159
 msgid "Launching local debug of online study"
-msgstr ""
+msgstr "启动在线学习本地调试"
 
 #: ../app/runner/runner.py:162
 msgid "Run JS on Pavlovia"
-msgstr ""
+msgstr "在 Pavlovia 上运行 JS"
 
 #: ../app/runner/runner.py:163
 msgid "Launching online study at Pavlovia"
-msgstr ""
+msgstr "在 Pavlovia 启动在线学习"
 
 #: ../app/runner/runner.py:169
 msgid "Builder Demos"
-msgstr ""
+msgstr "Builder 演示资源"
 
 #: ../app/runner/runner.py:170
 msgid "Loading builder demos"
-msgstr ""
+msgstr "正在加载 builder 演示资源"
 
 #: ../app/runner/runner.py:173
 msgid "Coder Demos"
-msgstr ""
+msgstr "Coder 演示资源"
 
 #: ../app/runner/runner.py:174
 msgid "Loading coder demos"
-msgstr ""
+msgstr "正在加载 coder 演示资源"
 
 #: ../app/runner/runner.py:200 ../app/runner/runner.py:509
 msgid "File"
@@ -3392,190 +3392,190 @@ msgstr "文件"
 
 #: ../app/runner/runner.py:201
 msgid "View"
-msgstr ""
+msgstr "视图"
 
 #: ../app/runner/runner.py:203
 msgid "Demos"
-msgstr ""
+msgstr "演示"
 
 #: ../app/runner/runner.py:237
 msgid "Save task list as ..."
-msgstr ""
+msgstr "任务列表另存为..."
 
 #: ../app/runner/runner.py:269
 msgid "Open task list ..."
-msgstr ""
+msgstr "打开任务列表..."
 
 #: ../app/runner/runner.py:510
 msgid "Path"
-msgstr ""
+msgstr "路径"
 
 #: ../app/runner/runner.py:519
 msgid "Alerts"
-msgstr ""
+msgstr "告警"
 
 #: ../app/runner/runner.py:527
 msgid "Stdout"
-msgstr ""
+msgstr "标准输出"
 
 #: ../app/runner/runner.py:573
 msgid "Add experiment to list"
-msgstr ""
+msgstr "将实验添加到列表"
 
 #: ../app/runner/runner.py:581
 msgid "Remove experiment from list"
-msgstr ""
+msgstr "从列表中删除实验"
 
 #: ../app/runner/runner.py:589
 msgid "Save task list to a file"
-msgstr ""
+msgstr "将任务列表保存到文件"
 
 #: ../app/runner/runner.py:597
 msgid "Load tasks from a file"
-msgstr ""
+msgstr "从文件加载任务"
 
 #: ../app/runner/runner.py:604
 msgid "Run the current script in Python"
-msgstr ""
+msgstr "在 Python 中运行当前脚本"
 
 #: ../app/runner/runner.py:611
 msgid "Stop task"
-msgstr ""
+msgstr "停止任务"
 
 #: ../app/runner/runner.py:617
 msgid "Run PsychoJS task from Pavlovia"
-msgstr ""
+msgstr "从 Pavlovia 运行 PsychoJS 任务"
 
 #: ../app/runner/runner.py:625
 msgid "Run PsychoJS task in local debug mode"
-msgstr ""
+msgstr "在本地调试模式下运行 PsychoJS 任务"
 
 #: ../app/runner/runner.py:891
 msgid "Alerts ({})"
-msgstr ""
+msgstr "告警 ({})"
 
 #: ../app/coder/scriptOutput.py:95 ../app/stdOutRich.py:72
 msgid "For further info see "
-msgstr ""
+msgstr "欲了解更多信息，请参阅"
 
 #: ../app/themes/_themes.py:1090
 msgid "Open theme folder"
-msgstr ""
+msgstr "打开主题文件夹"
 
 #: ../app/utils.py:164 ../app/utils.py:239
 msgid "New"
-msgstr ""
+msgstr "新建"
 
 #: ../app/utils.py:166 ../app/utils.py:240
 msgid "Create new experiment file"
-msgstr ""
+msgstr "创建新的实验文件"
 
 #: ../app/utils.py:170 ../app/utils.py:242
 msgid "Open"
-msgstr ""
+msgstr "打开"
 
 #: ../app/utils.py:172 ../app/utils.py:243
 msgid "Open an existing experiment file"
-msgstr ""
+msgstr "打开现有的实验文件"
 
 #: ../app/builder/localizedStrings.py:34 ../app/utils.py:176
 #: ../app/utils.py:246 ../monitors/MonitorCenter.py:267
 msgid "Save"
-msgstr ""
+msgstr "保存"
 
 #: ../app/builder/builder.py:295 ../app/utils.py:178 ../app/utils.py:247
 msgid "Save current experiment file"
-msgstr ""
+msgstr "保存当前实验文件"
 
 #: ../app/utils.py:182 ../app/utils.py:249
 msgid "Save As..."
-msgstr ""
+msgstr "另存为..."
 
 #: ../app/builder/builder.py:299 ../app/utils.py:184 ../app/utils.py:250
 msgid "Save current experiment file as..."
-msgstr ""
+msgstr "将当前实验文件另存为"
 
 #: ../app/coder/codeEditorBase.py:115 ../app/coder/coder.py:151
 #: ../app/utils.py:188 ../app/utils.py:253
 msgid "Undo"
-msgstr ""
+msgstr "撤销"
 
 #: ../app/builder/builder.py:342 ../app/coder/coder.py:1576 ../app/utils.py:190
 #: ../app/utils.py:254
 msgid "Undo last action"
-msgstr ""
+msgstr "撤销上个操作"
 
 #: ../app/coder/codeEditorBase.py:116 ../app/coder/coder.py:152
 #: ../app/utils.py:194 ../app/utils.py:257
 msgid "Redo"
-msgstr ""
+msgstr "重做"
 
 #: ../app/builder/builder.py:347 ../app/coder/coder.py:1581 ../app/utils.py:196
 #: ../app/utils.py:258
 msgid "Redo last action"
-msgstr ""
+msgstr "重做上个操作"
 
 #: ../app/builder/builder.py:405 ../app/coder/coder.py:1711 ../app/utils.py:201
 #: ../app/utils.py:261
 msgid "Monitor Center"
-msgstr ""
+msgstr "显示器中心"
 
 #: ../app/utils.py:203 ../app/utils.py:262
 msgid "Monitor settings and calibration"
-msgstr ""
+msgstr "显示器设置和校准"
 
 #: ../app/utils.py:207
 msgid "Experiment Settings"
-msgstr ""
+msgstr "实验设置"
 
 #: ../app/utils.py:209
 msgid "Edit experiment settings"
-msgstr ""
+msgstr "编辑实验设置"
 
 #: ../app/utils.py:214
 msgid "Compile Python Script"
-msgstr ""
+msgstr "编译 Python 脚本"
 
 #: ../app/utils.py:216
 msgid "Compile to Python script"
-msgstr ""
+msgstr "编译成 Python 脚本"
 
 #: ../app/utils.py:220
 msgid "Compile JS Script"
-msgstr ""
+msgstr "编译 JS 脚本"
 
 #: ../app/utils.py:222
 msgid "Compile to JS script"
-msgstr ""
+msgstr "编译成 Javascript 脚本"
 
 #: ../app/utils.py:226 ../app/utils.py:269
 msgid "Runner"
-msgstr ""
+msgstr "Runner"
 
 #: ../app/utils.py:228 ../app/utils.py:270
 msgid "Send experiment to Runner"
-msgstr ""
+msgstr "将实验发送到 Runner"
 
 #: ../app/runner/runner.py:202 ../app/utils.py:232 ../app/utils.py:273
 msgid "Run"
-msgstr ""
+msgstr "运行"
 
 #: ../app/utils.py:234 ../app/utils.py:274
 msgid "Run experiment"
-msgstr ""
+msgstr "运行实验"
 
 #: ../app/colorpicker/__init__.py:37 ../app/utils.py:264
 msgid "Color Picker"
-msgstr ""
+msgstr "选色器"
 
 #: ../app/utils.py:265
 msgid "Color Picker -> clipboard"
-msgstr ""
+msgstr "选色器 -> 剪贴板"
 
 #: ../app/utils.py:438 ../app/utils.py:439
 #, python-format
 msgid "&Next Window\t%s"
-msgstr ""
+msgstr "下一个窗口(&N)\t%s"
 
 #: ../experiment/_experiment.py:500
 msgid ""
@@ -3727,7 +3727,7 @@ msgstr ""
 
 #: ../experiment/components/brush/__init__.py:19
 msgid "Brush Size"
-msgstr ""
+msgstr "刷子大小"
 
 #: ../experiment/components/brush/__init__.py:20
 msgid "Brush Color"
