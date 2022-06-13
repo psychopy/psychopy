@@ -1316,7 +1316,7 @@ def getProject(filename):
                                     break
                                 foundProject = False
                                 for repo in pavSession.findUserProjects():
-                                    if namespaceName in repo['id']:
+                                    if namespaceName in repo:
                                         foundProject = True
                                         logging.info("Logging in as {}".format(user))
                                         break
