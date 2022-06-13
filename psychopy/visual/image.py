@@ -204,13 +204,20 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
     def draw(self, win=None):
         """Draw.
         """
-        if (type(self.image) != numpy.ndarray and \
-                        self.image in (None, "None", "none")):
+        # check the type of image we're dealing with
+        if (type(self.image) != numpy.ndarray and
+                self.image in (None, "None", "none")):
             return
 
+        # make the context for the window current
         if win is None:
             win = self.win
         self._selectWindow(win)
+
+        # If our image is a movie stim object, pull pixel data from the most
+        # recent frame and write it to the memory
+        if hasattr(self.image, 'getVideoFrame'):
+            self._movieFrameToTexture(self.image.getVideoFrame())
 
         GL.glPushMatrix()  # push before the list, pop after
         win.setScale('pix')
@@ -230,6 +237,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
     def foreColor(self):
         # Call setter of parent mixin
         return ColorMixin.foreColor.fget(self)
+
     @foreColor.setter
     def foreColor(self, value):
         # Call setter of parent mixin
@@ -237,10 +245,12 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         # Reset the image and mask-
         self.setImage(self._imName, log=False)
         self.texRes = self.__dict__['texRes']  # rebuilds the mask
+
     @property
     def contrast(self):
         # Call setter of parent mixin
         return ColorMixin.contrast.fget(self)
+
     @contrast.setter
     def contrast(self, value):
         # Call setter of parent mixin
@@ -248,10 +258,12 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         # Reset the image and mask-
         self.setImage(self._imName, log=False)
         self.texRes = self.__dict__['texRes']  # rebuilds the mask
+
     @property
     def opacity(self):
         # Call setter of parent mixin
         return BaseVisualStim.opacity.fget(self)
+
     @opacity.setter
     def opacity(self, value):
         # Call setter of parent mixin
@@ -274,19 +286,11 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
             Movie source object.
 
         """
-        # import here to avoid importing when not needed
-        import psychopy.hardware.camera as camera
-
-        # Check type, make sure we have a Camera object
-        if not isinstance(movieSrc, camera.Camera):
-            return  # nop when not camera object
-
         # get the most recent video frame and extract color data
-        frame = movieSrc.getVideoFrame()
-        colorData = frame.colorData
+        colorData = movieSrc.colorData
 
         # get the size of the movie frame and compute the buffer size
-        vidWidth, vidHeight = frame.size
+        vidWidth, vidHeight = movieSrc.size
         nBufferBytes = vidWidth * vidHeight * 3
 
         # bind pixel unpack buffer
@@ -356,13 +360,13 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
     def image(self, value):
         """The image file to be presented (most formats supported).
 
-        This can be a path-like object to an image file, or a numpy
-        array of shape [H, W, C] where C are channels. The third dim
-        will usually have length 1 (defining an intensity-only image), 3
-        (defining an RGB image) or 4 (defining an RGBA image).
+        This can be a path-like object to an image file, or a numpy array of
+        shape [H, W, C] where C are channels. The third dim will usually have
+        length 1 (defining an intensity-only image), 3 (defining an RGB image)
+        or 4 (defining an RGBA image).
 
-        If passing a numpy array to the image attribute,
-        the size attribute of ImageStim must be set explicitly.
+        If passing a numpy array to the image attribute, the size attribute of
+        ImageStim must be set explicitly.
         """
         self.__dict__['image'] = self._imName = value
 
@@ -375,22 +379,35 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
             datatype = GL.GL_FLOAT
         else:
             datatype = GL.GL_UNSIGNED_BYTE
+
         if type(value) != numpy.ndarray and value in (None, "None", "none"):
             self.isLumImage = True
         else:
-            self.isLumImage = self._createTexture(value, id=self._texID,
-                                                  stim=self,
-                                                  pixFormat=GL.GL_RGB,
-                                                  dataType=datatype,
-                                                  maskParams=self.maskParams,
-                                                  forcePOW2=False,
-                                                  wrapping=False)
+            self.isLumImage = self._createTexture(
+                value, id=self._texID,
+                stim=self,
+                pixFormat=GL.GL_RGB,
+                dataType=datatype,
+                maskParams=self.maskParams,
+                forcePOW2=False,
+                wrapping=False)
+
+        # for camera and movie textures get the size of the video frame
+        if hasattr(value, 'getVideoFrame'):
+            self.size = Size(numpy.array(value.frameSize),
+                             units='pix',
+                             win=self.win)  # set size to default
+
         # if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize is None:
-            self.size = Size(numpy.array(self._origSize), units='pix', win=self.win)  # set size to default
+            self.size = Size(numpy.array(self._origSize),
+                             units='pix',
+                             win=self.win)  # set size to default
+
         # if we switched to/from lum image then need to update shader rule
         if wasLumImage != self.isLumImage:
             self._needUpdate = True
+
         self._needTextureUpdate = False
 
     def setImage(self, value, log=None):
