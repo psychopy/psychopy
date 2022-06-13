@@ -23,7 +23,7 @@ class TestDots:
             err = 5
 
             # Get screenshot
-            img = np.array(win.screenshot)
+            img = np.array(win._getFrame(buffer="back"))
             # Flatten screenshot
             img = img.flatten()
             # Unflatten screenshot to pixel level
@@ -115,14 +115,14 @@ class TestDots:
             maxCircle.draw()
             minCircle.draw()
             objCircle.draw()
-            self.win.flip()
             _findColors(self.win)
+            self.win.flip()
             # Test square dots
             maxRect.draw()
             minRect.draw()
             objRect.draw()
-            self.win.flip()
             _findColors(self.win)
+            self.win.flip()
         # Restore window color
         self.win.color = ogColor
 
