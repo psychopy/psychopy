@@ -70,7 +70,7 @@ class CameraComponent(BaseComponent):
                          "experiments - online experiments ask the participant which device to use.")
         self.params['mic'] = Param(
             mic, valType='str', inputType="choice", categ="Basic",
-            allowedVals=list(mics),
+            allowedVals=list(range(len(mics))),
             allowedLabels=[d.title() for d in list(mics)],
             hint=msg,
             label=_translate("Audio Device")
