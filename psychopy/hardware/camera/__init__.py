@@ -957,6 +957,9 @@ class Camera:
 
     @device.setter
     def device(self, value):
+        if value in (None, "None", "none", "Default", "default"):
+            value = 0
+
         self._device = value
 
     @property
