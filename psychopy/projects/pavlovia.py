@@ -362,7 +362,7 @@ class PavloviaSession:
         projIDs = []
         for proj in own + group:
             if proj.id not in projIDs and proj.id not in projs:
-                projs.append(PavloviaProject(proj))
+                projs.append(PavloviaProject(proj.id))
                 projIDs.append(proj.id)
         return projs
 
