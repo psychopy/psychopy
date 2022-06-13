@@ -97,6 +97,11 @@ class UserPanel(wx.Panel):
         self.edit = wx.Button(self, label=chr(int("270E", 16)), size=(24, -1))
         self.edit.Bind(wx.EVT_BUTTON, self.onEdit)
         self.btnSizer.Add(self.edit, border=3, flag=wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        # Switch user
+        self.switch = wx.Button(self, label=_translate("Switch User"))
+        self.switch.SetBitmap(icons.ButtonIcon(stem="view-refresh", size=16).bitmap)
+        self.switch.Bind(wx.EVT_BUTTON, self.onSwitchUser)
+        self.btnSizer.Add(self.switch, border=3, flag=wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL)
         # Login
         self.login = wx.Button(self, label=_translate("Login"))
         self.login.SetBitmap(icons.ButtonIcon(stem="person_off", size=16).bitmap)
@@ -140,8 +145,9 @@ class UserPanel(wx.Panel):
             self.link.SetLabel("")
             self.link.SetURL("https://pavlovia.org/")
             self.link.Disable()
-            # Hide logout and show login
+            # Hide logout/switch and show login
             self.logout.Hide()
+            self.switch.Hide()
             self.login.Show()
             # Disable edit
             self.edit.Disable()
@@ -168,8 +174,9 @@ class UserPanel(wx.Panel):
             self.link.SetLabel(user['username'])
             self.link.SetURL(user['web_url'] or "")
             self.link.Enable()
-            # Hide logout and show login
+            # Hide login and show logout/switch
             self.logout.Show()
+            self.switch.Show()
             self.login.Hide()
             # Enable edit
             self.edit.Enable()
@@ -192,6 +199,34 @@ class UserPanel(wx.Panel):
         dlg.ShowModal()
         # Refresh user on close
         self.user = User(self.user.id)
+
+    def onSwitchUser(self, evt):
+        def onSelectUser(evt):
+            # Get user from menu
+            id = evt.Id
+            menu = evt.EventObject
+            user = menu.users[id]
+            # Logout
+            pavlovia.logout()
+            # Log back in as new user
+            pavlovia.login(user['username'])
+            # Update view
+            self.user = pavlovia.getCurrentSession().user
+
+            self.Layout()  # update the size of the button
+            self.Fit()
+
+        menu = wx.Menu()
+        menu.Bind(wx.EVT_MENU, onSelectUser)
+        menu.users = {}
+        for key, value in pavlovia.knownUsers.items():
+            item = menu.Append(id=wx.ID_ANY, item=key)
+            menu.users[item.GetId()] = value
+        # Get button position
+        btnPos = self.switch.GetRect()
+        menuPos = (btnPos[0], btnPos[1] + btnPos[3])
+        # Popup menu
+        self.PopupMenu(menu, menuPos)
 
     def updateUser(self, evt=None):
         """
