@@ -212,6 +212,8 @@ class UserPanel(wx.Panel):
             pavlovia.login(user['username'])
             # Update view
             self.user = pavlovia.getCurrentSession().user
+            # Update cache
+            prefs.appData['projects']['pavloviaUser'] = user['username']
 
             self.Layout()  # update the size of the button
             self.Fit()
