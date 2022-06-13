@@ -278,8 +278,9 @@ class BaseBackend(ABC):
             Position `(x, y)` in PsychoPy pixel coordinates.
 
         """
+        invScaleFactor = 1.0 / self.win.getContentScaleFactor()
         return np.asarray(self._windowToBufferCoords(pos) - self.win.size / 2.0,
-                          dtype=np.float32)
+                          dtype=np.float32) * invScaleFactor
 
     def _pixToWindowCoords(self, pos):
         """Convert PsychoPy 'pix' to the window coordinate system. This is the
@@ -296,8 +297,10 @@ class BaseBackend(ABC):
             Position `(x, y)` in window coordinates.
 
         """
+        scaleFactor = self.win.getContentScaleFactor()
         return self._bufferToWindowCoords(
-            np.asarray(pos, dtype=np.float32) + self.win.size / 2.0)
+            np.asarray(pos, dtype=np.float32) +
+            self.win.size / 2.0) * scaleFactor
 
     # --------------------------------------------------------------------------
     # Mouse related methods (e.g., event handlers)

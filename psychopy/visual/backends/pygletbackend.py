@@ -679,8 +679,8 @@ class PygletBackend(BaseBackend):
         """
         # We override `_winToBufferCoords` here since Pyglet uses the OpenGL
         # window coordinate convention by default.
-        scaleFactor = self.win.getContentScaleFactor()
-        return np.asarray(pos, dtype=np.float32) * scaleFactor
+        invScaleFactor = 1.0 / self.win.getContentScaleFactor()
+        return np.asarray(pos, dtype=np.float32) * invScaleFactor
 
     def _bufferToWindowCoords(self, pos):
         """OpenGL buffer coordinates to window coordinates.
@@ -698,8 +698,8 @@ class PygletBackend(BaseBackend):
             Position `(x, y)` in buffer coordinates.
 
         """
-        invScaleFactor = 1.0 / self.win.getContentScaleFactor()
-        return np.asarray(pos, dtype=np.float32) * invScaleFactor
+        scaleFactor = self.win.getContentScaleFactor()
+        return np.asarray(pos, dtype=np.float32) * scaleFactor
 
     # --------------------------------------------------------------------------
     # Mouse event handlers and utilities
