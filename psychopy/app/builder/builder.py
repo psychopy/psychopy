@@ -3931,6 +3931,10 @@ class BuilderToolbar(BasePsychopyToolbar):
         userDlg.ShowModal()
 
     def onPavloviaProject(self, evt=None):
+        # Search again for project if needed (user may have logged in since last looked)
+        if self.frame.filename:
+            self.frame.project = pavlovia.getProject(self.frame.filename)
+        # Get project
         if self.frame.project is not None:
             dlg = ProjectFrame(app=self.frame.app,
                                project=self.frame.project,
