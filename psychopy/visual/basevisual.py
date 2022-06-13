@@ -1022,6 +1022,21 @@ class TextureMixin:
                     logging.flush()
                     msg = "Found file '%s' [= %s], failed to load as an image"
                     raise IOError(msg % (tex, os.path.abspath(tex)))
+            elif hasattr(tex, 'getVideoFrame'):  # camera or movie textures
+                # get an image to configure the initial texture store
+                frame = tex.getVideoFrame()
+                if frame is not None:
+                    frameSize = frame.size
+                    im = Image.frombuffer(
+                        'RGB',
+                        frameSize,
+                        frame.colorData
+                    ).transpose(Image.FLIP_TOP_BOTTOM)
+                else:
+                    msg = "Failed to initialize texture from camera stream."
+                    logging.error(msg)
+                    logging.flush()
+                    raise AttributeError(msg)
             else:
                 # can't be a file; maybe its an image already in memory?
                 try:
