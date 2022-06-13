@@ -2107,7 +2107,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         """
         self.app.copiedCompon = copy.deepcopy(component)
 
-    def pasteCompon(self, event=None, component=None, index=-1):
+    def pasteCompon(self, event=None, component=None, index=None):
         if not self.app.copiedCompon:
             return -1  # not possible to paste if nothing copied
         exp = self.frame.exp
@@ -2127,7 +2127,10 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             newCompon.params['name'].val = newName
             if 'name' in dir(newCompon):
                 newCompon.name = newName
-            self.routine.insertComponent(index, newCompon)
+            if index is None:
+                self.routine.addComponent(newCompon)
+            else:
+                self.routine.insertComponent(index, newCompon)
             self.frame.exp.namespace.user.append(newName)
             # could do redrawRoutines but would be slower?
             self.redrawRoutine()
