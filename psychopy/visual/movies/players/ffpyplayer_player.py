@@ -505,11 +505,11 @@ class FFPyPlayer(BaseMoviePlayer):
         # handle to `ffpyplayer`
         self._handle = None
         self._queuedFrame = NULL_MOVIE_FRAME_INFO
-        self._frameIndex = -1
         self._lastFrame = NULL_MOVIE_FRAME_INFO
+        self._frameIndex = -1
 
-        # flag when random access has been invoked
-        self._needsNewFrame = False
+        # metadata from the stream
+        self._metadata = None
 
         # status flags
         self._status = NOT_STARTED
@@ -540,6 +540,9 @@ class FFPyPlayer(BaseMoviePlayer):
         # hand off the player interface to the thread
         self._tStream = MovieStreamThreadFFPY(self._handle)
         self._tStream.begin()
+
+        # make sure we have metadata
+        self.update()
 
     def load(self, pathToMovie):
         """Load a movie file from disk.
@@ -612,7 +615,7 @@ class FFPyPlayer(BaseMoviePlayer):
         """
         self._assertMediaPlayer()
 
-        metadata = self._handle.get_metadata()
+        metadata = self._metadata
 
         # write metadata to the fields of a `MovieMetadata` object
         toReturn = MovieMetadata(
@@ -1088,7 +1091,7 @@ class FFPyPlayer(BaseMoviePlayer):
             return False
 
         # unpack the data we got back
-        metadata = enqueuedFrame.metadata
+        self._metadata = enqueuedFrame.metadata
         frameImage = enqueuedFrame.frameImage
         streamStatus = enqueuedFrame.streamStatus
         self.parent.status = self._status = streamStatus.status
@@ -1109,7 +1112,7 @@ class FFPyPlayer(BaseMoviePlayer):
             colorData=videoFrameArray,
             audioChannels=0,
             audioSamples=None,
-            metadata=metadata,
+            metadata=self.metadata,
             movieLib=u'ffpyplayer',
             userData=None)
 

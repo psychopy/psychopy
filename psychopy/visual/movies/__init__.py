@@ -195,6 +195,19 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._autoStart = bool(value)
 
     @property
+    def frameSize(self):
+        """Movie frame size/resolution (w, h) in pixels (`tuple`). Only valid
+        after calling `load()`.
+        """
+        return self._player.metadata.size
+
+    @property
+    def frameRate(self):
+        """Frame rate of the movie in Hertz (`float`).
+        """
+        return self._player.metadata.frameRate
+
+    @property
     def _hasPlayer(self):
         """`True` if a media player instance is started.
         """
