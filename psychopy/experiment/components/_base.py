@@ -289,11 +289,23 @@ class BaseComponent:
                 f"{params['name']}.frameNStart = frameN  # exact frame index\n"
                 f"{params['name']}.tStart = t  # local t and not account for scr refresh\n"
                 f"{params['name']}.tStartRefresh = tThisFlipGlobal  # on global time\n"
-                f"thisExp.timestampOnFlip(win, '{params['name']}.tStartRefresh')  # add timestamp in datafile\n"
                 )
-        if self.type != "Sound":  # for sounds, don't update to actual frame time
-                code += (f"win.timeOnFlip({params['name']}, 'tStartRefresh')"
-                         f"  # time at next scr refresh\n")
+        if self.type != "Sound":
+            # for sounds, don't update to actual frame time because it will start
+            # on the *expected* time of the flip
+            code += (f"win.timeOnFlip({params['name']}, 'started')"
+                     f"  # time at next scr refresh\n")
+        if self.params['saveStartStop']:
+            code += f"# add timestamp to datafile\n"
+            if self.type=='Sound' and self.params['syncToScreen']:
+                # use the time we *expect* the flip
+                code += f"thisExp.addData('{params['name']}.started', tThisFlipGlobal)\n"
+            elif 'syncToScreen' in self.params and self.params['syncToScreen']:
+                # use the time we *detect* the flip (in the future)
+                code += f"thisExp.timestampOnFlip(win, '{params['name']}.started')\n"
+            else:
+                # use the time ignoring any flips
+                code += f"thisExp.addData('{params['name']}.started', t)\n"
         buff.writeIndentedLines(code)
 
     def writeStartTestCodeJS(self, buff):
@@ -361,8 +373,15 @@ class BaseComponent:
         code = (f"# keep track of stop time/frame for later\n"
                 f"{params['name']}.tStop = t  # not accounting for scr refresh\n"
                 f"{params['name']}.frameNStop = frameN  # exact frame index\n"
-                f"thisExp.timestampOnFlip(win, '{params['name']}.tStopped')  # timestamp in datafile\n"
                 )
+        if self.params['saveStartStop']:
+            code += f"# add timestamp to datafile\n"
+            if 'syncToScreen' in self.params and self.params['syncToScreen']:
+                # use the time we *detect* the flip (in the future)
+                code += f"thisExp.timestampOnFlip(win, '{params['name']}.stopped')\n"
+            else:
+                # use the time ignoring any flips
+                code += f"thisExp.addData('{params['name']}.stopped', t)\n"
         buff.writeIndentedLines(code)
 
     def writeStopTestCodeJS(self, buff):
