@@ -252,6 +252,7 @@ class MovieStreamThreadFFPY(threading.Thread):
         }
         # clear the playback control flag
         self._isPlaying.clear()
+        self._stopSignal.clear()
 
         # ----------------------------------------------------------------------
         # Initialization
@@ -358,6 +359,10 @@ class MovieStreamThreadFFPY(threading.Thread):
         #
         self._player.set_pause(True)
         while statusFlag != FINISHED:
+            # break on thread close
+            if self._stopSignal.is_set():
+                break
+
             # Get the requested playback mode from the main thread, can either
             # be PLAYING or PAUSED. Only call `set_pause` when the state changes
             # between pause and play.
@@ -714,10 +719,11 @@ class FFPyPlayer(BaseMoviePlayer):
             raise RuntimeError("Cannot close stream, not opened yet.")
 
         # close the thread
+        self._tStream.shutdown()
         self._tStream.join()  # wait until thread exits
         self._tStream = None
 
-        # self._handle.close_player()
+        self._handle.close_player()
         self._handle = None  # reset
 
     def pause(self, log=False):
@@ -1119,13 +1125,12 @@ class FFPyPlayer(BaseMoviePlayer):
 
         return True
 
-    def getMovieFrame(self):
-        """Get the movie frame scheduled to be displayed at the current time.
+    def update(self):
+        """Update this player.
 
-        Returns
-        -------
-        `~psychopy.visual.movies.frame.MovieFrame`
-            Current movie frame.
+        This get the latest data from the video stream and updates the player
+        accordingly. This should be called at a higher frequency than the frame
+        rate of the movie to avoid frame skips.
 
         """
         self._assertMediaPlayer()
@@ -1136,6 +1141,17 @@ class FFPyPlayer(BaseMoviePlayer):
             self._enqueueFrame()
         else:
             self.parent.status = self._status = FINISHED
+
+    def getMovieFrame(self):
+        """Get the movie frame scheduled to be displayed at the current time.
+
+        Returns
+        -------
+        `~psychopy.visual.movies.frame.MovieFrame`
+            Current movie frame.
+
+        """
+        self.update()
 
         return self._lastFrame
 
