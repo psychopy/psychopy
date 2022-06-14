@@ -383,6 +383,16 @@ class MovieStreamThreadFFPY(threading.Thread):
             if self._player.get_pause() != pauseReq:
                 self._player.set_pause(pauseReq)
 
+            # Don't get another frame until we need one, keeps video and audio
+            # synced.
+            movieTimeNow = self._player.get_pts()
+            nextFrameTime = lastTimestamp + frameInterval
+            if movieTimeNow < nextFrameTime:
+                # wait a bit until we need another frame
+                sleepTime = nextFrameTime - movieTimeNow
+                time.sleep(sleepTime)
+                continue
+
             # grab the most recent frame
             frameData, val = self._player.get_frame(show=True)
 
