@@ -6,11 +6,28 @@ import copy
 import pickle
 import atexit
 
+import psychopy.visual.window
 from psychopy import logging
 from psychopy.tools.filetools import (openOutputFile, genDelimiter,
                                       genFilenameFromDelimiter)
 from .utils import checkValidFilePath
 from .base import _ComparisonMixin
+
+
+class DataEntry(dict):
+    """A helper class to represent one Entry (row/trial) in an ExperimentHandler.
+
+    This very simply extends dictionaries with an addData method.
+
+    This is only really needed because of stimuli needing to store their
+    stop time, which may only be known after that trial has technically
+    finished"""
+
+    def addData(self, name, value, overwriteExisting=True):
+        """Add `value` to the column called `name`"""
+        if not overwriteExisting and name in self:
+            return
+        self[name] = value
 
 
 class ExperimentHandler(_ComparisonMixin):
@@ -84,7 +101,7 @@ class ExperimentHandler(_ComparisonMixin):
         self.savePickle = savePickle
         self.saveWideText = saveWideText
         self.dataFileName = dataFileName
-        self.thisEntry = {}
+        self.thisEntry = DataEntry({})
         self.entries = []  # chronological list of entries
         self._paramNamesSoFar = []
         self.dataNames = []  # names of all the data (eg. resp.keys)
@@ -227,6 +244,12 @@ class ExperimentHandler(_ComparisonMixin):
             value = copy.deepcopy(value)
         self.thisEntry[name] = value
 
+    def timestampOnFlip(self, win, name):
+        """Add a timestamp (in the future) to the current row"""
+        if name not in self.dataNames:
+            self.dataNames.append(name)
+        win.timeOnFlip(self.thisEntry, name)
+
     def nextEntry(self):
         """Calling nextEntry indicates to the ExperimentHandler that the
         current trial has ended and so further addData() calls correspond
@@ -242,7 +265,7 @@ class ExperimentHandler(_ComparisonMixin):
         if type(self.extraInfo) == dict:
             this.update(self.extraInfo)
         self.entries.append(this)
-        self.thisEntry = {}
+        self.thisEntry = DataEntry({})
 
     def getAllEntries(self):
         """Fetches a copy of all the entries including a final (orphan) entry

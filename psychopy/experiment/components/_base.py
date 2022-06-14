@@ -242,18 +242,6 @@ class BaseComponent:
 
             loop = currLoop.params['name']
             name = self.params['name']
-            if self.params['syncScreenRefresh'].val:
-                code = (
-                    f"{loop}.{addDataFunc}('{name}.started', {name}.tStartRefresh)\n"
-                    f"{loop}.{addDataFunc}('{name}.stopped', {name}.tStopRefresh)\n"
-                )
-            else:
-                code = (
-                    f"{loop}.{addDataFunc}('{name}.started', {name}.tStart)\n"
-                    f"{loop}.{addDataFunc}('{name}.stopped', {name}.tStop)\n"
-                )
-
-            buff.writeIndentedLines(code)
 
     def writeRoutineEndCodeJS(self, buff):
         """Write the code that will be called at the end of
@@ -300,7 +288,9 @@ class BaseComponent:
         code = (f"# keep track of start time/frame for later\n"
                 f"{params['name']}.frameNStart = frameN  # exact frame index\n"
                 f"{params['name']}.tStart = t  # local t and not account for scr refresh\n"
-                f"{params['name']}.tStartRefresh = tThisFlipGlobal  # on global time\n")
+                f"{params['name']}.tStartRefresh = tThisFlipGlobal  # on global time\n"
+                f"thisExp.timestampOnFlip(win, '{params['name']}.tStartRefresh')  # add timestamp in datafile\n"
+                )
         if self.type != "Sound":  # for sounds, don't update to actual frame time
                 code += (f"win.timeOnFlip({params['name']}, 'tStartRefresh')"
                          f"  # time at next scr refresh\n")
@@ -371,8 +361,8 @@ class BaseComponent:
         code = (f"# keep track of stop time/frame for later\n"
                 f"{params['name']}.tStop = t  # not accounting for scr refresh\n"
                 f"{params['name']}.frameNStop = frameN  # exact frame index\n"
-                f"win.timeOnFlip({params['name']}, 'tStopRefresh')"
-                f"  # time at next scr refresh\n")
+                f"thisExp.timestampOnFlip(win, '{params['name']}.tStopped')  # timestamp in datafile\n"
+                )
         buff.writeIndentedLines(code)
 
     def writeStopTestCodeJS(self, buff):
