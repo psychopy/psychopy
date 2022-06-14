@@ -400,7 +400,10 @@ class DlgCodeComponentProperties(wx.Dialog):
             # Add a visual indicator when tab contains code
             emptyCodeComp = CodeComponent('', '') # Spawn empty code component
             # If code tab is not empty and not the same as in empty code component, add an asterisk to tab name
-            if (self.params.get(pyName).val or self.params.get(jsName).val) and not (self.params.get(pyName).val == emptyCodeComp.params.get(pyName).val or self.params.get(jsName).val == emptyCodeComp.params.get(jsName).val):
+            hasContents = self.params.get(pyName).val or self.params.get(jsName).val
+            pyEmpty = self.params.get(pyName).val != emptyCodeComp.params.get(pyName).val
+            jsEmpty = self.params.get(jsName).val == emptyCodeComp.params.get(jsName).val
+            if hasContents and not (pyEmpty and jsEmpty):
                 tabLabel += ' *'
             self.codeNotebook.AddPage(panel, tabLabel)
 
