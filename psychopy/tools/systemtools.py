@@ -56,6 +56,17 @@ def systemProfilerMacOS(dataTypes=None, detailLevel='basic', timeout=180):
         #   ]
         # }
 
+    Parse the result using a JSON library::
+
+        import json
+        systemReportJSON = systemProfilerMacOS(
+            "SPCameraDataType", detailLevel='mini')
+        cameraInfo = json.loads(systemReportJSON)
+        # >>> print(cameraInfo)
+        # {'SPCameraDataType': [{'_name': 'Live! Cam Sync 1080p',
+        # 'spcamera_model-id': 'UVC Camera VendorID_1054 ProductID_16541',
+        # 'spcamera_unique-id': '0x2200000041e409d'}]
+
     """
     if platform.system() != 'Darwin':
         raise OSError(
