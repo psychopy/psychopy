@@ -678,8 +678,9 @@ class Camera:
         # match something that is supported
         devModes = getCameraInfo(self._device)
         for devMode in devModes:
-            if (devMode.frameRate == self._frameRateFrac and
-                    devMode.frameSize == self._size):
+            sameFrameRate = np.array(devMode.frameRate) == np.array(self._frameRateFrac)
+            sameFrameSize = np.array(devMode.frameSize) == np.array(self._size)
+            if sameFrameRate.all() and sameFrameSize.all():
                 break
         else:
             raise CameraModeNotSupportedError(
