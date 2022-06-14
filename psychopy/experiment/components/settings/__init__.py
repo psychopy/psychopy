@@ -1423,28 +1423,7 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
 
     def writeEndCodeJS(self, buff):
-        endLoopInteration = ("\nfunction endLoopIteration(scheduler, snapshot) {\n"
-                    "  // ------Prepare for next entry------\n"
-                    "  return async function () {\n"
-                    "    if (typeof snapshot !== 'undefined') {\n"
-                    "      // ------Check if user ended loop early------\n"
-                    "      if (snapshot.finished) {\n"
-                    "        // Check for and save orphaned data\n"
-                    "        if (psychoJS.experiment.isEntryEmpty()) {\n"
-                    "          psychoJS.experiment.nextEntry(snapshot);\n"
-                    "        }\n"
-                    "        scheduler.stop();\n"
-                    "      } else {\n"
-                    "        const thisTrial = snapshot.getCurrentTrial();\n"
-                    "        if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {\n"
-                    "          psychoJS.experiment.nextEntry(snapshot);\n"
-                    "        }\n"
-                    "      }\n"
-                    "    return Scheduler.Event.NEXT;\n"
-                    "    }\n"
-                    "  };\n"
-                    "}\n")
-        buff.writeIndentedLines(endLoopInteration)
+        """Write some general functions that might be used by any Scheduler/object"""
 
         recordLoopIterationFunc = ("\nfunction importConditions(currentLoop) {\n"
                     "  return async function () {\n"
