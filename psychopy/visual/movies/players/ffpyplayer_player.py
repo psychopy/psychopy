@@ -58,16 +58,19 @@ class StreamStatus:
     """
     __slots__ = ['_status',
                  '_streamTime',
+                 '_frameIndex',
                  '_recTime',
                  '_recBytes']
 
     def __init__(self,
                  status=NOT_STARTED,
                  streamTime=0.0,
+                 frameIndex=-1,
                  recTime=0.0,
                  recBytes=0):
         self._status = int(status)
         self._streamTime = float(streamTime)
+        self._frameIndex = frameIndex
         self._recTime = float(recTime)
         self._recBytes = int(recBytes)
 
@@ -85,6 +88,15 @@ class StreamStatus:
         cameras attached to the system.
         """
         return self._streamTime
+
+    @property
+    def frameIndex(self):
+        """Current frame in the stream (`float`).
+
+        This value increases monotonically as the movie plays. The first frame
+        has an index of 0.
+        """
+        return self._frameIndex
 
     @property
     def recBytes(self):
@@ -243,6 +255,7 @@ class MovieStreamThreadFFPY(threading.Thread):
         frameData = None          # frame data from the reader
         val = ''                  # status value from reader
         statusFlag = NOT_STARTED  # status flag for stream reader state
+        lastTimestamp = -1.0      # last timestamp
         frameIndex = -1           # frame index, 0 == first frame
         # status flag equivalents for ffpyplayer
         statusFlagLUT = {
@@ -404,20 +417,25 @@ class MovieStreamThreadFFPY(threading.Thread):
                 # object which holds stream and image data and passes it back to
                 # the main application thread.
                 colorData, pts = frameData
-                streamStatus = StreamStatus(
-                    status=statusFlag,
-                    streamTime=pts,
-                    recTime=0.0,
-                    recBytes=0)
+                if pts > lastTimestamp:
+                    frameIndex += 1
+                    lastTimestamp = pts
 
-                # Update `lastFrame` with the most recent one we pulled, push
-                # it out to the queue.
-                lastFrame = StreamData(
-                    metadata,
-                    colorData,
-                    streamStatus,
-                    u'ffpyplayer')
-                self._frameQueue.put(lastFrame)
+                    streamStatus = StreamStatus(
+                        status=statusFlag,
+                        streamTime=pts,
+                        frameIndex=frameIndex,
+                        recTime=0.0,
+                        recBytes=0)
+
+                    # Update `lastFrame` with the most recent one we pulled, push
+                    # it out to the queue.
+                    lastFrame = StreamData(
+                        metadata,
+                        colorData,
+                        streamStatus,
+                        u'ffpyplayer')
+                    self._frameQueue.put(lastFrame)
 
             # block the thread for the computed polling interval
             time.sleep(frameInterval)
@@ -504,7 +522,6 @@ class FFPyPlayer(BaseMoviePlayer):
 
         # handle to `ffpyplayer`
         self._handle = None
-        self._queuedFrame = NULL_MOVIE_FRAME_INFO
         self._lastFrame = NULL_MOVIE_FRAME_INFO
         self._frameIndex = -1
 
@@ -523,7 +540,7 @@ class FFPyPlayer(BaseMoviePlayer):
 
         """
         # clear queued data from previous streams
-        self._queuedFrame = NULL_MOVIE_FRAME_INFO
+        self._lastFrame = NULL_MOVIE_FRAME_INFO
         self._frameIndex = -1
 
         # open the media player
@@ -1050,7 +1067,7 @@ class FFPyPlayer(BaseMoviePlayer):
         started or there is some issue with the stream.
 
         """
-        return self._queuedFrame.frameIndex
+        return self._lastFrame.frameIndex
 
     def getNextFrameAbsTime(self):
         """Get the absolute experiment time the next frame should be displayed
@@ -1095,6 +1112,7 @@ class FFPyPlayer(BaseMoviePlayer):
         frameImage = enqueuedFrame.frameImage
         streamStatus = enqueuedFrame.streamStatus
         self.parent.status = self._status = streamStatus.status
+        self._frameIndex = streamStatus.frameIndex
 
         # status information
         self._streamTime = streamStatus.streamTime  # stream time for the camera
