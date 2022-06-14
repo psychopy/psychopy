@@ -14,22 +14,6 @@ from .utils import checkValidFilePath
 from .base import _ComparisonMixin
 
 
-class DataEntry(dict):
-    """A helper class to represent one Entry (row/trial) in an ExperimentHandler.
-
-    This very simply extends dictionaries with an addData method.
-
-    This is only really needed because of stimuli needing to store their
-    stop time, which may only be known after that trial has technically
-    finished"""
-
-    def addData(self, name, value, overwriteExisting=True):
-        """Add `value` to the column called `name`"""
-        if not overwriteExisting and name in self:
-            return
-        self[name] = value
-
-
 class ExperimentHandler(_ComparisonMixin):
     """A container class for keeping track of multiple loops/handlers
 
@@ -101,7 +85,7 @@ class ExperimentHandler(_ComparisonMixin):
         self.savePickle = savePickle
         self.saveWideText = saveWideText
         self.dataFileName = dataFileName
-        self.thisEntry = DataEntry({})
+        self.thisEntry = {}
         self.entries = []  # chronological list of entries
         self._paramNamesSoFar = []
         self.dataNames = []  # names of all the data (eg. resp.keys)
@@ -245,9 +229,24 @@ class ExperimentHandler(_ComparisonMixin):
         self.thisEntry[name] = value
 
     def timestampOnFlip(self, win, name):
-        """Add a timestamp (in the future) to the current row"""
+        """Add a timestamp (in the future) to the current row
+
+        Parameters
+        ----------
+
+        win : psychopy.visual.Window
+
+            The window object that we'll base the timestamp flip on
+
+        name : str
+
+            The name of the column in the datafile being written,
+            such as 'myStim.stopped'
+        """
+        # make sure the name is used when writing the datafile
         if name not in self.dataNames:
             self.dataNames.append(name)
+        #
         win.timeOnFlip(self.thisEntry, name)
 
     def nextEntry(self):
@@ -265,7 +264,7 @@ class ExperimentHandler(_ComparisonMixin):
         if type(self.extraInfo) == dict:
             this.update(self.extraInfo)
         self.entries.append(this)
-        self.thisEntry = DataEntry({})
+        self.thisEntry = {}
 
     def getAllEntries(self):
         """Fetches a copy of all the entries including a final (orphan) entry
