@@ -641,6 +641,8 @@ class FFPyPlayer(BaseMoviePlayer):
 
     @property
     def status(self):
+        """Player status flag (`int`).
+        """
         return self._status
 
     @property
@@ -753,11 +755,8 @@ class FFPyPlayer(BaseMoviePlayer):
             Log the seek event.
 
         """
-        self._assertMediaPlayer()
-        self._handle.seek(timestamp, relative=False)
-        self._queuedFrame = NULL_MOVIE_FRAME_INFO
-
-        return self._handle.get_pts()
+        raise NotImplementedError(
+            "This feature is not available for the current backend.")
 
     def rewind(self, seconds=5, log=False):
         """Rewind the video.
@@ -776,13 +775,8 @@ class FFPyPlayer(BaseMoviePlayer):
             Timestamp after rewinding the video.
 
         """
-        self._assertMediaPlayer()
-
-        timestamp = self.pts - seconds
-        self.seek(timestamp)
-
-        # after seeking
-        return self._handle.get_pts()
+        raise NotImplementedError(
+            "This feature is not available for the current backend.")
 
     def fastForward(self, seconds=5, log=False):
         """Fast-forward the video.
@@ -801,12 +795,8 @@ class FFPyPlayer(BaseMoviePlayer):
             Timestamp at new position after fast forwarding the video.
 
         """
-        self._assertMediaPlayer()
-
-        timestamp = self.pts + seconds
-        self.seek(timestamp)
-
-        return self._handle.get_pts()
+        raise NotImplementedError(
+            "This feature is not available for the current backend.")
 
     def replay(self, autoStart=True, log=False):
         """Replay the movie from the beginning.
