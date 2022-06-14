@@ -75,7 +75,6 @@ class DlgCodeComponentProperties(wx.Dialog):
         #   and also can't be killed
 
         openToPage = None
-        tabN = -1
         for paramN, paramName in enumerate(self.order):
             param = self.params.get(paramName)
             if paramName == 'name':
@@ -116,9 +115,9 @@ class DlgCodeComponentProperties(wx.Dialog):
                     _panel = self.tabs[tabName]
                 else:
                     _panel = wx.Panel(self.codeNotebook, wx.ID_ANY)
+                    _panel.tabN = len(self.tabs)
                     _panel.app = self.app
                     self.tabs[tabName] = _panel
-                    tabN += 1
 
                 self.codeBoxes[paramName] = CodeBox(_panel, wx.ID_ANY,
                                                     pos=wx.DefaultPosition,
@@ -129,9 +128,9 @@ class DlgCodeComponentProperties(wx.Dialog):
                 self.codeBoxes[paramName].AddText(param.val)
                 self.codeBoxes[paramName].Bind(wx.EVT_KEY_UP, self.onKeyUp)  # For real time translation
 
-                if len(param.val.strip()) and openToPage is None:
+                if len(param.val.strip()) and openToPage is None and hasattr(_panel, "tabN"):
                     # index of first non-blank page
-                    openToPage = tabN
+                    openToPage = _panel.tabN
 
         if self.helpUrl is not None:
             self.helpButton = wx.Button(self, wx.ID_HELP,
