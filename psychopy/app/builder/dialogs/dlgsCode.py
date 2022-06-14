@@ -128,9 +128,10 @@ class DlgCodeComponentProperties(wx.Dialog):
                 self.codeBoxes[paramName].AddText(param.val)
                 self.codeBoxes[paramName].Bind(wx.EVT_KEY_UP, self.onKeyUp)  # For real time translation
 
-                if len(param.val.strip()) and openToPage is None and hasattr(_panel, "tabN"):
-                    # index of first non-blank page
-                    openToPage = _panel.tabN
+                if len(param.val.strip()) and hasattr(_panel, "tabN"):
+                    if openToPage is None or openToPage > _panel.tabN:
+                        # index of first non-blank page
+                        openToPage = _panel.tabN
 
         if self.helpUrl is not None:
             self.helpButton = wx.Button(self, wx.ID_HELP,
