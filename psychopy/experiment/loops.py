@@ -24,7 +24,48 @@ from psychopy.localization import _localized, _translate
 from psychopy.experiment.params import Param
 from .components import getInitVals, getAllComponents
 
-class TrialHandler():
+
+class _BaseLoopHandler:
+
+    def writeInitCode(self, buff):
+        # no longer needed - initialise the trial handler just before it runs
+        pass
+
+    def writeInitCodeJS(self, buff):
+        pass
+
+    def writeLoopEndIterationCodeJS(self, buff):
+        """Ends this iteration of a loop (calling nextEntry if needed)"""
+        endLoopInteration = (f"\nfunction {self.name}LoopEndIteration(scheduler, snapshot) {{\n"
+                             "  // ------Prepare for next entry------\n"
+                             "  return async function () {\n")
+        # check if the loop has ended prematurely and stop() if needed
+        endLoopInteration += (
+                             "    if (typeof snapshot !== 'undefined') {\n"
+                             "      // ------Check if user ended loop early------\n"
+                             "      if (snapshot.finished) {\n"
+                             "        // Check for and save orphaned data\n"
+                             "        if (psychoJS.experiment.isEntryEmpty()) {\n"
+                             "          psychoJS.experiment.nextEntry(snapshot);\n"
+                             "        }\n"
+                             "        scheduler.stop();\n")
+        # if isTrials then always perform experiment.nextEntry
+        if self.params['isTrials']:
+            endLoopInteration += (
+                             "      } else {\n"
+                             "        psychoJS.experiment.nextEntry(snapshot);\n")
+        # then always close the loop and return NEXT to scheduler
+        endLoopInteration += (
+                             "      }\n"
+                             "    return Scheduler.Event.NEXT;\n"
+                             "    }\n"
+                             "  };\n"
+                             "}\n")
+
+        buff.writeIndentedLines(endLoopInteration)
+
+
+class TrialHandler(_BaseLoopHandler):
     """A looping experimental control object
             (e.g. generating a psychopy TrialHandler or StairHandler).
             """
@@ -104,13 +145,6 @@ class TrialHandler():
             hint=_translate("Indicates that this loop generates TRIALS, "
                             "rather than BLOCKS of trials or stimuli within "
                             "a trial. It alters how data files are output"))
-
-    def writeInitCode(self, buff):
-        # no longer needed - initialise the trial handler just before it runs
-        pass
-
-    def writeInitCodeJS(self, buff):
-        pass
 
     def writeLoopStartCode(self, buff):
         """Write the code to create and run a sequence of trials
@@ -262,7 +296,7 @@ class TrialHandler():
                             loopName=self.params['name'])
                     )
 
-        code += "  {loopName}LoopScheduler.add(endLoopIteration({loopName}LoopScheduler, snapshot));\n"
+        code += "  {loopName}LoopScheduler.add({loopName}LoopEndIteration({loopName}LoopScheduler, snapshot));\n"
         code += "}}%s\n" % ([');', ''][modular])
         code += ("\n"
                  "return Scheduler.Event.NEXT;\n")
@@ -345,7 +379,7 @@ class TrialHandler():
         return self.params['name'].val
 
 
-class StairHandler:
+class StairHandler(_BaseLoopHandler):
     """A staircase experimental control object.
     """
 
@@ -491,7 +525,7 @@ class StairHandler:
         return 'StairHandler'
 
 
-class MultiStairHandler:
+class MultiStairHandler(_BaseLoopHandler):
     """To handle multiple interleaved staircases
     """
 
@@ -646,7 +680,7 @@ class MultiStairHandler:
         buff.setIndentLevel(1, relative=True)
         thisLoop = self.exp.flow.loopDict[self]
         buff.writeIndentedLines(
-                        "%(name)sLoopScheduler.add(%(name)sLoopStartIteration(snapshot));\n" % inits)
+                        "%(name)sLoopScheduler.add(%(name)sLoopBeginIteration(snapshot));\n" % inits)
         for thisChild in thisLoop:
             if thisChild.getType() == 'Routine':
                 code = (
@@ -655,7 +689,6 @@ class MultiStairHandler:
                         "{loopName}LoopScheduler.add({childName}RoutineBegin(snapshot));\n"
                         "{loopName}LoopScheduler.add({childName}RoutineEachFrame());\n"
                         "{loopName}LoopScheduler.add({childName}RoutineEnd());\n"
-                        "{loopName}LoopScheduler.add(endLoopIteration({loopName}LoopScheduler, snapshot));\n"
                         .format(childName=thisChild.params['name'],
                                 loopName=self.params['name'])
                     )
@@ -667,18 +700,19 @@ class MultiStairHandler:
                         "{loopName}LoopScheduler.add({childName}LoopBegin({childName}LoopScheduler, snapshot));\n"
                         "{loopName}LoopScheduler.add({childName}LoopScheduler);\n"
                         "{loopName}LoopScheduler.add({childName}LoopEnd);\n"
-                        "{loopName}LoopScheduler.add(endLoopIteration({loopName}LoopScheduler, snapshot));\n"
                         .format(childName=thisChild.params['name'],
                                 loopName=self.params['name'])
                         )
             buff.writeIndentedLines(code % inits)
 
         buff.setIndentLevel(-1, relative=True)
-        code = (
+
+        code = ("// then iterate over this loop (%(name)s)\n"
+                "%(name)sLoopScheduler.add(%(name)sLoopEndIteration(%(name)sLoopScheduler, snapshot));\n"
                 "}"
                 "\n\n"
-                "return Scheduler.Event.NEXT;\n"                
-        )
+                "return Scheduler.Event.NEXT;\n"
+                )
         buff.writeIndentedLines(code % inits)
 
         buff.setIndentLevel(-1, relative=True)
@@ -692,9 +726,6 @@ class MultiStairHandler:
             "}"
         )
         buff.writeIndentedLines(code % inits)
-
-        # for multistair we also need to write the function to start each loop iteration
-        self.writeLoopStartIterationJS(buff)
 
 
     def writeLoopEndCode(self, buff):
@@ -715,8 +746,8 @@ class MultiStairHandler:
                         "delim=',')\n")
                 buff.writeIndented(code % self.params)
 
-    def writeLoopStartIterationJS(self, buff):
-        startLoopInteration = (f"\nfunction {self.name}LoopStartIteration(snapshot) {{\n"
+    def writeLoopBeginIterationCodeJS(self, buff):
+        startLoopInteration = (f"\nfunction {self.name}LoopBeginIteration(snapshot) {{\n"
                                f"  return async function() {{\n"
                                f"    // ------Prepare for next entry------\n"
                                f"    level = {self.name}.intensity;\n\n"
@@ -825,6 +856,9 @@ class LoopInitiator:
 
     def writeMainCodeJS(self, buff, modular):
         self.loop.writeLoopStartCodeJS(buff, modular)
+        # some loops do extra things in their beginIteration
+        if hasattr(self.loop, 'writeLoopBeginIterationCodeJS'):
+            self.loop.writeLoopBeginIterationCodeJS(buff)
         # we are now the inner-most loop
         self.exp.flow._loopList.append(self.loop)
 
@@ -867,6 +901,7 @@ class LoopTerminator:
 
     def writeMainCodeJS(self, buff, modular):
         self.loop.writeLoopEndCodeJS(buff)
+        self.loop.writeLoopEndIterationCodeJS(buff)
         # _loopList[-1] will now be the inner-most loop
         self.exp.flow._loopList.remove(self.loop)
 
