@@ -463,6 +463,10 @@ class PavloviaSearch(pandas.DataFrame):
         def __str__(self):
             # Start off with blank str
             terms = ""
+            # Synonymise visibility unspecified with visibility all ticked (compensate for back-end being
+            # exploration focussed)
+            if "Visibility" not in self or not self['Visibility']:
+                self['Visibility'] = ["owned", "private", "public"]
             # Iterate through values
             for key, value in self.items():
                 # Ensure value is iterable and mutable
