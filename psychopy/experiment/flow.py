@@ -224,7 +224,7 @@ class Flow(list):
         code = ("\n# Create some handy timers\n"
                 "globalClock = core.Clock()  # to track the "
                 "time since experiment started\n"
-                "routineTimer = core.CountdownTimer()  # to "
+                "routineTimer = core.Clock()  # to "
                 "track time remaining of each (non-slip) routine \n")
         script.writeIndentedLines(code)
         # run-time code
