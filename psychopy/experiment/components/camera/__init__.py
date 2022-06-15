@@ -194,7 +194,7 @@ class CameraComponent(BaseComponent):
             "%(name)s.stop()\n"
         )
         buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
+        buff.setIndentLevel(-2, relative=True)
 
     def writeFrameCodeJS(self, buff):
         # Start webcam at component start
