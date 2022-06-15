@@ -195,6 +195,19 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._autoStart = bool(value)
 
     @property
+    def frameSize(self):
+        """Movie frame size/resolution (w, h) in pixels (`tuple`). Only valid
+        after calling `load()`.
+        """
+        return self._player.metadata.size
+
+    @property
+    def frameRate(self):
+        """Frame rate of the movie in Hertz (`float`).
+        """
+        return self._player.metadata.frameRate
+
+    @property
     def _hasPlayer(self):
         """`True` if a media player instance is started.
         """
@@ -217,6 +230,9 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         self._filename = filename
         self._player.load(self._filename)
+
+        self._freeBuffers()  # free buffers (if any) before creating a new one
+        self._setupTextureBuffers()
 
     @property
     def frameTexture(self):
@@ -244,7 +260,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         # only do a pixel transfer on valid frames
         if self._recentFrame is not NULL_MOVIE_FRAME_INFO:
-            self._setupTextureBuffers()
+
             self._pixelTransfer()
 
         return self._recentFrame
@@ -356,6 +372,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         """
         self._player.stop(log=log)
+        self._freeBuffers()  # free buffer before creating a new one
 
     def seek(self, timestamp, log=True):
         """Seek to a particular timestamp in the movie.
@@ -564,8 +581,6 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         `_freeBuffers` first.
 
         """
-        self._freeBuffers()  # free buffer before creating a new one
-
         # get the size of the movie frame and compute the buffer size
         vidWidth, vidHeight = self._player.getMetadata().size
         nBufferBytes = vidWidth * vidHeight * 3
@@ -694,10 +709,13 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         GL.glDisable(GL.GL_TEXTURE_2D)
 
     def _drawRectangle(self):
-        """Draw the video frame to the window. This is called by the `draw()`
-        method.
+        """Draw the video frame to the window.
+
+        This is called by the `draw()` method to blit the video to the display
+        window.
+
         """
-        # make sure that textures are on and GL_TEXTURE0 is activ
+        # make sure that textures are on and GL_TEXTURE0 is active
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glActiveTexture(GL.GL_TEXTURE0)
 
