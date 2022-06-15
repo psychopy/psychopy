@@ -78,12 +78,14 @@ class SerialOutComponent(BaseComponent):
             label=_translate('Timeout'))
 
         self.params['startdata'] = Param(
-            startdata, valType='code', inputType="single", allowedTypes=[], categ='Basic',
-            hint=_translate("Data to be sent at start of pulse"),
+            startdata, valType='str', inputType="single", allowedTypes=[], categ='Basic',
+            hint=_translate("Data to be sent at start of pulse. Data will be converted to bytes, so to specify a"
+                            "numeric value directly use $chr(...)."),
             label=_translate('Start data'))
         self.params['stopdata'] = Param(
-            stopdata, valType='code', inputType="single", allowedTypes=[], categ='Basic',
-            hint=_translate("Data to be sent at end of pulse"),
+            stopdata, valType='str', inputType="single", allowedTypes=[], categ='Basic',
+            hint=_translate("String data to be sent at end of pulse. Data will be converted to bytes, so to specify a"
+                            "numeric value directly use $chr(...)."),
             label=_translate('Stop data'))
         self.params['getResponse'] = Param(
             getResponse, valType='bool', inputType='bool', categ="Data",
@@ -136,11 +138,11 @@ class SerialOutComponent(BaseComponent):
         self.writeStartTestCode(buff)
         if self.params['syncScreen']:
             code = (
-                "win.callOnFlip(%(name)s.write, %(startdata)s)\n"
+                "win.callOnFlip(%(name)s.write, bytes(%(startdata)s, 'utf8'))\n"
             )
         else:
             code = (
-                "%(name)s.write(%(startdata)s)\n"
+                "%(name)s.write(bytes(%(startdata)s, 'utf8'))\n"
             )
         buff.writeIndented(code % params)
         # Update status
@@ -161,11 +163,11 @@ class SerialOutComponent(BaseComponent):
         self.writeStopTestCode(buff)
         if self.params['syncScreen']:
             code = (
-                "win.callOnFlip(%(name)s.write, %(stopdata)s)\n"
+                "win.callOnFlip(%(name)s.write, bytes(%(stopdata)s, 'utf8'))\n"
             )
         else:
             code = (
-                "%(name)s.write(%(stopdata)s)\n"
+                "%(name)s.write(bytes(%(stopdata)s, 'utf8'))\n"
             )
         buff.writeIndented(code % params)
         # Update status
