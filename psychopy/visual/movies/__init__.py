@@ -10,22 +10,15 @@
 
 __all__ = ['MovieStim']
 
-import os
-import sys
-import threading
+
 import ctypes
-import weakref
-import math
-import time
-import queue
 from pathlib import Path
 
-from psychopy import core, logging, prefs
-from psychopy.clock import Clock, getTime
-from psychopy.tools.attributetools import logAttrib, setAttribute
+from psychopy import prefs
+from psychopy.clock import getTime
 from psychopy.tools.filetools import pathToString
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin, ColorMixin
-from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED, STOPPING
+from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 
 from .players import getMoviePlayer
 from .metadata import MovieMetadata, NULL_MOVIE_METADATA
@@ -136,18 +129,11 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         # playback stuff
         self._filename = pathToString(filename)
-        self._videoClock = Clock()
-        self._absMovieStartTime = -1.0
-
-        # absolute experiment time playback was last started
-        self._lastPlayStartAbsTime = -1.0
-
         self._volume = volume
         self._noAudio = noAudio  # cannot be changed
-        self._currentFrame = -1
-        self._loopCount = 0
         self.loop = loop
-        self._recentFrame = NULL_MOVIE_FRAME_INFO
+        self._recentFrame = None
+        self._autoStart = autoStart
 
         # OpenGL data
         self.interpolate = True
@@ -159,22 +145,10 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # get the player interface for the desired `movieLib` and instance it
         self._player = getMoviePlayer(movieLib)(self)
 
-        self.nDroppedFrames = 0
-        self._autoStart = autoStart
-
         # load a file if provided, otherwise the user must call `setMovie()`
         self._filename = pathToString(filename)
         if self._filename:  # load a movie if provided
             self.loadMovie(self._filename)
-
-    # @property
-    # def status(self):
-    #     """Status flag for playback (`int`).
-    #     """
-    #     if self._player is not None:
-    #         return self._player.status
-    #
-    #     return NOT_STARTED
 
     @property
     def filename(self):
@@ -193,13 +167,6 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
     @autoStart.setter
     def autoStart(self, value):
         self._autoStart = bool(value)
-
-    @property
-    def frameSize(self):
-        """Movie frame size/resolution (w, h) in pixels (`tuple`). Only valid
-        after calling `load()`.
-        """
-        return self._player.metadata.size
 
     @property
     def frameRate(self):
@@ -259,8 +226,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._recentFrame = self._player.getMovieFrame()
 
         # only do a pixel transfer on valid frames
-        if self._recentFrame is not NULL_MOVIE_FRAME_INFO:
-
+        if self._recentFrame is not None:
             self._pixelTransfer()
 
         return self._recentFrame
@@ -287,10 +253,9 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """
         self._selectWindow(self.win if win is None else win)
 
-        #if self._hasPlayer:  # do nothing if a video is not loaded
-            # video is not started yet
-            # if self._autoStart and self._hasPlayer:
-            #     self.play()
+        # handle autoplay
+        if self._autoStart and self.status == NOT_STARTED:
+            self.play()
 
         # update the video frame and draw it to a quad
         _ = self.updateVideoFrame()
@@ -343,8 +308,10 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         """
         # get the absolute experiment time the first frame is to be presented
+        if self.status == NOT_STARTED:
+            self._player.volume = self._volume
+
         self._player.play(log=log)
-        self._absMovieStartTime = getTime()
 
     def pause(self, log=True):
         """Pause the current point in the movie. The image of the last frame
@@ -503,22 +470,34 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
     def getCurrentFrameNumber(self):
         """Get the current movie frame number (`int`), same as `frameIndex`.
         """
-        pass
+        return self.frameIndex
 
     @property
     def duration(self):
         """Duration of the loaded video in seconds (`float`). Not valid unless
         the video has been started.
         """
-        duration = self._metadata.get('duration', 0.0)
-        return float(duration) if isinstance(duration, str) else duration
+        if not self._player:
+            return -1.0
+
+        return self._player.metadata.duration
 
     @property
     def loopCount(self):
-        """Number of loops completed since playback started (`int`). This value
-        is reset when either `stop` or `loadMovie` is called.
+        """Number of loops completed since playback started (`int`). Incremented
+        each time the movie begins another loop.
+
+        Examples
+        --------
+        Compute how long a looping video has been playing until now::
+
+            totalMovieTime = (mov.loopCount + 1) * mov.pts
+
         """
-        return self._loopCount
+        if not self._player:
+            return -1
+
+        return self._player.loopCount
 
     @property
     def fps(self):
@@ -534,18 +513,48 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
             Nominal number of frames to be displayed per second.
 
         """
-        pass
+        if not self._player:
+            return 1.0
 
-    # @property
-    # def frameTime(self):
-    #     """Current frame time in seconds (`float`)."""
-    #     return self._frameTime
+        return self._player.metadata.frameRate
 
     @property
     def videoSize(self):
         """Size of the video `(w, h)` in pixels (`tuple`). Returns `(0, 0)` if
-        no video is loaded."""
-        return self._metadata.get('src_vid_size', (0, 0))
+        no video is loaded.
+        """
+        if not self._player:
+            return 0, 0
+
+        return self._player.metadata.size
+
+    @property
+    def frameSize(self):
+        """Size of the video `(w, h)` in pixels (`tuple`). Alias of `videoSize`.
+        """
+        if not self._player:
+            return 0, 0
+
+        return self._player.metadata.size
+
+    @property
+    def pts(self):
+        """Presentation timestamp of the most recent frame (`float`).
+
+        This value corresponds to the time in movie/stream time the frame is
+        scheduled to be presented.
+
+        """
+        if not self._player:
+            return -1.0
+
+        return self._player.pts
+
+    def getPercentageComplete(self):
+        """Provides a value between 0.0 and 100.0, indicating the amount of the
+        movie that has been already played (`float`).
+        """
+        return (self.pts / self.duration) * 100.0
 
     # --------------------------------------------------------------------------
     # OpenGL and rendering
