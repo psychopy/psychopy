@@ -240,6 +240,13 @@ class CameraComponent(BaseComponent):
             buff.writeIndentedLines(code % self.params)
 
     def writeRoutineEndCodeJS(self, buff):
+        code = (
+            "// Ensure that %(name)s is stopped\n"
+            "if (%(name)s.status === PsychoJS.Status.STARTED) {\n"
+            "    await %(name)s.stop()\n"
+            "}\n"
+        )
+        buff.writeIndentedLines(code % self.params)
         if self.params['saveFile']:
             code = (
             "// Save %(name)s recording\n"
