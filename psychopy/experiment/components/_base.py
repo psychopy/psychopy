@@ -293,14 +293,14 @@ class BaseComponent:
         if self.type != "Sound":
             # for sounds, don't update to actual frame time because it will start
             # on the *expected* time of the flip
-            code += (f"win.timeOnFlip({params['name']}, 'started')"
+            code += (f"win.timeOnFlip({params['name']}, 'tStartRefresh')"
                      f"  # time at next scr refresh\n")
         if self.params['saveStartStop']:
             code += f"# add timestamp to datafile\n"
-            if self.type=='Sound' and self.params['syncToScreen']:
+            if self.type=='Sound' and self.params['syncScreenRefresh']:
                 # use the time we *expect* the flip
                 code += f"thisExp.addData('{params['name']}.started', tThisFlipGlobal)\n"
-            elif 'syncToScreen' in self.params and self.params['syncToScreen']:
+            elif 'syncScreenRefresh' in self.params and self.params['syncScreenRefresh']:
                 # use the time we *detect* the flip (in the future)
                 code += f"thisExp.timestampOnFlip(win, '{params['name']}.started')\n"
             else:
@@ -376,7 +376,7 @@ class BaseComponent:
                 )
         if self.params['saveStartStop']:
             code += f"# add timestamp to datafile\n"
-            if 'syncToScreen' in self.params and self.params['syncToScreen']:
+            if 'syncScreenRefresh' in self.params and self.params['syncScreenRefresh']:
                 # use the time we *detect* the flip (in the future)
                 code += f"thisExp.timestampOnFlip(win, '{params['name']}.stopped')\n"
             else:
