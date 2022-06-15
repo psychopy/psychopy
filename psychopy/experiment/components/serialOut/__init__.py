@@ -180,7 +180,7 @@ class SerialOutComponent(BaseComponent):
             )
             buff.writeIndented(code % params)
         # Dedent
-        buff.setIndentLevel(-1, relative=True)
+        buff.setIndentLevel(-2, relative=True)
 
     def writeExperimentEndCode(self, buff):
         # Close the port
