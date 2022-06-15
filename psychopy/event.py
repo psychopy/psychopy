@@ -650,7 +650,7 @@ class Mouse():
             lastPosPix[1] = self.win.size[1] / 2 - lastPosPix[1]
             lastPosPix[0] = lastPosPix[0] - self.win.size[0] / 2
             self.lastPos = self._pix2windowUnits(lastPosPix)
-        elif useGLFW:
+        elif useGLFW and self.win.winType=='glfw':
             lastPosPix[:] = self.win.backend.getMousePos()
             if self.win.useRetina:
                 lastPosPix *= 2.0
