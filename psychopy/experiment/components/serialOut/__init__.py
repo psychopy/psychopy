@@ -143,6 +143,11 @@ class SerialOutComponent(BaseComponent):
                 "%(name)s.write(%(startdata)s)\n"
             )
         buff.writeIndented(code % params)
+        # Update status
+        code = (
+            "%(name)s.status = STARTED\n"
+        )
+        buff.writeIndented(code % params)
         # If we want responses, get them
         if self.params['getResponse']:
             code = (
@@ -162,6 +167,11 @@ class SerialOutComponent(BaseComponent):
             code = (
                 "%(name)s.write(%(stopdata)s)\n"
             )
+        buff.writeIndented(code % params)
+        # Update status
+        code = (
+            "%(name)s.status = FINISHED\n"
+        )
         buff.writeIndented(code % params)
         # If we want responses, get them
         if self.params['getResponse']:
