@@ -143,6 +143,11 @@ class SerialOutComponent(BaseComponent):
                 "%(name)s.write(%(startdata)s)\n"
             )
         buff.writeIndented(code % params)
+        # Update status
+        code = (
+            "%(name)s.status = STARTED\n"
+        )
+        buff.writeIndented(code % params)
         # If we want responses, get them
         if self.params['getResponse']:
             code = (
@@ -163,6 +168,11 @@ class SerialOutComponent(BaseComponent):
                 "%(name)s.write(%(stopdata)s)\n"
             )
         buff.writeIndented(code % params)
+        # Update status
+        code = (
+            "%(name)s.status = FINISHED\n"
+        )
+        buff.writeIndented(code % params)
         # If we want responses, get them
         if self.params['getResponse']:
             code = (
@@ -170,7 +180,7 @@ class SerialOutComponent(BaseComponent):
             )
             buff.writeIndented(code % params)
         # Dedent
-        buff.setIndentLevel(-1, relative=True)
+        buff.setIndentLevel(-2, relative=True)
 
     def writeExperimentEndCode(self, buff):
         # Close the port
