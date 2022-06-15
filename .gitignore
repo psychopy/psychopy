@@ -1,5 +1,4 @@
-*
-@ -1,110 +1,3 @@
+
 #########################################
 # Editor temporary/working/backup files #
 .#*
@@ -19,7 +18,6 @@
 /.cache
 /.idea
 /.untitled.py
-*
 
 # Compiled source #
 ###################
