@@ -1340,8 +1340,8 @@ class SettingsComponent:
         winType = self.exp.prefsGeneral['winType']
 
         code = ("win = visual.Window(\n    size=%s, fullscr=%s, screen=%s, "
-                "\n    winType='%s', allowGUI=%s, allowStencil=%s,\n")
-        vals = (size, fullScr, screenNumber, winType, allowGUI, allowStencil)
+                "\n    winType='%s', allowStencil=%s,\n")
+        vals = (size, fullScr, screenNumber, winType, allowStencil)
         buff.writeIndented(code % vals)
 
         code = ("    monitor=%(Monitor)s, color=%(color)s, "
@@ -1353,6 +1353,11 @@ class SettingsComponent:
             code += "    units=%(Units)s"
         code = code.rstrip(', \n') + ')\n'
         buff.writeIndentedLines(code % self.params)
+        # Show/hide mouse according to param
+        code = (
+            "win.mouseVisible = %s\n"
+        )
+        buff.writeIndentedLines(code % allowGUI)
 
         # Import here to avoid circular dependency!
         from psychopy.experiment._experiment import RequiredImport
