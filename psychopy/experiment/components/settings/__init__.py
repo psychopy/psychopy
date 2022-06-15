@@ -161,7 +161,7 @@ class SettingsComponent:
                       'Save psydat file', 'Save hdf5 file', 'Save log file', 'logging level',  # Data tab
                       'Audio lib', 'Audio latency priority', "Force stereo",  # Audio tab
                       'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'Resources',  # Online tab
-                      'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Units', 'color',
+                      'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Show mouse', 'Units', 'color',
                       'colorSpace',  # Screen tab
                       ]
         self.depends = []
@@ -250,8 +250,16 @@ class SettingsComponent:
             label=_localized["blendMode"], categ='Screen')
         self.params['Show mouse'] = Param(
             showMouse, valType='bool', inputType="bool", allowedTypes=[],
-            hint=_translate("Should the mouse be visible on screen?"),
+            hint=_translate("Should the mouse be visible on screen? Only applicable for fullscreen experiments."),
             label=_localized["Show mouse"], categ='Screen')
+        # self.depends.append(
+        #     {"dependsOn": 'Full-screen window',  # must be param name
+        #      "condition": "==True",  # val to check for
+        #      "param": 'Show mouse',  # param property to alter
+        #      "true": "show",  # what to do with param if condition is True
+        #      "false": "hide",  # permitted: hide, show, enable, disable
+        #      }
+        # )
 
         # sound params
         self.params['Force stereo'] = Param(
