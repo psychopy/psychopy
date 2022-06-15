@@ -242,18 +242,6 @@ class BaseComponent:
 
             loop = currLoop.params['name']
             name = self.params['name']
-            if self.params['syncScreenRefresh'].val:
-                code = (
-                    f"{loop}.{addDataFunc}('{name}.started', {name}.tStartRefresh)\n"
-                    f"{loop}.{addDataFunc}('{name}.stopped', {name}.tStopRefresh)\n"
-                )
-            else:
-                code = (
-                    f"{loop}.{addDataFunc}('{name}.started', {name}.tStart)\n"
-                    f"{loop}.{addDataFunc}('{name}.stopped', {name}.tStop)\n"
-                )
-
-            buff.writeIndentedLines(code)
 
     def writeRoutineEndCodeJS(self, buff):
         """Write the code that will be called at the end of
@@ -300,10 +288,24 @@ class BaseComponent:
         code = (f"# keep track of start time/frame for later\n"
                 f"{params['name']}.frameNStart = frameN  # exact frame index\n"
                 f"{params['name']}.tStart = t  # local t and not account for scr refresh\n"
-                f"{params['name']}.tStartRefresh = tThisFlipGlobal  # on global time\n")
-        if self.type != "Sound":  # for sounds, don't update to actual frame time
-                code += (f"win.timeOnFlip({params['name']}, 'tStartRefresh')"
-                         f"  # time at next scr refresh\n")
+                f"{params['name']}.tStartRefresh = tThisFlipGlobal  # on global time\n"
+                )
+        if self.type != "Sound":
+            # for sounds, don't update to actual frame time because it will start
+            # on the *expected* time of the flip
+            code += (f"win.timeOnFlip({params['name']}, 'tStartRefresh')"
+                     f"  # time at next scr refresh\n")
+        if self.params['saveStartStop']:
+            code += f"# add timestamp to datafile\n"
+            if self.type=='Sound' and self.params['syncScreenRefresh']:
+                # use the time we *expect* the flip
+                code += f"thisExp.addData('{params['name']}.started', tThisFlipGlobal)\n"
+            elif 'syncScreenRefresh' in self.params and self.params['syncScreenRefresh']:
+                # use the time we *detect* the flip (in the future)
+                code += f"thisExp.timestampOnFlip(win, '{params['name']}.started')\n"
+            else:
+                # use the time ignoring any flips
+                code += f"thisExp.addData('{params['name']}.started', t)\n"
         buff.writeIndentedLines(code)
 
     def writeStartTestCodeJS(self, buff):
@@ -371,8 +373,15 @@ class BaseComponent:
         code = (f"# keep track of stop time/frame for later\n"
                 f"{params['name']}.tStop = t  # not accounting for scr refresh\n"
                 f"{params['name']}.frameNStop = frameN  # exact frame index\n"
-                f"win.timeOnFlip({params['name']}, 'tStopRefresh')"
-                f"  # time at next scr refresh\n")
+                )
+        if self.params['saveStartStop']:
+            code += f"# add timestamp to datafile\n"
+            if 'syncScreenRefresh' in self.params and self.params['syncScreenRefresh']:
+                # use the time we *detect* the flip (in the future)
+                code += f"thisExp.timestampOnFlip(win, '{params['name']}.stopped')\n"
+            else:
+                # use the time ignoring any flips
+                code += f"thisExp.addData('{params['name']}.stopped', t)\n"
         buff.writeIndentedLines(code)
 
     def writeStopTestCodeJS(self, buff):
