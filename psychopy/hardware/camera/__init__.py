@@ -946,6 +946,10 @@ class Camera:
         """
         return self._status
 
+    @status.setter
+    def status(self, value):
+        self._status = value
+
     @property
     def outFile(self):
         """Output file for the video stream (`str`).
