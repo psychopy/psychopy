@@ -284,13 +284,21 @@ class MovieComponent(BaseVisualComponent):
         # buff.writeIndented(
         #     "%s.seek(0.00001)  # make sure we're at the start\n"
         #     % (self.params['name']))
-        buff.writeIndented("%s.setAutoDraw(True)\n" % self.params['name'])
+        code = (
+            "%(name)s.setAutoDraw(True)\n"
+            "%(name)s.play()\n"
+        )
+        buff.writeIndentedLines(code % self.params)
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-1, relative=True)
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCode(buff)
-            buff.writeIndented("%(name)s.setAutoDraw(False)\n" % self.params)
+            code = (
+                "%(name)s.setAutoDraw(False)\n"
+                "%(name)s.stop()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
             # to get out of the if statement
             buff.setIndentLevel(-2, relative=True)
         # set parameters that need updating every frame
