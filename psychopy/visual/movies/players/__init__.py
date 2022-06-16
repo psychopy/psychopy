@@ -10,12 +10,13 @@
 
 __all__ = ["getMoviePlayer"]
 
+import psychopy.logging as logging
 from ._base import BaseMoviePlayer
 from .ffpyplayer_player import FFPyPlayer
 
 # Players available, you must update this list to make players discoverable by
 # the `MovieStim` class when the user specifies `movieLib`.
-_players = {'Null': None, 'ffpyplayer': FFPyPlayer}
+_players = {'Null': None}
 PREFERRED_VIDEO_LIB = 'ffpyplayer'
 
 
@@ -38,6 +39,14 @@ def getMoviePlayer(movieLib):
     if not isinstance(movieLib, str):  # type check
         raise TypeError(
             "Invalid type for parameter `movieLib`. Must have type `str`.")
+
+    global _players
+    try:
+        from .ffpyplayer_player import FFPyPlayer
+        _players['ffpyplayer'] = FFPyPlayer
+    except ImportError:
+        logging.warn("Cannot import library `ffpyplayer`, backend is "
+                     "unavailable.")
 
     # get a reference to the player object
     reqPlayer = _players.get(movieLib, None)
