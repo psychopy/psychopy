@@ -645,6 +645,9 @@ class Camera:
              '_codecOpts': None,
              '_libOpts': None})
 
+        # alias device None or Default as being device 0
+        if device in (None, "None", "none", "Default", "default"):
+            device = 0
         # resolve getting the camera identifier
         if isinstance(device, int):  # get camera if integer
             try:

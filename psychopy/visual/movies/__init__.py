@@ -159,6 +159,9 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
     def filename(self, value):
         self.loadMovie(value)
 
+    def setMovie(self, value):
+        self.loadMovie(value)
+
     @property
     def autoStart(self):
         """Start playback when `.draw()` is called (`bool`)."""
@@ -194,6 +197,9 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # If given `default.mp4`, sub in full path
         if filename == "default.mp4":
             filename = Path(prefs.paths['resources']) / "default.mp4"
+        # If given a recording component, use its last clip
+        if hasattr(filename, "lastClip"):
+            filename = filename.lastClip
 
         self._filename = filename
         self._player.load(self._filename)
