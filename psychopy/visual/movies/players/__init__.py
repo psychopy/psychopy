@@ -12,7 +12,6 @@ __all__ = ["getMoviePlayer"]
 
 import psychopy.logging as logging
 from ._base import BaseMoviePlayer
-from .ffpyplayer_player import FFPyPlayer
 
 # Players available, you must update this list to make players discoverable by
 # the `MovieStim` class when the user specifies `movieLib`.
