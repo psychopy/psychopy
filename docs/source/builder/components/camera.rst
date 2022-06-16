@@ -13,6 +13,10 @@ The resulting video files are saved in .mp4 format if recorded locally and saved
 **Note: For online experiments, the recordings can only be downloaded from the "Download results" button from the study's Pavlovia page.**
 
 
+For a demo in builder mode, after unpacking the demos, click on Demos > Feature Demos > camera.
+For a demo in coder mode, click on Demos > hardware > camera.py
+
+
 Parameters
 ~~~~~~~~~~~~
 
