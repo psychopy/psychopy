@@ -7,9 +7,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-
-
-
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
 # up by the pyglet GL engine and have no effect.
@@ -28,7 +25,6 @@ import psychopy  # so we can get the __path__
 from psychopy import logging, colors
 
 from psychopy.tools.attributetools import attributeSetter, setAttribute
-from psychopy.tools.arraytools import val2array
 from psychopy.visual.basevisual import BaseVisualStim
 from psychopy.visual.basevisual import (ContainerMixin, ColorMixin,
                                         TextureMixin)
@@ -392,17 +388,17 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
                 forcePOW2=False,
                 wrapping=False)
 
-        # for camera and movie textures get the size of the video frame
-        if hasattr(value, 'getVideoFrame'):
-            self.size = Size(numpy.array(value.frameSize),
-                             units='pix',
-                             win=self.win)  # set size to default
-
         # if user requested size=None then update the size for new stim here
-        if hasattr(self, '_requestedSize') and self._requestedSize is None:
-            self.size = Size(numpy.array(self._origSize),
-                             units='pix',
-                             win=self.win)  # set size to default
+        if self._requestedSize is None:
+            if hasattr(self, '_requestedSize'):
+                self.size = Size(numpy.array(self._origSize),
+                                 units='pix',
+                                 win=self.win)  # set size to default
+            # for camera and movie textures get the size of the video frame
+            elif hasattr(value, 'getVideoFrame'):
+                self.size = Size(numpy.array(value.frameSize),
+                                 units='pix',
+                                 win=self.win)  # set size to default
 
         # if we switched to/from lum image then need to update shader rule
         if wasLumImage != self.isLumImage:

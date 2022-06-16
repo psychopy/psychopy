@@ -1136,7 +1136,7 @@ class Camera:
                 _camera = 'video={}'.format(self._device)
             elif platform.system() == 'Darwin':
                 ff_opts['f'] = 'avfoundation'  # AVF specific stuff
-                _camera = 'default'
+                _camera = str(self._device)
 
             # get device configuration options
             camW, camH = self._size
@@ -1155,7 +1155,7 @@ class Camera:
                 'rtbufsize': str(bufferSize)}
             )
         else:
-            _camera = self._device
+            _camera = self._device  # on linux we just open the stream for now
 
         # open a stream and pause it until ready
         self._player = MediaPlayer(_camera, ff_opts=ff_opts, lib_opts=lib_opts)
