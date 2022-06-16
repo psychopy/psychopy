@@ -19,11 +19,13 @@ import platform
 import numpy as np
 import tempfile
 import os
+import os.path
 import shutil
 from psychopy.constants import STOPPED, NOT_STARTED, RECORDING
 from psychopy.visual.movies.metadata import MovieMetadata, NULL_MOVIE_METADATA
 from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
 from psychopy.sound.microphone import Microphone
+import psychopy.logging as logging
 from ffpyplayer.player import MediaPlayer
 from ffpyplayer.writer import MediaWriter
 from ffpyplayer.pic import SWScale
@@ -767,6 +769,11 @@ class Camera:
         # along to a movie player
         self._lastClip = None
 
+        # Keep track of temp dirs to clean up on error to prevent accumulating
+        # files on the user's disk. On error during recordings we will clear
+        # these files out.
+        self._tempDirs = []
+
     def authorize(self):
         """Get permission to access the camera. Not implemented locally yet.
         """
@@ -888,6 +895,7 @@ class Camera:
             suffix=randFileName,
             prefix='psychopy-',
             dir=None)
+        self._tempDirs.append(self._tempRootDir)  # keep track for clean-up
         self._tempVideoFileName = os.path.join(
             self._tempRootDir, CAMERA_TEMP_FILE_VIDEO)
         self._tempAudioFileName = os.path.join(
@@ -1170,11 +1178,17 @@ class Camera:
 
     def record(self):
         """Start recording frames.
+
+        Warnings
+        --------
+        If a recording has been previously made without calling `save()` it will
+        be discarded if `record()` is called again.
+
         """
         self._assertMediaPlayer()
 
-        while not self._enqueueFrame():
-            time.sleep(0.001)
+        # while not self._enqueueFrame():  # wait for a frame
+        #     time.sleep(0.001)
 
         self._openWriter()
 
@@ -1221,6 +1235,9 @@ class Camera:
         if self._writer is not None:
             self._writer.close()
 
+        # cleanup temp files to prevent clogging up the user's hard disk
+        self._cleanUpTempDirs()
+
     def save(self, filename):
         """Save the last recording to file.
 
@@ -1248,6 +1265,20 @@ class Camera:
         self._lastClip = os.path.abspath(filename)
 
         return os.path.getsize(self._lastClip)
+
+    def _cleanUpTempDirs(self):
+        """Cleanup temporary directories used by the video recorder.
+        """
+        logging.info("Cleaning up temporary video files ...")
+        # total cleanup of all temp dirs
+        for tempDir in self._tempDirs:
+            absPathToTempDir = os.path.abspath(tempDir)
+            if not os.path.exists(absPathToTempDir):
+                logging.info("Deleting temporary directory `{}` ...".format(
+                    absPathToTempDir))
+                shutil.rmtree(absPathToTempDir)
+
+        logging.info("Done cleaning up temporary video files.")
 
     def _upload(self):
         """Upload video file to an online repository. Not implemented locally,
@@ -1324,6 +1355,9 @@ class Camera:
                     self._mic.close()
                 except AttributeError:
                     pass
+
+        if hasattr(self, '_cleanUpTempDirs'):
+            self._cleanUpTempDirs()
 
 
 # ------------------------------------------------------------------------------

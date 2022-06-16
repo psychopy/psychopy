@@ -65,7 +65,7 @@ cam.stop()  # stop the webcam recording
 # cam.save('myVideo.mp4')  # uncomment to save the file, just specify the path
 
 # Print the path to where the clip was saved, this allows you to pass the clip
-# to a `MovieStim` object to view it afterwards if desired. Give `None` if
+# to a `MovieStim` object to view it afterwards if desired. Gives `None` if
 # `save()` was not called previously.
 print(cam.lastClip)
 
