@@ -678,8 +678,9 @@ class Camera:
         # match something that is supported
         devModes = getCameraInfo(self._device)
         for devMode in devModes:
-            if (devMode.frameRate == self._frameRateFrac and
-                    devMode.frameSize == self._size):
+            sameFrameRate = np.array(devMode.frameRate) == np.array(self._frameRateFrac)
+            sameFrameSize = np.array(devMode.frameSize) == np.array(self._size)
+            if sameFrameRate.all() and sameFrameSize.all():
                 break
         else:
             raise CameraModeNotSupportedError(
@@ -769,6 +770,20 @@ class Camera:
         #
         return self._isReady
 
+    @property
+    def frameSize(self):
+        """Size of the video frame obtained from recent metadata (`float` or
+        `None`).
+
+        Only valid after an `open()` and successive `_enqueueFrame()` call as
+        metadata needs to be obtained from the stream. Returns `None` if not
+        valid.
+        """
+        if self._recentMetadata is None:
+            return None
+
+        return self._recentMetadata.size
+
     def _assertCameraReady(self):
         """Assert that the camera is ready. Raises a `CameraNotReadyError` if
         the camera is not ready.
@@ -815,11 +830,11 @@ class Camera:
         """
         return self._recentMetadata
 
-    @property
-    def mode(self):
-        """Operating mode in use for this camera.
-        """
-        return self._mode
+    # @property
+    # def mode(self):
+    #     """Operating mode in use for this camera.
+    #     """
+    #     return self._mode
 
     @staticmethod
     def getWebcams():
@@ -931,6 +946,10 @@ class Camera:
         """
         return self._status
 
+    @status.setter
+    def status(self, value):
+        self._status = value
+
     @property
     def outFile(self):
         """Output file for the video stream (`str`).
@@ -957,6 +976,9 @@ class Camera:
 
     @device.setter
     def device(self, value):
+        if value in (None, "None", "none", "Default", "default"):
+            value = 0
+
         self._device = value
 
     @property
@@ -1230,12 +1252,12 @@ class Camera:
         """
         return self._lastFrame
 
-    def update(self):
-        """Acquire the newest data from the camera stream. If the `Camera`
-        object is not being monitored by a `ImageStim`, this must be explicitly
-        called.
-        """
-        self._assertMediaPlayer()
+    # def update(self):
+    #     """Acquire the newest data from the camera stream. If the `Camera`
+    #     object is not being monitored by a `ImageStim`, this must be explicitly
+    #     called.
+    #     """
+    #     self._assertMediaPlayer()
 
     def getVideoFrame(self):
         """Pull the next frame from the stream (if available).

@@ -1,6 +1,7 @@
 psychoJS.experimentLogger.setLevel(core.Logger.ServerLevel.{loggingLevel});
 
 async function updateInfo() {{
+  currentLoop = psychoJS.experiment;  // right now there are no loops
   expInfo['date'] = util.MonotonicClock.getDateStr();  // add a simple timestamp
   expInfo['expName'] = expName;
   expInfo['psychopyVersion'] = '{version}';

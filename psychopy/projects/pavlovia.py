@@ -362,7 +362,7 @@ class PavloviaSession:
         projIDs = []
         for proj in own + group:
             if proj.id not in projIDs and proj.id not in projs:
-                projs.append(PavloviaProject(proj))
+                projs.append(PavloviaProject(proj.id))
                 projIDs.append(proj.id)
         return projs
 
@@ -463,6 +463,10 @@ class PavloviaSearch(pandas.DataFrame):
         def __str__(self):
             # Start off with blank str
             terms = ""
+            # Synonymise visibility unspecified with visibility all ticked (compensate for back-end being
+            # exploration focussed)
+            if "Visibility" not in self or not self['Visibility']:
+                self['Visibility'] = ["owned", "private", "public"]
             # Iterate through values
             for key, value in self.items():
                 # Ensure value is iterable and mutable
@@ -1316,7 +1320,7 @@ def getProject(filename):
                                     break
                                 foundProject = False
                                 for repo in pavSession.findUserProjects():
-                                    if namespaceName in repo['id']:
+                                    if namespaceName in repo:
                                         foundProject = True
                                         logging.info("Logging in as {}".format(user))
                                         break

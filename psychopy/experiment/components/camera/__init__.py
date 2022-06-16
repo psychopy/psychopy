@@ -70,7 +70,7 @@ class CameraComponent(BaseComponent):
                          "experiments - online experiments ask the participant which device to use.")
         self.params['mic'] = Param(
             mic, valType='str', inputType="choice", categ="Basic",
-            allowedVals=list(mics),
+            allowedVals=list(range(len(mics))),
             allowedLabels=[d.title() for d in list(mics)],
             hint=msg,
             label=_translate("Audio Device")
@@ -194,7 +194,7 @@ class CameraComponent(BaseComponent):
             "%(name)s.stop()\n"
         )
         buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
+        buff.setIndentLevel(-2, relative=True)
 
     def writeFrameCodeJS(self, buff):
         # Start webcam at component start
@@ -240,6 +240,13 @@ class CameraComponent(BaseComponent):
             buff.writeIndentedLines(code % self.params)
 
     def writeRoutineEndCodeJS(self, buff):
+        code = (
+            "// Ensure that %(name)s is stopped\n"
+            "if (%(name)s.status === PsychoJS.Status.STARTED) {\n"
+            "    await %(name)s.stop()\n"
+            "}\n"
+        )
+        buff.writeIndentedLines(code % self.params)
         if self.params['saveFile']:
             code = (
             "// Save %(name)s recording\n"
