@@ -50,7 +50,7 @@ class MicrophoneComponent(BaseComponent):
                  stopType='duration (s)', stopVal=2.0,
                  startEstim='', durationEstim='',
                  channels='auto', device="default",
-                 sampleRate='Voice (16kHz)', maxSize=24000,
+                 sampleRate='DVD Audio (48kHz)', maxSize=24000,
                  outputType='default', speakTimes=True, trimSilent=False,
                  transcribe=True, transcribeBackend="Google", transcribeLang="en-US", transcribeWords="",
                  #legacy
