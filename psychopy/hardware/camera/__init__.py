@@ -582,8 +582,7 @@ class MovieStreamIOThread(threading.Thread):
 
 
 class Camera:
-    """Class of displaying and recording video from a USB/PCI connected camera
-    (usually a camera).
+    """Class of displaying and recording video from a USB/PCI connected camera.
 
     This class is capable of opening, recording, and saving camera video streams
     to disk. Camera stream reading/writing is done in a separate thread. Output
@@ -596,7 +595,7 @@ class Camera:
         Camera to open a stream with. If the ID is not valid, an error will be
         raised when `start()` is called. Value can be a string or number. String
         values are platform-dependent: a DirectShow URI on Windows, a path
-        on GNU/Linux (e.g., `'/dev/video0'`), or a camera index on MacOS.
+        on GNU/Linux (e.g., `'/dev/video0'`), or a camera name/index on MacOS.
         Specifying a number (>=0) is a platform-independent means of selecting a
         camera. PsychoPy enumerates possible camera devices and makes them
         selectable without explicitly having the name of the cameras attached to
@@ -615,10 +614,11 @@ class Camera:
         `ffpyplayer` is available at this time.
     codecOpts : dict or None
         Options to pass to the codec. See the documentation for the camera
-        library for details. Some options may be set by this class.
+        library for details. Some options may be set by this class already. Do
+        not set these unless you know what you are doing!
     libOpts : dict or None
         Additional options to configure the camera interface library (if
-        applicable).
+        applicable). Do not set these unless you know what you are doing!
     bufferSecs : float
         Size of the real-time camera stream buffer specified in seconds (only
         valid on Windows and MacOS).
@@ -632,11 +632,11 @@ class Camera:
     --------
     Opening a camera stream and closing it::
 
-        camera = Webcam(camera='/dev/video0')
+        camera = Camera(camera='/dev/video0')
         camera.open()  # exception here on invalid camera
         # camera.status == NOT_STARTED
-        camera.start()
-        # camera.status == PLAYING
+        camera.record()
+        # camera.status == RECORDING
         camera.stop()
         # camera.status == STOPPED
         camera.close()
