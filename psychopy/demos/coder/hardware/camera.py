@@ -23,7 +23,7 @@ else:
 
 # Create a new camera instance. Values for `size` and `frameRate` must be
 # appropriate for the device in use.
-cam = Camera(0, mic=mic, size=(544, 288), frameRate=30)
+cam = Camera(0, mic=mic)
 
 # Open a camera stream. This will remain open until `close()` ia called.
 cam.open()
@@ -61,7 +61,7 @@ cam.stop()  # stop the webcam recording
 
 # Save the video to disk by calling this method. Video recordings are lost if
 # this is not called prior to calling `record` again.
-# cam.save('myVideo.mp4')  # uncomment to save the file, just specify the path
+cam.save('myVideo.mp4')  # uncomment to save the file, just specify the path
 
 # Print the path to where the clip was saved, this allows you to pass the clip
 # to a `MovieStim` object to view it afterwards if desired.
