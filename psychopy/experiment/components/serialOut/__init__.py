@@ -33,7 +33,7 @@ class SerialOutComponent(BaseComponent):
                  startEstim='', durationEstim='',
                  port="COM3", baudrate=9600, bytesize=8, stopbits=1, parity='None',
                  startdata=1, stopdata=0,
-                 timeout="", getResponse=True,
+                 timeout="", getResponse=False,
                  syncScreenRefresh=False):
         super(SerialOutComponent, self).__init__(
             exp, parentName, name,
