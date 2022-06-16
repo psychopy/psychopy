@@ -159,6 +159,9 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
     def filename(self, value):
         self.loadMovie(value)
 
+    def setMovie(self, value):
+        self.loadMovie(value)
+
     @property
     def autoStart(self):
         """Start playback when `.draw()` is called (`bool`)."""
