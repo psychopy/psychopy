@@ -400,6 +400,9 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
                                  units='pix',
                                  win=self.win)  # set size to default
 
+        if hasattr(value, 'getVideoFrame'):  # make sure we invert vertices
+            self.flipVert = True
+
         # if we switched to/from lum image then need to update shader rule
         if wasLumImage != self.isLumImage:
             self._needUpdate = True
