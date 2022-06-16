@@ -289,7 +289,7 @@ class MovieComponent(BaseVisualComponent):
         code = (
             "%(name)s.setAutoDraw(True)\n"
         )
-        if self.params['backend'].val not in ('moviepy', 'avbin', 'vlc', 'opencv'):
+        if self.params['backend'].val not in ('moviepy', 'avbin', 'vlc'):
             code += "%(name)s.play()\n"
         buff.writeIndentedLines(code % self.params)
         # because of the 'if' statement of the time test
@@ -300,7 +300,7 @@ class MovieComponent(BaseVisualComponent):
             code = (
                 "%(name)s.setAutoDraw(False)\n"
             )
-            if self.params['backend'].val not in ('moviepy', 'avbin', 'vlc', 'opencv'):
+            if self.params['backend'].val not in ('moviepy', 'avbin', 'vlc'):
                 code += "%(name)s.stop()\n"
             buff.writeIndentedLines(code % self.params)
             # to get out of the if statement
