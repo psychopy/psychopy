@@ -87,7 +87,8 @@ class CameraInfo:
     ----------
     name : str
         Camera name retrieved by the OS. This may be a human-readable name
-        (i.e. DirectShow on Windows) or a path (e.g., `/dev/video0` on Linux).
+        (i.e. DirectShow on Windows), an index on MacOS or a path (e.g.,
+        `/dev/video0` on Linux).
     frameSize : ArrayLike
         Resolution of the frame `(w, h)` in pixels.
     frameRate : ArrayLike
@@ -388,6 +389,10 @@ class MovieStreamIOThread(threading.Thread):
         self._isStreamingEvent = threading.Event()
         self._stopSignal = threading.Event()
 
+        # Locks for syncing the player and main application thread
+        self._warmUpLock = threading.Lock()
+        self._warmUpLock.acquire(blocking=False)
+
     def run(self):
         """Main sub-routine for this thread.
 
@@ -414,6 +419,8 @@ class MovieStreamIOThread(threading.Thread):
                 frameData, val = self._player.get_frame()
                 time.sleep(frameInterval)  # sleep a bit to warm-up
             else:
+                if self._warmUpLock.locked():
+                    self._warmUpLock.release()  # release warmup lock
                 self._isReadyEvent.set()
 
             # after getting a frame, we can get accurate metadata
@@ -512,6 +519,14 @@ class MovieStreamIOThread(threading.Thread):
         """
         return self._isReadyEvent.is_set()
 
+    def begin(self):
+        """Stop the thread.
+        """
+        self.start()
+        # hold until the lock is released when the thread gets a valid frame
+        # this will prevent the main loop for executing until we're ready
+        self._warmUpLock.acquire(blocking=True)
+
     def record(self, writer, mic=None):
         """Start recording frames to the output video file.
 
@@ -581,7 +596,7 @@ class Camera:
         Camera to open a stream with. If the ID is not valid, an error will be
         raised when `start()` is called. Value can be a string or number. String
         values are platform-dependent: a DirectShow URI on Windows, a path
-        on GNU/Linux (e.g., `'/dev/video0'`), and a camera name on MacOS.
+        on GNU/Linux (e.g., `'/dev/video0'`), or a camera index on MacOS.
         Specifying a number (>=0) is a platform-independent means of selecting a
         camera. PsychoPy enumerates possible camera devices and makes them
         selectable without explicitly having the name of the cameras attached to
@@ -681,17 +696,18 @@ class Camera:
         if platform.system() == 'Windows':
             devModes = getCameraInfo(self._device)
             for devMode in devModes:
-                sameFrameRate = np.array(devMode.frameRate) == np.array(self._frameRateFrac)
-                sameFrameSize = np.array(devMode.frameSize) == np.array(self._size)
+                sameFrameRate = np.array(
+                    devMode.frameRate) == np.array(self._frameRateFrac)
+                sameFrameSize = np.array(
+                    devMode.frameSize) == np.array(self._size)
                 if sameFrameRate.all() and sameFrameSize.all():
                     break
             else:
                 raise CameraModeNotSupportedError(
                     "Camera '{}' does not support the specified framerate and "
                     "frame size. Call `getCameraInfo() to query the system for "
-                    "valid configurations for the desired capture device.".format(
-                        self._device
-                    )
+                    "valid configurations for the desired capture "
+                    "device.".format(self._device)
                 )
 
         # name for builder
@@ -1146,7 +1162,7 @@ class Camera:
 
         # pass off the player to the thread which will process the stream
         self._tStream = MovieStreamIOThread(self._player)
-        self._tStream.start()
+        self._tStream.begin()
 
         self._enqueueFrame(blockUntilFrame=True)  # pull a frame, gets metadata
 
