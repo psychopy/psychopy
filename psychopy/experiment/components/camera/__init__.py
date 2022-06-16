@@ -234,8 +234,8 @@ class CameraComponent(BaseComponent):
             "    %(name)sRecFolder, \n"
             "    'recording_%(name)s_%%s.mp4' %% data.utils.getDateStr()\n"
             ")\n"
-            "%(name)s.lastClip.save(%(name)sFilename)\n"
-            "thisExperiment.currentLoop.addData('%(name)s.clip', %(name)sFilename)\n"
+            "%(name)s.save(%(name)sFilename)\n"
+            "thisExp.currentLoop.addData('%(name)s.clip', %(name)sFilename)\n"
             )
             buff.writeIndentedLines(code % self.params)
 
