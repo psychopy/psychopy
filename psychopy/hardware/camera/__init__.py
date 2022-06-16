@@ -374,7 +374,8 @@ class MovieStreamIOThread(threading.Thread):
         self._player = player  # player interface to FFMPEG
         self._writer = None  # writer interface
         self._mic = None
-        self._frameQueue = queue.Queue(maxsize=bufferFrames)  # frames for the monitor
+        self._frameQueue = queue.Queue(
+            maxsize=bufferFrames)  # frames for the monitor
 
         # some values the user might want
         self._status = NOT_STARTED
@@ -677,20 +678,21 @@ class Camera:
 
         # get camera mode information, see if the values specified by the user
         # match something that is supported
-        devModes = getCameraInfo(self._device)
-        for devMode in devModes:
-            sameFrameRate = np.array(devMode.frameRate) == np.array(self._frameRateFrac)
-            sameFrameSize = np.array(devMode.frameSize) == np.array(self._size)
-            if sameFrameRate.all() and sameFrameSize.all():
-                break
-        else:
-            raise CameraModeNotSupportedError(
-                "Camera '{}' does not support the specified framerate and "
-                "frame size. Call `getCameraInfo() to query the system for "
-                "valid configurations for the desired capture device.".format(
-                    self._device
+        if platform.system() == 'Windows':
+            devModes = getCameraInfo(self._device)
+            for devMode in devModes:
+                sameFrameRate = np.array(devMode.frameRate) == np.array(self._frameRateFrac)
+                sameFrameSize = np.array(devMode.frameSize) == np.array(self._size)
+                if sameFrameRate.all() and sameFrameSize.all():
+                    break
+            else:
+                raise CameraModeNotSupportedError(
+                    "Camera '{}' does not support the specified framerate and "
+                    "frame size. Call `getCameraInfo() to query the system for "
+                    "valid configurations for the desired capture device.".format(
+                        self._device
+                    )
                 )
-            )
 
         # name for builder
         self.name = name
@@ -1111,8 +1113,14 @@ class Camera:
 
         ff_opts = {}  # ffmpeg options
         lib_opts = {}  # ffpyplayer options
-        if platform.system() == 'Windows':  # DirectShow specific stuff
-            ff_opts['f'] = 'dshow'
+        _camera = 'default'
+        if platform.system() != 'Linux':
+            if platform.system() == 'Windows':
+                ff_opts['f'] = 'dshow'  # DirectShow specific stuff
+                _camera = 'video={}'.format(self._device)
+            elif platform.system() == 'Darwin':
+                ff_opts['f'] = 'avfoundation'  # AVF specific stuff
+                _camera = 'default'
 
             # get device configuration options
             camW, camH = self._size
@@ -1130,7 +1138,6 @@ class Camera:
                 'pixel_format': pixelFormat,  # e.g. 'yuyv422'
                 'rtbufsize': str(bufferSize)}
             )
-            _camera = 'video={}'.format(self._device)
         else:
             _camera = self._device
 
@@ -1141,7 +1148,7 @@ class Camera:
         self._tStream = MovieStreamIOThread(self._player)
         self._tStream.start()
 
-        self._enqueueFrame(blockUntilFrame=True)  # pull a frame, gets metadata too
+        self._enqueueFrame(blockUntilFrame=True)  # pull a frame, gets metadata
 
     def record(self):
         """Start recording frames.
@@ -1253,12 +1260,13 @@ class Camera:
         """
         return self._lastFrame
 
-    # def update(self):
-    #     """Acquire the newest data from the camera stream. If the `Camera`
-    #     object is not being monitored by a `ImageStim`, this must be explicitly
-    #     called.
-    #     """
-    #     self._assertMediaPlayer()
+    def update(self):
+        """Acquire the newest data from the camera stream. If the `Camera`
+        object is not being monitored by a `ImageStim`, this must be explicitly
+        called.
+        """
+        self._assertMediaPlayer()
+        self._enqueueFrame()
 
     def getVideoFrame(self):
         """Pull the next frame from the stream (if available).
@@ -1270,9 +1278,7 @@ class Camera:
             frame was available, or we timed out.
 
         """
-        self._assertMediaPlayer()
-
-        self._enqueueFrame()
+        self.update()
 
         return self._lastFrame
 
