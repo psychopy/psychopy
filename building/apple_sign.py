@@ -29,6 +29,8 @@ SIGN_ALL = True
 
 # handy resources for info:
 #
+# to get a new APple app-specific password:
+#   https://appleid.apple.com/account/manage NOT developer.apple.com
 # why use zip file to notarize as well as dmg:
 #   https://deciphertools.com/blog/notarizing-dmg/
 # notarize from Python:

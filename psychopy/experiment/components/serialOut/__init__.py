@@ -50,17 +50,17 @@ class SerialOutComponent(BaseComponent):
             label=_translate("Port")
         )
         self.params['baudrate'] = Param(
-            baudrate, valType='int', inputType="num", categ='Hardware',
+            baudrate, valType='int', inputType="int", categ='Hardware',
             hint=_translate("The baud rate, or speed, of the connection."),
             label=_translate("Baud rate")
         )
         self.params['bytesize'] = Param(
-            bytesize, valType='int', inputType="num", categ='Hardware',
+            bytesize, valType='int', inputType="int", categ='Hardware',
             hint=_translate("Size of bits to be sent."),
             label=_translate("Data bits")
         )
         self.params['stopbits'] = Param(
-            stopbits, valType='int', inputType="num", categ='Hardware',
+            stopbits, valType='int', inputType="int", categ='Hardware',
             hint=_translate("Size of bits to be sent on stop."),
             label=_translate("Stop bits")
         )
@@ -120,11 +120,8 @@ class SerialOutComponent(BaseComponent):
             "%(name)s.status = NOT_STARTED\n"
         )
         buff.writeIndented(code % inits)
-
-    def writeRoutineStartCode(self, buff):
         # Open the port
         code = (
-            "# Open serial port\n"
             "if not %(name)s.is_open:\n"
             "    %(name)s.open()\n"
         )
@@ -175,10 +172,10 @@ class SerialOutComponent(BaseComponent):
         # Dedent
         buff.setIndentLevel(-1, relative=True)
 
-    def writeRoutineEndCode(self, buff):
+    def writeExperimentEndCode(self, buff):
         # Close the port
         code = (
-            "# Close serial port\n"
+            "# Close %(name)s\n"
             "if %(name)s.is_open:\n"
             "    %(name)s.close()\n"
         )

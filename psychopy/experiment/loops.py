@@ -248,7 +248,7 @@ class TrialHandler():
                 code += (
                     "  {loopName}LoopScheduler.add({childName}RoutineBegin(snapshot));\n"
                     "  {loopName}LoopScheduler.add({childName}RoutineEachFrame());\n"
-                    "  {loopName}LoopScheduler.add({childName}RoutineEnd());\n"
+                    "  {loopName}LoopScheduler.add({childName}RoutineEnd(snapshot));\n"
                     .format(childName=thisChild.params['name'],
                             loopName=self.params['name'])
                     )

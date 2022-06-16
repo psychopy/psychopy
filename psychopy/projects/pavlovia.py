@@ -362,7 +362,7 @@ class PavloviaSession:
         projIDs = []
         for proj in own + group:
             if proj.id not in projIDs and proj.id not in projs:
-                projs.append(PavloviaProject(proj))
+                projs.append(PavloviaProject(proj.id))
                 projIDs.append(proj.id)
         return projs
 
@@ -1316,7 +1316,7 @@ def getProject(filename):
                                     break
                                 foundProject = False
                                 for repo in pavSession.findUserProjects():
-                                    if namespaceName in repo['id']:
+                                    if namespaceName in repo:
                                         foundProject = True
                                         logging.info("Logging in as {}".format(user))
                                         break

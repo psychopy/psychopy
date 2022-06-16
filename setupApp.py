@@ -71,7 +71,7 @@ includes = ['_sitebuiltins',  # needed for help()
             'vlc',  # install with pip install python-vlc
             'msgpack_numpy',
             'configparser',
-            'ntplib',
+            'ntplib',  # for egi-pynetstation
             ]
 packages = ['pydoc',  # needed for help()
             'wx', 'psychopy',
@@ -109,6 +109,7 @@ packages = ['pydoc',  # needed for help()
             'tables',  # 'cython',
             # these aren't needed, but liked
             'pylsl', 'pygaze',
+            'Phidget22',
             'smite',  # https://github.com/marcus-nystrom/SMITE (not pypi!)
             'cv2',
             'badapted', 'darc_toolbox',  # adaptive methods from Ben Vincent
