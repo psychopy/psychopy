@@ -20,21 +20,19 @@ import numpy as np
 import tempfile
 import os
 import shutil
-from psychopy.constants import STOPPED, STOPPING, NOT_STARTED, RECORDING
-import psychopy.logging as logging
+from psychopy.constants import STOPPED, NOT_STARTED, RECORDING
 from psychopy.visual.movies.metadata import MovieMetadata, NULL_MOVIE_METADATA
 from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
 from psychopy.sound.microphone import Microphone
 from ffpyplayer.player import MediaPlayer
 from ffpyplayer.writer import MediaWriter
 from ffpyplayer.pic import SWScale
-from ffpyplayer.tools import list_dshow_devices, get_format_codec, get_best_pix_fmt
+from ffpyplayer.tools import list_dshow_devices, get_format_codec
 from moviepy.editor import VideoFileClip, AudioFileClip, CompositeAudioClip
 import uuid
 import threading
 import queue
 import time
-from psychopy.preferences import prefs
 
 
 # ------------------------------------------------------------------------------
@@ -628,9 +626,9 @@ class Camera:
         camera.close()
 
     """
-    def __init__(self, device=0, mic=None, mode='video', size=(320, 240),
-                 frameRate=30, cameraLib=u'ffpyplayer', codecOpts=None,
-                 libOpts=None, bufferSecs=4, win=None, name='cam'):
+    def __init__(self, device=0, mic=None, size=(320, 240), frameRate=30,
+                 cameraLib=u'ffpyplayer', codecOpts=None, libOpts=None,
+                 bufferSecs=4, win=None, name='cam'):
 
         # add attributes for setters
         self.__dict__.update(
@@ -1376,7 +1374,21 @@ def getCameras():
     systemName = platform.system()  # get the system name
     foundCameras = []
     if systemName == 'Darwin':  # MacOS
-        pass
+        import psychopy.tools.systemtools as st
+        import json
+        # query camera names using `system_profiler`
+        systemReportJSON = st.systemProfilerMacOS(
+            "SPCameraDataType",
+            detailLevel='mini')
+        sysReport = json.loads(systemReportJSON)
+        # get camera names and return them
+        cameras = sysReport.get('SPCameraDataType', None)
+        if cameras is not None:  # no cameras
+            for camera in cameras:
+                camera = camera.get('_name', None)
+                if camera is None:
+                    continue
+                foundCameras.append(camera)
     elif systemName == 'Linux':
         # use glob to get possible cameras connected to the system
         globResult = glob.glob(
