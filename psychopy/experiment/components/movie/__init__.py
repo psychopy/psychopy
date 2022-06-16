@@ -234,10 +234,12 @@ class MovieComponent(BaseVisualComponent):
             params["units"].valType = "code"
             params["units"].val = None
 
-        # Movie could be created here or in writeRoutineStart()
-        if self.params['backend'].val in ('moviepy', 'avbin', 'vlc') and self.params['movie'].updates == 'constant':
-            # create the code using init vals
-            self._writeCreationCode(buff, useInits=True)
+        # Handle old backends
+        if self.params['backend'].val in ('moviepy', 'avbin', 'vlc'):
+            if self.params['movie'].updates == 'constant':
+                # create the code using init vals
+                self._writeCreationCode(buff, useInits=True)
+            return
 
         code = (
             "%(name)s = visual.MovieStim(\n"
