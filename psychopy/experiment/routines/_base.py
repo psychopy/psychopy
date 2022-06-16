@@ -386,11 +386,7 @@ class Routine(list):
         buff.writeIndentedLines(code % self.name)
 
         maxTime, useNonSlip = self.getMaxTime()
-        if useNonSlip:
-            self._clockName = 'routineTimer'
-        else:
-            self._clockName = self.name + "Clock"
-            buff.writeIndented('%s = core.Clock()\n' % self._clockName)
+        self._clockName = 'routineTimer'
         for thisCompon in self:
             thisCompon.writeInitCode(buff)
 
@@ -513,7 +509,7 @@ class Routine(list):
 
         if useNonSlip:
             buff.writeIndented('# using non-slip timing so subtract the expected duration of this Routine\n')
-            buff.writeIndented('routineTimer.add(-%f)\n' % (maxTime))
+            buff.writeIndented('routineTimer.addTime(-%f)\n' % (maxTime))
 
     def writeRoutineBeginCodeJS(self, buff, modular):
 
@@ -528,7 +524,6 @@ class Routine(list):
         code = ("TrialHandler.fromSnapshot(snapshot); // ensure that .thisN vals are up to date\n\n"
                 "//--- Prepare to start Routine '%(name)s' ---\n"
                 "t = 0;\n"
-                "%(name)sClock.reset(); // clock\n"
                 "frameN = -1;\n"
                 "continueRoutine = true; // until we're told otherwise\n"
                 % self.params)

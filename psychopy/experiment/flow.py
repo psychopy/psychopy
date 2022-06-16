@@ -225,7 +225,7 @@ class Flow(list):
                 "globalClock = core.Clock()  # to track the "
                 "time since experiment started\n"
                 "routineTimer = core.Clock()  # to "
-                "track time remaining of each (non-slip) routine \n")
+                "track time remaining of each (possibly non-slip) routine \n")
         script.writeIndentedLines(code)
         # run-time code
         for entry in self:
@@ -237,7 +237,6 @@ class Flow(list):
         for entry in self:
             self._currentRoutine = entry
             entry.writeExperimentEndCode(script)
-
 
     def writeFlowSchedulerJS(self, script):
         """Initialise each component and then write the per-frame code too
