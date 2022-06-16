@@ -40,7 +40,7 @@ viewer = visual.ImageStim(win, cam)
 
 # Start recording frames to file. This needs to be called after opening the
 # stream if you wish to save video frames.
-cam.record()
+# cam.record()
 
 # record for (close to) 5 seconds
 while cam.recordingTime < 5.0:
@@ -57,7 +57,7 @@ while cam.recordingTime < 5.0:
 # Stop the camera recording. This must be called prior to saving the video to
 # file. The webcam stream is still open at this point and record can be called
 # again.
-cam.stop()  # stop the webcam recording
+#cam.stop()  # stop the webcam recording
 
 # Save the video to disk by calling this method. Video recordings are lost if
 # this is not called prior to calling `record` again.

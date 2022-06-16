@@ -620,8 +620,8 @@ class Camera:
         Additional options to configure the camera interface library (if
         applicable).
     bufferSecs : float
-        Size of the camera stream buffer specified in seconds (only valid on
-        Windows).
+        Size of the real-time camera stream buffer specified in seconds (only
+        valid on Windows and MacOS).
     win : :class:`~psychopy.visual.Window` or None
         Optional window associated with this camera. Some functionality may
         require an OpenGL context.
@@ -1152,7 +1152,9 @@ class Camera:
                 'framerate': framerate,
                 'video_size': videoSize,
                 'pixel_format': pixelFormat,  # e.g. 'yuyv422'
-                'rtbufsize': str(bufferSize)}
+                'rtbufsize': str(bufferSize),
+                'preset': 'ultrafast',
+                'tune': 'zerolatency'}
             )
         else:
             _camera = self._device  # on linux we just open the stream for now
