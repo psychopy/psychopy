@@ -1292,7 +1292,7 @@ class Camera:
         # total cleanup of all temp dirs
         for tempDir in self._tempDirs:
             absPathToTempDir = os.path.abspath(tempDir)
-            if not os.path.exists(absPathToTempDir):
+            if os.path.exists(absPathToTempDir):
                 logging.info("Deleting temporary directory `{}` ...".format(
                     absPathToTempDir))
                 shutil.rmtree(absPathToTempDir)
