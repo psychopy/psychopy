@@ -9,6 +9,10 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import time
+import atexit
+from pathlib import Path
+
+from psychopy import prefs
 import math
 import numpy as np
 import threading
@@ -221,6 +225,12 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
         self._warmUpLock = threading.Lock()
         self._warmUpLock.acquire(blocking=False)
         # TODO - shutdown thread lock to prevent segfaulting
+
+        # call this on exit to shutdown the thread
+        def close_on_exit():
+            self.shutdown()
+
+        atexit.register(close_on_exit)
 
     def run(self):
         """Main sub-routine for this thread.
