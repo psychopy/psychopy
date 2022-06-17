@@ -8,14 +8,24 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
+__all__ = [
+    'FFPyPlayer'
+]
+
+# very first thing to import
+from ffpyplayer.player import MediaPlayer
+
 import time
+import atexit
+from pathlib import Path
+
+from psychopy import prefs
 import math
 import numpy as np
 import threading
 import queue
 from psychopy.core import getTime
 from ._base import BaseMoviePlayer
-from ffpyplayer.player import MediaPlayer
 from ..metadata import MovieMetadata
 from ..frame import MovieFrame, NULL_MOVIE_FRAME_INFO
 from psychopy.constants import (
@@ -221,6 +231,12 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
         self._warmUpLock = threading.Lock()
         self._warmUpLock.acquire(blocking=False)
         # TODO - shutdown thread lock to prevent segfaulting
+
+        # call this on exit to shutdown the thread
+        def close_on_exit():
+            self.shutdown()
+
+        atexit.register(close_on_exit)
 
     def run(self):
         """Main sub-routine for this thread.

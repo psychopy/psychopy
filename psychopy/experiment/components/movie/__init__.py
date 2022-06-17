@@ -67,7 +67,7 @@ class MovieComponent(BaseVisualComponent):
         msg = _translate("What underlying lib to use for loading movies")
         self.params['backend'] = Param(
             backend, valType='str', inputType="choice", categ='Playback',
-            allowedVals=['ffpyplayer', 'moviepy', 'avbin', 'opencv', 'vlc'],
+            allowedVals=['ffpyplayer', 'moviepy', 'opencv', 'vlc'],
             hint=msg, direct=False,
             label=_localized['backend'])
 
@@ -234,10 +234,12 @@ class MovieComponent(BaseVisualComponent):
             params["units"].valType = "code"
             params["units"].val = None
 
-        # Movie could be created here or in writeRoutineStart()
-        if self.params['backend'].val in ('moviepy', 'avbin', 'vlc') and self.params['movie'].updates == 'constant':
-            # create the code using init vals
-            self._writeCreationCode(buff, useInits=True)
+        # Handle old backends
+        if self.params['backend'].val in ('moviepy', 'avbin', 'vlc', 'opencv'):
+            if self.params['movie'].updates == 'constant':
+                # create the code using init vals
+                self._writeCreationCode(buff, useInits=True)
+            return
 
         code = (
             "%(name)s = visual.MovieStim(\n"

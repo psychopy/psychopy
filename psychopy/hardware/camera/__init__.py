@@ -19,22 +19,26 @@ import platform
 import numpy as np
 import tempfile
 import os
+import os.path
 import shutil
-from psychopy.constants import STOPPED, STOPPING, NOT_STARTED, RECORDING
-import psychopy.logging as logging
+from psychopy.constants import STOPPED, NOT_STARTED, RECORDING
 from psychopy.visual.movies.metadata import MovieMetadata, NULL_MOVIE_METADATA
 from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
 from psychopy.sound.microphone import Microphone
+import psychopy.logging as logging
 from ffpyplayer.player import MediaPlayer
 from ffpyplayer.writer import MediaWriter
 from ffpyplayer.pic import SWScale
-from ffpyplayer.tools import list_dshow_devices, get_format_codec, get_best_pix_fmt
-from moviepy.editor import VideoFileClip, AudioFileClip, CompositeAudioClip
+from ffpyplayer.tools import list_dshow_devices, get_format_codec
+# Something in moviepy.editor's initialisation breaks Mouse, so import these from the source instead
+# from moviepy.editor import VideoFileClip, AudioFileClip, CompositeAudioClip
+from moviepy.video.io.VideoFileClip import VideoFileClip
+from moviepy.audio.io.AudioFileClip import AudioFileClip
+from moviepy.audio.AudioClip import CompositeAudioClip
 import uuid
 import threading
 import queue
 import time
-from psychopy.preferences import prefs
 
 
 # ------------------------------------------------------------------------------
@@ -89,7 +93,8 @@ class CameraInfo:
     ----------
     name : str
         Camera name retrieved by the OS. This may be a human-readable name
-        (i.e. DirectShow on Windows) or a path (e.g., `/dev/video0` on Linux).
+        (i.e. DirectShow on Windows), an index on MacOS or a path (e.g.,
+        `/dev/video0` on Linux).
     frameSize : ArrayLike
         Resolution of the frame `(w, h)` in pixels.
     frameRate : ArrayLike
@@ -376,7 +381,8 @@ class MovieStreamIOThread(threading.Thread):
         self._player = player  # player interface to FFMPEG
         self._writer = None  # writer interface
         self._mic = None
-        self._frameQueue = queue.Queue(maxsize=bufferFrames)  # frames for the monitor
+        self._frameQueue = queue.Queue(
+            maxsize=bufferFrames)  # frames for the monitor
 
         # some values the user might want
         self._status = NOT_STARTED
@@ -388,6 +394,10 @@ class MovieStreamIOThread(threading.Thread):
         self._isRecording = threading.Event()
         self._isStreamingEvent = threading.Event()
         self._stopSignal = threading.Event()
+
+        # Locks for syncing the player and main application thread
+        self._warmUpLock = threading.Lock()
+        self._warmUpLock.acquire(blocking=False)
 
     def run(self):
         """Main sub-routine for this thread.
@@ -415,6 +425,8 @@ class MovieStreamIOThread(threading.Thread):
                 frameData, val = self._player.get_frame()
                 time.sleep(frameInterval)  # sleep a bit to warm-up
             else:
+                if self._warmUpLock.locked():
+                    self._warmUpLock.release()  # release warmup lock
                 self._isReadyEvent.set()
 
             # after getting a frame, we can get accurate metadata
@@ -513,6 +525,14 @@ class MovieStreamIOThread(threading.Thread):
         """
         return self._isReadyEvent.is_set()
 
+    def begin(self):
+        """Stop the thread.
+        """
+        self.start()
+        # hold until the lock is released when the thread gets a valid frame
+        # this will prevent the main loop for executing until we're ready
+        self._warmUpLock.acquire(blocking=True)
+
     def record(self, writer, mic=None):
         """Start recording frames to the output video file.
 
@@ -568,8 +588,7 @@ class MovieStreamIOThread(threading.Thread):
 
 
 class Camera:
-    """Class of displaying and recording video from a USB/PCI connected camera
-    (usually a camera).
+    """Class of displaying and recording video from a USB/PCI connected camera.
 
     This class is capable of opening, recording, and saving camera video streams
     to disk. Camera stream reading/writing is done in a separate thread. Output
@@ -582,7 +601,7 @@ class Camera:
         Camera to open a stream with. If the ID is not valid, an error will be
         raised when `start()` is called. Value can be a string or number. String
         values are platform-dependent: a DirectShow URI on Windows, a path
-        on GNU/Linux (e.g., `'/dev/video0'`), and a camera name on MacOS.
+        on GNU/Linux (e.g., `'/dev/video0'`), or a camera name/index on MacOS.
         Specifying a number (>=0) is a platform-independent means of selecting a
         camera. PsychoPy enumerates possible camera devices and makes them
         selectable without explicitly having the name of the cameras attached to
@@ -601,13 +620,14 @@ class Camera:
         `ffpyplayer` is available at this time.
     codecOpts : dict or None
         Options to pass to the codec. See the documentation for the camera
-        library for details. Some options may be set by this class.
+        library for details. Some options may be set by this class already. Do
+        not set these unless you know what you are doing!
     libOpts : dict or None
         Additional options to configure the camera interface library (if
-        applicable).
+        applicable). Do not set these unless you know what you are doing!
     bufferSecs : float
-        Size of the camera stream buffer specified in seconds (only valid on
-        Windows).
+        Size of the real-time camera stream buffer specified in seconds (only
+        valid on Windows and MacOS).
     win : :class:`~psychopy.visual.Window` or None
         Optional window associated with this camera. Some functionality may
         require an OpenGL context.
@@ -618,19 +638,19 @@ class Camera:
     --------
     Opening a camera stream and closing it::
 
-        camera = Webcam(camera='/dev/video0')
+        camera = Camera(camera='/dev/video0')
         camera.open()  # exception here on invalid camera
         # camera.status == NOT_STARTED
-        camera.start()
-        # camera.status == PLAYING
+        camera.record()
+        # camera.status == RECORDING
         camera.stop()
         # camera.status == STOPPED
         camera.close()
 
     """
-    def __init__(self, device=0, mic=None, mode='video', size=(320, 240),
-                 frameRate=30, cameraLib=u'ffpyplayer', codecOpts=None,
-                 libOpts=None, bufferSecs=4, win=None, name='cam'):
+    def __init__(self, device=0, mic=None, size=None, frameRate=None,
+                 cameraLib=u'ffpyplayer', codecOpts=None, libOpts=None,
+                 bufferSecs=4, win=None, name='cam'):
 
         # add attributes for setters
         self.__dict__.update(
@@ -662,7 +682,20 @@ class Camera:
             raise TypeError(
                 "Incorrect type for `camera`, expected `int` or `str`.")
 
+        # get device modes
+        try:
+            devModes = getCameraInfo(self._device)
+        except OSError:
+            # on systems which don't allow getting camera info, make devModes blank
+            devModes = []
+
         # get the frame rate, needs to be fractional and float to config
+        if frameRate is None:
+            if len(devModes):
+                frameRate = devModes[-1].frameRate
+            else:
+                # if no camera information available, try 30fps
+                frameRate = 30
         if isinstance(frameRate, (int, float)):  # atomic
             self._frameRate = int(frameRate)
             self._frameRateFrac = (self._frameRate, 1)
@@ -674,25 +707,33 @@ class Camera:
             self._frameRateFrac = numer, denom = [int(i) for i in frameRate]
             self._frameRate = numer / denom
 
+        # set the size
+        if size is None:
+            if len(devModes):
+                size = devModes[-1].frameSize
+            else:
+                # if no camera information available, try a widely supported size
+                size = (320, 240)
         assert len(size) == 2, "Value for parameter `size` must be length 2"
         self._size = tuple(size)  # needs to be hashable
 
         # get camera mode information, see if the values specified by the user
         # match something that is supported
-        devModes = getCameraInfo(self._device)
-        for devMode in devModes:
-            sameFrameRate = np.array(devMode.frameRate) == np.array(self._frameRateFrac)
-            sameFrameSize = np.array(devMode.frameSize) == np.array(self._size)
-            if sameFrameRate.all() and sameFrameSize.all():
-                break
-        else:
-            raise CameraModeNotSupportedError(
-                "Camera '{}' does not support the specified framerate and "
-                "frame size. Call `getCameraInfo() to query the system for "
-                "valid configurations for the desired capture device.".format(
-                    self._device
+        if platform.system() == 'Windows':
+            for devMode in devModes:
+                sameFrameRate = np.array(
+                    devMode.frameRate) == np.array(self._frameRateFrac)
+                sameFrameSize = np.array(
+                    devMode.frameSize) == np.array(self._size)
+                if sameFrameRate.all() and sameFrameSize.all():
+                    break
+            else:
+                raise CameraModeNotSupportedError(
+                    "Camera '{}' does not support the specified framerate and "
+                    "frame size. Call `getCameraInfo() to query the system for "
+                    "valid configurations for the desired capture "
+                    "device.".format(self._device)
                 )
-            )
 
         # name for builder
         self.name = name
@@ -750,6 +791,11 @@ class Camera:
         # last video file that has been saved, makes it easy to pass this value
         # along to a movie player
         self._lastClip = None
+
+        # Keep track of temp dirs to clean up on error to prevent accumulating
+        # files on the user's disk. On error during recordings we will clear
+        # these files out.
+        self._tempDirs = []
 
     def authorize(self):
         """Get permission to access the camera. Not implemented locally yet.
@@ -872,6 +918,7 @@ class Camera:
             suffix=randFileName,
             prefix='psychopy-',
             dir=None)
+        self._tempDirs.append(self._tempRootDir)  # keep track for clean-up
         self._tempVideoFileName = os.path.join(
             self._tempRootDir, CAMERA_TEMP_FILE_VIDEO)
         self._tempAudioFileName = os.path.join(
@@ -1113,8 +1160,14 @@ class Camera:
 
         ff_opts = {}  # ffmpeg options
         lib_opts = {}  # ffpyplayer options
-        if platform.system() == 'Windows':  # DirectShow specific stuff
-            ff_opts['f'] = 'dshow'
+        _camera = 'default'
+        if platform.system() != 'Linux':
+            if platform.system() == 'Windows':
+                ff_opts['f'] = 'dshow'  # DirectShow specific stuff
+                _camera = 'video={}'.format(self._device)
+            elif platform.system() == 'Darwin':
+                ff_opts['f'] = 'avfoundation'  # AVF specific stuff
+                _camera = str(self._device)
 
             # get device configuration options
             camW, camH = self._size
@@ -1130,28 +1183,35 @@ class Camera:
                 'framerate': framerate,
                 'video_size': videoSize,
                 'pixel_format': pixelFormat,  # e.g. 'yuyv422'
-                'rtbufsize': str(bufferSize)}
+                'rtbufsize': str(bufferSize),
+                'preset': 'ultrafast',
+                'tune': 'zerolatency'}
             )
-            _camera = 'video={}'.format(self._device)
         else:
-            _camera = self._device
+            _camera = self._device  # on linux we just open the stream for now
 
         # open a stream and pause it until ready
         self._player = MediaPlayer(_camera, ff_opts=ff_opts, lib_opts=lib_opts)
 
         # pass off the player to the thread which will process the stream
         self._tStream = MovieStreamIOThread(self._player)
-        self._tStream.start()
+        self._tStream.begin()
 
-        self._enqueueFrame(blockUntilFrame=True)  # pull a frame, gets metadata too
+        self._enqueueFrame(blockUntilFrame=True)  # pull a frame, gets metadata
 
     def record(self):
         """Start recording frames.
+
+        Warnings
+        --------
+        If a recording has been previously made without calling `save()` it will
+        be discarded if `record()` is called again.
+
         """
         self._assertMediaPlayer()
 
-        while not self._enqueueFrame():
-            time.sleep(0.001)
+        # while not self._enqueueFrame():  # wait for a frame
+        #     time.sleep(0.001)
 
         self._openWriter()
 
@@ -1198,6 +1258,9 @@ class Camera:
         if self._writer is not None:
             self._writer.close()
 
+        # cleanup temp files to prevent clogging up the user's hard disk
+        self._cleanUpTempDirs()
+
     def save(self, filename):
         """Save the last recording to file.
 
@@ -1225,6 +1288,20 @@ class Camera:
         self._lastClip = os.path.abspath(filename)
 
         return os.path.getsize(self._lastClip)
+
+    def _cleanUpTempDirs(self):
+        """Cleanup temporary directories used by the video recorder.
+        """
+        logging.info("Cleaning up temporary video files ...")
+        # total cleanup of all temp dirs
+        for tempDir in self._tempDirs:
+            absPathToTempDir = os.path.abspath(tempDir)
+            if os.path.exists(absPathToTempDir):
+                logging.info("Deleting temporary directory `{}` ...".format(
+                    absPathToTempDir))
+                shutil.rmtree(absPathToTempDir)
+
+        logging.info("Done cleaning up temporary video files.")
 
     def _upload(self):
         """Upload video file to an online repository. Not implemented locally,
@@ -1255,12 +1332,13 @@ class Camera:
         """
         return self._lastFrame
 
-    # def update(self):
-    #     """Acquire the newest data from the camera stream. If the `Camera`
-    #     object is not being monitored by a `ImageStim`, this must be explicitly
-    #     called.
-    #     """
-    #     self._assertMediaPlayer()
+    def update(self):
+        """Acquire the newest data from the camera stream. If the `Camera`
+        object is not being monitored by a `ImageStim`, this must be explicitly
+        called.
+        """
+        self._assertMediaPlayer()
+        self._enqueueFrame()
 
     def getVideoFrame(self):
         """Pull the next frame from the stream (if available).
@@ -1272,9 +1350,7 @@ class Camera:
             frame was available, or we timed out.
 
         """
-        self._assertMediaPlayer()
-
-        self._enqueueFrame()
+        self.update()
 
         return self._lastFrame
 
@@ -1302,6 +1378,9 @@ class Camera:
                     self._mic.close()
                 except AttributeError:
                     pass
+
+        if hasattr(self, '_cleanUpTempDirs'):
+            self._cleanUpTempDirs()
 
 
 # ------------------------------------------------------------------------------
@@ -1376,7 +1455,21 @@ def getCameras():
     systemName = platform.system()  # get the system name
     foundCameras = []
     if systemName == 'Darwin':  # MacOS
-        pass
+        import psychopy.tools.systemtools as st
+        import json
+        # query camera names using `system_profiler`
+        systemReportJSON = st.systemProfilerMacOS(
+            "SPCameraDataType",
+            detailLevel='mini')
+        sysReport = json.loads(systemReportJSON)
+        # get camera names and return them
+        cameras = sysReport.get('SPCameraDataType', None)
+        if cameras is not None:  # no cameras
+            for camera in cameras:
+                camera = camera.get('_name', None)
+                if camera is None:
+                    continue
+                foundCameras.append(camera)
     elif systemName == 'Linux':
         # use glob to get possible cameras connected to the system
         globResult = glob.glob(
