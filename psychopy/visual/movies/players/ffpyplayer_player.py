@@ -8,6 +8,13 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
+__all__ = [
+    'FFPyPlayer'
+]
+
+# very first thing to import
+from ffpyplayer.player import MediaPlayer
+
 import time
 import atexit
 from pathlib import Path
@@ -19,7 +26,6 @@ import threading
 import queue
 from psychopy.core import getTime
 from ._base import BaseMoviePlayer
-from ffpyplayer.player import MediaPlayer
 from ..metadata import MovieMetadata
 from ..frame import MovieFrame, NULL_MOVIE_FRAME_INFO
 from psychopy.constants import (
