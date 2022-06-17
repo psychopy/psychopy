@@ -509,7 +509,7 @@ class BaseComponent:
                 if stopVal in ['', None, -1, 'None']:
                     stopVal = '-1'
                 buff.writeIndented(f"{compName}.setSound({params['sound']}, secs={stopVal}){endStr}\n")
-            elif paramName == 'movie' and params['backend'].val in ('moviepy', 'avbin', 'vlc'):
+            elif paramName == 'movie' and params['backend'].val in ('moviepy', 'avbin', 'vlc', 'opencv'):
                 # we're going to do this for now ...
                 if params['units'].val == 'from exp settings':
                     unitsStr = "units=''"
