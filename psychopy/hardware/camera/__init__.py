@@ -679,11 +679,19 @@ class Camera:
                 "Incorrect type for `camera`, expected `int` or `str`.")
 
         # get device modes
-        devModes = getCameraInfo(self._device)
+        try:
+            devModes = getCameraInfo(self._device)
+        except OSError:
+            # on systems which don't allow getting camera info, make devModes blank
+            devModes = []
 
         # get the frame rate, needs to be fractional and float to config
         if frameRate is None:
-            frameRate = devModes[-1].frameRate
+            if len(devModes):
+                frameRate = devModes[-1].frameRate
+            else:
+                # if no camera information available, try 30fps
+                frameRate = 30
         if isinstance(frameRate, (int, float)):  # atomic
             self._frameRate = int(frameRate)
             self._frameRateFrac = (self._frameRate, 1)
@@ -697,7 +705,11 @@ class Camera:
 
         # set the size
         if size is None:
-            size = devModes[-1].frameSize
+            if len(devModes):
+                size = devModes[-1].frameSize
+            else:
+                # if no camera information available, try a widely supported size
+                size = (320, 240)
         assert len(size) == 2, "Value for parameter `size` must be length 2"
         self._size = tuple(size)  # needs to be hashable
 
