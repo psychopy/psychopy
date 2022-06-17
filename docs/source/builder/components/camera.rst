@@ -16,7 +16,7 @@ The resulting video files are saved in .mp4 format if recorded locally and saved
 For a demo in builder mode, after unpacking the demos, click on Demos > Feature Demos > camera.
 For a demo in coder mode, click on Demos > hardware > camera.py
 
-**Note: Since camera is still on beta status, do keep an eye out on bug fixes.**
+**Note: Since camera is still in beta status, do keep an eye out on bug fixes.**
 
 Parameters
 ~~~~~~~~~~~~
