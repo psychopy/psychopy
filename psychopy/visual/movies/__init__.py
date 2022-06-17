@@ -15,7 +15,6 @@ import ctypes
 from pathlib import Path
 
 from psychopy import prefs
-from psychopy.clock import getTime
 from psychopy.tools.filetools import pathToString
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin, ColorMixin
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
