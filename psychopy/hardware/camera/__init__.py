@@ -644,7 +644,7 @@ class Camera:
         camera.close()
 
     """
-    def __init__(self, device=0, mic=None, size=(320, 240), frameRate=30,
+    def __init__(self, device=0, mic=None, size=None, frameRate=None,
                  cameraLib=u'ffpyplayer', codecOpts=None, libOpts=None,
                  bufferSecs=4, win=None, name='cam'):
 
@@ -678,7 +678,12 @@ class Camera:
             raise TypeError(
                 "Incorrect type for `camera`, expected `int` or `str`.")
 
+        # get device modes
+        devModes = getCameraInfo(self._device)
+
         # get the frame rate, needs to be fractional and float to config
+        if frameRate is None:
+            frameRate = devModes[-1].frameRate
         if isinstance(frameRate, (int, float)):  # atomic
             self._frameRate = int(frameRate)
             self._frameRateFrac = (self._frameRate, 1)
@@ -690,13 +695,15 @@ class Camera:
             self._frameRateFrac = numer, denom = [int(i) for i in frameRate]
             self._frameRate = numer / denom
 
+        # set the size
+        if size is None:
+            size = devModes[-1].frameSize
         assert len(size) == 2, "Value for parameter `size` must be length 2"
         self._size = tuple(size)  # needs to be hashable
 
         # get camera mode information, see if the values specified by the user
         # match something that is supported
         if platform.system() == 'Windows':
-            devModes = getCameraInfo(self._device)
             for devMode in devModes:
                 sameFrameRate = np.array(
                     devMode.frameRate) == np.array(self._frameRateFrac)
