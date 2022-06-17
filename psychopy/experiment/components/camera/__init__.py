@@ -78,20 +78,20 @@ class CameraComponent(BaseComponent):
 
 
         # Not implemented (yet!)
-        # # Hardware
-        # msg = _translate("Resolution (w x h) to record to, leave blank to use device default.")
-        # self.params['resolution'] = Param(
-        #     resolution, valType='list', inputType="single", categ="Hardware",
-        #     hint=msg,
-        #     label=_translate("Resolution")
-        # )
-        #
-        # msg = _translate("Frame rate (frames per second) to record at, leave blank to use device default.")
-        # self.params['frameRate'] = Param(
-        #     frameRate, valType='int', inputType="num", categ="Hardware",
-        #     hint=msg,
-        #     label=_translate("Frame Rate")
-        # )
+        # Hardware
+        msg = _translate("Resolution (w x h) to record to, leave blank to use device default. (local only)")
+        self.params['resolution'] = Param(
+            resolution, valType='list', inputType="single", categ="Hardware",
+            hint=msg,
+            label=_translate("Resolution")
+        )
+
+        msg = _translate("Frame rate (frames per second) to record at, leave blank to use device default. (local only)")
+        self.params['frameRate'] = Param(
+            frameRate, valType='int', inputType="num", categ="Hardware",
+            hint=msg,
+            label=_translate("Frame Rate")
+        )
 
         # Data
         msg = _translate("Save webcam output to a file?")
@@ -153,6 +153,7 @@ class CameraComponent(BaseComponent):
         code = (
             "%(name)s = camera.Camera(\n"
             "    device=%(device)s, name='%(name)s', mic=microphone.Microphone(device=%(mic)s),\n"
+            "    frameRate=%(frameRate)s, size=%(resolution)s\n"
             ")\n"
             "# Switch on %(name)s\n"
             "%(name)s.open()\n"
