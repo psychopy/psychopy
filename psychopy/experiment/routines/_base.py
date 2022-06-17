@@ -524,6 +524,7 @@ class Routine(list):
         code = ("TrialHandler.fromSnapshot(snapshot); // ensure that .thisN vals are up to date\n\n"
                 "//--- Prepare to start Routine '%(name)s' ---\n"
                 "t = 0;\n"
+                "%(name)sClock.reset(); // clock\n"
                 "frameN = -1;\n"
                 "continueRoutine = true; // until we're told otherwise\n"
                 % self.params)

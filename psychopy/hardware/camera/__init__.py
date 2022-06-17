@@ -30,7 +30,11 @@ from ffpyplayer.player import MediaPlayer
 from ffpyplayer.writer import MediaWriter
 from ffpyplayer.pic import SWScale
 from ffpyplayer.tools import list_dshow_devices, get_format_codec
-from moviepy.editor import VideoFileClip, AudioFileClip, CompositeAudioClip
+# Something in moviepy.editor's initialisation breaks Mouse, so import these from the source instead
+# from moviepy.editor import VideoFileClip, AudioFileClip, CompositeAudioClip
+from moviepy.video.io.VideoFileClip import VideoFileClip
+from moviepy.audio.io.AudioFileClip import AudioFileClip
+from moviepy.audio.AudioClip import CompositeAudioClip
 import uuid
 import threading
 import queue
