@@ -179,7 +179,7 @@ class pythonTransformer(ast.NodeTransformer):
             precisionCall = ast.Call(
                 func=ast.Attribute(
                     value=conversionFunc,
-                    attr='toPrecision',
+                    attr='toFixed',
                     ctx=ast.Load()
                 ),
                 args=[ast.Constant(value=precision, kind=None)],

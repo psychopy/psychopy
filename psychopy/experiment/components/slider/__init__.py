@@ -275,6 +275,7 @@ class SliderComponent(BaseVisualComponent):
         # build up an initialization string for Slider():
         initStr = ("{name} = new visual.Slider({{\n"
                    "  win: psychoJS.window, name: '{name}',\n"
+                   "  startValue: {initVal},\n"
                    "  size: {size}, pos: {pos}, ori: {ori}, units: {units},\n"
                    "  labels: {labels}, fontSize: {letterHeight}, ticks: {ticks},\n"
                    "  granularity: {granularity}, style: {styles},\n"

@@ -6,6 +6,7 @@ import copy
 import pickle
 import atexit
 
+import psychopy.visual.window
 from psychopy import logging
 from psychopy.tools.filetools import (openOutputFile, genDelimiter,
                                       genFilenameFromDelimiter)
@@ -226,6 +227,27 @@ class ExperimentHandler(_ComparisonMixin):
             # unhashable type (list, dict, ...) == mutable, so need a copy()
             value = copy.deepcopy(value)
         self.thisEntry[name] = value
+
+    def timestampOnFlip(self, win, name):
+        """Add a timestamp (in the future) to the current row
+
+        Parameters
+        ----------
+
+        win : psychopy.visual.Window
+
+            The window object that we'll base the timestamp flip on
+
+        name : str
+
+            The name of the column in the datafile being written,
+            such as 'myStim.stopped'
+        """
+        # make sure the name is used when writing the datafile
+        if name not in self.dataNames:
+            self.dataNames.append(name)
+        #
+        win.timeOnFlip(self.thisEntry, name)
 
     def nextEntry(self):
         """Calling nextEntry indicates to the ExperimentHandler that the

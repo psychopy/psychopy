@@ -26,7 +26,7 @@ class SerialOutComponent(BaseComponent):
     iconFile = Path(__file__).parent / 'serial.png'
     tooltip = _translate('Serial out: send signals from a serial port')
 
-    def __init__(self, exp, parentName, name='serial',
+    def __init__(self, exp, parentName, name='serialPort',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
@@ -78,12 +78,14 @@ class SerialOutComponent(BaseComponent):
             label=_translate('Timeout'))
 
         self.params['startdata'] = Param(
-            startdata, valType='code', inputType="single", allowedTypes=[], categ='Basic',
-            hint=_translate("Data to be sent at start of pulse"),
+            startdata, valType='str', inputType="single", allowedTypes=[], categ='Basic',
+            hint=_translate("Data to be sent at start of pulse. Data will be converted to bytes, so to specify a"
+                            "numeric value directly use $chr(...)."),
             label=_translate('Start data'))
         self.params['stopdata'] = Param(
-            stopdata, valType='code', inputType="single", allowedTypes=[], categ='Basic',
-            hint=_translate("Data to be sent at end of pulse"),
+            stopdata, valType='str', inputType="single", allowedTypes=[], categ='Basic',
+            hint=_translate("String data to be sent at end of pulse. Data will be converted to bytes, so to specify a"
+                            "numeric value directly use $chr(...)."),
             label=_translate('Stop data'))
         self.params['getResponse'] = Param(
             getResponse, valType='bool', inputType='bool', categ="Data",
@@ -136,12 +138,17 @@ class SerialOutComponent(BaseComponent):
         self.writeStartTestCode(buff)
         if self.params['syncScreen']:
             code = (
-                "win.callOnFlip(%(name)s.write, %(startdata)s)\n"
+                "win.callOnFlip(%(name)s.write, bytes(%(startdata)s, 'utf8'))\n"
             )
         else:
             code = (
-                "%(name)s.write(%(startdata)s)\n"
+                "%(name)s.write(bytes(%(startdata)s, 'utf8'))\n"
             )
+        buff.writeIndented(code % params)
+        # Update status
+        code = (
+            "%(name)s.status = STARTED\n"
+        )
         buff.writeIndented(code % params)
         # If we want responses, get them
         if self.params['getResponse']:
@@ -156,12 +163,17 @@ class SerialOutComponent(BaseComponent):
         self.writeStopTestCode(buff)
         if self.params['syncScreen']:
             code = (
-                "win.callOnFlip(%(name)s.write, %(stopdata)s)\n"
+                "win.callOnFlip(%(name)s.write, bytes(%(stopdata)s, 'utf8'))\n"
             )
         else:
             code = (
-                "%(name)s.write(%(stopdata)s)\n"
+                "%(name)s.write(bytes(%(stopdata)s, 'utf8'))\n"
             )
+        buff.writeIndented(code % params)
+        # Update status
+        code = (
+            "%(name)s.status = FINISHED\n"
+        )
         buff.writeIndented(code % params)
         # If we want responses, get them
         if self.params['getResponse']:
@@ -170,7 +182,7 @@ class SerialOutComponent(BaseComponent):
             )
             buff.writeIndented(code % params)
         # Dedent
-        buff.setIndentLevel(-1, relative=True)
+        buff.setIndentLevel(-2, relative=True)
 
     def writeExperimentEndCode(self, buff):
         # Close the port

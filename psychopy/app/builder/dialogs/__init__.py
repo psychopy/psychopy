@@ -1790,9 +1790,15 @@ class DlgExperimentProperties(_BaseParamsDlg):
             self.paramCtrls[field].param.val = size
             self.paramCtrls[field].valueCtrl.Disable()
             self.paramCtrls[field].nameCtrl.Disable()
+            # enable show/hide mouse
+            self.paramCtrls['Show mouse'].valueCtrl.Enable()
+            self.paramCtrls['Show mouse'].nameCtrl.Enable()
         else:
             self.paramCtrls['Window size (pixels)'].valueCtrl.Enable()
             self.paramCtrls['Window size (pixels)'].nameCtrl.Enable()
+            # set show mouse to visible and disable control
+            self.paramCtrls['Show mouse'].valueCtrl.Disable()
+            self.paramCtrls['Show mouse'].nameCtrl.Disable()
         self.mainSizer.Layout()
         self.Fit()
         self.Refresh()
