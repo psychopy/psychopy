@@ -28,6 +28,7 @@ primaryCamera = list(cameras.keys())[0]  # get name for first enumerated camera
 # get descriptions for the formats supported by this camera
 cameraDescriptions = [camera.description() for camera in cameras[primaryCamera]]
 useCamera = cameraDescriptions[0]  # get he first one and use it
+print('Using camera: `{}`'.format(useCamera))
 
 # Create a new camera instance. Values for `size` and `frameRate` must be
 # appropriate for the device in use.
