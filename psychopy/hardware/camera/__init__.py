@@ -970,7 +970,7 @@ class Camera:
     #     return self._mode
 
     @staticmethod
-    def getWebcams():
+    def getCameras():
         """Get information about installed cameras on this system.
 
         Returns
