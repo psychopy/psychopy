@@ -121,6 +121,7 @@ class CameraInfo:
 
     """
     __slots__ = [
+        '_index',
         '_name',
         '_frameSize',
         '_frameRate',
@@ -131,6 +132,7 @@ class CameraInfo:
     ]
 
     def __init__(self,
+                 index=-1,
                  name=CAMERA_NULL_VALUE,
                  frameSize=(-1, -1),
                  frameRate=(-1, -1),
@@ -139,6 +141,7 @@ class CameraInfo:
                  cameraLib=CAMERA_NULL_VALUE,
                  cameraAPI=CAMERA_API_NULL):
 
+        self.index = index
         self.name = name
         self.frameSize = frameSize
         self.frameRate = frameRate
@@ -148,13 +151,24 @@ class CameraInfo:
         self._cameraAPI = cameraAPI
 
     def __repr__(self):
-        return (f"CameraInfo(name={repr(self.name)}, "
+        return (f"CameraInfo(index={repr(self.index)}, "
+                f"name={repr(self.name)}, "
                 f"frameSize={repr(self.frameSize)}, "
                 f"frameRate={self.frameRate}, "
                 f"pixelFormat={repr(self.pixelFormat)}, "
                 f"codecFormat={repr(self.codecFormat)}, "
                 f"cameraLib={repr(self._cameraLib)}, "
                 f"cameraAPI={repr(self._cameraAPI)})")
+
+    @property
+    def index(self):
+        """Camera index (`int`). This is the enumerated index of this camera.
+        """
+        return self._index
+
+    @index.setter
+    def index(self, value):
+        self._index = int(value)
 
     @property
     def name(self):
@@ -217,6 +231,19 @@ class CameraInfo:
     @codecFormat.setter
     def codecFormat(self, value):
         self._codecFormat = str(value)
+
+    def frameSizeAsFormattedString(self):
+        """Get image size as as formatted string.
+
+        Returns
+        -------
+        str
+            Size formatted as `'WxH'` (e.g. `'480x320'`).
+
+        """
+        return '{width}x{height}'.format(
+            width=self.frameSize[0],
+            height=self.frameSize[1])
 
 
 class StreamStatus:
@@ -1431,7 +1458,7 @@ def _getCameraInfoMacOS():
     """
     if platform.system() != 'Darwin':
         raise OSError(
-            "Cannot query cameras with this function, platform not MacOS.")
+            "Cannot query cameras with this function, platform not 'Darwin'.")
 
     # import objc  # may be needed in the future for more advanced stuff
     import AVFoundation as avf  # only works on MacOS
@@ -1442,7 +1469,7 @@ def _getCameraInfoMacOS():
 
     # get video devices
     videoDevices = {}
-    for idx, device in enumerate(allDevices):
+    for devIdx, device in enumerate(allDevices):
         devFormats = device.formats()
         if devFormats[0].mediaType() != 'vide':  # not a video device
             continue
@@ -1473,6 +1500,7 @@ def _getCameraInfoMacOS():
             #           (codecCode >> 16) & 0xff,
             #           (codecCode >> 8) & 0xff,
             #           codecCode & 0xff)
+            #
             codecCode = ''.join(
                 [chr((codecType >> bits) & 0xff) for bits in (24, 16, 8, 0)])
 
@@ -1482,8 +1510,9 @@ def _getCameraInfoMacOS():
             frameRateMax = frameRateRange.maxFrameRate()
             # frameRateMin = frameRateRange.minFrameRate()  # don't use for now
 
-            # Create a new camera
+            # Create a new camera descriptor
             thisCamInfo = CameraInfo(
+                index=devIdx,
                 name=cameraName,
                 pixelFormat=codecCode,
                 codecFormat=codecCode,
@@ -1494,13 +1523,63 @@ def _getCameraInfoMacOS():
 
             supportedFormats.append(thisCamInfo)
 
+        # add to output dictionary
         videoDevices[cameraName] = supportedFormats
 
     return videoDevices
 
 
 def _getCameraInfoWindows():
-    pass
+    """Get a list of capabilities for the specified associated with a camera
+    attached to the system.
+
+    This is used by `getCameraInfo()` for querying camera details on Windows.
+    Don't call this function directly unless testing.
+
+    Returns
+    -------
+    list of CameraInfo
+        List of camera descriptors.
+
+    """
+    if platform.system() != 'Windows':
+        raise OSError(
+            "Cannot query cameras with this function, platform not 'Windows'.")
+
+    videoDevs, _, names = list_dshow_devices()
+    names = {v: k for k, v in names.items()}  # flip since we use HR names
+
+    # get all the supported modes for the camera
+    videoDevices = {}
+
+    # iterate over names
+    for name in names.keys():
+        supportedFormats = []
+        pass
+
+    # for mode in videoDevModes:
+    #     pixelFormat, codec, frameSize, frameRate = mode
+    #
+    #     # Make sure the frame rate is in a reasonable format, usually the
+    #     # ranges are not reported, so we just convert them into fractions
+    #     # here.
+    #     frameRateMin, frameRateMax = frameRate
+    #     if frameRateMin == frameRateMax:
+    #         frameRate = (frameRateMax, 1)
+    #     else:
+    #         continue  # do nothing if they don't match for now
+    #
+    #     # object to return with camera settings
+    #     temp = CameraInfo(
+    #         name=name,
+    #         pixelFormat=pixelFormat,
+    #         codecFormat=codec,
+    #         frameSize=frameSize,
+    #         frameRate=frameRate
+    #     )
+    #     supportedModes.append(temp)
+
+    return
 
 
 def getCameraInfo(camera):
@@ -1600,21 +1679,7 @@ def getCameras():
     systemName = platform.system()  # get the system name
     foundCameras = []
     if systemName == 'Darwin':  # MacOS
-        import psychopy.tools.systemtools as st
-        import json
-        # query camera names using `system_profiler`
-        systemReportJSON = st.systemProfilerMacOS(
-            "SPCameraDataType",
-            detailLevel='mini')
-        sysReport = json.loads(systemReportJSON)
-        # get camera names and return them
-        cameras = sysReport.get('SPCameraDataType', None)
-        if cameras is not None:  # no cameras
-            for camera in cameras:
-                camera = camera.get('_name', None)
-                if camera is None:
-                    continue
-                foundCameras.append(camera)
+        return _getCameraInfoMacOS()
     elif systemName == 'Linux':
         # use glob to get possible cameras connected to the system
         globResult = glob.glob(
