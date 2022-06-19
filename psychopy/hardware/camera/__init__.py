@@ -764,23 +764,21 @@ class Camera:
         supportedCameraSettings = getCameras()
 
         # create a mapping of supported camera formats
-        formatMapping = dict()
+        _formatMapping = dict()
         for _, formats in supportedCameraSettings.items():
             for _format in formats:
                 desc = _format.description()
-                formatMapping[desc] = _format
+                _formatMapping[desc] = _format
 
         # list of devices
-        devList = list(formatMapping)
-
-        print(devList)
+        devList = list(_formatMapping)
 
         if not devList:  # no cameras found if list is empty
             raise CameraNotFoundError('No cameras found of the system!')
 
         # Best device usually shows up last on the list, this will be the
         # default when the index is 0 or the user specifies 'default'.
-        bestDevice = formatMapping[devList[-1]]
+        bestDevice = _formatMapping[devList[-1]]
 
         self._origDevSpecifier = device  # what the user provided
         self._device = None  # device identifier
@@ -805,7 +803,7 @@ class Camera:
         # get the camera information
         self._cameraInfo = None
         try:
-            self._cameraInfo = formatMapping[self._device]
+            self._cameraInfo = _formatMapping[self._device]
         except KeyError:
             raise CameraFormatNotSupportedError(
                 'Specified camera format is not supported.')
@@ -1254,37 +1252,38 @@ class Camera:
         lib_opts = {}  # ffpyplayer options
         _camera = CAMERA_NULL_VALUE
         _frameRate = CAMERA_NULL_VALUE
+        _cameraInfo = self._cameraInfo
 
         # setup commands for FFMPEG
-        if self._cameraInfo.cameraAPI == CAMERA_API_DIRECTSHOW:  # windows
+        if _cameraInfo.cameraAPI == CAMERA_API_DIRECTSHOW:  # windows
             ff_opts['f'] = 'dshow'
             _camera = 'video={}'.format(self._device)
-            _frameRate = self._cameraInfo.frameRate
-        elif self._cameraInfo.cameraAPI == CAMERA_API_AVFOUNDATION:  # darwin
+            _frameRate = _cameraInfo.frameRate
+        elif _cameraInfo.cameraAPI == CAMERA_API_AVFOUNDATION:  # darwin
             ff_opts['f'] = 'avfoundation'
-            ff_opts['i'] = _camera = "0"
-            # ff_opts['vcodec'] = 'mpeg4'
+            ff_opts['i'] = _camera = self._cameraInfo.name
+            # ff_opts['vcodec'] = 'mjpeg'
 
             # handle pixel formats using FourCC
-            if self._cameraInfo.pixelFormat == 'yuvs':
-                self._cameraInfo.pixelFormat = 'yuyv422'
-                self._cameraInfo.codecFormat = CAMERA_NULL_VALUE
-            elif self._cameraInfo.pixelFormat == '420v':
-                self._cameraInfo.pixelFormat = CAMERA_NULL_VALUE
-                self._cameraInfo.codecFormat = 'yuyv422'
+            if _cameraInfo.pixelFormat == 'yuvs':
+                _cameraInfo.pixelFormat = 'yuyv422'  # only one we know about
             else:
                 raise CameraFormatNotSupportedError(
-                    'Pixel/codec format is not supported.')
+                    'Pixel format is not supported.')
 
             # this needs to be exactly specified if using NTSC
-            if math.isclose(CAMERA_FRAMERATE_NTSC, self._cameraInfo.frameRate):
+            if math.isclose(CAMERA_FRAMERATE_NTSC, _cameraInfo.frameRate):
                 _frameRate = CAMERA_FRAMERATE_NOMINAL_NTSC
+            else:
+                _frameRate = str(_cameraInfo.frameRate)
 
-            lib_opts['video_size'] = self._cameraInfo.frameSizeAsFormattedString()
-            lib_opts['framerate'] = CAMERA_FRAMERATE_NOMINAL_NTSC
-            lib_opts['pixel_format'] = self._cameraInfo.pixelFormat
+            # need these since hardware acceleration is not possible on Mac yet
+            lib_opts['fflags'] = 'nobuffer'
+            lib_opts['flags'] = 'low_delay'
+            ff_opts['framedrop'] = True
+            ff_opts['fast'] = True
 
-        elif self._cameraInfo.cameraAPI == CAMERA_API_VIDEO4LINUX:
+        elif _cameraInfo.cameraAPI == CAMERA_API_VIDEO4LINUX:
             raise OSError(
                 "Sorry, camera does not support Linux at this time. However it "
                 "will in future versions.")
@@ -1292,19 +1291,21 @@ class Camera:
             raise RuntimeError("Unsupported camera API specified.")
 
         # set library options
-        camWidth = self._cameraInfo.frameSize[0]
-        camHeight = self._cameraInfo.frameSize[1]
+        camWidth = _cameraInfo.frameSize[0]
+        camHeight = _cameraInfo.frameSize[1]
 
         # configure the real-time buffer size
         _bufferSize = camWidth * camHeight * 3 * self._bufferSecs
 
         # get codec or pixel format
-        _codecId = self._cameraInfo.codecFormat
-        _pixelId = self._cameraInfo.pixelFormat
-        _codec = _codecId if _codecId != CAMERA_NULL_VALUE else _pixelId
+        _codecId = _cameraInfo.codecFormat
+        _pixelId = _cameraInfo.pixelFormat
 
-        # build dict for library options
+        # common settings across libraries
         lib_opts['rtbufsize'] = str(_bufferSize)
+        lib_opts['video_size'] = _cameraInfo.frameSizeAsFormattedString()
+        lib_opts['framerate'] = _frameRate
+        lib_opts['pixel_format'] = _cameraInfo.pixelFormat
 
         # open a stream and pause it until ready
         self._player = MediaPlayer(_camera, ff_opts=ff_opts, lib_opts=lib_opts)
@@ -1312,8 +1313,6 @@ class Camera:
         # pass off the player to the thread which will process the stream
         self._tStream = MovieStreamIOThread(self._player)
         self._tStream.begin()
-
-        self._enqueueFrame(blockUntilFrame=True)  # pull a frame, gets metadata
 
     def record(self):
         """Start recording frames.
@@ -1325,9 +1324,6 @@ class Camera:
 
         """
         self._assertMediaPlayer()
-
-        # while not self._enqueueFrame():  # wait for a frame
-        #     time.sleep(0.001)
 
         self._openWriter()
 
