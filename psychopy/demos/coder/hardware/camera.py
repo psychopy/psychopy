@@ -24,7 +24,7 @@ else:
 
 # Create a new camera instance. Values for `size` and `frameRate` must be
 # appropriate for the device in use.
-cam = Camera(0, mic=mic, frameRate=30, size=(320, 240))
+cam = Camera(0, mic=mic, frameRate=30, size=(1920, 1080))
 
 # Open a camera stream. This will remain open until `close()` ia called.
 cam.open()
