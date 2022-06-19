@@ -1018,7 +1018,6 @@ class Camera:
         # until we sort how to configure this easily for users
         writerOptions = {
             'pix_fmt_in': 'yuv420p',  # default for now using mp4
-            # 'pix_fmt_in': 'rgb24',
             'preset': 'medium',
             'width_in': frameWidth,
             'height_in': frameHeight,
@@ -1571,7 +1570,6 @@ def _getCameraInfoMacOS():
             # frameRateMin = frameRateRange.minFrameRate()  # don't use for now
 
             # Create a new camera descriptor
-            print(frameRateMax)
             thisCamInfo = CameraInfo(
                 index=devIdx,
                 name=cameraName,
@@ -1731,7 +1729,7 @@ def getCameraInfo(camera):
 
 
 def getCameras():
-    """Get information about installed cameras on this system.
+    """Get information about installed cameras and their formats on this system.
 
     Returns
     -------
