@@ -24,7 +24,7 @@ else:
 
 # Create a new camera instance. Values for `size` and `frameRate` must be
 # appropriate for the device in use.
-cam = Camera(0, mic=mic, frameRate=30, size=(1920, 1080))
+cam = Camera('Live! Cam Sync 1080p: 320x240 @ 30.00003000003fps, yuvs', mic=mic)
 
 # Open a camera stream. This will remain open until `close()` ia called.
 cam.open()
@@ -46,6 +46,7 @@ cam.record()
 # record for (close to) 5 seconds
 while cam.recordingTime < 5.0:
     frame = cam.getVideoFrame()  # get video frame data
+    print(frame)
     # print the current time in the recording
     print('t={}s'.format(round(frame.absTime, 6)))
 

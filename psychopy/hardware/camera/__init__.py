@@ -21,6 +21,7 @@ import tempfile
 import os
 import os.path
 import shutil
+import math
 from psychopy.constants import STOPPED, NOT_STARTED, RECORDING
 from psychopy.visual.movies.metadata import MovieMetadata, NULL_MOVIE_METADATA
 from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
@@ -65,6 +66,15 @@ CAMERA_API_OPENCV = u'OpenCV'              # opencv, cross-platform API
 CAMERA_API_UNKNOWN = u'Unknown'            # unknown API
 CAMERA_API_NULL = u'Null'                  # empty field
 
+# camera libraries for playback nad recording
+CAMERA_LIB_FFPYPLAYER = u'FFPyPlayer'
+CAMERA_LIB_UNKNOWN = u'Unknown'
+CAMERA_LIB_NULL = u'Null'
+
+# special values
+CAMERA_FRAMERATE_NOMINAL_NTSC = '30.000030'
+CAMERA_FRAMERATE_NTSC = 30.000030
+
 # default values for camera settings
 cameraCodecs = []
 
@@ -85,7 +95,7 @@ class CameraNotFoundError(CameraError):
     """Raised when a camera cannot be found on the system."""
 
 
-class CameraModeNotSupportedError(CameraError):
+class CameraFormatNotSupportedError(CameraError):
     """Raised when a camera cannot use the settings requested by the user."""
 
 
@@ -147,8 +157,8 @@ class CameraInfo:
         self.frameRate = frameRate
         self.pixelFormat = pixelFormat
         self.codecFormat = codecFormat
-        self._cameraLib = cameraLib
-        self._cameraAPI = cameraAPI
+        self.cameraLib = cameraLib
+        self.cameraAPI = cameraAPI
 
     def __repr__(self):
         return (f"CameraInfo(index={repr(self.index)}, "
@@ -157,8 +167,11 @@ class CameraInfo:
                 f"frameRate={self.frameRate}, "
                 f"pixelFormat={repr(self.pixelFormat)}, "
                 f"codecFormat={repr(self.codecFormat)}, "
-                f"cameraLib={repr(self._cameraLib)}, "
-                f"cameraAPI={repr(self._cameraAPI)})")
+                f"cameraLib={repr(self.cameraLib)}, "
+                f"cameraAPI={repr(self.cameraAPI)})")
+
+    def __str__(self):
+        return self.description()
 
     @property
     def index(self):
@@ -232,6 +245,26 @@ class CameraInfo:
     def codecFormat(self, value):
         self._codecFormat = str(value)
 
+    @property
+    def cameraLib(self):
+        """Camera library these settings are targeted towards (`str`).
+        """
+        return self._cameraLib
+
+    @cameraLib.setter
+    def cameraLib(self, value):
+        self._cameraLib = str(value)
+
+    @property
+    def cameraAPI(self):
+        """Camera API in use to obtain this information (`str`).
+        """
+        return self._cameraAPI
+
+    @cameraAPI.setter
+    def cameraAPI(self, value):
+        self._cameraAPI = str(value)
+
     def frameSizeAsFormattedString(self):
         """Get image size as as formatted string.
 
@@ -244,6 +277,27 @@ class CameraInfo:
         return '{width}x{height}'.format(
             width=self.frameSize[0],
             height=self.frameSize[1])
+
+    def description(self):
+        """Get a description as a string.
+
+        Returns
+        -------
+        str
+            Description of the camera format as a human readable string.
+
+        """
+        codecFormat = self._codecFormat
+        pixelFormat = self._pixelFormat
+        codec = codecFormat if pixelFormat is CAMERA_NULL_VALUE else pixelFormat
+
+        return "{name}: {width}x{height} @ {frameRate}fps, {codec}".format(
+            name=self.name,
+            width=str(self.frameSize[0]),
+            height=str(self.frameSize[1]),
+            frameRate=str(self.frameRate),
+            codec=codec
+        )
 
 
 class StreamStatus:
@@ -317,7 +371,7 @@ class StreamStatus:
 
 
 class StreamData:
-    """Descriptor for video frame data.
+    """Descriptor for camera stream data.
 
     Instances of this class are produced by the stream reader/writer thread
     which contain: metadata about the stream, frame image data (i.e. pixel
@@ -652,10 +706,6 @@ class Camera:
         Microphone to record audio samples from during recording. The microphone
         input device must not be in use when `record()` is called. The audio
         track will be merged with the video upon calling `save()`.
-    size : ArrayLike
-        Requested resolution `(w, h)` of the camera video.
-    frameRate : int
-        Requested framerate for the camera video.
     cameraLib : str
         Interface library (backend) to use for accessing the camera. Only
         `ffpyplayer` is available at this time.
@@ -689,9 +739,9 @@ class Camera:
         camera.close()
 
     """
-    def __init__(self, device=0, mic=None, size=None, frameRate=None,
-                 cameraLib=u'ffpyplayer', codecOpts=None, libOpts=None,
-                 bufferSecs=4, win=None, name='cam'):
+    def __init__(self, device=0, mic=None, cameraLib=u'ffpyplayer',
+                 codecOpts=None, libOpts=None, bufferSecs=4, win=None,
+                 name='cam'):
 
         # add attributes for setters
         self.__dict__.update(
@@ -706,81 +756,71 @@ class Camera:
              '_codecOpts': None,
              '_libOpts': None})
 
+        # ----------------------------------------------------------------------
+        # Process camera settings
+        #
+
+        # get all the cameras attached to the system
+        supportedCameraSettings = getCameras()
+
+        # create a mapping of supported camera formats
+        formatMapping = dict()
+        for _, formats in supportedCameraSettings.items():
+            for _format in formats:
+                desc = _format.description()
+                formatMapping[desc] = _format
+
+        # list of devices
+        devList = list(formatMapping)
+
+        print(devList)
+
+        if not devList:  # no cameras found if list is empty
+            raise CameraNotFoundError('No cameras found of the system!')
+
+        # Best device usually shows up last on the list, this will be the
+        # default when the index is 0 or the user specifies 'default'.
+        bestDevice = formatMapping[devList[-1]]
+
+        self._origDevSpecifier = device  # what the user provided
+        self._device = None  # device identifier
+
         # alias device None or Default as being device 0
         if device in (None, "None", "none", "Default", "default"):
-            device = 0
-        # resolve getting the camera identifier
-        if isinstance(device, int):  # get camera if integer
-            try:
-                self._device = getCameras()[device]
-            except IndexError:  # catch as
-                raise CameraNotFoundError(
-                    'Could not enumerate camera with index `{}`.'.format(
-                        device))
-        elif isinstance(device, str):  # get camera if integer
-            self._device = device
+            self._device = bestDevice
         else:
-            raise TypeError(
-                "Incorrect type for `camera`, expected `int` or `str`.")
+            # resolve getting the camera identifier
+            if isinstance(device, int):  # get camera if integer
+                try:
+                    self._device = devList[device]
+                except IndexError:
+                    raise CameraNotFoundError(
+                        'Cannot find camera at index={}'.format(device))
+            elif isinstance(device, str):  # get camera if integer
+                self._device = device
+            else:
+                raise TypeError(
+                    "Incorrect type for `camera`, expected `int` or `str`.")
 
-        # get device modes
+        # get the camera information
+        self._cameraInfo = None
         try:
-            devModes = getCameraInfo(self._device)
-        except OSError:
-            # on systems which don't allow getting camera info, make devModes blank
-            devModes = []
+            self._cameraInfo = formatMapping[self._device]
+        except KeyError:
+            raise CameraFormatNotSupportedError(
+                'Specified camera format is not supported.')
 
-        # get the frame rate, needs to be fractional and float to config
-        if frameRate is None:
-            if len(devModes):
-                frameRate = devModes[-1].frameRate
-            else:
-                # if no camera information available, try 30fps
-                frameRate = 30
-        if isinstance(frameRate, (int, float)):  # atomic
-            self._frameRate = int(frameRate)
-            self._frameRateFrac = (self._frameRate, 1)
-        elif isinstance(frameRate, (tuple, list, np.ndarray)):  # sequence
-            if len(frameRate) != 2:
-                raise ValueError(
-                    "Value for parameter `size` must be length 2 if a sequence."
-                )
-            self._frameRateFrac = numer, denom = [int(i) for i in frameRate]
-            self._frameRate = numer / denom
-
-        # set the size
-        if size is None:
-            if len(devModes):
-                size = devModes[-1].frameSize
-            else:
-                # if no camera information available, try a widely supported size
-                size = (1920, 1080)
-
-        assert len(size) == 2, "Value for parameter `size` must be length 2"
-        self._size = tuple(size)  # needs to be hashable
-
-        # get camera mode information, see if the values specified by the user
-        # match something that is supported
-        if platform.system() in ('Windows',):
-            for devMode in devModes:
-                print(devMode.frameRate, self._frameRateFrac)
-                print(devMode.frameSize, self._size)
-                sameFrameRate = np.array(
-                    devMode.frameRate) == np.array(self._frameRateFrac)
-                sameFrameSize = np.array(
-                    devMode.frameSize) == np.array(self._size)
-                if sameFrameRate.all() and sameFrameSize.all():
-                    break
-            else:
-                raise CameraModeNotSupportedError(
-                    "Camera '{}' does not support the specified framerate and "
-                    "frame size. Call `getCameraInfo() to query the system for "
-                    "valid configurations for the desired capture "
-                    "device.".format(self._device)
-                )
-
-        # name for builder
-        self.name = name
+        # Check if the cameraAPI is suitable for the operating system. This is
+        # a sanity check to ensure people aren't using formats obtained from
+        # other platforms.
+        api = self._cameraInfo.cameraAPI
+        thisSystem = platform.system()
+        if ((api == CAMERA_API_AVFOUNDATION and thisSystem != 'Darwin') or
+                (api == CAMERA_API_DIRECTSHOW and thisSystem != 'Windows') or
+                (api == CAMERA_API_VIDEO4LINUX and thisSystem != 'Linux')):
+            raise RuntimeError(
+                "Unsupported camera interface '{}' for platform '{}'".format(
+                    api, thisSystem))
 
         # camera library in use
         self._cameraLib = cameraLib
@@ -807,6 +847,9 @@ class Camera:
                 "Expected type for parameter `mic`, expected `Microphone`.")
         self.mic = mic
 
+        # other information
+        self.name = name
+
         # current camera frame since the start of recording
         self._player = None  # media player instance
         self._status = NOT_STARTED
@@ -816,9 +859,8 @@ class Camera:
         self._bufferSecs = float(bufferSecs)
 
         # timestamp data
-        self._recordingTime = 0.0
+        self._recordingTime = self._streamTime = 0.0
         self._recordingBytes = 0
-        self._streamTime = 0.0
 
         # store win (unused but needs to be set/got safely for parity with JS)
         self.win = win
@@ -1210,38 +1252,59 @@ class Camera:
 
         ff_opts = {}  # ffmpeg options
         lib_opts = {}  # ffpyplayer options
-        _camera = 'default'
-        if platform.system() != 'Linux':
-            if platform.system() == 'Windows':
-                ff_opts['f'] = 'dshow'  # DirectShow specific stuff
-                _camera = 'video={}'.format(self._device)
-            elif platform.system() == 'Darwin':
-                ff_opts['f'] = 'avfoundation'  # AVF specific stuff
-                ff_opts['i'] = '0'  # AVF specific stuff
-                #ff_opts['vcodec'] = 'mpeg4'
-                _camera = 'default'
+        _camera = CAMERA_NULL_VALUE
+        _frameRate = CAMERA_NULL_VALUE
 
-            # get device configuration options
-            camW, camH = self._size
-            pixelFormat = 'yuyv422'
+        # setup commands for FFMPEG
+        if self._cameraInfo.cameraAPI == CAMERA_API_DIRECTSHOW:  # windows
+            ff_opts['f'] = 'dshow'
+            _camera = 'video={}'.format(self._device)
+            _frameRate = self._cameraInfo.frameRate
+        elif self._cameraInfo.cameraAPI == CAMERA_API_AVFOUNDATION:  # darwin
+            ff_opts['f'] = 'avfoundation'
+            ff_opts['i'] = _camera = "0"
+            # ff_opts['vcodec'] = 'mpeg4'
 
-            # library options
-            framerate = str(self._frameRate)
-            videoSize = '{width}x{height}'.format(width=camW, height=camH)
-            bufferSize = camW * camH * 3 * self._bufferSecs
+            # handle pixel formats using FourCC
+            if self._cameraInfo.pixelFormat == 'yuvs':
+                self._cameraInfo.pixelFormat = 'yuyv422'
+                self._cameraInfo.codecFormat = CAMERA_NULL_VALUE
+            elif self._cameraInfo.pixelFormat == '420v':
+                self._cameraInfo.pixelFormat = CAMERA_NULL_VALUE
+                self._cameraInfo.codecFormat = 'yuyv422'
+            else:
+                raise CameraFormatNotSupportedError(
+                    'Pixel/codec format is not supported.')
 
-            # build dict for library options
-            lib_opts.update({
-                'framerate': '30.000030',
-                'video_size': '320x240',
-                'pixel_format': pixelFormat,  # e.g. 'yuyv422'
-                # 'rtbufsize': str(bufferSize),
-                #'preset': 'ultrafast',
-                #'tune': 'zerolatency'
-                }
-            )
+            # this needs to be exactly specified if using NTSC
+            if math.isclose(CAMERA_FRAMERATE_NTSC, self._cameraInfo.frameRate):
+                _frameRate = CAMERA_FRAMERATE_NOMINAL_NTSC
+
+            lib_opts['video_size'] = self._cameraInfo.frameSizeAsFormattedString()
+            lib_opts['framerate'] = CAMERA_FRAMERATE_NOMINAL_NTSC
+            lib_opts['pixel_format'] = self._cameraInfo.pixelFormat
+
+        elif self._cameraInfo.cameraAPI == CAMERA_API_VIDEO4LINUX:
+            raise OSError(
+                "Sorry, camera does not support Linux at this time. However it "
+                "will in future versions.")
         else:
-            _camera = self._device  # on linux we just open the stream for now
+            raise RuntimeError("Unsupported camera API specified.")
+
+        # set library options
+        camWidth = self._cameraInfo.frameSize[0]
+        camHeight = self._cameraInfo.frameSize[1]
+
+        # configure the real-time buffer size
+        _bufferSize = camWidth * camHeight * 3 * self._bufferSecs
+
+        # get codec or pixel format
+        _codecId = self._cameraInfo.codecFormat
+        _pixelId = self._cameraInfo.pixelFormat
+        _codec = _codecId if _codecId != CAMERA_NULL_VALUE else _pixelId
+
+        # build dict for library options
+        lib_opts['rtbufsize'] = str(_bufferSize)
 
         # open a stream and pause it until ready
         self._player = MediaPlayer(_camera, ff_opts=ff_opts, lib_opts=lib_opts)
@@ -1469,7 +1532,8 @@ def _getCameraInfoMacOS():
 
     # get video devices
     videoDevices = {}
-    for devIdx, device in enumerate(allDevices):
+    devIdx = 0
+    for device in allDevices:
         devFormats = device.formats()
         if devFormats[0].mediaType() != 'vide':  # not a video device
             continue
@@ -1511,6 +1575,7 @@ def _getCameraInfoMacOS():
             # frameRateMin = frameRateRange.minFrameRate()  # don't use for now
 
             # Create a new camera descriptor
+            print(frameRateMax)
             thisCamInfo = CameraInfo(
                 index=devIdx,
                 name=cameraName,
@@ -1522,6 +1587,8 @@ def _getCameraInfoMacOS():
             )
 
             supportedFormats.append(thisCamInfo)
+
+            devIdx += 1
 
         # add to output dictionary
         videoDevices[cameraName] = supportedFormats
@@ -1672,7 +1739,7 @@ def getCameras():
 
     Returns
     -------
-    list
+    dict
         Camera identifiers.
 
     """
@@ -1709,4 +1776,5 @@ def getVideoCodecs():
 
 
 if __name__ == "__main__":
-    print(_getCameraInfoMacOS())
+    supportedCameraSettings = _getCameraInfoMacOS()
+    print(supportedCameraSettings)
