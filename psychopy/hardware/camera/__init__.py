@@ -1034,6 +1034,7 @@ class Camera:
     def __init__(self, device=0, mic=None, cameraLib=u'ffpyplayer',
                  bufferSecs=4, win=None, name='cam'):
 
+
         # add attributes for setters
         self.__dict__.update(
             {'_device': None,
@@ -1058,6 +1059,10 @@ class Camera:
             for _format in formats:
                 desc = _format.description()
                 _formatMapping[desc] = _format
+        # sort formats by resolution then frame rate
+        orderedFormats = list(_formatMapping.values())
+        orderedFormats.sort(key=lambda obj: obj.frameRate, reverse=True)
+        orderedFormats.sort(key=lambda obj: np.prod(obj.frameSize), reverse=True)
 
         # list of devices
         devList = list(_formatMapping)
@@ -1065,16 +1070,23 @@ class Camera:
         if not devList:  # no cameras found if list is empty
             raise CameraNotFoundError('No cameras found of the system!')
 
-        # Best device usually shows up last on the list, this will be the
-        # default when the index is 0 or the user specifies 'default'.
+        # Get best device
         bestDevice = _formatMapping[devList[-1]]
+        for mode in orderedFormats:
+            sameFrameRate = mode.frameRate == frameRate or frameRate is None
+            sameFrameSize = mode.frameSize == frameSize or frameSize is None
+            if sameFrameRate and sameFrameSize:
+                bestDevice = mode
+                break
 
         self._origDevSpecifier = device  # what the user provided
         self._device = None  # device identifier
 
         # alias device None or Default as being device 0
         if device in (None, "None", "none", "Default", "default"):
-            self._device = bestDevice
+            self._device = bestDevice.description()
+        elif isinstance(device, CameraInfo):
+            self._device = device.description()
         else:
             # resolve getting the camera identifier
             if isinstance(device, int):  # get camera if integer
@@ -1090,12 +1102,13 @@ class Camera:
                     "Incorrect type for `camera`, expected `int` or `str`.")
 
         # get the camera information
-        self._cameraInfo = None
-        try:
+        if self._device in _formatMapping:
             self._cameraInfo = _formatMapping[self._device]
-        except KeyError:
+        else:
+            # raise error if couldn't find matching camera info
             raise CameraFormatNotSupportedError(
-                'Specified camera format is not supported.')
+                'Specified camera format is not supported.'
+            )
 
         # Check if the cameraAPI is suitable for the operating system. This is
         # a sanity check to ensure people aren't using formats obtained from

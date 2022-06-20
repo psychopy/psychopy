@@ -65,7 +65,7 @@
   <Routines>
     <Routine name="trial">
       <CameraComponent name="cam">
-        <Param val="Default" valType="str" updates="None" name="device"/>
+        <Param val="default" valType="str" updates="None" name="device"/>
         <Param val="False" valType="bool" updates="None" name="disabled"/>
         <Param val="" valType="code" updates="None" name="durationEstim"/>
         <Param val="Default" valType="str" updates="None" name="mic"/>
