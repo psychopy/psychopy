@@ -21,7 +21,7 @@ import os
 import os.path
 import shutil
 import math
-from psychopy.constants import STOPPED, NOT_STARTED, RECORDING
+from psychopy.constants import STOPPED, NOT_STARTED, RECORDING, STARTED, STOPPING, PAUSED, FINISHED, INVALID
 from psychopy.visual.movies.metadata import MovieMetadata, NULL_MOVIE_METADATA
 from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
 from psychopy.sound.microphone import Microphone
@@ -451,6 +451,179 @@ class StreamData:
         return u''
 
 
+class StreamWriterThread(threading.Thread):
+    """Class for high-performance writing of video frames to disk asynchronously
+    using threading.
+
+    This thread is spawned along with a :class:`~psychopy.hardware.Camera`
+    instance, providing the capability to save real-time (live) video to disk
+    for later viewing or use. Communication and control of the thread are
+    done either by calling methods associated with this class, or directly
+     putting commands into the command queue, from another thread.
+
+    """
+    def __init__(self, mic=None):
+        threading.Thread.__init__(self)
+
+        self._mic = mic
+        self._commandQueue = queue.Queue()
+        self._writerClosedEvent = threading.Event()
+        self._writerClosedEvent.clear()
+
+        self._warmUpLock = threading.Lock()
+
+    def run(self):
+        """Main loop for the writer thread.
+
+        This waits on commands from the command queue and processes them
+        continuously until the `'end'` command is received. This thread may be
+        created along with the camera instance and killed when done.
+
+        If the stream format changes at any point, you should close the writer
+        and open a new one with updated parameters before writing more frames.
+
+        """
+        self._warmUpLock.acquire(blocking=False)
+        writer = None   # instance for the writer
+        alive = True
+        while alive:
+            # block main thread until we are in the command loop
+            if self._warmUpLock.locked():
+                self._warmUpLock.release()
+
+            # process input commands
+            cmdOptCode, cmdVals = self._commandQueue.get(block=True)
+            if cmdOptCode == 'open':
+                # Open a file to write values to.
+                if writer is not None:
+                    raise IOError(
+                        "Attempted to start a new `MediaWriter` instance "
+                        "without closing the existing one first."
+                    )
+                filepath, writerOpts = cmdVals
+                # create a new writer instance
+                writer = MediaWriter(filepath, writerOpts)
+                self._commandQueue.task_done()
+            elif cmdOptCode == 'write_frame':  # write a frame
+                # Write a frame out to the file. Passing a boolean as arg[3]
+                # will tell the code whether to block until the frame has
+                # been written (or buffered and waiting) by the writer. Use
+                # `True` for synchronous operation and `False` for
+                # asynchronous.
+                if writer is None:
+                    raise IOError(
+                        'Got `write_frame` command but the writer has not '
+                        'been opened yet.')
+
+                colorData, pts, blockUntilDone = cmdVals
+                if not blockUntilDone:
+                    self._commandQueue.task_done()
+
+                frameWidth, frameHeight = colorData.get_size()
+                sws = SWScale(frameWidth, frameHeight,
+                    colorData.get_pixel_format(),
+                    ofmt='yuv420p')
+
+                # write the frame to the file
+                recordingBytes = writer.write_frame(
+                    img=sws.scale(colorData),
+                    pts=pts,
+                    stream=0)
+
+                if blockUntilDone:
+                    self._commandQueue.task_done()
+            elif cmdOptCode == 'close':
+                # Close the file we are writing to but keep the writer
+                # thread hot. This allows for successive recordings to be
+                # made as quickly as possible without needing to spawn
+                # another thread each time.
+                if writer is None:
+                    raise IOError(
+                        "Attempted to close the `MediaWriter` instance "
+                        "without opening on first.")
+                writer.close()
+                writer = None
+                self._commandQueue.task_done()
+            elif cmdOptCode == 'end':  # end the thread
+                alive = False
+
+        # if we have an open file, close it just in case
+        if writer is not None:
+            writer.close()
+
+        # set when the writer exits
+        self._commandQueue.task_done()  # when end is called
+        self._writerClosedEvent.set()
+
+    @property
+    def commandQueue(self):
+        """The command queue for this thread (`queue.Queue`).
+        """
+        return self._commandQueue
+
+    def begin(self):
+        """Begin the file writer thread. Blocks until we can start accepting
+        commands.
+        """
+        self.start()
+        self._warmUpLock.acquire(blocking=True)
+
+    def end(self):
+        """Shutdown the thread.
+        """
+        self.sendCommand('end', (None,))  # blocks until done
+
+    def open(self, filePath, writerOpts):
+        """Open a file to writer frames to.
+
+        Parameters
+        ----------
+        filePath : str
+            Path to file to write frames to. This is usually a temporary
+            directory.
+        writerOpts : dict
+            Optional settings for the writer.
+
+        """
+        self.sendCommand('open', (filePath, writerOpts))  # blocks until done
+
+    def writeFrame(self, colorData, pts, blockUntilDone=False):
+        """Write a frame to the presently opened file.
+
+        Parameters
+        ----------
+        colorData : object
+            Image data to pass to the encoder.
+        pts : float
+            Presentation time stamp for the frame.
+        blockUntilDone : bool
+            Block this function until the frame has been written to disk.
+            Otherwise, this function will return immediately and the frame will
+            be written out asynchronously.
+
+        """
+        self.sendCommand('write_frame', (colorData, pts, blockUntilDone))
+
+    def close(self):
+        """Close the file. This will write out the result.
+        """
+        self.sendCommand('close', (None,))
+
+    def sendCommand(self, opcode, args):
+        """Send a command to this thread.
+
+        Parameters
+        ----------
+        opcode : str
+            Command key or operation code.
+        args : tuple
+            Arguments for the command.
+
+        """
+        self._commandQueue.put((opcode, args))
+        self._commandQueue.join()  # block until tasks are done
+
+
 class MovieStreamIOThread(threading.Thread):
     """Class for reading and writing streams asynchronously.
 
@@ -473,11 +646,15 @@ class MovieStreamIOThread(threading.Thread):
         self.daemon = False
 
         self._player = player  # player interface to FFMPEG
-        self._writer = None  # writer interface
         self._mic = None
         self._frameQueue = queue.Queue(
             maxsize=bufferFrames)  # frames for the monitor
         self._cmdQueue = queue.Queue()  # command queue
+
+        # Queue for return values if needed. We set the `maxsize` to ensure
+        # that we don't stack return values.
+        self._retQueue = queue.Queue(maxsize=1)
+        self._writer = None
 
         # some values the user might want
         self._status = NOT_STARTED
@@ -485,14 +662,8 @@ class MovieStreamIOThread(threading.Thread):
         self._recordingBytes = 0
         self._streamTime = 0.0
 
-        self._isReadyEvent = threading.Event()
-        self._isRecording = threading.Event()
-        self._isStreamingEvent = threading.Event()
-        self._stopSignal = threading.Event()
-
         # Locks for syncing the player and main application thread
         self._warmUpLock = threading.Lock()
-        self._warmUpLock.acquire(blocking=False)
 
     def run(self):
         """Main sub-routine for this thread.
@@ -503,38 +674,149 @@ class MovieStreamIOThread(threading.Thread):
         can get frames.
 
         """
-        if self._player is None:
-            return  # exit thread if no player
+        # Warmup lock for the thread, prevent another thread for running
+        # anything until we're ready to go.
+        self._warmUpLock.acquire(blocking=False)
 
-        frameInterval = 0.001  # dynamic poll interval, start at 1ms
-        ptsStart = 0.0
-        recordingJustStarted = True
-        streaming = True
-        while 1:
-            # process commands in queue
-            while not self._cmdQueue.empty():
-                cmdOpCode, cmdVal = self._cmdQueue.get()
-                if cmdOpCode == 'record':
-                    self._status = RECORDING
-                elif cmdOpCode == 'stop':
-                    self._status = STOPPED
-                elif cmdOpCode == 'shutdown':
-                    self._status = STOPPED
-                    streaming = False
+        # variables used within the scope of this thread
+        frameInterval = 0.004        # frame interval, start at 4ms (250Hz
+        frameData = None             # frame data from the reader
+        lastFrame = None             # last frame to get pulled from the stream
+        val = ''                     # status value from reader
+        statusFlag = NOT_STARTED     # status flag for stream reader state
+        metadata = None              # only valid after we get a frame
+        mustStop = False             # terminate the thread
+        ptsStart = 0.0               # stream pts the recording started at
+        recordingJustStarted = True  # have we just started recording? do setup
+        writer = None                # handle to the frame writer
 
-            if not streaming:
-                break
+        # status flag equivalents for ffpyplayer
+        statusFlagLUT = {
+            'eof': STOPPING,  # maybe FINISHED?
+            'not ready': NOT_STARTED,
+            'paused': PAUSED  # not allowed for live feeds but map it anyways
+        }
 
-            # consume frames until we get a valid one
+        # ----------------------------------------------------------------------
+        # Stream initialization and warmup
+        #
+
+        # Consume frames until we get a valid one, we need its metadata at this
+        # point to configure the writer.
+        while statusFlag != STARTED:
             frameData, val = self._player.get_frame()
-            if frameData is None or val == 'not ready':
-                continue
 
+            # If we get a frame then the stream is started, tht also means we
+            # can get the metadata now.
+            if frameData is not None and val != 'not ready':
+                statusFlag = STARTED
+
+            # Should never see this unless the camera was unplugged or
+            # something, but we'll handle it here at some point.
             if val == 'eof':
                 break
 
-            if self._warmUpLock.locked():
-                self._warmUpLock.release()  # release warmup lock
+            time.sleep(frameInterval)  # sleep a bit to avoid mashing the CPU
+
+        # Obtain metadata from the frame now that we have a flowing stream. This
+        # data is needed by the main thread to process to configure additional
+        # resources needed to present the video.
+        metadata = self._player.get_metadata()
+
+        # Get color and timestamp data from the returned frame object, this will
+        # be encapsulated in a `StreamData` object and passed back to the main
+        # thread with status information.
+        colorData, pts = frameData
+
+        # Build up the object which we'll pass to the application thread. Stream
+        # status information hold timestamp and playback information.
+        streamStatus = StreamStatus(
+            status=statusFlag,    # current status flag, should be `NOT_STARTED`
+            streamTime=pts)       # frame timestamp
+
+        # Put the frame in the frame queue so the main thread can read access it
+        # safely. The main thread should hold onto any frame it gets when the
+        # queue is empty.
+        if self._frameQueue.full():
+            raise RuntimeError(
+                "Stream decoder frame queue is full and it really shouldn't be "
+                "at this point. Make sure data has been flushed out of the "
+                "queue from previous use.")
+
+        # Object to pass video frame data back to the application thread for
+        # presentation or processing.
+        lastFrame = StreamData(
+            metadata,
+            colorData,
+            streamStatus,
+            u'ffpyplayer')
+
+        # Pass the object to the main thread using the frame queue.
+        self._frameQueue.put(lastFrame)  # put frame data in here
+
+        # update the status flag indicating that we started pulling frames
+        statusFlag = STARTED
+
+        # Release the lock to unblock the parent thread once we have the first
+        # frame and valid metadata from the stream. After this returns the
+        # main thread should call `getRecentFrame` to get the frame data.
+        self._warmUpLock.release()
+
+        # ----------------------------------------------------------------------
+        # Streaming
+        #
+        # This is the main loop which pulls video frames from, and controls the
+        # stream. Live camera feeds cannot be paused or seeked through at this
+        # time.
+        #
+        while statusFlag != FINISHED:
+            # process items in command queue, if any
+            if not self._cmdQueue.empty():
+                cmdOpCode, cmdVal = self._cmdQueue.get()
+                if cmdOpCode == 'record':
+                    # Start recording. This should begin pushing frames to the
+                    # writer frame queue. We upgrade the status flag to
+                    # `RECORDING` which means the stream is active
+                    if statusFlag == STARTED:
+                        statusFlag = RECORDING
+                    writer = cmdVal  # writer object is the argument here
+                elif cmdOpCode == 'stop':
+                    # Weird, eh? We use the `STARTED` constant to represent that
+                    # the stream is active and pulling frames but not yet
+                    # recording. The stop command keeps the stream alive but
+                    # stop writing frames to file.
+                    if statusFlag != RECORDING:
+                        raise RuntimeError(
+                            "Attempted to stop a recording that has not yet "
+                            "been started."
+                        )
+                    statusFlag = STARTED
+                    writer = None
+                elif cmdOpCode == 'close':
+                    # Exit the thread, the breaks out of this loop and drops out
+                    # to the end of the routine. There should be a `task_done()`
+                    # down there to match the `join()` call from the other
+                    # thread.
+                    statusFlag = FINISHED
+                    continue
+
+            # pull the next available frame from the stream
+            frameData, val = self._player.get_frame(show=True)
+
+            # process status flags coming from the stream reader
+            if isinstance(val, str):
+                statusFlag = statusFlagLUT.get(val, INVALID)
+
+            if statusFlag == STOPPING:  # eof
+                statusFlag = FINISHED
+                continue
+
+            # An `INVALID` status flag usually means we're either not ready or
+            # the value of `val` is not something we are expecting (due to
+            # library changes?) If we get one, just try to get another frame.
+            if statusFlag == INVALID or frameData is None:
+                time.sleep(frameInterval)
+                continue
 
             # after getting a frame, we can get accurate metadata
             metadata = self._player.get_metadata()
@@ -552,42 +834,46 @@ class MovieStreamIOThread(threading.Thread):
             colorData, pts = frameData
             self._streamTime = pts
 
-            # handle writing to file
-            if self._status == RECORDING and self._writer is not None:
+            # ------------------------------------------------------------------
+            # Recording
+            #
+            # If we have the `RECORDING` status flag, the user has requested
+            # that we start writing frames out to disk. This is handled in
+            # another thread, so we just push frame data into a queue to have
+            # then writen to an output file. The recording thread is initialized
+            # and controlled by the main thread.
+            #
+            if statusFlag == RECORDING:
+                # Have we just started recording? Do some setup.
                 if recordingJustStarted:
                     ptsStart = self._streamTime
                     recordingJustStarted = False
+                    self._cmdQueue.task_done()  # the record command farther up
 
                 # compute timestamp for the writer for the current frame
                 self._recordingTime = self._streamTime - ptsStart
 
-                frameWidth, frameHeight = colorData.get_size()
-                pixelFormat = colorData.get_pixel_format()
-
-                # convert color format to rgb24 since we're doing raw video
-                sws = SWScale(
-                    frameWidth,
-                    frameHeight,
-                    pixelFormat,
-                    ofmt='yuv420p')
-
-                # write the frame to the file
-                self._recordingBytes = self._writer.write_frame(
-                    img=sws.scale(colorData),
-                    pts=self._recordingTime,
-                    stream=0)
+                # If we have writer object, put frames in its queue to have them
+                # written to disk.
+                if writer is not None:
+                    writer.commandQueue.put(
+                        ('write_frame',
+                         (colorData, self._recordingTime, False)
+                         )
+                    )
 
                 # poll the mic if available to flush the sample buffer
                 if self._mic is not None:
                     self._mic.poll()
-
-            else:
-                if not recordingJustStarted:
+            elif statusFlag == STARTED:
+                if not recordingJustStarted:  # previously recording?
                     # reset stream recording vars when done
                     ptsStart = 0.0
                     self._recordingBytes = 0
                     self._recordingTime = 0.0
                     recordingJustStarted = True
+                    statusFlag = STARTED   # keep the stream running
+                    self._cmdQueue.task_done()
 
             # Put the frame in the queue to allow the main thread to safely
             # access it. If the queue is full, the frame data will be discarded
@@ -611,11 +897,13 @@ class MovieStreamIOThread(threading.Thread):
 
             time.sleep(frameInterval)
 
-    @property
-    def isReady(self):
-        """`True` if the stream reader is ready (`bool`).
-        """
-        return self._isReadyEvent.is_set()
+        # catch incase we exited some other way than by command
+        try:
+            self._cmdQueue.task_done()
+        except ValueError:
+            pass
+
+        print('stream thread is dead')
 
     def begin(self):
         """Stop the thread.
@@ -640,22 +928,20 @@ class MovieStreamIOThread(threading.Thread):
         self._writer = writer
         self._mic = mic
 
-        # need at least a writer to use this
-        if not isinstance(self._writer, MediaWriter):
-            raise TypeError(
-                "Expected type `MediaWriter` for parameter `writer`.")
-
-        self._cmdQueue.put(('record', None))
+        self._cmdQueue.put(('record', writer))
+        self._cmdQueue.join()
 
     def stop(self):
         """Stop recording frames to the output file.
         """
         self._cmdQueue.put(('stop', None))
+        self._cmdQueue.join()
 
     def shutdown(self):
         """Stop the thread.
         """
         self._cmdQueue.put(('shutdown', None))
+        self._cmdQueue.join()
 
     def getRecentFrame(self):
         """Get the most recent frame data from the feed (`tuple`).
@@ -829,12 +1115,6 @@ class Camera:
         self._codecOpts = codecOpts if codecOpts is not None else {}
         self._libOpts = libOpts if libOpts is not None else {}
 
-        # parameters for the writer
-        self._writer = None
-        self._tempVideoFileName = u''
-        self._tempAudioFileName = u''
-        self._tempRootDir = u'.'
-
         if not isinstance(mic, Microphone):
             TypeError(
                 "Expected type for parameter `mic`, expected `Microphone`.")
@@ -860,6 +1140,19 @@ class Camera:
 
         # thread for reading and writing streams
         self._tStream = None
+
+        # Start the thread for writing frames. We start the thread too since it
+        # waits for commands. Later we'll call `open()` on it to actually create
+        # the writer instance and begin pushing out frames to it. This thread is
+        # terminated when `close()` is called which shuts down the camera stream
+        # too.
+        self._tWriter = StreamWriterThread()
+        self._tWriter.begin()
+        # These are used to tell the stream writer and microphone where to write
+        # its output.
+        self._tempVideoFileName = u''
+        self._tempAudioFileName = u''
+        self._tempRootDir = u''
 
         # video metadata
         self._recentMetadata = NULL_MOVIE_METADATA
@@ -1014,15 +1307,10 @@ class Camera:
 
     def _openWriter(self):
         """Initialize and configure the media writer.
-
-        Must be called after the video stream has been opened and
-        `_enqueueFrame` called at least once prior. This is needed since the
-        stream metadata is required to configure the writer.
-
         """
-        if self._writer is not None:
+        if self._tWriter is None:
             raise RuntimeError(
-                "Stream writer instance has already been created.")
+                "Stream writer instance has not been spawned yet.")
 
         # need the stream started before setting up the writer
         self._assertMediaPlayer()
@@ -1056,24 +1344,20 @@ class Camera:
             'frame_rate': frameRate
         }
 
-        # initialize the writer to transcode the video stream to file
-        self._writer = MediaWriter(
-            self._tempVideoFileName,
-            [writerOptions],
-            width_out=frameWidth, height_out=frameHeight,
-            fmt='mp4',
-            pix_fmt_out='yuv420p')
+        # open a writer and block until done
+        self._tWriter.open(self._tempVideoFileName, [writerOptions])
 
     def _closeWriter(self):
         """Close the video writer.
         """
-        if self._writer is None:
+        if self._tWriter is None:
             return
 
         # cleanup
-        # self._writer.close()
+        self._tWriter.close()
+        self._tWriter.join()
 
-        self._writer = None
+        self._tWriter = None
 
     def _renderVideo(self, outFile):
         """Combine video and audio tracks of temporary video and audio files.
@@ -1174,7 +1458,7 @@ class Camera:
     def _hasWriter(self):
         """`True` if we have an active file writer instance.
         """
-        return self._writer is not None
+        return self._tWriter is not None
 
     @property
     def streamTime(self):
@@ -1288,6 +1572,8 @@ class Camera:
             # handle pixel formats using FourCC
             if _cameraInfo.pixelFormat == 'yuvs':
                 _cameraInfo.pixelFormat = 'yuyv422'  # only one we know about
+            elif _cameraInfo.pixelFormat == '420v':
+                _cameraInfo.pixelFormat = 'nv12'
             else:
                 raise CameraFormatNotSupportedError(
                     'Pixel format is not supported.')
@@ -1359,7 +1645,7 @@ class Camera:
         if self._mic is not None:
             self._mic.record()
 
-        self._tStream.record(self._writer, self._mic)
+        self._tStream.record(self._tWriter, self._mic)
         self._status = RECORDING
 
     def snapshot(self):
@@ -1373,10 +1659,15 @@ class Camera:
         """Stop recording frames.
         """
         self._assertMediaPlayer()
-        self._tStream.stop()
         self._status = STOPPED
 
-        self._closeWriter()
+        # Keep the stream running but stop it from passing any write commands
+        # the writer thread.
+        self._tStream.stop()
+
+        # Close the writer file (not thread) now that the stream thread is no
+        # longer writing frames.
+        self._tWriter.close()
 
         # stop audio recording if `mic` is available
         if self._mic is not None:
@@ -1390,14 +1681,23 @@ class Camera:
         if not self._hasPlayer:
             raise RuntimeError("Cannot close stream, not opened yet.")
 
-        # close the thread
+        print('closing stream')
+
+        # Close the streaming thread.
         self._tStream.shutdown()  # close the stream
+        print('after shutdown')
         self._tStream.join()  # wait until thread exits
         self._tStream = None
 
-        # close the file writer
-        if self._writer is not None:
-            self._writer.close()
+        print('closing writer')
+
+        # Close the writer thread after closing the stream thread since it could
+        # still be writing frames.
+        if self._tWriter is not None:
+            self._tWriter.close()
+            self._tWriter.end()  # kill the thread too
+            self._tWriter.join()  # join it to cleanly exit
+            self._tWriter = None
 
         self._player.close_player()
         self._player = None  # reset
