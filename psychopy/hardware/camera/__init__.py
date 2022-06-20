@@ -735,6 +735,7 @@ class Camera:
 
     """
     def __init__(self, device=0, mic=None, cameraLib=u'ffpyplayer',
+                 frameRate=None, frameSize=None,
                  codecOpts=None, libOpts=None, bufferSecs=4, win=None,
                  name='cam'):
 
@@ -797,11 +798,17 @@ class Camera:
 
         # get the camera information
         self._cameraInfo = None
-        try:
-            self._cameraInfo = _formatMapping[self._device]
-        except KeyError:
+        for mode in _formatMapping.values():
+            sameDevice = mode.name == self._device.name
+            sameFrameRate = mode.frameRate == frameRate or frameRate is None
+            sameFrameSize = mode.frameSize == frameSize or frameSize is None
+            if sameDevice and sameFrameRate and sameFrameSize:
+                self._cameraInfo = mode
+        # raise error if couldn't find matching camera info
+        if self._cameraInfo is None:
             raise CameraFormatNotSupportedError(
-                'Specified camera format is not supported.')
+                'Specified camera format is not supported.'
+            )
 
         # Check if the cameraAPI is suitable for the operating system. This is
         # a sanity check to ensure people aren't using formats obtained from
