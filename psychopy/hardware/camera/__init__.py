@@ -477,6 +477,7 @@ class MovieStreamIOThread(threading.Thread):
         self._mic = None
         self._frameQueue = queue.Queue(
             maxsize=bufferFrames)  # frames for the monitor
+        self._cmdQueue = queue.Queue()  # command queue
 
         # some values the user might want
         self._status = NOT_STARTED
@@ -505,24 +506,35 @@ class MovieStreamIOThread(threading.Thread):
         if self._player is None:
             return  # exit thread if no player
 
-        self._isStreamingEvent.set()
-        self._isReadyEvent.clear()
         frameInterval = 0.001  # dynamic poll interval, start at 1ms
         ptsStart = 0.0
         recordingJustStarted = True
         streaming = True
-        while streaming:
-            print('in loop')
+        while 1:
+            # process commands in queue
+            while not self._cmdQueue.empty():
+                cmdOpCode, cmdVal = self._cmdQueue.get()
+                if cmdOpCode == 'record':
+                    self._status = RECORDING
+                elif cmdOpCode == 'stop':
+                    self._status = STOPPED
+                elif cmdOpCode == 'shutdown':
+                    self._status = STOPPED
+                    streaming = False
+
+            if not streaming:
+                break
+
             # consume frames until we get a valid one
-            frameData = None
-            val = ''
-            while frameData is None or val == 'not ready':
-                frameData, val = self._player.get_frame()
-                time.sleep(frameInterval)  # sleep a bit to warm-up
-            else:
-                if self._warmUpLock.locked():
-                    self._warmUpLock.release()  # release warmup lock
-                self._isReadyEvent.set()
+            frameData, val = self._player.get_frame()
+            if frameData is None or val == 'not ready':
+                continue
+
+            if val == 'eof':
+                break
+
+            if self._warmUpLock.locked():
+                self._warmUpLock.release()  # release warmup lock
 
             # after getting a frame, we can get accurate metadata
             metadata = self._player.get_metadata()
@@ -541,36 +553,29 @@ class MovieStreamIOThread(threading.Thread):
             self._streamTime = pts
 
             # handle writing to file
-            if self._isRecording.is_set():
+            if self._status == RECORDING and self._writer is not None:
                 if recordingJustStarted:
                     ptsStart = self._streamTime
-                    self._status = RECORDING
-
-                    # start the microphone
-                    if self._mic is not None:
-                        self._mic.record()
-
                     recordingJustStarted = False
 
                 # compute timestamp for the writer for the current frame
                 self._recordingTime = self._streamTime - ptsStart
 
-                if self._writer is not None:
-                    frameWidth, frameHeight = colorData.get_size()
-                    pixelFormat = colorData.get_pixel_format()
+                frameWidth, frameHeight = colorData.get_size()
+                pixelFormat = colorData.get_pixel_format()
 
-                    # convert color format to rgb24 since we're doing raw video
-                    sws = SWScale(
-                        frameWidth,
-                        frameHeight,
-                        pixelFormat,
-                        ofmt='yuv420p')
+                # convert color format to rgb24 since we're doing raw video
+                sws = SWScale(
+                    frameWidth,
+                    frameHeight,
+                    pixelFormat,
+                    ofmt='yuv420p')
 
-                    # write the frame to the file
-                    self._recordingBytes = self._writer.write_frame(
-                        img=sws.scale(colorData),
-                        pts=self._recordingTime,
-                        stream=0)
+                # write the frame to the file
+                self._recordingBytes = self._writer.write_frame(
+                    img=sws.scale(colorData),
+                    pts=self._recordingTime,
+                    stream=0)
 
                 # poll the mic if available to flush the sample buffer
                 if self._mic is not None:
@@ -578,15 +583,10 @@ class MovieStreamIOThread(threading.Thread):
 
             else:
                 if not recordingJustStarted:
-                    # start the microphone
-                    if self._mic is not None:
-                        self._mic.stop()
-
                     # reset stream recording vars when done
                     ptsStart = 0.0
                     self._recordingBytes = 0
                     self._recordingTime = 0.0
-                    self._status = STOPPED
                     recordingJustStarted = True
 
             # Put the frame in the queue to allow the main thread to safely
@@ -603,18 +603,13 @@ class MovieStreamIOThread(threading.Thread):
             # for presentation or processing.
             img, _ = frameData
             toReturn = StreamData(metadata, img, streamStatus, u'ffpyplayer')
+
             try:
-                self._frameQueue.put_nowait(toReturn)  # put frame data in here
+                self._frameQueue.put(toReturn)  # put frame data in here
             except queue.Full:
                 pass
 
-            # signal to close a thread
-            if self._stopSignal.is_set() or val == 'eof':
-                streaming = False
-
-        # out of this loop, we're done
-        self._isReadyEvent.clear()
-        self._isStreamingEvent.clear()
+            time.sleep(frameInterval)
 
     @property
     def isReady(self):
@@ -650,19 +645,17 @@ class MovieStreamIOThread(threading.Thread):
             raise TypeError(
                 "Expected type `MediaWriter` for parameter `writer`.")
 
-        self._isRecording.set()
+        self._cmdQueue.put(('record', None))
 
     def stop(self):
         """Stop recording frames to the output file.
         """
-        self._isRecording.clear()
-        self._writer = None
-        self._mic = None
+        self._cmdQueue.put(('stop', None))
 
     def shutdown(self):
         """Stop the thread.
         """
-        self._stopSignal.set()
+        self._cmdQueue.put(('shutdown', None))
 
     def getRecentFrame(self):
         """Get the most recent frame data from the feed (`tuple`).
@@ -1056,7 +1049,7 @@ class Camera:
         # until we sort how to configure this easily for users
         writerOptions = {
             'pix_fmt_in': 'yuv420p',  # default for now using mp4
-            'preset': 'medium',
+            # 'preset': 'medium',
             'width_in': frameWidth,
             'height_in': frameHeight,
             'codec': useCodec,
@@ -1078,7 +1071,8 @@ class Camera:
             return
 
         # cleanup
-        self._writer.close()
+        # self._writer.close()
+
         self._writer = None
 
     def _renderVideo(self, outFile):
@@ -1218,14 +1212,8 @@ class Camera:
 
         raise PlayerNotAvailableError('Media player not initialized.')
 
-    def _enqueueFrame(self, blockUntilFrame=True):
+    def _enqueueFrame(self):
         """Grab the latest frame from the stream.
-
-        Parameters
-        ----------
-        blockUntilFrame : bool
-            Block until the decoder thread returns a valid frame. This can be
-            used to hold the application thread until frames are available.
 
         Returns
         -------
@@ -1238,13 +1226,10 @@ class Camera:
 
         # If the queue is empty, the decoder thread has not yielded a new frame
         # since the last call.
-        enqueuedFrame = None
-        if blockUntilFrame:
-            while enqueuedFrame is None:
-                enqueuedFrame = self._tStream.getRecentFrame()
-                time.sleep(0.001)  # sleep a bit
-        else:
-            enqueuedFrame = self._tStream.getRecentFrame()
+        enqueuedFrame = self._tStream.getRecentFrame()
+
+        if enqueuedFrame is None:
+            return False
 
         # unpack the data we got back
         metadata = enqueuedFrame.metadata
@@ -1294,7 +1279,7 @@ class Camera:
         # setup commands for FFMPEG
         if _cameraInfo.cameraAPI == CAMERA_API_DIRECTSHOW:  # windows
             ff_opts['f'] = 'dshow'
-            _camera = 'video={}'.format(self._device)
+            _camera = 'video={}'.format(_cameraInfo.name)
             _frameRate = _cameraInfo.frameRate
         elif _cameraInfo.cameraAPI == CAMERA_API_AVFOUNDATION:  # darwin
             ff_opts['f'] = 'avfoundation'
@@ -1341,13 +1326,14 @@ class Camera:
         lib_opts['rtbufsize'] = str(int(_bufferSize))
         lib_opts['video_size'] = _cameraInfo.frameSizeAsFormattedString()
         lib_opts['framerate'] = str(_frameRate)
-        lib_opts['pixel_format'] = 'yuyv422'
-        # if _cameraInfo.pixelFormat != '':
-        #     lib_opts['pixel_format'] = _cameraInfo.pixelFormat
-        # if _cameraInfo.codecFormat != '':  # force codec
-        #     ff_opts['vcodec'] = _cameraInfo.codecFormat
+        # lib_opts['pixel_format'] = 'yuyv422'
+        if _cameraInfo.pixelFormat != '':
+            lib_opts['pixel_format'] = _cameraInfo.pixelFormat
+        if _cameraInfo.codecFormat != '':  # force codec
+            ff_opts['vcodec'] = _cameraInfo.codecFormat
 
-        print(lib_opts)
+        ff_opts['framedrop'] = True
+        ff_opts['fast'] = True
 
         # open a stream and pause it until ready
         self._player = MediaPlayer(_camera, ff_opts=ff_opts, lib_opts=lib_opts)
@@ -1368,6 +1354,10 @@ class Camera:
         self._assertMediaPlayer()
 
         self._openWriter()
+
+        # start the microphone
+        if self._mic is not None:
+            self._mic.record()
 
         self._tStream.record(self._writer, self._mic)
         self._status = RECORDING
@@ -1405,12 +1395,12 @@ class Camera:
         self._tStream.join()  # wait until thread exits
         self._tStream = None
 
-        self._player.close_player()
-        self._player = None  # reset
-
         # close the file writer
         if self._writer is not None:
             self._writer.close()
+
+        self._player.close_player()
+        self._player = None  # reset
 
         # cleanup temp files to prevent clogging up the user's hard disk
         self._cleanUpTempDirs()
