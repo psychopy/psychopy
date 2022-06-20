@@ -140,6 +140,16 @@ class ParamCtrls():
                                                    val=str(param.val), valType=param.valType,
                                                    choices=param.allowedVals, labels=param.allowedLabels,
                                                    fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
+        elif param.inputType == 'liveChoice':
+            comp = populator = None
+            if hasattr(param, "comp"):
+                comp = param.comp
+            if hasattr(param, "populator"):
+                populator = param.populator
+            self.valueCtrl = paramCtrls.LiveChoiceCtrl(parent, comp=comp,
+                                                       val=str(param.val), valType=param.valType,
+                                                       fieldName=fieldName, size=wx.Size(-1, 24),
+                                                       populator=populator)
         elif param.inputType == 'multiChoice':
             self.valueCtrl = paramCtrls.MultiChoiceCtrl(parent, valType=param.valType,
                                                         vals=param.val, choices=param.allowedVals, fieldName=fieldName,

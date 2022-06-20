@@ -8,6 +8,7 @@
 import os
 import subprocess
 import sys
+import inspect
 
 import wx
 
@@ -266,6 +267,112 @@ class IntCtrl(wx.SpinCtrl, _ValidatorMixin, _HideMixin):
 
 
 BoolCtrl = wx.CheckBox
+
+
+class LiveChoiceCtrl(wx.Button, _ValidatorMixin, _HideMixin):
+    """
+    Similar to a choice ctrl, but allowed values are updating each time the control is clicked - meaning they can
+    change dynamically each time according to other values.
+    """
+    def __init__(self, parent, comp,
+                 val=None, valType="code", fieldName="",
+                 populator=None,
+                 size=wx.Size(-1, 24)):
+        # Make button
+        wx.Button.__init__(self, parent, size=size, style=wx.NO_BORDER | wx.BU_LEFT)
+        # Store params
+        self.fieldName = fieldName
+        self.comp = comp
+
+        # Assign populator function
+        if populator is None:
+            self._populator = self._defaultPopulate
+        else:
+            self._populator = populator
+        # Set initial value
+        self.populate()
+        self.setValue(val)
+
+        # Bind to menu show function
+        self.menu = wx.Menu()
+        self.Bind(wx.EVT_BUTTON, self.onClick)
+
+    def populate(self, evt=None):
+        # Check how many arguments the populator function takes
+        nArgs = len(
+            inspect.signature(self._populator).parameters
+        )
+        if nArgs == 0:
+            # If populator function takes no arguments, give none
+            self.values, self.labels = self._populator()
+        elif nArgs == 1:
+            # If populator function takes 1 argument, give self
+            self.values, self.labels = self._populator(self)
+        else:
+            # If populator function takes more arguments, give self and evt
+            self.values, self.labels = self._populator(self, evt)
+
+        # Validate
+        assert len(self.values) == len(self.labels), _translate(
+            f"Could not create menu for parameter {self.fieldName} as specified function to populate returns a "
+            f"different number of values to labels.\n"
+            f"Values: {self.values}\n"
+            f"Labels: {self.labels}\n"
+        )
+
+    def onClick(self, evt=None):
+        self.populate(evt=evt)
+
+        # Clear menu
+        self.menu.Destroy()
+        self.menu = wx.Menu()
+        # Rebind selection function
+        self.menu.Bind(wx.EVT_MENU, self.setSelection)
+        # Populate menu from populator function output
+        for i in range(len(self.values)):
+            item = self.menu.Append(i, self.labels[i])
+            item.value = self.values[i]
+        # Show menu
+        self.PopupMenu(self.menu, (0, self.Size[1]))
+
+    def setSelection(self, evt=None):
+        if evt in self.labels:
+            # If given a label from this object, get index of label
+            evt = self.labels.index(evt)
+        elif evt in self.values:
+            # If given a value from this object, get index of value
+            evt = self.values.index(evt)
+
+        if isinstance(evt, int) and evt < len(self.values):
+            # If we now have an index, get value from index
+            self.setValue(self.values[evt])
+        else:
+            # Otherwise, assume this is a wx event and set value from MenuItem
+            self.setValue(self.values[evt.GetId()])
+
+    def setValue(self, value):
+        self.value = value
+
+        if value in self.values:
+            # If value is in list of expected, set button text to corresponding label
+            i = self.values.index(value)
+            self.SetLabel(self.labels[i])
+        else:
+            # Otherwise, set button text as value
+            self.SetLabel(value)
+
+    def getValue(self):
+        return self.value
+
+    @staticmethod
+    def _defaultPopulate():
+        """
+        Function to get values and labels
+        """
+        return (
+            [None],  # values
+            ["default"],  # labels
+        )
 
 
 class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
