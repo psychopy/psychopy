@@ -21,7 +21,8 @@ import os
 import os.path
 import shutil
 import math
-from psychopy.constants import STOPPED, NOT_STARTED, RECORDING, STARTED, STOPPING, PAUSED, FINISHED, INVALID
+from psychopy.constants import STOPPED, NOT_STARTED, RECORDING, STARTED, \
+    STOPPING, PAUSED, FINISHED, INVALID
 from psychopy.visual.movies.metadata import MovieMetadata, NULL_MOVIE_METADATA
 from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
 from psychopy.sound.microphone import Microphone
@@ -74,9 +75,6 @@ CAMERA_LIB_NULL = u'Null'
 # special values
 CAMERA_FRAMERATE_NOMINAL_NTSC = '30.000030'
 CAMERA_FRAMERATE_NTSC = 30.000030
-
-# default values for camera settings
-cameraCodecs = []
 
 
 # ------------------------------------------------------------------------------
@@ -485,6 +483,7 @@ class StreamWriterThread(threading.Thread):
         """
         self._warmUpLock.acquire(blocking=False)
         writer = None   # instance for the writer
+        filepath = ''  # path to the file
         alive = True
         while alive:
             # block main thread until we are in the command loop
@@ -530,6 +529,11 @@ class StreamWriterThread(threading.Thread):
                     pts=pts,
                     stream=0)
 
+                logging.debug(
+                    'Writing {} bytes to file `{}`'.format(
+                        recordingBytes, filepath)
+                )
+
                 if blockUntilDone:
                     self._commandQueue.task_done()
             elif cmdOptCode == 'close':
@@ -546,6 +550,7 @@ class StreamWriterThread(threading.Thread):
                 self._commandQueue.task_done()
             elif cmdOptCode == 'end':  # end the thread
                 alive = False
+                continue
 
         # if we have an open file, close it just in case
         if writer is not None:
@@ -553,7 +558,8 @@ class StreamWriterThread(threading.Thread):
 
         # set when the writer exits
         self._commandQueue.task_done()  # when end is called
-        self._writerClosedEvent.set()
+
+        logging.debug('Media writer thread has been killed.')
 
     @property
     def commandQueue(self):
@@ -772,7 +778,7 @@ class MovieStreamIOThread(threading.Thread):
         while statusFlag != FINISHED:
             # process items in command queue, if any
             if not self._cmdQueue.empty():
-                cmdOpCode, cmdVal = self._cmdQueue.get()
+                cmdOpCode, cmdVal = self._cmdQueue.get_nowait()
                 if cmdOpCode == 'record':
                     # Start recording. This should begin pushing frames to the
                     # writer frame queue. We upgrade the status flag to
@@ -891,7 +897,7 @@ class MovieStreamIOThread(threading.Thread):
             toReturn = StreamData(metadata, img, streamStatus, u'ffpyplayer')
 
             try:
-                self._frameQueue.put(toReturn)  # put frame data in here
+                self._frameQueue.put_nowait(toReturn)  # put frame data in here
             except queue.Full:
                 pass
 
@@ -903,7 +909,7 @@ class MovieStreamIOThread(threading.Thread):
         except ValueError:
             pass
 
-        print('stream thread is dead')
+        logging.debug('Camera stream thread has been killed.')
 
     def begin(self):
         """Stop the thread.
@@ -911,7 +917,7 @@ class MovieStreamIOThread(threading.Thread):
         self.start()
         # hold until the lock is released when the thread gets a valid frame
         # this will prevent the main loop for executing until we're ready
-        self._warmUpLock.acquire(blocking=True)
+        self._warmUpLock.acquire()
 
     def record(self, writer, mic=None):
         """Start recording frames to the output video file.
@@ -937,10 +943,10 @@ class MovieStreamIOThread(threading.Thread):
         self._cmdQueue.put(('stop', None))
         self._cmdQueue.join()
 
-    def shutdown(self):
-        """Stop the thread.
+    def close(self):
+        """Close the thread.
         """
-        self._cmdQueue.put(('shutdown', None))
+        self._cmdQueue.put(('close', None))
         self._cmdQueue.join()
 
     def getRecentFrame(self):
@@ -1353,10 +1359,8 @@ class Camera:
         if self._tWriter is None:
             return
 
-        # cleanup
-        self._tWriter.close()
-        self._tWriter.join()
-
+        self._tWriter.end()  # kill the thread too
+        self._tWriter.join()  # join it to cleanly exit
         self._tWriter = None
 
     def _renderVideo(self, outFile):
@@ -1388,7 +1392,7 @@ class Camera:
 
         # delete the temp directory and files to clean up after composing the
         # video
-        shutil.rmtree(self._tempRootDir)
+        # shutil.rmtree(self._tempRootDir)
 
         return True
 
@@ -1404,19 +1408,6 @@ class Camera:
     @status.setter
     def status(self, value):
         self._status = value
-
-    @property
-    def outFile(self):
-        """Output file for the video stream (`str`).
-        """
-        return self._outFile
-
-    @outFile.setter
-    def outFile(self, value):
-        if self._writer is not None:
-            raise ValueError("Cannot change `outFile` while recording.")
-
-        self._outFile = value
 
     @property
     def device(self):
@@ -1491,7 +1482,7 @@ class Camera:
         function to ensure that a player is present before running subsequent
         code.
         """
-        if self._player is not None:
+        if self._tStream is not None:
             return
 
         raise PlayerNotAvailableError('Media player not initialized.')
@@ -1612,7 +1603,6 @@ class Camera:
         lib_opts['rtbufsize'] = str(int(_bufferSize))
         lib_opts['video_size'] = _cameraInfo.frameSizeAsFormattedString()
         lib_opts['framerate'] = str(_frameRate)
-        # lib_opts['pixel_format'] = 'yuyv422'
         if _cameraInfo.pixelFormat != '':
             lib_opts['pixel_format'] = _cameraInfo.pixelFormat
         if _cameraInfo.codecFormat != '':  # force codec
@@ -1627,6 +1617,7 @@ class Camera:
         # pass off the player to the thread which will process the stream
         self._tStream = MovieStreamIOThread(self._player)
         self._tStream.begin()
+        self._enqueueFrame()  # pull metadata
 
     def record(self):
         """Start recording frames.
@@ -1678,32 +1669,23 @@ class Camera:
     def close(self):
         """Close the camera.
         """
-        if not self._hasPlayer:
+        if self._tStream is None:
             raise RuntimeError("Cannot close stream, not opened yet.")
 
-        print('closing stream')
-
         # Close the streaming thread.
-        self._tStream.shutdown()  # close the stream
-        print('after shutdown')
+        self._tStream.close()  # close the stream
         self._tStream.join()  # wait until thread exits
         self._tStream = None
 
-        print('closing writer')
-
         # Close the writer thread after closing the stream thread since it could
         # still be writing frames.
-        if self._tWriter is not None:
-            self._tWriter.close()
-            self._tWriter.end()  # kill the thread too
-            self._tWriter.join()  # join it to cleanly exit
-            self._tWriter = None
+        self._closeWriter()  # close the writer too
 
         self._player.close_player()
         self._player = None  # reset
 
         # cleanup temp files to prevent clogging up the user's hard disk
-        self._cleanUpTempDirs()
+        # self._cleanUpTempDirs()
 
     def save(self, filename):
         """Save the last recording to file.
@@ -1804,17 +1786,18 @@ class Camera:
     def __del__(self):
         """Try to cleanly close the camera and output file.
         """
+        if hasattr(self, '_tStream'):
+            if self._tStream is not None:
+                try:
+                    self._tStream.close()
+                    self._tStream.join()
+                except AttributeError:
+                    pass
+
         if hasattr(self, '_player'):
             if self._player is not None:
                 try:
                     self._player.close_player()
-                except AttributeError:
-                    pass
-
-        if hasattr(self, '_writer'):
-            if self._writer is not None:
-                try:
-                    self._writer.close()
                 except AttributeError:
                     pass
 
@@ -1823,6 +1806,14 @@ class Camera:
             if self._mic is not None:
                 try:
                     self._mic.close()
+                except AttributeError:
+                    pass
+
+        if hasattr(self, '_tWriter'):
+            if self._tWriter is not None:
+                try:
+                    self._tWriter.end()
+                    self._tWriter.join()
                 except AttributeError:
                     pass
 
@@ -1880,7 +1871,7 @@ def _getCameraInfoMacOS():
             frameHeight = dimensions.height
             frameWidth = dimensions.width
 
-            # Extract the codec in use, pretty useless since FFMPEG uses it's
+            # Extract the codec in use, pretty useless since FFMPEG uses its
             # own conventions, we'll need to map these ourselves to those
             # values
             codecType = cm.CMFormatDescriptionGetMediaSubType(formatDesc)
@@ -1893,7 +1884,7 @@ def _getCameraInfoMacOS():
             #           (codecCode >> 8) & 0xff,
             #           codecCode & 0xff)
             #
-            codecCode = ''.join(
+            pixelFormat4CC = ''.join(
                 [chr((codecType >> bits) & 0xff) for bits in (24, 16, 8, 0)])
 
             # Get the range of supported framerate, use the largest since the
@@ -1906,8 +1897,8 @@ def _getCameraInfoMacOS():
             thisCamInfo = CameraInfo(
                 index=devIdx,
                 name=cameraName,
-                pixelFormat=codecCode,
-                codecFormat=codecCode,
+                pixelFormat=pixelFormat4CC,  # macs only use pixel format
+                codecFormat=CAMERA_NULL_VALUE,
                 frameSize=(int(frameWidth), int(frameHeight)),
                 frameRate=frameRateMax,
                 cameraAPI=CAMERA_API_AVFOUNDATION
@@ -1971,6 +1962,13 @@ def _getCameraInfoWindows():
     return videoDevices
 
 
+# Mapping for platform specific camera getter functions used by `getCameras`.
+_cameraGetterFuncTbl = {
+    'Darwin': _getCameraInfoMacOS,
+    'Windows': _getCameraInfoWindows
+}
+
+
 def getCameras():
     """Get information about installed cameras and their formats on this system.
 
@@ -1985,25 +1983,15 @@ def getCameras():
 
     """
     systemName = platform.system()  # get the system name
-    if systemName == 'Darwin':  # MacOS
-        foundCameras = _getCameraInfoMacOS()
-    # elif systemName == 'Linux':
-    #     # use glob to get possible cameras connected to the system
-    #     globResult = glob.glob(
-    #         'video*',
-    #         root_dir=VIDEO_DEVICE_ROOT_LINUX,
-    #         recursive=False)
-    #     foundCameras.extend(globResult)
-    #     # ensure the glob gives values in the same order
-    #     foundCameras.sort()
-    elif systemName == 'Windows':
-        foundCameras = _getCameraInfoWindows()
-    else:
+
+    # lookup the function for the given platform
+    getCamerasFunc = _cameraGetterFuncTbl.get(systemName, None)
+    if getCamerasFunc is None:  # if unsupported
         raise OSError(
             "Cannot get cameras, unsupported platform '{}'.".format(
                 systemName))
 
-    return foundCameras
+    return getCamerasFunc()
 
 
 def getCameraDescriptions(collapse=False):
