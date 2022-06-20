@@ -765,6 +765,10 @@ class Camera:
             for _format in formats:
                 desc = _format.description()
                 _formatMapping[desc] = _format
+        # sort formats by resolution then frame rate
+        orderedFormats = list(_formatMapping.values())
+        orderedFormats.sort(key=lambda obj: obj.frameRate, reverse=True)
+        orderedFormats.sort(key=lambda obj: np.prod(obj.frameSize), reverse=True)
 
         # list of devices
         devList = list(_formatMapping)
@@ -798,12 +802,13 @@ class Camera:
 
         # get the camera information
         self._cameraInfo = None
-        for mode in _formatMapping.values():
+        for mode in orderedFormats:
             sameDevice = mode.name == self._device.name
             sameFrameRate = mode.frameRate == frameRate or frameRate is None
             sameFrameSize = mode.frameSize == frameSize or frameSize is None
             if sameDevice and sameFrameRate and sameFrameSize:
                 self._cameraInfo = mode
+                break
         # raise error if couldn't find matching camera info
         if self._cameraInfo is None:
             raise CameraFormatNotSupportedError(
