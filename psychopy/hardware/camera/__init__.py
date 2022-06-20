@@ -76,6 +76,14 @@ CAMERA_LIB_NULL = u'Null'
 CAMERA_FRAMERATE_NOMINAL_NTSC = '30.000030'
 CAMERA_FRAMERATE_NTSC = 30.000030
 
+# FourCC and pixel format mappings, mostly used with AVFoundation to determine
+# the FFMPEG decoder which is most suitable for it. Please expand this if you
+# know any more!
+pixelFormatTbl = {
+    'yuvs': 'yuyv422',  # 4:2:2
+    '420v': 'nv12'      # 4:2:0
+}
+
 
 # ------------------------------------------------------------------------------
 # Exceptions
@@ -95,6 +103,10 @@ class CameraNotFoundError(CameraError):
 
 class CameraFormatNotSupportedError(CameraError):
     """Raised when a camera cannot use the settings requested by the user."""
+
+
+class FormatNotFoundError(CameraError):
+    """Cannot find a suitable pixel format for the camera."""
 
 
 class PlayerNotAvailableError(Exception):
@@ -996,13 +1008,6 @@ class Camera:
     cameraLib : str
         Interface library (backend) to use for accessing the camera. Only
         `ffpyplayer` is available at this time.
-    codecOpts : dict or None
-        Options to pass to the codec. See the documentation for the camera
-        library for details. Some options may be set by this class already. Do
-        not set these unless you know what you are doing!
-    libOpts : dict or None
-        Additional options to configure the camera interface library (if
-        applicable). Do not set these unless you know what you are doing!
     bufferSecs : float
         Size of the real-time camera stream buffer specified in seconds (only
         valid on Windows and MacOS).
@@ -1027,8 +1032,7 @@ class Camera:
 
     """
     def __init__(self, device=0, mic=None, cameraLib=u'ffpyplayer',
-                 codecOpts=None, libOpts=None, bufferSecs=4, win=None,
-                 name='cam'):
+                 bufferSecs=4, win=None, name='cam'):
 
         # add attributes for setters
         self.__dict__.update(
@@ -1039,9 +1043,7 @@ class Camera:
              '_frameRate': None,
              '_frameRateFrac': None,
              '_size': None,
-             '_cameraLib': u'',
-             '_codecOpts': None,
-             '_libOpts': None})
+             '_cameraLib': u''})
 
         # ----------------------------------------------------------------------
         # Process camera settings
@@ -1116,10 +1118,6 @@ class Camera:
         #         "Invalid value for parameter `mode`, expected one of `'video'` "
         #         "`'cv'` or `'photo'`.")
         # self._mode = mode
-
-        # FFMPEG and FFPyPlayer options
-        self._codecOpts = codecOpts if codecOpts is not None else {}
-        self._libOpts = libOpts if libOpts is not None else {}
 
         if not isinstance(mic, Microphone):
             TypeError(
@@ -1556,18 +1554,24 @@ class Camera:
             ff_opts['f'] = 'dshow'
             _camera = 'video={}'.format(_cameraInfo.name)
             _frameRate = _cameraInfo.frameRate
+            if _cameraInfo.pixelFormat:
+                ff_opts['pixel_format'] = _cameraInfo.pixelFormat
+            if _cameraInfo.codecFormat:
+                ff_opts['vcodec'] = _cameraInfo.codecFormat
         elif _cameraInfo.cameraAPI == CAMERA_API_AVFOUNDATION:  # darwin
             ff_opts['f'] = 'avfoundation'
             ff_opts['i'] = _camera = self._cameraInfo.name
 
             # handle pixel formats using FourCC
-            if _cameraInfo.pixelFormat == 'yuvs':
-                _cameraInfo.pixelFormat = 'yuyv422'  # only one we know about
-            elif _cameraInfo.pixelFormat == '420v':
-                _cameraInfo.pixelFormat = 'nv12'
-            else:
-                raise CameraFormatNotSupportedError(
-                    'Pixel format is not supported.')
+            global pixelFormatTbl
+            ffmpegPixFmt = pixelFormatTbl.get(_cameraInfo.pixelFormat, None)
+
+            if ffmpegPixFmt is None:
+                raise FormatNotFoundError(
+                    "Cannot find suitable FFMPEG pixel format for '{}'. Try a "
+                    "different format or camera.")
+
+            _cameraInfo.pixelFormat = ffmpegPixFmt
 
             # this needs to be exactly specified if using NTSC
             if math.isclose(CAMERA_FRAMERATE_NTSC, _cameraInfo.frameRate):
@@ -1578,6 +1582,7 @@ class Camera:
             # need these since hardware acceleration is not possible on Mac yet
             lib_opts['fflags'] = 'nobuffer'
             lib_opts['flags'] = 'low_delay'
+            lib_opts['pixel_format'] = _cameraInfo.pixelFormat
             ff_opts['framedrop'] = True
             ff_opts['fast'] = True
 
@@ -1603,13 +1608,6 @@ class Camera:
         lib_opts['rtbufsize'] = str(int(_bufferSize))
         lib_opts['video_size'] = _cameraInfo.frameSizeAsFormattedString()
         lib_opts['framerate'] = str(_frameRate)
-        if _cameraInfo.pixelFormat != '':
-            lib_opts['pixel_format'] = _cameraInfo.pixelFormat
-        if _cameraInfo.codecFormat != '':  # force codec
-            ff_opts['vcodec'] = _cameraInfo.codecFormat
-
-        ff_opts['framedrop'] = True
-        ff_opts['fast'] = True
 
         # open a stream and pause it until ready
         self._player = MediaPlayer(_camera, ff_opts=ff_opts, lib_opts=lib_opts)

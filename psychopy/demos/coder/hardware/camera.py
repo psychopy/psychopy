@@ -28,7 +28,7 @@ print("Found cameras and formats:\n\t")
 print("\n\t".join(cameras))  # print the list of possible formats
 
 # use the very first one
-myCameraFormat = cameras[15]
+myCameraFormat = cameras[0]
 print('\nUsing camera/format: `{}`'.format(myCameraFormat))
 
 # Create a new camera instance. Values for `size` and `frameRate` must be
@@ -71,7 +71,7 @@ cam.stop()  # stop the webcam recording
 
 # Save the video to disk by calling this method. Video recordings are lost if
 # this is not called prior to calling `record` again.
-# cam.save('myVideo.mp4')  # uncomment to save the file, just specify the path
+cam.save('myVideo.mp4')  # uncomment to save the file, just specify the path
 
 # Print the path to where the clip was saved, this allows you to pass the clip
 # to a `MovieStim` object to view it afterwards if desired. Gives `None` if
