@@ -2738,7 +2738,10 @@ class ReadmeFrame(wx.Frame):
         A frame for presenting/loading/saving readme files
         """
         self.parent = parent
-        title = "%s readme" % (parent.exp.name)
+        try:
+            title = "%s readme" % (parent.exp.name)
+        except AttributeError:
+            title = "readme"
         self._fileLastModTime = None
         pos = wx.Point(parent.Position[0] + 80, parent.Position[1] + 80)
         _style = wx.DEFAULT_FRAME_STYLE | wx.FRAME_FLOAT_ON_PARENT

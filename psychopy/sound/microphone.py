@@ -391,7 +391,7 @@ class Microphone:
     def __init__(self,
                  device=None,
                  sampleRateHz=None,
-                 channels=2,
+                 channels=None,
                  streamBufferSecs=2.0,
                  maxRecordingSize=24000,
                  policyWhenFull='warn',

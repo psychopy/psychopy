@@ -15,7 +15,7 @@ rm -r build
 sudo rm -r dist/PsychoPy*.app #the previous version
 sudo rm -r ../dist/PsychoPy*.app  # the previous version in outer location
 
-python3.6 setup.py sdist --format=zip
+python3.8 setup.py sdist --format=zip
 # then handle the mac app bundle
 rm psychopy/prefSite.cfg
 

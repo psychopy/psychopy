@@ -19,7 +19,7 @@ microphones = Microphone.getDevices()
 if microphones:
     mic = Microphone(microphones[0])
 else:
-    mic = None  # no audio if a mic was found
+    mic = None  # no audio if a mic was not found
     print('No mic was found on this system, no audio will be recorded!')
 
 # get descriptions for camera devices and their available formats on this system
