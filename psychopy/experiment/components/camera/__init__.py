@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from pathlib import Path
+
+import numpy as np
+
 from psychopy.experiment.components import BaseComponent, Param, _translate, getInitVals
 from psychopy import prefs
 
@@ -58,13 +61,12 @@ class CameraComponent(BaseComponent):
         # Basic
         def _devicePopulator():
             # Get list of camera specs
-            try:
-                from psychopy.hardware.camera import getCameras
-                cams = getCameras()
-            except:
-                cams = {}
+            cams = getCameras()
 
-            return list(range(len(cams) + 1)), ["default"] + list(cams)
+            return (
+                list(range(len(cams))),
+                list(cams)
+            )
 
 
         msg = _translate("What device would you like to use to record video? This will only affect local "
@@ -88,20 +90,79 @@ class CameraComponent(BaseComponent):
         )
 
 
-        # # Hardware
-        # msg = _translate("Resolution (w x h) to record to, leave blank to use device default.")
-        # self.params['resolution'] = Param(
-        #     resolution, valType='list', inputType="single", categ="Hardware",
-        #     hint=msg,
-        #     label=_translate("Resolution")
-        # )
-        #
-        # msg = _translate("Frame rate (frames per second) to record at, leave blank to use device default.")
-        # self.params['frameRate'] = Param(
-        #     frameRate, valType='int', inputType="num", categ="Hardware",
-        #     hint=msg,
-        #     label=_translate("Frame Rate")
-        # )
+        # Hardware
+        def _resolutionPopulator(ctrl):
+            # Get list of camera specs
+            cams = getCameras()
+
+            # Get selected camera
+            camera = ctrl.comp.params['device'].val
+            if camera not in cams:
+                camera = list(cams)[0]
+            # Filter for only chosen camera
+            camsList = cams[camera]
+
+            # Get selected framerate
+            fr = ctrl.comp.params['frameRate'].val
+            print(fr)
+            if fr in (None, "None", "none", "default", "Default", "highest", "Highest"):
+                fr = None
+            # Filter for only chosen frame rate
+            camsList = [cam for cam in camsList if str(cam.frameRate) == str(fr) or fr is None]
+
+            # Get values
+            values = [cam.frameSize for cam in camsList]
+            values = list(set(values))
+            # Sort values by screen area
+            values.sort(key=lambda val: np.prod(val), reverse=True)
+            # Get labels
+            labels = [str(fr) for fr in values]
+
+            return (
+                values,
+                labels
+            )
+
+        msg = _translate("Resolution (w x h) to record to, leave blank to use device default.")
+        self.params['resolution'] = Param(
+            resolution, valType='list', inputType="liveChoice", categ="Hardware",
+            hint=msg,
+            label=_translate("Resolution")
+        )
+        self.params['resolution'].comp = self
+        self.params['resolution'].populator = _resolutionPopulator
+
+        def _frameRatePopulator(ctrl):
+            # Get list of camera specs
+            cams = getCameras()
+
+            # Get selected camera
+            camera = ctrl.comp.params['device'].val
+            if camera not in cams:
+                camera = list(cams)[0]
+            # Filter for only chosen camera
+            camsList = cams[camera]
+
+            # Get values
+            values = [cam.frameRate for cam in camsList]
+            values = list(set(values))
+            # Sort values by screen area
+            values.sort(reverse=True)
+            # Get labels
+            labels = [str(fr) for fr in values]
+
+            return (
+                values,
+                labels
+            )
+        msg = _translate("Frame rate (frames per second) to record at, leave blank to use device default.")
+        self.params['frameRate'] = Param(
+            frameRate, valType='int', inputType="liveChoice", categ="Hardware",
+            hint=msg,
+            label=_translate("Frame Rate")
+        )
+        self.params['frameRate'].comp = self
+        self.params['frameRate'].populator = _frameRatePopulator
 
         # Data
         msg = _translate("Save webcam output to a file?")
@@ -284,3 +345,15 @@ class CameraComponent(BaseComponent):
             "%(name)s.close()\n"
         )
         buff.writeIndentedLines(code % self.params)
+
+
+def getCameras():
+    """
+    Wrapper around psychopy.hardware.camera.getCameras which tries to import the module locally and handles
+    failure cleanly.
+    """
+    try:
+        from psychopy.hardware.camera import getCameras
+        return getCameras()
+    except:
+        return {}

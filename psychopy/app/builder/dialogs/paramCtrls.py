@@ -330,7 +330,7 @@ class LiveChoiceCtrl(wx.Button, _ValidatorMixin, _HideMixin):
         self.menu.Bind(wx.EVT_MENU, self.setSelection)
         # Populate menu from populator function output
         for i in range(len(self.values)):
-            item = self.menu.Append(i, self.labels[i])
+            item = self.menu.Append(i, str(self.labels[i]))
             item.value = self.values[i]
         # Show menu
         self.PopupMenu(self.menu, (0, self.Size[1]))
