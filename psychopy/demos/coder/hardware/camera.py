@@ -23,16 +23,16 @@ else:
     print('No mic was found on this system, no audio will be recorded!')
 
 # get descriptions for camera devices and their available formats on this system
-cameras = Camera.getCameras()
-primaryCamera = list(cameras.keys())[0]  # get name for first enumerated camera
-# get descriptions for the formats supported by this camera
-cameraDescriptions = [camera.description() for camera in cameras[primaryCamera]]
-useCamera = cameraDescriptions[0]  # get he first one and use it
-print('Using camera: `{}`'.format(useCamera))
+cameras = Camera.getCameraDescriptions(collapse=True)  # collapse=True for flat-list
+print(cameras)
+
+# use the very first one
+myCameraFormat = cameras[0]
+print('Using camera: `{}`'.format(myCameraFormat))
 
 # Create a new camera instance. Values for `size` and `frameRate` must be
 # appropriate for the device in use.
-cam = Camera(useCamera, mic=mic)
+cam = Camera('[Live! Cam Sync 1080p] 160x120@30fps, yuyv422', mic=mic)
 
 # Open a camera stream. This will remain open until `close()` ia called.
 cam.open()

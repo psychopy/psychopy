@@ -12,9 +12,8 @@ experimenter to create movie stimuli or instructions.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = ['CameraNotFoundError', 'Camera', 'CameraInfo', 'StreamData',
-           'getCameras']
+           'getCameras', 'getCameraDescriptions']
 
-import glob
 import platform
 import numpy as np
 import tempfile
@@ -31,7 +30,8 @@ from ffpyplayer.player import MediaPlayer
 from ffpyplayer.writer import MediaWriter
 from ffpyplayer.pic import SWScale
 from ffpyplayer.tools import list_dshow_devices, get_format_codec
-# Something in moviepy.editor's initialisation breaks Mouse, so import these from the source instead
+# Something in moviepy.editor's initialisation breaks Mouse, so import these
+# from the source instead
 # from moviepy.editor import VideoFileClip, AudioFileClip, CompositeAudioClip
 from moviepy.video.io.VideoFileClip import VideoFileClip
 from moviepy.audio.io.AudioFileClip import AudioFileClip
@@ -289,9 +289,10 @@ class CameraInfo:
         """
         codecFormat = self._codecFormat
         pixelFormat = self._pixelFormat
-        codec = codecFormat if pixelFormat is CAMERA_NULL_VALUE else pixelFormat
+        codec = codecFormat if not pixelFormat else pixelFormat
 
-        return "{name}: {width}x{height} @ {frameRate}fps, {codec}".format(
+        return "[{name}] {width}x{height}@{frameRate}fps, {codec}".format(
+            #index=self.index,
             name=self.name,
             width=str(self.frameSize[0]),
             height=str(self.frameSize[1]),
@@ -511,6 +512,7 @@ class MovieStreamIOThread(threading.Thread):
         recordingJustStarted = True
         streaming = True
         while streaming:
+            print('in loop')
             # consume frames until we get a valid one
             frameData = None
             val = ''
@@ -981,6 +983,42 @@ class Camera:
         """
         return getCameras()
 
+    @staticmethod
+    def getCameraDescriptions(collapse=False):
+        """Get a mapping or list of camera descriptions.
+
+        Camera descriptions are a compact way of representing camera settings
+        and formats. Description strings can be used to specify which camera
+        device and format to use with it to the `Camera` class.
+
+        Descriptions have the following format (example)::
+
+            '[Live! Cam Sync 1080p] 160x120@30fps, mjpeg'
+
+        This shows a specific camera format for the 'Live! Cam Sync 1080p'
+        webcam which supports 160x120 frame size at 30 frames per second. The
+        last value is the codec or pixel format used to decode the stream.
+        Different pixel formats and codecs vary in performance.
+
+        Parameters
+        ----------
+        collapse : bool
+            Return camera information as string descriptions instead of
+            `CameraInfo` objects. This provides a more compact way of
+            representing camera formats in a (reasonably) human-readable format.
+
+        Returns
+        -------
+        dict or list
+            Mapping (`dict`) of camera descriptions, where keys are camera names
+            (`str`) and values are a `list` of format description strings
+            associated with the camera. If `collapse=True`, all descriptions
+            will be returned in a single flat list. This might be more useful
+            for specifying camera formats from a single GUI list control.
+
+        """
+        return getCameraDescriptions(collapse=collapse)
+
     def _openWriter(self):
         """Initialize and configure the media writer.
 
@@ -1261,7 +1299,6 @@ class Camera:
         elif _cameraInfo.cameraAPI == CAMERA_API_AVFOUNDATION:  # darwin
             ff_opts['f'] = 'avfoundation'
             ff_opts['i'] = _camera = self._cameraInfo.name
-            # ff_opts['vcodec'] = 'mjpeg'
 
             # handle pixel formats using FourCC
             if _cameraInfo.pixelFormat == 'yuvs':
@@ -1301,10 +1338,16 @@ class Camera:
         _pixelId = _cameraInfo.pixelFormat
 
         # common settings across libraries
-        lib_opts['rtbufsize'] = str(_bufferSize)
+        lib_opts['rtbufsize'] = str(int(_bufferSize))
         lib_opts['video_size'] = _cameraInfo.frameSizeAsFormattedString()
-        lib_opts['framerate'] = _frameRate
-        lib_opts['pixel_format'] = _cameraInfo.pixelFormat
+        lib_opts['framerate'] = str(_frameRate)
+        lib_opts['pixel_format'] = 'yuyv422'
+        # if _cameraInfo.pixelFormat != '':
+        #     lib_opts['pixel_format'] = _cameraInfo.pixelFormat
+        # if _cameraInfo.codecFormat != '':  # force codec
+        #     ff_opts['vcodec'] = _cameraInfo.codecFormat
+
+        print(lib_opts)
 
         # open a stream and pause it until ready
         self._player = MediaPlayer(_camera, ff_opts=ff_opts, lib_opts=lib_opts)
@@ -1607,155 +1650,64 @@ def _getCameraInfoWindows():
         raise OSError(
             "Cannot query cameras with this function, platform not 'Windows'.")
 
+    # FFPyPlayer can query the OS via DirectShow for Windows cameras
     videoDevs, _, names = list_dshow_devices()
-    names = {v: k for k, v in names.items()}  # flip since we use HR names
 
     # get all the supported modes for the camera
     videoDevices = {}
 
     # iterate over names
-    for name in names.keys():
+    devIndex = 0
+    for devURI in videoDevs.keys():
         supportedFormats = []
-        pass
-
-    # for mode in videoDevModes:
-    #     pixelFormat, codec, frameSize, frameRate = mode
-    #
-    #     # Make sure the frame rate is in a reasonable format, usually the
-    #     # ranges are not reported, so we just convert them into fractions
-    #     # here.
-    #     frameRateMin, frameRateMax = frameRate
-    #     if frameRateMin == frameRateMax:
-    #         frameRate = (frameRateMax, 1)
-    #     else:
-    #         continue  # do nothing if they don't match for now
-    #
-    #     # object to return with camera settings
-    #     temp = CameraInfo(
-    #         name=name,
-    #         pixelFormat=pixelFormat,
-    #         codecFormat=codec,
-    #         frameSize=frameSize,
-    #         frameRate=frameRate
-    #     )
-    #     supportedModes.append(temp)
-
-    return
-
-
-def getCameraInfo(camera):
-    """Query the system to get information about a specified camera.
-
-    Parameters
-    ----------
-    camera : int or str
-        Camera index or name.
-
-    Returns
-    -------
-    List or CameraInfo
-        Camera information descriptors for the specified camera.
-
-    """
-    systemName = platform.system()  # get the system name
-    supportedModes = []
-    if systemName == 'Windows':
-        videoDevs, _, names = list_dshow_devices()
-        names = {v: k for k, v in names.items()}  # flip since we use HR names
-        if isinstance(camera, (int, float)):
-            name = list(names.keys())[int(camera)]
-        else:
-            name = camera
-
-        # get all the supported modes for the camera
-        videoDevModes = videoDevs[names[name]]
-
-        for mode in videoDevModes:
-            pixelFormat, codec, frameSize, frameRate = mode
-
-            # Make sure the frame rate is in a reasonable format, usually the
-            # ranges are not reported, so we just convert them into fractions
-            # here.
-            frameRateMin, frameRateMax = frameRate
-            if frameRateMin == frameRateMax:
-                frameRate = (frameRateMax, 1)
-            else:
-                continue  # do nothing if they don't match for now
-
-            # object to return with camera settings
+        cameraName = names[devURI]
+        for _format in videoDevs[devURI]:
+            pixelFormat, codecFormat, frameSize, frameRateRng = _format
+            _, frameRateMax = frameRateRng
             temp = CameraInfo(
-                name=name,
+                index=devIndex,
+                name=cameraName,
                 pixelFormat=pixelFormat,
-                codecFormat=codec,
+                codecFormat=codecFormat,
                 frameSize=frameSize,
-                frameRate=frameRate
+                frameRate=frameRateMax,
+                cameraAPI=CAMERA_API_DIRECTSHOW
             )
-            supportedModes.append(temp)
-    elif platform.system() == 'Darwin':
-        # get all cameras attached to the system
-        cameraNames = getCameras()
+            supportedFormats.append(temp)
+            devIndex += 1
 
-        # find the index which corresponds to the name
-        try:
-            camIdx = cameraNames.index(camera)
-        except ValueError:
-            return []
+        videoDevices[names[devURI]] = supportedFormats
 
-        # use the index to get the camera capabilities
-        cap = cv2.VideoCapture(camIdx)
-        if cap.read()[0]:
-            # get capabilities if we found a camera at the index
-            frameWidth = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-            frameHeight = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-            frameRate = (int(cap.get(cv2.CAP_PROP_FPS)), 1)
-            camFourCC = str(cap.get(cv2.CAP_PROP_FOURCC))
-            cap.release()
-
-            # object to return with camera settings
-            temp = CameraInfo(
-                name=camera,
-                pixelFormat=u'Null',
-                codecFormat=camFourCC,
-                frameSize=(int(frameWidth), int(frameHeight)),
-                frameRate=frameRate
-            )
-            supportedModes.append(temp)
-    else:
-        raise OSError(
-            "Cannot get cameras, unsupported platform '{}'.".format(
-                systemName))
-
-    return supportedModes
+    return videoDevices
 
 
 def getCameras():
     """Get information about installed cameras and their formats on this system.
 
+    Use `getCameraDescriptions` to get a mapping or list of human-readable
+    camera formats.
+
     Returns
     -------
     dict
-        Camera identifiers.
+        Mapping where camera names (`str`) are keys and values are and array of
+        `CameraInfo` objects.
 
     """
     systemName = platform.system()  # get the system name
-    foundCameras = []
     if systemName == 'Darwin':  # MacOS
-        return _getCameraInfoMacOS()
-    elif systemName == 'Linux':
-        # use glob to get possible cameras connected to the system
-        globResult = glob.glob(
-            'video*',
-            root_dir=VIDEO_DEVICE_ROOT_LINUX,
-            recursive=False)
-        foundCameras.extend(globResult)
-        # ensure the glob gives values in the same order
-        foundCameras.sort()
+        foundCameras = _getCameraInfoMacOS()
+    # elif systemName == 'Linux':
+    #     # use glob to get possible cameras connected to the system
+    #     globResult = glob.glob(
+    #         'video*',
+    #         root_dir=VIDEO_DEVICE_ROOT_LINUX,
+    #         recursive=False)
+    #     foundCameras.extend(globResult)
+    #     # ensure the glob gives values in the same order
+    #     foundCameras.sort()
     elif systemName == 'Windows':
-        videoDevs, _, names = list_dshow_devices()
-        for devKey in videoDevs.keys():
-            nameHR = names.get(devKey, None)
-            ident = devKey if nameHR is None else nameHR
-            foundCameras.append(ident)
+        foundCameras = _getCameraInfoWindows()
     else:
         raise OSError(
             "Cannot get cameras, unsupported platform '{}'.".format(
@@ -1764,11 +1716,56 @@ def getCameras():
     return foundCameras
 
 
-def getVideoCodecs():
-    """Get a list of codecs supported by the system."""
-    return _getCameraInfoMacOS()
+def getCameraDescriptions(collapse=False):
+    """Get a mapping or list of camera descriptions.
+
+    Camera descriptions are a compact way of representing camera settings and
+    formats. Description strings can be used to specify which camera device and
+    format to use with it to the `Camera` class.
+
+    Descriptions have the following format (example)::
+
+        '[Live! Cam Sync 1080p] 160x120@30fps, mjpeg'
+
+    This shows a specific camera format for the 'Live! Cam Sync 1080p' webcam
+    which supports 160x120 frame size at 30 frames per second. The last value
+    is the codec or pixel format used to decode the stream. Different pixel
+    formats and codecs vary in performance.
+
+    Parameters
+    ----------
+    collapse : bool
+        Return camera information as string descriptions instead of `CameraInfo`
+        objects. This provides a more compact way of representing camera formats
+        in a (reasonably) human-readable format.
+
+    Returns
+    -------
+    dict or list
+        Mapping (`dict`) of camera descriptions, where keys are camera names
+        (`str`) and values are a `list` of format description strings associated
+        with the camera. If `collapse=True`, all descriptions will be returned
+        in a single flat list. This might be more useful for specifying camera
+        formats from a single GUI list control.
+
+    """
+    connectedCameras = getCameras()
+
+    cameraDescriptions = {}
+    for devName, formats in connectedCameras.items():
+        cameraDescriptions[devName] = [
+            _format.description() for _format in formats]
+
+    if not collapse:
+        return cameraDescriptions
+
+    # collapse to a list if requested
+    collapsedList = []
+    for _, formatDescs in cameraDescriptions.items():
+        collapsedList.extend(formatDescs)
+
+    return collapsedList
 
 
 if __name__ == "__main__":
-    supportedCameraSettings = _getCameraInfoMacOS()
-    print(supportedCameraSettings)
+    pass
