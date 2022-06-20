@@ -703,7 +703,6 @@ class MovieStreamIOThread(threading.Thread):
         val = ''                     # status value from reader
         statusFlag = NOT_STARTED     # status flag for stream reader state
         metadata = None              # only valid after we get a frame
-        mustStop = False             # terminate the thread
         ptsStart = 0.0               # stream pts the recording started at
         recordingJustStarted = True  # have we just started recording? do setup
         writer = None                # handle to the frame writer
