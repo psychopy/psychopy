@@ -776,16 +776,23 @@ class Camera:
         if not devList:  # no cameras found if list is empty
             raise CameraNotFoundError('No cameras found of the system!')
 
-        # Best device usually shows up last on the list, this will be the
-        # default when the index is 0 or the user specifies 'default'.
+        # Get best device
         bestDevice = _formatMapping[devList[-1]]
+        for mode in orderedFormats:
+            sameFrameRate = mode.frameRate == frameRate or frameRate is None
+            sameFrameSize = mode.frameSize == frameSize or frameSize is None
+            if sameFrameRate and sameFrameSize:
+                bestDevice = mode
+                break
 
         self._origDevSpecifier = device  # what the user provided
         self._device = None  # device identifier
 
         # alias device None or Default as being device 0
         if device in (None, "None", "none", "Default", "default"):
-            self._device = bestDevice
+            self._device = bestDevice.description()
+        elif isinstance(device, CameraInfo):
+            self._device = device.description()
         else:
             # resolve getting the camera identifier
             if isinstance(device, int):  # get camera if integer
@@ -801,16 +808,10 @@ class Camera:
                     "Incorrect type for `camera`, expected `int` or `str`.")
 
         # get the camera information
-        self._cameraInfo = None
-        for mode in orderedFormats:
-            sameDevice = mode.name == self._device.name
-            sameFrameRate = mode.frameRate == frameRate or frameRate is None
-            sameFrameSize = mode.frameSize == frameSize or frameSize is None
-            if sameDevice and sameFrameRate and sameFrameSize:
-                self._cameraInfo = mode
-                break
-        # raise error if couldn't find matching camera info
-        if self._cameraInfo is None:
+        if self._device in _formatMapping:
+            self._cameraInfo = _formatMapping[self._device]
+        else:
+            # raise error if couldn't find matching camera info
             raise CameraFormatNotSupportedError(
                 'Specified camera format is not supported.'
             )
