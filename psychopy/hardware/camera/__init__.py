@@ -41,7 +41,7 @@ import uuid
 import threading
 import queue
 import time
-import cv2  # used to get camera information
+# import cv2  # used to get camera information
 
 
 # ------------------------------------------------------------------------------
