@@ -24,7 +24,7 @@ class CameraComponent(BaseComponent):
             name='cam',
             startType='time (s)', startVal='0', startEstim='',
             stopType='duration (s)', stopVal='', durationEstim='',
-            device="Default", mic="Default",
+            device="default", mic="default",
             # Hardware
             resolution="", frameRate="",
             # Data
