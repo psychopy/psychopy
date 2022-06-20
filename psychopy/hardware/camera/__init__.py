@@ -1032,9 +1032,8 @@ class Camera:
 
     """
     def __init__(self, device=0, mic=None, cameraLib=u'ffpyplayer',
-                 bufferSecs=4, win=None, name='cam'):
-
-
+                 frameRate=None, frameSize=None, bufferSecs=4, win=None,
+                 name='cam'):
         # add attributes for setters
         self.__dict__.update(
             {'_device': None,
