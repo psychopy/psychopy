@@ -56,15 +56,26 @@ class CameraComponent(BaseComponent):
         self.exp.requireImport(importName="microphone", importFrom="psychopy.sound")
 
         # Basic
+        def _devicePopulator():
+            # Get list of camera specs
+            try:
+                from psychopy.hardware.camera import getCameras
+                cams = getCameras()
+            except:
+                cams = {}
+
+            return list(range(len(cams) + 1)), ["default"] + list(cams)
+
+
         msg = _translate("What device would you like to use to record video? This will only affect local "
                          "experiments - online experiments ask the participant which device to use.")
         self.params['device'] = Param(
-            device, valType='str', inputType="choice", categ="Basic",
-            allowedVals=list(devices),
-            allowedLabels=[d.title() for d in list(devices)],
+            device, valType='str', inputType="liveChoice", categ="Basic",
             hint=msg,
             label=_translate("Video Device")
         )
+        self.params['device'].comp = self
+        self.params['device'].populator = _devicePopulator
 
         msg = _translate("What device would you like to use to record audio? This will only affect local "
                          "experiments - online experiments ask the participant which device to use.")
@@ -77,7 +88,6 @@ class CameraComponent(BaseComponent):
         )
 
 
-        # Not implemented (yet!)
         # # Hardware
         # msg = _translate("Resolution (w x h) to record to, leave blank to use device default.")
         # self.params['resolution'] = Param(
