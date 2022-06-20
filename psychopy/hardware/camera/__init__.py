@@ -707,6 +707,9 @@ class MovieStreamIOThread(threading.Thread):
         ptsStart = 0.0               # stream pts the recording started at
         recordingJustStarted = True  # have we just started recording? do setup
         writer = None                # handle to the frame writer
+        streamTime = 0.0             # stream pts
+        recordingBytes = 0           # number of bytes committed
+        recordingTime = 0.0          # time since the recording started
 
         # status flag equivalents for ffpyplayer
         statusFlagLUT = {
@@ -850,7 +853,7 @@ class MovieStreamIOThread(threading.Thread):
 
             # split the data
             colorData, pts = frameData
-            self._streamTime = pts
+            streamTime = pts
 
             # ------------------------------------------------------------------
             # Recording
@@ -864,31 +867,32 @@ class MovieStreamIOThread(threading.Thread):
             if statusFlag == RECORDING:
                 # Have we just started recording? Do some setup.
                 if recordingJustStarted:
-                    ptsStart = self._streamTime
+                    ptsStart = streamTime
                     recordingJustStarted = False
                     self._cmdQueue.task_done()  # the record command farther up
 
                 # compute timestamp for the writer for the current frame
-                self._recordingTime = self._streamTime - ptsStart
+                recordingTime = streamTime - ptsStart
 
                 # If we have writer object, put frames in its queue to have them
                 # written to disk.
                 if writer is not None:
                     writer.commandQueue.put(
                         ('write_frame',
-                         (colorData, self._recordingTime, False)
+                         (colorData, recordingTime, False)
                          )
                     )
 
                 # poll the mic if available to flush the sample buffer
                 if self._mic is not None:
                     self._mic.poll()
+
             elif statusFlag == STARTED:
                 if not recordingJustStarted:  # previously recording?
                     # reset stream recording vars when done
                     ptsStart = 0.0
-                    self._recordingBytes = 0
-                    self._recordingTime = 0.0
+                    recordingBytes = 0
+                    recordingTime = 0.0
                     recordingJustStarted = True
                     statusFlag = STARTED   # keep the stream running
                     self._cmdQueue.task_done()
@@ -898,10 +902,10 @@ class MovieStreamIOThread(threading.Thread):
             # at this point. The image will be lost unless the encoder is
             # recording.
             streamStatus = StreamStatus(
-                status=self._status,
-                streamTime=self._streamTime,
-                recTime=self._recordingTime,
-                recBytes=self._recordingBytes)
+                status=statusFlag,
+                streamTime=streamTime,
+                recTime=recordingTime,
+                recBytes=recordingBytes)
 
             # Object to pass video frame data back to the application thread
             # for presentation or processing.
