@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2021.2.3\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2022-06-12 15:50+0800\n"
+"PO-Revision-Date: 2022-06-21 21:14+0800\n"
 "Last-Translator: Shun Wang <shuonwang@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -3727,27 +3727,27 @@ msgstr ""
 
 #: ../experiment/components/brush/__init__.py:19
 msgid "Brush Size"
-msgstr "刷子大小"
+msgstr "画笔大小"
 
 #: ../experiment/components/brush/__init__.py:20
 msgid "Brush Color"
-msgstr ""
+msgstr "画笔颜色"
 
 #: ../experiment/components/brush/__init__.py:21
 msgid "Brush Color Space"
-msgstr ""
+msgstr "画笔色彩空间"
 
 #: ../experiment/components/brush/__init__.py:22
 msgid "Press Button"
-msgstr ""
+msgstr "按下按钮"
 
 #: ../experiment/components/brush/__init__.py:30
 msgid "Brush: a drawing tool"
-msgstr ""
+msgstr "画笔：绘画工具"
 
 #: ../experiment/components/brush/__init__.py:54
 msgid "Fill color of this brush"
-msgstr ""
+msgstr "此画笔的填充颜色"
 
 #: ../experiment/components/brush/__init__.py:62
 msgid ""
@@ -3777,7 +3777,7 @@ msgstr ""
 
 #: ../experiment/components/button/__init__.py:20
 msgid "Button text"
-msgstr ""
+msgstr "按钮文本"
 
 #: ../experiment/components/button/__init__.py:21
 #: ../experiment/components/form/__init__.py:102
@@ -3785,76 +3785,76 @@ msgstr ""
 #: ../experiment/components/text/__init__.py:20
 #: ../experiment/components/textbox/__init__.py:21
 msgid "Font"
-msgstr ""
+msgstr "字体"
 
 #: ../experiment/components/button/__init__.py:22
 #: ../experiment/components/slider/__init__.py:177
 #: ../experiment/components/text/__init__.py:21
 #: ../experiment/components/textbox/__init__.py:22
 msgid "Letter height"
-msgstr ""
+msgstr "字符高度"
 
 #: ../experiment/components/button/__init__.py:23
 #: ../experiment/components/textbox/__init__.py:26
 msgid "Bold"
-msgstr ""
+msgstr "加粗"
 
 #: ../experiment/components/button/__init__.py:24
 #: ../experiment/components/textbox/__init__.py:27
 msgid "Italic"
-msgstr ""
+msgstr "斜体"
 
 #: ../experiment/components/button/__init__.py:25
 #: ../experiment/components/textbox/__init__.py:29
 msgid "Padding"
-msgstr ""
+msgstr "填充"
 
 #: ../experiment/components/button/__init__.py:26
 #: ../experiment/components/textbox/__init__.py:30
 msgid "Anchor"
-msgstr ""
+msgstr "对齐方式"
 
 #: ../experiment/components/button/__init__.py:27
 #: ../experiment/components/textbox/__init__.py:31
 msgid "Fill Colour"
-msgstr ""
+msgstr "填充色"
 
 #: ../experiment/components/button/__init__.py:28
 #: ../experiment/components/textbox/__init__.py:32
 msgid "Border Colour"
-msgstr ""
+msgstr "边框颜色"
 
 #: ../experiment/components/button/__init__.py:29
 #: ../experiment/components/textbox/__init__.py:33
 msgid "Border Width"
-msgstr ""
+msgstr "边框宽度"
 
 #: ../experiment/components/button/__init__.py:30
 msgid "Run once per click"
-msgstr ""
+msgstr "每次点击运行一次"
 
 #: ../experiment/components/button/__init__.py:31
 msgid "Record clicks"
-msgstr ""
+msgstr "录制点击动作"
 
 #: ../experiment/components/button/__init__.py:32
 #: ../experiment/components/joystick/__init__.py:23
 #: ../experiment/components/mouse/__init__.py:21
 msgid "Time relative to"
-msgstr ""
+msgstr "时间相对于"
 
 #: ../experiment/components/button/__init__.py:43
 msgid "Button: A clickable textbox"
-msgstr ""
+msgstr "按钮：可点击的文本框"
 
 #: ../experiment/components/button/__init__.py:50
 msgid "Click here"
-msgstr ""
+msgstr "点击此处"
 
 #: ../experiment/components/button/__init__.py:77
 #: ../experiment/components/textbox/__init__.py:86
 msgid "Text Color"
-msgstr ""
+msgstr "文本颜色"
 
 #: ../experiment/components/button/__init__.py:82
 #: ../experiment/components/joyButtons/__init__.py:83
@@ -3970,55 +3970,55 @@ msgstr ""
 
 #: ../experiment/components/code/__init__.py:18
 msgid "Code Type"
-msgstr ""
+msgstr "代码类型"
 
 #: ../experiment/components/code/__init__.py:19
 msgid "Before Experiment"
-msgstr ""
+msgstr "实验前"
 
 #: ../experiment/components/code/__init__.py:20
 msgid "Begin Experiment"
-msgstr ""
+msgstr "开始实验"
 
 #: ../experiment/components/code/__init__.py:21
 msgid "Begin Routine"
-msgstr ""
+msgstr "开始例程"
 
 #: ../experiment/components/code/__init__.py:22
 msgid "Each Frame"
-msgstr ""
+msgstr "每一帧"
 
 #: ../experiment/components/code/__init__.py:23
 msgid "End Routine"
-msgstr ""
+msgstr "结束例程"
 
 #: ../experiment/components/code/__init__.py:24
 msgid "End Experiment"
-msgstr ""
+msgstr "结束实验"
 
 #: ../experiment/components/code/__init__.py:25
 msgid "Before JS Experiment"
-msgstr ""
+msgstr "JS 实验前"
 
 #: ../experiment/components/code/__init__.py:26
 msgid "Begin JS Experiment"
-msgstr ""
+msgstr "开始 JS 实验"
 
 #: ../experiment/components/code/__init__.py:27
 msgid "Begin JS Routine"
-msgstr ""
+msgstr "开始 JS 例程"
 
 #: ../experiment/components/code/__init__.py:28
 msgid "Each JS Frame"
-msgstr ""
+msgstr "每个 JS 帧"
 
 #: ../experiment/components/code/__init__.py:29
 msgid "End JS Routine"
-msgstr ""
+msgstr "结束 JS 例程"
 
 #: ../experiment/components/code/__init__.py:30
 msgid "End JS Experiment"
-msgstr ""
+msgstr "结束 JS 实验"
 
 #: ../experiment/components/code/__init__.py:40
 msgid "Code: insert python commands into an experiment"
@@ -4080,35 +4080,35 @@ msgstr ""
 
 #: ../experiment/components/dots/__init__.py:17
 msgid "Number of dots"
-msgstr ""
+msgstr "点数"
 
 #: ../experiment/components/dots/__init__.py:18
 msgid "Direction"
-msgstr ""
+msgstr "方向"
 
 #: ../experiment/components/dots/__init__.py:19
 msgid "Speed"
-msgstr ""
+msgstr "速度"
 
 #: ../experiment/components/dots/__init__.py:20
 msgid "Coherence"
-msgstr ""
+msgstr "连续性"
 
 #: ../experiment/components/dots/__init__.py:21
 msgid "Dot size"
-msgstr ""
+msgstr "点大小"
 
 #: ../experiment/components/dots/__init__.py:22
 msgid "Dot life-time"
-msgstr ""
+msgstr "点寿命"
 
 #: ../experiment/components/dots/__init__.py:23
 msgid "Signal dots"
-msgstr ""
+msgstr "信号点"
 
 #: ../experiment/components/dots/__init__.py:24
 msgid "Noise dots"
-msgstr ""
+msgstr "噪声点"
 
 #: ../experiment/components/dots/__init__.py:25
 msgid "Field shape"
@@ -4124,7 +4124,7 @@ msgstr ""
 
 #: ../experiment/components/dots/__init__.py:28
 msgid "Dot refresh rule"
-msgstr ""
+msgstr "点刷新规则"
 
 #: ../experiment/components/dots/__init__.py:37
 msgid "Dots: Random Dot Kinematogram"
@@ -4188,11 +4188,11 @@ msgstr ""
 
 #: ../experiment/components/dots/__init__.py:168
 msgid "Dot Color"
-msgstr ""
+msgstr "点颜色"
 
 #: ../experiment/components/dots/__init__.py:169
 msgid "Dot Color Space"
-msgstr ""
+msgstr "点 色彩空间"
 
 #: ../experiment/components/emotiv_marking/__init__.py:20
 msgid "Marker Label"
@@ -5610,23 +5610,23 @@ msgstr ""
 
 #: ../experiment/components/settings/__init__.py:61
 msgid "Save log file"
-msgstr ""
+msgstr "保存日志文件"
 
 #: ../experiment/components/settings/__init__.py:63
 msgid "Save csv file (trial-by-trial)"
-msgstr ""
+msgstr "保存 csv 文件（逐个trial）"
 
 #: ../experiment/components/settings/__init__.py:64
 msgid "Save csv file (summaries)"
-msgstr ""
+msgstr "保存 csv 文件（汇总）"
 
 #: ../experiment/components/settings/__init__.py:65
 msgid "Save excel file"
-msgstr ""
+msgstr "保存 excel 文件"
 
 #: ../experiment/components/settings/__init__.py:66
 msgid "Save psydat file"
-msgstr ""
+msgstr "保存 psydat 文件"
 
 #: ../experiment/components/settings/__init__.py:67
 msgid "Logging level"
