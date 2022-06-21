@@ -698,7 +698,7 @@ class MovieStreamIOThread(threading.Thread):
     """
     def __init__(self, player, bufferFrames=1):
         threading.Thread.__init__(self)
-        self.daemon = False
+        self.daemon = True  # no harm just reading a stream
 
         self._player = player  # player interface to FFMPEG
         self._mic = None
@@ -741,11 +741,13 @@ class MovieStreamIOThread(threading.Thread):
         statusFlag = NOT_STARTED     # status flag for stream reader state
         metadata = None              # only valid after we get a frame
         ptsStart = 0.0               # stream pts the recording started at
+        ptsLast = 0.0                # last pts value
         recordingJustStarted = True  # have we just started recording? do setup
         writer = None                # handle to the frame writer
         streamTime = 0.0             # stream pts
         recordingBytes = 0           # number of bytes committed
         recordingTime = 0.0          # time since the recording started
+        recordingFrameIdx = 0        # frame index for recording
 
         # status flag equivalents for ffpyplayer
         statusFlagLUT = {
@@ -890,6 +892,17 @@ class MovieStreamIOThread(threading.Thread):
             # split the data
             colorData, pts = frameData
             streamTime = pts
+            if streamTime <= ptsLast:
+                # return the last frame to be displayed
+                try:
+                    self._frameQueue.put_nowait(lastFrame)
+                except queue.Full:
+                    pass
+                # try to make sure we aren't writing the same frame again
+                time.sleep(0.004)  # 250Hz
+                continue
+            else:
+                ptsLast = streamTime
 
             # ------------------------------------------------------------------
             # Recording
@@ -903,12 +916,16 @@ class MovieStreamIOThread(threading.Thread):
             if statusFlag == RECORDING:
                 # Have we just started recording? Do some setup.
                 if recordingJustStarted:
-                    ptsStart = streamTime
+                    # ptsStart = streamTime
                     recordingJustStarted = False
                     self._cmdQueue.task_done()  # the record command farther up
 
-                # compute timestamp for the writer for the current frame
-                recordingTime = streamTime - ptsStart
+                # compute presentation timestamp of the writer for the frame
+                recordingTime = recordingFrameIdx * frameInterval
+
+                # classic flavor for computing timestamps, not using this for
+                # now but keeping record of it
+                # recordingTime = streamTime - ptsStart
 
                 # If we have writer object, put frames in its queue to have them
                 # written to disk.
@@ -923,12 +940,15 @@ class MovieStreamIOThread(threading.Thread):
                 if self._mic is not None:
                     self._mic.poll()
 
+                recordingFrameIdx += 1
+
             elif statusFlag == STARTED:
                 if not recordingJustStarted:  # previously recording?
                     # reset stream recording vars when done
-                    ptsStart = 0.0
+                    # ptsStart = 0.0
                     recordingBytes = 0
                     recordingTime = 0.0
+                    recordingFrameIdx = 0
                     recordingJustStarted = True
                     statusFlag = STARTED   # keep the stream running
                     self._cmdQueue.task_done()
@@ -946,7 +966,8 @@ class MovieStreamIOThread(threading.Thread):
             # Object to pass video frame data back to the application thread
             # for presentation or processing.
             img, _ = frameData
-            toReturn = StreamData(metadata, img, streamStatus, u'ffpyplayer')
+            lastFrame = toReturn = StreamData(
+                metadata, img, streamStatus, u'ffpyplayer')
 
             # push the frame to the main application
             try:
