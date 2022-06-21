@@ -11,8 +11,34 @@ experimenter to create movie stimuli or instructions.
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = ['CameraNotFoundError', 'Camera', 'CameraInfo', 'StreamData',
-           'getCameras', 'getCameraDescriptions']
+__all__ = [
+    'VIDEO_DEVICE_ROOT_LINUX',
+    'CAMERA_UNKNOWN_VALUE',
+    'CAMERA_NULL_VALUE',
+    'CAMERA_MODE_VIDEO',
+    'CAMERA_MODE_CV',
+    'CAMERA_MODE_PHOTO',
+    'CAMERA_TEMP_FILE_VIDEO',
+    'CAMERA_TEMP_FILE_AUDIO',
+    'CAMERA_API_AVFOUNDATION',
+    'CAMERA_API_DIRECTSHOW',
+    'CAMERA_API_VIDEO4LINUX',
+    'CAMERA_API_OPENCV',
+    'CAMERA_API_UNKNOWN',
+    'CAMERA_API_NULL',
+    'CameraError',
+    'CameraNotReadyError',
+    'CameraNotFoundError',
+    'CameraFormatNotSupportedError',
+    'FormatNotFoundError',
+    'PlayerNotAvailableError',
+    'Camera',
+    'CameraInfo',
+    'StreamData',
+    'getCameras',
+    'getCameraDescriptions'
+]
+
 
 import platform
 import numpy as np
@@ -82,6 +108,17 @@ CAMERA_FRAMERATE_NTSC = 30.000030
 pixelFormatTbl = {
     'yuvs': 'yuyv422',  # 4:2:2
     '420v': 'nv12'      # 4:2:0
+}
+
+# Camera standards to help with selection. Some standalone cameras sometimes
+# support an insane number of formats, this will help narrow them down. 
+standardResolutions = {
+    'vga': (640, 480),
+    '720p': (1280, 720),
+    '1080p': (1920, 1080),
+    '2160p': (3840, 2160),
+    'uhd': (3840, 2160),
+    'dci': (4096, 2160)
 }
 
 
@@ -697,7 +734,7 @@ class MovieStreamIOThread(threading.Thread):
         self._warmUpLock.acquire(blocking=False)
 
         # variables used within the scope of this thread
-        frameInterval = 0.004        # frame interval, start at 4ms (250Hz
+        frameInterval = 0.004        # frame interval, start at 4ms (250Hz)
         frameData = None             # frame data from the reader
         lastFrame = None             # last frame to get pulled from the stream
         val = ''                     # status value from reader
@@ -911,14 +948,24 @@ class MovieStreamIOThread(threading.Thread):
             img, _ = frameData
             toReturn = StreamData(metadata, img, streamStatus, u'ffpyplayer')
 
+            # push the frame to the main application
             try:
                 self._frameQueue.put_nowait(toReturn)  # put frame data in here
             except queue.Full:
                 pass
 
-            time.sleep(frameInterval)
+            # compute the estimated time until the next frame is presented to
+            # throttle CPU use a bit
+            ptsNextFrame = streamTime + frameInterval  # estimate
+            waitTime = ptsNextFrame - self._player.get_pts()
+            if waitTime > 0:
+                time.sleep(waitTime)  # wait to grab the next frame
+            else:
+                time.sleep(0.004)  # 250Hz
 
-        # catch incase we exited some other way than by command
+            # time.sleep(frameInterval)
+
+        # catch in case we exited some other way rather than by command
         try:
             self._cmdQueue.task_done()
         except ValueError:
@@ -1243,12 +1290,17 @@ class Camera:
     @property
     def isNotStarted(self):
         """`True` if the stream may not have started yet (`bool`). This status
-        is given after a video is loaded and play has yet to be called."""
+        is given before `open()` or after `close()` has been called on this
+        object.
+        """
         return self.status == NOT_STARTED
 
     @property
     def isStopped(self):
-        """`True` if the recording has stopped (`bool`)."""
+        """`True` if the recording has stopped (`bool`). This does not mean that
+        the stream has stopped, `getVideoFrame()` will still yield frames until
+        `close()` is called.
+        """
         return self.status == STOPPED
 
     @property
@@ -1652,12 +1704,11 @@ class Camera:
         self._tStream.record(self._tWriter, self._mic)
         self._status = RECORDING
 
-    def snapshot(self):
-        """Take a photo with the camera. The c
-        amera must be in `'photo'` mode
-        to use this method.
-        """
-        pass
+    # def snapshot(self):
+    #     """Take a photo with the camera. The camera must be in `'photo'` mode
+    #     to use this method.
+    #     """
+    #     pass
 
     def stop(self):
         """Stop recording frames.
