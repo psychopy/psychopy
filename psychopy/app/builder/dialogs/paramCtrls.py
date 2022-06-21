@@ -282,7 +282,7 @@ class IntCtrl(wx.SpinCtrl, _ValidatorMixin, _HideMixin):
 BoolCtrl = wx.CheckBox
 
 
-class LiveChoiceCtrl(wx.Button, _ValidatorMixin, _HideMixin, _ParentMixin):
+class LiveChoiceCtrl(wx.ToggleButton, _ValidatorMixin, _HideMixin, _ParentMixin):
     """
     Similar to a choice ctrl, but allowed values are updating each time the control is clicked - meaning they can
     change dynamically each time according to other values.
@@ -292,7 +292,7 @@ class LiveChoiceCtrl(wx.Button, _ValidatorMixin, _HideMixin, _ParentMixin):
                  populator=None,
                  size=wx.Size(-1, 24)):
         # Make button
-        wx.Button.__init__(self, parent, size=size, style=wx.NO_BORDER | wx.BU_LEFT)
+        wx.ToggleButton.__init__(self, parent, size=size, style=wx.NO_BORDER | wx.BU_LEFT)
         # Store params
         self.fieldName = fieldName
         self.parent = parent
@@ -308,7 +308,7 @@ class LiveChoiceCtrl(wx.Button, _ValidatorMixin, _HideMixin, _ParentMixin):
 
         # Bind to menu show function
         self.menu = wx.Menu()
-        self.Bind(wx.EVT_BUTTON, self.onClick)
+        self.Bind(wx.EVT_TOGGLEBUTTON, self.onClick)
 
     def populate(self, evt=None):
         # Check how many arguments the populator function takes
@@ -333,7 +333,11 @@ class LiveChoiceCtrl(wx.Button, _ValidatorMixin, _HideMixin, _ParentMixin):
             f"Labels: {self.labels}\n"
         )
 
+    def onMenuDefocus(self, evt=None):
+        self.SetValue(False)
+
     def onClick(self, evt=None):
+        self.SetValue(True)
         self.populate(evt=evt)
 
         # Clear menu
@@ -341,6 +345,7 @@ class LiveChoiceCtrl(wx.Button, _ValidatorMixin, _HideMixin, _ParentMixin):
         self.menu = wx.Menu()
         # Rebind selection function
         self.menu.Bind(wx.EVT_MENU, self.setSelection)
+        self.menu.Bind(wx.EVT_MENU_CLOSE, self.onMenuDefocus)
         # Populate menu from populator function output
         for i in range(len(self.values)):
             item = self.menu.Append(i, str(self.labels[i]))
