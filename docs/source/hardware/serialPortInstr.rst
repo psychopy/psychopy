@@ -2,11 +2,11 @@
 
 Sending triggers via a Serial Port
 =================================================
-Note that if you are using PsychoPy version 2022.2 onwards, you may use the serial port component. If you are using an earlier version you will need to use code components (described below). For both use cases you will need to know your serial port address.
+Note that if you are using PsychoPy version 2022.2 onwards, you may use the :ref: `serial port component <serial_comp>`. If you are using an earlier version you will need to use :ref: `code components <serial_code>`. For both use cases you will need to know your serial port address.
 
 .. _serial_address:
 
-Step one: Find out the address of your serial port 
+Find out the address of your serial port 
 -------------------------------------------------------------
 Serial port addresses are different depending on whether you're using a Mac or a Windows device:
 
@@ -33,11 +33,53 @@ Serial port addresses are different depending on whether you're using a Mac or a
 
 * If it's not obvious which port your device is connected to, remove and replace your device to see which port name changes.
 
+.. _serial_comp:
+
+Using a Serial Port Component to communicate via Serial Port
+--------------------------------------------------------------
+If you're using PsychoPy version 2022.2 or later, you can use the serial port component. If you're running an earlier version, you'll need to use a code component (see :ref: `this section <serial_code>`).
+
+* The serial port component can be found in both the I/O and EEG component drop down menus. Add in a serial port component to the routine that you'd like triggers to be sent from by selecting it from the menu:
+
+.. figure:: /images/serial1.png
+
+    Select the `SerialPort` component from the `I/O` or `EEG` component drop-down menus.
+
+* Now, imagine we want our trigger sent to indicate stimulus onset. We *could* do this by simply setting the onset time of the trigger to match that of our stimulus. But this is not the **most** precise way to do this. Also, this doesn't help us if we want to send our trigger to indicate something with variable timing, such as when a response is made.
+* For maximum precision, we'll set the trigger to be sent when the status of our stimulus is set to `started`:
+
+.. figure:: /images/serial2.png
+
+    In the `Basic` tab, we'll choose to start our trigger when a condition is met by selecting `condition` from the `Start` drop down.
+
+* Now we set that condition by inserting the following code::
+
+    stimulus.status == STARTED #Change 'stimulus' here to match the name of your own component
+
+* Next, we need to set the address of the serial port that we want to use. To do this, write the address of the port in the `Port` field:
+
+.. figure:: /images/serial3.png
+
+    Type in the address of your serial port.
+
+* Next, we'll set the data that we'd like to send to the device at the start of the pulse, and what we want it to be reset to at the end of the pulse. Do this by completing the `Start data` and `Stop data` fields:
+
+.. figure:: /images/serial4.png
+
+    What do you want PsychoPy to send at the start of your trigger pulse, and what do you want it to be reset to at the end of the pulse?
+
+* By default, any integers that you type in these fields will be converted to characters. So the integer 1 will be converted to the character "1". If you want to send the **number** 1, enter the following into the `Start/Stop data` fields::
+
+    chr(1) # Where 1 is the integer you want to send
+
+* You can also reference a variable from your conditions file in the `Start/Stop data` fields using ``$``, as long as those variables are strings.
+
+* Now that your serial port component is set up, we now recommend that you :ref: `test your triggers <trigger_test>`.
+
 .. _serial_code:
 
-Step two: Add code components into your Builder experiment
--------------------------------------------------------------
-To communicate via the serial port you'll need to add in some Python code components to your experiment.
+Using a Code Component to communicate via Serial Port
+--------------------------------------------------------------
 
 * First, add in a code component to your `Instructions` routine (or something similar, at the start of your experiment):
 
@@ -73,8 +115,12 @@ To communicate via the serial port you'll need to add in some Python code compon
 
     port.close()
 
+* We now recommend that you :ref: `test your triggers <trigger_test>`.
 
-Step three: Test your triggers
+
+.. _trigger_test:
+
+Test your triggers
 -------------------------------------------------------------
 
 * To check that everything works, we recommend that you set up a very basic experiment that looks similar to this:
