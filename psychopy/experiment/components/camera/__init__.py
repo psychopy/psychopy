@@ -242,6 +242,7 @@ class CameraComponent(BaseComponent):
         code = (
             "%(name)s = camera.Camera(\n"
             "    device=%(device)s, name='%(name)s', mic=microphone.Microphone(device=%(mic)s),\n"
+            "    frameRate=%(frameRate)s, size=%(resolution)s\n"
             ")\n"
             "# Switch on %(name)s\n"
             "%(name)s.open()\n"
