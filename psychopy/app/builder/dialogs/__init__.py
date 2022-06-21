@@ -386,6 +386,8 @@ class ParamCtrls():
             self.valueCtrl.Bind(wx.EVT_COMBOBOX, callbackFunction)
         elif isinstance(self.valueCtrl, wx.Choice):
             self.valueCtrl.Bind(wx.EVT_CHOICE, callbackFunction)
+        elif isinstance(self.valueCtrl, paramCtrls.LiveChoiceCtrl):
+            self.valueCtrl.Bind(wx.EVT_CHOICE, callbackFunction)
         elif isinstance(self.valueCtrl, wx.CheckListBox):
             self.valueCtrl.Bind(wx.EVT_CHECKLISTBOX, callbackFunction)
         elif isinstance(self.valueCtrl, wx.CheckBox):

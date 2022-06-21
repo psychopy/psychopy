@@ -369,6 +369,11 @@ class LiveChoiceCtrl(wx.ToggleButton, _ValidatorMixin, _HideMixin, _ParentMixin)
             # Otherwise, assume this is a wx event and set value from MenuItem
             self.setValue(self.values[evt.GetId()])
 
+        # Emit choice event
+        evt = wx.CommandEvent(wx.EVT_CHOICE.typeId)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
+
     def setValue(self, value):
         self.value = value
 
