@@ -71,7 +71,7 @@ class CameraComponent(BaseComponent):
 
             return (
                 list(range(len(cams))),
-                cams
+                list(cams)
             )
 
 
@@ -113,7 +113,7 @@ class CameraComponent(BaseComponent):
             # Get selected camera
             camera = params['device'].val
             if camera not in cams:
-                camera = cams[0]
+                camera = list(cams)[0]
             # Get modes for chosen camera
             modes = getCameraInfo(camera)
 
@@ -123,7 +123,7 @@ class CameraComponent(BaseComponent):
                 fr = None
             # Filter for only chosen frame rate
             if fr is not None:
-                modes = [md for md in modes if int(md.frameRate[0] / md.frameRate[1]) == int(fr)]
+                modes = [md for md in modes if int(md.frameRate) == int(fr)]
 
             # Get values
             values = [md.frameSize for md in modes]
@@ -163,12 +163,12 @@ class CameraComponent(BaseComponent):
             # Get selected camera
             camera = params['device'].val
             if camera not in cams:
-                camera = cams[0]
+                camera = list(cams)[0]
             # Get modes for chosen camera
             modes = getCameraInfo(camera)
 
             # Get values
-            values = [int(md.frameRate[0] / md.frameRate[1]) for md in modes]
+            values = [int(md.frameRate) for md in modes]
             values = list(set(values))
             # Sort values by refresh rate
             values.sort(reverse=True)
@@ -248,7 +248,7 @@ class CameraComponent(BaseComponent):
         code = (
             "%(name)s = camera.Camera(\n"
             "    device=%(device)s, name='%(name)s', mic=microphone.Microphone(device=%(mic)s),\n"
-            "    frameRate=%(frameRate)s, size=%(resolution)s\n"
+            "    frameRate=%(frameRate)s, frameSize=%(resolution)s\n"
             ")\n"
             "# Switch on %(name)s\n"
             "%(name)s.open()\n"
@@ -389,8 +389,9 @@ def getCameraInfo(camera):
     failure cleanly.
     """
     try:
-        from psychopy.hardware.camera import getCameraInfo
-        return getCameraInfo(camera)
+        from psychopy.hardware.camera import getCameras
+        cams = getCameras()
+        return cams[camera]
     except:
         return []
 

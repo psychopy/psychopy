@@ -375,6 +375,9 @@ class LiveChoiceCtrl(wx.ToggleButton, _ValidatorMixin, _HideMixin, _ParentMixin)
         wx.PostEvent(self, evt)
 
     def setValue(self, value):
+        if isinstance(value, str) and value.isnumeric():
+            value = int(value)
+
         self.value = value
 
         if value in self.values:
