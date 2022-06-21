@@ -22,9 +22,17 @@ else:
     mic = None  # no audio if a mic was not found
     print('No mic was found on this system, no audio will be recorded!')
 
+# get descriptions for camera devices and their available formats on this system
+cameras = Camera.getCameraDescriptions(collapse=True)  # collapse=True for flat-list
+print(cameras)
+
+# use the very first one
+myCameraFormat = cameras[0]
+print('Using camera: `{}`'.format(myCameraFormat))
+
 # Create a new camera instance. Values for `size` and `frameRate` must be
 # appropriate for the device in use.
-cam = Camera(0, mic=mic, frameRate=30, size=(320, 240))
+cam = Camera('[Live! Cam Sync 1080p] 160x120@30fps, yuyv422', mic=mic)
 
 # Open a camera stream. This will remain open until `close()` ia called.
 cam.open()
@@ -46,6 +54,7 @@ cam.record()
 # record for (close to) 5 seconds
 while cam.recordingTime < 5.0:
     frame = cam.getVideoFrame()  # get video frame data
+    print(frame)
     # print the current time in the recording
     print('t={}s'.format(round(frame.absTime, 6)))
 
@@ -62,7 +71,7 @@ cam.stop()  # stop the webcam recording
 
 # Save the video to disk by calling this method. Video recordings are lost if
 # this is not called prior to calling `record` again.
-# cam.save('myVideo.mp4')  # uncomment to save the file, just specify the path
+cam.save('myVideo.mp4')  # uncomment to save the file, just specify the path
 
 # Print the path to where the clip was saved, this allows you to pass the clip
 # to a `MovieStim` object to view it afterwards if desired. Gives `None` if
