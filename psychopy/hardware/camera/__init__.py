@@ -736,15 +736,15 @@ class MovieStreamIOThread(threading.Thread):
         # variables used within the scope of this thread
         frameInterval = 0.004        # frame interval, start at 4ms (250Hz)
         frameData = None             # frame data from the reader
-        # lastFrame = None             # last frame to get pulled from the stream
-        val = ''                     # status value from reader
+        # lastFrame = None           # last frame to get pulled from the stream
+        # val = ''                   # status value from reader
         statusFlag = NOT_STARTED     # status flag for stream reader state
-        # metadata = None              # only valid after we get a frame
-        # ptsStart = 0.0               # stream pts the recording started at
+        # metadata = None            # only valid after we get a frame
+        # ptsStart = 0.0             # stream pts the recording started at
         ptsLast = 0.0                # last pts value
         recordingJustStarted = True  # have we just started recording? do setup
         writer = None                # handle to the frame writer
-        streamTime = 0.0             # stream pts
+        # streamTime = 0.0           # stream pts
         recordingBytes = 0           # number of bytes committed
         recordingTime = 0.0          # time since the recording started
         recordingFrameIdx = 0        # frame index for recording
@@ -923,8 +923,13 @@ class MovieStreamIOThread(threading.Thread):
                 # compute presentation timestamp of the writer for the frame
                 recordingTime = recordingFrameIdx * frameInterval
 
-                # classic flavor for computing timestamps, not using this for
-                # now but keeping record of it
+                # Classic flavor for computing timestamps, not using this for
+                # now but keeping record of it. Usually works but the encoder
+                # complains about them not increasing monotonically even though
+                # they are. The method above is much more precise and seems to
+                # keep the encoder happy, but doesn't account for possible drift
+                # in timestamps.
+                #
                 # recordingTime = streamTime - ptsStart
 
                 # If we have writer object, put frames in its queue to have them
