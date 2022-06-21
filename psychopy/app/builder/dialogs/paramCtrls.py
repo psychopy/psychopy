@@ -296,6 +296,7 @@ class LiveChoiceCtrl(wx.ToggleButton, _ValidatorMixin, _HideMixin, _ParentMixin)
         # Store params
         self.fieldName = fieldName
         self.parent = parent
+        self.valType = valType
 
         # Assign populator function
         if populator is None:
@@ -374,10 +375,10 @@ class LiveChoiceCtrl(wx.ToggleButton, _ValidatorMixin, _HideMixin, _ParentMixin)
         if value in self.values:
             # If value is in list of expected, set button text to corresponding label
             i = self.values.index(value)
-            self.SetLabel(self.labels[i])
+            self.SetLabel(str(self.labels[i]))
         else:
             # Otherwise, set button text as value
-            self.SetLabel(value)
+            self.SetLabel(str(value))
 
     def getValue(self):
         return self.value
