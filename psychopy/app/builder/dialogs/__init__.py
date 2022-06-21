@@ -262,6 +262,11 @@ class ParamCtrls():
             return None
         elif hasattr(ctrl, 'GetText'):
             return ctrl.GetText()
+        elif hasattr(ctrl, "getValue"):
+            val = ctrl.getValue()
+            if isinstance(self.valueCtrl, dialogs.ListWidget):
+                val = self.expInfoFromListWidget(val)
+            return val
         elif hasattr(ctrl, 'GetValue'):  # e.g. TextCtrl
             val = ctrl.GetValue()
             if isinstance(self.valueCtrl, dialogs.ListWidget):
