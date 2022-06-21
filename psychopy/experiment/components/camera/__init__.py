@@ -92,18 +92,27 @@ class CameraComponent(BaseComponent):
 
         # Hardware
         def _resolutionPopulator(ctrl):
+            # Get params from dlg
+            try:
+                params = ctrl.notebook.getParams()
+            except KeyError:
+                # On first call, may get a KeyError as some components aren't made yet, in this case just skip
+                return (
+                    [None],
+                    ["default"]
+                )
             # Get list of camera specs
             cams = getCameras()
 
             # Get selected camera
-            camera = ctrl.comp.params['device'].val
+            camera = params['device'].val
             if camera not in cams:
                 camera = list(cams)[0]
             # Filter for only chosen camera
             camsList = cams[camera]
 
             # Get selected framerate
-            fr = ctrl.comp.params['frameRate'].val
+            fr = params['frameRate'].val
             print(fr)
             if fr in (None, "None", "none", "default", "Default", "highest", "Highest"):
                 fr = None
@@ -133,11 +142,20 @@ class CameraComponent(BaseComponent):
         self.params['resolution'].populator = _resolutionPopulator
 
         def _frameRatePopulator(ctrl):
+            # Get params from dlg
+            try:
+                params = ctrl.notebook.getParams()
+            except KeyError:
+                # On first call, may get a KeyError as some components aren't made yet, in this case just skip
+                return (
+                    [None],
+                    ["default"]
+                )
             # Get list of camera specs
             cams = getCameras()
 
             # Get selected camera
-            camera = ctrl.comp.params['device'].val
+            camera = params['device'].val
             if camera not in cams:
                 camera = list(cams)[0]
             # Filter for only chosen camera

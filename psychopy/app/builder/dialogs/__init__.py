@@ -146,7 +146,7 @@ class ParamCtrls():
                 comp = param.comp
             if hasattr(param, "populator"):
                 populator = param.populator
-            self.valueCtrl = paramCtrls.LiveChoiceCtrl(parent, comp=comp,
+            self.valueCtrl = paramCtrls.LiveChoiceCtrl(parent,
                                                        val=str(param.val), valType=param.valType,
                                                        fieldName=fieldName, size=wx.Size(-1, 24),
                                                        populator=populator)

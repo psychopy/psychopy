@@ -67,6 +67,19 @@ class _ValidatorMixin:
             self.SetFont(fontNormal)
 
 
+class _ParentMixin:
+    @property
+    def notebook(self):
+        # Start off with self
+        target = self
+        # Keep going up a generation until we hit a ParamNotebook or a dead end
+        while type(target).__name__ != "ParamNotebook" and hasattr(target, "GetParent"):
+            target = target.GetParent()
+        # If we have a Param Notebook, return it
+        if type(target).__name__ == "ParamNotebook":
+            return target
+
+
 class _FileMixin:
     @property
     def rootDir(self):
@@ -269,20 +282,20 @@ class IntCtrl(wx.SpinCtrl, _ValidatorMixin, _HideMixin):
 BoolCtrl = wx.CheckBox
 
 
-class LiveChoiceCtrl(wx.Button, _ValidatorMixin, _HideMixin):
+class LiveChoiceCtrl(wx.Button, _ValidatorMixin, _HideMixin, _ParentMixin):
     """
     Similar to a choice ctrl, but allowed values are updating each time the control is clicked - meaning they can
     change dynamically each time according to other values.
     """
-    def __init__(self, parent, comp,
-                 val=None, valType="code", fieldName="",
+    def __init__(self, parent,
+                 val=None, valType="str", fieldName="",
                  populator=None,
                  size=wx.Size(-1, 24)):
         # Make button
         wx.Button.__init__(self, parent, size=size, style=wx.NO_BORDER | wx.BU_LEFT)
         # Store params
         self.fieldName = fieldName
-        self.comp = comp
+        self.parent = parent
 
         # Assign populator function
         if populator is None:
