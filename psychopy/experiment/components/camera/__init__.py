@@ -5,7 +5,6 @@ from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate, getInitVals
 from psychopy import prefs
 
-devices = ["default"]
 mics = ["default"]
 
 
@@ -25,7 +24,7 @@ class CameraComponent(BaseComponent):
             name='cam',
             startType='time (s)', startVal='0', startEstim='',
             stopType='duration (s)', stopVal='', durationEstim='',
-            device="Default", mic="Default",
+            device="default", mic="default",
             # Hardware
             resolution="", frameRate="",
             # Data
@@ -55,13 +54,20 @@ class CameraComponent(BaseComponent):
         self.exp.requireImport(importName="camera", importFrom="psychopy.hardware")
         self.exp.requireImport(importName="microphone", importFrom="psychopy.sound")
 
+        # Get list of camera specs
+        try:
+            from psychopy.hardware.camera import getCameraDescriptions
+            cams = getCameraDescriptions(collapse=True)
+        except:
+            cams = []
+
         # Basic
         msg = _translate("What device would you like to use to record video? This will only affect local "
                          "experiments - online experiments ask the participant which device to use.")
         self.params['device'] = Param(
             device, valType='str', inputType="choice", categ="Basic",
-            allowedVals=list(devices),
-            allowedLabels=[d.title() for d in list(devices)],
+            allowedVals=["default"] + cams,
+            allowedLabels=["default"] + cams,
             hint=msg,
             label=_translate("Video Device")
         )

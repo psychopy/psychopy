@@ -12,16 +12,17 @@ experimenter to create movie stimuli or instructions.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = ['CameraNotFoundError', 'Camera', 'CameraInfo', 'StreamData',
-           'getCameras']
+           'getCameras', 'getCameraDescriptions']
 
-import glob
 import platform
 import numpy as np
 import tempfile
 import os
 import os.path
 import shutil
-from psychopy.constants import STOPPED, NOT_STARTED, RECORDING
+import math
+from psychopy.constants import STOPPED, NOT_STARTED, RECORDING, STARTED, \
+    STOPPING, PAUSED, FINISHED, INVALID
 from psychopy.visual.movies.metadata import MovieMetadata, NULL_MOVIE_METADATA
 from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
 from psychopy.sound.microphone import Microphone
@@ -30,7 +31,8 @@ from ffpyplayer.player import MediaPlayer
 from ffpyplayer.writer import MediaWriter
 from ffpyplayer.pic import SWScale
 from ffpyplayer.tools import list_dshow_devices, get_format_codec
-# Something in moviepy.editor's initialisation breaks Mouse, so import these from the source instead
+# Something in moviepy.editor's initialisation breaks Mouse, so import these
+# from the source instead
 # from moviepy.editor import VideoFileClip, AudioFileClip, CompositeAudioClip
 from moviepy.video.io.VideoFileClip import VideoFileClip
 from moviepy.audio.io.AudioFileClip import AudioFileClip
@@ -39,6 +41,7 @@ import uuid
 import threading
 import queue
 import time
+# import cv2  # used to get camera information
 
 
 # ------------------------------------------------------------------------------
@@ -55,6 +58,31 @@ CAMERA_MODE_PHOTO = u'photo'
 # default names for video and audio tracks in the temp directory
 CAMERA_TEMP_FILE_VIDEO = u'video.mp4'
 CAMERA_TEMP_FILE_AUDIO = u'audio.wav'
+
+# camera API flags, these specify which API camera settings were queried with
+CAMERA_API_AVFOUNDATION = u'AVFoundation'  # mac
+CAMERA_API_DIRECTSHOW = u'DirectShow'      # windows
+CAMERA_API_VIDEO4LINUX = u'Video4Linux'    # linux
+CAMERA_API_OPENCV = u'OpenCV'              # opencv, cross-platform API
+CAMERA_API_UNKNOWN = u'Unknown'            # unknown API
+CAMERA_API_NULL = u'Null'                  # empty field
+
+# camera libraries for playback nad recording
+CAMERA_LIB_FFPYPLAYER = u'FFPyPlayer'
+CAMERA_LIB_UNKNOWN = u'Unknown'
+CAMERA_LIB_NULL = u'Null'
+
+# special values
+CAMERA_FRAMERATE_NOMINAL_NTSC = '30.000030'
+CAMERA_FRAMERATE_NTSC = 30.000030
+
+# FourCC and pixel format mappings, mostly used with AVFoundation to determine
+# the FFMPEG decoder which is most suitable for it. Please expand this if you
+# know any more!
+pixelFormatTbl = {
+    'yuvs': 'yuyv422',  # 4:2:2
+    '420v': 'nv12'      # 4:2:0
+}
 
 
 # ------------------------------------------------------------------------------
@@ -73,8 +101,12 @@ class CameraNotFoundError(CameraError):
     """Raised when a camera cannot be found on the system."""
 
 
-class CameraModeNotSupportedError(CameraError):
+class CameraFormatNotSupportedError(CameraError):
     """Raised when a camera cannot use the settings requested by the user."""
+
+
+class FormatNotFoundError(CameraError):
+    """Cannot find a suitable pixel format for the camera."""
 
 
 class PlayerNotAvailableError(Exception):
@@ -109,6 +141,7 @@ class CameraInfo:
 
     """
     __slots__ = [
+        '_index',
         '_name',
         '_frameSize',
         '_frameRate',
@@ -119,30 +152,46 @@ class CameraInfo:
     ]
 
     def __init__(self,
+                 index=-1,
                  name=CAMERA_NULL_VALUE,
                  frameSize=(-1, -1),
                  frameRate=(-1, -1),
                  pixelFormat=CAMERA_UNKNOWN_VALUE,
                  codecFormat=CAMERA_UNKNOWN_VALUE,
                  cameraLib=CAMERA_NULL_VALUE,
-                 cameraAPI=CAMERA_NULL_VALUE):
+                 cameraAPI=CAMERA_API_NULL):
 
+        self.index = index
         self.name = name
         self.frameSize = frameSize
         self.frameRate = frameRate
         self.pixelFormat = pixelFormat
         self.codecFormat = codecFormat
-        self._cameraLib = cameraLib
-        self._cameraAPI = cameraAPI
+        self.cameraLib = cameraLib
+        self.cameraAPI = cameraAPI
 
     def __repr__(self):
-        return (f"CameraInfo(name={repr(self.name)}, "
+        return (f"CameraInfo(index={repr(self.index)}, "
+                f"name={repr(self.name)}, "
                 f"frameSize={repr(self.frameSize)}, "
                 f"frameRate={self.frameRate}, "
                 f"pixelFormat={repr(self.pixelFormat)}, "
                 f"codecFormat={repr(self.codecFormat)}, "
-                f"cameraLib={repr(self._cameraLib)}, "
-                f"cameraAPI={repr(self._cameraAPI)})")
+                f"cameraLib={repr(self.cameraLib)}, "
+                f"cameraAPI={repr(self.cameraAPI)})")
+
+    def __str__(self):
+        return self.description()
+
+    @property
+    def index(self):
+        """Camera index (`int`). This is the enumerated index of this camera.
+        """
+        return self._index
+
+    @index.setter
+    def index(self, value):
+        self._index = int(value)
 
     @property
     def name(self):
@@ -205,6 +254,61 @@ class CameraInfo:
     @codecFormat.setter
     def codecFormat(self, value):
         self._codecFormat = str(value)
+
+    @property
+    def cameraLib(self):
+        """Camera library these settings are targeted towards (`str`).
+        """
+        return self._cameraLib
+
+    @cameraLib.setter
+    def cameraLib(self, value):
+        self._cameraLib = str(value)
+
+    @property
+    def cameraAPI(self):
+        """Camera API in use to obtain this information (`str`).
+        """
+        return self._cameraAPI
+
+    @cameraAPI.setter
+    def cameraAPI(self, value):
+        self._cameraAPI = str(value)
+
+    def frameSizeAsFormattedString(self):
+        """Get image size as as formatted string.
+
+        Returns
+        -------
+        str
+            Size formatted as `'WxH'` (e.g. `'480x320'`).
+
+        """
+        return '{width}x{height}'.format(
+            width=self.frameSize[0],
+            height=self.frameSize[1])
+
+    def description(self):
+        """Get a description as a string.
+
+        Returns
+        -------
+        str
+            Description of the camera format as a human readable string.
+
+        """
+        codecFormat = self._codecFormat
+        pixelFormat = self._pixelFormat
+        codec = codecFormat if not pixelFormat else pixelFormat
+
+        return "[{name}] {width}x{height}@{frameRate}fps, {codec}".format(
+            #index=self.index,
+            name=self.name,
+            width=str(self.frameSize[0]),
+            height=str(self.frameSize[1]),
+            frameRate=str(self.frameRate),
+            codec=codec
+        )
 
 
 class StreamStatus:
@@ -278,7 +382,7 @@ class StreamStatus:
 
 
 class StreamData:
-    """Descriptor for video frame data.
+    """Descriptor for camera stream data.
 
     Instances of this class are produced by the stream reader/writer thread
     which contain: metadata about the stream, frame image data (i.e. pixel
@@ -357,6 +461,187 @@ class StreamData:
         return u''
 
 
+class StreamWriterThread(threading.Thread):
+    """Class for high-performance writing of video frames to disk asynchronously
+    using threading.
+
+    This thread is spawned along with a :class:`~psychopy.hardware.Camera`
+    instance, providing the capability to save real-time (live) video to disk
+    for later viewing or use. Communication and control of the thread are
+    done either by calling methods associated with this class, or directly
+     putting commands into the command queue, from another thread.
+
+    """
+    def __init__(self, mic=None):
+        threading.Thread.__init__(self)
+
+        self._mic = mic
+        self._commandQueue = queue.Queue()
+        self._writerClosedEvent = threading.Event()
+        self._writerClosedEvent.clear()
+
+        self._warmUpLock = threading.Lock()
+
+    def run(self):
+        """Main loop for the writer thread.
+
+        This waits on commands from the command queue and processes them
+        continuously until the `'end'` command is received. This thread may be
+        created along with the camera instance and killed when done.
+
+        If the stream format changes at any point, you should close the writer
+        and open a new one with updated parameters before writing more frames.
+
+        """
+        self._warmUpLock.acquire(blocking=False)
+        writer = None   # instance for the writer
+        filepath = ''  # path to the file
+        alive = True
+        while alive:
+            # block main thread until we are in the command loop
+            if self._warmUpLock.locked():
+                self._warmUpLock.release()
+
+            # process input commands
+            cmdOptCode, cmdVals = self._commandQueue.get(block=True)
+            if cmdOptCode == 'open':
+                # Open a file to write values to.
+                if writer is not None:
+                    raise IOError(
+                        "Attempted to start a new `MediaWriter` instance "
+                        "without closing the existing one first."
+                    )
+                filepath, writerOpts = cmdVals
+                # create a new writer instance
+                writer = MediaWriter(filepath, writerOpts)
+                self._commandQueue.task_done()
+            elif cmdOptCode == 'write_frame':  # write a frame
+                # Write a frame out to the file. Passing a boolean as arg[3]
+                # will tell the code whether to block until the frame has
+                # been written (or buffered and waiting) by the writer. Use
+                # `True` for synchronous operation and `False` for
+                # asynchronous.
+                if writer is None:
+                    raise IOError(
+                        'Got `write_frame` command but the writer has not '
+                        'been opened yet.')
+
+                colorData, pts, blockUntilDone = cmdVals
+                if not blockUntilDone:
+                    self._commandQueue.task_done()
+
+                frameWidth, frameHeight = colorData.get_size()
+                sws = SWScale(frameWidth, frameHeight,
+                    colorData.get_pixel_format(),
+                    ofmt='yuv420p')
+
+                # write the frame to the file
+                recordingBytes = writer.write_frame(
+                    img=sws.scale(colorData),
+                    pts=pts,
+                    stream=0)
+
+                logging.debug(
+                    'Writing {} bytes to file `{}`'.format(
+                        recordingBytes, filepath)
+                )
+
+                if blockUntilDone:
+                    self._commandQueue.task_done()
+            elif cmdOptCode == 'close':
+                # Close the file we are writing to but keep the writer
+                # thread hot. This allows for successive recordings to be
+                # made as quickly as possible without needing to spawn
+                # another thread each time.
+                if writer is None:
+                    raise IOError(
+                        "Attempted to close the `MediaWriter` instance "
+                        "without opening on first.")
+                writer.close()
+                writer = None
+                self._commandQueue.task_done()
+            elif cmdOptCode == 'end':  # end the thread
+                alive = False
+                continue
+
+        # if we have an open file, close it just in case
+        if writer is not None:
+            writer.close()
+
+        # set when the writer exits
+        self._commandQueue.task_done()  # when end is called
+
+        logging.debug('Media writer thread has been killed.')
+
+    @property
+    def commandQueue(self):
+        """The command queue for this thread (`queue.Queue`).
+        """
+        return self._commandQueue
+
+    def begin(self):
+        """Begin the file writer thread. Blocks until we can start accepting
+        commands.
+        """
+        self.start()
+        self._warmUpLock.acquire(blocking=True)
+
+    def end(self):
+        """Shutdown the thread.
+        """
+        self.sendCommand('end', (None,))  # blocks until done
+
+    def open(self, filePath, writerOpts):
+        """Open a file to writer frames to.
+
+        Parameters
+        ----------
+        filePath : str
+            Path to file to write frames to. This is usually a temporary
+            directory.
+        writerOpts : dict
+            Optional settings for the writer.
+
+        """
+        self.sendCommand('open', (filePath, writerOpts))  # blocks until done
+
+    def writeFrame(self, colorData, pts, blockUntilDone=False):
+        """Write a frame to the presently opened file.
+
+        Parameters
+        ----------
+        colorData : object
+            Image data to pass to the encoder.
+        pts : float
+            Presentation time stamp for the frame.
+        blockUntilDone : bool
+            Block this function until the frame has been written to disk.
+            Otherwise, this function will return immediately and the frame will
+            be written out asynchronously.
+
+        """
+        self.sendCommand('write_frame', (colorData, pts, blockUntilDone))
+
+    def close(self):
+        """Close the file. This will write out the result.
+        """
+        self.sendCommand('close', (None,))
+
+    def sendCommand(self, opcode, args):
+        """Send a command to this thread.
+
+        Parameters
+        ----------
+        opcode : str
+            Command key or operation code.
+        args : tuple
+            Arguments for the command.
+
+        """
+        self._commandQueue.put((opcode, args))
+        self._commandQueue.join()  # block until tasks are done
+
+
 class MovieStreamIOThread(threading.Thread):
     """Class for reading and writing streams asynchronously.
 
@@ -379,10 +664,15 @@ class MovieStreamIOThread(threading.Thread):
         self.daemon = False
 
         self._player = player  # player interface to FFMPEG
-        self._writer = None  # writer interface
         self._mic = None
         self._frameQueue = queue.Queue(
             maxsize=bufferFrames)  # frames for the monitor
+        self._cmdQueue = queue.Queue()  # command queue
+
+        # Queue for return values if needed. We set the `maxsize` to ensure
+        # that we don't stack return values.
+        self._retQueue = queue.Queue(maxsize=1)
+        self._writer = None
 
         # some values the user might want
         self._status = NOT_STARTED
@@ -390,14 +680,8 @@ class MovieStreamIOThread(threading.Thread):
         self._recordingBytes = 0
         self._streamTime = 0.0
 
-        self._isReadyEvent = threading.Event()
-        self._isRecording = threading.Event()
-        self._isStreamingEvent = threading.Event()
-        self._stopSignal = threading.Event()
-
         # Locks for syncing the player and main application thread
         self._warmUpLock = threading.Lock()
-        self._warmUpLock.acquire(blocking=False)
 
     def run(self):
         """Main sub-routine for this thread.
@@ -408,26 +692,151 @@ class MovieStreamIOThread(threading.Thread):
         can get frames.
 
         """
-        if self._player is None:
-            return  # exit thread if no player
+        # Warmup lock for the thread, prevent another thread for running
+        # anything until we're ready to go.
+        self._warmUpLock.acquire(blocking=False)
 
-        self._isStreamingEvent.set()
-        self._isReadyEvent.clear()
-        frameInterval = 0.001  # dynamic poll interval, start at 1ms
-        ptsStart = 0.0
-        recordingJustStarted = True
-        streaming = True
-        while streaming:
-            # consume frames until we get a valid one
-            frameData = None
-            val = ''
-            while frameData is None or val == 'not ready':
-                frameData, val = self._player.get_frame()
-                time.sleep(frameInterval)  # sleep a bit to warm-up
-            else:
-                if self._warmUpLock.locked():
-                    self._warmUpLock.release()  # release warmup lock
-                self._isReadyEvent.set()
+        # variables used within the scope of this thread
+        frameInterval = 0.004        # frame interval, start at 4ms (250Hz
+        frameData = None             # frame data from the reader
+        lastFrame = None             # last frame to get pulled from the stream
+        val = ''                     # status value from reader
+        statusFlag = NOT_STARTED     # status flag for stream reader state
+        metadata = None              # only valid after we get a frame
+        ptsStart = 0.0               # stream pts the recording started at
+        recordingJustStarted = True  # have we just started recording? do setup
+        writer = None                # handle to the frame writer
+        streamTime = 0.0             # stream pts
+        recordingBytes = 0           # number of bytes committed
+        recordingTime = 0.0          # time since the recording started
+
+        # status flag equivalents for ffpyplayer
+        statusFlagLUT = {
+            'eof': STOPPING,  # maybe FINISHED?
+            'not ready': NOT_STARTED,
+            'paused': PAUSED  # not allowed for live feeds but map it anyways
+        }
+
+        # ----------------------------------------------------------------------
+        # Stream initialization and warmup
+        #
+
+        # Consume frames until we get a valid one, we need its metadata at this
+        # point to configure the writer.
+        while statusFlag != STARTED:
+            frameData, val = self._player.get_frame()
+
+            # If we get a frame then the stream is started, tht also means we
+            # can get the metadata now.
+            if frameData is not None and val != 'not ready':
+                statusFlag = STARTED
+
+            # Should never see this unless the camera was unplugged or
+            # something, but we'll handle it here at some point.
+            if val == 'eof':
+                break
+
+            time.sleep(frameInterval)  # sleep a bit to avoid mashing the CPU
+
+        # Obtain metadata from the frame now that we have a flowing stream. This
+        # data is needed by the main thread to process to configure additional
+        # resources needed to present the video.
+        metadata = self._player.get_metadata()
+
+        # Get color and timestamp data from the returned frame object, this will
+        # be encapsulated in a `StreamData` object and passed back to the main
+        # thread with status information.
+        colorData, pts = frameData
+
+        # Build up the object which we'll pass to the application thread. Stream
+        # status information hold timestamp and playback information.
+        streamStatus = StreamStatus(
+            status=statusFlag,    # current status flag, should be `NOT_STARTED`
+            streamTime=pts)       # frame timestamp
+
+        # Put the frame in the frame queue so the main thread can read access it
+        # safely. The main thread should hold onto any frame it gets when the
+        # queue is empty.
+        if self._frameQueue.full():
+            raise RuntimeError(
+                "Stream decoder frame queue is full and it really shouldn't be "
+                "at this point. Make sure data has been flushed out of the "
+                "queue from previous use.")
+
+        # Object to pass video frame data back to the application thread for
+        # presentation or processing.
+        lastFrame = StreamData(
+            metadata,
+            colorData,
+            streamStatus,
+            u'ffpyplayer')
+
+        # Pass the object to the main thread using the frame queue.
+        self._frameQueue.put(lastFrame)  # put frame data in here
+
+        # update the status flag indicating that we started pulling frames
+        statusFlag = STARTED
+
+        # Release the lock to unblock the parent thread once we have the first
+        # frame and valid metadata from the stream. After this returns the
+        # main thread should call `getRecentFrame` to get the frame data.
+        self._warmUpLock.release()
+
+        # ----------------------------------------------------------------------
+        # Streaming
+        #
+        # This is the main loop which pulls video frames from, and controls the
+        # stream. Live camera feeds cannot be paused or seeked through at this
+        # time.
+        #
+        while statusFlag != FINISHED:
+            # process items in command queue, if any
+            if not self._cmdQueue.empty():
+                cmdOpCode, cmdVal = self._cmdQueue.get_nowait()
+                if cmdOpCode == 'record':
+                    # Start recording. This should begin pushing frames to the
+                    # writer frame queue. We upgrade the status flag to
+                    # `RECORDING` which means the stream is active
+                    if statusFlag == STARTED:
+                        statusFlag = RECORDING
+                    writer = cmdVal  # writer object is the argument here
+                elif cmdOpCode == 'stop':
+                    # Weird, eh? We use the `STARTED` constant to represent that
+                    # the stream is active and pulling frames but not yet
+                    # recording. The stop command keeps the stream alive but
+                    # stop writing frames to file.
+                    if statusFlag != RECORDING:
+                        raise RuntimeError(
+                            "Attempted to stop a recording that has not yet "
+                            "been started."
+                        )
+                    statusFlag = STARTED
+                    writer = None
+                elif cmdOpCode == 'close':
+                    # Exit the thread, the breaks out of this loop and drops out
+                    # to the end of the routine. There should be a `task_done()`
+                    # down there to match the `join()` call from the other
+                    # thread.
+                    statusFlag = FINISHED
+                    continue
+
+            # pull the next available frame from the stream
+            frameData, val = self._player.get_frame(show=True)
+
+            # process status flags coming from the stream reader
+            if isinstance(val, str):
+                statusFlag = statusFlagLUT.get(val, INVALID)
+
+            if statusFlag == STOPPING:  # eof
+                statusFlag = FINISHED
+                continue
+
+            # An `INVALID` status flag usually means we're either not ready or
+            # the value of `val` is not something we are expecting (due to
+            # library changes?) If we get one, just try to get another frame.
+            if statusFlag == INVALID or frameData is None:
+                time.sleep(frameInterval)
+                continue
 
             # after getting a frame, we can get accurate metadata
             metadata = self._player.get_metadata()
@@ -443,87 +852,79 @@ class MovieStreamIOThread(threading.Thread):
 
             # split the data
             colorData, pts = frameData
-            self._streamTime = pts
+            streamTime = pts
 
-            # handle writing to file
-            if self._isRecording.is_set():
+            # ------------------------------------------------------------------
+            # Recording
+            #
+            # If we have the `RECORDING` status flag, the user has requested
+            # that we start writing frames out to disk. This is handled in
+            # another thread, so we just push frame data into a queue to have
+            # then writen to an output file. The recording thread is initialized
+            # and controlled by the main thread.
+            #
+            if statusFlag == RECORDING:
+                # Have we just started recording? Do some setup.
                 if recordingJustStarted:
-                    ptsStart = self._streamTime
-                    self._status = RECORDING
-
-                    # start the microphone
-                    if self._mic is not None:
-                        self._mic.record()
-
+                    ptsStart = streamTime
                     recordingJustStarted = False
+                    self._cmdQueue.task_done()  # the record command farther up
 
                 # compute timestamp for the writer for the current frame
-                self._recordingTime = self._streamTime - ptsStart
+                recordingTime = streamTime - ptsStart
 
-                if self._writer is not None:
-                    frameWidth, frameHeight = colorData.get_size()
-                    pixelFormat = colorData.get_pixel_format()
-
-                    # convert color format to rgb24 since we're doing raw video
-                    sws = SWScale(
-                        frameWidth,
-                        frameHeight,
-                        pixelFormat,
-                        ofmt='yuv420p')
-
-                    # write the frame to the file
-                    self._recordingBytes = self._writer.write_frame(
-                        img=sws.scale(colorData),
-                        pts=self._recordingTime,
-                        stream=0)
+                # If we have writer object, put frames in its queue to have them
+                # written to disk.
+                if writer is not None:
+                    writer.commandQueue.put(
+                        ('write_frame',
+                         (colorData, recordingTime, False)
+                         )
+                    )
 
                 # poll the mic if available to flush the sample buffer
                 if self._mic is not None:
                     self._mic.poll()
 
-            else:
-                if not recordingJustStarted:
-                    # start the microphone
-                    if self._mic is not None:
-                        self._mic.stop()
-
+            elif statusFlag == STARTED:
+                if not recordingJustStarted:  # previously recording?
                     # reset stream recording vars when done
                     ptsStart = 0.0
-                    self._recordingBytes = 0
-                    self._recordingTime = 0.0
-                    self._status = STOPPED
+                    recordingBytes = 0
+                    recordingTime = 0.0
                     recordingJustStarted = True
+                    statusFlag = STARTED   # keep the stream running
+                    self._cmdQueue.task_done()
 
             # Put the frame in the queue to allow the main thread to safely
             # access it. If the queue is full, the frame data will be discarded
             # at this point. The image will be lost unless the encoder is
             # recording.
-            if not self._frameQueue.full():
-                streamStatus = StreamStatus(
-                    status=self._status,
-                    streamTime=self._streamTime,
-                    recTime=self._recordingTime,
-                    recBytes=self._recordingBytes)
+            streamStatus = StreamStatus(
+                status=statusFlag,
+                streamTime=streamTime,
+                recTime=recordingTime,
+                recBytes=recordingBytes)
 
-                # Object to pass video frame data back to the application thread
-                # for presentation or processing.
-                img, _ = frameData
-                toReturn = StreamData(metadata, img, streamStatus, u'ffpyplayer')
-                self._frameQueue.put(toReturn)  # put frame data in here
+            # Object to pass video frame data back to the application thread
+            # for presentation or processing.
+            img, _ = frameData
+            toReturn = StreamData(metadata, img, streamStatus, u'ffpyplayer')
 
-            # signal to close a thread
-            if self._stopSignal.is_set() or val == 'eof':
-                streaming = False
+            try:
+                self._frameQueue.put_nowait(toReturn)  # put frame data in here
+            except queue.Full:
+                pass
 
-        # out of this loop, we're done
-        self._isReadyEvent.clear()
-        self._isStreamingEvent.clear()
+            time.sleep(frameInterval)
 
-    @property
-    def isReady(self):
-        """`True` if the stream reader is ready (`bool`).
-        """
-        return self._isReadyEvent.is_set()
+        # catch incase we exited some other way than by command
+        try:
+            self._cmdQueue.task_done()
+        except ValueError:
+            pass
+
+        logging.debug('Camera stream thread has been killed.')
 
     def begin(self):
         """Stop the thread.
@@ -531,7 +932,7 @@ class MovieStreamIOThread(threading.Thread):
         self.start()
         # hold until the lock is released when the thread gets a valid frame
         # this will prevent the main loop for executing until we're ready
-        self._warmUpLock.acquire(blocking=True)
+        self._warmUpLock.acquire()
 
     def record(self, writer, mic=None):
         """Start recording frames to the output video file.
@@ -548,24 +949,20 @@ class MovieStreamIOThread(threading.Thread):
         self._writer = writer
         self._mic = mic
 
-        # need at least a writer to use this
-        if not isinstance(self._writer, MediaWriter):
-            raise TypeError(
-                "Expected type `MediaWriter` for parameter `writer`.")
-
-        self._isRecording.set()
+        self._cmdQueue.put(('record', writer))
+        self._cmdQueue.join()
 
     def stop(self):
         """Stop recording frames to the output file.
         """
-        self._isRecording.clear()
-        self._writer = None
-        self._mic = None
+        self._cmdQueue.put(('stop', None))
+        self._cmdQueue.join()
 
-    def shutdown(self):
-        """Stop the thread.
+    def close(self):
+        """Close the thread.
         """
-        self._stopSignal.set()
+        self._cmdQueue.put(('close', None))
+        self._cmdQueue.join()
 
     def getRecentFrame(self):
         """Get the most recent frame data from the feed (`tuple`).
@@ -611,20 +1008,9 @@ class Camera:
         Microphone to record audio samples from during recording. The microphone
         input device must not be in use when `record()` is called. The audio
         track will be merged with the video upon calling `save()`.
-    size : ArrayLike
-        Requested resolution `(w, h)` of the camera video.
-    frameRate : int
-        Requested framerate for the camera video.
     cameraLib : str
         Interface library (backend) to use for accessing the camera. Only
         `ffpyplayer` is available at this time.
-    codecOpts : dict or None
-        Options to pass to the codec. See the documentation for the camera
-        library for details. Some options may be set by this class already. Do
-        not set these unless you know what you are doing!
-    libOpts : dict or None
-        Additional options to configure the camera interface library (if
-        applicable). Do not set these unless you know what you are doing!
     bufferSecs : float
         Size of the real-time camera stream buffer specified in seconds (only
         valid on Windows and MacOS).
@@ -648,10 +1034,9 @@ class Camera:
         camera.close()
 
     """
-    def __init__(self, device=0, mic=None, size=None, frameRate=None,
-                 cameraLib=u'ffpyplayer', codecOpts=None, libOpts=None,
-                 bufferSecs=4, win=None, name='cam'):
-
+    def __init__(self, device=0, mic=None, cameraLib=u'ffpyplayer',
+                 frameRate=None, frameSize=None, bufferSecs=4, win=None,
+                 name='cam'):
         # add attributes for setters
         self.__dict__.update(
             {'_device': None,
@@ -661,82 +1046,83 @@ class Camera:
              '_frameRate': None,
              '_frameRateFrac': None,
              '_size': None,
-             '_cameraLib': u'',
-             '_codecOpts': None,
-             '_libOpts': None})
+             '_cameraLib': u''})
+
+        # ----------------------------------------------------------------------
+        # Process camera settings
+        #
+
+        # get all the cameras attached to the system
+        supportedCameraSettings = getCameras()
+
+        # create a mapping of supported camera formats
+        _formatMapping = dict()
+        for _, formats in supportedCameraSettings.items():
+            for _format in formats:
+                desc = _format.description()
+                _formatMapping[desc] = _format
+        # sort formats by resolution then frame rate
+        orderedFormats = list(_formatMapping.values())
+        orderedFormats.sort(key=lambda obj: obj.frameRate, reverse=True)
+        orderedFormats.sort(key=lambda obj: np.prod(obj.frameSize), reverse=True)
+
+        # list of devices
+        devList = list(_formatMapping)
+
+        if not devList:  # no cameras found if list is empty
+            raise CameraNotFoundError('No cameras found of the system!')
+
+        # Get best device
+        bestDevice = _formatMapping[devList[-1]]
+        for mode in orderedFormats:
+            sameFrameRate = mode.frameRate == frameRate or frameRate is None
+            sameFrameSize = mode.frameSize == frameSize or frameSize is None
+            if sameFrameRate and sameFrameSize:
+                bestDevice = mode
+                break
+
+        self._origDevSpecifier = device  # what the user provided
+        self._device = None  # device identifier
 
         # alias device None or Default as being device 0
         if device in (None, "None", "none", "Default", "default"):
-            device = 0
-        # resolve getting the camera identifier
-        if isinstance(device, int):  # get camera if integer
-            try:
-                self.device = getCameras()[device]
-            except IndexError:  # catch as
-                raise CameraNotFoundError(
-                    'Could not enumerate camera with index `{}`.'.format(
-                        device))
-        elif isinstance(device, str):  # get camera if integer
-            self.device = device
+            self._device = bestDevice.description()
+        elif isinstance(device, CameraInfo):
+            self._device = device.description()
         else:
-            raise TypeError(
-                "Incorrect type for `camera`, expected `int` or `str`.")
-
-        # get device modes
-        try:
-            devModes = getCameraInfo(self._device)
-        except OSError:
-            # on systems which don't allow getting camera info, make devModes blank
-            devModes = []
-
-        # get the frame rate, needs to be fractional and float to config
-        if frameRate is None:
-            if len(devModes):
-                frameRate = devModes[-1].frameRate
+            # resolve getting the camera identifier
+            if isinstance(device, int):  # get camera if integer
+                try:
+                    self._device = devList[device]
+                except IndexError:
+                    raise CameraNotFoundError(
+                        'Cannot find camera at index={}'.format(device))
+            elif isinstance(device, str):  # get camera if integer
+                self._device = device
             else:
-                # if no camera information available, try 30fps
-                frameRate = 30
-        if isinstance(frameRate, (int, float)):  # atomic
-            self._frameRate = int(frameRate)
-            self._frameRateFrac = (self._frameRate, 1)
-        elif isinstance(frameRate, (tuple, list, np.ndarray)):  # sequence
-            if len(frameRate) != 2:
-                raise ValueError(
-                    "Value for parameter `size` must be length 2 if a sequence."
-                )
-            self._frameRateFrac = numer, denom = [int(i) for i in frameRate]
-            self._frameRate = numer / denom
+                raise TypeError(
+                    "Incorrect type for `camera`, expected `int` or `str`.")
 
-        # set the size
-        if size is None:
-            if len(devModes):
-                size = devModes[-1].frameSize
-            else:
-                # if no camera information available, try a widely supported size
-                size = (320, 240)
-        assert len(size) == 2, "Value for parameter `size` must be length 2"
-        self._size = tuple(size)  # needs to be hashable
+        # get the camera information
+        if self._device in _formatMapping:
+            self._cameraInfo = _formatMapping[self._device]
+        else:
+            # raise error if couldn't find matching camera info
+            raise CameraFormatNotSupportedError(
+                'Specified camera format is not supported.'
+            )
 
-        # get camera mode information, see if the values specified by the user
-        # match something that is supported
-        if platform.system() == 'Windows':
-            for devMode in devModes:
-                sameFrameRate = np.array(
-                    devMode.frameRate) == np.array(self._frameRateFrac)
-                sameFrameSize = np.array(
-                    devMode.frameSize) == np.array(self._size)
-                if sameFrameRate.all() and sameFrameSize.all():
-                    break
-            else:
-                raise CameraModeNotSupportedError(
-                    "Camera '{}' does not support the specified framerate and "
-                    "frame size. Call `getCameraInfo() to query the system for "
-                    "valid configurations for the desired capture "
-                    "device.".format(self._device)
-                )
-
-        # name for builder
-        self.name = name
+        # Check if the cameraAPI is suitable for the operating system. This is
+        # a sanity check to ensure people aren't using formats obtained from
+        # other platforms.
+        api = self._cameraInfo.cameraAPI
+        thisSystem = platform.system()
+        if ((api == CAMERA_API_AVFOUNDATION and thisSystem != 'Darwin') or
+                (api == CAMERA_API_DIRECTSHOW and thisSystem != 'Windows') or
+                (api == CAMERA_API_VIDEO4LINUX and thisSystem != 'Linux')):
+            raise RuntimeError(
+                "Unsupported camera interface '{}' for platform '{}'".format(
+                    api, thisSystem))
 
         # camera library in use
         self._cameraLib = cameraLib
@@ -748,20 +1134,13 @@ class Camera:
         #         "`'cv'` or `'photo'`.")
         # self._mode = mode
 
-        # FFMPEG and FFPyPlayer options
-        self._codecOpts = codecOpts if codecOpts is not None else {}
-        self._libOpts = libOpts if libOpts is not None else {}
-
-        # parameters for the writer
-        self._writer = None
-        self._tempVideoFileName = u''
-        self._tempAudioFileName = u''
-        self._tempRootDir = u'.'
-
         if not isinstance(mic, Microphone):
             TypeError(
                 "Expected type for parameter `mic`, expected `Microphone`.")
         self.mic = mic
+
+        # other information
+        self.name = name
 
         # current camera frame since the start of recording
         self._player = None  # media player instance
@@ -772,15 +1151,27 @@ class Camera:
         self._bufferSecs = float(bufferSecs)
 
         # timestamp data
-        self._recordingTime = 0.0
+        self._recordingTime = self._streamTime = 0.0
         self._recordingBytes = 0
-        self._streamTime = 0.0
 
         # store win (unused but needs to be set/got safely for parity with JS)
         self.win = win
 
         # thread for reading and writing streams
         self._tStream = None
+
+        # Start the thread for writing frames. We start the thread too since it
+        # waits for commands. Later we'll call `open()` on it to actually create
+        # the writer instance and begin pushing out frames to it. This thread is
+        # terminated when `close()` is called which shuts down the camera stream
+        # too.
+        self._tWriter = StreamWriterThread()
+        self._tWriter.begin()
+        # These are used to tell the stream writer and microphone where to write
+        # its output.
+        self._tempVideoFileName = u''
+        self._tempAudioFileName = u''
+        self._tempRootDir = u''
 
         # video metadata
         self._recentMetadata = NULL_MOVIE_METADATA
@@ -886,7 +1277,7 @@ class Camera:
     #     return self._mode
 
     @staticmethod
-    def getWebcams():
+    def getCameras():
         """Get information about installed cameras on this system.
 
         Returns
@@ -897,17 +1288,48 @@ class Camera:
         """
         return getCameras()
 
-    def _openWriter(self):
-        """Initialize and configure the media writer.
+    @staticmethod
+    def getCameraDescriptions(collapse=False):
+        """Get a mapping or list of camera descriptions.
 
-        Must be called after the video stream has been opened and
-        `_enqueueFrame` called at least once prior. This is needed since the
-        stream metadata is required to configure the writer.
+        Camera descriptions are a compact way of representing camera settings
+        and formats. Description strings can be used to specify which camera
+        device and format to use with it to the `Camera` class.
+
+        Descriptions have the following format (example)::
+
+            '[Live! Cam Sync 1080p] 160x120@30fps, mjpeg'
+
+        This shows a specific camera format for the 'Live! Cam Sync 1080p'
+        webcam which supports 160x120 frame size at 30 frames per second. The
+        last value is the codec or pixel format used to decode the stream.
+        Different pixel formats and codecs vary in performance.
+
+        Parameters
+        ----------
+        collapse : bool
+            Return camera information as string descriptions instead of
+            `CameraInfo` objects. This provides a more compact way of
+            representing camera formats in a (reasonably) human-readable format.
+
+        Returns
+        -------
+        dict or list
+            Mapping (`dict`) of camera descriptions, where keys are camera names
+            (`str`) and values are a `list` of format description strings
+            associated with the camera. If `collapse=True`, all descriptions
+            will be returned in a single flat list. This might be more useful
+            for specifying camera formats from a single GUI list control.
 
         """
-        if self._writer is not None:
+        return getCameraDescriptions(collapse=collapse)
+
+    def _openWriter(self):
+        """Initialize and configure the media writer.
+        """
+        if self._tWriter is None:
             raise RuntimeError(
-                "Stream writer instance has already been created.")
+                "Stream writer instance has not been spawned yet.")
 
         # need the stream started before setting up the writer
         self._assertMediaPlayer()
@@ -934,25 +1356,25 @@ class Camera:
         # until we sort how to configure this easily for users
         writerOptions = {
             'pix_fmt_in': 'yuv420p',  # default for now using mp4
-            # 'pix_fmt_in': 'rgb24',
+            # 'preset': 'medium',
             'width_in': frameWidth,
             'height_in': frameHeight,
             'codec': useCodec,
             'frame_rate': frameRate
         }
 
-        # initialize the writer to transcode the video stream to file
-        self._writer = MediaWriter(self._tempVideoFileName, [writerOptions])
+        # open a writer and block until done
+        self._tWriter.open(self._tempVideoFileName, [writerOptions])
 
     def _closeWriter(self):
         """Close the video writer.
         """
-        if self._writer is None:
+        if self._tWriter is None:
             return
 
-        # cleanup
-        self._writer.close()
-        self._writer = None
+        self._tWriter.end()  # kill the thread too
+        self._tWriter.join()  # join it to cleanly exit
+        self._tWriter = None
 
     def _renderVideo(self, outFile):
         """Combine video and audio tracks of temporary video and audio files.
@@ -983,7 +1405,7 @@ class Camera:
 
         # delete the temp directory and files to clean up after composing the
         # video
-        shutil.rmtree(self._tempRootDir)
+        # shutil.rmtree(self._tempRootDir)
 
         return True
 
@@ -999,19 +1421,6 @@ class Camera:
     @status.setter
     def status(self, value):
         self._status = value
-
-    @property
-    def outFile(self):
-        """Output file for the video stream (`str`).
-        """
-        return self._outFile
-
-    @outFile.setter
-    def outFile(self, value):
-        if self._writer is not None:
-            raise ValueError("Cannot change `outFile` while recording.")
-
-        self._outFile = value
 
     @property
     def device(self):
@@ -1053,7 +1462,7 @@ class Camera:
     def _hasWriter(self):
         """`True` if we have an active file writer instance.
         """
-        return self._writer is not None
+        return self._tWriter is not None
 
     @property
     def streamTime(self):
@@ -1086,19 +1495,13 @@ class Camera:
         function to ensure that a player is present before running subsequent
         code.
         """
-        if self._player is not None:
+        if self._tStream is not None:
             return
 
         raise PlayerNotAvailableError('Media player not initialized.')
 
-    def _enqueueFrame(self, blockUntilFrame=True):
+    def _enqueueFrame(self):
         """Grab the latest frame from the stream.
-
-        Parameters
-        ----------
-        blockUntilFrame : bool
-            Block until the decoder thread returns a valid frame. This can be
-            used to hold the application thread until frames are available.
 
         Returns
         -------
@@ -1111,13 +1514,10 @@ class Camera:
 
         # If the queue is empty, the decoder thread has not yielded a new frame
         # since the last call.
-        enqueuedFrame = None
-        if blockUntilFrame:
-            while enqueuedFrame is None:
-                enqueuedFrame = self._tStream.getRecentFrame()
-                time.sleep(0.001)  # sleep a bit
-        else:
-            enqueuedFrame = self._tStream.getRecentFrame()
+        enqueuedFrame = self._tStream.getRecentFrame()
+
+        if enqueuedFrame is None:
+            return False
 
         # unpack the data we got back
         metadata = enqueuedFrame.metadata
@@ -1160,35 +1560,69 @@ class Camera:
 
         ff_opts = {}  # ffmpeg options
         lib_opts = {}  # ffpyplayer options
-        _camera = 'default'
-        if platform.system() != 'Linux':
-            if platform.system() == 'Windows':
-                ff_opts['f'] = 'dshow'  # DirectShow specific stuff
-                _camera = 'video={}'.format(self._device)
-            elif platform.system() == 'Darwin':
-                ff_opts['f'] = 'avfoundation'  # AVF specific stuff
-                _camera = str(self._device)
+        _camera = CAMERA_NULL_VALUE
+        _frameRate = CAMERA_NULL_VALUE
+        _cameraInfo = self._cameraInfo
 
-            # get device configuration options
-            camW, camH = self._size
-            pixelFormat = 'yuyv422'
+        # setup commands for FFMPEG
+        if _cameraInfo.cameraAPI == CAMERA_API_DIRECTSHOW:  # windows
+            ff_opts['f'] = 'dshow'
+            _camera = 'video={}'.format(_cameraInfo.name)
+            _frameRate = _cameraInfo.frameRate
+            if _cameraInfo.pixelFormat:
+                ff_opts['pixel_format'] = _cameraInfo.pixelFormat
+            if _cameraInfo.codecFormat:
+                ff_opts['vcodec'] = _cameraInfo.codecFormat
+        elif _cameraInfo.cameraAPI == CAMERA_API_AVFOUNDATION:  # darwin
+            ff_opts['f'] = 'avfoundation'
+            ff_opts['i'] = _camera = self._cameraInfo.name
 
-            # library options
-            framerate = str(self._frameRate)
-            videoSize = '{width}x{height}'.format(width=camW, height=camH)
-            bufferSize = camW * camH * 3 * self._bufferSecs
+            # handle pixel formats using FourCC
+            global pixelFormatTbl
+            ffmpegPixFmt = pixelFormatTbl.get(_cameraInfo.pixelFormat, None)
 
-            # build dict for library options
-            lib_opts.update({
-                'framerate': framerate,
-                'video_size': videoSize,
-                'pixel_format': pixelFormat,  # e.g. 'yuyv422'
-                'rtbufsize': str(bufferSize),
-                'preset': 'ultrafast',
-                'tune': 'zerolatency'}
-            )
+            if ffmpegPixFmt is None:
+                raise FormatNotFoundError(
+                    "Cannot find suitable FFMPEG pixel format for '{}'. Try a "
+                    "different format or camera.")
+
+            _cameraInfo.pixelFormat = ffmpegPixFmt
+
+            # this needs to be exactly specified if using NTSC
+            if math.isclose(CAMERA_FRAMERATE_NTSC, _cameraInfo.frameRate):
+                _frameRate = CAMERA_FRAMERATE_NOMINAL_NTSC
+            else:
+                _frameRate = str(_cameraInfo.frameRate)
+
+            # need these since hardware acceleration is not possible on Mac yet
+            lib_opts['fflags'] = 'nobuffer'
+            lib_opts['flags'] = 'low_delay'
+            lib_opts['pixel_format'] = _cameraInfo.pixelFormat
+            ff_opts['framedrop'] = True
+            ff_opts['fast'] = True
+
+        elif _cameraInfo.cameraAPI == CAMERA_API_VIDEO4LINUX:
+            raise OSError(
+                "Sorry, camera does not support Linux at this time. However it "
+                "will in future versions.")
         else:
-            _camera = self._device  # on linux we just open the stream for now
+            raise RuntimeError("Unsupported camera API specified.")
+
+        # set library options
+        camWidth = _cameraInfo.frameSize[0]
+        camHeight = _cameraInfo.frameSize[1]
+
+        # configure the real-time buffer size
+        _bufferSize = camWidth * camHeight * 3 * self._bufferSecs
+
+        # get codec or pixel format
+        _codecId = _cameraInfo.codecFormat
+        _pixelId = _cameraInfo.pixelFormat
+
+        # common settings across libraries
+        lib_opts['rtbufsize'] = str(int(_bufferSize))
+        lib_opts['video_size'] = _cameraInfo.frameSizeAsFormattedString()
+        lib_opts['framerate'] = str(_frameRate)
 
         # open a stream and pause it until ready
         self._player = MediaPlayer(_camera, ff_opts=ff_opts, lib_opts=lib_opts)
@@ -1196,8 +1630,7 @@ class Camera:
         # pass off the player to the thread which will process the stream
         self._tStream = MovieStreamIOThread(self._player)
         self._tStream.begin()
-
-        self._enqueueFrame(blockUntilFrame=True)  # pull a frame, gets metadata
+        self._enqueueFrame()  # pull metadata
 
     def record(self):
         """Start recording frames.
@@ -1210,12 +1643,13 @@ class Camera:
         """
         self._assertMediaPlayer()
 
-        # while not self._enqueueFrame():  # wait for a frame
-        #     time.sleep(0.001)
-
         self._openWriter()
 
-        self._tStream.record(self._writer, self._mic)
+        # start the microphone
+        if self._mic is not None:
+            self._mic.record()
+
+        self._tStream.record(self._tWriter, self._mic)
         self._status = RECORDING
 
     def snapshot(self):
@@ -1229,10 +1663,15 @@ class Camera:
         """Stop recording frames.
         """
         self._assertMediaPlayer()
-        self._tStream.stop()
         self._status = STOPPED
 
-        self._closeWriter()
+        # Keep the stream running but stop it from passing any write commands
+        # the writer thread.
+        self._tStream.stop()
+
+        # Close the writer file (not thread) now that the stream thread is no
+        # longer writing frames.
+        self._tWriter.close()
 
         # stop audio recording if `mic` is available
         if self._mic is not None:
@@ -1243,23 +1682,23 @@ class Camera:
     def close(self):
         """Close the camera.
         """
-        if not self._hasPlayer:
+        if self._tStream is None:
             raise RuntimeError("Cannot close stream, not opened yet.")
 
-        # close the thread
-        self._tStream.shutdown()  # close the stream
+        # Close the streaming thread.
+        self._tStream.close()  # close the stream
         self._tStream.join()  # wait until thread exits
         self._tStream = None
+
+        # Close the writer thread after closing the stream thread since it could
+        # still be writing frames.
+        self._closeWriter()  # close the writer too
 
         self._player.close_player()
         self._player = None  # reset
 
-        # close the file writer
-        if self._writer is not None:
-            self._writer.close()
-
         # cleanup temp files to prevent clogging up the user's hard disk
-        self._cleanUpTempDirs()
+        # self._cleanUpTempDirs()
 
     def save(self, filename):
         """Save the last recording to file.
@@ -1292,6 +1731,9 @@ class Camera:
     def _cleanUpTempDirs(self):
         """Cleanup temporary directories used by the video recorder.
         """
+        if not hasattr(self, '_tempDirs'):  # crashed before declaration
+            return  # nop
+
         logging.info("Cleaning up temporary video files ...")
         # total cleanup of all temp dirs
         for tempDir in self._tempDirs:
@@ -1357,17 +1799,18 @@ class Camera:
     def __del__(self):
         """Try to cleanly close the camera and output file.
         """
+        if hasattr(self, '_tStream'):
+            if self._tStream is not None:
+                try:
+                    self._tStream.close()
+                    self._tStream.join()
+                except AttributeError:
+                    pass
+
         if hasattr(self, '_player'):
             if self._player is not None:
                 try:
                     self._player.close_player()
-                except AttributeError:
-                    pass
-
-        if hasattr(self, '_writer'):
-            if self._writer is not None:
-                try:
-                    self._writer.close()
                 except AttributeError:
                     pass
 
@@ -1379,6 +1822,14 @@ class Camera:
                 except AttributeError:
                     pass
 
+        if hasattr(self, '_tWriter'):
+            if self._tWriter is not None:
+                try:
+                    self._tWriter.end()
+                    self._tWriter.join()
+                except AttributeError:
+                    pass
+
         if hasattr(self, '_cleanUpTempDirs'):
             self._cleanUpTempDirs()
 
@@ -1387,110 +1838,224 @@ class Camera:
 # Functions
 #
 
-def getCameraInfo(camera):
-    """Query the system to get information about a specified camera.
+def _getCameraInfoMacOS():
+    """Get a list of capabilities for the specified associated with a camera
+    attached to the system.
 
-    Parameters
-    ----------
-    camera : int or str
-        Camera index or name.
+    This is used by `getCameraInfo()` for querying camera details on MacOS.
+    Don't call this function directly unless testing.
 
     Returns
     -------
-    List or CameraInfo
-        Camera information descriptors for the specified camera.
+    list of CameraInfo
+        List of camera descriptors.
 
     """
-    systemName = platform.system()  # get the system name
-    supportedModes = []
-    if systemName == 'Windows':
-        videoDevs, _, names = list_dshow_devices()
-        names = {v: k for k, v in names.items()}  # flip since we use HR names
-        if isinstance(camera, (int, float)):
-            name = list(names.keys())[int(camera)]
-        else:
-            name = camera
-
-        # get all the supported modes for the camera
-        videoDevModes = videoDevs[names[name]]
-
-        for mode in videoDevModes:
-            pixelFormat, codec, frameSize, frameRate = mode
-
-            # Make sure the frame rate is in a reasonable format, usually the
-            # ranges are not reported, so we just convert them into fractions
-            # here.
-            frameRateMin, frameRateMax = frameRate
-            if frameRateMin == frameRateMax:
-                frameRate = (frameRateMax, 1)
-            else:
-                continue  # do nothing if they don't match for now
-
-            # object to return with camera settings
-            temp = CameraInfo(
-                name=name,
-                pixelFormat=pixelFormat,
-                codecFormat=codec,
-                frameSize=frameSize,
-                frameRate=frameRate
-            )
-            supportedModes.append(temp)
-    else:
+    if platform.system() != 'Darwin':
         raise OSError(
-            "Cannot get cameras, unsupported platform '{}'.".format(
-                systemName))
+            "Cannot query cameras with this function, platform not 'Darwin'.")
 
-    return supportedModes
+    # import objc  # may be needed in the future for more advanced stuff
+    import AVFoundation as avf  # only works on MacOS
+    import CoreMedia as cm
+
+    # get a list of capture devices
+    allDevices = avf.AVCaptureDevice.devices()
+
+    # get video devices
+    videoDevices = {}
+    devIdx = 0
+    for device in allDevices:
+        devFormats = device.formats()
+        if devFormats[0].mediaType() != 'vide':  # not a video device
+            continue
+
+        # camera details
+        cameraName = device.localizedName()
+
+        # found video formats
+        supportedFormats = []
+        for _format in devFormats:
+            # get the format description object
+            formatDesc = _format.formatDescription()
+
+            # get dimensions in pixels of the video format
+            dimensions = cm.CMVideoFormatDescriptionGetDimensions(formatDesc)
+            frameHeight = dimensions.height
+            frameWidth = dimensions.width
+
+            # Extract the codec in use, pretty useless since FFMPEG uses its
+            # own conventions, we'll need to map these ourselves to those
+            # values
+            codecType = cm.CMFormatDescriptionGetMediaSubType(formatDesc)
+
+            # Convert codec code to a FourCC code using the following byte
+            # operations.
+            #
+            # fourCC = ((codecCode >> 24) & 0xff,
+            #           (codecCode >> 16) & 0xff,
+            #           (codecCode >> 8) & 0xff,
+            #           codecCode & 0xff)
+            #
+            pixelFormat4CC = ''.join(
+                [chr((codecType >> bits) & 0xff) for bits in (24, 16, 8, 0)])
+
+            # Get the range of supported framerate, use the largest since the
+            # ranges are rarely variable within a format.
+            frameRateRange = _format.videoSupportedFrameRateRanges()[0]
+            frameRateMax = frameRateRange.maxFrameRate()
+            # frameRateMin = frameRateRange.minFrameRate()  # don't use for now
+
+            # Create a new camera descriptor
+            thisCamInfo = CameraInfo(
+                index=devIdx,
+                name=cameraName,
+                pixelFormat=pixelFormat4CC,  # macs only use pixel format
+                codecFormat=CAMERA_NULL_VALUE,
+                frameSize=(int(frameWidth), int(frameHeight)),
+                frameRate=frameRateMax,
+                cameraAPI=CAMERA_API_AVFOUNDATION
+            )
+
+            supportedFormats.append(thisCamInfo)
+
+            devIdx += 1
+
+        # add to output dictionary
+        videoDevices[cameraName] = supportedFormats
+
+    return videoDevices
+
+
+def _getCameraInfoWindows():
+    """Get a list of capabilities for the specified associated with a camera
+    attached to the system.
+
+    This is used by `getCameraInfo()` for querying camera details on Windows.
+    Don't call this function directly unless testing.
+
+    Returns
+    -------
+    list of CameraInfo
+        List of camera descriptors.
+
+    """
+    if platform.system() != 'Windows':
+        raise OSError(
+            "Cannot query cameras with this function, platform not 'Windows'.")
+
+    # FFPyPlayer can query the OS via DirectShow for Windows cameras
+    videoDevs, _, names = list_dshow_devices()
+
+    # get all the supported modes for the camera
+    videoDevices = {}
+
+    # iterate over names
+    devIndex = 0
+    for devURI in videoDevs.keys():
+        supportedFormats = []
+        cameraName = names[devURI]
+        for _format in videoDevs[devURI]:
+            pixelFormat, codecFormat, frameSize, frameRateRng = _format
+            _, frameRateMax = frameRateRng
+            temp = CameraInfo(
+                index=devIndex,
+                name=cameraName,
+                pixelFormat=pixelFormat,
+                codecFormat=codecFormat,
+                frameSize=frameSize,
+                frameRate=frameRateMax,
+                cameraAPI=CAMERA_API_DIRECTSHOW
+            )
+            supportedFormats.append(temp)
+            devIndex += 1
+
+        videoDevices[names[devURI]] = supportedFormats
+
+    return videoDevices
+
+
+# Mapping for platform specific camera getter functions used by `getCameras`.
+_cameraGetterFuncTbl = {
+    'Darwin': _getCameraInfoMacOS,
+    'Windows': _getCameraInfoWindows
+}
 
 
 def getCameras():
-    """Get information about installed cameras on this system.
+    """Get information about installed cameras and their formats on this system.
+
+    Use `getCameraDescriptions` to get a mapping or list of human-readable
+    camera formats.
 
     Returns
     -------
-    list
-        Camera identifiers.
+    dict
+        Mapping where camera names (`str`) are keys and values are and array of
+        `CameraInfo` objects.
 
     """
     systemName = platform.system()  # get the system name
-    foundCameras = []
-    if systemName == 'Darwin':  # MacOS
-        import psychopy.tools.systemtools as st
-        import json
-        # query camera names using `system_profiler`
-        systemReportJSON = st.systemProfilerMacOS(
-            "SPCameraDataType",
-            detailLevel='mini')
-        sysReport = json.loads(systemReportJSON)
-        # get camera names and return them
-        cameras = sysReport.get('SPCameraDataType', None)
-        if cameras is not None:  # no cameras
-            for camera in cameras:
-                camera = camera.get('_name', None)
-                if camera is None:
-                    continue
-                foundCameras.append(camera)
-    elif systemName == 'Linux':
-        # use glob to get possible cameras connected to the system
-        globResult = glob.glob(
-            'video*',
-            root_dir=VIDEO_DEVICE_ROOT_LINUX,
-            recursive=False)
-        foundCameras.extend(globResult)
-        # ensure the glob gives values in the same order
-        foundCameras.sort()
-    elif systemName == 'Windows':
-        videoDevs, _, names = list_dshow_devices()
-        for devKey in videoDevs.keys():
-            nameHR = names.get(devKey, None)
-            ident = devKey if nameHR is None else nameHR
-            foundCameras.append(ident)
-    else:
+
+    # lookup the function for the given platform
+    getCamerasFunc = _cameraGetterFuncTbl.get(systemName, None)
+    if getCamerasFunc is None:  # if unsupported
         raise OSError(
             "Cannot get cameras, unsupported platform '{}'.".format(
                 systemName))
 
-    return foundCameras
+    return getCamerasFunc()
+
+
+def getCameraDescriptions(collapse=False):
+    """Get a mapping or list of camera descriptions.
+
+    Camera descriptions are a compact way of representing camera settings and
+    formats. Description strings can be used to specify which camera device and
+    format to use with it to the `Camera` class.
+
+    Descriptions have the following format (example)::
+
+        '[Live! Cam Sync 1080p] 160x120@30fps, mjpeg'
+
+    This shows a specific camera format for the 'Live! Cam Sync 1080p' webcam
+    which supports 160x120 frame size at 30 frames per second. The last value
+    is the codec or pixel format used to decode the stream. Different pixel
+    formats and codecs vary in performance.
+
+    Parameters
+    ----------
+    collapse : bool
+        Return camera information as string descriptions instead of `CameraInfo`
+        objects. This provides a more compact way of representing camera formats
+        in a (reasonably) human-readable format.
+
+    Returns
+    -------
+    dict or list
+        Mapping (`dict`) of camera descriptions, where keys are camera names
+        (`str`) and values are a `list` of format description strings associated
+        with the camera. If `collapse=True`, all descriptions will be returned
+        in a single flat list. This might be more useful for specifying camera
+        formats from a single GUI list control.
+
+    """
+    connectedCameras = getCameras()
+
+    cameraDescriptions = {}
+    for devName, formats in connectedCameras.items():
+        cameraDescriptions[devName] = [
+            _format.description() for _format in formats]
+
+    if not collapse:
+        return cameraDescriptions
+
+    # collapse to a list if requested
+    collapsedList = []
+    for _, formatDescs in cameraDescriptions.items():
+        collapsedList.extend(formatDescs)
+
+    return collapsedList
 
 
 if __name__ == "__main__":

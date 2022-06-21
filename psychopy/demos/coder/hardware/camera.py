@@ -22,9 +22,18 @@ else:
     mic = None  # no audio if a mic was not found
     print('No mic was found on this system, no audio will be recorded!')
 
+# get descriptions for camera devices and their available formats on this system
+cameras = Camera.getCameraDescriptions(collapse=True)  # collapse=True for list
+print("Found cameras and formats:\n\t")
+print("\n\t".join(cameras))  # print the list of possible formats
+
+# use the very first one
+myCameraFormat = cameras[0]
+print('\nUsing camera/format: `{}`'.format(myCameraFormat))
+
 # Create a new camera instance. Values for `size` and `frameRate` must be
 # appropriate for the device in use.
-cam = Camera(0, mic=mic, frameRate=30, size=(320, 240))
+cam = Camera(myCameraFormat, mic=mic)
 
 # Open a camera stream. This will remain open until `close()` ia called.
 cam.open()
@@ -62,12 +71,13 @@ cam.stop()  # stop the webcam recording
 
 # Save the video to disk by calling this method. Video recordings are lost if
 # this is not called prior to calling `record` again.
-# cam.save('myVideo.mp4')  # uncomment to save the file, just specify the path
+cam.save('myVideo.mp4')  # uncomment to save the file, just specify the path
 
 # Print the path to where the clip was saved, this allows you to pass the clip
 # to a `MovieStim` object to view it afterwards if desired. Gives `None` if
 # `save()` was not called previously.
-print(cam.lastClip)
+if cam.lastClip is not None:
+    print(cam.lastClip)
 
 # Close the camera stream. You must call this before exiting or when you're
 # done with the camera.
