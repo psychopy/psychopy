@@ -72,7 +72,7 @@ class CameraComponent(BaseComponent):
         msg = _translate("What device would you like to use to record video? This will only affect local "
                          "experiments - online experiments ask the participant which device to use.")
         self.params['device'] = Param(
-            device, valType='str', inputType="liveChoice", categ="Basic",
+            device, valType='code', inputType="liveChoice", categ="Basic",
             hint=msg,
             label=_translate("Video Device")
         )
