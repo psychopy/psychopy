@@ -50,7 +50,7 @@ class MicrophoneComponent(BaseComponent):
                  stopType='duration (s)', stopVal=2.0,
                  startEstim='', durationEstim='',
                  channels='auto', device="default",
-                 sampleRate='Voice (16kHz)', maxSize=24000,
+                 sampleRate='DVD Audio (48kHz)', maxSize=24000,
                  outputType='default', speakTimes=True, trimSilent=False,
                  transcribe=True, transcribeBackend="Google", transcribeLang="en-US", transcribeWords="",
                  #legacy
@@ -413,7 +413,7 @@ class MicrophoneComponent(BaseComponent):
             "// stop the microphone (make the audio data ready for upload)\n"
             "await %(name)s.stop();\n"
             "// construct a filename for this recording\n"
-            "thisFilename = 'recording_%(name)s_' + psychoJS.experiment.currentLoop.name + '_' + psychoJS.experiment.currentLoop.thisN\n"
+            "thisFilename = 'recording_%(name)s_' + currentLoop.name + '_' + currentLoop.thisN\n"
             "// get the recording\n"
             "%(name)s.lastClip = await %(name)s.getRecording({\n"
         )

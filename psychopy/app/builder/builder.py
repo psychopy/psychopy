@@ -2107,7 +2107,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         """
         self.app.copiedCompon = copy.deepcopy(component)
 
-    def pasteCompon(self, event=None, component=None, index=-1):
+    def pasteCompon(self, event=None, component=None, index=None):
         if not self.app.copiedCompon:
             return -1  # not possible to paste if nothing copied
         exp = self.frame.exp
@@ -2127,7 +2127,10 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             newCompon.params['name'].val = newName
             if 'name' in dir(newCompon):
                 newCompon.name = newName
-            self.routine.insertComponent(index, newCompon)
+            if index is None:
+                self.routine.addComponent(newCompon)
+            else:
+                self.routine.insertComponent(index, newCompon)
             self.frame.exp.namespace.user.append(newName)
             # could do redrawRoutines but would be slower?
             self.redrawRoutine()
@@ -2735,7 +2738,10 @@ class ReadmeFrame(wx.Frame):
         A frame for presenting/loading/saving readme files
         """
         self.parent = parent
-        title = "%s readme" % (parent.exp.name)
+        try:
+            title = "%s readme" % (parent.exp.name)
+        except AttributeError:
+            title = "readme"
         self._fileLastModTime = None
         pos = wx.Point(parent.Position[0] + 80, parent.Position[1] + 80)
         _style = wx.DEFAULT_FRAME_STYLE | wx.FRAME_FLOAT_ON_PARENT
@@ -3931,6 +3937,10 @@ class BuilderToolbar(BasePsychopyToolbar):
         userDlg.ShowModal()
 
     def onPavloviaProject(self, evt=None):
+        # Search again for project if needed (user may have logged in since last looked)
+        if self.frame.filename:
+            self.frame.project = pavlovia.getProject(self.frame.filename)
+        # Get project
         if self.frame.project is not None:
             dlg = ProjectFrame(app=self.frame.app,
                                project=self.frame.project,

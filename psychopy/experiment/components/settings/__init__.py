@@ -161,7 +161,7 @@ class SettingsComponent:
                       'Save psydat file', 'Save hdf5 file', 'Save log file', 'logging level',  # Data tab
                       'Audio lib', 'Audio latency priority', "Force stereo",  # Audio tab
                       'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'Resources',  # Online tab
-                      'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Units', 'color',
+                      'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Show mouse', 'Units', 'color',
                       'colorSpace',  # Screen tab
                       ]
         self.depends = []
@@ -250,8 +250,16 @@ class SettingsComponent:
             label=_localized["blendMode"], categ='Screen')
         self.params['Show mouse'] = Param(
             showMouse, valType='bool', inputType="bool", allowedTypes=[],
-            hint=_translate("Should the mouse be visible on screen?"),
+            hint=_translate("Should the mouse be visible on screen? Only applicable for fullscreen experiments."),
             label=_localized["Show mouse"], categ='Screen')
+        # self.depends.append(
+        #     {"dependsOn": 'Full-screen window',  # must be param name
+        #      "condition": "==True",  # val to check for
+        #      "param": 'Show mouse',  # param property to alter
+        #      "true": "show",  # what to do with param if condition is True
+        #      "false": "hide",  # permitted: hide, show, enable, disable
+        #      }
+        # )
 
         # sound params
         self.params['Force stereo'] = Param(
@@ -1340,8 +1348,8 @@ class SettingsComponent:
         winType = self.exp.prefsGeneral['winType']
 
         code = ("win = visual.Window(\n    size=%s, fullscr=%s, screen=%s, "
-                "\n    winType='%s', allowGUI=%s, allowStencil=%s,\n")
-        vals = (size, fullScr, screenNumber, winType, allowGUI, allowStencil)
+                "\n    winType='%s', allowStencil=%s,\n")
+        vals = (size, fullScr, screenNumber, winType, allowStencil)
         buff.writeIndented(code % vals)
 
         code = ("    monitor=%(Monitor)s, color=%(color)s, "
@@ -1353,6 +1361,11 @@ class SettingsComponent:
             code += "    units=%(Units)s"
         code = code.rstrip(', \n') + ')\n'
         buff.writeIndentedLines(code % self.params)
+        # Show/hide mouse according to param
+        code = (
+            "win.mouseVisible = %s\n"
+        )
+        buff.writeIndentedLines(code % allowGUI)
 
         # Import here to avoid circular dependency!
         from psychopy.experiment._experiment import RequiredImport
@@ -1423,28 +1436,7 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
 
     def writeEndCodeJS(self, buff):
-        endLoopInteration = ("\nfunction endLoopIteration(scheduler, snapshot) {\n"
-                    "  // ------Prepare for next entry------\n"
-                    "  return async function () {\n"
-                    "    if (typeof snapshot !== 'undefined') {\n"
-                    "      // ------Check if user ended loop early------\n"
-                    "      if (snapshot.finished) {\n"
-                    "        // Check for and save orphaned data\n"
-                    "        if (psychoJS.experiment.isEntryEmpty()) {\n"
-                    "          psychoJS.experiment.nextEntry(snapshot);\n"
-                    "        }\n"
-                    "        scheduler.stop();\n"
-                    "      } else {\n"
-                    "        const thisTrial = snapshot.getCurrentTrial();\n"
-                    "        if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {\n"
-                    "          psychoJS.experiment.nextEntry(snapshot);\n"
-                    "        }\n"
-                    "      }\n"
-                    "    return Scheduler.Event.NEXT;\n"
-                    "    }\n"
-                    "  };\n"
-                    "}\n")
-        buff.writeIndentedLines(endLoopInteration)
+        """Write some general functions that might be used by any Scheduler/object"""
 
         recordLoopIterationFunc = ("\nfunction importConditions(currentLoop) {\n"
                     "  return async function () {\n"

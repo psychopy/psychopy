@@ -67,7 +67,7 @@ class MovieComponent(BaseVisualComponent):
         msg = _translate("What underlying lib to use for loading movies")
         self.params['backend'] = Param(
             backend, valType='str', inputType="choice", categ='Playback',
-            allowedVals=['ffpyplayer', 'moviepy', 'avbin', 'opencv', 'vlc'],
+            allowedVals=['ffpyplayer', 'moviepy', 'opencv', 'vlc'],
             hint=msg, direct=False,
             label=_localized['backend'])
 
@@ -129,6 +129,60 @@ class MovieComponent(BaseVisualComponent):
         del self.params['fillColor']
         del self.params['borderColor']
 
+    def _writeCreationCode(self, buff, useInits):
+        # This will be called by either self.writeInitCode() or
+        # self.writeRoutineStartCode()
+        #
+        # The reason for this is that moviestim is actually created fresh each
+        # time the movie is loaded.
+        #
+        # leave units blank if not needed
+        if self.params['units'].val == 'from exp settings':
+            unitsStr = "units=''"
+        else:
+            unitsStr = "units=%(units)s" % self.params
+
+        # If we're in writeInitCode then we need to convert params to initVals
+        # because some (variable) params haven't been created yet.
+        if useInits:
+            params = getInitVals(self.params)
+        else:
+            params = self.params
+
+        if self.params['backend'].val == 'moviepy':
+            code = ("%s = visual.MovieStim3(\n" % params['name'] +
+                    "    win=win, name='%s', %s,\n" % (
+                        params['name'], unitsStr) +
+                    "    noAudio = %(No audio)s,\n" % params)
+        elif self.params['backend'].val == 'avbin':
+            code = ("%s = visual.MovieStim(\n" % params['name'] +
+                    "    win=win, name='%s', %s,\n" % (
+                        params['name'], unitsStr))
+        elif self.params['backend'].val == 'vlc':
+            code = ("%s = visual.VlcMovieStim(\n" % params['name'] +
+                    "    win=win, name='%s', %s,\n" % (
+                        params['name'], unitsStr))
+        else:
+            code = ("%s = visual.MovieStim2(\n" % params['name'] +
+                    "    win=win, name='%s', %s,\n" % (
+                        params['name'], unitsStr) +
+                    "    noAudio=%(No audio)s,\n" % params)
+
+        code += ("    filename=%(movie)s,\n"
+                 "    ori=%(ori)s, pos=%(pos)s, opacity=%(opacity)s,\n"
+                 "    loop=%(loop)s, anchor=%(anchor)s,\n"
+                 % params)
+
+        buff.writeIndentedLines(code)
+
+        if self.params['size'].val != '':
+            buff.writeIndented("    size=%(size)s,\n" % params)
+
+        depth = -self.getPosInRoutine()
+        code = ("    depth=%.1f,\n"
+                "    )\n")
+        buff.writeIndentedLines(code % depth)
+
     def _writeCreationCodeJS(self, buff, useInits):
 
         # If we're in writeInitCode then we need to convert params to initVals
@@ -180,6 +234,13 @@ class MovieComponent(BaseVisualComponent):
             params["units"].valType = "code"
             params["units"].val = None
 
+        # Handle old backends
+        if self.params['backend'].val in ('moviepy', 'avbin', 'vlc', 'opencv'):
+            if self.params['movie'].updates == 'constant':
+                # create the code using init vals
+                self._writeCreationCode(buff, useInits=True)
+            return
+
         code = (
             "%(name)s = visual.MovieStim(\n"
         )
@@ -225,13 +286,23 @@ class MovieComponent(BaseVisualComponent):
         # buff.writeIndented(
         #     "%s.seek(0.00001)  # make sure we're at the start\n"
         #     % (self.params['name']))
-        buff.writeIndented("%s.setAutoDraw(True)\n" % self.params['name'])
+        code = (
+            "%(name)s.setAutoDraw(True)\n"
+        )
+        if self.params['backend'].val not in ('moviepy', 'avbin', 'vlc'):
+            code += "%(name)s.play()\n"
+        buff.writeIndentedLines(code % self.params)
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-1, relative=True)
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCode(buff)
-            buff.writeIndented("%(name)s.setAutoDraw(False)\n" % self.params)
+            code = (
+                "%(name)s.setAutoDraw(False)\n"
+            )
+            if self.params['backend'].val not in ('moviepy', 'avbin', 'vlc'):
+                code += "%(name)s.stop()\n"
+            buff.writeIndentedLines(code % self.params)
             # to get out of the if statement
             buff.setIndentLevel(-2, relative=True)
         # set parameters that need updating every frame

@@ -648,13 +648,15 @@ class DetailsPanel(wx.Panel):
             self.project['visibility'] = self.visibility.GetStringSelection().lower()
             self.project.save()
         if obj == self.status and self.project.editable:
-            requests.put(f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
-                         data={"status2": self.status.GetStringSelection()},
-                         headers={'OauthToken': self.session.getToken()})
+            retval = self.session.session.put(
+                f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
+                json={'status2': self.status.GetStringSelection().upper()}
+            )
         if obj == self.tags and self.project.editable:
-            requests.put(f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
-                         data={"keywords": self.tags.GetValue()},
-                         headers={'OauthToken': self.session.getToken()})
+            retval = self.session.session.put(
+                f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
+                json={"keywords": self.tags.GetValue()}
+            )
 
 
 class ProjectFrame(wx.Dialog):

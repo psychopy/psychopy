@@ -30,6 +30,7 @@ except ImportError:
 import copy
 import sys
 import os
+import ctypes
 from psychopy import logging
 
 # tools must only be imported *after* event or MovieStim breaks on win32
@@ -908,35 +909,37 @@ class TextureMixin:
 
     Could move visual.helpers.setTexIfNoShaders() into here.
 
-    Parameters
-    ----------
-    tex : Any
-        Texture data. Value can be anything that resembles image data.
-    id : int or :class:`~pyglet.gl.GLint`
-        Texture ID.
-    pixFormat : :class:`~pyglet.gl.GLenum` or int
-        Pixel format to use, values can be `GL_ALPHA` or `GL_RGB`.
-    stim : Any
-        Stimulus object using the texture.
-    res : int
-        The resolution of the texture (unless a bitmap image is used).
-    maskParams : dict or None
-        Additional parameters to configure the mask used with this texture.
-    forcePOW2 : bool
-        Force the texture to be stored in a square memory area. For grating
-        stimuli (anything that needs multiple cycles) `forcePOW2` should be
-        set to be `True`. Otherwise the wrapping of the texture will not
-        work.
-    dataType : class:`~pyglet.gl.GLenum`, int or None
-        None, `GL_UNSIGNED_BYTE`, `GL_FLOAT`. Only affects image files
-        (numpy arrays will be float).
-    wrapping : bool
-        Enable wrapping of the texture. A texture will be set to repeat (or
-        tile).
-
     """
     def _createTexture(self, tex, id, pixFormat, stim, res=128, maskParams=None,
                        forcePOW2=True, dataType=None, wrapping=True):
+        """Create a new OpenGL 2D image texture.
+
+        Parameters
+        ----------
+        tex : Any
+            Texture data. Value can be anything that resembles image data.
+        id : int or :class:`~pyglet.gl.GLint`
+            Texture ID.
+        pixFormat : :class:`~pyglet.gl.GLenum` or int
+            Pixel format to use, values can be `GL_ALPHA` or `GL_RGB`.
+        stim : Any
+            Stimulus object using the texture.
+        res : int
+            The resolution of the texture (unless a bitmap image is used).
+        maskParams : dict or None
+            Additional parameters to configure the mask used with this texture.
+        forcePOW2 : bool
+            Force the texture to be stored in a square memory area. For grating
+            stimuli (anything that needs multiple cycles) `forcePOW2` should be
+            set to be `True`. Otherwise the wrapping of the texture will not
+            work.
+        dataType : class:`~pyglet.gl.GLenum`, int or None
+            None, `GL_UNSIGNED_BYTE`, `GL_FLOAT`. Only affects image files
+            (numpy arrays will be float).
+        wrapping : bool
+            Enable wrapping of the texture. A texture will be set to repeat (or
+            tile).
+        """
 
         # transform all variants of `None` to that, simplifies conditions below
         if tex in ["none", "None", "color"]:
@@ -1019,6 +1022,21 @@ class TextureMixin:
                     logging.flush()
                     msg = "Found file '%s' [= %s], failed to load as an image"
                     raise IOError(msg % (tex, os.path.abspath(tex)))
+            elif hasattr(tex, 'getVideoFrame'):  # camera or movie textures
+                # get an image to configure the initial texture store
+                frame = tex.getVideoFrame()
+                if frame is not None:
+                    frameSize = frame.size
+                    im = Image.frombuffer(
+                        'RGB',
+                        frameSize,
+                        frame.colorData
+                    ).transpose(Image.FLIP_TOP_BOTTOM)
+                else:
+                    msg = "Failed to initialize texture from camera stream."
+                    logging.error(msg)
+                    logging.flush()
+                    raise AttributeError(msg)
             else:
                 # can't be a file; maybe its an image already in memory?
                 try:
@@ -1134,6 +1152,30 @@ class TextureMixin:
                 internalFormat = GL.GL_RGBA32F_ARB
         texture = data.ctypes  # serialise
 
+        # Create the pixel buffer object which will serve as the texture memory
+        # store. First we compute the number of bytes used to store the texture.
+        # We need to determine the data type in use by the texture to do this.
+        if stim is not None and hasattr(stim, '_pixbuffID'):
+            if dataType == GL.GL_UNSIGNED_BYTE:
+                storageType = GL.GLubyte
+            elif dataType == GL.GL_FLOAT:
+                storageType = GL.GLfloat
+            else:
+                # raise waring or error? just default to `GLfloat` for now
+                storageType = GL.GLfloat
+
+            # compute buffer size
+            bufferSize = data.size * ctypes.sizeof(storageType)
+
+            # create the pixel buffer to access texture memory as an array
+            GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, stim._pixbuffID)
+            GL.glBufferData(
+                GL.GL_PIXEL_UNPACK_BUFFER,
+                bufferSize,
+                None,
+                GL.GL_STREAM_DRAW)  # one-way app -> GL
+            GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
+
         # bind the texture in openGL
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, id)  # bind that name to the target
@@ -1185,9 +1227,14 @@ class TextureMixin:
         As of v1.61.00 this is called automatically during garbage collection
         of your stimulus, so doesn't need calling explicitly by the user.
         """
-        GL.glDeleteTextures(1, self._texID)
+        if hasattr(self, '_texID'):
+            GL.glDeleteTextures(1, self._texID)
+
         if hasattr(self, '_maskID'):
             GL.glDeleteTextures(1, self._maskID)
+
+        if hasattr(self, '_pixBuffID'):
+            GL.glDeleteBuffers(1, self._pixBuffID)
 
     @attributeSetter
     def mask(self, value):
