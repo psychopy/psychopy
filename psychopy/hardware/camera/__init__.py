@@ -12,7 +12,7 @@ experimenter to create movie stimuli or instructions.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = ['CameraNotFoundError', 'Camera', 'CameraInfo', 'StreamData',
-           'getCameras']
+           'getCameras', 'getCameraInfo']
 
 import glob
 import platform

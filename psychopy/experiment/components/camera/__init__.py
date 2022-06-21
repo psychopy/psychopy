@@ -65,7 +65,7 @@ class CameraComponent(BaseComponent):
 
             return (
                 list(range(len(cams))),
-                list(cams)
+                cams
             )
 
 
@@ -101,26 +101,26 @@ class CameraComponent(BaseComponent):
                     [None],
                     ["highest"]
                 )
-            # Get list of camera specs
+            # Get list of cameras
             cams = getCameras()
 
             # Get selected camera
             camera = params['device'].val
             if camera not in cams:
-                camera = list(cams)[0]
-            # Filter for only chosen camera
-            camsList = cams[camera]
+                camera = cams[0]
+            # Get modes for chosen camera
+            modes = getCameraInfo(camera)
 
             # Get selected framerate
             fr = params['frameRate'].val
-            print(fr)
             if fr in (None, "None", "none", "default", "Default", "highest", "Highest"):
                 fr = None
             # Filter for only chosen frame rate
-            camsList = [cam for cam in camsList if str(cam.frameRate) == str(fr) or fr is None]
+            if fr is not None:
+                modes = [md for md in modes if int(md.frameRate[0] / md.frameRate[1]) == int(fr)]
 
             # Get values
-            values = [cam.frameSize for cam in camsList]
+            values = [md.frameSize for md in modes]
             values = list(set(values))
             # Sort values by screen area
             values.sort(key=lambda val: np.prod(val), reverse=True)
@@ -151,23 +151,23 @@ class CameraComponent(BaseComponent):
                     [None],
                     ["highest"]
                 )
-            # Get list of camera specs
+            # Get list of cameras
             cams = getCameras()
 
             # Get selected camera
             camera = params['device'].val
             if camera not in cams:
-                camera = list(cams)[0]
-            # Filter for only chosen camera
-            camsList = cams[camera]
+                camera = cams[0]
+            # Get modes for chosen camera
+            modes = getCameraInfo(camera)
 
             # Get values
-            values = [cam.frameRate for cam in camsList]
+            values = [int(md.frameRate[0] / md.frameRate[1]) for md in modes]
             values = list(set(values))
-            # Sort values by screen area
+            # Sort values by refresh rate
             values.sort(reverse=True)
             # Get labels
-            labels = [str(fr) for fr in values]
+            labels = values
 
             return (
                 values,
@@ -374,4 +374,17 @@ def getCameras():
         from psychopy.hardware.camera import getCameras
         return getCameras()
     except:
-        return {}
+        return []
+
+def getCameraInfo(camera):
+    """
+    Wrapper around psychopy.hardware.camera.getCameraInfo which tries to import the module locally and handles
+    failure cleanly.
+    """
+    try:
+        from psychopy.hardware.camera import getCameraInfo
+        return getCameraInfo(camera)
+    except:
+        return []
+
+
