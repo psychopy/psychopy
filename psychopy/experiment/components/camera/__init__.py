@@ -8,7 +8,6 @@ import numpy as np
 from psychopy.experiment.components import BaseComponent, Param, _translate, getInitVals
 from psychopy import prefs
 
-devices = ["default"]
 mics = ["default"]
 
 
@@ -28,7 +27,7 @@ class CameraComponent(BaseComponent):
             name='cam',
             startType='time (s)', startVal='0', startEstim='',
             stopType='duration (s)', stopVal='', durationEstim='',
-            device="Default", mic="Default",
+            device="default", mic="default",
             # Hardware
             resolution=None, frameRate=None,
             # Data
@@ -57,6 +56,13 @@ class CameraComponent(BaseComponent):
         # Add requirement
         self.exp.requireImport(importName="camera", importFrom="psychopy.hardware")
         self.exp.requireImport(importName="microphone", importFrom="psychopy.sound")
+
+        # Get list of camera specs
+        try:
+            from psychopy.hardware.camera import getCameraDescriptions
+            cams = getCameraDescriptions(collapse=True)
+        except:
+            cams = []
 
         # Basic
         def _devicePopulator():

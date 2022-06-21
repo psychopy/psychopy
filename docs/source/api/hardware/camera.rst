@@ -1,4 +1,4 @@
-.. _keyboard:
+.. _camera:
 
 Camera
 ======
@@ -14,27 +14,75 @@ Overview
 
 .. autosummary::
     Camera
+    Camera.authorize
+    Camera.isReady
+    Camera.frameSize
+    Camera.status
+    Camera.isRecording
+    Camera.isNotStarted
+    Camera.isStopped
     Camera.metadata
     Camera.getMetadata
-    Camera.getWebcams
-    Camera.status
+    Camera.getCameras
+    Camera.getCameraDescriptions
     Camera.device
     Camera.mic
-    Camera.open
-    Camera.close
-    Camera.record
-    Camera.stop
     Camera.streamTime
     Camera.recordingTime
-    Camera.getVideoFrame
-    Camera.lastFrame
+    Camera.recordingBytes
+    Camera.open
+    Camera.record
+    Camera.stop
+    Camera.close
     Camera.save
     Camera.lastClip
+    Camera.lastFrame
+    Camera.update
+    Camera.getVideoFrame
+
+.. autosummary::
+    CameraInfo
+    CameraInfo.index
+    CameraInfo.name
+    CameraInfo.frameSize
+    CameraInfo.frameRate
+    CameraInfo.pixelFormat
+    CameraInfo.codecFormat
+    CameraInfo.cameraLib
+    CameraInfo.cameraAPI
+    CameraInfo.frameSizeAsFormattedString
+    CameraInfo.description
+
+.. autosummary::
+    StreamStatus
+    StreamStatus.status
+    StreamStatus.streamTime
+    StreamStatus.recBytes
+    StreamStatus.recTime
+
+.. autosummary::
+    StreamStatus
+    StreamStatus.metadata
+    StreamStatus.frameImage
+    StreamStatus.streamStatus
+    StreamStatus.cameraLib
 
 
 Details
 =======
 
 .. autoclass:: Camera
+    :members:
+    :inherited-members:
+
+.. autoclass:: CameraInfo
+    :members:
+    :inherited-members:
+
+.. autoclass:: StreamStatus
+    :members:
+    :inherited-members:
+
+.. autoclass:: StreamData
     :members:
     :inherited-members:
