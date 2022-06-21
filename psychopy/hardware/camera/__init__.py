@@ -736,11 +736,11 @@ class MovieStreamIOThread(threading.Thread):
         # variables used within the scope of this thread
         frameInterval = 0.004        # frame interval, start at 4ms (250Hz)
         frameData = None             # frame data from the reader
-        lastFrame = None             # last frame to get pulled from the stream
+        # lastFrame = None             # last frame to get pulled from the stream
         val = ''                     # status value from reader
         statusFlag = NOT_STARTED     # status flag for stream reader state
-        metadata = None              # only valid after we get a frame
-        ptsStart = 0.0               # stream pts the recording started at
+        # metadata = None              # only valid after we get a frame
+        # ptsStart = 0.0               # stream pts the recording started at
         ptsLast = 0.0                # last pts value
         recordingJustStarted = True  # have we just started recording? do setup
         writer = None                # handle to the frame writer
