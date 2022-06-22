@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2021.2.3\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2022-06-21 21:14+0800\n"
+"PO-Revision-Date: 2022-06-22 21:29+0800\n"
 "Last-Translator: Shun Wang <shuonwang@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -333,17 +333,17 @@ msgstr "移至尾部"
 #: ../app/coder/coder.py:1444 ../app/pavlovia_ui/_base.py:24
 #: ../monitors/MonitorCenter.py:235
 msgid "&File"
-msgstr "&文件"
+msgstr "文件(&F)"
 
 #: ../app/builder/builder.py:285 ../app/coder/coder.py:1458
 #, python-format
 msgid "&New\t%s"
-msgstr "&新建\t%s"
+msgstr "新建(&N)\t%s"
 
 #: ../app/builder/builder.py:288 ../app/coder/coder.py:1459
 #, python-format
 msgid "&Open...\t%s"
-msgstr "&打开...\t%s"
+msgstr "打开...(&O)\t%s"
 
 #: ../app/builder/builder.py:291 ../app/coder/coder.py:1460
 msgid "Open &Recent"
@@ -352,12 +352,12 @@ msgstr "打开最近使用"
 #: ../app/builder/builder.py:294 ../app/coder/coder.py:1462
 #, python-format
 msgid "&Save\t%s"
-msgstr "&保存\t%s"
+msgstr "保存(&S)\t%s"
 
 #: ../app/builder/builder.py:298 ../app/coder/coder.py:1465
 #, python-format
 msgid "Save &as...\t%s"
-msgstr "另存为...\t%s"
+msgstr "另存为...(&A)\t%s"
 
 #: ../app/builder/builder.py:302
 #, python-format
@@ -371,7 +371,7 @@ msgstr "导出实验到 html/javascript 文件"
 #: ../app/builder/builder.py:306 ../app/coder/coder.py:1468
 #, python-format
 msgid "&Close file\t%s"
-msgstr "&关闭文件\t%s"
+msgstr "关闭文件(&C)\t%s"
 
 #: ../app/builder/builder.py:307
 msgid "Close current experiment"
@@ -380,7 +380,7 @@ msgstr "关闭当前实验"
 #: ../app/builder/builder.py:318 ../app/coder/coder.py:1484
 #, python-format
 msgid "&Preferences\t%s"
-msgstr "&首选项\t%s"
+msgstr "首选项(&P)\t%s"
 
 #: ../app/builder/builder.py:321 ../app/coder/coder.py:1489
 msgid "Reset preferences..."
@@ -393,7 +393,7 @@ msgstr "关闭 PsychoPy Builder"
 #: ../app/builder/builder.py:338 ../app/coder/coder.py:1509
 #: ../monitors/MonitorCenter.py:243
 msgid "&Edit"
-msgstr "&编辑"
+msgstr "编辑(&E)"
 
 #: ../app/builder/builder.py:341 ../app/builder/builder.py:1105
 #: ../app/coder/coder.py:1575
@@ -410,12 +410,12 @@ msgstr "重做\t%s"
 #: ../app/builder/builder.py:350 ../app/coder/coder.py:1514
 #, python-format
 msgid "&Paste\t%s"
-msgstr "&粘贴\t%s"
+msgstr "粘贴(&P)\t%s"
 
 #: ../app/builder/builder.py:370 ../app/builder/builder.py:2678
 #, python-format
 msgid "&Toggle readme\t%s"
-msgstr "&切换自述文件(RM)\t%s"
+msgstr "切换自述文件(RM)(&T)\t%s"
 
 #: ../app/builder/builder.py:372 ../app/builder/builder.py:2680
 msgid "Toggle Readme"
@@ -424,7 +424,7 @@ msgstr "切换自述文件(RM)"
 #: ../app/builder/builder.py:375
 #, python-format
 msgid "&Flow Larger\t%s"
-msgstr "&放大实验流程\t%s"
+msgstr "放大实验流程(&F)\t%s"
 
 #: ../app/builder/builder.py:377
 msgid "Larger flow items"
@@ -433,7 +433,7 @@ msgstr "放大实验流程项目"
 #: ../app/builder/builder.py:380
 #, python-format
 msgid "&Flow Smaller\t%s"
-msgstr "&缩小实验流程\t%s"
+msgstr "缩小实验流程(&F)\t%s"
 
 #: ../app/builder/builder.py:382
 msgid "Smaller flow items"
@@ -442,7 +442,7 @@ msgstr "缩小显示实验流程的项目"
 #: ../app/builder/builder.py:385
 #, python-format
 msgid "&Routine Larger\t%s"
-msgstr "&放大显示例程\t%s"
+msgstr "放大显示例程(&R)\t%s"
 
 #: ../app/builder/builder.py:387
 msgid "Larger routine items"
@@ -451,7 +451,7 @@ msgstr "放大例程的项目"
 #: ../app/builder/builder.py:390
 #, python-format
 msgid "&Routine Smaller\t%s"
-msgstr "&缩小例程\t%s"
+msgstr "缩小例程(&R)\t%s"
 
 #: ../app/builder/builder.py:392
 msgid "Smaller routine items"
@@ -464,7 +464,7 @@ msgstr "主题风格"
 
 #: ../app/builder/builder.py:402 ../app/coder/coder.py:1709
 msgid "&Tools"
-msgstr "&工具"
+msgstr "工具(&T)"
 
 #: ../app/builder/builder.py:406 ../app/coder/coder.py:1712
 msgid "To set information about your monitor"
@@ -516,12 +516,12 @@ msgstr "检查软件和硬件，生成报告"
 
 #: ../app/builder/builder.py:436
 msgid "&Experiment"
-msgstr "&实验"
+msgstr "实验(&E)"
 
 #: ../app/builder/builder.py:439
 #, python-format
 msgid "&New Routine\t%s"
-msgstr "&新建例程\t%s"
+msgstr "新建例程(&N)\t%s"
 
 #: ../app/builder/builder.py:440
 msgid "Create a new routine (e.g. the trial definition)"
@@ -530,7 +530,7 @@ msgstr "创建新的例程（routine，例如试验定义）"
 #: ../app/builder/builder.py:444
 #, python-format
 msgid "&Copy Routine\t%s"
-msgstr "&复制例程(routine)\t%s"
+msgstr "复制例程(routine)(&E)\t%s"
 
 #: ../app/builder/builder.py:446
 msgid "Copy the current routine so it can be used in another exp"
@@ -539,7 +539,7 @@ msgstr "复制当前例程，以便它可以在另一个实验中使用"
 #: ../app/builder/builder.py:451
 #, python-format
 msgid "&Paste Routine\t%s"
-msgstr "&粘贴例程(routine)\t%s"
+msgstr "粘贴例程(routine)()&E\t%s"
 
 #: ../app/builder/builder.py:453
 msgid "Paste the Routine into the current experiment"
@@ -548,7 +548,7 @@ msgstr "将例程粘贴到当前实验中"
 #: ../app/builder/builder.py:458
 #, python-format
 msgid "&Rename Routine\t%s"
-msgstr "&重命名例程\t%s"
+msgstr "重命名例程(&R)\t%s"
 
 #: ../app/builder/builder.py:460
 msgid "Change the name of this routine"
@@ -589,7 +589,7 @@ msgstr "添加或编辑打开实验时要显示的说明文本"
 
 #: ../app/builder/builder.py:497
 msgid "&Unpack Demos..."
-msgstr "&解压演示包..."
+msgstr "解压演示包...(&E)"
 
 #: ../app/builder/builder.py:498
 msgid "Unpack demos to a writable location (so that they can be run)"
@@ -613,7 +613,7 @@ msgstr "打开存储演示的本地文件夹"
 
 #: ../app/builder/builder.py:516 ../app/coder/coder.py:1756
 msgid "&Demos"
-msgstr "&演示"
+msgstr "演示(&D)"
 
 #: ../app/builder/builder.py:520 ../app/coder/coder.py:1784
 msgid "Pavlovia.org"
@@ -626,11 +626,11 @@ msgstr "窗口"
 
 #: ../app/builder/builder.py:529 ../app/coder/coder.py:1793
 msgid "&Help"
-msgstr "&帮助"
+msgstr "帮助(&H)"
 
 #: ../app/builder/builder.py:533 ../app/coder/coder.py:1795
 msgid "&PsychoPy Homepage"
-msgstr "&PsychoPy 主页"
+msgstr "PsychoPy 主页(&P)"
 
 #: ../app/builder/builder.py:534 ../app/coder/coder.py:1796
 msgid "Go to the PsychoPy homepage"
@@ -638,7 +638,7 @@ msgstr "转到 PsychoPy 主页"
 
 #: ../app/builder/builder.py:538
 msgid "&PsychoPy Builder Help"
-msgstr "&PsychoPy Builder 帮助"
+msgstr "PsychoPy Builder 帮助(&P)"
 
 #: ../app/builder/builder.py:539
 msgid "Go to the online documentation for PsychoPy Builder"
@@ -646,7 +646,7 @@ msgstr "转到 PsychoPy Builder 的在线文档"
 
 #: ../app/builder/builder.py:547 ../app/coder/coder.py:1811
 msgid "&System Info..."
-msgstr "&系统信息..."
+msgstr "系统信息...(&S)"
 
 #: ../app/builder/builder.py:548 ../app/coder/coder.py:1812
 msgid "Get system information."
@@ -654,7 +654,7 @@ msgstr "获取系统信息"
 
 #: ../app/builder/builder.py:552 ../app/coder/coder.py:1817
 msgid "&About..."
-msgstr "&关于..."
+msgstr "关于...((&A)"
 
 #: ../app/builder/builder.py:553 ../app/coder/coder.py:1818
 msgid "About PsychoPy"
@@ -662,7 +662,7 @@ msgstr "关于 PsychoPy"
 
 #: ../app/builder/builder.py:556 ../app/coder/coder.py:1822
 msgid "&News..."
-msgstr "&新闻..."
+msgstr "新闻...(&N)"
 
 #: ../app/builder/builder.py:557 ../app/coder/coder.py:1823
 msgid "News"
@@ -766,7 +766,7 @@ msgstr "编辑"
 #: ../app/builder/builder.py:2675
 #, python-format
 msgid "&Close readme\t%s"
-msgstr "&关闭 readme\t%s"
+msgstr "关闭 readme((&C))\t%s"
 
 #: ../app/builder/builder.py:2805
 msgid "rename"
@@ -1707,12 +1707,12 @@ msgstr "关闭 Psychopy Coder"
 #: ../app/coder/coder.py:1510
 #, python-format
 msgid "Cu&t\t%s"
-msgstr "剪切\t%s"
+msgstr "剪切((&T)\t%s"
 
 #: ../app/coder/coder.py:1512
 #, python-format
 msgid "&Copy\t%s"
-msgstr "&复制\t%s"
+msgstr "复制((&C))\t%s"
 
 #: ../app/coder/coder.py:1516
 msgid "Duplicate the current line (or current selection)"
@@ -1721,12 +1721,12 @@ msgstr "重建当前行（或当前选择）"
 #: ../app/coder/coder.py:1518
 #, python-format
 msgid "&Duplicate\t%s"
-msgstr "&重建\t%s"
+msgstr "重建((&D)\t%s"
 
 #: ../app/coder/coder.py:1524
 #, python-format
 msgid "&Find\t%s"
-msgstr "&查找\t%s"
+msgstr "查找((&F)\t%s"
 
 #: ../app/coder/coder.py:1527
 #, python-format
@@ -1863,7 +1863,7 @@ msgstr "在编辑器中显示缩进级别的指南"
 #: ../app/coder/coder.py:1668
 #, python-format
 msgid "&Indentation guides\t%s"
-msgstr "&缩进指南\t%s"
+msgstr "缩进指南(&I)\t%s"
 
 #: ../app/coder/coder.py:1674
 msgid "Show whitespace characters in the code"
@@ -1872,7 +1872,7 @@ msgstr "在代码中显示空白字符"
 #: ../app/coder/coder.py:1676
 #, python-format
 msgid "&Whitespace\t%s"
-msgstr "&空格\t%s"
+msgstr "空格(&W)\t%s"
 
 #: ../app/coder/coder.py:1682
 msgid "Show End Of Line markers in the code"
@@ -1881,7 +1881,7 @@ msgstr "在代码中显示行尾标记(EOL)"
 #: ../app/coder/coder.py:1685
 #, python-format
 msgid "Show &EOLs\t%s"
-msgstr "显示 &EOLs\t%s"
+msgstr "显示 EOLs(&E)\t%s"
 
 #: ../app/coder/coder.py:1690
 msgid "Enable/disable line wrapping in editors."
@@ -1917,7 +1917,7 @@ msgstr "转到在线 PsychoPy 教程"
 
 #: ../app/coder/coder.py:1805
 msgid "&PsychoPy API (reference)"
-msgstr "&PsychoPy API（参考）"
+msgstr "PsychoPy API（参考）(&P)"
 
 #: ../app/coder/coder.py:1806
 msgid "Go to the online PsychoPy reference manual"
@@ -3581,13 +3581,13 @@ msgstr "下一个窗口(&N)\t%s"
 msgid ""
 "Name of the folder in which to save data and log files (blank defaults to "
 "the builder pref)"
-msgstr ""
+msgstr "保存数据和日志文件的文件夹的名称（空白默认为 builder 首选项）"
 
 #: ../experiment/_experiment.py:558
 msgid ""
 "This parameter is not known by this version of PsychoPy. It might be worth "
 "upgrading"
-msgstr ""
+msgstr "此参数在此版本的 PsychoPy 上未知。 可能需要升级"
 
 #: ../experiment/_experiment.py:568
 #, python-format
@@ -3596,19 +3596,21 @@ msgid ""
 "experiment file (saved by a future version of PsychoPy?). This experiment "
 "may not run correctly in the current version."
 msgstr ""
+"参数 %r 在此版本的 PsychoPy 上是未知的 ，但它来自您的实验文件（可能由 "
+"PsychoPy 的更新的版本保存？）。 此实验在当前版本中可能无法正常运行。"
 
 #: ../experiment/components/_base.py:60
 #: ../experiment/components/unknown/__init__.py:37
 msgid "Name of this component (alphanumeric or _, no spaces)"
-msgstr ""
+msgstr "此组件的名称（字母数字或 _，不能有空格）"
 
 #: ../experiment/components/_base.py:67
 msgid "How do you want to define your start point?"
-msgstr ""
+msgstr "你想如何定义你的起点？"
 
 #: ../experiment/components/_base.py:74 ../experiment/routines/_base.py:51
 msgid "How do you want to define your end point?"
-msgstr ""
+msgstr "你想如何定义你的终点？"
 
 #: ../experiment/components/_base.py:84
 msgid "When does the component start?"
@@ -4022,11 +4024,11 @@ msgstr "结束 JS 实验"
 
 #: ../experiment/components/code/__init__.py:40
 msgid "Code: insert python commands into an experiment"
-msgstr ""
+msgstr "代码：将 python 命令插入实验"
 
 #: ../experiment/components/code/__init__.py:64
 msgid "Display Python or JS Code"
-msgstr ""
+msgstr "显示 Python 或 JS 代码"
 
 #: ../experiment/components/code/__init__.py:71
 msgid ""
@@ -4112,15 +4114,15 @@ msgstr "噪声点"
 
 #: ../experiment/components/dots/__init__.py:25
 msgid "Field shape"
-msgstr ""
+msgstr "区域形状"
 
 #: ../experiment/components/dots/__init__.py:26
 msgid "Field size"
-msgstr ""
+msgstr "区域大小"
 
 #: ../experiment/components/dots/__init__.py:27
 msgid "Field position"
-msgstr ""
+msgstr "区域位置"
 
 #: ../experiment/components/dots/__init__.py:28
 msgid "Dot refresh rule"
@@ -4128,7 +4130,7 @@ msgstr "点刷新规则"
 
 #: ../experiment/components/dots/__init__.py:37
 msgid "Dots: Random Dot Kinematogram"
-msgstr ""
+msgstr "点：随机点运动图"
 
 #: ../experiment/components/dots/__init__.py:69
 msgid ""
@@ -4196,19 +4198,19 @@ msgstr "点 色彩空间"
 
 #: ../experiment/components/emotiv_marking/__init__.py:20
 msgid "Marker Label"
-msgstr ""
+msgstr "Marker 标签"
 
 #: ../experiment/components/emotiv_marking/__init__.py:21
 msgid "Marker Value"
-msgstr ""
+msgstr "Marker 值"
 
 #: ../experiment/components/emotiv_marking/__init__.py:22
 msgid "Stop Marker"
-msgstr ""
+msgstr "停止 Marker"
 
 #: ../experiment/components/emotiv_marking/__init__.py:30
 msgid "Mark a period of EEG"
-msgstr ""
+msgstr "标记一段脑电图"
 
 #: ../experiment/components/emotiv_marking/__init__.py:46
 msgid "Label of the marker to be inserted (interpreted as a string)"
@@ -5549,7 +5551,7 @@ msgstr ""
 
 #: ../experiment/components/roi/__init__.py:97
 msgid "Save..."
-msgstr ""
+msgstr "保存..."
 
 #: ../experiment/components/roi/__init__.py:106
 msgid "Time Relative To..."
@@ -5569,44 +5571,44 @@ msgstr ""
 
 #: ../experiment/components/settings/__init__.py:49
 msgid "Experiment info"
-msgstr ""
+msgstr "实验信息"
 
 #: ../experiment/components/settings/__init__.py:50
 msgid "Data filename"
-msgstr ""
+msgstr "数据文件名称"
 
 #: ../experiment/components/settings/__init__.py:51
 #: ../experiment/components/settings/__init__.py:279
 msgid "Data file delimiter"
-msgstr ""
+msgstr "数据文件分隔符"
 
 #: ../experiment/components/settings/__init__.py:52
 msgid "Full-screen window"
-msgstr ""
+msgstr "全屏窗口"
 
 #: ../experiment/components/settings/__init__.py:53
 msgid "Window size (pixels)"
-msgstr ""
+msgstr "窗口大小（像素）"
 
 #: ../experiment/components/settings/__init__.py:55
 msgid "Monitor"
-msgstr ""
+msgstr "监视器"
 
 #: ../experiment/components/settings/__init__.py:57
 msgid "Color space"
-msgstr ""
+msgstr "色彩空间"
 
 #: ../experiment/components/settings/__init__.py:58
 msgid "Units"
-msgstr ""
+msgstr "单位"
 
 #: ../experiment/components/settings/__init__.py:59
 msgid "Blend mode"
-msgstr ""
+msgstr "混合模式"
 
 #: ../experiment/components/settings/__init__.py:60
 msgid "Show mouse"
-msgstr ""
+msgstr "显示鼠标"
 
 #: ../experiment/components/settings/__init__.py:61
 msgid "Save log file"
@@ -5747,7 +5749,7 @@ msgstr ""
 
 #: ../experiment/components/settings/__init__.py:252
 msgid "Audio library"
-msgstr ""
+msgstr "音频库"
 
 #: ../experiment/components/settings/__init__.py:255
 msgid "use prefs"
@@ -6519,7 +6521,7 @@ msgstr ""
 #: ../experiment/routines/eyetracker_validate/__init__.py:127
 #: ../localization/__init__.py:169
 msgid "Color Space"
-msgstr ""
+msgstr "颜色空间"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:92
 #: ../experiment/routines/eyetracker_validate/__init__.py:131
@@ -6886,7 +6888,7 @@ msgstr ""
 
 #: ../monitors/MonitorCenter.py:288
 msgid "Copy..."
-msgstr ""
+msgstr "复制..."
 
 #: ../monitors/MonitorCenter.py:291
 msgid "Creates a new calibration entry for this monitor"
