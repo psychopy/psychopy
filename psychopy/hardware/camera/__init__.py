@@ -48,7 +48,7 @@ import os
 import os.path
 import shutil
 import math
-from psychopy.constants import STOPPED, NOT_STARTED, RECORDING, STARTED, \
+from psychopy.constants import STOPPED, NOT_STARTED, STARTED, \
     STOPPING, PAUSED, FINISHED, INVALID
 from psychopy.visual.movies.metadata import MovieMetadata, NULL_MOVIE_METADATA
 from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
@@ -740,6 +740,7 @@ class MovieStreamIOThread(threading.Thread):
         # lastFrame = None           # last frame to get pulled from the stream
         # val = ''                   # status value from reader
         statusFlag = NOT_STARTED     # status flag for stream reader state
+        isReady = False              # status flag for whether we're pulling frames
         # metadata = None            # only valid after we get a frame
         # ptsStart = 0.0             # stream pts the recording started at
         ptsLast = 0.0                # last pts value
@@ -763,13 +764,13 @@ class MovieStreamIOThread(threading.Thread):
 
         # Consume frames until we get a valid one, we need its metadata at this
         # point to configure the writer.
-        while statusFlag != STARTED:
+        while not isReady:
             frameData, val = self._player.get_frame()
 
             # If we get a frame then the stream is started, tht also means we
             # can get the metadata now.
             if frameData is not None and val != 'not ready':
-                statusFlag = STARTED
+                isReady = True
 
             # Should never see this unless the camera was unplugged or
             # something, but we'll handle it here at some point.
@@ -814,9 +815,6 @@ class MovieStreamIOThread(threading.Thread):
         # Pass the object to the main thread using the frame queue.
         self._frameQueue.put(lastFrame)  # put frame data in here
 
-        # update the status flag indicating that we started pulling frames
-        statusFlag = STARTED
-
         # Release the lock to unblock the parent thread once we have the first
         # frame and valid metadata from the stream. After this returns the
         # main thread should call `getRecentFrame` to get the frame data.
@@ -834,23 +832,19 @@ class MovieStreamIOThread(threading.Thread):
             if not self._cmdQueue.empty():
                 cmdOpCode, cmdVal = self._cmdQueue.get_nowait()
                 if cmdOpCode == 'record':
-                    # Start recording. This should begin pushing frames to the
-                    # writer frame queue. We upgrade the status flag to
-                    # `RECORDING` which means the stream is active
-                    if statusFlag == STARTED:
-                        statusFlag = RECORDING
+                    statusFlag = STARTED
                     writer = cmdVal  # writer object is the argument here
                 elif cmdOpCode == 'stop':
                     # Weird, eh? We use the `STARTED` constant to represent that
                     # the stream is active and pulling frames but not yet
                     # recording. The stop command keeps the stream alive but
                     # stop writing frames to file.
-                    if statusFlag != RECORDING:
+                    if statusFlag != STARTED:
                         raise RuntimeError(
                             "Attempted to stop a recording that has not yet "
                             "been started."
                         )
-                    statusFlag = STARTED
+                    statusFlag = FINISHED
                     writer = None
                 elif cmdOpCode == 'close':
                     # Exit the thread, the breaks out of this loop and drops out
@@ -858,6 +852,7 @@ class MovieStreamIOThread(threading.Thread):
                     # down there to match the `join()` call from the other
                     # thread.
                     statusFlag = FINISHED
+
                     continue
 
             # pull the next available frame from the stream
@@ -908,13 +903,13 @@ class MovieStreamIOThread(threading.Thread):
             # ------------------------------------------------------------------
             # Recording
             #
-            # If we have the `RECORDING` status flag, the user has requested
+            # If we have the `STARTED` status flag, the user has requested
             # that we start writing frames out to disk. This is handled in
             # another thread, so we just push frame data into a queue to have
             # then writen to an output file. The recording thread is initialized
             # and controlled by the main thread.
             #
-            if statusFlag == RECORDING:
+            if statusFlag == STARTED:
                 # Have we just started recording? Do some setup.
                 if recordingJustStarted:
                     # ptsStart = streamTime
@@ -948,7 +943,7 @@ class MovieStreamIOThread(threading.Thread):
 
                 recordingFrameIdx += 1
 
-            elif statusFlag == STARTED:
+            elif isReady:
                 if not recordingJustStarted:  # previously recording?
                     # reset stream recording vars when done
                     # ptsStart = 0.0
