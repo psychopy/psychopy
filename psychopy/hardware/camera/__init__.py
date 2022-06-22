@@ -108,7 +108,8 @@ CAMERA_FRAMERATE_NTSC = 30.000030
 # know any more!
 pixelFormatTbl = {
     'yuvs': 'yuyv422',  # 4:2:2
-    '420v': 'nv12'      # 4:2:0
+    '420v': 'nv12',     # 4:2:0
+    '2vuy': 'uyvy422'   # QuickTime 4:2:2
 }
 
 # Camera standards to help with selection. Some standalone cameras sometimes
@@ -2327,9 +2328,6 @@ def getCameraDescriptions(collapse=False):
         collapsedList.extend(formatDescs)
 
     return collapsedList
-
-
-_threadLockType = type(threading.Lock())  # used below
 
 
 def renderVideo(outputFile, videoFile, audioFile=None):
