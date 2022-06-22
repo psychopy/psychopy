@@ -15,15 +15,15 @@ __all__ = [
     'VIDEO_DEVICE_ROOT_LINUX',
     'CAMERA_UNKNOWN_VALUE',
     'CAMERA_NULL_VALUE',
-    'CAMERA_MODE_VIDEO',
-    'CAMERA_MODE_CV',
-    'CAMERA_MODE_PHOTO',
+    # 'CAMERA_MODE_VIDEO',
+    # 'CAMERA_MODE_CV',
+    # 'CAMERA_MODE_PHOTO',
     'CAMERA_TEMP_FILE_VIDEO',
     'CAMERA_TEMP_FILE_AUDIO',
     'CAMERA_API_AVFOUNDATION',
     'CAMERA_API_DIRECTSHOW',
-    'CAMERA_API_VIDEO4LINUX',
-    'CAMERA_API_OPENCV',
+    # 'CAMERA_API_VIDEO4LINUX',
+    # 'CAMERA_API_OPENCV',
     'CAMERA_API_UNKNOWN',
     'CAMERA_API_NULL',
     'CameraError',
@@ -79,9 +79,9 @@ VIDEO_DEVICE_ROOT_LINUX = '/dev'
 CAMERA_UNKNOWN_VALUE = u'Unknown'  # fields where we couldn't get a value
 CAMERA_NULL_VALUE = u'Null'  # fields where we couldn't get a value
 # camera operating modes
-CAMERA_MODE_VIDEO = u'video'
-CAMERA_MODE_CV = u'cv'
-CAMERA_MODE_PHOTO = u'photo'
+# CAMERA_MODE_VIDEO = u'video'
+# CAMERA_MODE_CV = u'cv'
+# CAMERA_MODE_PHOTO = u'photo'
 # default names for video and audio tracks in the temp directory
 CAMERA_TEMP_FILE_VIDEO = u'video.mp4'
 CAMERA_TEMP_FILE_AUDIO = u'audio.wav'
@@ -89,8 +89,8 @@ CAMERA_TEMP_FILE_AUDIO = u'audio.wav'
 # camera API flags, these specify which API camera settings were queried with
 CAMERA_API_AVFOUNDATION = u'AVFoundation'  # mac
 CAMERA_API_DIRECTSHOW = u'DirectShow'      # windows
-CAMERA_API_VIDEO4LINUX = u'Video4Linux'    # linux
-CAMERA_API_OPENCV = u'OpenCV'              # opencv, cross-platform API
+# CAMERA_API_VIDEO4LINUX = u'Video4Linux'    # linux
+# CAMERA_API_OPENCV = u'OpenCV'              # opencv, cross-platform API
 CAMERA_API_UNKNOWN = u'Unknown'            # unknown API
 CAMERA_API_NULL = u'Null'                  # empty field
 
@@ -1221,18 +1221,21 @@ class Camera:
     video and audio tracks are written to a temp directory and composited into
     the final video when `save()` is called.
 
+    GNU/Linux is presently unsupported at this time, however support is likely
+    to arrive in a later release.
+
     Parameters
     ----------
     device : str or int
         Camera to open a stream with. If the ID is not valid, an error will be
         raised when `start()` is called. Value can be a string or number. String
-        values are platform-dependent: a DirectShow URI or camera anme on
-        Windows, a path on GNU/Linux (e.g., `'/dev/video0'`), or a camera
-        name/index on MacOS. Specifying a number (>=0) is a platform-independent
-        means of selecting a camera. PsychoPy enumerates possible camera devices
-        and makes them selectable without explicitly having the name of the
-        cameras attached to the system. Use caution when specifying an integer,
-        as the same index may not reference the same camera everytime.
+        values are platform-dependent: a DirectShow URI or camera name on
+        Windows, or a camera name/index on MacOS. Specifying a number (>=0) is a
+        platform-independent means of selecting a camera. PsychoPy enumerates
+        possible camera devices and makes them selectable without explicitly
+        having the name of the cameras attached to the system. Use caution when
+        specifying an integer, as the same index may not reference the same
+        camera everytime.
     mic : :class:`~psychopy.sound.microphone.Microphone` or None
         Microphone to record audio samples from during recording. The microphone
         input device must not be in use when `record()` is called. The audio
@@ -1261,6 +1264,22 @@ class Camera:
         camera.stop()
         # camera.status == STOPPED
         camera.close()
+        # camera.status == NOT_STARTED
+
+    Recording 5 seconds of video and saving it to disk::
+
+        cam = Camera(0)
+        cam.open()
+        cam.record()
+
+        while cam.recordingTime < 5.0:  # record for 5 seconds
+            cam.update()
+            if event.getKeys('q'):
+                break
+
+        cam.stop()
+        cam.save('myVideo.mp4', useThreads=False)
+        cam.close()
 
     """
     def __init__(self, device=0, mic=None, cameraLib=u'ffpyplayer',
@@ -1347,8 +1366,7 @@ class Camera:
         api = self._cameraInfo.cameraAPI
         thisSystem = platform.system()
         if ((api == CAMERA_API_AVFOUNDATION and thisSystem != 'Darwin') or
-                (api == CAMERA_API_DIRECTSHOW and thisSystem != 'Windows') or
-                (api == CAMERA_API_VIDEO4LINUX and thisSystem != 'Linux')):
+                (api == CAMERA_API_DIRECTSHOW and thisSystem != 'Windows')):
             raise RuntimeError(
                 "Unsupported camera interface '{}' for platform '{}'".format(
                     api, thisSystem))
