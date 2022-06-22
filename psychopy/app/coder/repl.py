@@ -11,7 +11,6 @@ import sys
 import wx
 import wx.richtext
 from psychopy.app.themes import handlers, colors, icons
-from psychopy.preferences import prefs
 from psychopy.localization import _translate
 import os
 
