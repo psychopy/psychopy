@@ -74,14 +74,15 @@ cam.stop()  # stop the webcam recording
 # this is not called prior to calling `record` again.
 cam.save('myVideo.mp4')  # uncomment to save the file, just specify the path
 
+# wait a bit for the video to render
+time.sleep(2.0)
+
 # Print the path to where the clip was saved, this allows you to pass the clip
 # to a `MovieStim` object to view it afterwards if desired. Gives `None` if
 # `save()` was not called previously.
 if cam.lastClip is not None:
     print(cam.lastClip, 'clip')
 
-time.sleep(3.0)
-print(cam.lastClip, 'clip')
 # Close the camera stream. You must call this before exiting or when you're
 # done with the camera.
 cam.close()
