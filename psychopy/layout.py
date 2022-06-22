@@ -795,8 +795,6 @@ class Vertices:
         # Start with base values
         verts = self.base.copy()
         verts = verts.astype(float)
-        # Apply anchor
-        verts += self.anchorAdjust
         # Apply size
         if self.size is None:
             raise ValueError(
@@ -805,6 +803,8 @@ class Vertices:
         verts *= getattr(self.size, units)
         # Apply flip
         verts *= self._flip
+        # Apply anchor
+        verts += self.anchorAdjust * getattr(self.size, units)
         # Apply pos
         if self.pos is None:
             raise ValueError(
