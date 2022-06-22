@@ -402,7 +402,7 @@ class DetailsPanel(wx.Panel):
             project.refresh()
         self.project = project
         # Bind close function
-        self.Bind(wx.EVT_CLOSE, self.close)
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.close)
 
     @property
     def project(self):
@@ -685,6 +685,13 @@ class DetailsPanel(wx.Panel):
         # Clear from update queue
         if obj in self._updateQueue:
             self._updateQueue.remove(obj)
+
+    def close(self, evt=None):
+        if len(self._updateQueue):
+            wx.MessageDialog(self, message=_translate(
+                "Project info has changed, update online before closing?"
+            ), style=wx.YES_NO | wx.CANCEL)
+
 
 
 class ProjectFrame(wx.Dialog):
