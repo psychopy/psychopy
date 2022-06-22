@@ -1084,16 +1084,19 @@ class MovieCompositorBGThread(threading.Thread):
             # wait until we get a command anc carry it out
             opCode, args = self._inputQueue.get()
             if opCode == 'stop':  # stop the thread
+                print('stopping renderer')
                 running = False
                 continue
             elif opCode == 'render':
                 outputFile, videoFile, audioFile = args
+                print('rendering video {}'.format(outputFile))
                 # do the rendering
                 renderVideo(outputFile, videoFile, audioFile)
                 self._outputQueue.put(outputFile)
                 self._inputQueue.task_done()
 
         self._inputQueue.task_done()  # when close is called
+        print('renderer dead <<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
 
     def _flushOutputQueue(self):
         """Flush the output queue and add items to `_doneItems`.
@@ -1210,7 +1213,7 @@ class MovieCompositorBGThread(threading.Thread):
         """
         self._inputQueue.put(('stop', None))
         self._inputQueue.join()  # wait to finish
-        self.join()  # terminate
+        print('kill sucessful')
 
 
 class Camera:
@@ -1604,6 +1607,10 @@ class Camera:
             'frame_rate': frameRate
         }
 
+        # timestamp data
+        self._recordingTime = self._streamTime = 0.0
+        self._recordingBytes = 0
+
         # open a writer and block until done
         self._tWriter.open(self._tempVideoFileName, [writerOptions])
 
@@ -1929,6 +1936,7 @@ class Camera:
         # close any file save thread from before
         if self._tRender is not None:
             self._tRender.kill()
+            self._tRender.join()
             self._tRender = None
 
         # Close the streaming thread.
@@ -2088,6 +2096,7 @@ class Camera:
             if self._tRender is not None:
                 try:
                     self._tRender.kill()
+                    self._tRender.join()
                 except AttributeError:
                     pass
 
