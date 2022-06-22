@@ -200,6 +200,8 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         self.txtTerm.WriteText("Hit [Return] to start a Python shell.")
         self._lastTextPos = self.txtTerm.GetLastPosition()
 
+        self.toolbar.update()
+
     @property
     def isStarted(self):
         """`True` if the interpreter process has been started."""
@@ -294,8 +296,6 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
             self.txtTerm.ShowPosition(self._lastTextPos)
             self.txtTerm.SetInsertionPoint(-1)
 
-        self.txtTerm._applyAppTheme()
-
     def resetCaret(self):
         """Place the caret at the entry position if not in an editable region.
         """
@@ -381,7 +381,6 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         """Close an open interpreter."""
         if self.isStarted:
             os.kill(self._pid, wx.SIGTERM)
-        self.toolbar.update()
 
     def restart(self, evt=None):
         """Close the running interpreter (if running) and spawn a new one."""
