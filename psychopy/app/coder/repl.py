@@ -148,8 +148,8 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         self.txtTerm.SetMargins(8)
 
         # capture keypresses
-        if wx.Platform == '__WXMAC__':
-            # need to use this on MacOS
+        if wx.Platform == '__WXMAC__' or wx.Platform == '__WXMSW__':
+            # need to use this on MacOS and Windows
             keyDownBindingId = wx.EVT_KEY_DOWN
         else:
             keyDownBindingId = wx.EVT_CHAR
@@ -296,6 +296,8 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
             self.txtTerm.ShowPosition(self._lastTextPos)
             self.txtTerm.SetInsertionPoint(-1)
 
+        self.txtTerm._applyAppTheme()
+
     def resetCaret(self):
         """Place the caret at the entry position if not in an editable region.
         """
@@ -343,6 +345,8 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         self.txtTerm.WriteText(
             "Starting Python interpreter session, please wait ...\n")
 
+        self.txtTerm._applyAppTheme()
+
         # setup the sub-process
         wx.BeginBusyCursor()
         self._process = wx.Process(self)
@@ -366,10 +370,10 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
             "Python shell in PsychoPy (pid:{}) - type some commands!\n\n".format(
                 self._pid))  # show the subprocess PID for reference
         self._lastTextPos = self.txtTerm.GetLastPosition()
-        wx.EndBusyCursor()
         self.toolbar.update()
 
         self.txtTerm._applyAppTheme()
+        wx.EndBusyCursor()
 
     def interrupt(self, evt=None):
         """Send a keyboard interrupt signal to the interpreter."""
@@ -427,7 +431,6 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
 
         # if self._isBusy:  # dont capture events when busy
         #     return
-
         if event.GetKeyCode() == wx.WXK_RETURN:
             self.txtTerm.SetInsertionPointEnd()
             entry = self.getTyped()
@@ -457,13 +460,15 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
                 else:
                     self.clearAndReplaceTyped()
             return
-        elif event.GetKeyCode() == wx.WXK_F8:  # close a misbehaving terminal
-            self.close()
-        elif event.GetKeyCode() == wx.WXK_F4:  # close a misbehaving terminal
+        elif event.GetKeyCode() == wx.WXK_F8:  # interrupt a misbehaving terminal
+            self.interrupt()
+        elif event.GetKeyCode() == wx.WXK_F4:  # clear the screen
             self.clear()
         else:
             if self._history:
                 self._historyIdx = -1
+
+        self.txtTerm._applyAppTheme()
 
         event.Skip()
 
