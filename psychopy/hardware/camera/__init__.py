@@ -1254,10 +1254,11 @@ class Camera:
     Opening a camera stream and closing it::
 
         camera = Camera(camera='/dev/video0')
+        # camera.status == NOT_STARTED
         camera.open()  # exception here on invalid camera
         # camera.status == NOT_STARTED
         camera.record()
-        # camera.status == RECORDING
+        # camera.status == STARTED
         camera.stop()
         # camera.status == STOPPED
         camera.close()
@@ -1474,7 +1475,7 @@ class Camera:
         # self documenting and prevent the user from touching the status flag
         # attribute directly.
         #
-        return self.status == RECORDING
+        return self.status == STARTED
 
     @property
     def isNotStarted(self):
@@ -1646,7 +1647,7 @@ class Camera:
     def status(self):
         """Status flag for the camera (`int`).
 
-        Can be either `RECORDING`, `STOPPED`, `STOPPING`, or `NOT_STARTED`.
+        Can be either `STARTED`, `STOPPED`, `STOPPING`, or `NOT_STARTED`.
 
         """
         return self._status
@@ -1887,7 +1888,7 @@ class Camera:
             self._mic.record()
 
         self._tStream.record(self._tWriter, self._mic)
-        self._status = RECORDING
+        self._status = STARTED
 
     # def snapshot(self):
     #     """Take a photo with the camera. The camera must be in `'photo'` mode
@@ -1912,6 +1913,7 @@ class Camera:
         # stop audio recording if `mic` is available
         if self._mic is not None:
             self._mic.stop()
+            self._mic.status = STOPPED
             audioTrack = self._mic.getRecording()
             audioTrack.save(self._tempAudioFileName, 'wav')
 
@@ -1937,6 +1939,8 @@ class Camera:
 
         self._player.close_player()
         self._player = None  # reset
+
+        self._isReady = False
 
         # cleanup temp files to prevent clogging up the user's hard disk
         # self._cleanUpTempDirs()
