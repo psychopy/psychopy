@@ -36,7 +36,8 @@ __all__ = [
     'CameraInfo',
     'StreamData',
     'getCameras',
-    'getCameraDescriptions'
+    'getCameraDescriptions',
+    'renderVideo'
 ]
 
 
@@ -1057,6 +1058,161 @@ class MovieStreamIOThread(threading.Thread):
         return self._frameQueue.get_nowait()
 
 
+class MovieCompositorBGThread(threading.Thread):
+    """Class for compositing video files in the background using threading.
+
+    """
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.daemon = False
+
+        self._inputQueue = queue.Queue()
+        self._outputQueue = queue.Queue()
+
+        # completed items are stored here
+        self._doneItems = []
+        self._waitingOnItems = []  # items that are still being processed
+
+    def run(self):
+        """Background routine for compositing videos.
+
+        This waits on a queue to have items in it and wakes up to work on them.
+
+        """
+        running = True
+        while running:
+            # wait until we get a command anc carry it out
+            opCode, args = self._inputQueue.get()
+            if opCode == 'stop':  # stop the thread
+                running = False
+                continue
+            elif opCode == 'render':
+                outputFile, videoFile, audioFile = args
+                # do the rendering
+                renderVideo(outputFile, videoFile, audioFile)
+                self._outputQueue.put(outputFile)
+                self._inputQueue.task_done()
+
+        self._inputQueue.task_done()  # when close is called
+
+    def _flushOutputQueue(self):
+        """Flush the output queue and add items to `_doneItems`.
+        """
+        while not self._outputQueue.empty():
+            completeItem = self._outputQueue.get_nowait()
+            self._doneItems.append(completeItem)
+
+            try:
+                self._waitingOnItems.remove(completeItem)
+            except ValueError:
+                pass
+
+    @property
+    def waitingCount(self):
+        """Number of files waiting to be processed (`int`)."""
+        self._flushOutputQueue()
+        return len(self._waitingOnItems)
+
+    def allDone(self):
+        """Check if we've completed all rendering tasks submitted at this point.
+        """
+        self._flushOutputQueue()
+
+        return len(self._waitingOnItems) == 0
+
+    def clearCompleted(self):
+        """Clear completed items.
+        """
+        self._flushOutputQueue()
+        self._doneItems.clear()
+
+    def getCompletedVideoPaths(self):
+        """Get a list of all clips that have been completed so far.
+
+        Returns
+        -------
+        list
+            List of clips which have completed being composted.
+
+        """
+        self._flushOutputQueue()
+
+        if not self._doneItems:
+            return []
+
+        return self._doneItems
+
+    def getLastCompletedVideoPath(self):
+        """Get the last clip to be composited (if any).
+
+        Returns
+        -------
+        str or None
+            File path to the last clip to complete compositing. Returns `None`
+            if nothing available.
+
+        """
+        allVideos = self.getCompletedVideoPaths()
+
+        return allVideos[-1] if allVideos else None
+
+    def isWaitingOn(self, outputFile):
+        """Check if we are still waiting on the specified file to be rendered.
+
+        Returns
+        -------
+        bool
+            `True` if the specified file has not been processed yet.
+
+        """
+        self._flushOutputQueue()
+
+        return outputFile in self._waitingOnItems
+
+    def isDone(self, outputFile):
+        """Check if a file is done rendering.
+
+        Returns
+        -------
+        bool
+            `True` if the specified file is done rendering and ready to be read.
+
+        """
+        self._flushOutputQueue()
+
+        return outputFile in self._waitingOnItems
+
+    def submitToRender(self, outputFile, videoFile, audioFile=None):
+        """Submit a job to render a video in the background.
+
+        Combine visual and audio streams into a single movie file. This is used
+        mainly for compositing video and audio data for the camera. Video and
+        audio should have roughly the same duration.
+
+        Parameters
+        ----------
+        outputFile : str
+            Filename to write the movie to. Should have the extension of the
+            file too.
+        videoFile : str
+            Video file path.
+        audioFile : str or None
+            Audio file path. If not provided the movie file will simply be
+            copied to `outFile`.
+
+        """
+        self._waitingOnItems.append(outputFile)
+        cmd = ('render', (outputFile, videoFile, audioFile))
+        self._inputQueue.put(cmd)
+
+    def kill(self):
+        """Kill the thread.
+        """
+        self._inputQueue.put(('stop', None))
+        self._inputQueue.join()  # wait to finish
+        self.join()  # terminate
+
+
 class Camera:
     """Class of displaying and recording video from a USB/PCI connected camera.
 
@@ -1230,7 +1386,7 @@ class Camera:
         # store win (unused but needs to be set/got safely for parity with JS)
         self.win = win
 
-        # thread for reading and writing streams
+        # thread for reading and writing streams, setup on `open()`
         self._tStream = None
 
         # Start the thread for writing frames. We start the thread too since it
@@ -1238,6 +1394,11 @@ class Camera:
         # the writer instance and begin pushing out frames to it. This thread is
         # terminated when `close()` is called which shuts down the camera stream
         # too.
+        #
+        # The `MediaWriter` instance is handled completely within that thread.
+        # So we can start it now and it will sleep until we pass commands to
+        # wake it up.
+        #
         self._tWriter = StreamWriterThread()
         self._tWriter.begin()
         # These are used to tell the stream writer and microphone where to write
@@ -1252,9 +1413,11 @@ class Camera:
         # last frame
         self._lastFrame = NULL_MOVIE_FRAME_INFO
 
-        # last video file that has been saved, makes it easy to pass this value
-        # along to a movie player
-        self._lastClip = None
+        # Thread for rendering videos in the background, always open across the
+        # lifetime of the Camera stream being open. This allows video
+        # compositing/rendering to be done in parallel with another recording
+        # being started.
+        self._tRender = None
 
         # Keep track of temp dirs to clean up on error to prevent accumulating
         # files on the user's disk. On error during recordings we will clear
@@ -1334,7 +1497,7 @@ class Camera:
         """Video metadata retrieved during the last frame update
         (`MovieMetadata`).
         """
-        return self._recentMetadata
+        return self.getMetadata()
 
     def getMetadata(self):
         """Get stream metadata.
@@ -1454,7 +1617,7 @@ class Camera:
         self._tWriter.join()  # join it to cleanly exit
         self._tWriter = None
 
-    def _renderVideo(self, outFile):
+    def _renderVideo(self, outFile, blocking=False):
         """Combine video and audio tracks of temporary video and audio files.
         Outputs a new file at `outFile` with merged video and audio tracks.
 
@@ -1462,6 +1625,11 @@ class Camera:
         ----------
         outFile : str
             Output file path for the composited video.
+        blocking : bool
+            Block until rendering is done. If `False` rendering will occur in
+            the background asynchronously, but the video cannot be used until
+            done. If `False`, movies will be rendered in the background but
+            `lastClip` will block until a movie is available.
 
         """
         # this can only happen when stopped
@@ -1469,23 +1637,10 @@ class Camera:
             raise RuntimeError(
                 "Cannot render video, `stop` has not been called yet.")
 
-        # merge audio and video tracks, we use MoviePy for this
-        videoClip = VideoFileClip(self._tempVideoFileName)
+        videoFile = self._tempVideoFileName
+        audioFile = None if self._mic is None else self._tempAudioFileName
 
-        # if we have a microphone, merge the audio track in
-        if self._mic is not None:
-            audioClip = AudioFileClip(self._tempAudioFileName)
-            # add audio track to the video
-            videoClip.audio = CompositeAudioClip([audioClip])
-
-        # transcode with the format the user wants
-        videoClip.write_videofile(outFile)
-
-        # delete the temp directory and files to clean up after composing the
-        # video
-        # shutil.rmtree(self._tempRootDir)
-
-        return True
+        self._tRender.submitToRender(outFile, videoFile, audioFile)
 
     @property
     def status(self):
@@ -1708,7 +1863,11 @@ class Camera:
         # pass off the player to the thread which will process the stream
         self._tStream = MovieStreamIOThread(self._player)
         self._tStream.begin()
-        self._enqueueFrame()  # pull metadata
+        self._enqueueFrame()  # pull metadata from first frame
+
+        # open the background video editor/renderer task
+        self._tRender = MovieCompositorBGThread()
+        self._tRender.start()
 
     def record(self):
         """Start recording frames.
@@ -1762,6 +1921,11 @@ class Camera:
         if self._tStream is None:
             raise RuntimeError("Cannot close stream, not opened yet.")
 
+        # close any file save thread from before
+        if self._tRender is not None:
+            self._tRender.kill()
+            self._tRender = None
+
         # Close the streaming thread.
         self._tStream.close()  # close the stream
         self._tStream.join()  # wait until thread exits
@@ -1784,26 +1948,13 @@ class Camera:
         must be called prior to saving a video. If `record()` is called again
         before `save()`, the previous recording will be deleted and lost.
 
-        Returns
-        -------
-        int
-            Final size of the output file at `filename` in bytes.
-
         """
         if self._status != STOPPED:
             raise RuntimeError(
                 "Attempted to call `save()` a file before calling `stop()`.")
 
         # render the video
-        if not self._renderVideo(outFile=filename):
-            raise RuntimeError(
-                "Failed to write file `filename`, check if the output path is "
-                "writeable.")
-
-        # make sure that `filename` is valid
-        self._lastClip = os.path.abspath(filename)
-
-        return os.path.getsize(self._lastClip)
+        self._renderVideo(outFile=filename)
 
     def _cleanUpTempDirs(self):
         """Cleanup temporary directories used by the video recorder.
@@ -1820,6 +1971,7 @@ class Camera:
                     absPathToTempDir))
                 shutil.rmtree(absPathToTempDir)
 
+        self._tempDirs.clear()
         logging.info("Done cleaning up temporary video files.")
 
     def _upload(self):
@@ -1842,7 +1994,25 @@ class Camera:
         successfully (`save()` was called), otherwise it will be set to `None`.
 
         """
-        return self._lastClip
+        return self.getLastClip()
+
+    def getLastClip(self):
+        """File path to the last saved recording.
+
+        This function blocks if save was called but the video is done
+        compositing.
+
+        Returns
+        -------
+        str or None
+            Path to the file the most recent call to `save()` created. Returns
+            `None` if no file is ready.
+
+        """
+        if self._tRender is None:
+            return
+
+        return self._tRender.getLastCompletedVideoPath()
 
     @property
     def lastFrame(self):
@@ -2133,6 +2303,48 @@ def getCameraDescriptions(collapse=False):
         collapsedList.extend(formatDescs)
 
     return collapsedList
+
+
+_threadLockType = type(threading.Lock())  # used below
+
+
+def renderVideo(outputFile, videoFile, audioFile=None):
+    """Render a video.
+
+    Combine visual and audio streams into a single movie file. This is used
+    mainly for compositing video and audio data for the camera. Video and audio
+    should have roughly the same duration.
+
+    Parameters
+    ----------
+    outputFile : str
+        Filename to write the movie to. Should have the extension of the file
+        too.
+    videoFile : str
+        Video file path.
+    audioFile : str or None
+        Audio file path. If not provided the movie file will simply be copied
+        to `outFile`.
+
+    Returns
+    -------
+    int
+        Size of the resulting file in bytes.
+
+    """
+    # merge audio and video tracks, we use MoviePy for this
+    videoClip = VideoFileClip(videoFile)
+
+    # if we have a microphone, merge the audio track in
+    if audioFile is not None:
+        audioClip = AudioFileClip(audioFile)
+        # add audio track to the video
+        videoClip.audio = CompositeAudioClip([audioClip])
+
+    # transcode with the format the user wants
+    videoClip.write_videofile(outputFile)
+
+    return os.path.getsize(outputFile)
 
 
 if __name__ == "__main__":

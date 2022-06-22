@@ -6,6 +6,7 @@ disk.
 """
 
 import psychopy
+import time
 import psychopy.core as core
 import psychopy.event as event
 import psychopy.visual as visual
@@ -77,8 +78,10 @@ cam.save('myVideo.mp4')  # uncomment to save the file, just specify the path
 # to a `MovieStim` object to view it afterwards if desired. Gives `None` if
 # `save()` was not called previously.
 if cam.lastClip is not None:
-    print(cam.lastClip)
+    print(cam.lastClip, 'clip')
 
+time.sleep(3.0)
+print(cam.lastClip, 'clip')
 # Close the camera stream. You must call this before exiting or when you're
 # done with the camera.
 cam.close()
