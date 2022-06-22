@@ -512,6 +512,7 @@ class StreamWriterThread(threading.Thread):
     """
     def __init__(self, mic=None):
         threading.Thread.__init__(self)
+        self.daemon = True
 
         self._mic = mic
         self._commandQueue = queue.Queue()
@@ -1060,11 +1061,10 @@ class MovieStreamIOThread(threading.Thread):
 
 class MovieCompositorBGThread(threading.Thread):
     """Class for compositing video files in the background using threading.
-
     """
     def __init__(self):
         threading.Thread.__init__(self)
-        self.daemon = False
+        self.daemon = True
 
         self._inputQueue = queue.Queue()
         self._outputQueue = queue.Queue()
@@ -1226,13 +1226,13 @@ class Camera:
     device : str or int
         Camera to open a stream with. If the ID is not valid, an error will be
         raised when `start()` is called. Value can be a string or number. String
-        values are platform-dependent: a DirectShow URI on Windows, a path
-        on GNU/Linux (e.g., `'/dev/video0'`), or a camera name/index on MacOS.
-        Specifying a number (>=0) is a platform-independent means of selecting a
-        camera. PsychoPy enumerates possible camera devices and makes them
-        selectable without explicitly having the name of the cameras attached to
-        the system. Use caution when specifying an integer, as the same index
-        may not reference the same camera everytime.
+        values are platform-dependent: a DirectShow URI or camera anme on
+        Windows, a path on GNU/Linux (e.g., `'/dev/video0'`), or a camera
+        name/index on MacOS. Specifying a number (>=0) is a platform-independent
+        means of selecting a camera. PsychoPy enumerates possible camera devices
+        and makes them selectable without explicitly having the name of the
+        cameras attached to the system. Use caution when specifying an integer,
+        as the same index may not reference the same camera everytime.
     mic : :class:`~psychopy.sound.microphone.Microphone` or None
         Microphone to record audio samples from during recording. The microphone
         input device must not be in use when `record()` is called. The audio
@@ -1253,11 +1253,11 @@ class Camera:
     --------
     Opening a camera stream and closing it::
 
-        camera = Camera(camera='/dev/video0')
+        camera = Camera(device=0)
         camera.open()  # exception here on invalid camera
         # camera.status == NOT_STARTED
         camera.record()
-        # camera.status == RECORDING
+        # camera.status == STARTED
         camera.stop()
         # camera.status == STOPPED
         camera.close()
@@ -1762,6 +1762,8 @@ class Camera:
         self._recordingTime = streamStatus.recTime
         self._recordingBytes = streamStatus.recBytes
 
+        # self._isReady = streamStatus.status >= STARTED
+
         # if we have a new frame, update the frame information
         videoBuffer = frameImage.to_bytearray()[0]
         videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
@@ -1869,6 +1871,8 @@ class Camera:
         self._tRender = MovieCompositorBGThread()
         self._tRender.start()
 
+        self._isReady = True
+
     def record(self):
         """Start recording frames.
 
@@ -1887,7 +1891,7 @@ class Camera:
             self._mic.record()
 
         self._tStream.record(self._tWriter, self._mic)
-        self._status = RECORDING
+        self._status = STARTED
 
     # def snapshot(self):
     #     """Take a photo with the camera. The camera must be in `'photo'` mode
@@ -1904,6 +1908,7 @@ class Camera:
         # Keep the stream running but stop it from passing any write commands
         # the writer thread.
         self._tStream.stop()
+        self._isReady = False  # not ready
 
         # Close the writer file (not thread) now that the stream thread is no
         # longer writing frames.
@@ -1937,6 +1942,8 @@ class Camera:
 
         self._player.close_player()
         self._player = None  # reset
+
+        self._status = NOT_STARTED
 
         # cleanup temp files to prevent clogging up the user's hard disk
         # self._cleanUpTempDirs()
@@ -2074,6 +2081,13 @@ class Camera:
                 try:
                     self._tWriter.end()
                     self._tWriter.join()
+                except AttributeError:
+                    pass
+
+        if hasattr(self, '_tRender'):
+            if self._tRender is not None:
+                try:
+                    self._tRender.kill()
                 except AttributeError:
                     pass
 
