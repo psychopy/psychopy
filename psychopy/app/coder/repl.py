@@ -34,7 +34,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
     An interactive shell (REPL) for interfacing with a Python interpreter in
     another process owned by the control.
 
-    This class doe not emulate a terminal/console perfectly, so things like
+    This class does not emulate a terminal/console perfectly, so things like
     'curses' and control characters (e.g., Ctrl+C) do not work. Unresponsive
     scripts must be stopped manually, resulting in a loss of the objects in the
     namespace. Therefore, it is recommended that users push lines to the
@@ -291,6 +291,10 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         # boundary of the editable area.
         if newChars:
             self._lastTextPos = self.txtTerm.GetLastPosition()
+            self.txtTerm.ShowPosition(self._lastTextPos)
+            self.txtTerm.SetInsertionPoint(-1)
+
+        self.txtTerm._applyAppTheme()
 
     def resetCaret(self):
         """Place the caret at the entry position if not in an editable region.
@@ -365,10 +369,18 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         wx.EndBusyCursor()
         self.toolbar.update()
 
+        self.txtTerm._applyAppTheme()
+
+    def interrupt(self, evt=None):
+        """Send a keyboard interrupt signal to the interpreter."""
+        if self.isStarted:
+            os.kill(self._pid, wx.SIGINT)
+        self.toolbar.update()
+
     def close(self, evt=None):
         """Close an open interpreter."""
         if self.isStarted:
-            os.kill(self._pid, wx.SIGINT)
+            os.kill(self._pid, wx.SIGTERM)
         self.toolbar.update()
 
     def restart(self, evt=None):
