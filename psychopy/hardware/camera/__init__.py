@@ -1085,19 +1085,16 @@ class MovieCompositorBGThread(threading.Thread):
             # wait until we get a command anc carry it out
             opCode, args = self._inputQueue.get()
             if opCode == 'stop':  # stop the thread
-                print('stopping renderer')
                 running = False
                 continue
             elif opCode == 'render':
                 outputFile, videoFile, audioFile = args
-                print('rendering video {}'.format(outputFile))
                 # do the rendering
                 renderVideo(outputFile, videoFile, audioFile)
                 self._outputQueue.put(outputFile)
                 self._inputQueue.task_done()
 
         self._inputQueue.task_done()  # when close is called
-        print('renderer dead <<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
 
     def _flushOutputQueue(self):
         """Flush the output queue and add items to `_doneItems`.
@@ -1214,7 +1211,6 @@ class MovieCompositorBGThread(threading.Thread):
         """
         self._inputQueue.put(('stop', None))
         self._inputQueue.join()  # wait to finish
-        print('kill sucessful')
 
 
 class Camera:
@@ -1625,7 +1621,7 @@ class Camera:
         self._tWriter.join()  # join it to cleanly exit
         self._tWriter = None
 
-    def _renderVideo(self, outFile, blocking=False):
+    def _renderVideo(self, outFile, useThreads=True):
         """Combine video and audio tracks of temporary video and audio files.
         Outputs a new file at `outFile` with merged video and audio tracks.
 
@@ -1633,11 +1629,8 @@ class Camera:
         ----------
         outFile : str
             Output file path for the composited video.
-        blocking : bool
-            Block until rendering is done. If `False` rendering will occur in
-            the background asynchronously, but the video cannot be used until
-            done. If `False`, movies will be rendered in the background but
-            `lastClip` will block until a movie is available.
+        useThreads : bool
+            Render videos in the background within a separate thread.
 
         """
         # this can only happen when stopped
@@ -1648,7 +1641,10 @@ class Camera:
         videoFile = self._tempVideoFileName
         audioFile = None if self._mic is None else self._tempAudioFileName
 
-        self._tRender.submitToRender(outFile, videoFile, audioFile)
+        if useThreads:
+            self._tRender.submitToRender(outFile, videoFile, audioFile)
+        else:
+            renderVideo(outFile, videoFile, audioFile)
 
     @property
     def status(self):
@@ -1958,12 +1954,20 @@ class Camera:
         # cleanup temp files to prevent clogging up the user's hard disk
         # self._cleanUpTempDirs()
 
-    def save(self, filename):
+    def save(self, filename, useThreads=True):
         """Save the last recording to file.
 
         This will write the last video recording to `filename`. Method `stop()`
         must be called prior to saving a video. If `record()` is called again
         before `save()`, the previous recording will be deleted and lost.
+
+        Parameters
+        ----------
+        filename : str
+            File to save the resulting video to, should include the extension.
+        useThreads : bool
+            Render videos in the background within a separate thread. Default is
+            `True`.
 
         """
         if self._status != STOPPED:
@@ -1971,7 +1975,7 @@ class Camera:
                 "Attempted to call `save()` a file before calling `stop()`.")
 
         # render the video
-        self._renderVideo(outFile=filename)
+        self._renderVideo(outFile=filename, useThreads=useThreads)
 
     def _cleanUpTempDirs(self):
         """Cleanup temporary directories used by the video recorder.
