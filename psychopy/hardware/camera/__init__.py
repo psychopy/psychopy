@@ -1826,7 +1826,8 @@ class Camera:
             if ffmpegPixFmt is None:
                 raise FormatNotFoundError(
                     "Cannot find suitable FFMPEG pixel format for '{}'. Try a "
-                    "different format or camera.".format(ffmpegPixFmt))
+                    "different format or camera.".format(
+                        _cameraInfo.pixelFormat))
 
             _cameraInfo.pixelFormat = ffmpegPixFmt
 
