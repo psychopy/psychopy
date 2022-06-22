@@ -1858,11 +1858,11 @@ class Camera:
             lib_opts['pixel_format'] = _cameraInfo.pixelFormat
             ff_opts['framedrop'] = True
             ff_opts['fast'] = True
-
-        elif _cameraInfo.cameraAPI == CAMERA_API_VIDEO4LINUX:
-            raise OSError(
-                "Sorry, camera does not support Linux at this time. However it "
-                "will in future versions.")
+        # elif _cameraInfo.cameraAPI == CAMERA_API_VIDEO4LINUX:
+        #     raise OSError(
+        #         "Sorry, camera does not support Linux at this time. However, "
+        #         "it will in future versions.")
+        #
         else:
             raise RuntimeError("Unsupported camera API specified.")
 
