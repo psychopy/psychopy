@@ -226,7 +226,7 @@ class DetailsPanel(wx.Panel):
                           style=style)
         self.SetBackgroundColour("white")
         self.parent = parent
-        self._needsUpdate = []
+        self._updateQueue = []
         # Setup sizer
         self.contentBox = wx.BoxSizer()
         self.SetSizer(self.contentBox)
@@ -250,7 +250,7 @@ class DetailsPanel(wx.Panel):
         self.title = wx.TextCtrl(self,
                                  size=(-1, 30 if sys.platform == 'darwin' else -1),
                                  value="")
-        self.title.Bind(wx.EVT_KILL_FOCUS, self.queueUpdate)
+        self.title.Bind(wx.EVT_TEXT, self.queueUpdate)
         self.title.SetFont(
             wx.Font(24, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         )
@@ -347,7 +347,7 @@ class DetailsPanel(wx.Panel):
         self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
         # Description
         self.description = wx.TextCtrl(self, size=(-1, -1), value="", style=wx.TE_MULTILINE)
-        self.description.Bind(wx.EVT_KILL_FOCUS, self.queueUpdate)
+        self.description.Bind(wx.EVT_TEXT, self.queueUpdate)
         self.sizer.Add(self.description, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         self.description.SetToolTip(_translate(
             "Description of the project to be shown on Pavlovia. Note: This is different than a README file!"
@@ -396,10 +396,13 @@ class DetailsPanel(wx.Panel):
         self.updateBtn.SetBitmap(icons.ButtonIcon(stem="view-refresh", size=16).bitmap)
         self.sizer.Add(self.updateBtn, flag=wx.ALIGN_RIGHT | wx.ALL)
         self.updateBtn.Bind(wx.EVT_BUTTON, self.doUpdate)
+        self.updateBtn.Disable()
         # Populate
         if project is not None:
             project.refresh()
         self.project = project
+        # Bind close function
+        self.Bind(wx.EVT_CLOSE, self.close)
 
     @property
     def project(self):
@@ -530,6 +533,9 @@ class DetailsPanel(wx.Panel):
 
         # Layout
         self.Layout()
+        # Clear update queue as we've just set from online
+        self._updateQueue = []
+        self.updateBtn.Disable()
 
     @property
     def session(self):
@@ -615,14 +621,14 @@ class DetailsPanel(wx.Panel):
         # Get object
         obj = evt.GetEventObject()
         # Mark object as needing update
-        if obj not in self._needsUpdate:
-            self._needsUpdate.append(obj)
+        if obj not in self._updateQueue:
+            self._updateQueue.append(obj)
         # Enable update button
         self.updateBtn.Enable()
 
     def doUpdate(self, evt=None):
         # Update each object in queue
-        for obj in self._needsUpdate:
+        for obj in self._updateQueue:
             self.updateProject(obj)
         # Disable update button
         self.updateBtn.Disable()
@@ -677,8 +683,8 @@ class DetailsPanel(wx.Panel):
                 json={"keywords": self.tags.GetValue()}
             )
         # Clear from update queue
-        if obj in self._needsUpdate:
-            self._needsUpdate.remove(obj)
+        if obj in self._updateQueue:
+            self._updateQueue.remove(obj)
 
 
 class ProjectFrame(wx.Dialog):
