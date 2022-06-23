@@ -12,7 +12,7 @@
 import os
 import sys
 
-__version__ = '2022.2.0a5'
+__version__ = '2022.2.0a8'
 __license__ = 'GNU GPLv3 (or more recent equivalent)'
 __author__ = 'Open Science Tools Ltd'
 __author_email__ = 'support@opensciencetools.org'
