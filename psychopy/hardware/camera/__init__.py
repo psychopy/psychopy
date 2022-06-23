@@ -1938,8 +1938,9 @@ class Camera:
         self._tWriter.close()
 
         # stop audio recording if `mic` is available
-        if self._mic is not None and self._mic.isStarted:
-            self._mic.stop()
+        if self._mic is not None:
+            if self._mic.isStarted:
+                self._mic.stop()
             audioTrack = self._mic.getRecording()
             audioTrack.save(self._tempAudioFileName, 'wav')
 
