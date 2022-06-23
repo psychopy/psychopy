@@ -292,13 +292,26 @@ class PavloviaSession:
             gitlabProj = self.gitlab.projects.create(projDict)
         except gitlab.exceptions.GitlabCreateError as e:
             if 'has already been taken' in str(e.error_message):
+                # If name is taken, get instead of create
+                gitlabProj = self.gitlab.projects.get(f"{self.username}/{name}")
+            else:
+                # Otherwise, raise original error
+                raise e
+            # Check for bare remote
+            bareRemote = False
+            try:
+                gitlabProj.repository_tree()
+            except gitlab.exceptions.GitlabGetError:
+                # If we've made it thus far but can't get a tree, the remote is bare
+                bareRemote = True
+            # If remote is populated, handle and return
+            if not bareRemote:
                 dlg = wx.MessageDialog(None, message=_translate(
                     "Project `{namespace}/{name}` already exists, please choose another name."
                 ).format(namespace=namespace, name=name), style=wx.ICON_WARNING)
                 dlg.ShowModal()
                 return
-            else:
-                raise e
+            # Otherwise, continue as normal (bare remote is fine to replace)
 
         # Create pavlovia project object
         pavProject = PavloviaProject(gitlabProj.get_id(), localRoot=localRoot)
@@ -1356,6 +1369,12 @@ def getProject(filename):
                                 "doesn't point to gitlab.pavlovia.org. "
                                 "You could create that as a remote to "
                                 "sync from PsychoPy.".format(gitRoot))
+    elif knownProjects is not None:
+        # If not found but there are local projects, check that none of them point to our current local root
+        for key, deets in knownProjects.items():
+            if pathlib.Path(filename).is_relative_to(deets['localRoot']):
+                # If current filename is in local root of project, we've got a project
+                return PavloviaProject(deets['idNumber'])
 
 
 global _existingSession
