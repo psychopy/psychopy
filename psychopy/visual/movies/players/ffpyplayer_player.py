@@ -12,14 +12,9 @@ __all__ = [
     'FFPyPlayer'
 ]
 
-# very first thing to import
-from ffpyplayer.player import MediaPlayer
-
+from ffpyplayer.player import MediaPlayer  # very first thing to import
 import time
-import atexit
-from pathlib import Path
-
-from psychopy import prefs
+import psychopy.logging as logging
 import math
 import numpy as np
 import threading
@@ -217,7 +212,12 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
 
     def __init__(self, player, bufferFrames=DEFAULT_FRAME_QUEUE_SIZE):
         threading.Thread.__init__(self)
-        self.daemon = False
+        # Make this thread daemonic since we don't yet have a way of tracking
+        # them down. Since we're only reading resources, it's unlikely that
+        # we'll break or corrupt something. Good practice is to call `stop()`
+        # before exiting, this thread will join as usual and cleanly free up
+        # any resources.
+        self.daemon = True
 
         self._player = player  # player interface to FFMPEG
         self._frameQueue = queue.Queue(maxsize=bufferFrames)
@@ -230,13 +230,6 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
         # Locks for syncing the player and main application thread
         self._warmUpLock = threading.Lock()
         self._warmUpLock.acquire(blocking=False)
-        # TODO - shutdown thread lock to prevent segfaulting
-
-        # call this on exit to shutdown the thread
-        def close_on_exit():
-            self.shutdown()
-
-        atexit.register(close_on_exit)
 
     def run(self):
         """Main sub-routine for this thread.
@@ -397,10 +390,13 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
                 cmdOpCode, cmdVal = self._cmdQueue.get_nowait()
                 if cmdOpCode == 'volume':  # set the volume
                     self._player.set_volume(cmdVal)
+                    self._cmdQueue.task_done()
                 elif cmdOpCode == 'mute':
                     self._player.set_mute(bool(cmdVal))
+                    self._cmdQueue.task_done()
                 elif cmdOpCode == 'pause':
                     self._player.set_pause(bool(cmdVal))
+                    self._cmdQueue.task_done()
                 elif cmdOpCode == 'stop':
                     mustStop = True
 
@@ -484,6 +480,12 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
                 sleepTime = nextFrameTime - movieTimeNow
                 time.sleep(sleepTime)
 
+        try:
+            self._cmdQueue.task_done()  # from stop
+        except ValueError:
+            pass
+
+        logging.debug('Video reader thread has been killed.')
         # if we get here the thread is dead
 
     @property
@@ -506,19 +508,22 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
 
         """
         cmd = ('pause', False)
-        self._cmdQueue.put_nowait(cmd)
+        self._cmdQueue.put(cmd)
+        self._cmdQueue.join()
 
     def pause(self):
         """Stop recording frames to the output file.
         """
         cmd = ('pause', True)
-        self._cmdQueue.put_nowait(cmd)
+        self._cmdQueue.put(cmd)
+        self._cmdQueue.join()
 
     def shutdown(self):
         """Stop the thread.
         """
         cmd = ('stop', None)
-        self._cmdQueue.put_nowait(cmd)
+        self._cmdQueue.put(cmd)
+        self._cmdQueue.join()
 
     def isDone(self):
         """Check if the video is done playing.
@@ -541,7 +546,8 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
 
         """
         cmd = ('volume', volume)
-        self._cmdQueue.put_nowait(cmd)
+        self._cmdQueue.put(cmd)
+        self._cmdQueue.join()
 
     def setMute(self, mute):
         """Set the volume for the video.
@@ -553,7 +559,8 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
 
         """
         cmd = ('mute', mute)
-        self._cmdQueue.put_nowait(cmd)
+        self._cmdQueue.put(cmd)
+        self._cmdQueue.join()
 
     def getRecentFrame(self):
         """Get the most recent frame data from the feed (`tuple`).
@@ -820,16 +827,18 @@ class FFPyPlayer(BaseMoviePlayer):
             Log the stop event.
 
         """
-        if self._handle is None:
+        if self._tStream is None:
             raise RuntimeError("Cannot close stream, not opened yet.")
 
         # close the thread
-        self._tStream.shutdown()
+        if not self._tStream.isDone():
+            self._tStream.shutdown()
         self._tStream.join()  # wait until thread exits
         self._tStream = None
 
-        self._handle.close_player()
-        self._handle = None  # reset
+        if self._handle is not None:
+            self._handle.close_player()
+            self._handle = None  # reset
 
     def pause(self, log=False):
         """Pause the current point in the movie. The image of the last frame
@@ -1180,9 +1189,9 @@ class FFPyPlayer(BaseMoviePlayer):
         # Note - Bit messy here, we should just hold onto the `enqueuedFrame`
         # instance and reference its fields from properties. Keeping like this
         # for now.
-        self._metadata = enqueuedFrame.metadata
         frameImage = enqueuedFrame.frameImage
         streamStatus = enqueuedFrame.streamStatus
+        self._metadata = enqueuedFrame.metadata
         self.parent.status = self._status = streamStatus.status
         self._frameIndex = streamStatus.frameIndex
         self._loopCount = streamStatus.loopCount
@@ -1240,10 +1249,17 @@ class FFPyPlayer(BaseMoviePlayer):
         return self._lastFrame
 
     def __del__(self):
-        """Cleanup when unloading."""
-        if hasattr(self, '_player'):
-            if self._player is not None:
-                self._player.close_player()
+        """Cleanup when unloading.
+        """
+        if hasattr(self, '_tStream'):
+            if self._tStream is not None:
+                if not self._tStream.isDone():
+                    self._tStream.shutdown()
+                self._tStream.join()
+
+        if hasattr(self, '_handle'):
+            if self._handle is not None:
+                self._handle.close_player()
 
 
 if __name__ == "__main__":

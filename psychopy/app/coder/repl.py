@@ -11,7 +11,6 @@ import sys
 import wx
 import wx.richtext
 from psychopy.app.themes import handlers, colors, icons
-from psychopy.preferences import prefs
 from psychopy.localization import _translate
 import os
 
@@ -34,7 +33,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
     An interactive shell (REPL) for interfacing with a Python interpreter in
     another process owned by the control.
 
-    This class doe not emulate a terminal/console perfectly, so things like
+    This class does not emulate a terminal/console perfectly, so things like
     'curses' and control characters (e.g., Ctrl+C) do not work. Unresponsive
     scripts must be stopped manually, resulting in a loss of the objects in the
     namespace. Therefore, it is recommended that users push lines to the
@@ -148,8 +147,8 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         self.txtTerm.SetMargins(8)
 
         # capture keypresses
-        if wx.Platform == '__WXMAC__':
-            # need to use this on MacOS
+        if wx.Platform == '__WXMAC__' or wx.Platform == '__WXMSW__':
+            # need to use this on MacOS and Windows
             keyDownBindingId = wx.EVT_KEY_DOWN
         else:
             keyDownBindingId = wx.EVT_CHAR
@@ -199,6 +198,8 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         self.txtTerm.Clear()
         self.txtTerm.WriteText("Hit [Return] to start a Python shell.")
         self._lastTextPos = self.txtTerm.GetLastPosition()
+
+        self.toolbar.update()
 
     @property
     def isStarted(self):
@@ -291,6 +292,10 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         # boundary of the editable area.
         if newChars:
             self._lastTextPos = self.txtTerm.GetLastPosition()
+            self.txtTerm.ShowPosition(self._lastTextPos)
+            self.txtTerm.SetInsertionPoint(-1)
+
+        self.txtTerm._applyAppTheme()
 
     def resetCaret(self):
         """Place the caret at the entry position if not in an editable region.
@@ -339,6 +344,8 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         self.txtTerm.WriteText(
             "Starting Python interpreter session, please wait ...\n")
 
+        self.txtTerm._applyAppTheme()
+
         # setup the sub-process
         wx.BeginBusyCursor()
         self._process = wx.Process(self)
@@ -362,14 +369,21 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
             "Python shell in PsychoPy (pid:{}) - type some commands!\n\n".format(
                 self._pid))  # show the subprocess PID for reference
         self._lastTextPos = self.txtTerm.GetLastPosition()
+        self.toolbar.update()
+
+        self.txtTerm._applyAppTheme()
         wx.EndBusyCursor()
+
+    def interrupt(self, evt=None):
+        """Send a keyboard interrupt signal to the interpreter."""
+        if self.isStarted:
+            os.kill(self._pid, wx.SIGINT)
         self.toolbar.update()
 
     def close(self, evt=None):
         """Close an open interpreter."""
         if self.isStarted:
-            os.kill(self._pid, wx.SIGINT)
-        self.toolbar.update()
+            os.kill(self._pid, wx.SIGTERM)
 
     def restart(self, evt=None):
         """Close the running interpreter (if running) and spawn a new one."""
@@ -416,7 +430,6 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
 
         # if self._isBusy:  # dont capture events when busy
         #     return
-
         if event.GetKeyCode() == wx.WXK_RETURN:
             self.txtTerm.SetInsertionPointEnd()
             entry = self.getTyped()
@@ -446,13 +459,15 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
                 else:
                     self.clearAndReplaceTyped()
             return
-        elif event.GetKeyCode() == wx.WXK_F8:  # close a misbehaving terminal
-            self.close()
-        elif event.GetKeyCode() == wx.WXK_F4:  # close a misbehaving terminal
+        elif event.GetKeyCode() == wx.WXK_F8:  # interrupt a misbehaving terminal
+            self.interrupt()
+        elif event.GetKeyCode() == wx.WXK_F4:  # clear the screen
             self.clear()
         else:
             if self._history:
                 self._historyIdx = -1
+
+        self.txtTerm._applyAppTheme()
 
         event.Skip()
 

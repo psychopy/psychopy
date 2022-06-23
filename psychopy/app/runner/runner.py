@@ -663,6 +663,9 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.SetSizerAndFit(self.mainSizer)
         self.SetMinSize(self.Size)
 
+        # disable the stop button on start
+        self.stopBtn.Disable()
+
         self.theme = parent.theme
 
     def _applyAppTheme(self):

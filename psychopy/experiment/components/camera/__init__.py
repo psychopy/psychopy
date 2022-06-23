@@ -230,7 +230,8 @@ class CameraComponent(BaseComponent):
     def writeRoutineEndCode(self, buff):
         code = (
             "# Make sure %(name)s has stopped recording\n"
-            "%(name)s.stop()\n"
+            "if %(name)s.status == STARTED:\n"
+            "    %(name)s.stop()\n"
         )
         buff.writeIndentedLines(code % self.params)
         if self.params['saveFile']:
