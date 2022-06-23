@@ -1684,23 +1684,23 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate("Themes"))
 
         # ---_view---#000000#FFFFFF-------------------------------------------
-        self.shellMenu = wx.Menu()
-        menuBar.Append(self.shellMenu, _translate('&Shell'))
-
-        menu = self.shellMenu
-        item = menu.Append(
-            wx.ID_ANY,
-            _translate("Start Python Session"),
-            _translate("Start a new Python session in the shell."),
-            wx.ITEM_NORMAL)
-        self.Bind(wx.EVT_MENU, self.onStartShellSession, id=item.GetId())
-        menu.AppendSeparator()
-        item = menu.Append(
-            wx.ID_ANY,
-            _translate("Run Line\tF6"),
-            _translate("Push the line at the caret to the shell."),
-            wx.ITEM_NORMAL)
-        self.Bind(wx.EVT_MENU, self.onPushLineToShell, id=item.GetId())
+        # self.shellMenu = wx.Menu()
+        # menuBar.Append(self.shellMenu, _translate('&Shell'))
+        #
+        # menu = self.shellMenu
+        # item = menu.Append(
+        #     wx.ID_ANY,
+        #     _translate("Start Python Session"),
+        #     _translate("Start a new Python session in the shell."),
+        #     wx.ITEM_NORMAL)
+        # self.Bind(wx.EVT_MENU, self.onStartShellSession, id=item.GetId())
+        # menu.AppendSeparator()
+        # item = menu.Append(
+        #     wx.ID_ANY,
+        #     _translate("Run Line\tF6"),
+        #     _translate("Push the line at the caret to the shell."),
+        #     wx.ITEM_NORMAL)
+        # self.Bind(wx.EVT_MENU, self.onPushLineToShell, id=item.GetId())
 
         # menu.Append(ID_UNFOLDALL, "Unfold All\tF3",
         #   "Unfold all lines", wx.ITEM_NORMAL)
