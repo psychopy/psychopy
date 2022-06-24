@@ -440,6 +440,10 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate("Update PsychoPy to the latest, or a "
                                       "specific, version"))
         self.Bind(wx.EVT_MENU, self.app.openUpdater, item)
+        item = menu.Append(wx.ID_ANY,
+                           _translate("PIP install..."),
+                           _translate("Use PIP to install Python packages to your PsychoPy environment."))
+        self.Bind(wx.EVT_MENU, self.app.openPipInstaller, item)
         if hasattr(self.app, 'benchmarkWizard'):
             item = menu.Append(wx.ID_ANY,
                                _translate("Benchmark wizard"),
