@@ -31,4 +31,5 @@ Communicating with other devices
 
 - :ref:`fmri`
 - :ref:`arduino`
+- To communicate with fNIRS, download `this <LSL_Signal_NIRX_PsychoPy[62].pdf>`_ fantastic document from NIRx.
 

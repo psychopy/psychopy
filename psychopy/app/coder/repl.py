@@ -9,36 +9,106 @@
 
 import sys
 import wx
-from psychopy.app.themes import ThemeMixin
-from psychopy.preferences import prefs
+import wx.richtext
+from psychopy.app.themes import handlers, colors, icons
+from psychopy.localization import _translate
 import os
 
 
-class ConsoleTextCtrl(wx.TextCtrl, ThemeMixin):
+class ConsoleTextCtrl(wx.richtext.RichTextCtrl, handlers.ThemeMixin):
     """Class for the console text control. This is needed to allow for theming.
     """
     def __init__(self, parent, id_=wx.ID_ANY, value="", pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=0,
                  name=wx.TextCtrlNameStr):
 
-        wx.TextCtrl.__init__(
+        wx.richtext.RichTextCtrl.__init__(
             self, parent, id=id_, value=value, pos=pos, size=size, style=style,
             validator=wx.DefaultValidator, name=name)
 
 
-class PythonREPLCtrl(wx.Panel, ThemeMixin):
+class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
     """Class for a Python REPL control.
 
     An interactive shell (REPL) for interfacing with a Python interpreter in
     another process owned by the control.
 
-    This class doe not emulate a terminal/console perfectly, so things like
+    This class does not emulate a terminal/console perfectly, so things like
     'curses' and control characters (e.g., Ctrl+C) do not work. Unresponsive
     scripts must be stopped manually, resulting in a loss of the objects in the
     namespace. Therefore, it is recommended that users push lines to the
     shell using the script editor.
 
     """
+    class PythonREPLToolbar(wx.Panel, handlers.ThemeMixin):
+        def __init__(self, parent):
+            wx.Panel.__init__(self, parent, size=(30, -1))
+            self.parent = parent
+
+            # Setup sizer
+            self.borderBox = wx.BoxSizer(wx.VERTICAL)
+            self.SetSizer(self.borderBox)
+            self.sizer = wx.BoxSizer(wx.VERTICAL)
+            self.borderBox.Add(self.sizer, border=3, flag=wx.ALL)
+            # Start button
+            self.startBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
+            self.startBtn.SetToolTip(_translate(
+                "Close the current shell."
+            ))
+            self.startBtn.SetBitmap(
+                icons.ButtonIcon(stem="start", size=16).bitmap
+            )
+            self.sizer.Add(self.startBtn, border=3, flag=wx.ALL)
+            self.startBtn.Bind(wx.EVT_BUTTON, self.parent.start)
+            # Restart button
+            self.restartBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
+            self.restartBtn.SetToolTip(_translate(
+                "Close the current shell and start a new one, this will clear any variables."
+            ))
+            self.restartBtn.SetBitmap(
+                icons.ButtonIcon(stem="restart", size=16).bitmap
+            )
+            self.sizer.Add(self.restartBtn, border=3, flag=wx.ALL)
+            self.restartBtn.Bind(wx.EVT_BUTTON, self.parent.restart)
+            # Stop button
+            self.stopBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
+            self.stopBtn.SetToolTip(_translate(
+                "Close the current shell."
+            ))
+            self.stopBtn.SetBitmap(
+                icons.ButtonIcon(stem="stop", size=16).bitmap
+            )
+            self.sizer.Add(self.stopBtn, border=3, flag=wx.ALL)
+            self.stopBtn.Bind(wx.EVT_BUTTON, self.parent.close)
+            # Clear button
+            self.clrBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
+            self.clrBtn.SetToolTip(_translate(
+                "Clear all previous output."
+            ))
+            self.clrBtn.SetBitmap(
+                icons.ButtonIcon(stem="clear", size=16).bitmap
+            )
+            self.sizer.Add(self.clrBtn, border=3, flag=wx.ALL)
+            self.clrBtn.Bind(wx.EVT_BUTTON, self.parent.clear)
+
+            self.update()
+            self.Layout()
+
+        def update(self):
+            self.startBtn.Show(not self.parent.isStarted)
+            self.restartBtn.Show(self.parent.isStarted)
+            self.stopBtn.Show(self.parent.isStarted)
+            self.Layout()
+
+        def _applyAppTheme(self):
+            # Set background
+            self.SetBackgroundColour(colors.app['tab_bg'])
+            # Style buttons
+            for btn in (self.startBtn, self.stopBtn, self.clrBtn, self.restartBtn):
+                btn.SetBackgroundColour(colors.app['tab_bg'])
+            self.Refresh()
+            self.Update()
+
     def __init__(self,
                  parent,
                  id_=wx.ID_ANY,
@@ -49,9 +119,14 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
 
         wx.Panel.__init__(self, parent, id=id_, pos=pos, size=size, style=style,
                           name=name)
+        self.tabIcon = "coderpython16"
 
         # sizer for the panel
-        szrMain = wx.BoxSizer(wx.VERTICAL)
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        # Toolbar
+        self.toolbar = self.PythonREPLToolbar(self)
+        self.sizer.Add(self.toolbar, flag=wx.EXPAND)
 
         # TextCtrl used to display the text from the terminal
         styleFlags = (wx.HSCROLL | wx.TE_MULTILINE | wx.TE_PROCESS_ENTER |
@@ -63,8 +138,8 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
             wx.DefaultPosition,
             wx.DefaultSize,
             styleFlags)
-        szrMain.Add(self.txtTerm, 1, wx.ALL | wx.EXPAND, 0)
-        self.SetSizer(szrMain)
+        self.sizer.Add(self.txtTerm, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        self.SetSizer(self.sizer)
         self.Layout()
 
         # set font
@@ -72,8 +147,8 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         self.txtTerm.SetMargins(8)
 
         # capture keypresses
-        if wx.Platform == '__WXMAC__':
-            # need to use this on MacOS
+        if wx.Platform == '__WXMAC__' or wx.Platform == '__WXMSW__':
+            # need to use this on MacOS and Windows
             keyDownBindingId = wx.EVT_KEY_DOWN
         else:
             keyDownBindingId = wx.EVT_CHAR
@@ -98,9 +173,9 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
 
         # Disable smart substitutions for quotes and slashes, uses illegal
         # characters that cannot be evaluated by the interpreter correctly.
-        if wx.Platform == '__WXMAC__':
-            self.txtTerm.OSXDisableAllSmartSubstitutions()
-            self.txtTerm.MacCheckSpelling(False)
+        # if wx.Platform == '__WXMAC__':
+        #     self.txtTerm.OSXDisableAllSmartSubstitutions()
+        #     self.txtTerm.MacCheckSpelling(False)
 
         self.txtTerm.WriteText("Hit [Return] to start a Python session.")
         self._lastTextPos = self.txtTerm.GetLastPosition()
@@ -110,26 +185,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
 
     def setFonts(self):
         """Set the font for the console."""
-        # select the font size, either from prefs or platform defaults
-        if not prefs.coder['codeFontSize']:
-            if wx.Platform == '__WXMSW__':
-                fontSize = 10
-            elif wx.Platform == '__WXMAC__':
-                fontSize = 14
-            else:
-                fontSize = 12
-        else:
-            fontSize = int(prefs.coder['codeFontSize'])
-
-        # get the font to use
-        if prefs.coder['outputFont'].lower() == "From Theme...".lower():
-            fontName = ThemeMixin.codeColors['base']['font'].replace("bold", "").replace("italic", "").replace(",", "")
-        else:
-            fontName = prefs.coder['outputFont']
-
-        # apply the font
-        self.txtTerm.SetFont(
-            wx.Font(fontSize, wx.MODERN, wx.NORMAL, wx.NORMAL, False, fontName))
+        self.txtTerm._applyAppTheme()
 
     def onTerminate(self, event):
         # hooks for the process we're communicating with
@@ -143,10 +199,12 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         self.txtTerm.WriteText("Hit [Return] to start a Python shell.")
         self._lastTextPos = self.txtTerm.GetLastPosition()
 
+        self.toolbar.update()
+
     @property
     def isStarted(self):
         """`True` if the interpreter process has been started."""
-        return self._process is not None
+        return self.process is not None
 
     @property
     def isBusy(self):
@@ -161,7 +219,8 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
     @property
     def process(self):
         """Process object for the interpreter (`wx.Process`)."""
-        return self._process
+        if hasattr(self, "_process"):
+            return self._process
 
     @property
     def pid(self):
@@ -233,6 +292,10 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         # boundary of the editable area.
         if newChars:
             self._lastTextPos = self.txtTerm.GetLastPosition()
+            self.txtTerm.ShowPosition(self._lastTextPos)
+            self.txtTerm.SetInsertionPoint(-1)
+
+        self.txtTerm._applyAppTheme()
 
     def resetCaret(self):
         """Place the caret at the entry position if not in an editable region.
@@ -270,15 +333,18 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
 
         self._isBusy = True
 
-    def start(self):
+    def start(self, evt=None):
         """Start a new interpreter process."""
         if self.isStarted:  # nop if started already
+            self.toolbar.update()
             return
 
         # inform the user that we're starting the console
         self.txtTerm.Clear()
         self.txtTerm.WriteText(
             "Starting Python interpreter session, please wait ...\n")
+
+        self.txtTerm._applyAppTheme()
 
         # setup the sub-process
         wx.BeginBusyCursor()
@@ -303,19 +369,28 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
             "Python shell in PsychoPy (pid:{}) - type some commands!\n\n".format(
                 self._pid))  # show the subprocess PID for reference
         self._lastTextPos = self.txtTerm.GetLastPosition()
+        self.toolbar.update()
+
+        self.txtTerm._applyAppTheme()
         wx.EndBusyCursor()
 
-    def close(self):
-        """Close an open interpreter."""
+    def interrupt(self, evt=None):
+        """Send a keyboard interrupt signal to the interpreter."""
         if self.isStarted:
             os.kill(self._pid, wx.SIGINT)
+        self.toolbar.update()
 
-    def restart(self):
+    def close(self, evt=None):
+        """Close an open interpreter."""
+        if self.isStarted:
+            os.kill(self._pid, wx.SIGTERM)
+
+    def restart(self, evt=None):
         """Close the running interpreter (if running) and spawn a new one."""
         self.close()
         self.start()
 
-    def clear(self):
+    def clear(self, evt=None):
         """Clear the contents of the console."""
         self.txtTerm.Clear()
         self._lastTextPos = self.txtTerm.GetLastPosition()
@@ -355,7 +430,6 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
 
         # if self._isBusy:  # dont capture events when busy
         #     return
-
         if event.GetKeyCode() == wx.WXK_RETURN:
             self.txtTerm.SetInsertionPointEnd()
             entry = self.getTyped()
@@ -385,15 +459,22 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
                 else:
                     self.clearAndReplaceTyped()
             return
-        elif event.GetKeyCode() == wx.WXK_F8:  # close a misbehaving terminal
-            self.close()
-        elif event.GetKeyCode() == wx.WXK_F4:  # close a misbehaving terminal
+        elif event.GetKeyCode() == wx.WXK_F8:  # interrupt a misbehaving terminal
+            self.interrupt()
+        elif event.GetKeyCode() == wx.WXK_F4:  # clear the screen
             self.clear()
         else:
             if self._history:
                 self._historyIdx = -1
 
+        self.txtTerm._applyAppTheme()
+
         event.Skip()
+
+    def _applyAppTheme(self):
+        self.SetBackgroundColour(colors.app['tab_bg'])
+        self.Refresh()
+        self.Update()
 
 
 if __name__ == "__main__":

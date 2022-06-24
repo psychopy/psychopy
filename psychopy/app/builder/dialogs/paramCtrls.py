@@ -13,7 +13,6 @@ import wx
 
 from psychopy.app.colorpicker import PsychoColorPicker
 from psychopy.app.dialogs import ListWidget
-from psychopy.app.themes import ThemeMixin
 from psychopy.colors import Color
 from psychopy.localization import _translate
 from psychopy import data, prefs, experiment
@@ -21,6 +20,7 @@ import re
 from pathlib import Path
 
 from ..localizedStrings import _localizedDialogs as _localized
+from ...themes import icons
 
 
 class _ValidatorMixin:
@@ -272,38 +272,36 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
     def __init__(self, parent, valType,
                  val="", choices=[], labels=[], fieldName="",
                  size=wx.Size(-1, 24)):
-        # translate and add labels to the dropdown
-        choiceLabels = []
-        for i, value in enumerate(choices):
+        self._choices = list(choices)
+        # If not given any labels, alias values
+        if not labels:
+            labels = self._choices
+        # Map labels to values
+        self._labels = {}
+        for i, value in enumerate(self._choices):
             if i < len(labels):
-                label = labels[i]
+                self._labels[value] = labels[i]
             else:
-                label = value
-            try:
-                choiceLabels.append(_localized[label])
-            except:
-                choiceLabels.append(label)
-
+                self._labels[value] = value
         # Create choice ctrl from labels
         wx.Choice.__init__(self)
-        self.Create(parent, -1, size=size, choices=choiceLabels, name=fieldName)
-        self._choices = choices
+        self.Create(parent, -1, size=size, choices=[self._labels[c] for c in self._choices], name=fieldName)
         self.valType = valType
         self.SetStringSelection(val)
 
     def SetStringSelection(self, string):
         if string not in self._choices:
             self._choices.append(string)
-            self.SetItems(self._choices)
-        # Don't use wx.Choice.SetStringSelection here
-        # because label string is localized.
+            self._labels[string] = string
+            self.SetItems(
+                [self._labels[c] for c in self._choices]
+            )
+        # Don't use wx.Choice.SetStringSelection here because label string is localized.
         wx.Choice.SetSelection(self, self._choices.index(string))
-    
-    def GetValue(self):
-        # Don't use wx.Choice.GetStringSelection here
-        # because label string is localized.
-        return self._choices[self.GetSelection()]
 
+    def GetValue(self):
+        # Don't use wx.Choice.GetStringSelection here because label string is localized.
+        return self._choices[self.GetSelection()]
 
 
 class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin, _HideMixin):
@@ -346,7 +344,7 @@ class FileCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         self._szr.Add(self, border=5, proportion=1, flag=wx.EXPAND | wx.RIGHT)
         # Add button to browse for file
-        fldr = parent.app.iconCache.getBitmap(name="folder", size=16, theme="light")
+        fldr = icons.ButtonIcon(stem="folder", size=16).bitmap
         self.findBtn = wx.BitmapButton(parent, -1, size=wx.Size(24, 24), bitmap=fldr)
         self.findBtn.SetToolTip(_translate("Specify file ..."))
         self.findBtn.Bind(wx.EVT_BUTTON, self.findFile)
@@ -435,13 +433,13 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         self._szr.Add(self, proportion=1, border=5, flag=wx.EXPAND | wx.RIGHT)
         # Add button to browse for file
-        fldr = parent.app.iconCache.getBitmap(name="folder", size=16, theme="light")
+        fldr = icons.ButtonIcon(stem="folder", size=16).bitmap
         self.findBtn = wx.BitmapButton(parent, -1, size=wx.Size(24,24), bitmap=fldr)
         self.findBtn.SetToolTip(_translate("Specify file ..."))
         self.findBtn.Bind(wx.EVT_BUTTON, self.findFile)
         self._szr.Add(self.findBtn)
         # Add button to open in Excel
-        xl = parent.app.iconCache.getBitmap(name="filecsv", size=16, theme="light")
+        xl = icons.ButtonIcon(stem="filecsv", size=16).bitmap
         self.xlBtn = wx.BitmapButton(parent, -1, size=wx.Size(24,24), bitmap=xl)
         self.xlBtn.SetToolTip(_translate("Open/create in your default table editor"))
         self.xlBtn.Bind(wx.EVT_BUTTON, self.openExcel)
@@ -529,7 +527,7 @@ class ColorCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         # Add ctrl to sizer
         self._szr.Add(self, proportion=1, border=5, flag=wx.EXPAND | wx.RIGHT)
         # Add button to activate color picker
-        fldr = parent.app.iconCache.getBitmap(name="color", size=16, theme="light")
+        fldr = icons.ButtonIcon(stem="color", size=16).bitmap
         self.pickerBtn = wx.BitmapButton(parent, -1, size=wx.Size(24,24), bitmap=fldr)
         self.pickerBtn.SetToolTip(_translate("Specify color ..."))
         self.pickerBtn.Bind(wx.EVT_BUTTON, self.colorPicker)

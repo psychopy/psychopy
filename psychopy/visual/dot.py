@@ -660,7 +660,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         if nOutOfBounds:
             self._verticesBase[outofbounds, :] = self._newDotsXY(nOutOfBounds)
 
-        self.vertices = self._verticesBase
+        self.vertices = self._verticesBase / self.fieldSize
 
         # update the pixel XY coordinates in pixels (using _BaseVisual class)
         self._updateVertices()

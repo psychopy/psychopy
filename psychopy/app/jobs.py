@@ -36,6 +36,7 @@ __all__ = [
 import os.path
 
 import wx
+import os
 from subprocess import Popen, PIPE
 from threading import Thread, Event
 from queue import Queue, Empty
@@ -286,6 +287,7 @@ class Job:
 
         # isOk = wx.Process.Kill(self._pid, signal, flags) is wx.KILL_OK
         self._process.kill()  # kill the process
+        #self._pollTimer.Stop()
 
         # Wait for the process to exit completely, return code will be incorrect
         # if we don't.

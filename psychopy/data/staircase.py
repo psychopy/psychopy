@@ -188,7 +188,7 @@ class StairHandler(_BaseTrialHandler):
         self.currentDirection = 'start'
         # correct since last stim change (minus are incorrect):
         self.correctCounter = 0
-        self._nextIntensity = self.startVal
+        self.intensity = self.startVal
         self.minVal = minVal
         self.maxVal = maxVal
         self.autoLog = autoLog
@@ -201,6 +201,16 @@ class StairHandler(_BaseTrialHandler):
 
     def __iter__(self):
         return self
+
+    @property
+    def intensity(self):
+        """The intensity (level) of the current staircase"""
+        return self._nextIntensity
+
+    @intensity.setter
+    def intensity(self, intensity):
+        """The intensity (level) of the current staircase"""
+        self._nextIntensity = intensity
 
     def addResponse(self, result, intensity=None):
         """Add a 1 or 0 to signify a correct / detected or
@@ -857,6 +867,7 @@ class QuestHandler(StairHandler):
         self.startValSd = startValSd
         self.pThreshold = pThreshold
         self.stopInterval = stopInterval
+        # NB there is also _nextIntensity
         self._questNextIntensity = startVal
         self._range = range
 
@@ -872,6 +883,8 @@ class QuestHandler(StairHandler):
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
         self._exp = None
         self.autoLog = autoLog
+
+    # NB we inherit self.intensity from StairHandler
 
     @property
     def beta(self):
@@ -1979,6 +1992,16 @@ class MultiStairHandler(_BaseTrialHandler):
             self.thisPassRemaining = list(self.thisPassRemaining)
         else:
             raise ValueError('Unknown randomization method requested.')
+
+    @property
+    def intensity(self):
+        """The intensity (level) of the current staircase"""
+        return self.currentStaircase._nextIntensity
+
+    @intensity.setter
+    def intensity(self, intensity):
+        """The intensity (level) of the current staircase"""
+        self.currentStaircase._nextIntensity = intensity
 
     def addResponse(self, result, intensity=None):
         """Add a 1 or 0 to signify a correct / detected or

@@ -336,7 +336,7 @@ class ButtonComponent(BaseVisualComponent):
         inits = getInitVals(self.params, 'PsychoJS')
         # Get callback from params
         callback = inits['callback']
-        if inits['callback'].val:
+        if inits['callback'].val not in [None, "None", "none", "undefined"]:
             callback = translatePythonToJavaScript(str(callback))
         else:
             callback = ""
