@@ -75,6 +75,10 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         the movie is done. Default is `False`.
     autoStart : bool
         Automatically begin playback of the video when `flip()` is called.
+    replayOnStop : bool
+        Seek to the beginning of the video when `stop()` is called instead of
+        unloading the video. If `True`, the video will still be unloaded if
+        `stop()` is called when `status==FINISHED`.
 
     """
     def __init__(self,
@@ -99,7 +103,8 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  depth=0.0,
                  noAudio=False,
                  interpolate=True,
-                 autoStart=True):
+                 autoStart=True,
+                 replayOnStop=False):
 
         # # check if we have the VLC lib
         # if not haveFFPyPlayer:
@@ -133,6 +138,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.loop = loop
         self._recentFrame = None
         self._autoStart = autoStart
+        self._replayOnStop = replayOnStop
 
         # OpenGL data
         self.interpolate = True
@@ -205,6 +211,29 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         self._freeBuffers()  # free buffers (if any) before creating a new one
         self._setupTextureBuffers()
+
+    def load(self, filename):
+        """Load a movie file from disk (alias of `loadMovie`).
+
+        Parameters
+        ----------
+        filename : str
+            Path to movie file. Must be a format that FFMPEG supports.
+
+        """
+        self.loadMovie(filename=filename)
+
+    def unload(self, log=True):
+        """Stop and unload the movie.
+
+        Parameters
+        ----------
+        log : bool
+            Log this event.
+
+        """
+        self._player.stop(log=log)
+        self._freeBuffers()  # free buffer before creating a new one
 
     @property
     def frameTexture(self):
@@ -317,6 +346,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
             self._player.volume = self._volume
 
         self._player.play(log=log)
+        self.status = PLAYING
 
     def pause(self, log=True):
         """Pause the current point in the movie. The image of the last frame
@@ -329,13 +359,15 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         """
         self._player.pause(log=log)
+        self.status = PAUSED
 
     def stop(self, log=True):
         """Stop the current point in the movie (sound will stop, current frame
         will not advance). Once stopped the movie cannot be restarted - it must
         be loaded again.
 
-        Use `pause()` instead if you may need to restart the movie.
+        If `replayOnStop==True` or `status!=FINISHED` calling stop will not
+        unload the movie, rather restart it.
 
         Parameters
         ----------
@@ -343,8 +375,11 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
             Log this event.
 
         """
-        self._player.stop(log=log)
-        self._freeBuffers()  # free buffer before creating a new one
+        if self._replayOnStop and self.status != FINISHED:
+            self.replay(log=log)
+        else:
+            self.status = FINISHED
+            self.unload(log=log)
 
     def seek(self, timestamp, log=True):
         """Seek to a particular timestamp in the movie.
@@ -370,11 +405,6 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         log : bool
             Log this event.
 
-        Returns
-        -------
-        float
-            Timestamp after rewinding the video.
-
         """
         self._player.rewind(seconds, log=log)
 
@@ -389,22 +419,14 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         log : bool
             Log this event.
 
-        Returns
-        -------
-        float
-            Timestamp at new position after fast forwarding the video.
-
         """
         self._player.fastForward(seconds, log=log)
 
-    def replay(self, autoStart=True, log=True):
+    def replay(self, log=True):
         """Replay the movie from the beginning.
 
         Parameters
         ----------
-        autoStart : bool
-            Start playback immediately. If `False`, you must call `play()`
-            afterwards to initiate playback.
         log : bool
             Log this event.
 
@@ -415,7 +437,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
           you would like to restart the movie without reloading.
 
         """
-        self._player.replay(autoStart, log=log)
+        self._player.replay(log=log)
 
     # --------------------------------------------------------------------------
     # Audio stream control methods

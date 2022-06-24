@@ -19,17 +19,18 @@ mov = visual.MovieStim(
     size=(256, 256),
     flipVert=False,
     flipHoriz=False,
-    loop=True,
+    loop=False,
     noAudio=False,
     volume=0.1,
-    autoStart=False)
+    autoStart=False,
+    replayOnStop=True)
 
 # print some information about the movie
 print('orig movie size={}'.format(mov.frameSize))
 print('orig movie duration={}'.format(mov.duration))
 
 # instructions
-instrText = "`s` Start/Resume\n`p` Pause\n`r` Restart\n`q` Stop and Close"
+instrText = "`z` Start/Resume\n`x` Pause\n`b` Restart\n`q` Stop and Close"
 instr = visual.TextStim(win, instrText, pos=(0.0, -0.75))
 
 # main loop
@@ -44,19 +45,23 @@ while mov.status != constants.FINISHED:
     # process keyboard input
     if event.getKeys('q'):   # quit
         break
-    elif event.getKeys('s'):  # play/start
+    elif event.getKeys('z'):  # play/start
         mov.play()
-    elif event.getKeys('p'):  # pause
+    elif event.getKeys('x'):  # pause
         mov.pause()
-    elif event.getKeys('r'):  # restart/replay
+    elif event.getKeys('b'):  # replay
         mov.replay()
-    elif event.getKeys('m'):  # volume up 5%
+    elif event.getKeys('n'):  # rewind 1 second
+        mov.rewind(1)
+    elif event.getKeys('m'):  # forward 1 second
+        mov.fastForward(1)
+    elif event.getKeys('a'):  # volume up 5%
         mov.volumeUp()
-    elif event.getKeys('n'):  # volume down 5%
+    elif event.getKeys('s'):  # volume down 5%
         mov.volumeDown()
 
 # stop the movie, this frees resources too
-mov.stop()
+mov.unload()  # unloads when `mov.status == constants.FINISHED`
 
 # clean up and exit
 win.close()
