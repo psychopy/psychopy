@@ -8,7 +8,9 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from collections import deque
-from ..themes import icons, colors, handlers
+
+from ..accessibility import scaling
+from ..themes import icons, colors, handlers, fonts
 
 import wx
 import wx.stc
@@ -40,7 +42,7 @@ class SourceTreePanel(wx.Panel, handlers.ThemeMixin):
             self,
             self.treeId,
             pos=(0, 0),
-            size=wx.Size(300, 300),
+            size=scaling.Scaled(300, 300),
             style=wx.TR_HAS_BUTTONS | wx.BORDER_NONE)
 
         # do layout
@@ -65,20 +67,20 @@ class SourceTreePanel(wx.Panel, handlers.ThemeMixin):
         self.srcTree.SetOwnForegroundColour(colors.app['text'])
 
         # get graphics for toolbars and tree items
-        self._treeImgList = wx.ImageList(16, 16)
+        self._treeImgList = wx.ImageList(*scaling.Scaled(16, 16))
         self._treeGfx = {
             'class': self._treeImgList.Add(
-                icons.ButtonIcon('coderclass', size=16).bitmap),
+                icons.ButtonIcon('coderclass', size=scaling.Scaled(16)).bitmap),
             'def': self._treeImgList.Add(
-                icons.ButtonIcon('coderfunc', size=16).bitmap),
+                icons.ButtonIcon('coderfunc', size=scaling.Scaled(16)).bitmap),
             'attr': self._treeImgList.Add(
-                icons.ButtonIcon('codervar', size=16).bitmap),
+                icons.ButtonIcon('codervar', size=scaling.Scaled(16)).bitmap),
             'pyModule': self._treeImgList.Add(
-                icons.ButtonIcon('coderpython', size=16).bitmap),
+                icons.ButtonIcon('coderpython', size=scaling.Scaled(16)).bitmap),
             'jsModule': self._treeImgList.Add(
-                icons.ButtonIcon('coderjs', size=16).bitmap),
+                icons.ButtonIcon('coderjs', size=scaling.Scaled(16)).bitmap),
             'noDoc': self._treeImgList.Add(
-                icons.ButtonIcon('docclose', size=16).bitmap)
+                icons.ButtonIcon('docclose', size=scaling.Scaled(16)).bitmap)
             # 'import': self._treeImgList.Add(
             #     wx.Bitmap(os.path.join(rc, 'coderimport16.png'), wx.BITMAP_TYPE_PNG)),
             # 'treeFolderClosed': _treeImgList.Add(
@@ -89,6 +91,8 @@ class SourceTreePanel(wx.Panel, handlers.ThemeMixin):
         # for non-python functions
         self._treeGfx['function'] = self._treeGfx['def']
         self.srcTree.SetImageList(self._treeImgList)
+
+        self.srcTree.SetFont(fonts.AppFont())
 
     def OnItemSelected(self, evt=None):
         """When a tree item is clicked on."""

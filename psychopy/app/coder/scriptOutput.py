@@ -12,6 +12,8 @@ import locale
 import wx
 import wx.richtext
 import webbrowser
+
+from psychopy.app.accessibility import scaling
 from psychopy.localization import _translate
 from psychopy.alerts._alerts import AlertEntry
 from psychopy.app.themes import handlers, icons, colors
@@ -39,7 +41,7 @@ class ScriptOutputPanel(wx.Panel, handlers.ThemeMixin):
     """
     class OutputToolbar(wx.Panel, handlers.ThemeMixin):
         def __init__(self, parent):
-            wx.Panel.__init__(self, parent, size=(30, -1))
+            wx.Panel.__init__(self, parent, size=scaling.Scaled(30, -1))
             self.parent = parent
 
             # Setup sizer
@@ -49,12 +51,12 @@ class ScriptOutputPanel(wx.Panel, handlers.ThemeMixin):
             self.borderBox.Add(self.sizer, border=3, flag=wx.ALL)
 
             # Clear button
-            self.clrBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
+            self.clrBtn = wx.Button(self, size=scaling.Scaled(16, 16), style=wx.BORDER_NONE)
             self.clrBtn.SetToolTip(_translate(
                 "Clear all previous output."
             ))
             self.clrBtn.SetBitmap(
-                icons.ButtonIcon(stem="clear", size=16).bitmap
+                icons.ButtonIcon(stem="clear", size=scaling.Scaled(16)).bitmap
             )
             self.sizer.Add(self.clrBtn, border=3, flag=wx.ALL)
             self.clrBtn.Bind(wx.EVT_BUTTON, self.parent.ctrl.clear)

@@ -1,11 +1,13 @@
 import builtins
 import keyword
+import sys
 from pathlib import Path
 
 import wx
 import wx.stc as stc
 import re
 
+from ..accessibility import scaling
 from ... import prefs
 from . import colors, theme, loadSpec
 
@@ -472,3 +474,56 @@ def extractColor(val):
 
 coderTheme = CodeTheme()
 
+# Get default system font
+if sys.platform == 'win32':
+    # wx.SYS_DEFAULT_GUI_FONT is default GUI font in Win32
+    sysFont = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+else:
+    sysFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
+
+
+class AppFont(wx.Font):
+    # Defaults are defined at class level, so they can change if needed
+    pointSize = sysFont.GetPointSize()
+    family = sysFont.GetFamily()
+    faceName = sysFont.GetFaceName()
+    italic = False
+    bold = False
+    underline = False
+
+    def __init__(self, pointSize=None, family=None, faceName=None, italic=None, bold=None, underline=None):
+        # Set values
+        if pointSize is not None:
+            self.pointSize = pointSize
+        if family is not None:
+            self.family = family
+        if faceName is not None:
+            self.faceName = faceName
+        if italic is not None:
+            self.italic = italic
+        if bold is not None:
+            self.bold = bold
+        if underline is not None:
+            self.underline = underline
+
+        # Convert bold from bool
+        weight = wx.FONTWEIGHT_NORMAL
+        if self.bold:
+            weight = wx.FONTWEIGHT_BOLD
+        # Convert italic from bool
+        style = wx.FONTSTYLE_NORMAL
+        if self.italic:
+            style = wx.FONTSTYLE_ITALIC
+
+        # Create font
+        wx.Font.__init__(
+            self, family=self.family, faceName=self.faceName,
+            pointSize=scaling.Scaled(self.pointSize),
+            style=style, weight=weight, underline=self.underline)
+
+    def GetUnscaledPointSize(self):
+        return scaling.Scaled(self.pointSize)
+
+    def SetUnscaledPointSize(self, pointSize):
+        self.pointSize = pointSize
+        self.SetPointSize(scaling.Scaled(pointSize))
