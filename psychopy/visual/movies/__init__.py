@@ -75,10 +75,6 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         the movie is done. Default is `False`.
     autoStart : bool
         Automatically begin playback of the video when `flip()` is called.
-    replayOnStop : bool
-        Seek to the beginning of the video when `stop()` is called instead of
-        unloading the video. If `True`, the video will still be unloaded if
-        `stop()` is called when `status==FINISHED`.
 
     """
     def __init__(self,
@@ -103,8 +99,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  depth=0.0,
                  noAudio=False,
                  interpolate=True,
-                 autoStart=True,
-                 replayOnStop=False):
+                 autoStart=True):
 
         # # check if we have the VLC lib
         # if not haveFFPyPlayer:
@@ -138,7 +133,6 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.loop = loop
         self._recentFrame = None
         self._autoStart = autoStart
-        self._replayOnStop = replayOnStop
 
         # OpenGL data
         self.interpolate = True
