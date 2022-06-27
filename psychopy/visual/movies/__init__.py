@@ -257,7 +257,9 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         """
         # get the current movie frame for the video time
-        self._recentFrame = self._player.getMovieFrame()
+        newFrameFromPlayer = self._player.getMovieFrame()
+        if newFrameFromPlayer is not None:
+            self._recentFrame = newFrameFromPlayer
 
         # only do a pixel transfer on valid frames
         if self._recentFrame is not None:
