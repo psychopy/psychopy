@@ -266,7 +266,7 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
 
         # Subroutines for various player functions -----------------------------
 
-        def seekTo(player, ptsTarget, maxAttempts=1024):
+        def seekTo(player, ptsTarget, maxAttempts=16):
             """Seek to a position in the video. Return the frame at that
             position.
 
@@ -473,14 +473,16 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
             #   'seek'    | pts, bool          | Seek to a movie position
             #
             mustStop = False
-            while not self._cmdQueue.empty():
+            if not self._cmdQueue.empty():
                 cmdOpCode, cmdVal = self._cmdQueue.get_nowait()
                 if cmdOpCode == 'volume':  # set the volume
                     self._player.set_volume(cmdVal)
                     self._cmdQueue.task_done()
+                    continue
                 elif cmdOpCode == 'mute':
                     self._player.set_mute(bool(cmdVal))
                     self._cmdQueue.task_done()
+                    continue
                 elif cmdOpCode == 'pause':
                     self._player.set_pause(bool(cmdVal))
                     if self._player.get_pause():
@@ -488,7 +490,6 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
                     else:
                         statusFlag = PLAYING
                     self._cmdQueue.task_done()
-                    break  # needs to break to process
                 elif cmdOpCode == 'seek':
                     seekToPts, seekRel = cmdVal
                     if seekRel:  # always used absolute values
@@ -501,11 +502,9 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
                         self._cmdQueue.task_done()
                     else:
                         statusFlag = SEEKING
-                    break  # needs to break to process
 
                 elif cmdOpCode == 'stop':
                     mustStop = True
-                    break  # needs to break to process
 
             if mustStop:  # kill the thread if we get a stop command
                 statusFlag = FINISHED
@@ -970,8 +969,6 @@ class FFPyPlayer(BaseMoviePlayer):
 
         self._tStream.play()
 
-        self.parent.status = self._status = PLAYING
-
     def stop(self, log=False):
         """Stop the current point in the movie (sound will stop, current frame
         will not advance). Once stopped the movie cannot be restarted - it must
@@ -998,8 +995,6 @@ class FFPyPlayer(BaseMoviePlayer):
             self._handle.close_player()
             self._handle = None  # reset
 
-        self.parent.status = self._status = NOT_STARTED  # STOPPED?
-
     def pause(self, log=False):
         """Pause the current point in the movie. The image of the last frame
         will persist on-screen until `play()` or `stop()` are called.
@@ -1014,7 +1009,6 @@ class FFPyPlayer(BaseMoviePlayer):
 
         self._tStream.pause()
         self._enqueueFrame()
-        self.parent.status = self._status = PAUSED
 
         return False
 
@@ -1081,9 +1075,8 @@ class FFPyPlayer(BaseMoviePlayer):
 
         """
         self._assertMediaPlayer()
-        self.seek(0.0, log=log)
         self.pause(log=log)
-        self.parent.status = self._status = NOT_STARTED
+        self.seek(0.0, log=log)
 
         if autoStart:
             self.play(log=log)
@@ -1369,7 +1362,6 @@ class FFPyPlayer(BaseMoviePlayer):
         frameImage = enqueuedFrame.frameImage
         streamStatus = enqueuedFrame.streamStatus
         self._metadata = enqueuedFrame.metadata
-        self.parent.status = self._status = streamStatus.status
         self._frameIndex = streamStatus.frameIndex
         self._loopCount = streamStatus.loopCount
 

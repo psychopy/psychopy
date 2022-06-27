@@ -365,11 +365,8 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
     def stop(self, log=True):
         """Stop the current point in the movie (sound will stop, current frame
-        will not advance). Once stopped the movie cannot be restarted - it must
-        be loaded again.
-
-        If `replayOnStop==True` or `status!=FINISHED` calling stop will not
-        unload the movie, rather restart it.
+        will not advance and remain on-screen). Once stopped the movie can be
+        restarted from the beginning by calling `play()`.
 
         Parameters
         ----------
@@ -377,11 +374,10 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
             Log this event.
 
         """
-        if self._replayOnStop and self.status != FINISHED:
-            self.replay(log=log)
-        else:
-            self.status = FINISHED
-            self.unload(log=log)
+        # stop should reset the video to the start and pause
+        self._player.pause()
+        self._player.seek(0.0)
+        self.status = NOT_STARTED
 
     def seek(self, timestamp, log=True):
         """Seek to a particular timestamp in the movie.
@@ -440,6 +436,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         """
         self._player.replay(log=log)
+        self.status = NOT_STARTED
 
     # --------------------------------------------------------------------------
     # Audio stream control methods
