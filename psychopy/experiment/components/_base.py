@@ -6,7 +6,7 @@ Part of the PsychoPy library
 Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
-
+import copy
 from pathlib import Path
 from xml.etree.ElementTree import Element
 
@@ -138,6 +138,26 @@ class BaseComponent:
     def __repr__(self):
         _rep = "psychopy.experiment.components.%s(name='%s', exp=%s)"
         return _rep % (self.__class__.__name__, self.name, self.exp)
+
+    def copy(self, exp=None, parentName=None, name=None):
+        # Alias None with current attributes
+        if exp is None:
+            exp = self.exp
+        if parentName is None:
+            parentName = self.parentName
+        if name is None:
+            name = self.name
+        # Create new component of same class with bare minimum inputs
+        newCompon = type(self)(exp=exp, parentName=parentName, name=name)
+        # Add params
+        for name, param in self.params.items():
+            # Don't copy name
+            if name == "name":
+                continue
+            # Copy other params
+            newCompon.params[name] = copy.deepcopy(param)
+
+        return newCompon
 
     def integrityCheck(self):
         """
