@@ -2105,13 +2105,17 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
     def copyCompon(self, event=None, component=None):
         """This is easy - just take a copy of the component into memory
         """
-        self.app.copiedCompon = copy.deepcopy(component)
+        self.app.copiedCompon = component.copy()
 
     def pasteCompon(self, event=None, component=None, index=None):
-        if not self.app.copiedCompon:
-            return -1  # not possible to paste if nothing copied
+        # Alias None for component stored in app
+        if component is None and self.app.copiedCompon:
+            component = self.app.copiedCompon
+        # Fail if nothing copied
+        if component is None:
+            return -1
         exp = self.frame.exp
-        origName = self.app.copiedCompon.params['name'].val
+        origName = component.params['name'].val
         defaultName = exp.namespace.makeValid(origName)
         msg = _translate('New name for copy of "%(copied)s"?  [%(default)s]')
         vals = {'copied': origName, 'default': defaultName}
@@ -2119,14 +2123,18 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         dlg = wx.TextEntryDialog(self, message=message,
                                  caption=_translate('Paste Component'))
         if dlg.ShowModal() == wx.ID_OK:
+            # Get new name
             newName = dlg.GetValue()
-            newCompon = copy.deepcopy(self.app.copiedCompon)
             if not newName:
                 newName = defaultName
             newName = exp.namespace.makeValid(newName)
-            newCompon.params['name'].val = newName
-            if 'name' in dir(newCompon):
-                newCompon.name = newName
+            # Create copy of component with new references
+            newCompon = component.copy(
+                exp=exp,
+                parentName=self.routine.name,
+                name=newName
+            )
+            # Add to routine
             if index is None:
                 self.routine.addComponent(newCompon)
             else:
