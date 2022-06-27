@@ -433,6 +433,7 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
 
         # Rewind back to the beginning of the file, we should have the first
         # frame and metadata from the file by now.
+        self._player.set_pause(True)  # start paused
         frameData, val = seekTo(self._player, 0.0)
 
         # set the volume again because irt doesn't seem to remember it
@@ -511,14 +512,17 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
                 continue
 
             # ------------------------------------------------------------------
-            # Seeking and Playback
+            # Seeking
             #
             # When seeking, we cannot expect the player to have the frame we
             # need queued up. So we have to wait until it returns a frame with
             # the correct timestamp close to the desired location.
             #
             if statusFlag != SEEKING:
-                frameData, val = self._player.get_frame(show=True)
+                if not playerJustStarted:
+                    frameData, val = self._player.get_frame(show=True)
+                else:
+                    playerJustStarted = False   # use the frame from the warmup
             else:
                 frameData = None
                 while frameData is None:
@@ -551,8 +555,6 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
                 self._cmdQueue.task_done()
 
                 continue
-
-            #print(seekToPts, self._player.get_pts(), pts, lastTimestamp)
 
             # process status flags coming from the stream reader
             if isinstance(val, str):
