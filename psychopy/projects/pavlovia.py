@@ -1369,12 +1369,6 @@ def getProject(filename):
                                 "doesn't point to gitlab.pavlovia.org. "
                                 "You could create that as a remote to "
                                 "sync from PsychoPy.".format(gitRoot))
-    elif knownProjects is not None:
-        # If not found but there are local projects, check that none of them point to our current local root
-        for key, deets in knownProjects.items():
-            if pathlib.Path(filename).is_relative_to(deets['localRoot']):
-                # If current filename is in local root of project, we've got a project
-                return PavloviaProject(deets['idNumber'])
 
 
 global _existingSession
