@@ -64,3 +64,24 @@ class TestWindow:
                                          f"{err}")
             # Close
             win.close()
+
+    def test_win_color_with_image(self):
+        """
+        Test that the window color is still visible under the background image
+        """
+        cases = [
+            "red",
+            "blue",
+            "green",
+        ]
+
+        win = visual.Window(size=(200, 200), backgroundImage="default.png", backgroundFit="contain")
+        for case in cases:
+            # Set window color
+            win.color = case
+            # Draw with background
+            win.flip()
+            # Check
+            filename = f"test_win_bgcolor_{case}.png"
+            # win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+            utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, win, crit=7)
