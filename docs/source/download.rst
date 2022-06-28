@@ -38,7 +38,7 @@ For the easiest installation download and install the Standalone package.
       url = '#linux';
     }
 
-    document.write( "<br><center>To install |PsychoPy| on <strong>"+osLabel+"</strong> we recommend<br>");
+    document.write( "<br><center>To install PsychoPy on <strong>"+osLabel+"</strong> we recommend<br>");
     document.write( "<button class='btn-primary btn-lg' onclick='window.location.href=url'>" +
         "<i class='fa fa-download'></i>" + filename + "</button></center><br>" );
 
