@@ -103,6 +103,6 @@ class TestImage(_TestUnitsMixin, _TestBoilerplateMixin):
             # Check that image looks as expected
             self.obj.draw()
             filename = f"test_image_aspect_{case['tag']}.png"
-            self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+            # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
             utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=7)
             self.win.flip()
