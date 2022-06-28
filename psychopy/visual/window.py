@@ -72,7 +72,7 @@ if sys.platform == 'win32':
 import psychopy  # so we can get the __path__
 from psychopy import core, platform_specific, logging, prefs, monitors
 import psychopy.event
-from . import backends
+from . import backends, image
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
@@ -155,6 +155,8 @@ class Window():
                  pos=None,
                  color=(0, 0, 0),
                  colorSpace='rgb',
+                 backgroundImage=None,
+                 backgroundFit="cover",
                  rgb=None,
                  dkl=None,
                  lms=None,
@@ -615,6 +617,10 @@ class Window():
         atexit.register(close_on_exit)
 
         self._mouse = event.Mouse(win=self)
+        self.backgroundImage = backgroundImage
+        self.backgroundFit = backgroundFit
+        if hasattr(self.backgroundImage, "draw"):
+            self.backgroundImage.draw()
 
     def __del__(self):
         if self._closed is False:
@@ -1251,6 +1257,10 @@ class Window():
 
         # keep the system awake (prevent screen-saver or sleep)
         platform_specific.sendStayAwake()
+
+        # Draw background (if present) for next frame
+        if hasattr(self.backgroundImage, "draw"):
+            self.backgroundImage.draw()
 
         #    If self.waitBlanking is True, then return the time that
         # GL.glFinish() returned, set as the 'now' variable. Otherwise
@@ -2733,6 +2743,88 @@ class Window():
     @rgb.setter
     def rgb(self, value):
         self.color = Color(value, 'rgb')
+
+    @attributeSetter
+    def backgroundImage(self, value):
+        """
+        Background image for the window, can be either a visual.ImageStim object or anything which could be passed to
+        visual.ImageStim.image to create one. Will be drawn each time `win.flip()` is called, meaning it is always
+        below all other contents of the window.
+        """
+        if value is None:
+            # If given None, store so we know not to use a background image
+            self._backgroundImage = None
+            self.__dict__['backgroundImage'] = self._backgroundImage
+            return
+        elif hasattr(value, "draw") and hasattr(value, "win"):
+            # If given a visual object, set its parent window to self and use it
+            value.win = self
+            self._backgroundImage = value
+        else:
+            # Otherwise, try to make an image from value (start off as if backgroundFit was None)
+            self._backgroundImage = image.ImageStim(self, image=value, size=None, pos=(0, 0))
+
+        # Set background fit again now that we have an image
+        if hasattr(self, "_backgroundFit"):
+            self.backgroundFit = self._backgroundFit
+
+        self.__dict__['backgroundImage'] = self._backgroundImage
+
+    @attributeSetter
+    def backgroundFit(self, value):
+        """
+        How should the background image of this window fit? Options are:
+
+        None, "None", "none"
+            No scaling is applied, image is present at its pixel size unaltered.
+        "cover"
+            Image is scaled such that it covers the whole screen without changing its aspect ratio. In other words,
+            both dimensions are evenly scaled such that its SHORTEST dimension matches the window's LONGEST dimension.
+        "contain"
+            Image is scaled such that it is contained within the screen without changing its aspect ratio. In other
+            words, both dimensions are evenly scaled such that its LONGEST dimension matches the window's SHORTEST
+            dimension.
+        "scaleDown", "scale-down", "scaledown"
+            If image is bigger than the window along any dimension, it will behave as if backgroundFit were "contain".
+            Otherwise, it will behave as if backgroundFit were None.
+        """
+        self._backgroundFit = value
+
+        # Skip if no background image
+        if (not hasattr(self, "_backgroundImage")) or (self._backgroundImage is None):
+            self.__dict__['backgroundFit'] = self._backgroundFit
+            return
+
+        # If value is scaleDown or alias, set to None or "contain" based on relative size
+        if value in ("scaleDown", "scale-down", "scaledown"):
+            overflow = numpy.asarray(self._backgroundImage._origSize) > numpy.asarray(self.size)
+            if overflow.any():
+                value = "contain"
+            else:
+                value = None
+
+        if value in (None, "None", "none"):
+            # If value is None, don't change the backgroundImage at all
+            pass
+        elif value == "fill":
+            # If value is fill, make backgroundImage fill screen
+            self._backgroundImage.units = "norm"
+            self._backgroundImage.size = (2, 2)
+            self._backgroundImage.pos = (0, 0)
+        if value in ("contain", "cover"):
+            # If value is contain or cover, set one dimension to fill screen and the other to maintain ratio
+            ratios = numpy.asarray(self._backgroundImage.size) / numpy.asarray(self.size)
+            if value == "cover":
+                i = ratios.argmin()
+            else:
+                i = ratios.argmax()
+            size = [None, None]
+            size[i] = 2
+            self._backgroundImage.units = "norm"
+            self._backgroundImage.size = size
+            self._backgroundImage.pos = (0, 0)
+
+        self.__dict__['backgroundFit'] = self._backgroundFit
 
     def _setupGamma(self, gammaVal):
         """A private method to work out how to handle gamma for this Window
