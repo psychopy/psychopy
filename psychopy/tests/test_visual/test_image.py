@@ -70,7 +70,7 @@ class TestImage(_TestUnitsMixin, _TestBoilerplateMixin):
              "size": (None, 1), "units": "height",
              "tag": "default_xNone_yFull"},
             {"img": "default.png", "aspect": (1, 1),
-             "size": (1, None), "units": "height",
+             "size": (1 / self.win.size[1] * self.win.size[0], None), "units": "height",
              "tag": "default_xFull_yNone"},
             {"img": "default.png", "aspect": (1, 1),
              "size": (None, None), "units": "height",
