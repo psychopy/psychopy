@@ -428,11 +428,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         frac = Fraction(*self._origSize)
         return frac.numerator, frac.denominator
 
-    @property
-    def size(self):
-        return BaseVisualStim.size.fget(self)
-
-    @size.setter
+    @attributeSetter
     def size(self, value):
         isNone = numpy.asarray(value) == None
         if (self.aspectRatio is not None) and (isNone.any()) and (not isNone.all()):
@@ -450,6 +446,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
 
         # Do base setting
         BaseVisualStim.size.fset(self, value)
+        self.__dict__['size'] = BaseVisualStim.size.fget(self)
 
     @attributeSetter
     def mask(self, value):
