@@ -71,49 +71,53 @@ includes = ['_sitebuiltins',  # needed for help()
             'vlc',  # install with pip install python-vlc
             'msgpack_numpy',
             'configparser',
+            'ntplib',  # for egi-pynetstation
             ]
 packages = ['pydoc',  # needed for help()
             'wx', 'psychopy',
+            'PyQt5',
             'pyglet', 'pytz', 'OpenGL', 'glfw',
-            'scipy', 'matplotlib', 'openpyxl',
+            'scipy', 'matplotlib', 'openpyxl', 'pandas',
             'xml', 'xmlschema', 'elementpath',
+            'ffpyplayer', 'cython', 'AVFoundation',
             'moviepy', 'imageio', 'imageio_ffmpeg',
             '_sounddevice_data', '_soundfile_data',
             'cffi', 'pycparser',
             'PIL',  # 'Image',
+            'freetype',
             'objc', 'Quartz', 'AppKit', 'QTKit', 'Cocoa',
             'Foundation', 'CoreFoundation',
             'pkg_resources',  # needed for objc
             'pyo',
             'requests', 'certifi', 'cryptography',
-            # for unit testing
-            'coverage',
-            # handy external science libs
-            'serial',
-            'egi', 'pylink', 'tobiiresearch',
-            'pyxid2', 'ftd2xx',  # ftd2xx is used by cedrus
-            'pandas', 'tables',  # 'cython',
-            'msgpack', 'yaml', 'gevent',  # for ioHub
-            # these aren't needed, but liked
-            'bidi', 'arabic_reshaper',  # for right-left language conversions
-            # for Py3 compatibility
-            'ujson',  # faster than built-in json
             'json_tricks',  # allows saving arrays/dates in json
             'git', 'gitlab',
+            'msgpack', 'yaml', 'gevent',  # for ioHub
             'astunparse', 'esprima',  # for translating/adapting py/JS
+            'metapensiero.pj', 'dukpy', 'macropy',
+            'jedi', 'parso',
+            'bidi', 'arabic_reshaper',  # for right-left language conversions
+            'ujson',  # faster than built-in json
+            'six',  # needed by configobj
+            # for unit testing
+            'coverage',
+            # hardware
+            'serial',
+            'egi_pynetstation', 'pylink', 'tobiiresearch',
+            'pyxid2', 'ftd2xx',  # ftd2xx is used by cedrus
+            # handy science tools
+            'tables',  # 'cython',
+            # these aren't needed, but liked
             'pylsl', 'pygaze',
+            'Phidget22',
             'smite',  # https://github.com/marcus-nystrom/SMITE (not pypi!)
             'cv2',
             'badapted', 'darc_toolbox',  # adaptive methods from Ben Vincent
             'questplus',
-            'metapensiero.pj', 'dukpy', 'macropy',
-            'jedi', 'parso',
             'psychtoolbox',
-            'freetype', 'h5py',
+            'h5py',
             'markdown_it',
             'speech_recognition', 'googleapiclient', 'pocketsphinx',
-            'six',  # needed by configobj
-            'PyQt5',
             ]
 
 setup(
@@ -142,6 +146,9 @@ setup(
                   NSHumanReadableCopyright   = "Open Science Tools Limited",
                   CFBundleDocumentTypes=[dict(CFBundleTypeExtensions=['*'],
                                               CFBundleTypeRole='Editor')],
+                  CFBundleURLTypes=[dict(CFBundleURLName='psychopy',  # respond to psychopy://
+                                         CFBundleURLSchemes='psychopy',
+                                         CFBundleTypeRole='Editor')],
                   LSEnvironment=dict(PATH="/usr/local/git/bin:/usr/local/bin:"
                                           "/usr/local:/usr/bin:/usr/sbin"),
             ),

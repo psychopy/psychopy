@@ -11,7 +11,7 @@ from .. import utils
 from . import functions
 import re
 from pathlib import Path
-from psychopy.tools.versionchooser import _translate
+from psychopy.localization import _translate
 from ...tools.stringtools import valid_proj_name
 
 

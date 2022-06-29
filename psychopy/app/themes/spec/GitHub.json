@@ -1,0 +1,154 @@
+{
+  "app": "light",
+  "icons": "light",
+  "info": "Light theme modelled after the styling used by GitHub",
+  "code": {
+    "base": {
+      "fg": "#333333",
+      "bg": "#FFFFFF",
+      "font": "JetBrains Mono"
+    },
+    "margin": {
+      "fg": "",
+      "bg": "#eeeeee",
+      "font": ""
+    },
+    "caret": {
+      "fg": "",
+      "bg": "",
+      "font": ""
+    },
+    "select": {
+      "fg": "#FFFFFF",
+      "bg": "#969896",
+      "font": ""
+    },
+    "indent": {
+      "fg": "#969896",
+      "bg": "",
+      "font": ""
+    },
+    "brace": {
+      "fg": "",
+      "bg": "",
+      "font": ""
+    },
+    "operator": {
+      "fg": "#A71D5D",
+      "bg": "",
+      "font": ""
+    },
+    "keyword": {
+      "fg": "#a71d5d",
+      "bg": "",
+      "font": ""
+    },
+    "keyword2": {
+      "fg": "#0086B3",
+      "bg": "",
+      "font": ""
+    },
+    "controlchar": {
+      "fg": "#63a35c",
+      "bg": "",
+      "font": ""
+    },
+    "id": {
+      "fg": "",
+      "bg": "",
+      "font": ""
+    },
+    "num": {
+      "fg": "#0086B3",
+      "bg": "",
+      "font": ""
+    },
+    "char": {
+      "fg": "#032f62",
+      "bg": "",
+      "font": ""
+    },
+    "str": {
+      "fg": "#032f62",
+      "bg": "",
+      "font": ""
+    },
+    "openstr": {
+      "fg": "#032f62",
+      "bg": "#969896",
+      "font": ""
+    },
+    "infix": {
+      "fg": "",
+      "bg": "",
+      "font": ""
+    },
+    "openinfix": {
+      "fg": "",
+      "bg": "",
+      "font": ""
+    },
+    "decorator": {
+      "fg": "#0086B3",
+      "bg": "",
+      "font": ""
+    },
+    "class": {
+      "fg": "#795da3",
+      "bg": "",
+      "font": ""
+    },
+    "def": {
+      "fg": "#795da3",
+      "bg": "",
+      "font": ""
+    },
+    "comment": {
+      "fg": "#969896",
+      "bg": "",
+      "font": ""
+    },
+    "commentblock": {
+      "fg": "#969896",
+      "bg": "",
+      "font": ""
+    },
+    "commentkw": {
+      "fg": "#969896",
+      "bg": "",
+      "font": ""
+    },
+    "commenterror": {
+      "fg": "#969896",
+      "bg": "",
+      "font": ""
+    },
+    "documentation": {
+      "fg": "",
+      "bg": "",
+      "font": "italic"
+    },
+    "documentation2": {
+      "fg": "",
+      "bg": "",
+      "font": "italic"
+    },
+    "whitespace": {
+      "fg": "",
+      "bg": "",
+      "font": ""
+    },
+    "python": {
+
+    },
+    "c++": {
+
+    },
+    "r": {
+
+    },
+    "json": {
+
+    }
+  }
+}

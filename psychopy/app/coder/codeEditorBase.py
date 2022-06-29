@@ -12,12 +12,12 @@
 
 import wx
 import wx.stc
-from ..themes import ThemeMixin
+from ..themes import handlers
 
 from psychopy.localization import _translate
 
 
-class BaseCodeEditor(wx.stc.StyledTextCtrl, ThemeMixin):
+class BaseCodeEditor(wx.stc.StyledTextCtrl, handlers.ThemeMixin):
     """Provides base class for code editors
        See the wxPython demo styledTextCtrl 2.
     """

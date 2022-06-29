@@ -19,6 +19,7 @@ Documentation
    Builder - building experiments in a GUI <builder/index>
    Coder - writing experiments with scripts <coder/index>
    Online - running experiments on the web <online/index>
+   Hardware - interacting with external hardware <hardware/index>
    api/index
 
 Further information:

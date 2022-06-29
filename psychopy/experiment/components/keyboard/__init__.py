@@ -513,13 +513,13 @@ class KeyboardComponent(BaseComponent):
 
         code = (
             "// update the trial handler\n"
-            "if (psychoJS.experiment.currentLoop instanceof MultiStairHandler) {\n"
+            "if (currentLoop instanceof MultiStairHandler) {\n"
         )
         buff.writeIndentedLines(code % self.params)
 
         buff.setIndentLevel(1, relative=True)
         code = (
-                "psychoJS.experiment.currentLoop.addResponse(%(name)s.corr, level);\n"
+                "currentLoop.addResponse(%(name)s.corr, level);\n"
         )
         buff.writeIndentedLines(code % self.params)
 

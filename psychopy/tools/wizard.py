@@ -324,7 +324,7 @@ class BaseWizard():
                         import PIL
                         ver = PIL.__version__
                     elif pkg == 'pynetstation':
-                        from psychopy.hardware import egi
+                        import egi_pynetstation
                         ver = 'import ok'
                     elif pkg == 'pyserial':
                         import serial

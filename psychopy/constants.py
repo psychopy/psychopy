@@ -12,10 +12,12 @@ NOT_STARTED = 0
 PLAYING = 1
 STARTED = PLAYING
 PAUSED = 2
+RECORDING = 3
 STOPPED = -1
 FINISHED = STOPPED
-SKIP = -2
+SKIP = SEEKING = -2
 STOPPING = -3
+INVALID = -9999
 
 # for button box:
 PRESSED = 1
@@ -25,7 +27,7 @@ RELEASED = -1
 FOREVER = 1000000000  # seconds
 
 # USERAGENT is for consistent http-related self-identification across an app.
-# It shows up in server logs on the receiving end. Currently the value (and
+# It shows up in server logs on the receiving end. Currently, the value (and
 # its use from psychopy) is arbitrary and optional. Having it standardized
 # and fixed will also help people who develop their own http-log analysis
 # tools for use with contrib.http.upload()

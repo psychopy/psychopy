@@ -8,7 +8,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from collections import deque
-from ..themes import ThemeMixin
+from ..themes import icons, colors, handlers
 
 import wx
 import wx.stc
@@ -22,13 +22,14 @@ CPP_DEFS = ['void', 'int', 'float', 'double', 'short', 'byte', 'struct', 'enum',
 PYTHON_DEFS = ['def', 'class']
 
 
-class SourceTreePanel(wx.Panel):
+class SourceTreePanel(wx.Panel, handlers.ThemeMixin):
     """Panel for the source tree browser."""
     def __init__(self, parent, frame):
         wx.Panel.__init__(self, parent, -1)
         self.parent = parent
         self.coder = frame
         self.app = frame.app
+        self.tabIcon = "coderclass"
 
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(self.coder.IsDoubleBuffered())
@@ -59,27 +60,25 @@ class SourceTreePanel(wx.Panel):
 
         self._applyAppTheme()
 
-    def _applyAppTheme(self, target=None):
-        cs = ThemeMixin.appColors
-        iconCache = self.app.iconCache
-        self.srcTree.SetOwnBackgroundColour(cs['tab_bg'])
-        self.srcTree.SetOwnForegroundColour(cs['text'])
+    def _applyAppTheme(self):
+        self.srcTree.SetOwnBackgroundColour(colors.app['tab_bg'])
+        self.srcTree.SetOwnForegroundColour(colors.app['text'])
 
         # get graphics for toolbars and tree items
         self._treeImgList = wx.ImageList(16, 16)
         self._treeGfx = {
             'class': self._treeImgList.Add(
-                iconCache.getBitmap(name='coderclass.png', size=16)),
+                icons.ButtonIcon('coderclass', size=16).bitmap),
             'def': self._treeImgList.Add(
-                iconCache.getBitmap(name='coderfunc.png', size=16)),
+                icons.ButtonIcon('coderfunc', size=16).bitmap),
             'attr': self._treeImgList.Add(
-                iconCache.getBitmap(name='codervar.png', size=16)),
+                icons.ButtonIcon('codervar', size=16).bitmap),
             'pyModule': self._treeImgList.Add(
-                iconCache.getBitmap(name='coderpython.png', size=16)),
+                icons.ButtonIcon('coderpython', size=16).bitmap),
             'jsModule': self._treeImgList.Add(
-                iconCache.getBitmap(name='coderjs.png', size=16)),
+                icons.ButtonIcon('coderjs', size=16).bitmap),
             'noDoc': self._treeImgList.Add(
-                iconCache.getBitmap(name='docclose.png', size=16))
+                icons.ButtonIcon('docclose', size=16).bitmap)
             # 'import': self._treeImgList.Add(
             #     wx.Bitmap(os.path.join(rc, 'coderimport16.png'), wx.BITMAP_TYPE_PNG)),
             # 'treeFolderClosed': _treeImgList.Add(

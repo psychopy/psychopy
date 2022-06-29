@@ -15,6 +15,49 @@ to run on the same PsychoPy version even where a different version is installed 
 That setting often even allows PsychoPy to run experiments from versions that have not yet
 been installed! If the dependencies haven't changed it will run.
 
+PsychoPy 2022.2
+---------------
+
+*Highlights:*
+
+- BETA: Cameras can now be accessed during your experiments (in web-based and in local experiments) and allow
+    - saving recordings to disk
+    - showing the current input from the webcam (make the Camera the input to a regular ImageStim)
+    - replaying a recording later in the experiment (use the Camera as input to a subsequent MovieStim)
+    - ** all the above features are currently BETA**
+- Python: New movie *playing* engine for higher performance playback in locally experiments (using FFPyPlayer)
+- Online: Introducing the "Shelf" for persistent storage on Pavlovia of variables accessible to a range
+  of scopes (only the current participant, only the current project, any project in the lab etc.). 
+  This may sound like not a big deal but it opens options for the following:
+    - **multi-session** studies: retrieve the participant threshold/progress form last session
+    - **interactive multi-player** studies: store 'messages' for another user to receive
+    - **counterbalancing online**: by tracking the number of participants that have been in each group
+- Online: Gratings and Gabors now supported online, straight from your Builder experiments
+- Online: gamma correction supported in the browser(!!) by setting Window.gamma property (currently 
+  requires a code snippet)
+- Local: Builder now has a Serial Port Component to make it easier to connect to hardware without needing
+  Code Components
+
+**Compatibility changes:**
+
+- Studies with Code Components that access `routineTimer` will need adapting because the non-slip Builder 
+  logic has changed this is now a regular (count-up) Clock instead of a CountdownTimer
+
+**Key Fixes:**
+
+- Online: Button Component is now fully working, so you don't need to create your own text boxes for this
+- Online: Routines used outside a loop now always advance the next row in the data file so that they
+  can't overwrite each others' data
+- Python: The `.stopped` times should now be showing up correctly for all Components in the csv file 
+  (they were always correct in the log file)
+- Python: Better timing in non-slip Routines. Previously the non-slip timer corrected for overshoots but
+  not undershoots. This is now fixed.
+
+**Also:**
+
+- `Is trials` property of loops (to control whether the data file advances) is now supported
+  in online studies
+
 PsychoPy 2022.1
 ---------------
 
@@ -63,6 +106,7 @@ PsychoPy 2022.1.4
 ~~~~~~~~~~~~~~~~~
 
 Fixes:
+
 - experiments using iohub were not running on MacOS standalone due to broken version of the gevent library
 - fixes to connection from Builder to Pavlovia in certain circumstances (e.g. certain usernames or when
   project has moved) #22963a9
@@ -79,6 +123,7 @@ PsychoPy 2022.1.3
 ~~~~~~~~~~~~~~~~~
 
 Fixes:
+
 - TextStim (and Button, which is derived from TextStim) was not easily clickable online due to incorrect bounding box psychopy/psychojs#492
 - Slider styleTweaks were not being applied #4773
 - Check that file is saved before trying to Run #4759
@@ -99,6 +144,7 @@ PsychoPy 2022.1.2
 ~~~~~~~~~~~~~~~~~
 
 Fixes:
+
 - URL redirection was failing at the end of the study for online experiments
   where the JS code was generated using 2022.1.0-2022.1.1 due to an erroneous
   replacement of `//` with `/` in `https://` #e8218b31f71
@@ -126,6 +172,7 @@ PsychoPy 2022.1.1
 ~~~~~~~~~~~~~~~~~
 
 Fixes:
+
 - MacOS app failed to run experiments with dialog boxes (broken dependency being packaged)
 - the application would hang while trying to push any changes to Pavlovia
 - added Japanese translations of the new menu items etc

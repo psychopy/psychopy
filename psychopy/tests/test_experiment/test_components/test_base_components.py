@@ -1,3 +1,5 @@
+import ast
+import esprima
 import re
 from pathlib import Path
 
@@ -16,7 +18,7 @@ def _make_minimal_experiment(obj):
         pytest.skip()
     # Make blank experiment
     exp = experiment.Experiment()
-    rt = exp.addRoutine(routineName='Test Routine')
+    rt = exp.addRoutine(routineName='TestRoutine')
     exp.flow.addRoutine(rt, 0)
     # Create instance of this component with all default params
     compClass = type(obj.comp)
@@ -184,3 +186,78 @@ class _TestDisabledMixin:
         exp.writeScript()
 
         assert comp in rt, f"Disabling {type(comp).name} appears to remove it from its routine on compile."
+
+
+class _TestDepthMixin:
+    def test_depth(self):
+        # Make minimal experiment
+        comp, rt, exp = _make_minimal_experiment(self)
+        # Get class we're currently working with
+        compClass = type(comp)
+        # Add index to component name
+        baseCompName = comp.name
+        comp.name = baseCompName + str(0)
+        # Add more components
+        for i in range(3):
+            comp = compClass(exp=exp, parentName='TestRoutine', name=baseCompName + str(i + 1))
+            rt.append(comp)
+
+        # Do test for Py
+        script = exp.writeScript(target="PsychoPy")
+        # Parse script to get each object def as a node
+        tree = ast.parse(script)
+        for node in tree.body:
+            # If current node is an assignment, investigate
+            if isinstance(node, ast.Assign):
+                # Get name
+                name = node.targets[0]
+                if isinstance(name, ast.Name):
+                    # If name matches component names, look for depth keyword
+                    if baseCompName in name.id:
+                        for key in node.value.keywords:
+                            if key.arg == "depth":
+                                if isinstance(key.value, ast.Constant):
+                                    # If depth is positive, get value as is
+                                    depth = int(key.value.value)
+                                elif isinstance(key.value, ast.UnaryOp):
+                                    # If depth is negative, get value*-1
+                                    depth = int(key.value.operand.value)
+                                else:
+                                    # If it's anything else, something is wrong
+                                    raise TypeError(
+                                        f"Expected depth value in script to be a number, instead it is {type(key.value)}")
+                                # Make sure depth matches what we expect
+                                assert baseCompName + str(depth) == name.id, (
+                                    "Depth of {compClass} did not match expected: {name.id} should have a depth "
+                                    "matching the value in its name * -1, instead had depth of -{depth}."
+                                )
+
+        # Do test for JS
+        script = exp.writeScript(target="PsychoJS")
+        # Parse JS script
+        tree = esprima.tokenize(script)  # ideally we'd use esprima.parseScript, but this throws an error with PsychoJS scripts
+        inInit = False
+        thisCompName = ""
+        for i, node in enumerate(tree):
+            # Detect start of inits
+            if node.type == "Identifier" and baseCompName in node.value:
+                inInit = True
+                thisCompName = node.value
+            # Detect end of inits
+            if node.type == "Punctuator" and node.value == "}":
+                inInit = False
+                thisCompName = ""
+            if inInit:
+                # If we're in the init, detect start of param
+                if node.type == "Identifier" and node.value == "depth":
+                    # 2 nodes ahead of param start will be param value...
+                    depth = tree[i+2].value
+                    if depth == "-":
+                        # ...unless negative, in which case the value is 3 nodes ahead
+                        depth = tree[i+3].value
+                    depth = int(float(depth))
+                    # Make sure depth matches what we expect
+                    assert baseCompName + str(depth) == thisCompName, (
+                        "Depth of {compClass} did not match expected: {thisCompName} should have a depth "
+                        "matching the value in its name * -1, instead had depth of -{depth}."
+                    )

@@ -18,7 +18,7 @@ Clock logic.
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-
+import logging
 import time
 import sys
 from pkg_resources import parse_version
@@ -177,12 +177,8 @@ class Clock(MonotonicClock):
         """
         self._timeAtLastReset = getTime() + newT
 
-    def add(self, t):
-        """Add more time to the clock's 'start' time (t0).
-
-        Note that, by adding time to t0, you make the current time
-        appear less. Can have the effect that getTime() returns a negative
-        number that will gradually count back up to zero.
+    def addTime(self, t):
+        """Add more time to the Clock/Timer
 
         e.g.::
 
@@ -191,6 +187,17 @@ class Clock(MonotonicClock):
             while timer.getTime()<0:
                 # do something
         """
+        self._timeAtLastReset -= t
+
+    def add(self, t):
+        """DEPRECATED: use .addTime() instead
+
+        This function adds time TO THE BASE (t0) which, counterintuitively,
+        reduces the apparent time on the clock
+        """
+        logging.warning("DEPRECATED: Clock.add() is deprecated in favor of .addTime() due to "
+                        "the counterintuitive design (it added time to the baseline, which "
+                        "reduced the values returned from getTime()")
         self._timeAtLastReset += t
 
 
