@@ -67,8 +67,12 @@ class PIPManagerDlg(wx.Dialog, handlers.ThemeMixin):
         sys.stdout.write(stdout)
         sys.stderr.write(stderr)
 
-        # Display output
-        self.output.SetValue(stdout + stderr)
+        # Display output if error
+        if output.returncode != 0:
+            self.output.AppendText(stderr)
+
+        self.output.AppendText(stdout)
+
         # Update output ctrl to style new text
         handlers.ThemeMixin._applyAppTheme(self.output)
 
