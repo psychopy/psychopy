@@ -397,7 +397,6 @@ class Keyboard:
 
     def clearEvents(self, eventType=None):
         """"""
-        print("clearEvents")
         if Keyboard._backend == 'ptb':
             for buffer in self._buffers.values():
                 buffer.flush()  # flush the device events to the soft buffer
