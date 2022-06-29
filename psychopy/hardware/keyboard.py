@@ -309,20 +309,27 @@ class Keyboard:
             if waitRelease:
                 key_events = Keyboard._iohubKeyboard.getReleases(keys=watchForKeys, clear=clear)
             else:
-                key_events = []
-                released_press_evt_ids = []
-
-                all_key_events = Keyboard._iohubKeyboard.getKeys(keys=watchForKeys, clear=clear)
-                all_key_events.reverse()
-
-                for k in all_key_events:
-                    if hasattr(k, 'pressEventID'):
-                        released_press_evt_ids.append(k.pressEventID)
-                        key_events.append(k)
-                    elif k.id not in released_press_evt_ids:
-                        key_events.append(k)
-
-                key_events.reverse()
+                key_events = Keyboard._iohubKeyboard.getPresses(
+                    keys=watchForKeys, clear=clear)
+                # NB - Old-style behavior for this condition. Keeping it here
+                # commented out to show the previous behavior, where both
+                # presses and releases returned values. This works differently
+                # than the PTB backend and what most users expect.
+                #
+                # key_events = []
+                # released_press_evt_ids = []
+                #
+                # all_key_events = Keyboard._iohubKeyboard.getKeys(keys=watchForKeys, clear=clear)
+                # all_key_events.reverse()
+                #
+                # for k in all_key_events:
+                #     if hasattr(k, 'pressEventID'):
+                #         released_press_evt_ids.append(k.pressEventID)
+                #         key_events.append(k)
+                #     elif k.id not in released_press_evt_ids:
+                #         key_events.append(k)
+                #
+                # key_events.reverse()
 
             for k in key_events:
                 kname = k.key
