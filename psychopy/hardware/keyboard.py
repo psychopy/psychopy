@@ -311,18 +311,23 @@ class Keyboard:
             else:
                 key_events = []
                 released_press_evt_ids = []
-
                 all_key_events = Keyboard._iohubKeyboard.getKeys(keys=watchForKeys, clear=clear)
-                all_key_events.reverse()
+                if all_key_events:
+                    all_key_events_ids = [k.id for k in all_key_events]
+                    all_key_events.reverse()
+                    for k in all_key_events:
+                        if hasattr(k, 'pressEventID'):
+                            if k.pressEventID in all_key_events_ids:
+                                # Only if press event also occurs,
+                                # use release key event so duration can be calculated.
+                                released_press_evt_ids.append(k.pressEventID)
+                                key_events.append(k)
+                        elif k.id not in released_press_evt_ids:
+                            # Add press key event as long as release key event has not already been
+                            # handled.
+                            key_events.append(k)
 
-                for k in all_key_events:
-                    if hasattr(k, 'pressEventID'):
-                        released_press_evt_ids.append(k.pressEventID)
-                        key_events.append(k)
-                    elif k.id not in released_press_evt_ids:
-                        key_events.append(k)
-
-                key_events.reverse()
+                    key_events.reverse()
 
             for k in key_events:
                 kname = k.key
@@ -392,6 +397,7 @@ class Keyboard:
 
     def clearEvents(self, eventType=None):
         """"""
+        print("clearEvents")
         if Keyboard._backend == 'ptb':
             for buffer in self._buffers.values():
                 buffer.flush()  # flush the device events to the soft buffer
