@@ -4,6 +4,9 @@ import wx.richtext
 from psychopy.app.themes import handlers, fonts
 from psychopy.localization import _translate
 
+import sys
+import subprocess as sp
+
 
 class PIPManagerDlg(wx.Dialog, handlers.ThemeMixin):
     """
@@ -53,10 +56,19 @@ class PIPManagerDlg(wx.Dialog, handlers.ThemeMixin):
         self.runCommand(cmd)
 
     def runCommand(self, cmd):
-        # PLACEHOLDER: Run command and get output
-        stdout = f"Executed command: {cmd}"
+        """Run the command."""
+        cmd = ' '.join([sys.executable, '-m', cmd])
+        output = sp.Popen(cmd,
+                          stdout=sp.PIPE,
+                          stderr=sp.PIPE,
+                          shell=True,
+                          universal_newlines=True)
+        stdout, stderr = output.communicate()
+        sys.stdout.write(stdout)
+        sys.stderr.write(stderr)
+
         # Display output
-        self.output.SetValue(stdout)
+        self.output.SetValue(stdout + stderr)
         # Update output ctrl to style new text
         handlers.ThemeMixin._applyAppTheme(self.output)
 
