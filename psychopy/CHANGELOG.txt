@@ -25,7 +25,7 @@ PsychoPy 2022.2
     - saving recordings to disk
     - showing the current input from the webcam (make the Camera the input to a regular ImageStim)
     - replaying a recording later in the experiment (use the Camera as input to a subsequent MovieStim)
-    - ** all the above features are currently BETA**
+    - **all the above features are currently BETA**
 
 - Python: New movie *playing* engine for higher performance playback in locally experiments (using FFPyPlayer)
 - Online: Introducing the "Shelf" for persistent storage on Pavlovia of variables accessible to a range
@@ -72,7 +72,7 @@ Fixed:
 - App: improved performance when the Shell has a large amount of text #f1e8d6bf7
 - App: fixed the use of tab traversal within Component dialogs on MacOS #a618c4cd7
 - Python: fixed setting the first position of markers on Sliders
-
+- Python: experiments using ioHub Keyboard backend were registering keypresses twice (once for down and again for up) #4990
 
 PsychoPy 2022.1
 ---------------
