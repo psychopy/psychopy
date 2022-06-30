@@ -68,11 +68,11 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
         sys.stdout.write(stdout)
         sys.stderr.write(stderr)
 
-        # we got a non-zero error code
+        # we got a non-zero error code, raise an error
         if output.returncode != 0:
             raise ChildProcessError(
-                "Failed to compile `{}`. Check output for more "
-                "information.".format(exp.filename))
+                'Error: process exited with code {}, check log for '
+                'output.'.format(output.returncode))
 
     else:
         compileScript(infile=exp, version=None, outfile=filename)
