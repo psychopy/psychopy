@@ -143,7 +143,7 @@ class _HideMixin:
 class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
-                 size=wx.Size(-1, 24), style=wx.DEFAULT):
+                 size=wx.Size(-1, 24), style=wx.TE_LEFT):
         # Create self
         wx.TextCtrl.__init__(self)
         self.Create(parent, -1, val, name=fieldName, size=size, style=style)
