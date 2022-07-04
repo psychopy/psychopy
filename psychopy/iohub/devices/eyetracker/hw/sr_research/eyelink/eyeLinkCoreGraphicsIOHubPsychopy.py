@@ -14,7 +14,6 @@ from ......errors import print2err, printExceptionDetailsToStdErr
 from ......util import convertCamelToSnake, win32MessagePump, updateSettings
 import pylink
 
-
 class FixationTarget():
     def __init__(self, psychopy_eyelink_graphics):
         win = psychopy_eyelink_graphics.window
@@ -48,6 +47,10 @@ class FixationTarget():
         )
         self.calibrationPointOuter = self.calibrationPoint.outer
         self.calibrationPointInner = self.calibrationPoint.inner
+
+    def setPos(self, pos):
+        self.calibrationPointOuter.pos = pos
+        self.calibrationPointInner.pos = pos
 
     def draw(self, pos=None):
         if pos:
@@ -374,8 +377,21 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         if self._calibration_args.get('target_type') == 'CIRCLE_TARGET':
             self.targetStim = FixationTarget(self)
         else:
-            print2err("TODO: Use target gfx ", self._calibration_args.get('target_attributes').get('custom'))
-            self.targetStim = FixationTarget(self)
+            try:
+                import importlib
+                custom_target_settings = self._calibration_args.get('target_attributes').get('custom')
+                TargetClass = getattr(importlib.import_module(custom_target_settings.get('module_name')),
+                                      custom_target_settings.get('class_name'))
+                targ_kwargs = custom_target_settings.get('class_kwargs', {})
+                targ_kwargs['win'] = self.window
+                # Instantiate the class (pass arguments to the constructor, if needed)
+                self.targetStim = TargetClass(**targ_kwargs)
+            except Exception:
+                #printExceptionDetailsToStdErr()
+                print2err("Error creating custom iohub eyelink calibration graphics. Using default FixationTarget.")
+                self.targetStim = FixationTarget(self)
+
+        self.targetIsAnimated = hasattr(self.targetStim, 'play') and hasattr(self.targetStim, 'pause')
         self.imagetitlestim = None
         self.eye_image = None
         self.state = None
@@ -520,6 +536,9 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
             self.mouse_pos = self._ioMouse.getPosition()
 
     def get_input_key(self):
+        if self.targetStim and self.targetIsAnimated and self._showTarget:
+            self.targetStim.draw()
+            self.window.flip()
         if Computer.getTime() - self._lastMsgPumpTime > self.IOHUB_HEARTBEAT_INTERVAL:
             if self._iohub_server:
                 win32MessagePump()
@@ -537,6 +556,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
     def setup_cal_display(self):
         """Sets up the initial calibration display, which contains a menu with
         instructions."""
+        self._showTarget = False
         self.blankdisplay.draw()
         self.introscreen.draw()
         self.window.flip()
@@ -546,7 +566,6 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         instructions."""
         self.setup_cal_display()
 
-
     def clear_cal_display(self):
         """Clears the calibration display."""
         self.blankdisplay.draw()
@@ -554,6 +573,12 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
 
     def erase_cal_target(self):
         """Removes any visible calibration target graphic from display."""
+        if self.targetIsAnimated:
+            try:
+                self.targetStim.pause()
+            except Exception:
+                pass
+        self._showTarget = False
         self.clear_cal_display()
 
     def draw_cal_target(self, x, y):
@@ -561,9 +586,15 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         # convert to psychopy pix coords
         x, y = self._eyetrackerinterface._eyeTrackerToDisplayCoords((x, y))
 
-        self.blankdisplay.draw()
-        self.targetStim.draw((x, y))
-        self.window.flip()
+        if self.targetIsAnimated:
+            self._showTarget = True
+            self.targetStim.setPos((x, y))
+            self.targetStim.play()
+        else:
+            self.blankdisplay.draw()
+            self.targetStim.setPos((x, y))
+            self.targetStim.draw()
+            self.window.flip()
 
     def setup_image_display(self, width, height):
         """Initialize the index array that will contain camera image data."""

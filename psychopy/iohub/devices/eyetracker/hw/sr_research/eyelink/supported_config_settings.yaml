@@ -57,8 +57,9 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
                 max_length: 1
         target_attributes:
             custom:
-                class_path:
-                args:
+                module_name:
+                class_name:
+                class_kwargs:
             outer_diameter:
                 IOHUB_FLOAT:
                     min: 0.01

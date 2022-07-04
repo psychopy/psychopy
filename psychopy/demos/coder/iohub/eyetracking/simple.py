@@ -20,10 +20,15 @@ if TRACKER == 'mouse':
     devices_config['eyetracker.hw.mouse.EyeTracker'] = eyetracker_config
 elif TRACKER == 'eyelink':
     eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
+    eyetracker_config['simulation_mode'] = True
     eyetracker_config['runtime_settings'] = dict(sampling_rate=1000, track_eyes='RIGHT')
     eyetracker_config['calibration'] = dict(screen_background_color=BACKGROUND_COLOR)
     eyetracker_config['calibration'] = dict(target_type='CUSTOM')
-    eyetracker_config['calibration']['target_attributes']=dict(custom=dict(class_path='psychopy.visual.Image'))
+    eyetracker_config['calibration']['target_attributes'] = dict(custom=dict(module_name='psychopy.visual',
+                                                                            class_name='MovieStim3',#'ImageStim',
+                                                                            #class_kwargs=dict(image='D:/DEV/my-code/psychopy/psychopy/demos/coder/iohub/eyetracking/target.png')))
+                                                                            class_kwargs=dict(filename='D:/DEV/my-code/psychopy/psychopy/demos/coder/iohub/eyetracking/Bullseye_grey.MOV'),
+                                                                                                noAudio=False, loop=True))
     devices_config['eyetracker.hw.sr_research.eyelink.EyeTracker'] = eyetracker_config
 elif TRACKER == 'gazepoint':
     eyetracker_config['calibration'] = dict(use_builtin=False, screen_background_color=BACKGROUND_COLOR)
