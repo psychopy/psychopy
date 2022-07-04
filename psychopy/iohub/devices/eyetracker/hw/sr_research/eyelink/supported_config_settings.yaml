@@ -50,8 +50,15 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
                 max: 2.5
         screen_background_color: IOHUB_COLOR
         text_color: IOHUB_COLOR
-        target_type: [CIRCLE_TARGET,]
+        target_type:
+            IOHUB_LIST:
+                valid_values: [CIRCLE_TARGET, CUSTOM]
+                min_length: 1
+                max_length: 1
         target_attributes:
+            custom:
+                class_path:
+                args:
             outer_diameter:
                 IOHUB_FLOAT:
                     min: 0.01

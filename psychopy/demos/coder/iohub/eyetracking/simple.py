@@ -10,7 +10,7 @@ from psychopy.iohub import launchHubServer
 from psychopy.iohub.util import hideWindow, showWindow
 
 # Eye tracker to use ('mouse', 'eyelink', 'gazepoint', or 'tobii')
-TRACKER = 'mouse'
+TRACKER = 'eyelink'
 BACKGROUND_COLOR = [128, 128, 128]
 
 devices_config = dict()
@@ -22,6 +22,8 @@ elif TRACKER == 'eyelink':
     eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
     eyetracker_config['runtime_settings'] = dict(sampling_rate=1000, track_eyes='RIGHT')
     eyetracker_config['calibration'] = dict(screen_background_color=BACKGROUND_COLOR)
+    eyetracker_config['calibration'] = dict(target_type='CUSTOM')
+    eyetracker_config['calibration']['target_attributes']=dict(custom=dict(class_path='psychopy.visual.Image'))
     devices_config['eyetracker.hw.sr_research.eyelink.EyeTracker'] = eyetracker_config
 elif TRACKER == 'gazepoint':
     eyetracker_config['calibration'] = dict(use_builtin=False, screen_background_color=BACKGROUND_COLOR)

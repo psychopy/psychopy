@@ -312,7 +312,6 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         self._device_config = self._eyetrackerinterface.getConfiguration()
         updateSettings(self._device_config.get('calibration'), calibration_args)
         self._calibration_args = self._device_config.get('calibration')
-        #print2err("self._calibration_args:", self._calibration_args)
         unit_type = self.getCalibSetting('unit_type')
         if unit_type is None:
             unit_type = display.getCoordinateType()
@@ -371,7 +370,12 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         self.blankdisplay = BlankScreen(self.window, self.getCalibSetting(['screen_background_color']))
         self.textmsg = TextLine(self)
         self.introscreen = IntroScreen(self)
-        self.fixationpoint = FixationTarget(self)
+
+        if self._calibration_args.get('target_type') == 'CIRCLE_TARGET':
+            self.targetStim = FixationTarget(self)
+        else:
+            print2err("TODO: Use target gfx ", self._calibration_args.get('target_attributes').get('custom'))
+            self.targetStim = FixationTarget(self)
         self.imagetitlestim = None
         self.eye_image = None
         self.state = None
@@ -558,7 +562,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         x, y = self._eyetrackerinterface._eyeTrackerToDisplayCoords((x, y))
 
         self.blankdisplay.draw()
-        self.fixationpoint.draw((x, y))
+        self.targetStim.draw((x, y))
         self.window.flip()
 
     def setup_image_display(self, width, height):
