@@ -4,6 +4,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 import numpy as np
 from PIL import Image, ImageOps
+import psychopy
 from psychopy import visual
 import sys
 import tempfile
@@ -384,6 +385,15 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
                                       custom_target_settings.get('class_name'))
                 targ_kwargs = custom_target_settings.get('class_kwargs', {})
                 targ_kwargs['win'] = self.window
+
+                path_kwargs = ['filename', 'image']
+                for pkwarg in path_kwargs:
+                    if pkwarg in targ_kwargs.keys():
+                        if not os.path.isfile(targ_kwargs.get(pkwarg)):
+                            abspath = os.path.join(psychopy.iohub.EXP_SCRIPT_DIRECTORY, targ_kwargs.get(pkwarg))
+                            if os.path.isfile(abspath):
+                                targ_kwargs[pkwarg] = abspath
+
                 # Instantiate the class (pass arguments to the constructor, if needed)
                 self.targetStim = TargetClass(**targ_kwargs)
             except Exception:
