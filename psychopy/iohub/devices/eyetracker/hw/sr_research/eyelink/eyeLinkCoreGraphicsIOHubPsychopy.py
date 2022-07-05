@@ -387,7 +387,6 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
                 # Instantiate the class (pass arguments to the constructor, if needed)
                 self.targetStim = TargetClass(**targ_kwargs)
             except Exception:
-                #printExceptionDetailsToStdErr()
                 print2err("Error creating custom iohub eyelink calibration graphics. Using default FixationTarget.")
                 self.targetStim = FixationTarget(self)
 
@@ -577,7 +576,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
             try:
                 self.targetStim.pause()
             except Exception:
-                pass
+                print2err("Error calling '.pause()' on iohub eyelink custom calibration target.")
         self._showTarget = False
         self.clear_cal_display()
 

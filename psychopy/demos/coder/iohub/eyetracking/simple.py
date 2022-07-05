@@ -27,8 +27,8 @@ elif TRACKER == 'eyelink':
     eyetracker_config['calibration']['target_attributes'] = dict(custom=dict(module_name='psychopy.visual',
                                                                             class_name='MovieStim3',#'ImageStim',
                                                                             #class_kwargs=dict(image='D:/DEV/my-code/psychopy/psychopy/demos/coder/iohub/eyetracking/target.png')))
-                                                                            class_kwargs=dict(filename='D:/DEV/my-code/psychopy/psychopy/demos/coder/iohub/eyetracking/Bullseye_grey.MOV'),
-                                                                                                noAudio=False, loop=True))
+                                                                            class_kwargs=dict(filename='D:/DEV/my-code/psychopy/psychopy/demos/coder/iohub/eyetracking/Bullseye_grey.MOV',
+                                                                                              loop=True)))
     devices_config['eyetracker.hw.sr_research.eyelink.EyeTracker'] = eyetracker_config
 elif TRACKER == 'gazepoint':
     eyetracker_config['calibration'] = dict(use_builtin=False, screen_background_color=BACKGROUND_COLOR)
