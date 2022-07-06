@@ -10,7 +10,7 @@ import warnings
 import numpy
 import numbers  # numbers.Integral is like (int, long) but supports Py3
 import datetime
-from ..errors import print2err
+from ..errors import print2err, printExceptionDetailsToStdErr
 import re
 import collections.abc
 
@@ -325,10 +325,43 @@ def showWindow(win, force=False):
     else:
         print("Warning: Unhandled sys.platform: ", sys.platform)
 
+def createCustomCalibrationStim(win, cal_settings):
+    """
+    Create a custom calibration target using the CUSTOM eyetracker calibration settings. Returns an instance of
+    target_attributes:custom:class_name class. If no custom target is defined, returns None.
+
+    :param win: psychopy.visual.Window instance
+    :param cal_settings: eye tracker calibration settings dictionary
+    :return: visual stim instance
+    """
+    try:
+        import importlib
+
+        custom_target_settings = cal_settings.get('target_attributes').get('custom')
+        TargetClass = getattr(importlib.import_module(custom_target_settings.get('module_name')),
+                              custom_target_settings.get('class_name'))
+        targ_kwargs = custom_target_settings.get('class_kwargs', {})
+        targ_kwargs['win'] = win
+
+        path_kwargs = ['filename', 'image']
+        for pkwarg in path_kwargs:
+            if pkwarg in targ_kwargs.keys():
+                if not os.path.isfile(targ_kwargs.get(pkwarg)):
+                    import psychopy
+                    abspath = os.path.join(psychopy.iohub.EXP_SCRIPT_DIRECTORY, targ_kwargs.get(pkwarg))
+                    if os.path.isfile(abspath):
+                        targ_kwargs[pkwarg] = abspath
+
+        # Instantiate the class (pass arguments to the constructor, if needed)
+        return TargetClass(**targ_kwargs)
+    except Exception:
+        printExceptionDetailsToStdErr()
+        print2err("Error creating custom iohub calibration graphics. Using default FixationTarget.")
+
+
 # Recursive updating of values from one dict into another if the key does not key exist.
 # Supported nested dicts and uses deep copy when setting values in the
 # target dict.
-
 
 def updateDict(add_to, add_from):
     for key, value in add_from.items():

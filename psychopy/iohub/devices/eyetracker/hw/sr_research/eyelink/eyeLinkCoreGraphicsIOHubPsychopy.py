@@ -12,7 +12,7 @@ import os
 from ..... import DeviceEvent, Computer
 from ......constants import EventConstants
 from ......errors import print2err, printExceptionDetailsToStdErr
-from ......util import convertCamelToSnake, win32MessagePump, updateSettings
+from ......util import convertCamelToSnake, win32MessagePump, updateSettings, createCustomCalibrationStim
 import pylink
 
 class FixationTarget():
@@ -378,26 +378,9 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         if self._calibration_args.get('target_type') == 'CIRCLE_TARGET':
             self.targetStim = FixationTarget(self)
         else:
-            try:
-                import importlib
-                custom_target_settings = self._calibration_args.get('target_attributes').get('custom')
-                TargetClass = getattr(importlib.import_module(custom_target_settings.get('module_name')),
-                                      custom_target_settings.get('class_name'))
-                targ_kwargs = custom_target_settings.get('class_kwargs', {})
-                targ_kwargs['win'] = self.window
-
-                path_kwargs = ['filename', 'image']
-                for pkwarg in path_kwargs:
-                    if pkwarg in targ_kwargs.keys():
-                        if not os.path.isfile(targ_kwargs.get(pkwarg)):
-                            abspath = os.path.join(psychopy.iohub.EXP_SCRIPT_DIRECTORY, targ_kwargs.get(pkwarg))
-                            if os.path.isfile(abspath):
-                                targ_kwargs[pkwarg] = abspath
-
-                # Instantiate the class (pass arguments to the constructor, if needed)
-                self.targetStim = TargetClass(**targ_kwargs)
-            except Exception:
-                print2err("Error creating custom iohub eyelink calibration graphics. Using default FixationTarget.")
+            self.targetStim = createCustomCalibrationStim(self.window, self._calibration_args)
+            if self.targetStim is None:
+                # Error creating custom stim, so use default target stim type
                 self.targetStim = FixationTarget(self)
 
         self.targetIsAnimated = hasattr(self.targetStim, 'play') and hasattr(self.targetStim, 'pause')
