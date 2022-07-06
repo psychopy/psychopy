@@ -4,7 +4,6 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 import numpy as np
 from PIL import Image, ImageOps
-import psychopy
 from psychopy import visual
 import sys
 import tempfile
