@@ -340,6 +340,34 @@ class StaticPeriod:
         return 1
 
 
+def _dispatchWindowEvents():
+    """Helper function for :func:`~.psychopy.core.wait`. Handles window event if
+    needed or returns otherwise.
+    """
+    from . import core
+
+    if not (core.havePyglet and core.checkPygletDuringWait):
+        return  # nop
+
+    # let's see if pyglet collected any event in meantime
+    try:
+        # this takes focus away from command line terminal window:
+        if parse_version(pyglet.version) < parse_version('1.2'):
+            # events for sounds/video should run independently of wait()
+            pyglet.media.dispatch_events()
+    except AttributeError:
+        # see http://www.pyglet.org/doc/api/pyglet.media-module.html#dispatch_events
+        # Deprecated: Since pyglet 1.1, Player objects schedule themselves
+        # on the default clock automatically. Applications should not call
+        # pyglet.media.dispatch_events().
+        pass
+    for winWeakRef in core.openWindows:
+        win = winWeakRef()
+        if (win.winType == "pyglet" and
+                hasattr(win.winHandle, "dispatch_events")):
+            win.winHandle.dispatch_events()  # pump events
+
+
 def wait(secs, hogCPUperiod=0.2):
     """Wait for a given time period.
 
@@ -367,38 +395,29 @@ def wait(secs, hogCPUperiod=0.2):
     Parameters
     ----------
     secs : float or int
+        Number of seconds to wait before continuing the program.
     hogCPUperiod : float or int
+        Number of seconds to hog the CPU. This causes the thread to enter a
+        'tight' loop when the remaining wait time is less than the specified
+        interval. This is set to 20ms (0.02s) by default. It is recommended that
+        this interval is kept short to avoid stalling the processor for too
+        long which may result in worse timing.
 
     """
-    from . import core
-
-    # initial relaxed period, using sleep (better for system resources etc)
-    if secs > hogCPUperiod:
-        time.sleep(secs - hogCPUperiod)
-        secs = hogCPUperiod  # only this much is now left
-
-    # hog the cpu, checking time
+    # hog cpu for this period
+    relaxedPeriod = secs - hogCPUperiod
     t0 = getTime()
-    while (getTime() - t0) < secs:
-        if not (core.havePyglet and core.checkPygletDuringWait):
-            continue
-        # let's see if pyglet collected any event in meantime
-        try:
-            # this takes focus away from command line terminal window:
-            if parse_version(pyglet.version) < parse_version('1.2'):
-                # events for sounds/video should run independently of wait()
-                pyglet.media.dispatch_events()
-        except AttributeError:
-            # see http://www.pyglet.org/doc/api/pyglet.media-module.html#dispatch_events
-            # Deprecated: Since pyglet 1.1, Player objects schedule themselves
-            # on the default clock automatically. Applications should not call
-            # pyglet.media.dispatch_events().
-            pass
-        for winWeakRef in core.openWindows:
-            win = winWeakRef()
-            if (win.winType == "pyglet" and
-                    hasattr(win.winHandle, "dispatch_events")):
-                win.winHandle.dispatch_events()  # pump events
+    while 1:
+        elapsed = getTime() - t0
+        if elapsed > secs:  # no more time left, break the loop
+            break
+
+        if elapsed > relaxedPeriod + 0.01:  # hog period
+            _dispatchWindowEvents()
+            time.sleep(0.00001)  # 0.1ms so OS doesn't complain
+        else:  # relaxed period
+            _dispatchWindowEvents()
+            time.sleep(0.01)
 
 
 def getAbsTime():
