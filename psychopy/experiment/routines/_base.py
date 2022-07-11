@@ -512,8 +512,14 @@ class Routine(list):
             event.writeRoutineEndCode(buff)
 
         if useNonSlip:
-            buff.writeIndented('# using non-slip timing so subtract the expected duration of this Routine\n')
-            buff.writeIndented('routineTimer.addTime(-%f)\n' % (maxTime))
+            code = (
+                "# using non-slip timing so subtract the expected duration of this Routine (unless ended on request)\n"
+                "if routineForceEnded:\n"
+                "    routineTimer.reset()\n"
+                "else:\n"
+                "    routineTimer.addTime(-%f)\n"
+            )
+            buff.writeIndentedLines(code % (maxTime))
 
     def writeRoutineBeginCodeJS(self, buff, modular):
 
