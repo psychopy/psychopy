@@ -421,7 +421,10 @@ class _TestUnitsMixin:
                 utils.compareScreenshot(filename, win, tag=f"{winunits}X{objunits}")
                 if hasattr(obj, "_size"):
                     # Compare reported size
-                    assert layout.Size(obj.size, obj.units, obj.win) == layout.Size(targetSizes[objunits], objunits, obj.win)
+                    assert layout.Size(obj.size, obj.units, obj.win) == layout.Size(targetSizes[objunits], objunits, obj.win), (
+                        f"Object size ({obj.size}, in {obj.units}) did not match desired size ({targetSizes[objunits]} "
+                        f"in {objunits} when window was {obj.win.size}px in {winunits}."
+                    )
                 # Flip screen
                 win.flip()
         # Close window
