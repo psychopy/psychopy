@@ -32,6 +32,7 @@ from .basevisual import BaseVisualStim
 # non-private helpers
 from .helpers import pointInPolygon, polygonsOverlap
 from .image import ImageStim
+from .animation import FrameAnimation
 from .text import TextStim
 from .form import Form
 from .brush import Brush
