@@ -639,8 +639,19 @@ class BaseComponent:
                 duration = FOREVER  # infinite duration
             else:
                 duration = None
-
+        # If component has a numeric start and stop, mark as non slip safe
         nonSlipSafe = numericStop and (numericStart or stopType == 'time (s)')
+        # Mark as not non-slip safe if component can end routine prematurely
+        endRoutineParams = {
+            'forceEndRoutine': ('True', True),  # Keyboard, Slider, RatingScale, Button, JoyButtons, Movie
+            'forceEndRoutineOnPress': ('any click', 'valid click'),  # Mouse, Joystick
+            'endRoutineOn': ('look at', 'look away'),  # ROI
+        }
+        for paramName, vals in endRoutineParams.items():
+            if paramName in self.params:
+                if self.params[paramName].val in vals:
+                    nonSlipSafe = False
+
         return startTime, duration, nonSlipSafe
 
     def getPosInRoutine(self):
