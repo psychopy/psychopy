@@ -32,7 +32,6 @@ from .basevisual import BaseVisualStim
 # non-private helpers
 from .helpers import pointInPolygon, polygonsOverlap
 from .image import ImageStim
-from .animation import FrameAnimation
 from .text import TextStim
 from .form import Form
 from .brush import Brush
@@ -94,6 +93,7 @@ from psychopy.visual.pie import Pie
 from psychopy.visual.circle import Circle
 
 from psychopy.visual.textbox import TextBox
+from psychopy.visual.animation import FrameAnimation
 
 # rift support 
 from psychopy.visual.rift import Rift
