@@ -371,9 +371,13 @@ def _dispatchWindowEvents():
 def wait(secs, hogCPUperiod=0.2):
     """Wait for a given time period.
 
+    This function halts execution of the program for the specified duration.
+
     Precision of this function is usually within 1 millisecond of the specified
-    time, this may vary depending on factors such as system load. Window events
-    are periodically dispatched during the wait.
+    time, this may vary depending on factors such as system load and the Python
+    version in use. Window events are periodically dispatched during the wait
+    to keep the application responsive, to avoid the OS complaining that the
+    process is unresponsive.
 
     If `secs=10` and `hogCPU=0.2` then for 9.8s Python's `time.sleep` function
     will be used, which is not especially precise, but allows the cpu to
@@ -381,8 +385,7 @@ def wait(secs, hogCPUperiod=0.2):
     method of constantly polling the clock is used for greater precision.
 
     If you want to obtain key-presses during the wait, be sure to use
-    pyglet and to hogCPU for the entire time, and then call
-    :func:`psychopy.event.getKeys()` after calling
+    pyglet and then call :func:`psychopy.event.getKeys()` after calling
     :func:`~.psychopy.core.wait()`
 
     If you want to suppress checking for pyglet events during the wait, do this
@@ -405,8 +408,7 @@ def wait(secs, hogCPUperiod=0.2):
         'tight' loop when the remaining wait time is less than the specified
         interval. This is set to 200ms (0.2s) by default. It is recommended that
         this interval is kept short to avoid stalling the processor for too
-        long which may result in worse timing and may interfere with other
-        processes running on the system.
+        long which may result in poorer timing.
 
     """
     # Calculate the relaxed period which we periodically suspend the thread,
