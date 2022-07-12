@@ -1,5 +1,6 @@
 import numpy as np
 from PIL import Image as pil
+from PIL import GifImagePlugin as gif
 from pathlib import Path
 from time import time
 
@@ -94,11 +95,17 @@ class FrameAnimation(ImageStim):
         # Load/store requested images
         self._images = []
         for req in self._requestedImages:
-            if isinstance(req, (str, Path)) and not req == "defualt.png":
-                # If given a file path, load just once now and store PIL object
-                req = pil.open(req)
-            # Store image
-            self._images.append(req)
+            if isinstance(req, (str, Path)) and Path(req).suffix == ".gif":
+                # If given a gif, load now and append each frame
+                for img in _imageListFromGif(req):
+                    self._images.append(img)
+            elif isinstance(req, (str, Path)) and req != "defualt.png":
+                # If given a file path, load now and append
+                img = pil.open(req)
+                self._images.append(img)
+            else:
+                # Otherwise, store image itself
+                self._images.append(req)
         # Store
         self.__dict__['images'] = self._images
 
@@ -142,3 +149,22 @@ class FrameAnimation(ImageStim):
             self._lastFrameTime = time()
         # Do usual image draw
         ImageStim.draw(self, win=win)
+
+
+def _imageListFromGif(value):
+    """
+    Convert a single animated .gif image to a list of static images
+    """
+    # Load gif
+    gifImg = gif.GifImageFile(value)
+    # Iterate through frames
+    frames = []
+    for i in range(gifImg.n_frames):
+        # Seek to this frame
+        gifImg.seek(i)
+        # Create new image from this frame
+        frame = gifImg.copy()
+        # Append
+        frames.append(frame)
+
+    return frames
