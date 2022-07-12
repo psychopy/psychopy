@@ -371,6 +371,10 @@ def _dispatchWindowEvents():
 def wait(secs, hogCPUperiod=0.2):
     """Wait for a given time period.
 
+    Precision of this function is usually within 1 millisecond of the specified
+    time, this may vary depending on factors such as system load. Window events
+    are periodically dispatched during the wait.
+
     If `secs=10` and `hogCPU=0.2` then for 9.8s Python's `time.sleep` function
     will be used, which is not especially precise, but allows the cpu to
     perform housekeeping. In the final `hogCPUperiod` the more precise
@@ -399,25 +403,31 @@ def wait(secs, hogCPUperiod=0.2):
     hogCPUperiod : float or int
         Number of seconds to hog the CPU. This causes the thread to enter a
         'tight' loop when the remaining wait time is less than the specified
-        interval. This is set to 20ms (0.02s) by default. It is recommended that
+        interval. This is set to 200ms (0.2s) by default. It is recommended that
         this interval is kept short to avoid stalling the processor for too
-        long which may result in worse timing.
+        long which may result in worse timing and may interfere with other
+        processes running on the system.
 
     """
-    # hog cpu for this period
+    # Calculate the relaxed period which we periodically suspend the thread,
+    # this puts less load on the CPU during long wait intervals.
     relaxedPeriod = secs - hogCPUperiod
+
+    # wait loop, suspends the thread periodically and consumes CPU resources
     t0 = getTime()
-    while 1:
+    while True:
         elapsed = getTime() - t0
         if elapsed > secs:  # no more time left, break the loop
             break
 
-        if elapsed > relaxedPeriod + 0.01:  # hog period
-            _dispatchWindowEvents()
-            time.sleep(0.00001)  # 0.1ms so OS doesn't complain
-        else:  # relaxed period
-            _dispatchWindowEvents()
-            time.sleep(0.01)
+        if elapsed > relaxedPeriod:  # hog period
+            sleepDur = 0.00001  # 0.1ms
+        else:
+            relaxedTimeLeft = relaxedPeriod - elapsed
+            sleepDur = 0.01 if relaxedTimeLeft > 0.01 else relaxedTimeLeft
+
+        time.sleep(sleepDur)
+        _dispatchWindowEvents()
 
 
 def getAbsTime():
