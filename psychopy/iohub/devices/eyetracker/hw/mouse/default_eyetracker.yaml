@@ -52,6 +52,11 @@ eyetracker.hw.mouse.EyeTracker:
         # If empty, text_color is calculated automatically based on screen_background_color.
         text_color:
 
+        # target_type: Defines what form of calibration graphic should be used
+        #   during calibration, validation, etc. Valid options are CIRCLE_TARGET, or CUSTOM.
+        #
+        target_type: CIRCLE_TARGET
+
         # The associated target attribute properties can be supplied
         # for the given target_type.
         target_attributes:

@@ -6,7 +6,7 @@
 
 from psychopy import visual
 import gevent
-from psychopy.iohub.util import convertCamelToSnake, updateSettings
+from psychopy.iohub.util import convertCamelToSnake, updateSettings, createCustomCalibrationStim
 from psychopy.iohub.devices import DeviceEvent, Computer
 from psychopy.iohub.constants import EventConstants as EC
 from psychopy.iohub.devices.keyboard import KeyboardInputEvent
@@ -33,7 +33,6 @@ class MouseGazePsychopyCalibrationGraphics:
 
         updateSettings(self._device_config.get('calibration'), calibration_args)
         self._calibration_args = self._device_config.get('calibration')
-        #print2err("self._calibration_args:", self._calibration_args)
         unit_type = self.getCalibSetting('unit_type')
         if unit_type is None:
             unit_type = display.getCoordinateType()
@@ -186,23 +185,36 @@ class MouseGazePsychopyCalibrationGraphics:
         color_type = self.getCalibSetting('color_type')
         unit_type = self.getCalibSetting('unit_type')
 
-        self.calibrationPoint = visual.TargetStim(
-            self.window, name="CP", style="circles",
-            radius=self.getCalibSetting(['target_attributes', 'outer_diameter']) / 2.0,
-            fillColor=self.getCalibSetting(['target_attributes', 'outer_fill_color']),
-            borderColor=self.getCalibSetting(['target_attributes', 'outer_line_color']),
-            lineWidth=self.getCalibSetting(['target_attributes', 'outer_stroke_width']),
-            innerRadius=self.getCalibSetting(['target_attributes', 'inner_diameter']) / 2.0,
-            innerFillColor=self.getCalibSetting(['target_attributes', 'inner_fill_color']),
-            innerBorderColor=self.getCalibSetting(['target_attributes', 'inner_line_color']),
-            innerLineWidth=self.getCalibSetting(['target_attributes', 'inner_stroke_width']),
-            pos=(0, 0),
-            units=unit_type,
-            colorSpace=color_type,
-            autoLog=False
-        )
-        self.calibrationPointINNER = self.calibrationPoint.inner
-        self.calibrationPointOUTER = self.calibrationPoint.outer
+        def setDefaultCalibrationTarget():
+            self.usingDefaultTarget = True
+            self.targetStim = visual.TargetStim(
+                self.window, name="CP", style="circles",
+                radius=self.getCalibSetting(['target_attributes', 'outer_diameter']) / 2.0,
+                fillColor=self.getCalibSetting(['target_attributes', 'outer_fill_color']),
+                borderColor=self.getCalibSetting(['target_attributes', 'outer_line_color']),
+                lineWidth=self.getCalibSetting(['target_attributes', 'outer_stroke_width']),
+                innerRadius=self.getCalibSetting(['target_attributes', 'inner_diameter']) / 2.0,
+                innerFillColor=self.getCalibSetting(['target_attributes', 'inner_fill_color']),
+                innerBorderColor=self.getCalibSetting(['target_attributes', 'inner_line_color']),
+                innerLineWidth=self.getCalibSetting(['target_attributes', 'inner_stroke_width']),
+                pos=(0, 0),
+                units=unit_type,
+                colorSpace=color_type,
+                autoLog=False
+            )
+
+        if self._calibration_args.get('target_type') == 'CIRCLE_TARGET':
+            setDefaultCalibrationTarget()
+        else:
+            self.targetStim = createCustomCalibrationStim(self.window, self._calibration_args)
+            if self.targetStim is None:
+                # Error creating custom stim, so use default target stim type
+                setDefaultCalibrationTarget()
+            else:
+                self.usingDefaultTarget = False
+        self.targetIsAnimated = hasattr(self.targetStim, 'play') and hasattr(self.targetStim, 'pause')
+        self.usingTargetStimClass = type(self.targetStim) is visual.TargetStim
+        self.imagetitlestim = None
 
         tctype = color_type
         tcolor = self.getCalibSetting(['text_color'])
@@ -271,9 +283,9 @@ class MouseGazePsychopyCalibrationGraphics:
                     t = 60.0 * ((1.0 / 10.0) * t ** 5 - (1.0 / 4.0) * t ** 4 + (1.0 / 6.0) * t ** 3)
                     mx, my = ((1.0 - t) * v1[0] + t * v2[0], (1.0 - t) * v1[1] + t * v2[1])
                     moveTo = left + w * mx, bottom + h * (1.0 - my)
-                    self.drawCalibrationTarget(moveTo, reset=False)
+                    self.drawCalibrationTarget(moveTo)
                 else:
-                    self.drawCalibrationTarget((x, y), False)
+                    self.drawCalibrationTarget((x, y))
 
             gevent.sleep(0.001)
             self.MsgPump()
@@ -282,31 +294,33 @@ class MouseGazePsychopyCalibrationGraphics:
                 abort_calibration = True
                 break
 
-            # Target expand / contract phase
-            self.drawCalibrationTarget((x, y))
-            start_time = currentTime()
-            outer_diameter = self.getCalibSetting(['target_attributes', 'outer_diameter'])
-            inner_diameter = self.getCalibSetting(['target_attributes', 'inner_diameter'])
-            while currentTime()-start_time <= target_duration:
-                elapsed_time = currentTime()-start_time
-                d = t = None
-                if animate_contract_only:
-                    # Change target size from outer diameter to inner diameter over target_duration seconds.
-                    t = elapsed_time / target_duration
-                    d = outer_diameter - t * (outer_diameter - inner_diameter)
-                elif animate_expansion_ratio not in [1, 1.0]:
-                    if elapsed_time <= target_duration/2:
-                        # In expand phase
-                        t = elapsed_time / (target_duration/2)
-                        d = outer_diameter + t * (outer_diameter*animate_expansion_ratio - outer_diameter)
-                    else:
-                        # In contract phase
-                        t = (elapsed_time-target_duration/2) / (target_duration/2)
-                        d = outer_diameter*animate_expansion_ratio - t * (outer_diameter*animate_expansion_ratio - inner_diameter)
-                if d:
-                    self.calibrationPoint.outerRadius = d / 2
-                    self.calibrationPoint.draw()
-                    self.window.flip(clearBuffer=True)
+            if self.usingTargetStimClass:
+                # Target expand / contract phase on done if target is a visual.TargetStim class
+                self.resetTargetProperties()
+                self.drawCalibrationTarget((x, y))
+                start_time = currentTime()
+                outer_diameter = self.getCalibSetting(['target_attributes', 'outer_diameter'])
+                inner_diameter = self.getCalibSetting(['target_attributes', 'inner_diameter'])
+                while currentTime()-start_time <= target_duration:
+                    elapsed_time = currentTime()-start_time
+                    d = t = None
+                    if animate_contract_only:
+                        # Change target size from outer diameter to inner diameter over target_duration seconds.
+                        t = elapsed_time / target_duration
+                        d = outer_diameter - t * (outer_diameter - inner_diameter)
+                    elif animate_expansion_ratio not in [1, 1.0]:
+                        if elapsed_time <= target_duration/2:
+                            # In expand phase
+                            t = elapsed_time / (target_duration/2)
+                            d = outer_diameter + t * (outer_diameter*animate_expansion_ratio - outer_diameter)
+                        else:
+                            # In contract phase
+                            t = (elapsed_time-target_duration/2) / (target_duration/2)
+                            d = outer_diameter*animate_expansion_ratio - t * (outer_diameter*animate_expansion_ratio - inner_diameter)
+                    if d:
+                        self.targetStim.outerRadius = d / 2
+                        self.targetStim.draw()
+                        self.window.flip(clearBuffer=True)
 
             if auto_pace is False:
                 while 1:
@@ -362,26 +376,17 @@ class MouseGazePsychopyCalibrationGraphics:
             self.MsgPump()
             gevent.sleep(0.001)
 
-    def drawDefaultTarget(self):
-        self.calibrationPointOUTER.radius = self.getCalibSetting(['target_attributes', 'outer_diameter']) / 2.0
-        self.calibrationPointOUTER.setLineColor(self.getCalibSetting(['target_attributes', 'outer_line_color']))
-        self.calibrationPointOUTER.setFillColor(self.getCalibSetting(['target_attributes', 'outer_fill_color']))
-        self.calibrationPointOUTER.lineWidth = int(self.getCalibSetting(['target_attributes', 'outer_stroke_width']))
-        self.calibrationPointINNER.radius = self.getCalibSetting(['target_attributes', 'inner_diameter']) / 2.0
-        self.calibrationPointINNER.setLineColor(self.getCalibSetting(['target_attributes', 'inner_line_color']))
-        self.calibrationPointINNER.setFillColor(self.getCalibSetting(['target_attributes', 'inner_fill_color']))
-        self.calibrationPointINNER.lineWidth = int(self.getCalibSetting(['target_attributes', 'inner_stroke_width']))
+    def resetTargetProperties(self):
+        self.targetStim.outer.radius = self.getCalibSetting(['target_attributes', 'outer_diameter']) / 2.0
+        self.targetStim.outer.setLineColor(self.getCalibSetting(['target_attributes', 'outer_line_color']))
+        self.targetStim.outer.setFillColor(self.getCalibSetting(['target_attributes', 'outer_fill_color']))
+        self.targetStim.outer.lineWidth = int(self.getCalibSetting(['target_attributes', 'outer_stroke_width']))
+        self.targetStim.inner.radius = self.getCalibSetting(['target_attributes', 'inner_diameter']) / 2.0
+        self.targetStim.inner.setLineColor(self.getCalibSetting(['target_attributes', 'inner_line_color']))
+        self.targetStim.inner.setFillColor(self.getCalibSetting(['target_attributes', 'inner_fill_color']))
+        self.targetStim.inner.lineWidth = int(self.getCalibSetting(['target_attributes', 'inner_stroke_width']))
 
-        self.calibrationPointOUTER.draw()
-        self.calibrationPointINNER.draw()
+    def drawCalibrationTarget(self, tp):
+        self.targetStim.setPos(tp)
+        self.targetStim.draw()
         return self.window.flip(clearBuffer=True)
-
-    def drawCalibrationTarget(self, tp, reset=True):
-        self.calibrationPointOUTER.setPos(tp)
-        self.calibrationPointINNER.setPos(tp)
-        if reset:
-            return self.drawDefaultTarget()
-        else:
-            self.calibrationPointOUTER.draw()
-            self.calibrationPointINNER.draw()
-            return self.window.flip(clearBuffer=True)

@@ -46,6 +46,7 @@ def readConfig(scr_path):
     '''
     return yload(open(scr_path, 'r'), Loader=yLoader)
 
+
 def mergeConfigurationFiles(base_config_file_path, update_from_config_file_path, merged_save_to_path):
     """Merges two iohub configuration files into one and saves it to a file
     using the path/file name in merged_save_to_path."""
@@ -76,6 +77,7 @@ def mergeConfigurationFiles(base_config_file_path, update_from_config_file_path,
     ydump(merged, open(merged_save_to_path, 'w'), Dumper=yDumper)
 
     return merged
+
 ########################
 
 
@@ -156,6 +158,7 @@ def getDevicePaths(device_name=""):
                     scs_yaml_paths.append((device_folder, dfile))
     return scs_yaml_paths
 
+
 def getDeviceDefaultConfig(device_name, builder_hides=True):
     """
     Return the default iohub config dictionary for the given device(s). The dictionary contains the
@@ -209,6 +212,7 @@ def getDeviceDefaultConfig(device_name, builder_hides=True):
         # simplify return value when only one device was requested
         return list(device_configs[0].values())[0]
     return device_configs
+
 
 def getDeviceNames(device_name="eyetracker.hw", get_paths=True):
     """
@@ -359,16 +363,32 @@ def createCustomCalibrationStim(win, cal_settings):
         print2err("Error creating custom iohub calibration graphics. Using default FixationTarget.")
 
 
+def getObjectModuleAndClassName(obj, split=True):
+    """
+    Get the fully-qualified class name of a python object.
+    """
+    cls = type(obj)
+    module = cls.__module__
+    name = cls.__qualname__
+    if module in ("__builtin__", "__main__"):
+        module = None
+    if split:
+        return module, name
+    if module is not None:
+        name = module + "." + name
+    return name
+
+
 # Recursive updating of values from one dict into another if the key does not key exist.
 # Supported nested dicts and uses deep copy when setting values in the
 # target dict.
-
 def updateDict(add_to, add_from):
     for key, value in add_from.items():
         if key not in add_to:
             add_to[key] = copy.deepcopy(value)
         elif isinstance(value, dict) and isinstance(add_to[key], dict):
             updateDict(add_to[key], value)
+
 
 def updateSettings(d, u):
     for k, v in u.items():
@@ -381,6 +401,7 @@ def updateSettings(d, u):
                 v = v.decode('UTF-8')
             d[k] = v
     return d
+
 
 # Convert Camel to Snake variable name format
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
@@ -419,6 +440,7 @@ def complement(r, g, b):
         return 255, 255, 255
     k = hilo(r, g, b)
     return tuple(k - u for u in (r, g, b))
+
 
 class NumPyRingBuffer():
     """NumPyRingBuffer is a circular buffer implemented using a one dimensional
