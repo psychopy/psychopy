@@ -17,20 +17,21 @@ devices_config = dict()
 eyetracker_config = dict(name='tracker')
 if TRACKER == 'mouse':
     eyetracker_config['calibration'] = dict(screen_background_color=BACKGROUND_COLOR)
-    devices_config['eyetracker.hw.mouse.EyeTracker'] = eyetracker_config
-    #eyetracker_config['calibration'] = dict(target_type='CUSTOM')
-    #eyetracker_config['calibration'] = dict(auto_pace=False)
-    #eyetracker_config['calibration']['target_attributes'] = dict(custom=dict(module_name='psychopy.visual',
-    #                                                                         class_name='MovieStim3',  # 'ImageStim',
-                                                                             # class_kwargs=dict(image='target.png')))
+    eyetracker_config['calibration']['target_type'] = 'CUSTOM'
+#    eyetracker_config['calibration']['auto_pace'] = False
+    eyetracker_config['calibration']['target_attributes'] = dict(custom=dict(module_name='psychopy.visual',
+                                                                             class_name='ImageStim',
+                                                                             class_kwargs=dict(image='targetImage.png')))
     #                                                                         class_kwargs=dict(filename='Bullseye_grey.MOV',
     #                                                                                           loop=True)))
+    eyetracker_config['calibration']['target_attributes']['animate'] = dict(enable=False, expansion_ratio=1.0)
+    devices_config['eyetracker.hw.mouse.EyeTracker'] = eyetracker_config
 elif TRACKER == 'eyelink':
     eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
     eyetracker_config['simulation_mode'] = True
     eyetracker_config['runtime_settings'] = dict(sampling_rate=1000, track_eyes='RIGHT')
     eyetracker_config['calibration'] = dict(screen_background_color=BACKGROUND_COLOR)
-    eyetracker_config['calibration'] = dict(target_type='CUSTOM')
+    eyetracker_config['calibration']['target_type'] = 'CUSTOM'
     eyetracker_config['calibration']['target_attributes'] = dict(custom=dict(module_name='psychopy.visual',
                                                                              class_name='MovieStim3',  # 'ImageStim',
                                                                              # class_kwargs=dict(image='target.png')))

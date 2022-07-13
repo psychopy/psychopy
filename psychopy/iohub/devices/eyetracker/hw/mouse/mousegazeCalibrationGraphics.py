@@ -30,7 +30,6 @@ class MouseGazePsychopyCalibrationGraphics:
         self._lastCalibrationOK = False
         self._device_config = self._eyetracker.getConfiguration()
         display = self._eyetracker._display_device
-
         updateSettings(self._device_config.get('calibration'), calibration_args)
         self._calibration_args = self._device_config.get('calibration')
         unit_type = self.getCalibSetting('unit_type')
@@ -134,7 +133,7 @@ class MouseGazePsychopyCalibrationGraphics:
             self._ioKeyboard = kbDevice
             self._ioKeyboard._addEventListener(self, eventIDs)
         else:
-            print2err('Warning: GazePoint Cal GFX could not connect to Keyboard device for events.')
+            print2err('Warning: MouseGaze Cal GFX could not connect to Keyboard device for events.')
 
     def _unregisterEventMonitors(self):
         if self._ioKeyboard:
@@ -171,16 +170,6 @@ class MouseGazePsychopyCalibrationGraphics:
 
     def _createStim(self):
         """
-            outer_diameter: 35
-            outer_stroke_width: 5
-            outer_fill_color: [255,255,255]
-            outer_line_color: [255,255,255]
-            inner_diameter: 5
-            inner_stroke_width: 0
-            inner_color: [0,0,0]
-            inner_fill_color: [0,0,0]
-            inner_line_color: [0,0,0]
-            calibration_prefs=self._eyetracker.getConfiguration()['calibration']['target_attributes']
         """
         color_type = self.getCalibSetting('color_type')
         unit_type = self.getCalibSetting('unit_type')
@@ -274,6 +263,7 @@ class MouseGazePsychopyCalibrationGraphics:
             animate_enable = self.getCalibSetting(['target_attributes', 'animate', 'enable'])
             animate_expansion_ratio = self.getCalibSetting(['target_attributes', 'animate', 'expansion_ratio'])
             animate_contract_only = self.getCalibSetting(['target_attributes', 'animate', 'contract_only'])
+
             while currentTime()-start_time <= target_delay:
                 if animate_enable and i > 0:
                     t = (currentTime()-start_time) / target_delay
@@ -284,7 +274,7 @@ class MouseGazePsychopyCalibrationGraphics:
                     moveTo = left + w * mx, bottom + h * (1.0 - my)
                     self.drawCalibrationTarget(moveTo)
                 else:
-                    self.drawCalibrationTarget((x, y))
+                    self.window.flip(clearBuffer=True)
 
             gevent.sleep(0.001)
             self.MsgPump()
@@ -298,7 +288,7 @@ class MouseGazePsychopyCalibrationGraphics:
             self.drawCalibrationTarget((x, y))
             start_time = currentTime()
             stim_size = self.targetStim.size[0]
-            min_stim_size = 0
+            min_stim_size = self.targetStim.size[0] / animate_expansion_ratio
             if hasattr(self.targetStim, 'minSize'):
                 min_stim_size = self.targetStim.minSize[0]
 
