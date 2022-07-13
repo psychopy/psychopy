@@ -186,7 +186,6 @@ class MouseGazePsychopyCalibrationGraphics:
         unit_type = self.getCalibSetting('unit_type')
 
         def setDefaultCalibrationTarget():
-            self.usingDefaultTarget = True
             self.targetStim = visual.TargetStim(
                 self.window, name="CP", style="circles",
                 radius=self.getCalibSetting(['target_attributes', 'outer_diameter']) / 2.0,
@@ -210,10 +209,10 @@ class MouseGazePsychopyCalibrationGraphics:
             if self.targetStim is None:
                 # Error creating custom stim, so use default target stim type
                 setDefaultCalibrationTarget()
-            else:
-                self.usingDefaultTarget = False
+
+        self.originalTargetSize = self.targetStim.size
         self.targetIsAnimated = hasattr(self.targetStim, 'play') and hasattr(self.targetStim, 'pause')
-        self.usingTargetStimClass = type(self.targetStim) is visual.TargetStim
+
         self.imagetitlestim = None
 
         tctype = color_type
@@ -294,33 +293,35 @@ class MouseGazePsychopyCalibrationGraphics:
                 abort_calibration = True
                 break
 
-            if self.usingTargetStimClass:
-                # Target expand / contract phase on done if target is a visual.TargetStim class
-                self.resetTargetProperties()
-                self.drawCalibrationTarget((x, y))
-                start_time = currentTime()
-                outer_diameter = self.getCalibSetting(['target_attributes', 'outer_diameter'])
-                inner_diameter = self.getCalibSetting(['target_attributes', 'inner_diameter'])
-                while currentTime()-start_time <= target_duration:
-                    elapsed_time = currentTime()-start_time
-                    d = t = None
-                    if animate_contract_only:
-                        # Change target size from outer diameter to inner diameter over target_duration seconds.
-                        t = elapsed_time / target_duration
-                        d = outer_diameter - t * (outer_diameter - inner_diameter)
-                    elif animate_expansion_ratio not in [1, 1.0]:
-                        if elapsed_time <= target_duration/2:
-                            # In expand phase
-                            t = elapsed_time / (target_duration/2)
-                            d = outer_diameter + t * (outer_diameter*animate_expansion_ratio - outer_diameter)
-                        else:
-                            # In contract phase
-                            t = (elapsed_time-target_duration/2) / (target_duration/2)
-                            d = outer_diameter*animate_expansion_ratio - t * (outer_diameter*animate_expansion_ratio - inner_diameter)
-                    if d:
-                        self.targetStim.outerRadius = d / 2
-                        self.targetStim.draw()
-                        self.window.flip(clearBuffer=True)
+            # Target expand / contract phase on done if target is a visual.TargetStim class
+            self.resetTargetProperties()
+            self.drawCalibrationTarget((x, y))
+            start_time = currentTime()
+            stim_size = self.targetStim.size[0]
+            min_stim_size = 0
+            if hasattr(self.targetStim, 'minSize'):
+                min_stim_size = self.targetStim.minSize[0]
+
+            while currentTime()-start_time <= target_duration:
+                elapsed_time = currentTime()-start_time
+                new_size = t = None
+                if animate_contract_only:
+                    # Change target size from outer diameter to inner diameter over target_duration seconds.
+                    t = elapsed_time / target_duration
+                    new_size = stim_size - t * (stim_size - min_stim_size)
+                elif animate_expansion_ratio not in [1, 1.0]:
+                    if elapsed_time <= target_duration/2:
+                        # In expand phase
+                        t = elapsed_time / (target_duration/2)
+                        new_size = stim_size + t * (stim_size*animate_expansion_ratio - stim_size)
+                    else:
+                        # In contract phase
+                        t = (elapsed_time-target_duration/2) / (target_duration/2)
+                        new_size = stim_size*animate_expansion_ratio - t * (stim_size*animate_expansion_ratio - min_stim_size)
+                if new_size:
+                    self.targetStim.size = new_size, new_size
+                    self.targetStim.draw()
+                    self.window.flip(clearBuffer=True)
 
             if auto_pace is False:
                 while 1:
@@ -377,14 +378,7 @@ class MouseGazePsychopyCalibrationGraphics:
             gevent.sleep(0.001)
 
     def resetTargetProperties(self):
-        self.targetStim.outer.radius = self.getCalibSetting(['target_attributes', 'outer_diameter']) / 2.0
-        self.targetStim.outer.setLineColor(self.getCalibSetting(['target_attributes', 'outer_line_color']))
-        self.targetStim.outer.setFillColor(self.getCalibSetting(['target_attributes', 'outer_fill_color']))
-        self.targetStim.outer.lineWidth = int(self.getCalibSetting(['target_attributes', 'outer_stroke_width']))
-        self.targetStim.inner.radius = self.getCalibSetting(['target_attributes', 'inner_diameter']) / 2.0
-        self.targetStim.inner.setLineColor(self.getCalibSetting(['target_attributes', 'inner_line_color']))
-        self.targetStim.inner.setFillColor(self.getCalibSetting(['target_attributes', 'inner_fill_color']))
-        self.targetStim.inner.lineWidth = int(self.getCalibSetting(['target_attributes', 'inner_stroke_width']))
+        self.targetStim.size = self.originalTargetSize
 
     def drawCalibrationTarget(self, tp):
         self.targetStim.setPos(tp)
