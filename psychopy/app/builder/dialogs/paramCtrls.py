@@ -283,6 +283,10 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
                 self._labels[value] = labels[i]
             else:
                 self._labels[value] = value
+        # Translate labels
+        for k in self._labels.keys():
+            if k in _localized:
+                self._labels[k] = _localized[k]
         # Create choice ctrl from labels
         wx.Choice.__init__(self)
         self.Create(parent, -1, size=size, choices=[self._labels[c] for c in self._choices], name=fieldName)
