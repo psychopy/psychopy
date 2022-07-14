@@ -45,7 +45,7 @@ class LightSource:
                  diffuseColor=(1., 1., 1.),
                  specularColor=(1., 1., 1.),
                  ambientColor=(0., 0., 0.),
-                 colorSpace='rgb1',
+                 colorSpace='rgb',
                  contrast=1.0,
                  lightType='point',
                  attenuation=(1, 0, 0)):
@@ -219,8 +219,7 @@ class LightSource:
         """Diffuse color for the light source (`psychopy.color.Color`,
         `ArrayLike` or None).
         """
-        if hasattr(self, '_diffuseColor'):
-            return self._diffuseColor.render(self.colorSpace)
+        return self._diffuseColor.render(self.colorSpace)
 
     @diffuseColor.setter
     def diffuseColor(self, value):
@@ -662,7 +661,7 @@ class BlinnPhongMaterial:
     """
     def __init__(self,
                  win=None,
-                 diffuseColor=(.5, .5, .5),
+                 diffuseColor=(-1., -1., -1.),
                  specularColor=(-1., -1., -1.),
                  ambientColor=(-1., -1., -1.),
                  emissionColor=(-1., -1., -1.),
@@ -694,15 +693,15 @@ class BlinnPhongMaterial:
         self._ptrAmbient = None
         self._ptrEmission = None
 
-        self.colorSpace = colorSpace
-        self.opacity = opacity
-        self.contrast = contrast
-        self.face = face
-
         self.diffuseColor = diffuseColor
         self.specularColor = specularColor
         self.ambientColor = ambientColor
         self.emissionColor = emissionColor
+
+        self.colorSpace = colorSpace
+        self.opacity = opacity
+        self.contrast = contrast
+        self.face = face
 
         self._diffuseTexture = diffuseTexture
         self._normalTexture = None
@@ -1082,8 +1081,9 @@ class BlinnPhongMaterial:
         GL.glDisable(GL.GL_COLOR_MATERIAL)  # disable color tracking
         face = self._face
 
-        # number of scene lights
-        nLights = len(self.win.lights)
+        # check if lighting is enabled, otherwise don't render lights
+        nLights = len(self.win.lights) if self.win.useLights else 0
+
         useTextures = useTextures and self.diffuseTexture is not None
         shaderKey = (nLights, useTextures)
         gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
