@@ -534,6 +534,13 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         return self._player.metadata.size
 
     @property
+    def origSize(self):
+        """
+        Alias of videoSize
+        """
+        return self.videoSize
+
+    @property
     def frameSize(self):
         """Size of the video `(w, h)` in pixels (`tuple`). Alias of `videoSize`.
         """
