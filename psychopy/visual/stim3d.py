@@ -11,7 +11,7 @@ from psychopy import logging
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.visual.basevisual import WindowMixin, ColorMixin
 from psychopy.visual.helpers import setColor
-from psychopy.colors import Color
+from psychopy.colors import Color, colorSpaces
 import psychopy.tools.mathtools as mt
 import psychopy.tools.gltools as gt
 import psychopy.tools.arraytools as at
@@ -45,7 +45,8 @@ class LightSource:
                  diffuseColor=(1., 1., 1.),
                  specularColor=(1., 1., 1.),
                  ambientColor=(0., 0., 0.),
-                 colorSpace='rgb',
+                 colorSpace='rgb1',
+                 contrast=1.0,
                  lightType='point',
                  attenuation=(1, 0, 0)):
         """
@@ -66,9 +67,11 @@ class LightSource:
             Specular light color.
         ambientColor : array_like
             Ambient light color.
-        colorSpace : str
-            Colorspace for `diffuse`, `specular`, and `ambient` colors. Argument
-            is deprecated.
+        colorSpace : str or None
+            Colorspace for diffuse, specular, and ambient color components.
+        contrast : float
+            Contrast of the lighting color components. This acts as a 'gain'
+            factor which scales color values. Must be between 0.0 and 1.0.
         attenuation : array_like
             Values for the constant, linear, and quadratic terms of the lighting
             attenuation formula. Default is (1, 0, 0) which results in no
@@ -86,6 +89,9 @@ class LightSource:
         self._diffuseRGB = np.array((0., 0., 0., 1.), np.float32)
         self._specularRGB = np.array((0., 0., 0., 1.), np.float32)
         self._ambientRGB = np.array((0., 0., 0., 1.), np.float32)
+
+        self.contrast = contrast
+        self.colorSpace = colorSpace
 
         self.diffuseColor = diffuseColor
         self.specularColor = specularColor
@@ -114,7 +120,7 @@ class LightSource:
         self._pos = np.zeros((4,), np.float32)
         self._pos[:3] = value
 
-        if self._lightType == 'point':
+        if self._lightType == 'point':  # if a point source then `w` == 1.0
             self._pos[3] = 1.0
 
     @property
@@ -151,46 +157,233 @@ class LightSource:
     #
 
     @property
-    def diffuseColor(self):
-        """Diffuse color of the light source (`psychopy.color.Color`).
+    def colorSpace(self):
+        """The name of the color space currently being used (`str` or `None`).
+
+        For strings and hex values this is not needed. If `None` the default
+        `colorSpace` for the stimulus is used (defined during initialisation).
+
+        Please note that changing colorSpace does not change stimulus
+        parameters. Thus, you usually want to specify `colorSpace` before
+        setting the color.
+
         """
-        return self._diffuseColor.rgb
+        if hasattr(self, '_colorSpace'):
+            return self._colorSpace
+        else:
+            return 'rgba'
+
+    @colorSpace.setter
+    def colorSpace(self, value):
+        if value in colorSpaces:
+            self._colorSpace = value
+        else:
+            logging.error(f"'{value}' is not a valid color space")
+
+    @property
+    def contrast(self):
+        """A value that is simply multiplied by the color (`float`).
+
+        This may be used to adjust the gain of the light source. This is applied
+        to all lighting color components.
+
+        Examples
+        --------
+        Basic usage::
+
+            stim.contrast =  1.0  # unchanged contrast
+            stim.contrast =  0.5  # decrease contrast
+            stim.contrast =  0.0  # uniform, no contrast
+            stim.contrast = -0.5  # slightly inverted
+            stim.contrast = -1.0  # totally inverted
+
+        Setting contrast outside range -1 to 1 is permitted, but may
+        produce strange results if color values exceeds the monitor limits.::
+
+            stim.contrast =  1.2  # increases contrast
+            stim.contrast = -1.2  # inverts with increased contrast
+
+        """
+        if hasattr(self, '_diffuseColor'):
+            return self._diffuseColor.contrast
+
+    @contrast.setter
+    def contrast(self, value):
+        if hasattr(self, '_diffuseColor'):
+            self._diffuseColor.contrast = value
+
+        if hasattr(self, '_specularColor'):
+            self._specularColor.contrast = value
+
+        if hasattr(self, '_ambientColor'):
+            self._ambientColor.contrast = value
+
+    @property
+    def diffuseColor(self):
+        """Diffuse color for the light source (`psychopy.color.Color`,
+        `ArrayLike` or None).
+        """
+        if hasattr(self, '_diffuseColor'):
+            return self._diffuseColor.render(self.colorSpace)
 
     @diffuseColor.setter
     def diffuseColor(self, value):
-        self._diffuseColor = Color(value, 'rgb')
+        if isinstance(value, Color):
+            self._diffuseColor = value
+        else:
+            self._diffuseColor = Color(
+                value,
+                self.colorSpace,
+                contrast=self.contrast)
+
+        if not self._diffuseColor:
+            # If given an invalid color, set as transparent and log error
+            self._diffuseColor = Color()
+            logging.error(f"'{value}' is not a valid {self.colorSpace} color")
+
+        # set the RGB values
         self._diffuseRGB[:3] = self._diffuseColor.rgb1
         self._diffuseRGB[3] = self._diffuseColor.opacity
 
+    def setDiffuseColor(self, color, colorSpace=None, operation='', log=None):
+        """Set the diffuse color for the light source. Use this function if you
+        wish to supress logging or apply operations on the color component.
+
+        Parameters
+        ----------
+        color : ArrayLike or `~psychopy.colors.Color`
+            Color to set as the diffuse component of the light source.
+        colorSpace : str or None
+            Colorspace to use. This is only used to set the color, the value of
+            `diffuseColor` after setting uses the color space of the object.
+        operation : str
+            Operation string.
+        log : bool or None
+            Enable logging.
+
+        """
+        setColor(
+            obj=self,
+            colorAttrib="diffuseColor",
+            color=color,
+            colorSpace=colorSpace or self.colorSpace,
+            operation=operation,
+            log=log)
+
     @property
     def specularColor(self):
-        """Specular color of the light source (`psychopy.color.Color`).
+        """Specular color of the light source (`psychopy.color.Color`,
+        `ArrayLike` or None).
         """
-        return self._specularColor
+        if hasattr(self, '_specularColor'):
+            return self._specularColor.render(self.colorSpace)
 
     @specularColor.setter
     def specularColor(self, value):
-        self._specularColor = Color(value, 'rgb')
+        if isinstance(value, Color):
+            self._specularColor = value
+        else:
+            self._specularColor = Color(
+                value,
+                self.colorSpace,
+                contrast=self.contrast)
+
+        if not self._specularColor:
+            # If given an invalid color, set as transparent and log error
+            self._specularColor = Color()
+            logging.error(f"'{value}' is not a valid {self.colorSpace} color")
+
         self._specularRGB[:3] = self._specularColor.rgb1
         self._specularRGB[3] = self._specularColor.opacity
 
+    def setSpecularColor(self, color, colorSpace=None, operation='', log=None):
+        """Set the diffuse color for the light source. Use this function if you
+        wish to supress logging or apply operations on the color component.
+
+        Parameters
+        ----------
+        color : ArrayLike or `~psychopy.colors.Color`
+            Color to set as the specular component of the light source.
+        colorSpace : str or None
+            Colorspace to use. This is only used to set the color, the value of
+            `diffuseColor` after setting uses the color space of the object.
+        operation : str
+            Operation string.
+        log : bool or None
+            Enable logging.
+
+        """
+        setColor(
+            obj=self,
+            colorAttrib="specularColor",
+            color=color,
+            colorSpace=colorSpace or self.colorSpace,
+            operation=operation,
+            log=log)
+
     @property
     def ambientColor(self):
-        """Ambient color of the light source (`psychopy.color.Color`).
+        """Ambient color of the light source (`psychopy.color.Color`,
+        `ArrayLike` or None).
+
+        The ambient color component is used to simulate indirect lighting caused
+        by the light source. For instance, light bouncing off adjacent surfaces
+        or atmospheric scattering if the light source is a sun. This is
+        independent of the global ambient color.
+
         """
-        return self._ambientColor
+        if hasattr(self, '_ambientColor'):
+            return self._ambientColor.render(self.colorSpace)
 
     @ambientColor.setter
     def ambientColor(self, value):
-        self._ambientColor = Color(value, 'rgb')
+        if isinstance(value, Color):
+            self._ambientColor = value
+        else:
+            self._ambientColor = Color(
+                value,
+                self.colorSpace,
+                contrast=self.contrast)
+
+        if not self._ambientColor:
+            # If given an invalid color, set as transparent and log error
+            self._ambientColor = Color()
+            logging.error(f"'{value}' is not a valid {self.colorSpace} color")
+
         self._ambientRGB[:3] = self._ambientColor.rgb1
         self._ambientRGB[3] = self._ambientColor.opacity
+
+    def setAmbientColor(self, color, colorSpace=None, operation='', log=None):
+        """Set the ambient color for the light source. Use this function if you
+        wish to supress logging or apply operations on the color component.
+
+        Parameters
+        ----------
+        color : ArrayLike or `~psychopy.colors.Color`
+            Color to set as the ambient component of the light source.
+        colorSpace : str or None
+            Colorspace to use. This is only used to set the color, the value of
+            `ambientColor` after setting uses the color space of the object.
+        operation : str
+            Operation string.
+        log : bool or None
+            Enable logging.
+
+        """
+        setColor(
+            obj=self,
+            colorAttrib="ambientColor",
+            color=color,
+            colorSpace=colorSpace or self.colorSpace,
+            operation=operation,
+            log=log)
 
     # --------------------------------------------------------------------------
     # Lighting RGB colors
     #
     # These are the color values for the light which will be passed to the
-    # shader.
+    # shader. We protect these values since we don't want the user changing the
+    # array type or size.
     #
 
     @property

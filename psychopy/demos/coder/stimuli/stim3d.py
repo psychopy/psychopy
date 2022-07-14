@@ -12,7 +12,7 @@ from psychopy.tools.gltools import createTexImage2dFromFile
 from psychopy import event
 
 # open a window to render the shape
-win = visual.Window((600, 600), allowGUI=False, monitor='testMonitor')
+win = visual.Window((600, 600), monitor='testMonitor')
 
 # setup scene lights
 redLight = LightSource(win, pos=(0, 1, 0), diffuseColor=(.5, 0, 0),
