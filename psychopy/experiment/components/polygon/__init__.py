@@ -266,6 +266,10 @@ class PolygonComponent(BaseVisualComponent):
             code = ("{name} = new visual.ShapeStim ({{\n"
                     "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
                     "  vertices: 'cross', size:{size},\n")
+        elif vertices in ['arrow']:
+            code = ("{name} = new visual.ShapeStim ({{\n"
+                    "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
+                    "  vertices: 'arrow', size:{size},\n")
         else:
             code = ("{name} = new visual.Polygon ({{\n"
                     "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
