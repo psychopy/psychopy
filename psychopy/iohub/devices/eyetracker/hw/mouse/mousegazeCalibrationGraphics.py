@@ -11,6 +11,7 @@ from psychopy.iohub.devices import DeviceEvent, Computer
 from psychopy.iohub.constants import EventConstants as EC
 from psychopy.iohub.devices.keyboard import KeyboardInputEvent
 from psychopy.iohub.errors import print2err
+from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 
 currentTime = Computer.getTime
 
@@ -200,7 +201,7 @@ class MouseGazePsychopyCalibrationGraphics:
                 setDefaultCalibrationTarget()
 
         self.originalTargetSize = self.targetStim.size
-        self.targetIsAnimated = hasattr(self.targetStim, 'play') and hasattr(self.targetStim, 'pause')
+        self.targetClassHasPlayPause = hasattr(self.targetStim, 'play') and hasattr(self.targetStim, 'pause')
 
         self.imagetitlestim = None
 
@@ -273,7 +274,9 @@ class MouseGazePsychopyCalibrationGraphics:
                     mx, my = ((1.0 - t) * v1[0] + t * v2[0], (1.0 - t) * v1[1] + t * v2[1])
                     moveTo = left + w * mx, bottom + h * (1.0 - my)
                     self.drawCalibrationTarget(moveTo)
-                else:
+                elif animate_enable is False:
+                    if self.targetClassHasPlayPause and self.targetStim.status == PLAYING:
+                        self.targetStim.pause()
                     self.window.flip(clearBuffer=True)
 
             gevent.sleep(0.001)
@@ -285,7 +288,10 @@ class MouseGazePsychopyCalibrationGraphics:
 
             # Target expand / contract phase on done if target is a visual.TargetStim class
             self.resetTargetProperties()
+            if self.targetClassHasPlayPause and self.targetStim.status != PLAYING:
+                self.targetStim.play()
             self.drawCalibrationTarget((x, y))
+
             start_time = currentTime()
             stim_size = self.targetStim.size[0]
             min_stim_size = self.targetStim.size[0] / animate_expansion_ratio
@@ -310,11 +316,15 @@ class MouseGazePsychopyCalibrationGraphics:
                         new_size = stim_size*animate_expansion_ratio - t * (stim_size*animate_expansion_ratio - min_stim_size)
                 if new_size:
                     self.targetStim.size = new_size, new_size
-                    self.targetStim.draw()
-                    self.window.flip(clearBuffer=True)
+
+                self.targetStim.draw()
+                self.window.flip()
 
             if auto_pace is False:
                 while 1:
+                    if self.targetClassHasPlayPause and self.targetStim.status == PLAYING:
+                        self.targetStim.draw()
+                        self.window.flip()
                     gevent.sleep(0.001)
                     self.MsgPump()
                     msg = self.getNextMsg()
@@ -338,6 +348,9 @@ class MouseGazePsychopyCalibrationGraphics:
             self.clearCalibrationWindow()
             self.clearAllEventBuffers()
             i += 1
+
+        if self.targetClassHasPlayPause:
+            self.targetStim.pause()
 
         if abort_calibration is False:
             instuction_text = "Calibration Complete. Press 'SPACE' key to continue."

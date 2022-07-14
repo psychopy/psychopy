@@ -18,12 +18,12 @@ eyetracker_config = dict(name='tracker')
 if TRACKER == 'mouse':
     eyetracker_config['calibration'] = dict(screen_background_color=BACKGROUND_COLOR)
     eyetracker_config['calibration']['target_type'] = 'CUSTOM'
-#    eyetracker_config['calibration']['auto_pace'] = False
+    eyetracker_config['calibration']['auto_pace'] = True
     eyetracker_config['calibration']['target_attributes'] = dict(custom=dict(module_name='psychopy.visual',
-                                                                             class_name='ImageStim',
-                                                                             class_kwargs=dict(image='targetImage.png')))
-    #                                                                         class_kwargs=dict(filename='Bullseye_grey.MOV',
-    #                                                                                           loop=True)))
+                                                                             class_name='MovieStim3',  #'ImageStim',
+                                                                             #  class_kwargs=dict(image='targetImage.png')))
+                                                                             class_kwargs=dict(filename='Bullseye_grey.MOV',
+                                                                                               loop=True)))
     eyetracker_config['calibration']['target_attributes']['animate'] = dict(enable=False, expansion_ratio=1.0)
     devices_config['eyetracker.hw.mouse.EyeTracker'] = eyetracker_config
 elif TRACKER == 'eyelink':
