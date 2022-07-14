@@ -11,7 +11,7 @@ from psychopy.iohub.devices import DeviceEvent, Computer
 from psychopy.iohub.constants import EventConstants as EC
 from psychopy.iohub.devices.keyboard import KeyboardInputEvent
 from psychopy.iohub.errors import print2err
-from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
+from psychopy.constants import PLAYING
 
 currentTime = Computer.getTime
 
