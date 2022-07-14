@@ -108,7 +108,7 @@ class PolygonComponent(BaseVisualComponent):
                          "polygon...' you can set vertices")
         self.params['shape'] = Param(
             shape, valType='str', inputType="choice", categ='Basic',
-            allowedVals=["line", "triangle", "rectangle", "circle", "cross", "star",
+            allowedVals=["line", "triangle", "rectangle", "circle", "cross", "star", "arrow",
                          "regular polygon...", "custom polygon..."],
             hint=msg, direct=False,
             label=_translate("Shape"))
