@@ -81,9 +81,10 @@ class LightSource:
         self.win = win
 
         self._pos = np.zeros((4,), np.float32)
-        self._diffuseColor = Color(diffuseColor, 'rgb1')
-        self._specularColor = Color(specularColor, 'rgb1')
-        self._ambientColor = Color(ambientColor, 'rgb1')
+        self._diffuseColor = Color()
+        self._specularColor = Color()
+        self._ambientColor = Color()
+        self._lightType = None  # set later
 
         # internal RGB values post colorspace conversion
         self._diffuseRGB = np.array((0., 0., 0., 1.), np.float32)
@@ -93,11 +94,12 @@ class LightSource:
         self.contrast = contrast
         self.colorSpace = colorSpace
 
+        # set the colors
         self.diffuseColor = diffuseColor
         self.specularColor = specularColor
         self.ambientColor = ambientColor
 
-        self._lightType = lightType
+        self.lightType = lightType
         self.pos = pos
 
         # attenuation factors
@@ -126,7 +128,7 @@ class LightSource:
     @property
     def lightType(self):
         """Type of light source, can be 'point' or 'directional'."""
-        return self._pos[:3]
+        return self._lightType
 
     @lightType.setter
     def lightType(self, value):
@@ -163,7 +165,7 @@ class LightSource:
         For strings and hex values this is not needed. If `None` the default
         `colorSpace` for the stimulus is used (defined during initialisation).
 
-        Please note that changing colorSpace does not change stimulus
+        Please note that changing `colorSpace` does not change stimulus
         parameters. Thus, you usually want to specify `colorSpace` before
         setting the color.
 
@@ -204,19 +206,13 @@ class LightSource:
             stim.contrast = -1.2  # inverts with increased contrast
 
         """
-        if hasattr(self, '_diffuseColor'):
-            return self._diffuseColor.contrast
+        return self._diffuseColor.contrast
 
     @contrast.setter
     def contrast(self, value):
-        if hasattr(self, '_diffuseColor'):
-            self._diffuseColor.contrast = value
-
-        if hasattr(self, '_specularColor'):
-            self._specularColor.contrast = value
-
-        if hasattr(self, '_ambientColor'):
-            self._ambientColor.contrast = value
+        self._diffuseColor.contrast = value
+        self._specularColor.contrast = value
+        self._ambientColor.contrast = value
 
     @property
     def diffuseColor(self):
@@ -275,8 +271,7 @@ class LightSource:
         """Specular color of the light source (`psychopy.color.Color`,
         `ArrayLike` or None).
         """
-        if hasattr(self, '_specularColor'):
-            return self._specularColor.render(self.colorSpace)
+        return self._specularColor.render(self.colorSpace)
 
     @specularColor.setter
     def specularColor(self, value):
@@ -332,8 +327,7 @@ class LightSource:
         independent of the global ambient color.
 
         """
-        if hasattr(self, '_ambientColor'):
-            return self._ambientColor.render(self.colorSpace)
+        return self._ambientColor.render(self.colorSpace)
 
     @ambientColor.setter
     def ambientColor(self, value):
@@ -354,8 +348,10 @@ class LightSource:
         self._ambientRGB[3] = self._ambientColor.opacity
 
     def setAmbientColor(self, color, colorSpace=None, operation='', log=None):
-        """Set the ambient color for the light source. Use this function if you
-        wish to supress logging or apply operations on the color component.
+        """Set the ambient color for the light source.
+
+        Use this function if you wish to supress logging or apply operations on
+        the color component.
 
         Parameters
         ----------
@@ -597,7 +593,8 @@ class BlinnPhongMaterial:
     primitives with respect to lighting, such as color (diffuse, specular,
     ambient, and emission), shininess, and textures. Simple materials are
     intended to work with features supported by the fixed-function OpenGL
-    pipeline.
+    pipeline. However, one may use shaders that implement the Blinn-Phong
+    shading model for per-pixel lighting.
 
     If shaders are enabled, the colors of objects will appear different than
     without. This is due to the lighting/material colors being computed on a
@@ -627,6 +624,37 @@ class BlinnPhongMaterial:
     in the lighting object. Values `k0=1.0, k1=0.0, and k2=0.0` results in a
     light that does not fall-off with distance.
 
+    Parameters
+    ----------
+    win : `~psychopy.visual.Window` or `None`
+        Window this material is associated with, required for shaders and some
+        color space conversions.
+    diffuseColor : array_like
+        Diffuse material color (r, g, b) with values between -1.0 and 1.0.
+    specularColor : array_like
+        Specular material color (r, g, b) with values between -1.0 and 1.0.
+    ambientColor : array_like
+        Ambient material color (r, g, b) with values between -1.0 and 1.0.
+    emissionColor : array_like
+        Emission material color (r, g, b) with values between -1.0 and 1.0.
+    shininess : float
+        Material shininess, usually ranges from 0.0 to 128.0.
+    colorSpace : str
+        Color space for `diffuseColor`, `specularColor`, `ambientColor`, and
+        `emissionColor`. This is no longer used.
+    opacity : float
+        Opacity of the material. Ranges from 0.0 to 1.0 where 1.0 is fully
+        opaque.
+    contrast : float
+        Contrast of the material colors.
+    diffuseTexture : TexImage2D
+        Optional 2D texture to apply to the material. Color values from the
+        texture are blended with the `diffuseColor` of the material. The target
+        primitives must have texture coordinates to specify how texels are
+        mapped to the surface.
+    face : str
+        Face to apply material to. Values are `front`, `back` or `both`.
+
     Warnings
     --------
     This class is experimental and may result in undefined behavior.
@@ -644,47 +672,15 @@ class BlinnPhongMaterial:
                  opacity=1.0,
                  contrast=1.0,
                  face='front'):
-        """
-        Parameters
-        ----------
-        win : `~psychopy.visual.Window` or `None`
-            Window this material is associated with, required for shaders and
-            some color space conversions.
-        diffuseColor : array_like
-            Diffuse material color (r, g, b, a) with values between 0.0 and 1.0.
-        specularColor : array_like
-            Specular material color (r, g, b, a) with values between 0.0 and
-            1.0.
-        ambientColor : array_like
-            Ambient material color (r, g, b, a) with values between 0.0 and 1.0.
-        emissionColor : array_like
-            Emission material color (r, g, b, a) with values between 0.0 and
-            1.0.
-        shininess : float
-            Material shininess, usually ranges from 0.0 to 128.0.
-        colorSpace : float
-            Color space for `diffuseColor`, `specularColor`, `ambientColor`, and
-            `emissionColor`. This is no longer used.
-        diffuseTexture : TexImage2D
-        opacity : float
-            Opacity of the material. Ranges from 0.0 to 1.0 where 1.0 is fully
-            opaque.
-        contrast : float
-            Contrast of the material colors.
-        face : str
-            Face to apply material to. Values are `front`, `back` or `both`.
-        textures : dict, optional
-            Texture maps associated with this material. Textures are specified
-            as a list. The index of textures in the list will be used to set
-            the corresponding texture unit they are bound to.
-        """
+
         self.win = win
 
-        self._diffuseColor = np.zeros((3,), np.float32)
-        self._specularColor = np.zeros((3,), np.float32)
-        self._ambientColor = np.zeros((3,), np.float32)
-        self._emissionColor = np.zeros((3,), np.float32)
+        self._diffuseColor = Color()
+        self._specularColor = Color()
+        self._ambientColor = Color()
+        self._emissionColor = Color()
         self._shininess = float(shininess)
+        self._face = None  # set later
 
         # internal RGB values post colorspace conversion
         self._diffuseRGB = np.array((0., 0., 0., 1.), np.float32)
@@ -698,20 +694,10 @@ class BlinnPhongMaterial:
         self._ptrAmbient = None
         self._ptrEmission = None
 
-        # which faces to apply the material
-        if face == 'front':
-            self._face = GL.GL_FRONT
-        elif face == 'back':
-            self._face = GL.GL_BACK
-        elif face == 'both':
-            self._face = GL.GL_FRONT_AND_BACK
-        else:
-            raise ValueError("Invalid `face` specified, must be 'front', "
-                             "'back' or 'both'.")
-
         self.colorSpace = colorSpace
         self.opacity = opacity
         self.contrast = contrast
+        self.face = face
 
         self.diffuseColor = diffuseColor
         self.specularColor = specularColor
@@ -731,12 +717,345 @@ class BlinnPhongMaterial:
     #
 
     @property
+    def colorSpace(self):
+        """The name of the color space currently being used (`str` or `None`).
+
+        For strings and hex values this is not needed. If `None` the default
+        `colorSpace` for the stimulus is used (defined during initialisation).
+
+        Please note that changing `colorSpace` does not change stimulus
+        parameters. Thus, you usually want to specify `colorSpace` before
+        setting the color.
+
+        """
+        if hasattr(self, '_colorSpace'):
+            return self._colorSpace
+        else:
+            return 'rgba'
+
+    @colorSpace.setter
+    def colorSpace(self, value):
+        if value in colorSpaces:
+            self._colorSpace = value
+        else:
+            logging.error(f"'{value}' is not a valid color space")
+
+    @property
+    def contrast(self):
+        """A value that is simply multiplied by the color (`float`).
+
+        This may be used to adjust the lightness of the material. This is
+        applied to all material color components.
+
+        Examples
+        --------
+        Basic usage::
+
+            stim.contrast =  1.0  # unchanged contrast
+            stim.contrast =  0.5  # decrease contrast
+            stim.contrast =  0.0  # uniform, no contrast
+            stim.contrast = -0.5  # slightly inverted
+            stim.contrast = -1.0  # totally inverted
+
+        Setting contrast outside range -1 to 1 is permitted, but may
+        produce strange results if color values exceeds the monitor limits.::
+
+            stim.contrast =  1.2  # increases contrast
+            stim.contrast = -1.2  # inverts with increased contrast
+
+        """
+        return self._diffuseColor.contrast
+
+    @contrast.setter
+    def contrast(self, value):
+        self._diffuseColor.contrast = value
+        self._specularColor.contrast = value
+        self._ambientColor.contrast = value
+        self._emissionColor.contrast = value
+
+    @property
     def shininess(self):
+        """Material shininess coefficient (`float`).
+
+        This is used to specify the 'tightness' of the specular highlights.
+        Values usually range between 0 and 128, but the range depends on the
+        specular highlight formula used by the shader.
+
+        """
         return self._shininess
 
     @shininess.setter
     def shininess(self, value):
         self._shininess = float(value)
+
+    @property
+    def face(self):
+        """Face to apply the material to (`str`). Possible values are one of
+        `'front'`, `'back'` or `'both'`.
+        """
+        return self._face
+
+    @face.setter
+    def face(self, value):
+        # which faces to apply the material
+        if value == 'front':
+            self._face = GL.GL_FRONT
+        elif value == 'back':
+            self._face = GL.GL_BACK
+        elif value == 'both':
+            self._face = GL.GL_FRONT_AND_BACK
+        else:
+            raise ValueError(
+                "Invalid value for `face` specified, must be 'front', 'back' "
+                "or 'both'.")
+
+    @property
+    def diffuseColor(self):
+        """Diffuse color `(r, g, b)` for the material (`psychopy.color.Color`,
+        `ArrayLike` or `None`).
+        """
+        return self._diffuseColor.render(self.colorSpace)
+
+    @diffuseColor.setter
+    def diffuseColor(self, value):
+        if isinstance(value, Color):
+            self._diffuseColor = value
+        else:
+            self._diffuseColor = Color(
+                value,
+                self.colorSpace,
+                contrast=self.contrast)
+
+        if not self._diffuseColor:
+            # If given an invalid color, set as transparent and log error
+            self._diffuseColor = Color()
+            logging.error(f"'{value}' is not a valid {self.colorSpace} color")
+
+        # compute RGB values for the shader
+        self._diffuseRGB[:3] = self._diffuseColor.rgb1
+        self._diffuseRGB[3] = self._diffuseColor.opacity
+
+        # need to create a pointer for the shader
+        self._ptrDiffuse = np.ctypeslib.as_ctypes(self._diffuseRGB)
+
+    def setDiffuseColor(self, color, colorSpace=None, operation='', log=None):
+        """Set the diffuse color for the material.
+
+        Use this method if you wish to supress logging or apply operations on
+        the color component.
+
+        Parameters
+        ----------
+        color : ArrayLike or `~psychopy.colors.Color`
+            Color to set as the diffuse component of the material.
+        colorSpace : str or None
+            Colorspace to use. This is only used to set the color, the value of
+            `diffuseColor` after setting uses the color space of the object.
+        operation : str
+            Operation string.
+        log : bool or None
+            Enable logging.
+
+        """
+        setColor(
+            obj=self,
+            colorAttrib="diffuseColor",
+            color=color,
+            colorSpace=colorSpace or self.colorSpace,
+            operation=operation,
+            log=log)
+
+    @property
+    def specularColor(self):
+        """Specular color `(r, g, b)` of the material (`psychopy.color.Color`,
+        `ArrayLike` or `None`).
+        """
+        return self._specularColor.render(self.colorSpace)
+
+    @specularColor.setter
+    def specularColor(self, value):
+        if isinstance(value, Color):
+            self._specularColor = value
+        else:
+            self._specularColor = Color(
+                value,
+                self.colorSpace,
+                contrast=self.contrast)
+
+        if not self._specularColor:
+            # If given an invalid color, set as transparent and log error
+            self._specularColor = Color()
+            logging.error(f"'{value}' is not a valid {self.colorSpace} color")
+
+        self._specularRGB[:3] = self._specularColor.rgb1
+        self._specularRGB[3] = self._specularColor.opacity
+
+        self._ptrSpecular = np.ctypeslib.as_ctypes(self._specularRGB)
+
+    def setSpecularColor(self, color, colorSpace=None, operation='', log=None):
+        """Set the diffuse color for the material. Use this function if you
+        wish to supress logging or apply operations on the color component.
+
+        Parameters
+        ----------
+        color : ArrayLike or `~psychopy.colors.Color`
+            Color to set as the specular component of the light source.
+        colorSpace : str or None
+            Colorspace to use. This is only used to set the color, the value of
+            `diffuseColor` after setting uses the color space of the object.
+        operation : str
+            Operation string.
+        log : bool or None
+            Enable logging.
+
+        """
+        setColor(
+            obj=self,
+            colorAttrib="specularColor",
+            color=color,
+            colorSpace=colorSpace or self.colorSpace,
+            operation=operation,
+            log=log)
+
+    @property
+    def ambientColor(self):
+        """Ambient color `(r, g, b)` of the material (`psychopy.color.Color`,
+        `ArrayLike` or `None`).
+        """
+        return self._ambientColor.render(self.colorSpace)
+
+    @ambientColor.setter
+    def ambientColor(self, value):
+        if isinstance(value, Color):
+            self._ambientColor = value
+        else:
+            self._ambientColor = Color(
+                value,
+                self.colorSpace,
+                contrast=self.contrast)
+
+        if not self._ambientColor:
+            # If given an invalid color, set as transparent and log error
+            self._ambientColor = Color()
+            logging.error(f"'{value}' is not a valid {self.colorSpace} color")
+
+        self._ambientRGB[:3] = self._ambientColor.rgb1
+        self._ambientRGB[3] = self._ambientColor.opacity
+
+        self._ptrAmbient = np.ctypeslib.as_ctypes(self._ambientRGB)
+
+    def setAmbientColor(self, color, colorSpace=None, operation='', log=None):
+        """Set the ambient color for the material.
+
+        Use this function if you wish to supress logging or apply operations on
+        the color component.
+
+        Parameters
+        ----------
+        color : ArrayLike or `~psychopy.colors.Color`
+            Color to set as the ambient component of the light source.
+        colorSpace : str or None
+            Colorspace to use. This is only used to set the color, the value of
+            `ambientColor` after setting uses the color space of the object.
+        operation : str
+            Operation string.
+        log : bool or None
+            Enable logging.
+
+        """
+        setColor(
+            obj=self,
+            colorAttrib="ambientColor",
+            color=color,
+            colorSpace=colorSpace or self.colorSpace,
+            operation=operation,
+            log=log)
+
+    @property
+    def emissionColor(self):
+        """Emission color `(r, g, b)` of the material (`psychopy.color.Color`,
+        `ArrayLike` or `None`).
+        """
+        return self._emissionColor.render(self.colorSpace)
+
+    @emissionColor.setter
+    def emissionColor(self, value):
+        if isinstance(value, Color):
+            self._emissionColor = value
+        else:
+            self._emissionColor = Color(
+                value,
+                self.colorSpace,
+                contrast=self.contrast)
+
+        if not self._emissionColor:
+            # If given an invalid color, set as transparent and log error
+            self._emissionColor = Color()
+            logging.error(f"'{value}' is not a valid {self.colorSpace} color")
+
+        self._emissionRGB[:3] = self._emissionColor.rgb1
+        self._emissionRGB[3] = self._emissionColor.opacity
+
+        self._ptrEmission = np.ctypeslib.as_ctypes(self._emissionRGB)
+
+    def setEmissionColor(self, color, colorSpace=None, operation='', log=None):
+        """Set the emission color for the material.
+
+        Use this function if you wish to supress logging or apply operations on
+        the color component.
+
+        Parameters
+        ----------
+        color : ArrayLike or `~psychopy.colors.Color`
+            Color to set as the ambient component of the light source.
+        colorSpace : str or None
+            Colorspace to use. This is only used to set the color, the value of
+            `ambientColor` after setting uses the color space of the object.
+        operation : str
+            Operation string.
+        log : bool or None
+            Enable logging.
+
+        """
+        setColor(
+            obj=self,
+            colorAttrib="emissionColor",
+            color=color,
+            colorSpace=colorSpace or self.colorSpace,
+            operation=operation,
+            log=log)
+
+    # --------------------------------------------------------------------------
+    # Material RGB colors
+    #
+    # These are the color values formatted for use in OpenGL.
+    #
+
+    @property
+    def diffuseRGB(self):
+        """RGB values of the diffuse color of the material (`numpy.ndarray`).
+        """
+        return self._diffuseRGB[:3]
+
+    @property
+    def specularRGB(self):
+        """RGB values of the specular color of the material (`numpy.ndarray`).
+        """
+        return self._specularRGB[:3]
+
+    @property
+    def ambientRGB(self):
+        """RGB values of the ambient color of the material (`numpy.ndarray`).
+        """
+        return self._ambientRGB[:3]
+
+    @property
+    def emissionRGB(self):
+        """RGB values of the emission color of the material (`numpy.ndarray`).
+        """
+        return self._emissionRGB[:3]
+
+    # Texture setter -----------------------------------------------------------
 
     @property
     def diffuseTexture(self):
@@ -748,88 +1067,6 @@ class BlinnPhongMaterial:
     @diffuseTexture.setter
     def diffuseTexture(self, value):
         self._diffuseTexture = value
-
-    @property
-    def diffuseColor(self):
-        """Diffuse color `(r, g, b)` of the material (`ArrayLike` or
-        `psychopy.color.Color`).
-        """
-        return self._diffuseColor
-
-    @diffuseColor.setter
-    def diffuseColor(self, value):
-        self._diffuseColor = Color(value, 'rgb')
-        self._diffuseRGB[:3] = self._diffuseColor.rgb1
-        self._diffuseRGB[3] = self._diffuseColor.opacity
-        self._ptrDiffuse = np.ctypeslib.as_ctypes(self._diffuseRGB)
-
-    @property
-    def specularColor(self):
-        """Specular color `(r, g, b)` of the material (`ArrayLike` or
-        `psychopy.color.Color`).
-        """
-        return self._specularColor
-
-    @specularColor.setter
-    def specularColor(self, value):
-        self._specularColor = Color(value, 'rgb')
-        self._specularRGB[:3] = self._specularColor.rgb1
-        self._specularRGB[3] = self._specularColor.opacity
-        self._ptrSpecular = np.ctypeslib.as_ctypes(self._specularRGB)
-
-    @property
-    def ambientColor(self):
-        """Ambient color `(r, g, b)` of the material (`ArrayLike` or
-        `psychopy.color.Color`).
-        """
-        return self._ambientColor
-
-    @ambientColor.setter
-    def ambientColor(self, value):
-        self._ambientColor = Color(value, 'rgb')
-        self._ambientRGB[:3] = self._ambientColor.rgb1
-        self._ambientRGB[3] = self._ambientColor.opacity
-        self._ptrAmbient = np.ctypeslib.as_ctypes(self._ambientRGB)
-
-    @property
-    def emissionColor(self):
-        """Emission color `(r, g, b)` of the material (`ArrayLike` or
-        `psychopy.color.Color`).
-        """
-        return self._emissionColor
-
-    @emissionColor.setter
-    def emissionColor(self, value):
-        self._emissionColor = Color(value, 'rgb')
-        self._emissionRGB[:3] = self._emissionColor.rgb1
-        self._emissionRGB[3] = self._emissionColor.opacity
-        self._ptrEmission = np.ctypeslib.as_ctypes(self._emissionRGB)
-
-    # --------------------------------------------------------------------------
-    # Material RGB colors
-    #
-    # These are the color values formatted for use in OpenGL.
-    #
-
-    @property
-    def diffuseRGB(self):
-        """Diffuse color of the material (`numpy.ndarray`)."""
-        return self._diffuseRGB[:3]
-
-    @property
-    def specularRGB(self):
-        """Diffuse color of the material (`numpy.ndarray`).."""
-        return self._specularRGB[:3]
-
-    @property
-    def ambientRGB(self):
-        """Diffuse color of the material (`numpy.ndarray`).."""
-        return self._ambientRGB[:3]
-
-    @property
-    def emissionRGB(self):
-        """Diffuse color of the material (`numpy.ndarray`).."""
-        return self._emissionRGB[:3]
 
     # --------------------------------------------------------------------------
 
