@@ -203,6 +203,17 @@ class CameraComponent(BaseComponent):
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(-2, relative=True)
 
+        # set parameters that need updating every frame
+        # do any params need updating? (this method inherited from _base)
+        if self.checkNeedToUpdate('set every frame'):
+            code = (
+                "if %(name)s.status == STARTED:  # only update if drawing\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(+1, relative=True)  # to enter the if block
+            self.writeParamUpdates(buff, 'set every frame')
+            buff.setIndentLevel(-1, relative=True)  # to exit the if block
+
     def writeFrameCodeJS(self, buff):
         # Start webcam at component start
         self.writeStartTestCodeJS(buff)
