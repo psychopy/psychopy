@@ -3578,7 +3578,9 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         # dc.SetId(tmpId)
         dc.SetBrush(wx.Brush(colors.app['fl_flowline_bg']))
         dc.SetPen(wx.Pen(colors.app['fl_flowline_bg']))
-        dc.DrawPolygon([[0, -3], [5, 0], [0, 3]], pos[0], pos[1])
+
+        posX, posY = pos
+        dc.DrawPolygon([[0, -3], [5, 0], [0, 3]], int(posX), int(posY))
         # dc.SetIdBounds(tmpId,wx.Rect(pos[0],pos[1]+3,5,6))
 
     def drawLoopEnd(self, dc, pos, downwards=True):
