@@ -1,6 +1,6 @@
 #!/bin/sh
 
-TEST_ONLY=1   # 0=full build, 1=dmg_but_not_notarized, 2=sign_app_dont_bundle
+TEST_ONLY=0   # 0=full build, 1=dmg_but_not_notarized, 2=sign_app_dont_bundle
 
 # defVersion=$(python -c 'import psychopy; print(psychopy.__version__)')
 defVersion=$(<version)  # reads from the version file
