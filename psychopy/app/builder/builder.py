@@ -3566,8 +3566,11 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         thic = (1, 1, 2)[self.appData['flowSize']]
         dc.SetBrush(wx.Brush(colors.app['fl_flowline_bg']))
         dc.SetPen(wx.Pen(colors.app['fl_flowline_bg']))
-        dc.DrawPolygon([[0, -ptSize], [thic, -ptSize],
-                        [thic, ptSize], [0, ptSize]], pos[0], pos[1])
+
+        posX, posY = pos
+        dc.DrawPolygon(
+            [[0, -ptSize], [thic, -ptSize], [thic, ptSize], [0, ptSize]],
+            int(posX), int(posY))
 
     def drawLineEnd(self, dc, pos):
         # draws arrow at end of timeline
@@ -3594,6 +3597,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         #   pos[0], pos[1]-3*size)  # points up
         dc.SetIdBounds(tmpId, wx.Rect(
             pos[0] - size, pos[1] - size, 2 * size, 2 * size))
+
         return
 
     def drawLoopStart(self, dc, pos, downwards=True):
