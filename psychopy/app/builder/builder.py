@@ -3613,16 +3613,26 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         dc.SetId(tmpId)
         dc.SetBrush(wx.Brush(colors.app['fl_flowline_bg']))
         dc.SetPen(wx.Pen(colors.app['fl_flowline_bg']))
+
         size = (3, 4, 5)[self.appData['flowSize']]
         offset = (3, 2, 0)[self.appData['flowSize']]
+        posX, posY = [int(x) for x in pos]
         if downwards:
-            dc.DrawPolygon([[size, size], [0, 0], [-size, size]],
-                           pos[0], pos[1] + 3 * size - offset)  # points up
+            dc.DrawPolygon(
+                [[size, size], [0, 0], [-size, size]],
+                posX, posY + 3 * size - offset)  # points up
         else:
-            dc.DrawPolygon([[size, 0], [0, size], [-size, 0]],
-                           pos[0], pos[1] - 4 * size)  # points down
+            dc.DrawPolygon(
+                [[size, 0], [0, size], [-size, 0]],
+                posX,
+                posY - 4 * size)  # points down
+
+        doubleSize = 2 * size
         dc.SetIdBounds(tmpId, wx.Rect(
-            pos[0] - size, pos[1] - size, 2 * size, 2 * size))
+            posX - size,
+            posY - size,
+            doubleSize,
+            doubleSize))
 
     def drawFlowRoutine(self, dc, routine, id, pos=(0, 0), draw=True):
         """Draw a box to show a routine on the timeline
