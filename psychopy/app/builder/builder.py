@@ -3704,8 +3704,8 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
 
         return endX
 
-    def drawLoop(self, dc, loop, id, startX, endX,
-                 base, height, downwards=True):
+    def drawLoop(self, dc, loop, id, startX, endX, base, height,
+                 downwards=True):
         if downwards:
             up = -1
         else:
@@ -3716,6 +3716,10 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         dc.SetId(tmpId)
         # extra distance, in both h and w for curve
         curve = (6, 11, 15)[self.appData['flowSize']]
+        # convert args types to `int`
+        startX, endX, base, height = [
+            int(x) for x in (startX, endX, base, height)]
+
         yy = [base, height + curve * up, height +
               curve * up // 2, height]  # for area
         dc.SetPen(wx.Pen(colors.app['fl_flowline_bg']))
@@ -3767,15 +3771,15 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
             basePtSize = (750, 850, 1000)[flowsize]
         else:
             basePtSize = (700, 750, 800)[flowsize]
-        font.SetPointSize(basePtSize / self.dpi)
+        font.SetPointSize(basePtSize // self.dpi)
         self.SetFont(font)
         dc.SetFont(font)
 
         # get size based on text
         pad = (5, 8, 10)[self.appData['flowSize']]
         w, h = self.GetFullTextExtent(name)[0:2]
-        x = startX + (endX - startX) / 2 - w / 2 - pad / 2
-        y = (height - h / 2)
+        x = startX + (endX - startX) // 2 - w // 2 - pad // 2
+        y = (height - h // 2)
 
         # draw box
         rect = wx.Rect(x, y, w + pad, h + pad)
@@ -3787,7 +3791,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         dc.DrawRoundedRectangle(rect, (4, 6, 8)[flowsize])
         # draw text
         dc.SetTextForeground(colors.app['fl_flowline_fg'])
-        dc.DrawText(name, x + pad / 2, y + pad / 2)
+        dc.DrawText(name, x + pad // 2, y + pad // 2)
 
         self.componentFromID[id] = loop
         # set the area for this component
