@@ -1633,7 +1633,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         self.fontBaseSize = (1100, 1200, 1300)[self.drawSize]  # depends on OS?
         #self.scroller = PsychopyScrollbar(self, wx.VERTICAL)
         self.SetVirtualSize((self.maxWidth, self.maxHeight))
-        self.SetScrollRate(self.dpi / 4, self.dpi / 4)
+        self.SetScrollRate(self.dpi // 4, self.dpi // 4)
 
         self.routine = routine
         self.yPositions = None
@@ -1738,7 +1738,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
     def OnScroll(self, event):
         xy = self.GetViewStart()
         multiplier = self.dpi / 1600
-        self.Scroll(xy[0], xy[1] - event.WheelRotation*multiplier)
+        self.Scroll(xy[0], int(xy[1] - event.WheelRotation * multiplier))
 
     def showContextMenu(self, component, xy):
         """Show a context menu in the routine view.
@@ -1878,7 +1878,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             yPos += self.componentStep
 
         # the 50 allows space for labels below the time axis
-        self.SetVirtualSize((self.maxWidth, yPos + 50))
+        self.SetVirtualSize((int(self.maxWidth), yPos + 50))
         self.Refresh()  # refresh the visible window after drawing (OnPaint)
         #self.scroller.Resize()
 
@@ -1888,6 +1888,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         maxTime, nonSlip = self.routine.getMaxTime()
         if self.routine.hasOnlyStaticComp():
             maxTime = int(maxTime) + 1.0
+
         return maxTime
 
     def drawTimeGrid(self, dc, yPosTop, yPosBottom, labelAbove=True):
@@ -1918,27 +1919,33 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             unitSize = 10 ** numpy.ceil(numpy.log10(tMax * 0.8)) / 20.0
         for lineN in range(int(numpy.floor((tMax / unitSize)))):
             # vertical line:
-            dc.DrawLine(xSt + lineN * unitSize / xScale, yPosTop - 4,
-                        xSt + lineN * unitSize / xScale, yPosBottom + 4)
+            dc.DrawLine(int(xSt + lineN * unitSize / xScale),
+                        yPosTop - 4,
+                        int(xSt + lineN * unitSize / xScale),
+                        yPosBottom + 4)
             # label above:
-            dc.DrawText('%.2g' % (lineN * unitSize), xSt + lineN *
-                        unitSize / xScale - 4, yPosTop - 30)
+            dc.DrawText('%.2g' % (lineN * unitSize),
+                        int(xSt + lineN * unitSize / xScale - 4),
+                        yPosTop - 30)
             if yPosBottom > 300:
                 # if bottom of grid is far away then draw labels here too
-                dc.DrawText('%.2g' % (lineN * unitSize), xSt + lineN *
-                            unitSize / xScale - 4, yPosBottom + 10)
+                dc.DrawText('%.2g' % (lineN * unitSize),
+                            int(xSt + lineN * unitSize / xScale - 4),
+                            yPosBottom + 10)
         # add a label
         self.setFontSize(self.fontBaseSize // self.dpi, dc)
         # y is y-half height of text
-        dc.DrawText('t (sec)', xEnd + 5,
-                    yPosTop - self.GetFullTextExtent('t')[1] / 2.0)
+        dc.DrawText('t (sec)',
+                    xEnd + 5,
+                    yPosTop - self.GetFullTextExtent('t')[1] // 2)
         # or draw bottom labels only if scrolling is turned on, virtual size >
         # available size?
         if yPosBottom > 300:
             # if bottom of grid is far away then draw labels there too
             # y is y-half height of text
-            dc.DrawText('t (sec)', xEnd + 5,
-                        yPosBottom - self.GetFullTextExtent('t')[1] / 2.0)
+            dc.DrawText('t (sec)',
+                        xEnd + 5,
+                        yPosBottom - self.GetFullTextExtent('t')[1] // 2)
         dc.SetTextForeground(colors.app['text'])
 
     def setFontSize(self, size, dc):
@@ -2039,33 +2046,38 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             thisColor = colors.app['rt_comp_disabled']
 
         dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
-        fullRect = wx.Rect(self.iconXpos, yPos,
-                           thisIcon.GetWidth(), thisIcon.GetHeight())
+        fullRect = wx.Rect(
+            int(self.iconXpos),
+            yPos,
+            thisIcon.GetWidth(),
+            thisIcon.GetHeight())
 
         self.setFontSize(self.fontBaseSize // self.dpi, dc)
 
         name = component.params['name'].val
         # get size based on text
         w, h = self.GetFullTextExtent(name)[0:2]
-        if w > self.iconXpos - self.dpi/5:
+        if w > self.iconXpos - self.dpi // 5:
             # If width is greater than space available, split word at point calculated by average letter width
             maxLen = int(
-                (self.iconXpos - self.GetFullTextExtent("...")[0] - self.dpi/5)
-                / (w/len(name))
+                (self.iconXpos - self.GetFullTextExtent("...")[0] - self.dpi / 5)
+                / (w / len(name))
             )
-            splitAt = int(maxLen/2)
+            splitAt = maxLen // 2
             name = name[:splitAt] + "..." + name[-splitAt:]
-            w = self.iconXpos - self.dpi/5
+            w = self.iconXpos - self.dpi // 5
+
         # draw text
         # + x position of icon (left side)
         # - half width of icon (including whitespace around it)
         # - FULL width of text
         # + slight adjustment for whitespace
-        x = self.iconXpos - thisIcon.GetWidth()/2 - w + thisIcon.GetWidth()/3
+        x = self.iconXpos - thisIcon.GetWidth() / 2 - w + thisIcon.GetWidth() / 3
         _adjust = (5, 5, -2)[self.drawSize]
         y = yPos + thisIcon.GetHeight() // 2 - h // 2 + _adjust
         dc.DrawText(name, x, y)
-        fullRect.Union(wx.Rect(x - 20, y, w, h))
+        fullRect.Union(
+            wx.Rect(int(x - 20), y, w, h))
 
         # deduce start and stop times if possible
         startTime, duration, nonSlipSafe = component.getStartAndDuration()
@@ -2097,9 +2109,9 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                     w = 10000  # limit width to 10000 pixels!
                 if w < 2:
                     w = 2  # make sure at least one pixel shows
-                dc.DrawRectangle(xSt, y + yOffset, w, h)
+                dc.DrawRectangle(xSt, int(y + yOffset), w, h)
                 # update bounds to include time bar
-                fullRect.Union(wx.Rect(xSt, y + yOffset, w, h))
+                fullRect.Union(wx.Rect(xSt, int(y + yOffset), w, h))
         dc.SetIdBounds(id, fullRect)
 
     def copyCompon(self, event=None, component=None):
