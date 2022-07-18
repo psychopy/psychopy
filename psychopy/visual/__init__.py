@@ -88,6 +88,7 @@ from psychopy.visual.line import Line
 from psychopy.visual.polygon import Polygon
 from psychopy.visual.rect import Rect
 from psychopy.visual.pie import Pie
+from psychopy.visual.button import CheckBoxStim
 
 # stimuli derived from Polygon
 from psychopy.visual.circle import Circle
