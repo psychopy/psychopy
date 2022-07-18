@@ -3649,13 +3649,13 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         font = self.GetFont()
         if sys.platform == 'darwin':
             fontSizeDelta = (9, 6, 0)[self.appData['flowSize']]
-            font.SetPointSize(1400 / self.dpi - fontSizeDelta)
+            font.SetPointSize(1400 // self.dpi - fontSizeDelta)
         elif sys.platform.startswith('linux'):
             fontSizeDelta = (6, 4, 0)[self.appData['flowSize']]
-            font.SetPointSize(1400 / self.dpi - fontSizeDelta)
+            font.SetPointSize(1400 // self.dpi - fontSizeDelta)
         else:
             fontSizeDelta = (8, 4, 0)[self.appData['flowSize']]
-            font.SetPointSize(1000 / self.dpi - fontSizeDelta)
+            font.SetPointSize(1000 // self.dpi - fontSizeDelta)
 
         maxTime, nonSlip = routine.getMaxTime()
         if hasattr(routine, "disabled") and routine.disabled:
@@ -3676,6 +3676,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         if draw:
             dc.SetFont(font)
         w, h = self.GetFullTextExtent(name)[0:2]
+        pos = [int(x) for x in pos]  # explicit type conversion for position
         pad = (5, 10, 20)[self.appData['flowSize']]
         # draw box
         rect = wx.Rect(pos[0], pos[1] + 2 - self.appData['flowSize'],
@@ -3716,7 +3717,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         # extra distance, in both h and w for curve
         curve = (6, 11, 15)[self.appData['flowSize']]
         yy = [base, height + curve * up, height +
-              curve * up / 2, height]  # for area
+              curve * up // 2, height]  # for area
         dc.SetPen(wx.Pen(colors.app['fl_flowline_bg']))
         vertOffset = 0  # 1 is interesting too
         area = wx.Rect(startX, base + vertOffset,
