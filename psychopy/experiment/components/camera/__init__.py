@@ -194,13 +194,14 @@ class CameraComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
 
         # Stop webcam at component stop
-        self.writeStopTestCode(buff)
-        code = (
-            "# Stop %(name)s recording\n"
-            "%(name)s.stop()\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-2, relative=True)
+        if self.params['stopVal'].val not in ('', None, -1, 'None'):
+            self.writeStopTestCode(buff)
+            code = (
+                "# Stop %(name)s recording\n"
+                "%(name)s.stop()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(-2, relative=True)
 
     def writeFrameCodeJS(self, buff):
         # Start webcam at component start
