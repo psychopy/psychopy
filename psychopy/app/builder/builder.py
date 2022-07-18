@@ -3521,13 +3521,14 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
     def drawEntryPoints(self, posList):
         ptSize = (3, 4, 5)[self.appData['flowSize']]
         for n, pos in enumerate(posList):
+            pos = int(pos)
             if n >= len(self.entryPointPosList):
                 # draw for first time
                 id = wx.NewIdRef()
                 self.entryPointIDlist.append(id)
                 self.pdc.SetId(id)
                 self.pdc.SetBrush(wx.Brush(colors.app['fl_flowline_bg']))
-                self.pdc.DrawCircle(pos, self.linePos[1], ptSize)
+                self.pdc.DrawCircle(pos, int(self.linePos[1]), ptSize)
                 r = self.pdc.GetIdBounds(id)
                 self.OffsetRect(r)
                 self.RefreshRect(r, False)
