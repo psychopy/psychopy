@@ -3428,7 +3428,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
 
         # draw the main time line
         self.linePos = (2.5 * self.dpi, 0.5 * self.dpi)  # x,y of start
-        gap = self.dpi / (6, 4, 2)[self.appData['flowSize']]
+        gap = self.dpi // (6, 4, 2)[self.appData['flowSize']]
         dLoopToBaseLine = (15, 25, 43)[self.appData['flowSize']]
         dBetweenLoops = (20, 24, 30)[self.appData['flowSize']]
 
@@ -3441,19 +3441,26 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
                 nLoops += 1
         sizeX = nRoutines * self.dpi * 2
         sizeY = nLoops * dBetweenLoops + dLoopToBaseLine * 3
-        self.SetVirtualSize(size=(sizeX, sizeY))
+        self.SetVirtualSize(size=(int(sizeX), int(sizeY)))
+
+        # this has type `float` for values, needs to be `int`
+        linePosX, linePosY = [int(x) for x in self.linePos]
 
         # step through components in flow, get spacing from text size, etc
-        currX = self.linePos[0]
+        currX = self.linePos[0]  # float
         lineId = wx.NewIdRef()
         pdc.SetPen(wx.Pen(colour=colors.app['fl_flowline_bg']))
-        pdc.DrawLine(x1=self.linePos[0] - gap, y1=self.linePos[1],
-                     x2=self.linePos[0], y2=self.linePos[1])
+        pdc.DrawLine(
+            x1=linePosX - gap,
+            y1=linePosY,
+            x2=linePosX,
+            y2=linePosY)
+
         # NB the loop is itself the key, value is further info about it
         self.loops = {}
         nestLevel = 0
         maxNestLevel = 0
-        self.gapMidPoints = [currX - gap / 2]
+        self.gapMidPoints = [currX - gap // 2]
         self.gapNestLevels = [0]
         for ii, entry in enumerate(expFlow):
             if entry.getType() == 'LoopInitiator':
@@ -3469,17 +3476,24 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
             elif entry.getType() == 'Routine' or entry.getType() in getAllStandaloneRoutines():
                 # just get currX based on text size, don't draw anything yet:
                 currX = self.drawFlowRoutine(pdc, entry, id=ii,
-                                             pos=[currX, self.linePos[1] - 10],
+                                             pos=[currX, linePosY - 10],
                                              draw=False)
-            self.gapMidPoints.append(currX + gap / 2)
+            self.gapMidPoints.append(currX + gap // 2)
             self.gapNestLevels.append(nestLevel)
             pdc.SetId(lineId)
             pdc.SetPen(wx.Pen(colour=colors.app['fl_flowline_bg']))
-            pdc.DrawLine(x1=currX, y1=self.linePos[1],
-                         x2=currX + gap, y2=self.linePos[1])
+            pdc.DrawLine(
+                x1=currX,
+                y1=linePosY,
+                x2=currX + gap,
+                y2=linePosY)
             currX += gap
-        lineRect = wx.Rect(self.linePos[0] - 2, self.linePos[1] - 2,
-                           currX - self.linePos[0] + 2, 4)
+
+        lineRect = wx.Rect(
+            linePosX - 2,
+            linePosY - 2,
+            currX - linePosX + 2,
+            4)
         pdc.SetIdBounds(lineId, lineRect)
 
         # draw the loops first:
@@ -3489,31 +3503,31 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
             thisTerm = self.loops[thisLoop]['term']
             thisNest = maxNestLevel - self.loops[thisLoop]['nest'] - 1
             thisId = self.loops[thisLoop]['id']
-            height = (self.linePos[1] + dLoopToBaseLine +
+            height = (linePosY + dLoopToBaseLine +
                       thisNest * dBetweenLoops)
             self.drawLoop(pdc, thisLoop, id=thisId,
                           startX=thisInit, endX=thisTerm,
-                          base=self.linePos[1], height=height)
-            self.drawLoopStart(pdc, pos=[thisInit, self.linePos[1]])
-            self.drawLoopEnd(pdc, pos=[thisTerm, self.linePos[1]])
+                          base=linePosY, height=height)
+            self.drawLoopStart(pdc, pos=[thisInit, linePosY])
+            self.drawLoopEnd(pdc, pos=[thisTerm, linePosY])
             if height > maxHeight:
                 maxHeight = height
 
         # draw routines second (over loop lines):
-        currX = self.linePos[0]
+        currX = int(self.linePos[0])
         for ii, entry in enumerate(expFlow):
             if entry.getType() == 'Routine' or entry.getType() in getAllStandaloneRoutines():
-                currX = self.drawFlowRoutine(pdc, entry, id=ii,
-                                             pos=[currX, self.linePos[1] - 10])
+                currX = self.drawFlowRoutine(
+                    pdc, entry, id=ii, pos=[currX, linePosY - 10])
             pdc.SetPen(wx.Pen(wx.Pen(colour=colors.app['fl_flowline_bg'])))
-            pdc.DrawLine(x1=currX, y1=self.linePos[1],
-                         x2=currX + gap, y2=self.linePos[1])
+            pdc.DrawLine(x1=currX, y1=linePosY,
+                         x2=currX + gap, y2=linePosY)
             currX += gap
 
         self.SetVirtualSize(size=(currX + 100, maxHeight + 50))
 
-        self.drawLineStart(pdc, (self.linePos[0] - gap, self.linePos[1]))
-        self.drawLineEnd(pdc, (currX, self.linePos[1]))
+        self.drawLineStart(pdc, (linePosX - gap, linePosY))
+        self.drawLineEnd(pdc, (currX, linePosY))
 
         # refresh the visible window after drawing (using OnPaint)
         self.Refresh()
