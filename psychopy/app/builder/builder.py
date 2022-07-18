@@ -2901,7 +2901,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         self.appData = self.app.prefs.appData
 
         # self.SetAutoLayout(True)
-        self.SetScrollRate(self.dpi / 4, self.dpi / 4)
+        self.SetScrollRate(self.dpi // 4, self.dpi // 4)
 
         # create a PseudoDC to record our drawing
         self.pdc = PseudoDC()
