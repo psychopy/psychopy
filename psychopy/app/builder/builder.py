@@ -3597,8 +3597,13 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         # else:
         #   dc.DrawPolygon([[size, size], [0, 0], [-size, size]],
         #   pos[0], pos[1]-3*size)  # points up
+
+        posX, posY = pos
+        doubleSize = 2 * size
         dc.SetIdBounds(tmpId, wx.Rect(
-            pos[0] - size, pos[1] - size, 2 * size, 2 * size))
+            int(posX) - size, int(posY) - size,
+            doubleSize,
+            doubleSize))
 
         return
 
