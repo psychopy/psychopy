@@ -4,6 +4,46 @@ from psychopy.visual.button import ButtonStim
 
 
 class DropDownCtrl(ButtonStim):
+    """
+    Class to create a "Drop Down" control, similar to a HTML <select> tag. Consists of a psychopy.visual.ButtonStim
+    which, when clicked on, shows a psychopy.visual.Slider with style "choice", which closes again when a value is
+    selected.
+
+    win : psychopy.visual.Window
+        Window to draw the control to
+    startValue : str
+        Which of the available values should be the starting value? Use `""` for no selection
+    font : str
+        Name of the font to display options in
+    pos : tuple, list, np.ndarray, psychopy.layout.Position
+        Position of the stimulus on screen
+    size : tuple, list, np.ndarray, psychopy.layout.Position
+        Size of the persistent control, size of the menu will be calculated according to this size and the number of
+        options.
+    anchor : str
+        Which point on the stimulus should be at the point specified by pos?
+    units : str, None
+        Spatial units in which to interpret this stimulus' size and position, use None to use the window's units
+    color : Color
+        Color of the text in the control
+    markerColor : Color
+        Color of the highlight on the selected element in the drop down menu
+    lineColor : Color
+        Background color of both the persistent control and drop-down menu. Called "lineColor" for consistency with
+        Slider, as the background is technically just a thick line on a Slider.
+    colorSpace : str
+        Color space in which to interpret stimulus colors
+    padding : int, float, tuple
+        Padding between edge and text on both the persistent control and each item in the drop down menu.
+    choices : tuple, list, np.ndarray
+        Options to choose from in the drop down menu
+    labelHeight : int, float
+        Height of text within both the persistent control and each item in the drop down menu
+    name : str
+        Name of this stimulus
+    autoLog : bool
+        Whether or not to log changes to this stimulus automatically
+    """
     def __init__(self, win, startValue="", font='Arvo',
                  pos=(0, 0), size=(0.4, 0.2), anchor='center', units=None,
                  color='black', markerColor='lightblue', lineColor='white',
