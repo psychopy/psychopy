@@ -155,7 +155,7 @@ class DropDownCtrl(ButtonStim):
             self.menu.draw()
         # Update current value
         if self.menu.rating is not None:
-            self.text = self.menu.choices[self.menu.rating]
+            self.text = self.choices[self.menu.rating]
             self.hideMenu()
         # Draw self
         ButtonStim.draw(self)
