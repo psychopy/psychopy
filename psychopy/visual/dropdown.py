@@ -7,15 +7,15 @@ class DropDownCtrl(ButtonStim):
     def __init__(self, win, startValue="", font='Arvo',
                  pos=(0, 0), size=(0.4, 0.2), anchor='center', units=None,
                  color='black', markerColor='lightblue', lineColor='white',
-                 padding=None,
                  colorSpace='rgb',
-                 labels=("one", "two", "three"),
+                 padding=None,
+                 choices=("one", "two", "three"),
                  labelHeight=0.04,
                  name="", autoLog=None):
         # Need to flip labels and add blank
-        labels = [""] + list(labels)
-        labels.reverse()
-        self.labels = labels
+        choices = [""] + list(choices)
+        choices.reverse()
+        self.choices = choices
         # Textbox to display current value
         ButtonStim.__init__(
             self, win, text=startValue, font=font,
@@ -34,7 +34,7 @@ class DropDownCtrl(ButtonStim):
         self.icon.flipVert = True
         # Menu object to show when clicked on
         self.menu = Slider(
-            win, startValue=labels.index(startValue), labels=labels, ticks=list(range(len(labels))),
+            win, startValue=choices.index(startValue), labels=choices, ticks=list(range(len(choices))),
             labelColor=color, markerColor=markerColor, lineColor=lineColor,
             colorSpace=colorSpace,
             style="choice", granularity=1, font=font,
@@ -54,7 +54,7 @@ class DropDownCtrl(ButtonStim):
     def size(self, value):
         ButtonStim.size.fset(self, value)
         if hasattr(self, "menu"):
-            self.menu.size = self._size * (1, len(self.labels))
+            self.menu.size = self._size * (1, len(self.choices))
 
     @property
     def pos(self):
@@ -78,7 +78,7 @@ class DropDownCtrl(ButtonStim):
         # Clear rating
         self.menu.rating = None
         # Set marker pos
-        self.menu.markerPos = self.labels.index(self.text)
+        self.menu.markerPos = self.choices.index(self.text)
         # Rotate icon
         self.icon.flipVert = not value
 
@@ -93,7 +93,7 @@ class DropDownCtrl(ButtonStim):
     def value(self, value):
         if value is None:
             value = ""
-        self.menu.rating = self.labels.index(value)
+        self.menu.rating = self.choices.index(value)
 
     def draw(self):
         # Check mouse clicks
@@ -115,7 +115,7 @@ class DropDownCtrl(ButtonStim):
             self.menu.draw()
         # Update current value
         if self.menu.rating is not None:
-            self.text = self.menu.labels[self.menu.rating]
+            self.text = self.menu.choices[self.menu.rating]
             self.hideMenu()
         # Draw self
         ButtonStim.draw(self)
