@@ -990,17 +990,25 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def resetPrefs(self, event):
         """Reset preferences to default"""
         # Present "are you sure" dialog
-        dlg = wx.MessageDialog(self, _translate("Are you sure you want to reset your preferences? This cannot be undone."),
-                               caption="Reset Preferences...", style=wx.ICON_WARNING | wx.CANCEL)
+        dlg = wx.MessageDialog(
+            self, _translate(
+                "Are you sure you want to reset your preferences? This cannot "
+                "be undone."),
+            caption="Reset Preferences...",
+            style=wx.ICON_WARNING | wx.CANCEL)
         dlg.SetOKCancelLabels(
             _translate("I'm sure"),
             _translate("Wait, go back!")
         )
         if dlg.ShowModal() == wx.ID_OK:
-            # If okay is pressed, remove prefs file (meaning a new one will be created on next restart)
+            # If okay is pressed, remove prefs file (meaning a new one will be
+            # created on next restart)
             os.remove(prefs.paths['userPrefsFile'])
             # Show confirmation
-            dlg = wx.MessageDialog(self, _translate("Done! Your preferences have been reset. Changes will be applied when you next open PsychoPy."))
+            dlg = wx.MessageDialog(
+                self, _translate(
+                    "Done! Your preferences have been reset. Changes will be "
+                    "applied when you next open PsychoPy."))
             dlg.ShowModal()
         else:
             pass
