@@ -9,7 +9,13 @@ Code is based on uniseg 0.7.1 (https://pypi.org/project/uniseg/)
 
 import sys
 import re
-from psychopy.tools.linebreak_class import linebreak_class
+# from psychopy.tools.linebreak_class import linebreak_class
+# Loading linebreak_class from csv instead
+import os
+import pandas as pd
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+lb_df = pd.read_csv(os.path.join(__location__, "linebreak_class.csv"))
+linebreak_class = dict(zip(lb_df.code, lb_df.linebreak))
 
 __all__ = [
     'get_breakable_points',
