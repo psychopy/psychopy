@@ -1,0 +1,23 @@
+
+code: 4410
+cat: Conflicts
+msg: Keyboard {keyboard} ends routine on press, so the key release will carry over to the next routine. This may interfere with other components listening for key releases, such as an editable textbox.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Keyboard ending routine on press
+
+synopsis: |
+  Keyboard components let you choose whether to listen for a key press or a key release; if a Keyboard component is set 
+  to end a routine when pressed, this means that the key will be released in the next routine.
+
+details: |
+  
+
+solutions: |
+  This could be fine! If you are intending for the key release to be recorded in the following routine, you can ignore 
+  this alert. Just be aware that components which listen for key releases, such as an editable textbox, will start the 
+  next routine with the key pressed to end the previous routine already inputted. To prevent this, change your Keyboard 
+  component to register keypresses on release instead.
+
+versions: |
+  > 2023.1.0

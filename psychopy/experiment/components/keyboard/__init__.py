@@ -7,6 +7,7 @@
 
 from pathlib import Path
 
+from psychopy import alerts
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.experiment import CodeGenerationException, valid_var_re
 from psychopy.localization import _localized as __localized
@@ -434,6 +435,9 @@ class KeyboardComponent(BaseComponent):
         buff.writeIndented("\n")
 
     def writeRoutineEndCode(self, buff):
+        if self.params['registerOn'] == "press" and self.params['forceEndRoutine']:
+            alerts.alert(4410, strFields={"keyboard": self.name})
+
         # some shortcuts
         name = self.params['name']
         store = self.params['store'].val
