@@ -57,7 +57,7 @@ from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties,
                       ParamNotebook, DlgNewRoutine)
-from ..utils import (BasePsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
+from ..utils import (BasePsychopyToolbar, HoverButton, WindowFrozen,
                      FileDropTarget, FrameSwitcher, updateDemosMenu,
                      ToggleButtonArray, HoverMixin)
 
@@ -2940,12 +2940,12 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         labelLoop = _translate('Insert Loop     ')
         btnHeight = 50
         # Create add routine button
-        self.btnInsertRoutine = PsychopyPlateBtn(
+        self.btnInsertRoutine = HoverButton(
             self, -1, labelRoutine, pos=(10, 10), size=(120, btnHeight),
             style=wx.BORDER_NONE
         )
         # Create add loop button
-        self.btnInsertLoop = PsychopyPlateBtn(
+        self.btnInsertLoop = HoverButton(
             self, -1, labelLoop, pos=(10, btnHeight+20),
             size=(120, btnHeight),
             style=wx.BORDER_NONE

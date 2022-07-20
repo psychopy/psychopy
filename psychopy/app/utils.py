@@ -273,7 +273,7 @@ class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
         pass
 
 
-class PsychopyPlateBtn(wx.Button, HoverMixin, handlers.ThemeMixin):
+class HoverButton(wx.Button, HoverMixin, handlers.ThemeMixin):
     def __init__(self, parent, id=wx.ID_ANY, label='', bmp=None,
                  pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=1, name=wx.ButtonNameStr):
