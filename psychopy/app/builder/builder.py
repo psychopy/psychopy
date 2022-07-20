@@ -1903,6 +1903,9 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
     def drawTimeGrid(self, dc, yPosTop, yPosBottom, labelAbove=True):
         """Draws the grid of lines and labels the time axes
         """
+        yPosTop = int(yPosTop)  # explicit type conversion to `int`
+        yPosBottom = int(yPosBottom)
+
         tMax = self.getMaxTime() * 1.1
         xScale = self.getSecsPerPixel()
         xSt = self.timeXposStart
@@ -1911,11 +1914,19 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         # dc.SetId(wx.NewIdRef())
         dc.SetPen(wx.Pen(colors.app['rt_timegrid']))
         dc.SetTextForeground(wx.Colour(colors.app['rt_timegrid']))
+
         # draw horizontal lines on top and bottom
-        dc.DrawLine(x1=xSt, y1=yPosTop,
-                    x2=xEnd, y2=yPosTop)
-        dc.DrawLine(x1=xSt, y1=yPosBottom,
-                    x2=xEnd, y2=yPosBottom)
+        dc.DrawLine(
+            x1=int(xSt),
+            y1=yPosTop,
+            x2=int(xEnd),
+            y2=yPosTop)
+        dc.DrawLine(
+            x1=int(xSt),
+            y1=yPosBottom,
+            x2=int(xEnd),
+            y2=yPosBottom)
+
         # draw vertical time points
         # gives roughly 1/10 the width, but in rounded to base 10 of
         # 0.1,1,10...
@@ -1945,7 +1956,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         self.setFontSize(self.fontBaseSize // self.dpi, dc)
         # y is y-half height of text
         dc.DrawText('t (sec)',
-                    xEnd + 5,
+                    int(xEnd + 5),
                     yPosTop - self.GetFullTextExtent('t')[1] // 2)
         # or draw bottom labels only if scrolling is turned on, virtual size >
         # available size?
@@ -1953,7 +1964,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             # if bottom of grid is far away then draw labels there too
             # y is y-half height of text
             dc.DrawText('t (sec)',
-                        xEnd + 5,
+                        int(xEnd + 5),
                         yPosBottom - self.GetFullTextExtent('t')[1] // 2)
         dc.SetTextForeground(colors.app['text'])
 
@@ -1965,6 +1976,11 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
 
     def drawStatic(self, dc, component, yPosTop, yPosBottom):
         """draw a static (ISI) component box"""
+
+        # type conversion to `int`
+        yPosTop = int(yPosTop)
+        yPosBottom = int(yPosBottom)
+
         # set an id for the region of this component (so it can
         # act as a button). see if we created this already.
         id = None
@@ -2022,6 +2038,9 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         """Draw the timing of one component on the timeline"""
         # set an id for the region of this component (so it
         # can act as a button). see if we created this already
+
+        yPos = int(yPos)  # explicit type conversion
+
         id = None
         for key in self.componentFromID:
             if self.componentFromID[key] == component:
@@ -2084,7 +2103,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         x = self.iconXpos - thisIcon.GetWidth() / 2 - w + thisIcon.GetWidth() / 3
         _adjust = (5, 5, -2)[self.drawSize]
         y = yPos + thisIcon.GetHeight() // 2 - h // 2 + _adjust
-        dc.DrawText(name, x, y)
+        dc.DrawText(name, int(x), y)
         fullRect.Union(
             wx.Rect(int(x - 20), y, w, h))
 
@@ -3504,16 +3523,16 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
             pdc.SetId(lineId)
             pdc.SetPen(wx.Pen(colour=colors.app['fl_flowline_bg']))
             pdc.DrawLine(
-                x1=currX,
+                x1=int(currX),
                 y1=linePosY,
-                x2=currX + gap,
+                x2=int(currX + gap),
                 y2=linePosY)
             currX += gap
 
         lineRect = wx.Rect(
             linePosX - 2,
             linePosY - 2,
-            currX - linePosX + 2,
+            int(currX) - linePosX + 2,
             4)
         pdc.SetIdBounds(lineId, lineRect)
 
@@ -3541,8 +3560,11 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
                 currX = self.drawFlowRoutine(
                     pdc, entry, id=ii, pos=[currX, linePosY - 10])
             pdc.SetPen(wx.Pen(wx.Pen(colour=colors.app['fl_flowline_bg'])))
-            pdc.DrawLine(x1=currX, y1=linePosY,
-                         x2=currX + gap, y2=linePosY)
+            pdc.DrawLine(
+                x1=int(currX),
+                y1=linePosY,
+                x2=int(currX + gap),
+                y2=linePosY)
             currX += gap
 
         self.SetVirtualSize(size=(currX + 100, maxHeight + 50))
