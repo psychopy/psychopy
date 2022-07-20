@@ -385,12 +385,16 @@ class KeyboardComponent(BaseComponent):
             keyListStr = "%s" % repr(keyList)
 
         # check for keypresses
-        code = ("let theseKeys = {name}.getKeys({{keyList: {keyStr}, waitRelease: false}});\n"
+        waitRelease = "false"
+        if self.params['registerOn'] == "release":
+            waitRelease = "true"
+        code = ("let theseKeys = {name}.getKeys({{keyList: {keyStr}, waitRelease: {waitRelease}}});\n"
                 "_{name}_allKeys = _{name}_allKeys.concat(theseKeys);\n"
                 "if (_{name}_allKeys.length > 0) {{\n")
         buff.writeIndentedLines(
             code.format(
                 name=self.params['name'],
+                waitRelease=waitRelease,
                 keyStr=keyListStr
             )
         )
@@ -498,6 +502,9 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
 
     def writeRoutineEndCodeJS(self, buff):
+        if self.params['registerOn'] == "press" and self.params['forceEndRoutine']:
+            alerts.alert(4410, strFields={"keyboard": self.name})
+
         # some shortcuts
         name = self.params['name']
         store = self.params['store'].val
