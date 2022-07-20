@@ -273,29 +273,24 @@ class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
         pass
 
 
-class PsychopyPlateBtn(platebtn.PlateButton, handlers.ThemeMixin):
+class PsychopyPlateBtn(wx.Button, HoverMixin, handlers.ThemeMixin):
     def __init__(self, parent, id=wx.ID_ANY, label='', bmp=None,
                  pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=1, name=wx.ButtonNameStr):
-        platebtn.PlateButton.__init__(self, parent, id, label, bmp, pos, size, style, name)
+        wx.Button.__init__(
+            self, parent=parent, id=id, label=label, pos=pos, size=size, style=style, name=name
+        )
+        if bmp is not None:
+            self.SetBitmap(bmp)
         self.parent = parent
-        self.__InitColors()
-        self._applyAppTheme()
+        self.SetupHover()
 
     def _applyAppTheme(self):
-        self.__InitColors()
-        self.SetBackgroundColour(wx.Colour(self.parent.GetBackgroundColour()))
-        self.SetPressColor(colors.app['txtbutton_bg_hover'])
-        self.SetLabelColor(colors.app['text'],
-                           colors.app['txtbutton_fg_hover'])
-
-    def __InitColors(self):
-        """Initialize the default colors"""
-        cols = dict(default=True,
-                      hlight=colors.app['txtbutton_bg_hover'],
-                      press=colors.app['txtbutton_bg_hover'],
-                      htxt=colors.app['text'])
-        return cols
+        self.ForegroundColourNoHover = colors.app['text']
+        self.ForegroundColourHover = colors.app['txtbutton_fg_hover']
+        self.BackgroundColourNoHover = colors.app['frame_bg']
+        self.BackgroundColourHover = colors.app['txtbutton_bg_hover']
+        self.Update()
 
 
 class ButtonArray(wx.Window):

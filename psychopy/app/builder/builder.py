@@ -2942,13 +2942,13 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         # Create add routine button
         self.btnInsertRoutine = PsychopyPlateBtn(
             self, -1, labelRoutine, pos=(10, 10), size=(120, btnHeight),
-            style=platebtn.PB_STYLE_SQUARE
+            style=wx.BORDER_NONE
         )
         # Create add loop button
         self.btnInsertLoop = PsychopyPlateBtn(
             self, -1, labelLoop, pos=(10, btnHeight+20),
             size=(120, btnHeight),
-            style=platebtn.PB_STYLE_SQUARE
+            style=wx.BORDER_NONE
         )  # spaces give size for CANCEL
 
         # use self.appData['flowSize'] to index a tuple to get a specific
@@ -2973,13 +2973,6 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
 
     def _applyAppTheme(self, target=None):
         """Apply any changes which have been made to the theme since panel was last loaded"""
-        # Style loop/routine buttons
-        self.btnInsertLoop.SetBackgroundColour(colors.app['frame_bg'])
-        self.btnInsertLoop.SetForegroundColour(colors.app['text'])
-        self.btnInsertLoop.Update()
-        self.btnInsertRoutine.SetBackgroundColour(colors.app['frame_bg'])
-        self.btnInsertRoutine.SetForegroundColour(colors.app['text'])
-        self.btnInsertRoutine.Update()
         # Set background
         self.SetBackgroundColour(colors.app['panel_bg'])
 
