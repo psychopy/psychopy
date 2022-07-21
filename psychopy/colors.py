@@ -591,7 +591,7 @@ class Color:
         # Validate
         color, space = self.validate(color, space='rgb')
         if space != 'rgb':
-            setattr(self, space)
+            setattr(self, space, color)
             return
         # Set color
         self._franca = color
@@ -626,7 +626,7 @@ class Color:
         # Validate
         color, space = self.validate(color, space='rgb255')
         if space != 'rgb255':
-            setattr(self, space)
+            setattr(self, space, color)
             return
         # Iterate through values and do conversion
         self.rgb = 2 * (color / 255 - 0.5)
@@ -661,7 +661,7 @@ class Color:
         # Validate
         color, space = self.validate(color, space='rgb1')
         if space != 'rgb1':
-            setattr(self, space)
+            setattr(self, space, color)
             return
         # Iterate through values and do conversion
         self.rgb = 2 * (color - 0.5)
@@ -708,7 +708,7 @@ class Color:
         # Validate
         color, space = self.validate(color, space='hex')
         if space != 'hex':
-            setattr(self, space)
+            setattr(self, space, color)
             return
         if len(color) > 1:
             # Handle arrays
@@ -782,7 +782,7 @@ class Color:
         # Validate
         color, space = self.validate(color=color, space='named')
         if space != 'named':
-            setattr(self, space)
+            setattr(self, space, color)
             return
         # Retrieve named colour
         if len(color) > 1:
@@ -826,7 +826,7 @@ class Color:
         # Validate
         color, space = self.validate(color=color, space='hsv')
         if space != 'hsv':
-            setattr(self, space)
+            setattr(self, space, color)
             return
         # Apply via rgba255
         self.rgb = ct.hsv2rgb(color)
@@ -857,7 +857,7 @@ class Color:
         # Validate
         color, space = self.validate(color=color, space='lms')
         if space != 'lms':
-            setattr(self, space)
+            setattr(self, space, color)
             return
         # Apply via rgba255
         self.rgb = ct.lms2rgb(color, self.conematrix)
@@ -889,7 +889,7 @@ class Color:
         # Validate
         color, space = self.validate(color=color, space='dkl')
         if space != 'dkl':
-            setattr(self, space)
+            setattr(self, space, color)
             return
         # Apply via rgba255
         self.rgb = ct.dkl2rgb(color, self.conematrix)
@@ -921,7 +921,7 @@ class Color:
         # Validate
         color, space = self.validate(color=color, space='dklCart')
         if space != 'dkl':
-            setattr(self, space)
+            setattr(self, space, color)
             return
         # Apply via rgba255
         self.rgb = ct.dklCart2rgb(color, self.conematrix)
@@ -943,7 +943,7 @@ class Color:
         # Validate
         color, space = self.validate(color=color, space='srgb')
         if space != 'srgb':
-            setattr(self, space)
+            setattr(self, space, color)
             return
         # Apply via rgba255
         self.rgb = ct.srgbTF(color, reverse=True)
@@ -963,7 +963,7 @@ class Color:
     #     # Validate
     #     color, space = self.validate(color=color, space='rec709TF')
     #     if space != 'rec709TF':
-    #         setattr(self, space)
+    #         setattr(self, space, color)
     #         return
     #     # Apply via rgba255
     #     self.rgb = ct.rec709TF(color, reverse=True)
