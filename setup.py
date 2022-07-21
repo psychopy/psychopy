@@ -38,7 +38,7 @@ if 'CONDA_PREFIX' in os.environ:
 # `pyqt` package should be installed via conda instead
 # cf. https://github.com/ContinuumIO/anaconda-issues/issues/1554
 if 'CONDA_PREFIX' in os.environ:
-    required.remove('pyqt5; python_version >= "3"')
+    required.remove('pyqt5')
 
 # compress psychojs to a zip file for packaging
 # only takes 0.5s but could skip if you prefer
