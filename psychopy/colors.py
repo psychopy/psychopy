@@ -258,6 +258,7 @@ class Color:
     """
     def __init__(self, color=None, space=None, contrast=None, conematrix=None):
         self._cache = {}
+        self._renderCache = {}
         self.contrast = contrast if isinstance(contrast, (int, float)) else 1
         self.alpha = 1
         self.valid = False
@@ -376,6 +377,9 @@ class Color:
         """
         if space not in colorSpaces:
             raise ValueError(f"{space} is not a valid color space")
+        # If value is cached, return it rather than doing calculations again
+        if space in self._renderCache:
+            return self._renderCache[space]
         # Transform contrast to match rgb
         contrast = self.contrast
         contrast = np.reshape(contrast, (-1, 1))
@@ -516,6 +520,20 @@ class Color:
             value = max(value, 0)
         # Set value
         self._alpha = value
+        # Clear render cache
+        self._renderCache = {}
+
+    @property
+    def contrast(self):
+        if hasattr(self, "_contrast"):
+            return self._contrast
+
+    @contrast.setter
+    def contrast(self, value):
+        # Set value
+        self._contrast = value
+        # Clear render cache
+        self._renderCache = {}
 
     @property
     def opacity(self):
@@ -579,6 +597,7 @@ class Color:
         self._franca = color
         # Clear outdated values from cache
         self._cache = {'rgb': color}
+        self._renderCache = {}
 
     @property
     def rgba255(self):
@@ -613,6 +632,7 @@ class Color:
         self.rgb = 2 * (color / 255 - 0.5)
         # Clear outdated values from cache
         self._cache = {'rgb255': color}
+        self._renderCache = {}
 
     @property
     def rgba1(self):
@@ -647,6 +667,7 @@ class Color:
         self.rgb = 2 * (color - 0.5)
         # Clear outdated values from cache
         self._cache = {'rgb1': color}
+        self._renderCache = {}
 
     @property
     def hex(self):
@@ -718,6 +739,7 @@ class Color:
         self.rgb255 = rgb255
         # Clear outdated values from cache
         self._cache = {'hex': color}
+        self._renderCache = {}
 
     @property
     def named(self):
@@ -779,6 +801,7 @@ class Color:
                 self.alpha = 0
         # Clear outdated values from cache
         self._cache = {'named': color}
+        self._renderCache = {}
 
     @property
     def hsva(self):
@@ -809,6 +832,7 @@ class Color:
         self.rgb = ct.hsv2rgb(color)
         # Clear outdated values from cache
         self._cache = {'hsv': color}
+        self._renderCache = {}
 
     @property
     def lmsa(self):
@@ -839,6 +863,7 @@ class Color:
         self.rgb = ct.lms2rgb(color, self.conematrix)
         # Clear outdated values from cache
         self._cache = {'lms': color}
+        self._renderCache = {}
 
     @property
     def dkla(self):
@@ -870,6 +895,7 @@ class Color:
         self.rgb = ct.dkl2rgb(color, self.conematrix)
         # Clear outdated values from cache
         self._cache = {'dkl': color}
+        self._renderCache = {}
 
     @property
     def dklaCart(self):
@@ -901,6 +927,7 @@ class Color:
         self.rgb = ct.dklCart2rgb(color, self.conematrix)
         # Clear outdated values from cache
         self._cache = {'dklCart': color}
+        self._renderCache = {}
 
     @property
     def srgb(self):
@@ -922,6 +949,7 @@ class Color:
         self.rgb = ct.srgbTF(color, reverse=True)
         # Clear outdated values from cache
         self._cache = {'srgb': color}
+        self._renderCache = {}
 
     # removing for now
     # @property
@@ -941,6 +969,7 @@ class Color:
     #     self.rgb = ct.rec709TF(color, reverse=True)
     #     # Clear outdated values from cache
     #     self._cache = {'rec709TF': color}
+    #     self._renderCache = {}
 
 
 # ------------------------------------------------------------------------------
