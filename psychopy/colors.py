@@ -376,6 +376,8 @@ class Color:
         """
         if space not in colorSpaces:
             raise ValueError(f"{space} is not a valid color space")
+        if self.contrast == 1:
+            return getattr(self, space)
         # Transform contrast to match rgb
         contrast = self.contrast
         contrast = np.reshape(contrast, (-1, 1))
