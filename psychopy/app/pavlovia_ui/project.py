@@ -415,7 +415,7 @@ class DetailsPanel(wx.Panel):
         # Populate fields
         if project is None:
             # Icon
-            self.icon.SetBitmap(wx.Bitmap())
+            self.icon.setImage(wx.Bitmap())
             self.icon.SetBackgroundColour("#f2f2f2")
             self.icon.Disable()
             # Title
