@@ -56,12 +56,10 @@ class TestImageAnimation:
     def setup_class(cls):
         nFrames = 16
         # Define array of sizes/desired frame rates
-        bases = [6, 8, 10, 12]
-        ratio = 10
         cls.cases = [
-            {'size': 6 ** 2, 'fps': 32},
-            {'size': 8 ** 2, 'fps': 32},
-            {'size': 10 ** 2, 'fps': 16},
+            {'size': 6 ** 2, 'fps': 16},
+            {'size': 8 ** 2, 'fps': 16},
+            {'size': 10 ** 2, 'fps': 8},
             {'size': 12 ** 2, 'fps': 2},
         ]
         # Create frames
