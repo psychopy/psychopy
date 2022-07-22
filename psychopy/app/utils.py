@@ -28,6 +28,7 @@ from .themes import colors, handlers, icons
 from psychopy.localization import _translate
 from psychopy.tools.stringtools import prettyname
 from psychopy.tools.apptools import SortTerm
+from PIL import Image as pil
 
 
 class FileDropTarget(wx.FileDropTarget):
@@ -503,8 +504,11 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
         wx.lib.statbmp.GenStaticBitmap.__init__(self, parent, ID=wx.ID_ANY, bitmap=wx.Bitmap(), size=size)
         self.parent = parent
         self.iconCache = icons.iconCache
+        # Create a frame timer for animated GIFs
+        self.frameTimer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self._advanceFrame)
         # Set bitmap
-        self.SetBitmap(bitmap)
+        self.setImage(bitmap)
         # Setup sizer
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.AddStretchSpacer(1)
@@ -513,6 +517,55 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
         self.editBtn = wx.Button(self, size=(24, 24), label=chr(int("270E", 16)))
         self.editBtn.Bind(wx.EVT_BUTTON, self.LoadBitmap)
         self.sizer.Add(self.editBtn, border=6, flag=wx.ALIGN_BOTTOM | wx.ALL)
+
+    def _advanceFrame(self, evt=None):
+        if len(self._frames) <= 1:
+            # Do nothing for static images
+            return
+        else:
+            # Advance the frame
+            self._frameI += 1
+            if self._frameI >= len(self._frames):
+                self._frameI = 0
+            # Update bitmap
+            self.SetBitmap(self._frames[self._frameI])
+            self.Update()
+
+    def setImage(self, data):
+        self.frameTimer.Stop()
+        # Store raw data
+        self._imageData = data
+        # Reset frames
+        self._frames = []
+        self._frameI = 0
+        fr = []
+
+        if isinstance(data, wx.Image):
+            data = wx.Bitmap(data)
+        if isinstance(data, wx.Bitmap):
+            # If given a wx.Bitmap directly, use it
+            self._frames.append(data)
+        else:
+            # Otherwise, extract frames
+            img = pil.open(data)
+            for i in range(img.n_frames):
+                # Seek to frame
+                img.seek(i)
+                fr.append(img.info['duration'])
+                # Create wx.Bitmap from frame
+                frame = img.convert("RGB")
+                bmp = wx.BitmapFromBuffer(*img.size, frame.tobytes())
+                # Store bitmap
+                self._frames.append(bmp)
+        # Set first frame (updates non-animated images)
+        self.SetBitmap(self._frames[self._frameI])
+        # If animated...
+        if len(self._frames) > 1:
+            # Make sure we have a frame rate
+            if not len(fr):
+                fr.append(200)
+            # Start animation (average framerate across frames)
+            self.frameTimer.Start(numpy.mean(fr), oneShot=False)
 
     def LoadBitmap(self, evt=None):
         # Open file dlg
