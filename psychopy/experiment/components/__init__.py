@@ -8,6 +8,7 @@
 """Extensible set of components for the PsychoPy Builder view
 """
 
+import sys
 import os
 import glob
 import copy
@@ -127,8 +128,9 @@ def getComponents(folder=None, fetchIcons=True):
                     if f.startswith('_'):
                         continue
                     shutil.copy(f, folder)
-    if not pth in os.sys.path:
-        os.sys.path.insert(0, pth)
+
+    if pth not in sys.path:
+        sys.path.insert(0, pth)
 
     components = {}
 
