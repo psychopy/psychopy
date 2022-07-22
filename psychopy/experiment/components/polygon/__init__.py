@@ -108,7 +108,7 @@ class PolygonComponent(BaseVisualComponent):
                          "polygon...' you can set vertices")
         self.params['shape'] = Param(
             shape, valType='str', inputType="choice", categ='Basic',
-            allowedVals=["line", "triangle", "rectangle", "circle", "cross", "star",
+            allowedVals=["line", "triangle", "rectangle", "circle", "cross", "star", "arrow",
                          "regular polygon...", "custom polygon..."],
             hint=msg, direct=False,
             label=_translate("Shape"))
@@ -266,6 +266,10 @@ class PolygonComponent(BaseVisualComponent):
             code = ("{name} = new visual.ShapeStim ({{\n"
                     "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
                     "  vertices: 'cross', size:{size},\n")
+        elif vertices in ['arrow']:
+            code = ("{name} = new visual.ShapeStim ({{\n"
+                    "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
+                    "  vertices: 'arrow', size:{size},\n")
         else:
             code = ("{name} = new visual.Polygon ({{\n"
                     "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
