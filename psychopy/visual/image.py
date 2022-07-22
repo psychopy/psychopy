@@ -20,9 +20,10 @@ import ctypes
 GL = pyglet.gl
 
 import numpy
+from fractions import Fraction
 
 import psychopy  # so we can get the __path__
-from psychopy import logging, colors
+from psychopy import logging, colors, layout
 
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.visual.basevisual import BaseVisualStim
@@ -103,6 +104,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         # Set the image and mask-
         self.setImage(image, log=False)
         self.texRes = texRes  # rebuilds the mask
+        self.size = size
 
         # generate a displaylist ID
         self._listID = GL.glGenLists(1)
@@ -414,6 +416,45 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         but use this method if you need to suppress the log message.
         """
         setAttribute(self, 'image', value, log)
+
+    @property
+    def aspectRatio(self):
+        """
+        Aspect ratio of original image, before taking into account the `.size` attribute of this object.
+
+        returns :
+            Aspect ratio as a (w, h) tuple, simplified using the smallest common denominator (e.g. 1080x720 pixels
+            becomes (3, 2))
+        """
+        # Return None if we don't have a texture yet
+        if (not hasattr(self, "_origSize")) or self._origSize is None:
+            return
+        # Work out aspect ratio (w/h)
+        frac = Fraction(*self._origSize)
+        return frac.numerator, frac.denominator
+
+    @property
+    def size(self):
+        return BaseVisualStim.size.fget(self)
+
+    @size.setter
+    def size(self, value):
+        isNone = numpy.asarray(value) == None
+        if (self.aspectRatio is not None) and (isNone.any()) and (not isNone.all()):
+            # If only one value is None, replace it with a value which maintains aspect ratio
+            pix = layout.Size(value, units=self.units, win=self.win).pix
+            # Replace None value with scaled pix value
+            i = isNone.argmax()
+            ni = isNone.argmin()
+            pix[i] = pix[ni] * self.aspectRatio[i] / self.aspectRatio[ni]
+            # Recreate layout object from pix
+            value = layout.Size(pix, units="pix", win=self.win)
+        elif (self.aspectRatio is not None) and (isNone.all()):
+            # If both values are None, use pixel size
+            value = layout.Size(self._origSize, units="pix", win=self.win)
+
+        # Do base setting
+        BaseVisualStim.size.fset(self, value)
 
     @attributeSetter
     def mask(self, value):
