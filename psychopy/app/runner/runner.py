@@ -24,7 +24,7 @@ from pathlib import Path
 from subprocess import Popen, PIPE
 
 from psychopy import experiment
-from psychopy.app.utils import PsychopyPlateBtn, BasePsychopyToolbar, FrameSwitcher, FileDropTarget
+from psychopy.app.utils import BasePsychopyToolbar, FrameSwitcher, FileDropTarget
 from psychopy.localization import _translate
 from psychopy.app.stdOutRich import StdOutRich
 from psychopy.projects.pavlovia import getProject
