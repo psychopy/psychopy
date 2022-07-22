@@ -28,6 +28,7 @@ from .themes import colors, handlers, icons
 from psychopy.localization import _translate
 from psychopy.tools.stringtools import prettyname
 from psychopy.tools.apptools import SortTerm
+from PIL import Image as pil
 
 
 class HoverMixin:
@@ -582,8 +583,11 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
         wx.lib.statbmp.GenStaticBitmap.__init__(self, parent, ID=wx.ID_ANY, bitmap=wx.Bitmap(), size=size)
         self.parent = parent
         self.iconCache = icons.iconCache
+        # Create a frame timer for animated GIFs
+        self.frameTimer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self._advanceFrame)
         # Set bitmap
-        self.SetBitmap(bitmap)
+        self.setImage(bitmap)
         # Setup sizer
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.AddStretchSpacer(1)
@@ -593,6 +597,64 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
         self.editBtn.Bind(wx.EVT_BUTTON, self.LoadBitmap)
         self.sizer.Add(self.editBtn, border=6, flag=wx.ALIGN_BOTTOM | wx.ALL)
 
+    def _advanceFrame(self, evt=None):
+        if len(self._frames) <= 1:
+            # Do nothing for static images
+            return
+        else:
+            # Advance the frame
+            self._frameI += 1
+            if self._frameI >= len(self._frames):
+                self._frameI = 0
+            # Update bitmap
+            self.SetBitmap(self._frames[self._frameI])
+            self.Update()
+
+    def setImage(self, data):
+        self.frameTimer.Stop()
+        # Substitute paths and Image objects
+        if isinstance(data, (str, Path, wx.Image)):
+            data = wx.Bitmap(data)
+        # Store raw data
+        self._imageData = data
+        # Reset frames
+        self._frames = []
+        self._frameI = 0
+        fr = []
+        if isinstance(data, wx.Bitmap):
+            # Sub in blank bitmaps
+            if not data.IsOk():
+                data = icons.ButtonIcon(stem="user_none", size=128).bitmap
+            # Store full size bitmap
+            self._imageData = data
+            # Resize bitmap
+            buffer = data.ConvertToImage()
+            buffer = buffer.Scale(*self.Size, quality=wx.IMAGE_QUALITY_HIGH)
+            scaledBitmap = wx.Bitmap(buffer)
+            # If given a wx.Bitmap directly, use it
+            self._frames.append(scaledBitmap)
+        else:
+            # Otherwise, extract frames
+            img = pil.open(data)
+            for i in range(img.n_frames):
+                # Seek to frame
+                img.seek(i)
+                fr.append(img.info['duration'])
+                # Create wx.Bitmap from frame
+                frame = img.resize(self.Size).convert("RGB")
+                bmp = wx.BitmapFromBuffer(*frame.size, frame.tobytes())
+                # Store bitmap
+                self._frames.append(bmp)
+        # Set first frame (updates non-animated images)
+        self.SetBitmap(self._frames[self._frameI])
+        # If animated...
+        if len(self._frames) > 1:
+            # Make sure we have a frame rate
+            if not len(fr):
+                fr.append(200)
+            # Start animation (average framerate across frames)
+            self.frameTimer.Start(numpy.mean(fr), oneShot=False)
+
     def LoadBitmap(self, evt=None):
         # Open file dlg
         _dlg = wx.FileDialog(self.parent, message=_translate("Select image..."))
@@ -600,28 +662,11 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
             return
         # Get value
         path = str(Path(_dlg.GetPath()))
-        self.SetBitmap(path)
+        self.setImage(path)
         # Post event
         evt = wx.FileDirPickerEvent(wx.EVT_FILEPICKER_CHANGED.typeId, self, -1, path)
         evt.SetEventObject(self)
         wx.PostEvent(self, evt)
-
-    def SetBitmap(self, bitmap):
-        # Get from file if needed
-        if not isinstance(bitmap, wx.Bitmap):
-            self.path = bitmap
-            bitmap = wx.Bitmap(bitmap)
-        # Sub in blank bitmaps
-        if not bitmap.IsOk():
-            bitmap = icons.ButtonIcon(stem="user_none", size=128).bitmap
-        # Store full size bitmap
-        self._fullBitmap = bitmap
-        # Resize bitmap
-        buffer = bitmap.ConvertToImage()
-        buffer = buffer.Scale(*self.Size, quality=wx.IMAGE_QUALITY_HIGH)
-        scaledBitmap = wx.Bitmap(buffer)
-        # Set image
-        wx.lib.statbmp.GenStaticBitmap.SetBitmap(self, scaledBitmap)
 
     @property
     def path(self):
@@ -636,7 +681,7 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
         self._path = value
 
     def GetBitmapFull(self):
-        return self._fullBitmap
+        return self._imageData
 
     @property
     def BitmapFull(self):
