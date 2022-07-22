@@ -25,7 +25,7 @@
     <Param val="False" valType="bool" updates="None" name="Show mouse"/>
     <Param val="height" valType="str" updates="None" name="Units"/>
     <Param val="" valType="str" updates="None" name="Use version"/>
-    <Param val="[1920, 1080]" valType="list" updates="None" name="Window size (pixels)"/>
+    <Param val="[1280, 1024]" valType="list" updates="None" name="Window size (pixels)"/>
     <Param val="avg" valType="str" updates="None" name="blendMode"/>
     <Param val="$[0,0,0]" valType="color" updates="None" name="color"/>
     <Param val="rgb" valType="str" updates="None" name="colorSpace"/>
@@ -36,10 +36,10 @@
     <Param val="ELLIPSE_FIT" valType="str" updates="None" name="elPupilAlgorithm"/>
     <Param val="PUPIL_AREA" valType="str" updates="None" name="elPupilMeasure"/>
     <Param val="1000" valType="num" updates="None" name="elSampleRate"/>
-    <Param val="False" valType="bool" updates="None" name="elSimMode"/>
+    <Param val="True" valType="bool" updates="None" name="elSimMode"/>
     <Param val="RIGHT_EYE" valType="str" updates="None" name="elTrackEyes"/>
     <Param val="PUPIL_CR_TRACKING" valType="str" updates="None" name="elTrackingMode"/>
-    <Param val="eyetracking" valType="str" updates="None" name="expName"/>
+    <Param val="eyetracking_custom_cal" valType="str" updates="None" name="expName"/>
     <Param val="on Sync" valType="str" updates="None" name="exportHTML"/>
     <Param val="MouseGaze" valType="str" updates="None" name="eyetracker"/>
     <Param val="127.0.0.1" valType="str" updates="None" name="gpAddress"/>
@@ -308,33 +308,28 @@
         <Param val="False" valType="bool" updates="None" name="syncScreenRefresh"/>
       </EyetrackerRecordComponent>
     </Routine>
-    <EyetrackerCalibrationRoutine name="calibration">
-      <Param name="borderColor" updates="None" val="white" valType="color"/>
-      <Param name="borderWidth" updates="None" val="2" valType="num"/>
-      <Param name="colorSpace" updates="None" val="rgb" valType="str"/>
-      <Param name="disabled" updates="None" val="False" valType="bool"/>
-      <Param name="expandDur" updates="None" val="1" valType="num"/>
-      <Param name="expandScale" updates="None" val="1.5" valType="num"/>
-      <Param name="fillColor" updates="None" val="green" valType="color"/>
-      <Param name="innerBorderColor" updates="None" val="black" valType="color"/>
-      <Param name="innerBorderWidth" updates="None" val="2" valType="num"/>
-      <Param name="innerFillColor" updates="None" val="red" valType="color"/>
-      <Param name="innerRadius" updates="None" val="0.005" valType="num"/>
-      <Param name="movementAnimation" updates="None" val="True" valType="bool"/>
-      <Param name="movementDur" updates="None" val="1.0" valType="num"/>
-      <Param name="name" updates="None" val="calibration" valType="code"/>
-      <Param name="outerRadius" updates="None" val="0.015" valType="num"/>
-      <Param name="progressMode" updates="None" val="time" valType="str"/>
-      <Param name="randomisePos" updates="None" val="True" valType="bool"/>
-      <Param name="targetDelay" updates="None" val="1.0" valType="num"/>
-      <Param name="targetDur" updates="None" val="1.5" valType="num"/>
-      <Param name="targetLayout" updates="None" val="NINE_POINTS" valType="str"/>
-      <Param name="textColor" updates="None" val="white" valType="color"/>
-      <Param name="units" updates="None" val="from exp settings" valType="str"/>
-    </EyetrackerCalibrationRoutine>
+    <Routine name="calib_custom">
+      <CodeComponent name="code">
+        <Param val="from psychopy.iohub.util import hideWindow, showWindow" valType="extendedCode" updates="constant" name="Before Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Before JS Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin JS Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
+        <Param val="# Define the custom target graphics class to use for calibration&amp;#10;targ_dict = dict(custom=dict(module_name='psychopy.visual',&amp;#10;                             class_name='MovieStim3',&amp;#10;                             class_kwargs=dict(filename='Bullseye_grey.MOV',&amp;#10;                                               units=win.units,&amp;#10;                                               size = 0.1,&amp;#10;                                               loop=True)))&amp;#10;&amp;#10;# Update the eye tracker calibration settings                                               &amp;#10;calib_config = dict(type='NINE_POINTS',&amp;#10;                    auto_pace = False,&amp;#10;                    target_duration = 2.5, # Only used if auto_pace = true&amp;#10;                    target_delay = 0.25,&amp;#10;                    screen_background_color=win.color,&amp;#10;                    target_type='CUSTOM',&amp;#10;                    unit_type=win.units,&amp;#10;                    target_attributes = targ_dict)&amp;#10;                    &amp;#10;# If eyetracker == MouseGaze (or Tobii &amp; gazePoint when supported), &amp;#10;# calibration target movement &amp; size animation can be set.&amp;#10;targ_dict['animate'] = dict(enable=False, expansion_ratio=1.0)&amp;#10;&amp;#10;&amp;#10;# Hide the psychopy experiment window&amp;#10;hideWindow(win)&amp;#10;&amp;#10;# Show the iohub eye tracker camera setup / calibration window&amp;#10;# and run the eye tracker calibration etc...&amp;#10;result = eyetracker.runSetupProcedure(calib_config)&amp;#10;print(&quot;Calibration returned: &quot;, result)&amp;#10;&amp;#10;# Show the psychopy experiment window and continue with experiment&amp;#10;showWindow(win)" valType="extendedCode" updates="constant" name="Begin Routine"/>
+        <Param val="Py" valType="str" updates="None" name="Code Type"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Each Frame"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Each JS Frame"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End JS Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End JS Routine"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End Routine"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="code" valType="code" updates="None" name="name"/>
+      </CodeComponent>
+    </Routine>
   </Routines>
   <Flow>
-    <EyetrackerCalibrationRoutine name="calibration"/>
+    <Routine name="calib_custom"/>
     <Routine name="instr"/>
     <LoopInitiator loopType="TrialHandler" name="trials">
       <Param name="Selected rows" updates="None" val="" valType="str"/>
