@@ -31,6 +31,90 @@ from psychopy.tools.apptools import SortTerm
 from PIL import Image as pil
 
 
+class HoverMixin:
+    """
+    Mixin providing methods to handle hover on/off events for a wx.Window based class.
+    """
+    IsHovered = False
+
+    def SetupHover(self):
+        """
+        Helper method to setup hovering for this object
+        """
+        # Bind both hover on and hover off events to the OnHover method
+        self.Bind(wx.EVT_ENTER_WINDOW, self.OnHover)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self.OnHover)
+        # Do first hover to apply styles
+        self.OnHover(evt=None)
+
+    def OnHover(self, evt=None):
+        """
+        Method to handle hover events for buttons. To use, bind both `wx.EVT_ENTER_WINDOW` and `wx.EVT_LEAVE_WINDOW` events to this method.
+        """
+        if evt is None:
+            # If calling without event, style according to last IsHovered measurement
+            if self.IsHovered:
+                self.SetForegroundColour(self.ForegroundColourHover)
+                self.SetBackgroundColour(self.BackgroundColourHover)
+            else:
+                self.SetForegroundColour(self.ForegroundColourNoHover)
+                self.SetBackgroundColour(self.BackgroundColourNoHover)
+        elif evt.EventType == wx.EVT_ENTER_WINDOW.typeId:
+            # If hovered over currently, use hover colours
+            self.SetForegroundColour(self.ForegroundColourHover)
+            self.SetBackgroundColour(self.BackgroundColourHover)
+            # and mark as hovered
+            self.IsHovered = True
+        else:
+            # Otherwise, use regular colours
+            self.SetForegroundColour(self.ForegroundColourNoHover)
+            self.SetBackgroundColour(self.BackgroundColourNoHover)
+            # and mark as unhovered
+            self.IsHovered = False
+        # Refresh
+        self.Refresh()
+
+    @property
+    def ForegroundColourNoHover(self):
+        if hasattr(self, "_ForegroundColourNoHover"):
+            return self._ForegroundColourNoHover
+        return colors.app['text']
+
+    @ForegroundColourNoHover.setter
+    def ForegroundColourNoHover(self, value):
+        self._ForegroundColourNoHover = value
+
+    @property
+    def BackgroundColourNoHover(self):
+        if hasattr(self, "_BackgroundColourNoHover"):
+            return self._BackgroundColourNoHover
+        return colors.app['frame_bg']
+
+    @BackgroundColourNoHover.setter
+    def BackgroundColourNoHover(self, value):
+        self._BackgroundColourNoHover = value
+
+    @property
+    def ForegroundColourHover(self):
+        if hasattr(self, "_ForegroundColourHover"):
+            return self._ForegroundColourHover
+        return colors.app['txtbutton_fg_hover']
+
+    @ForegroundColourHover.setter
+    def ForegroundColourHover(self, value):
+        self._ForegroundColourHover = value
+
+    @property
+    def BackgroundColourHover(self):
+        if hasattr(self, "_BackgroundColourHover"):
+            return self._BackgroundColourHover
+        return colors.app['txtbutton_bg_hover']
+
+    @BackgroundColourHover.setter
+    def BackgroundColourHover(self, value):
+        self._BackgroundColourHover = value
+
+
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
     Need this too.
@@ -190,29 +274,24 @@ class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
         pass
 
 
-class PsychopyPlateBtn(platebtn.PlateButton, handlers.ThemeMixin):
+class HoverButton(wx.Button, HoverMixin, handlers.ThemeMixin):
     def __init__(self, parent, id=wx.ID_ANY, label='', bmp=None,
                  pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=1, name=wx.ButtonNameStr):
-        platebtn.PlateButton.__init__(self, parent, id, label, bmp, pos, size, style, name)
+        wx.Button.__init__(
+            self, parent=parent, id=id, label=label, pos=pos, size=size, style=style, name=name
+        )
+        if bmp is not None:
+            self.SetBitmap(bmp)
         self.parent = parent
-        self.__InitColors()
-        self._applyAppTheme()
+        self.SetupHover()
 
     def _applyAppTheme(self):
-        self.__InitColors()
-        self.SetBackgroundColour(wx.Colour(self.parent.GetBackgroundColour()))
-        self.SetPressColor(colors.app['txtbutton_bg_hover'])
-        self.SetLabelColor(colors.app['text'],
-                           colors.app['txtbutton_fg_hover'])
-
-    def __InitColors(self):
-        """Initialize the default colors"""
-        cols = dict(default=True,
-                      hlight=colors.app['txtbutton_bg_hover'],
-                      press=colors.app['txtbutton_bg_hover'],
-                      htxt=colors.app['text'])
-        return cols
+        self.ForegroundColourNoHover = colors.app['text']
+        self.ForegroundColourHover = colors.app['txtbutton_fg_hover']
+        self.BackgroundColourNoHover = colors.app['frame_bg']
+        self.BackgroundColourHover = colors.app['txtbutton_bg_hover']
+        self.Update()
 
 
 class ButtonArray(wx.Window):
@@ -870,88 +949,6 @@ def sanitize(inStr):
         inStr = re.sub(pattern, repl, inStr)
 
     return inStr
-
-
-class HoverMixin:
-    """
-    Mixin providing methods to handle hover on/off events for a wx.Window based class.
-    """
-    IsHovered = False
-
-    def SetupHover(self):
-        """
-        Helper method to setup hovering for this object
-        """
-        # Bind both hover on and hover off events to the OnHover method
-        self.Bind(wx.EVT_ENTER_WINDOW, self.OnHover)
-        self.Bind(wx.EVT_LEAVE_WINDOW, self.OnHover)
-
-    def OnHover(self, evt=None):
-        """
-        Method to handle hover events for buttons. To use, bind both `wx.EVT_ENTER_WINDOW` and `wx.EVT_LEAVE_WINDOW` events to this method.
-        """
-        if evt is None:
-            # If calling without event, style according to last IsHovered measurement
-            if self.IsHovered:
-                self.SetForegroundColour(self.ForegroundColourHover)
-                self.SetBackgroundColour(self.BackgroundColourHover)
-            else:
-                self.SetForegroundColour(self.ForegroundColourNoHover)
-                self.SetBackgroundColour(self.BackgroundColourNoHover)
-        elif evt.EventType == wx.EVT_ENTER_WINDOW.typeId:
-            # If hovered over currently, use hover colours
-            self.SetForegroundColour(self.ForegroundColourHover)
-            self.SetBackgroundColour(self.BackgroundColourHover)
-            # and mark as hovered
-            self.IsHovered = True
-        else:
-            # Otherwise, use regular colours
-            self.SetForegroundColour(self.ForegroundColourNoHover)
-            self.SetBackgroundColour(self.BackgroundColourNoHover)
-            # and mark as unhovered
-            self.IsHovered = False
-        # Refresh
-        self.Refresh()
-
-    @property
-    def ForegroundColourNoHover(self):
-        if hasattr(self, "_ForegroundColourNoHover"):
-            return self._ForegroundColourNoHover
-        return colors.app['text']
-
-    @ForegroundColourNoHover.setter
-    def ForegroundColourNoHover(self, value):
-        self._ForegroundColourNoHover = value
-
-    @property
-    def BackgroundColourNoHover(self):
-        if hasattr(self, "_BackgroundColourNoHover"):
-            return self._BackgroundColourNoHover
-        return colors.app['frame_bg']
-
-    @BackgroundColourNoHover.setter
-    def BackgroundColourNoHover(self, value):
-        self._BackgroundColourNoHover = value
-
-    @property
-    def ForegroundColourHover(self):
-        if hasattr(self, "_ForegroundColourHover"):
-            return self._ForegroundColourHover
-        return colors.app['txtbutton_fg_hover']
-
-    @ForegroundColourHover.setter
-    def ForegroundColourHover(self, value):
-        self._ForegroundColourHover = value
-
-    @property
-    def BackgroundColourHover(self):
-        if hasattr(self, "_BackgroundColourHover"):
-            return self._BackgroundColourHover
-        return colors.app['txtbutton_bg_hover']
-
-    @BackgroundColourHover.setter
-    def BackgroundColourHover(self, value):
-        self._BackgroundColourHover = value
 
 
 class ToggleButton(wx.ToggleButton, HoverMixin):
