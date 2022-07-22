@@ -123,6 +123,7 @@ class Test_BuilderFrame():
         # Define 'tykes' - combinations of values likely to cause an error if certain features aren't working
         tykes = [
             {'fieldName': "brokenCode", 'param': Param(val="for + :", valType="code"), 'msg': "Python syntax error in field `{fieldName}`:  {param.val}"}, # Make sure it's picking up clearly broken code
+            {'fieldName': "variableDef", 'param': Param(val="visual = 1", valType="code"), 'msg': "Variable name $visual is in use (by Psychopy module). Try another name."},
             {'fieldName': "correctAns", 'param': Param(val="'space'", valType="code"), 'msg': ""}, # Single-element lists should not cause warning
         ]
         for case in tykes:

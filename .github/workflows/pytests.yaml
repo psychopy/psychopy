@@ -2,6 +2,9 @@ name: pytest
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
 
   testsuite_mac:
@@ -34,8 +37,6 @@ jobs:
       run: |
         # for pocketsphinx we need this adapted package:
         brew install swig vlc
-        brew install openal-soft
-        pip install git+https://github.com/Im-Fran/pocketsphinx-python
         # then use the standard requirements:
         pip install .
 

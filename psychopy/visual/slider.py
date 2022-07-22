@@ -407,8 +407,8 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         """Resets the slider to its starting state (so that it can be restarted
         on each trial with a new stimulus)
         """
-        self.markerPos = self.startValue
         self.rating = None  # this is reset to None, whatever the startValue
+        self.markerPos = self.startValue
         self.history = []
         self.rt = None
         self.responseClock.reset()
@@ -1001,6 +1001,8 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             self.tickLines.elementMask = 'circle'
             self._tickSizeMultiplier = (1, 1)
             self._tickSizeAddition = (0, 0)
+            # Radio doesn't make sense with granularity 0
+            self.granularity = 1
 
         if style == 'scrollbar':
             # Semi-transparent rectangle for a line (+ extra area for marker)

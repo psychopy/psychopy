@@ -119,7 +119,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
 
         wx.Panel.__init__(self, parent, id=id_, pos=pos, size=size, style=style,
                           name=name)
-        self.tabIcon = "coderpython16"
+        self.tabIcon = "coderpython"
 
         # sizer for the panel
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -141,10 +141,6 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         self.sizer.Add(self.txtTerm, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         self.SetSizer(self.sizer)
         self.Layout()
-
-        # set font
-
-        self.txtTerm.SetMargins(8)
 
         # capture keypresses
         if wx.Platform == '__WXMAC__' or wx.Platform == '__WXMSW__':
@@ -180,8 +176,9 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         self.txtTerm.WriteText("Hit [Return] to start a Python session.")
         self._lastTextPos = self.txtTerm.GetLastPosition()
 
-        # Setup fonts
+        # Setup fonts and margins
         self.setFonts()
+        self.txtTerm.SetMargins(8)
 
     def setFonts(self):
         """Set the font for the console."""
@@ -198,7 +195,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         self.txtTerm.Clear()
         self.txtTerm.WriteText("Hit [Return] to start a Python shell.")
         self._lastTextPos = self.txtTerm.GetLastPosition()
-
+        self.setFonts()
         self.toolbar.update()
 
     @property
@@ -231,16 +228,19 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         """Get the process ID for the active interpreter (`int`)."""
         return self._pid
 
-    def getPwd(self):
-        """Get the present working directory for the interpreter."""
-        pass
-
-    def setPwd(self):
-        """Set the present working directory for the interpreter."""
-        pass
+    # def getPwd(self):
+    #     """Get the present working directory for the interpreter.
+    #     """
+    #     pass
+    #
+    # def setPwd(self):
+    #     """Set the present working directory for the interpreter.
+    #     """
+    #     pass
 
     def getNamespace(self):
-        """Get variable names in the current namespace."""
+        """Get variable names in the current namespace.
+        """
         self.push('dir()')  # get namespace values
 
     def onIdle(self, event):
@@ -259,6 +259,10 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
 
         # we have new characters
         newChars = False
+
+        # reset
+        stdin_text = ''
+        stderr_text = ''
 
         # check if we have input text to process
         if self._process.IsInputAvailable():
@@ -292,10 +296,9 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         # boundary of the editable area.
         if newChars:
             self._lastTextPos = self.txtTerm.GetLastPosition()
-            self.txtTerm.ShowPosition(self._lastTextPos)
             self.txtTerm.SetInsertionPoint(-1)
-
-        self.txtTerm._applyAppTheme()
+            self.txtTerm.ShowPosition(self._lastTextPos)
+            # self.setFonts()  # update fonts
 
     def resetCaret(self):
         """Place the caret at the entry position if not in an editable region.
@@ -321,7 +324,8 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
             self.submit(line)
 
     def submit(self, line):
-        """Submit the current line to the interpreter."""
+        """Submit the current line to the interpreter.
+        """
         if not self.isStarted:
             return
 
@@ -334,7 +338,8 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         self._isBusy = True
 
     def start(self, evt=None):
-        """Start a new interpreter process."""
+        """Start a new interpreter process.
+        """
         if self.isStarted:  # nop if started already
             self.toolbar.update()
             return
@@ -371,40 +376,47 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         self._lastTextPos = self.txtTerm.GetLastPosition()
         self.toolbar.update()
 
-        self.txtTerm._applyAppTheme()
+        self.setFonts()
         wx.EndBusyCursor()
 
     def interrupt(self, evt=None):
-        """Send a keyboard interrupt signal to the interpreter."""
+        """Send a keyboard interrupt signal to the interpreter.
+        """
         if self.isStarted:
             os.kill(self._pid, wx.SIGINT)
         self.toolbar.update()
 
     def close(self, evt=None):
-        """Close an open interpreter."""
+        """Close an open interpreter.
+        """
         if self.isStarted:
             os.kill(self._pid, wx.SIGTERM)
 
     def restart(self, evt=None):
-        """Close the running interpreter (if running) and spawn a new one."""
+        """Close the running interpreter (if running) and spawn a new one.
+        """
         self.close()
         self.start()
 
     def clear(self, evt=None):
-        """Clear the contents of the console."""
+        """Clear the contents of the console.
+        """
         self.txtTerm.Clear()
         self._lastTextPos = self.txtTerm.GetLastPosition()
         self.push('')
+        self.setFonts()
 
     def onMaxLength(self, event):
-        """What to do if we exceed the buffer size limit for the control."""
+        """What to do if we exceed the buffer size limit for the control.
+        """
         event.Skip()
 
     def __del__(self):
         pass
 
     def clearAndReplaceTyped(self, replaceWith=''):
-        """Clear any text that has been typed."""
+        """Clear any text that has been typed.
+        """
         self.txtTerm.Remove(self._lastTextPos, self.txtTerm.GetLastPosition())
         if replaceWith:
             self.txtTerm.WriteText(replaceWith)
@@ -412,7 +424,8 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         self.txtTerm.SetInsertionPoint(self.txtTerm.GetLastPosition())
 
     def getTyped(self):
-        """Get the text that was typed or is editable (`str`)."""
+        """Get the text that was typed or is editable (`str`).
+        """
         return self.txtTerm.GetRange(
             self._lastTextPos,
             self.txtTerm.GetLastPosition())
@@ -426,6 +439,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
             if event.GetKeyCode() == wx.WXK_RETURN:
                 self.start()
 
+            event.Skip()
             return
 
         # if self._isBusy:  # dont capture events when busy
@@ -466,8 +480,6 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         else:
             if self._history:
                 self._historyIdx = -1
-
-        self.txtTerm._applyAppTheme()
 
         event.Skip()
 

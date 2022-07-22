@@ -68,29 +68,42 @@ h2::before {
 h3, .h3 {
     font-size: 24px;
 }
-
-h3::before { 
-    display: block; 
-    content: " "; 
-    margin-top: -101px; 
-    height: 101px; 
-    visibility: hidden; 
+h3::before {
+    display: block;
+    content: " ";
+    margin-top: -101px;
+    height: 101px;
+    visibility: hidden;
     pointer-events: none;
-  }
+}
 
-/* table formatting */
-.align-default {
-    text-align: left;
+.row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.column-collapse { /* will convert to row for <768 */
+  display: flex;
+  flex-direction: column;
+  flex-basis: 100%;
+  flex: 1;
 }
 
 /* special cases */
 blockquote ul {
     font-size: initial;
     margin: -11px -22px;
-    margin-left: -44px;
+    margin-left: -22px;
 }
+
 blockquote {
     border-left: none;
+    padding: 0;
+    margin: 0 0 22px;
+    font-size: initial;
+    /* border-left: 5px solid #4582ec; */
 }
 
 /* logos (big and small) in top left */
@@ -187,6 +200,12 @@ blockquote {
     animation-delay: 2s;
     animation-fill-mode: forwards;
 }
+.delay5 {
+    opacity: 0;
+    animation: fadeIn 2s;
+    animation-delay: 2.5s;
+    animation-fill-mode: forwards;
+}
 
 /* to set a section to be the height of the browser window*/
 
@@ -194,11 +213,25 @@ blockquote {
     height: 100%;
 }
 
+.full-height-with-ticker {
+    height: 100%;
+    overflow: auto;
+}
+
 /* @media (min-width: 992px) {
   body {
     padding-top: 56px;
   }
 } */
+
+.bg-primary a {
+    color: white;
+    text-decoration: underline;
+}
+.bg-primary a:hover {
+    color: 'red';
+    text-decoration: underline;
+}
 
 .carousel-item {
     height: 65vh;
@@ -219,7 +252,8 @@ blockquote {
     background-color: white;
     position: fixed;
     right: 0;
-    top: 150px;
+    top: 200px;
+    padding: 8px;
     -webkit-transform: translateY(-50%);
     -ms-transform: translateY(-50%);
     transform: translateY(-50%);
@@ -229,9 +263,9 @@ blockquote {
 .social-bar a {
     display: block;
     text-align: center;
-    padding: 8px;
     transition: all 0.3s ease;
     font-size: 20px;
+    padding: 8px;
 }
 
 /* Style the social media icons with color, if you want */
@@ -289,6 +323,9 @@ blockquote {
 
     .social-bar {
         display: none;
+    }  
+    .column-collapse {
+        flex-direction: column;
     }
 
     body {
@@ -374,4 +411,20 @@ blockquote {
     .central-logo {
         padding: 80px;
     }
+}
+
+/* Classes for coloured text (first used in online/status.rst) */
+.darkgreen {
+  color: darkgreen;
+  font-weight: bold;
+}
+
+.darkorange {
+  color: darkorange;
+  font-weight: bold;
+}
+
+.darkred {
+  color: darkred;
+  font-weight: bold;
 }

@@ -57,7 +57,7 @@ from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties,
                       ParamNotebook, DlgNewRoutine)
-from ..utils import (BasePsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
+from ..utils import (BasePsychopyToolbar, HoverButton, WindowFrozen,
                      FileDropTarget, FrameSwitcher, updateDemosMenu,
                      ToggleButtonArray, HoverMixin)
 
@@ -2105,13 +2105,17 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
     def copyCompon(self, event=None, component=None):
         """This is easy - just take a copy of the component into memory
         """
-        self.app.copiedCompon = copy.deepcopy(component)
+        self.app.copiedCompon = component.copy()
 
     def pasteCompon(self, event=None, component=None, index=None):
-        if not self.app.copiedCompon:
-            return -1  # not possible to paste if nothing copied
+        # Alias None for component stored in app
+        if component is None and self.app.copiedCompon:
+            component = self.app.copiedCompon
+        # Fail if nothing copied
+        if component is None:
+            return -1
         exp = self.frame.exp
-        origName = self.app.copiedCompon.params['name'].val
+        origName = component.params['name'].val
         defaultName = exp.namespace.makeValid(origName)
         msg = _translate('New name for copy of "%(copied)s"?  [%(default)s]')
         vals = {'copied': origName, 'default': defaultName}
@@ -2119,14 +2123,18 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         dlg = wx.TextEntryDialog(self, message=message,
                                  caption=_translate('Paste Component'))
         if dlg.ShowModal() == wx.ID_OK:
+            # Get new name
             newName = dlg.GetValue()
-            newCompon = copy.deepcopy(self.app.copiedCompon)
             if not newName:
                 newName = defaultName
             newName = exp.namespace.makeValid(newName)
-            newCompon.params['name'].val = newName
-            if 'name' in dir(newCompon):
-                newCompon.name = newName
+            # Create copy of component with new references
+            newCompon = component.copy(
+                exp=exp,
+                parentName=self.routine.name,
+                name=newName
+            )
+            # Add to routine
             if index is None:
                 self.routine.addComponent(newCompon)
             else:
@@ -2932,15 +2940,15 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         labelLoop = _translate('Insert Loop     ')
         btnHeight = 50
         # Create add routine button
-        self.btnInsertRoutine = PsychopyPlateBtn(
+        self.btnInsertRoutine = HoverButton(
             self, -1, labelRoutine, pos=(10, 10), size=(120, btnHeight),
-            style=platebtn.PB_STYLE_SQUARE
+            style=wx.BORDER_NONE
         )
         # Create add loop button
-        self.btnInsertLoop = PsychopyPlateBtn(
+        self.btnInsertLoop = HoverButton(
             self, -1, labelLoop, pos=(10, btnHeight+20),
             size=(120, btnHeight),
-            style=platebtn.PB_STYLE_SQUARE
+            style=wx.BORDER_NONE
         )  # spaces give size for CANCEL
 
         # use self.appData['flowSize'] to index a tuple to get a specific
@@ -2965,13 +2973,6 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
 
     def _applyAppTheme(self, target=None):
         """Apply any changes which have been made to the theme since panel was last loaded"""
-        # Style loop/routine buttons
-        self.btnInsertLoop.SetBackgroundColour(colors.app['frame_bg'])
-        self.btnInsertLoop.SetForegroundColour(colors.app['text'])
-        self.btnInsertLoop.Update()
-        self.btnInsertRoutine.SetBackgroundColour(colors.app['frame_bg'])
-        self.btnInsertRoutine.SetForegroundColour(colors.app['text'])
-        self.btnInsertRoutine.Update()
         # Set background
         self.SetBackgroundColour(colors.app['panel_bg'])
 
