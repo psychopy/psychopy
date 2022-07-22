@@ -119,7 +119,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
 
         wx.Panel.__init__(self, parent, id=id_, pos=pos, size=size, style=style,
                           name=name)
-        self.tabIcon = "coderpython16"
+        self.tabIcon = "coderpython"
 
         # sizer for the panel
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
