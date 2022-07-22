@@ -123,6 +123,20 @@ class SliderComponent(BaseVisualComponent):
                                 "(0 for a continuous scale, 1 for integer "
                                 "rating scale)"),
                 label=_translate('Granularity'))
+        self.depends.append(
+            {
+                # if...
+                "dependsOn": "styles",
+                # meets...
+                "condition": "=='radio'",
+                # then...
+                "param": "granularity",
+                # should...
+                "true": "disable",
+                # otherwise...
+                "false": "enable",
+            }
+        )
         self.params['forceEndRoutine'] = Param(
                 forceEndRoutine, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
                 updates='constant', allowedUpdates=[],
@@ -170,7 +184,7 @@ class SliderComponent(BaseVisualComponent):
                 label=_translate('Letter height'))
 
         self.params['styles'] = Param(
-                style, valType='str', inputType="choice", categ='Appearance',
+                style, valType='str', inputType="choice", categ='Basic',
                 updates='constant', allowedVals=knownStyles,
                 hint=_translate(
                         "Discrete styles to control the overall appearance of the slider."),
