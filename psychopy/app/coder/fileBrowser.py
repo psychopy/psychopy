@@ -78,7 +78,7 @@ class FileBrowserListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl, handlers.ThemeMix
         ListCtrlAutoWidthMixin.__init__(self)
 
     def _applyAppTheme(self, target=None):
-        self.SetBackgroundColour(colors.app['frame_bg'])
+        self.SetBackgroundColour(colors.app['tab_bg'])
         self.SetForegroundColour(colors.app['text'])
 
 
@@ -205,6 +205,7 @@ class FileBrowserPanel(wx.Panel, handlers.ThemeMixin):
         self.Bind(wx.EVT_MENU, self.OnGotoCWD, id=ID_GOTO_CWD)
         self.Bind(wx.EVT_MENU, self.OnGotoFileLocation, id=ID_GOTO_FILE)
         szr.Add(self.toolBar, border=5, flag=wx.LEFT | wx.RIGHT | wx.EXPAND)
+        szr.AddSpacer(6)
 
         # create the source tree control
         self.flId = wx.NewIdRef()
