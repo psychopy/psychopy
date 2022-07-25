@@ -16,7 +16,7 @@ some more added:
 
 """
 import numpy as np
-import arabic_reshaper
+from arabic_reshaper import ArabicReshaper
 from pyglet import gl
 from bidi import algorithm as bidi
 
@@ -219,6 +219,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.languageStyle = languageStyle
         self._text = ''
         self.text = self.placeholder = text if text is not None else ""
+
+        # Initialise arabic reshaper
+        arabic_config = {'delete_harakat': False,  # if present, retain any diacritics
+                         'shift_harakat_position': True}  # shift by 1 to be compatible with the bidi algorithm
+        self.arabicReshaper = ArabicReshaper(configuration=arabic_config)
 
         # caret
         self.editable = editable
@@ -583,7 +588,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._styles = [0,]*len(visible_text)
         self._text = visible_text
         if self._needsArabic:
-            self._text = arabic_reshaper.reshape(self._text)
+            self._text = self.arabicReshaper.reshape(self._text)
         if self._needsBidi:
             self._text = bidi.get_display(self._text)
         
