@@ -1013,11 +1013,15 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             self.granularity = 1
 
         if style == 'choice':
+            if self.labels is None:
+                nLabels = len(self.ticks)
+            else:
+                nLabels = len(self.labels)
             # No line
             if self.horiz:
-                self._lineSizeMultiplier = (1 + 1 / len(self.labels), 1)
+                self._lineSizeMultiplier = (1 + 1 / nLabels, 1)
             else:
-                self._lineSizeMultiplier = (1, 1 + 1 / len(self.labels))
+                self._lineSizeMultiplier = (1, 1 + 1 / nLabels)
             # Solid ticks
             self.tickLines.elementMask = None
             self._tickSizeAddition = (0, 0)
