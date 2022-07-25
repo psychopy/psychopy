@@ -498,9 +498,6 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
 
     def writeRoutineEndCodeJS(self, buff):
-        if self.params['registerOn'] == "press" and self.params['forceEndRoutine']:
-            alerts.alert(4410, strFields={"keyboard": self.name})
-
         # some shortcuts
         name = self.params['name']
         store = self.params['store'].val
