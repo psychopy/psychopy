@@ -179,8 +179,8 @@ jobs:
         # sudo sh .github/workflows/prep_dummy_soundcard.sh  # couldn't find that file
 
         # for PyQt:
-        sudo apt-get install -y -qq libdbus-1-3 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1
-        sudo apt-get install -y -qq libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0
+        sudo apt-get install -y -qq libdbus-1-3
+        sudo apt-get install -y -qq '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
         export LIBGL_ALWAYS_INDIRECT=0
         export QT_DEBUG_PLUGINS=1 # let us know about missing dependencies?
 
