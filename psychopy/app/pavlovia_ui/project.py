@@ -415,7 +415,7 @@ class DetailsPanel(wx.Panel):
         # Populate fields
         if project is None:
             # Icon
-            self.icon.SetBitmap(wx.Bitmap())
+            self.icon.setImage(wx.Bitmap())
             self.icon.SetBackgroundColour("#f2f2f2")
             self.icon.Disable()
             # Title
@@ -473,12 +473,12 @@ class DetailsPanel(wx.Panel):
             if 'avatarUrl' in project.info:
                 try:
                     content = requests.get(project['avatar_url']).content
-                    icon = wx.Bitmap(wx.Image(io.BytesIO(content)))
+                    icon = io.BytesIO(content)
                 except requests.exceptions.MissingSchema:
                     icon = wx.Bitmap()
             else:
                 icon = wx.Bitmap()
-            self.icon.SetBitmap(icon)
+            self.icon.setImage(icon)
             self.icon.SetBackgroundColour("#f2f2f2")
             self.icon.Enable(project.editable)
             # Title

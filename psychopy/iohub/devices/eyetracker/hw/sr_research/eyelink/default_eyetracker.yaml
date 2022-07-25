@@ -114,8 +114,7 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
         text_color:
 
         # target_type: Defines what form of calibration graphic should be used
-        #   during calibration, validation, etc. modes. sr_research.eyelink.EyeTracker
-        #   supports the CIRCLE_TARGET type.
+        #   during calibration, validation, etc. Valid options are CIRCLE_TARGET, or CUSTOM.
         #   
         target_type: CIRCLE_TARGET
 

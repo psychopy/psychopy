@@ -17,11 +17,14 @@ devices_config = dict()
 eyetracker_config = dict(name='tracker')
 if TRACKER == 'mouse':
     eyetracker_config['calibration'] = dict(screen_background_color=BACKGROUND_COLOR)
+    eyetracker_config['calibration']['auto_pace'] = True
+    eyetracker_config['calibration']['target_attributes']['animate'] = dict(enable=True, expansion_ratio=1.5)
     devices_config['eyetracker.hw.mouse.EyeTracker'] = eyetracker_config
 elif TRACKER == 'eyelink':
     eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
+    eyetracker_config['simulation_mode'] = False
     eyetracker_config['runtime_settings'] = dict(sampling_rate=1000, track_eyes='RIGHT')
-    eyetracker_config['calibration'] = dict(screen_background_color=BACKGROUND_COLOR)
+    eyetracker_config['calibration'] = dict(screen_background_color=BACKGROUND_COLOR, auto_pace=True)
     devices_config['eyetracker.hw.sr_research.eyelink.EyeTracker'] = eyetracker_config
 elif TRACKER == 'gazepoint':
     eyetracker_config['calibration'] = dict(use_builtin=False, screen_background_color=BACKGROUND_COLOR)
