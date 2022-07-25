@@ -17,6 +17,7 @@ Overview
     getAudioCaptureDevices
     getAudioPlaybackDevices
     getCameras
+    getKeyboards
     systemProfilerMacOS
     
 Details
@@ -26,4 +27,5 @@ Details
 .. autofunction:: getAudioCaptureDevices
 .. autofunction:: getAudioPlaybackDevices
 .. autofunction:: getCameras
+.. autofunction:: getKeyboards
 .. autofunction:: systemProfilerMacOS

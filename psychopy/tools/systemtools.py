@@ -24,6 +24,7 @@ __all__ = [
     'getAudioDevices',
     'getAudioCaptureDevices',
     'getAudioPlaybackDevices',
+    'getKeyboards',
     'systemProfilerMacOS'
 ]
 
@@ -332,7 +333,6 @@ def _getCameraInfoWindows():
         for _format in videoDevs[devURI]:
             pixelFormat, codecFormat, frameSize, frameRateRng = _format
             _, frameRateMax = frameRateRng
-
             thisCamInfo = {
                 'index': devIndex,
                 'name': cameraName,
@@ -341,7 +341,6 @@ def _getCameraInfoWindows():
                 'frameSize': frameSize,
                 'frameRate': frameRateMax,
                 'cameraAPI': CAMERA_API_DIRECTSHOW
-
             }
             supportedFormats.append(thisCamInfo)
             devIndex += 1
@@ -378,6 +377,104 @@ def getCameras():
                 systemName))
 
     return getCamerasFunc()
+
+
+# ------------------------------------------------------------------------------
+# Keyboards
+#
+
+def getKeyboards():
+    """Get information about attached keyboards.
+
+    Returns
+    -------
+    dict
+        Dictionary where the keys are device names and values are mappings
+        whose fields contain information about that device. See the *Examples*
+        section for field names.
+
+    Examples
+    --------
+    Get keyboards attached to this system::
+
+        installedKeyboards = getKeyboards()
+
+    Running the previous command on an Apple MacBook Pro (2022) returns the
+    following dictionary::
+
+        {
+            'TouchBarUserDevice': {
+                'usagePageValue': 1,
+                'usageValue': 6,
+                'usageName': 'Keyboard',
+                'index': 4,
+                'transport': '',
+                'vendorID': 1452,
+                'productID': 34304,
+                'version': 0.0,
+                'manufacturer': '',
+                'product': 'TouchBarUserDevice',
+                'serialNumber': '',
+                'locationID': 0,
+                'interfaceID': -1,
+                'totalElements': 1046,
+                'features': 0,
+                'inputs': 1046,
+                'outputs': 0,
+                'collections': 1,
+                'axes': 0,
+                'buttons': 0,
+                'hats': 0,
+                'sliders': 0,
+                'dials': 0,
+                'wheels': 0,
+                'touchDeviceType': -1,
+                'maxTouchpoints': -1},
+            'Generic Keyboard 0': {
+                'usagePageValue': 1,
+                'usageValue': 6,
+                'usageName': 'Keyboard',
+                'index': 13,
+                # snip ...
+                'dials': 0,
+                'wheels': 0,
+                'touchDeviceType': -1,
+                'maxTouchpoints': -1
+            }
+        }
+
+    """
+    # use PTB to query keyboards, might want to also use IOHub at some point
+    from psychtoolbox import hid
+
+    # use PTB to query for keyboards
+    indices, names, keyboards = hid.get_keyboard_indices()
+
+    toReturn = {}
+    if not indices:
+        return toReturn  # just return if no keyboards found
+
+    # ensure these are all the same length
+    assert len(indices) == len(names) == len(keyboards), \
+        "Got inconsistent array length from `get_keyboard_indices()`"
+
+    missingNameIdx = 0  # for keyboard with empty names
+    for i, kbIdx in enumerate(indices):
+        name = names[i]
+        if not name:
+            name = ' '.join(('Generic Keyboard', str(missingNameIdx)))
+            missingNameIdx += 1
+
+        keyboard = keyboards[i]
+
+        # reformat values since PTB returns everything as a float
+        for key, val in keyboard.items():
+            if isinstance(val, float) and key not in ('version',):
+                keyboard[key] = int(val)
+
+        toReturn[name] = keyboard
+
+    return toReturn
 
 
 # ------------------------------------------------------------------------------
