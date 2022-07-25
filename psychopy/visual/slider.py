@@ -1034,6 +1034,8 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
                 self._markerSizeMultiplier = (1, 1 / nLabels)
             # Labels forced center
             self._forceLabelAnchor = "center"
+            # Choice doesn't make sense with granularity 0
+            self.granularity = 1
 
         if style == 'scrollbar':
             # Semi-transparent rectangle for a line (+ extra area for marker)
