@@ -2382,6 +2382,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.pavloviaMenu.syncBtn.Enable(bool(self.filename))
         self.pavloviaMenu.newBtn.Enable(bool(self.filename))
         self.app.updateWindowMenu()
+        self.fileBrowserWindow.updateFileBrowser()
 
     def fileOpen(self, event=None, filename=None):
         if not filename:
@@ -2603,7 +2604,8 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self.structureWindow.refresh()
             # set to current file status
             self.setFileModified(self.currentDoc.UNSAVED)
-        # return 1
+        # update file browser buttons
+        self.fileBrowserWindow.updateFileBrowser()
 
     def fileCloseAll(self, event, checkSave=True):
         """Close all files open in the editor."""

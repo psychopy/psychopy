@@ -105,12 +105,6 @@ class FileBrowserToolbar(wx.ToolBar, handlers.ThemeMixin):
             bitmap=icons.ButtonIcon('delete', size=iconSize).bitmap,
             shortHelp=_translate("Delete the selected folder or file")
         )
-        parent.gotoTool = self.AddTool(
-            wx.ID_ANY, label=_translate('Goto'),
-            bitmap=icons.ButtonIcon('goto', size=iconSize).bitmap,
-            shortHelp=_translate("Jump to another folder"),
-            kind=wx.ITEM_DROPDOWN
-        )
         # create the dropdown menu for goto
         parent.gotoMenu = wx.Menu()
         item = parent.gotoMenu.Append(
@@ -130,12 +124,9 @@ class FileBrowserToolbar(wx.ToolBar, handlers.ThemeMixin):
             _translate("Open the directory the current editor file is located"))
         self.Bind(wx.EVT_MENU, parent.OnGotoFileLocation, id=item.GetId())
         # Bind toolbar buttons
-        self.Bind(wx.EVT_TOOL, parent.OnBrowse, parent.gotoTool)
-        self.Bind(aui.EVT_AUITOOLBAR_TOOL_DROPDOWN, parent.OnGotoMenu, parent.gotoTool)
         self.Bind(wx.EVT_TOOL, parent.OnNewFolderTool, parent.newFolderTool)
         self.Bind(wx.EVT_TOOL, parent.OnDeleteTool, parent.deleteTool)
         self.Bind(wx.EVT_TOOL, parent.OnRenameTool, parent.renameTool)
-        parent.gotoTool.SetDropdownMenu(parent.gotoMenu)
 
         # Realise
         self.Realize()
@@ -187,12 +178,36 @@ class FileBrowserPanel(wx.Panel, handlers.ThemeMixin):
         szr = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(szr)
 
-        # create an address bar
+        # create a navigation toolbar
         self.lblDir = wx.StaticText(self, label=_translate("Directory:"))
         szr.Add(self.lblDir, border=5, flag=wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND)
+        self.navBar = wx.BoxSizer(wx.HORIZONTAL)
+        szr.Add(self.navBar, border=3, flag=wx.ALL | wx.EXPAND)
+        # file path ctrl
         self.txtAddr = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
         self.Bind(wx.EVT_TEXT_ENTER, self.OnAddrEnter, self.txtAddr)
-        szr.Add(self.txtAddr, border=5, flag=wx.BOTTOM | wx.LEFT | wx.RIGHT | wx.EXPAND)
+        self.navBar.Add(self.txtAddr, proportion=1, border=5, flag=wx.BOTTOM | wx.LEFT | wx.RIGHT | wx.EXPAND)
+        # browse button
+        self.browseBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
+        self.browseBtn.Bind(wx.EVT_BUTTON, self.OnBrowse)
+        self.navBar.Add(self.browseBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        self.browseBtn.SetToolTipString(_translate(
+            "Browse for a folder to open."
+        ))
+        # library root button
+        self.libRootBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
+        self.libRootBtn.SetToolTipString(_translate(
+            "Navigate to PsychoPy library root."
+        ))
+        self.libRootBtn.Bind(wx.EVT_BUTTON, self.OnGotoCWD)
+        self.navBar.Add(self.libRootBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        # current file button
+        self.currentFileBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
+        self.libRootBtn.SetToolTipString(_translate(
+            "Navigate to current open file."
+        ))
+        self.currentFileBtn.Bind(wx.EVT_BUTTON, self.OnGotoFileLocation)
+        self.navBar.Add(self.currentFileBtn, border=3, flag=wx.ALL | wx.EXPAND)
 
         # create the toolbar
         self.toolBar = FileBrowserToolbar(
@@ -201,9 +216,6 @@ class FileBrowserPanel(wx.Panel, handlers.ThemeMixin):
             wx.TB_FLAT | wx.TB_NODIVIDER)
         self.toolBar.AdjustForLayoutDirection(16, 300, 300)
         self.toolBar.SetToolBitmapSize((21, 16))
-        self.Bind(wx.EVT_MENU, self.OnBrowse, id=ID_GOTO_BROWSE)
-        self.Bind(wx.EVT_MENU, self.OnGotoCWD, id=ID_GOTO_CWD)
-        self.Bind(wx.EVT_MENU, self.OnGotoFileLocation, id=ID_GOTO_FILE)
         szr.Add(self.toolBar, border=5, flag=wx.LEFT | wx.RIGHT | wx.EXPAND)
         szr.AddSpacer(6)
 
@@ -239,6 +251,19 @@ class FileBrowserPanel(wx.Panel, handlers.ThemeMixin):
         # Set background
         self.SetBackgroundColour(colors.app['tab_bg'])
         self.SetForegroundColour(colors.app['text'])
+        # Style nav bar
+        self.currentFileBtn.SetBackgroundColour(colors.app['tab_bg'])
+        self.currentFileBtn.SetBitmap(
+            icons.ButtonIcon(stem="currentFile", size=16).bitmap
+        )
+        self.libRootBtn.SetBackgroundColour(colors.app['tab_bg'])
+        self.libRootBtn.SetBitmap(
+            icons.ButtonIcon(stem="libroot", size=16).bitmap
+        )
+        self.browseBtn.SetBackgroundColour(colors.app['tab_bg'])
+        self.browseBtn.SetBitmap(
+            icons.ButtonIcon(stem="fileopen", size=16).bitmap
+        )
         # Make sure directory label is correct color
         self.lblDir.SetForegroundColour(colors.app['text'])
         # Remake icons
@@ -631,6 +656,8 @@ class FileBrowserPanel(wx.Panel, handlers.ThemeMixin):
                     img)
                 #self.fileList.SetItem(index, 1, obj.fsize)
                 #self.fileList.SetItem(index, 2, obj.mod)
+        # Enable/disable "go to current file" button based on current file
+        self.currentFileBtn.Enable(self.GetTopLevelParent().filename is not None)
 
     def addItem(self, name, absPath):
         """Add an item to the directory browser."""
