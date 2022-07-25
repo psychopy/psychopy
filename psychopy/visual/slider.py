@@ -913,7 +913,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         if hasattr(self, "tickLines"):
             self.tickLines.colors = self._borderColor.copy()
 
-    knownStyles = ['slider', 'rating', 'radio', 'scrollbar']
+    knownStyles = ['slider', 'rating', 'radio', 'scrollbar', 'choice']
     legacyStyles = []
     knownStyleTweaks = ['labels45', 'triangleMarker']
     legacyStyleTweaks = ['whiteOnBlack']
@@ -1027,7 +1027,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             if self.horiz:
                 self._markerSizeMultiplier = (1, 1)
             else:
-                self._markerSizeMultiplier = (1, 1 / len(self.labels))
+                self._markerSizeMultiplier = (1, 1 / nLabels)
             # Labels forced center
             self._forceLabelAnchor = "center"
 
