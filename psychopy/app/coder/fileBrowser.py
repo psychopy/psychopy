@@ -215,18 +215,18 @@ class FileBrowserPanel(wx.Panel, handlers.ThemeMixin):
         self.SetBackgroundColour(colors.app['tab_bg'])
         self.SetForegroundColour(colors.app['text'])
         # Style nav bar
-        self.currentFileBtn.SetBackgroundColour(colors.app['tab_bg'])
-        self.currentFileBtn.SetBitmap(
-            icons.ButtonIcon(stem="currentFile", size=16).bitmap
-        )
-        self.libRootBtn.SetBackgroundColour(colors.app['tab_bg'])
-        self.libRootBtn.SetBitmap(
-            icons.ButtonIcon(stem="libroot", size=16).bitmap
-        )
-        self.browseBtn.SetBackgroundColour(colors.app['tab_bg'])
-        self.browseBtn.SetBitmap(
-            icons.ButtonIcon(stem="fileopen", size=16).bitmap
-        )
+        btns = {
+            self.currentFileBtn: icons.ButtonIcon(stem="currentFile", size=16).bitmap,
+            self.libRootBtn: icons.ButtonIcon(stem="libroot", size=16).bitmap,
+            self.browseBtn: icons.ButtonIcon(stem="fileopen", size=16).bitmap
+        }
+        for btn, bmp in btns.items():
+            btn.SetBackgroundColour(colors.app['tab_bg'])
+            btn.SetBitmap(bmp)
+            btn.SetBitmapFocus(bmp)
+            btn.SetBitmapDisabled(bmp)
+            btn.SetBitmapPressed(bmp)
+            btn.SetBitmapCurrent(bmp)
         # Make sure directory label is correct color
         self.lblDir.SetForegroundColour(colors.app['text'])
         # Remake icons
