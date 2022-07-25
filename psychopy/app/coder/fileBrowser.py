@@ -75,7 +75,36 @@ class FileBrowserListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl, handlers.ThemeMix
                              pos,
                              size,
                              style=style)
+        self.parent = parent
         ListCtrlAutoWidthMixin.__init__(self)
+        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
+
+    def OnRightClick(self, evt=None):
+        # create menu
+        menu = wx.Menu()
+        # create new menu
+        newMenu = wx.Menu()
+        btn = newMenu.Append(
+            wx.ID_NEW,
+            item=_translate("Folder"),
+            helpString=_translate("Create a new folder here.")
+        )
+        newMenu.Bind(wx.EVT_MENU, self.parent.OnNewFolderTool, source=btn)
+        menu.AppendSubMenu(newMenu, _translate("New..."))
+        # rename btn
+        btn = menu.Append(
+            wx.ID_ANY,
+            item=_translate("Rename"),
+            helpString=_translate("Rename the file"))
+        menu.Bind(wx.EVT_MENU, self.parent.OnRenameTool, source=btn)
+        # delete btn
+        btn = menu.Append(
+            wx.ID_DELETE,
+            item=_translate("Delete"),
+            helpString=_translate("Delete the file"))
+        menu.Bind(wx.EVT_MENU, self.parent.OnDeleteTool, source=btn)
+        # show menu
+        self.PopupMenu(menu, pos=evt.GetPoint())
 
     def _applyAppTheme(self, target=None):
         self.SetBackgroundColour(colors.app['tab_bg'])
