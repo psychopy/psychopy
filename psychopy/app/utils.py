@@ -291,7 +291,8 @@ class HoverButton(wx.Button, HoverMixin, handlers.ThemeMixin):
         self.ForegroundColourHover = colors.app['txtbutton_fg_hover']
         self.BackgroundColourNoHover = colors.app['frame_bg']
         self.BackgroundColourHover = colors.app['txtbutton_bg_hover']
-        self.Update()
+        # Refresh
+        self.OnHover(evt=None)
 
 
 class ButtonArray(wx.Window):
