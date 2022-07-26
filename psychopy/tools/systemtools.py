@@ -748,4 +748,4 @@ def systemProfilerMacOS(dataTypes=None, detailLevel='basic', timeout=180):
 
 
 if __name__ == "__main__":
-    print(getSerialPorts())
+    pass
