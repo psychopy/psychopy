@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2021.2.3\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2022-06-22 21:29+0800\n"
+"PO-Revision-Date: 2022-06-25 17:52+0800\n"
 "Last-Translator: Shun Wang <shuonwang@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -207,12 +207,12 @@ msgstr ""
 #: ../app/_psychopyApp.py:102 ../app/builder/builder.py:355
 #: ../app/coder/coder.py:1629
 msgid "&View"
-msgstr "&视图"
+msgstr "视图(&V)"
 
 #: ../app/_psychopyApp.py:103
 #, python-format
 msgid "&Open Builder view\t%s"
-msgstr "&打开 Builder 视图\t%s"
+msgstr "打开 Builder 视图(&O)\t%s"
 
 #: ../app/_psychopyApp.py:106
 msgid "Open a new Builder view"
@@ -221,7 +221,7 @@ msgstr "打开新的 Builder 视图"
 #: ../app/_psychopyApp.py:109
 #, python-format
 msgid "&Open Coder view\t%s"
-msgstr "&打开 Coder 视图\t%s"
+msgstr "打开 Coder 视图(&O)\t%s"
 
 #: ../app/_psychopyApp.py:112
 msgid "Open a new Coder view"
@@ -232,7 +232,7 @@ msgstr "打开新的 Coder 视图"
 #: ../app/pavlovia_ui/_base.py:39 ../app/runner/runner.py:140
 #, python-format
 msgid "&Quit\t%s"
-msgstr "&退出\t%s"
+msgstr "退出(&Q)\t%s"
 
 #: ../app/_psychopyApp.py:117 ../app/builder/builder.py:333
 #: ../app/coder/coder.py:1503 ../app/pavlovia_ui/_base.py:40
@@ -539,7 +539,7 @@ msgstr "复制当前例程，以便它可以在另一个实验中使用"
 #: ../app/builder/builder.py:451
 #, python-format
 msgid "&Paste Routine\t%s"
-msgstr "粘贴例程(routine)()&E\t%s"
+msgstr "粘贴例程(routine)(&E)\t%s"
 
 #: ../app/builder/builder.py:453
 msgid "Paste the Routine into the current experiment"
@@ -654,7 +654,7 @@ msgstr "获取系统信息"
 
 #: ../app/builder/builder.py:552 ../app/coder/coder.py:1817
 msgid "&About..."
-msgstr "关于...((&A)"
+msgstr "关于...(&A)"
 
 #: ../app/builder/builder.py:553 ../app/coder/coder.py:1818
 msgid "About PsychoPy"
@@ -1580,17 +1580,17 @@ msgstr "PsychoPy 单元测试"
 
 #: ../app/coder/coder.py:383
 msgid "&Tests"
-msgstr "&测试"
+msgstr "测试(&T)"
 
 #: ../app/coder/coder.py:386
 #, python-format
 msgid "&Run tests\t%s"
-msgstr "&运行测试\t%s"
+msgstr "运行测试(&R)\t%s"
 
 #: ../app/coder/coder.py:389
 #, python-format
 msgid "&Close tests panel\t%s"
-msgstr "&关闭测试面板\t%s"
+msgstr "关闭测试面板(&C)\t%s"
 
 #: ../app/coder/coder.py:394
 #, python-format
@@ -1731,7 +1731,7 @@ msgstr "查找((&F)\t%s"
 #: ../app/coder/coder.py:1527
 #, python-format
 msgid "Find &Next\t%s"
-msgstr "查找 &下一个\t%s"
+msgstr "查找下一个(&N)\t%s"
 
 #: ../app/coder/coder.py:1532
 #, python-format
@@ -1850,7 +1850,7 @@ msgstr "显示输出和 shell 面板（并开始捕获标准输出）"
 #: ../app/coder/coder.py:1651
 #, python-format
 msgid "&Output/Shell\t%s"
-msgstr "&输出/Shell\t%s"
+msgstr "输出/Shell(&O)\t%s"
 
 #: ../app/coder/coder.py:1655
 msgid "Hide/show the source assistant pane."
@@ -2140,11 +2140,11 @@ msgstr "输出空间："
 
 #: ../app/colorpicker/__init__.py:219
 msgid "&Insert"
-msgstr "插入&I"
+msgstr "插入(&I)"
 
 #: ../app/colorpicker/__init__.py:225
 msgid "Canc&el"
-msgstr "取消&E"
+msgstr "取消(&E)"
 
 #: ../app/colorpicker/__init__.py:228
 msgid "Insert color value."
@@ -6439,7 +6439,7 @@ msgstr ""
 
 #: ../experiment/routines/_base.py:43
 msgid "name"
-msgstr ""
+msgstr "名称"
 
 #: ../experiment/routines/_base.py:48
 msgid "When does the routine end? (blank is endless)"
@@ -6447,11 +6447,11 @@ msgstr ""
 
 #: ../experiment/routines/_base.py:49 ../localization/__init__.py:162
 msgid "Stop"
-msgstr ""
+msgstr "终止"
 
 #: ../experiment/routines/_base.py:56
 msgid "Stop Type..."
-msgstr ""
+msgstr "终止类型..."
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:12
 msgid "Calibration routine for eyetrackers"
@@ -6679,19 +6679,19 @@ msgstr ""
 
 #: ../gui/qtgui.py:93
 msgid "PsychoPy Dialog"
-msgstr ""
+msgstr "Psychopy 对话框"
 
 #: ../gui/qtgui.py:509 ../gui/wxgui.py:336
 msgid "Select file to save"
-msgstr ""
+msgstr "选择要保存的文件"
 
 #: ../gui/qtgui.py:554
 msgid "Select file to open"
-msgstr ""
+msgstr "选择要打开的文件"
 
 #: ../gui/qtgui.py:604
 msgid "Information"
-msgstr ""
+msgstr "信息"
 
 #: ../gui/qtgui.py:606 ../gui/qtgui.py:612 ../gui/qtgui.py:618
 #: ../gui/qtgui.py:624
@@ -6716,15 +6716,15 @@ msgstr ""
 
 #: ../localization/__init__.py:159
 msgid "start type"
-msgstr ""
+msgstr "起始类型"
 
 #: ../localization/__init__.py:160
 msgid "stop type"
-msgstr ""
+msgstr "终止类型"
 
 #: ../localization/__init__.py:161
 msgid "Start"
-msgstr ""
+msgstr "起始"
 
 #: ../localization/__init__.py:163
 msgid "Expected start (s)"
