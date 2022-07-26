@@ -18,6 +18,7 @@ Overview
     getAudioPlaybackDevices
     getCameras
     getKeyboards
+    getSerialPorts
     systemProfilerMacOS
     
 Details
@@ -28,4 +29,5 @@ Details
 .. autofunction:: getAudioPlaybackDevices
 .. autofunction:: getCameras
 .. autofunction:: getKeyboards
+.. autofunction:: getSerialPorts
 .. autofunction:: systemProfilerMacOS

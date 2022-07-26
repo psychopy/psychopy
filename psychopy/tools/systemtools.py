@@ -25,6 +25,8 @@ __all__ = [
     'getAudioCaptureDevices',
     'getAudioPlaybackDevices',
     'getKeyboards',
+    'getSerialPorts',
+    # 'getParallelPorts',
     'systemProfilerMacOS'
 ]
 
@@ -33,6 +35,7 @@ __all__ = [
 # the functions, not on the top-level scope for this module.
 import sys
 import platform
+import glob
 import subprocess as sp
 from psychopy.preferences import prefs
 
@@ -55,6 +58,8 @@ CAMERA_NULL_VALUE = u'Null'  # fields where we couldn't get a value
 # audio library identifiers
 AUDIO_LIBRARY_PTB = 'ptb'  # PsychPortAudio from Psychtoolbox
 
+SERIAL_MAX_ENUM_PORTS = 32  # can be as high as 256 on Win32, not used on Unix
+
 
 # ------------------------------------------------------------------------------
 # Audio playback and capture devices
@@ -67,7 +72,9 @@ def getAudioDevices():
     or capture.
 
     This command is supported on Windows, MacOSX and Linux. On Windows, WASAPI
-    devices are preferred and will only be returned by default.
+    devices are preferred to achieve precise timing and will be returned by
+    default. To get all audio devices (including non-WASAPI ones), set the
+    preference `audioForceWASAPI` to `False`.
 
     Returns
     -------
@@ -108,6 +115,19 @@ def getAudioDevices():
                 'audioLib': 'ptb'
             }
         }
+
+    To determine whether something is a playback or capture device, check the
+    number of output and input channels, respectively::
+
+        # determine if a device is for audio capture
+        isCapture = allDevs['MacBook Pro Microphone']['inputChannels'] > 0
+
+        # determine if a device is for audio playback
+        isPlayback = allDevs['MacBook Pro Microphone']['outputChannels'] > 0
+
+    You may also call :func:`getAudioCaptureDevices` and
+    :func:`getAudioPlaybackDevices` to get just audio capture and playback
+    devices.
 
     """
     # use the PTB backend for audio
@@ -156,7 +176,7 @@ def getAudioCaptureDevices():
     -------
     dict
         Dictionary where the keys are devices names and values are mappings
-        whose fields contain information about the device. See
+        whose fields contain information about the capture device. See
         :func:`getAudioDevices()` examples to see the format of the output.
 
     """
@@ -184,7 +204,7 @@ def getAudioPlaybackDevices():
     -------
     dict
         Dictionary where the keys are devices names and values are mappings
-        whose fields contain information about the device. See
+        whose fields contain information about the playback device. See
         :func:`getAudioDevices()` examples to see the format of the output.
 
     """
@@ -214,7 +234,8 @@ def _getCameraInfoMacOS():
     attached to the system.
 
     This is used by `getCameraInfo()` for querying camera details on *MacOS*.
-    Don't call this function directly unless testing.
+    Don't call this function directly unless testing. Requires `AVFoundation`
+    and `CoreMedia` libraries.
 
     Returns
     -------
@@ -304,7 +325,8 @@ def _getCameraInfoWindows():
     attached to the system.
 
     This is used by `getCameraInfo()` for querying camera details on Windows.
-    Don't call this function directly unless testing.
+    Don't call this function directly unless testing. Requires `ffpyplayer`
+    to use this function.
 
     Returns
     -------
@@ -317,6 +339,8 @@ def _getCameraInfoWindows():
             "Cannot query cameras with this function, platform not 'Windows'.")
 
     # import this to get camera details
+    # NB - In the future, we should consider using WinRT to query this info
+    # to avoid the ffpyplayer dependency.
     from ffpyplayer.tools import list_dshow_devices
 
     # FFPyPlayer can query the OS via DirectShow for Windows cameras
@@ -351,6 +375,8 @@ def _getCameraInfoWindows():
 
 
 # Mapping for platform specific camera getter functions used by `getCameras`.
+# We're doing this to allow for plugins to add support for cameras on other
+# platforms.
 _cameraGetterFuncTbl = {
     'Darwin': _getCameraInfoMacOS,
     'Windows': _getCameraInfoWindows
@@ -359,6 +385,9 @@ _cameraGetterFuncTbl = {
 
 def getCameras():
     """Get information about installed cameras and their formats on this system.
+
+    The command presently only works on Window and MacOSX. Linux support for
+    cameras is not available yet.
 
     Returns
     -------
@@ -386,12 +415,19 @@ def getCameras():
 def getKeyboards():
     """Get information about attached keyboards.
 
+    This command works on Windows, MacOSX and Linux.
+
     Returns
     -------
     dict
         Dictionary where the keys are device names and values are mappings
         whose fields contain information about that device. See the *Examples*
         section for field names.
+
+    Notes
+    -----
+    * Keyboard names are generated (taking the form of "Generic Keyboard n") if
+      the OS does not report the name.
 
     Examples
     --------
@@ -473,6 +509,122 @@ def getKeyboards():
                 keyboard[key] = int(val)
 
         toReturn[name] = keyboard
+
+    return toReturn
+
+
+# ------------------------------------------------------------------------------
+# Connectivity
+#
+
+def getSerialPorts():
+    """Get serial ports attached to this system.
+
+    Serial ports are used for inter-device communication using the RS-232/432
+    protocol. This function gets a list of available ports and their default
+    configurations as specified by the OS. Ports that are in use by another
+    process are not returned.
+
+    This command is supported on Windows, MacOSX and Linux. On Windows, all
+    available ports are returned regardless if anything is connected to them,
+    so long as they aren't in use. On Unix(-likes) such as MacOSX and Linux,
+    port are only returned if there is a device attached and is not being
+    accessed by some other process. MacOSX and Linux also have no guarantee port
+    names are persistent, where a physical port may not always be assigned the
+    same name or enum index when a device is connected or after a system
+    reboot.
+
+    Returns
+    -------
+    dict
+        Mapping (`dict`) where keys are serial port names (`str`) and values
+        are mappings of the default settings of the port (`dict`). See
+        *Examples* below for the format of the returned data.
+
+    Examples
+    --------
+    Getting available serial ports::
+
+        allPorts = getSerialPorts()
+
+    On a MacBook Pro (2022) with an Arduino Mega (2560) connected to the USB-C
+    port, the following dictionary is returned::
+
+        {
+            '/dev/cu.Bluetooth-Incoming-Port': {
+                'index': 0,
+                'port': '/dev/cu.Bluetooth-Incoming-Port',
+                'baudrate': 9600,
+                'bytesize': 8,
+                'parity': 'N',
+                'stopbits': 1,
+                'xonxoff': False,
+                'rtscts': False,
+                'dsrdtr': False
+            },
+            '/dev/cu.usbmodem11101': {
+                'index': 1,
+                # ... snip ...
+                'dsrdtr': False
+            },
+            '/dev/tty.Bluetooth-Incoming-Port': {
+                'index': 2,
+                # ... snip ...
+            },
+            '/dev/tty.usbmodem11101': {
+                'index': 3,
+                # ... snip ...
+            }
+        }
+
+    """
+    try:
+        import serial  # pyserial
+    except ImportError:
+        raise ImportError("Cannot import `pyserial`, check your installation.")
+
+    # get port names
+    thisSystem = platform.system()
+    if thisSystem == 'Windows':
+        portNames = [
+            'COM{}'.format(i + 1) for i in range(SERIAL_MAX_ENUM_PORTS)]
+    elif thisSystem == 'Darwin':
+        portNames = glob.glob('/dev/tty.*') + glob.glob('/dev/cu.*')
+        portNames.sort()  # ensure we get things back in the same order
+    elif thisSystem == 'Linux' or thisSystem == 'Linux2':
+        portNames = glob.glob('/dev/tty[A-Za-z]*')
+        portNames.sort()  # ditto
+    else:
+        raise EnvironmentError(
+            "System '{}' is not supported by `getSerialPorts()`".format(
+                thisSystem))
+
+    # enumerate over ports now that we have the names
+    portEnumIdx = 0
+    toReturn = {}
+    for name in portNames:
+        try:
+            with serial.Serial(name) as ser:
+                portConf = {   # port information dict
+                    'index': portEnumIdx,
+                    'port': ser.port,
+                    'baudrate': ser.baudrate,
+                    'bytesize': ser.bytesize,
+                    'parity': ser.parity,
+                    'stopbits': ser.stopbits,
+                    # 'timeout': ser.timeout,
+                    # 'writeTimeout': ser.write_timeout,
+                    # 'interByteTimeout': ser.inter_byte_timeout,
+                    'xonxoff': ser.xonxoff,
+                    'rtscts': ser.rtscts,
+                    'dsrdtr': ser.dsrdtr,
+                    # 'rs485_mode': ser.rs485_mode
+                }
+                toReturn[name] = portConf
+                portEnumIdx += 1
+        except (OSError, serial.SerialException):
+            # no port found with `name` or cannot be opened
+            pass
 
     return toReturn
 
@@ -581,4 +733,4 @@ def systemProfilerMacOS(dataTypes=None, detailLevel='basic', timeout=180):
 
 
 if __name__ == "__main__":
-    pass
+    print(getSerialPorts())
