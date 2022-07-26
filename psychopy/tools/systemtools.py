@@ -69,7 +69,8 @@ def getAudioDevices():
     """Get all audio devices.
 
     This function gets all audio devices attached to the system, either playback
-    or capture.
+    or capture. Uses the `psychtoolbox` library to obtain the relevant
+    information.
 
     This command is supported on Windows, MacOSX and Linux. On Windows, WASAPI
     devices are preferred to achieve precise timing and will be returned by
@@ -172,6 +173,13 @@ def getAudioDevices():
 def getAudioCaptureDevices():
     """Get audio capture devices (i.e. microphones) installed on the system.
 
+    This command is supported on Windows, MacOSX and Linux. On Windows, WASAPI
+    devices are preferred to achieve precise timing and will be returned by
+    default. To get all audio capture devices (including non-WASAPI ones), set
+    the preference `audioForceWASAPI` to `False`.
+
+    Uses the `psychtoolbox` library to obtain the relevant information.
+
     Returns
     -------
     dict
@@ -199,6 +207,13 @@ def getAudioCaptureDevices():
 
 def getAudioPlaybackDevices():
     """Get audio playback devices (i.e. speakers) installed on the system.
+
+    This command is supported on Windows, MacOSX and Linux. On Windows, WASAPI
+    devices are preferred to achieve precise timing and will be returned by
+    default. To get all audio playback devices (including non-WASAPI ones), set
+    the preference `audioForceWASAPI` to `False`.
+
+    Uses the `psychtoolbox` library to obtain the relevant information.
 
     Returns
     -------
