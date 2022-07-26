@@ -481,11 +481,13 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @property
     def lineSpacing(self):
-        return self.glFont.lineSpacing
+        if hasattr(self.glFont, "lineSpacing"):
+            return self.glFont.lineSpacing
 
     @lineSpacing.setter
     def lineSpacing(self, value):
-        self.glFont.lineSpacing = value
+        if hasattr(self.glFont, "lineSpacing"):
+            self.glFont.lineSpacing = value
         self._needVertexUpdate = True
 
     @property
