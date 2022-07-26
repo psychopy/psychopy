@@ -224,7 +224,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # Initialise arabic reshaper
         arabic_config = {'delete_harakat': False,  # if present, retain any diacritics
-                         'shift_harakat_position': True}  # shift by 1 to be compatible with the bidi algorithm
+                         'shift_harakat_position': False}  # shift by 1 to be compatible with the bidi algorithm
         self.arabicReshaper = ArabicReshaper(configuration=arabic_config)
 
         # caret
