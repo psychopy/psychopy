@@ -513,7 +513,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._languageStyle = value
         # If layout is anything other than LTR, mark that we need to use bidi to lay it out
         self._needsBidi = value != "LTR"
-        self._needsArabic = value.lower == "arabic"
+        self._needsArabic = value.lower() == "arabic"
 
     @property
     def anchor(self):
@@ -589,7 +589,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         visible_text = ''.join([c for c in text if c not in codes.values()])
         self._styles = [0,]*len(visible_text)
         self._text = visible_text
-        if self._needsArabic:
+        if self._needsArabic and hasattr(self, "arabicReshaper"):
             self._text = self.arabicReshaper.reshape(self._text)
         if self._needsBidi:
             self._text = bidi.get_display(self._text)
