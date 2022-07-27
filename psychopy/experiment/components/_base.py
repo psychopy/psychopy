@@ -311,6 +311,11 @@ class BaseComponent:
             tCompare = 't'
         params = self.params
         t = tCompare
+        # add handy comment
+        code = (
+            "# if %(name)s is starting this frame...\n"
+        )
+        buff.writeIndentedLines(code % params)
         if self.params['startType'].val == 'time (s)':
             # if startVal is an empty string then set to be 0.0
             if (isinstance(self.params['startVal'].val, str) and
@@ -415,6 +420,12 @@ class BaseComponent:
         """Test whether we need to stop
         """
         params = self.params
+        # add handy comment
+        code = (
+            "# if %(name)s is stopping this frame...\n"
+        )
+        buff.writeIndentedLines(code % params)
+
         buff.writeIndentedLines(f"if {params['name']}.status == STARTED:\n")
         buff.setIndentLevel(+1, relative=True)
 
