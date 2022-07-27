@@ -42,47 +42,12 @@ class MessageDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(wx.StaticText(self, -1, message), flag=wx.ALL, border=15)
         # add buttons
-        btnSizer = wx.BoxSizer(wx.HORIZONTAL)
         if type == 'Warning':  # we need Yes,No,Cancel
-            self.yesBtn = wx.Button(self, wx.ID_YES, _translate('Yes'))
-            self.yesBtn.SetDefault()
-            self.cancelBtn = wx.Button(
-                self, wx.ID_CANCEL, _translate('Cancel'))
-            self.noBtn = wx.Button(self, wx.ID_NO, _translate('No'))
-            self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_CANCEL)
-            self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_YES)
-            self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_NO)
-#            self.Bind(wx.EVT_CLOSE, self.onEscape)
-            btnSizer.Add(self.cancelBtn, 0,
-                         wx.ALL | wx.LEFT | wx.ALIGN_CENTER_VERTICAL,
-                         border=3)
-            btnSizer.AddStretchSpacer()
-            btnSizer.Add(self.noBtn, 0,
-                         wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                         border=3)
-            btnSizer.Add(self.yesBtn, 0,
-                         wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                         border=3)
+            btnSizer = self.CreateStdDialogButtonSizer(flags=wx.YES | wx.NO | wx.CANCEL)
         elif type == 'Query':  # we need Yes,No
-            self.yesBtn = wx.Button(self, wx.ID_YES, _translate('Yes'))
-            self.yesBtn.SetDefault()
-            self.noBtn = wx.Button(self, wx.ID_NO, _translate('No'))
-            self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_YES)
-            self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_NO)
-#            self.Bind(wx.EVT_CLOSE, self.onEscape)
-            btnSizer.Add(self.noBtn, 0,
-                         wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                         border=3)
-            btnSizer.Add(self.yesBtn, 0,
-                         wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                         border=3)
+            btnSizer = self.CreateStdDialogButtonSizer(flags=wx.YES | wx.NO)
         elif type == 'Info':  # just an OK button
-            self.okBtn = wx.Button(self, wx.ID_OK, _translate('OK'))
-            self.okBtn.SetDefault()
-            self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_OK)
-            btnSizer.Add(self.okBtn, 0,
-                         wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                         border=3)
+            btnSizer = self.CreateStdDialogButtonSizer(flags=wx.OK)
         else:
             raise NotImplementedError('Message type %s unknown' % type)
         # configure sizers and fit
