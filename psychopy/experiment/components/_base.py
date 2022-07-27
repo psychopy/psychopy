@@ -519,6 +519,13 @@ class BaseComponent:
             code += "\n"
         # Write test code
         self.writeActiveTestCode(buff)
+        # Write param updates (if needed)
+        if self.checkNeedToUpdate('set every frame'):
+            paramCode = (
+                "# update params\n"
+            )
+            buff.writeIndentedLines(paramCode % self.params)
+            self.writeParamUpdates(buff, 'set every frame')
         # Write contained code
         buff.writeIndentedLines(code % self.params)
         # Dedent
