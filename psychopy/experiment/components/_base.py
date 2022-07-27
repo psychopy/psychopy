@@ -275,6 +275,33 @@ class BaseComponent:
         """
         pass
 
+    def writeCodeInStartTest(self, code, buff):
+        """
+        Write the requested code within a stop test loop (as in writeStopTestCode), but including the code to
+        handle blank start times, set status and dedent afterwards. Code can be pre-completed or can be supplied with `%(key)s`
+        syntax with param names.
+        """
+        # If we have no start time, don't write stop code
+        if self.params['startVal'].val in ('', None, -1, 'None'):
+            return
+        # Make sure we have a newline at the end
+        if not code.endswith("\n"):
+            code += "\n"
+        # Write stop test code
+        self.writeStartTestCode(buff)
+        # Write contained code
+        buff.writeIndentedLines(code % self.params)
+        # Set status
+        statusCode = (
+            "# update status\n"
+            "%(name)s.status = STARTED\n"
+        )
+        buff.writeIndentedLines(statusCode % self.params)
+        # Dedent
+        buff.setIndentLevel(-1, relative=True)
+        # Add a new line
+        buff.writeIndentedLines("\n")
+
     def writeStartTestCode(self, buff):
         """Test whether we need to start
         """
@@ -356,6 +383,33 @@ class BaseComponent:
                 f"{params['name']}.tStart = t;  // (not accounting for frame time here)\n"
                 f"{params['name']}.frameNStart = frameN;  // exact frame index\n\n")
         buff.writeIndentedLines(code)
+
+    def writeCodeInStopTest(self, code, buff):
+        """
+        Write the requested code within a stop test loop (as in writeStopTestCode), but including the code to
+        handle blank stop times, set status and dedent afterwards. Code can be pre-completed or can be supplied with `%(key)s`
+        syntax with param names.
+        """
+        # If we have no stop time, don't write stop code
+        if self.params['stopVal'].val in ('', None, -1, 'None'):
+            return
+        # Make sure we have a newline at the end
+        if not code.endswith("\n"):
+            code += "\n"
+        # Write stop test code
+        self.writeStopTestCode(buff)
+        # Write contained code
+        buff.writeIndentedLines(code % self.params)
+        # Set status
+        statusCode = (
+            "# update status\n"
+            "%(name)s.status = FINISHED\n"
+        )
+        buff.writeIndentedLines(statusCode % self.params)
+        # Dedent
+        buff.setIndentLevel(-2, relative=True)
+        # Add a new line
+        buff.writeIndentedLines("\n")
 
     def writeStopTestCode(self, buff):
         """Test whether we need to stop
