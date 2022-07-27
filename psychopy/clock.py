@@ -18,7 +18,7 @@ Clock logic.
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-
+import logging
 import time
 import sys
 from pkg_resources import parse_version
@@ -177,12 +177,8 @@ class Clock(MonotonicClock):
         """
         self._timeAtLastReset = getTime() + newT
 
-    def add(self, t):
-        """Add more time to the clock's 'start' time (t0).
-
-        Note that, by adding time to t0, you make the current time
-        appear less. Can have the effect that getTime() returns a negative
-        number that will gradually count back up to zero.
+    def addTime(self, t):
+        """Add more time to the Clock/Timer
 
         e.g.::
 
@@ -191,6 +187,17 @@ class Clock(MonotonicClock):
             while timer.getTime()<0:
                 # do something
         """
+        self._timeAtLastReset -= t
+
+    def add(self, t):
+        """DEPRECATED: use .addTime() instead
+
+        This function adds time TO THE BASE (t0) which, counterintuitively,
+        reduces the apparent time on the clock
+        """
+        logging.warning("DEPRECATED: Clock.add() is deprecated in favor of .addTime() due to "
+                        "the counterintuitive design (it added time to the baseline, which "
+                        "reduced the values returned from getTime()")
         self._timeAtLastReset += t
 
 
@@ -333,8 +340,44 @@ class StaticPeriod:
         return 1
 
 
+def _dispatchWindowEvents():
+    """Helper function for :func:`~.psychopy.core.wait`. Handles window event if
+    needed or returns otherwise.
+    """
+    from . import core
+
+    if not (core.havePyglet and core.checkPygletDuringWait):
+        return  # nop
+
+    # let's see if pyglet collected any event in meantime
+    try:
+        # this takes focus away from command line terminal window:
+        if parse_version(pyglet.version) < parse_version('1.2'):
+            # events for sounds/video should run independently of wait()
+            pyglet.media.dispatch_events()
+    except AttributeError:
+        # see http://www.pyglet.org/doc/api/pyglet.media-module.html#dispatch_events
+        # Deprecated: Since pyglet 1.1, Player objects schedule themselves
+        # on the default clock automatically. Applications should not call
+        # pyglet.media.dispatch_events().
+        pass
+    for winWeakRef in core.openWindows:
+        win = winWeakRef()
+        if (win.winType == "pyglet" and
+                hasattr(win.winHandle, "dispatch_events")):
+            win.winHandle.dispatch_events()  # pump events
+
+
 def wait(secs, hogCPUperiod=0.2):
     """Wait for a given time period.
+
+    This function halts execution of the program for the specified duration.
+
+    Precision of this function is usually within 1 millisecond of the specified
+    time, this may vary depending on factors such as system load and the Python
+    version in use. Window events are periodically dispatched during the wait
+    to keep the application responsive, to avoid the OS complaining that the
+    process is unresponsive.
 
     If `secs=10` and `hogCPU=0.2` then for 9.8s Python's `time.sleep` function
     will be used, which is not especially precise, but allows the cpu to
@@ -342,8 +385,7 @@ def wait(secs, hogCPUperiod=0.2):
     method of constantly polling the clock is used for greater precision.
 
     If you want to obtain key-presses during the wait, be sure to use
-    pyglet and to hogCPU for the entire time, and then call
-    :func:`psychopy.event.getKeys()` after calling
+    pyglet and then call :func:`psychopy.event.getKeys()` after calling
     :func:`~.psychopy.core.wait()`
 
     If you want to suppress checking for pyglet events during the wait, do this
@@ -360,38 +402,34 @@ def wait(secs, hogCPUperiod=0.2):
     Parameters
     ----------
     secs : float or int
+        Number of seconds to wait before continuing the program.
     hogCPUperiod : float or int
+        Number of seconds to hog the CPU. This causes the thread to enter a
+        'tight' loop when the remaining wait time is less than the specified
+        interval. This is set to 200ms (0.2s) by default. It is recommended that
+        this interval is kept short to avoid stalling the processor for too
+        long which may result in poorer timing.
 
     """
-    from . import core
+    # Calculate the relaxed period which we periodically suspend the thread,
+    # this puts less load on the CPU during long wait intervals.
+    relaxedPeriod = secs - hogCPUperiod
 
-    # initial relaxed period, using sleep (better for system resources etc)
-    if secs > hogCPUperiod:
-        time.sleep(secs - hogCPUperiod)
-        secs = hogCPUperiod  # only this much is now left
-
-    # hog the cpu, checking time
+    # wait loop, suspends the thread periodically and consumes CPU resources
     t0 = getTime()
-    while (getTime() - t0) < secs:
-        if not (core.havePyglet and core.checkPygletDuringWait):
-            continue
-        # let's see if pyglet collected any event in meantime
-        try:
-            # this takes focus away from command line terminal window:
-            if parse_version(pyglet.version) < parse_version('1.2'):
-                # events for sounds/video should run independently of wait()
-                pyglet.media.dispatch_events()
-        except AttributeError:
-            # see http://www.pyglet.org/doc/api/pyglet.media-module.html#dispatch_events
-            # Deprecated: Since pyglet 1.1, Player objects schedule themselves
-            # on the default clock automatically. Applications should not call
-            # pyglet.media.dispatch_events().
-            pass
-        for winWeakRef in core.openWindows:
-            win = winWeakRef()
-            if (win.winType == "pyglet" and
-                    hasattr(win.winHandle, "dispatch_events")):
-                win.winHandle.dispatch_events()  # pump events
+    while True:
+        elapsed = getTime() - t0
+        if elapsed > secs:  # no more time left, break the loop
+            break
+
+        if elapsed > relaxedPeriod:  # hog period
+            sleepDur = 0.00001  # 0.1ms
+        else:
+            relaxedTimeLeft = relaxedPeriod - elapsed
+            sleepDur = 0.01 if relaxedTimeLeft > 0.01 else relaxedTimeLeft
+
+        time.sleep(sleepDur)
+        _dispatchWindowEvents()
 
 
 def getAbsTime():

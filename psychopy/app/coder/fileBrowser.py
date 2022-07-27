@@ -166,8 +166,8 @@ class FileBrowserPanel(wx.Panel, handlers.ThemeMixin):
             ".tif": 'fileimage16',
             ".ppm": 'fileimage16',
             ".gif": 'fileimage16',
-            ".py": 'coderpython16',
-            ".js": 'coderjs16'
+            ".py": 'coderpython',
+            ".js": 'coderjs'
         }
 
     def __init__(self, parent, frame):

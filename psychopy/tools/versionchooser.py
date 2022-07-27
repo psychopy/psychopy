@@ -59,7 +59,7 @@ def getPsychoJSVersionStr(currentVersion, preferredVersion=''):
         # e.g. 2021.1.0 not 2021.1.0.dev3
         useVerStr = '.'.join(useVerStr.split('.')[:3])
     # PsychoJS doesn't have additional rc1 or dev1 releases
-    for versionSuffix in ["rc", "dev"]:
+    for versionSuffix in ["rc", "dev", "a", "b"]:
         if versionSuffix in useVerStr:
             useVerStr = useVerStr.split(versionSuffix)[0]
 
@@ -351,9 +351,23 @@ def _checkout(requestedVersion):
         # Grab new tags
         msg = _translate("Couldn't find version {} locally. Trying github...")
         logging.info(msg.format(requestedVersion))
-        subprocess.check_output('git fetch github --tags'.split(),
-                                cwd=VERSIONSDIR,
-                                env=constants.ENVIRON).decode('UTF-8')
+
+        out = subprocess.Popen(
+            'git fetch github --tags'.split(),
+            stderr=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            cwd=VERSIONSDIR,
+            env=constants.ENVIRON)
+        stdout, stderr = out.communicate()
+        logging.debug(stdout)
+
+        # check error code
+        if out.returncode != 0:
+            logging.error(stderr)
+            raise ChildProcessError(
+                'Error: process exited with code {}, check log for '
+                'output.'.format(out.returncode))
+
         # is requested here now? forceCheck to refresh cache
         if requestedVersion not in _localVersions(forceCheck=True):
             msg = _translate("{} is not currently available.")
@@ -362,12 +376,24 @@ def _checkout(requestedVersion):
 
     # Checkout the requested tag
     cmd = ['git', 'checkout', requestedVersion]
-    out = subprocess.check_output(cmd,
-                                  stderr=subprocess.STDOUT,
-                                  cwd=VERSIONSDIR,
-                                  env=constants.ENVIRON).decode('UTF-8')
-    logging.debug(out)
+    out = subprocess.Popen(
+        cmd,
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        cwd=VERSIONSDIR,
+        env=constants.ENVIRON)
+    stdout, stderr = out.communicate()
+    logging.debug(stdout)
+
+    # check error code
+    if out.returncode != 0:
+        logging.error(stderr)
+        raise ChildProcessError(
+            'Error: process exited with code {}, check log for '
+            'output.'.format(out.returncode))
+
     logging.exp('Success:  ' + ' '.join(cmd))
+
     return requestedVersion
 
 

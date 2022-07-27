@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 import json
 import sys
+from pathlib import Path
+
 import wx
 import wx.propgrid as pg
 import wx.py
@@ -257,7 +259,7 @@ class PrefPropGrid(wx.Panel):
             if s not in self.sections.keys():
                 self.sections[s] = dict()
 
-        nbBitmap = icons.ButtonIcon(stem=bitmap).bitmap
+        nbBitmap = icons.ButtonIcon(stem=bitmap, size=(48, 48)).bitmap
         if nbBitmap.IsOk():
             self.prefsImages.Add(nbBitmap)
 
@@ -474,18 +476,18 @@ class PreferencesDlg(wx.Dialog):
         # add property pages to the manager
         self.proPrefs.addPage(
             'General', 'general', ['general'],
-            'preferences-general48.png')
+            'preferences-general')
         self.proPrefs.addPage(
             'Application', 'app', ['app', 'builder', 'coder'],
-            'preferences-app48.png')
+            'preferences-app')
         self.proPrefs.addPage(
             'Key Bindings', 'keyBindings', ['keyBindings'],
-            'preferences-keyboard48.png')
+            'preferences-keyboard')
         self.proPrefs.addPage(
-            'Hardware', 'hardware', ['hardware'], 'preferences-hardware48.png')
+            'Hardware', 'hardware', ['hardware'], 'preferences-hardware')
         self.proPrefs.addPage(
             'Connections', 'connections', ['connections'],
-            'preferences-conn48.png')
+            'preferences-conn')
         self.proPrefs.populateGrid()
 
         sbPrefs.Add(self.proPrefs, 1, wx.EXPAND)
@@ -543,17 +545,8 @@ class PreferencesDlg(wx.Dialog):
         # valid themes
         themePath = self.GetTopLevelParent().app.prefs.paths['themes']
         self.themeList = []
-        for themeFile in os.listdir(themePath):
-            try:
-                # Load theme from json file
-                with open(os.path.join(themePath, themeFile), "rb") as fp:
-                    theme = json.load(fp)
-                # Add themes to list only if min spec is defined
-                base = theme['base']
-                if all(key in base for key in ['bg', 'fg', 'font']):
-                    self.themeList += [themeFile.replace('.json', '')]
-            except:
-                pass
+        for file in Path(themePath).glob("*.json"):
+            self.themeList.append(file.stem)
 
         # get sound devices for "audioDevice" property
         try:
@@ -783,8 +776,7 @@ class PreferencesDlg(wx.Dialog):
                         self.fontList[thisPref]
                     continue
                 if prefName in ('theme',):
-                    self.prefsCfg[sectionName][prefName] = \
-                        self.themeList[thisPref]
+                    self.app.theme = self.prefsCfg[sectionName][prefName] = self.themeList[thisPref]
                     continue
                 elif prefName == 'audioDevice':
                     self.prefsCfg[sectionName][prefName] = \
@@ -862,7 +854,6 @@ class PreferencesDlg(wx.Dialog):
             self.app.builder.updateAllViews()
 
         # after validation, update the UI
-        self.app.theme = self.app.theme
         self.updateFramesUI()
 
     def updateFramesUI(self):

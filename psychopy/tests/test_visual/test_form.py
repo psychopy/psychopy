@@ -8,6 +8,7 @@ import pytest
 from pandas import DataFrame
 
 from psychopy.tests.test_visual.test_basevisual import _TestColorMixin
+from psychopy.tests.test_experiment.test_component_compile_python import _TestBoilerplateMixin
 from psychopy.visual.window import Window
 from psychopy.visual.form import Form
 from psychopy.visual.textbox2.textbox2 import TextBox2
@@ -18,7 +19,7 @@ from tempfile import mkdtemp
 import numpy as np
 
 
-class Test_Form(_TestColorMixin):
+class Test_Form(_TestColorMixin, _TestBoilerplateMixin):
     """Test suite for Form component"""
 
     def setup_class(self):

@@ -78,7 +78,16 @@ knownShapes = {
         (-0.19, 0.04),
         (-0.39, 0.31),
         (-0.09, 0.18)
-    ]
+    ],
+    "arrow": [
+        (0.0, 0.5),
+        (-0.5, 0.0),
+        (-1/6, 0.0),
+        (-1/6, -0.5),
+        (1/6, -0.5),
+        (1/6, 0.0),
+        (0.5, 0.0)
+    ],
 }
 
 
@@ -169,7 +178,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                             " Please use color and colorSpace args instead")
             self.setFillColor(fillRGB, colorSpace='rgb', log=None)
         self.contrast = contrast
-        if opacity:
+        if opacity is not None:
             self.opacity = opacity
 
         # Other stuff

@@ -394,6 +394,9 @@ class EyeTracker(EyeTrackerDevice):
             from . import eyeLinkCoreGraphicsIOHubPsychopy
             EyeLinkCoreGraphicsIOHubPsychopy = eyeLinkCoreGraphicsIOHubPsychopy.EyeLinkCoreGraphicsIOHubPsychopy
 
+            already_recording = self.isRecordingEnabled()
+            self.setRecordingState(False)
+
             if calibration_args:
                 self.sendCalibrationSettingsCommands(self._eyelink, calibration_args)
 
@@ -429,6 +432,8 @@ class EyeTracker(EyeTrackerDevice):
             genv.window.close()
             del genv.window
             del genv
+
+            self.setRecordingState(already_recording)
 
             return reply
 

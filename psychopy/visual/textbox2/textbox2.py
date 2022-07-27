@@ -16,7 +16,7 @@ some more added:
 
 """
 import numpy as np
-import arabic_reshaper
+from arabic_reshaper import ArabicReshaper
 from pyglet import gl
 from bidi import algorithm as bidi
 
@@ -28,8 +28,6 @@ from .fontmanager import FontManager, GLFont
 from .. import shaders
 from ..rect import Rect
 from ... import core, alerts, layout
-
-from psychopy.tools.linebreak import get_breakable_points, break_units
 
 allFonts = FontManager()
 
@@ -57,6 +55,7 @@ debug = False
 
 # If text is ". " we don't want to start next line with single space?
 
+
 class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def __init__(self, win, text,
                  font="Open Sans",
@@ -80,6 +79,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  lineBreaking='default',
                  name='',
                  autoLog=None,
+                 autoDraw=False,
                  onTextCallback=None):
         """
 
@@ -111,8 +111,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         flipHoriz
         flipVert
         editable
-        lineBreaking: Specifying 'default', text will be broken at a set of 
-            characters defined in the module. Specifying 'uax14', text will be 
+        lineBreaking: Specifying 'default', text will be broken at a set of
+            characters defined in the module. Specifying 'uax14', text will be
             broken in accordance with UAX#14 (Unicode Line Breaking Algorithm).
         name
         autoLog
@@ -218,13 +218,18 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # then layout the text (setting text triggers _layout())
         self.languageStyle = languageStyle
         self._text = ''
-        self.text = self.startText = text if text is not None else ""
+        self.text = self.placeholder = text if text is not None else ""
+
+        # Initialise arabic reshaper
+        arabic_config = {'delete_harakat': False,  # if present, retain any diacritics
+                         'shift_harakat_position': True}  # shift by 1 to be compatible with the bidi algorithm
+        self.arabicReshaper = ArabicReshaper(configuration=arabic_config)
 
         # caret
         self.editable = editable
         self.caret = Caret(self, color=self.color, width=2)
 
-
+        self.autoDraw = autoDraw
         self.autoLog = autoLog
 
     def __copy__(self):
@@ -583,7 +588,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._styles = [0,]*len(visible_text)
         self._text = visible_text
         if self._needsArabic:
-            self._text = arabic_reshaper.reshape(self._text)
+            self._text = self.arabicReshaper.reshape(self._text)
         if self._needsBidi:
             self._text = bidi.get_display(self._text)
         
@@ -788,6 +793,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self._lineLenChars.append(charsThisLine)
 
         elif self._lineBreaking == 'uax14':
+            # not needed for regular line breaks but slows down debugging
+            from psychopy.tools.linebreak import get_breakable_points, break_units
 
             # get a list of line-breakable points according to UAX#14
             breakable_points = list(get_breakable_points(self._text))
@@ -1237,6 +1244,20 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         but use this method if you need to suppress the log message.
         """
         setAttribute(self, 'font', font, log)
+
+    # -------- legacy attributes --------
+
+    @property
+    def startText(self):
+        """
+        In v2022.1.4, `.startText` was replaced by `.placeholder` for consistency with PsychoJS. The two attributes
+        are fully interchangeable.
+        """
+        return self.placeholder
+
+    @startText.setter
+    def startText(self, value):
+        self.placeholder = value
 
 
 class Caret(ColorMixin):

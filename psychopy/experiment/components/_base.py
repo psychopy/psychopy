@@ -6,7 +6,7 @@ Part of the PsychoPy library
 Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
-
+import copy
 from pathlib import Path
 from xml.etree.ElementTree import Element
 
@@ -139,6 +139,26 @@ class BaseComponent:
         _rep = "psychopy.experiment.components.%s(name='%s', exp=%s)"
         return _rep % (self.__class__.__name__, self.name, self.exp)
 
+    def copy(self, exp=None, parentName=None, name=None):
+        # Alias None with current attributes
+        if exp is None:
+            exp = self.exp
+        if parentName is None:
+            parentName = self.parentName
+        if name is None:
+            name = self.name
+        # Create new component of same class with bare minimum inputs
+        newCompon = type(self)(exp=exp, parentName=parentName, name=name)
+        # Add params
+        for name, param in self.params.items():
+            # Don't copy name
+            if name == "name":
+                continue
+            # Copy other params
+            newCompon.params[name] = copy.deepcopy(param)
+
+        return newCompon
+
     def integrityCheck(self):
         """
         Run component integrity checks for non-visual components
@@ -233,25 +253,15 @@ class BaseComponent:
             else:
                 currLoop = self.exp._expHandler
 
-            if 'Stair' in currLoop.type:
+            if 'Stair' in currLoop.type and buff.target == 'PsychoPy':
                 addDataFunc = 'addOtherData'
+            elif 'Stair' in currLoop.type and buff.target == 'PsychoJS':
+                addDataFunc = 'psychojs.experiment.addData'
             else:
                 addDataFunc = 'addData'
 
             loop = currLoop.params['name']
             name = self.params['name']
-            if self.params['syncScreenRefresh'].val:
-                code = (
-                    f"{loop}.{addDataFunc}('{name}.started', {name}.tStartRefresh)\n"
-                    f"{loop}.{addDataFunc}('{name}.stopped', {name}.tStopRefresh)\n"
-                )
-            else:
-                code = (
-                    f"{loop}.{addDataFunc}('{name}.started', {name}.tStart)\n"
-                    f"{loop}.{addDataFunc}('{name}.stopped', {name}.tStop)\n"
-                )
-
-            buff.writeIndentedLines(code)
 
     def writeRoutineEndCodeJS(self, buff):
         """Write the code that will be called at the end of
@@ -298,10 +308,24 @@ class BaseComponent:
         code = (f"# keep track of start time/frame for later\n"
                 f"{params['name']}.frameNStart = frameN  # exact frame index\n"
                 f"{params['name']}.tStart = t  # local t and not account for scr refresh\n"
-                f"{params['name']}.tStartRefresh = tThisFlipGlobal  # on global time\n")
-        if self.type != "Sound":  # for sounds, don't update to actual frame time
-                code += (f"win.timeOnFlip({params['name']}, 'tStartRefresh')"
-                         f"  # time at next scr refresh\n")
+                f"{params['name']}.tStartRefresh = tThisFlipGlobal  # on global time\n"
+                )
+        if self.type != "Sound":
+            # for sounds, don't update to actual frame time because it will start
+            # on the *expected* time of the flip
+            code += (f"win.timeOnFlip({params['name']}, 'tStartRefresh')"
+                     f"  # time at next scr refresh\n")
+        if self.params['saveStartStop']:
+            code += f"# add timestamp to datafile\n"
+            if self.type=='Sound' and self.params['syncScreenRefresh']:
+                # use the time we *expect* the flip
+                code += f"thisExp.addData('{params['name']}.started', tThisFlipGlobal)\n"
+            elif 'syncScreenRefresh' in self.params and self.params['syncScreenRefresh']:
+                # use the time we *detect* the flip (in the future)
+                code += f"thisExp.timestampOnFlip(win, '{params['name']}.started')\n"
+            else:
+                # use the time ignoring any flips
+                code += f"thisExp.addData('{params['name']}.started', t)\n"
         buff.writeIndentedLines(code)
 
     def writeStartTestCodeJS(self, buff):
@@ -369,8 +393,15 @@ class BaseComponent:
         code = (f"# keep track of stop time/frame for later\n"
                 f"{params['name']}.tStop = t  # not accounting for scr refresh\n"
                 f"{params['name']}.frameNStop = frameN  # exact frame index\n"
-                f"win.timeOnFlip({params['name']}, 'tStopRefresh')"
-                f"  # time at next scr refresh\n")
+                )
+        if self.params['saveStartStop']:
+            code += f"# add timestamp to datafile\n"
+            if 'syncScreenRefresh' in self.params and self.params['syncScreenRefresh']:
+                # use the time we *detect* the flip (in the future)
+                code += f"thisExp.timestampOnFlip(win, '{params['name']}.stopped')\n"
+            else:
+                # use the time ignoring any flips
+                code += f"thisExp.addData('{params['name']}.stopped', t)\n"
         buff.writeIndentedLines(code)
 
     def writeStopTestCodeJS(self, buff):
@@ -498,7 +529,7 @@ class BaseComponent:
                 if stopVal in ['', None, -1, 'None']:
                     stopVal = '-1'
                 buff.writeIndented(f"{compName}.setSound({params['sound']}, secs={stopVal}){endStr}\n")
-            elif paramName == 'movie':
+            elif paramName == 'movie' and params['backend'].val in ('moviepy', 'avbin', 'vlc', 'opencv'):
                 # we're going to do this for now ...
                 if params['units'].val == 'from exp settings':
                     unitsStr = "units=''"
@@ -519,7 +550,7 @@ class BaseComponent:
                             "    win=win, name='%s', %s,\n" % (
                                 params['name'], unitsStr))
                 else:
-                    code = ("%s = visual.MovieStim2(\n" % params['name'] +
+                    code = ("%s = visual.MovieStim(\n" % params['name'] +
                             "    win=win, name='%s', %s,\n" % (
                                 params['name'], unitsStr) +
                             "    noAudio=%(No audio)s,\n" % params)
@@ -557,7 +588,7 @@ class BaseComponent:
                 if stopVal in ['', None, -1, 'None']:
                     stopVal = '-1'
                 buff.writeIndented(f"{compName}.setSound({params['sound']}, secs={stopVal}){endStr}\n")
-            elif compName == 'eeg_marker':
+            elif paramName == 'emotiv_marker_label' or paramName == "emotiv_marker_value" or paramName == "emotiv_stop_marker":
                 # This allows the eeg_marker to be updated by a code component or a conditions file
                 # There is no setMarker_label or setMarker_value function in the eeg_marker object
                 # The marker label and value are set by the variables set in the dialogue
@@ -661,6 +692,18 @@ class BaseComponent:
     @disabled.setter
     def disabled(self, value):
         self.params['disabled'].val = value
+
+    @property
+    def currentLoop(self):
+        # Get list of active loops
+        loopList = self.exp.flow._loopList
+
+        if len(loopList):
+            # If there are any active loops, return the highest level
+            return self.exp.flow._loopList[-1].params['name']
+        else:
+            # Otherwise, we are not in a loop, so loop handler is just experiment handler
+            return "thisExp"
 
 
 class BaseVisualComponent(BaseComponent):

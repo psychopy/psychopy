@@ -15,7 +15,7 @@ For the easiest installation download and install the Standalone package.
 
     let filename;
     let url;
-    let version='2022.1.2';
+    let version='2022.2.2';
 
     let clientInfo = UAParser(navigator.userAgent);
     var osLabel;
@@ -24,7 +24,7 @@ For the easiest installation download and install the Standalone package.
     // create the platform dependent strings
     if (navigator.platform == 'Win32' && clientInfo.cpu.architecture == 'amd64') {
       osLabel = clientInfo.os.name+" "+clientInfo.cpu.architecture;
-      filename = '  Standalone PsychoPy<sup>®</sup> '+version+' for 64bit Windows (using Python3.6)';
+      filename = '  Standalone PsychoPy<sup>®</sup> '+version+' for 64bit Windows (using Python3.8)';
       url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy-'+version+'-win64.exe';
     }
     else if (navigator.platform == 'MacIntel') {
@@ -38,7 +38,7 @@ For the easiest installation download and install the Standalone package.
       url = '#linux';
     }
 
-    document.write( "<br><center>To install |PsychoPy| on <strong>"+osLabel+"</strong> we recommend<br>");
+    document.write( "<br><center>To install PsychoPy on <strong>"+osLabel+"</strong> we recommend<br>");
     document.write( "<button class='btn-primary btn-lg' onclick='window.location.href=url'>" +
         "<i class='fa fa-download'></i>" + filename + "</button></center><br>" );
 
@@ -70,19 +70,24 @@ Now that most python libraries can be installed using `pip` it's relatively easy
 to manually install |PsychoPy| and all it's dependencies to your own installation
 of Python.
 
-The steps are to fetch Python. This method should work on any version of Python
-but we recommend Python 3.6 for now.
+The steps are to fetch Python. This method should work on a range of versions of Python
+but **we strongly recommend you use Python 3.8**. Older Python versions are no longer being tested and
+may not work correctly. Newer Python versions may not have wheels for all the necessary
+depedencies even we believe that PsychoPy's code, itself, is compatible all the way up
+to Python 3.10.
 
 You can install |PsychoPy| and its dependencies (more than you'll strictly need)
 by::
 
   pip install psychopy
 
-If you prefer *not* to install *all* the dependencies then you could do::
+If you prefer *not* to install *all* the dependencies (e.g. because the platform or Python version you're
+on doesn't have that depedency easily available) then you could do::
 
   pip install psychopy --no-deps
 
-and then install them manually.
+and then install them manually. On Windows, if you need a package that isn't available on PyPI you
+may want to try the `unofficial packages by Christoph Gohlke <https://www.lfd.uci.edu/~gohlke/pythonlibs/>`_
 
 .. _brew_install:
 

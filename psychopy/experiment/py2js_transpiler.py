@@ -97,7 +97,7 @@ class pythonTransformer(ast.NodeTransformer):
 
     # operation from the math python module or builtin operations that are available
     # in util/Util.js:
-    utilOperations = ['sum', 'average', 'randint', 'range', 'sort', 'shuffle', 'randchoice']
+    utilOperations = ['sum', 'average', 'randint', 'range', 'sort', 'shuffle', 'randchoice', 'pad']
 
     def visit_BinOp(self, node):
 
@@ -179,7 +179,7 @@ class pythonTransformer(ast.NodeTransformer):
             precisionCall = ast.Call(
                 func=ast.Attribute(
                     value=conversionFunc,
-                    attr='toPrecision',
+                    attr='toFixed',
                     ctx=ast.Load()
                 ),
                 args=[ast.Constant(value=precision, kind=None)],
@@ -194,7 +194,7 @@ class pythonTransformer(ast.NodeTransformer):
             )
 
             # return the node:
-            node.value = widthCall
+            node.value = self.visit_Call(widthCall)
             node.conversion = -1
             node.format_spec = None
 
@@ -372,7 +372,7 @@ class pythonTransformer(ast.NodeTransformer):
 
 class pythonAddonVisitor(ast.NodeVisitor):
     # operations that require an addon:
-    addonOperations = ['list', 'pad']
+    addonOperations = ['list']
 
     def __init__(self):
         self.addons = []
@@ -428,20 +428,6 @@ def transformPsychoJsCode(psychoJsCode, addons):
             else
                 // otherwise we return s:
                 return s;
-        }
-
-        """
-
-    if 'pad' in addons:
-        transformedPsychoJSCode += r"""
-        // add-on: pad(n: number, width: number): string
-        function pad(n, width) {
-            width = width || 2;
-            integerPart = Number.parseInt(n);
-            decimalPart = (n+'').match(/\.[0-9]*/);
-            if (!decimalPart)
-                decimalPart = '';
-            return (integerPart+'').padStart(width,'0') + decimalPart;
         }
 
         """

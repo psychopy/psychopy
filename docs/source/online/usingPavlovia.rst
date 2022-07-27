@@ -3,7 +3,7 @@
 .. _usingPavlovia:
 
 Launch your study on Pavlovia.org
------------------------------------
+========================================
 
 `Pavlovia.org <https://pavlovia.org/>`_ is a site created by the PsychoPy team to make it easy to:
 

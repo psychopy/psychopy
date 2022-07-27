@@ -363,6 +363,29 @@ class _TestUnitsMixin:
         del obj
         del win
 
+    # def test_wh_setters(self):
+    #     """
+    #     Test that the width and height setters function the same as using the size setter
+    #     """
+    #     # Define some sizes to try out
+    #     cases = [
+    #         {'size': 100,
+    #          'units': 'pix'},
+    #         {'size': 200,
+    #          'units': 'pix'},
+    #     ]
+    #     # Create duplicate of object for safety
+    #     obj = copy(self.obj)
+    #     # Try each case
+    #     for case in cases:
+    #         # Set units
+    #         obj.units = case['units']
+    #         # Set width and height using setters
+    #         obj.width = case['size']
+    #         obj.height = case['size']
+    #         # Check that the resulting size is as desired
+    #         assert all(obj.size == case['size'])
+
     def test_unit_mismatch(self):
         """
         Test that a given stimulus can be drawn without error in all combinations of stimulus units x window units and
@@ -398,7 +421,10 @@ class _TestUnitsMixin:
                 utils.compareScreenshot(filename, win, tag=f"{winunits}X{objunits}")
                 if hasattr(obj, "_size"):
                     # Compare reported size
-                    assert layout.Size(obj.size, obj.units, obj.win) == layout.Size(targetSizes[objunits], objunits, obj.win)
+                    assert layout.Size(obj.size, obj.units, obj.win) == layout.Size(targetSizes[objunits], objunits, obj.win), (
+                        f"Object size ({obj.size}, in {obj.units}) did not match desired size ({targetSizes[objunits]} "
+                        f"in {objunits} when window was {obj.win.size}px in {winunits}."
+                    )
                 # Flip screen
                 win.flip()
         # Close window

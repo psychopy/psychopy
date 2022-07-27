@@ -102,7 +102,8 @@ class TextStim(BaseVisualStim, ForeColorMixin, ContainerMixin):
                  flipVert=False,
                  languageStyle='LTR',
                  name=None,
-                 autoLog=None):
+                 autoLog=None,
+                 autoDraw=False):
         """
         **Performance OBS:** in general, TextStim is slower than many other
         visual stimuli, i.e. it takes longer to change some attributes.
@@ -225,6 +226,8 @@ class TextStim(BaseVisualStim, ForeColorMixin, ContainerMixin):
         # calcSizeRendered is called
         self.setText(text, log=False)
         self._needUpdate = True
+
+        self.autoDraw = autoDraw
 
         # set autoLog now that params have been initialised
         wantLog = autoLog is None and self.win.autoLog

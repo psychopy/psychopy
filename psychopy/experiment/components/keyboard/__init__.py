@@ -507,8 +507,7 @@ class KeyboardComponent(BaseComponent):
                     "}\n"
                     % self.params)
 
-            code += ("// store data for %s (%s)\n" %
-                     (currLoop.params['name'], currLoop.type))
+            code += "// store data for current loop\n"
 
             buff.writeIndentedLines(code % self.params)
 
@@ -544,6 +543,6 @@ class KeyboardComponent(BaseComponent):
                      "    }}\n\n")
         else:
             code += "    }}\n\n"
-        buff.writeIndentedLines(code.format(loopName=currLoop.params['name'], name=name))
+        buff.writeIndentedLines(code.format(name=name))
         # Stop keyboard
         buff.writeIndentedLines("%(name)s.stop();\n" % self.params)

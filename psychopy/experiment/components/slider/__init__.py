@@ -123,6 +123,20 @@ class SliderComponent(BaseVisualComponent):
                                 "(0 for a continuous scale, 1 for integer "
                                 "rating scale)"),
                 label=_translate('Granularity'))
+        self.depends.append(
+            {
+                # if...
+                "dependsOn": "styles",
+                # meets...
+                "condition": "=='radio'",
+                # then...
+                "param": "granularity",
+                # should...
+                "true": "disable",
+                # otherwise...
+                "false": "enable",
+            }
+        )
         self.params['forceEndRoutine'] = Param(
                 forceEndRoutine, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
                 updates='constant', allowedUpdates=[],
@@ -170,7 +184,7 @@ class SliderComponent(BaseVisualComponent):
                 label=_translate('Letter height'))
 
         self.params['styles'] = Param(
-                style, valType='str', inputType="choice", categ='Appearance',
+                style, valType='str', inputType="choice", categ='Basic',
                 updates='constant', allowedVals=knownStyles,
                 hint=_translate(
                         "Discrete styles to control the overall appearance of the slider."),
@@ -275,11 +289,12 @@ class SliderComponent(BaseVisualComponent):
         # build up an initialization string for Slider():
         initStr = ("{name} = new visual.Slider({{\n"
                    "  win: psychoJS.window, name: '{name}',\n"
-                   "  size: {size}, pos: {pos}, units: {units},\n"
+                   "  startValue: {initVal},\n"
+                   "  size: {size}, pos: {pos}, ori: {ori}, units: {units},\n"
                    "  labels: {labels}, fontSize: {letterHeight}, ticks: {ticks},\n"
                    "  granularity: {granularity}, style: {styles},\n"
                    "  color: new util.Color({color}), markerColor: new util.Color({fillColor}), lineColor: new util.Color({borderColor}), \n"
-                   "  fontFamily: {font}, bold: true, italic: false, depth: {depth}, \n"
+                   "  opacity: {opacity}, fontFamily: {font}, bold: true, italic: false, depth: {depth}, \n"
                    ).format(**inits)
         initStr += ("  flip: {flip},\n"
                     "}});\n\n").format(flip=boolConverter[inits['flip'].val])

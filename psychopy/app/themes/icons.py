@@ -66,6 +66,9 @@ class BaseIcon:
         if self._bitmap is None:
             # Get list of sizes cached
             cachedSizes = list(self.bitmaps)
+            # If we don't have any cached sizes, return a blank bitmap
+            if not len(cachedSizes):
+                return wx.Bitmap()
 
             if self.size in cachedSizes:
                 # If requested size is cached, return it

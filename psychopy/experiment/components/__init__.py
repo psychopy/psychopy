@@ -8,6 +8,7 @@
 """Extensible set of components for the PsychoPy Builder view
 """
 
+import sys
 import os
 import glob
 import copy
@@ -127,8 +128,9 @@ def getComponents(folder=None, fetchIcons=True):
                     if f.startswith('_'):
                         continue
                     shutil.copy(f, folder)
-    if not pth in os.sys.path:
-        os.sys.path.insert(0, pth)
+
+    if pth not in sys.path:
+        sys.path.insert(0, pth)
 
     components = {}
 
@@ -283,10 +285,10 @@ def getInitVals(params, target="PsychoPy"):
         elif name == 'noiseType':
             inits[name].val = 'Binary'
             inits[name].valType = 'str'
-        elif name == 'marker_label':
+        elif name == 'emotiv_marker_label':
             inits[name].val = 'Label'
             inits[name].valType = 'str'
-        elif name == 'marker_value':
+        elif name == 'emotiv_marker_value':
             inits[name].val = 'Value'
             inits[name].valType = 'str'
         elif name == 'buttonRequired':
