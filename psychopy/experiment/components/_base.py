@@ -509,6 +509,36 @@ class BaseComponent:
         buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
 
+    def writeCodeInActiveTest(self, code, buff):
+        """
+        Write the requested code within a test to check if the component is active this frame, but including the code
+        to dedent afterwards. Code can be pre-completed or can be supplied with `%(key)s` syntax with param names.
+        """
+        # Make sure we have a newline at the end
+        if not code.endswith("\n"):
+            code += "\n"
+        # Write test code
+        self.writeActiveTestCode(buff)
+        # Write contained code
+        buff.writeIndentedLines(code % self.params)
+        # Dedent
+        buff.setIndentLevel(-1, relative=True)
+        # Add a new line
+        buff.writeIndentedLines("\n")
+
+    def writeActiveTestCode(self, buff):
+        """
+        Writes code to test whether component is currently active
+        """
+        # Write if statement
+        code = (
+            "# if %(name)s is active this frame...\n"
+            "if %(name)s.status == STARTED:\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        # Indent
+        buff.setIndentLevel(+1, relative=True)
+
     def writeParamUpdates(self, buff, updateType, paramNames=None,
                           target="PsychoPy"):
         """write updates to the buffer for each parameter that needs it
