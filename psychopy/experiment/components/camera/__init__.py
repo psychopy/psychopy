@@ -185,23 +185,18 @@ class CameraComponent(BaseComponent):
 
     def writeFrameCode(self, buff):
         # Start webcam at component start
-        self.writeStartTestCode(buff)
         code = (
             "# Start %(name)s recording\n"
             "%(name)s.record()\n"
         )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
+        self.writeCodeInStartTest(code, buff)
 
         # Stop webcam at component stop
-        if self.params['stopVal'].val not in ('', None, -1, 'None'):
-            self.writeStopTestCode(buff)
-            code = (
-                "# Stop %(name)s recording\n"
-                "%(name)s.stop()\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(-2, relative=True)
+        code = (
+            "# Stop %(name)s recording\n"
+            "%(name)s.stop()\n"
+        )
+        self.writeCodeInStopTest(code, buff)
 
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)
