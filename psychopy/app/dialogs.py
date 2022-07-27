@@ -50,6 +50,9 @@ class MessageDialog(wx.Dialog):
             btnSizer = self.CreateStdDialogButtonSizer(flags=wx.OK)
         else:
             raise NotImplementedError('Message type %s unknown' % type)
+        for btn in btnSizer.GetChildren():
+            if hasattr(btn.Window, "Bind"):
+                btn.Window.Bind(wx.EVT_BUTTON, self.onButton)
         # configure sizers and fit
         sizer.Add(btnSizer,
                   flag=wx.ALL | wx.EXPAND, border=5)
