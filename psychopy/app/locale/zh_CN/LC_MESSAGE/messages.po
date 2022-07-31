@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2021.2.3\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2022-06-25 17:52+0800\n"
+"PO-Revision-Date: 2022-07-31 16:39+0800\n"
 "Last-Translator: Shun Wang <shuonwang@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -1014,7 +1014,7 @@ msgstr "预览"
 msgid ""
 "Show all values as they would appear after saving to a file, without "
 "actually saving anything."
-msgstr ""
+msgstr "显示保存到文件后出现的所有值，而不实际保存任何内容。"
 
 #: ../app/builder/dialogs/dlgsConditions.py:506
 msgid "Save as"
@@ -2112,19 +2112,19 @@ msgstr "无法删除文件夹“{}”，文件不存在。"
 
 #: ../app/coder/fileBrowser.py:536
 msgid "Cannot delete file `{}`, permission denied."
-msgstr ""
+msgstr "无法删除文件 `{}`，权限被拒绝。"
 
 #: ../app/coder/fileBrowser.py:557
 msgid "Specified path `{}` is not a directory."
-msgstr ""
+msgstr "指定路径 `{}`不是一个文件夹。"
 
 #: ../app/coder/fileBrowser.py:617
 msgid "Cannot access directory `{}`, permission denied."
-msgstr ""
+msgstr "无法访问目录 `{}`，权限被拒绝。"
 
 #: ../app/coder/fileBrowser.py:662
 msgid "Cannot access directory `{}`, not a directory."
-msgstr ""
+msgstr "无法访问目录 `{}`，因为不是一个目录。"
 
 #: ../app/colorpicker/__init__.py:121
 msgid "RGB"
@@ -2156,11 +2156,11 @@ msgstr "复制色值到剪贴板"
 
 #: ../app/connections/updates.py:102
 msgid "Couldn't connect to psychopy.org to check for updates. \n"
-msgstr ""
+msgstr "无法连接到psychopy.org 来检查更新。 \n"
 
 #: ../app/connections/updates.py:104
 msgid "Check internet settings (and proxy setting in PsychoPy Preferences)."
-msgstr ""
+msgstr "检查互联网设置（以及 PsychoPy 首选项设置中的代理设置）。"
 
 #: ../app/connections/updates.py:108 ../app/connections/updates.py:157
 #: ../app/connections/updates.py:176
@@ -2173,15 +2173,17 @@ msgid ""
 "PsychoPy v%(latest)s is available (you are running %(running)s).\n"
 "\n"
 msgstr ""
+"PsychoPy v%(latest)s 可用（您当前运行 %(running)s）。.\n"
+"\n"
 
 #: ../app/connections/updates.py:151
 msgid "This version is too big an update to be handled automatically.\n"
-msgstr ""
+msgstr "此版本太大，无法自动处理。\n"
 
 #: ../app/connections/updates.py:153
 msgid ""
 "Please fetch the latest version from www.psychopy.org and install manually."
-msgstr ""
+msgstr "请从 www.psychopy.org 获取最新版本并手动安装。"
 
 #: ../app/connections/updates.py:158
 msgid "Go to downloads"
@@ -2626,7 +2628,7 @@ msgstr ""
 
 #: ../app/pavlovia_ui/project.py:306
 msgid "Fork + sync..."
-msgstr ""
+msgstr "Fork + sync..."
 
 #: ../app/pavlovia_ui/project.py:313
 msgid "Tags:"
@@ -2642,7 +2644,7 @@ msgstr "项目信息"
 
 #: ../app/pavlovia_ui/project.py:471
 msgid "This file doesn't belong to any existing project."
-msgstr ""
+msgstr "此文件不属于任何现有项目。"
 
 #: ../app/pavlovia_ui/project.py:474
 msgid "Create a project"
@@ -2706,7 +2708,7 @@ msgstr "同步 Pavlovia.org"
 
 #: ../app/pavlovia_ui/toolbar.py:38
 msgid "Find existing studies online (at pavlovia.org)"
-msgstr ""
+msgstr "在线查找已存在的研究案例 (在 pavlovia.org)"
 
 #: ../app/pavlovia_ui/toolbar.py:42
 msgid "Log in to Pavlovia"
@@ -2714,7 +2716,7 @@ msgstr "登录到 Pavlovia"
 
 #: ../app/pavlovia_ui/toolbar.py:43
 msgid "Log in to (or create user at) Pavlovia.org"
-msgstr ""
+msgstr "登录(或创建用户)到 Pavlovia.org"
 
 #: ../app/pavlovia_ui/toolbar.py:47
 msgid "View project"
@@ -4214,19 +4216,19 @@ msgstr "标记一段脑电图"
 
 #: ../experiment/components/emotiv_marking/__init__.py:46
 msgid "Label of the marker to be inserted (interpreted as a string)"
-msgstr ""
+msgstr "要插入的标记的标签（解释为字符串）"
 
 #: ../experiment/components/emotiv_marking/__init__.py:54
 msgid "Value of the marker to be inserted (interpreted as a string)"
-msgstr ""
+msgstr "要插入的标记的值（解释为字符串）"
 
 #: ../experiment/components/emotiv_marking/__init__.py:62
 msgid "Check this box to include a stop marker"
-msgstr ""
+msgstr "选中此框以包含停止标记"
 
 #: ../experiment/components/emotiv_record/__init__.py:23
 msgid "Initialize EMOTIV hardware connection"
-msgstr ""
+msgstr "初始化 EMOTIV 硬件连接"
 
 #: ../experiment/components/envelopegrating/__init__.py:18
 msgid "Carrier texture"
@@ -4262,7 +4264,7 @@ msgstr ""
 #: ../experiment/components/noise/__init__.py:23
 #: ../experiment/components/patch/__init__.py:21
 msgid "Texture resolution"
-msgstr ""
+msgstr "纹理分辨率"
 
 #: ../experiment/components/envelopegrating/__init__.py:25
 #: ../experiment/components/grating/__init__.py:24
@@ -4305,7 +4307,7 @@ msgstr ""
 #: ../experiment/components/grating/__init__.py:23
 #: ../experiment/components/noise/__init__.py:40
 msgid "OpenGL blend mode"
-msgstr ""
+msgstr "OpenGL 混合模式"
 
 #: ../experiment/components/envelopegrating/__init__.py:42
 msgid ""
@@ -4417,91 +4419,91 @@ msgstr ""
 
 #: ../experiment/components/form/__init__.py:20
 msgid "Items"
-msgstr ""
+msgstr "项目"
 
 #: ../experiment/components/form/__init__.py:21
 msgid "Text Height"
-msgstr ""
+msgstr "文字高度"
 
 #: ../experiment/components/form/__init__.py:22
 #: ../experiment/components/slider/__init__.py:184
 msgid "Styles"
-msgstr ""
+msgstr "风格"
 
 #: ../experiment/components/form/__init__.py:23
 msgid "Item Padding"
-msgstr ""
+msgstr "项目填充"
 
 #: ../experiment/components/form/__init__.py:24
 msgid "Data Format"
-msgstr ""
+msgstr "数据格式"
 
 #: ../experiment/components/form/__init__.py:25
 msgid "Randomize"
-msgstr ""
+msgstr "随机化"
 
 #: ../experiment/components/form/__init__.py:36
 msgid "Form: a Psychopy survey tool"
-msgstr ""
+msgstr "表单：心理调查工具"
 
 #: ../experiment/components/form/__init__.py:89
 msgid "The csv filename containing the items for your survey."
-msgstr ""
+msgstr "包含调查项目的 csv 文件名。"
 
 #: ../experiment/components/form/__init__.py:95
 msgid "The size of the item text for Form"
-msgstr ""
+msgstr "表单项文本的大小"
 
 #: ../experiment/components/form/__init__.py:107
 msgid "Do you want to randomize the order of your questions?"
-msgstr ""
+msgstr "你想随机化你的问题的顺序吗？"
 
 #: ../experiment/components/form/__init__.py:113
 msgid "The padding or space between items."
-msgstr ""
+msgstr "项目之间的填充或空间。"
 
 #: ../experiment/components/form/__init__.py:120
 msgid "Store item data by columns, or rows"
-msgstr ""
+msgstr "按列或行存储项目数据"
 
 #: ../experiment/components/form/__init__.py:135
 msgid "Styles determine the appearance of the form"
-msgstr ""
+msgstr "样式决定表单的外观"
 
 #: ../experiment/components/form/__init__.py:148
 msgid "Color of the form's background"
-msgstr ""
+msgstr "表单背景的颜色"
 
 #: ../experiment/components/form/__init__.py:150
 msgid "Color of the outline around the form"
-msgstr ""
+msgstr "表单周围边框的颜色"
 
 #: ../experiment/components/form/__init__.py:156
 msgid "Base text color for questions"
-msgstr ""
+msgstr "问题的基本文本颜色"
 
 #: ../experiment/components/form/__init__.py:157
 msgid "Item Color"
-msgstr ""
+msgstr "项目颜色"
 
 #: ../experiment/components/form/__init__.py:163
 msgid ""
 "Base text color for responses, also sets color of lines in sliders and "
 "borders of textboxes"
-msgstr ""
+msgstr "响应的基本文本颜色，还设置滑块中的线条颜色和文本框的边框"
 
 #: ../experiment/components/form/__init__.py:164
 msgid "Response Color"
-msgstr ""
+msgstr "应答颜色"
 
 #: ../experiment/components/form/__init__.py:170
 msgid "Color of markers and the scrollbar"
-msgstr ""
+msgstr "标记和滚动条的颜色"
 
 #: ../experiment/components/form/__init__.py:171
 #: ../experiment/components/slider/__init__.py:155
 msgid "Marker Color"
-msgstr ""
+msgstr "标记颜色"
 
 #: ../experiment/components/grating/__init__.py:18
 msgid "Texture"
