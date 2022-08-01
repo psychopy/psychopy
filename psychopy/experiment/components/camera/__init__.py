@@ -185,29 +185,26 @@ class CameraComponent(BaseComponent):
 
     def writeFrameCode(self, buff):
         # Start webcam at component start
-        code = (
-            "# Start %(name)s recording\n"
-            "%(name)s.record()\n"
-        )
-        self.writeCodeInStartTest(code, buff)
-
-        # Stop webcam at component stop
-        code = (
-            "# Stop %(name)s recording\n"
-            "%(name)s.stop()\n"
-        )
-        self.writeCodeInStopTest(code, buff)
-
-        # set parameters that need updating every frame
-        # do any params need updating? (this method inherited from _base)
-        if self.checkNeedToUpdate('set every frame'):
+        if self.writeStartTestCode(buff):
             code = (
-                "if %(name)s.status == STARTED:  # only update if drawing\n"
+                "# Start %(name)s recording\n"
+                "%(name)s.record()\n"
             )
             buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(+1, relative=True)  # to enter the if block
-            self.writeParamUpdates(buff, 'set every frame')
-            buff.setIndentLevel(-1, relative=True)  # to exit the if block
+            self.exitStartTest(buff)
+
+        # Update any params while active
+        self.writeActiveTestCode(buff)
+        self.exitActiveTest(buff)
+
+        # Stop webcam at component stop
+        if self.writeStopTestCode(buff):
+            code = (
+                "# Stop %(name)s recording\n"
+                "%(name)s.stop()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            self.exitStopTest(buff)
 
     def writeFrameCodeJS(self, buff):
         # Start webcam at component start

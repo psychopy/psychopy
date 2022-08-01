@@ -266,24 +266,33 @@ class MicrophoneComponent(BaseComponent):
         """Write the code that will be called every frame"""
         inits = getInitVals(self.params)
         inits['routine'] = self.parentName
+
         # Start the recording
-        code = (
+        if self.writeStartTestCode(buff):
+            code = (
                 "# start recording with %(name)s\n"
                 "%(name)s.start()\n"
-        )
-        self.writeCodeInStartTest(code, buff)
+            )
+            buff.writeIndentedLines(code % self.params)
+            self.exitStartTest(buff)
+
         # Get clip each frame
+        self.writeActiveTestCode(buff)
         code = (
                 "# update recorded clip for %(name)s\n"
                 "%(name)s.poll()\n"
         )
-        self.writeCodeInActiveTest(code, buff)
+        buff.writeIndentedLines(code % self.params)
+        self.exitActiveTest(buff)
+
         # Stop recording
-        code = (
-            "# stop recording with %(name)s\n"
-            "%(name)s.stop()\n"
-        )
-        self.writeCodeInStopTest(code, buff)
+        if self.writeStopTestCode(buff):
+            code = (
+                "# stop recording with %(name)s\n"
+                "%(name)s.stop()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            self.exitStopTest(buff)
 
     def writeFrameCodeJS(self, buff):
         inits = getInitVals(self.params)

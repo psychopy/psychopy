@@ -275,36 +275,27 @@ class BaseComponent:
         """
         pass
 
-    def writeCodeInStartTest(self, code, buff):
+    def writeStartTestCode(self, buff):
         """
-        Write the requested code within a stop test loop (as in writeStopTestCode), but including the code to
-        handle blank start times, set status and dedent afterwards. Code can be pre-completed or can be supplied with `%(key)s`
-        syntax with param names.
+        Test whether we need to start (if there is a start time at all)
+
+        Returns True if start test was written, False if it was skipped. Recommended usage:
+        ```
+        if self.writeStartTestCode(self, buff):
+            code = (
+                "%(name)s.attribute = value\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            self.exitStartTest(buff)
+        ```
         """
-        # If we have no start time, don't write stop code
         if self.params['startVal'].val in ('', None, -1, 'None'):
-            return
-        # Make sure we have a newline at the end
-        if code and not code.endswith("\n"):
-            code += "\n"
-        # Write stop test code
-        self.writeStartTestCode(buff)
-        # Write contained code
-        buff.writeIndentedLines(code % self.params)
-        # Set status
-        statusCode = (
-            "# update status\n"
-            "%(name)s.status = STARTED\n"
-        )
-        buff.writeIndentedLines(statusCode % self.params)
-        # Dedent
-        buff.setIndentLevel(-1, relative=True)
-        # Add a new line
+            # If we have no start time, don't write start code
+            return False
+
+        # Newline
         buff.writeIndentedLines("\n")
 
-    def writeStartTestCode(self, buff):
-        """Test whether we need to start
-        """
         if self.params['syncScreenRefresh']:
             tCompare = 'tThisFlip'
         else:
@@ -359,6 +350,22 @@ class BaseComponent:
                 # use the time ignoring any flips
                 code += f"thisExp.addData('{params['name']}.started', t)\n"
         buff.writeIndentedLines(code)
+        # Set status
+        code = (
+            "# update status\n"
+            "%(name)s.status = STARTED\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        # Return True if start test was written
+        return True
+
+    def exitStartTest(self, buff):
+        """
+        Shorthand for doing necessary dedent after a start test loop
+        """
+        # Dedent
+        buff.setIndentLevel(-1, relative=True)
 
     def writeStartTestCodeJS(self, buff):
         """Test whether we need to start
@@ -389,36 +396,27 @@ class BaseComponent:
                 f"{params['name']}.frameNStart = frameN;  // exact frame index\n\n")
         buff.writeIndentedLines(code)
 
-    def writeCodeInStopTest(self, code, buff):
+    def writeStopTestCode(self, buff):
         """
-        Write the requested code within a stop test loop (as in writeStopTestCode), but including the code to
-        handle blank stop times, set status and dedent afterwards. Code can be pre-completed or can be supplied with `%(key)s`
-        syntax with param names.
+        Test whether we need to stop (if there is a stop time at all)
+
+        Returns True if stop test was written, False if it was skipped. Recommended usage:
+        ```
+        if self.writeStopTestCode(self, buff):
+            code = (
+                "%(name)s.attribute = value\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            self.exitStartTest(buff)
+        ```
         """
-        # If we have no stop time, don't write stop code
         if self.params['stopVal'].val in ('', None, -1, 'None'):
+            # If we have no stop time, don't write stop code
             return
-        # Make sure we have a newline at the end
-        if code and not code.endswith("\n"):
-            code += "\n"
-        # Write stop test code
-        self.writeStopTestCode(buff)
-        # Write contained code
-        buff.writeIndentedLines(code % self.params)
-        # Set status
-        statusCode = (
-            "# update status\n"
-            "%(name)s.status = FINISHED\n"
-        )
-        buff.writeIndentedLines(statusCode % self.params)
-        # Dedent
-        buff.setIndentLevel(-2, relative=True)
-        # Add a new line
+
+        # Newline
         buff.writeIndentedLines("\n")
 
-    def writeStopTestCode(self, buff):
-        """Test whether we need to stop
-        """
         params = self.params
         # add handy comment
         code = (
@@ -469,6 +467,23 @@ class BaseComponent:
                 code += f"thisExp.addData('{params['name']}.stopped', t)\n"
         buff.writeIndentedLines(code)
 
+        # Set status
+        code = (
+            "# update status\n"
+            "%(name)s.status = FINISHED\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        # Return True if stop test was written
+        return True
+
+    def exitStopTest(self, buff):
+        """
+        Shorthand for doing necessary dedent after a stop test loop
+        """
+        # Dedent
+        buff.setIndentLevel(-2, relative=True)
+
     def writeStopTestCodeJS(self, buff):
         """Test whether we need to stop
         """
@@ -509,34 +524,24 @@ class BaseComponent:
         buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
 
-    def writeCodeInActiveTest(self, code, buff):
-        """
-        Write the requested code within a test to check if the component is active this frame, but including the code
-        to dedent afterwards. Code can be pre-completed or can be supplied with `%(key)s` syntax with param names.
-        """
-        # Make sure we have a newline at the end
-        if code and not code.endswith("\n"):
-            code += "\n"
-        # Write test code
-        self.writeActiveTestCode(buff)
-        # Write param updates (if needed)
-        if self.checkNeedToUpdate('set every frame'):
-            paramCode = (
-                "# update params\n"
-            )
-            buff.writeIndentedLines(paramCode % self.params)
-            self.writeParamUpdates(buff, 'set every frame')
-        # Write contained code
-        buff.writeIndentedLines(code % self.params)
-        # Dedent
-        buff.setIndentLevel(-1, relative=True)
-        # Add a new line
-        buff.writeIndentedLines("\n")
-
     def writeActiveTestCode(self, buff):
         """
-        Writes code to test whether component is currently active
+        Test whether component is started and has not finished.
+
+        Recommended usage:
+        ```
+        self.writeActiveTestCode(self, buff):
+        code = (
+            "%(name)s.attribute = value\n"
+            "\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(-1, relative=True)
+        ```
         """
+        # Newline
+        buff.writeIndentedLines("\n")
+
         # Write if statement
         code = (
             "# if %(name)s is active this frame...\n"
@@ -545,6 +550,25 @@ class BaseComponent:
         buff.writeIndentedLines(code % self.params)
         # Indent
         buff.setIndentLevel(+1, relative=True)
+        # Write param updates (if needed)
+        code = (
+            "# update params\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        if self.checkNeedToUpdate('set every frame'):
+            self.writeParamUpdates(buff, 'set every frame')
+        else:
+            code = (
+                "pass\n"
+            )
+            buff.writeIndentedLines(code)
+
+    def exitActiveTest(self, buff):
+        """
+        Shorthand for doing necessary dedent after an active test loop
+        """
+        # Dedent
+        buff.setIndentLevel(-1, relative=True)
 
     def writeParamUpdates(self, buff, updateType, paramNames=None,
                           target="PsychoPy"):
