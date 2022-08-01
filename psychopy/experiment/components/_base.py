@@ -285,7 +285,7 @@ class BaseComponent:
         if self.params['startVal'].val in ('', None, -1, 'None'):
             return
         # Make sure we have a newline at the end
-        if not code.endswith("\n"):
+        if code and not code.endswith("\n"):
             code += "\n"
         # Write stop test code
         self.writeStartTestCode(buff)
@@ -399,7 +399,7 @@ class BaseComponent:
         if self.params['stopVal'].val in ('', None, -1, 'None'):
             return
         # Make sure we have a newline at the end
-        if not code.endswith("\n"):
+        if code and not code.endswith("\n"):
             code += "\n"
         # Write stop test code
         self.writeStopTestCode(buff)
@@ -515,7 +515,7 @@ class BaseComponent:
         to dedent afterwards. Code can be pre-completed or can be supplied with `%(key)s` syntax with param names.
         """
         # Make sure we have a newline at the end
-        if not code.endswith("\n"):
+        if code and not code.endswith("\n"):
             code += "\n"
         # Write test code
         self.writeActiveTestCode(buff)
