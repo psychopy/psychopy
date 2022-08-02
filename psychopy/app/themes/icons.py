@@ -12,6 +12,28 @@ resources = Path(prefs.paths['resources'])
 iconCache = {}
 
 
+# Dictionary linking file extensions to icons
+filetypeIcons = {
+    "..": 'dirup16',
+    "\\": 'folder16',
+    ".?": 'fileunknown16',
+    ".csv": 'filecsv16',
+    ".xlsx": 'filecsv16',
+    ".xls": 'filecsv16',
+    ".tsv": 'filecsv16',
+    ".png": 'fileimage16',
+    ".jpeg": 'fileimage16',
+    ".jpg": 'fileimage16',
+    ".bmp": 'fileimage16',
+    ".tiff": 'fileimage16',
+    ".tif": 'fileimage16',
+    ".ppm": 'fileimage16',
+    ".gif": 'fileimage16',
+    ".py": 'coderpython',
+    ".js": 'coderjs'
+}
+
+
 class BaseIcon:
     def __init__(self, stem, size=None):
         # Initialise bitmaps array

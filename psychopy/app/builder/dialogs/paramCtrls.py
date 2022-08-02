@@ -10,6 +10,7 @@ import subprocess
 import sys
 
 import wx
+from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
 
 from psychopy.app.colorpicker import PsychoColorPicker
 from psychopy.app.dialogs import ListWidget
@@ -20,7 +21,7 @@ import re
 from pathlib import Path
 
 from ..localizedStrings import _localizedDialogs as _localized
-from ...themes import icons
+from ...themes import icons, fonts
 
 
 class _ValidatorMixin:
@@ -109,6 +110,20 @@ class _FileMixin:
                 filename = Path(file).absolute()
             outList.append(str(filename).replace("\\", "/"))
         return outList
+
+    def getFolder(self, msg=_translate("Specify folder...")):
+        # Open dialog
+        dlg = wx.DirDialog(self, message=msg, defaultPath=str(self.rootDir),
+                           style=wx.DD_SHOW_HIDDEN)
+        if dlg.ShowModal() != wx.ID_OK:
+            return
+        # Get folder
+        file = dlg.GetPath()
+        try:
+            dirname = Path(file).relative_to(self.rootDir)
+        except ValueError:
+            dirname = Path(file).absolute()
+        return str(dirname).replace("\\", "/")
 
 
 class _HideMixin:
@@ -364,65 +379,257 @@ class FileCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
             self.validate(evt)
 
 
-class FileListCtrl(wx.ListBox, _ValidatorMixin, _HideMixin, _FileMixin):
+class FileListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
     def __init__(self, parent, valType,
                  choices=[], size=None, pathtype="rel"):
-        wx.ListBox.__init__(self)
+        # Setup base class
+        wx.ListCtrl.__init__(self, parent, size=size, style=wx.LC_REPORT | wx.LC_NO_HEADER)
         self.valType = valType
-        parent.Bind(wx.EVT_DROP_FILES, self.addItem)
         self.app = parent.app
+
+        # Setup sizers
+        self._szr = wx.BoxSizer(wx.HORIZONTAL)
+        self._szr.Add(self, proportion=1, flag=wx.ALL | wx.EXPAND)
+        self.btnSizer = wx.BoxSizer(wx.VERTICAL)
+        self._szr.Add(self.btnSizer, border=6, flag=wx.LEFT | wx.EXPAND)
+        # Create add button
+        self.addBtn = wx.Button(parent, -1, label="+", size=(24, 24))
+        self.addBtn.Bind(wx.EVT_BUTTON, self.onAddItem)
+        self.btnSizer.Add(self.addBtn, border=3, flag=wx.BOTTOM | wx.EXPAND)
+        # Create sub button
+        self.subBtn = wx.Button(parent, -1, label="-", size=(24, 24))
+        self.subBtn.Bind(wx.EVT_BUTTON, self.onRemoveItem)
+        self.btnSizer.Add(self.subBtn, border=3, flag=wx.BOTTOM | wx.EXPAND)
+        # Create edit button
+        self.editBtn = wx.Button(parent, -1, label=chr(int("270E", 16)), size=(24, 24))
+        self.editBtn.Bind(wx.EVT_BUTTON, self.onEditItem)
+        self.btnSizer.Add(self.editBtn, border=3, flag=wx.BOTTOM | wx.EXPAND)
+
+        # Add ondrop functionality
+        parent.Bind(wx.EVT_DROP_FILES, self.onAddFile)
+        # Setup icon list
+        self.setupIcons()
+        # Parse initial items
         if type(choices) == str:
             choices = data.utils.listFromString(choices)
-        self.Create(id=wx.ID_ANY, parent=parent, choices=choices, size=size, style=wx.LB_EXTENDED | wx.LB_HSCROLL)
-        self.addCustomBtn = wx.Button(parent, -1, size=(24,24), style=wx.BU_EXACTFIT, label="...")
-        self.addCustomBtn.Bind(wx.EVT_BUTTON, self.addCustomItem)
-        self.addBtn = wx.Button(parent, -1, size=(24,24), style=wx.BU_EXACTFIT, label="+")
-        self.addBtn.Bind(wx.EVT_BUTTON, self.addItem)
-        self.subBtn = wx.Button(parent, -1, size=(24,24), style=wx.BU_EXACTFIT, label="-")
-        self.subBtn.Bind(wx.EVT_BUTTON, self.removeItem)
-        self._szr = wx.BoxSizer(wx.HORIZONTAL)
-        self.btns = wx.BoxSizer(wx.VERTICAL)
-        self.btns.AddMany((self.addCustomBtn, self.addBtn, self.subBtn))
-        self._szr.Add(self, proportion=1, flag=wx.EXPAND)
-        self._szr.Add(self.btns)
+        # Populate ctrl
+        self.AppendColumn("items", width=wx.LIST_AUTOSIZE)
+        self.setResizeColumn("LAST")
+        for choice in choices:
+            self.addItem(choice)
 
-    def addItem(self, event):
-        # Get files
-        if event.GetEventObject() == self.addBtn:
-            fileList = self.getFiles()
+    def getValue(self):
+        values = []
+        for i in range(self.GetItemCount()):
+            values.append(self.GetItemText(i))
+        return values
+
+    def GetValue(self):
+        return self.getValue()
+
+    def setupIcons(self):
+        """
+        Setup ImageList to handle icons for different filetypes
+        """
+        # Create new ImageList
+        self.imageList = wx.ImageList(16, 16)
+        # Add each icon to list and store index
+        self.iconIndices = {}
+        for key in icons.filetypeIcons:
+            self.iconIndices[key] = self.imageList.Add(
+                    icons.ButtonIcon(icons.filetypeIcons[key], size=(16, 16)).bitmap
+            )
+        # Add custom icons (code and str)
+        self.iconIndices["code"] = self.imageList.Add(
+            icons.ButtonIcon(stem="filecode", size=16).bitmap
+        )
+        self.iconIndices["str"] = self.imageList.Add(
+            icons.ButtonIcon(stem="filestr", size=16).bitmap
+        )
+        # Set image list
+        self.SetImageList(self.imageList, wx.IMAGE_LIST_SMALL)
+        self.Update()
+
+    def addItem(self, item, index=None):
+        # Get extension
+        if str(item).startswith("$"):
+            # If item is code, interpret literally and set icon to indicate code
+            ext = "code"
         else:
-            fileList = event.GetFiles()
-            for i, filename in enumerate(fileList):
-                try:
-                    fileList[i] = Path(filename).relative_to(self.rootDir)
-                except ValueError:
-                    fileList[i] = Path(filename).absolute()
-        # Add files to list
-        if fileList:
-            self.InsertItems(fileList, 0)
+            item = Path(item)
+            if item.suffix in icons.filetypeIcons:
+                # Get extension if it has a corresponding icon
+                ext = item.suffix
+            elif item.is_dir() or (self.rootDir / item).is_dir():
+                # Extension for a directory is \
+                ext = "\\"
+            elif item.is_file() or (self.rootDir / item).is_file():
+                # Use unknown extension otherwise
+                ext = ".?"
+            else:
+                # If it's not a file, assume string
+                ext = "str"
+        # Get icon from extension
+        icn = self.iconIndices[ext]
+        # Handle None index
+        if index is None:
+            index = self.GetItemCount()
+        # Create item
+        itemObj = wx.ListItem()
+        itemObj.SetText(str(item))
+        itemObj.SetImage(icn)
+        itemObj.SetId(index)
+        # Style code
+        if ext == "code":
+            codeFont = fonts.coderTheme.base.obj
+            itemObj.SetFont(codeFont.Bold())
+        # Add item
+        self.InsertItem(itemObj)
+        # Update column width
+        self.SetColumnWidth(0, wx.LIST_AUTOSIZE)
 
-    def removeItem(self, event):
-        i = self.GetSelections()
-        if isinstance(i, int):
-            i = [i]
-        items = [item for index, item in enumerate(self.Items)
-                 if index not in i]
-        self.SetItems(items)
+    def onRemoveItem(self, event):
+        # Get selected item
+        item = self.GetFocusedItem()
+        # Skip if no item selected
+        if item is -1:
+            return
+        # Remove item
+        self.DeleteItem(item)
 
-    def addCustomItem(self, event):
+    def onEditItem(self, event):
+        # Get selected item index
+        i = self.GetFocusedItem()
+        if i == -1:
+            return
+        item = self.GetItem(i)
+
         # Create string dialog
-        dlg = wx.TextEntryDialog(parent=self, message=_translate("Add custom item"))
+        msg = _translate("Edit item...")
+        dlg = wx.TextEntryDialog(parent=self, value=item.GetText(), message=msg)
         # Show dialog
         if dlg.ShowModal() != wx.ID_OK:
             return
         # Get string
         stringEntry = dlg.GetValue()
+
+        # Replace item
+        self.DeleteItem(i)
+        self.addItem(stringEntry, index=i)
+
+    def onAddItem(self, event):
+        """
+        When the Add button is clicked, create a context menu to point to sub-functions
+        """
+        # Create menu
+        menu = wx.Menu()
+        # Add file
+        btn = menu.Append(
+            wx.ID_ANY,
+            item=_translate("Add file(s)..."),
+            helpString =_translate(
+                "Add a file or files to this list."
+            ),
+            kind=wx.ITEM_NORMAL
+        )
+        btn.SetBitmap(
+            icons.ButtonIcon(stem="fileunknown16", size=16).bitmap
+        )
+        menu.Bind(wx.EVT_MENU, self.onAddFile, btn)
+        # Add folder
+        btn = menu.Append(
+            wx.ID_ANY,
+            item=_translate("Add folder..."),
+            helpString =_translate(
+                "Add a folder to this list."
+            ),
+            kind=wx.ITEM_NORMAL
+        )
+        btn.SetBitmap(
+            icons.ButtonIcon(stem="folder16", size=16).bitmap
+        )
+        menu.Bind(wx.EVT_MENU, self.onAddFolder, btn)
+        # Add code
+        btn = menu.Append(
+            wx.ID_ANY,
+            item=_translate("Add code..."),
+            helpString =_translate(
+                "Add a value to this list - will include a $ so that it is written as code."
+            ),
+            kind=wx.ITEM_NORMAL
+        )
+        btn.SetBitmap(
+            icons.ButtonIcon(stem="filecode", size=16).bitmap
+        )
+        menu.Bind(wx.EVT_MENU, self.onAddCode, btn)
+        # Add string
+        btn = menu.Append(
+            wx.ID_ANY,
+            item=_translate("Add string..."),
+            helpString =_translate(
+                "Add a value to this list - will not include a $, so will be written as a string."
+            ),
+            kind=wx.ITEM_NORMAL
+        )
+        btn.SetBitmap(
+            icons.ButtonIcon(stem="filestr", size=16).bitmap
+        )
+        menu.Bind(wx.EVT_MENU, self.onAddValue, btn)
+        # Show menu
+        obj = event.GetEventObject()
+        obj.PopupMenu(menu, (0, obj.GetSize()[1]))
+
+    def onAddFile(self, event):
+        """
+        When the Add File button is clicked
+        """
+        files = self.getFiles()
+        if files is None:
+            return
+        for file in files:
+            self.addItem(file, index=0)
+
+    def onAddFolder(self, event):
+        """
+        When the Add Folder button is clicked
+        """
+        folder = self.getFolder()
+        if folder is None:
+            return
+        self.addItem(folder, index=0)
+
+    def onAddCode(self, event):
+        """
+        When the Add Code button is clicked
+        """
+        # Call the usual add value function to get value, but mark as code
+        self.onAddValue(event, code=True)
+
+    def onAddValue(self, event, code=False):
+        """
+        When the Add Value button is clicked
+        """
+        # Create string dialog
+        if code:
+            msg = _translate("Add code item...")
+        else:
+            msg = _translate("Add string item...")
+        dlg = wx.TextEntryDialog(parent=self, message=msg)
+        # Style if code
+        for child in dlg.GetChildren():
+            if isinstance(child, wx.TextCtrl):
+                print(child)
+        # Show dialog
+        if dlg.ShowModal() != wx.ID_OK:
+            return
+        # Get string
+        stringEntry = dlg.GetValue()
+        # Append $ for code
+        if code:
+            stringEntry = f"${stringEntry}"
         # Add to list
         if stringEntry:
-            self.InsertItems([stringEntry], 0)
-
-    def GetValue(self):
-        return self.Items
+            self.addItem(stringEntry, index=0)
 
 
 class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):

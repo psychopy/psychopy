@@ -150,26 +150,6 @@ class FileBrowserToolbar(wx.ToolBar, handlers.ThemeMixin):
 class FileBrowserPanel(wx.Panel, handlers.ThemeMixin):
     """Panel for a file browser.
     """
-    fileImgExt = {
-            "..": 'dirup16',
-            "\\": 'folder16',
-            ".?": 'fileunknown16',
-            ".csv": 'filecsv16',
-            ".xlsx": 'filecsv16',
-            ".xls": 'filecsv16',
-            ".tsv": 'filecsv16',
-            ".png": 'fileimage16',
-            ".jpeg": 'fileimage16',
-            ".jpg": 'fileimage16',
-            ".bmp": 'fileimage16',
-            ".tiff": 'fileimage16',
-            ".tif": 'fileimage16',
-            ".ppm": 'fileimage16',
-            ".gif": 'fileimage16',
-            ".py": 'coderpython',
-            ".js": 'coderjs'
-        }
-
     def __init__(self, parent, frame):
         wx.Panel.__init__(self, parent, -1, style=wx.BORDER_NONE)
         self.parent = parent
@@ -252,9 +232,9 @@ class FileBrowserPanel(wx.Panel, handlers.ThemeMixin):
             self.fileImgList.RemoveAll()
         else:
             self.fileImgList = wx.ImageList(16, 16)
-        for key in self.fileImgExt:
+        for key in icons.filetypeIcons:
             self.fileImgInds[key] = self.fileImgList.Add(
-                    icons.ButtonIcon(self.fileImgExt[key], size=(16, 16)).bitmap
+                    icons.ButtonIcon(icons.filetypeIcons[key], size=(16, 16)).bitmap
             )
         self.fileList.SetImageList(self.fileImgList, wx.IMAGE_LIST_SMALL)
         self.Update()
