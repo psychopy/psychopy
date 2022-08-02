@@ -15,6 +15,7 @@ The code that writes out a *_lastrun.py experiment file is (in order):
         which will call the .writeBody() methods from each component
     settings.SettingsComponent.writeEndCode()
 """
+import json
 from xml.etree.ElementTree import Element
 
 import re
@@ -257,7 +258,20 @@ class Param():
         elif self.valType == 'list':
             valid, val = self.dollarSyntax()
             val = toList(val)
-            return "{}".format(val)
+            try:
+                val = json.loads(str(val).replace("'", "\""))
+                parsedVals = []
+                for subval in val:
+                    print(subval)
+                    if str(subval).startswith("$"):
+                        # If subvalue is code, remove dollar
+                        parsedVals.append(subval[1:])
+                    else:
+                        # Otherwise, treat as string
+                        parsedVals.append(f"'{subval}'")
+                return f"[{', '.join(parsedVals)}]"
+            except json.decoder.JSONDecodeError:
+                return "{}".format(val)
         elif self.valType == 'fixedList':
             return "{}".format(self.val)
         elif self.valType == 'fileList':
