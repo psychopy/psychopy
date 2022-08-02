@@ -137,6 +137,6 @@ class AnimationComponent(BaseVisualComponent):
             "    color=%(color)s, contrast=%(contrast)s, opacity=%(opacity)s, colorSpace=%(colorSpace)s,\n"
             "    texRes=%(texture resolution)s, interpolate=%(interpolate)s,\n"
             "    autoLog=True\n"
-            ")"
+            ")\n"
         )
         buff.writeIndentedLines(code % inits)
