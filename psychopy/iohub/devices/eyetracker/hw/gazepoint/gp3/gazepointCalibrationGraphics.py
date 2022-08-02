@@ -9,7 +9,7 @@ class GazepointPsychopyCalibrationGraphics(BaseCalibrationProcedure):
     def __init__(self, eyetrackerInterface, calibration_args):
         BaseCalibrationProcedure.__init__(self, eyetrackerInterface, calibration_args, allow_escape_in_progress=False)
 
-    def startEyeTrackerCalibration(self):
+    def startCalibrationHook(self):
         self._eyetracker._gp3set('CALIBRATE_SHOW', STATE=0)
         self._eyetracker._gp3set('CALIBRATE_START', STATE=0)
 

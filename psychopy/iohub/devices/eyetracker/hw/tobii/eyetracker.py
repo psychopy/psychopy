@@ -202,7 +202,8 @@ class EyeTracker(EyeTrackerDevice):
         try:
             genv = TobiiPsychopyCalibrationGraphics(self, calibration_args)
 
-            calibrationOK = genv.runCalibration()
+            genv.runCalibration()
+            calibration_result = genv.cal_result_dict
 
             # On some graphics cards, we have to minimize before closing or the calibration window will stay visible
             # after close is called.
@@ -214,7 +215,7 @@ class EyeTracker(EyeTrackerDevice):
             genv._unregisterEventMonitors()
             genv.clearAllEventBuffers()
 
-            return calibrationOK
+            return calibration_result
 
         except Exception:
             print2err('Error during runSetupProcedure')

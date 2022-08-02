@@ -72,6 +72,10 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
                 min_length: 1
                 max_length: 1
         target_attributes:
+            custom:
+                module_name:
+                class_name:
+                class_kwargs:
             outer_diameter:
                 IOHUB_FLOAT:
                     min: 0.01

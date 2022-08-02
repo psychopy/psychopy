@@ -77,7 +77,7 @@ class BaseCalibrationProcedure:
             colorSpace=color_type)
         self.window.flip(clearBuffer=True)
 
-        self._createStim()
+        self.createGraphics()
         self._registerEventMonitors()
         self._lastMsgPumpTime = currentTime()
 
@@ -147,7 +147,7 @@ class BaseCalibrationProcedure:
             self._msg_queue = self._msg_queue[1:]
             return msg
 
-    def _createStim(self):
+    def createGraphics(self):
         """
         """
         color_type = self.getCalibSetting('color_type')
@@ -202,14 +202,22 @@ class BaseCalibrationProcedure:
                                             color=tcolor, colorSpace=tctype,
                                             units='pix', wrapWidth=self.width * 0.9)
 
-    def startEyeTrackerCalibration(self):
+    def startCalibrationHook(self):
+        pass
+
+    def registerCalibrationPointHook(self, pt):
+        pass
+
+    def finishCalibrationHook(self, aborted=False):
         pass
 
     def runCalibration(self):
         """Run calibration sequence
         """
-        instuction_text = 'Press SPACE to Start Calibration.'
-        self.showMessageScreen(instuction_text)
+
+        if self.showIntroScreen() is False:
+            # User pressed escape  to exit calibration
+            return False
 
         target_delay = self.getCalibSetting('target_delay')
         target_duration = self.getCalibSetting('target_duration')
@@ -228,7 +236,7 @@ class BaseCalibrationProcedure:
 
         self.clearCalibrationWindow()
 
-        self.startEyeTrackerCalibration()
+        self.startCalibrationHook()
 
         i = 0
         abort_calibration = False
@@ -327,6 +335,8 @@ class BaseCalibrationProcedure:
                 self.MsgPump()
                 msg = self.getNextMsg()
 
+            self.registerCalibrationPointHook(pt)
+
             self.clearCalibrationWindow()
             self.clearAllEventBuffers()
             i += 1
@@ -334,16 +344,17 @@ class BaseCalibrationProcedure:
         if self.targetClassHasPlayPause:
             self.targetStim.pause()
 
+        self.finishCalibrationHook(abort_calibration)
+
         if abort_calibration is False:
-            instuction_text = "Calibration Complete. Press 'SPACE' key to continue."
-            self.showMessageScreen(instuction_text)
-            return True
-        return False
+            self.showFinishedScreen()
+
+        return not abort_calibration
 
     def clearCalibrationWindow(self):
         self.window.flip(clearBuffer=True)
 
-    def showMessageScreen(self, text_msg='Press SPACE to Start Calibration; ESCAPE to Exit.'):
+    def showIntroScreen(self, text_msg='Press SPACE to Start Calibration; ESCAPE to Exit.'):
 
         self.clearAllEventBuffers()
 
@@ -361,6 +372,24 @@ class BaseCalibrationProcedure:
                 return False
             self.MsgPump()
             gevent.sleep(0.001)
+
+    def showFinishedScreen(self, text_msg="Calibration Complete. Press 'SPACE' key to continue."):
+
+        self.clearAllEventBuffers()
+
+        while True:
+            self.textLineStim.setText(text_msg)
+            self.textLineStim.draw()
+            self.window.flip()
+
+            msg = self.getNextMsg()
+            if msg in ['SPACE_KEY_ACTION', 'QUIT']:
+                self.clearAllEventBuffers()
+                return True
+
+            self.MsgPump()
+            gevent.sleep(0.001)
+
 
     def resetTargetProperties(self):
         self.targetStim.size = self.originalTargetSize
