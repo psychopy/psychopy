@@ -38,6 +38,7 @@ class ResourceManagerComponent(BaseComponent):
 
         self.params['resources'] = Param(resources,
             valType='list', inputType="fileList", categ='Basic', updates='constant',
+            allowedUpdates=['constant', 'set every repeat'],
             hint=_translate("Resources to download/check"),
             direct=False, label=_translate("Resources"))
 
