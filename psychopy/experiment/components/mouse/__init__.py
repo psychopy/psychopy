@@ -196,11 +196,11 @@ class MouseComponent(BaseComponent):
         code = (
             "// check whether click was in correct object\n"
             "if (gotValidClick) {\n"
-            "    corr = False;\n"
+            "    corr = false;\n"
             "    corrAns = %(correctAns)s;\n"
-            "    for (obj of [corrAns]) {\n"
+            "    for (let obj of [corrAns]) {\n"
             "        if (obj.contains(%(name)s)) {\n"
-            "            corr = True;\n"
+            "            corr = true;\n"
             "        };\n"
             "    };\n"
             "    %(name)s.corr.push(corr);\n"
@@ -210,7 +210,8 @@ class MouseComponent(BaseComponent):
         if self.params['forceEndRoutineOnPress'] == 'correct click':
             code += (
             "    if (corr) {\n"
-            "        continueRoutine = False  # end routine on correct answer\n"
+            "        // end routine on correct answer\n"
+            "        continueRoutine = false;\n"
             "    };\n"
             "}\n"
             )
