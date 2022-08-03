@@ -742,6 +742,8 @@ class MouseComponent(BaseComponent):
             # buff.writeIndented("# save %(name)s data\n" %(self.params))
             mouseDataProps = ['x', 'y', 'leftButton', 'midButton',
                               'rightButton', 'time']
+            if self.params['storeCorrect']:
+                mouseDataProps += ['corr']
             # possibly add clicked params if we have clickable objects
             if self.params['clickable'].val:
                 for paramName in self._clickableParamsList:
