@@ -750,7 +750,7 @@ class MouseComponent(BaseComponent):
                     mouseDataProps.append("clicked_{}".format(paramName))
             # use that set of properties to create set of addData commands
             for property in mouseDataProps:
-                if store == 'every frame' or forceEnd == "never":
+                if store == 'every frame' or forceEnd in ["never", "correct click"]:
                     code = ("psychoJS.experiment.addData('%s.%s', %s.%s);\n" %
                             (name, property, name, property))
                     buff.writeIndented(code)
