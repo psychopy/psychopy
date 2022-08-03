@@ -214,14 +214,23 @@ class SliderComponent(BaseVisualComponent):
         inits['initVal'] = inits['initVal'] or None
 
         # build up an initialization string for Slider():
-        initStr = ("{name} = visual.Slider(win=win, name='{name}',\n"
-                   "    startValue={initVal}, size={size}, pos={pos}, units={units},\n"
-                   "    labels={labels}, ticks={ticks}, granularity={granularity},\n"
-                   "    style={styles}, styleTweaks={styleTweaks}, opacity={opacity},\n"
-                   "    labelColor={color}, markerColor={fillColor}, lineColor={borderColor}, colorSpace={colorSpace},\n"
-                   "    font={font}, labelHeight={letterHeight},\n"
-                   "    flip={flip}, ori={ori}, depth={depth}, readOnly={readOnly})\n"
-                   .format(**inits))
+        initStr = (
+            "{name} = visual.Slider(win=win, name='{name}',\n"
+            "    startValue={initVal}, size={size}, pos={pos}, units={units},\n"
+            "    labels={labels}, ticks={ticks}, "
+        )
+        if inits['style'] == "radio":
+            # If style is radio, granularity should always be 1
+            initStr += "granularity=1,\n"
+        else:
+           initStr += "granularity={granularity},\n"
+        initStr += (
+            "    style={styles}, styleTweaks={styleTweaks}, opacity={opacity},\n"
+            "    labelColor={color}, markerColor={fillColor}, lineColor={borderColor}, colorSpace={colorSpace},\n"
+            "    font={font}, labelHeight={letterHeight},\n"
+            "    flip={flip}, ori={ori}, depth={depth}, readOnly={readOnly})\n"
+        )
+        initStr = initStr.format(**inits)
         buff.writeIndented(initStr)
 
     def writeInitCodeJS(self, buff):
@@ -273,15 +282,23 @@ class SliderComponent(BaseVisualComponent):
         inits['depth'] = -self.getPosInRoutine()
 
         # build up an initialization string for Slider():
-        initStr = ("{name} = new visual.Slider({{\n"
-                   "  win: psychoJS.window, name: '{name}',\n"
-                   "  startValue: {initVal},\n"
-                   "  size: {size}, pos: {pos}, ori: {ori}, units: {units},\n"
-                   "  labels: {labels}, fontSize: {letterHeight}, ticks: {ticks},\n"
-                   "  granularity: {granularity}, style: {styles},\n"
-                   "  color: new util.Color({color}), markerColor: new util.Color({fillColor}), lineColor: new util.Color({borderColor}), \n"
-                   "  opacity: {opacity}, fontFamily: {font}, bold: true, italic: false, depth: {depth}, \n"
-                   ).format(**inits)
+        initStr = (
+            "{name} = new visual.Slider({{\n"
+            "  win: psychoJS.window, name: '{name}',\n"
+            "  startValue: {initVal},\n"
+            "  size: {size}, pos: {pos}, ori: {ori}, units: {units},\n"
+            "  labels: {labels}, fontSize: {letterHeight}, ticks: {ticks},\n"
+        )
+        if inits['style'] == "radio":
+            # If style is radio, granularity should always be 1
+            initStr += "  granularity: 1, style: {styles},\n"
+        else:
+           initStr += "  granularity: {granularity}, style: {styles},\n"
+        initStr += (
+            "  color: new util.Color({color}), markerColor: new util.Color({fillColor}), lineColor: new util.Color({borderColor}), \n"
+            "  opacity: {opacity}, fontFamily: {font}, bold: true, italic: false, depth: {depth}, \n"
+        )
+        initStr = initStr.format(**inits)
         initStr += ("  flip: {flip},\n"
                     "}});\n\n").format(flip=boolConverter[inits['flip'].val])
         buff.writeIndentedLines(initStr)
