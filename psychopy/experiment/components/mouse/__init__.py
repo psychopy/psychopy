@@ -192,6 +192,30 @@ class MouseComponent(BaseComponent):
             )
         buff.writeIndentedLines(code % self.params)
 
+    def _writeCorrectAnsCodeJS(self, buff):
+        code = (
+            "// check whether click was in correct object\n"
+            "if (gotValidClick) {\n"
+            "    corr = False;\n"
+            "    corrAns = %(correctAns)s;\n"
+            "    for (obj of [corrAns]) {\n"
+            "        if (obj.contains(%(name)s)) {\n"
+            "            corr = True;\n"
+            "        };\n"
+            "    };\n"
+            "    %(name)s.corr.push(corr);\n"
+
+        )
+        # Write force end code
+        if self.params['forceEndRoutineOnPress'] == 'correct click':
+            code += (
+            "    if (corr) {\n"
+            "        continueRoutine = False  # end routine on correct answer\n"
+            "    };\n"
+            "}\n"
+            )
+        buff.writeIndentedLines(code % self.params)
+
     def _writeClickableObjectsCodeJS(self, buff):
         # code to check if clickable objects were clicked
         code = (
@@ -268,6 +292,11 @@ class MouseComponent(BaseComponent):
                      "%(name)s.midButton = [];\n"
                      "%(name)s.rightButton = [];\n"
                      "%(name)s.time = [];\n")
+
+        if self.params['storeCorrect']:
+            code += (
+                "%(name)s.corr = [];\n"
+            )
 
         if self.params['clickable'].val:
             for clickableObjParam in self._clickableParamsList:
@@ -488,7 +517,7 @@ class MouseComponent(BaseComponent):
         dedentAtEnd = 1  # keep track of how far to dedent later
 
         # write param checking code
-        if (self.params['saveMouseState'].val in ['on click', 'on valid click'] or forceEnd in ['any click', 'valid click']):
+        if (self.params['saveMouseState'].val in ['on click', 'on valid click'] or forceEnd in ['any click', 'correct click', 'valid click']):
             code = ("_mouseButtons = %(name)s.getPressed();\n")
             buff.writeIndentedLines(code % self.params)
             # buff.setIndentLevel(1, relative=True)
@@ -510,6 +539,10 @@ class MouseComponent(BaseComponent):
         # also write code about clicked objects if needed.
         if self.params['clickable'].val:
             self._writeClickableObjectsCodeJS(buff)
+
+        # also write code about correct objects if needed
+        if self.params['storeCorrect']:
+            self._writeCorrectAnsCodeJS(buff)
 
         if self.params['saveMouseState'].val in ['on click', 'on valid click', 'every frame']:
             storeCode = (
@@ -688,6 +721,10 @@ class MouseComponent(BaseComponent):
                     "psychoJS.experiment.addData('{name}.midButton', _mouseButtons[1]);\n"
                     "psychoJS.experiment.addData('{name}.rightButton', _mouseButtons[2]);\n"
                 )
+                if self.params['storeCorrect']:
+                    code += (
+                        "psychoJS.experiment.addData('{name}.corr', {name}.corr);\n"
+                    )
                 buff.writeIndentedLines(code.format(name=name))
 
                 # For clicked objects...
