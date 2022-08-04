@@ -227,6 +227,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         """
         self._player.stop(log=log)
+        self._player.unload()
         self._freeBuffers()  # free buffer before creating a new one
 
     @property
@@ -369,8 +370,9 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         """
         # stop should reset the video to the start and pause
-        self._player.pause()
-        self._player.seek(0.0)
+        if self._player is not None:
+            print('called thread stop in stop')
+            self._player.stop()
         self.status = NOT_STARTED
 
     def seek(self, timestamp, log=True):
