@@ -75,6 +75,7 @@ class BaseCalibrationProcedure:
             screen=display.getIndex(),
             color=self.getCalibSetting(['screen_background_color']),
             colorSpace=color_type)
+        self.window.setMouseVisible(False)
         self.window.flip(clearBuffer=True)
 
         self.createGraphics()

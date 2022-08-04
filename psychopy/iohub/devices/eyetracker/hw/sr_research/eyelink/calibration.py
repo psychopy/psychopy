@@ -369,7 +369,7 @@ class EyeLinkCalibrationProcedure(pylink.EyeLinkCustomDisplay):
                                     allowGUI=False,
                                     screen=display.getIndex()
                                     )
-
+        self.window.setMouseVisible(False)
         self.blankdisplay = BlankScreen(self.window, self.getCalibSetting(['screen_background_color']))
         self.textmsg = TextLine(self)
         self.introscreen = IntroScreen(self)
