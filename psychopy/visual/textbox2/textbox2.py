@@ -29,6 +29,8 @@ from .. import shaders
 from ..rect import Rect
 from ... import core, alerts, layout
 
+from psychopy.tools.linebreak import get_breakable_points, break_units
+
 allFonts = FontManager()
 
 # compile global shader programs later (when we're certain a GL context exists)
@@ -793,8 +795,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self._lineLenChars.append(charsThisLine)
 
         elif self._lineBreaking == 'uax14':
-            # not needed for regular line breaks but slows down debugging
-            from psychopy.tools.linebreak import get_breakable_points, break_units
 
             # get a list of line-breakable points according to UAX#14
             breakable_points = list(get_breakable_points(self._text))
