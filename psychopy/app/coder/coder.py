@@ -2028,6 +2028,8 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                     self.statusBar.SetStatusText('')
                     dlg.Destroy()
                 self.fileStatusLastChecked = time.time()
+                # Enable / disable save button
+                self.toolbar.enableSave(self.currentDoc.UNSAVED)
 
     def pageChanged(self, event):
         """Event called when the user switches between editor tabs."""
@@ -2252,8 +2254,9 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
             # give the user a chance to save his file.
             self.UNSAVED = True
 
-        if doc == self.currentDoc and hasattr(self, 'cdrBtnSave'):
-            self.cdrBtnSave.Enable(doc.UNSAVED)
+        if doc == self.currentDoc:
+            # Enable / disable save button
+            self.toolbar.enableSave(self.currentDoc.UNSAVED)
 
         self.currentDoc.analyseScript()
 
@@ -2817,11 +2820,8 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def setFileModified(self, isModified):
         # changes the document flag, updates save buttons
         self.currentDoc.UNSAVED = isModified
-        # disabled when not modified
-        if hasattr(self, 'cdrBtnSave'):
-            self.cdrBtnSave.Enable(isModified)
-        # self.fileMenu.Enable(self.fileMenu.FindItem('&Save\tCtrl+S"'),
-        #     isModified)
+        # Enable / disable save button
+        self.toolbar.enableSave(self.currentDoc.UNSAVED)
 
     def onProcessEnded(self, event):
         # this is will check the stdout and stderr for any last messages
@@ -3012,3 +3012,15 @@ class CoderToolbar(BasePsychopyToolbar):
     def onPavloviaUser(self, evt=None):
         userDlg = UserFrame(self.frame)
         userDlg.ShowModal()
+
+    def enableSave(self, enable=True):
+        """
+        Enable or disable the save button.
+        """
+        self.EnableTool(self.buttons['filesave'].GetId(), enable)
+
+    def disableSave(self):
+        """
+        Alias for .enableSave(False)
+        """
+        self.enableSave(False)

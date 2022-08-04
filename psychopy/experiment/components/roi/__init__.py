@@ -148,9 +148,8 @@ class RegionOfInterestComponent(PolygonComponent):
         """
         # do writing of init
         inits = getInitVals(self.params, 'PsychoPy')
-        # Write basics
-        BaseVisualComponent.writeFrameCode(self, buff)
-        buff.setIndentLevel(1, relative=True)
+        # Write start code
+        self.writeStartTestCode(buff)
         code = (
             "%(name)s.status = STARTED\n"
         )
@@ -270,6 +269,13 @@ class RegionOfInterestComponent(PolygonComponent):
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
+        # Write stop code
+        self.writeStopTestCode(buff)
+        code = (
+            "%(name)s.status = FINISHED\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-2, relative=True)
 
     def writeRoutineEndCode(self, buff):
         BaseVisualComponent.writeRoutineEndCode(self, buff)

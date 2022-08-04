@@ -206,6 +206,29 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._freeBuffers()  # free buffers (if any) before creating a new one
         self._setupTextureBuffers()
 
+    def load(self, filename):
+        """Load a movie file from disk (alias of `loadMovie`).
+
+        Parameters
+        ----------
+        filename : str
+            Path to movie file. Must be a format that FFMPEG supports.
+
+        """
+        self.loadMovie(filename=filename)
+
+    def unload(self, log=True):
+        """Stop and unload the movie.
+
+        Parameters
+        ----------
+        log : bool
+            Log this event.
+
+        """
+        self._player.stop(log=log)
+        self._freeBuffers()  # free buffer before creating a new one
+
     @property
     def frameTexture(self):
         """Texture ID for the current video frame (`GLuint`). You can use this
@@ -228,7 +251,9 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         """
         # get the current movie frame for the video time
-        self._recentFrame = self._player.getMovieFrame()
+        newFrameFromPlayer = self._player.getMovieFrame()
+        if newFrameFromPlayer is not None:
+            self._recentFrame = newFrameFromPlayer
 
         # only do a pixel transfer on valid frames
         if self._recentFrame is not None:
@@ -317,6 +342,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
             self._player.volume = self._volume
 
         self._player.play(log=log)
+        self.status = PLAYING
 
     def pause(self, log=True):
         """Pause the current point in the movie. The image of the last frame
@@ -329,13 +355,12 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         """
         self._player.pause(log=log)
+        self.status = PAUSED
 
     def stop(self, log=True):
         """Stop the current point in the movie (sound will stop, current frame
-        will not advance). Once stopped the movie cannot be restarted - it must
-        be loaded again.
-
-        Use `pause()` instead if you may need to restart the movie.
+        will not advance and remain on-screen). Once stopped the movie can be
+        restarted from the beginning by calling `play()`.
 
         Parameters
         ----------
@@ -343,8 +368,10 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
             Log this event.
 
         """
-        self._player.stop(log=log)
-        self._freeBuffers()  # free buffer before creating a new one
+        # stop should reset the video to the start and pause
+        self._player.pause()
+        self._player.seek(0.0)
+        self.status = NOT_STARTED
 
     def seek(self, timestamp, log=True):
         """Seek to a particular timestamp in the movie.
@@ -370,11 +397,6 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         log : bool
             Log this event.
 
-        Returns
-        -------
-        float
-            Timestamp after rewinding the video.
-
         """
         self._player.rewind(seconds, log=log)
 
@@ -389,22 +411,14 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         log : bool
             Log this event.
 
-        Returns
-        -------
-        float
-            Timestamp at new position after fast forwarding the video.
-
         """
         self._player.fastForward(seconds, log=log)
 
-    def replay(self, autoStart=True, log=True):
+    def replay(self, log=True):
         """Replay the movie from the beginning.
 
         Parameters
         ----------
-        autoStart : bool
-            Start playback immediately. If `False`, you must call `play()`
-            afterwards to initiate playback.
         log : bool
             Log this event.
 
@@ -415,7 +429,8 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
           you would like to restart the movie without reloading.
 
         """
-        self._player.replay(autoStart, log=log)
+        self._player.replay(log=log)
+        self.status = NOT_STARTED
 
     # --------------------------------------------------------------------------
     # Audio stream control methods
