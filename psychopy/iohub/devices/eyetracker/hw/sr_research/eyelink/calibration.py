@@ -303,7 +303,7 @@ class IntroScreen():
             s.draw()
 
 
-class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
+class EyeLinkCalibrationProcedure(pylink.EyeLinkCustomDisplay):
     # seconds between forced run through of micro threads, since one is blocking
     # on camera setup.
     IOHUB_HEARTBEAT_INTERVAL = 0.050

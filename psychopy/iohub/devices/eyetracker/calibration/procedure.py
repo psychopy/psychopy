@@ -112,7 +112,7 @@ class BaseCalibrationProcedure:
             self._ioKeyboard = kbDevice
             self._ioKeyboard._addEventListener(self, eventIDs)
         else:
-            print2err('Warning: MouseGaze Cal GFX could not connect to Keyboard device for events.')
+            print2err('Warning: %s could not connect to Keyboard device for events.' % self.__class__.__name__)
 
     def _unregisterEventMonitors(self):
         if self._ioKeyboard:

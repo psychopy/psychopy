@@ -9,7 +9,8 @@ from psychopy import visual
 from .....constants import EventConstants
 import gevent
 
-class TobiiPsychopyCalibrationGraphics(BaseCalibrationProcedure):
+
+class TobiiCalibrationProcedure(BaseCalibrationProcedure):
     def __init__(self, eyetrackerInterface, calibration_args):
         self.feedback_resources = OrderedDict()
         self.tobii_calibration = None

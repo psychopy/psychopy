@@ -5,7 +5,7 @@
 from psychopy.iohub.devices.eyetracker.calibration import BaseCalibrationProcedure
 
 
-class GazepointPsychopyCalibrationGraphics(BaseCalibrationProcedure):
+class GazepointCalibrationProcedure(BaseCalibrationProcedure):
     def __init__(self, eyetrackerInterface, calibration_args):
         BaseCalibrationProcedure.__init__(self, eyetrackerInterface, calibration_args, allow_escape_in_progress=False)
 
