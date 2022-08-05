@@ -71,7 +71,12 @@ class _FileMixin:
     def rootDir(self):
         if not hasattr(self, "_rootDir"):
             # Store location of root directory if not defined
-            self._rootDir = Path(self.GetTopLevelParent().frame.exp.filename)
+            topParent = self.GetTopLevelParent()
+            if hasattr(topParent, "frame"):
+                frame = topParent.frame
+            else:
+                frame = topParent
+            self._rootDir = Path(frame.exp.filename)
             if self._rootDir.is_file():
                 # Move up a dir if root is a file
                 self._rootDir = self._rootDir.parent
