@@ -23,6 +23,19 @@ from ..localizedStrings import _localizedDialogs as _localized
 from ...themes import icons
 
 
+class _FrameMixin:
+    @property
+    def frame(self):
+        """
+        Top level frame associated with this ctrl
+        """
+        topParent = self.GetTopLevelParent()
+        if hasattr(topParent, "frame"):
+            return topParent.frame
+        else:
+            return topParent
+
+
 class _ValidatorMixin:
     def validate(self, evt=None):
         """Redirect validate calls to global validate method, assigning
@@ -66,17 +79,12 @@ class _ValidatorMixin:
             self.SetFont(fontNormal)
 
 
-class _FileMixin:
+class _FileMixin(_FrameMixin):
     @property
     def rootDir(self):
         if not hasattr(self, "_rootDir"):
             # Store location of root directory if not defined
-            topParent = self.GetTopLevelParent()
-            if hasattr(topParent, "frame"):
-                frame = topParent.frame
-            else:
-                frame = topParent
-            self._rootDir = Path(frame.exp.filename)
+            self._rootDir = Path(self.frame.exp.filename)
             if self._rootDir.is_file():
                 # Move up a dir if root is a file
                 self._rootDir = self._rootDir.parent
