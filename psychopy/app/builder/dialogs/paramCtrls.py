@@ -373,8 +373,16 @@ class FileCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
     def findFile(self, evt):
         file = self.getFile()
         if file:
-            self.SetValue(file)
+            self.setFile(file)
             self.validate(evt)
+
+    def setFile(self, file):
+        # Set text value
+        wx.TextCtrl.SetValue(self, file)
+        # Post event
+        evt = wx.FileDirPickerEvent(wx.EVT_FILEPICKER_CHANGED.typeId, self, -1, file)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
 
 
 class FileListCtrl(wx.ListBox, _ValidatorMixin, _HideMixin, _FileMixin):
