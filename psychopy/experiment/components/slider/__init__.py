@@ -233,7 +233,7 @@ class SliderComponent(BaseVisualComponent):
             "    startValue={initVal}, size={size}, pos={pos}, units={units},\n"
             "    labels={labels}, ticks={ticks}, "
         )
-        if inits['style'] == "radio":
+        if inits['styles'] == "radio":
             # If style is radio, granularity should always be 1
             initStr += "granularity=1,\n"
         else:
@@ -303,7 +303,7 @@ class SliderComponent(BaseVisualComponent):
             "  size: {size}, pos: {pos}, ori: {ori}, units: {units},\n"
             "  labels: {labels}, fontSize: {letterHeight}, ticks: {ticks},\n"
         )
-        if inits['style'] == "radio":
+        if inits['styles'] == "radio":
             # If style is radio, granularity should always be 1
             initStr += "  granularity: 1, style: {styles},\n"
         else:
