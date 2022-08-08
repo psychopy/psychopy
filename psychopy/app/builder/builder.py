@@ -1382,8 +1382,6 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
         try:
             pavlovia_ui.syncProject(parent=self, file=self.filename, project=self.project)
-        except Exception as err:
-            raise err
         finally:
             self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
 
