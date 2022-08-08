@@ -1383,9 +1383,8 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         try:
             pavlovia_ui.syncProject(parent=self, file=self.filename, project=self.project)
         except Exception as err:
-            self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
             raise err
-        else:
+        finally:
             self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
 
     def onPavloviaRun(self, evt=None):

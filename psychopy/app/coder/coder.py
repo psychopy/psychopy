@@ -2857,9 +2857,8 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         try:
             pavlovia_ui.syncProject(parent=self, file=self.currentDoc.filename, project=self.project)
         except Exception as err:
-            self.toolbar.EnableTool(syncBtnId, True)
             raise err
-        else:
+        finally:
             self.toolbar.EnableTool(syncBtnId, True)
 
     def onPavloviaRun(self, evt=None):
