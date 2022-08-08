@@ -135,6 +135,7 @@ class Polygon(BaseShapeStim):
 
         self.autoLog = False  # but will be changed if needed at end of init
         self.__dict__['edges'] = edges
+        self.__dict__['lineWidth'] = lineWidth
         self.radius = np.asarray(radius)
         self._calcVertices()
 
@@ -165,7 +166,12 @@ class Polygon(BaseShapeStim):
             colorSpace=colorSpace)
 
     def _calcVertices(self):
-        self.vertices = self._calcEquilateralVertices(self.edges, self.radius)
+        if self.edges == "circle":
+            # If circle is requested, calculate min edges needed for it to appear smooth
+            edges = self._calculateMinEdges(self.__dict__['lineWidth'], threshold=1)
+        else:
+            edges = self.edges
+        self.vertices = self._calcEquilateralVertices(edges, self.radius)
 
     @attributeSetter
     def edges(self, edges):
