@@ -263,7 +263,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
     @property
     def categorical(self):
         """(readonly) determines from labels and ticks whether the slider is categorical"""
-        return self.ticks is None
+        return self.ticks is None or self.style == "radio"
 
     @property
     def extent(self):
@@ -686,7 +686,12 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
     def _granularRating(self, rating):
         """Handle granularity for the rating"""
         if rating is not None:
-            if self.granularity > 0:
+            if self.categorical:
+                # If this is a categorical slider, snap to closest tick
+                deltas = np.absolute(np.asarray(self.ticks) - rating)
+                i = np.argmin(deltas)
+                rating = self.ticks[i]
+            elif self.granularity > 0:
                 rating = round(rating / self.granularity) * self.granularity
                 rating = round(rating, 8)  # or gives 1.9000000000000001
             rating = max(rating, self.ticks[0])
@@ -1001,8 +1006,6 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             self.tickLines.elementMask = 'circle'
             self._tickSizeMultiplier = (1, 1)
             self._tickSizeAddition = (0, 0)
-            # Radio doesn't make sense with granularity 0
-            self.granularity = 1
 
         if style == 'scrollbar':
             # Semi-transparent rectangle for a line (+ extra area for marker)
