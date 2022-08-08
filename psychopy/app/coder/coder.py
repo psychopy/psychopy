@@ -2852,7 +2852,15 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """Push changes to project repo, or create new proj if proj is None"""
         self.project = pavlovia.getProject(self.currentDoc.filename)
         self.fileSave(self.currentDoc.filename)  # Must save on sync else changes not pushed
-        pavlovia_ui.syncProject(parent=self, file=self.currentDoc.filename, project=self.project)
+        syncBtnId = self.toolbar.buttons['pavloviaSync'].GetId()
+        self.toolbar.EnableTool(syncBtnId, False)
+        try:
+            pavlovia_ui.syncProject(parent=self, file=self.currentDoc.filename, project=self.project)
+        except Exception as err:
+            self.toolbar.EnableTool(syncBtnId, True)
+            raise err
+        else:
+            self.toolbar.EnableTool(syncBtnId, True)
 
     def onPavloviaRun(self, evt=None):
         # TODO: Allow user to run project from coder
