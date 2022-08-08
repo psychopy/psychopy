@@ -293,14 +293,15 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
         # Stop recording
-        self.writeStopTestCode(buff)
-        code = (
-            "# stop recording with %(name)s\n"
-            "%(name)s.stop()\n"
-            "%(name)s.status = FINISHED\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-2, relative=True)
+        if self.params['stopVal'].val not in ('', None, -1, 'None'):
+            self.writeStopTestCode(buff)
+            code = (
+                "# stop recording with %(name)s\n"
+                "%(name)s.stop()\n"
+                "%(name)s.status = FINISHED\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(-2, relative=True)
 
     def writeFrameCodeJS(self, buff):
         inits = getInitVals(self.params)

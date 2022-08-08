@@ -78,6 +78,7 @@ class ScriptOutputPanel(wx.Panel, handlers.ThemeMixin):
                  fontSize=None):
         # Init superclass
         wx.Panel.__init__(self, parent, size=(480, 480), style=style)
+        self.tabIcon = "stdout"
 
         # Setup sizer
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
