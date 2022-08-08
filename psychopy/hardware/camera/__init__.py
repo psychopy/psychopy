@@ -2387,7 +2387,7 @@ def renderVideo(outputFile, videoFile, audioFile=None):
         videoClip.audio = CompositeAudioClip([audioClip])
 
     # transcode with the format the user wants
-    videoClip.write_videofile(outputFile, verbose=False, logging=None)
+    videoClip.write_videofile(outputFile, verbose=False, logger=None)
 
     return os.path.getsize(outputFile)
 
