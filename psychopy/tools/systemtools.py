@@ -33,8 +33,12 @@ __all__ = [
 # Keep imports to a minimum here! We don't want to import the whole stack to
 # simply populate a drop-down list. Try to keep platform-specific imports inside
 # the functions, not on the top-level scope for this module.
-import sys
 import platform
+if platform.system() == 'Windows':
+    # this has to be imported here before anything else
+    import winrt.windows.devices.enumeration as windows_devices
+
+import sys
 import glob
 import subprocess as sp
 from psychopy.preferences import prefs
@@ -331,6 +335,56 @@ def _getCameraInfoMacOS():
 
         # add to output dictionary
         videoDevices[cameraName] = supportedFormats
+
+    return videoDevices
+
+
+def _getCameraInfoWindowsWinRT():
+    """Get a list of capabilities for the specified associated with a camera
+    attached to the system.
+
+    This is used by `getCameraInfo()` for querying camera details on Windows.
+    Don't call this function directly unless testing. Requires `ffpyplayer`
+    to use this function.
+
+    Returns
+    -------
+    list of CameraInfo
+        List of camera descriptors.
+
+    """
+    if platform.system() != 'Windows':
+        raise OSError(
+            "Cannot query cameras with this function, platform not 'Windows'.")
+
+    import asyncio
+
+    async def findCameras():
+        """Get all video camera devices."""
+        videoDeviceClass = 4  # for video capture devices
+        return await windows_devices.DeviceInformation.find_all_async(
+            videoDeviceClass)
+
+    # interrogate the OS using WinRT to acquire camera data
+    foundCameras = asyncio.run(findCameras())
+
+    # get all the supported modes for the camera
+    videoDevices = {}
+
+    # iterate over cameras
+    for idx in range(foundCameras.size):
+        try:
+            cameraData = foundCameras.get_at(idx)
+        except RuntimeError:
+            continue
+
+        # get required fields
+        cameraName = cameraData.name
+
+        videoDevices[cameraName] = {
+            'index': idx,
+            'name': cameraName
+        }
 
     return videoDevices
 
@@ -748,4 +802,6 @@ def systemProfilerMacOS(dataTypes=None, detailLevel='basic', timeout=180):
 
 
 if __name__ == "__main__":
-    pass
+
+    print(_getCameraInfoWindowsWinRT())
+    print(_getCameraInfoWindows())
