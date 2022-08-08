@@ -319,7 +319,7 @@ class SliderComponent(BaseVisualComponent):
             "  size: {size}, pos: {pos}, ori: {ori}, units: {units},\n"
             "  labels: {labels}, fontSize: {letterHeight},"
         )
-        if inits['style'] == "radio":
+        if inits['styles'] == "radio":
             # If style is radio, make sure the slider is marked as categorical
             initStr += (
                 " ticks: [],\n"
