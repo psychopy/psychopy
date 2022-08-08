@@ -247,7 +247,7 @@ class SliderComponent(BaseVisualComponent):
             "    startValue={initVal}, size={size}, pos={pos}, units={units},\n"
             "    labels={labels},"
         )
-        if inits['style'] == "radio":
+        if inits['styles'] == "radio":
             # If style is radio, granularity should always be 1
             initStr += "ticks=None, granularity=1,\n"
         else:
