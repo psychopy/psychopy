@@ -105,6 +105,20 @@ class SliderComponent(BaseVisualComponent):
                 hint=_translate("Tick positions (numerical) on the scale, "
                                 "separated by commas"),
                 label=_localized['ticks'])
+        self.depends.append(
+            {
+                # if...
+                "dependsOn": "styles",
+                # meets...
+                "condition": "=='radio'",
+                # then...
+                "param": "ticks",
+                # should...
+                "true": "disable",
+                # otherwise...
+                "false": "enable",
+            }
+        )
         self.params['labels'] = Param(
                 labels, valType='list', inputType="single", allowedTypes=[], categ='Basic',
                 updates='constant',
@@ -231,13 +245,15 @@ class SliderComponent(BaseVisualComponent):
         initStr = (
             "{name} = visual.Slider(win=win, name='{name}',\n"
             "    startValue={initVal}, size={size}, pos={pos}, units={units},\n"
-            "    labels={labels}, ticks={ticks}, "
+            "    labels={labels},"
         )
         if inits['style'] == "radio":
             # If style is radio, granularity should always be 1
-            initStr += "granularity=1,\n"
+            initStr += "ticks=None, granularity=1,\n"
         else:
-           initStr += "granularity={granularity},\n"
+           initStr += (
+               " ticks={ticks}, granularity={granularity},\n"
+           )
         initStr += (
             "    style={styles}, styleTweaks={styleTweaks}, opacity={opacity},\n"
             "    labelColor={color}, markerColor={fillColor}, lineColor={borderColor}, colorSpace={colorSpace},\n"
@@ -301,13 +317,19 @@ class SliderComponent(BaseVisualComponent):
             "  win: psychoJS.window, name: '{name}',\n"
             "  startValue: {initVal},\n"
             "  size: {size}, pos: {pos}, ori: {ori}, units: {units},\n"
-            "  labels: {labels}, fontSize: {letterHeight}, ticks: {ticks},\n"
+            "  labels: {labels}, fontSize: {letterHeight},"
         )
         if inits['style'] == "radio":
-            # If style is radio, granularity should always be 1
-            initStr += "  granularity: 1, style: {styles},\n"
+            # If style is radio, make sure the slider is marked as categorical
+            initStr += (
+                " ticks: [],\n"
+                "  granularity: 1, style: {styles},\n"
+            )
         else:
-           initStr += "  granularity: {granularity}, style: {styles},\n"
+            initStr += (
+                " ticks: {ticks},\n"
+                "  granularity: {granularity}, style: {styles},\n"
+            )
         initStr += (
             "  color: new util.Color({color}), markerColor: new util.Color({fillColor}), lineColor: new util.Color({borderColor}), \n"
             "  opacity: {opacity}, fontFamily: {font}, bold: true, italic: false, depth: {depth}, \n"
