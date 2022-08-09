@@ -2751,7 +2751,7 @@ class Window():
         visual.ImageStim.image to create one. Will be drawn each time `win.flip()` is called, meaning it is always
         below all other contents of the window.
         """
-        if value is None:
+        if value in (None, "None", "none", ""):
             # If given None, store so we know not to use a background image
             self._backgroundImage = None
             self.__dict__['backgroundImage'] = self._backgroundImage
