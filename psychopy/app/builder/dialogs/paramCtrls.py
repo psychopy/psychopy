@@ -155,6 +155,55 @@ class _HideMixin:
                     self.tunnelShow(child.Sizer, visible)
 
 
+class _IconListMixin:
+    def setupIcons(self):
+        """
+        Setup ImageList to handle icons for different filetypes and value types
+        """
+        # Create new ImageList
+        self.imageList = wx.ImageList(16, 16)
+        # Add each icon to list and store index
+        self.iconIndices = {}
+        for key in icons.filetypeIcons:
+            self.iconIndices[key] = self.imageList.Add(
+                    icons.ButtonIcon(icons.filetypeIcons[key], size=(16, 16)).bitmap
+            )
+        # Add custom icons (code and str)
+        self.iconIndices["code"] = self.imageList.Add(
+            icons.ButtonIcon(stem="filecode", size=16).bitmap
+        )
+        self.iconIndices["str"] = self.imageList.Add(
+            icons.ButtonIcon(stem="filestr", size=16).bitmap
+        )
+        # Set image list
+        self.SetImageList(self.imageList, wx.IMAGE_LIST_SMALL)
+        self.Update()
+
+    @staticmethod
+    def getItemExt(item, rootDir=""):
+        rootDir = Path(rootDir)
+        # Get extension
+        if str(item).startswith("$"):
+            # If item is code, interpret literally and set icon to indicate code
+            ext = "code"
+        else:
+            file = Path(item)
+            if file.suffix in icons.filetypeIcons:
+                # Get extension if it has a corresponding icon
+                ext = file.suffix
+            elif file.is_dir() or (rootDir / file).is_dir():
+                # Extension for a directory is \
+                ext = "\\"
+            elif file.is_file() or (rootDir / file).is_file():
+                # Use unknown extension otherwise
+                ext = ".?"
+            else:
+                # If it's not a file, assume string
+                ext = "str"
+
+        return ext
+
+
 class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
@@ -379,7 +428,7 @@ class FileCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
             self.validate(evt)
 
 
-class FileListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
+class FileListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl, _ValidatorMixin, _HideMixin, _FileMixin, _IconListMixin):
     def __init__(self, parent, valType,
                  choices=[], size=None, pathtype="rel"):
         # Setup base class
@@ -427,48 +476,8 @@ class FileListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl, _ValidatorMixin, _HideMi
     def GetValue(self):
         return self.getValue()
 
-    def setupIcons(self):
-        """
-        Setup ImageList to handle icons for different filetypes
-        """
-        # Create new ImageList
-        self.imageList = wx.ImageList(16, 16)
-        # Add each icon to list and store index
-        self.iconIndices = {}
-        for key in icons.filetypeIcons:
-            self.iconIndices[key] = self.imageList.Add(
-                    icons.ButtonIcon(icons.filetypeIcons[key], size=(16, 16)).bitmap
-            )
-        # Add custom icons (code and str)
-        self.iconIndices["code"] = self.imageList.Add(
-            icons.ButtonIcon(stem="filecode", size=16).bitmap
-        )
-        self.iconIndices["str"] = self.imageList.Add(
-            icons.ButtonIcon(stem="filestr", size=16).bitmap
-        )
-        # Set image list
-        self.SetImageList(self.imageList, wx.IMAGE_LIST_SMALL)
-        self.Update()
-
     def addItem(self, item, index=None):
-        # Get extension
-        if str(item).startswith("$"):
-            # If item is code, interpret literally and set icon to indicate code
-            ext = "code"
-        else:
-            file = Path(item)
-            if file.suffix in icons.filetypeIcons:
-                # Get extension if it has a corresponding icon
-                ext = file.suffix
-            elif file.is_dir() or (self.rootDir / file).is_dir():
-                # Extension for a directory is \
-                ext = "\\"
-            elif file.is_file() or (self.rootDir / file).is_file():
-                # Use unknown extension otherwise
-                ext = ".?"
-            else:
-                # If it's not a file, assume string
-                ext = "str"
+        ext = self.getItemExt(item, rootDir=self.rootDir)
         # Get icon from extension
         icn = self.iconIndices[ext]
         # Handle None index
