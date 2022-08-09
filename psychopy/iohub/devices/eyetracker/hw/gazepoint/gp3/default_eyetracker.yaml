@@ -44,7 +44,7 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
     calibration:
         # True: Use GazePoint Control app calibration window.
         # False: Use custom calibration graphics.
-        use_builtin: True
+        use_builtin: False
 
         # auto_pace: Ggazepoint only supports auto pacing,so it automatically progresses from
         # one calibration point to the next.
