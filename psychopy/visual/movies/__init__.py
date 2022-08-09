@@ -371,7 +371,6 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """
         # stop should reset the video to the start and pause
         if self._player is not None:
-            print('called thread stop in stop')
             self._player.stop()
         self.status = NOT_STARTED
 

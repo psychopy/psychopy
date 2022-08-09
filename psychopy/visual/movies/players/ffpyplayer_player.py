@@ -340,7 +340,6 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
                         ptsClock, ptsTarget):
                     break
 
-                # print('converge count #', n + 1)
                 ptsLast = ptsClock
                 n += 1
 
