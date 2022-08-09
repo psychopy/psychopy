@@ -48,6 +48,8 @@ _evtCleanUpMovieEvent = threading.Event()
 _evtCleanUpMovieEvent.clear()
 
 
+# Cleanup routines for threads. This allows the app to crash gracefully rather
+# than locking up on error.
 def _closeMovieThreads():
     """Callback function when the application exits which cleans up movie
     threads. When this function is called, any outstanding movie threads will
@@ -58,7 +60,7 @@ def _closeMovieThreads():
     _evtCleanUpMovieEvent.set()
 
 
-atexit.register(_closeMovieThreads)
+atexit.register(_closeMovieThreads)  # register the function
 
 
 class StreamStatus:
@@ -247,6 +249,7 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
         # some values the user might want
         self._status = NOT_STARTED
         self._streamTime = 0.0
+        self._isIdling = False
 
         # Locks for syncing the player and main application thread
         self._warmUpLock = threading.Lock()
@@ -532,24 +535,23 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
                     mustShutdown = True
                     continue
 
-            # if mustStop:  # kill the thread if we get a stop command
-            #     statusFlag = FINISHED
-            #     continue
-
+            # handle playback stopping
             if statusFlag == FINISHED:   # pause and wait
+                self._isIdling = True
                 if not self._player.get_pause():
                     self._player.set_pause(True)  # pause to prevent lockup
 
                 time.sleep(frameInterval)  # sleep a bit
                 continue
-
-            # If we got an EOF, hit pause to prevent ringing and other issues,
-            # restart to beginning.
             elif statusFlag == STOPPING:
+                # If we got an EOF, hit pause to prevent ringing and other
+                # issues, restart to beginning.
                 self._player.set_pause(True)
                 self._player.seek(0.0, relative=False)
                 statusFlag = FINISHED
                 continue
+            else:
+                self._isIdling = False
 
             # ------------------------------------------------------------------
             # Seeking
@@ -671,6 +673,7 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
                 except queue.Full:
                     pass  # do nothing
 
+        # close the player once here
         self._player.close_player()
 
         try:
@@ -679,6 +682,13 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
             pass
 
         # if we get here the thread is dead
+
+    @property
+    def isIdling(self):
+        """Is the movie reader thread "idling" (`bool`)? If `True`, the movie is
+        finished playing and no frames are being polled from FFMPEG.
+        """
+        return self._isIdling
 
     @property
     def isReady(self):
@@ -1461,7 +1471,7 @@ class FFPyPlayer(BaseMoviePlayer):
         # movie is finished
         self._enqueueFrame()
 
-        if self._tStream.isDone():
+        if self._tStream.isDone() or self._tStream.isIdling:
             self.parent.status = self._status = FINISHED
 
     def getMovieFrame(self):
