@@ -456,14 +456,14 @@ class FileListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl, _ValidatorMixin, _HideMi
             # If item is code, interpret literally and set icon to indicate code
             ext = "code"
         else:
-            item = Path(item)
-            if item.suffix in icons.filetypeIcons:
+            file = Path(item)
+            if file.suffix in icons.filetypeIcons:
                 # Get extension if it has a corresponding icon
-                ext = item.suffix
-            elif item.is_dir() or (self.rootDir / item).is_dir():
+                ext = file.suffix
+            elif file.is_dir() or (self.rootDir / file).is_dir():
                 # Extension for a directory is \
                 ext = "\\"
-            elif item.is_file() or (self.rootDir / item).is_file():
+            elif file.is_file() or (self.rootDir / file).is_file():
                 # Use unknown extension otherwise
                 ext = ".?"
             else:
