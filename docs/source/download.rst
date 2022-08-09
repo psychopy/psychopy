@@ -15,7 +15,7 @@ For the easiest installation download and install the Standalone package.
 
     let filename;
     let url;
-    let version='2022.2.0';
+    let version='2022.2.2';
 
     let clientInfo = UAParser(navigator.userAgent);
     var osLabel;
@@ -38,7 +38,7 @@ For the easiest installation download and install the Standalone package.
       url = '#linux';
     }
 
-    document.write( "<br><center>To install |PsychoPy| on <strong>"+osLabel+"</strong> we recommend<br>");
+    document.write( "<br><center>To install PsychoPy on <strong>"+osLabel+"</strong> we recommend<br>");
     document.write( "<button class='btn-primary btn-lg' onclick='window.location.href=url'>" +
         "<i class='fa fa-download'></i>" + filename + "</button></center><br>" );
 

@@ -390,12 +390,16 @@ class StartStopCtrls(wx.GridBagSizer):
         self.parent = parent
         for name, param in params.items():
             if name in ['startVal', 'stopVal']:
+                # Add dollar sign
+                self.dollar = wx.StaticText(parent, label="$")
+                self.Add(self.dollar, (0, 0), border=6, flag=wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.RIGHT)
+                # Add ctrl
                 self.ctrls[name] = wx.TextCtrl(parent,
                                                value=str(param.val), size=wx.Size(-1, 24))
                 self.ctrls[name].Bind(wx.EVT_TEXT, self.updateCodeFont)
                 self.updateCodeFont(self.ctrls[name])
                 self.label = wx.StaticText(parent, label=param.label)
-                self.Add(self.ctrls[name], (0, 1), border=6, flag=wx.EXPAND | wx.TOP)
+                self.Add(self.ctrls[name], (0, 2), border=6, flag=wx.EXPAND | wx.TOP)
             if name in ['startType', 'stopType']:
                 localizedChoices = list(map(_translate, param.allowedVals or [param.val]))
                 self.ctrls[name] = wx.Choice(parent,
@@ -403,7 +407,7 @@ class StartStopCtrls(wx.GridBagSizer):
                                              size=wx.Size(96, 24))
                 self.ctrls[name]._choices = copy.copy(param.allowedVals)
                 self.ctrls[name].SetSelection(param.allowedVals.index(str(param.val)))
-                self.Add(self.ctrls[name], (0, 0), border=6, flag=wx.EXPAND | wx.TOP)
+                self.Add(self.ctrls[name], (0, 1), border=6, flag=wx.EXPAND | wx.TOP)
             if name in ['startEstim', 'durationEstim']:
                 self.ctrls[name] = wx.TextCtrl(parent,
                                                value=str(param.val), size=wx.Size(-1, 24))
@@ -412,9 +416,9 @@ class StartStopCtrls(wx.GridBagSizer):
                 self.estimLabel = wx.StaticText(parent,
                                                 label=param.label, size=wx.Size(-1, 24))
                 self.estimLabel.SetForegroundColour("grey")
-                self.Add(self.estimLabel, (1, 0), border=6, flag=wx.EXPAND | wx.ALL)
-                self.Add(self.ctrls[name], (1, 1), border=6, flag=wx.EXPAND | wx.TOP | wx.BOTTOM)
-        self.AddGrowableCol(1)
+                self.Add(self.estimLabel, (1, 1), border=6, flag=wx.EXPAND | wx.ALL)
+                self.Add(self.ctrls[name], (1, 2), border=6, flag=wx.EXPAND | wx.TOP | wx.BOTTOM)
+        self.AddGrowableCol(2)
 
     def getVisible(self):
         return all(ctrl.IsShown() for ctrl in self.ctrls.values())
