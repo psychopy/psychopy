@@ -589,7 +589,10 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         """
         # If categorical, create tick values from labels
         if self.categorical:
-            self.ticks = np.arange(len(self.labels))
+            if self.labels is None:
+                self.ticks = np.arange(5)
+            else:
+                self.ticks = np.arange(len(self.labels))
             self.granularity = 1.0
         # Calculate positions
         xys = self._ratingToPos(self.ticks)
