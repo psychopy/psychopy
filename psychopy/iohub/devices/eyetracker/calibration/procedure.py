@@ -15,14 +15,29 @@ from psychopy.constants import PLAYING
 
 currentTime = Computer.getTime
 
-class MouseGazePsychopyCalibrationGraphics:
+target_position_count = dict(THREE_POINTS=3,
+                             FIVE_POINTS=5,
+                             NINE_POINTS=9,
+                             THIRTEEN_POINTS=13)
+target_positions = dict()
+target_positions[3] = [(0.5, 0.1), (0.1, 0.9), (0.9, 0.9)]
+target_positions[5] = [(0.5, 0.5), (0.1, 0.1), (0.9, 0.1), (0.9, 0.9), (0.1, 0.9)]
+target_positions[9] = [(0.5, 0.5), (0.1, 0.5), (0.9, 0.5), (0.1, 0.1), (0.5, 0.1),
+                       (0.9, 0.1), (0.9, 0.9), (0.5, 0.9), (0.1, 0.9)]
+target_positions[13] = [(0.5, 0.5), (0.1, 0.5), (0.9, 0.5), (0.1, 0.1), (0.5, 0.1),
+                        (0.9, 0.1), (0.9, 0.9), (0.5, 0.9), (0.1, 0.9), (0.25, 0.25),
+                        (0.25, 0.75), (0.75, 0.75), (0.75, 0.25)]
+
+
+class BaseCalibrationProcedure:
     IOHUB_HEARTBEAT_INTERVAL = 0.050
-    CALIBRATION_POINT_LIST = [(0.5, 0.5), (0.1, 0.1), (0.9, 0.1), (0.9, 0.9), (0.1, 0.9)]
+    CALIBRATION_POINT_LIST = target_positions[9]
 
     _keyboard_key_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key')
 
-    def __init__(self, eyetrackerInterface, calibration_args):
+    def __init__(self, eyetrackerInterface, calibration_args, allow_escape_in_progress=True):
         self._eyetracker = eyetrackerInterface
+        self.allow_escape = allow_escape_in_progress
         self.screenSize = eyetrackerInterface._display_device.getPixelResolution()
         self.width = self.screenSize[0]
         self.height = self.screenSize[1]
@@ -42,51 +57,14 @@ class MouseGazePsychopyCalibrationGraphics:
             color_type = display.getColorSpace()
             self._calibration_args['color_type'] = color_type
 
-        calibration_methods = dict(THREE_POINTS=3,
-                                   FIVE_POINTS=5,
-                                   NINE_POINTS=9,
-                                   THIRTEEN_POINTS=13)
 
         cal_type = self.getCalibSetting('type')
 
-        if cal_type in calibration_methods:
-            num_points = calibration_methods[cal_type]
+        if cal_type in target_position_count:
+            num_points = target_position_count[cal_type]
+            BaseCalibrationProcedure.CALIBRATION_POINT_LIST = target_positions[num_points]
 
-            if num_points == 3:
-                MouseGazePsychopyCalibrationGraphics.CALIBRATION_POINT_LIST = [(0.5, 0.1),
-                                                                               (0.1, 0.9),
-                                                                               (0.9, 0.9)]
-            elif num_points == 5:
-                MouseGazePsychopyCalibrationGraphics.CALIBRATION_POINT_LIST = [(0.5, 0.5),
-                                                                               (0.1, 0.1),
-                                                                               (0.9, 0.1),
-                                                                               (0.9, 0.9),
-                                                                               (0.1, 0.9)]
-            elif num_points == 9:
-                MouseGazePsychopyCalibrationGraphics.CALIBRATION_POINT_LIST = [(0.5, 0.5),
-                                                                               (0.1, 0.5),
-                                                                               (0.9, 0.5),
-                                                                               (0.1, 0.1),
-                                                                               (0.5, 0.1),
-                                                                               (0.9, 0.1),
-                                                                               (0.9, 0.9),
-                                                                               (0.5, 0.9),
-                                                                               (0.1, 0.9)]
-            elif num_points == 13:
-                MouseGazePsychopyCalibrationGraphics.CALIBRATION_POINT_LIST = [(0.5, 0.5),
-                                                                               (0.1, 0.5),
-                                                                               (0.9, 0.5),
-                                                                               (0.1, 0.1),
-                                                                               (0.5, 0.1),
-                                                                               (0.9, 0.1),
-                                                                               (0.9, 0.9),
-                                                                               (0.5, 0.9),
-                                                                               (0.1, 0.9),
-                                                                               (0.25, 0.25),
-                                                                               (0.25, 0.75),
-                                                                               (0.75, 0.75),
-                                                                               (0.75, 0.25)
-                                                                               ]
+        self.cal_target_list = self.CALIBRATION_POINT_LIST
 
         self.window = visual.Window(
             self.screenSize,
@@ -97,9 +75,10 @@ class MouseGazePsychopyCalibrationGraphics:
             screen=display.getIndex(),
             color=self.getCalibSetting(['screen_background_color']),
             colorSpace=color_type)
+        self.window.setMouseVisible(False)
         self.window.flip(clearBuffer=True)
 
-        self._createStim()
+        self.createGraphics()
         self._registerEventMonitors()
         self._lastMsgPumpTime = currentTime()
 
@@ -134,7 +113,7 @@ class MouseGazePsychopyCalibrationGraphics:
             self._ioKeyboard = kbDevice
             self._ioKeyboard._addEventListener(self, eventIDs)
         else:
-            print2err('Warning: MouseGaze Cal GFX could not connect to Keyboard device for events.')
+            print2err('Warning: %s could not connect to Keyboard device for events.' % self.__class__.__name__)
 
     def _unregisterEventMonitors(self):
         if self._ioKeyboard:
@@ -142,7 +121,7 @@ class MouseGazePsychopyCalibrationGraphics:
 
     def _handleEvent(self, event):
         event_type_index = DeviceEvent.EVENT_TYPE_ID_INDEX
-        if event[event_type_index] == EC.KEYBOARD_PRESS:
+        if event[event_type_index] == EC.KEYBOARD_RELEASE:
             ek = event[self._keyboard_key_index]
             if isinstance(ek, bytes):
                 ek = ek.decode('utf-8')
@@ -169,7 +148,7 @@ class MouseGazePsychopyCalibrationGraphics:
             self._msg_queue = self._msg_queue[1:]
             return msg
 
-    def _createStim(self):
+    def createGraphics(self):
         """
         """
         color_type = self.getCalibSetting('color_type')
@@ -224,33 +203,45 @@ class MouseGazePsychopyCalibrationGraphics:
                                             color=tcolor, colorSpace=tctype,
                                             units='pix', wrapWidth=self.width * 0.9)
 
+    def startCalibrationHook(self):
+        pass
+
+    def registerCalibrationPointHook(self, pt):
+        pass
+
+    def finishCalibrationHook(self, aborted=False):
+        pass
+
     def runCalibration(self):
         """Run calibration sequence
         """
-        instuction_text = 'Press SPACE to Start Calibration.'
-        self.showSystemSetupMessageScreen(instuction_text)
+
+        if self.showIntroScreen() is False:
+            # User pressed escape  to exit calibration
+            return False
 
         target_delay = self.getCalibSetting('target_delay')
         target_duration = self.getCalibSetting('target_duration')
         auto_pace = self.getCalibSetting('auto_pace')
-        cal_target_list = self.CALIBRATION_POINT_LIST
         randomize_points = self.getCalibSetting('randomize')
         if randomize_points is True:
             # Randomize all but first target position.
-            cal_target_list = self.CALIBRATION_POINT_LIST[1:]
+            self.cal_target_list = self.CALIBRATION_POINT_LIST[1:]
             import random
             random.seed(None)
-            random.shuffle(cal_target_list)
-            cal_target_list.insert(0, self.CALIBRATION_POINT_LIST[0])
+            random.shuffle(self.cal_target_list)
+            self.cal_target_list.insert(0, self.CALIBRATION_POINT_LIST[0])
 
         left, top, right, bottom = self._eyetracker._display_device.getCoordBounds()
         w, h = right - left, top - bottom
 
         self.clearCalibrationWindow()
 
+        self.startCalibrationHook()
+
         i = 0
         abort_calibration = False
-        for pt in cal_target_list:
+        for pt in self.cal_target_list:
             if abort_calibration:
                 break
             # Convert normalized positions to psychopy window unit positions
@@ -268,7 +259,7 @@ class MouseGazePsychopyCalibrationGraphics:
             while currentTime()-start_time <= target_delay:
                 if animate_enable and i > 0:
                     t = (currentTime()-start_time) / target_delay
-                    v1 = cal_target_list[i-1]
+                    v1 = self.cal_target_list[i-1]
                     v2 = pt
                     t = 60.0 * ((1.0 / 10.0) * t ** 5 - (1.0 / 4.0) * t ** 4 + (1.0 / 6.0) * t ** 3)
                     mx, my = ((1.0 - t) * v1[0] + t * v2[0], (1.0 - t) * v1[1] + t * v2[1])
@@ -282,7 +273,7 @@ class MouseGazePsychopyCalibrationGraphics:
             gevent.sleep(0.001)
             self.MsgPump()
             msg = self.getNextMsg()
-            if msg == 'QUIT':
+            if self.allow_escape and msg == 'QUIT':
                 abort_calibration = True
                 break
 
@@ -330,7 +321,7 @@ class MouseGazePsychopyCalibrationGraphics:
                     msg = self.getNextMsg()
                     if msg == 'SPACE_KEY_ACTION':
                         break
-                    elif msg == 'QUIT':
+                    elif self.allow_escape and msg == 'QUIT':
                         abort_calibration = True
                         break
 
@@ -338,12 +329,14 @@ class MouseGazePsychopyCalibrationGraphics:
             self.MsgPump()
             msg = self.getNextMsg()
             while msg:
-                if msg == 'QUIT':
+                if self.allow_escape and msg == 'QUIT':
                     abort_calibration = True
                     break
                 gevent.sleep(0.001)
                 self.MsgPump()
                 msg = self.getNextMsg()
+
+            self.registerCalibrationPointHook(pt)
 
             self.clearCalibrationWindow()
             self.clearAllEventBuffers()
@@ -352,16 +345,17 @@ class MouseGazePsychopyCalibrationGraphics:
         if self.targetClassHasPlayPause:
             self.targetStim.pause()
 
+        self.finishCalibrationHook(abort_calibration)
+
         if abort_calibration is False:
-            instuction_text = "Calibration Complete. Press 'SPACE' key to continue."
-            self.showSystemSetupMessageScreen(instuction_text)
-            return True
-        return False
+            self.showFinishedScreen()
+
+        return not abort_calibration
 
     def clearCalibrationWindow(self):
         self.window.flip(clearBuffer=True)
 
-    def showSystemSetupMessageScreen(self, text_msg='Press SPACE to Start Calibration; ESCAPE to Exit.'):
+    def showIntroScreen(self, text_msg='Press SPACE to Start Calibration; ESCAPE to Exit.'):
 
         self.clearAllEventBuffers()
 
@@ -379,6 +373,24 @@ class MouseGazePsychopyCalibrationGraphics:
                 return False
             self.MsgPump()
             gevent.sleep(0.001)
+
+    def showFinishedScreen(self, text_msg="Calibration Complete. Press 'SPACE' key to continue."):
+
+        self.clearAllEventBuffers()
+
+        while True:
+            self.textLineStim.setText(text_msg)
+            self.textLineStim.draw()
+            self.window.flip()
+
+            msg = self.getNextMsg()
+            if msg in ['SPACE_KEY_ACTION', 'QUIT']:
+                self.clearAllEventBuffers()
+                return True
+
+            self.MsgPump()
+            gevent.sleep(0.001)
+
 
     def resetTargetProperties(self):
         self.targetStim.size = self.originalTargetSize
