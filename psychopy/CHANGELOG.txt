@@ -56,6 +56,7 @@ PsychoPy 2022.2
   (they were always correct in the log file)
 - Python: Better timing in non-slip Routines. Previously the non-slip timer corrected for overshoots but
   not undershoots. This is now fixed.
+- Python: 3D rendering should be working again.
 
 **Also:**
 

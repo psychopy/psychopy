@@ -325,7 +325,16 @@ class SoundPyo(_SoundBase):
         if pyoSndServer is None or pyoSndServer.getIsBooted() == 0:
             init(rate=sampleRate)
 
-        self.sampleRate = pyoSndServer.getSamplingRate()
+        # Check if the user tried to change the sample rate. Since this isn't
+        # possible presently, just warn the user for now.
+        actualSampleRate = pyoSndServer.getSamplingRate()
+        if actualSampleRate != sampleRate:
+            logging.warning(
+                "Cannot change sample rate to {} since audio server has "
+                "already started, using {} instead.".format(
+                    sampleRate, actualSampleRate))
+
+        self.sampleRate = actualSampleRate
         self.format = bits
         self.isStereo = stereo
         self.channels = 1 + int(stereo)
