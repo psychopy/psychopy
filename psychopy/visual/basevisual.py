@@ -635,6 +635,8 @@ class ForeColorMixin(BaseColorMixin, LegacyForeColorMixin):
         if not self._foreColor:
             self._foreColor = Color()
             logging.error(f"'{value}' is not a valid {self.colorSpace} color")
+        # Handle logging
+        logAttrib(self, log=None, attrib="foreColor", value=value)
 
     @property
     def color(self):
@@ -680,6 +682,8 @@ class FillColorMixin(BaseColorMixin, LegacyFillColorMixin):
             # If given an invalid color, set as transparent and log error
             self._fillColor = Color()
             logging.error(f"'{value}' is not a valid {self.colorSpace} color")
+        # Handle logging
+        logAttrib(self, log=None, attrib="fillColor", value=value)
 
     @property
     def backColor(self):
@@ -720,6 +724,9 @@ class BorderColorMixin(BaseColorMixin, LegacyBorderColorMixin):
             # If given an invalid color, set as transparent and log error
             self._borderColor = Color()
             logging.error(f"'{value}' is not a valid {self.colorSpace} color")
+
+        # Handle logging
+        logAttrib(self, log=None, attrib="borderColor", value=value)
 
     @property
     def lineColor(self):
@@ -1785,7 +1792,10 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         if units is None:
             # need to change this to create several units from one
             units = self.units
-        setAttribute(self, 'size', val2array(newSize, False), log, operation)
+        # If we have an original size (e.g. for an image or movie), then we CAN set size with None
+        useNone = hasattr(self, "origSize")
+        # Set attribute
+        setAttribute(self, 'size', val2array(newSize, useNone), log, operation)
 
     def setOri(self, newOri, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,

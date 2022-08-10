@@ -11,9 +11,8 @@ import os
 from ..... import DeviceEvent, Computer
 from ......constants import EventConstants
 from ......errors import print2err, printExceptionDetailsToStdErr
-from ......util import convertCamelToSnake, win32MessagePump, updateSettings
+from ......util import convertCamelToSnake, win32MessagePump, updateSettings, createCustomCalibrationStim
 import pylink
-
 
 class FixationTarget():
     def __init__(self, psychopy_eyelink_graphics):
@@ -48,6 +47,10 @@ class FixationTarget():
         )
         self.calibrationPointOuter = self.calibrationPoint.outer
         self.calibrationPointInner = self.calibrationPoint.inner
+
+    def setPos(self, pos):
+        self.calibrationPointOuter.pos = pos
+        self.calibrationPointInner.pos = pos
 
     def draw(self, pos=None):
         if pos:
@@ -300,7 +303,7 @@ class IntroScreen():
             s.draw()
 
 
-class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
+class EyeLinkCalibrationProcedure(pylink.EyeLinkCustomDisplay):
     # seconds between forced run through of micro threads, since one is blocking
     # on camera setup.
     IOHUB_HEARTBEAT_INTERVAL = 0.050
@@ -312,7 +315,6 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         self._device_config = self._eyetrackerinterface.getConfiguration()
         updateSettings(self._device_config.get('calibration'), calibration_args)
         self._calibration_args = self._device_config.get('calibration')
-        #print2err("self._calibration_args:", self._calibration_args)
         unit_type = self.getCalibSetting('unit_type')
         if unit_type is None:
             unit_type = display.getCoordinateType()
@@ -367,11 +369,20 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
                                     allowGUI=False,
                                     screen=display.getIndex()
                                     )
-
+        self.window.setMouseVisible(False)
         self.blankdisplay = BlankScreen(self.window, self.getCalibSetting(['screen_background_color']))
         self.textmsg = TextLine(self)
         self.introscreen = IntroScreen(self)
-        self.fixationpoint = FixationTarget(self)
+
+        if self._calibration_args.get('target_type') == 'CIRCLE_TARGET':
+            self.targetStim = FixationTarget(self)
+        else:
+            self.targetStim = createCustomCalibrationStim(self.window, self._calibration_args)
+            if self.targetStim is None:
+                # Error creating custom stim, so use default target stim type
+                self.targetStim = FixationTarget(self)
+
+        self.targetIsAnimated = hasattr(self.targetStim, 'play') and hasattr(self.targetStim, 'pause')
         self.imagetitlestim = None
         self.eye_image = None
         self.state = None
@@ -516,6 +527,9 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
             self.mouse_pos = self._ioMouse.getPosition()
 
     def get_input_key(self):
+        if self.targetStim and self.targetIsAnimated and self._showTarget:
+            self.targetStim.draw()
+            self.window.flip()
         if Computer.getTime() - self._lastMsgPumpTime > self.IOHUB_HEARTBEAT_INTERVAL:
             if self._iohub_server:
                 win32MessagePump()
@@ -533,6 +547,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
     def setup_cal_display(self):
         """Sets up the initial calibration display, which contains a menu with
         instructions."""
+        self._showTarget = False
         self.blankdisplay.draw()
         self.introscreen.draw()
         self.window.flip()
@@ -542,7 +557,6 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         instructions."""
         self.setup_cal_display()
 
-
     def clear_cal_display(self):
         """Clears the calibration display."""
         self.blankdisplay.draw()
@@ -550,6 +564,12 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
 
     def erase_cal_target(self):
         """Removes any visible calibration target graphic from display."""
+        if self.targetIsAnimated:
+            try:
+                self.targetStim.pause()
+            except Exception:
+                print2err("Error calling '.pause()' on iohub eyelink custom calibration target.")
+        self._showTarget = False
         self.clear_cal_display()
 
     def draw_cal_target(self, x, y):
@@ -557,9 +577,15 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         # convert to psychopy pix coords
         x, y = self._eyetrackerinterface._eyeTrackerToDisplayCoords((x, y))
 
-        self.blankdisplay.draw()
-        self.fixationpoint.draw((x, y))
-        self.window.flip()
+        if self.targetIsAnimated:
+            self._showTarget = True
+            self.targetStim.setPos((x, y))
+            self.targetStim.play()
+        else:
+            self.blankdisplay.draw()
+            self.targetStim.setPos((x, y))
+            self.targetStim.draw()
+            self.window.flip()
 
     def setup_image_display(self, width, height):
         """Initialize the index array that will contain camera image data."""

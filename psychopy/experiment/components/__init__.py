@@ -195,12 +195,20 @@ def getComponents(folder=None, fetchIcons=True):
     return components
 
 
-
 def getInitVals(params, target="PsychoPy"):
     """Works out a suitable initial value for a parameter (e.g. to go into the
     __init__ of a stimulus object, avoiding using a variable name if possible
     """
     inits = copy.deepcopy(params)
+    # Alias units = from exp settings with None
+    if 'units' in inits and str(inits['units'].val).lower() in (
+            "from experiment settings",
+            "from exp settings",
+            "none"
+    ):
+        inits['units'].val = "win.units"
+        inits['units'].valType = 'code'
+
     for name in params:
         if target == "PsychoJS":
             # convert (0,0.5) to [0,0.5] but don't convert "rand()" to "rand[]" and don't convert text
