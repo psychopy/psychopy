@@ -369,7 +369,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 self.win,
                 ticks=(-1, 1),
                 labels=None,
-                startValue=0,
+                startValue=1,
                 pos=self.pos + (self.size[0] * 0.95 / 2, 0),
                 size=self.size * (0.05, 1 / 1.2),
                 units=self.units,
