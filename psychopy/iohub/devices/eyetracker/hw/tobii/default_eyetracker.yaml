@@ -149,12 +149,12 @@ eyetracker.hw.tobii.EyeTracker:
                  # go from an expanded state to the smaller size, set this to True.
                  #
                  contract_only: True
-                 # ** movement_velocity: Deprecated, please use target_delay instead. **
+                 # ** movement_velocity: No longer supported, please use target_delay instead. **
                  #
-                 movement_velocity:
-                 # ** expansion_speed: Deprecated, target_duration is now used. **
+                 #movement_velocity:
+                 # ** expansion_speed: No longer supported, target_duration is now used. **
                  #
-                 expansion_speed:
+                 #expansion_speed:
 
     runtime_settings:
         # The supported sampling rates for Tobii are model dependent. 
