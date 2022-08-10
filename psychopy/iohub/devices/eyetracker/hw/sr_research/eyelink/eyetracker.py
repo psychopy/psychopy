@@ -391,8 +391,8 @@ class EyeTracker(EyeTrackerDevice):
             * O = Exit the runSetupProcedure method and continue with the experiment.
         """
         try:
-            from . import eyeLinkCoreGraphicsIOHubPsychopy
-            EyeLinkCoreGraphicsIOHubPsychopy = eyeLinkCoreGraphicsIOHubPsychopy.EyeLinkCoreGraphicsIOHubPsychopy
+            from . import calibration
+            EyeLinkCoreGraphicsIOHubPsychopy = calibration.EyeLinkCalibrationProcedure
 
             already_recording = self.isRecordingEnabled()
             self.setRecordingState(False)

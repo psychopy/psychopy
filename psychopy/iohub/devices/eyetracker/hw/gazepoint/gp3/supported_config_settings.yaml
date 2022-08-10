@@ -47,6 +47,7 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
                 max: 2.5
         use_builtin: IOHUB_BOOL
         # Remaining calibration config settings only apply if use_builtin == False
+        auto_pace: True # GazePoint only supports auto_pace = True, do not change
         type:
             IOHUB_LIST:
                 valid_values: [THREE_POINTS,FIVE_POINTS,NINE_POINTS, THIRTEEN_POINTS]
@@ -65,7 +66,16 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
         randomize: IOHUB_BOOL
         screen_background_color: IOHUB_COLOR
         text_color: IOHUB_COLOR
+        target_type:
+            IOHUB_LIST:
+                valid_values: [CIRCLE_TARGET, CUSTOM]
+                min_length: 1
+                max_length: 1
         target_attributes:
+            custom:
+                module_name:
+                class_name:
+                class_kwargs:
             outer_diameter:
                 IOHUB_FLOAT:
                     min: 0.01

@@ -270,12 +270,13 @@ class RegionOfInterestComponent(PolygonComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
         # Write stop code
-        self.writeStopTestCode(buff)
-        code = (
-            "%(name)s.status = FINISHED\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-2, relative=True)
+        if self.params['stopVal'].val not in ('', None, -1, 'None'):
+            self.writeStopTestCode(buff)
+            code = (
+                "%(name)s.status = FINISHED\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(-2, relative=True)
 
     def writeRoutineEndCode(self, buff):
         BaseVisualComponent.writeRoutineEndCode(self, buff)
