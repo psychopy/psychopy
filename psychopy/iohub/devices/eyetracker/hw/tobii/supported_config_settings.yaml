@@ -64,8 +64,16 @@ eyetracker.hw.tobii.EyeTracker:
                 max: 2.5
         screen_background_color: IOHUB_COLOR
         text_color: IOHUB_COLOR
-        target_type: [CIRCLE_TARGET,]
+        target_type:
+            IOHUB_LIST:
+                valid_values: [ CIRCLE_TARGET, CUSTOM ]
+                min_length: 1
+                max_length: 1
         target_attributes:
+            custom:
+                module_name:
+                class_name:
+                class_kwargs:
             outer_diameter:
                 IOHUB_FLOAT:
                     min: 0.01
@@ -88,18 +96,20 @@ eyetracker.hw.tobii.EyeTracker:
             inner_line_color: IOHUB_COLOR
             animate:
                 enable: IOHUB_BOOL
-                movement_velocity: # 300 pix / sec
-                    IOHUB_FLOAT:
-                        min: -1.0
-                        max: 1000.0
+# movement_velocity is no longer supported, use target_delay instead.
+#                movement_velocity:
+#                    IOHUB_FLOAT:
+#                        min: -1.0
+#                        max: 1000.0
                 expansion_ratio: # expands to 3 x the starting size
                     IOHUB_FLOAT:
                         min: 1.0
                         max: 100.0
-                expansion_speed: # exapands at 30.0 pix / sec
-                    IOHUB_FLOAT:
-                        min: -1.0
-                        max: 100.0
+# expansion_speed is no longer supported, use target_duration instead
+#                expansion_speed:
+#                    IOHUB_FLOAT:
+#                        min: -1.0
+#                        max: 100.0
                 contract_only: IOHUB_BOOL
     device_number: 0
     manufacturer_name: Tobii Technology

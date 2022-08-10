@@ -20,7 +20,7 @@ class Test_Slider(_TestColorMixin, _TestBoilerplateMixin):
         self.win = Window([128,128], pos=[50,50], monitor="testMonitor", allowGUI=False,
                           autoLog=False)
         self.obj = Slider(self.win, units="height", size=(1, 0.1), pos=(0, 0.5), style='radio')
-        self.obj.markerPos = 1
+        self.obj.markerPos = 0
 
         # Pixel which is the border color
         self.borderPoint = (0, 127)
