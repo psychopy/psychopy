@@ -563,6 +563,9 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
             self.ctrls[name].setChangesCallback(self.doValidate)
             if name == 'name':
                 self.ctrls[name].valueCtrl.SetFocus()
+            # Some param ctrls need to grow with page
+            if param.inputType in ('multi', 'fileList'):
+                self.sizer.AddGrowableRow(self.row, proportion=1)
             # Iterate row
             self.row += 1
 
