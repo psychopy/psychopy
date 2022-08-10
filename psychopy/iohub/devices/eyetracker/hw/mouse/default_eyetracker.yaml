@@ -19,7 +19,7 @@ eyetracker.hw.mouse.EyeTracker:
         # target_duration is the number of sec that a calibration point should
         # be displayed before moving onto the next point. Target size expansion / contraction
         # optionally occurs during this time period as well.
-        target_duration: 1.5
+        target_duration: 2.5
 
         # target_delay specifies the time between target position presentations.
         # Target position animation optionally occurs during this time period as well.
@@ -51,6 +51,11 @@ eyetracker.hw.mouse.EyeTracker:
         # text_color specifies the foreground color of any text used during calibration.
         # If empty, text_color is calculated automatically based on screen_background_color.
         text_color:
+
+        # target_type: Defines what form of calibration graphic should be used
+        #   during calibration, validation, etc. Valid options are CIRCLE_TARGET, or CUSTOM.
+        #
+        target_type: CIRCLE_TARGET
 
         # The associated target attribute properties can be supplied
         # for the given target_type.
