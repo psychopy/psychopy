@@ -1069,11 +1069,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             elif self._alignY == "bottom":
                 # Top aligned means scroll between -1 and 0, and adjust for line height
                 adjMulti = (-self.scrollbar.markerPos - 1) / 2
-                adjAdd = -self.glFont.height
+                adjAdd = -self.glFont.descender
             else:
                 # Center aligned means scroll between -0.5 and 0.5, and 50% adjust for line height
                 adjMulti = -self.scrollbar.markerPos / 2
-                adjAdd = -self.glFont.height / 2
+                adjAdd = 0
             self.contentBox._pos.pix = self._pos.pix + (
                 0,
                 (tightH - areaH) * adjMulti + adjAdd
