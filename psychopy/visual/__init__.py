@@ -101,6 +101,7 @@ from psychopy.visual.rift import Rift
 from psychopy.visual.nnlvs import VisualSystemHD
 
 # 3D stimuli support
+from psychopy.visual.panorama import PanoramicImageStim
 from psychopy.visual.stim3d import LightSource
 from psychopy.visual.stim3d import SceneSkybox
 from psychopy.visual.stim3d import BlinnPhongMaterial
