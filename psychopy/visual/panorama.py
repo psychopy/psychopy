@@ -1,9 +1,11 @@
 from . import stim3d
+from .basevisual import MinimalStim
+from .. import constants
 from ..tools import gltools as gl, mathtools as mt
 import numpy as np
 
 
-class PanoramicImageStim(stim3d.SphereStim):
+class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
     """
     Map an image to the inside of a sphere and allow view to be changed via latitude and longitude
     coordinates (between -1 and 1).
@@ -20,8 +22,11 @@ class PanoramicImageStim(stim3d.SphereStim):
     """
     def __init__(self, win,
                  image=None,
-                 latitude=0,
-                 longitude=0):
+                 latitude=None,
+                 longitude=None,
+                 depth=0,
+                 autoDraw=False,
+                 autoLog=False):
         # Create sphere
         stim3d.SphereStim.__init__(
             self, win,
@@ -39,8 +44,16 @@ class PanoramicImageStim(stim3d.SphereStim):
         # Put the panoramic image onto the texture
         self.material.diffuseTexture = gl.createTexImage2dFromFile(image)
         # Set starting lat- and long- itude
+        if latitude is None:
+            latitude = 0
+        if longitude is None:
+            longitude = 0
         self.latitude = latitude
         self.longitude = longitude
+        # Set starting status
+        self.status = constants.NOT_STARTED
+        self.autoDraw = autoDraw
+        self.depth = 0
 
     @property
     def latitude(self):
@@ -72,6 +85,9 @@ class PanoramicImageStim(stim3d.SphereStim):
             mt.quatFromAxisAngle((0, 0, 1), long, degrees=True),
         )
 
+    def setLatitude(self, value, log=False):
+        self.latitude = value
+
     @property
     def longitude(self):
         """
@@ -99,6 +115,9 @@ class PanoramicImageStim(stim3d.SphereStim):
             mt.quatFromAxisAngle((1, 0, 0), value, degrees=True),
             mt.quatFromAxisAngle((0, 0, 1), lat, degrees=True),
         )
+
+    def setLongitude(self, value, log=False):
+        self.longitude = value
 
     def draw(self, win=None):
         # Substitude with own win if none given
