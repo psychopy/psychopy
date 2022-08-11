@@ -12,18 +12,20 @@ some more added:
 
     - fast like TextBox (TextStim is pyglet-based and slow)
     - provides for fonts that aren't monospaced (unlike TextBox)
-    - adds additional options to use <b>bold<\b> and <i>italic<\i> tags in text
+    - adds additional options to use <b>bold<\b>, <i>italic<\i>, <c=#ffffff>color</c> tags in text
 
 """
 import numpy as np
 from arabic_reshaper import ArabicReshaper
 from pyglet import gl
 from bidi import algorithm as bidi
+import re
 
 from ..basevisual import BaseVisualStim, ColorMixin, ContainerMixin, WindowMixin
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import convertToPix
+from psychopy.colors import Color
 from .fontmanager import FontManager, GLFont
 from .. import shaders
 from ..rect import Rect
@@ -38,14 +40,15 @@ rgbShader = None
 alphaShader = None
 showWhiteSpace = False
 
-NONE=0
-ITALIC=1
-BOLD=2
-
 codes = {'BOLD_START': u'\uE100',
          'BOLD_END': u'\uE101',
          'ITAL_START': u'\uE102',
-         'ITAL_END': u'\uE103'}
+         'ITAL_END': u'\uE103',
+         'COLOR_START': u'\uE104',
+         'COLOR_END': u'\uE105'}
+
+# Compile regex pattern for color matching once
+re_hex_pattern = re.compile('<c=#[0-9A-Fa-f]{6}>') # 6-char hex
 
 wordBreaks = " -\n"  # what about ",."?
 
@@ -559,63 +562,71 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @property
     def text(self):
-        lastFormatter = NONE
-        formatted_text = ''
-        styles = self._styles
-        for i, c in enumerate(self._text):
-            if styles[i] == ITALIC and lastFormatter != styles[i]:
-                formatted_text+='<i>%s'%(c)
-            elif styles[i] == BOLD and lastFormatter != styles[i]:
-                formatted_text+='<b>%s'%(c)
-            
-            elif styles[i] != ITALIC and lastFormatter == ITALIC:
-                formatted_text+='</i>%s'%(c)
-            elif styles[i] != BOLD and lastFormatter == BOLD:
-                formatted_text+='</b>%s'%(c)
-            else:
-                formatted_text+=c
-            lastFormatter = styles[i]
-        return formatted_text
+        return self._styles.formatted_text
     
     @text.setter
     def text(self, text):
         # Convert to string
         text = str(text)
+        original_text = text
         # Substitute HTML tags
         text = text.replace('<i>', codes['ITAL_START'])
         text = text.replace('</i>', codes['ITAL_END'])
         text = text.replace('<b>', codes['BOLD_START'])
-        text = text.replace('</b>', codes['BOLD_END'])      
+        text = text.replace('</b>', codes['BOLD_END'])
+        text = text.replace('</c>', codes['COLOR_END'])
+
+        # Handle starting color tag
+        color_values = re.findall(re_hex_pattern, text)
+
+        # Only execute if color codes are found to save a regex call
+        if len(color_values) > 0:
+            text = re.sub(re_hex_pattern, codes['COLOR_START'], text)
+            
+            # Convert color_values from markdown+hex to RGBA (0, 1) for _layout
+            color_values = [Color(v[3:-1], 'hex').render('rgba1') for v in color_values]
+        
         visible_text = ''.join([c for c in text if c not in codes.values()])
-        self._styles = [0,]*len(visible_text)
+        self._styles = Style(len(visible_text))
+        self._styles.formatted_text = original_text
         self._text = visible_text
         if self._needsArabic and hasattr(self, "arabicReshaper"):
             self._text = self.arabicReshaper.reshape(self._text)
         if self._needsBidi:
             self._text = bidi.get_display(self._text)
         
-        current_style=0
+        color_iter = 0       # iterator for color_values list
+        current_color = [()] # keeps track of color style(s)
+        is_bold = False
+        is_italic = False
         ci = 0
         for c in text:
             if c == codes['ITAL_START']:
-                current_style += ITALIC
+                is_italic = True
             elif c == codes['BOLD_START']:
-                current_style += BOLD
-            elif c == codes['BOLD_END']:
-                current_style -= BOLD
+                is_bold = True
+            elif c == codes['COLOR_START']:
+                current_color.append(color_values[color_iter])
+                color_iter += 1
             elif c == codes['ITAL_END']:
-                current_style -= ITALIC
+                is_italic = False
+            elif c == codes['BOLD_END']:
+                is_bold = False
+            elif c == codes['COLOR_END']:
+                current_color.pop()
             else:
-                self._styles[ci]=current_style
-                ci+=1
-                
+                self._styles.c[ci] = current_color[-1]
+                self._styles.i[ci] = is_italic
+                self._styles.b[ci] = is_bold
+                ci += 1
+        
         self._layout()
 
     def addCharAtCaret(self, char):
         """Allows a character to be added programmatically at the current caret"""
         txt = self._text
         txt = txt[:self.caret.index] + char + txt[self.caret.index:]
-        cstyle = NONE
+        cstyle = Style(1)
         if len(self._styles) and self.caret.index <= len(self._styles):
             cstyle = self._styles[self.caret.index-1]
         self._styles.insert(self.caret.index, cstyle)
@@ -687,12 +698,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             for i, charcode in enumerate(self._text):
                 printable = True  # unless we decide otherwise
                 # handle formatting codes
-                if self._styles[i] == NONE:
-                    fakeItalic = 0.0
-                    fakeBold = 0.0
-                elif self._styles[i] == ITALIC:
+                fakeItalic = 0.0
+                fakeBold = 0.0
+                if self._styles.i[i]:
                     fakeItalic = 0.1 * font.size
-                elif self._styles[i] == BOLD:
+                if self._styles.b[i]:
                     fakeBold = 0.3 * font.size
 
                 # handle newline
@@ -743,7 +753,12 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
                 vertices[i * 4:i * 4 + 4] = theseVertices
                 self._texcoords[i * 4:i * 4 + 4] = texcoords
-                self._colors[i*4 : i*4+4, :4] = rgb
+                # handle character color
+                rgb_ = self._styles.c[i]
+                if len(rgb_) > 0:
+                    self._colors[i*4 : i*4+4, :4] = rgb_ # set custom color
+                else:
+                    self._colors[i*4 : i*4+4, :4] = rgb # set default color
                 self._lineNs[i] = lineN
                 current[0] = current[0] + glyph.advance[0] + fakeBold / 2
                 current[1] = current[1] + glyph.advance[1]
@@ -816,12 +831,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 for i, charcode in enumerate(text_seg[this_seg]):
                     printable = True  # unless we decide otherwise
                     # handle formatting codes
-                    if styles_seg[this_seg][i] == NONE:
-                        fakeItalic = 0.0
-                        fakeBold = 0.0
-                    elif styles_seg[this_seg][i] == ITALIC:
+                    fakeItalic = 0.0
+                    fakeBold = 0.0
+                    if self._styles.i[i]:
                         fakeItalic = 0.1 * font.size
-                    elif styles_seg[this_seg][i] == ITALIC:
+                    if self._styles.b[i]:
                         fakeBold = 0.3 * font.size
 
                     # handle newline
@@ -910,7 +924,12 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
                         vertices[i * 4:i * 4 + 4] = theseVertices
                         self._texcoords[i * 4:i * 4 + 4] = texcoords
-                        self._colors[i*4 : i*4+4, :4] = rgb
+                        # handle character color
+                        rgb_ = self._styles.c[i]
+                        if len(rgb_) > 0:
+                            self._colors[i*4 : i*4+4, :4] = rgb_ # set custom color
+                        else:
+                            self._colors[i*4 : i*4+4, :4] = rgb # set default color
                         self._lineNs[i] = lineN
 
                         current[0] = current[0] + charwidth_list[i]
@@ -1428,3 +1447,49 @@ class Caret(ColorMixin):
             [x, bottom],
             [x, top]
         ])
+
+class Style:
+    # Define a simple Style class for storing information in text().
+    # Additional features exist to maintain extant edit/caret syntax
+    def __init__(self, text_length, i=None, b=None, c=None):
+        self.len = text_length
+        self.i = i
+        self.b = b
+        self.c = c
+        if i == None:
+            self.i = [False]*text_length
+        if b == None:
+            self.b = [False]*text_length
+        if c == None:
+            self.c = [()]*text_length
+        self.formatted_text = ''
+    
+    def __len__(self):
+        return self.len
+    
+    def __getitem__(self, i):
+        # Return a new Style object with data from current index
+        if isinstance(i, int):
+            s = Style(1, [self.i[i]], [self.b[i]], [self.c[i]])
+        else:
+            s = Style(len(self.i[i]), self.i[i], self.b[i], self.c[i])
+        return s
+    
+    def __add__(self, c):
+        s = self.copy()
+        s.insert(len(s), c)
+        return s
+    
+    def copy(self):
+        s = Style(self.len, self.i.copy(), self.b.copy(), self.c.copy())
+        s.formatted_text = self.formatted_text
+        return s
+    
+    def insert(self, i, style):
+        # in-place, like list
+        if not isinstance(style, Style):
+            raise TypeError('Inserted object must be Style.')
+        self.i[i:i] = style.i
+        self.b[i:i] = style.b
+        self.c[i:i] = style.c
+        self.len += len(style)
