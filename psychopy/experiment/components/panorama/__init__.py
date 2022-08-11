@@ -18,7 +18,7 @@ class PanoramaComponent(BaseVisualComponent):
     """
     categories = ['Stimuli']
     targets = ['PsychoPy']
-    iconFile = Path(__file__).parent / 'unknown.png'
+    iconFile = Path(__file__).parent / 'panorama.png'
     tooltip = _translate('Panorama: Present a panoramic image (such as from a phone camera in Panorama mode) on '
                          'screen.')
 
