@@ -4,6 +4,8 @@ from .. import constants
 from ..tools import gltools as gl, mathtools as mt
 import numpy as np
 
+from ..tools.attributetools import attributeSetter
+
 
 class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
     """
@@ -42,12 +44,8 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
             shininess=1
         )
         # Put the panoramic image onto the texture
-        self.material.diffuseTexture = gl.createTexImage2dFromFile(image)
+        self.material.diffuseTexture = gl.createTexImage2dFromFile(image, transpose=False)
         # Set starting lat- and long- itude
-        if latitude is None:
-            latitude = 0
-        if longitude is None:
-            longitude = 0
         self.latitude = latitude
         self.longitude = longitude
         # Set starting status
@@ -55,66 +53,44 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
         self.autoDraw = autoDraw
         self.depth = 0
 
-    @property
-    def latitude(self):
+    @attributeSetter
+    def latitude(self, value):
         """
         Horizontal view point between -1 (180 degrees to the left) and +1 (180 degrees to the right).
         """
-        # todo: Calculate angle from ori
-        if hasattr(self, "_latitude"):
-            return self._latitude
-        else:
-            return 0
-
-    @latitude.setter
-    def latitude(self, value):
-        value = np.clip(value, -1, 1)
+        if value is None:
+            value = 0
         # Store value
-        self._latitude = value
-        # Force long to positive as we only need 180 degrees of rotation
-        long = self.longitude
-        long += 1
-        long /= 2
-        long = np.clip(value, 0, 1)
+        value = np.clip(value, -1, 1)
+        self.__dict__['latitude'] = value
         # Get lat and long in degrees
         value = self._normToDegrees(value)
-        long = self._normToDegrees(long)
         # Calculate ori
-        self.ori = mt.multQuat(
-            mt.quatFromAxisAngle((1, 0, 0), value, degrees=True),
-            mt.quatFromAxisAngle((0, 0, 1), long, degrees=True),
-        )
+        self.latQuat = mt.quatFromAxisAngle((0, 0, 1), value, degrees=True)
+        self._needsOriUpdate = True
 
     def setLatitude(self, value, log=False):
         self.latitude = value
 
-    @property
-    def longitude(self):
+    @attributeSetter
+    def longitude(self, value):
         """
         Vertical view point between -1 (directly downwards) and 1 (directly upwards).
         """
-        # todo: Calculate angle from ori
-        if hasattr(self, "_longitude"):
-            return self._longitude
-        else:
-            return 0
-
-    @longitude.setter
-    def longitude(self, value):
+        if value is None:
+            value = 0
         # Store value
-        self._longitude = value
+        value = np.clip(value, -1, 1)
+        self.__dict__['longitude'] = value
         # Force to positive as we only need 180 degrees of rotation
         value += 1
         value /= 2
         value = np.clip(value, 0, 1)
         # Get lat and long in degrees
         value = self._normToDegrees(value)
-        lat = self._normToDegrees(self.latitude)
         # Calculate ori
-        self.ori = mt.multQuat(
-            mt.quatFromAxisAngle((1, 0, 0), value, degrees=True),
-            mt.quatFromAxisAngle((0, 0, 1), lat, degrees=True),
-        )
+        self.longQuat = mt.quatFromAxisAngle((1, 0, 0), value, degrees=True)
+        self._needsOriUpdate = True
 
     def setLongitude(self, value, log=False):
         self.longitude = value
@@ -126,6 +102,9 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
         # Enter 3d perspective
         win.setPerspectiveView()
         win.useLights = True
+        # Calculate ori from latitude and longitude quats if needed
+        if self._needsOriUpdate:
+            self.ori = mt.multQuat(self.longQuat, self.latQuat)
         # Do base sphere drawing
         stim3d.SphereStim.draw(self, win=win)
         # Exit 3d perspective
