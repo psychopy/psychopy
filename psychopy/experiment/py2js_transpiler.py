@@ -446,9 +446,20 @@ def transformPsychoJsCode(psychoJsCode, addons, namespace=[]):
         include = True
 
         # Remove var defs if variable is defined earlier in experiment
-        for name in namespace:
-            if lines[index] == f"var {name};":
+        if lines[index].startswith("var "):
+            # Get var names
+            varNames = lines[index][4:-1].split(", ")
+            validVarNames = []
+            for varName in varNames:
+                if varName not in namespace:
+                    # If var name not is already in namespace, keep it in
+                    validVarNames.append(varName)
+            # If there are no var names left, remove statement altogether
+            if not len(validVarNames):
                 include = False
+            # Recombine line
+            lines[index] = f"var {', '.join(validVarNames)};"
+
         # Append line
         if include:
             transformedPsychoJSCode += lines[index]
