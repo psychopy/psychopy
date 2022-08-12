@@ -405,11 +405,12 @@ def transformNode(astNode):
     return pythonBuiltinTransformedNode, visitor.addons
 
 
-def transformPsychoJsCode(psychoJsCode, addons):
+def transformPsychoJsCode(psychoJsCode, addons, namespace=[]):
     """Transform the input PsychoJS code.
 
     Args:
         psychoJsCode (str): the input PsychoJS JavaScript code
+        namespace (list): list of varnames which are already defined
 
     Returns:
         (str) the transformed code
@@ -441,21 +442,27 @@ def transformPsychoJsCode(psychoJsCode, addons):
     else:
         startIndex = 0
 
-    if lines[startIndex].find('var ') == 0:
-        startIndex += 1
-
     for index in range(startIndex, len(lines)):
-        transformedPsychoJSCode += lines[index]
-        transformedPsychoJSCode += '\n'
+        include = True
+
+        # Remove var defs if variable is defined earlier in experiment
+        for name in namespace:
+            if lines[index] == f"var {name};":
+                include = False
+        # Append line
+        if include:
+            transformedPsychoJSCode += lines[index]
+            transformedPsychoJSCode += '\n'
 
     return transformedPsychoJSCode
 
 
-def translatePythonToJavaScript(psychoPyCode):
+def translatePythonToJavaScript(psychoPyCode, namespace=[]):
     """Translate PsychoPy python code into PsychoJS JavaScript code.
 
     Args:
         psychoPyCode (str): the input PsychoPy python code
+        namespace (list): list of varnames which are already defined
 
     Returns:
         str: the PsychoJS JavaScript code
@@ -497,7 +504,7 @@ def translatePythonToJavaScript(psychoPyCode):
 
     # transform the JavaScript code:
     try:
-        transformedPsychoJsCode = transformPsychoJsCode(psychoJsCode, addons)
+        transformedPsychoJsCode = transformPsychoJsCode(psychoJsCode, addons, namespace=namespace)
     except Exception as error:
         raise Exception('unable to transform the PsychoJS JavaScript code: ' + str(error))
 
