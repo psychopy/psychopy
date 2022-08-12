@@ -136,7 +136,7 @@ class SettingsComponent:
                  plPupilCaptureRecordingEnabled=True,
                  plPupilCaptureRecordingLocation="",
                  keyboardBackend="ioHub",
-                 filename=None, exportHTML='on Sync'):
+                 filename=None, dateFormat="%Y-%m-%d_%Hh%M.%S.%f", exportHTML='on Sync'):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
@@ -157,8 +157,8 @@ class SettingsComponent:
         self.params = {}
         self.depends = []
         self.order = ['expName', 'Use version', 'Show info dlg', 'Enable Escape',  'Experiment info',  # Basic tab
-                      'Data filename', 'Data file delimiter', 'Save excel file', 'Save csv file', 'Save wide csv file',
-                      'Save psydat file', 'Save hdf5 file', 'Save log file', 'logging level',  # Data tab
+                      'Data filename', 'dateFormat', 'Data file delimiter', 'Save excel file', 'Save csv file',
+                      'Save wide csv file', 'Save psydat file', 'Save hdf5 file', 'Save log file', 'logging level',  # Data tab
                       'Audio lib', 'Audio latency priority', "Force stereo",  # Audio tab
                       'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'Resources',  # Online tab
                       'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Show mouse', 'Units', 'color',
@@ -293,6 +293,12 @@ class SettingsComponent:
             hint=_translate("Code to create your custom file name base. Don"
                             "'t give a file extension - this will be added."),
             label=_localized["Data filename"], categ='Data')
+        self.params['dateFormat'] = Param(
+            dateFormat, valType="str", inputType="single",
+            hint=_translate("Format in which to get the date and time for expInfo. For info on what the syntax means, "
+                            "look up the '1989 C datetime format'."),
+            label=_translate("Date format"), categ='Data'
+        )
         self.params['Data file delimiter'] = Param(
             savedDataDelim, valType='str', inputType="choice",
             allowedVals=['auto', 'comma', 'semicolon', 'tab'],
@@ -915,6 +921,7 @@ class SettingsComponent:
         code = template.format(
             params=self.params,
             filename=str(self.params['Data filename']),
+            dateFormat=self.params['dateFormat'],
             name=self.params['expName'].val,
             loggingLevel=self.params['logging level'].val.upper(),
             setRedirectURL=setRedirectURL,
@@ -969,10 +976,12 @@ class SettingsComponent:
                 f"if dlg.OK == False:\n"
                 f"    core.quit()  # user pressed cancel\n"
             )
-        buff.writeIndentedLines(
-            "expInfo['date'] = data.getDateStr()  # add a simple timestamp\n"
+        code = (
+            "expInfo['date'] = data.getDateStr(%(dateFormat)s)  # add a simple timestamp\n"
             "expInfo['expName'] = expName\n"
-            "expInfo['psychopyVersion'] = psychopyVersion\n")
+            "expInfo['psychopyVersion'] = psychopyVersion\n"
+        )
+        buff.writeIndentedLines(code % self.params)
         level = self.params['logging level'].val.upper()
 
         saveToDir = self.getSaveDataDir()
