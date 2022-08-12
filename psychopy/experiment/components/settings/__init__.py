@@ -244,7 +244,7 @@ class SettingsComponent:
             label=_localized["Units"], categ='Screen')
         self.params['blendMode'] = Param(
             blendMode, valType='str', inputType="choice",
-            allowedTypes=[], allowedVals=['add', 'avg'],
+            allowedTypes=[], allowedVals=['', 'add', 'avg'],
             hint=_translate("Should new stimuli be added or averaged with "
                             "the stimuli that have been drawn already"),
             label=_localized["blendMode"], categ='Screen')
@@ -1354,7 +1354,7 @@ class SettingsComponent:
 
         code = ("    monitor=%(Monitor)s, color=%(color)s, "
                 "colorSpace=%(colorSpace)s,\n")
-        if self.params['blendMode'].val:
+        if self.params['blendMode'].val != "":
             code += "    blendMode=%(blendMode)s, useFBO=True, \n"
 
         if self.params['Units'].val != 'use prefs':
