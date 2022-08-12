@@ -22,8 +22,7 @@ mov = visual.MovieStim(
     loop=False,
     noAudio=False,
     volume=0.1,
-    autoStart=False,
-    replayOnStop=True)
+    autoStart=False)
 
 # print some information about the movie
 print('orig movie size={}'.format(mov.frameSize))
