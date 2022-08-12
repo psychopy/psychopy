@@ -15,6 +15,8 @@ some more added:
     - adds additional options to use <b>bold<\b>, <i>italic<\i>, <c=#ffffff>color</c> tags in text
 
 """
+from ast import literal_eval
+
 import numpy as np
 from arabic_reshaper import ArabicReshaper
 from pyglet import gl
@@ -48,7 +50,8 @@ codes = {'BOLD_START': u'\uE100',
          'COLOR_END': u'\uE105'}
 
 # Compile regex pattern for color matching once
-re_hex_pattern = re.compile('<c=#[0-9A-Fa-f]{6}>') # 6-char hex
+re_color_pattern = re.compile('<c=[^>]*>')
+_colorCache = {}
 
 wordBreaks = " -\n"  # what about ",."?
 
@@ -577,14 +580,27 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         text = text.replace('</c>', codes['COLOR_END'])
 
         # Handle starting color tag
-        color_values = re.findall(re_hex_pattern, text)
-
+        colorMatches = re.findall(re_color_pattern, text)
         # Only execute if color codes are found to save a regex call
-        if len(color_values) > 0:
-            text = re.sub(re_hex_pattern, codes['COLOR_START'], text)
-            
-            # Convert color_values from markdown+hex to RGBA (0, 1) for _layout
-            color_values = [Color(v[3:-1], 'hex').render('rgba1') for v in color_values]
+        if len(colorMatches) > 0:
+            text = re.sub(re_color_pattern, codes['COLOR_START'], text)
+        # Interpret colors from tags
+        color_values = []
+        for match in colorMatches:
+            # Strip C tag
+            matchKey = match.replace("<c=", "").replace(">", "")
+            # Convert to arrays as needed
+            try:
+                matchVal = literal_eval(matchKey)
+            except (ValueError, SyntaxError):
+                # If eval fails, use value as is
+                matchVal = matchKey
+            # Retrieve/cache color
+            if matchKey not in _colorCache:
+                _colorCache[matchKey] = Color(matchVal, self.colorSpace)
+                if not _colorCache[matchKey].valid:
+                    raise ValueError(f"Could not interpret color value for `{matchKey}` in textbox.")
+            color_values.append(_colorCache[matchKey].render('rgba1'))
         
         visible_text = ''.join([c for c in text if c not in codes.values()])
         self._styles = Style(len(visible_text))
