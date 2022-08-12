@@ -155,6 +155,52 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
                 # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
                 utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
 
+    def test_char_colors(self):
+        cases = [
+            # Named color
+            {'text': "<c=white>Hello</c> there",
+             'space': "rgb",
+             'base': "black",
+             'screenshot': "white_hello_black_there"},
+            # Hex color
+            {'text': "<c=#ffffff>Hello</c> there",
+             'space': "rgb",
+             'base': "black",
+             'screenshot': "white_hello_black_there"},
+            # RGB color
+            {'text': "<c=(1, 1, 1)>Hello</c> there",
+             'space': "rgb",
+             'base': "black",
+             'screenshot': "white_hello_black_there"},
+            # RGB255 color
+            {'text': "<c=(255, 255, 255)>Hello</c> there",
+             'space': "rgb255",
+             'base': "black",
+             'screenshot': "white_hello_black_there"},
+            # Rainbow
+            {'text': (
+                "<c=red>R</c><c=orange>o</c><c=yellow>y</c> <c=green>G.</c> "
+                "<c=blue>B</c><c=indigo>i</c><c=violet>v</c> is a colorful man and he proudly stands at "
+                "the rainbow's end"
+            ),
+                'space': "rgb",
+                'base': "white",
+                'screenshot': "roygbiv"},
+        ]
+
+        for case in cases:
+            # Set attributes from test cases
+            self.textbox.colorSpace = case['space']
+            self.textbox.color = case['base']
+            self.textbox.text = case['text']
+            # Draw
+            self.win.flip()
+            self.textbox.draw()
+            # Compare screenshot
+            filename = "textbox_charcolors_{}_{}.png".format(self.textbox._lineBreaking, case['screenshot'])
+            #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+            utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
+
     def test_caret_position(self):
 
         # Identify key indices to test
