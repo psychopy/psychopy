@@ -443,10 +443,11 @@ class AppTheme(dict):
         # If we have a new theme, do setup
         cache = {
             'base': AppFont(),
-            'h1': AppFont(pointSize=36),
-            'h2': AppFont(pointSize=28),
-            'h3': AppFont(pointSize=24),
-            'h4': AppFont(pointSize=18),
+            'h1': AppFont(pointSize=24),
+            'h2': AppFont(pointSize=18),
+            'h3': AppFont(pointSize=14),
+            'h4': AppFont(pointSize=12),
+            'h5': AppFont(pointSize=9, bold=True)
         }
 
         dict.__setitem__(self, name, cache)
@@ -454,7 +455,7 @@ class AppTheme(dict):
 
 class AppFont:
     # Defaults are defined at class level, so they can change with theme
-    pointSize = 12
+    pointSize = 9
     foreColor = "#000000"
     backColor = wx.TRANSPARENT
     bold = False
