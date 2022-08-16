@@ -208,6 +208,92 @@ def computeChecksum(fpath, method='sha256', writeOut=None):
     return checksumStr
 
 
+class PluginInfo:
+    """
+    Minimal class to store info about a plugin.
+
+    Parameters
+    ----------
+    source : str
+        Is this a community plugin ("community") or one curated by us ("curated")?
+    pipName : str
+        Name of plugin on pip, e.g. "psychopy-legacy"
+    name : str
+        Plugin name for display, e.g. "Psychopy Legacy"
+    icon : wx.Bitmap or None
+        Icon for the plugin, if any (if None, will use blank bitmap)
+    description : str
+        Description of the plugin
+    installed : bool
+        Whether or not the plugin in installed on this system
+    active : bool
+        Whether or not the plug is enabled on this system (if not installed, will always be False)
+    """
+    def __init__(self, source,
+                 pipName, name="",
+                 icon=None, description="",
+                 installed=False, active=False):
+        self.source = source
+        self.pipName = pipName
+        self.name = name
+        self.icon = icon
+        self.description = description
+        self.installed = installed
+        self.active = installed and active
+
+
+def getAllPluginDetails():
+    """
+    Placeholder function - returns an example list of objects with desired structure.
+
+    todo: Actually scan for plugins
+    """
+    return [
+        PluginInfo(
+            source="curated",
+            pipName="psychopy-transcription",
+            name="Microphone Transcription",
+            description=(
+                "Packages necessary to provide a text transcription of local Microphone recordings, either through a "
+                "free Python package or through Google's paid transcription service."
+            ),
+            installed=False,
+            active=False
+        ),
+        PluginInfo(
+            source="curated",
+            pipName="psychopy-buttonboxes",
+            name="Button Boxes",
+            description=(
+                "Components for working with button boxes such as those by Cedrus or ioLabs."
+            ),
+            installed=True,
+            active=True
+        ),
+        PluginInfo(
+            source="curated",
+            pipName="psychopy-legacy",
+            name="PsychoPy Legacy",
+            description=(
+                "Contains depricated components which are no longer needed or in active development, allowing you "
+                "to work with old experiments using these components."
+            ),
+            installed=True,
+            active=False
+        ),
+        PluginInfo(
+            source="community",
+            pipName="psychopy-empatica",
+            name="Empatica",
+            description=(
+                "Components for working with Empatica EEG systems."
+            ),
+            installed=False,
+            active=False
+        ),
+    ]
+
+
 def scanPlugins():
     """Scan the system for installed plugins.
 

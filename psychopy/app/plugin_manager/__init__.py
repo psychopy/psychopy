@@ -71,8 +71,10 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         """
         Individual item pointing to a plugin
         """
-        def __init__(self, parent, name, pipName, installed=False, active=False):
+        def __init__(self, parent, info):
             wx.Panel.__init__(self, parent=parent, style=wx.SIMPLE_BORDER)
+            # Link info object
+            self.info = info
             # Setup sizer
             self.border = wx.BoxSizer(wx.VERTICAL)
             self.SetSizer(self.border)
@@ -84,21 +86,23 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
             self.sizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.EXPAND)
             # Add label
             self.label = wx.BoxSizer(wx.VERTICAL)
-            self.nameLbl = wx.StaticText(self, label=name)
+            self.nameLbl = wx.StaticText(self, label=info.name)
             self.label.Add(self.nameLbl, flag=wx.ALIGN_LEFT)
-            self.pipNameLbl = wx.StaticText(self, label=pipName)
+            self.pipNameLbl = wx.StaticText(self, label=info.pipName)
             self.label.Add(self.pipNameLbl, flag=wx.ALIGN_LEFT)
             self.sizer.Add(self.label, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
             # Add install button
-            self.installBtn = utils.HoverButton(self, label=_translate("Install"), style=wx.BORDER_NONE)
+            self.installBtn = utils.HoverButton(self,
+                                                label=_translate("Install"),
+                                                style=wx.BORDER_NONE | wx.BU_LEFT)
             self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
             self.sizer.AddSpacer(24)
             self.sizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
 
             # Set initial value
-            self.installed = installed
-            self.markInstalled(installed)
-            self.activeBtn.SetValue(active)
+            self.installed = info.installed
+            self.markInstalled(info.installed)
+            self.activeBtn.SetValue(info.active)
 
         def _applyAppTheme(self):
             # Set colors
@@ -161,27 +165,12 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         self.populate()
 
     def populate(self):
-        self.appendItem(
-            source="curated",
-            name="Microphone Transcription",
-            pipName="psychopy-transcription",
-            installed=False,
-            active=False
-        )
-        self.appendItem(
-            source="curated",
-            name="Button Boxes",
-            pipName="psychopy-buttonboxes",
-            installed=True,
-            active=False
-        )
-        self.appendItem(
-            source="community",
-            name="Empatica",
-            pipName="psychopy-empatica",
-            installed=False,
-            active=False
-        )
+        # Get all plugin details
+        items = plugins.getAllPluginDetails()
+        # Put installed packages at top of list
+        items.sort(key=lambda obj: obj.installed, reverse=True)
+        for item in items:
+            self.appendItem(item)
 
     def _applyAppTheme(self):
         # Set colors
@@ -190,10 +179,10 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         self.curatedLbl.SetFont(fonts.appTheme['h2'].obj)
         self.communityLbl.SetFont(fonts.appTheme['h2'].obj)
 
-    def appendItem(self, source, name, pipName, installed, active):
-        item = self.PluginListItem(self, name=name, pipName=pipName, installed=installed, active=active)
-        self.items[source].append(item)
-        self.itemSizers[source].Add(item, border=6, flag=wx.ALL | wx.EXPAND)
+    def appendItem(self, info):
+        item = self.PluginListItem(self, info)
+        self.items[info.source].append(item)
+        self.itemSizers[info.source].Add(item, border=6, flag=wx.ALL | wx.EXPAND)
 
 # ---
 
