@@ -177,7 +177,9 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         self.SetBackgroundColour(colors.app['panel_bg'])
         # Set fonts
         self.curatedLbl.SetFont(fonts.appTheme['h2'].obj)
+        self.curatedLbl.SetForegroundColour(colors.app['text'])
         self.communityLbl.SetFont(fonts.appTheme['h2'].obj)
+        self.communityLbl.SetForegroundColour(colors.app['text'])
 
     def appendItem(self, info):
         item = self.PluginListItem(self, info)
