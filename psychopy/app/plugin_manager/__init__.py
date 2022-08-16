@@ -51,12 +51,13 @@ class PluginManagerDlg(wx.Dialog, handlers.ThemeMixin):
         self.SetSizer(self.border)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
-        # Add list
-        self.pluginList = PluginBrowserList(self)
-        self.sizer.Add(self.pluginList, proportion=1/2, border=6, flag=wx.ALL | wx.EXPAND)
-        # Add viewer
-        self.pluginViewer = wx.Panel(self)
-        self.sizer.Add(self.pluginViewer, proportion=1/2, border=6, flag=wx.ALL | wx.EXPAND)
+        # Make viewer
+        self.pluginViewer = PluginDetailsPanel(self)
+        # Make list
+        self.pluginList = PluginBrowserList(self, viewer=self.pluginViewer)
+        # Add to sizer
+        self.sizer.Add(self.pluginList, border=6, flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(self.pluginViewer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
 
         self.Layout()
         self.theme = theme.app
@@ -73,6 +74,7 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         """
         def __init__(self, parent, info):
             wx.Panel.__init__(self, parent=parent, style=wx.SIMPLE_BORDER)
+            self.parent = parent
             # Link info object
             self.info = info
             # Setup sizer
@@ -99,6 +101,11 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
             self.sizer.AddSpacer(24)
             self.sizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
 
+            # Map to onclick function
+            self.Bind(wx.EVT_LEFT_DOWN, self.onView)
+            self.nameLbl.Bind(wx.EVT_LEFT_DOWN, self.onView)
+            self.pipNameLbl.Bind(wx.EVT_LEFT_DOWN, self.onView)
+
             # Set initial value
             self.installed = info.installed
             self.markInstalled(info.installed)
@@ -119,6 +126,9 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
             self.installBtn.SetBitmapDisabled(icons.ButtonIcon("greytick", 16).bitmap)
             self.installBtn.SetBitmapMargins(6, 3)
             self.installBtn._applyAppTheme()
+
+        def onView(self, evt=None):
+            self.parent.viewer.info = self.info
 
         def onInstall(self, evt=None):
             self.markInstalled(True)
@@ -141,8 +151,9 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
                 # Update label
                 self.installBtn.SetLabelText(_translate("Install"))
 
-    def __init__(self, parent):
+    def __init__(self, parent, viewer):
         wx.Panel.__init__(self, parent=parent)
+        self.viewer = viewer
         # Setup sizer
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -159,6 +170,8 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         self.communityLbl = wx.StaticText(self, label=_translate("Community Plugins"))
         self.sizer.Add(self.communityLbl, border=3, flag=wx.ALL | wx.EXPAND)
         self.sizer.Add(self.itemSizers['community'], border=3, flag=wx.ALL | wx.EXPAND)
+        # Bind deselect
+        self.Bind(wx.EVT_LEFT_DOWN, self.onDeselect)
 
         # Setup items
         self.items = {'curated': [], 'community': []}
@@ -171,6 +184,9 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         items.sort(key=lambda obj: obj.installed, reverse=True)
         for item in items:
             self.appendItem(item)
+
+    def onDeselect(self, evt=None):
+        self.viewer.info = None
 
     def _applyAppTheme(self):
         # Set colors
@@ -185,6 +201,79 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         item = self.PluginListItem(self, info)
         self.items[info.source].append(item)
         self.itemSizers[info.source].Add(item, border=6, flag=wx.ALL | wx.EXPAND)
+
+
+class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
+    def __init__(self, parent, info=None):
+        wx.Panel.__init__(self, parent)
+        # Setup sizers
+        self.border = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.border)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        self.headSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.headSizer, flag=wx.EXPAND)
+        # Icon ctrl
+        self.icon = wx.StaticBitmap(self, bitmap=wx.Bitmap(), size=(128, 128), style=wx.SIMPLE_BORDER)
+        self.headSizer.Add(self.icon, border=6, flag=wx.ALL | wx.EXPAND)
+        # Title
+        self.titleSizer = wx.BoxSizer(wx.VERTICAL)
+        self.headSizer.Add(self.titleSizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        self.title = wx.StaticText(self, label="...")
+        self.titleSizer.Add(self.title, flag=wx.EXPAND)
+        # Pip name
+        self.pipName = wx.StaticText(self, label="psychopy-...")
+        self.titleSizer.Add(self.pipName, flag=wx.EXPAND)
+        # Description
+        self.description = wx.TextCtrl(self, value="",
+                                       style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL)
+        self.sizer.Add(self.description, border=12, proportion=1, flag=wx.ALL | wx.EXPAND)
+
+        self.info = info
+        self.Layout()
+
+    def _applyAppTheme(self):
+        # Set background
+        self.SetBackgroundColour(colors.app['tab_bg'])
+        # Set fonts
+        self.title.SetFont(fonts.appTheme['h1'].obj)
+        self.title.SetForegroundColour(colors.app['text'])
+        self.pipName.SetFont(fonts.coderTheme.base.obj)
+        self.pipName.SetForegroundColour(colors.app['text'])
+        # Style description
+        self.description.SetForegroundColour(colors.app['text'])
+        self.description.SetBackgroundColour(colors.app['tab_bg'])
+
+    @property
+    def info(self):
+        """
+        Information about this plugin
+        """
+        return self._info
+
+    @info.setter
+    def info(self, value):
+        self._info = value
+        self.Enable(value is not None)
+        # Handle None
+        if value is None:
+            value = plugins.PluginInfo(
+                "commuinity",
+                "psychopy-...", name="...",
+                icon=None, description="",
+                installed=False, active=False
+            )
+        # Set icon
+        if value.icon is None:
+            value.icon = wx.Bitmap()
+        self.icon.SetBitmap(value.icon)
+        # Set names
+        self.title.SetLabelText(value.name)
+        self.pipName.SetLabelText(value.pipName)
+        # Set description
+        self.description.SetValue(value.description)
+
+        self.Layout()
 
 # ---
 
