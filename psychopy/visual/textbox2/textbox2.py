@@ -222,7 +222,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # Initialise arabic reshaper
         arabic_config = {'delete_harakat': False,  # if present, retain any diacritics
-                         'shift_harakat_position': True}  # shift by 1 to be compatible with the bidi algorithm
+                         'shift_harakat_position': False}  # shift by 1 to be compatible with the bidi algorithm
         self.arabicReshaper = ArabicReshaper(configuration=arabic_config)
 
         # caret
@@ -511,7 +511,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._languageStyle = value
         # If layout is anything other than LTR, mark that we need to use bidi to lay it out
         self._needsBidi = value != "LTR"
-        self._needsArabic = value.lower == "arabic"
+        self._needsArabic = value.lower() == "arabic"
 
     @property
     def anchor(self):
@@ -587,7 +587,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         visible_text = ''.join([c for c in text if c not in codes.values()])
         self._styles = [0,]*len(visible_text)
         self._text = visible_text
-        if self._needsArabic:
+        if self._needsArabic and hasattr(self, "arabicReshaper"):
             self._text = self.arabicReshaper.reshape(self._text)
         if self._needsBidi:
             self._text = bidi.get_display(self._text)
