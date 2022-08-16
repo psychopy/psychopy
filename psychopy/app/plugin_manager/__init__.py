@@ -3,6 +3,7 @@
 from pkg_resources import parse_version
 import wx
 
+from psychopy.app import utils
 from psychopy.app.themes import handlers, colors, icons, fonts, theme
 
 try:
@@ -89,7 +90,7 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
             self.label.Add(self.pipNameLbl, flag=wx.ALIGN_LEFT)
             self.sizer.Add(self.label, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
             # Add install button
-            self.installBtn = wx.Button(self, label=_translate("Install"))
+            self.installBtn = utils.HoverButton(self, label=_translate("Install"), style=wx.BORDER_NONE)
             self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
             self.sizer.AddSpacer(24)
             self.sizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
@@ -106,6 +107,14 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
             # Set label fonts
             self.nameLbl.SetFont(fonts.appTheme['h3'].obj)
             self.pipNameLbl.SetFont(fonts.coderTheme.base.obj)
+            # Set text colors
+            self.nameLbl.SetForegroundColour(colors.app['text'])
+            self.pipNameLbl.SetForegroundColour(colors.app['text'])
+            # Style button
+            self.installBtn.SetBitmap(icons.ButtonIcon("download", 16).bitmap)
+            self.installBtn.SetBitmapDisabled(icons.ButtonIcon("greytick", 16).bitmap)
+            self.installBtn.SetBitmapMargins(6, 3)
+            self.installBtn._applyAppTheme()
 
         def onInstall(self, evt=None):
             self.markInstalled(True)
