@@ -266,6 +266,8 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Set icon
         if value.icon is None:
             value.icon = wx.Bitmap()
+        if not isinstance(value.icon, wx.Bitmap):
+            value.icon = wx.Bitmap(value.icon)
         self.icon.SetBitmap(value.icon)
         # Set names
         self.title.SetLabelText(value.name)

@@ -15,6 +15,8 @@ import inspect
 import collections
 import hashlib
 import importlib
+from pathlib import Path
+
 import pkg_resources
 
 from psychopy import logging
@@ -220,7 +222,7 @@ class PluginInfo:
         Name of plugin on pip, e.g. "psychopy-legacy"
     name : str
         Plugin name for display, e.g. "Psychopy Legacy"
-    icon : wx.Bitmap or None
+    icon : wx.Bitmap, path or None
         Icon for the plugin, if any (if None, will use blank bitmap)
     description : str
         Description of the plugin
@@ -248,11 +250,14 @@ def getAllPluginDetails():
 
     todo: Actually scan for plugins
     """
+    appIconRoot = Path(__file__).parent.parent / "app" / "Resources" / "light"
+    compIconRoot = Path(__file__).parent.parent / "experiment" / "components"
     return [
         PluginInfo(
             source="curated",
             pipName="psychopy-transcription",
             name="Microphone Transcription",
+            icon=str(compIconRoot / "microphone" / "light" / "microphone.png"),
             description=(
                 "Packages necessary to provide a text transcription of local Microphone recordings, either through a "
                 "free Python package or through Google's paid transcription service."
@@ -263,6 +268,7 @@ def getAllPluginDetails():
         PluginInfo(
             source="curated",
             pipName="psychopy-buttonboxes",
+            icon=str(compIconRoot / "cedrusBox" / "light" / "cedrusBox.png"),
             name="Button Boxes",
             description=(
                 "Components for working with button boxes such as those by Cedrus or ioLabs."
@@ -283,10 +289,11 @@ def getAllPluginDetails():
         ),
         PluginInfo(
             source="community",
-            pipName="psychopy-empatica",
-            name="Empatica",
+            pipName="psychopy-emotiv",
+            icon=str(compIconRoot / "emotiv_record" / "light" / "emotiv_record.png"),
+            name="Emotiv",
             description=(
-                "Components for working with Empatica EEG systems."
+                "Components for working with Emotiv EEG systems."
             ),
             installed=False,
             active=False
