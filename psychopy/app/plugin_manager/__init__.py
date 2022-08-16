@@ -3,6 +3,8 @@
 from pkg_resources import parse_version
 import wx
 
+from psychopy.app.themes import handlers, colors, icons, fonts, theme
+
 try:
     from wx import aui
 except ImportError:
@@ -19,6 +21,7 @@ from psychopy import plugins
 from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin, CheckListCtrlMixin
 
 from psychopy.preferences import prefs
+from psychopy.localization import _translate
 
 import os
 
@@ -33,6 +36,157 @@ else:
 
 _startUpPluginsUpdated = False  # flag if plugins have been changed
 
+
+class PluginManagerDlg(wx.Dialog, handlers.ThemeMixin):
+    def __init__(self, parent):
+        wx.Dialog.__init__(
+            self, parent=parent,
+            size=(1080, 720),
+            style=wx.RESIZE_BORDER | wx.DEFAULT_DIALOG_STYLE | wx.CENTER | wx.TAB_TRAVERSAL | wx.NO_BORDER
+        )
+        self.SetMinSize((980, 520))
+        # Setup sizer
+        self.border = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.border)
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        # Add list
+        self.pluginList = PluginBrowserList(self)
+        self.sizer.Add(self.pluginList, proportion=1/2, border=6, flag=wx.ALL | wx.EXPAND)
+        # Add viewer
+        self.pluginViewer = wx.Panel(self)
+        self.sizer.Add(self.pluginViewer, proportion=1/2, border=6, flag=wx.ALL | wx.EXPAND)
+
+        self.Layout()
+        self.theme = theme.app
+
+    def _applyAppTheme(self):
+        # Set colors
+        self.SetBackgroundColour(colors.app['panel_bg'])
+
+
+class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
+    class PluginListItem(wx.Panel, handlers.ThemeMixin):
+        """
+        Individual item pointing to a plugin
+        """
+        def __init__(self, parent, name, pipName, installed=False, active=False):
+            wx.Panel.__init__(self, parent=parent, style=wx.SIMPLE_BORDER)
+            # Setup sizer
+            self.border = wx.BoxSizer(wx.VERTICAL)
+            self.SetSizer(self.border)
+            self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+            self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+            # Add active checkbox
+            self.activeBtn = wx.CheckBox(self)
+            self.activeBtn.Bind(wx.EVT_CHECKBOX, self.onActive)
+            self.sizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.EXPAND)
+            # Add label
+            self.label = wx.BoxSizer(wx.VERTICAL)
+            self.nameLbl = wx.StaticText(self, label=name)
+            self.label.Add(self.nameLbl, flag=wx.ALIGN_LEFT)
+            self.pipNameLbl = wx.StaticText(self, label=pipName)
+            self.label.Add(self.pipNameLbl, flag=wx.ALIGN_LEFT)
+            self.sizer.Add(self.label, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
+            # Add install button
+            self.installBtn = wx.Button(self, label=_translate("Install"))
+            self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
+            self.sizer.AddSpacer(24)
+            self.sizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
+
+            # Set initial value
+            self.installed = installed
+            self.markInstalled(installed)
+            self.activeBtn.SetValue(active)
+
+        def _applyAppTheme(self):
+            # Set colors
+            self.SetBackgroundColour(colors.app['tab_bg'])
+            self.SetForegroundColour(colors.app['text'])
+            # Set label fonts
+            self.nameLbl.SetFont(fonts.appTheme['h3'].obj)
+            self.pipNameLbl.SetFont(fonts.coderTheme.base.obj)
+
+        def onInstall(self, evt=None):
+            self.markInstalled(True)
+
+        def onActive(self, evt=None):
+            return
+
+        def markInstalled(self, installed=True):
+            self.installed = installed
+            if installed:
+                # Install button disabled, active box enabled
+                self.installBtn.Disable()
+                self.activeBtn.Enable()
+                # Update label
+                self.installBtn.SetLabelText(_translate("Installed"))
+            else:
+                # Install button enabled, active box disabled
+                self.installBtn.Enable()
+                self.activeBtn.Disable()
+                # Update label
+                self.installBtn.SetLabelText(_translate("Install"))
+
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent=parent)
+        # Setup sizer
+        self.border = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.border)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        # Setup items sizers
+        self.itemSizers = {
+            'curated': wx.BoxSizer(wx.VERTICAL),
+            'community': wx.BoxSizer(wx.VERTICAL)
+        }
+        self.curatedLbl = wx.StaticText(self, label=_translate("Curated Plugins"))
+        self.sizer.Add(self.curatedLbl, border=3, flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(self.itemSizers['curated'], border=3, flag=wx.ALL | wx.EXPAND)
+        self.communityLbl = wx.StaticText(self, label=_translate("Community Plugins"))
+        self.sizer.Add(self.communityLbl, border=3, flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(self.itemSizers['community'], border=3, flag=wx.ALL | wx.EXPAND)
+
+        # Setup items
+        self.items = {'curated': [], 'community': []}
+        self.populate()
+
+    def populate(self):
+        self.appendItem(
+            source="curated",
+            name="Microphone Transcription",
+            pipName="psychopy-transcription",
+            installed=False,
+            active=False
+        )
+        self.appendItem(
+            source="curated",
+            name="Button Boxes",
+            pipName="psychopy-buttonboxes",
+            installed=True,
+            active=False
+        )
+        self.appendItem(
+            source="community",
+            name="Empatica",
+            pipName="psychopy-empatica",
+            installed=False,
+            active=False
+        )
+
+    def _applyAppTheme(self):
+        # Set colors
+        self.SetBackgroundColour(colors.app['panel_bg'])
+        # Set fonts
+        self.curatedLbl.SetFont(fonts.appTheme['h2'].obj)
+        self.communityLbl.SetFont(fonts.appTheme['h2'].obj)
+
+    def appendItem(self, source, name, pipName, installed, active):
+        item = self.PluginListItem(self, name=name, pipName=pipName, installed=installed, active=active)
+        self.items[source].append(item)
+        self.itemSizers[source].Add(item, border=6, flag=wx.ALL | wx.EXPAND)
+
+# ---
 
 class PluginBrowserListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, CheckListCtrlMixin):
     """Custom ListCtrl that allows for automatic resizing of columns and
