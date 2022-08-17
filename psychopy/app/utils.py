@@ -192,7 +192,7 @@ class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
 class PsychopyPlateBtn(platebtn.PlateButton, handlers.ThemeMixin):
     def __init__(self, parent, id=wx.ID_ANY, label='', bmp=None,
                  pos=wx.DefaultPosition, size=wx.DefaultSize,
-                 style=1, name=wx.ButtonNameStr):
+                 style=wx.BORDER_NONE, name=wx.ButtonNameStr):
         platebtn.PlateButton.__init__(self, parent, id, label, bmp, pos, size, style, name)
         self.parent = parent
         self.__InitColors()

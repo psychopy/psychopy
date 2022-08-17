@@ -2928,8 +2928,8 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         # self.btnInsertRoutine = wx.Button(self,-1,
         #                                  'Insert Routine', pos=(10,10))
         # self.btnInsertLoop = wx.Button(self,-1,'Insert Loop', pos=(10,30))
-        labelRoutine = _translate('Insert Routine ')
-        labelLoop = _translate('Insert Loop     ')
+        labelRoutine = _translate('Insert Routine')
+        labelLoop = _translate('Insert Loop')
         btnHeight = 50
         # Create add routine button
         self.btnInsertRoutine = PsychopyPlateBtn(
