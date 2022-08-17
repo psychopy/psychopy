@@ -163,7 +163,7 @@ class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         # Add self to sizer
         self._szr.Add(self, proportion=1, border=5, flag=wx.EXPAND)
         # Bind to validation
-        self.Bind(wx.EVT_CHAR, self.validate)
+        self.Bind(wx.EVT_TEXT, self.validate)
         self.validate()
 
     def Show(self, value=True):
