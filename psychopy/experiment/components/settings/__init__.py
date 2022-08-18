@@ -114,6 +114,7 @@ class SettingsComponent:
                  expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'001'}",
                  units='height', logging='exp',
                  color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
+                 backgroundImg="", backgroundFit="none",
                  blendMode='avg',
                  saveXLSXFile=False, saveCSVFile=False, saveHDF5File=False,
                  saveWideCSVFile=True, savePsydatFile=True,
@@ -235,6 +236,17 @@ class SettingsComponent:
                             "PsychoPy documentation on color spaces)"),
             allowedVals=['rgb', 'dkl', 'lms', 'hsv', 'hex'],
             label=_localized["colorSpace"], categ="Screen")
+        self.params['backgroundImg'] = Param(
+            backgroundImg, valType="str", inputType="file", categ="Screen",
+            hint=_translate("Image file to use as a background (leave blank for no image)"),
+            label=_translate("Background image")
+        )
+        self.params['backgroundFit'] = Param(
+            backgroundFit, valType="str", inputType="choice", categ="Screen",
+            allowedVals=("none", "cover", "contain", "fill", "scale-down"),
+            hint=_translate("How should the background image scale to fit the window size?"),
+            label=_translate("Background image")
+        )
         self.params['Units'] = Param(
             units, valType='str', inputType="choice", allowedTypes=[],
             allowedVals=['use prefs', 'deg', 'pix', 'cm', 'norm', 'height',
@@ -1352,9 +1364,9 @@ class SettingsComponent:
         vals = (size, fullScr, screenNumber, winType, allowStencil)
         buff.writeIndented(code % vals)
 
-        code = ("    monitor=%(Monitor)s, color=%(color)s, "
-                "colorSpace=%(colorSpace)s,\n")
-        if self.params['blendMode'].val != "":
+        code = ("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n"
+                "    backgroundImage=%(backgroundImg)s, backgroundFit=%(backgroundFit)s,\n")
+        if self.params['blendMode'].val:
             code += "    blendMode=%(blendMode)s, useFBO=True, \n"
 
         if self.params['Units'].val != 'use prefs':
