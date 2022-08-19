@@ -22,7 +22,7 @@ class PanoramaComponent(BaseVisualComponent):
     tooltip = _translate('Panorama: Present a panoramic image (such as from a phone camera in Panorama mode) on '
                          'screen.')
 
-    def __init__(self, exp, parentName, name='', image="", latitude="", longitude=""):
+    def __init__(self, exp, parentName, name='', image="", altitude="", azimuth=""):
         self.type = 'Unknown'
         self.exp = exp  # so we can access the experiment if necess
         self.parentName = parentName  # to access the routine too if needed
@@ -47,22 +47,22 @@ class PanoramaComponent(BaseVisualComponent):
         msg = _translate(
             "Horizontal look position, ranging from -1 (fully left) to 1 (fully right)"
         )
-        self.params['longitude'] = Param(
-            longitude, valType='code', inputType='single', categ='Layout',
+        self.params['azimuth'] = Param(
+            azimuth, valType='code', inputType='single', categ='Layout',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_translate("Longitude")
+            label=_translate("Azimuth")
         )
         msg = _translate(
             "Vertical look position, ranging from -1 (fully left) to 1 (fully right)"
         )
-        self.params['latitude'] = Param(
-            longitude, valType='code', inputType='single', categ='Layout',
+        self.params['altitude'] = Param(
+            altitude, valType='code', inputType='single', categ='Layout',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_translate("Latitude")
+            label=_translate("Altitude")
         )
         # Most params don't apply to 3d stim, so delete them
         for key in ["color", "fillColor", "borderColor", "colorSpace", "opacity", "contrast", "size", "pos", "units", "ori"]:
@@ -82,7 +82,7 @@ class PanoramaComponent(BaseVisualComponent):
             "%(name)s = visual.PanoramicImageStim(\n"
             "    win,\n"
             "    image=%(image)s,\n"
-            "    latitude=%(latitude)s, longitude=%(longitude)s\n"
+            "    altitude=%(altitude)s, azimuth=%(azimuth)s\n"
             ")\n"
         )
         buff.writeIndentedLines(code % inits)

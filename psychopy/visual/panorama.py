@@ -17,15 +17,15 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
     image : pathlike
         File path of image to present as a panorama. Most modern phones have a "panoramic" camera mode,
         which will output an image with all the correct warping applied.
-    latitude : float (-1 to 1)
-        Initial horizontal look position.
-    longitude : float (-1 to 1)
+    altitude : float (-1 to 1)
         Initial vertical look position.
+    azimuth : float (-1 to 1)
+        Initial horizontal look position.
     """
     def __init__(self, win,
                  image=None,
-                 latitude=None,
-                 longitude=None,
+                 altitude=None,
+                 azimuth=None,
                  depth=0,
                  autoDraw=False,
                  autoLog=False):
@@ -46,15 +46,15 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
         # Put the panoramic image onto the texture
         self.material.diffuseTexture = gl.createTexImage2dFromFile(image, transpose=False)
         # Set starting lat- and long- itude
-        self.latitude = latitude
-        self.longitude = longitude
+        self.altitude = altitude
+        self.azimuth = azimuth
         # Set starting status
         self.status = constants.NOT_STARTED
         self.autoDraw = autoDraw
         self.depth = 0
 
     @attributeSetter
-    def latitude(self, value):
+    def azimuth(self, value):
         """
         Horizontal view point between -1 (180 degrees to the left) and +1 (180 degrees to the right).
         """
@@ -62,18 +62,28 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
             value = 0
         # Store value
         value = np.clip(value, -1, 1)
-        self.__dict__['latitude'] = value
+        self.__dict__['azimuth'] = self.__dict__['longitude'] = value
         # Get lat and long in degrees
         value = self._normToDegrees(value)
         # Calculate ori
         self.latQuat = mt.quatFromAxisAngle((0, 0, 1), value, degrees=True)
         self._needsOriUpdate = True
 
-    def setLatitude(self, value, log=False):
-        self.latitude = value
-
     @attributeSetter
     def longitude(self, value):
+        """
+        Alias of azimuth
+        """
+        self.azimuth = value
+
+    def setAzimuth(self, value, log=False):
+        self.azimuth = value
+
+    def setLongitude(self, value, log=False):
+        self.longitude = value
+
+    @attributeSetter
+    def altitude(self, value):
         """
         Vertical view point between -1 (directly downwards) and 1 (directly upwards).
         """
@@ -81,7 +91,7 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
             value = 0
         # Store value
         value = np.clip(value, -1, 1)
-        self.__dict__['longitude'] = value
+        self.__dict__['altitude'] = self.__dict__['latitude'] = value
         # Force to positive as we only need 180 degrees of rotation
         value += 1
         value /= 2
@@ -92,8 +102,18 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
         self.longQuat = mt.quatFromAxisAngle((1, 0, 0), value, degrees=True)
         self._needsOriUpdate = True
 
-    def setLongitude(self, value, log=False):
-        self.longitude = value
+    @attributeSetter
+    def latitude(self, value):
+        """
+        Alias of altitude
+        """
+        self.altitude = value
+
+    def setAltitude(self, value, log=False):
+        self.altitude = value
+
+    def setLatitude(self, value, log=False):
+        self.latitude = value
 
     def draw(self, win=None):
         # Substitude with own win if none given
