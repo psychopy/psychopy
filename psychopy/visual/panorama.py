@@ -56,12 +56,12 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
     @attributeSetter
     def azimuth(self, value):
         """
-        Horizontal view point between -1 (180 degrees to the left) and +1 (180 degrees to the right).
+        Horizontal view point between -1 (180 degrees to the left) and +1 (180 degrees to the right). Values
+        outside this range will still be accepted (e.g. -1.5 will be 270 degrees to the left).
         """
         if value is None:
             value = 0
         # Store value
-        value = np.clip(value, -1, 1)
         self.__dict__['azimuth'] = self.__dict__['longitude'] = value
         # Get lat and long in degrees
         value = self._normToDegrees(value)
@@ -85,7 +85,8 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
     @attributeSetter
     def altitude(self, value):
         """
-        Vertical view point between -1 (directly downwards) and 1 (directly upwards).
+        Vertical view point between -1 (directly downwards) and 1 (directly upwards). Values outside this range will
+        be clipped to within range (e.g. -1.5 will be directly downwards).
         """
         if value is None:
             value = 0
