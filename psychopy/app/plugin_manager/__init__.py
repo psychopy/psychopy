@@ -68,12 +68,12 @@ class PluginManagerDlg(wx.Dialog, handlers.ThemeMixin):
 
 
 class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
-    class PluginListItem(wx.Panel, handlers.ThemeMixin):
+    class PluginListItem(wx.Window, handlers.ThemeMixin):
         """
         Individual item pointing to a plugin
         """
         def __init__(self, parent, info):
-            wx.Panel.__init__(self, parent=parent, style=wx.SIMPLE_BORDER)
+            wx.Window.__init__(self, parent=parent, style=wx.SIMPLE_BORDER)
             self.parent = parent
             # Link info object
             self.info = info
@@ -106,6 +106,7 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
             self.nameLbl.Bind(wx.EVT_LEFT_DOWN, self.onClick)
             self.pipNameLbl.Bind(wx.EVT_LEFT_DOWN, self.onClick)
             self.Bind(wx.EVT_SET_FOCUS, self.onFocus)
+            self.Bind(wx.EVT_KILL_FOCUS, self.onFocus)
 
             # Set initial value
             self.installed = info.installed
@@ -114,25 +115,38 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
 
         def _applyAppTheme(self):
             # Set colors
-            self.SetBackgroundColour(colors.app['tab_bg'])
-            self.SetForegroundColour(colors.app['text'])
+            if self.HasFocus():
+                bg = colors.app['txtbutton_bg_hover']
+                fg = colors.app['txtbutton_fg_hover']
+            else:
+                bg = colors.app['tab_bg']
+                fg = colors.app['text']
+            self.SetBackgroundColour(bg)
+            self.SetForegroundColour(fg)
             # Set label fonts
             self.nameLbl.SetFont(fonts.appTheme['h3'].obj)
             self.pipNameLbl.SetFont(fonts.coderTheme.base.obj)
             # Set text colors
-            self.nameLbl.SetForegroundColour(colors.app['text'])
-            self.pipNameLbl.SetForegroundColour(colors.app['text'])
+            self.nameLbl.SetForegroundColour(fg)
+            self.pipNameLbl.SetForegroundColour(fg)
             # Style button
             self.installBtn.SetBitmap(icons.ButtonIcon("download", 16).bitmap)
             self.installBtn.SetBitmapDisabled(icons.ButtonIcon("greytick", 16).bitmap)
             self.installBtn.SetBitmapMargins(6, 3)
             self.installBtn._applyAppTheme()
 
+            self.Update()
+            self.Refresh()
+
         def onClick(self, evt=None):
-            self.SetFocusIgnoringChildren()
+            self.SetFocus()
 
         def onFocus(self, evt=None):
-            self.parent.viewer.info = self.info
+            if evt.GetEventType() == wx.EVT_SET_FOCUS.typeId:
+                # Display info in viewer
+                self.parent.viewer.info = self.info
+            # Update appearance
+            self._applyAppTheme()
 
         def onInstall(self, evt=None):
             self.markInstalled(True)
@@ -176,14 +190,13 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         self.sizer.Add(self.itemSizers['community'], border=3, flag=wx.ALL | wx.EXPAND)
         # Bind deselect
         self.Bind(wx.EVT_LEFT_DOWN, self.onClick)
-        self.Bind(wx.EVT_SET_FOCUS, self.onFocus)
 
         # Setup items
         self.items = {'curated': [], 'community': []}
         self.populate()
 
         # Start off deselected
-        self.SetFocusIgnoringChildren()
+        self.onClick()
 
     def populate(self):
         # Get all plugin details
@@ -195,8 +208,6 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
 
     def onClick(self, evt=None):
         self.SetFocusIgnoringChildren()
-
-    def onFocus(self, evt=None):
         self.viewer.info = None
 
     def _applyAppTheme(self):
