@@ -68,7 +68,7 @@ class PluginManagerDlg(wx.Dialog, handlers.ThemeMixin):
 
     def _applyAppTheme(self):
         # Set colors
-        self.SetBackgroundColour(colors.app['panel_bg'])
+        self.SetBackgroundColour(colors.app['frame_bg'])
 
     def onCtrlTab(self, evt=None):
         if not evt.IsWindowChange():
@@ -133,8 +133,8 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         def _applyAppTheme(self):
             # Set colors
             if self.HasFocus():
-                bg = colors.app['txtbutton_bg_hover']
-                fg = colors.app['txtbutton_fg_hover']
+                bg = colors.app['panel_bg']
+                fg = colors.app['text']
             else:
                 bg = colors.app['tab_bg']
                 fg = colors.app['text']
@@ -235,7 +235,7 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
 
     def _applyAppTheme(self):
         # Set colors
-        self.SetBackgroundColour(colors.app['panel_bg'])
+        self.SetBackgroundColour(colors.app['tab_bg'])
         # Set fonts
         self.curatedLbl.SetFont(fonts.appTheme['h2'].obj)
         self.curatedLbl.SetForegroundColour(colors.app['text'])
