@@ -58,6 +58,9 @@ class PluginManagerDlg(wx.Dialog, handlers.ThemeMixin):
         # Add to sizer
         self.sizer.Add(self.pluginList, border=6, flag=wx.ALL | wx.EXPAND)
         self.sizer.Add(self.pluginViewer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        # Setup panel traversal
+        self.focusIndex = 0
+        self.Bind(wx.EVT_NAVIGATION_KEY, self.onCtrlTab)
 
         self.Layout()
         self.theme = theme.app
@@ -65,6 +68,19 @@ class PluginManagerDlg(wx.Dialog, handlers.ThemeMixin):
     def _applyAppTheme(self):
         # Set colors
         self.SetBackgroundColour(colors.app['panel_bg'])
+
+    def onCtrlTab(self, evt=None):
+        if not evt.IsWindowChange():
+            # At dialog level, we only care about window change events
+            return
+        # Iterate focus index
+        self.focusIndex += 1
+        if self.focusIndex >= len(self.GetChildren()):
+            self.focusIndex = 0
+        # Get next child
+        target = self.GetChildren()[self.focusIndex]
+        # Focus target
+        target.SetFocus()
 
 
 class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
