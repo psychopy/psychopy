@@ -51,13 +51,14 @@ class PluginManagerDlg(wx.Dialog, handlers.ThemeMixin):
         self.SetSizer(self.border)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        # Make list
+        self.pluginList = PluginBrowserList(self)
+        self.sizer.Add(self.pluginList, border=6, flag=wx.ALL | wx.EXPAND)
         # Make viewer
         self.pluginViewer = PluginDetailsPanel(self)
-        # Make list
-        self.pluginList = PluginBrowserList(self, viewer=self.pluginViewer)
-        # Add to sizer
-        self.sizer.Add(self.pluginList, border=6, flag=wx.ALL | wx.EXPAND)
         self.sizer.Add(self.pluginViewer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        # Start of with nothing selected
+        self.pluginList.onClick()
         # Setup panel traversal
         self.focusIndex = 0
         self.Bind(wx.EVT_NAVIGATION_KEY, self.onCtrlTab)
@@ -165,13 +166,17 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
             self._applyAppTheme()
 
         def onInstall(self, evt=None):
+            # Mark installed
+            self.installed = self.info.installed = True
             self.markInstalled(True)
+            # If currently on this item's page, mark as installed there too
+            if self.parent.viewer.info == self.info:
+                self.parent.viewer.markInstalled(True)
 
         def onActive(self, evt=None):
             return
 
         def markInstalled(self, installed=True):
-            self.installed = installed
             if installed:
                 # Install button disabled, active box enabled
                 self.installBtn.Disable()
@@ -185,9 +190,9 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
                 # Update label
                 self.installBtn.SetLabelText(_translate("Install"))
 
-    def __init__(self, parent, viewer):
+    def __init__(self, parent):
         wx.Panel.__init__(self, parent=parent)
-        self.viewer = viewer
+        self.parent = parent
         # Setup sizer
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -211,8 +216,10 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         self.items = {'curated': [], 'community': []}
         self.populate()
 
-        # Start off deselected
-        self.onClick()
+    @property
+    def viewer(self):
+        # The list associated with this info panel
+        return self.parent.pluginViewer
 
     def populate(self):
         # Get all plugin details
@@ -240,10 +247,19 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         self.items[info.source].append(item)
         self.itemSizers[info.source].Add(item, border=6, flag=wx.ALL | wx.EXPAND)
 
+    def getItem(self, info):
+        """
+        Get the PluginListItem object associated with a PluginInfo object
+        """
+        for item in self.items['curated'] + self.items['community']:
+            if item.info == info:
+                return item
+
 
 class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
     def __init__(self, parent, info=None):
         wx.Panel.__init__(self, parent)
+        self.parent = parent
         # Setup sizers
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -262,6 +278,17 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Pip name
         self.pipName = wx.StaticText(self, label="psychopy-...")
         self.titleSizer.Add(self.pipName, flag=wx.EXPAND)
+        # Buttons
+        self.buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.titleSizer.AddStretchSpacer()
+        self.titleSizer.Add(self.buttonSizer, flag=wx.EXPAND)
+        self.installBtn = utils.HoverButton(self,
+                                            label=_translate("Install"),
+                                            style=wx.BORDER_NONE | wx.BU_LEFT)
+        self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
+        self.buttonSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
+        self.activeBtn = wx.CheckBox(self, label=_translate("Activated"))
+        self.buttonSizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
         # Description
         self.description = wx.TextCtrl(self, value="",
                                        style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL)
@@ -278,9 +305,28 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.title.SetForegroundColour(colors.app['text'])
         self.pipName.SetFont(fonts.coderTheme.base.obj)
         self.pipName.SetForegroundColour(colors.app['text'])
+        # Style install button
+        self.installBtn.SetBitmap(icons.ButtonIcon("download", 16).bitmap)
+        self.installBtn.SetBitmapDisabled(icons.ButtonIcon("greytick", 16).bitmap)
+        self.installBtn.SetBitmapMargins(6, 3)
+        self.installBtn._applyAppTheme()
         # Style description
         self.description.SetForegroundColour(colors.app['text'])
         self.description.SetBackgroundColour(colors.app['tab_bg'])
+
+    def onInstall(self, evt=None):
+        # Mark installed here
+        self.info.installed = True
+        self.markInstalled()
+        # Mark installed in list
+        item = self.list.getItem(self.info)
+        if item is not None:
+            item.markInstalled()
+
+    @property
+    def list(self):
+        # The list associated with this info panel
+        return self.parent.pluginList
 
     @property
     def info(self):
@@ -291,16 +337,16 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
 
     @info.setter
     def info(self, value):
-        self._info = value
         self.Enable(value is not None)
         # Handle None
         if value is None:
             value = plugins.PluginInfo(
-                "commuinity",
+                "community",
                 "psychopy-...", name="...",
                 icon=None, description="",
                 installed=False, active=False
             )
+        self._info = value
         # Set icon
         if value.icon is None:
             value.icon = wx.Bitmap()
@@ -312,8 +358,26 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.pipName.SetLabelText(value.pipName)
         # Set description
         self.description.SetValue(value.description)
+        # Set installed
+        self.markInstalled(value.installed)
+        # Set activated
+        self.activeBtn.SetValue(value.active)
 
         self.Layout()
+
+    def markInstalled(self, installed=True):
+        if installed:
+            # Install button disabled, active box enabled
+            self.installBtn.Disable()
+            self.activeBtn.Enable()
+            # Update label
+            self.installBtn.SetLabelText(_translate("Installed"))
+        else:
+            # Install button enabled, active box disabled
+            self.installBtn.Enable()
+            self.activeBtn.Disable()
+            # Update label
+            self.installBtn.SetLabelText(_translate("Install"))
 
 # ---
 
