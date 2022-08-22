@@ -102,9 +102,10 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
             self.sizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
 
             # Map to onclick function
-            self.Bind(wx.EVT_LEFT_DOWN, self.onView)
-            self.nameLbl.Bind(wx.EVT_LEFT_DOWN, self.onView)
-            self.pipNameLbl.Bind(wx.EVT_LEFT_DOWN, self.onView)
+            self.Bind(wx.EVT_LEFT_DOWN, self.onClick)
+            self.nameLbl.Bind(wx.EVT_LEFT_DOWN, self.onClick)
+            self.pipNameLbl.Bind(wx.EVT_LEFT_DOWN, self.onClick)
+            self.Bind(wx.EVT_SET_FOCUS, self.onFocus)
 
             # Set initial value
             self.installed = info.installed
@@ -127,7 +128,10 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
             self.installBtn.SetBitmapMargins(6, 3)
             self.installBtn._applyAppTheme()
 
-        def onView(self, evt=None):
+        def onClick(self, evt=None):
+            self.SetFocusIgnoringChildren()
+
+        def onFocus(self, evt=None):
             self.parent.viewer.info = self.info
 
         def onInstall(self, evt=None):
@@ -171,11 +175,15 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         self.sizer.Add(self.communityLbl, border=3, flag=wx.ALL | wx.EXPAND)
         self.sizer.Add(self.itemSizers['community'], border=3, flag=wx.ALL | wx.EXPAND)
         # Bind deselect
-        self.Bind(wx.EVT_LEFT_DOWN, self.onDeselect)
+        self.Bind(wx.EVT_LEFT_DOWN, self.onClick)
+        self.Bind(wx.EVT_SET_FOCUS, self.onFocus)
 
         # Setup items
         self.items = {'curated': [], 'community': []}
         self.populate()
+
+        # Start off deselected
+        self.SetFocusIgnoringChildren()
 
     def populate(self):
         # Get all plugin details
@@ -185,7 +193,10 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         for item in items:
             self.appendItem(item)
 
-    def onDeselect(self, evt=None):
+    def onClick(self, evt=None):
+        self.SetFocusIgnoringChildren()
+
+    def onFocus(self, evt=None):
         self.viewer.info = None
 
     def _applyAppTheme(self):
