@@ -274,7 +274,7 @@ class PanoramaComponent(BaseVisualComponent):
                 "    %(name)s.azimuth += %(name)s.momentum[0]\n"
                 "    %(name)s.altitude += %(name)s.momentum[1]\n"
                 "    # decrease momentum every frame so that it approaches 0\n"
-                "    %(name)s.momentum = %(name)s.momentum * (1 - win.monitorFramePeriod * 2)\n"
+                "    %(name)s.momentum = %(name)s.momentum * (1 - win.monitorFramePeriod * 4)\n"
                 )
                 buff.writeIndentedLines(code % self.params)
 
