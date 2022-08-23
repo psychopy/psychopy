@@ -137,7 +137,7 @@ class PanoramaComponent(BaseVisualComponent):
         )
         msg = _translate(
             "Multiplier to apply to view changes. 1 means that moving the mouse from the center of the screen to the "
-            "edge or holding down a key for 1s will rotate 180°."
+            "edge or holding down a key for 2s will rotate 180°."
         )
         self.params['sensitivity'] = Param(
             sensitivity, valType='code', inputType="single", categ="Basic",
@@ -183,10 +183,10 @@ class PanoramaComponent(BaseVisualComponent):
                 "%(name)s.ctrl = keyboard.Keyboard()\n"
                 "# store a dictionary to map keys to the amount to change by per frame\n"
                 "%(name)s.ctrl.deltas = {{\n"
-                "    '{u}': np.array([0, -win.monitorFramePeriod * 2]),\n"
-                "    '{l}': np.array([-win.monitorFramePeriod * 2, 0]),\n"
-                "    '{d}': np.array([0, +win.monitorFramePeriod * 2]),\n"
-                "    '{r}': np.array([+win.monitorFramePeriod * 2, 0]),\n"
+                "    '{u}': np.array([0, -win.monitorFramePeriod]),\n"
+                "    '{l}': np.array([-win.monitorFramePeriod, 0]),\n"
+                "    '{d}': np.array([0, +win.monitorFramePeriod]),\n"
+                "    '{r}': np.array([+win.monitorFramePeriod, 0]),\n"
                 "}}\n"
             )
             if self.params['controlStyle'].val == "wasd":
