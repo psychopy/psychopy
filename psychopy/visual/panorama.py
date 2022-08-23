@@ -52,6 +52,8 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
         self.status = constants.NOT_STARTED
         self.autoDraw = autoDraw
         self.depth = 0
+        # Add default attribute for control handler (updated from Builder if used)
+        self.ctrl = None
 
     @attributeSetter
     def azimuth(self, value):
