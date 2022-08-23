@@ -278,16 +278,7 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
         # frameIndex = -1            # frame index, 0 == first frame
         loopCount = 0                # number of movie loops so far
         seekToPts = 0.0              # absolute place in footage to seek to
-        playerJustStarted = True     # has the player just started after warmup?
-        mustStop = False             # should we break the frame polling loop?
-        mustShutdown = False
-
-        # status flag equivalents for ffpyplayer
-        statusFlagLUT = {
-            'eof': STOPPING,  # maybe FINISHED?
-            'not ready': NOT_STARTED,
-            'paused': PAUSED
-        }
+        mustShutdown = False         # player thread should shut down
 
         # Subroutines for various player functions -----------------------------
 
@@ -369,42 +360,6 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
 
             """
             return int(math.floor(pts_ / frameInterval_)) - 1
-
-        def pushFrame(frame):
-            """Pass the most recent frame from the decoder to the frame queue.
-            """
-            if not self._frameQueue.full():
-                try:
-                    self._frameQueue.put_nowait(frame)
-                except queue.Full:
-                    pass  # do nothing
-
-        def idle(player):
-            """Thread idle routine. This just keeps the thread from stalling by
-            doing some cleanup routines.
-            """
-            doPause(player)
-            time.sleep(frameInterval)
-
-        def doStop(player):
-            """Handle stopping the video. This seeks to the start of the movie
-            and pauses. The first frame is queued up for display.
-            """
-            isPaused = player.get_pause()
-            if not isPaused:  # set the pause state
-                player.set_pause(True)
-
-            seekTo(player, 0.0)  # seek, will maintain pause state
-
-            pushFrame(lastFrame)  # from outer scope
-
-        def doPause(player):
-            """Handle when the player status is paused."""
-            isPaused = player.get_pause()
-            if not isPaused:  # set the pause state
-                player.set_pause(True)
-
-            pushFrame(lastFrame)  # from outer scope
 
         # ----------------------------------------------------------------------
         # Initialization
@@ -565,7 +520,7 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
             #   'mute'    | bool               | Enable/disable sound
             #   'pause'   | None               | Play a stream
             #   'pause'   | None               | Pause a stream
-            #   'stop'    | None               | Kill the thread
+            #   'stop'    | None               | Pause and restart
             #   'seek'    | pts, bool          | Seek to a movie position
             #
             needsWait = False
@@ -592,7 +547,7 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
                 elif cmdOpCode == 'stop':  # stop playback, return to start
                     self._player.set_pause(True)
                     self._player.seek(
-                        0.0,  # seek to beginning and pause
+                        0.0,  # seek to beginning
                         relative=False,
                         accurate=False)
                     time.sleep(0.1)
