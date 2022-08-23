@@ -64,8 +64,8 @@ class PanoramaComponent(BaseVisualComponent):
         )
         self.params['controlStyle'] = Param(
             controlStyle, valType='str', inputType="choice", categ="Basic",
-            allowedVals=["mouse", "drag", "keyboard", "custom"],
-            allowedLabels=["Mouse", "Drag", "Keyboard", "Custom"],
+            allowedVals=["mouse", "drag", "arrows", "wasd", "custom"],
+            allowedLabels=["Mouse", "Drag", "Keyboard (Arrow Keys)", "Keyboard (WASD)", "Custom"],
             updates="constant",
             hint=msg,
             label=_translate("Control Style")
@@ -170,22 +170,29 @@ class PanoramaComponent(BaseVisualComponent):
         # Add control handler if needed
         if self.params['controlStyle'].val in ("mouse", "drag"):
             code = (
-                "# add control handler for panorama\n"
+                "# add control handler for %(name)s\n"
                 "%(name)s.ctrl = event.Mouse()\n"
             )
             buff.writeIndentedLines(code % inits)
-        elif self.params['controlStyle'].val in ("keyboard",):
+        elif self.params['controlStyle'].val in ("arrows", "wasd"):
+            # If keyboard, add mapping of keys to deltas
             code = (
-                "# add control handler for panorama\n"
+                "# add control handler for %(name)s\n"
                 "%(name)s.ctrl = keyboard.Keyboard()\n"
                 "# store a dictionary to map keys to the amount to change by per frame\n"
-                "%(name)s.ctrl.deltas = {\n"
-                "    'left': (-win.monitorFramePeriod * 2, 0),\n"
-                "    'right': (+win.monitorFramePeriod * 2, 0),\n"
-                "    'up': (0, -win.monitorFramePeriod * 2),\n"
-                "    'down': (0, +win.monitorFramePeriod * 2),\n"
-                "}\n"
+                "%(name)s.ctrl.deltas = {{\n"
+                "    '{u}': (0, -win.monitorFramePeriod * 2),\n"
+                "    '{l}': (-win.monitorFramePeriod * 2, 0),\n"
+                "    '{d}': (0, +win.monitorFramePeriod * 2),\n"
+                "    '{r}': (+win.monitorFramePeriod * 2, 0),\n"
+                "}}\n"
             )
+            if self.params['controlStyle'].val == "wasd":
+                # If WASD, sub in w, a, s and d
+                code = code.format(u="w", l="a", d="s", r="d")
+            else:
+                # If arrows, sub in left, right, up and down
+                code = code.format(l="left", r="right", u="up", d="down")
             buff.writeIndentedLines(code % inits)
 
     def writeFrameCode(self, buff):
@@ -225,16 +232,16 @@ class PanoramaComponent(BaseVisualComponent):
                 "    %(name)s.altitude += rel.norm[1] * %(sensitivity)s\n"
             )
             buff.writeIndentedLines(code % self.params)
-        elif self.params['controlStyle'].val == "keyboard":
+        elif self.params['controlStyle'].val in ("arrows", "wasd"):
             # If control is keyboard, set azimuth and elevation according to keypresses
             code = (
                 "# update panorama view from key presses\n"
-                "keys = %(name)s.ctrl.getKeys(('left', 'right', 'up', 'down'), waitRelease=False, clear=False)\n"
+                "keys = %(name)s.ctrl.getKeys(list(%(name)s.ctrl.deltas), waitRelease=False, clear=False)\n"
                 "for key in keys:\n"
                 "    %(name)s.azimuth += %(name)s.ctrl.deltas[key.name][0] * %(sensitivity)s\n"
                 "    %(name)s.altitude += %(name)s.ctrl.deltas[key.name][1] * %(sensitivity)s\n"
-                "# Get keys which have been released and clear them from the buffer before next frame\n"
-                "%(name)s.ctrl.getKeys(('left', 'right', 'up', 'down'), waitRelease=True, clear=True)\n"
+                "# get keys which have been released and clear them from the buffer before next frame\n"
+                "%(name)s.ctrl.getKeys(list(%(name)s.ctrl.deltas), waitRelease=True, clear=True)\n"
             )
             buff.writeIndentedLines(code % self.params)
 
