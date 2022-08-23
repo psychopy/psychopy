@@ -187,6 +187,7 @@ class PanoramaComponent(BaseVisualComponent):
                 "    '{l}': np.array([-win.monitorFramePeriod, 0]),\n"
                 "    '{d}': np.array([0, +win.monitorFramePeriod]),\n"
                 "    '{r}': np.array([+win.monitorFramePeriod, 0]),\n"
+                "    'space': np.array([0, 0]),\n"
                 "}}\n"
             )
             if self.params['controlStyle'].val == "wasd":
