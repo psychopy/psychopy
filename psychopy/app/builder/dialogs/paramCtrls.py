@@ -418,8 +418,6 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
         self.populate()
         # Set value
         self.setValue(vals)
-        # Setup tab traversal
-        self.Bind(wx.EVT_NAVIGATION_KEY, self.onTab)
 
         self.Layout()
 
@@ -467,16 +465,6 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
             item.body.Wrap(item.body.GetSize()[0])
 
         self.Layout()
-
-    def onTab(self, evt=None):
-        if evt.GetCurrentFocus() is None:
-            self.items[0].SetFocus()
-        elif evt.GetCurrentFocus() in self.items:
-            i = self.items.index(evt.GetCurrentFocus())
-            if i + 1 >= len(self.items):
-                self.GetNextSibling().SetFocus()
-            else:
-                self.items[i + 1].SetFocus()
 
 
 class FileCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
