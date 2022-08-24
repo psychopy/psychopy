@@ -463,7 +463,10 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
                 values.append(item.value)
         # Strip list if not multi
         if not self.multi:
-            values = values[0]
+            if len(values):
+                values = values[0]
+            else:
+                values = ""
 
         return values
 
@@ -644,7 +647,6 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         dlg = self.SurveyFinderDlg(self)
         if dlg.ShowModal() == wx.ID_OK:
             self.SetValue(dlg.getValue())
-
 
 
 class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
