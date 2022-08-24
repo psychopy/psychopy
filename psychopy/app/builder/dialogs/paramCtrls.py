@@ -365,6 +365,7 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
             # Check
             self.check = wx.CheckBox(self)
             self.check.Bind(wx.EVT_CHECKBOX, self.onCheck)
+            self.check.Bind(wx.EVT_KEY_UP, self.onToggle)
             self.sizer.Add(self.check, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
             # Title
             self.title = wx.StaticText(self, label=label)
@@ -387,12 +388,16 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
                 # Show / hide description
                 self.body.Show(state)
                 self.body.Wrap(self.body.GetSize()[0])
-            else:
+            elif state:
                 # If single only, set at parent level so others are unchecked
                 self.parent.setValue(self.value)
 
         def onCheck(self, evt):
             self.setChecked(evt.IsChecked())
+
+        def onToggle(self, evt):
+            if evt.GetUnicodeKey() in (wx.WXK_SPACE, wx.WXK_NUMPAD_SPACE):
+                self.setChecked(not self.check.IsChecked())
 
     def __init__(self, parent, valType,
                  vals="", fieldName="",
