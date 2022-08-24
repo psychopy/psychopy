@@ -624,7 +624,7 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         self._szr.Add(self, border=5, proportion=1, flag=wx.EXPAND | wx.RIGHT)
         # Add button to browse for survey
-        icn = icons.ButtonIcon(stem="survey", size=16).bitmap
+        icn = icons.ButtonIcon(stem="search", size=16).bitmap
         self.findBtn = wx.BitmapButton(parent, -1, size=wx.Size(24, 24), bitmap=icn)
         self.findBtn.SetToolTip(_translate("Specify survey ..."))
         self.findBtn.Bind(wx.EVT_BUTTON, self.findSurvey)
