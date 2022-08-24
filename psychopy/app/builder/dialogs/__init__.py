@@ -144,6 +144,12 @@ class ParamCtrls():
             self.valueCtrl = paramCtrls.MultiChoiceCtrl(parent, valType=param.valType,
                                                         vals=param.val, choices=param.allowedVals, fieldName=fieldName,
                                                         size=wx.Size(self.valueWidth, -1))
+        elif param.inputType == 'richChoice':
+            self.valueCtrl = paramCtrls.RichChoiceCtrl(parent, valType=param.valType,
+                                                       vals=param.val,
+                                                       choices=param.allowedVals, labels=param.allowedLabels,
+                                                       fieldName=fieldName,
+                                                       size=wx.Size(self.valueWidth, -1))
         elif param.inputType == 'bool':
             self.valueCtrl = paramCtrls.BoolCtrl(parent,
                                                  name=fieldName, size=wx.Size(self.valueWidth, 24))
@@ -152,6 +158,11 @@ class ParamCtrls():
             self.valueCtrl = paramCtrls.FileCtrl(parent,
                                                  val=str(param.val), valType=param.valType,
                                                  fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
+            self.valueCtrl.allowedVals = param.allowedVals
+        elif param.inputType == 'survey':
+            self.valueCtrl = paramCtrls.SurveyCtrl(parent,
+                                                   val=str(param.val), valType=param.valType,
+                                                   fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
             self.valueCtrl.allowedVals = param.allowedVals
         elif param.inputType == 'fileList':
             self.valueCtrl = paramCtrls.FileListCtrl(parent,
@@ -459,6 +470,7 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
     class CategoryPage(wx.Panel, handlers.ThemeMixin):
         def __init__(self, parent, dlg, params):
             wx.Panel.__init__(self, parent, size=(600, -1))
+            self.parent = parent
             self.parent = parent
             self.dlg = dlg
             self.app = self.dlg.app

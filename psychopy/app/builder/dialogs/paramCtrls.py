@@ -349,6 +349,124 @@ class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin, _HideMixin):
         return self.GetCheckedStrings()
 
 
+class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
+    class RichChoiceItem(wx.Panel):
+        def __init__(self, parent, value, label, body=""):
+            # Initialise
+            wx.Window.__init__(self, parent)
+            self.parent = parent
+            self.value = value
+            # Setup sizer
+            self.border = wx.BoxSizer()
+            self.SetSizer(self.border)
+            self.sizer = wx.FlexGridSizer(cols=2, vgap=3, hgap=6)
+            self.sizer.AddGrowableCol(idx=1, proportion=1)
+            self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+            # Check
+            self.check = wx.CheckBox(self)
+            self.check.Bind(wx.EVT_CHECKBOX, self.onCheck)
+            self.sizer.Add(self.check, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+            # Title
+            self.title = wx.StaticText(self, label=label)
+            self.title.SetFont(self.title.GetFont().Bold())
+            self.sizer.Add(self.title, border=3, proportion=1, flag=wx.ALL | wx.EXPAND)
+            # Body
+            self.body = wx.StaticText(self, label=body)
+            self.sizer.AddStretchSpacer(1)
+            self.sizer.Add(self.body, border=3, proportion=1, flag=wx.ALL | wx.EXPAND)
+
+            self.Layout()
+
+        def getChecked(self):
+            return self.check.GetValue()
+
+        def setChecked(self, state):
+            if self.parent.multi:
+                # If multi select is allowed, set this value and leave others unchanged
+                self.check.SetValue(state)
+                # Show / hide description
+                self.body.Show(state)
+                self.body.Wrap(self.body.GetSize()[0])
+            else:
+                # If single only, set at parent level so others are unchecked
+                self.parent.setValue(self.value)
+
+        def onCheck(self, evt):
+            self.setChecked(evt.IsChecked())
+
+    def __init__(self, parent, valType,
+                 vals="", fieldName="",
+                 choices=[], labels=[],
+                 size=wx.Size(-1, -1)):
+        # Initialise
+        wx.Window.__init__(self, parent, size=size)
+        self.parent = parent
+        self.valType = valType
+        self.fieldName= fieldName
+        self.multi = False
+        # Setup sizer
+        self.border = wx.BoxSizer()
+        self.SetSizer(self.border)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        self.SetSizer(self.border)
+        # Store values
+        self.choices = {}
+        for i, val in enumerate(choices):
+            self.choices[val] = labels[i]
+        # Populate
+        self.populate()
+        # Set value
+        self.setValue(vals)
+
+        self.Layout()
+
+    def populate(self):
+        self.items = []
+        for val, label in self.choices.items():
+            if isinstance(label, dict):
+                # If given label as a dict, make sure it has the right keys
+                assert "head" in label and "body" in label
+                label = [label['head'], label['body']]
+            if not isinstance(label, (list, tuple)):
+                # Make sure label is iterable
+                label = [label]
+            # Add item control
+            self.addItem(val, *label)
+        self.Layout()
+
+    def addItem(self, value, label, body=""):
+        # Create item object
+        item = self.RichChoiceItem(self, value=value, label=label, body=body)
+        self.items.append(item)
+        # Add to sizer
+        self.sizer.Add(item, border=3, flag=wx.ALL | wx.EXPAND)
+
+    def getValue(self):
+        # Get corresponding value for each checked item
+        values = []
+        for item in self.items:
+            if item.getChecked():
+                # If checked, append value
+                values.append(item.value)
+
+        return values
+
+    def setValue(self, value):
+        # Make sure value is iterable
+        if not isinstance(value, (list, tuple)):
+            value = [value]
+        # Check/uncheck corresponding items
+        for item in self.items:
+            state = item.value in value
+            item.check.SetValue(state)
+            # Show / hide description
+            item.body.Show(state)
+            item.body.Wrap(item.body.GetSize()[0])
+
+        self.Layout()
+
+
 class FileCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
@@ -444,6 +562,60 @@ class FileListCtrl(wx.ListBox, _ValidatorMixin, _HideMixin, _FileMixin):
 
     def GetValue(self):
         return self.Items
+
+
+class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
+    class SurveyFinderDlg(wx.Dialog):
+        def __init__(self, parent):
+            wx.Dialog.__init__(self, parent=parent)
+            # Setup sizer
+            self.border = wx.BoxSizer(wx.VERTICAL)
+            self.SetSizer(self.border)
+            self.sizer = wx.BoxSizer(wx.VERTICAL)
+            self.border.Add(self.sizer, border=12, proportion=1, flag=wx.ALL | wx.EXPAND)
+            # Add instructions
+            self.instr = wx.StaticText(self, label=_translate(
+                "Below are all of the surveys linked to your Pavlovia account - select the one you want and "
+                "press OK to add its ID."
+            ))
+            self.sizer.Add(self.instr, border=6, flag=wx.ALL | wx.EXPAND)
+            # Add ctrl
+            self.ctrl = wx.ListCtrl(self, style=wx.LC_REPORT)
+            self.ctrl.AppendColumn("Name")
+            self.ctrl.AppendColumn("ID")
+            self.populate()
+            self.sizer.Add(self.ctrl, border=6, proportion=1, flag=wx.EXPAND)
+            # Setup buttons
+            self.btnSizer = self.CreateStdDialogButtonSizer(flags=wx.OK | wx.CANCEL | wx.HELP)
+            self.sizer.Add(self.btnSizer, border=6, flag=wx.ALL | wx.EXPAND)
+
+        def populate(self):
+            self.ctrl.Append(["Test1", "12345"])
+            self.ctrl.Append(["Test2", "54321"])
+
+    def __init__(self, parent, valType,
+                 val="", fieldName="",
+                 size=wx.Size(-1, 24)):
+        # Create self
+        wx.TextCtrl.__init__(self)
+        self.Create(parent, -1, val, name=fieldName, size=size)
+        self.valType = valType
+        # Add sizer
+        self._szr = wx.BoxSizer(wx.HORIZONTAL)
+        self._szr.Add(self, border=5, proportion=1, flag=wx.EXPAND | wx.RIGHT)
+        # Add button to browse for survey
+        icn = icons.ButtonIcon(stem="survey", size=16).bitmap
+        self.findBtn = wx.BitmapButton(parent, -1, size=wx.Size(24, 24), bitmap=icn)
+        self.findBtn.SetToolTip(_translate("Specify survey ..."))
+        self.findBtn.Bind(wx.EVT_BUTTON, self.findSurvey)
+        self._szr.Add(self.findBtn)
+        # Configure validation
+        self.Bind(wx.EVT_TEXT, self.validate)
+        self.validate()
+
+    def findSurvey(self, evt=None):
+        dlg = self.SurveyFinderDlg(self)
+        dlg.ShowModal()
 
 
 class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
