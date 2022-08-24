@@ -261,6 +261,8 @@ class ParamCtrls():
         """
         if ctrl is None:
             return None
+        elif hasattr(ctrl, 'getValue'):
+            return ctrl.getValue()
         elif hasattr(ctrl, 'GetText'):
             return ctrl.GetText()
         elif hasattr(ctrl, 'GetValue'):  # e.g. TextCtrl
@@ -380,7 +382,7 @@ class ParamCtrls():
             self.valueCtrl.Bind(wx.stc.EVT_STC_CHANGE, callbackFunction)
         elif isinstance(self.valueCtrl, wx.ComboBox):
             self.valueCtrl.Bind(wx.EVT_COMBOBOX, callbackFunction)
-        elif isinstance(self.valueCtrl, wx.Choice):
+        elif isinstance(self.valueCtrl, (wx.Choice, paramCtrls.RichChoiceCtrl)):
             self.valueCtrl.Bind(wx.EVT_CHOICE, callbackFunction)
         elif isinstance(self.valueCtrl, wx.CheckListBox):
             self.valueCtrl.Bind(wx.EVT_CHECKLISTBOX, callbackFunction)
