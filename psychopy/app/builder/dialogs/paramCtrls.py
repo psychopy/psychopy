@@ -359,9 +359,9 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
             # Setup sizer
             self.border = wx.BoxSizer()
             self.SetSizer(self.border)
-            self.sizer = wx.FlexGridSizer(cols=2, vgap=3, hgap=6)
+            self.sizer = wx.FlexGridSizer(cols=2)
             self.sizer.AddGrowableCol(idx=1, proportion=1)
-            self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+            self.border.Add(self.sizer, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
             # Check
             self.check = wx.CheckBox(self)
             self.check.Bind(wx.EVT_CHECKBOX, self.onCheck)
