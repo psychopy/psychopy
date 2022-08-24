@@ -366,6 +366,8 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
             self.check = wx.CheckBox(self)
             self.check.Bind(wx.EVT_CHECKBOX, self.onCheck)
             self.check.Bind(wx.EVT_KEY_UP, self.onToggle)
+            self.check.Bind(wx.EVT_SET_FOCUS, self.onFocus)
+            self.check.Bind(wx.EVT_KILL_FOCUS, self.onFocus)
             self.sizer.Add(self.check, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
             # Title
             self.title = wx.StaticText(self, label=label)
@@ -405,6 +407,15 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
         def onToggle(self, evt):
             if evt.GetUnicodeKey() in (wx.WXK_SPACE, wx.WXK_NUMPAD_SPACE):
                 self.setChecked(not self.check.IsChecked())
+
+        def onFocus(self, evt):
+            if evt.EventType == wx.EVT_SET_FOCUS.typeId:
+                self.SetWindowStyle(wx.BORDER_STATIC)
+            elif evt.EventType == wx.EVT_KILL_FOCUS.typeId:
+                self.SetWindowStyle(wx.BORDER_NONE)
+            # For some reason this is the only way make the border actually appear
+            self.Hide()
+            self.ShowWithEffect(wx.SHOW_EFFECT_EXPAND, timeout=1)
 
     def __init__(self, parent, valType,
                  vals="", fieldName="",
