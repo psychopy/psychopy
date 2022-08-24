@@ -613,6 +613,13 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
             self.ctrl.Append(["Test1", "12345"])
             self.ctrl.Append(["Test2", "54321"])
 
+        def getValue(self):
+            i = self.ctrl.GetFirstSelected()
+            if i > -1:
+                return self.ctrl.GetItem(i, col=1).Text
+            else:
+                return ""
+
     def __init__(self, parent, valType,
                  val="", fieldName="",
                  size=wx.Size(-1, 24)):
@@ -635,7 +642,9 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
 
     def findSurvey(self, evt=None):
         dlg = self.SurveyFinderDlg(self)
-        dlg.ShowModal()
+        if dlg.ShowModal() == wx.ID_OK:
+            self.SetValue(dlg.getValue())
+
 
 
 class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
