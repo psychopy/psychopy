@@ -2259,6 +2259,7 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.app = self.frame.app
         self.dpi = self.app.dpi
         self.routine = routine
+        self.helpUrl = self.routine.url
         self.params = routine.params
         # Setup sizer
         self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -2266,14 +2267,18 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         # Setup categ notebook
         self.ctrls = ParamNotebook(self, experiment=self.frame.exp, element=routine)
         self.paramCtrls = self.ctrls.paramCtrls
-        self.sizer.Add(self.ctrls, border=12, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL)
+        self.sizer.Add(self.ctrls, border=12, proportion=1, flag=wx.ALIGN_CENTER | wx.TOP)
         # Make buttons
         self.btnsSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.helpBtn = wx.Button(self, id=wx.ID_HELP, label=_translate("Help"))
+        self.helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
+        self.btnsSizer.Add(self.helpBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        self.btnsSizer.AddStretchSpacer(1)
         # Add validator stuff
         self.warnings = WarningManager(self)
         self.sizer.Add(self.warnings.output, border=3, flag=wx.EXPAND | wx.ALL)
         # Add buttons to sizer
-        self.sizer.Add(self.btnsSizer, border=6, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL)
+        self.sizer.Add(self.btnsSizer, border=3, proportion=0, flag=wx.EXPAND | wx.ALL)
         # Style
         self._applyAppTheme()
         self.SetupScrolling(scroll_y=True)
@@ -2295,6 +2300,11 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.frame.routinePanel.SetPageText(page, self.routine.params['name'].val)
         # Update save button
         self.frame.setIsModified(True)
+
+    def onHelp(self, event=None):
+        """Uses self.app.followLink() to self.helpUrl
+        """
+        self.app.followLink(url=self.helpUrl)
 
     def Validate(self, *args, **kwargs):
         return self.ctrls.Validate()
