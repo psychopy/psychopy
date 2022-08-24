@@ -305,29 +305,48 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # self documenting and prevent the user from touching the status flag
         # attribute directly.
         #
-        return self.status == PLAYING
+        if self._player is not None:
+            return self._player.isPlaying
+
+        return False
 
     @property
     def isNotStarted(self):
         """`True` if the video may not have started yet (`bool`). This status is
-        given after a video is loaded and play has yet to be called."""
-        return self.status == NOT_STARTED
+        given after a video is loaded and play has yet to be called.
+        """
+        if self._player is not None:
+            return self._player.isNotStarted
+
+        return True
 
     @property
     def isStopped(self):
-        """`True` if the video is stopped (`bool`)."""
-        return self.status == STOPPED
+        """`True` if the video is stopped (`bool`). It will resume from the
+        beginning if `play()` is called.
+        """
+        if self._player is not None:
+            return self._player.isStopped
+
+        return False
 
     @property
     def isPaused(self):
-        """`True` if the video is presently paused (`bool`)."""
-        return self.status == PAUSED
+        """`True` if the video is presently paused (`bool`).
+        """
+        if self._player is not None:
+            return self._player.isPaused
+
+        return False
 
     @property
     def isFinished(self):
-        """`True` if the video is finished (`bool`)."""
-        # why is this the same as STOPPED?
-        return self.status == FINISHED
+        """`True` if the video is finished (`bool`).
+        """
+        if self._player is not None:
+            return self._player.isFinished
+
+        return False
 
     def play(self, log=True):
         """Start or continue a paused movie from current position.
@@ -343,7 +362,6 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
             self._player.volume = self._volume
 
         self._player.play(log=log)
-        self.status = PLAYING
 
     def pause(self, log=True):
         """Pause the current point in the movie. The image of the last frame
@@ -356,7 +374,6 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         """
         self._player.pause(log=log)
-        self.status = PAUSED
 
     def stop(self, log=True):
         """Stop the current point in the movie (sound will stop, current frame
@@ -372,7 +389,6 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # stop should reset the video to the start and pause
         if self._player is not None:
             self._player.stop()
-        self.status = NOT_STARTED
 
     def seek(self, timestamp, log=True):
         """Seek to a particular timestamp in the movie.

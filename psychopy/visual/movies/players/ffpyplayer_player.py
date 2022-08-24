@@ -466,14 +466,13 @@ class MovieStreamThreadFFPyPlayer(threading.Thread):
         while 1:
             # pull a new frame
             frameData, val = self._player.get_frame()
-
             # if no frame, just pause the thread and restart the loop
-            if frameData is None or val == 'paused':  # paused or not ready
+            if val == 'eof':  # end of stream/file
+                self._isFinished = self._isIdling = True
+                time.sleep(frameInterval)
+            elif frameData is None or val == 'paused':  # paused or not ready
                 self._isIdling = True
                 self._isFinished = False
-                time.sleep(frameInterval)
-            elif val == 'eof':  # end of stream/file
-                self._isFinished = self._isIdling = True
                 time.sleep(frameInterval)
             else:  # playing
                 self._isIdling = self._isFinished = False
@@ -920,7 +919,7 @@ class FFPyPlayer(BaseMoviePlayer):
         """`True` if the video is finished (`bool`).
         """
         # why is this the same as STOPPED?
-        return self.status == FINISHED
+        return self._status == FINISHED
 
     def play(self, log=False):
         """Start or continue a paused movie from current position.
@@ -941,7 +940,7 @@ class FFPyPlayer(BaseMoviePlayer):
         self._assertMediaPlayer()
 
         self._tStream.play()
-        self.parent.status = self._status = PLAYING
+        self._status = PLAYING
 
     def stop(self, log=False):
         """Stop the current point in the movie (sound will stop, current frame
@@ -957,6 +956,7 @@ class FFPyPlayer(BaseMoviePlayer):
 
         """
         self._tStream.stop()
+        self._status = STOPPED
 
     def pause(self, log=False):
         """Pause the current point in the movie. The image of the last frame
@@ -973,7 +973,7 @@ class FFPyPlayer(BaseMoviePlayer):
         self._tStream.pause()
         self._enqueueFrame()
 
-        self.parent.status = self._status = PAUSED
+        self._status = PAUSED
 
         return False
 
@@ -1325,13 +1325,9 @@ class FFPyPlayer(BaseMoviePlayer):
         # for now.
         frameImage = enqueuedFrame.frameImage
         streamStatus = enqueuedFrame.streamStatus
-        # self._status = self.parent.status = streamStatus.status  # no more
         self._metadata = enqueuedFrame.metadata
         self._frameIndex = streamStatus.frameIndex
         self._loopCount = streamStatus.loopCount
-
-        if self._tStream.isFinished:
-            self._status = FINISHED
 
         # status information
         self._streamTime = streamStatus.streamTime  # stream time for the camera
@@ -1369,8 +1365,8 @@ class FFPyPlayer(BaseMoviePlayer):
         # movie is finished
         self._enqueueFrame()
 
-        if self._tStream.isDone() or self._tStream.isIdling:
-            self.parent.status = self._status = FINISHED
+        if self._tStream.isFinished:  # are we done?
+            self._status = FINISHED
 
     def getMovieFrame(self):
         """Get the movie frame scheduled to be displayed at the current time.
