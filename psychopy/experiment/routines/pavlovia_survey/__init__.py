@@ -78,9 +78,9 @@ class PavloviaSurveyComponent(BaseStandaloneRoutine):
             ),
             label=_translate("Survey"))
 
-        self.params['urlParams'] = Param(
-            urlParams, valType='str', inputType="dict", categ='Basic',
-            hint=_translate(
-                "Key/value pairs to pass to the survey via url when running"
-            ),
-            label=_translate("URL Parameters"))
+        # self.params['urlParams'] = Param(
+        #     urlParams, valType='str', inputType="dict", categ='Basic',
+        #     hint=_translate(
+        #         "Key/value pairs to pass to the survey via url when running"
+        #     ),
+        #     label=_translate("URL Parameters"))
