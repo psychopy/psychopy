@@ -383,11 +383,18 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
 
         def setChecked(self, state):
             if self.parent.multi:
-                # If multi select is allowed, set this value and leave others unchanged
-                self.check.SetValue(state)
-                # Show / hide description
-                self.body.Show(state)
-                self.body.Wrap(self.body.GetSize()[0])
+                # If multi select is allowed, leave other values unchanged
+                values = self.parent.getValue()
+                if not isinstance(values, (list, tuple)):
+                    values = [values]
+                if state:
+                    # Add this item to list if checked
+                    values.append(self.value)
+                else:
+                    # Remove this item from list if unchecked
+                    if self.value in values:
+                        values.remove(self.value)
+                self.parent.setValue(values)
             elif state:
                 # If single only, set at parent level so others are unchecked
                 self.parent.setValue(self.value)
@@ -454,6 +461,9 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
             if item.getChecked():
                 # If checked, append value
                 values.append(item.value)
+        # Strip list if not multi
+        if not self.multi:
+            values = values[0]
 
         return values
 
@@ -468,6 +478,11 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
             # Show / hide description
             item.body.Show(state)
             item.body.Wrap(item.body.GetSize()[0])
+
+        # Post event
+        evt = wx.ListEvent(commandType=wx.EVT_CHOICE.typeId, id=-1)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
 
         self.Layout()
 
