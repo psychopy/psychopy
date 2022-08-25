@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2021.2.3\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2022-07-31 16:39+0800\n"
+"PO-Revision-Date: 2022-08-25 21:47+0800\n"
 "Last-Translator: Shun Wang <shuonwang@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -4771,21 +4771,21 @@ msgstr ""
 
 #: ../experiment/components/microphone/__init__.py:24
 msgid "Stereo"
-msgstr ""
+msgstr "立体声"
 
 #: ../experiment/components/microphone/__init__.py:25
 msgid "Channel"
-msgstr ""
+msgstr "声道"
 
 #: ../experiment/components/microphone/__init__.py:50
 msgid ""
 "Microphone: basic sound capture (fixed onset & duration), okay for spoken "
 "words"
-msgstr ""
+msgstr "麦克风：基本的声音捕捉（固定的开始和持续时间），可以用于口语"
 
 #: ../experiment/components/microphone/__init__.py:76
 msgid "The duration of the recording in seconds; blank = 0 sec"
-msgstr ""
+msgstr "录制的持续时间（以秒为单位）； 空白 = 0 秒"
 
 #: ../experiment/components/microphone/__init__.py:81
 msgid ""
@@ -4793,88 +4793,92 @@ msgid ""
 "affect local experiments - online experiments ask the participant which mic "
 "to use."
 msgstr ""
+"您希望使用哪种麦克风设备进行录音？ 这只会影响本地实验 - 在线实验会询问参与者"
+"使用哪个麦克风。"
 
 #: ../experiment/components/microphone/__init__.py:87
 msgid "Device"
-msgstr ""
+msgstr "设备"
 
 #: ../experiment/components/microphone/__init__.py:90
 msgid ""
 "Record two channels (stereo) or one (mono, smaller file). Select 'auto' to "
 "use as many channels as the selected device allows."
 msgstr ""
+"录制双声道（立体声）或单声道（mono，较小的文件）。 选择“自动”以使用所选设备允"
+"许的尽可能多的声道。"
 
 #: ../experiment/components/microphone/__init__.py:100
 msgid "Channels"
-msgstr ""
+msgstr "声道"
 
 #: ../experiment/components/microphone/__init__.py:102
 msgid "How many samples per second (Hz) to record at"
-msgstr ""
+msgstr "每秒记录多少个采样 (Hz)"
 
 #: ../experiment/components/microphone/__init__.py:108
 msgid "Sample Rate (Hz)"
-msgstr ""
+msgstr "采样率 (Hz)"
 
 #: ../experiment/components/microphone/__init__.py:110
 msgid ""
 "To avoid excessively large output files, what is the biggest file size you "
 "are likely to expect?"
-msgstr ""
+msgstr "为避免输出文件过大，您可能期望的最大文件尺寸是多大？"
 
 #: ../experiment/components/microphone/__init__.py:115
 msgid "Max Recording Size (kb)"
-msgstr ""
+msgstr "最大录制大小(kb)"
 
 #: ../experiment/components/microphone/__init__.py:117
 msgid "What file type should output audio files be saved as?"
-msgstr ""
+msgstr "输出音频文件应保存为什么文件类型？"
 
 #: ../experiment/components/microphone/__init__.py:123
 msgid "Output File Type"
-msgstr ""
+msgstr "输出文件类型"
 
 #: ../experiment/components/microphone/__init__.py:126
 msgid "Tick this to save times when the participant starts and stops speaking"
-msgstr ""
+msgstr "勾选此项以节省参与者开始和停止发言的时间"
 
 #: ../experiment/components/microphone/__init__.py:131
 msgid "Speaking Start / Stop Times"
-msgstr ""
+msgstr "发言开始/停止时间"
 
 #: ../experiment/components/microphone/__init__.py:134
 msgid "Trim periods of silence from the output file"
-msgstr ""
+msgstr "从输出文件中修剪无声时段"
 
 #: ../experiment/components/microphone/__init__.py:139
 msgid "Trim Silent"
-msgstr ""
+msgstr "修剪无声"
 
 #: ../experiment/components/microphone/__init__.py:151
 msgid "Whether to transcribe the audio recording and store the transcription"
-msgstr ""
+msgstr "是否转录录音并存储转录"
 
 #: ../experiment/components/microphone/__init__.py:152
 msgid "Transcribe Audio"
-msgstr ""
+msgstr "转录音频"
 
 #: ../experiment/components/microphone/__init__.py:167
 msgid "What transcription service to use to transcribe audio?"
-msgstr ""
+msgstr "使用什么转录服务来转录音频？"
 
 #: ../experiment/components/microphone/__init__.py:168
 msgid "Transcription Backend"
-msgstr ""
+msgstr "转录后端"
 
 #: ../experiment/components/microphone/__init__.py:173
 msgid ""
 "What language you expect the recording to be spoken in, e.g. en-US for "
 "English"
-msgstr ""
+msgstr "您希望录音使用什么语言，例如 en-US 英语"
 
 #: ../experiment/components/microphone/__init__.py:174
 msgid "Transcription Language"
-msgstr ""
+msgstr "转录语言"
 
 #: ../experiment/components/microphone/__init__.py:179
 #, python-format
@@ -4886,34 +4890,41 @@ msgid ""
 "using a colon after the word, e.g. 'red:100', 'green:80'. Otherwise, default "
 "confidence level is 80%."
 msgstr ""
+"设置要收听的词汇列表 - 如果空白将收听所选语言的所有词汇。\n"
+"\n"
+"如果使用内置转录器，您可以在词汇后使用冒号设置最小  % 置信度，例如  "
+"'red:100', 'green:80'。 否则，默认置信水平为 80%。"
 
 #: ../experiment/components/microphone/__init__.py:182
 msgid "Expected Words"
-msgstr ""
+msgstr "预期词汇"
 
 #: ../experiment/components/mouse/__init__.py:19
 msgid "Save mouse state"
-msgstr ""
+msgstr "保存鼠标状态"
 
 #: ../experiment/components/mouse/__init__.py:24
 msgid "New clicks only"
-msgstr ""
+msgstr "仅新点击"
 
 #: ../experiment/components/mouse/__init__.py:34
 msgid "Mouse: query mouse position and buttons"
-msgstr ""
+msgstr "鼠标：查询鼠标位置和按钮"
 
 #: ../experiment/components/mouse/__init__.py:58
 msgid ""
 "How often should the mouse state (x,y,buttons) be stored? On every video "
 "frame, every click or just at the end of the Routine?"
 msgstr ""
+"鼠标状态（x,y,buttons）应该多久存储一次？ 在每个视频帧上，每次点击或只是在例"
+"程结束时？"
 
 #: ../experiment/components/mouse/__init__.py:90
 msgid ""
 "If the mouse button is already down when we start checking then wait for it "
 "to be released before recording as a new click."
 msgstr ""
+"如果在我们开始检查时鼠标按钮已经按下，则等待它被释放，然后再记录为新的点击。"
 
 #: ../experiment/components/mouse/__init__.py:110
 msgid ""
@@ -4921,10 +4932,12 @@ msgid ""
 "for the stimulus that was\"clicked\" by the mouse. Make sure that all the "
 "clickable objects have all these params."
 msgstr ""
+"您要为其存储当前值的参数(e.g. name, text)，用于鼠标“单击”的刺激。 确保所有可"
+"点击对象都具有所有这些参数。"
 
 #: ../experiment/components/movie/__init__.py:19
 msgid "Movie file"
-msgstr ""
+msgstr "影片文件"
 
 #: ../experiment/components/movie/__init__.py:21
 msgid "backend"
@@ -4936,7 +4949,7 @@ msgstr ""
 
 #: ../experiment/components/movie/__init__.py:33
 msgid "Movie: play movie files"
-msgstr ""
+msgstr "影片：播放影片文件"
 
 #: ../experiment/components/movie/__init__.py:59
 #: ../experiment/components/sound/__init__.py:54
