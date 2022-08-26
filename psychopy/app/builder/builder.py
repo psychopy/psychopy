@@ -1380,8 +1380,10 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                     return
 
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
-        pavlovia_ui.syncProject(parent=self, file=self.filename, project=self.project)
-        self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
+        try:
+            pavlovia_ui.syncProject(parent=self, file=self.filename, project=self.project)
+        finally:
+            self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
 
     def onPavloviaRun(self, evt=None):
         if self._getExportPref('on save') or self._getExportPref('on sync'):
@@ -2976,8 +2978,8 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         # self.btnInsertRoutine = wx.Button(self,-1,
         #                                  'Insert Routine', pos=(10,10))
         # self.btnInsertLoop = wx.Button(self,-1,'Insert Loop', pos=(10,30))
-        labelRoutine = _translate('Insert Routine ')
-        labelLoop = _translate('Insert Loop     ')
+        labelRoutine = _translate('Insert Routine')
+        labelLoop = _translate('Insert Loop')
         btnHeight = 50
         # Create add routine button
         self.btnInsertRoutine = HoverButton(
