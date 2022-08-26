@@ -413,9 +413,6 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
                 self.SetWindowStyle(wx.BORDER_STATIC)
             elif evt.EventType == wx.EVT_KILL_FOCUS.typeId:
                 self.SetWindowStyle(wx.BORDER_NONE)
-            # For some reason this is the only way make the border actually appear
-            self.Hide()
-            self.ShowWithEffect(wx.SHOW_EFFECT_EXPAND, timeout=1)
 
     def __init__(self, parent, valType,
                  vals="", fieldName="",
