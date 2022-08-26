@@ -1380,8 +1380,10 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                     return
 
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
-        pavlovia_ui.syncProject(parent=self, file=self.filename, project=self.project)
-        self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
+        try:
+            pavlovia_ui.syncProject(parent=self, file=self.filename, project=self.project)
+        finally:
+            self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
 
     def onPavloviaRun(self, evt=None):
         if self._getExportPref('on save') or self._getExportPref('on sync'):
