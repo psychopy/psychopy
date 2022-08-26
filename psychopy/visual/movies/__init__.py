@@ -12,6 +12,7 @@ __all__ = ['MovieStim']
 
 
 import ctypes
+import os.path
 from pathlib import Path
 
 from psychopy import prefs
@@ -149,6 +150,8 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         if self._filename:  # load a movie if provided
             self.loadMovie(self._filename)
 
+        self.autoLog = autoLog
+
     @property
     def filename(self):
         """File name for the loaded video (`str`)."""
@@ -194,11 +197,18 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         """
         # If given `default.mp4`, sub in full path
-        if filename == "default.mp4":
-            filename = Path(prefs.paths['resources']) / "default.mp4"
-        # If given a recording component, use its last clip
-        if hasattr(filename, "lastClip"):
-            filename = filename.lastClip
+        if isinstance(filename, str):
+            if filename == "default.mp4":
+                filename = Path(prefs.paths['resources']) / "default.mp4"
+
+            # check if the file has can be loaded
+            if not os.path.isfile(filename):
+                raise FileNotFoundError("Cannot open movie file `{}`".format(
+                    filename))
+        else:
+            # If given a recording component, use its last clip
+            if hasattr(filename, "lastClip"):
+                filename = filename.lastClip
 
         self._filename = filename
         self._player.load(self._filename)
