@@ -336,13 +336,15 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                     time.sleep(1)
                     attempts += 1
             else:
-                # error that we could not access the memory-mapped file
-                errMsg = "Cannot communicate with running PsychoPy instance!"
-                errDlg = wx.MessageDialog(
-                    None, errMsg, caption="PsychoPy Error",
-                    style=wx.OK | wx.ICON_ERROR, pos=wx.DefaultPosition)
-                errDlg.ShowModal()
-                errDlg.Destroy()
+                if not self.testMode:
+                    # error that we could not access the memory-mapped file
+                    errMsg = \
+                        "Cannot communicate with running PsychoPy instance!"
+                    errDlg = wx.MessageDialog(
+                        None, errMsg, caption="PsychoPy Error",
+                        style=wx.OK | wx.ICON_ERROR, pos=wx.DefaultPosition)
+                    errDlg.ShowModal()
+                    errDlg.Destroy()
 
             # since were not the main instance, exit ...
             self.quit(None)

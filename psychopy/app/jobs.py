@@ -249,7 +249,8 @@ class Job:
                 cwd=cwd,
                 env=None,
                 universal_newlines=True,  # gives us back a string instead of bytes
-                creationflags=0
+                creationflags=0,
+                text=True
             )
         except FileNotFoundError:
             return -1  # negative PID means failure
