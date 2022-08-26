@@ -410,9 +410,11 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
 
         def onFocus(self, evt):
             if evt.EventType == wx.EVT_SET_FOCUS.typeId:
-                self.SetWindowStyle(wx.BORDER_STATIC)
+                self.check.SetLabelText("◀")
             elif evt.EventType == wx.EVT_KILL_FOCUS.typeId:
-                self.SetWindowStyle(wx.BORDER_NONE)
+                self.check.SetLabelText("")
+            self.check.Update()
+            self.Layout()
 
     def __init__(self, parent, valType,
                  vals="", fieldName="",
