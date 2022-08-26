@@ -75,6 +75,25 @@ Fixed:
 - Python: fixed setting the first position of markers on Sliders
 - Python: experiments using ioHub Keyboard backend were registering keypresses twice (once for down and again for up) #4990
 
+PsychoPy 2022.2.2
+~~~~~~~~~~~~~~~~~
+
+Fixed:
+
+- App: non-slip Routines not being terminated properly by force-end-routine #5004
+- Packaging: removed PocketSphinx from requirements (hard to install on several systems)
+- App: translations of some choice fields into Japanese not working correctly #5009
+
+PsychoPy 2022.2.3
+~~~~~~~~~~~~~~~~~
+
+Fixed:
+
+- App: Dark mode was missing "goto" button
+- App: Coder save button was not updating correctly after a change #5031
+- Python: Arabic Harakat diacritics were misaligned in Python TextBox2 #5033
+- Python: rendering performance improvement when contrast=1 #5027
+
 PsychoPy 2022.1
 ---------------
 
