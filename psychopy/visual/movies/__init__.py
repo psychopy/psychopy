@@ -285,7 +285,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._selectWindow(self.win if win is None else win)
 
         # handle autoplay
-        if self._autoStart and self.status == NOT_STARTED:
+        if self._autoStart and not self._player.isPlaying:
             self.play()
 
         # update the video frame and draw it to a quad
@@ -300,7 +300,8 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
     @property
     def isPlaying(self):
-        """`True` if the video is presently playing (`bool`)."""
+        """`True` if the video is presently playing (`bool`).
+        """
         # Status flags as properties are pretty useful for users since they are
         # self documenting and prevent the user from touching the status flag
         # attribute directly.
@@ -358,8 +359,8 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         """
         # get the absolute experiment time the first frame is to be presented
-        if self.status == NOT_STARTED:
-            self._player.volume = self._volume
+        # if self.status == NOT_STARTED:
+        #     self._player.volume = self._volume
 
         self._player.play(log=log)
 
@@ -447,7 +448,6 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         """
         self._player.replay(log=log)
-        self.status = NOT_STARTED
 
     # --------------------------------------------------------------------------
     # Audio stream control methods
