@@ -1,32 +1,37 @@
 from copy import deepcopy
 
-from .. import BaseStandaloneRoutine
+from .. import BaseComponent
 from psychopy.localization import _translate
 from psychopy.experiment import Param
 from pathlib import Path
 
 
-class PavloviaSurveyComponent(BaseStandaloneRoutine):
+class PavloviaSurveyComponent(BaseComponent):
     categories = ['Responses']
     targets = ["PsychoJS"]
     iconFile = Path(__file__).parent / "survey.png"
     tooltip = _translate("Run a SurveyJS survey in Pavlovia")
     beta = True
 
-    def __init__(self, exp, name='survey',
+    def __init__(self, exp, parentName, name='survey',
+                 startType='time (s)', startVal='0',
+                 stopType='duration (s)', stopVal='',
+                 startEstim='', durationEstim='',
                  surveyType="id", surveyId="", surveyJson="",
-                 urlParams="", disabled=False
+                 saveStartStop=True, syncScreenRefresh=False,
+                 disabled=False
                  ):
         # Initialise base routine
-        BaseStandaloneRoutine.__init__(self, exp, name=name, disabled=disabled)
+        BaseComponent.__init__(self, exp=exp, parentName=parentName, name=name,
+                               startType=startType, startVal=startVal,
+                               stopType=stopType, stopVal=stopVal,
+                               startEstim=startEstim, durationEstim=durationEstim,
+                               saveStartStop=saveStartStop, syncScreenRefresh=syncScreenRefresh,
+                               disabled=disabled)
         self.url = "https://psychopy.org/builder/components/pavlovia_curvey.html"
 
         # Define relationships
         self.depends = []
-
-        # Basic params
-        del self.params['stopVal']
-        del self.params['stopType']
 
         self.order += [
             'surveyType',
