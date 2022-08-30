@@ -101,8 +101,8 @@ Fixed:
 - Python: fix to occasional crashing of new FFPyPlayer moviestim caused by excessive logging in the underlying lib #47289f6ca
 - App: better handling of case where Experiment Settings may have syntax error #60cf0cea6
 - App: rare case where the $ could get ignored during dialog box validation #eb1897087
-- App: better handling of an (apparent) syntax error in user-supplied JS ##992aaa423
-- App: transcription setting on Mic Component now False by default (because most people don't have a Google API key set up)
+- App: better handling of an (apparent) syntax error in user-supplied JS #992aaa423
+- App: transcription setting on Mic Component now False by default (because most people don't have a Google API key set up) #2c8a27ed
 
 PsychoPy 2022.1
 ---------------
