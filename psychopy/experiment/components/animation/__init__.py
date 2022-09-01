@@ -116,12 +116,6 @@ class AnimationComponent(BaseVisualComponent):
         else:
             inits['interpolate'].val = False
 
-        # Trim image list
-        inits['images'].val = json.loads(inits['images'].val.replace("'", "\""))
-        if "" in inits['images'].val:
-            inits['images'].val.remove("")
-        print(type(inits['images'].val), inits['images'].val)
-
         # Alias units
         if str(inits['units'].val).lower() in ("from experiment settings", "from exp settings", "none"):
             inits['units'].val = None
