@@ -277,7 +277,7 @@ class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
 class HoverButton(wx.Button, HoverMixin, handlers.ThemeMixin):
     def __init__(self, parent, id=wx.ID_ANY, label='', bmp=None,
                  pos=wx.DefaultPosition, size=wx.DefaultSize,
-                 style=1, name=wx.ButtonNameStr):
+                 style=wx.BORDER_NONE, name=wx.ButtonNameStr):
         wx.Button.__init__(
             self, parent=parent, id=id, label=label, pos=pos, size=size, style=style, name=name
         )
@@ -640,7 +640,8 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
             for i in range(img.n_frames):
                 # Seek to frame
                 img.seek(i)
-                fr.append(img.info['duration'])
+                if hasattr(img.info['duration']):
+                    fr.append(img.info['duration'])
                 # Create wx.Bitmap from frame
                 frame = img.resize(self.Size).convert("RGB")
                 bmp = wx.BitmapFromBuffer(*frame.size, frame.tobytes())

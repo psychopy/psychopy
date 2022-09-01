@@ -162,6 +162,8 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         self._lineSizeAddition = (0, 0)
         self._tickSizeMultiplier = (1, 1)
         self._tickSizeAddition = (0, 0)
+        # Allow styles to force alignment/anchor for labels
+        self._forceLabelAnchor = None
 
         self.granularity = granularity
         self.colorSpace = colorSpace
@@ -640,6 +642,9 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             else:
                 # Labels on top means anchor them from below
                 anchorVert = alignVert = 'bottom'
+            # If style tells us to force label anchor, force it
+            if self._forceLabelAnchor is not None:
+                anchorVert = alignVert = self._forceLabelAnchor
         else:  # vertical
             # Always centered vertically
             anchorVert = alignVert = 'center'
@@ -661,6 +666,9 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             else:
                 # Labels right means anchor them from the left
                 anchorHoriz = alignHoriz = 'left'
+            # If style tells us to force label anchor, force it
+            if self._forceLabelAnchor is not None:
+                anchorHoriz = alignHoriz = self._forceLabelAnchor
         # Store label details
         self.labelParams = {
             'units': (self.units,) * n,
@@ -913,7 +921,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         if hasattr(self, "tickLines"):
             self.tickLines.colors = self._borderColor.copy()
 
-    knownStyles = ['slider', 'rating', 'radio', 'scrollbar']
+    knownStyles = ['slider', 'rating', 'radio', 'scrollbar', 'choice']
     legacyStyles = []
     knownStyleTweaks = ['labels45', 'triangleMarker']
     legacyStyleTweaks = ['whiteOnBlack']
@@ -1009,6 +1017,31 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             self.tickLines.elementMask = 'circle'
             self._tickSizeMultiplier = (1, 1)
             self._tickSizeAddition = (0, 0)
+
+        if style == 'choice':
+            if self.labels is None:
+                nLabels = len(self.ticks)
+            else:
+                nLabels = len(self.labels)
+            # No line
+            if self.horiz:
+                self._lineSizeMultiplier = (1 + 1 / nLabels, 1)
+            else:
+                self._lineSizeMultiplier = (1, 1 + 1 / nLabels)
+            # Solid ticks
+            self.tickLines.elementMask = None
+            self._tickSizeAddition = (0, 0)
+            self._tickSizeMultiplier = (0, 0)
+            # Marker is box
+            self.marker.vertices = "rectangle"
+            if self.horiz:
+                self._markerSizeMultiplier = (1, 1)
+            else:
+                self._markerSizeMultiplier = (1, 1 / nLabels)
+            # Labels forced center
+            self._forceLabelAnchor = "center"
+            # Choice doesn't make sense with granularity 0
+            self.granularity = 1
 
         if style == 'scrollbar':
             # Semi-transparent rectangle for a line (+ extra area for marker)
