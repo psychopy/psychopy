@@ -1033,7 +1033,7 @@ class TextureMixin:
                 # get an image to configure the initial texture store
                 frame = tex.getVideoFrame()
                 if frame is not None:
-                    frameSize = frame.size
+                    self._origSize = frameSize = frame.size
                     im = Image.frombuffer(
                         'RGB',
                         frameSize,

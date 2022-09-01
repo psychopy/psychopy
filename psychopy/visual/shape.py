@@ -281,8 +281,8 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
             Maximum angle (degrees) for corners of the polygon, useful for drawing a circle. Supply 180 for no maximum
             angle.
         """
-        # sin(theta) = opp / hyp, we want opp to be 1/4 (meaning gap between rects is 1/2px)
-        opp = 1/4
+        # sin(theta) = opp / hyp, we want opp to be 1/8 (meaning gap between rects is 1/4px, 1/2px in retina)
+        opp = 1/8
         hyp = lineWidth / 2
         thetaR = numpy.arcsin(opp / hyp)
         theta = numpy.degrees(thetaR)
