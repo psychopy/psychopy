@@ -89,6 +89,8 @@ knownShapes = {
         (0.5, 0.0)
     ],
 }
+# Alias shape names
+knownShapes['rect'] = knownShapes['square'] = knownShapes['rectangle']
 
 
 class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
