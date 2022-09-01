@@ -30,7 +30,7 @@ class PanoramaComponent(BaseVisualComponent):
                  image="", controlStyle="mouse", smooth=True, sensitivity=1,
                  altitude="", azimuth="",
                  upKey="w", leftKey="a", downKey="s", rightKey="d", stopKey="space"):
-        self.type = 'Panorama'
+
         self.exp = exp  # so we can access the experiment if necess
         self.parentName = parentName  # to access the routine too if needed
         self.params = {}
@@ -42,6 +42,8 @@ class PanoramaComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim,
             saveStartStop=saveStartStop, syncScreenRefresh=syncScreenRefresh,
         )
+        self.type = 'Panorama'
+
         self.order += [
             "image",
             "controlStyle",
