@@ -29,6 +29,7 @@ class ApertureComponent(PolygonComponent):
                          'region')
 
     def __init__(self, exp, parentName, name='aperture', units='norm',
+                 targets="",
                  size=1, pos=(0, 0), anchor="center", ori=0,
                  shape='triangle', nVertices=4, vertices="",
                  startType='time (s)', startVal=0.0,
@@ -51,6 +52,13 @@ class ApertureComponent(PolygonComponent):
         self.params['size'].hint = _translate("How big is the aperture? (a single number for diameter)")
         self.params['pos'].hint = _translate("Where is the aperture centred?")
         self.params['anchor'].hint = _translate("Which point on the aperture should be anchored to its exact position?")
+
+        # Params
+        self.params['targets'] = Param(
+            targets, valType="list", inputType="single",
+            label=_translate("Targets"),
+            hint=_translate("Which stimuli to apply the Aperture to. Leave blank to apply to the entire window.")
+        )
 
         # Remove Polygon params which are not needed
         del self.params['colorSpace']
@@ -94,33 +102,62 @@ class ApertureComponent(PolygonComponent):
         )
         buff.writeIndentedLines(code % inits)
 
+    def writeRoutineStartCode(self, buff):
+        code = (
+            "# store targets for %(name)s\n"
+            "%(name)s.targets = %(targets)s\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
     def writeFrameCode(self, buff):
         """Only activate the aperture for the required frames
         """
         params = self.params
         code = (f"\n"
                 f"# *{params['name']}* updates\n")
-        buff.writeIndented(code)
+        buff.writeIndentedLines(code)
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCode(buff)
-        buff.writeIndented("%(name)s.enabled = True\n" % self.params)
+        code = (
+            "%(name)s.status = STARTED\n"
+        )
+        buff.writeIndentedLines(code % self.params)
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
-        if self.params['stopVal'].val not in ['', None, -1, 'None']:
-            # writes an if statement to determine whether to draw etc
-            self.writeStopTestCode(buff)
-            buff.writeIndented("%(name)s.enabled = False\n" % self.params)
-            # to get out of the if statement
-            buff.setIndentLevel(-2, relative=True)
-        # set parameters that need updating every frame
-        # do any params need updating? (this method inherited from _base)
-        if self.checkNeedToUpdate('set every frame'):
-            code = ("if %(name)s.status == STARTED:  # only update if being  drawn\n")
-            buff.writeIndented(code % self.params)
 
+        # write code if active
+        code = (
+            "if %(name)s.status == STARTED:\n"
+            "    %(name)s.enabled = True\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        if self.checkNeedToUpdate('set every frame'):
+            # set parameters that need updating every frame
+            # do any params need updating? (this method inherited from _base)
             buff.setIndentLevel(+1, relative=True)  # to enter the if block
             self.writeParamUpdates(buff, 'set every frame')
             buff.setIndentLevel(-1, relative=True)  # to exit the if block
+        if len(self.params['targets'].val):
+            # Limit to targets
+            code += (
+            "    # draw %(name)s targets with aperture enabled\n"
+            "    for obj in %(name)s.targets:\n"
+            "        obj.draw()\n"
+            "        obj._drawnThisFrame = True\n"
+            "    %(name)s.enabled = False\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+
+        if self.params['stopVal'].val not in ['', None, -1, 'None']:
+            # writes an if statement to determine whether to draw etc
+            self.writeStopTestCode(buff)
+            code = (
+                "%(name)s.enabled = False\n"
+                "%(name)s.status = STOPPED\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            # to get out of the if statement
+            buff.setIndentLevel(-2, relative=True)
 
     def writeRoutineEndCode(self, buff):
         msg = "%(name)s.enabled = False  # just in case it was left enabled\n"

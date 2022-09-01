@@ -120,7 +120,7 @@ class Aperture(MinimalStim, ContainerMixin):
                 win=self.win, image=self.__dict__['filename'],
                 pos=pos, size=size, autoLog=False, units=self.units)
         else:
-            self._shape = BaseShapeStim(
+            self._shape = ShapeStim(
                 win=self.win, vertices=vertices, fillColor=1, lineColor=None, colorSpace='rgb',
                 interpolate=False, pos=pos, size=size, anchor=anchor, autoLog=False, units=self.units)
             self.vertices = self._shape.vertices
@@ -133,6 +133,9 @@ class Aperture(MinimalStim, ContainerMixin):
 
         self.size = size
         self.pos = pos
+
+        # start off with no targets
+        self.targets = []
 
         # set autoLog now that params have been initialised
         wantLog = autoLog is None and self.win.autoLog
@@ -178,6 +181,17 @@ class Aperture(MinimalStim, ContainerMixin):
             GL.glStencilOp(GL.GL_KEEP, GL.GL_KEEP, GL.GL_KEEP)
 
             GL.glPopMatrix()
+
+    @attributeSetter
+    def targets(self, value):
+        """
+        List of targets to apply
+        """
+        # Make sure value is a list
+        if not isinstance(value, (list, tuple, numpy.ndarray)):
+            value = [value]
+        # Store value
+        self.__dict__['targets'] = value
 
     @property
     def size(self):
@@ -324,10 +338,8 @@ class Aperture(MinimalStim, ContainerMixin):
             if self._shape._needVertexUpdate:
                 self._shape._updateVertices()
             self.win.stencilTest = True
-            self.status = STARTED
         else:
             self.win.stencilTest = False
-            self.status = STOPPED
 
         self.__dict__['enabled'] = value
 

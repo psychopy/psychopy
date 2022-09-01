@@ -1085,7 +1085,8 @@ class Window():
         """
         if self._toDraw:
             for thisStim in self._toDraw:
-                thisStim.draw()
+                if not hasattr(thisStim, "_drawnThisFrame") or not thisStim._drawnThisFrame:
+                    thisStim.draw()
         else:
             self.backend.setCurrent()
 
@@ -1257,6 +1258,11 @@ class Window():
 
         # keep the system awake (prevent screen-saver or sleep)
         platform_specific.sendStayAwake()
+
+        # mark all stimuli as not drawn yet, as we are now in a new frame
+        if self._toDraw:
+            for thisStim in self._toDraw:
+                thisStim._drawnThisFrame = False
 
         # Draw background (if present) for next frame
         if hasattr(self.backgroundImage, "draw"):
