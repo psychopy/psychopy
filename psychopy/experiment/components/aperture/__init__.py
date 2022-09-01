@@ -37,7 +37,7 @@ class ApertureComponent(PolygonComponent):
         # initialise main parameters
         super(ApertureComponent, self).__init__(
             exp, parentName, name=name, units=units,
-            pos=pos, size=size, ori=ori,
+            pos=pos, size=size, ori=ori, anchor=anchor,
             shape=shape, nVertices=nVertices, vertices=vertices,
             startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal,
@@ -47,29 +47,10 @@ class ApertureComponent(PolygonComponent):
         self.url = "https://www.psychopy.org/builder/components/aperture.html"
         self.order += []
 
-        msg = _translate(
-            "How big is the aperture? (a single number for diameter)")
-        self.params['size'].hint = msg
-
-        self.params['anchor'] = Param(
-            anchor, valType='str', inputType="choice", categ='Layout',
-            allowedVals=['center',
-                         'top-center',
-                         'bottom-center',
-                         'center-left',
-                         'center-right',
-                         'top-left',
-                         'top-right',
-                         'bottom-left',
-                         'bottom-right',
-                         ],
-            updates='constant',
-            hint=_translate("Which point on the aperture should be anchored to its exact position?"),
-            label=_translate("Anchor"))
-
-        # only localize hints and labels
-        self.params['size'].label = _translate("Size")
+        # Update hints and labels from base class
+        self.params['size'].hint = _translate("How big is the aperture? (a single number for diameter)")
         self.params['pos'].hint = _translate("Where is the aperture centred?")
+        self.params['anchor'].hint = _translate("Which point on the aperture should be anchored to its exact position?")
 
         # Remove Polygon params which are not needed
         del self.params['colorSpace']
