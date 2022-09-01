@@ -26,7 +26,7 @@ import psychopy.event
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 from psychopy.tools.attributetools import attributeSetter, setAttribute
-from psychopy.visual.shape import BaseShapeStim
+from psychopy.visual.shape import ShapeStim, knownShapes
 from psychopy.visual.image import ImageStim
 from psychopy.visual.basevisual import MinimalStim, ContainerMixin, WindowMixin
 
@@ -94,19 +94,15 @@ class Aperture(MinimalStim, ContainerMixin):
         # set vertices using shape, or default to a circle with nVerts edges
         if hasattr(shape, 'lower') and not os.path.isfile(shape):
             shape = shape.lower()
-        if shape is None or shape == 'circle':
-            # NB: pentagon etc point upwards by setting x,y to be y,x
-            # (sin,cos):
-            vertices = [(0.5 * sin(radians(theta)), 0.5 * cos(radians(theta)))
-                        for theta in numpy.linspace(0, 360, nVert, False)]
+        if shape is None:
+            shape = "circle"
+        vertices = shape
+        if shape in knownShapes:
+            vertices = knownShapes[shape]
         elif isinstance(shape, int):
             # if given a number, take it as a number of vertices and behave as if shape=='circle and nVerts==shape
             vertices = [(0.5 * sin(radians(theta)), 0.5 * cos(radians(theta)))
                         for theta in numpy.linspace(0, 360, shape, False)]
-        elif shape == 'square':
-            vertices = [[0.5, -0.5], [-0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]]
-        elif shape == 'triangle':
-            vertices = [[0.5, -0.5], [0, 0.5], [-0.5, -0.5]]
         elif type(shape) in [tuple, list, numpy.ndarray] and len(shape) > 2:
             vertices = shape
         elif isinstance(shape, str):
