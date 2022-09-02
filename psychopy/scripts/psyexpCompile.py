@@ -136,7 +136,7 @@ def compileScript(infile=None, version=None, outfile=None):
             The experiment object used for generating the experiment script
         """
         # import PsychoPy experiment and write script with useVersion active
-        from psychopy.app.builder import experiment
+        from psychopy import experiment
         # Check infile type
         if isinstance(infile, experiment.Experiment):
             thisExp = infile
