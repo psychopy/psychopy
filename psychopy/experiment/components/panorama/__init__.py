@@ -321,10 +321,12 @@ class PanoramaComponent(BaseVisualComponent):
             buff.writeIndentedLines(code % inits)
 
     def writeFrameCode(self, buff):
-        # If control style isn't custom, make sure altitude and azimuth aren't updated each frame
+        # If control style isn't custom, make sure altitude, azimuth and zoom aren't updated each frame
         if self.params['posCtrl'].val != "custom":
             self.params['azimuth'].updates = "constant"
             self.params['altitude'].updates = "constant"
+        if self.params['zoomCtrl'].val != "custom":
+            self.params['zoom'].updates = "constant"
 
         # Start code
         if self.writeStartTestCode(buff):
