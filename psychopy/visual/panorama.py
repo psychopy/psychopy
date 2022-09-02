@@ -33,7 +33,8 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
         stim3d.SphereStim.__init__(
             self, win,
             pos=(0, 0, 0),
-            flipFaces=True
+            flipFaces=True,
+            autoLog=autoLog
         )
         # Create material to host image
         self.material = stim3d.BlinnPhongMaterial(
