@@ -281,7 +281,7 @@ class BaseComponent:
 
         Returns True if start test was written, False if it was skipped. Recommended usage:
         ```
-        if self.writeStartTestCode(self, buff):
+        if self.writeStartTestCode(buff):
             code = (
                 "%(name)s.attribute = value\n"
             )
@@ -370,6 +370,10 @@ class BaseComponent:
     def writeStartTestCodeJS(self, buff):
         """Test whether we need to start
         """
+        if self.params['startVal'].val in ('', None, -1, 'None'):
+            # If we have no start time, don't write start code
+            return False
+
         params = self.params
         if self.params['startType'].val == 'time (s)':
             # if startVal is an empty string then set to be 0.0
@@ -396,13 +400,25 @@ class BaseComponent:
                 f"{params['name']}.frameNStart = frameN;  // exact frame index\n\n")
         buff.writeIndentedLines(code)
 
+        # Return True if start test was written
+        return True
+
+    def exitStartTestJS(self, buff):
+        """
+        Shorthand for doing necessary dedent after a start test loop
+        """
+        # Dedent
+        buff.setIndentLevel(-1, relative=True)
+        # Close
+        buff.writeIndentedLines("}\n")
+
     def writeStopTestCode(self, buff):
         """
         Test whether we need to stop (if there is a stop time at all)
 
         Returns True if stop test was written, False if it was skipped. Recommended usage:
         ```
-        if self.writeStopTestCode(self, buff):
+        if self.writeStopTestCode(buff):
             code = (
                 "%(name)s.attribute = value\n"
             )
@@ -487,6 +503,10 @@ class BaseComponent:
     def writeStopTestCodeJS(self, buff):
         """Test whether we need to stop
         """
+        if self.params['stopVal'].val in ('', None, -1, 'None'):
+            # If we have no stop time, don't write stop code
+            return
+
         params = self.params
         if self.params['stopType'].val == 'time (s)':
             code = (f"frameRemains = {params['stopVal']} "
@@ -524,19 +544,31 @@ class BaseComponent:
         buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
 
+        # Return True if stop test was written
+        return True
+
+    def exitStopTestJS(self, buff):
+        """
+        Shorthand for doing necessary dedent after a stop test loop
+        """
+        # Dedent
+        buff.setIndentLevel(-1, relative=True)
+        # Close
+        buff.writeIndentedLines("}\n")
+
     def writeActiveTestCode(self, buff):
         """
         Test whether component is started and has not finished.
 
         Recommended usage:
         ```
-        self.writeActiveTestCode(self, buff):
+        self.writeActiveTestCode(buff):
         code = (
             "%(name)s.attribute = value\n"
             "\n"
         )
         buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
+        self.exitActiveTest(buff)
         ```
         """
         # Newline
@@ -569,6 +601,49 @@ class BaseComponent:
         """
         # Dedent
         buff.setIndentLevel(-1, relative=True)
+
+    def writeActiveTestCodeJS(self, buff):
+        """
+        Test whether component is started and has not finished.
+
+        Recommended usage:
+        ```
+        self.writeActiveTestCodeJS(self, buff):
+        code = (
+            "%(name)s.attribute = value\n"
+            "\n"
+        )
+        self.exitActiveTestJS(buff)
+        ```
+        """
+        # Newline
+        buff.writeIndentedLines("\n")
+
+        # Write if statement
+        code = (
+            "// if %(name)s is active this frame...\n"
+            "if (%(name)s.status == STARTED) {\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        # Indent
+        buff.setIndentLevel(+1, relative=True)
+
+        if self.checkNeedToUpdate('set every frame'):
+            # Write param updates (if needed)
+            code = (
+                "// update params\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            self.writeParamUpdates(buff, 'set every frame')
+
+    def exitActiveTestJS(self, buff):
+        """
+        Shorthand for doing necessary dedent after an active test loop
+        """
+        # Dedent
+        buff.setIndentLevel(-1, relative=True)
+        # Close
+        buff.writeIndentedLines("}\n")
 
     def writeParamUpdates(self, buff, updateType, paramNames=None,
                           target="PsychoPy"):
