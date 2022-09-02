@@ -27,9 +27,13 @@ class PanoramaComponent(BaseVisualComponent):
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
                  saveStartStop=True, syncScreenRefresh=True,
-                 image="", posCtrl="mouse", zoomCtrl="wheel", smooth=True, sensitivity=1,
-                 altitude="", azimuth="", zoom=1,
-                 upKey="w", leftKey="a", downKey="s", rightKey="d", stopKey="space", inKey="up", outKey="down"):
+                 image="",
+                 posCtrl="mouse", smooth=True, posSensitivity=1,
+                 altitude="", azimuth="",
+                 zoomCtrl="wheel",
+                 zoom=1, zoomSensitivity=1,
+                 inKey="up", outKey="down",
+                 upKey="w", leftKey="a", downKey="s", rightKey="d", stopKey="space"):
 
         self.exp = exp  # so we can access the experiment if necess
         self.parentName = parentName  # to access the routine too if needed
@@ -47,15 +51,14 @@ class PanoramaComponent(BaseVisualComponent):
         self.order += [
             "image",
             "posCtrl",
-            "latitude",
-            "longitude",
+            "azimuth", "altitude",
             "upKey", "leftKey", "downKey", "rightKey", "stopKey",
-            "sensitivity",
+            "posSensitivity",
             "smooth",
             "zoomCtrl",
             "zoom",
-            "inKey",
-            "outKey",
+            "inKey", "outKey",
+            "zoomSensitivity"
         ]
 
         msg = _translate(
@@ -168,7 +171,7 @@ class PanoramaComponent(BaseVisualComponent):
             {
                 "dependsOn": "posCtrl",  # if...
                 "condition": "=='custom'",  # meets...
-                "param": "sensitivity",  # then...
+                "param": "posSensitivity",  # then...
                 "true": "hide",  # should...
                 "false": "show",  # otherwise...
             }
@@ -177,9 +180,8 @@ class PanoramaComponent(BaseVisualComponent):
             "Multiplier to apply to view changes. 1 means that moving the mouse from the center of the screen to the "
             "edge or holding down a key for 2s will rotate 180°."
         )
-        self.params['sensitivity'] = Param(
-            sensitivity, valType='code', inputType="single", categ="Basic",
-            updates="sensitivity",
+        self.params['posSensitivity'] = Param(
+            posSensitivity, valType='code', inputType="single", categ="Basic",
             hint=msg,
             label=_translate("Movement Sensitivity")
         )
@@ -240,6 +242,25 @@ class PanoramaComponent(BaseVisualComponent):
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_translate("Zoom")
+        )
+
+        self.depends.append(
+            {
+                "dependsOn": "zoomCtrl",  # if...
+                "condition": "=='custom'",  # meets...
+                "param": "zoomSensitivity",  # then...
+                "true": "hide",  # should...
+                "false": "show",  # otherwise...
+            }
+        )
+        msg = _translate(
+            "Multiplier to apply to zoom changes. 1 means that pressing the zoom in key for 1s or scrolling the mouse "
+            "wheel 100% zooms in 100%."
+        )
+        self.params['zoomSensitivity'] = Param(
+            zoomSensitivity, valType='code', inputType="single", categ="Basic",
+            hint=msg,
+            label=_translate("Zoom Sensitivity")
         )
 
 
@@ -323,8 +344,8 @@ class PanoramaComponent(BaseVisualComponent):
             code = (
                 "# update panorama view from mouse pos\n"
                 "pos = layout.Position(%(name)s.mouse.getPos(), win.units, win)\n"
-                "%(name)s.azimuth = pos.norm[0] * %(sensitivity)s\n"
-                "%(name)s.altitude = -pos.norm[1] * %(sensitivity)s\n"
+                "%(name)s.azimuth = pos.norm[0] * %(posSensitivity)s\n"
+                "%(name)s.altitude = -pos.norm[1] * %(posSensitivity)s\n"
             )
             buff.writeIndentedLines(code % self.params)
 
@@ -334,7 +355,7 @@ class PanoramaComponent(BaseVisualComponent):
                 "# update panorama view from mouse change if clicked\n"
                 "rel = layout.Position(%(name)s.mouse.getRel(), win.units, win)\n"
                 "if %(name)s.mouse.getPressed()[0]:\n"
-                "    %(name)s.momentum = rel.norm * %(sensitivity)s\n"
+                "    %(name)s.momentum = rel.norm * %(posSensitivity)s\n"
                 "    %(name)s.azimuth -= %(name)s.momentum[0]\n"
                 "    %(name)s.altitude += %(name)s.momentum[1]\n"
             )
@@ -360,7 +381,7 @@ class PanoramaComponent(BaseVisualComponent):
                 "    # work out momentum of movement from keys pressed\n"
                 "    %(name)s.momentum = np.asarray([0.0, 0.0])\n"
                 "    for key in keys:\n"
-                "        %(name)s.momentum += %(name)s.kb.deltas[key.name] * %(sensitivity)s\n"
+                "        %(name)s.momentum += %(name)s.kb.deltas[key.name] * %(posSensitivity)s\n"
                 "    # apply momentum to panorama view\n"
                 "    %(name)s.azimuth += %(name)s.momentum[0]\n"
                 "    %(name)s.altitude += %(name)s.momentum[1]\n"
@@ -406,9 +427,9 @@ class PanoramaComponent(BaseVisualComponent):
                 f"# work out zoom change from keys pressed\n"
                 f"for key in keys:\n"
                 f"    if key.name == '{inKey}':\n"
-                f"        %(name)s.zoom += win.monitorFramePeriod * 4\n"
+                f"        %(name)s.zoom += %(zoomSensitivity)s * win.monitorFramePeriod * 4\n"
                 f"    if key.name == '{outKey}':\n"
-                f"        %(name)s.zoom -= win.monitorFramePeriod * 4\n"
+                f"        %(name)s.zoom -= %(zoomSensitivity)s * win.monitorFramePeriod * 4\n"
                 f"# get keys which have been released and clear them from the buffer before next frame\n"
                 f"%(name)s.kb.getKeys(['{inKey}', '{outKey}'], waitRelease=True, clear=True)\n"
             )
