@@ -412,7 +412,7 @@ class PanoramaComponent(BaseVisualComponent):
                 _op = "+="
             code = (
                 f"# update panorama zoom from mouse wheel\n"
-                f"%(name)s.zoom {_op} %(name)s.mouse.getWheelRel()[1] * win.monitorFramePeriod * 4\n"
+                f"%(name)s.zoom {_op} %(name)s.mouse.getWheelRel()[1] * %(zoomSensitivity)s * win.monitorFramePeriod * 4\n"
             )
             buff.writeIndentedLines(code % self.params)
         elif self.params['zoomCtrl'].val in ("arrows", "plusmin", "keymap"):
