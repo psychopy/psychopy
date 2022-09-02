@@ -27,9 +27,9 @@ class PanoramaComponent(BaseVisualComponent):
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
                  saveStartStop=True, syncScreenRefresh=True,
-                 image="", controlStyle="mouse", smooth=True, sensitivity=1,
-                 altitude="", azimuth="",
-                 upKey="w", leftKey="a", downKey="s", rightKey="d", stopKey="space"):
+                 image="", posCtrl="mouse", zoomCtrl="wheel", smooth=True, sensitivity=1,
+                 altitude="", azimuth="", zoom=1,
+                 upKey="w", leftKey="a", downKey="s", rightKey="d", stopKey="space", inKey="up", outKey="down"):
 
         self.exp = exp  # so we can access the experiment if necess
         self.parentName = parentName  # to access the routine too if needed
@@ -46,7 +46,7 @@ class PanoramaComponent(BaseVisualComponent):
 
         self.order += [
             "image",
-            "controlStyle",
+            "posCtrl",
             "latitude",
             "longitude",
             "upKey", "leftKey", "downKey", "rightKey", "stopKey",
@@ -63,22 +63,24 @@ class PanoramaComponent(BaseVisualComponent):
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_translate("Image"))
+        
         msg = _translate(
             "How to control looking around the panorama scene"
         )
-        self.params['controlStyle'] = Param(
-            controlStyle, valType='str', inputType="choice", categ="Basic",
+        self.params['posCtrl'] = Param(
+            posCtrl, valType='str', inputType="choice", categ="Basic",
             allowedVals=[
                 "mouse", "drag", "arrows", "wasd", "keymap", "custom"],
             allowedLabels=[
                 "Mouse", "Drag", "Keyboard (Arrow Keys)", "Keyboard (WASD)", "Keyboard (Custom keys)", "Custom"],
             updates="constant",
             hint=msg,
-            label=_translate("Control Style")
+            label=_translate("Position Control")
         )
+        
         self.depends.append(
             {
-                "dependsOn": "controlStyle",  # if...
+                "dependsOn": "posCtrl",  # if...
                 "condition": "=='custom'",  # meets...
                 "param": "azimuth",  # then...
                 "true": "show",  # should...
@@ -95,9 +97,10 @@ class PanoramaComponent(BaseVisualComponent):
             hint=msg,
             label=_translate("Azimuth")
         )
+        
         self.depends.append(
             {
-                "dependsOn": "controlStyle",  # if...
+                "dependsOn": "posCtrl",  # if...
                 "condition": "=='custom'",  # meets...
                 "param": "altitude",  # then...
                 "true": "show",  # should...
@@ -118,27 +121,84 @@ class PanoramaComponent(BaseVisualComponent):
         labels = {'upKey': _translate("Up"), 'leftKey': _translate("Left"), 'downKey': _translate("Down"),
                   'rightKey': _translate("Right"), 'stopKey': _translate("Stop")}
         for key, val in keys.items():
-            # Add a ctrl for each key
-            msg = _translate("What key corresponds to the view action '{}'?")
-            self.params[key] = Param(
-                val, valType='str', inputType='single', categ='Basic',
-                updates='constant',
-                hint=msg.format(key),
-                label=labels[key]
-            )
             # Only show key controls if control type is custom keys
             self.depends.append(
                 {
-                    "dependsOn": "controlStyle",  # if...
+                    "dependsOn": "posCtrl",  # if...
                     "condition": "=='keymap'",  # meets...
                     "param": key,  # then...
                     "true": "show",  # should...
                     "false": "hide",  # otherwise...
                 }
             )
+            # Add a ctrl for each key
+            msg = _translate("What key corresponds to the view action '{}'?")
+            self.params[key] = Param(
+                val, valType='str', inputType='single', categ='Basic',
+                updates='constant',
+                hint=msg.format(labels[key]),
+                label=labels[key]
+            )
+
+        msg = _translate(
+            "How to control zooming in and out of the panorama scene"
+        )
+        self.params['zoomCtrl'] = Param(
+            zoomCtrl, valType='str', inputType="choice", categ="Basic",
+            allowedVals=[
+                "wheel", "invwheel", "arrows", "plusmin", "keymap", "custom"],
+            allowedLabels=[
+                "Mouse Wheel", "Mouse Wheel (Inverted)", "Keyboard (Arrow Keys)", "Keyboard (+-)", "Keyboard (Custom keys)", "Custom"],
+            updates="constant",
+            hint=msg,
+            label=_translate("Zoom Control")
+        )
+
+        keys = {'inKey': inKey, 'outKey': outKey}
+        labels = {'inKey': _translate("Zoom In"), 'outKey': _translate("Zoom Out")}
+        for key, val in keys.items():
+            # Only show key controls if zoom type is custom keys
+            self.depends.append(
+                {
+                    "dependsOn": "zoomCtrl",  # if...
+                    "condition": "=='keymap'",  # meets...
+                    "param": key,  # then...
+                    "true": "show",  # should...
+                    "false": "hide",  # otherwise...
+                },
+            )
+            # Add a ctrl for each key
+            msg = _translate("What key corresponds to the view action '{}'?")
+            self.params[key] = Param(
+                val, valType='str', inputType='single', categ='Basic',
+                updates='constant',
+                hint=msg.format(labels[key]),
+                label=labels[key]
+            )
+
         self.depends.append(
             {
-                "dependsOn": "controlStyle",  # if...
+                "dependsOn": "zoomCtrl",  # if...
+                "condition": "=='custom'",  # meets...
+                "param": "zoom",  # then...
+                "true": "show",  # should...
+                "false": "hide",  # otherwise...
+            }
+        )
+        msg = _translate(
+            "How zoomed in the scene is, with 1 being no adjustment."
+        )
+        self.params['zoom'] = Param(
+            zoom, valType='code', inputType='single', categ='Basic',
+            updates='constant',
+            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
+            hint=msg,
+            label=_translate("Zoom")
+        )
+        
+        self.depends.append(
+            {
+                "dependsOn": "posCtrl",  # if...
                 "condition": "in ('custom', 'mouse')",  # meets...
                 "param": "smooth",  # then...
                 "true": "hide",  # should...
@@ -156,7 +216,7 @@ class PanoramaComponent(BaseVisualComponent):
         )
         self.depends.append(
             {
-                "dependsOn": "controlStyle",  # if...
+                "dependsOn": "posCtrl",  # if...
                 "condition": "=='custom'",  # meets...
                 "param": "sensitivity",  # then...
                 "true": "hide",  # should...
@@ -197,20 +257,18 @@ class PanoramaComponent(BaseVisualComponent):
             "%(name)s.momentum = np.asarray([0.0, 0.0])\n"
         )
         buff.writeIndentedLines(code % inits)
-        # Add control handler if needed
-        if self.params['controlStyle'].val in ("mouse", "drag"):
-            code = (
-                "# add control handler for %(name)s\n"
-                "%(name)s.ctrl = event.Mouse()\n"
-            )
-            buff.writeIndentedLines(code % inits)
-        elif self.params['controlStyle'].val in ("arrows", "wasd", "keymap"):
+        # Add control handlers
+        code = (
+            "# add control handlers for %(name)s\n"
+            "%(name)s.mouse = event.Mouse()\n"
+            "%(name)s.kb = keyboard.Keyboard()\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        if self.params['posCtrl'].val in ("arrows", "wasd", "keymap"):
             # If keyboard, add mapping of keys to deltas
             code = (
-                "# add control handler for %(name)s\n"
-                "%(name)s.ctrl = keyboard.Keyboard()\n"
                 "# store a dictionary to map keys to the amount to change by per frame\n"
-                "%(name)s.ctrl.deltas = {{\n"
+                "%(name)s.kb.deltas = {{\n"
                 "    {u}: np.array([0, -win.monitorFramePeriod]),\n"
                 "    {l}: np.array([-win.monitorFramePeriod, 0]),\n"
                 "    {d}: np.array([0, +win.monitorFramePeriod]),\n"
@@ -218,10 +276,10 @@ class PanoramaComponent(BaseVisualComponent):
                 "    {x}: np.array([0, 0]),\n"
                 "}}\n"
             )
-            if self.params['controlStyle'].val == "wasd":
+            if self.params['posCtrl'].val == "wasd":
                 # If WASD, sub in w, a, s and d
                 code = code.format(u="'w'", l="'a'", d="'s'", r="'d'", x="'space'")
-            elif self.params['controlStyle'].val == "arrows":
+            elif self.params['posCtrl'].val == "arrows":
                 # If arrows, sub in left, right, up and down
                 code = code.format(l="'left'", r="'right'", u="'up'", d="'down'", x="'space'")
             else:
@@ -233,7 +291,7 @@ class PanoramaComponent(BaseVisualComponent):
 
     def writeFrameCode(self, buff):
         # If control style isn't custom, make sure altitude and azimuth aren't updated each frame
-        if self.params['controlStyle'].val != "custom":
+        if self.params['posCtrl'].val != "custom":
             self.params['azimuth'].updates = "constant"
             self.params['altitude'].updates = "constant"
 
@@ -249,22 +307,23 @@ class PanoramaComponent(BaseVisualComponent):
         # Active code
         self.writeActiveTestCode(buff)
 
-        if self.params['controlStyle'].val == "mouse":
+        # Pos control code
+        if self.params['posCtrl'].val == "mouse":
             # If control style is mouse, set azimuth and elevation according to mouse pos
             code = (
                 "# update panorama view from mouse pos\n"
-                "pos = layout.Position(%(name)s.ctrl.getPos(), win.units, win)\n"
+                "pos = layout.Position(%(name)s.mouse.getPos(), win.units, win)\n"
                 "%(name)s.azimuth = pos.norm[0] * %(sensitivity)s\n"
                 "%(name)s.altitude = -pos.norm[1] * %(sensitivity)s\n"
             )
             buff.writeIndentedLines(code % self.params)
 
-        elif self.params['controlStyle'].val == "drag":
+        elif self.params['posCtrl'].val == "drag":
             # If control style is drag, set azimuth and elevation according to change in mouse pos
             code = (
                 "# update panorama view from mouse change if clicked\n"
-                "rel = layout.Position(%(name)s.ctrl.getRel(), win.units, win)\n"
-                "if %(name)s.ctrl.getPressed()[0]:\n"
+                "rel = layout.Position(%(name)s.mouse.getRel(), win.units, win)\n"
+                "if %(name)s.mouse.getPressed()[0]:\n"
                 "    %(name)s.momentum = rel.norm * %(sensitivity)s\n"
                 "    %(name)s.azimuth -= %(name)s.momentum[0]\n"
                 "    %(name)s.altitude += %(name)s.momentum[1]\n"
@@ -282,21 +341,21 @@ class PanoramaComponent(BaseVisualComponent):
                 )
                 buff.writeIndentedLines(code % self.params)
 
-        elif self.params['controlStyle'].val in ("arrows", "wasd", "keymap"):
+        elif self.params['posCtrl'].val in ("arrows", "wasd", "keymap"):
             # If control is keyboard, set azimuth and elevation according to keypresses
             code = (
                 "# update panorama view from key presses\n"
-                "keys = %(name)s.ctrl.getKeys(list(%(name)s.ctrl.deltas), waitRelease=False, clear=False)\n"
+                "keys = %(name)s.kb.getKeys(list(%(name)s.kb.deltas), waitRelease=False, clear=False)\n"
                 "if len(keys):\n"
                 "    # work out momentum of movement from keys pressed\n"
                 "    %(name)s.momentum = np.asarray([0.0, 0.0])\n"
                 "    for key in keys:\n"
-                "        %(name)s.momentum += %(name)s.ctrl.deltas[key.name] * %(sensitivity)s\n"
+                "        %(name)s.momentum += %(name)s.kb.deltas[key.name] * %(sensitivity)s\n"
                 "    # apply momentum to panorama view\n"
                 "    %(name)s.azimuth += %(name)s.momentum[0]\n"
                 "    %(name)s.altitude += %(name)s.momentum[1]\n"
                 "    # get keys which have been released and clear them from the buffer before next frame\n"
-                "    %(name)s.ctrl.getKeys(list(%(name)s.ctrl.deltas), waitRelease=True, clear=True)\n"
+                "    %(name)s.kb.getKeys(list(%(name)s.kb.deltas), waitRelease=True, clear=True)\n"
             )
             buff.writeIndentedLines(code % self.params)
             if self.params['smooth']:
@@ -310,6 +369,40 @@ class PanoramaComponent(BaseVisualComponent):
                 "    %(name)s.momentum = %(name)s.momentum * (1 - win.monitorFramePeriod * 4)\n"
                 )
                 buff.writeIndentedLines(code % self.params)
+
+        # Zoom control code
+        if self.params['zoomCtrl'].val in ("wheel", "invwheel"):
+            # If control style is wheel, set zoom from mouse wheel
+            if self.params['zoomCtrl'].val == "invwheel":
+                _op = "-="
+            else:
+                _op = "+="
+            code = (
+                f"# update panorama zoom from mouse wheel\n"
+                f"%(name)s.zoom {_op} %(name)s.mouse.getWheelRel()[1] * win.monitorFramePeriod * 4\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+        elif self.params['zoomCtrl'].val in ("arrows", "plusmin", "keymap"):
+            # If control style is key based, get keys from params/presets and set from pressed
+            if self.params['zoomCtrl'].val == "arrows":
+                inKey, outKey = ("up", "down")
+            elif self.params['zoomCtrl'].val == "plusmin":
+                inKey, outKey = ("equal", "minus")
+            else:
+                inKey, outKey = (self.params['inKey'], self.params['outKey'])
+            code = (
+                f"# update panorama zoom from key presses\n"
+                f"keys = %(name)s.kb.getKeys(['{inKey}', '{outKey}'], waitRelease=False, clear=False)\n"
+                f"# work out zoom change from keys pressed\n"
+                f"for key in keys:\n"
+                f"    if key.name == '{inKey}':\n"
+                f"        %(name)s.zoom += win.monitorFramePeriod * 4\n"
+                f"    if key.name == '{outKey}':\n"
+                f"        %(name)s.zoom -= win.monitorFramePeriod * 4\n"
+                f"# get keys which have been released and clear them from the buffer before next frame\n"
+                f"%(name)s.kb.getKeys(['{inKey}', '{outKey}'], waitRelease=True, clear=True)\n"
+            )
+            buff.writeIndentedLines(code % self.params)
 
         self.exitActiveTest(buff)
 

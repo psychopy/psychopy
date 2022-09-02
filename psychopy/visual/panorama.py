@@ -1,7 +1,7 @@
 from . import stim3d
 from .basevisual import MinimalStim
 from .. import constants
-from ..tools import gltools as gl, mathtools as mt
+from ..tools import gltools as gl, mathtools as mt, viewtools as vt
 import numpy as np
 
 from ..tools.attributetools import attributeSetter
@@ -48,6 +48,8 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
         # Set starting lat- and long- itude
         self.altitude = altitude
         self.azimuth = azimuth
+        # Set starting zoom
+        self.zoom = 0
         # Set starting status
         self.status = constants.NOT_STARTED
         self.autoDraw = autoDraw
@@ -118,12 +120,39 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
     def setLatitude(self, value, log=False):
         self.latitude = value
 
+    @attributeSetter
+    def zoom(self, value):
+        value = max(value, 0)
+        self.__dict__['zoom'] = value
+        # Modify fov relative to actual view distance (in m)
+        self.fov = value + self.win.monitor.getDistance() / 100
+
+    def setZoom(self, value, log=False):
+        self.zoom = value
+
+    @attributeSetter
+    def fov(self, value):
+        if 'fov' in self.__dict__ and value == self.__dict__['fov']:
+            # Don't recalculate if value hasn't changed
+            return
+        self.__dict__['fov'] = value
+        fov = vt.computeFrustumFOV(
+            scrFOV=80,
+            scrAspect=self.win.aspect,
+            scrDist=value
+        )
+        self._projectionMatrix = vt.perspectiveProjectionMatrix(*fov)
+
+    def setFov(self, value, log=False):
+        self.fov = value
+
     def draw(self, win=None):
         # Substitude with own win if none given
         if win is None:
             win = self.win
         # Enter 3d perspective
-        win.setPerspectiveView()
+        win.projectionMatrix = self._projectionMatrix
+        win.applyEyeTransform()
         win.useLights = True
         # Calculate ori from latitude and longitude quats if needed
         if self._needsOriUpdate:
