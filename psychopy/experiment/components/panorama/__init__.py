@@ -52,6 +52,10 @@ class PanoramaComponent(BaseVisualComponent):
             "upKey", "leftKey", "downKey", "rightKey", "stopKey",
             "sensitivity",
             "smooth",
+            "zoomCtrl",
+            "zoom",
+            "inKey",
+            "outKey",
         ]
 
         msg = _translate(
@@ -63,6 +67,8 @@ class PanoramaComponent(BaseVisualComponent):
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_translate("Image"))
+
+        # Position controls
         
         msg = _translate(
             "How to control looking around the panorama scene"
@@ -140,6 +146,46 @@ class PanoramaComponent(BaseVisualComponent):
                 label=labels[key]
             )
 
+        self.depends.append(
+            {
+                "dependsOn": "posCtrl",  # if...
+                "condition": "in ('custom', 'mouse')",  # meets...
+                "param": "smooth",  # then...
+                "true": "hide",  # should...
+                "false": "show",  # otherwise...
+            }
+        )
+        msg = _translate(
+            "Should movement be smoothed, so the view keeps moving a little after a change?"
+        )
+        self.params['smooth'] = Param(
+            smooth, valType='bool', inputType="bool", categ="Basic",
+            updates="constant",
+            hint=msg,
+            label=_translate("Smooth?")
+        )
+        self.depends.append(
+            {
+                "dependsOn": "posCtrl",  # if...
+                "condition": "=='custom'",  # meets...
+                "param": "sensitivity",  # then...
+                "true": "hide",  # should...
+                "false": "show",  # otherwise...
+            }
+        )
+        msg = _translate(
+            "Multiplier to apply to view changes. 1 means that moving the mouse from the center of the screen to the "
+            "edge or holding down a key for 2s will rotate 180°."
+        )
+        self.params['sensitivity'] = Param(
+            sensitivity, valType='code', inputType="single", categ="Basic",
+            updates="sensitivity",
+            hint=msg,
+            label=_translate("Movement Sensitivity")
+        )
+
+        # Zoom controls
+
         msg = _translate(
             "How to control zooming in and out of the panorama scene"
         )
@@ -195,44 +241,8 @@ class PanoramaComponent(BaseVisualComponent):
             hint=msg,
             label=_translate("Zoom")
         )
-        
-        self.depends.append(
-            {
-                "dependsOn": "posCtrl",  # if...
-                "condition": "in ('custom', 'mouse')",  # meets...
-                "param": "smooth",  # then...
-                "true": "hide",  # should...
-                "false": "show",  # otherwise...
-            }
-        )
-        msg = _translate(
-            "Should movement be smoothed, so the view keeps moving a little after a change?"
-        )
-        self.params['smooth'] = Param(
-            smooth, valType='bool', inputType="bool", categ="Basic",
-            updates="constant",
-            hint=msg,
-            label=_translate("Smooth?")
-        )
-        self.depends.append(
-            {
-                "dependsOn": "posCtrl",  # if...
-                "condition": "=='custom'",  # meets...
-                "param": "sensitivity",  # then...
-                "true": "hide",  # should...
-                "false": "show",  # otherwise...
-            }
-        )
-        msg = _translate(
-            "Multiplier to apply to view changes. 1 means that moving the mouse from the center of the screen to the "
-            "edge or holding down a key for 2s will rotate 180°."
-        )
-        self.params['sensitivity'] = Param(
-            sensitivity, valType='code', inputType="single", categ="Basic",
-            updates="sensitivity",
-            hint=msg,
-            label=_translate("Sensitivity")
-        )
+
+
         # Most params don't apply to 3d stim, so delete them
         for key in ["color", "fillColor", "borderColor", "colorSpace", "opacity", "contrast", "size", "pos", "units", "ori"]:
             del self.params[key]
