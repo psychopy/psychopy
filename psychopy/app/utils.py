@@ -854,6 +854,7 @@ def updateDemosMenu(frame, menu, folder, ext):
             else:
                 _makeFolder(frame, menu, fdr, ext)
 
+
 class FrameSwitcher(wx.Menu):
     """Menu for switching between different frames"""
     def __init__(self, parent):
@@ -869,9 +870,9 @@ class FrameSwitcher(wx.Menu):
         self.AppendSeparator()
         # Add creator options
         self.minItemSpec = [
-            {'label': "Builder", 'class': psychopy.app.builder.BuilderFrame, 'method': self.app.showBuilder},
-            {'label': "Coder", 'class': psychopy.app.coder.CoderFrame, 'method': self.app.showCoder},
-            {'label': "Runner", 'class': psychopy.app.runner.RunnerFrame, 'method': self.app.showRunner},
+            {'label': "&Builder", 'class': psychopy.app.builder.BuilderFrame, 'method': self.app.showBuilder},
+            {'label': "&Coder", 'class': psychopy.app.coder.CoderFrame, 'method': self.app.showCoder},
+            {'label': "&Runner", 'class': psychopy.app.runner.RunnerFrame, 'method': self.app.showRunner},
         ]
         for spec in self.minItemSpec:
             if not isinstance(self.Window, spec['class']):

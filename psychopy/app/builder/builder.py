@@ -411,7 +411,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # Add Theme Switcher
         self.themesMenu = ThemeSwitcher(app=self.app)
         menu.AppendSubMenu(self.themesMenu,
-                               _translate("Themes"))
+                               _translate("&Themes"))
 
         # ---_tools ---#000000#FFFFFF-----------------------------------------
         self.toolsMenu = wx.Menu()
@@ -449,7 +449,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         # ---_experiment---#000000#FFFFFF-------------------------------------
         self.expMenu = wx.Menu()
-        menuBar.Append(self.expMenu, _translate('&Experiment'))
+        menuBar.Append(self.expMenu, _translate('E&xperiment'))
         menu = self.expMenu
         item = menu.Append(wx.ID_ANY,
                            _translate("&New Routine\t%s") % keys['newRoutine'],
@@ -533,12 +533,12 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         # ---_onlineStudies---#000000#FFFFFF-------------------------------------------
         self.pavloviaMenu = pavlovia_ui.menu.PavloviaMenu(parent=self)
-        menuBar.Append(self.pavloviaMenu, _translate("Pavlovia.org"))
+        menuBar.Append(self.pavloviaMenu, _translate("&Pavlovia.org"))
 
         # ---_window---#000000#FFFFFF-----------------------------------------
         self.windowMenu = FrameSwitcher(self)
         menuBar.Append(self.windowMenu,
-                    _translate("Window"))
+                    _translate("&Window"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()
