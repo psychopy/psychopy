@@ -768,10 +768,17 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     charsThisLine += 1
 
                 # end line with auto-wrap on space
-                if current[0] >= lineMax and wordLen > 0 and wordsThisLine > 1:
+                if current[0] >= lineMax and wordLen > 0:
                     # move the current word to next line
                     lineBreakPt = vertices[(i - wordLen + 1) * 4, 0]
-                    wordWidth = current[0] - lineBreakPt
+                    if wordsThisLine <= 1:
+                        # if whole line is just 1 word, wrap regardless of presence of wordbreak
+                        wordLen = 0
+                        wordWidth = 0
+                        charsThisLine += 1
+                        wordsThisLine += 1
+                    else:
+                        wordWidth = current[0] - lineBreakPt
                     # shift all chars of the word left by wordStartX
                     vertices[(i - wordLen + 1) * 4: (i + 1) * 4, 0] -= lineBreakPt
                     vertices[(i - wordLen + 1) * 4: (i + 1) * 4, 1] -= font.height
