@@ -1147,7 +1147,6 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
     def __init__(self, parent, ID, title, files=(), app=None):
         self.app = app  # type: psychopy.app.PsychoPyApp
-        self.session = pavlovia.getCurrentSession()
         self.frameType = 'coder'
         # things the user doesn't set like winsize etc
         self.appData = self.app.prefs.appData['coder']
@@ -1379,6 +1378,13 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
     def GetAuiManager(self):
         return self.paneManager
+
+    @property
+    def session(self):
+        """
+        Current Pavlovia session
+        """
+        return pavlovia.getCurrentSession()
 
     def outputContextMenu(self, event):
         """Custom context menu for output window.
