@@ -143,7 +143,6 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.frameType = 'builder'
         self.filename = fileName
         self.htmlPath = None
-        self.session = pavlovia.getCurrentSession()
         self.scriptProcess = None
         self.stdoutBuffer = None
         self.readmeFrame = None
@@ -268,6 +267,13 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.SetDropTarget(FileDropTarget(targetFrame=self))
 
         self.theme = colors.theme
+
+    @property
+    def session(self):
+        """
+        Current Pavlovia session
+        """
+        return pavlovia.getCurrentSession()
 
     # Synonymise Aui manager for use with theme mixin
     def GetAuiManager(self):
