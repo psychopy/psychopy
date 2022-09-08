@@ -137,7 +137,7 @@ class SettingsComponent:
                  plPupilCaptureRecordingEnabled=True,
                  plPupilCaptureRecordingLocation="",
                  keyboardBackend="ioHub",
-                 filename=None, exportHTML='on Sync'):
+                 filename=None, exportHTML='on Sync', endMessage=''):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
@@ -161,7 +161,7 @@ class SettingsComponent:
                       'Data filename', 'Data file delimiter', 'Save excel file', 'Save csv file', 'Save wide csv file',
                       'Save psydat file', 'Save hdf5 file', 'Save log file', 'logging level',  # Data tab
                       'Audio lib', 'Audio latency priority', "Force stereo",  # Audio tab
-                      'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'Resources',  # Online tab
+                      'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'End Message', 'Resources',  # Online tab
                       'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Show mouse', 'Units', 'color',
                       'colorSpace',  # Screen tab
                       ]
@@ -361,6 +361,10 @@ class SettingsComponent:
             [], valType='list', inputType="fileList", allowedTypes=[],
             hint=_translate("Any additional resources needed"),
             label="Additional Resources", categ='Online')
+        self.params['End Message'] = Param(
+            endMessage, valType='str', inputType='single',
+            hint=_translate("Message to display to participants upon completing the experiment"),
+            label="End Message", categ='Online')
         self.params['Completed URL'] = Param(
             '', valType='str', inputType="single",
             hint=_translate("Where should participants be redirected after the experiment on completion\n"
