@@ -88,11 +88,14 @@ from psychopy.visual.line import Line
 from psychopy.visual.polygon import Polygon
 from psychopy.visual.rect import Rect
 from psychopy.visual.pie import Pie
+from psychopy.visual.button import CheckBoxStim
 
 # stimuli derived from Polygon
 from psychopy.visual.circle import Circle
 
+# stimuli derived from TextBox
 from psychopy.visual.textbox import TextBox
+from psychopy.visual.dropdown import DropDownCtrl
 
 # rift support 
 from psychopy.visual.rift import Rift

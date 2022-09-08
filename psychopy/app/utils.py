@@ -640,7 +640,8 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
             for i in range(img.n_frames):
                 # Seek to frame
                 img.seek(i)
-                fr.append(img.info['duration'])
+                if hasattr(img.info['duration']):
+                    fr.append(img.info['duration'])
                 # Create wx.Bitmap from frame
                 frame = img.resize(self.Size).convert("RGB")
                 bmp = wx.BitmapFromBuffer(*frame.size, frame.tobytes())
