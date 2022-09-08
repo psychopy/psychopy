@@ -13,7 +13,7 @@ class TestTranspiler:
 
     def test_assignment(self):
         py = ("a = 1")
-        js = ("a = 1;\n")
+        js = ("var a;\na = 1;\n")
         self.runTranspile(py, js)
 
     def test_name(self):
@@ -47,7 +47,7 @@ class TestTranspiler:
 
     def test_status(self):
         py = "status = STOPPED"
-        js = "status = PsychoJS.Status.STOPPED;\n"
+        js = "var status;\nstatus = PsychoJS.Status.STOPPED;\n"
         self.runTranspile(py, js)
 
     def test_substitutions(self):
