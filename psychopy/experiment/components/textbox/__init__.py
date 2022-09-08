@@ -52,7 +52,7 @@ class TextboxComponent(BaseVisualComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
-                 languageStyle='LTR', fillColor="None",
+                 overflow="visible", languageStyle='LTR', fillColor="None",
                  borderColor="None", borderWidth=2,
                  flipHoriz=False,
                  flipVert=False,
@@ -166,6 +166,15 @@ class TextboxComponent(BaseVisualComponent):
             updates='constant',
             hint=_translate("How should text be laid out within the box?"),
             label=_translate("Alignment"))
+        self.params['overflow'] = Param(
+            overflow, valType='str', inputType="choice", categ='Layout',
+            allowedVals=['visible',
+                         'scroll',
+                         'hidden',
+                         ],
+            updates='constant',
+            hint=_translate("If the text is bigger than the textbox, how should it behave?"),
+            label=_translate('Overflow'))
         self.params['borderWidth'] = Param(
             borderWidth, valType='num', inputType="single", allowedTypes=[], categ='Appearance',
             updates='constant', allowedUpdates=_allow3[:],
@@ -203,7 +212,7 @@ class TextboxComponent(BaseVisualComponent):
             "     bold=%(bold)s, italic=%(italic)s,\n"
             "     lineSpacing=%(lineSpacing)s,\n"
             "     padding=%(padding)s, alignment=%(alignment)s,\n"
-            "     anchor=%(anchor)s,\n"
+            "     anchor=%(anchor)s, overflow=%(overflow)s,\n"
             "     fillColor=%(fillColor)s, borderColor=%(borderColor)s,\n"
             "     flipHoriz=%(flipHoriz)s, flipVert=%(flipVert)s, languageStyle=%(languageStyle)s,\n"
             "     editable=%(editable)s,\n"
@@ -244,6 +253,7 @@ class TextboxComponent(BaseVisualComponent):
                 "  opacity: %(opacity)s,\n"
                 "  padding: %(padding)s,\n"
                 "  alignment: %(alignment)s,\n"
+                "  overflow: %(overflow)s,\n"
                 "  editable: %(editable)s,\n"
                 "  multiline: true,\n"
                 "  anchor: %(anchor)s,\n")

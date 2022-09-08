@@ -20,6 +20,7 @@ from arabic_reshaper import ArabicReshaper
 from pyglet import gl
 from bidi import algorithm as bidi
 
+from ..aperture import Aperture
 from ..basevisual import BaseVisualStim, ColorMixin, ContainerMixin, WindowMixin
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
@@ -28,6 +29,8 @@ from .fontmanager import FontManager, GLFont
 from .. import shaders
 from ..rect import Rect
 from ... import core, alerts, layout
+
+from psychopy.tools.linebreak import get_breakable_points, break_units
 
 allFonts = FontManager()
 
@@ -76,6 +79,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  flipVert=False,
                  languageStyle="LTR",
                  editable=False,
+                 overflow="visible",
                  lineBreaking='default',
                  name='',
                  autoLog=None,
@@ -133,6 +137,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             opacity=self.opacity,
             autoLog=False,
         )
+        # Aperture & scrollbar
+        self.container = None
+        self.scrollbar = None
         # Box around just the content area, excluding padding - not drawn
         self.contentBox = Rect(
             win,
@@ -222,11 +229,12 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # Initialise arabic reshaper
         arabic_config = {'delete_harakat': False,  # if present, retain any diacritics
-                         'shift_harakat_position': True}  # shift by 1 to be compatible with the bidi algorithm
+                         'shift_harakat_position': False}  # shift by 1 to be compatible with the bidi algorithm
         self.arabicReshaper = ArabicReshaper(configuration=arabic_config)
 
         # caret
         self.editable = editable
+        self.overflow = overflow
         self.caret = Caret(self, color=self.color, width=2)
 
         self.autoDraw = autoDraw
@@ -340,6 +348,42 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     fontName,
                     size=self.letterHeightPix,
                     bold=self.bold, italic=self.italic)
+
+    @attributeSetter
+    def overflow(self, value):
+        if 'overflow' in self.__dict__ and value == self.__dict__['overflow']:
+            return
+        self.__dict__['overflow'] = value
+        self.container = None
+        self.scrollbar = None
+        if value in ("hidden", "scroll"):
+            # If needed, create Aperture
+            self.container = Aperture(
+                self.win, inverted=False,
+                size=self.contentBox.size, pos=self.contentBox.pos, anchor=self.anchor,
+                shape='square', units=self.units,
+                autoLog=False
+            )
+        if value in ("scroll",):
+            # If needed, create Slider
+            from ..slider import Slider  # Slider contains textboxes, so only import now
+            self.scrollbar = Slider(
+                self.win,
+                ticks=(-1, 1),
+                labels=None,
+                startValue=1,
+                pos=self.pos + (self.size[0] * 1.05 / 2, 0),
+                size=self.size * (0.05, 1 / 1.2),
+                units=self.units,
+                style='scrollbar',
+                granularity=0,
+                labelColor=None,
+                markerColor=self.color,
+                lineColor=self.fillColor,
+                colorSpace=self.colorSpace,
+                opacity=self.opacity,
+                autoLog=False
+            )
 
     @property
     def units(self):
@@ -511,7 +555,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._languageStyle = value
         # If layout is anything other than LTR, mark that we need to use bidi to lay it out
         self._needsBidi = value != "LTR"
-        self._needsArabic = value.lower == "arabic"
+        self._needsArabic = value.lower() == "arabic"
 
     @property
     def anchor(self):
@@ -587,11 +631,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         visible_text = ''.join([c for c in text if c not in codes.values()])
         self._styles = [0,]*len(visible_text)
         self._text = visible_text
-        if self._needsArabic:
+        if self._needsArabic and hasattr(self, "arabicReshaper"):
             self._text = self.arabicReshaper.reshape(self._text)
         if self._needsBidi:
             self._text = bidi.get_display(self._text)
-        
+
         current_style=0
         ci = 0
         for c in text:
@@ -793,8 +837,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self._lineLenChars.append(charsThisLine)
 
         elif self._lineBreaking == 'uax14':
-            # not needed for regular line breaks but slows down debugging
-            from psychopy.tools.linebreak import get_breakable_points, break_units
 
             # get a list of line-breakable points according to UAX#14
             breakable_points = list(get_breakable_points(self._text))
@@ -1014,7 +1056,34 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.contentBox.draw()
             self.boundingBox.draw()
 
-        # self.boundingBox.draw()  # could draw for debug purposes
+        tightH = self.boundingBox._size.pix[1]
+        areaH = self.contentBox._size.pix[1]
+        if self.overflow in ("scroll",) and tightH > areaH:
+            # Draw scrollbar
+            self.scrollbar.draw()
+            # Scroll
+            if self._alignY == "top":
+                # Top aligned means scroll between 1 and 0, and no adjust for line height
+                adjMulti = (-self.scrollbar.markerPos + 1) / 2
+                adjAdd = -self.glFont.descender
+            elif self._alignY == "bottom":
+                # Top aligned means scroll between -1 and 0, and adjust for line height
+                adjMulti = (-self.scrollbar.markerPos - 1) / 2
+                adjAdd = -self.glFont.descender
+            else:
+                # Center aligned means scroll between -0.5 and 0.5, and 50% adjust for line height
+                adjMulti = -self.scrollbar.markerPos / 2
+                adjAdd = 0
+            self.contentBox._pos.pix = self._pos.pix + (
+                0,
+                (tightH - areaH) * adjMulti + adjAdd
+            )
+            self._needVertexUpdate = True
+
+        if self.overflow in ("hidden", "scroll"):
+            # Activate aperture
+            self.container.enable()
+
         gl.glPushMatrix()
         self.win.setScale('pix')
 
@@ -1054,6 +1123,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.caret.draw()
 
         gl.glPopMatrix()
+
+        if self.container is not None:
+            self.container.disable()
 
     def reset(self):
         """Resets the TextBox2 to hold **whatever it was given on initialisation**"""

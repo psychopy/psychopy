@@ -2385,6 +2385,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.pavloviaMenu.syncBtn.Enable(bool(self.filename))
         self.pavloviaMenu.newBtn.Enable(bool(self.filename))
         self.app.updateWindowMenu()
+        self.fileBrowserWindow.updateFileBrowser()
 
     def fileOpen(self, event=None, filename=None):
         if not filename:
@@ -2606,7 +2607,8 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self.structureWindow.refresh()
             # set to current file status
             self.setFileModified(self.currentDoc.UNSAVED)
-        # return 1
+        # update file browser buttons
+        self.fileBrowserWindow.updateFileBrowser()
 
     def fileCloseAll(self, event, checkSave=True):
         """Close all files open in the editor."""
@@ -2852,7 +2854,12 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """Push changes to project repo, or create new proj if proj is None"""
         self.project = pavlovia.getProject(self.currentDoc.filename)
         self.fileSave(self.currentDoc.filename)  # Must save on sync else changes not pushed
-        pavlovia_ui.syncProject(parent=self, file=self.currentDoc.filename, project=self.project)
+        syncBtnId = self.toolbar.buttons['pavloviaSync'].GetId()
+        self.toolbar.EnableTool(syncBtnId, False)
+        try:
+            pavlovia_ui.syncProject(parent=self, file=self.currentDoc.filename, project=self.project)
+        finally:
+            self.toolbar.EnableTool(syncBtnId, True)
 
     def onPavloviaRun(self, evt=None):
         # TODO: Allow user to run project from coder
