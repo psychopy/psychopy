@@ -660,6 +660,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._colors = np.zeros((len(visible_text) * 4, 4), dtype=np.double)
         self._texcoords = np.zeros((len(visible_text) * 4, 2), dtype=np.double)
         self._glIndices = np.zeros((len(visible_text) * 4), dtype=int)
+        self._renderChars = []
 
         # the following are used internally for layout
         self._lineNs = np.zeros(len(visible_text), dtype=int)
@@ -777,6 +778,12 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                         wordWidth = 0
                         charsThisLine += 1
                         wordsThisLine += 1
+                        # add hyphen
+                        self._renderChars.append({
+                            "i": i,
+                            "current": (current[0], current[1]),
+                            "glyph": font["-"]
+                        })
                     else:
                         wordWidth = current[0] - lineBreakPt
                     # shift all chars of the word left by wordStartX
@@ -945,6 +952,17 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             raise ValueError("Unknown lineBreaking option ({}) is"
                 "specified.".format(self._lineBreaking))
 
+        # Add render-only characters
+        for rend in self._renderChars:
+            vertices = self._addRenderOnlyChar(
+                i=rend['i'],
+                x=rend['current'][0],
+                y=rend['current'][1],
+                vertices=vertices,
+                glyph=rend['glyph'],
+                alphaCorrection=alphaCorrection
+            )
+
         # Apply vertical alignment
         if self.alignment[1] in ("bottom", "center"):
             # Get bottom of last line (or starting line, if there are none)
@@ -1042,7 +1060,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.shader.bind()
         self.shader.setInt('texture', 0)
         self.shader.setFloat('pixel', [1.0 / 512, 1.0 / 512])
-        nVerts = len(self._text)*4
+        nVerts = (len(self._text) + len(self._renderChars)) * 4
 
         gl.glDrawArrays(gl.GL_QUADS, 0, nVerts)
         self.shader.unbind()
@@ -1071,7 +1089,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         """Resets the TextBox2 to a blank string"""
         # Clear contents
         self.text = ""
-
 
     def contains(self, x, y=None, units=None, tight=False):
         """Returns True if a point x,y is inside the stimulus' border.
@@ -1121,6 +1138,46 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             return self.boundingBox.overlaps(polygon)
         else:
             return self.box.overlaps(polygon)
+
+    def _addRenderOnlyChar(self, i, x, y, vertices, glyph, alphaCorrection=1):
+        """
+        Add a character at index i which is drawn but not actually part of the text
+        """
+        i = i * 4
+        # Get coordinates of glyph texture
+        self._texcoords = np.vstack([
+            self._texcoords[:i],
+            [glyph.texcoords[0], glyph.texcoords[1]],
+            [glyph.texcoords[0], glyph.texcoords[3]],
+            [glyph.texcoords[2], glyph.texcoords[3]],
+            [glyph.texcoords[2], glyph.texcoords[1]],
+            self._texcoords[i:]
+        ])
+        # Get coords of box corners
+        top = y + glyph.offset[1]
+        bot = top - glyph.size[1]
+        mid = x + glyph.offset[0] + glyph.size[0] * alphaCorrection / 2
+        left = mid - glyph.size[0] * alphaCorrection / 2
+        right = mid + glyph.size[0] * alphaCorrection / 2
+        vertices = np.vstack([
+            vertices[:i],
+            [left, top],
+            [left, bot],
+            [right, bot],
+            [right, top],
+            vertices[i:]
+        ])
+        # Make same colour as other text
+        self._colors = np.vstack([
+            self._colors[:i],
+            self._foreColor.render('rgba1'),
+            self._foreColor.render('rgba1'),
+            self._foreColor.render('rgba1'),
+            self._foreColor.render('rgba1'),
+            self._colors[i:]
+        ])
+
+        return vertices
 
     def _updateVertices(self):
         """Sets Stim.verticesPix and ._borderPix from pos, size, ori,
