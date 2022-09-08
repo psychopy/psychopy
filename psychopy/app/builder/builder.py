@@ -4035,6 +4035,7 @@ class BuilderToolbar(BasePsychopyToolbar):
             self.frame.project = pavlovia.getProject(self.frame.filename)
         # Get project
         if self.frame.project is not None:
+            self.frame.project.refresh()
             dlg = ProjectFrame(app=self.frame.app,
                                project=self.frame.project,
                                parent=self.frame)
