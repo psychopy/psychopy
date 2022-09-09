@@ -472,7 +472,7 @@ class DetailsPanel(wx.Panel):
             # Icon
             if 'avatarUrl' in project.info:
                 try:
-                    content = requests.get(project['avatar_url']).content
+                    content = self.session.session.get(project['avatar_url']).content
                     icon = io.BytesIO(content)
                 except requests.exceptions.MissingSchema:
                     icon = wx.Bitmap()
