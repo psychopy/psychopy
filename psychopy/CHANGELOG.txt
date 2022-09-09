@@ -31,6 +31,8 @@ PsychoPy 2022.3
     - **checkbox / bool**: A tick box for simple yes/no questions
 - Python: Textboxes now have the option to hide overflowing text and/or to show a vertical scrollbar.
 - Python: PsychoPy windows can now have a background image, settable in the Experiment Settings.
+- Online: PsychoJS end message now customisable via Experiment Settings.
+- App: Accessibility enhancements, making it easier to navigate menus and dialog boxes using just the keyboard.
 
 PsychoPy 2022.2
 ---------------
