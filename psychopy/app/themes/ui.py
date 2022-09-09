@@ -43,7 +43,7 @@ class ThemeSwitcher(wx.Menu):
             self.Bind(wx.EVT_MENU, self.onThemeChange, item)
         self.AppendSeparator()
         # Add Theme Folder button
-        item = self.Append(wx.ID_ANY, _translate("Open theme folder"))
+        item = self.Append(wx.ID_ANY, _translate("&Open theme folder"))
         self.Bind(wx.EVT_MENU, self.openThemeFolder, item)
         # Cache self
         menuCache.append(self)
