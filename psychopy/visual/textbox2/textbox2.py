@@ -20,6 +20,7 @@ from arabic_reshaper import ArabicReshaper
 from pyglet import gl
 from bidi import algorithm as bidi
 
+from ..aperture import Aperture
 from ..basevisual import BaseVisualStim, ColorMixin, ContainerMixin, WindowMixin
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
@@ -78,6 +79,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  flipVert=False,
                  languageStyle="LTR",
                  editable=False,
+                 overflow="visible",
                  lineBreaking='default',
                  name='',
                  autoLog=None,
@@ -135,6 +137,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             opacity=self.opacity,
             autoLog=False,
         )
+        # Aperture & scrollbar
+        self.container = None
+        self.scrollbar = None
         # Box around just the content area, excluding padding - not drawn
         self.contentBox = Rect(
             win,
@@ -229,6 +234,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # caret
         self.editable = editable
+        self.overflow = overflow
         self.caret = Caret(self, color=self.color, width=2)
 
         self.autoDraw = autoDraw
@@ -342,6 +348,42 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     fontName,
                     size=self.letterHeightPix,
                     bold=self.bold, italic=self.italic)
+
+    @attributeSetter
+    def overflow(self, value):
+        if 'overflow' in self.__dict__ and value == self.__dict__['overflow']:
+            return
+        self.__dict__['overflow'] = value
+        self.container = None
+        self.scrollbar = None
+        if value in ("hidden", "scroll"):
+            # If needed, create Aperture
+            self.container = Aperture(
+                self.win, inverted=False,
+                size=self.contentBox.size, pos=self.contentBox.pos, anchor=self.anchor,
+                shape='square', units=self.units,
+                autoLog=False
+            )
+        if value in ("scroll",):
+            # If needed, create Slider
+            from ..slider import Slider  # Slider contains textboxes, so only import now
+            self.scrollbar = Slider(
+                self.win,
+                ticks=(-1, 1),
+                labels=None,
+                startValue=1,
+                pos=self.pos + (self.size[0] * 1.05 / 2, 0),
+                size=self.size * (0.05, 1 / 1.2),
+                units=self.units,
+                style='scrollbar',
+                granularity=0,
+                labelColor=None,
+                markerColor=self.color,
+                lineColor=self.fillColor,
+                colorSpace=self.colorSpace,
+                opacity=self.opacity,
+                autoLog=False
+            )
 
     @property
     def units(self):
@@ -593,7 +635,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self._text = self.arabicReshaper.reshape(self._text)
         if self._needsBidi:
             self._text = bidi.get_display(self._text)
-        
+
         current_style=0
         ci = 0
         for c in text:
@@ -1039,7 +1081,34 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.contentBox.draw()
             self.boundingBox.draw()
 
-        # self.boundingBox.draw()  # could draw for debug purposes
+        tightH = self.boundingBox._size.pix[1]
+        areaH = self.contentBox._size.pix[1]
+        if self.overflow in ("scroll",) and tightH > areaH:
+            # Draw scrollbar
+            self.scrollbar.draw()
+            # Scroll
+            if self._alignY == "top":
+                # Top aligned means scroll between 1 and 0, and no adjust for line height
+                adjMulti = (-self.scrollbar.markerPos + 1) / 2
+                adjAdd = -self.glFont.descender
+            elif self._alignY == "bottom":
+                # Top aligned means scroll between -1 and 0, and adjust for line height
+                adjMulti = (-self.scrollbar.markerPos - 1) / 2
+                adjAdd = -self.glFont.descender
+            else:
+                # Center aligned means scroll between -0.5 and 0.5, and 50% adjust for line height
+                adjMulti = -self.scrollbar.markerPos / 2
+                adjAdd = 0
+            self.contentBox._pos.pix = self._pos.pix + (
+                0,
+                (tightH - areaH) * adjMulti + adjAdd
+            )
+            self._needVertexUpdate = True
+
+        if self.overflow in ("hidden", "scroll"):
+            # Activate aperture
+            self.container.enable()
+
         gl.glPushMatrix()
         self.win.setScale('pix')
 
@@ -1079,6 +1148,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.caret.draw()
 
         gl.glPopMatrix()
+
+        if self.container is not None:
+            self.container.disable()
 
     def reset(self):
         """Resets the TextBox2 to hold **whatever it was given on initialisation**"""
