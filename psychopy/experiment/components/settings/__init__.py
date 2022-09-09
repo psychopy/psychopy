@@ -256,7 +256,7 @@ class SettingsComponent:
             label=_localized["Units"], categ='Screen')
         self.params['blendMode'] = Param(
             blendMode, valType='str', inputType="choice",
-            allowedTypes=[], allowedVals=['add', 'avg'],
+            allowedTypes=[], allowedVals=['', 'add', 'avg'],
             hint=_translate("Should new stimuli be added or averaged with "
                             "the stimuli that have been drawn already"),
             label=_localized["blendMode"], categ='Screen')
