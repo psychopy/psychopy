@@ -1127,7 +1127,20 @@ class PavloviaProject(dict):
 
     def save(self):
         """Saves the metadata to gitlab.pavlovia.org"""
-        self.project.save()
+        try:
+            self.project.save()
+            return True
+        except gitlab.GitlabUpdateError as err:
+            msgRoot = "Could not sync project.\n\n"
+            if err.response_code == 400:
+                # Error: Avatar is too big
+                msg = msgRoot + _translate("Avatar is too big, should be at most 200 KB.")
+                dlg = wx.MessageDialog(None, msg, style=wx.ICON_ERROR)
+                dlg.ShowModal()
+                # Reset avatar
+                self['avatar_url'] = ""
+            return False
+
         # note that saving info locally about known projects is done
         # by the knownProjects DictStorage class
 
