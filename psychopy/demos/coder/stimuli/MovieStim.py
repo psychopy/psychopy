@@ -33,7 +33,7 @@ instrText = "`r` Play/Resume\n`p` Pause\n`s` Stop\n`q` Stop and Close"
 instr = visual.TextStim(win, instrText, pos=(0.0, -0.75))
 
 # main loop, exit when the status is finished
-while mov.status != constants.FINISHED:
+while not mov.isFinished:
     # draw the movie
     mov.draw()
     # draw the instruction text
