@@ -12,7 +12,7 @@ __all__ = ['Microphone']
 
 import sys
 import psychopy.logging as logging
-from psychopy.constants import NOT_STARTED, STARTED
+from psychopy.constants import NOT_STARTED
 from psychopy.preferences import prefs
 from .audioclip import *
 from .audiodevice import *
