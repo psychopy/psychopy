@@ -12,6 +12,7 @@ import os
 import re
 from pathlib import Path
 
+import PIL
 import numpy
 from wx.lib.agw.aui.aui_constants import *
 import wx.lib.statbmp
@@ -636,17 +637,26 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
             self._frames.append(scaledBitmap)
         else:
             # Otherwise, extract frames
-            img = pil.open(data)
-            for i in range(img.n_frames):
-                # Seek to frame
-                img.seek(i)
-                if 'duration' in img.info:
-                    fr.append(img.info['duration'])
-                # Create wx.Bitmap from frame
-                frame = img.resize(self.Size).convert("RGB")
-                bmp = wx.BitmapFromBuffer(*frame.size, frame.tobytes())
-                # Store bitmap
-                self._frames.append(bmp)
+            try:
+                img = pil.open(data)
+                for i in range(img.n_frames):
+                    # Seek to frame
+                    img.seek(i)
+                    if 'duration' in img.info:
+                        fr.append(img.info['duration'])
+                    # Create wx.Bitmap from frame
+                    frame = img.resize(self.Size).convert("RGB")
+                    bmp = wx.BitmapFromBuffer(*frame.size, frame.tobytes())
+                    # Store bitmap
+                    self._frames.append(bmp)
+            except PIL.UnidentifiedImageError as err:
+                # If image read fails, show warning
+                msg = _translate("Inavlid image format, could not set image.")
+                dlg = wx.MessageDialog(None, msg, style=wx.ICON_WARNING)
+                dlg.ShowModal()
+                # then use a blank image
+                self._frames = [icons.ButtonIcon(stem="invalid_img", size=128).bitmap]
+
         # Set first frame (updates non-animated images)
         self.SetBitmap(self._frames[self._frameI])
         # If animated...
