@@ -472,7 +472,7 @@ class DetailsPanel(wx.Panel):
             # Icon
             if 'avatarUrl' in project.info:
                 try:
-                    content = requests.get(project['avatar_url']).content
+                    content = self.session.session.get(project['avatar_url']).content
                     icon = io.BytesIO(content)
                 except requests.exceptions.MissingSchema:
                     icon = wx.Bitmap()
@@ -628,28 +628,31 @@ class DetailsPanel(wx.Panel):
 
     def doUpdate(self, evt=None):
         # Update each object in queue
+        success = []
         for obj in self._updateQueue:
-            self.updateProject(obj)
+            success.append(self.updateProject(obj))
         # Disable update button
-        self.updateBtn.Disable()
+        self.updateBtn.Enable(not all(success))
 
     def updateProject(self, obj):
+        success = False
         # Update project attribute according to supplying object
         if obj == self.title and self.project.editable:
             self.project['name'] = self.title.Value
-            self.project.save()
+            success = self.project.save()
         if obj == self.icon:
             # Create temporary image file
             _, temp = tempfile.mkstemp(suffix=".png")
             self.icon.BitmapFull.SaveFile(temp, wx.BITMAP_TYPE_PNG)
             # Load and upload from temp file
             self.project['avatar'] = open(temp, "rb")
-            self.project.save()
+            success = self.project.save()
             # Delete temp file
             #os.remove(temp)
         if obj == self.starBtn:
             self.project.starred = self.starBtn.value
             self.starLbl.SetLabel(str(self.project.info['nbStars']))
+            success = True
         if obj == self.localRoot:
             if Path(self.localRoot.Value).is_dir():
                 self.project.localRoot = self.localRoot.Value
@@ -666,25 +669,30 @@ class DetailsPanel(wx.Panel):
                 dlg.ShowModal()
             # Set project again to trigger a refresh
             self.project = self.project
+            success = True
         if obj == self.description and self.project.editable:
             self.project['description'] = self.description.Value
-            self.project.save()
+            success = self.project.save()
         if obj == self.visibility and self.project.editable:
             self.project['visibility'] = self.visibility.GetStringSelection().lower()
-            self.project.save()
+            success = self.project.save()
         if obj == self.status and self.project.editable:
             retval = self.session.session.put(
                 f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
                 json={'status2': self.status.GetStringSelection().upper()}
             )
+            success = True
         if obj == self.tags and self.project.editable:
             retval = self.session.session.put(
                 f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
                 json={"keywords": self.tags.GetValue()}
             )
+            success = True
         # Clear from update queue
         if obj in self._updateQueue:
             self._updateQueue.remove(obj)
+
+        return success
 
     def close(self, evt=None):
         if len(self._updateQueue):
