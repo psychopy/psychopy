@@ -313,7 +313,7 @@ class Microphone:
     Creating an instance of this class will open a stream using the specified
     device. Streams should remain open for the duration of your session. When a
     stream is opened, a buffer is allocated to store samples coming off it.
-    Samples from the input stream will written to the buffer once
+    Samples from the input stream will writen to the buffer once
     :meth:`~Microphone.start()` is called.
 
     Parameters
@@ -346,9 +346,9 @@ class Microphone:
         be used.
     audioRunMode : int
         Run mode for the recording device. Default is standby-mode (`0`) which
-        allows the system to put the device to sleep. However when the device is
-        needed, waking the device results in some latency. Using a run mode of
-        `1` will keep the microphone running (or 'hot') with reduces latency
+        allows the system to put the device to sleep. However, when the device
+        is needed, waking the device results in some latency. Using a run mode
+        of `1` will keep the microphone running (or 'hot') with reduces latency
         when th recording is started. Cannot be set when after initialization at
         this time.
 
