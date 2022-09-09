@@ -59,7 +59,7 @@ try:
     sphinxLangs = [folder.stem for folder
                    in Path(pocketsphinx.get_model_path()).glob('??-??')]
     haveSphinx = True
-except ModuleNotFoundError:
+except (ImportError, ModuleNotFoundError):
     haveSphinx = False
     sphinxLangs = None
 
