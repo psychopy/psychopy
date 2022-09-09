@@ -647,6 +647,9 @@ def getDateStr(format="%Y-%m-%d_%Hh%M.%S.%f", fractionalSecondDigits=3):
     Parameters
     ----------
     format : str
+        See the documentation for `datetime.datetime.strftime` for more
+        information on format syntax:
+        https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
         default="%Y-%m-%d_%Hh%M.%S.%f"
     fractionalSecondDigits : int
         An integer value 1-6 indicating the number of digits of fractional
@@ -655,7 +658,7 @@ def getDateStr(format="%Y-%m-%d_%Hh%M.%S.%f", fractionalSecondDigits=3):
         milliseconds you can set fractionalSecondDigits=3
 
     """
-    now = datetime.datetime.now()
+    now = datetime.datetime.now().astimezone()
     microsecs = now.strftime("%f")
     nowStr = now.strftime(format)
     if "%f" in format and (
