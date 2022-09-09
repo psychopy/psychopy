@@ -775,7 +775,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     if wordsThisLine <= 1:
                         # if whole line is just 1 word, wrap regardless of presence of wordbreak
                         wordLen = 0
-                        wordWidth = 0
                         charsThisLine += 1
                         wordsThisLine += 1
                         # add hyphen
@@ -784,8 +783,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                             "current": (current[0], current[1]),
                             "glyph": font["-"]
                         })
-                    else:
-                        wordWidth = current[0] - lineBreakPt
+                        # store linebreak point
+                        lineBreakPt = current[0]
+                    wordWidth = current[0] - lineBreakPt
                     # shift all chars of the word left by wordStartX
                     vertices[(i - wordLen + 1) * 4: (i + 1) * 4, 0] -= lineBreakPt
                     vertices[(i - wordLen + 1) * 4: (i + 1) * 4, 1] -= font.height
@@ -1143,15 +1143,15 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         """
         Add a character at index i which is drawn but not actually part of the text
         """
-        i = i * 4
+        i4 = i * 4
         # Get coordinates of glyph texture
         self._texcoords = np.vstack([
-            self._texcoords[:i],
+            self._texcoords[:i4],
             [glyph.texcoords[0], glyph.texcoords[1]],
             [glyph.texcoords[0], glyph.texcoords[3]],
             [glyph.texcoords[2], glyph.texcoords[3]],
             [glyph.texcoords[2], glyph.texcoords[1]],
-            self._texcoords[i:]
+            self._texcoords[i4:]
         ])
         # Get coords of box corners
         top = y + glyph.offset[1]
@@ -1160,21 +1160,27 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         left = mid - glyph.size[0] * alphaCorrection / 2
         right = mid + glyph.size[0] * alphaCorrection / 2
         vertices = np.vstack([
-            vertices[:i],
+            vertices[:i4],
             [left, top],
             [left, bot],
             [right, bot],
             [right, top],
-            vertices[i:]
+            vertices[i4:]
         ])
         # Make same colour as other text
         self._colors = np.vstack([
-            self._colors[:i],
+            self._colors[:i4],
             self._foreColor.render('rgba1'),
             self._foreColor.render('rgba1'),
             self._foreColor.render('rgba1'),
             self._foreColor.render('rgba1'),
-            self._colors[i:]
+            self._colors[i4:]
+        ])
+        # Extend line numbers array
+        self._lineNs = np.hstack([
+            self._lineNs[:i],
+            self._lineNs[i-1],
+            self._lineNs[i:]
         ])
 
         return vertices
