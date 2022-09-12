@@ -61,6 +61,7 @@ debug = False
 
 class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def __init__(self, win, text,
+                 placeholder="Type here...",
                  font="Open Sans",
                  pos=(0, 0), units=None, letterHeight=None,
                  size=None,
@@ -237,6 +238,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.overflow = overflow
         self.caret = Caret(self, color=self.color, width=2)
 
+        # Placeholder text (don't create if this textbox IS the placeholder)
+        if not isinstance(self, PlaceholderText):
+            self.placeholder = PlaceholderText(self, placeholder)
+
         self.autoDraw = autoDraw
         self.autoLog = autoLog
 
@@ -391,6 +396,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @units.setter
     def units(self, value):
+        if hasattr(self, "placeholder"):
+            self.placeholder.units = value
         WindowMixin.units.fset(self, value)
         if hasattr(self, "box"):
             self.box.units = value
@@ -412,6 +419,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @size.setter
     def size(self, value):
+        if hasattr(self, "placeholder"):
+            self.placeholder.size = value
         WindowMixin.size.fset(self, value)
         if hasattr(self, "box"):
             self.box.size = self._size
@@ -452,7 +461,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             # Content box should be anchored center relative to box, but its pos needs to be relative to box's vertices, not its pos
             self.contentBox.pos = self.pos + self.size * self.box._vertices.anchorAdjust
             self.contentBox._needVertexUpdate = True
-
+        if hasattr(self, "placeholder"):
+            self.placeholder.pos = self._pos
         # Set caret pos again so it recalculates its vertices
         if hasattr(self, "caret"):
             self.caret.index = self.caret.index
@@ -501,6 +511,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @letterHeight.setter
     def letterHeight(self, value):
+        # Cascade to placeholder
+        if hasattr(self, "placeholder"):
+            self.placeholder.letterHeight = value
         if isinstance(value, layout.Vector):
             # If given a Vector, use it directly
             self._letterHeight = value
@@ -527,12 +540,14 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @lineSpacing.setter
     def lineSpacing(self, value):
+        if hasattr(self, "placeholder"):
+            self.placeholder.lineSpacing = value
         self.glFont.lineSpacing = value
         self._needVertexUpdate = True
 
     @property
     def fontMGR(self):
-            return allFonts
+        return allFonts
 
     @fontMGR.setter
     def fontMGR(self, mgr):
@@ -553,6 +568,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     @languageStyle.setter
     def languageStyle(self, value):
         self._languageStyle = value
+        if hasattr(self, "placeholder"):
+            self.placeholder.languageStyle = value
         # If layout is anything other than LTR, mark that we need to use bidi to lay it out
         self._needsBidi = value != "LTR"
         self._needsArabic = value.lower() == "arabic"
@@ -577,6 +594,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @alignment.setter
     def alignment(self, alignment):
+        if hasattr(self, "placeholder"):
+            self.placeholder.alignment = alignment
         # look for unambiguous terms first (top, bottom, left, right)
         self._alignY = None
         self._alignX = None
@@ -1051,6 +1070,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if self.fillColor is not None or self.borderColor is not None:
             self.box.draw()
 
+        # Draw placeholder if blank
+        if self.editable and len(self.text) == 0:
+            self.placeholder.draw()
+
         # Draw sub-elements if in debug mode
         if debug:
             self.contentBox.draw()
@@ -1500,3 +1523,36 @@ class Caret(ColorMixin):
             [x, bottom],
             [x, top]
         ])
+
+
+class PlaceholderText(TextBox2):
+    """
+    Subclass of TextBox2 used only for presenting placeholder text, should never be called outside of TextBox2's init
+    method.
+    """
+    def __init__(self, parent, text):
+        # Should only ever be called from a textbox, make sure parent is a textbox
+        assert isinstance(parent, TextBox2), "Parent of PlaceholderText object must be of type visual.TextBox2"
+        # Create textbox sdfs df
+        TextBox2.__init__(
+            self, parent.win, text,
+            font=parent.font, bold=parent.bold, italic=parent.italic,
+            units=parent.contentBox.units, anchor=parent.contentBox.anchor,
+            pos=parent.contentBox.pos,  size=parent.contentBox.size,
+            letterHeight=parent.letterHeight,
+            color=parent.color, colorSpace=parent.colorSpace,
+            fillColor=None,
+            borderColor=None,
+            opacity=0.5,
+            lineSpacing=parent.lineSpacing,
+            padding=0,  # gap between box and text
+            alignment=parent.alignment,
+            flipHoriz=parent.flipHoriz,
+            flipVert=parent.flipVert,
+            languageStyle=parent.languageStyle,
+            editable=False,
+            overflow=parent.overflow,
+            lineBreaking=parent._lineBreaking,
+            autoLog=False
+        )
+
