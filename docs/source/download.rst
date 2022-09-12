@@ -10,7 +10,7 @@ For the easiest installation download and install the Standalone package.
 
 .. raw:: html
 
-   <script src="https://cdn.jsdelivr.net/npm/ua-parser-js@0/dist/ua-parser.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/ua-parser-js@1/dist/ua-parser.min.js"></script>
    <script>
 
     let filename;
@@ -19,7 +19,6 @@ For the easiest installation download and install the Standalone package.
 
     let clientInfo = UAParser(navigator.userAgent);
     var osLabel;
-    var os = clientInfo.os.name;
     var arch = clientInfo.cpu.architecture;
     // create the platform dependent strings
     if (navigator.platform == 'Win32' && clientInfo.cpu.architecture == 'amd64') {
@@ -27,8 +26,8 @@ For the easiest installation download and install the Standalone package.
       filename = '  Standalone PsychoPy<sup>®</sup> '+version+' for 64bit Windows (using Python3.8)';
       url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy-'+version+'-win64.exe';
     }
-    else if (navigator.platform == 'MacIntel') {
-      osLabel = clientInfo.os.name+" "+clientInfo.os.version;
+    else if (clientInfo.os.name == 'MacIntel') {
+      osLabel = 'macOS';
       filename = '  Standalone PsychoPy '+version+' for macOS';
       url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy-'+version+'-macOS.dmg';
     }
