@@ -9,12 +9,14 @@ import os
 import subprocess
 import sys
 
+import pandas as pd
 import wx
 from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
 
 from psychopy.app.colorpicker import PsychoColorPicker
 from psychopy.app.dialogs import ListWidget
 from psychopy.colors import Color
+from psychopy.data import importConditions
 from psychopy.localization import _translate
 from psychopy import data, prefs, experiment
 import re
@@ -182,6 +184,9 @@ class _IconListMixin:
     @staticmethod
     def getItemExt(item, rootDir=""):
         rootDir = Path(rootDir)
+        # Remove column ref as it doesn't affect ext
+        if ":" in str(item):
+            item = str(item).split(":")[0]
         # Get extension
         if str(item).startswith("$"):
             # If item is code, interpret literally and set icon to indicate code
@@ -429,6 +434,111 @@ class FileCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
 
 
 class FileListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl, _ValidatorMixin, _HideMixin, _FileMixin, _IconListMixin):
+    class SpreadsheetColumnChooser(wx.Dialog):
+        def __init__(self, parent, frame):
+            wx.Dialog.__init__(self, parent,
+                               title="Add from spreadsheet...",
+                               size=(-1, 400),
+                               style=wx.CAPTION | wx.RESIZE_BORDER)
+            self.parent = parent
+            self.app = parent.app
+            self.frame = frame
+            # Setup sizer
+            self.border = wx.BoxSizer(wx.VERTICAL)
+            self.SetSizer(self.border)
+            self.sizer = wx.BoxSizer(wx.VERTICAL)
+            self.border.Add(self.sizer, proportion=1, border=12, flag=wx.EXPAND | wx.ALL)
+            # Add file picker
+            self.fileLbl = wx.StaticText(self, label=_translate("Spreadsheet:"))
+            self.sizer.Add(self.fileLbl, border=3, flag=wx.EXPAND | wx.ALL)
+            self.fileCtrl = TableCtrl(self, "file")
+            self.fileCtrl.SetToolTipString(_translate(
+                "Spreadsheet from which to get columns."
+            ))
+            self.fileCtrl.Bind(wx.EVT_TEXT, self.onSpreadsheetChange)
+            self.sizer.Add(self.fileCtrl._szr, border=3, flag=wx.EXPAND | wx.ALL)
+            self.sizer.AddSpacer(6)
+            # Add column picker
+            self.columnLbl = wx.StaticText(self, label=_translate("Column:"))
+            self.sizer.Add(self.columnLbl, border=3, flag=wx.EXPAND | wx.ALL)
+            self.columnCtrl = wx.Choice(self)
+            self.columnCtrl.SetToolTipString(_translate(
+                "Column within spreadsheet from which to get values."
+            ))
+            self.columnCtrl.Disable()
+            self.columnCtrl.Bind(wx.EVT_CHOICE, self.onColumnChange)
+            self.sizer.Add(self.columnCtrl, border=3, flag=wx.EXPAND | wx.ALL)
+            self.sizer.AddSpacer(6)
+            # Add value preview
+            self.previewLbl = wx.StaticText(self, label=_translate("Values:"))
+            self.sizer.Add(self.previewLbl, border=3, flag=wx.EXPAND | wx.ALL)
+            self.previewCtrl = wx.ListView(self, style=wx.LC_LIST | wx.LC_NO_HEADER)
+            self.previewCtrl.SetToolTipString(_translate(
+                "Values retrieved from spreadsheet."
+            ))
+            self.previewCtrl.Disable()
+            self.sizer.Add(self.previewCtrl, border=3, proportion=1, flag=wx.EXPAND | wx.ALL)
+            self.sizer.AddSpacer(6)
+            # Add buttons
+            self.btnSizer = self.CreateStdDialogButtonSizer(flags=wx.OK | wx.CANCEL)
+            self.border.Add(self.btnSizer, border=12, flag=wx.EXPAND | wx.ALL)
+
+            self.Layout()
+
+        def onSpreadsheetChange(self, evt=None):
+            self.columnCtrl.Enable()
+            # Clear column ctrl
+            self.columnCtrl.Clear()
+            # Get sheet
+            sheet = self.getSheet(self.fileCtrl.GetValue(), expfile=self.frame.filename)
+            # If sheet is not a file, disable column ctrl
+            if sheet is None:
+                self.columnCtrl.Disable()
+                return
+            # Add columns
+            self.columnCtrl.Append(sheet.columns)
+            # Refresh preview
+            self.onColumnChange()
+
+        def onColumnChange(self, evt=None):
+            self.previewCtrl.Enable()
+            # Clear preview
+            self.previewCtrl.ClearAll()
+            #self.previewCtrl.AppendColumn("Values")
+            # Get sheet
+            sheet = self.getSheet(self.fileCtrl.GetValue(), expfile=self.frame.filename)
+            # If sheet is not a file, disable preview ctrl
+            if sheet is None:
+                self.previewCtrl.Disable()
+                return
+            # Get column
+            col = self.columnCtrl.GetStringSelection()
+            # If no column, disable preview ctrl
+            if (not col) or (col not in sheet.columns):
+                self.previewCtrl.Disable()
+                return
+            # Populate preview
+            sheet = sheet.dropna()
+            vals = getattr(sheet, col).values
+            for val in list(vals):
+                self.previewCtrl.Append([str(val)])
+
+        def getValue(self, evt=None):
+            if self.fileCtrl.GetValue() and self.columnCtrl.GetStringSelection():
+                return f"{self.fileCtrl.GetValue()}: {self.columnCtrl.GetStringSelection()}"
+
+        @staticmethod
+        def getSheet(value, expfile=""):
+            # Get sheet path
+            sheet = Path(expfile).parent / Path(value)
+            # If value is not a file, return None
+            if not sheet.is_file():
+                return
+            # Otherwise, load
+            table = importConditions(str(sheet))
+
+            return pd.DataFrame(table)
+
     def __init__(self, parent, valType,
                  choices=[], size=None, pathtype="rel"):
         # Setup base class
@@ -558,6 +668,19 @@ class FileListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl, _ValidatorMixin, _HideMi
             icons.ButtonIcon(stem="folder16", size=16).bitmap
         )
         menu.Bind(wx.EVT_MENU, self.onAddFolder, btn)
+        # Add from spreadsheet
+        btn = menu.Append(
+            wx.ID_ANY,
+            item=_translate("Add spreadsheet column..."),
+            helpString =_translate(
+                "Add a items from a spreadsheet column to this list."
+            ),
+            kind=wx.ITEM_NORMAL
+        )
+        btn.SetBitmap(
+            icons.ButtonIcon(stem="filecsv", size=16).bitmap
+        )
+        menu.Bind(wx.EVT_MENU, self.onAddSpreadsheet, btn)
         # Add code
         btn = menu.Append(
             wx.ID_ANY,
@@ -639,6 +762,11 @@ class FileListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl, _ValidatorMixin, _HideMi
         # Add to list
         if stringEntry:
             self.addItem(stringEntry, index=0)
+
+    def onAddSpreadsheet(self, evt=None):
+        dlg = self.SpreadsheetColumnChooser(self, frame=self.GetTopLevelParent().frame)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.addItem(dlg.getValue())
 
 
 class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
