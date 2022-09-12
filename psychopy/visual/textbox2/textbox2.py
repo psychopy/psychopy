@@ -297,35 +297,23 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         }
         return self._palette[self.hasFocus]
 
-    @property
-    def pallette(self):  # deprecated, use palette instead
-        self._palette = {
-            False: {
-                'lineColor': self._borderColor,
-                'lineWidth': self.borderWidth,
-                'fillColor': self._fillColor
-            },
-            True: {
-                'lineColor': self._borderColor-0.1,
-                'lineWidth': self.borderWidth+1,
-                'fillColor': self._fillColor+0.1
-            }
-        }
-        return self._palette[self.hasFocus]
-
     @palette.setter
-    def pallette(self, value):
+    def palette(self, value):
         self._palette = {
             False: value,
             True: value
         }
+
+    @property
+    def pallette(self):
+        """
+        Disambiguation for palette.
+        """
+        return self.palette
 
     @pallette.setter
-    def pallette(self, value):  # deprecated, use palette instead
-        self._palette = {
-            False: value,
-            True: value
-        }
+    def pallette(self, value):
+        self.palette = value
 
     @property
     def foreColor(self):
