@@ -303,7 +303,7 @@ class HoverButton(wx.Button, HoverMixin, handlers.ThemeMixin):
 
 
 class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
-    def __init__(self, parent, size=(-1, -1), value="", file=None, style=wx.DEFAULT):
+    def __init__(self, parent, size=(-1, -1), value=None, file=None, style=wx.DEFAULT):
         # Initialise superclass
         wx.Panel.__init__(self, parent, size=size)
         # Setup sizers
@@ -315,7 +315,8 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.sizer.Add(self.btnSizer, border=0, flag=wx.ALL)
 
         # Make text control
-        self.rawTextCtrl = wx.TextCtrl(self, size=size, value=value, style=wx.TE_MULTILINE | style)
+        self.rawTextCtrl = wx.TextCtrl(self, size=size, value="", style=wx.TE_MULTILINE | style)
+        self.rawTextCtrl.Bind(wx.EVT_TEXT, self.onEdit)
         self.contentSizer.Add(self.rawTextCtrl, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
 
         # Make HTML preview
@@ -329,15 +330,22 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.btnSizer.Add(self.editBtn, border=3, flag=wx.ALL | wx.EXPAND)
 
         # Make save button
-        self.file = file
         self.saveBtn = wx.Button(self, size=(24, 24))
         self.saveBtn.Bind(wx.EVT_BUTTON, self.save)
         self.btnSizer.Add(self.saveBtn, border=3, flag=wx.ALL | wx.EXPAND)
-        self.saveBtn.Show(self.file is not None)
+
+        # Get starting value
+        self.file = file
+        if value is None and self.file is not None:
+                self.load()
+        elif value is not None:
+            self.rawTextCtrl.SetValue(value)
 
         # Set initial view
         self.editBtn.SetValue(False)
         self.toggleView(False)
+        self.saveBtn.Disable()
+        self.saveBtn.Show(self.file is not None)
 
     def getValue(self):
         return self.rawTextCtrl.GetValue()
@@ -363,12 +371,27 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self._applyAppTheme()
         self.Layout()
 
+    def load(self, evt=None):
+        if self.file is None:
+            return
+        # Set value from file
+        with open(self.file, "r") as f:
+            self.rawTextCtrl.SetValue(f.read())
+        # Disable save button
+        self.saveBtn.Disable()
+
     def save(self, evt=None):
         if self.file is None:
             return
         # Write current contents to file
         with open(self.file, "w") as f:
             f.write(self.rawTextCtrl.GetValue())
+        # Disable save button
+        self.saveBtn.Disable()
+
+    def onEdit(self, evt=None):
+        # Enable save button when edited
+        self.saveBtn.Enable()
 
     @staticmethod
     def onUrl(evt=None):
