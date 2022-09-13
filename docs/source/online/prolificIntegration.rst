@@ -55,4 +55,4 @@ Do not show the completion code to your participants before they have completed 
     :align: center
     :figclass: align-center
 
-    The completion URL pasted into Psychoy Experiment Settings
+    The completion URL pasted into PsychoPy Experiment Settings

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" ?>
-<PsychoPy2experiment encoding="utf-8" version="2022.1.0rc14">
+<PsychoPy2experiment encoding="utf-8" version="2022.2.0a5">
   <Settings>
     <Param val="use prefs" valType="str" updates="None" name="Audio latency priority"/>
     <Param val="use prefs" valType="str" updates="None" name="Audio lib"/>
@@ -1161,12 +1161,12 @@
         <Param val="(1, 2)" valType="list" updates="constant" name="ticks"/>
         <Param val="from exp settings" valType="str" updates="None" name="units"/>
       </SliderComponent>
-      <MouseComponent name="mouse_2">
+      <MouseComponent name="mouse_consent">
         <Param val="nextButton" valType="list" updates="constant" name="clickable"/>
         <Param val="False" valType="bool" updates="None" name="disabled"/>
         <Param val="" valType="code" updates="None" name="durationEstim"/>
         <Param val="valid click" valType="str" updates="constant" name="forceEndRoutineOnPress"/>
-        <Param val="mouse_2" valType="code" updates="None" name="name"/>
+        <Param val="mouse_consent" valType="code" updates="None" name="name"/>
         <Param val="True" valType="bool" updates="constant" name="newClicksOnly"/>
         <Param val="on click" valType="str" updates="None" name="saveMouseState"/>
         <Param val="name," valType="list" updates="constant" name="saveParamsClickable"/>
@@ -1179,7 +1179,7 @@
         <Param val="False" valType="bool" updates="None" name="syncScreenRefresh"/>
         <Param val="mouse onset" valType="str" updates="constant" name="timeRelativeTo"/>
       </MouseComponent>
-      <ImageComponent name="nextButton_2">
+      <ImageComponent name="nextButton_consent">
         <Param val="center" valType="str" updates="constant" name="anchor"/>
         <Param val="$[1,1,1]" valType="color" updates="constant" name="color"/>
         <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
@@ -1191,7 +1191,7 @@
         <Param val="next.png" valType="file" updates="constant" name="image"/>
         <Param val="linear" valType="str" updates="constant" name="interpolate"/>
         <Param val="" valType="str" updates="constant" name="mask"/>
-        <Param val="nextButton_2" valType="code" updates="None" name="name"/>
+        <Param val="nextButton_consent" valType="code" updates="None" name="name"/>
         <Param val="" valType="num" updates="constant" name="opacity"/>
         <Param val="0" valType="num" updates="constant" name="ori"/>
         <Param val="(0, -0.4)" valType="list" updates="constant" name="pos"/>

@@ -224,8 +224,8 @@ class Flow(list):
         code = ("\n# Create some handy timers\n"
                 "globalClock = core.Clock()  # to track the "
                 "time since experiment started\n"
-                "routineTimer = core.CountdownTimer()  # to "
-                "track time remaining of each (non-slip) routine \n")
+                "routineTimer = core.Clock()  # to "
+                "track time remaining of each (possibly non-slip) routine \n")
         script.writeIndentedLines(code)
         # run-time code
         for entry in self:
@@ -237,7 +237,6 @@ class Flow(list):
         for entry in self:
             self._currentRoutine = entry
             entry.writeExperimentEndCode(script)
-
 
     def writeFlowSchedulerJS(self, script):
         """Initialise each component and then write the per-frame code too
@@ -297,7 +296,7 @@ class Flow(list):
                     loopStack.remove(thisEntry.loop)
             script.writeIndentedLines(code)
         # quit when all routines are finished
-        script.writeIndented("flowScheduler.add(quitPsychoJS, '', true);\n")
+        script.writeIndented("flowScheduler.add(quitPsychoJS, %(End Message)s, true);\n" % self.exp.settings.params)
         # handled all the flow entries
         code = ("\n// quit if user presses Cancel in dialog box:\n"
                 "dialogCancelScheduler.add(quitPsychoJS, '', false);\n\n")
@@ -320,7 +319,12 @@ class Flow(list):
             script.setIndentLevel(1, relative=True)
             code = ""
             for idx, resource in enumerate(resourceFiles):
-                temp = "{{'name': '{0}', 'path': '{1}{0}'}}".format(resource, resourceFolderStr)
+                if "https://" in resource:
+                    name = resource.split('/')[-1]
+                    fullPath = resource
+                    temp = f"{{'name': '{name}', 'path': '{fullPath}'}}"
+                else:
+                    temp = "{{'name': '{0}', 'path': '{1}{0}'}}".format(resource, resourceFolderStr)
                 code += temp
                 if idx != (len(resourceFiles)-1):
                     code += ",\n"  # Trailing comma

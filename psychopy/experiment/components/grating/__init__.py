@@ -25,7 +25,7 @@ class GratingComponent(BaseVisualComponent):
     """A class for presenting grating stimuli"""
 
     categories = ['Stimuli']
-    targets = ['PsychoPy']
+    targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'grating.png'
     tooltip = _translate('Grating: present cyclic textures, prebuilt or from a '
                          'file')
@@ -159,4 +159,44 @@ class GratingComponent(BaseVisualComponent):
             code += ", interpolate=False"
         depth = -self.getPosInRoutine()
         code += ", depth=%.1f)\n" % depth
+        buff.writeIndentedLines(code)
+
+    def writeInitCodeJS(self, buff):
+        # do we need units code?
+        if self.params['units'].val == 'from exp settings':
+            unitsStr = "units : undefined, "
+        else:
+            unitsStr = "units : %(units)s, " % self.params
+
+        # replace variable params with defaults
+        inits = getInitVals(self.params, 'PsychoJS')
+
+        for paramName in inits:
+            if inits[paramName].val in [None, 'None', 'none', '', 'sin']:
+                inits[paramName].valType = 'code'
+                inits[paramName].val = 'undefined'
+
+        code = ("{inits[name]} = new visual.GratingStim({{\n"
+                "  win : psychoJS.window,\n"
+                "  name : '{inits[name]}', {units}\n"
+                "  tex : {inits[tex]}, mask : {inits[mask]},\n"
+                "  ori : {inits[ori]}, pos : {inits[pos]},\n"
+                "  sf : {inits[sf]}, phase : {inits[phase]},\n"
+                "  size : {inits[size]},\n"
+                "  color : new util.Color({inits[color]}), opacity : {inits[opacity]},\n"
+                "  contrast : {inits[contrast]}, blendmode : {inits[blendmode]},\n"
+                # no newline - start optional parameters
+                "  texRes : {inits[texture resolution]}"
+                .format(inits=inits,
+                        units=unitsStr))
+
+        if self.params['interpolate'].val == 'linear':
+            code += ", interpolate : true"
+        else:
+            code += ", interpolate : false"
+
+        depth = -self.getPosInRoutine()
+        code += (", depth : %.1f \n"
+                 "});\n" % (depth)
+                 )
         buff.writeIndentedLines(code)

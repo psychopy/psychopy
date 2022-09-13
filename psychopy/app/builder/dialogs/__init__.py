@@ -11,6 +11,7 @@ import sys
 
 import os
 import copy
+import time
 from collections import OrderedDict
 
 import numpy
@@ -136,7 +137,8 @@ class ParamCtrls():
             #                                     limits=param.allowedVals)
         elif param.inputType == 'choice':
             self.valueCtrl = paramCtrls.ChoiceCtrl(parent,
-                                                   val=str(param.val), valType=param.valType, choices=param.allowedVals,
+                                                   val=str(param.val), valType=param.valType,
+                                                   choices=param.allowedVals, labels=param.allowedLabels,
                                                    fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
         elif param.inputType == 'multiChoice':
             self.valueCtrl = paramCtrls.MultiChoiceCtrl(parent, valType=param.valType,
@@ -257,11 +259,6 @@ class ParamCtrls():
             return val
         elif hasattr(ctrl, 'GetCheckedStrings'):
             return ctrl.GetCheckedStrings()
-        elif hasattr(ctrl, 'GetSelection'):  # for wx.Choice
-            # _choices is defined during __init__ for all wx.Choice() ctrls
-            # NOTE: add untranslated value to _choices if
-            # _choices[ctrl.GetSelection()] fails.
-            return ctrl._choices[ctrl.GetSelection()]
         elif hasattr(ctrl, 'GetLabel'):  # for wx.StaticText
             return ctrl.GetLabel()
         else:
@@ -393,12 +390,16 @@ class StartStopCtrls(wx.GridBagSizer):
         self.parent = parent
         for name, param in params.items():
             if name in ['startVal', 'stopVal']:
+                # Add dollar sign
+                self.dollar = wx.StaticText(parent, label="$")
+                self.Add(self.dollar, (0, 0), border=6, flag=wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.RIGHT)
+                # Add ctrl
                 self.ctrls[name] = wx.TextCtrl(parent,
                                                value=str(param.val), size=wx.Size(-1, 24))
                 self.ctrls[name].Bind(wx.EVT_TEXT, self.updateCodeFont)
                 self.updateCodeFont(self.ctrls[name])
                 self.label = wx.StaticText(parent, label=param.label)
-                self.Add(self.ctrls[name], (0, 1), border=6, flag=wx.EXPAND | wx.TOP)
+                self.Add(self.ctrls[name], (0, 2), border=6, flag=wx.EXPAND | wx.TOP)
             if name in ['startType', 'stopType']:
                 localizedChoices = list(map(_translate, param.allowedVals or [param.val]))
                 self.ctrls[name] = wx.Choice(parent,
@@ -406,7 +407,7 @@ class StartStopCtrls(wx.GridBagSizer):
                                              size=wx.Size(96, 24))
                 self.ctrls[name]._choices = copy.copy(param.allowedVals)
                 self.ctrls[name].SetSelection(param.allowedVals.index(str(param.val)))
-                self.Add(self.ctrls[name], (0, 0), border=6, flag=wx.EXPAND | wx.TOP)
+                self.Add(self.ctrls[name], (0, 1), border=6, flag=wx.EXPAND | wx.TOP)
             if name in ['startEstim', 'durationEstim']:
                 self.ctrls[name] = wx.TextCtrl(parent,
                                                value=str(param.val), size=wx.Size(-1, 24))
@@ -415,9 +416,9 @@ class StartStopCtrls(wx.GridBagSizer):
                 self.estimLabel = wx.StaticText(parent,
                                                 label=param.label, size=wx.Size(-1, 24))
                 self.estimLabel.SetForegroundColour("grey")
-                self.Add(self.estimLabel, (1, 0), border=6, flag=wx.EXPAND | wx.ALL)
-                self.Add(self.ctrls[name], (1, 1), border=6, flag=wx.EXPAND | wx.TOP | wx.BOTTOM)
-        self.AddGrowableCol(1)
+                self.Add(self.estimLabel, (1, 1), border=6, flag=wx.EXPAND | wx.ALL)
+                self.Add(self.ctrls[name], (1, 2), border=6, flag=wx.EXPAND | wx.TOP | wx.BOTTOM)
+        self.AddGrowableCol(2)
 
     def getVisible(self):
         return all(ctrl.IsShown() for ctrl in self.ctrls.values())
@@ -462,13 +463,13 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
             self.dlg = dlg
             self.app = self.dlg.app
             # Setup sizer
+            self.border = wx.BoxSizer()
+            self.SetSizer(self.border)
             self.sizer = wx.GridBagSizer(0, 0)
-            self.SetSizer(self.sizer)
-            # Add empty row for spacing
-            self.sizer.Add(wx.StaticText(self, label=""), (0, 0))
+            self.border.Add(self.sizer, border=12, proportion=1, flag=wx.ALL | wx.EXPAND)
             # Add controls
             self.ctrls = {}
-            self.row = 1
+            self.row = 0
             # Sort params
             sortedParams = OrderedDict(params)
             for name in reversed(self.parent.element.order):
@@ -520,6 +521,9 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
             self.ctrls[name].setChangesCallback(self.doValidate)
             if name == 'name':
                 self.ctrls[name].valueCtrl.SetFocus()
+            # Some param ctrls need to grow with page
+            if param.inputType in ('multi', 'fileList'):
+                self.sizer.AddGrowableRow(self.row, proportion=1)
             # Iterate row
             self.row += 1
 
@@ -810,6 +814,49 @@ class _BaseParamsDlg(wx.Dialog):
         dlg = PsychoColorPicker(self.frame)
         dlg.ShowModal()
         dlg.Destroy()
+
+    @staticmethod
+    def showScreenNumbers(evt=None, dur=5):
+        """
+        Spawn some PsychoPy windows to display each monitor's number.
+        """
+        from psychopy import visual
+        for n in range(wx.Display.GetCount()):
+            start = time.time()
+            # Open a window on the appropriate screen
+            win = visual.Window(
+                pos=(0, 0),
+                size=(128, 128),
+                units="norm",
+                screen=n,
+                color="black"
+            )
+            # Draw screen number to the window
+            screenNum = visual.TextBox2(
+                win, text=str(n + 1),
+                size=1, pos=0,
+                alignment="center", anchor="center",
+                letterHeight=0.5, bold=True,
+                fillColor=None, color="white"
+            )
+            # Progress bar
+            progBar = visual.Rect(
+                win, anchor="bottom left",
+                pos=(-1, -1), size=(0, 0.1)
+            )
+
+            # Frame loop
+            t = 0
+            while t < dur:
+                t = time.time() - start
+                # Set progress bar size
+                progBar.size = (t / 5 * 2, 0.1)
+                # Draw
+                progBar.draw()
+                screenNum.draw()
+                win.flip()
+            # Close window
+            win.close()
 
     def onNewTextSize(self, event):
         self.Fit()  # for ExpandoTextCtrl this is needed
@@ -1708,6 +1755,13 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.Bind(wx.EVT_CHECKBOX, self.onFullScrChange,
                   self.paramCtrls['Full-screen window'].valueCtrl)
 
+        # Add button to show screen numbers
+        scrNumCtrl = self.paramCtrls['Screen'].valueCtrl
+        self.screenNsBtn = wx.Button(scrNumCtrl.GetParent(), label=_translate("Show screen numbers"))
+        scrNumCtrl._szr.Add(self.screenNsBtn, border=5, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
+        scrNumCtrl.Layout()
+        self.screenNsBtn.Bind(wx.EVT_BUTTON, self.showScreenNumbers)
+
         if timeout is not None:
             wx.FutureCall(timeout, self.Destroy)
 
@@ -1743,9 +1797,15 @@ class DlgExperimentProperties(_BaseParamsDlg):
             self.paramCtrls[field].param.val = size
             self.paramCtrls[field].valueCtrl.Disable()
             self.paramCtrls[field].nameCtrl.Disable()
+            # enable show/hide mouse
+            self.paramCtrls['Show mouse'].valueCtrl.Enable()
+            self.paramCtrls['Show mouse'].nameCtrl.Enable()
         else:
             self.paramCtrls['Window size (pixels)'].valueCtrl.Enable()
             self.paramCtrls['Window size (pixels)'].nameCtrl.Enable()
+            # set show mouse to visible and disable control
+            self.paramCtrls['Show mouse'].valueCtrl.Disable()
+            self.paramCtrls['Show mouse'].nameCtrl.Disable()
         self.mainSizer.Layout()
         self.Fit()
         self.Refresh()

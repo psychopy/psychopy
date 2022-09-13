@@ -85,6 +85,7 @@ _localizedDialogs = {
     # units not translated:
     'pix': 'pix', 'deg': 'deg', 'cm': 'cm',
     'norm': 'norm', 'height': 'height',
+    'degFlat': 'degFlat', 'degFlatPos':'degFlatPos',
     # anchor
     'center': _translate('center'),
     'top-center': _translate('top-center'),
@@ -122,6 +123,7 @@ _localizedDialogs = {
     # Mouse:
     'any click': _translate('any click'),
     'valid click': _translate('valid click'),
+    'on valid click': _translate('on valid click'),
     'mouse onset':_translate('mouse onset'),
     'Routine': _translate('Routine'),
     # Joystick:

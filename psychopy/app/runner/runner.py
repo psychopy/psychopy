@@ -24,7 +24,7 @@ from pathlib import Path
 from subprocess import Popen, PIPE
 
 from psychopy import experiment
-from psychopy.app.utils import PsychopyPlateBtn, BasePsychopyToolbar, FrameSwitcher, FileDropTarget
+from psychopy.app.utils import BasePsychopyToolbar, FrameSwitcher, FileDropTarget
 from psychopy.localization import _translate
 from psychopy.app.stdOutRich import StdOutRich
 from psychopy.projects.pavlovia import getProject
@@ -135,10 +135,10 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
              'status': _translate('Clearing tasks'),
              'func': self.clearTasks},
             {'id': wx.ID_SAVE,
-             'label': _translate('Save list')+'\t%s'%keys['save'],
+             'label': _translate('&Save list')+'\t%s'%keys['save'],
              'status': _translate('Saving task'),
              'func': self.saveTaskList},
-            {'id': wx.ID_OPEN, 'label': _translate('Open list')+'\tCtrl-O',
+            {'id': wx.ID_OPEN, 'label': _translate('&Open list')+'\tCtrl-O',
              'status': _translate('Loading task'),
              'func': self.loadTaskList},
             {'id': wx.ID_CLOSE_FRAME, 'label': _translate('Close')+'\tCtrl-W',
@@ -158,26 +158,26 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
 
         runMenuItems = [
             {'id': wx.ID_ANY,
-             'label': _translate("Run\t%s") % keys['runScript'],
+             'label': _translate("&Run\t%s") % keys['runScript'],
              'status': _translate('Running experiment'),
              'func': self.panel.runLocal},
             {'id': wx.ID_ANY,
-             'label': _translate('Run JS for local debug'),
+             'label': _translate('Run &JS for local debug'),
              'status': _translate('Launching local debug of online study'),
              'func': self.panel.runOnlineDebug},
             {'id': wx.ID_ANY,
-             'label': _translate('Run JS on Pavlovia'),
+             'label': _translate('Run JS on &Pavlovia'),
              'status': _translate('Launching online study at Pavlovia'),
              'func': self.panel.runOnline},
             ]
 
         demosMenuItems = [
             {'id': wx.ID_ANY,
-             'label': _translate("Builder Demos"),
+             'label': _translate("&Builder Demos"),
              'status': _translate("Loading builder demos"),
              'func': self.loadBuilderDemos},
             {'id': wx.ID_ANY,
-             'label': _translate("Coder Demos"),
+             'label': _translate("&Coder Demos"),
              'status': _translate("Loading coder demos"),
              'func': self.loadCoderDemos},
         ]
@@ -199,16 +199,16 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
         # Add Theme Switcher
         self.themesMenu = ThemeSwitcher(app=self.app)
         viewMenu.AppendSubMenu(self.themesMenu,
-                           _translate("Themes"))
+                           _translate("&Themes"))
         # Add frame switcher
         self.windowMenu = FrameSwitcher(self)
 
         # Create menus
-        self.runnerMenu.Append(fileMenu, _translate('File'))
-        self.runnerMenu.Append(viewMenu, _translate('View'))
-        self.runnerMenu.Append(runMenu, _translate('Run'))
-        self.runnerMenu.Append(demosMenu, _translate('Demos'))
-        self.runnerMenu.Append(self.windowMenu, _translate('Window'))
+        self.runnerMenu.Append(fileMenu, _translate('&File'))
+        self.runnerMenu.Append(viewMenu, _translate('&View'))
+        self.runnerMenu.Append(runMenu, _translate('&Run'))
+        self.runnerMenu.Append(demosMenu, _translate('&Demos'))
+        self.runnerMenu.Append(self.windowMenu, _translate('&Window'))
 
     def onURL(self, evt):
         """Open link in default browser."""
@@ -508,7 +508,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
             # Plus
             btn = parent.plusBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            btn.SetToolTipString(
+            btn.SetToolTip(
                 _translate("Add experiment to list")
             )
             btn.Bind(wx.EVT_BUTTON, parent.addTask)
@@ -516,7 +516,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
             self.sizer.Add(btn, border=5, flag=wx.ALL)
             # Minus
             btn = parent.negBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            btn.SetToolTipString(
+            btn.SetToolTip(
                 _translate("Remove experiment from list")
             )
             btn.Bind(wx.EVT_BUTTON, parent.removeTask)
@@ -524,7 +524,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
             self.sizer.Add(btn, border=5, flag=wx.ALL)
             # Save
             btn = parent.saveBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            btn.SetToolTipString(
+            btn.SetToolTip(
                 _translate("Save task list to a file")
             )
             btn.Bind(wx.EVT_BUTTON, parent.parent.saveTaskList)
@@ -532,7 +532,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
             self.sizer.Add(btn, border=5, flag=wx.ALL)
             # Load
             btn = parent.loadBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            btn.SetToolTipString(
+            btn.SetToolTip(
                 _translate("Load tasks from a file")
             )
             btn.Bind(wx.EVT_BUTTON, parent.parent.loadTaskList)
@@ -540,7 +540,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
             self.sizer.Add(btn, border=5, flag=wx.ALL)
             # Run
             btn = parent.runBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            btn.SetToolTipString(
+            btn.SetToolTip(
                 _translate("Run the current script in Python")
             )
             btn.Bind(wx.EVT_BUTTON, parent.runLocal)
@@ -548,7 +548,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
             self.sizer.Add(btn, border=5, flag=wx.ALL)
             # Stop
             btn = parent.stopBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            btn.SetToolTipString(
+            btn.SetToolTip(
                 _translate("Stop task")
             )
             btn.Bind(wx.EVT_BUTTON, parent.stopTask)
@@ -556,7 +556,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
             self.sizer.Add(btn, border=5, flag=wx.ALL)
             # Run online
             btn = parent.onlineBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            btn.SetToolTipString(
+            btn.SetToolTip(
                 _translate("Run PsychoJS task from Pavlovia")
             )
             btn.Bind(wx.EVT_BUTTON, parent.runOnline)
@@ -564,7 +564,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
             self.sizer.Add(btn, border=5, flag=wx.ALL)
             # Debug online
             btn = parent.onlineDebugBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            btn.SetToolTipString(
+            btn.SetToolTip(
                 _translate("Run PsychoJS task in local debug mode")
             )
             btn.Bind(wx.EVT_BUTTON, parent.runOnlineDebug)
@@ -662,6 +662,9 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
         self.SetSizerAndFit(self.mainSizer)
         self.SetMinSize(self.Size)
+
+        # disable the stop button on start
+        self.stopBtn.Disable()
 
         self.theme = parent.theme
 

@@ -111,9 +111,10 @@ class SettingsComponent:
     def __init__(self, parentName, exp, expName='', fullScr=True,
                  winSize=(1024, 768), screen=1, monitor='testMonitor',
                  showMouse=False, saveLogFile=True, showExpInfo=True,
-                 expInfo="{'participant':'', 'session':'001'}",
+                 expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'001'}",
                  units='height', logging='exp',
                  color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
+                 backgroundImg="", backgroundFit="none",
                  blendMode='avg',
                  saveXLSXFile=False, saveCSVFile=False, saveHDF5File=False,
                  saveWideCSVFile=True, savePsydatFile=True,
@@ -136,7 +137,7 @@ class SettingsComponent:
                  plPupilCaptureRecordingEnabled=True,
                  plPupilCaptureRecordingLocation="",
                  keyboardBackend="ioHub",
-                 filename=None, exportHTML='on Sync'):
+                 filename=None, exportHTML='on Sync', endMessage=''):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
@@ -160,8 +161,8 @@ class SettingsComponent:
                       'Data filename', 'Data file delimiter', 'Save excel file', 'Save csv file', 'Save wide csv file',
                       'Save psydat file', 'Save hdf5 file', 'Save log file', 'logging level',  # Data tab
                       'Audio lib', 'Audio latency priority', "Force stereo",  # Audio tab
-                      'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'Resources',  # Online tab
-                      'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Units', 'color',
+                      'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'End Message', 'Resources',  # Online tab
+                      'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Show mouse', 'Units', 'color',
                       'colorSpace',  # Screen tab
                       ]
         self.depends = []
@@ -235,6 +236,17 @@ class SettingsComponent:
                             "PsychoPy documentation on color spaces)"),
             allowedVals=['rgb', 'dkl', 'lms', 'hsv', 'hex'],
             label=_localized["colorSpace"], categ="Screen")
+        self.params['backgroundImg'] = Param(
+            backgroundImg, valType="str", inputType="file", categ="Screen",
+            hint=_translate("Image file to use as a background (leave blank for no image)"),
+            label=_translate("Background image")
+        )
+        self.params['backgroundFit'] = Param(
+            backgroundFit, valType="str", inputType="choice", categ="Screen",
+            allowedVals=("none", "cover", "contain", "fill", "scale-down"),
+            hint=_translate("How should the background image scale to fit the window size?"),
+            label=_translate("Background image")
+        )
         self.params['Units'] = Param(
             units, valType='str', inputType="choice", allowedTypes=[],
             allowedVals=['use prefs', 'deg', 'pix', 'cm', 'norm', 'height',
@@ -244,14 +256,22 @@ class SettingsComponent:
             label=_localized["Units"], categ='Screen')
         self.params['blendMode'] = Param(
             blendMode, valType='str', inputType="choice",
-            allowedTypes=[], allowedVals=['add', 'avg'],
+            allowedTypes=[], allowedVals=['', 'add', 'avg'],
             hint=_translate("Should new stimuli be added or averaged with "
                             "the stimuli that have been drawn already"),
             label=_localized["blendMode"], categ='Screen')
         self.params['Show mouse'] = Param(
             showMouse, valType='bool', inputType="bool", allowedTypes=[],
-            hint=_translate("Should the mouse be visible on screen?"),
+            hint=_translate("Should the mouse be visible on screen? Only applicable for fullscreen experiments."),
             label=_localized["Show mouse"], categ='Screen')
+        # self.depends.append(
+        #     {"dependsOn": 'Full-screen window',  # must be param name
+        #      "condition": "==True",  # val to check for
+        #      "param": 'Show mouse',  # param property to alter
+        #      "true": "show",  # what to do with param if condition is True
+        #      "false": "hide",  # permitted: hide, show, enable, disable
+        #      }
+        # )
 
         # sound params
         self.params['Force stereo'] = Param(
@@ -341,6 +361,10 @@ class SettingsComponent:
             [], valType='list', inputType="fileList", allowedTypes=[],
             hint=_translate("Any additional resources needed"),
             label="Additional Resources", categ='Online')
+        self.params['End Message'] = Param(
+            endMessage, valType='str', inputType='single',
+            hint=_translate("Message to display to participants upon completing the experiment"),
+            label="End Message", categ='Online')
         self.params['Completed URL'] = Param(
             '', valType='str', inputType="single",
             hint=_translate("Where should participants be redirected after the experiment on completion\n"
@@ -612,7 +636,19 @@ class SettingsComponent:
             for key in infoDict:
                 val = infoDict[key]
                 if exputils.list_like_re.search(str(val)):
-                    infoDict[key] = Param(val=val, valType='list')
+                    # Try to call it with ast, if it produces a list/tuple, treat val type as list
+                    try:
+                        isList = ast.literal_eval(str(val))
+                    except ValueError:
+                        # If ast errors, treat as code
+                        infoDict[key] = Param(val=val, valType='code')
+                    else:
+                        if isinstance(isList, (list, tuple)):
+                            # If ast produces a list, treat as list
+                            infoDict[key] = Param(val=val, valType='list')
+                        else:
+                            # If ast produces anything else, treat as code
+                            infoDict[key] = Param(val=val, valType='code')
                 elif val in ['True', 'False']:
                     infoDict[key] = Param(val=val, valType='bool')
                 elif isinstance(val, str):
@@ -694,7 +730,10 @@ class SettingsComponent:
                 customImports.append(import_)
 
         buff.writelines(
-            "\nfrom psychopy import locale_setup\n"
+            "\n"
+            "# --- Import packages ---"
+            "\n"
+            "from psychopy import locale_setup\n"
             "from psychopy import prefs\n"
         )
         # adjust the prefs for this study if needed
@@ -845,7 +884,7 @@ class SettingsComponent:
         # Write imports if modular
         if modular:
             code = (
-                    "import {{ core, data, sound, util, visual }} from './lib/psychojs-{version}.js';\n"
+                    "import {{ core, data, sound, util, visual, hardware }} from './lib/psychojs-{version}.js';\n"
                     "const {{ PsychoJS }} = core;\n"
                     "const {{ TrialHandler, MultiStairHandler }} = data;\n"
                     "const {{ Scheduler }} = util;\n"
@@ -855,11 +894,16 @@ class SettingsComponent:
                     "\n").format(version=useVer)
             buff.writeIndentedLines(code)
 
+        # Get expInfo as a dict
+        expInfoDict = self.getInfo().items()
         # Convert each item to str
         expInfoStr = "{"
+        if len(expInfoDict):
+            # Only make the dict multiline if it actually has contents
+            expInfoStr += "\n"
         for key, value in self.getInfo().items():
-            expInfoStr += f"'{key}': {value}, "
-        expInfoStr = expInfoStr[:-2] + "}"
+            expInfoStr += f"    '{key}': {value},\n"
+        expInfoStr += "}"
 
         code = ("\n// store info about the experiment session:\n"
                 "let expName = '%s';  // from the Builder filename that created this script\n"
@@ -911,14 +955,31 @@ class SettingsComponent:
                     " this script\n")
             buff.writeIndented(code % self.params['expName'])
 
-        sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
-        expInfoStr = "{"
+        # Construct exp info string
+        expInfoDict = self.getInfo()
+        code = (
+            "expInfo = {"
+        )
+        if len(expInfoDict):
+            # Only make the dict multiline if it actually has contents
+            code += "\n"
+        buff.writeIndented(code)
+        buff.setIndentLevel(1, relative=True)
         for key, value in self.getInfo().items():
-            expInfoStr += f"'{key}': {value}, "
-        expInfoStr = expInfoStr[:-2] + "}"
-        buff.writeIndented("expInfo = %s\n" % expInfoStr)
+            code = (
+                f"'{key}': {value},\n"
+            )
+            buff.writeIndented(code)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "}\n"
+        )
+        buff.writeIndented(code)
+
+        sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
         if self.params['Show info dlg'].val:
             buff.writeIndentedLines(
+                f"# --- Show participant info dialog --\n"
                 f"dlg = gui.DlgFromDict(dictionary=expInfo, "
                 f"sortKeys={sorting}, title=expName)\n"
                 f"if dlg.OK == False:\n"
@@ -1001,7 +1062,7 @@ class SettingsComponent:
 
         # Make ioConfig dict
         code = (
-            "# Setup ioHub\n"
+            "# --- Setup input devices ---\n"
             "ioConfig = {}\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -1268,7 +1329,7 @@ class SettingsComponent:
     def writeWindowCode(self, buff):
         """Setup the window code.
         """
-        buff.writeIndentedLines("\n# Setup the Window\n")
+        buff.writeIndentedLines("\n# --- Setup the Window ---\n")
         # get parameters for the Window
         fullScr = self.params['Full-screen window'].val
         # if fullscreen then hide the mouse, unless its requested explicitly
@@ -1278,7 +1339,7 @@ class SettingsComponent:
         for thisRoutine in list(self.exp.routines.values()):
             # a single routine is a list of components:
             for thisComp in thisRoutine:
-                if thisComp.type == 'Aperture':
+                if thisComp.type in ('Aperture', 'Textbox'):
                     allowStencil = True
                 if thisComp.type == 'RatingScale':
                     allowGUI = True  # to have a mouse
@@ -1303,12 +1364,12 @@ class SettingsComponent:
         winType = self.exp.prefsGeneral['winType']
 
         code = ("win = visual.Window(\n    size=%s, fullscr=%s, screen=%s, "
-                "\n    winType='%s', allowGUI=%s, allowStencil=%s,\n")
-        vals = (size, fullScr, screenNumber, winType, allowGUI, allowStencil)
+                "\n    winType='%s', allowStencil=%s,\n")
+        vals = (size, fullScr, screenNumber, winType, allowStencil)
         buff.writeIndented(code % vals)
 
-        code = ("    monitor=%(Monitor)s, color=%(color)s, "
-                "colorSpace=%(colorSpace)s,\n")
+        code = ("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n"
+                "    backgroundImage=%(backgroundImg)s, backgroundFit=%(backgroundFit)s,\n")
         if self.params['blendMode'].val:
             code += "    blendMode=%(blendMode)s, useFBO=True, \n"
 
@@ -1316,6 +1377,11 @@ class SettingsComponent:
             code += "    units=%(Units)s"
         code = code.rstrip(', \n') + ')\n'
         buff.writeIndentedLines(code % self.params)
+        # Show/hide mouse according to param
+        code = (
+            "win.mouseVisible = %s\n"
+        )
+        buff.writeIndentedLines(code % allowGUI)
 
         # Import here to avoid circular dependency!
         from psychopy.experiment._experiment import RequiredImport
@@ -1360,7 +1426,10 @@ class SettingsComponent:
     def writeEndCode(self, buff):
         """Write code for end of experiment (e.g. close log file).
         """
-        code = ('\n# Flip one final time so any remaining win.callOnFlip() \n'
+        code = ('\n'
+                '# --- End experiment ---'
+                '\n'
+                '# Flip one final time so any remaining win.callOnFlip() \n'
                 '# and win.timeOnFlip() tasks get executed before quitting\n'
                 'win.flip()\n\n')
         buff.writeIndentedLines(code)
@@ -1383,28 +1452,7 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
 
     def writeEndCodeJS(self, buff):
-        endLoopInteration = ("\nfunction endLoopIteration(scheduler, snapshot) {\n"
-                    "  // ------Prepare for next entry------\n"
-                    "  return async function () {\n"
-                    "    if (typeof snapshot !== 'undefined') {\n"
-                    "      // ------Check if user ended loop early------\n"
-                    "      if (snapshot.finished) {\n"
-                    "        // Check for and save orphaned data\n"
-                    "        if (psychoJS.experiment.isEntryEmpty()) {\n"
-                    "          psychoJS.experiment.nextEntry(snapshot);\n"
-                    "        }\n"
-                    "        scheduler.stop();\n"
-                    "      } else {\n"
-                    "        const thisTrial = snapshot.getCurrentTrial();\n"
-                    "        if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {\n"
-                    "          psychoJS.experiment.nextEntry(snapshot);\n"
-                    "        }\n"
-                    "      }\n"
-                    "    return Scheduler.Event.NEXT;\n"
-                    "    }\n"
-                    "  };\n"
-                    "}\n")
-        buff.writeIndentedLines(endLoopInteration)
+        """Write some general functions that might be used by any Scheduler/object"""
 
         recordLoopIterationFunc = ("\nfunction importConditions(currentLoop) {\n"
                     "  return async function () {\n"

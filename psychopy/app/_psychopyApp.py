@@ -236,11 +236,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             profile.dump_stats('profileLaunchApp.profile')
         logging.flush()
 
-        if not self.testMode:  # NB class variable not self
-            # set the exception hook to present unhandled errors in a dialog
-            from psychopy.app.errorDlg import exceptionCallback
-            sys.excepthook = exceptionCallback
-
         # if we're on linux, check if we have the permissions file setup
         from psychopy.app.linuxconfig import (
             LinuxConfigDialog, linuxConfigFileExists)
@@ -258,9 +253,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
           testMode: bool
         """
         self.SetAppName('PsychoPy3')
-
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
 
         # Single instance check is done here prior to loading any GUI stuff.
         # This permits one instance of PsychoPy from running at any time.
@@ -344,13 +336,15 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                     time.sleep(1)
                     attempts += 1
             else:
-                # error that we could not access the memory-mapped file
-                errMsg = "Cannot communicate with running PsychoPy instance!"
-                errDlg = wx.MessageDialog(
-                    None, errMsg, caption="PsychoPy Error",
-                    style=wx.OK | wx.ICON_ERROR, pos=wx.DefaultPosition)
-                errDlg.ShowModal()
-                errDlg.Destroy()
+                if not self.testMode:
+                    # error that we could not access the memory-mapped file
+                    errMsg = \
+                        "Cannot communicate with running PsychoPy instance!"
+                    errDlg = wx.MessageDialog(
+                        None, errMsg, caption="PsychoPy Error",
+                        style=wx.OK | wx.ICON_ERROR, pos=wx.DefaultPosition)
+                    errDlg.ShowModal()
+                    errDlg.Destroy()
 
             # since were not the main instance, exit ...
             self.quit(None)
@@ -370,7 +364,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             w, h = splashImage.GetSize()
             splash.SetTextPosition((340, h - 30))
             splash.SetText(
-                _translate("Copyright (C) 2021 OpenScienceTools.org"))
+                _translate("Copyright (C) 2022 OpenScienceTools.org"))
         else:
             splash = None
 
@@ -416,10 +410,10 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         self.isRetina = self.dpi>80 and wx.Platform == '__WXMAC__'
         if self.isRetina:
             fontScale = 1.2  # fonts are looking tiny on macos (only retina?) right now
+            # mark icons as being retina
+            icons.retStr = "@2x"
         else:
             fontScale = 1
-        # mark icons as being retina
-        icons.retStr = "@2x"
         # adjust dpi to something reasonable
         if not (50 < self.dpi < 120):
             self.dpi = 80  # dpi was unreasonable, make one up
@@ -500,8 +494,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 view.runner = True
 
         # set the dispatcher for standard output
-        self.stdStreamDispatcher = console.StdStreamDispatcher(self)
-        self.stdStreamDispatcher.redirect()
+        # self.stdStreamDispatcher = console.StdStreamDispatcher(self)
+        # self.stdStreamDispatcher.redirect()
 
         # Create windows
         if view.runner:
@@ -775,8 +769,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             self.runner.Raise()
             self.SetTopWindow(self.runner)
         # Runner captures standard streams until program closed
-        if self.runner and not self.testMode:
-            sys.stderr = sys.stdout = self.stdStreamDispatcher
+        # if self.runner and not self.testMode:
+        #     sys.stderr = sys.stdout = self.stdStreamDispatcher
 
     def newRunnerFrame(self, event=None):
         # have to reimport because it is only local to __init__ so far

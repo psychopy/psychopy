@@ -8,6 +8,7 @@
 """Extensible set of components for the PsychoPy Builder view
 """
 
+import sys
 import os
 import glob
 import copy
@@ -127,8 +128,9 @@ def getComponents(folder=None, fetchIcons=True):
                     if f.startswith('_'):
                         continue
                     shutil.copy(f, folder)
-    if not pth in os.sys.path:
-        os.sys.path.insert(0, pth)
+
+    if pth not in sys.path:
+        sys.path.insert(0, pth)
 
     components = {}
 
@@ -193,12 +195,20 @@ def getComponents(folder=None, fetchIcons=True):
     return components
 
 
-
 def getInitVals(params, target="PsychoPy"):
     """Works out a suitable initial value for a parameter (e.g. to go into the
     __init__ of a stimulus object, avoiding using a variable name if possible
     """
     inits = copy.deepcopy(params)
+    # Alias units = from exp settings with None
+    if 'units' in inits and str(inits['units'].val).lower() in (
+            "from experiment settings",
+            "from exp settings",
+            "none"
+    ):
+        inits['units'].val = "win.units"
+        inits['units'].valType = 'code'
+
     for name in params:
         if target == "PsychoJS":
             # convert (0,0.5) to [0,0.5] but don't convert "rand()" to "rand[]" and don't convert text
@@ -283,10 +293,10 @@ def getInitVals(params, target="PsychoPy"):
         elif name == 'noiseType':
             inits[name].val = 'Binary'
             inits[name].valType = 'str'
-        elif name == 'marker_label':
+        elif name == 'emotiv_marker_label':
             inits[name].val = 'Label'
             inits[name].valType = 'str'
-        elif name == 'marker_value':
+        elif name == 'emotiv_marker_value':
             inits[name].val = 'Value'
             inits[name].valType = 'str'
         elif name == 'buttonRequired':
@@ -295,7 +305,7 @@ def getInitVals(params, target="PsychoPy"):
         elif name == 'vertices':
             inits[name].val = "[[-0.5,-0.5], [-0.5, 0.5], [0.5, 0.5], [0.5, -0.5]]"
             inits[name].valType = 'code'
-        elif name == 'movie':
+        elif name in ('movie', 'latitude', 'longitude', 'altitude', 'azimuth'):
             inits[name].val = 'None'
             inits[name].valType = 'code'
         else:

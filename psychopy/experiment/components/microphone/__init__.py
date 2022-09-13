@@ -50,7 +50,7 @@ class MicrophoneComponent(BaseComponent):
                  stopType='duration (s)', stopVal=2.0,
                  startEstim='', durationEstim='',
                  channels='auto', device="default",
-                 sampleRate='Voice (16kHz)', maxSize=24000,
+                 sampleRate='DVD Audio (48kHz)', maxSize=24000,
                  outputType='default', speakTimes=True, trimSilent=False,
                  transcribe=True, transcribeBackend="Google", transcribeLang="en-US", transcribeWords="",
                  #legacy
@@ -266,41 +266,33 @@ class MicrophoneComponent(BaseComponent):
         """Write the code that will be called every frame"""
         inits = getInitVals(self.params)
         inits['routine'] = self.parentName
+
         # Start the recording
-        code = (
-            "\n"
-            "# %(name)s updates"
-        )
-        buff.writeIndentedLines(code % inits)
-        self.writeStartTestCode(buff)
-        code = (
+        if self.writeStartTestCode(buff):
+            code = (
                 "# start recording with %(name)s\n"
                 "%(name)s.start()\n"
-                "%(name)s.status = STARTED\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
+            )
+            buff.writeIndentedLines(code % self.params)
+            self.exitStartTest(buff)
+
         # Get clip each frame
-        code = (
-            "if %(name)s.status == STARTED:\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
+        self.writeActiveTestCode(buff)
         code = (
                 "# update recorded clip for %(name)s\n"
                 "%(name)s.poll()\n"
         )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines(code % self.params)
+        self.exitActiveTest(buff)
+
         # Stop recording
-        self.writeStopTestCode(buff)
-        code = (
-            "# stop recording with %(name)s\n"
-            "%(name)s.stop()\n"
-            "%(name)s.status = FINISHED\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-2, relative=True)
+        if self.writeStopTestCode(buff):
+            code = (
+                "# stop recording with %(name)s\n"
+                "%(name)s.stop()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            self.exitStopTest(buff)
 
     def writeFrameCodeJS(self, buff):
         inits = getInitVals(self.params)
@@ -399,12 +391,6 @@ class MicrophoneComponent(BaseComponent):
     def writeRoutineEndCodeJS(self, buff):
         inits = getInitVals(self.params)
         inits['routine'] = self.parentName
-        if len(self.exp.flow._loopList):
-            inits['loop'] = self.exp.flow._loopList[-1].params['name']
-            inits['filename'] = f"'recording_{inits['name']}_{inits['loop']}_' + {inits['loop']}.thisN"
-        else:
-            inits['loop'] = ""
-            inits['filename'] = f"'recording_{inits['name']}'"
         if inits['transcribeBackend'].val in allTranscribers:
             inits['transcribeBackend'].val = allTranscribers[self.params['transcribeBackend'].val]
         # Warn user if their transcriber won't work online
@@ -418,20 +404,22 @@ class MicrophoneComponent(BaseComponent):
         code = (
             "// stop the microphone (make the audio data ready for upload)\n"
             "await %(name)s.stop();\n"
+            "// construct a filename for this recording\n"
+            "thisFilename = 'recording_%(name)s_' + currentLoop.name + '_' + currentLoop.thisN\n"
             "// get the recording\n"
             "%(name)s.lastClip = await %(name)s.getRecording({\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "tag: %(filename)s + util.MonotonicClock.getDateStr(),\n"
+                "tag: thisFilename + '_' + util.MonotonicClock.getDateStr(),\n"
                 "flush: false\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
         code = (
             "});\n"
-            "psychoJS.experiment.addData('%(name)s.clip', %(filename)s);\n"
+            "psychoJS.experiment.addData('%(name)s.clip', thisFilename);\n"
             "// start the asynchronous upload to the server\n"
             "%(name)s.lastClip.upload();\n"
         )

@@ -26,9 +26,10 @@ class TestLoops:
         filenames = [
             'testLoopsBlocks',
             'testStaircase',
+            'test_current_loop_attr'
         ]
         # Run each experiment to get data
-        cls.cases = []
+        cls.cases = {}
         for filename in filenames:
             # Copy file to temp dir so it's in the same folder as we want data to output to
             ogExpFile = Path(TESTS_DATA_PATH) / "test_loops" / f"{filename}.psyexp"
@@ -55,13 +56,14 @@ class TestLoops:
                 data = np.recfromcsv(f, case_sensitive=True)
 
             # Store
-            cls.cases.append({
-                'filename': filename,
+            cls.cases[filename] = {
                 'exp': exp,
                 'pyScript': pyScript,
                 # 'jsScript': jsScript,  # disabled until all loops work in JS
                 'data': data,
-            })
+                'stdout': stdout,
+                'stderr': stderr,
+            }
 
     def test_output_length(self):
         """
@@ -73,9 +75,14 @@ class TestLoops:
             'testStaircase': 5,  # 5 reps
         }
         # Test each case
-        for case in self.cases:
-            if case['filename'] in answers:
-                assert len(case['data']) == answers[case['filename']], (
-                    f"Expected array {answers[case['filename']]} long, received:\n"
+        for filename, case in self.cases.items():
+            if filename in answers:
+                assert len(case['data']) == answers[filename], (
+                    f"Expected array {answers[filename]} long, received:\n"
                     f"{case['data']}"
                 )
+
+    def test_current_loop_attr(self):
+        assert "___FAILURE___" not in self.cases['test_current_loop_attr']['stderr'], (
+            self.cases['test_current_loop_attr']['stderr']
+        )

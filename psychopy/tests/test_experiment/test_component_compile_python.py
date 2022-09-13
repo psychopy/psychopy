@@ -5,6 +5,51 @@ from tempfile import mkdtemp
 from psychopy.experiment import getAllComponents, Experiment
 from psychopy.tests.utils import compareTextFiles, TESTS_DATA_PATH
 from psychopy.scripts import psyexpCompile
+from psychopy import constants
+
+
+class _TestBoilerplateMixin:
+    """
+    Mixin for tests of classes in the PsychoPy library to check they are able to work with the compiled code from
+    Builder.
+    """
+
+    obj = None
+
+    def test_input_params(self):
+        """
+        All classes called from boilerplate should accept name and autoLog as input params
+        """
+        if self.obj is None:
+            return
+        # Define list of names which need to be accepted by init
+        required = (
+            "name",
+            "autoLog"
+        )
+        # Get names of input variables
+        varnames = type(self.obj).__init__.__code__.co_varnames
+        # Make sure required names are accepted
+        for name in required:
+            assert name in varnames, (
+                f"{type(self.obj)} init function should accept {name}, but could not be found in list of kw args."
+            )
+
+    def test_status(self):
+        """
+        All classes called from boilerplate should have a settable status attribute which accepts psychopy constants
+        """
+        if self.obj is None:
+            return
+        # Check that status can be NOT_STARTED without error
+        self.obj.status = constants.NOT_STARTED
+        # Check that status can be STARTED without error
+        self.obj.status = constants.STARTED
+        # Check that status can be FINISHED without error
+        self.obj.status = constants.FINISHED
+
+        # Set back to NOT_STARTED for other tests
+        self.obj.status = constants.NOT_STARTED
 
 
 class TestComponentCompilerPython():

@@ -97,7 +97,7 @@ class pythonTransformer(ast.NodeTransformer):
 
     # operation from the math python module or builtin operations that are available
     # in util/Util.js:
-    utilOperations = ['sum', 'average', 'randint', 'range', 'sort', 'shuffle', 'randchoice']
+    utilOperations = ['sum', 'average', 'randint', 'range', 'sort', 'shuffle', 'randchoice', 'pad']
 
     def visit_BinOp(self, node):
 
@@ -179,7 +179,7 @@ class pythonTransformer(ast.NodeTransformer):
             precisionCall = ast.Call(
                 func=ast.Attribute(
                     value=conversionFunc,
-                    attr='toPrecision',
+                    attr='toFixed',
                     ctx=ast.Load()
                 ),
                 args=[ast.Constant(value=precision, kind=None)],
@@ -194,7 +194,7 @@ class pythonTransformer(ast.NodeTransformer):
             )
 
             # return the node:
-            node.value = widthCall
+            node.value = self.visit_Call(widthCall)
             node.conversion = -1
             node.format_spec = None
 
@@ -372,7 +372,7 @@ class pythonTransformer(ast.NodeTransformer):
 
 class pythonAddonVisitor(ast.NodeVisitor):
     # operations that require an addon:
-    addonOperations = ['list', 'pad']
+    addonOperations = ['list']
 
     def __init__(self):
         self.addons = []
@@ -405,11 +405,12 @@ def transformNode(astNode):
     return pythonBuiltinTransformedNode, visitor.addons
 
 
-def transformPsychoJsCode(psychoJsCode, addons):
+def transformPsychoJsCode(psychoJsCode, addons, namespace=[]):
     """Transform the input PsychoJS code.
 
     Args:
         psychoJsCode (str): the input PsychoJS JavaScript code
+        namespace (list): list of varnames which are already defined
 
     Returns:
         (str) the transformed code
@@ -432,20 +433,6 @@ def transformPsychoJsCode(psychoJsCode, addons):
 
         """
 
-    if 'pad' in addons:
-        transformedPsychoJSCode += r"""
-        // add-on: pad(n: number, width: number): string
-        function pad(n, width) {
-            width = width || 2;
-            integerPart = Number.parseInt(n);
-            decimalPart = (n+'').match(/\.[0-9]*/);
-            if (!decimalPart)
-                decimalPart = '';
-            return (integerPart+'').padStart(width,'0') + decimalPart;
-        }
-
-        """
-
     lines = psychoJsCode.splitlines()
 
     # remove the initial variable declarations, unless it is for _pj:
@@ -455,21 +442,38 @@ def transformPsychoJsCode(psychoJsCode, addons):
     else:
         startIndex = 0
 
-    if lines[startIndex].find('var ') == 0:
-        startIndex += 1
-
     for index in range(startIndex, len(lines)):
-        transformedPsychoJSCode += lines[index]
-        transformedPsychoJSCode += '\n'
+        include = True
+
+        # Remove var defs if variable is defined earlier in experiment
+        if lines[index].startswith("var "):
+            # Get var names
+            varNames = lines[index][4:-1].split(", ")
+            validVarNames = []
+            for varName in varNames:
+                if varName not in namespace:
+                    # If var name not is already in namespace, keep it in
+                    validVarNames.append(varName)
+            # If there are no var names left, remove statement altogether
+            if not len(validVarNames):
+                include = False
+            # Recombine line
+            lines[index] = f"var {', '.join(validVarNames)};"
+
+        # Append line
+        if include:
+            transformedPsychoJSCode += lines[index]
+            transformedPsychoJSCode += '\n'
 
     return transformedPsychoJSCode
 
 
-def translatePythonToJavaScript(psychoPyCode):
+def translatePythonToJavaScript(psychoPyCode, namespace=[]):
     """Translate PsychoPy python code into PsychoJS JavaScript code.
 
     Args:
         psychoPyCode (str): the input PsychoPy python code
+        namespace (list): list of varnames which are already defined
 
     Returns:
         str: the PsychoJS JavaScript code
@@ -511,7 +515,7 @@ def translatePythonToJavaScript(psychoPyCode):
 
     # transform the JavaScript code:
     try:
-        transformedPsychoJsCode = transformPsychoJsCode(psychoJsCode, addons)
+        transformedPsychoJsCode = transformPsychoJsCode(psychoJsCode, addons, namespace=namespace)
     except Exception as error:
         raise Exception('unable to transform the PsychoJS JavaScript code: ' + str(error))
 

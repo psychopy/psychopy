@@ -5,6 +5,7 @@ import numpy as np
 from psychopy import layout
 from psychopy.alerts._errorHandler import _BaseErrorHandler
 from psychopy.tests.test_visual.test_basevisual import _TestColorMixin, _TestUnitsMixin
+from psychopy.tests.test_experiment.test_component_compile_python import _TestBoilerplateMixin
 from psychopy.visual import Window
 from psychopy.visual import TextBox2
 from psychopy.visual.textbox2.fontmanager import FontManager
@@ -16,7 +17,7 @@ from psychopy.tests import utils
 
 
 @pytest.mark.textbox
-class Test_textbox(_TestColorMixin, _TestUnitsMixin):
+class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
     def setup(self):
         self.win = Window((128, 128), pos=(50, 50), monitor="testMonitor", allowGUI=False, autoLog=False)
         self.error = _BaseErrorHandler()
@@ -97,8 +98,8 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin):
             if case['screenshot']:
                 # Uncomment to save current configuration as desired
                 filename = "textbox_{}_{}".format(self.textbox._lineBreaking, case['screenshot'])
-                self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
-                #utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
+                #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+                utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
 
     def test_colors(self):
         # Do base tests

@@ -138,7 +138,7 @@ def getLexerKeywords(lexer, filename=""):
                 0: ['var', 'const', 'let', 'import', 'function', 'if',
                     'else', 'return', 'struct', 'for', 'while', 'do',
                     'finally', 'throw', 'try', 'switch', 'case',
-                    'break'],
+                    'break', 'await'],
                 1: ['null', 'false', 'true']
             }
         elif any([filename.lower().endswith(ext) for ext in (
@@ -240,6 +240,8 @@ class CodeTheme(dict):
 
     @property
     def base(self):
+        if theme.code not in self._base:
+            self.load(theme.code)
         return self._base[theme.code]
 
     @base.setter
@@ -248,6 +250,8 @@ class CodeTheme(dict):
 
     @property
     def caret(self):
+        if theme.code not in self._caret:
+            self.load(theme.code)
         return self._caret[theme.code]
 
     @caret.setter
@@ -256,6 +260,8 @@ class CodeTheme(dict):
 
     @property
     def margin(self):
+        if theme.code not in self._margin:
+            self.load(theme.code)
         return self._margin[theme.code]
 
     @margin.setter
@@ -264,6 +270,8 @@ class CodeTheme(dict):
 
     @property
     def select(self):
+        if theme.code not in self._select:
+            self.load(theme.code)
         return self._select[theme.code]
 
     @select.setter
@@ -336,7 +344,7 @@ class CodeFont:
     pointSize = 12
     foreColor = "#000000"
     backColor = "#FFFFFF"
-    faceNames = ["JetBrains Mono"]
+    faceNames = ["JetBrains Mono", "Monaco", "Consolas"]
     bold = False
     italic = False
 
@@ -380,7 +388,7 @@ class CodeFont:
                 break
         # If nothing worked, use the default monospace
         if not success:
-            self.obj.SetFaceName(wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT).GetFaceName())
+            self.obj = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
 
     def __repr__(self):
         return (

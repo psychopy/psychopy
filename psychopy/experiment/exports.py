@@ -31,11 +31,12 @@ from .utils import nonalphanumeric_re, valid_var_re
 
 class IndentingBuffer(io.StringIO):
 
-    def __init__(self, *args, **kwargs):
-        io.StringIO.__init__(self, *args, **kwargs)
+    def __init__(self, target='PsychoPy', initial_value='', newline='\n'):
+        io.StringIO.__init__(self, initial_value, newline)
         self.oneIndent = "    "
         self.indentLevel = 0
         self._writtenOnce = []
+        self.target = target  # useful to keep track of what language is written here
 
     def writeIndented(self, text):
         """Write to the StringIO buffer, but add the current indent.
@@ -154,6 +155,18 @@ class NameSpace:
         if numpy_count_only:
             return "%s + [%d numpy]" % (str(varibs), len(self.numpy))
         return str(varibs + self.numpy)
+
+    @property
+    def all(self):
+        return (
+                self.builder +
+                self.constants +
+                self.keywords +
+                self.nonUserBuilder +
+                self.numpy +
+                self.psychopy +
+                self.user
+        )
 
     def getDerived(self, basename):
         """ buggy

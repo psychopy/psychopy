@@ -25,6 +25,7 @@ from psychopy import app
 from psychopy.localization import _translate
 import wx
 
+from ..app.errorDlg import exceptionCallback
 from ..tools.apptools import SortTerm
 
 try:
@@ -93,7 +94,8 @@ def login(tokenOrUsername, rememberMe=True):
     """
     currentSession = getCurrentSession()
     if not currentSession:
-        raise requests.exceptions.ConnectionError("Failed to connect to Pavlovia.org. No network?")
+        exceptionCallback(exc_type=requests.exceptions.ConnectionError)
+        return
     # would be nice here to test whether this is a token or username
     logging.debug('pavloviaTokensCurrently: {}'.format(knownUsers))
     if tokenOrUsername in knownUsers:
@@ -141,7 +143,14 @@ class User(dict):
         # Get info from Pavlovia
         if isinstance(id, (float, int, str)):
             # If given a number or string, treat it as a user ID / username
-            self.info = requests.get("https://pavlovia.org/api/v2/designers/" + str(id)).json()['designer']
+            self.info = self.session.session.get(
+                "https://pavlovia.org/api/v2/designers/" + str(id)
+            ).json()['designer']
+            # Make sure self.info has necessary keys
+            assert 'gitlabId' in self.info, _translate(
+                f"Could not retrieve user info for user {id}, server returned:\n"
+                f"{self.info}"
+            )
         elif isinstance(id, dict) and 'gitlabId' in id:
             # If given a dict from Pavlovia rather than an ID, store it rather than requesting again
             self.info = id
@@ -283,13 +292,26 @@ class PavloviaSession:
             gitlabProj = self.gitlab.projects.create(projDict)
         except gitlab.exceptions.GitlabCreateError as e:
             if 'has already been taken' in str(e.error_message):
+                # If name is taken, get instead of create
+                gitlabProj = self.gitlab.projects.get(f"{self.username}/{name}")
+            else:
+                # Otherwise, raise original error
+                raise e
+            # Check for bare remote
+            bareRemote = False
+            try:
+                gitlabProj.repository_tree()
+            except gitlab.exceptions.GitlabGetError:
+                # If we've made it thus far but can't get a tree, the remote is bare
+                bareRemote = True
+            # If remote is populated, handle and return
+            if not bareRemote:
                 dlg = wx.MessageDialog(None, message=_translate(
                     "Project `{namespace}/{name}` already exists, please choose another name."
                 ).format(namespace=namespace, name=name), style=wx.ICON_WARNING)
                 dlg.ShowModal()
                 return
-            else:
-                raise e
+            # Otherwise, continue as normal (bare remote is fine to replace)
 
         # Create pavlovia project object
         pavProject = PavloviaProject(gitlabProj.get_id(), localRoot=localRoot)
@@ -353,7 +375,7 @@ class PavloviaSession:
         projIDs = []
         for proj in own + group:
             if proj.id not in projIDs and proj.id not in projs:
-                projs.append(PavloviaProject(proj))
+                projs.append(PavloviaProject(proj.id))
                 projIDs.append(proj.id)
         return projs
 
@@ -392,6 +414,7 @@ class PavloviaSession:
                         "Trying to login with token {} which is shorter "
                         "than expected length ({} not 64) for gitlab token"
                             .format(repr(token), len(token)))
+            # Setup gitlab session
             if parse_version(gitlab.__version__) > parse_version("1.4"):
                 self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=10, per_page=100)
             else:
@@ -401,11 +424,17 @@ class PavloviaSession:
             self.userID = self.gitlab.user.id  # populate when token property is set
             self.userFullName = self.gitlab.user.name
             self.authenticated = True
+            # Setup http session
+            self.session = requests.Session()
+            self.session.headers = {'OauthToken': token}
         else:
+            # Setup gitlab session
             if parse_version(gitlab.__version__) > parse_version("1.4"):
                 self.gitlab = gitlab.Gitlab(rootURL, timeout=10, per_page=100)
             else:
                 self.gitlab = gitlab.Gitlab(rootURL, timeout=10)
+            # Setup http session
+            self.session = requests.Session()
 
     @property
     def user(self):
@@ -447,6 +476,10 @@ class PavloviaSearch(pandas.DataFrame):
         def __str__(self):
             # Start off with blank str
             terms = ""
+            # Synonymise visibility unspecified with visibility all ticked (compensate for back-end being
+            # exploration focussed)
+            if "Visibility" not in self or not self['Visibility']:
+                self['Visibility'] = ["owned", "private", "public"]
             # Iterate through values
             for key, value in self.items():
                 # Ensure value is iterable and mutable
@@ -476,28 +509,24 @@ class PavloviaSearch(pandas.DataFrame):
         # Ensure filter is a FilterTerm
         filterBy = self.FilterTerm(filterBy)
         # Do search
-        try:
-            if mine:
-                # Display experiments by current user
-                session = getCurrentSession()
-                data = requests.get(
-                    f"https://pavlovia.org/api/v2/designers/{session.userID}/experiments?search={term}{filterBy}",
-                    timeout=5
-                ).json()
-            elif term or filterBy:
-                data = requests.get(
-                    f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}",
-                    timeout=5
-                ).json()
-            else:
-                # Display demos for blank search
-                data = requests.get(
-                    "https://pavlovia.org/api/v2/experiments?search=demos&designer=demos",
-                    timeout=5
-                ).json()
-        except requests.exceptions.ReadTimeout:
-            msg = "Could not connect to Pavlovia server. Please check that you are connected to the internet. If you are connected, then the Pavlovia servers may be down. You can check their status here: https://pavlovia.org/status"
-            raise ConnectionError(msg)
+        session = getCurrentSession()
+        if mine:
+            # Display experiments by current user
+            data = session.session.get(
+                f"https://pavlovia.org/api/v2/designers/{session.userID}/experiments?search={term}{filterBy}",
+                timeout=10
+            ).json()
+        elif term or filterBy:
+            data = session.session.get(
+                f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}",
+                timeout=10
+            ).json()
+        else:
+            # Display demos for blank search
+            data = session.session.get(
+                "https://pavlovia.org/api/v2/experiments?search=demos&designer=demos",
+                timeout=10
+            ).json()
         # Construct dataframe
         pandas.DataFrame.__init__(self, data=data['experiments'])
         # Do any requested sorting
@@ -599,8 +628,9 @@ class PavloviaProject(dict):
         self._info = None
         # for a new project it may take time for Pavlovia to register the new ID so try for a while
         while self._info is None and (time.time() - start) < 30:
-            requestVal = requests.get(f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
-                                      headers={'OauthToken': self.session.getToken()}).json()
+            requestVal = self.session.session.get(
+                f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
+            ).json()
             self._info = requestVal['experiment']
         if self._info is None:
             raise ValueError(f"Could not find project with id `{self.id}` on Pavlovia: {requestVal}")
@@ -724,14 +754,14 @@ class PavloviaProject(dict):
     def localRoot(self, value):
         if self.project.path_with_namespace in knownProjects:
             # If project has known local store, update its root
-            knownProjects[self.project.path_with_namespace]['localRoot'] = value
+            knownProjects[self.project.path_with_namespace]['localRoot'] = str(value)
             knownProjects.save()
         else:
             # If project has no known local store, create one
             knownProjects[self.project.path_with_namespace] = {
                 'id': self['path_with_namespace'],
                 'idNumber': self.id,
-                'localRoot': value,
+                'localRoot': str(value),
                 'remoteHTTPS': f"https://gitlab.pavlovia.org/{self['path_with_namespace']}.git",
                 'remoteSSH': f"git@gitlab.pavlovia.org:{self['path_with_namespace']}.git"
             }
@@ -749,7 +779,18 @@ class PavloviaProject(dict):
         """
         # Error catch local root
         if not self.localRoot:
-            raise gitlab.GitlabGetError("Can't sync project without a local root.")
+            dlg = wx.MessageDialog(self, message=_translate(
+                "Can't sync project without a local root. Please specify a local root then try again."
+            ), style=wx.ICON_ERROR | wx.OK)
+            dlg.ShowModal()
+            return
+        # Error catch logged out
+        if not self.session.user:
+            dlg = wx.MessageDialog(self, message=_translate(
+                "You are not logged in to Pavlovia. Please log in to sync project."
+            ), style=wx.ICON_ERROR | wx.OK)
+            dlg.ShowModal()
+            return
         # Reset local repo so it checks again (rather than erroring if it's been deleted without an app restart)
         self._repo = None
         # Jot down start time
@@ -1086,7 +1127,20 @@ class PavloviaProject(dict):
 
     def save(self):
         """Saves the metadata to gitlab.pavlovia.org"""
-        self.project.save()
+        try:
+            self.project.save()
+            return True
+        except gitlab.GitlabUpdateError as err:
+            msgRoot = "Could not sync project.\n\n"
+            if err.response_code == 400:
+                # Error: Avatar is too big
+                msg = msgRoot + _translate("Avatar is too big, should be at most 200 KB.")
+                dlg = wx.MessageDialog(None, msg, style=wx.ICON_ERROR)
+                dlg.ShowModal()
+                # Reset avatar
+                self['avatar_url'] = ""
+            return False
+
         # note that saving info locally about known projects is done
         # by the knownProjects DictStorage class
 
@@ -1211,7 +1265,6 @@ def getNameWithNamespace(p):
         return None
 
 
-
 def getProject(filename):
     """Will try to find (locally synced) pavlovia Project for the filename
     """
@@ -1225,10 +1278,36 @@ def getProject(filename):
     path = getNameWithNamespace(filename)
     # Get session
     session = getCurrentSession()
+    # Start off with proj as None
+    proj = None
     # If already found, return
     if (knownProjects is not None) and (path in knownProjects) and ('idNumber' in knownProjects[path]):
+        # Make sure we are logged in
+        nameSpace, projectName = path.split("/")
+        # Try to log in if not logged in
+        if not session.user:
+            if nameSpace in knownUsers:
+                # Log in if user is known
+                login(nameSpace, rememberMe=True)
+            else:
+                # Check whether project repo is found in any of the known users accounts
+                for user in knownUsers:
+                    try:
+                        login(user)
+                    except requests.exceptions.ConnectionError:
+                        break
+
+        thisId = knownProjects[path]['idNumber']
+        # Check that project still exists on Pavlovia
+        requestVal = session.session.get(
+            f"https://pavlovia.org/api/v2/experiments/{thisId}",
+        ).json()
+        if requestVal['experiment'] is None:
+            # If project has been deleted, return None
+            return None
+        # If project is still there, get it
         try:
-            return PavloviaProject(knownProjects[path]['idNumber'])
+            return PavloviaProject(thisId)
         except LookupError as err:
             # If project not found, print warning and return None
             logging.warn(str(err))
@@ -1240,18 +1319,69 @@ def getProject(filename):
         for remote in localRepo.remotes:
             for url in remote.urls:
                 if "gitlab.pavlovia.org" in url:
-                    # Get Namespace/Name from standard style url
-                    nameSearch = re.search(r"(?<=https:\/\/gitlab\.pavlovia\.org\/).*\/.*(?=\.git)", url)
-                elif "git@gitlab.pavlovia.org:" in url:
-                    # Get Namespace/Name from @ stye url
-                    nameSearch = re.search(r"(?<=git@gitlab\.pavlovia\.org:).*\/.*(?=\.git)", url)
-                else:
-                    # Attempt to get Namespace/Name from unhandled style
-                    nameSearch = re.search(r"[\w\-]*\\[\w\-]*\.git", url)
-                if nameSearch is not None:
-                    name = nameSearch.group(0)
-                    project = session.gitlab.projects.get(name)
-                    return PavloviaProject(project.id)
+                    # Get namespace from url
+                    # could be 'https://gitlab.pavlovia.org/NameSpace/Name.git'
+                    # or may be 'git@gitlab.pavlovia.org:NameSpace/Name.git'
+                    namespaceName = url.split('gitlab.pavlovia.org')[1]
+                    # remove the first char if it's : or /
+                    if namespaceName[0] in ['/', ':']:
+                        namespaceName = namespaceName[1:]
+                    # Remove .git
+                    namespaceName = namespaceName.replace(".git", "")
+                    # Split to get namespace
+                    nameSpace, projectName = namespaceName.split('/')
+                    # Get current session
+                    pavSession = getCurrentSession()
+                    # Try to log in if not logged in
+                    if not pavSession.user:
+                        if nameSpace in knownUsers:
+                            # Log in if user is known
+                            login(nameSpace, rememberMe=True)
+                        else:
+                            # Check whether project repo is found in any of the known users accounts
+                            for user in knownUsers:
+                                try:
+                                    login(user)
+                                except requests.exceptions.ConnectionError:
+                                    break
+                                foundProject = False
+                                for repo in pavSession.findUserProjects():
+                                    if namespaceName in repo:
+                                        foundProject = True
+                                        logging.info("Logging in as {}".format(user))
+                                        break
+                                if not foundProject:
+                                    logging.warning("Could not find {namespace} in your Pavlovia accounts. "
+                                                    "Logging in as {user}.".format(namespace=namespaceName,
+                                                                                   user=user))
+
+                    if pavSession.user:
+                        # If we are now logged in, get project id via session
+                        requestVal = pavSession.session.get(
+                            f"https://pavlovia.org/api/v2/experiments/{namespaceName}",
+                        ).json()
+                        expInfo = requestVal['experiment']
+                        if expInfo is not None:
+                            # Get PavloviaProject via id
+                            proj = pavSession.getProject(expInfo['gitlabId'])
+                            proj.repo = localRepo
+                        else:
+                            # Warn user if there is a repo but no project
+                            logging.warning(
+                                _translate("We found a repository pointing to {} "
+                                           "but no project was found there (deleted?)").format(url))
+                    else:
+                        # If we are still logged out, prompt user
+                        logging.warning(_translate("We found a repository pointing to {} "
+                                                   "but no user is logged in for us to check it".format(url)))
+                    return proj
+
+            if proj is None:
+                # Warn user if still no project
+                logging.warning("We found a repository at {} but it "
+                                "doesn't point to gitlab.pavlovia.org. "
+                                "You could create that as a remote to "
+                                "sync from PsychoPy.".format(gitRoot))
 
 
 global _existingSession

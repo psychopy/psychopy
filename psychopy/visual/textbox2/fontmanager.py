@@ -43,6 +43,7 @@ _X11FontDirectories = [
 
 _OSXFontDirectories = [
     "/Library/Fonts/",
+    str(Path.home() / "Library" / "Fonts"),
     "/Network/Library/Fonts",
     "/System/Library/Fonts",
     # fonts installed via MacPorts

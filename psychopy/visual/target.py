@@ -24,14 +24,14 @@ class TargetStim(MinimalStim, ColorMixin, WindowMixin):
         # Create shapes
         self.outer = ShapeStim(win, name=name,
                                vertices="circle",
-                               size=(0, 0), pos=pos,
+                               size=(radius*2, radius*2), pos=pos,
                                lineWidth=lineWidth, units=units,
                                fillColor=fillColor, lineColor=borderColor, colorSpace=colorSpace,
                                autoLog=autoLog, autoDraw=autoDraw)
         self.outerRadius = radius
         self.inner = ShapeStim(win, name=name+"Inner",
                                vertices="circle",
-                               size=(0, 0), pos=pos, units=units,
+                               size=(innerRadius*2, innerRadius*2), pos=pos, units=units,
                                lineWidth=(innerLineWidth or lineWidth),
                                fillColor=innerFillColor, lineColor=innerBorderColor, colorSpace=colorSpace,
                                autoLog=autoLog, autoDraw=autoDraw)
@@ -55,15 +55,6 @@ class TargetStim(MinimalStim, ColorMixin, WindowMixin):
             # Circle with a cross inside
             self.outer.vertices = "circle"
             self.inner.vertices = "cross"
-
-    @property
-    def scale(self):
-        # Work out current ratio between inner and outer radiuses
-        return self.innerRadius / self.outerRadius
-
-    @scale.setter
-    def scale(self, value):
-        self.innerRadius = self.outerRadius * value
 
     @property
     def anchor(self):
@@ -98,11 +89,12 @@ class TargetStim(MinimalStim, ColorMixin, WindowMixin):
     def size(self, value):
         # Do base size setting
         WindowMixin.size.fset(self, value)
-        # Get original scale
-        ogScale = self.scale
         # Set new sizes
         self.outer.size = value
-        self.inner.size = self.outer.size * ogScale
+
+    @property
+    def minSize(self):
+        return self.inner.size
 
     @property
     def units(self):
@@ -138,17 +130,23 @@ class TargetStim(MinimalStim, ColorMixin, WindowMixin):
 
     @property
     def radius(self):
+        """
+        TODO: Deprecate use of radius in favor of using .size
+        :return:
+        """
         return self.outerRadius
 
     @radius.setter
     def radius(self, value):
         # Set outer radius
         self.outerRadius = value
-        # Set inner radius to maintain scale
-        self.innerRadius = value * self.scale
 
     @property
     def outerRadius(self):
+        """
+        TODO: Deprecate use of outerRadius in favor of using .outer.size
+        :return:
+        """
         return self.outer.size[1]/2
 
     @outerRadius.setter
@@ -160,6 +158,10 @@ class TargetStim(MinimalStim, ColorMixin, WindowMixin):
 
     @property
     def innerRadius(self):
+        """
+        TODO: Deprecate use of innerRadius in favor of using .inner.size
+        :return:
+        """
         return self.inner.size[1] / 2
 
     @innerRadius.setter
@@ -269,7 +271,7 @@ def targetFromDict(win, spec,
     TargetStim(win, name=name, style=style,
                radius=spec['outer_diameter']/2, lineWidth=spec['outer_stroke_width'],
                fillColor=spec['outer_fill_color'], borderColor=spec['outer_line_color'],
-               innerRadius=spec['outer_diameter']/2, innerLineWidth=spec['inner_stroke_width'],
+               innerRadius=spec['inner_diameter']/2, innerLineWidth=spec['inner_stroke_width'],
                innerFillColor=spec['inner_fill_color'], innerBorderColor=spec['inner_line_color'],
                pos=pos, units=units,
                colorSpace=colorSpace,

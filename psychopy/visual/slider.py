@@ -162,6 +162,8 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         self._lineSizeAddition = (0, 0)
         self._tickSizeMultiplier = (1, 1)
         self._tickSizeAddition = (0, 0)
+        # Allow styles to force alignment/anchor for labels
+        self._forceLabelAnchor = None
 
         self.granularity = granularity
         self.colorSpace = colorSpace
@@ -263,7 +265,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
     @property
     def categorical(self):
         """(readonly) determines from labels and ticks whether the slider is categorical"""
-        return self.ticks is None
+        return self.ticks is None or self.style == "radio"
 
     @property
     def extent(self):
@@ -407,8 +409,8 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         """Resets the slider to its starting state (so that it can be restarted
         on each trial with a new stimulus)
         """
-        self.markerPos = self.startValue
         self.rating = None  # this is reset to None, whatever the startValue
+        self.markerPos = self.startValue
         self.history = []
         self.rt = None
         self.responseClock.reset()
@@ -589,7 +591,10 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         """
         # If categorical, create tick values from labels
         if self.categorical:
-            self.ticks = np.arange(len(self.labels))
+            if self.labels is None:
+                self.ticks = np.arange(5)
+            else:
+                self.ticks = np.arange(len(self.labels))
             self.granularity = 1.0
         # Calculate positions
         xys = self._ratingToPos(self.ticks)
@@ -637,6 +642,9 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             else:
                 # Labels on top means anchor them from below
                 anchorVert = alignVert = 'bottom'
+            # If style tells us to force label anchor, force it
+            if self._forceLabelAnchor is not None:
+                anchorVert = alignVert = self._forceLabelAnchor
         else:  # vertical
             # Always centered vertically
             anchorVert = alignVert = 'center'
@@ -658,6 +666,9 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             else:
                 # Labels right means anchor them from the left
                 anchorHoriz = alignHoriz = 'left'
+            # If style tells us to force label anchor, force it
+            if self._forceLabelAnchor is not None:
+                anchorHoriz = alignHoriz = self._forceLabelAnchor
         # Store label details
         self.labelParams = {
             'units': (self.units,) * n,
@@ -686,7 +697,12 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
     def _granularRating(self, rating):
         """Handle granularity for the rating"""
         if rating is not None:
-            if self.granularity > 0:
+            if self.categorical:
+                # If this is a categorical slider, snap to closest tick
+                deltas = np.absolute(np.asarray(self.ticks) - rating)
+                i = np.argmin(deltas)
+                rating = self.ticks[i]
+            elif self.granularity > 0:
                 rating = round(rating / self.granularity) * self.granularity
                 rating = round(rating, 8)  # or gives 1.9000000000000001
             rating = max(rating, self.ticks[0])
@@ -905,7 +921,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         if hasattr(self, "tickLines"):
             self.tickLines.colors = self._borderColor.copy()
 
-    knownStyles = ['slider', 'rating', 'radio', 'scrollbar']
+    knownStyles = ['slider', 'rating', 'radio', 'scrollbar', 'choice']
     legacyStyles = []
     knownStyleTweaks = ['labels45', 'triangleMarker']
     legacyStyleTweaks = ['whiteOnBlack']
@@ -1002,6 +1018,31 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             self._tickSizeMultiplier = (1, 1)
             self._tickSizeAddition = (0, 0)
 
+        if style == 'choice':
+            if self.labels is None:
+                nLabels = len(self.ticks)
+            else:
+                nLabels = len(self.labels)
+            # No line
+            if self.horiz:
+                self._lineSizeMultiplier = (1 + 1 / nLabels, 1)
+            else:
+                self._lineSizeMultiplier = (1, 1 + 1 / nLabels)
+            # Solid ticks
+            self.tickLines.elementMask = None
+            self._tickSizeAddition = (0, 0)
+            self._tickSizeMultiplier = (0, 0)
+            # Marker is box
+            self.marker.vertices = "rectangle"
+            if self.horiz:
+                self._markerSizeMultiplier = (1, 1)
+            else:
+                self._markerSizeMultiplier = (1, 1 / nLabels)
+            # Labels forced center
+            self._forceLabelAnchor = "center"
+            # Choice doesn't make sense with granularity 0
+            self.granularity = 1
+
         if style == 'scrollbar':
             # Semi-transparent rectangle for a line (+ extra area for marker)
             self.line.opacity = 1
@@ -1027,6 +1068,9 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         # Legacy: If given a tweak, apply it as a tweak rather than a style
         if style in self.knownStyleTweaks + self.legacyStyleTweaks:
             self.styleTweaks.append(style)
+
+        # Refresh style tweaks (as these override some aspects of style)
+        self.styleTweaks = self.styleTweaks
 
         return style
 
@@ -1054,6 +1098,9 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             Style tweaks can be combined in a list e.g. `['labels45']`
 
         """
+        if not isinstance(styleTweaks, (list, tuple, np.ndarray)):
+            styleTweaks = [styleTweaks]
+
         self.__dict__['styleTweaks'] = styleTweaks
 
         if 'triangleMarker' in styleTweaks:

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" ?>
-<PsychoPy2experiment encoding="utf-8" version="2022.1.0rc5">
+<PsychoPy2experiment encoding="utf-8" version="2022.2.1">
   <Settings>
     <Param val="use prefs" valType="str" updates="None" name="Audio latency priority"/>
     <Param val="use prefs" valType="str" updates="None" name="Audio lib"/>
@@ -25,7 +25,7 @@
     <Param val="False" valType="bool" updates="None" name="Show mouse"/>
     <Param val="height" valType="str" updates="None" name="Units"/>
     <Param val="" valType="str" updates="None" name="Use version"/>
-    <Param val="[1280, 1024]" valType="list" updates="None" name="Window size (pixels)"/>
+    <Param val="[1920, 1080]" valType="list" updates="None" name="Window size (pixels)"/>
     <Param val="avg" valType="str" updates="None" name="blendMode"/>
     <Param val="$[0,0,0]" valType="color" updates="None" name="color"/>
     <Param val="rgb" valType="str" updates="None" name="colorSpace"/>
@@ -49,6 +49,14 @@
     <Param val="('MIDDLE_BUTTON',)" valType="list" updates="None" name="mgBlink"/>
     <Param val="CONTINUOUS" valType="str" updates="None" name="mgMove"/>
     <Param val="0.5" valType="num" updates="None" name="mgSaccade"/>
+    <Param val="0.6" valType="num" updates="None" name="plConfidenceThreshold"/>
+    <Param val="True" valType="bool" updates="None" name="plPupilCaptureRecordingEnabled"/>
+    <Param val="" valType="str" updates="None" name="plPupilCaptureRecordingLocation"/>
+    <Param val="127.0.0.1" valType="str" updates="None" name="plPupilRemoteAddress"/>
+    <Param val="50020" valType="num" updates="None" name="plPupilRemotePort"/>
+    <Param val="1000" valType="num" updates="None" name="plPupilRemoteTimeoutMs"/>
+    <Param val="False" valType="bool" updates="None" name="plPupillometryOnly"/>
+    <Param val="psychopy_iohub_surface" valType="str" updates="None" name="plSurfaceName"/>
     <Param val="" valType="str" updates="None" name="tbLicenseFile"/>
     <Param val="" valType="str" updates="None" name="tbModel"/>
     <Param val="60" valType="num" updates="None" name="tbSampleRate"/>
@@ -163,30 +171,6 @@
         <Param val="" valType="list" updates="constant" name="vertices"/>
       </PolygonComponent>
     </Routine>
-    <EyetrackerCalibrationRoutine name="calibration">
-      <Param name="borderColor" updates="None" val="black" valType="color"/>
-      <Param name="borderWidth" updates="None" val="2" valType="num"/>
-      <Param name="colorSpace" updates="None" val="rgb" valType="str"/>
-      <Param name="disabled" updates="None" val="False" valType="bool"/>
-      <Param name="expandDur" updates="None" val="1" valType="num"/>
-      <Param name="expandScale" updates="None" val="1.5" valType="num"/>
-      <Param name="fillColor" updates="None" val="" valType="color"/>
-      <Param name="innerBorderColor" updates="None" val="black" valType="color"/>
-      <Param name="innerBorderWidth" updates="None" val="2" valType="num"/>
-      <Param name="innerFillColor" updates="None" val="green" valType="color"/>
-      <Param name="innerRadius" updates="None" val="0.0035" valType="num"/>
-      <Param name="movementAnimation" updates="None" val="True" valType="bool"/>
-      <Param name="movementDur" updates="None" val="1.0" valType="num"/>
-      <Param name="name" updates="None" val="calibration" valType="code"/>
-      <Param name="outerRadius" updates="None" val="0.01" valType="num"/>
-      <Param name="progressMode" updates="None" val="time" valType="str"/>
-      <Param name="randomisePos" updates="None" val="True" valType="bool"/>
-      <Param name="targetDelay" updates="None" val="1.0" valType="num"/>
-      <Param name="targetDur" updates="None" val="1.5" valType="num"/>
-      <Param name="targetLayout" updates="None" val="NINE_POINTS" valType="str"/>
-      <Param name="textColor" updates="None" val="white" valType="color"/>
-      <Param name="units" updates="None" val="from exp settings" valType="str"/>
-    </EyetrackerCalibrationRoutine>
     <Routine name="instr">
       <TextboxComponent name="instructions">
         <Param val="center" valType="str" updates="constant" name="alignment"/>
@@ -324,6 +308,30 @@
         <Param val="False" valType="bool" updates="None" name="syncScreenRefresh"/>
       </EyetrackerRecordComponent>
     </Routine>
+    <EyetrackerCalibrationRoutine name="calibration">
+      <Param name="borderColor" updates="None" val="white" valType="color"/>
+      <Param name="borderWidth" updates="None" val="2" valType="num"/>
+      <Param name="colorSpace" updates="None" val="rgb" valType="str"/>
+      <Param name="disabled" updates="None" val="False" valType="bool"/>
+      <Param name="expandDur" updates="None" val="1" valType="num"/>
+      <Param name="expandScale" updates="None" val="1.5" valType="num"/>
+      <Param name="fillColor" updates="None" val="green" valType="color"/>
+      <Param name="innerBorderColor" updates="None" val="black" valType="color"/>
+      <Param name="innerBorderWidth" updates="None" val="2" valType="num"/>
+      <Param name="innerFillColor" updates="None" val="red" valType="color"/>
+      <Param name="innerRadius" updates="None" val="0.005" valType="num"/>
+      <Param name="movementAnimation" updates="None" val="True" valType="bool"/>
+      <Param name="movementDur" updates="None" val="1.0" valType="num"/>
+      <Param name="name" updates="None" val="calibration" valType="code"/>
+      <Param name="outerRadius" updates="None" val="0.015" valType="num"/>
+      <Param name="progressMode" updates="None" val="time" valType="str"/>
+      <Param name="randomisePos" updates="None" val="True" valType="bool"/>
+      <Param name="targetDelay" updates="None" val="1.0" valType="num"/>
+      <Param name="targetDur" updates="None" val="1.5" valType="num"/>
+      <Param name="targetLayout" updates="None" val="NINE_POINTS" valType="str"/>
+      <Param name="textColor" updates="None" val="white" valType="color"/>
+      <Param name="units" updates="None" val="from exp settings" valType="str"/>
+    </EyetrackerCalibrationRoutine>
   </Routines>
   <Flow>
     <EyetrackerCalibrationRoutine name="calibration"/>

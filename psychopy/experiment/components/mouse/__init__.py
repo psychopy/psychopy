@@ -33,7 +33,7 @@ class MouseComponent(BaseComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
-                 save='final', forceEndRoutineOnPress="any click",
+                 save='on click', forceEndRoutineOnPress="any click",
                  timeRelativeTo='mouse onset'):
         super(MouseComponent, self).__init__(
             exp, parentName, name=name,
