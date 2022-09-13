@@ -1004,7 +1004,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         devNames.sort()
 
         intNames = [
-            'Hiroyuki Sogo'
+            'Hiroyuki Sogo (Japanese)'
+            'Shun Wang (Chinese)'
         ]
         intNames.sort()
 
