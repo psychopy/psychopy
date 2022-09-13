@@ -99,7 +99,7 @@ class TextboxComponent(BaseVisualComponent):
             }
         )
         self.params['placeholder'] = Param(
-            placeholder, valType='text', inputType="single", categ='Basic',
+            placeholder, valType='str', inputType="single", categ='Basic',
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Placeholder text to show when there is no text contents."),
             label=_translate("Placeholder Text"))
