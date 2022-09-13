@@ -302,37 +302,37 @@ class HoverButton(wx.Button, HoverMixin, handlers.ThemeMixin):
         self.OnHover(evt=None)
 
 
-class MarkdownCtrl(wx.Window, handlers.ThemeMixin):
+class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
     def __init__(self, parent, size=(-1, -1), value="", file=None, style=wx.DEFAULT):
         # Initialise superclass
-        wx.Window.__init__(self, parent, size=size)
+        wx.Panel.__init__(self, parent, size=size)
         # Setup sizers
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self.sizer)
         self.contentSizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.contentSizer, proportion=1, flag=wx.EXPAND)
         self.btnSizer = wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(self.btnSizer, border=6, flag=wx.LEFT | wx.ALIGN_TOP)
+        self.sizer.Add(self.btnSizer, border=0, flag=wx.ALL)
 
         # Make text control
         self.rawTextCtrl = wx.TextCtrl(self, size=size, value=value, style=wx.TE_MULTILINE | style)
-        self.contentSizer.Add(self.rawTextCtrl, proportion=1, flag=wx.EXPAND)
+        self.contentSizer.Add(self.rawTextCtrl, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
 
         # Make HTML preview
         self.htmlPreview = HtmlWindow(self, wx.ID_ANY)
         self.htmlPreview.Bind(wx.html.EVT_HTML_LINK_CLICKED, self.onUrl)
-        self.contentSizer.Add(self.htmlPreview, proportion=1, flag=wx.EXPAND)
+        self.contentSizer.Add(self.htmlPreview, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
 
         # Make switch
-        self.editBtn = wx.ToggleButton(self, size=(24, 24), style=wx.BORDER_NONE)
+        self.editBtn = wx.ToggleButton(self, size=(24, 24))
         self.editBtn.Bind(wx.EVT_TOGGLEBUTTON, self.toggleView)
-        self.btnSizer.Add(self.editBtn, border=3, flag=wx.BOTTOM)
+        self.btnSizer.Add(self.editBtn, border=3, flag=wx.ALL | wx.EXPAND)
 
         # Make save button
         self.file = file
-        self.saveBtn = wx.Button(self, size=(24, 24), style=wx.BORDER_NONE)
+        self.saveBtn = wx.Button(self, size=(24, 24))
         self.saveBtn.Bind(wx.EVT_BUTTON, self.save)
-        self.btnSizer.Add(self.saveBtn, border=3, flag=wx.BOTTOM)
+        self.btnSizer.Add(self.saveBtn, border=3, flag=wx.ALL | wx.EXPAND)
         self.saveBtn.Show(self.file is not None)
 
         # Set initial view
@@ -380,13 +380,9 @@ class MarkdownCtrl(wx.Window, handlers.ThemeMixin):
         # Set raw text font from coder theme
         self.rawTextCtrl.SetFont(spec.obj)
         # Set all background colours from coder theme
-        self.SetBackgroundColour(spec.backColor)
         self.rawTextCtrl.SetBackgroundColour(spec.backColor)
         self.htmlPreview.SetBackgroundColour(spec.backColor)
-        self.saveBtn.SetBackgroundColour(spec.backColor)
-        self.editBtn.SetBackgroundColour(spec.backColor)
         # Set all foreground colours from coder theme
-        self.SetForegroundColour(spec.foreColor)
         self.rawTextCtrl.SetForegroundColour(spec.foreColor)
         self.htmlPreview.SetForegroundColour(spec.foreColor)
 

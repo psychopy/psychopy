@@ -868,7 +868,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         if not self.readmeFrame:
             self.updateReadme()
         if not self.readmeFrame.IsShown():
-            self.readmeFrame.Show(value)
+            self.readmeFrame.show(value)
 
     def toggleReadme(self, evt=None):
         """Toggles visibility of Readme file
@@ -2815,12 +2815,18 @@ class ReadmeFrame(wx.Frame, handlers.ThemeMixin):
             iconFile = os.path.join(parent.paths['resources'], 'coder.ico')
             if os.path.isfile(iconFile):
                 self.SetIcon(wx.Icon(iconFile, wx.BITMAP_TYPE_ICO))
-        self.ctrl = utils.MarkdownCtrl(self, file=filename, style=wx.BORDER_NONE)
+        self.ctrl = utils.MarkdownCtrl(self, file=filename)
         self.sizer.Add(self.ctrl, border=6, proportion=1, flag=wx.ALL | wx.EXPAND)
+
+    def show(self, value=True):
+        self.Show()
+        self._applyAppTheme()
 
     def _applyAppTheme(self):
         from psychopy.app.themes import fonts
         self.SetBackgroundColour(fonts.coderTheme.base.backColor)
+        self.ctrl.SetBackgroundColour(fonts.coderTheme.base.backColor)
+        self.Update()
         self.Refresh()
 
     def onClose(self, evt=None):
