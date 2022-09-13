@@ -26,7 +26,7 @@ For the easiest installation download and install the Standalone package.
       filename = '  Standalone PsychoPy<sup>®</sup> '+version+' for 64bit Windows (using Python3.8)';
       url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy-'+version+'-win64.exe';
     }
-    else if (clientInfo.os.name == 'MacIntel') {
+    else if (clientInfo.os.name == 'Mac OS') {
       osLabel = 'macOS';
       filename = '  Standalone PsychoPy '+version+' for macOS';
       url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy-'+version+'-macOS.dmg';
