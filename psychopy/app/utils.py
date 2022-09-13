@@ -305,6 +305,7 @@ class HoverButton(wx.Button, HoverMixin, handlers.ThemeMixin):
 class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
     def __init__(self, parent, size=(-1, -1), value=None, file=None, style=wx.DEFAULT):
         # Initialise superclass
+        self.parent = parent
         wx.Panel.__init__(self, parent, size=size)
         # Setup sizers
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -352,24 +353,34 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
 
     def setValue(self, value):
         self.rawTextCtrl.SetValue(value)
+        # Render
+        self.toggleView(self.editBtn.Value)
 
     def toggleView(self, evt=True):
         if isinstance(evt, bool):
             edit = evt
         else:
             edit = evt.EventObject.Value
-        # Render HTML
-        if md:
-            renderedText = md.MarkdownIt().render(self.rawTextCtrl.Value)
-        else:
-            renderedText = self.rawTextCtrl.Value.replace("\n", "<br>")
-        self.htmlPreview.SetPage(renderedText)
+        # Render html
+        self.render()
+
         # Show opposite control
         self.rawTextCtrl.Show(edit)
         self.htmlPreview.Show(not edit)
 
         self._applyAppTheme()
         self.Layout()
+
+    def render(self, evt=None):
+        # Render HTML
+        if md:
+            renderedText = md.MarkdownIt().render(self.rawTextCtrl.Value)
+        else:
+            renderedText = self.rawTextCtrl.Value.replace("\n", "<br>")
+        # Apply to preview ctrl
+        self.htmlPreview.SetPage(renderedText)
+        self.htmlPreview.Update()
+        self.htmlPreview.Refresh()
 
     def load(self, evt=None):
         if self.file is None:
@@ -389,9 +400,20 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         # Disable save button
         self.saveBtn.Disable()
 
+    def getValue(self):
+        return self.rawTextCtrl.GetValue()
+
+    def setValue(self, value):
+        self.rawTextCtrl.SetValue(value)
+        self.render()
+
     def onEdit(self, evt=None):
         # Enable save button when edited
         self.saveBtn.Enable()
+        # Post event
+        evt = wx.CommandEvent(wx.EVT_TEXT.typeId)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
 
     @staticmethod
     def onUrl(evt=None):
