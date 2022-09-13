@@ -226,7 +226,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # then layout the text (setting text triggers _layout())
         self.languageStyle = languageStyle
         self._text = ''
-        self.text = self.placeholder = text if text is not None else ""
+        self.text = self.startText = text if text is not None else ""
 
         # Initialise arabic reshaper
         arabic_config = {'delete_harakat': False,  # if present, retain any diacritics
@@ -240,7 +240,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # Placeholder text (don't create if this textbox IS the placeholder)
         if not isinstance(self, PlaceholderText):
-            self.placeholder = PlaceholderText(self, placeholder)
+            self._placeholder = PlaceholderText(self, placeholder)
 
         self.autoDraw = autoDraw
         self.autoLog = autoLog
@@ -396,8 +396,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @units.setter
     def units(self, value):
-        if hasattr(self, "placeholder"):
-            self.placeholder.units = value
+        if hasattr(self, "_placeholder"):
+            self._placeholder.units = value
         WindowMixin.units.fset(self, value)
         if hasattr(self, "box"):
             self.box.units = value
@@ -419,8 +419,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @size.setter
     def size(self, value):
-        if hasattr(self, "placeholder"):
-            self.placeholder.size = value
+        if hasattr(self, "_placeholder"):
+            self._placeholder.size = value
         WindowMixin.size.fset(self, value)
         if hasattr(self, "box"):
             self.box.size = self._size
@@ -461,8 +461,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             # Content box should be anchored center relative to box, but its pos needs to be relative to box's vertices, not its pos
             self.contentBox.pos = self.pos + self.size * self.box._vertices.anchorAdjust
             self.contentBox._needVertexUpdate = True
-        if hasattr(self, "placeholder"):
-            self.placeholder.pos = self._pos
+        if hasattr(self, "_placeholder"):
+            self._placeholder.pos = self._pos
         # Set caret pos again so it recalculates its vertices
         if hasattr(self, "caret"):
             self.caret.index = self.caret.index
@@ -512,8 +512,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     @letterHeight.setter
     def letterHeight(self, value):
         # Cascade to placeholder
-        if hasattr(self, "placeholder"):
-            self.placeholder.letterHeight = value
+        if hasattr(self, "_placeholder"):
+            self._placeholder.letterHeight = value
         if isinstance(value, layout.Vector):
             # If given a Vector, use it directly
             self._letterHeight = value
@@ -540,8 +540,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @lineSpacing.setter
     def lineSpacing(self, value):
-        if hasattr(self, "placeholder"):
-            self.placeholder.lineSpacing = value
+        if hasattr(self, "_placeholder"):
+            self._placeholder.lineSpacing = value
         self.glFont.lineSpacing = value
         self._needVertexUpdate = True
 
@@ -568,8 +568,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     @languageStyle.setter
     def languageStyle(self, value):
         self._languageStyle = value
-        if hasattr(self, "placeholder"):
-            self.placeholder.languageStyle = value
+        if hasattr(self, "_placeholder"):
+            self._placeholder.languageStyle = value
         # If layout is anything other than LTR, mark that we need to use bidi to lay it out
         self._needsBidi = value != "LTR"
         self._needsArabic = value.lower() == "arabic"
@@ -594,8 +594,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @alignment.setter
     def alignment(self, alignment):
-        if hasattr(self, "placeholder"):
-            self.placeholder.alignment = alignment
+        if hasattr(self, "_placeholder"):
+            self._placeholder.alignment = alignment
         # look for unambiguous terms first (top, bottom, left, right)
         self._alignY = None
         self._alignX = None
@@ -1145,7 +1145,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # Draw placeholder if blank
         if self.editable and len(self.text) == 0:
-            self.placeholder.draw()
+            self._placeholder.draw()
 
         if self.container is not None:
             self.container.disable()
@@ -1159,7 +1159,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         """Resets the TextBox2 to a blank string"""
         # Clear contents
         self.text = ""
-
 
     def contains(self, x, y=None, units=None, tight=False):
         """Returns True if a point x,y is inside the stimulus' border.
@@ -1340,18 +1339,21 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         """
         setAttribute(self, 'font', font, log)
 
-    # -------- legacy attributes --------
-
-    @property
-    def startText(self):
+    @attributeSetter
+    def placeholder(self, value):
         """
-        In v2022.1.4, `.startText` was replaced by `.placeholder` for consistency with PsychoJS. The two attributes
-        are fully interchangeable.
+        Text to display when textbox is editable and has no content.
         """
-        return self.placeholder
+        # Store value
+        self.__dict__['placeholder'] = value
+        # Set placeholder object text
+        if hasattr(self, "_placeholder"):
+            self._placeholder.text = value
 
-    @startText.setter
-    def startText(self, value):
+    def setPlaceholder(self, value, log=False):
+        """
+        Set text to display when textbox is editable and has no content.
+        """
         self.placeholder = value
 
 
