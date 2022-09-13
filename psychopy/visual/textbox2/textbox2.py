@@ -1070,10 +1070,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if self.fillColor is not None or self.borderColor is not None:
             self.box.draw()
 
-        # Draw placeholder if blank
-        if self.editable and len(self.text) == 0:
-            self.placeholder.draw()
-
         # Draw sub-elements if in debug mode
         if debug:
             self.contentBox.draw()
@@ -1146,6 +1142,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.caret.draw()
 
         gl.glPopMatrix()
+
+        # Draw placeholder if blank
+        if self.editable and len(self.text) == 0:
+            self.placeholder.draw()
 
         if self.container is not None:
             self.container.disable()
@@ -1553,6 +1553,6 @@ class PlaceholderText(TextBox2):
             editable=False,
             overflow=parent.overflow,
             lineBreaking=parent._lineBreaking,
-            autoLog=False
+            autoLog=False, autoDraw=False
         )
 
