@@ -10,6 +10,7 @@
 import glob
 import os
 import re
+import webbrowser
 from pathlib import Path
 
 import numpy
@@ -293,6 +294,61 @@ class HoverButton(wx.Button, HoverMixin, handlers.ThemeMixin):
         self.BackgroundColourHover = colors.app['txtbutton_bg_hover']
         # Refresh
         self.OnHover(evt=None)
+
+
+class HyperLinkCtrl(wx.Button):
+    def __init__(self, parent,
+                 id=wx.ID_ANY, label="", URL="",
+                 pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.BU_LEFT,
+                 validator=wx.DefaultValidator, name=""):
+        # Create button with no background
+        wx.Button.__init__(self)
+        self.SetBackgroundStyle(wx.BG_STYLE_TRANSPARENT)
+        self.Create(
+            parent=parent,
+            id=id,
+            label=label,
+            pos=pos,
+            size=size,
+            style=wx.BORDER_NONE | style,
+            validator=validator,
+            name=name)
+        # Style as link
+        self.SetForegroundColour("blue")
+        self._font = self.GetFont().MakeUnderlined()
+        self.SetFont(self._font)
+        # Setup hover/focus behaviour
+        self.Bind(wx.EVT_SET_FOCUS, self.onFocus)
+        self.Bind(wx.EVT_KILL_FOCUS, self.onFocus)
+        self.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
+        self.Bind(wx.EVT_MOTION, self.onHover)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
+        # Set URL
+        self.URL = URL
+        self.Bind(wx.EVT_BUTTON, self.onClick)
+
+    def onClick(self, evt=None):
+        webbrowser.open(self.URL)
+
+    def onFocus(self, evt=None):
+        if evt.EventType == wx.EVT_SET_FOCUS.typeId:
+            self.SetFont(self._font.Bold())
+        elif evt.EventType == wx.EVT_KILL_FOCUS.typeId:
+            self.SetFont(self._font)
+        self.Update()
+        self.Layout()
+
+    def onHover(self, evt=None):
+        if evt.EventType == wx.EVT_LEAVE_WINDOW.typeId:
+            # If mouse is leaving window, reset cursor
+            wx.SetCursor(
+                wx.Cursor(wx.CURSOR_DEFAULT)
+            )
+        else:
+            # Otherwise, if a mouse event is received, it means the cursor is on this link
+            wx.SetCursor(
+                wx.Cursor(wx.CURSOR_HAND)
+            )
 
 
 class ButtonArray(wx.Window):
