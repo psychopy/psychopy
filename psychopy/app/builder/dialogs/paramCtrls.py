@@ -20,6 +20,7 @@ import re
 from pathlib import Path
 
 from ..localizedStrings import _localizedDialogs as _localized
+from ... import utils
 from ...themes import icons
 
 
@@ -351,17 +352,19 @@ class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin, _HideMixin):
 
 class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
     class RichChoiceItem(wx.Panel):
-        def __init__(self, parent, value, label, body=""):
+        def __init__(self, parent, value, label, body="", linkText="", link=""):
             # Initialise
-            wx.Panel.__init__(self, parent)
+            wx.Panel.__init__(self, parent, style=wx.BORDER_THEME)
             self.parent = parent
             self.value = value
+            # Style
+            self.SetBackgroundColour("white")
             # Setup sizer
             self.border = wx.BoxSizer()
             self.SetSizer(self.border)
             self.sizer = wx.FlexGridSizer(cols=2)
             self.sizer.AddGrowableCol(idx=1, proportion=1)
-            self.border.Add(self.sizer, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
+            self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
             # Check
             self.check = wx.CheckBox(self)
             self.check.Bind(wx.EVT_CHECKBOX, self.onCheck)
@@ -372,11 +375,16 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
             # Title
             self.title = wx.StaticText(self, label=label)
             self.title.SetFont(self.title.GetFont().Bold())
-            self.sizer.Add(self.title, border=3, proportion=1, flag=wx.ALL | wx.EXPAND)
+            self.sizer.Add(self.title, border=3,  flag=wx.ALL | wx.EXPAND)
             # Body
             self.body = wx.StaticText(self, label=body)
             self.sizer.AddStretchSpacer(1)
             self.sizer.Add(self.body, border=3, proportion=1, flag=wx.ALL | wx.EXPAND)
+            # Link
+            self.link = utils.HyperLinkCtrl(self, label=linkText, URL=link)
+            self.link.SetBackgroundColour(self.GetBackgroundColour())
+            self.sizer.AddStretchSpacer(1)
+            self.sizer.Add(self.link, border=3, flag=wx.ALL | wx.ALIGN_LEFT)
 
             self.Layout()
 
@@ -446,20 +454,16 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
     def populate(self):
         self.items = []
         for val, label in self.choices.items():
-            if isinstance(label, dict):
-                # If given label as a dict, make sure it has the right keys
-                assert "head" in label and "body" in label
-                label = [label['head'], label['body']]
-            if not isinstance(label, (list, tuple)):
-                # Make sure label is iterable
-                label = [label]
+            if not isinstance(label, dict):
+                # Make sure label is dict
+                label = {"label": label}
             # Add item control
-            self.addItem(val, *label)
+            self.addItem(val, label=label)
         self.Layout()
 
-    def addItem(self, value, label, body=""):
+    def addItem(self, value, label={}):
         # Create item object
-        item = self.RichChoiceItem(self, value=value, label=label, body=body)
+        item = self.RichChoiceItem(self, value=value, **label)
         self.items.append(item)
         # Add to sizer
         self.sizer.Add(item, border=3, flag=wx.ALL | wx.EXPAND)
@@ -490,6 +494,7 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
             item.check.SetValue(state)
             # Show / hide description
             item.body.Show(state)
+            item.link.Show(state)
             item.body.Wrap(item.body.GetSize()[0])
 
         # Post event

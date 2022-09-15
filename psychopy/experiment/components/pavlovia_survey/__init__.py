@@ -6,7 +6,7 @@ from psychopy.experiment import Param
 from pathlib import Path
 
 
-class PavloviaSurveyComponent(BaseComponent):
+class AdvancedSurveyComponent(BaseComponent):
     categories = ['Responses']
     targets = ["PsychoJS"]
     iconFile = Path(__file__).parent / "survey.png"
@@ -43,13 +43,17 @@ class PavloviaSurveyComponent(BaseComponent):
         self.params['surveyType'] = Param(
             surveyType, valType='code', inputType="richChoice", categ='Basic',
             allowedVals=["id", "json"], allowedLabels=[
-                [_translate("Pavlovia ID"), _translate(
-                    "Input the ID of a survey created on Pavlovia and linked to your account. Click 'Help' for "
-                    "more info on creating a survey in Pavlovia.")],
-                [_translate("JSON File"), _translate(
+                {'label': _translate("Pavlovia ID"),
+                 'body': _translate(
+                     "Input the ID of a survey created on Pavlovia, which is linked to your account."),
+                 'linkText': _translate("Take me to Pavlovia..."),
+                 'link': "https://pavlovia.org/dashboard"},
+                {'label': _translate("JSON File"),
+                 'body': _translate(
                     "Input the file location of a JSON file from which to construct the survey. You can export "
-                    "a survey from Pavlovia in this format via the 'Export Survey' button, and you can use these "
-                    "files with any other SurveyJS based system.")],
+                    "a survey from Pavlovia in this format via the 'Export Survey' button."),
+                 'linkText': _translate("Take me to Pavlovia..."),
+                 'link': "https://pavlovia.org/dashboard"},
             ],
             label=_translate("Survey type"))
 
