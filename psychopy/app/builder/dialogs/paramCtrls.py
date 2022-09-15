@@ -357,8 +357,6 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
             wx.Panel.__init__(self, parent, style=wx.BORDER_THEME)
             self.parent = parent
             self.value = value
-            # Style
-            self.SetBackgroundColour("white")
             # Setup sizer
             self.border = wx.BoxSizer()
             self.SetSizer(self.border)
@@ -377,7 +375,7 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
             self.title.SetFont(self.title.GetFont().Bold())
             self.sizer.Add(self.title, border=3,  flag=wx.ALL | wx.EXPAND)
             # Body
-            self.body = wx.StaticText(self, label=body)
+            self.body = utils.WrappedStaticText(self, label=body)
             self.sizer.AddStretchSpacer(1)
             self.sizer.Add(self.body, border=3, proportion=1, flag=wx.ALL | wx.EXPAND)
             # Link
@@ -385,6 +383,11 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
             self.link.SetBackgroundColour(self.GetBackgroundColour())
             self.sizer.AddStretchSpacer(1)
             self.sizer.Add(self.link, border=3, flag=wx.ALL | wx.ALIGN_LEFT)
+
+            # Style
+            self.SetBackgroundColour("white")
+            self.body.SetBackgroundColour("white")
+            self.link.SetBackgroundColour("white")
 
             self.Layout()
 
@@ -612,7 +615,7 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
             self.sizer = wx.BoxSizer(wx.VERTICAL)
             self.border.Add(self.sizer, border=12, proportion=1, flag=wx.ALL | wx.EXPAND)
             # Add instructions
-            self.instr = wx.StaticText(self, label=_translate(
+            self.instr = utils.WrappedStaticText(self, label=_translate(
                 "Below are all of the surveys linked to your Pavlovia account - select the one you want and "
                 "press OK to add its ID."
             ))
@@ -626,6 +629,8 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
             # Setup buttons
             self.btnSizer = self.CreateStdDialogButtonSizer(flags=wx.OK | wx.CANCEL | wx.HELP)
             self.sizer.Add(self.btnSizer, border=6, flag=wx.ALL | wx.EXPAND)
+
+            self.Layout()
 
         def populate(self):
             self.ctrl.Append(["Test1", "12345"])

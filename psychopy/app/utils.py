@@ -21,6 +21,8 @@ import sys
 import wx
 import wx.lib.agw.aui as aui
 from wx.lib import platebtn
+from wx.lib.wordwrap import wordwrap
+from wx.lib.stattext import GenStaticText
 
 import psychopy
 from psychopy import logging
@@ -294,6 +296,53 @@ class HoverButton(wx.Button, HoverMixin, handlers.ThemeMixin):
         self.BackgroundColourHover = colors.app['txtbutton_bg_hover']
         # Refresh
         self.OnHover(evt=None)
+
+
+class WrappedStaticText(GenStaticText):
+    """
+    Similar to wx.StaticText, but wraps automatically.
+    """
+    def __init__(self, parent,
+                 id=wx.ID_ANY, label="",
+                 pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.TEXT_ALIGNMENT_LEFT,
+                 name=""):
+        GenStaticText.__init__(
+            self,
+            parent=parent,
+            ID=id,
+            label=label,
+            pos=pos,
+            size=size,
+            style=style,
+            name=name)
+        # Store original label
+        self._label = label
+        # Bind to wrapping function
+        self.Bind(wx.EVT_SIZE, self.onResize)
+
+    def onResize(self, evt=None):
+        # Get width to wrap to
+        w, h = evt.GetSize()
+        # Wrap
+        evt.Skip()
+        self.Wrap(w)
+
+    def Wrap(self, width):
+        """
+        Stolen from wx.lib.agw.infobar.AutoWrapStaticText
+        """
+
+        if width < 0:
+            return
+
+        self.Freeze()
+
+        dc = wx.ClientDC(self)
+        dc.SetFont(self.GetFont())
+        text = wordwrap(self._label, width, dc)
+        self.SetLabel(text)
+
+        self.Thaw()
 
 
 class HyperLinkCtrl(wx.Button):
