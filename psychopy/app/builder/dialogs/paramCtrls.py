@@ -364,11 +364,9 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
             self.sizer.AddGrowableCol(idx=1, proportion=1)
             self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
             # Check
-            self.check = wx.CheckBox(self)
+            self.check = wx.CheckBox(self, label=" ")
             self.check.Bind(wx.EVT_CHECKBOX, self.onCheck)
             self.check.Bind(wx.EVT_KEY_UP, self.onToggle)
-            self.check.Bind(wx.EVT_SET_FOCUS, self.onFocus)
-            self.check.Bind(wx.EVT_KILL_FOCUS, self.onFocus)
             self.sizer.Add(self.check, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
             # Title
             self.title = wx.StaticText(self, label=label)
@@ -418,14 +416,6 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
         def onToggle(self, evt):
             if evt.GetUnicodeKey() in (wx.WXK_SPACE, wx.WXK_NUMPAD_SPACE):
                 self.setChecked(not self.check.IsChecked())
-
-        def onFocus(self, evt):
-            if evt.EventType == wx.EVT_SET_FOCUS.typeId:
-                self.check.SetLabelText("◀")
-            elif evt.EventType == wx.EVT_KILL_FOCUS.typeId:
-                self.check.SetLabelText("")
-            self.check.Update()
-            self.Layout()
 
     def __init__(self, parent, valType,
                  vals="", fieldName="",
