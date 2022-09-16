@@ -184,7 +184,6 @@ class SliderComponent(BaseVisualComponent):
         self.params['font'] = Param(
                 font, valType='str', inputType="single", categ='Formatting',
                 updates='constant',
-                allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate(
                         "Font for the labels"),
                 label=_translate('Font'))
@@ -192,7 +191,6 @@ class SliderComponent(BaseVisualComponent):
         self.params['letterHeight'] = Param(
                 letterHeight, valType='num', inputType="single", categ='Formatting',
                 updates='constant',
-                allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate(
                         "Letter height for text in labels"),
                 label=_translate('Letter height'))
