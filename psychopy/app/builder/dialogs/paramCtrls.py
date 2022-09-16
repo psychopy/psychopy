@@ -352,11 +352,12 @@ class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin, _HideMixin):
 
 class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
     class RichChoiceItem(wx.Panel):
-        def __init__(self, parent, value, label, body="", linkText="", link="", viewToggle=True):
+        def __init__(self, parent, value, label, body="", linkText="", link="", startShown="always", viewToggle=True):
             # Initialise
             wx.Panel.__init__(self, parent, style=wx.BORDER_THEME)
             self.parent = parent
             self.value = value
+            self.startShown = startShown
             # Setup sizer
             self.border = wx.BoxSizer()
             self.SetSizer(self.border)
@@ -469,13 +470,23 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
         self.populate()
         # Set value
         self.setValue(vals)
-        # Start off showing only selected value if togglable
+        # Start off showing according to param
         for obj in self.items:
-            obj.toggleView.SetValue(obj.check.IsChecked())
+            # Work out if we should start out shown
             if self.viewToggle:
-                obj.onToggleView(obj.check.IsChecked())
+                if obj.startShown == "never":
+                    startShown = False
+                elif obj.startShown == "checked":
+                    startShown = obj.check.IsChecked()
+                elif obj.startShown == "unchecked":
+                    startShown = not obj.check.IsChecked()
+                else:
+                    startShown = True
             else:
-                obj.onToggleView(True)
+                startShown = True
+            # Apply starting view
+            obj.toggleView.SetValue(startShown)
+            obj.onToggleView(startShown)
 
         self.Layout()
 
