@@ -43,15 +43,16 @@ class AdvancedSurveyComponent(BaseComponent):
         self.params['surveyType'] = Param(
             surveyType, valType='code', inputType="richChoice", categ='Basic',
             allowedVals=["id", "json"], allowedLabels=[
-                {'label': _translate("Pavlovia ID"),
+                {'label': _translate("Survey ID"),
                  'body': _translate(
-                     "Input the ID of a survey created on Pavlovia, which is linked to your account."),
+                     "Linking to a survey ID from Pavlovia Surveys means that the content will automatically update "
+                     "if that survey changes (better for dynamic use)"),
                  'linkText': _translate("Take me to Pavlovia..."),
                  'link': "https://pavlovia.org/dashboard"},
                 {'label': _translate("JSON File"),
                  'body': _translate(
-                    "Input the file location of a JSON file from which to construct the survey. You can export "
-                    "a survey from Pavlovia in this format via the 'Export Survey' button."),
+                    "Inserting a JSON file (exported from Pavlovia Surveys) means that the survey is embedded within "
+                    "this project and will not change unless you import it again (better for archiving)"),
                  'linkText': _translate("Take me to Pavlovia..."),
                  'link': "https://pavlovia.org/dashboard"},
             ],
