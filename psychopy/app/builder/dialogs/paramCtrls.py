@@ -360,7 +360,7 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
             # Setup sizer
             self.border = wx.BoxSizer()
             self.SetSizer(self.border)
-            self.sizer = wx.FlexGridSizer(cols=2)
+            self.sizer = wx.FlexGridSizer(cols=3)
             self.sizer.AddGrowableCol(idx=1, proportion=1)
             self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
             # Check
@@ -372,15 +372,21 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
             self.title = wx.StaticText(self, label=label)
             self.title.SetFont(self.title.GetFont().Bold())
             self.sizer.Add(self.title, border=3,  flag=wx.ALL | wx.EXPAND)
+            # Toggle
+            self.toggleView = wx.ToggleButton(self, style=wx.BU_EXACTFIT)
+            self.toggleView.Bind(wx.EVT_TOGGLEBUTTON, self.onToggleView)
+            self.sizer.Add(self.toggleView, border=3, flag=wx.ALL | wx.EXPAND)
             # Body
             self.body = utils.WrappedStaticText(self, label=body)
             self.sizer.AddStretchSpacer(1)
             self.sizer.Add(self.body, border=3, proportion=1, flag=wx.ALL | wx.EXPAND)
+            self.sizer.AddStretchSpacer(1)
             # Link
             self.link = utils.HyperLinkCtrl(self, label=linkText, URL=link)
             self.link.SetBackgroundColour(self.GetBackgroundColour())
             self.sizer.AddStretchSpacer(1)
             self.sizer.Add(self.link, border=3, flag=wx.ALL | wx.ALIGN_LEFT)
+            self.sizer.AddStretchSpacer(1)
 
             # Style
             self.SetBackgroundColour("white")
@@ -417,6 +423,25 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
             if evt.GetUnicodeKey() in (wx.WXK_SPACE, wx.WXK_NUMPAD_SPACE):
                 self.setChecked(not self.check.IsChecked())
 
+        def onToggleView(self, evt):
+            # If called with a boolean, use it directly, otherwise get bool from event
+            if isinstance(evt, bool):
+                val = evt
+            else:
+                val = evt.IsChecked()
+            # Update toggle ctrl label
+            if val:
+                lbl = "⯆"
+            else:
+                lbl = "⯇"
+            self.toggleView.SetLabel(lbl)
+            # Show/hide body based on value
+            self.body.Show(val)
+            self.link.Show(val)
+            # Layout
+            self.Layout()
+            self.parent.parent.Layout()  # layout params notebook page
+
     def __init__(self, parent, valType,
                  vals="", fieldName="",
                  choices=[], labels=[],
@@ -441,6 +466,10 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
         self.populate()
         # Set value
         self.setValue(vals)
+        # Start off showing only selected value
+        for obj in self.items:
+            obj.toggleView.SetValue(obj.check.IsChecked())
+            obj.onToggleView(obj.check.IsChecked())
 
         self.Layout()
 
@@ -485,10 +514,6 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
         for item in self.items:
             state = item.value in value
             item.check.SetValue(state)
-            # Show / hide description
-            item.body.Show(state)
-            item.link.Show(state)
-            item.body.Wrap(item.body.GetSize()[0])
 
         # Post event
         evt = wx.ListEvent(commandType=wx.EVT_CHOICE.typeId, id=-1)
