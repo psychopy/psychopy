@@ -248,6 +248,12 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         WindowMixin.pos.fset(self, value)
         self._layout()
 
+    def setPos(self, newPos, operation='', units=None, log=None):
+        BaseVisualStim.setPos(self, newPos, operation='', log=None)
+
+    def setOri(self, newOri, operation='', log=None):
+        BaseVisualStim.setOri(self, newOri, operation='', log=None)
+
     @property
     def size(self):
         return WindowMixin.size.fget(self)
@@ -256,6 +262,9 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
     def size(self, value):
         WindowMixin.size.fset(self, value)
         self._layout()
+
+    def setSize(self, newSize, operation='', units=None, log=None):
+        BaseVisualStim.setSize(self, newSize, operation='', units=None, log=None)
 
     @property
     def horiz(self):

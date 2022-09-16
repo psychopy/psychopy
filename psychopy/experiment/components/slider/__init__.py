@@ -341,9 +341,11 @@ class SliderComponent(BaseVisualComponent):
 
     def writeRoutineStartCode(self, buff):
         buff.writeIndented("%(name)s.reset()\n" % (self.params))
+        self.writeParamUpdates(buff, 'set every repeat')
 
     def writeRoutineStartCodeJS(self, buff):
         buff.writeIndented("%(name)s.reset()\n" % (self.params))
+        self.writeParamUpdates(buff, 'set every repeat')
 
     def writeFrameCode(self, buff):
         super(SliderComponent, self).writeFrameCode(buff)  # Write basevisual frame code
