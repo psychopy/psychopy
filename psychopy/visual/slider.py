@@ -318,8 +318,11 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         self.borderColor = self._borderColor.copy()
         self.foreColor = self._foreColor.copy()
 
-    def setOpacity(self, value):
-        self.opacity = value
+    def setOpacity(self, newOpacity, operation='', log=None):
+        BaseVisualStim.setOpacity(self, newOpacity, operation=operation, log=log)
+
+    def updateOpacity(self):
+        BaseVisualStim.updateOpacity(self)
 
     @property
     def labelHeight(self):
