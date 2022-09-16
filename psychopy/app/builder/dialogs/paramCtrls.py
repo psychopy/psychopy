@@ -352,7 +352,7 @@ class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin, _HideMixin):
 
 class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
     class RichChoiceItem(wx.Panel):
-        def __init__(self, parent, value, label, body="", linkText="", link=""):
+        def __init__(self, parent, value, label, body="", linkText="", link="", viewToggle=True):
             # Initialise
             wx.Panel.__init__(self, parent, style=wx.BORDER_THEME)
             self.parent = parent
@@ -375,6 +375,7 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
             # Toggle
             self.toggleView = wx.ToggleButton(self, style=wx.BU_EXACTFIT)
             self.toggleView.Bind(wx.EVT_TOGGLEBUTTON, self.onToggleView)
+            self.toggleView.Show(viewToggle)
             self.sizer.Add(self.toggleView, border=3, flag=wx.ALL | wx.EXPAND)
             # Body
             self.body = utils.WrappedStaticText(self, label=body)
@@ -445,13 +446,15 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
     def __init__(self, parent, valType,
                  vals="", fieldName="",
                  choices=[], labels=[],
-                 size=wx.Size(-1, -1)):
+                 size=wx.Size(-1, -1),
+                 viewToggle=True):
         # Initialise
         wx.Panel.__init__(self, parent, size=size)
         self.parent = parent
         self.valType = valType
         self.fieldName = fieldName
         self.multi = False
+        self.viewToggle = viewToggle
         # Setup sizer
         self.border = wx.BoxSizer()
         self.SetSizer(self.border)
@@ -466,10 +469,13 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
         self.populate()
         # Set value
         self.setValue(vals)
-        # Start off showing only selected value
+        # Start off showing only selected value if togglable
         for obj in self.items:
             obj.toggleView.SetValue(obj.check.IsChecked())
-            obj.onToggleView(obj.check.IsChecked())
+            if self.viewToggle:
+                obj.onToggleView(obj.check.IsChecked())
+            else:
+                obj.onToggleView(True)
 
         self.Layout()
 
@@ -485,7 +491,7 @@ class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
 
     def addItem(self, value, label={}):
         # Create item object
-        item = self.RichChoiceItem(self, value=value, **label)
+        item = self.RichChoiceItem(self, value=value, viewToggle=self.viewToggle, **label)
         self.items.append(item)
         # Add to sizer
         self.sizer.Add(item, border=3, flag=wx.ALL | wx.EXPAND)
