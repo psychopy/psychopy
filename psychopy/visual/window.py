@@ -525,6 +525,9 @@ class Window():
         self.cullFaceMode = 'back'
         self.draw3d = False
 
+        # gl viewport and scissor
+        self._viewport = self._scissor = None  # set later
+
         # scene light sources
         self._lights = []
         self._useLights = False
@@ -1707,7 +1710,9 @@ class Window():
         match the dimensions of the viewport.
 
         """
-        self.scissor = self.viewport = self.frameBufferSize
+        # use the framebuffer size here, not the window size (hi-dpi compat)
+        bufferWidth, bufferHeight = self.frameBufferSize
+        self.scissor = self.viewport = [0, 0, bufferWidth, bufferHeight]
 
     @property
     def viewport(self):
