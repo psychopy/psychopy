@@ -59,6 +59,16 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
         self.ctrl = None
 
     @attributeSetter
+    def image(self, value):
+        # Store value
+        self.__dict__['image'] = value
+        # Set texture
+        self.material.diffuseTexture = gl.createTexImage2dFromFile(value, transpose=False)
+
+    def setImage(self, value):
+        self.image = value
+
+    @attributeSetter
     def azimuth(self, value):
         """
         Horizontal view point between -1 (180 degrees to the left) and +1 (180 degrees to the right). Values

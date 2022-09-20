@@ -268,9 +268,6 @@ class PanoramaComponent(BaseVisualComponent):
         for key in ["color", "fillColor", "borderColor", "colorSpace", "opacity", "contrast", "size", "pos", "units", "ori"]:
             del self.params[key]
 
-    def writeRoutineStartCode(self, buff):
-        pass
-
     def writeStartCode(self, buff):
         pass
 
