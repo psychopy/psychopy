@@ -65,7 +65,7 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
         # Set texture
         self.material.diffuseTexture = gl.createTexImage2dFromFile(value, transpose=False)
 
-    def setImage(self, value):
+    def setImage(self, value, log=None):
         self.image = value
 
     @attributeSetter
