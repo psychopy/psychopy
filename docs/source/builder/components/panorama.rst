@@ -25,7 +25,7 @@ Stop (duration):
     The length of time (sec) to record for. An `expected duration` can be given for
     visualisation purposes. See :ref:`startStop` for details; note that only seconds are allowed.
 
-Image: a filename or a standard name (sin, sqr)
+Image: a filename or default.png
     Filenames can be relative or absolute paths and can refer to most image formats (e.g. tif,
     jpg, bmp, png, etc.). If this is set to none, the patch will be a flat colour.
 
