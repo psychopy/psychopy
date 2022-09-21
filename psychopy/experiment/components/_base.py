@@ -595,6 +595,8 @@ class BaseComponent:
             )
             buff.writeIndentedLines(code)
 
+        return True
+
     def exitActiveTest(self, buff):
         """
         Shorthand for doing necessary dedent after an active test loop
