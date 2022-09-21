@@ -55,6 +55,28 @@ class Test_Window():
         self.win.callOnFlip(assertThisIs2, 2)
         self.win.flip()
 
+    def test_resetViewport(self):
+        # Check if the `Window.resetViewport()` method works correctly. Not
+        # checking if the OpenGL state is correct here, just if the property
+        # setter `Window.viewport` updates accordingly.
+        #
+        # bugfix: https://github.com/psychopy/psychopy/issues/5135
+        #
+        viewportOld = self.win.viewport.copy()  # store olf viewport value
+        self.win.viewport = viewportNew = [0, 0, 64, 64]  # new viewport value
+
+        # assert that the change has been made correctly after setting
+        assert numpy.allclose(self.win.viewport, viewportNew), \
+            "Failed to change viewport, expected `{}` got `{}`.".format(
+                viewportNew, list(self.win.viewport))  # show as list
+
+        # reset the viewport and check if the value is reset to original
+        self.win.resetViewport()
+
+        assert numpy.allclose(self.win.viewport, viewportOld), \
+            "Failed to reset viewport, expected `{}` got `{}`.".format(
+                viewportOld, list(self.win.viewport))
+
 
 class _baseVisualTest():
     #this class allows others to be created that inherit all the tests for
