@@ -62,8 +62,12 @@ class Test_Window():
         #
         # bugfix: https://github.com/psychopy/psychopy/issues/5135
         #
-        viewportOld = self.win.viewport.copy()  # store olf viewport value
-        self.win.viewport = viewportNew = [0, 0, 64, 64]  # new viewport value
+        viewportOld = self.win.viewport.copy()  # store old viewport value
+
+        # Create a new viewport, ensure that the test value never equals the
+        # windows size.
+        viewportNew = [0, 0] + [max(int(v / 2.0), 1) for v in viewportOld[2:]]
+        self.win.viewport = viewportNew
 
         # assert that the change has been made correctly after setting
         assert numpy.allclose(self.win.viewport, viewportNew), \
