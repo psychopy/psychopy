@@ -237,9 +237,18 @@ class ButtonComponent(BaseVisualComponent):
         buff.writeIndentedLines(code % inits)
 
     def writeFrameCode(self, buff):
-        BaseVisualComponent.writeFrameCode(self, buff)
         # do writing of init
         inits = getInitVals(self.params, 'PsychoPy')
+
+        # Start code
+        if self.writeStartTestCode(buff):
+            code = (
+                f"%(name)s.setAutoDraw(True)\n"
+            )
+            buff.writeIndentedLines(code % inits)
+
+            self.exitStartTest(buff)
+
         # Get callback from params
         callback = inits['callback']
         if inits['callback']:
@@ -255,80 +264,88 @@ class ButtonComponent(BaseVisualComponent):
             timing = "routineTimer.getTime()"
         else:
             timing = "globalClock.getTime()"
-        # Assemble code
-        code = (
-            f"if %(name)s.status == STARTED:\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
+        # While running
+        if self.writeActiveTestCode(buff):
+            # Check for clicks
+            code = (
                 f"# check whether %(name)s has been pressed\n"
                 f"if %(name)s.isClicked:\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                    f"if not %(name)s.wasClicked:\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                        f"%(name)s.timesOn.append({timing}) # store time of first click\n"
-                        f"%(name)s.timesOff.append({timing}) # store time clicked until\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-                    f"else:\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                        f"%(name)s.timesOff[-1] = {timing} # update time clicked until\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
-        if self.params['oncePerClick'].val or self.params['forceEndRoutine'].val:
-            code = (
-                f"if not %(name)s.wasClicked:\n"
             )
             buff.writeIndentedLines(code % inits)
-            buff.setIndentLevel(1, relative=True)
-            if self.params['forceEndRoutine'].val:
+            buff.setIndentLevel(+1, relative=True)
+            # Check for NEW clicks
+            code = (
+                    f"# check whether %(name)s was already pressed\n"
+                    f"if not %(name)s.wasClicked:\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(+1, relative=True)
+            # If new click...
+            code = (
+                        f"%(name)s.timesOn.append({timing}) # store time of first click\n"
+                        f"%(name)s.timesOff.append({timing}) # store time clicked until\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            if self.params['forceEndRoutine']:
+                # Force end routine code
                 code = (
                         f"continueRoutine = False  # end routine when %(name)s is clicked\n"
                 )
                 buff.writeIndentedLines(code % inits)
-            if self.params['oncePerClick'].val:
+            if self.params['oncePerClick']:
+                # Callback (once per click)
+                code = (
+                    "# %(name)s callback...\n"
+                )
+                buff.writeIndentedLines(code % inits)
                 buff.writeIndentedLines(callback % inits)
-                buff.setIndentLevel(-1, relative=True)
-        if not self.params['oncePerClick'].val:
-            buff.writeIndentedLines(callback % inits)
-        code = (
-                    f"%(name)s.wasClicked = True  # if %(name)s is still clicked next frame, it is not a new click\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
+            # If continued click...
+            code = (
                 f"else:\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                    f"%(name)s.wasClicked = False  # if %(name)s is clicked next frame, it is a new click\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-2, relative=True)
-        code = (
-            f"else:\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-            f"%(name)s.wasClicked = False  # if %(name)s is clicked next frame, it is a new click\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
+            )
+            buff.setIndentLevel(-1, relative=True)
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(+1, relative=True)
+            code = (
+                    f"%(name)s.timesOff[-1] = {timing} # update time clicked until\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(-1, relative=True)
+            # Regardless of whether click is new or continued...
+            code = (
+                f"%(name)s.wasClicked = True  # if %(name)s is still clicked next frame, it is not a new click\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            if not self.params['oncePerClick']:
+                # Callback (every clicked frame)
+                code = (
+                    "# %(name)s callback...\n"
+                )
+                buff.writeIndentedLines(code % inits)
+                buff.writeIndentedLines(callback % inits)
+            # If button not clicked
+            code = (
+                f"else:\n"
+            )
+            buff.setIndentLevel(-1, relative=True)
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(+1, relative=True)
+            code = (
+                "%(name)s.wasClicked = False\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(-1, relative=True)
+
+            self.exitActiveTest(buff)
+
+        # Stop code
+        if self.writeStopTestCode(buff):
+            code = (
+                f"%(name)s.setAutoDraw(True)\n"
+            )
+            buff.writeIndentedLines(code % inits)
+
+            self.exitStopTest(buff)
 
     def writeFrameCodeJS(self, buff):
         BaseVisualComponent.writeFrameCodeJS(self, buff)
