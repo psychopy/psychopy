@@ -138,15 +138,19 @@ Counterbalancing can be a pain, but online it is even more painful! There are ma
 
 * :code:`psychoJS.shelf.counterbalanceSelect()`
 
-To get started you must make a record with the type Dictionary, it must also have the following fields:
+To get started you must make a record with the type, Dictionary. It must also have the following fields:
 
 
-.. figure:: /images/counterbalancerecord.PNG
+.. figure:: /images/counterbalance_shelf.PNG
     :name: shelfAccess
     :align: center
     :figclass: align-center
 
-    Example set up for a Shelf Record used to assist counterbalancing. The Record must be a Dictionary and it must contain the fields "groups" and "groupSizes", indicating the group names and size of each group accordingly.
-
+|
+|   
+    Example set up for a Shelf Record used to assist with counterbalancing. The Key Components need to have a meaningful name and since this record is for counterbalancing the groups, "groups" is used here. The Record must be a Dictionary and within  Value, it must contain the fields "groups" and "groupSizes", indicating the group names and size of each group accordingly.
+|    
+    *Note: There are two types of scopes: 1) DESIGNER - This shelf record can be used for all experiments; 2) EXPERIMENT - This shelf record can only be used for the selected experiment*.
+|   
 In your experiment, you can then use :code:`[thisGroup, finished] = await psychoJS.shelf.counterBalanceSelect({key: ['groups'], groups: ['A', 'B', 'C'], groupSizes: [10, 10, 10]})` which will return two values, :code:`thisGroup` indicates the group selected for this participant and :code:`finished` indicating if sampling has completed (i.e. all groups are full). If during testing you notice that some groups need "topping up" e.g. the data from one participant is unusable, you can always edit the Shelf directly to allow more participants in each group.
 
