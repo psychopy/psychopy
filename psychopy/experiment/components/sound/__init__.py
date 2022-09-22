@@ -128,13 +128,7 @@ class SoundComponent(BaseComponent):
             stopVal = -1
 
         if self.params['sound'].updates == 'set every repeat':
-            buff.writeIndented("%s = new sound.Sound({\n"
-                               "    win: psychoJS.window,\n"
-                               "    value: %s,\n"
-                               "    secs: %s,\n"
-                               "    });\n" % (self.params['name'],
-                                              self.params['sound'],
-                                              stopVal))
+            buff.writeIndented("%(name)s.setValue(%(sound)s);\n" % self.params)
         if stopVal == -1:
             buff.writeIndentedLines("%(name)s.setVolume(%(volume)s);\n" % self.params)
         else:
