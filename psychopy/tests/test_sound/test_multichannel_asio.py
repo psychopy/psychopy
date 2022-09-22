@@ -6,6 +6,9 @@ from psychopy import sound
 import numpy as np
 from psychopy import core  # import some libraries from PsychoPy
 
+# in case setting prefs wasn't sufficient (due to sound being imported already?)
+sound.Sound = sound.backend_sounddevice.SoundDeviceSound
+sound.backend = sound.backend_sounddevice
 
 fs = 44100
 my_asio_device = 'ASIO Fireface USB'
