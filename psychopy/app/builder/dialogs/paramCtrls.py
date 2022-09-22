@@ -143,7 +143,7 @@ class _HideMixin:
 class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
-                 size=wx.Size(-1, 24), style=wx.DEFAULT):
+                 size=wx.Size(-1, 24), style=wx.TE_LEFT):
         # Create self
         wx.TextCtrl.__init__(self)
         self.Create(parent, -1, val, name=fieldName, size=size, style=style)
@@ -283,6 +283,10 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
                 self._labels[value] = labels[i]
             else:
                 self._labels[value] = value
+        # Translate labels
+        for k in self._labels.keys():
+            if k in _localized:
+                self._labels[k] = _localized[k]
         # Create choice ctrl from labels
         wx.Choice.__init__(self)
         self.Create(parent, -1, size=size, choices=[self._labels[c] for c in self._choices], name=fieldName)
@@ -639,7 +643,9 @@ class DictCtrl(ListWidget, _ValidatorMixin, _HideMixin):
         if isinstance(val, dict):
             newVal = []
             for key, v in val.items():
-                newVal.append({'Field': key, 'Default': v.val})
+                if hasattr(v, "val"):
+                    v = v.val
+                newVal.append({'Field': key, 'Default': v})
             val = newVal
         # If any items within the list are not dicts or are dicts longer than 1, throw error
         if not all(isinstance(v, dict) and len(v) == 2 for v in val):

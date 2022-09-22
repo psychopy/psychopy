@@ -59,7 +59,7 @@ try:
     sphinxLangs = [folder.stem for folder
                    in Path(pocketsphinx.get_model_path()).glob('??-??')]
     haveSphinx = True
-except ModuleNotFoundError:
+except (ImportError, ModuleNotFoundError):
     haveSphinx = False
     sphinxLangs = None
 
@@ -502,7 +502,8 @@ def recognizeSphinx(audioClip=None, language='en-US', expectedWords=None,
     config['language'] = language  # sphinx users en-us not en-US
     config['show_all'] = False
     if expectedWords is not None:
-        config['keyword_entries'] = zip(_parseExpectedWords(expectedWords))
+        words, sens = _parseExpectedWords(expectedWords)
+        config['keyword_entries'] = tuple(zip(words, sens))
 
     # convert audio to format for transcription
     sampleWidth = 2  # two bytes per sample

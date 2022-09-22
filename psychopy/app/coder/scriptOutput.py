@@ -39,7 +39,7 @@ class ScriptOutputPanel(wx.Panel, handlers.ThemeMixin):
     """
     class OutputToolbar(wx.Panel, handlers.ThemeMixin):
         def __init__(self, parent):
-            wx.Panel.__init__(self, parent, size=(30, -1))
+            wx.Panel.__init__(self, parent, size=(30, 90))
             self.parent = parent
 
             # Setup sizer
@@ -77,7 +77,8 @@ class ScriptOutputPanel(wx.Panel, handlers.ThemeMixin):
                  font=None,
                  fontSize=None):
         # Init superclass
-        wx.Panel.__init__(self, parent, size=(-1, -1), style=style)
+        wx.Panel.__init__(self, parent, size=(480, 480), style=style)
+        self.tabIcon = "stdout"
 
         # Setup sizer
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)

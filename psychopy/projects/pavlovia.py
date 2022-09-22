@@ -292,13 +292,26 @@ class PavloviaSession:
             gitlabProj = self.gitlab.projects.create(projDict)
         except gitlab.exceptions.GitlabCreateError as e:
             if 'has already been taken' in str(e.error_message):
+                # If name is taken, get instead of create
+                gitlabProj = self.gitlab.projects.get(f"{self.username}/{name}")
+            else:
+                # Otherwise, raise original error
+                raise e
+            # Check for bare remote
+            bareRemote = False
+            try:
+                gitlabProj.repository_tree()
+            except gitlab.exceptions.GitlabGetError:
+                # If we've made it thus far but can't get a tree, the remote is bare
+                bareRemote = True
+            # If remote is populated, handle and return
+            if not bareRemote:
                 dlg = wx.MessageDialog(None, message=_translate(
                     "Project `{namespace}/{name}` already exists, please choose another name."
                 ).format(namespace=namespace, name=name), style=wx.ICON_WARNING)
                 dlg.ShowModal()
                 return
-            else:
-                raise e
+            # Otherwise, continue as normal (bare remote is fine to replace)
 
         # Create pavlovia project object
         pavProject = PavloviaProject(gitlabProj.get_id(), localRoot=localRoot)
@@ -1114,7 +1127,20 @@ class PavloviaProject(dict):
 
     def save(self):
         """Saves the metadata to gitlab.pavlovia.org"""
-        self.project.save()
+        try:
+            self.project.save()
+            return True
+        except gitlab.GitlabUpdateError as err:
+            msgRoot = "Could not sync project.\n\n"
+            if err.response_code == 400:
+                # Error: Avatar is too big
+                msg = msgRoot + _translate("Avatar is too big, should be at most 200 KB.")
+                dlg = wx.MessageDialog(None, msg, style=wx.ICON_ERROR)
+                dlg.ShowModal()
+                # Reset avatar
+                self['avatar_url'] = ""
+            return False
+
         # note that saving info locally about known projects is done
         # by the knownProjects DictStorage class
 

@@ -12,6 +12,7 @@ import os
 import re
 from pathlib import Path
 
+import PIL
 import numpy
 from wx.lib.agw.aui.aui_constants import *
 import wx.lib.statbmp
@@ -28,6 +29,91 @@ from .themes import colors, handlers, icons
 from psychopy.localization import _translate
 from psychopy.tools.stringtools import prettyname
 from psychopy.tools.apptools import SortTerm
+from PIL import Image as pil
+
+
+class HoverMixin:
+    """
+    Mixin providing methods to handle hover on/off events for a wx.Window based class.
+    """
+    IsHovered = False
+
+    def SetupHover(self):
+        """
+        Helper method to setup hovering for this object
+        """
+        # Bind both hover on and hover off events to the OnHover method
+        self.Bind(wx.EVT_ENTER_WINDOW, self.OnHover)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self.OnHover)
+        # Do first hover to apply styles
+        self.OnHover(evt=None)
+
+    def OnHover(self, evt=None):
+        """
+        Method to handle hover events for buttons. To use, bind both `wx.EVT_ENTER_WINDOW` and `wx.EVT_LEAVE_WINDOW` events to this method.
+        """
+        if evt is None:
+            # If calling without event, style according to last IsHovered measurement
+            if self.IsHovered:
+                self.SetForegroundColour(self.ForegroundColourHover)
+                self.SetBackgroundColour(self.BackgroundColourHover)
+            else:
+                self.SetForegroundColour(self.ForegroundColourNoHover)
+                self.SetBackgroundColour(self.BackgroundColourNoHover)
+        elif evt.EventType == wx.EVT_ENTER_WINDOW.typeId:
+            # If hovered over currently, use hover colours
+            self.SetForegroundColour(self.ForegroundColourHover)
+            self.SetBackgroundColour(self.BackgroundColourHover)
+            # and mark as hovered
+            self.IsHovered = True
+        else:
+            # Otherwise, use regular colours
+            self.SetForegroundColour(self.ForegroundColourNoHover)
+            self.SetBackgroundColour(self.BackgroundColourNoHover)
+            # and mark as unhovered
+            self.IsHovered = False
+        # Refresh
+        self.Refresh()
+
+    @property
+    def ForegroundColourNoHover(self):
+        if hasattr(self, "_ForegroundColourNoHover"):
+            return self._ForegroundColourNoHover
+        return colors.app['text']
+
+    @ForegroundColourNoHover.setter
+    def ForegroundColourNoHover(self, value):
+        self._ForegroundColourNoHover = value
+
+    @property
+    def BackgroundColourNoHover(self):
+        if hasattr(self, "_BackgroundColourNoHover"):
+            return self._BackgroundColourNoHover
+        return colors.app['frame_bg']
+
+    @BackgroundColourNoHover.setter
+    def BackgroundColourNoHover(self, value):
+        self._BackgroundColourNoHover = value
+
+    @property
+    def ForegroundColourHover(self):
+        if hasattr(self, "_ForegroundColourHover"):
+            return self._ForegroundColourHover
+        return colors.app['txtbutton_fg_hover']
+
+    @ForegroundColourHover.setter
+    def ForegroundColourHover(self, value):
+        self._ForegroundColourHover = value
+
+    @property
+    def BackgroundColourHover(self):
+        if hasattr(self, "_BackgroundColourHover"):
+            return self._BackgroundColourHover
+        return colors.app['txtbutton_bg_hover']
+
+    @BackgroundColourHover.setter
+    def BackgroundColourHover(self, value):
+        self._BackgroundColourHover = value
 
 
 class FileDropTarget(wx.FileDropTarget):
@@ -189,29 +275,25 @@ class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
         pass
 
 
-class PsychopyPlateBtn(platebtn.PlateButton, handlers.ThemeMixin):
+class HoverButton(wx.Button, HoverMixin, handlers.ThemeMixin):
     def __init__(self, parent, id=wx.ID_ANY, label='', bmp=None,
                  pos=wx.DefaultPosition, size=wx.DefaultSize,
-                 style=1, name=wx.ButtonNameStr):
-        platebtn.PlateButton.__init__(self, parent, id, label, bmp, pos, size, style, name)
+                 style=wx.BORDER_NONE, name=wx.ButtonNameStr):
+        wx.Button.__init__(
+            self, parent=parent, id=id, label=label, pos=pos, size=size, style=style, name=name
+        )
+        if bmp is not None:
+            self.SetBitmap(bmp)
         self.parent = parent
-        self.__InitColors()
-        self._applyAppTheme()
+        self.SetupHover()
 
     def _applyAppTheme(self):
-        self.__InitColors()
-        self.SetBackgroundColour(wx.Colour(self.parent.GetBackgroundColour()))
-        self.SetPressColor(colors.app['txtbutton_bg_hover'])
-        self.SetLabelColor(colors.app['text'],
-                           colors.app['txtbutton_fg_hover'])
-
-    def __InitColors(self):
-        """Initialize the default colors"""
-        cols = dict(default=True,
-                      hlight=colors.app['txtbutton_bg_hover'],
-                      press=colors.app['txtbutton_bg_hover'],
-                      htxt=colors.app['text'])
-        return cols
+        self.ForegroundColourNoHover = colors.app['text']
+        self.ForegroundColourHover = colors.app['txtbutton_fg_hover']
+        self.BackgroundColourNoHover = colors.app['frame_bg']
+        self.BackgroundColourHover = colors.app['txtbutton_bg_hover']
+        # Refresh
+        self.OnHover(evt=None)
 
 
 class ButtonArray(wx.Window):
@@ -503,8 +585,11 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
         wx.lib.statbmp.GenStaticBitmap.__init__(self, parent, ID=wx.ID_ANY, bitmap=wx.Bitmap(), size=size)
         self.parent = parent
         self.iconCache = icons.iconCache
+        # Create a frame timer for animated GIFs
+        self.frameTimer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self._advanceFrame)
         # Set bitmap
-        self.SetBitmap(bitmap)
+        self.setImage(bitmap)
         # Setup sizer
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.AddStretchSpacer(1)
@@ -514,6 +599,74 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
         self.editBtn.Bind(wx.EVT_BUTTON, self.LoadBitmap)
         self.sizer.Add(self.editBtn, border=6, flag=wx.ALIGN_BOTTOM | wx.ALL)
 
+    def _advanceFrame(self, evt=None):
+        if len(self._frames) <= 1:
+            # Do nothing for static images
+            return
+        else:
+            # Advance the frame
+            self._frameI += 1
+            if self._frameI >= len(self._frames):
+                self._frameI = 0
+            # Update bitmap
+            self.SetBitmap(self._frames[self._frameI])
+            self.Update()
+
+    def setImage(self, data):
+        self.frameTimer.Stop()
+        # Substitute paths and Image objects
+        if isinstance(data, (str, Path, wx.Image)):
+            data = wx.Bitmap(data)
+        # Store raw data
+        self._imageData = data
+        # Reset frames
+        self._frames = []
+        self._frameI = 0
+        fr = []
+        if isinstance(data, wx.Bitmap):
+            # Sub in blank bitmaps
+            if not data.IsOk():
+                data = icons.ButtonIcon(stem="user_none", size=128).bitmap
+            # Store full size bitmap
+            self._imageData = data
+            # Resize bitmap
+            buffer = data.ConvertToImage()
+            buffer = buffer.Scale(*self.Size, quality=wx.IMAGE_QUALITY_HIGH)
+            scaledBitmap = wx.Bitmap(buffer)
+            # If given a wx.Bitmap directly, use it
+            self._frames.append(scaledBitmap)
+        else:
+            # Otherwise, extract frames
+            try:
+                img = pil.open(data)
+                for i in range(img.n_frames):
+                    # Seek to frame
+                    img.seek(i)
+                    if 'duration' in img.info:
+                        fr.append(img.info['duration'])
+                    # Create wx.Bitmap from frame
+                    frame = img.resize(self.Size).convert("RGB")
+                    bmp = wx.BitmapFromBuffer(*frame.size, frame.tobytes())
+                    # Store bitmap
+                    self._frames.append(bmp)
+            except PIL.UnidentifiedImageError as err:
+                # If image read fails, show warning
+                msg = _translate("Inavlid image format, could not set image.")
+                dlg = wx.MessageDialog(None, msg, style=wx.ICON_WARNING)
+                dlg.ShowModal()
+                # then use a blank image
+                self._frames = [icons.ButtonIcon(stem="invalid_img", size=128).bitmap]
+
+        # Set first frame (updates non-animated images)
+        self.SetBitmap(self._frames[self._frameI])
+        # If animated...
+        if len(self._frames) > 1:
+            # Make sure we have a frame rate
+            if not len(fr):
+                fr.append(200)
+            # Start animation (average framerate across frames)
+            self.frameTimer.Start(numpy.mean(fr), oneShot=False)
+
     def LoadBitmap(self, evt=None):
         # Open file dlg
         _dlg = wx.FileDialog(self.parent, message=_translate("Select image..."))
@@ -521,28 +674,11 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
             return
         # Get value
         path = str(Path(_dlg.GetPath()))
-        self.SetBitmap(path)
+        self.setImage(path)
         # Post event
         evt = wx.FileDirPickerEvent(wx.EVT_FILEPICKER_CHANGED.typeId, self, -1, path)
         evt.SetEventObject(self)
         wx.PostEvent(self, evt)
-
-    def SetBitmap(self, bitmap):
-        # Get from file if needed
-        if not isinstance(bitmap, wx.Bitmap):
-            self.path = bitmap
-            bitmap = wx.Bitmap(bitmap)
-        # Sub in blank bitmaps
-        if not bitmap.IsOk():
-            bitmap = icons.ButtonIcon(stem="user_none", size=128).bitmap
-        # Store full size bitmap
-        self._fullBitmap = bitmap
-        # Resize bitmap
-        buffer = bitmap.ConvertToImage()
-        buffer = buffer.Scale(*self.Size, quality=wx.IMAGE_QUALITY_HIGH)
-        scaledBitmap = wx.Bitmap(buffer)
-        # Set image
-        wx.lib.statbmp.GenStaticBitmap.SetBitmap(self, scaledBitmap)
 
     @property
     def path(self):
@@ -557,7 +693,7 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
         self._path = value
 
     def GetBitmapFull(self):
-        return self._fullBitmap
+        return self._imageData
 
     @property
     def BitmapFull(self):
@@ -728,6 +864,7 @@ def updateDemosMenu(frame, menu, folder, ext):
             else:
                 _makeFolder(frame, menu, fdr, ext)
 
+
 class FrameSwitcher(wx.Menu):
     """Menu for switching between different frames"""
     def __init__(self, parent):
@@ -743,9 +880,9 @@ class FrameSwitcher(wx.Menu):
         self.AppendSeparator()
         # Add creator options
         self.minItemSpec = [
-            {'label': "Builder", 'class': psychopy.app.builder.BuilderFrame, 'method': self.app.showBuilder},
-            {'label': "Coder", 'class': psychopy.app.coder.CoderFrame, 'method': self.app.showCoder},
-            {'label': "Runner", 'class': psychopy.app.runner.RunnerFrame, 'method': self.app.showRunner},
+            {'label': "&Builder", 'class': psychopy.app.builder.BuilderFrame, 'method': self.app.showBuilder},
+            {'label': "&Coder", 'class': psychopy.app.coder.CoderFrame, 'method': self.app.showCoder},
+            {'label': "&Runner", 'class': psychopy.app.runner.RunnerFrame, 'method': self.app.showRunner},
         ]
         for spec in self.minItemSpec:
             if not isinstance(self.Window, spec['class']):
@@ -825,88 +962,6 @@ def sanitize(inStr):
         inStr = re.sub(pattern, repl, inStr)
 
     return inStr
-
-
-class HoverMixin:
-    """
-    Mixin providing methods to handle hover on/off events for a wx.Window based class.
-    """
-    IsHovered = False
-
-    def SetupHover(self):
-        """
-        Helper method to setup hovering for this object
-        """
-        # Bind both hover on and hover off events to the OnHover method
-        self.Bind(wx.EVT_ENTER_WINDOW, self.OnHover)
-        self.Bind(wx.EVT_LEAVE_WINDOW, self.OnHover)
-
-    def OnHover(self, evt=None):
-        """
-        Method to handle hover events for buttons. To use, bind both `wx.EVT_ENTER_WINDOW` and `wx.EVT_LEAVE_WINDOW` events to this method.
-        """
-        if evt is None:
-            # If calling without event, style according to last IsHovered measurement
-            if self.IsHovered:
-                self.SetForegroundColour(self.ForegroundColourHover)
-                self.SetBackgroundColour(self.BackgroundColourHover)
-            else:
-                self.SetForegroundColour(self.ForegroundColourNoHover)
-                self.SetBackgroundColour(self.BackgroundColourNoHover)
-        elif evt.EventType == wx.EVT_ENTER_WINDOW.typeId:
-            # If hovered over currently, use hover colours
-            self.SetForegroundColour(self.ForegroundColourHover)
-            self.SetBackgroundColour(self.BackgroundColourHover)
-            # and mark as hovered
-            self.IsHovered = True
-        else:
-            # Otherwise, use regular colours
-            self.SetForegroundColour(self.ForegroundColourNoHover)
-            self.SetBackgroundColour(self.BackgroundColourNoHover)
-            # and mark as unhovered
-            self.IsHovered = False
-        # Refresh
-        self.Refresh()
-
-    @property
-    def ForegroundColourNoHover(self):
-        if hasattr(self, "_ForegroundColourNoHover"):
-            return self._ForegroundColourNoHover
-        return colors.app['text']
-
-    @ForegroundColourNoHover.setter
-    def ForegroundColourNoHover(self, value):
-        self._ForegroundColourNoHover = value
-
-    @property
-    def BackgroundColourNoHover(self):
-        if hasattr(self, "_BackgroundColourNoHover"):
-            return self._BackgroundColourNoHover
-        return colors.app['frame_bg']
-
-    @BackgroundColourNoHover.setter
-    def BackgroundColourNoHover(self, value):
-        self._BackgroundColourNoHover = value
-
-    @property
-    def ForegroundColourHover(self):
-        if hasattr(self, "_ForegroundColourHover"):
-            return self._ForegroundColourHover
-        return colors.app['txtbutton_fg_hover']
-
-    @ForegroundColourHover.setter
-    def ForegroundColourHover(self, value):
-        self._ForegroundColourHover = value
-
-    @property
-    def BackgroundColourHover(self):
-        if hasattr(self, "_BackgroundColourHover"):
-            return self._BackgroundColourHover
-        return colors.app['txtbutton_bg_hover']
-
-    @BackgroundColourHover.setter
-    def BackgroundColourHover(self, value):
-        self._BackgroundColourHover = value
 
 
 class ToggleButton(wx.ToggleButton, HoverMixin):

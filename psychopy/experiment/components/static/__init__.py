@@ -101,6 +101,7 @@ class StaticComponent(BaseComponent):
     def writeFrameCodeJS(self, buff):
         # Start test
         self.writeStartTestCodeJS(buff)
+        buff.writeIndentedLines("ISI.status = PsychoJS.Status.STARTED;\n")
         self.writeParamUpdates(buff, target="PsychoJS")
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
@@ -145,6 +146,7 @@ class StaticComponent(BaseComponent):
                 buff.writeIndentedLines(code % self.params)
                 buff.setIndentLevel(-1, relative=True)
                 buff.writeIndentedLines("}\n")
+        buff.writeIndentedLines("ISI.status = PsychoJS.Status.FINISHED;\n")
         # Escape stop code indent
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")

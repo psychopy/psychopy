@@ -1147,7 +1147,6 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
     def __init__(self, parent, ID, title, files=(), app=None):
         self.app = app  # type: psychopy.app.PsychoPyApp
-        self.session = pavlovia.getCurrentSession()
         self.frameType = 'coder'
         # things the user doesn't set like winsize etc
         self.appData = self.app.prefs.appData['coder']
@@ -1379,6 +1378,13 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
     def GetAuiManager(self):
         return self.paneManager
+
+    @property
+    def session(self):
+        """
+        Current Pavlovia session
+        """
+        return pavlovia.getCurrentSession()
 
     def outputContextMenu(self, event):
         """Custom context menu for output window.
@@ -1681,26 +1687,26 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # Theme Switcher
         self.themesMenu = ThemeSwitcher(app=self.app)
         menu.AppendSubMenu(self.themesMenu,
-                           _translate("Themes"))
+                           _translate("&Themes"))
 
         # ---_view---#000000#FFFFFF-------------------------------------------
-        self.shellMenu = wx.Menu()
-        menuBar.Append(self.shellMenu, _translate('&Shell'))
-
-        menu = self.shellMenu
-        item = menu.Append(
-            wx.ID_ANY,
-            _translate("Start Python Session"),
-            _translate("Start a new Python session in the shell."),
-            wx.ITEM_NORMAL)
-        self.Bind(wx.EVT_MENU, self.onStartShellSession, id=item.GetId())
-        menu.AppendSeparator()
-        item = menu.Append(
-            wx.ID_ANY,
-            _translate("Run Line\tF6"),
-            _translate("Push the line at the caret to the shell."),
-            wx.ITEM_NORMAL)
-        self.Bind(wx.EVT_MENU, self.onPushLineToShell, id=item.GetId())
+        # self.shellMenu = wx.Menu()
+        # menuBar.Append(self.shellMenu, _translate('&Shell'))
+        #
+        # menu = self.shellMenu
+        # item = menu.Append(
+        #     wx.ID_ANY,
+        #     _translate("Start Python Session"),
+        #     _translate("Start a new Python session in the shell."),
+        #     wx.ITEM_NORMAL)
+        # self.Bind(wx.EVT_MENU, self.onStartShellSession, id=item.GetId())
+        # menu.AppendSeparator()
+        # item = menu.Append(
+        #     wx.ID_ANY,
+        #     _translate("Run Line\tF6"),
+        #     _translate("Push the line at the caret to the shell."),
+        #     wx.ITEM_NORMAL)
+        # self.Bind(wx.EVT_MENU, self.onPushLineToShell, id=item.GetId())
 
         # menu.Append(ID_UNFOLDALL, "Unfold All\tF3",
         #   "Unfold all lines", wx.ITEM_NORMAL)
@@ -1783,12 +1789,12 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         # ---_projects---#000000#FFFFFF---------------------------------------
         self.pavloviaMenu = psychopy.app.pavlovia_ui.menu.PavloviaMenu(parent=self)
-        menuBar.Append(self.pavloviaMenu, _translate("Pavlovia.org"))
+        menuBar.Append(self.pavloviaMenu, _translate("&Pavlovia.org"))
 
         # ---_window---#000000#FFFFFF-----------------------------------------
         self.windowMenu = FrameSwitcher(self)
         menuBar.Append(self.windowMenu,
-                    _translate("Window"))
+                    _translate("&Window"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()
@@ -2028,6 +2034,8 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                     self.statusBar.SetStatusText('')
                     dlg.Destroy()
                 self.fileStatusLastChecked = time.time()
+                # Enable / disable save button
+                self.toolbar.enableSave(self.currentDoc.UNSAVED)
 
     def pageChanged(self, event):
         """Event called when the user switches between editor tabs."""
@@ -2252,8 +2260,9 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
             # give the user a chance to save his file.
             self.UNSAVED = True
 
-        if doc == self.currentDoc and hasattr(self, 'cdrBtnSave'):
-            self.cdrBtnSave.Enable(doc.UNSAVED)
+        if doc == self.currentDoc:
+            # Enable / disable save button
+            self.toolbar.enableSave(self.currentDoc.UNSAVED)
 
         self.currentDoc.analyseScript()
 
@@ -2382,6 +2391,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.pavloviaMenu.syncBtn.Enable(bool(self.filename))
         self.pavloviaMenu.newBtn.Enable(bool(self.filename))
         self.app.updateWindowMenu()
+        self.fileBrowserWindow.updateFileBrowser()
 
     def fileOpen(self, event=None, filename=None):
         if not filename:
@@ -2603,7 +2613,8 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self.structureWindow.refresh()
             # set to current file status
             self.setFileModified(self.currentDoc.UNSAVED)
-        # return 1
+        # update file browser buttons
+        self.fileBrowserWindow.updateFileBrowser()
 
     def fileCloseAll(self, event, checkSave=True):
         """Close all files open in the editor."""
@@ -2815,11 +2826,8 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def setFileModified(self, isModified):
         # changes the document flag, updates save buttons
         self.currentDoc.UNSAVED = isModified
-        # disabled when not modified
-        if hasattr(self, 'cdrBtnSave'):
-            self.cdrBtnSave.Enable(isModified)
-        # self.fileMenu.Enable(self.fileMenu.FindItem('&Save\tCtrl+S"'),
-        #     isModified)
+        # Enable / disable save button
+        self.toolbar.enableSave(self.currentDoc.UNSAVED)
 
     def onProcessEnded(self, event):
         # this is will check the stdout and stderr for any last messages
@@ -2852,7 +2860,12 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """Push changes to project repo, or create new proj if proj is None"""
         self.project = pavlovia.getProject(self.currentDoc.filename)
         self.fileSave(self.currentDoc.filename)  # Must save on sync else changes not pushed
-        pavlovia_ui.syncProject(parent=self, file=self.currentDoc.filename, project=self.project)
+        syncBtnId = self.toolbar.buttons['pavloviaSync'].GetId()
+        self.toolbar.EnableTool(syncBtnId, False)
+        try:
+            pavlovia_ui.syncProject(parent=self, file=self.currentDoc.filename, project=self.project)
+        finally:
+            self.toolbar.EnableTool(syncBtnId, True)
 
     def onPavloviaRun(self, evt=None):
         # TODO: Allow user to run project from coder
@@ -3010,3 +3023,15 @@ class CoderToolbar(BasePsychopyToolbar):
     def onPavloviaUser(self, evt=None):
         userDlg = UserFrame(self.frame)
         userDlg.ShowModal()
+
+    def enableSave(self, enable=True):
+        """
+        Enable or disable the save button.
+        """
+        self.EnableTool(self.buttons['filesave'].GetId(), enable)
+
+    def disableSave(self):
+        """
+        Alias for .enableSave(False)
+        """
+        self.enableSave(False)

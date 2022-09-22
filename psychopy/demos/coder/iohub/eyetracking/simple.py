@@ -16,18 +16,29 @@ BACKGROUND_COLOR = [128, 128, 128]
 devices_config = dict()
 eyetracker_config = dict(name='tracker')
 if TRACKER == 'mouse':
-    eyetracker_config['calibration'] = dict(screen_background_color=BACKGROUND_COLOR)
+    eyetracker_config['calibration'] = dict(screen_background_color=BACKGROUND_COLOR,
+                                            auto_pace=True,
+                                            target_attributes=dict(animate=dict(enable=True, expansion_ratio=1.5,
+                                                                                contract_only=False))
+                                            )
     devices_config['eyetracker.hw.mouse.EyeTracker'] = eyetracker_config
 elif TRACKER == 'eyelink':
     eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
+    eyetracker_config['simulation_mode'] = False
     eyetracker_config['runtime_settings'] = dict(sampling_rate=1000, track_eyes='RIGHT')
-    eyetracker_config['calibration'] = dict(screen_background_color=BACKGROUND_COLOR)
+    eyetracker_config['calibration'] = dict(screen_background_color=BACKGROUND_COLOR, auto_pace=True)
     devices_config['eyetracker.hw.sr_research.eyelink.EyeTracker'] = eyetracker_config
 elif TRACKER == 'gazepoint':
-    eyetracker_config['calibration'] = dict(use_builtin=False, screen_background_color=BACKGROUND_COLOR)
+    eyetracker_config['calibration'] = dict(use_builtin=False, screen_background_color=BACKGROUND_COLOR,
+                                            auto_pace=True,
+                                            target_attributes=dict(animate=dict(enable=True, expansion_ratio=1.5,
+                                                                                contract_only=False)))
     devices_config['eyetracker.hw.gazepoint.gp3.EyeTracker'] = eyetracker_config
 elif TRACKER == 'tobii':
-    eyetracker_config['calibration'] = dict(screen_background_color=BACKGROUND_COLOR)
+    eyetracker_config['calibration'] = dict(screen_background_color=BACKGROUND_COLOR,
+                                            auto_pace=True,
+                                            target_attributes=dict(animate=dict(enable=True, expansion_ratio=1.5,
+                                                                                contract_only=False)))
     devices_config['eyetracker.hw.tobii.EyeTracker'] = eyetracker_config
 else:
     print("{} is not a valid TRACKER name; please use 'mouse', 'eyelink', 'gazepoint', or 'tobii'.".format(TRACKER))
@@ -43,7 +54,8 @@ win = visual.Window((1920, 1080),
                     allowGUI=False,
                     colorSpace='rgb255',
                     monitor='55w_60dist',
-                    color=BACKGROUND_COLOR
+                    color=BACKGROUND_COLOR,
+                    screen=0
                     )
 
 win.setMouseVisible(False)

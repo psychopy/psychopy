@@ -19,7 +19,7 @@ mov = visual.MovieStim(
     size=(256, 256),
     flipVert=False,
     flipHoriz=False,
-    loop=True,
+    loop=False,
     noAudio=False,
     volume=0.1,
     autoStart=False)
@@ -29,11 +29,11 @@ print('orig movie size={}'.format(mov.frameSize))
 print('orig movie duration={}'.format(mov.duration))
 
 # instructions
-instrText = "`s` Start/Resume\n`p` Pause\n`r` Restart\n`q` Stop and Close"
+instrText = "`r` Play/Resume\n`p` Pause\n`s` Stop\n`q` Stop and Close"
 instr = visual.TextStim(win, instrText, pos=(0.0, -0.75))
 
-# main loop
-while mov.status != constants.FINISHED:
+# main loop, exit when the status is finished
+while not mov.isFinished:
     # draw the movie
     mov.draw()
     # draw the instruction text
@@ -44,19 +44,15 @@ while mov.status != constants.FINISHED:
     # process keyboard input
     if event.getKeys('q'):   # quit
         break
-    elif event.getKeys('s'):  # play/start
+    elif event.getKeys('r'):  # play/start
         mov.play()
     elif event.getKeys('p'):  # pause
         mov.pause()
-    elif event.getKeys('r'):  # restart/replay
-        mov.replay()
-    elif event.getKeys('m'):  # volume up 5%
-        mov.volumeUp()
-    elif event.getKeys('n'):  # volume down 5%
-        mov.volumeDown()
+    elif event.getKeys('s'):  # stop the movie
+        mov.stop()
 
 # stop the movie, this frees resources too
-mov.stop()
+mov.unload()  # unloads when `mov.status == constants.FINISHED`
 
 # clean up and exit
 win.close()

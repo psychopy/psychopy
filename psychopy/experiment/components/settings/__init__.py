@@ -114,6 +114,7 @@ class SettingsComponent:
                  expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'001'}",
                  units='height', logging='exp',
                  color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
+                 backgroundImg="", backgroundFit="none",
                  blendMode='avg',
                  saveXLSXFile=False, saveCSVFile=False, saveHDF5File=False,
                  saveWideCSVFile=True, savePsydatFile=True,
@@ -136,7 +137,7 @@ class SettingsComponent:
                  plPupilCaptureRecordingEnabled=True,
                  plPupilCaptureRecordingLocation="",
                  keyboardBackend="ioHub",
-                 filename=None, exportHTML='on Sync'):
+                 filename=None, exportHTML='on Sync', endMessage=''):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
@@ -160,7 +161,7 @@ class SettingsComponent:
                       'Data filename', 'Data file delimiter', 'Save excel file', 'Save csv file', 'Save wide csv file',
                       'Save psydat file', 'Save hdf5 file', 'Save log file', 'logging level',  # Data tab
                       'Audio lib', 'Audio latency priority', "Force stereo",  # Audio tab
-                      'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'Resources',  # Online tab
+                      'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'End Message', 'Resources',  # Online tab
                       'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Show mouse', 'Units', 'color',
                       'colorSpace',  # Screen tab
                       ]
@@ -235,6 +236,17 @@ class SettingsComponent:
                             "PsychoPy documentation on color spaces)"),
             allowedVals=['rgb', 'dkl', 'lms', 'hsv', 'hex'],
             label=_localized["colorSpace"], categ="Screen")
+        self.params['backgroundImg'] = Param(
+            backgroundImg, valType="str", inputType="file", categ="Screen",
+            hint=_translate("Image file to use as a background (leave blank for no image)"),
+            label=_translate("Background image")
+        )
+        self.params['backgroundFit'] = Param(
+            backgroundFit, valType="str", inputType="choice", categ="Screen",
+            allowedVals=("none", "cover", "contain", "fill", "scale-down"),
+            hint=_translate("How should the background image scale to fit the window size?"),
+            label=_translate("Background image")
+        )
         self.params['Units'] = Param(
             units, valType='str', inputType="choice", allowedTypes=[],
             allowedVals=['use prefs', 'deg', 'pix', 'cm', 'norm', 'height',
@@ -244,7 +256,8 @@ class SettingsComponent:
             label=_localized["Units"], categ='Screen')
         self.params['blendMode'] = Param(
             blendMode, valType='str', inputType="choice",
-            allowedTypes=[], allowedVals=['add', 'avg'],
+            allowedVals=['add', 'avg', 'nofbo'],
+            allowedLabels=['add', 'average', 'average (no FBO)'],
             hint=_translate("Should new stimuli be added or averaged with "
                             "the stimuli that have been drawn already"),
             label=_localized["blendMode"], categ='Screen')
@@ -349,6 +362,10 @@ class SettingsComponent:
             [], valType='list', inputType="fileList", allowedTypes=[],
             hint=_translate("Any additional resources needed"),
             label="Additional Resources", categ='Online')
+        self.params['End Message'] = Param(
+            endMessage, valType='str', inputType='single',
+            hint=_translate("Message to display to participants upon completing the experiment"),
+            label="End Message", categ='Online')
         self.params['Completed URL'] = Param(
             '', valType='str', inputType="single",
             hint=_translate("Where should participants be redirected after the experiment on completion\n"
@@ -1323,7 +1340,7 @@ class SettingsComponent:
         for thisRoutine in list(self.exp.routines.values()):
             # a single routine is a list of components:
             for thisComp in thisRoutine:
-                if thisComp.type == 'Aperture':
+                if thisComp.type in ('Aperture', 'Textbox'):
                     allowStencil = True
                 if thisComp.type == 'RatingScale':
                     allowGUI = True  # to have a mouse
@@ -1352,10 +1369,12 @@ class SettingsComponent:
         vals = (size, fullScr, screenNumber, winType, allowStencil)
         buff.writeIndented(code % vals)
 
-        code = ("    monitor=%(Monitor)s, color=%(color)s, "
-                "colorSpace=%(colorSpace)s,\n")
-        if self.params['blendMode'].val:
+        code = ("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n"
+                "    backgroundImage=%(backgroundImg)s, backgroundFit=%(backgroundFit)s,\n")
+        if self.params['blendMode'].val in ("avg", "add"):
             code += "    blendMode=%(blendMode)s, useFBO=True, \n"
+        elif self.params['blendMode'].val in ("nofbo",):
+            code += "    blendMode='avg', useFBO=False, \n"
 
         if self.params['Units'].val != 'use prefs':
             code += "    units=%(Units)s"

@@ -218,7 +218,7 @@ class DetailsPanel(wx.Panel):
             self.value = (not self.value)
 
     def __init__(self, parent, project=None,
-                 size=(650, 550),
+                 size=(650, 650),
                  style=wx.NO_BORDER):
 
         wx.Panel.__init__(self, parent, -1,
@@ -226,6 +226,7 @@ class DetailsPanel(wx.Panel):
                           style=style)
         self.SetBackgroundColour("white")
         self.parent = parent
+        self._updateQueue = []
         # Setup sizer
         self.contentBox = wx.BoxSizer()
         self.SetSizer(self.contentBox)
@@ -237,7 +238,7 @@ class DetailsPanel(wx.Panel):
         # Icon
         self.icon = utils.ImageCtrl(self, bitmap=wx.Bitmap(), size=(128, 128))
         self.icon.SetBackgroundColour("#f2f2f2")
-        self.icon.Bind(wx.EVT_FILEPICKER_CHANGED, self.updateProject)
+        self.icon.Bind(wx.EVT_FILEPICKER_CHANGED, self.queueUpdate)
         self.headSizer.Add(self.icon, border=6, flag=wx.ALL)
         self.icon.SetToolTip(_translate(
             "An image to represent this project, this helps it stand out when browsing on Pavlovia."
@@ -249,7 +250,7 @@ class DetailsPanel(wx.Panel):
         self.title = wx.TextCtrl(self,
                                  size=(-1, 30 if sys.platform == 'darwin' else -1),
                                  value="")
-        self.title.Bind(wx.EVT_KILL_FOCUS, self.updateProject)
+        self.title.Bind(wx.EVT_TEXT, self.queueUpdate)
         self.title.SetFont(
             wx.Font(24, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         )
@@ -336,7 +337,7 @@ class DetailsPanel(wx.Panel):
         self.localRootLabel = wx.StaticText(self, label="Local root:")
         self.rootSizer.Add(self.localRootLabel, border=6, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         self.localRoot = utils.FileCtrl(self, dlgtype="dir")
-        self.localRoot.Bind(wx.EVT_FILEPICKER_CHANGED, self.updateProject)
+        self.localRoot.Bind(wx.EVT_FILEPICKER_CHANGED, self.queueUpdate)
         self.rootSizer.Add(self.localRoot, proportion=1, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM)
         self.localRoot.SetToolTip(_translate(
             "Folder in which local files are stored for this project. Changes to files in this folder will be tracked "
@@ -346,7 +347,7 @@ class DetailsPanel(wx.Panel):
         self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
         # Description
         self.description = wx.TextCtrl(self, size=(-1, -1), value="", style=wx.TE_MULTILINE)
-        self.description.Bind(wx.EVT_KILL_FOCUS, self.updateProject)
+        self.description.Bind(wx.EVT_TEXT, self.queueUpdate)
         self.sizer.Add(self.description, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         self.description.SetToolTip(_translate(
             "Description of the project to be shown on Pavlovia. Note: This is different than a README file!"
@@ -359,7 +360,7 @@ class DetailsPanel(wx.Panel):
         self.visLbl = wx.StaticText(self, label=_translate("Visibility:"))
         self.visSizer.Add(self.visLbl, border=6, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         self.visibility = wx.Choice(self, choices=["Private", "Public"])
-        self.visibility.Bind(wx.EVT_CHOICE, self.updateProject)
+        self.visibility.Bind(wx.EVT_CHOICE, self.queueUpdate)
         self.visSizer.Add(self.visibility, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
         self.visibility.SetToolTip(_translate(
             "Visibility of the current project; whether its visible only to its creator (Private) or to any user "
@@ -371,7 +372,7 @@ class DetailsPanel(wx.Panel):
         self.statusLbl = wx.StaticText(self, label=_translate("Status:"))
         self.statusSizer.Add(self.statusLbl, border=6, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         self.status = wx.Choice(self, choices=["Running", "Piloting", "Inactive"])
-        self.status.Bind(wx.EVT_CHOICE, self.updateProject)
+        self.status.Bind(wx.EVT_CHOICE, self.queueUpdate)
         self.statusSizer.Add(self.status, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
         self.status.SetToolTip(_translate(
             "Project status; whether it can be run to collect data (Running), run by its creator without saving "
@@ -383,17 +384,25 @@ class DetailsPanel(wx.Panel):
         self.tagLbl = wx.StaticText(self, label=_translate("Keywords:"))
         self.tagSizer.Add(self.tagLbl, border=6, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         self.tags = utils.ButtonArray(self, orient=wx.HORIZONTAL, items=[], itemAlias=_translate("tag"))
-        self.tags.Bind(wx.EVT_LIST_INSERT_ITEM, self.updateProject)
-        self.tags.Bind(wx.EVT_LIST_DELETE_ITEM, self.updateProject)
+        self.tags.Bind(wx.EVT_LIST_INSERT_ITEM, self.queueUpdate)
+        self.tags.Bind(wx.EVT_LIST_DELETE_ITEM, self.queueUpdate)
         self.tagSizer.Add(self.tags, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
         self.tags.SetToolTip(_translate(
             "Keywords associated with this project, helping others to find it. For example, if your experiment is "
             "useful to psychophysicists, you may want to add the keyword 'psychophysics'."
         ))
+        # Update button
+        self.updateBtn = wx.Button(self, size=(24, 24))
+        self.updateBtn.SetBitmap(icons.ButtonIcon(stem="view-refresh", size=16).bitmap)
+        self.sizer.Add(self.updateBtn, flag=wx.ALIGN_RIGHT | wx.ALL)
+        self.updateBtn.Bind(wx.EVT_BUTTON, self.doUpdate)
+        self.updateBtn.Disable()
         # Populate
         if project is not None:
             project.refresh()
         self.project = project
+        # Bind close function
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.close)
 
     @property
     def project(self):
@@ -406,7 +415,7 @@ class DetailsPanel(wx.Panel):
         # Populate fields
         if project is None:
             # Icon
-            self.icon.SetBitmap(wx.Bitmap())
+            self.icon.setImage(wx.Bitmap())
             self.icon.SetBackgroundColour("#f2f2f2")
             self.icon.Disable()
             # Title
@@ -463,13 +472,13 @@ class DetailsPanel(wx.Panel):
             # Icon
             if 'avatarUrl' in project.info:
                 try:
-                    content = requests.get(project['avatar_url']).content
-                    icon = wx.Bitmap(wx.Image(io.BytesIO(content)))
+                    content = self.session.session.get(project['avatar_url']).content
+                    icon = io.BytesIO(content)
                 except requests.exceptions.MissingSchema:
                     icon = wx.Bitmap()
             else:
                 icon = wx.Bitmap()
-            self.icon.SetBitmap(icon)
+            self.icon.setImage(icon)
             self.icon.SetBackgroundColour("#f2f2f2")
             self.icon.Enable(project.editable)
             # Title
@@ -524,6 +533,9 @@ class DetailsPanel(wx.Panel):
 
         # Layout
         self.Layout()
+        # Clear update queue as we've just set from online
+        self._updateQueue = []
+        self.updateBtn.Disable()
 
     @property
     def session(self):
@@ -599,32 +611,48 @@ class DetailsPanel(wx.Panel):
         # Toggle button
         self.starBtn.toggle()
         # Star/unstar project
-        self.updateProject(evt)
+        self.queueUpdate(evt)
         # todo: Refresh stars count
 
-    def updateProject(self, evt=None):
+    def queueUpdate(self, evt=None):
         # Skip if no project
         if self.project is None or evt is None:
             return
         # Get object
         obj = evt.GetEventObject()
+        # Mark object as needing update
+        if obj not in self._updateQueue:
+            self._updateQueue.append(obj)
+        # Enable update button
+        self.updateBtn.Enable()
 
+    def doUpdate(self, evt=None):
+        # Update each object in queue
+        success = []
+        for obj in self._updateQueue:
+            success.append(self.updateProject(obj))
+        # Disable update button
+        self.updateBtn.Enable(not all(success))
+
+    def updateProject(self, obj):
+        success = False
         # Update project attribute according to supplying object
         if obj == self.title and self.project.editable:
             self.project['name'] = self.title.Value
-            self.project.save()
+            success = self.project.save()
         if obj == self.icon:
             # Create temporary image file
             _, temp = tempfile.mkstemp(suffix=".png")
             self.icon.BitmapFull.SaveFile(temp, wx.BITMAP_TYPE_PNG)
             # Load and upload from temp file
             self.project['avatar'] = open(temp, "rb")
-            self.project.save()
+            success = self.project.save()
             # Delete temp file
             #os.remove(temp)
         if obj == self.starBtn:
             self.project.starred = self.starBtn.value
             self.starLbl.SetLabel(str(self.project.info['nbStars']))
+            success = True
         if obj == self.localRoot:
             if Path(self.localRoot.Value).is_dir():
                 self.project.localRoot = self.localRoot.Value
@@ -641,22 +669,37 @@ class DetailsPanel(wx.Panel):
                 dlg.ShowModal()
             # Set project again to trigger a refresh
             self.project = self.project
+            success = True
         if obj == self.description and self.project.editable:
             self.project['description'] = self.description.Value
-            self.project.save()
+            success = self.project.save()
         if obj == self.visibility and self.project.editable:
             self.project['visibility'] = self.visibility.GetStringSelection().lower()
-            self.project.save()
+            success = self.project.save()
         if obj == self.status and self.project.editable:
             retval = self.session.session.put(
                 f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
                 json={'status2': self.status.GetStringSelection().upper()}
             )
+            success = True
         if obj == self.tags and self.project.editable:
             retval = self.session.session.put(
                 f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
                 json={"keywords": self.tags.GetValue()}
             )
+            success = True
+        # Clear from update queue
+        if obj in self._updateQueue:
+            self._updateQueue.remove(obj)
+
+        return success
+
+    def close(self, evt=None):
+        if len(self._updateQueue):
+            wx.MessageDialog(self, message=_translate(
+                "Project info has changed, update online before closing?"
+            ), style=wx.YES_NO | wx.CANCEL)
+
 
 
 class ProjectFrame(wx.Dialog):
