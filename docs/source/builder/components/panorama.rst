@@ -1,12 +1,12 @@
 .. _panoramaComponent:
 
 Panorama Component
-----------------
+------------------
 
 The panorama component provides a way to present panoramic images (e.g. a phone camera in Panorama mode) on screen.
 **Note: The image used cannot be more than 178956970 pixels.**
 
-For a demo in builder mode, after unpacking the demos, click on Demos > Feature Demos > camera. - **need to change blend mode to average**
+For a demo in builder mode, after unpacking the demos, click on Demos > Feature Demos > panorama.
 
 
 Parameters
