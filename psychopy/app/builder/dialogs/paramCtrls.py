@@ -667,7 +667,7 @@ class FileListCtrl(wx.ListBox, _ValidatorMixin, _HideMixin, _FileMixin):
 class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
     class SurveyFinderDlg(wx.Dialog, utils.ButtonSizerMixin):
         def __init__(self, parent, session):
-            wx.Dialog.__init__(self, parent=parent, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+            wx.Dialog.__init__(self, parent=parent, size=(-1, 496), style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
             self.session = session
             # Setup sizer
             self.border = wx.BoxSizer(wx.VERTICAL)
@@ -743,6 +743,9 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
                     survey['surveyName'],
                     survey['surveyId']
                 ])
+            # Resize columns
+            self.ctrl.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+            self.ctrl.SetColumnWidth(1, wx.LIST_AUTOSIZE)
 
         def getValue(self):
             i = self.ctrl.GetFirstSelected()
