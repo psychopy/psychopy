@@ -659,32 +659,34 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
             self.ctrl.AppendColumn("ID")
             self.sizer.Add(self.ctrl, border=6, proportion=1, flag=wx.ALL | wx.EXPAND)
             # Add placeholder for when there are no surveys
-            self.placeholder = wx.Panel(self, size=(-1, 248), style=wx.SIMPLE_BORDER)
-            self.placeholder.SetBackgroundColour("white")
-            self.placeholder.sizer = wx.BoxSizer(wx.VERTICAL)
-            self.placeholder.SetSizer(self.placeholder.sizer)
-            self.placeholder.body = utils.WrappedStaticText(self.placeholder, label=_translate(
+            self.placeholder = wx.TextCtrl(self, size=(-1, 248), value=_translate(
                 "There are no surveys linked to your Pavlovia account."
-            ))
-            self.placeholder.body.SetBackgroundColour("white")
-            self.placeholder.sizer.Add(self.placeholder.body, border=6, flag=wx.ALL | wx.EXPAND)
-            self.placeholder.link = utils.HyperLinkCtrl(self.placeholder, label=_translate(
-                "Click here to create a survey on Pavlovia."
-            ), URL="https://pavlovia.org/dashboard/surveys")
-            self.placeholder.link.SetBackgroundColour("white")
-            self.placeholder.sizer.Add(self.placeholder.link, border=6, flag=wx.ALL | wx.EXPAND)
+            ), style=wx.TE_READONLY | wx.TE_MULTILINE)
             self.sizer.Add(self.placeholder, border=6, proportion=1, flag=wx.ALL | wx.EXPAND)
             self.placeholder.Hide()
-            # Update ctrl button
-            self.updateBtn = wx.Button(self, size=(24, 24))
+            # Sizer for extra ctrls
+            self.extraCtrls = wx.Panel(self)
+            self.extraCtrls.sizer = wx.BoxSizer(wx.HORIZONTAL)
+            self.extraCtrls.SetSizer(self.extraCtrls.sizer)
+            self.sizer.Add(self.extraCtrls, border=6, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND)
+            # Link to Pavlovia
+            self.pavLink = utils.HyperLinkCtrl(self.extraCtrls, label=_translate(
+                "Click here to manage surveys on Pavlovia."
+            ), URL="https://pavlovia.org/dashboard/surveys")
+            self.extraCtrls.sizer.Add(self.pavLink, flag=wx.ALL | wx.ALIGN_LEFT)
+            # Update button
+            self.updateBtn = wx.Button(self.extraCtrls, size=(24, 24))
             self.updateBtn.SetBitmap(icons.ButtonIcon(stem="view-refresh", size=16).bitmap)
             self.updateBtn.SetToolTipString(_translate(
                 "Refresh survey list"
             ))
             self.updateBtn.Bind(wx.EVT_BUTTON, self.populate)
-            self.sizer.Add(self.updateBtn, border=6, flag=wx.ALIGN_RIGHT | wx.RIGHT | wx.BOTTOM)
-            # Setup buttons
+            self.extraCtrls.sizer.AddStretchSpacer(prop=1)
+            self.extraCtrls.sizer.Add(self.updateBtn, flag=wx.ALL | wx.EXPAND)
+
+            # Setup dialog buttons
             self.btnSizer = self.CreatePsychoPyDialogButtonSizer(flags=wx.OK | wx.CANCEL | wx.HELP)
+            self.sizer.AddSpacer(12)
             self.sizer.Add(self.btnSizer, border=6, flag=wx.ALL | wx.EXPAND)
 
             # Populate
