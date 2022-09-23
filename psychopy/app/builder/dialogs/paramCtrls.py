@@ -639,8 +639,9 @@ class FileListCtrl(wx.ListBox, _ValidatorMixin, _HideMixin, _FileMixin):
 
 class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
     class SurveyFinderDlg(wx.Dialog):
-        def __init__(self, parent):
-            wx.Dialog.__init__(self, parent=parent)
+        def __init__(self, parent, session):
+            wx.Dialog.__init__(self, parent=parent, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+            self.session = session
             # Setup sizer
             self.border = wx.BoxSizer(wx.VERTICAL)
             self.SetSizer(self.border)
@@ -653,20 +654,66 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
             ))
             self.sizer.Add(self.instr, border=6, flag=wx.ALL | wx.EXPAND)
             # Add ctrl
-            self.ctrl = wx.ListCtrl(self, style=wx.LC_REPORT)
+            self.ctrl = wx.ListCtrl(self, size=(-1, 248), style=wx.LC_REPORT)
             self.ctrl.AppendColumn("Name")
             self.ctrl.AppendColumn("ID")
-            self.populate()
-            self.sizer.Add(self.ctrl, border=6, proportion=1, flag=wx.EXPAND)
+            self.sizer.Add(self.ctrl, border=6, proportion=1, flag=wx.ALL | wx.EXPAND)
+            # Add placeholder for when there are no surveys
+            self.placeholder = wx.Panel(self, size=(-1, 248), style=wx.SIMPLE_BORDER)
+            self.placeholder.SetBackgroundColour("white")
+            self.placeholder.sizer = wx.BoxSizer(wx.VERTICAL)
+            self.placeholder.SetSizer(self.placeholder.sizer)
+            self.placeholder.body = utils.WrappedStaticText(self.placeholder, label=_translate(
+                "There are no surveys linked to your Pavlovia account."
+            ))
+            self.placeholder.body.SetBackgroundColour("white")
+            self.placeholder.sizer.Add(self.placeholder.body, border=6, flag=wx.ALL | wx.EXPAND)
+            self.placeholder.link = utils.HyperLinkCtrl(self.placeholder, label=_translate(
+                "Click here to create a survey on Pavlovia."
+            ), URL="https://pavlovia.org/dashboard/surveys")
+            self.placeholder.link.SetBackgroundColour("white")
+            self.placeholder.sizer.Add(self.placeholder.link, border=6, flag=wx.ALL | wx.EXPAND)
+            self.sizer.Add(self.placeholder, border=6, proportion=1, flag=wx.ALL | wx.EXPAND)
+            self.placeholder.Hide()
+            # Update ctrl button
+            self.updateBtn = wx.Button(self, size=(24, 24))
+            self.updateBtn.SetBitmap(icons.ButtonIcon(stem="view-refresh", size=16).bitmap)
+            self.updateBtn.SetToolTipString(_translate(
+                "Refresh survey list"
+            ))
+            self.updateBtn.Bind(wx.EVT_BUTTON, self.populate)
+            self.sizer.Add(self.updateBtn, border=6, flag=wx.ALIGN_LEFT | wx.LEFT)
             # Setup buttons
             self.btnSizer = self.CreateStdDialogButtonSizer(flags=wx.OK | wx.CANCEL | wx.HELP)
             self.sizer.Add(self.btnSizer, border=6, flag=wx.ALL | wx.EXPAND)
 
+            # Populate
+            self.populate()
             self.Layout()
 
-        def populate(self):
-            self.ctrl.Append(["Test1", "12345"])
-            self.ctrl.Append(["Test2", "54321"])
+        def populate(self, evt=None):
+            # Clear ctrl
+            self.ctrl.ClearAll()
+            # Ask Pavlovia for list of surveys
+            resp = self.session.session.get(
+                "https://pavlovia.org/api/v2/surveys",
+                timeout=10
+            ).json()
+            # Get surveys from returned json
+            surveys = resp['surveys']
+            # If there are no surveys, hide the ctrl and present link to survey designer
+            if len(surveys):
+                self.ctrl.Show()
+                self.placeholder.Hide()
+            else:
+                self.ctrl.Hide()
+                self.placeholder.Show()
+            # Populate control
+            for survey in surveys:
+                self.ctrl.Append([
+                    survey['name'],
+                    survey['id']
+                ])
 
         def getValue(self):
             i = self.ctrl.GetFirstSelected()
@@ -696,9 +743,20 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         self.validate()
 
     def findSurvey(self, evt=None):
-        dlg = self.SurveyFinderDlg(self)
-        if dlg.ShowModal() == wx.ID_OK:
-            self.SetValue(dlg.getValue())
+        # Import Pavlovia modules locally to avoid Pavlovia bugs affecting other param ctrls
+        from psychopy.projects.pavlovia import getCurrentSession
+        from ...pavlovia_ui import checkLogin
+        # Get session
+        session = getCurrentSession()
+        # Check Pavlovia login
+        if checkLogin(session):
+            # Get session again incase login process changed it
+            session = getCurrentSession()
+            # Show survey finder dialog
+            dlg = self.SurveyFinderDlg(self, session)
+            if dlg.ShowModal() == wx.ID_OK:
+                # If OK, get value
+                self.SetValue(dlg.getValue())
 
 
 class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
