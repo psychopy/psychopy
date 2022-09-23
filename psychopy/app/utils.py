@@ -119,6 +119,33 @@ class HoverMixin:
         self._BackgroundColourHover = value
 
 
+class ButtonSizerMixin:
+    """
+    Overrides standard wx button layout to put Help on the left as it's historically been in PsychoPy.
+    """
+    def CreatePsychoPyDialogButtonSizer(self, flags=wx.OK | wx.CANCEL | wx.HELP):
+        # Do original wx method
+        sizer = wx.Dialog.CreateStdDialogButtonSizer(self, flags)
+        # Look for a help button
+        helpBtn = None
+        for child in sizer.GetChildren():
+            child = child.GetWindow()
+            if hasattr(child, "GetId") and child.GetId() == wx.ID_HELP:
+                helpBtn = child
+        # Stop here if there's no help button
+        if helpBtn is None:
+            return
+        # Detach from slider
+        sizer.Detach(helpBtn)
+        # Add stretch spacer to beginning
+        sizer.PrependStretchSpacer(prop=1)
+        # Add help button back at very beginning
+        sizer.Prepend(helpBtn)
+        # Layout and return
+        self.Layout()
+        return sizer
+
+
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
     Need this too.

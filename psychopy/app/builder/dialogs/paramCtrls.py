@@ -638,7 +638,7 @@ class FileListCtrl(wx.ListBox, _ValidatorMixin, _HideMixin, _FileMixin):
 
 
 class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
-    class SurveyFinderDlg(wx.Dialog):
+    class SurveyFinderDlg(wx.Dialog, utils.ButtonSizerMixin):
         def __init__(self, parent, session):
             wx.Dialog.__init__(self, parent=parent, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
             self.session = session
@@ -682,9 +682,9 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
                 "Refresh survey list"
             ))
             self.updateBtn.Bind(wx.EVT_BUTTON, self.populate)
-            self.sizer.Add(self.updateBtn, border=6, flag=wx.ALIGN_LEFT | wx.LEFT)
+            self.sizer.Add(self.updateBtn, border=6, flag=wx.ALIGN_RIGHT | wx.RIGHT | wx.BOTTOM)
             # Setup buttons
-            self.btnSizer = self.CreateStdDialogButtonSizer(flags=wx.OK | wx.CANCEL | wx.HELP)
+            self.btnSizer = self.CreatePsychoPyDialogButtonSizer(flags=wx.OK | wx.CANCEL | wx.HELP)
             self.sizer.Add(self.btnSizer, border=6, flag=wx.ALL | wx.EXPAND)
 
             # Populate
