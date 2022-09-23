@@ -713,8 +713,8 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
             # Populate control
             for survey in surveys:
                 self.ctrl.Append([
-                    survey['name'],
-                    survey['id']
+                    survey['surveyName'],
+                    survey['surveyId']
                 ])
 
         def getValue(self):
