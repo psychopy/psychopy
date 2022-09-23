@@ -48,7 +48,7 @@ class AdvancedSurveyComponent(BaseComponent):
                      "Linking to a survey ID from Pavlovia Surveys means that the content will automatically update "
                      "if that survey changes (better for dynamic use)"),
                  'linkText': _translate("Take me to Pavlovia..."),
-                 'link': "https://pavlovia.org/dashboard",
+                 'link': "https://pavlovia.org/dashboard?tab=4",
                  'startShown': 'always'},
 
                 {'label': _translate("Survey Model File"),
@@ -56,7 +56,7 @@ class AdvancedSurveyComponent(BaseComponent):
                     "Inserting a JSON file (exported from Pavlovia Surveys) means that the survey is embedded within "
                     "this project and will not change unless you import it again (better for archiving)"),
                  'linkText': _translate("Take me to Pavlovia..."),
-                 'link': "https://pavlovia.org/dashboard",
+                 'link': "https://pavlovia.org/dashboard?tab=4",
                  'startShown': 'always'},
             ],
             label=_translate("Survey type"))

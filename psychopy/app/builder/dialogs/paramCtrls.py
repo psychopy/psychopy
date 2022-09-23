@@ -697,7 +697,7 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
             # Link to Pavlovia
             self.pavLink = utils.HyperLinkCtrl(self.extraCtrls, label=_translate(
                 "Click here to manage surveys on Pavlovia."
-            ), URL="https://pavlovia.org/dashboard/surveys")
+            ), URL="https://pavlovia.org/dashboard?tab=4")
             self.extraCtrls.sizer.Add(self.pavLink, flag=wx.ALL | wx.ALIGN_LEFT)
             # Update button
             self.updateBtn = wx.Button(self.extraCtrls, size=(24, 24))
