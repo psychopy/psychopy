@@ -682,8 +682,6 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
             self.sizer.Add(self.instr, border=6, flag=wx.ALL | wx.EXPAND)
             # Add ctrl
             self.ctrl = wx.ListCtrl(self, size=(-1, 248), style=wx.LC_REPORT)
-            self.ctrl.AppendColumn("Name")
-            self.ctrl.AppendColumn("ID")
             self.sizer.Add(self.ctrl, border=6, proportion=1, flag=wx.ALL | wx.EXPAND)
             # Add placeholder for when there are no surveys
             self.placeholder = wx.TextCtrl(self, size=(-1, 248), value=_translate(
@@ -723,6 +721,8 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         def populate(self, evt=None):
             # Clear ctrl
             self.ctrl.ClearAll()
+            self.ctrl.InsertColumn(0, "Name")
+            self.ctrl.InsertColumn(1, "ID")
             # Ask Pavlovia for list of surveys
             resp = self.session.session.get(
                 "https://pavlovia.org/api/v2/surveys",
