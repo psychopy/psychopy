@@ -922,7 +922,8 @@ class BaseVisualComponent(BaseComponent):
                  startType='time (s)', startVal='',
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
-                 saveStartStop=True, syncScreenRefresh=True):
+                 saveStartStop=True, syncScreenRefresh=True,
+                 disabled=False):
 
         super(BaseVisualComponent, self).__init__(
             exp, parentName, name,
@@ -930,7 +931,7 @@ class BaseVisualComponent(BaseComponent):
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim,
             saveStartStop=saveStartStop,
-            syncScreenRefresh=syncScreenRefresh)
+            syncScreenRefresh=syncScreenRefresh, disabled=disabled)
 
         self.exp.requirePsychopyLibs(
             ['visual'])  # needs this psychopy lib to operate
