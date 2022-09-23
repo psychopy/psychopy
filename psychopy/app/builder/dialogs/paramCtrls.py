@@ -712,7 +712,7 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
             # Setup dialog buttons
             self.btnSizer = self.CreatePsychoPyDialogButtonSizer(flags=wx.OK | wx.CANCEL | wx.HELP)
             self.sizer.AddSpacer(12)
-            self.sizer.Add(self.btnSizer, border=6, flag=wx.ALL | wx.EXPAND)
+            self.border.Add(self.btnSizer, border=6, flag=wx.ALL | wx.EXPAND)
 
             # Populate
             self.populate()
