@@ -943,7 +943,7 @@ def _registerBuilderComponent(ep):
 
     Parameters
     ----------
-    module : ModuleType
+    ep : ModuleType
         Module containing the builder component to register.
 
     """
