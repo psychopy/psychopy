@@ -156,6 +156,18 @@ class NameSpace:
             return "%s + [%d numpy]" % (str(varibs), len(self.numpy))
         return str(varibs + self.numpy)
 
+    @property
+    def all(self):
+        return (
+                self.builder +
+                self.constants +
+                self.keywords +
+                self.nonUserBuilder +
+                self.numpy +
+                self.psychopy +
+                self.user
+        )
+
     def getDerived(self, basename):
         """ buggy
         idea: return variations on name, based on its type, to flag name that

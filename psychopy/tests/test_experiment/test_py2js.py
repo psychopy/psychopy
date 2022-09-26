@@ -1,5 +1,8 @@
 from psychopy.experiment.py2js_transpiler import translatePythonToJavaScript
 import psychopy.experiment.py2js as py2js
+from psychopy.experiment import Experiment
+from psychopy.experiment.components.code import CodeComponent
+from psychopy.experiment.routines import Routine
 
 
 class TestTranspiler:
@@ -10,7 +13,7 @@ class TestTranspiler:
 
     def test_assignment(self):
         py = ("a = 1")
-        js = ("a = 1;\n")
+        js = ("var a;\na = 1;\n")
         self.runTranspile(py, js)
 
     def test_name(self):
@@ -44,7 +47,7 @@ class TestTranspiler:
 
     def test_status(self):
         py = "status = STOPPED"
-        js = "status = PsychoJS.Status.STOPPED;\n"
+        js = "var status;\nstatus = PsychoJS.Status.STOPPED;\n"
         self.runTranspile(py, js)
 
     def test_substitutions(self):
@@ -60,6 +63,99 @@ class TestTranspiler:
         # Try each case
         for case in cases:
             self.runTranspile(case['py'], case['js'])
+
+    def test_var_defs(self):
+        cases = [
+            # Docstring at line 1
+            {'py': (
+"""'''
+Docstring at line 1
+'''
+continueRoutine = False"""
+            ),
+                'var': False},
+            # Comment at line 1
+            {'py': (
+"""# Comment at line 1
+continueRoutine = False"""
+            ),
+             'var': False},
+            # PsychoPy keyword (just one)
+            {'py': (
+"""continueRoutine = False"""
+            ),
+                'var': False},
+            # PsychoPy keywords
+            {'py': (
+"""continueRoutine = False
+expInfo = {}"""
+            ),
+                'var': False},
+            # Numpy keywords
+            {'py': (
+"""sin = None
+pi = 3.14"""
+            ),
+                'var': False},
+            # Package names
+            {'py': (
+"""visual = psychopy.visual
+np = numpy"""
+            ),
+                'var': False},
+            # Component name
+            {'py': (
+"""testComponent = None"""
+            ),
+                'var': False},
+            # Routine name
+            {'py': (
+"""testRoutine = None"""
+            ),
+                'var': False},
+            # Valid var def
+            {'py': (
+"""newVariable = 0"""
+            ),
+                'var': True},
+            # One valid one invalid
+            {'py': (
+"""continueRoutine = False
+newVariable = {}"""
+            ),
+                'var': True},
+            # Valriable from Code component
+            {'py': (
+"""extantVariable = 0"""
+            ),
+                'var': True},
+        ]
+
+        # Setup experiment
+        exp = Experiment()
+        rt = Routine("testRoutine", exp)
+        comp = CodeComponent(exp, parentName="testRoutine", name="testComponent", beforeExp="extantVariable = 1")
+        rt.addComponent(comp)
+        exp.addRoutine("testRoutine", rt)
+        exp.flow.addRoutine(rt, 0)
+        # Add comp and routine names to namespace (this is usually done from Builder
+        exp.namespace.add("testRoutine")
+        exp.namespace.add("testComponent")
+        # Run cases
+        for case in cases:
+            # Translate with exp namespace
+            jsCode = py2js.translatePythonToJavaScript(case['py'], namespace=exp.namespace.all)
+            # Check whether var statements are present
+            if case['var']:
+                assert "var " in jsCode, (
+                    f"Could not find desired var def in:\n"
+                    f"{jsCode}"
+                )
+            else:
+                assert "var " not in jsCode, (
+                    f"Found undesired var def in:\n"
+                    f"{jsCode}"
+                )
 
 
 class Test_PY2JS_Compile:

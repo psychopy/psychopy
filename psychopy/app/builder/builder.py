@@ -143,7 +143,6 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.frameType = 'builder'
         self.filename = fileName
         self.htmlPath = None
-        self.session = pavlovia.getCurrentSession()
         self.scriptProcess = None
         self.stdoutBuffer = None
         self.readmeFrame = None
@@ -268,6 +267,13 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.SetDropTarget(FileDropTarget(targetFrame=self))
 
         self.theme = colors.theme
+
+    @property
+    def session(self):
+        """
+        Current Pavlovia session
+        """
+        return pavlovia.getCurrentSession()
 
     # Synonymise Aui manager for use with theme mixin
     def GetAuiManager(self):
@@ -411,7 +417,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # Add Theme Switcher
         self.themesMenu = ThemeSwitcher(app=self.app)
         menu.AppendSubMenu(self.themesMenu,
-                               _translate("Themes"))
+                               _translate("&Themes"))
 
         # ---_tools ---#000000#FFFFFF-----------------------------------------
         self.toolsMenu = wx.Menu()
@@ -449,7 +455,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         # ---_experiment---#000000#FFFFFF-------------------------------------
         self.expMenu = wx.Menu()
-        menuBar.Append(self.expMenu, _translate('&Experiment'))
+        menuBar.Append(self.expMenu, _translate('E&xperiment'))
         menu = self.expMenu
         item = menu.Append(wx.ID_ANY,
                            _translate("&New Routine\t%s") % keys['newRoutine'],
@@ -533,12 +539,12 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         # ---_onlineStudies---#000000#FFFFFF-------------------------------------------
         self.pavloviaMenu = pavlovia_ui.menu.PavloviaMenu(parent=self)
-        menuBar.Append(self.pavloviaMenu, _translate("Pavlovia.org"))
+        menuBar.Append(self.pavloviaMenu, _translate("&Pavlovia.org"))
 
         # ---_window---#000000#FFFFFF-----------------------------------------
         self.windowMenu = FrameSwitcher(self)
         menuBar.Append(self.windowMenu,
-                    _translate("Window"))
+                    _translate("&Window"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()
@@ -2064,7 +2070,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                 thisColor = colors.app['rt_comp_force']
         # check True/False on ForceEndRoutineOnPress
         if 'forceEndRoutineOnPress' in component.params:
-            if component.params['forceEndRoutineOnPress'].val in ['any click', 'valid click']:
+            if component.params['forceEndRoutineOnPress'].val in ['any click', 'correct click', 'valid click']:
                 thisColor = colors.app['rt_comp_force']
         # check True aliases on EndRoutineOn
         if 'endRoutineOn' in component.params:
@@ -4029,6 +4035,7 @@ class BuilderToolbar(BasePsychopyToolbar):
             self.frame.project = pavlovia.getProject(self.frame.filename)
         # Get project
         if self.frame.project is not None:
+            self.frame.project.refresh()
             dlg = ProjectFrame(app=self.frame.app,
                                project=self.frame.project,
                                parent=self.frame)
