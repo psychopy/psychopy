@@ -28,7 +28,7 @@ class AdvancedSurveyComponent(BaseComponent):
                                startEstim=startEstim, durationEstim=durationEstim,
                                saveStartStop=saveStartStop, syncScreenRefresh=syncScreenRefresh,
                                disabled=disabled)
-        self.url = "https://psychopy.org/builder/components/pavlovia_curvey.html"
+        self.url = "https://psychopy.org/builder/components/advanced_survey.html"
 
         # Define relationships
         self.depends = []
