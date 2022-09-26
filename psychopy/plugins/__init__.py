@@ -218,6 +218,12 @@ def scanPlugins():
     called automatically when PsychoPy starts, so you do not need to call this
     unless packages have been added since the session began.
 
+    Returns
+    -------
+    int
+        Number of plugins found during the scan. Calling `listPlugins()` will
+        return the names of the found plugins.
+
     """
     global _installed_plugins_
     _installed_plugins_ = {}  # clear installed plugins
@@ -233,7 +239,7 @@ def scanPlugins():
                 dist.project_name, dist.location))
             _installed_plugins_[dist.project_name] = entryMap
 
-    return _installed_plugins_
+    return len(_installed_plugins_)
 
 
 def listPlugins(which='all'):
