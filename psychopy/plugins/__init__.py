@@ -669,7 +669,8 @@ def requirePlugin(plugin):
 
     """
     if not isPluginLoaded(plugin):
-        raise RuntimeError('Required plugin `{}` has not been loaded.')
+        raise RuntimeError('Required plugin `{}` has not been loaded.'.format(
+            plugin))
 
 
 def startUpPlugins(plugins, add=True, verify=True):
