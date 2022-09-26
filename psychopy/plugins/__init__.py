@@ -233,6 +233,8 @@ def scanPlugins():
                 dist.project_name, dist.location))
             _installed_plugins_[dist.project_name] = entryMap
 
+    return _installed_plugins_
+
 
 def listPlugins(which='all'):
     """Get a list of installed or loaded PsychoPy plugins.
@@ -478,7 +480,7 @@ def loadPlugin(plugin, *args, **kwargs):
                 (fqn == 'psychopy' and 'plugins' in attrs):
             logging.error(
                 "Plugin `{}` declares entry points into the `psychopy.plugins` "
-                "which is forbidden. Skipping.")
+                "module which is forbidden. Skipping.".format(plugin))
 
             if plugin not in _failed_plugins_:
                 _failed_plugins_.append(plugin)
