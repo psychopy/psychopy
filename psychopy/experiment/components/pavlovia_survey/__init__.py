@@ -168,7 +168,7 @@ class AdvancedSurveyComponent(BaseComponent):
         self.writeActiveTestCodeJS(buff)
         code = (
             "// if %(name)s is marked as complete online, set status to FINISHED\n"
-            "if (%(name)s.complete) {\n"
+            "if (%(name)s.isFinished) {\n"
             "    %(name)s.status = PsychoJS.Status.FINISHED;\n"
         )
         buff.writeIndentedLines(code % self.params)
