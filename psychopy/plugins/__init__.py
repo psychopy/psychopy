@@ -981,3 +981,7 @@ def _registerBuilderComponent(ep):
         # assign the module categories to the Component
         if not hasattr(components.pluginComponents[attrib], 'categories'):
             components.pluginComponents[attrib].categories = ['Custom']
+
+
+if __name__ == "__main__":
+    pass
