@@ -245,7 +245,7 @@ class SettingsComponent:
             backgroundFit, valType="str", inputType="choice", categ="Screen",
             allowedVals=("none", "cover", "contain", "fill", "scale-down"),
             hint=_translate("How should the background image scale to fit the window size?"),
-            label=_translate("Background image")
+            label=_translate("Background fit")
         )
         self.params['Units'] = Param(
             units, valType='str', inputType="choice", allowedTypes=[],
