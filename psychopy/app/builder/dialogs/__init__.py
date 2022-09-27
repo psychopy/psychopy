@@ -284,6 +284,8 @@ class ParamCtrls():
         """
         if ctrl is None:
             return None
+        elif hasattr(ctrl, "setValue"):
+            ctrl.setValue(newVal)
         elif hasattr(ctrl, 'SetValue'):  # e.g. TextCtrl
             ctrl.SetValue(newVal)
         elif hasattr(ctrl, 'SetSelection'):  # for wx.Choice
@@ -381,6 +383,8 @@ class ParamCtrls():
             self.valueCtrl.Bind(wx.EVT_CHECKLISTBOX, callbackFunction)
         elif isinstance(self.valueCtrl, wx.CheckBox):
             self.valueCtrl.Bind(wx.EVT_CHECKBOX, callbackFunction)
+        elif isinstance(self.valueCtrl, paramCtrls.CodeCtrl):
+            self.valueCtrl.Bind(wx.EVT_KEY_UP, callbackFunction)
         elif isinstance(self.valueCtrl, (paramCtrls.DictCtrl, paramCtrls.FileListCtrl)):
             pass
         else:
