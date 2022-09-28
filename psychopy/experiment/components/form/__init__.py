@@ -172,6 +172,7 @@ class FormComponent(BaseVisualComponent):
 
     def writeInitCode(self, buff):
         inits = getInitVals(self.params)
+        inits['depth'] = -self.getPosInRoutine()
         # build up an initialization string for Form():
         code = (
             "win.allowStencil = True\n"
@@ -189,7 +190,8 @@ class FormComponent(BaseVisualComponent):
             "responseColor=%(responseColor)s, markerColor=%(markerColor)s, colorSpace=%(colorSpace)s, \n"
             "size=%(size)s,\n"
             "pos=%(pos)s,\n"
-            "itemPadding=%(Item Padding)s"
+            "itemPadding=%(Item Padding)s,\n"
+            "depth=%(depth)s\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)

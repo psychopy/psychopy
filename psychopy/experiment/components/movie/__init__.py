@@ -230,6 +230,7 @@ class MovieComponent(BaseVisualComponent):
     def writeInitCode(self, buff):
         # Get init values
         params = getInitVals(self.params)
+        params['depth'] = -self.getPosInRoutine()
 
         # synonymise "from experiment settings" with None
         if params["units"].val.lower() == "from exp settings":
@@ -255,6 +256,7 @@ class MovieComponent(BaseVisualComponent):
             "pos=%(pos)s, size=%(size)s, units=%(units)s,\n"
             "ori=%(ori)s, anchor=%(anchor)s,"
             "opacity=%(opacity)s, contrast=%(contrast)s,\n"
+            "depth=%(depth)s\n"
         )
         buff.writeIndentedLines(code % params)
         buff.setIndentLevel(-1, relative=True)

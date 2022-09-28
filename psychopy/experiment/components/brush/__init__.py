@@ -88,18 +88,18 @@ class BrushComponent(BaseVisualComponent):
         del self.params['units']  # always in pix
 
     def writeInitCode(self, buff):
-        params = getInitVals(self.params)
-        code = ("{name} = visual.Brush(win=win, name='{name}',\n"
-                "   lineWidth={lineWidth},\n"
-                "   lineColor={lineColor},\n"
-                "   lineColorSpace={lineColorSpace},\n"
-                "   opacity={opacity},\n"
-                "   buttonRequired={buttonRequired})").format(name=params['name'],
-                                                lineWidth=params['lineWidth'],
-                                                lineColor=params['lineColor'],
-                                                lineColorSpace=params['lineColorSpace'],
-                                                opacity=params['opacity'],
-                                                buttonRequired=params['buttonRequired'])
+        inits = getInitVals(self.params)
+        inits['depth'] = -self.getPosInRoutine()
+        code = (
+            "{name} = visual.Brush(win=win, name='{name}',\n"
+            "   lineWidth={lineWidth},\n"
+            "   lineColor={lineColor},\n"
+            "   lineColorSpace={lineColorSpace},\n"
+            "   opacity={opacity},\n"
+            "   buttonRequired={buttonRequired}\n"
+            "   depth={depth}\n"
+            ")"
+        ).format(**inits)
         buff.writeIndentedLines(code)
 
     def writeInitCodeJS(self, buff):

@@ -182,6 +182,7 @@ class ButtonComponent(BaseVisualComponent):
             unitsStr = "units=%(units)s," % self.params
         # do writing of init
         inits = getInitVals(self.params, 'PsychoPy')
+        inits['depth'] = -self.getPosInRoutine()
         code = (
                 "%(name)s = visual.ButtonStim(win, \n"
         )
@@ -199,6 +200,7 @@ class ButtonComponent(BaseVisualComponent):
                     "padding=%(padding)s,\n"
                     "anchor=%(anchor)s,\n"
                     "name='%(name)s'\n"
+                    "depth=%(depth)s\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
