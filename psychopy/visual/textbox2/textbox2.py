@@ -201,7 +201,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # standard stimulus params
         self.pos = pos
         self.ori = 0.0
-        self.depth = 0.0
         # used at render time
         self._lines = None  # np.array the line numbers for each char
         self._colors = None
