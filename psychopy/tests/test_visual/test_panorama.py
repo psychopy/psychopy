@@ -35,7 +35,7 @@ class TestPanorama:
             # Construct file path to check against
             exemplar = self.path / "testPanorama_mvmt_{azimuth:.1f}_{altitude:.1f}.png".format(**case)
             # Compare
-            self.win.getMovieFrame(buffer='back').save(exemplar)
+            #self.win.getMovieFrame(buffer='back').save(exemplar)
             utils.compareScreenshot(str(exemplar), self.win, crit=7)
             # Flip
             self.win.flip()
