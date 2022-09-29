@@ -297,9 +297,9 @@ class PanoramaComponent(BaseVisualComponent):
             code = (
                 "# store a dictionary to map keys to the amount to change by per frame\n"
                 "%(name)s.kb.deltas = {{\n"
-                "    {u}: np.array([0, -win.monitorFramePeriod]),\n"
+                "    {u}: np.array([0, +win.monitorFramePeriod]),\n"
                 "    {l}: np.array([-win.monitorFramePeriod, 0]),\n"
-                "    {d}: np.array([0, +win.monitorFramePeriod]),\n"
+                "    {d}: np.array([0, -win.monitorFramePeriod]),\n"
                 "    {r}: np.array([+win.monitorFramePeriod, 0]),\n"
                 "    {x}: np.array([0, 0]),\n"
                 "}}\n"
@@ -343,7 +343,7 @@ class PanoramaComponent(BaseVisualComponent):
             code = (
                 "# update panorama view from mouse pos\n"
                 "pos = layout.Position(%(name)s.mouse.getPos(), win.units, win)\n"
-                "%(name)s.azimuth = pos.norm[0] * %(posSensitivity)s\n"
+                "%(name)s.azimuth = -pos.norm[0] * %(posSensitivity)s\n"
                 "%(name)s.altitude = -pos.norm[1] * %(posSensitivity)s\n"
             )
             buff.writeIndentedLines(code % self.params)
@@ -356,7 +356,7 @@ class PanoramaComponent(BaseVisualComponent):
                 "if %(name)s.mouse.getPressed()[0]:\n"
                 "    %(name)s.momentum = rel.norm * %(posSensitivity)s\n"
                 "    %(name)s.azimuth -= %(name)s.momentum[0]\n"
-                "    %(name)s.altitude += %(name)s.momentum[1]\n"
+                "    %(name)s.altitude -= %(name)s.momentum[1]\n"
             )
             buff.writeIndentedLines(code % self.params)
             if self.params['smooth']:
@@ -365,7 +365,7 @@ class PanoramaComponent(BaseVisualComponent):
                 "else:\n"
                 "    # after click, keep moving a little\n"
                 "    %(name)s.azimuth -= %(name)s.momentum[0]\n"
-                "    %(name)s.altitude += %(name)s.momentum[1]\n"
+                "    %(name)s.altitude -= %(name)s.momentum[1]\n"
                 "    # decrease momentum every frame so that it approaches 0\n"
                 "    %(name)s.momentum = %(name)s.momentum * (1 - win.monitorFramePeriod * 2)\n"
                 )
