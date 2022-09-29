@@ -344,7 +344,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
                 "community",
                 "psychopy-...", name="...",
                 icon=None, description="",
-                installed=False, active=False
+                installed=False
             )
         self._info = value
         # Set icon

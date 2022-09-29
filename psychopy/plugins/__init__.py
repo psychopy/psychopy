@@ -226,7 +226,7 @@ class PluginInfo:
         Icon for the plugin, if any (if None, will use blank bitmap)
     description : str
         Description of the plugin
-    installed : bool
+    installed : bool or None
         Whether or not the plugin in installed on this system
     active : bool
         Whether or not the plug is enabled on this system (if not installed, will always be False)
@@ -234,14 +234,37 @@ class PluginInfo:
     def __init__(self, source,
                  pipName, name="",
                  icon=None, description="",
-                 installed=False, active=False):
+                 installed=False):
         self.source = source
         self.pipName = pipName
         self.name = name
         self.icon = icon
         self.description = description
         self.installed = installed
-        self.active = installed and active
+
+    @property
+    def active(self):
+        """
+        Is this plugin active? If so, it is loaded when the app starts. Otherwise, it remains installed but is not
+        loaded.
+        """
+        return isStartUpPlugin(self.pipName)
+
+    @active.setter
+    def active(self, value):
+        if value is None:
+            # Setting active as None skips the whole process - useful for avoiding recursion
+            return
+
+        if value:
+            # If active, add to list of startup plugins
+            startUpPlugins(self.pipName, add=True)
+        else:
+            # If active and changed to inactive, remove from list of startup plugins
+            current = listPlugins(which='startup')
+            if self.pipName in current:
+                current.remove(self.pipName)
+            startUpPlugins(current, add=False)
 
 
 def getAllPluginDetails():
@@ -250,55 +273,20 @@ def getAllPluginDetails():
 
     todo: Actually scan for plugins
     """
-    appIconRoot = Path(__file__).parent.parent / "app" / "Resources" / "light"
-    compIconRoot = Path(__file__).parent.parent / "experiment" / "components"
-    return [
-        PluginInfo(
+
+    names = listPlugins()
+    objs = []
+    for name in names:
+        data = pluginMetadata(name)
+        obj = PluginInfo(
             source="curated",
-            pipName="psychopy-transcription",
-            name="Microphone Transcription",
-            icon=str(compIconRoot / "microphone" / "light" / "microphone.png"),
-            description=(
-                "Packages necessary to provide a text transcription of local Microphone recordings, either through a "
-                "free Python package or through Google's paid transcription service."
-            ),
-            installed=False,
-            active=False
-        ),
-        PluginInfo(
-            source="curated",
-            pipName="psychopy-buttonboxes",
-            icon=str(compIconRoot / "cedrusBox" / "light" / "cedrusBox.png"),
-            name="Button Boxes",
-            description=(
-                "Components for working with button boxes such as those by Cedrus or ioLabs."
-            ),
-            installed=True,
-            active=True
-        ),
-        PluginInfo(
-            source="curated",
-            pipName="psychopy-legacy",
-            name="PsychoPy Legacy",
-            description=(
-                "Contains depricated components which are no longer needed or in active development, allowing you "
-                "to work with old experiments using these components."
-            ),
-            installed=True,
-            active=False
-        ),
-        PluginInfo(
-            source="community",
-            pipName="psychopy-emotiv",
-            icon=str(compIconRoot / "emotiv_record" / "light" / "emotiv_record.png"),
-            name="Emotiv",
-            description=(
-                "Components for working with Emotiv EEG systems."
-            ),
-            installed=False,
-            active=False
-        ),
-    ]
+            pipName=name, name=name,
+            icon=None, description=data['Summary'],
+            installed=True
+        )
+        objs.append(obj)
+
+    return objs
 
 
 def scanPlugins():
