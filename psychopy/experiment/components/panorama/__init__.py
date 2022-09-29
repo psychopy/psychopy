@@ -415,22 +415,22 @@ class PanoramaComponent(BaseVisualComponent):
         elif self.params['zoomCtrl'].val in ("arrows", "plusmin", "keymap"):
             # If control style is key based, get keys from params/presets and set from pressed
             if self.params['zoomCtrl'].val == "arrows":
-                inKey, outKey = ("up", "down")
+                inKey, outKey = ("'up'", "'down'")
             elif self.params['zoomCtrl'].val == "plusmin":
-                inKey, outKey = ("equal", "minus")
+                inKey, outKey = ("'equal'", "'minus'")
             else:
                 inKey, outKey = (self.params['inKey'], self.params['outKey'])
             code = (
                 f"# update panorama zoom from key presses\n"
-                f"keys = %(name)s.kb.getKeys(['{inKey}', '{outKey}'], waitRelease=False, clear=False)\n"
+                f"keys = %(name)s.kb.getKeys([{inKey}, {outKey}], waitRelease=False, clear=False)\n"
                 f"# work out zoom change from keys pressed\n"
                 f"for key in keys:\n"
-                f"    if key.name == '{inKey}':\n"
+                f"    if key.name == {inKey}:\n"
                 f"        %(name)s.zoom += %(zoomSensitivity)s * win.monitorFramePeriod * 4\n"
-                f"    if key.name == '{outKey}':\n"
+                f"    if key.name == {outKey}:\n"
                 f"        %(name)s.zoom -= %(zoomSensitivity)s * win.monitorFramePeriod * 4\n"
                 f"# get keys which have been released and clear them from the buffer before next frame\n"
-                f"%(name)s.kb.getKeys(['{inKey}', '{outKey}'], waitRelease=True, clear=True)\n"
+                f"%(name)s.kb.getKeys([{inKey}, {outKey}], waitRelease=True, clear=True)\n"
             )
             buff.writeIndentedLines(code % self.params)
 
