@@ -193,6 +193,9 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         self._stderr = sys.stderr
         self._stdoutFrame = None
 
+        # set as false to disable loading plugins on startup
+        self._safeMode = kwargs.get('safeMode', True)
+
         # Shared memory used for messaging between app instances, this gets
         # allocated when `OnInit` is called.
         self._sharedMemory = None
@@ -246,7 +249,31 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             linuxConfDlg.ShowModal()
             linuxConfDlg.Destroy()
 
-    def onInit(self, showSplash=True, testMode=False):
+    def _loadStartupPlugins(self):
+        """Routine for loading plugins registered to be loaded at startup.
+        """
+        if self._safeMode:  # nop, if running safe mode
+            return
+
+        # load any plugins
+        from psychopy.plugins import scanPlugins, loadPlugin, listPlugins
+
+        # if we find valid plugins, attempt to load them
+        if not scanPlugins():
+            logging.debug("No PsychoPy plugin packages found in environment.")
+            return
+
+        # If we find plugins in the current environment, try loading the ones
+        # specified as startup plugins.
+        for pluginName in listPlugins('startup'):
+            logging.debug(
+                "Loading startup plugin `{}`.".format(pluginName))
+
+            if not loadPlugin(pluginName):
+                logging.error(
+                    "Failed to load plugin `{}`!".format(pluginName))
+
+    def onInit(self, showSplash=True, testMode=False, safeMode=False):
         """This is launched immediately *after* the app initialises with wx
         :Parameters:
 
@@ -560,16 +587,22 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         if self.coder:
             self.coder.setOutputWindow()  # takes control of sys.stdout
 
+        # if the program gets here, there are no other instances running
+        self._timer = wx.PyTimer(self._bgCheckAndLoad)
+        self._timer.Start(250)
+
+        # load plugins after the app has been mostly realized
+        if splash:
+            splash.SetText(_translate("  Loading plugins..."))
+
+        self._loadStartupPlugins()
+
         # flush any errors to the last run log file
         logging.flush()
         sys.stdout.flush()
         # we wanted debug mode while loading but safe to go back to info mode
         if not self.prefs.app['debugMode']:
             logging.console.setLevel(logging.INFO)
-
-        # if the program gets here, there are no other instances running
-        self._timer = wx.PyTimer(self._bgCheckAndLoad)
-        self._timer.Start(250)
 
         return True
 
