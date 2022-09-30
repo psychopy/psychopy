@@ -1793,7 +1793,6 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
             imaginary and `w` is real.
 
         """
-        self.autoLog = autoLog
         self.name = name
 
         super(BaseRigidBodyStim, self).__init__()
@@ -1809,6 +1808,8 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
         self.material = None
 
         self._vao = None
+
+        self.autoLog = autoLog
 
     @property
     def thePose(self):

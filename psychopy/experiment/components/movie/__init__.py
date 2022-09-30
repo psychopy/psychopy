@@ -209,6 +209,7 @@ class MovieComponent(BaseVisualComponent):
                 "  units: {units},\n"
                 "  movie: {movie},\n"
                 "  pos: {pos},\n"
+                "  anchor: {anchor},\n"
                 "  size: {size},\n"
                 "  ori: {ori},\n"
                 "  opacity: {opacity},\n"
@@ -218,6 +219,7 @@ class MovieComponent(BaseVisualComponent):
                                    movie=inits['movie'],
                                    units=inits['units'],
                                    pos=inits['pos'],
+                                   anchor=inits['anchor'],
                                    size=inits['size'],
                                    ori=inits['ori'],
                                    loop=loop,

@@ -10,6 +10,7 @@ import subprocess
 import sys
 
 import wx
+import wx.stc
 
 from psychopy.app.colorpicker import PsychoColorPicker
 from psychopy.app.dialogs import ListWidget
@@ -19,8 +20,10 @@ from psychopy import data, prefs, experiment
 import re
 from pathlib import Path
 
+from . import CodeBox
 from ..localizedStrings import _localizedDialogs as _localized
-from ...themes import icons
+from ...coder import BaseCodeEditor
+from ...themes import icons, handlers
 
 
 class _ValidatorMixin:
@@ -181,6 +184,29 @@ class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin, _HideMixin):
         SingleLineCtrl.__init__(self, parent, valType,
                                 val=val, fieldName=fieldName,
                                 size=size, style=wx.TE_MULTILINE)
+
+
+class CodeCtrl(BaseCodeEditor, handlers.ThemeMixin, _ValidatorMixin):
+    def __init__(self, parent, valType,
+                 val="", fieldName="",
+                 size=wx.Size(-1, 144)):
+        BaseCodeEditor.__init__(self, parent,
+                                ID=wx.ID_ANY, pos=wx.DefaultPosition, size=size,
+                                style=0)
+        self.valType = valType
+        self.val = val
+        self.fieldName = fieldName
+        self.params = fieldName
+        # Setup lexer to style text
+        self.SetLexer(wx.stc.STC_LEX_PYTHON)
+        self._applyAppTheme()
+        # Hide margin
+        self.SetMarginWidth(0, 0)
+        # Setup auto indent behaviour as in Code component
+        self.Bind(wx.EVT_KEY_DOWN, self.onKey)
+
+    def onKey(self, evt=None):
+        CodeBox.OnKeyPressed(self, evt)
 
 
 class InvalidCtrl(SingleLineCtrl, _ValidatorMixin, _HideMixin):
@@ -643,7 +669,9 @@ class DictCtrl(ListWidget, _ValidatorMixin, _HideMixin):
         if isinstance(val, dict):
             newVal = []
             for key, v in val.items():
-                newVal.append({'Field': key, 'Default': v.val})
+                if hasattr(v, "val"):
+                    v = v.val
+                newVal.append({'Field': key, 'Default': v})
             val = newVal
         # If any items within the list are not dicts or are dicts longer than 1, throw error
         if not all(isinstance(v, dict) and len(v) == 2 for v in val):

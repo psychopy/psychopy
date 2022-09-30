@@ -390,17 +390,8 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
                 forcePOW2=False,
                 wrapping=False)
 
-        # if user requested size=None then update the size for new stim here
-        if self._requestedSize is None:
-            if hasattr(self, '_requestedSize'):
-                self.size = Size(numpy.array(self._origSize),
-                                 units='pix',
-                                 win=self.win)  # set size to default
-            # for camera and movie textures get the size of the video frame
-            elif hasattr(value, 'getVideoFrame'):
-                self.size = Size(numpy.array(value.frameSize),
-                                 units='pix',
-                                 win=self.win)  # set size to default
+        # update size
+        self.size = self._requestedSize
 
         if hasattr(value, 'getVideoFrame'):  # make sure we invert vertices
             self.flipVert = True

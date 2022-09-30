@@ -12,6 +12,7 @@ import os
 import re
 from pathlib import Path
 
+import PIL
 import numpy
 from wx.lib.agw.aui.aui_constants import *
 import wx.lib.statbmp
@@ -277,7 +278,7 @@ class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
 class HoverButton(wx.Button, HoverMixin, handlers.ThemeMixin):
     def __init__(self, parent, id=wx.ID_ANY, label='', bmp=None,
                  pos=wx.DefaultPosition, size=wx.DefaultSize,
-                 style=1, name=wx.ButtonNameStr):
+                 style=wx.BORDER_NONE, name=wx.ButtonNameStr):
         wx.Button.__init__(
             self, parent=parent, id=id, label=label, pos=pos, size=size, style=style, name=name
         )
@@ -636,16 +637,26 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
             self._frames.append(scaledBitmap)
         else:
             # Otherwise, extract frames
-            img = pil.open(data)
-            for i in range(img.n_frames):
-                # Seek to frame
-                img.seek(i)
-                fr.append(img.info['duration'])
-                # Create wx.Bitmap from frame
-                frame = img.resize(self.Size).convert("RGB")
-                bmp = wx.BitmapFromBuffer(*frame.size, frame.tobytes())
-                # Store bitmap
-                self._frames.append(bmp)
+            try:
+                img = pil.open(data)
+                for i in range(img.n_frames):
+                    # Seek to frame
+                    img.seek(i)
+                    if 'duration' in img.info:
+                        fr.append(img.info['duration'])
+                    # Create wx.Bitmap from frame
+                    frame = img.resize(self.Size).convert("RGB")
+                    bmp = wx.BitmapFromBuffer(*frame.size, frame.tobytes())
+                    # Store bitmap
+                    self._frames.append(bmp)
+            except PIL.UnidentifiedImageError as err:
+                # If image read fails, show warning
+                msg = _translate("Inavlid image format, could not set image.")
+                dlg = wx.MessageDialog(None, msg, style=wx.ICON_WARNING)
+                dlg.ShowModal()
+                # then use a blank image
+                self._frames = [icons.ButtonIcon(stem="invalid_img", size=128).bitmap]
+
         # Set first frame (updates non-animated images)
         self.SetBitmap(self._frames[self._frameI])
         # If animated...
@@ -853,6 +864,7 @@ def updateDemosMenu(frame, menu, folder, ext):
             else:
                 _makeFolder(frame, menu, fdr, ext)
 
+
 class FrameSwitcher(wx.Menu):
     """Menu for switching between different frames"""
     def __init__(self, parent):
@@ -868,9 +880,9 @@ class FrameSwitcher(wx.Menu):
         self.AppendSeparator()
         # Add creator options
         self.minItemSpec = [
-            {'label': "Builder", 'class': psychopy.app.builder.BuilderFrame, 'method': self.app.showBuilder},
-            {'label': "Coder", 'class': psychopy.app.coder.CoderFrame, 'method': self.app.showCoder},
-            {'label': "Runner", 'class': psychopy.app.runner.RunnerFrame, 'method': self.app.showRunner},
+            {'label': "&Builder", 'class': psychopy.app.builder.BuilderFrame, 'method': self.app.showBuilder},
+            {'label': "&Coder", 'class': psychopy.app.coder.CoderFrame, 'method': self.app.showCoder},
+            {'label': "&Runner", 'class': psychopy.app.runner.RunnerFrame, 'method': self.app.showRunner},
         ]
         for spec in self.minItemSpec:
             if not isinstance(self.Window, spec['class']):

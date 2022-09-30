@@ -1147,7 +1147,6 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
     def __init__(self, parent, ID, title, files=(), app=None):
         self.app = app  # type: psychopy.app.PsychoPyApp
-        self.session = pavlovia.getCurrentSession()
         self.frameType = 'coder'
         # things the user doesn't set like winsize etc
         self.appData = self.app.prefs.appData['coder']
@@ -1379,6 +1378,13 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
     def GetAuiManager(self):
         return self.paneManager
+
+    @property
+    def session(self):
+        """
+        Current Pavlovia session
+        """
+        return pavlovia.getCurrentSession()
 
     def outputContextMenu(self, event):
         """Custom context menu for output window.
@@ -1681,7 +1687,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # Theme Switcher
         self.themesMenu = ThemeSwitcher(app=self.app)
         menu.AppendSubMenu(self.themesMenu,
-                           _translate("Themes"))
+                           _translate("&Themes"))
 
         # ---_view---#000000#FFFFFF-------------------------------------------
         # self.shellMenu = wx.Menu()
@@ -1783,12 +1789,12 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         # ---_projects---#000000#FFFFFF---------------------------------------
         self.pavloviaMenu = psychopy.app.pavlovia_ui.menu.PavloviaMenu(parent=self)
-        menuBar.Append(self.pavloviaMenu, _translate("Pavlovia.org"))
+        menuBar.Append(self.pavloviaMenu, _translate("&Pavlovia.org"))
 
         # ---_window---#000000#FFFFFF-----------------------------------------
         self.windowMenu = FrameSwitcher(self)
         menuBar.Append(self.windowMenu,
-                    _translate("Window"))
+                    _translate("&Window"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()
