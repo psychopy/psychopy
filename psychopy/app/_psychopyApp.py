@@ -273,27 +273,24 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                 logging.error(
                     "Failed to load plugin `{}`!".format(pluginName))
 
-    def onInit(self, showSplash=True, testMode=False, safeMode=False):
-        """This is launched immediately *after* the app initialises with wx
-        :Parameters:
+    def _doSingleInstanceCheck(self):
+        """Set up the routines which check for and communicate with other
+        PsychoPy GUI processes.
 
-          testMode: bool
+        Single instance check is done here prior to loading any GUI stuff. This
+        permits one instance of PsychoPy from running at any time. Clicking on
+        files will open them in the extant instance rather than loading up a new
+        one.
+
+        Inter-process messaging is done via a memory-mapped file created by the
+        first instance. Successive instances will write their args to this file
+        and promptly close. The main instance will read this file periodically
+        for data and open and file names stored to this buffer.
+
+        This uses similar logic to this example:
+        https://github.com/wxWidgets/wxPython-Classic/blob/master/wx/lib/pydocview.py
+
         """
-        self.SetAppName('PsychoPy3')
-
-        # Single instance check is done here prior to loading any GUI stuff.
-        # This permits one instance of PsychoPy from running at any time.
-        # Clicking on files will open them in the extant instance rather than
-        # loading up a new one.
-        #
-        # Inter-process messaging is done via a memory-mapped file created by
-        # the first instance. Successive instances will write their args to
-        # this file and promptly close. The main instance will read this file
-        # periodically for data and open and file names stored to this buffer.
-        #
-        # This uses similar logic to this example:
-        # https://github.com/wxWidgets/wxPython-Classic/blob/master/wx/lib/pydocview.py
-
         # Create the memory-mapped file if not present, this is handled
         # differently between Windows and UNIX-likes.
         if wx.Platform == '__WXMSW__':
@@ -322,7 +319,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             tempfile.gettempdir())
 
         # If another instance is running, message our args to it by writing the
-        # path the the buffer.
+        # path the buffer.
         if self._singleInstanceChecker.IsAnotherRunning():
             # Message the extant running instance the arguments we want to
             # process.
@@ -376,7 +373,19 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             # since were not the main instance, exit ...
             self.quit(None)
 
-        # ----
+    def onInit(self, showSplash=True, testMode=False, safeMode=False):
+        """This is launched immediately *after* the app initialises with wx
+        :Parameters:
+
+          testMode: bool
+        """
+        self.SetAppName('PsychoPy3')
+
+        # Check for other running instances and communicate with them. This is
+        # done to allow a single instance to accept file open requests without
+        # opening it in a seperate process.
+        #
+        self._doSingleInstanceCheck()
 
         if showSplash:
             # show splash screen
