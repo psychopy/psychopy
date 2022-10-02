@@ -78,6 +78,8 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
             value = 0
         # Store value
         self.__dict__['azimuth'] = self.__dict__['longitude'] = value
+        # Shift 90deg left so centre of image is azimuth 0
+        value = value + 0.5
         # Get lat and long in degrees
         value = self._normToDegrees(value)
         # Calculate ori
@@ -108,7 +110,8 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
         # Store value
         value = np.clip(value, -1, 1)
         self.__dict__['altitude'] = self.__dict__['latitude'] = value
-        # Force to positive as we only need 180 degrees of rotation
+        # Force to positive as we only need 180 degrees of rotation, and flip
+        value = -value
         value += 1
         value /= 2
         value = np.clip(value, 0, 1)
