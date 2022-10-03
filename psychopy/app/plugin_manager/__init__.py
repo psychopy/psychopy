@@ -25,6 +25,7 @@ from psychopy.preferences import prefs
 from psychopy.localization import _translate
 
 import os
+from PIL import Image as pil
 
 
 # Get a copy of startup plugins, we want to defer changes made to preferences to
@@ -107,7 +108,7 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
             self.label = wx.BoxSizer(wx.VERTICAL)
             self.nameLbl = wx.StaticText(self, label=info.name)
             self.label.Add(self.nameLbl, flag=wx.ALIGN_LEFT)
-            self.pipNameLbl = wx.StaticText(self, label=info.pipName)
+            self.pipNameLbl = wx.StaticText(self, label=info.pipname)
             self.label.Add(self.pipNameLbl, flag=wx.ALIGN_LEFT)
             self.sizer.Add(self.label, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
             # Add install button
@@ -341,21 +342,26 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Handle None
         if value is None:
             value = plugins.PluginInfo(
-                "community",
-                "psychopy-...", name="...",
-                icon=None, description="",
-                installed=False
+                "community", "psychopy-...",
+                name="..."
             )
         self._info = value
         # Set icon
-        if value.icon is None:
-            value.icon = wx.Bitmap()
-        if not isinstance(value.icon, wx.Bitmap):
-            value.icon = wx.Bitmap(value.icon)
-        self.icon.SetBitmap(value.icon)
+        icon = value.icon
+        if icon is None:
+            icon = wx.Bitmap()
+        if isinstance(icon, pil.Image):
+            icon = wx.BitmapFromBuffer(
+                width=icon.size[0],
+                height=icon.size[1],
+                dataBuffer=icon.tobytes()
+            )
+        if not isinstance(icon, wx.Bitmap):
+            icon = wx.Bitmap(icon)
+        self.icon.SetBitmap(icon)
         # Set names
         self.title.SetLabelText(value.name)
-        self.pipName.SetLabelText(value.pipName)
+        self.pipName.SetLabelText(value.pipname)
         # Set description
         self.description.SetValue(value.description)
         # Set installed
