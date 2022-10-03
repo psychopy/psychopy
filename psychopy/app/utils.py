@@ -8,12 +8,14 @@
 """utility classes for the Builder
 """
 import glob
+import io
 import os
 import re
 from pathlib import Path
 
 import PIL
 import numpy
+import requests
 from wx.lib.agw.aui.aui_constants import *
 import wx.lib.statbmp
 from wx.lib.agw.aui.aui_utilities import IndentPressedBitmap, ChopText, TakeScreenShot
@@ -27,7 +29,7 @@ from psychopy import logging
 from . import pavlovia_ui
 from .themes import colors, handlers, icons
 from psychopy.localization import _translate
-from psychopy.tools.stringtools import prettyname
+from psychopy.tools import stringtools as st
 from psychopy.tools.apptools import SortTerm
 from PIL import Image as pil
 
@@ -210,6 +212,35 @@ def getSystemFonts(encoding='system', fixedWidthOnly=False):
         encoding = getattr(wx, encoding)
 
     return fontEnum.GetFacenames(encoding, fixedWidthOnly=fixedWidthOnly)
+
+
+class ImageData(pil.Image):
+    def __new__(cls, source):
+        # If given a PIL image, use it directly
+        if isinstance(source, pil.Image):
+            return source
+        # If given None, use None
+        if source in (None, "None", "none", ""):
+            return None
+        # If source is or looks like a file path, load from file
+        if st.is_file(source):
+            path = Path(source)
+            # Only load if it looks like an image
+            if path.suffix in pil.registered_extensions():
+                return pil.open(source)
+        # If source is a url, load from server
+        if st.is_url(source):
+            # Only load if looks like an image
+            ext = "." + str(source).split(".")[-1]
+            if ext in pil.registered_extensions():
+                content = requests.get(source).content
+                data = io.BytesIO(content)
+                return pil.open(data)
+
+        # If couldn't interpret, raise error
+        raise ValueError(_translate(
+            "Could not get image from: {}"
+        ).format(source))
 
 
 class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
