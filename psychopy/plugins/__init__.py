@@ -499,7 +499,7 @@ def loadPlugin(plugin, *args, **kwargs):
         if targObj is None:
             logging.error(
                 "Plugin `{}` specified entry point group `{}` that does not "
-                "exist or is unreachable.")
+                "exist or is unreachable.".format(plugin, fqn))
 
             if plugin not in _failed_plugins_:
                 _failed_plugins_.append(plugin)
@@ -577,20 +577,21 @@ def loadPlugin(plugin, *args, **kwargs):
             if hasattr(targObj, attr):
                 # handle what to do if an attribute exists already here ...
                 if inspect.ismodule(getattr(targObj, attr)):
-                    logging.error(
+                    logging.warning(
                         "Plugin `{}` attempted to override module `{}`.".format(
                             plugin, fqn + '.' + attr))
 
-                    if plugin not in _failed_plugins_:
-                        _failed_plugins_.append(plugin)
-
-                    return False
+                    # if plugin not in _failed_plugins_:
+                    #     _failed_plugins_.append(plugin)
+                    #
+                    # return False
             try:
                 ep = ep.load()  # load the entry point
-            except ImportError:
+            except ImportError as e:
                 logging.error(
                     "Failed to load entry point `{}` of plugin `{}`. "
-                    " Skipping.".format(str(ep), plugin))
+                    "(`{}: {}`) "
+                    "Skipping.".format(str(ep), plugin, e.name, e.msg))
 
                 if plugin not in _failed_plugins_:
                     _failed_plugins_.append(plugin)
