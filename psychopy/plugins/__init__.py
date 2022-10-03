@@ -20,8 +20,10 @@ from pathlib import Path
 import pkg_resources
 
 from psychopy import logging
+from psychopy.app import utils
 from psychopy.preferences import prefs
 import psychopy.experiment.components as components
+from psychopy.tools import stringtools as strtools
 
 # Keep track of plugins that have been loaded. Keys are plugin names and values
 # are their entry point mappings.
@@ -218,7 +220,7 @@ class PluginInfo:
     ----------
     source : str
         Is this a community plugin ("community") or one curated by us ("curated")?
-    pipName : str
+    pipname : str
         Name of plugin on pip, e.g. "psychopy-legacy"
     name : str
         Plugin name for display, e.g. "Psychopy Legacy"
@@ -232,15 +234,31 @@ class PluginInfo:
         Whether or not the plug is enabled on this system (if not installed, will always be False)
     """
     def __init__(self, source,
-                 pipName, name="",
-                 icon=None, description="",
-                 installed=False):
+                 pipname, name="",
+                 author=None, website="",
+                 keywords=None,
+                 icon=None, description=""):
         self.source = source
-        self.pipName = pipName
+        self.pipname = pipname
         self.name = name
+        self.author = author
+        self.website = website
         self.icon = icon
         self.description = description
-        self.installed = installed
+        self.keywords = keywords or []
+
+    def __repr__(self):
+        return f"<psychopy.plugins.PluginInfo: {self.name} [{self.pipname}] by {self.author} ({self.source})>"
+
+    @property
+    def icon(self):
+        if hasattr(self, "_icon"):
+            return self._icon
+
+    @icon.setter
+    def icon(self, value):
+        self._requestedIcon = value
+        self._icon = utils.ImageData(value)
 
     @property
     def active(self):
@@ -248,7 +266,7 @@ class PluginInfo:
         Is this plugin active? If so, it is loaded when the app starts. Otherwise, it remains installed but is not
         loaded.
         """
-        return isStartUpPlugin(self.pipName)
+        return isStartUpPlugin(self.pipname)
 
     @active.setter
     def active(self, value):
@@ -258,13 +276,49 @@ class PluginInfo:
 
         if value:
             # If active, add to list of startup plugins
-            startUpPlugins(self.pipName, add=True)
+            startUpPlugins(self.pipname, add=True)
         else:
             # If active and changed to inactive, remove from list of startup plugins
             current = listPlugins(which='startup')
-            if self.pipName in current:
-                current.remove(self.pipName)
+            if self.pipname in current:
+                current.remove(self.pipname)
             startUpPlugins(current, add=False)
+
+    def activate(self):
+        self.active = True
+
+    @property
+    def installed(self):
+        current = listPlugins(which='all')
+        return self.pipname in current
+
+
+class AuthorInfo:
+    def __init__(self,
+                 name=None,
+                 email="",
+                 github="",
+                 avatar=None):
+        self.id = id
+        if name is None:
+            name = strtools.prettyname(id)
+        self.name = name
+        self.email = email
+        self.github = github
+        self.avatar = avatar
+
+    @property
+    def avatar(self):
+        if hasattr(self, "_avatar"):
+            return self._avatar
+
+    @avatar.setter
+    def avatar(self, value):
+        self._requestedAvatar = value
+        self._avatar = utils.ImageData(value)
+
+    def __repr__(self):
+        return f"<psychopy.plugins.AuthorInfo: {self.name} (@{self.github}, {self.email})>"
 
 
 def getAllPluginDetails():
