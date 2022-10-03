@@ -10,6 +10,7 @@ __all__ = ['loadPlugin', 'listPlugins', 'computeChecksum', 'startUpPlugins',
            'pluginMetadata', 'pluginEntryPoints', 'scanPlugins',
            'requirePlugin', 'isPluginLoaded', 'isStartUpPlugin']
 
+import json
 import sys
 import inspect
 import collections
@@ -235,14 +236,16 @@ class PluginInfo:
     """
     def __init__(self, source,
                  pipname, name="",
-                 author=None, website="",
+                 author=None, homepage="", docs="", repo="",
                  keywords=None,
                  icon=None, description=""):
         self.source = source
         self.pipname = pipname
         self.name = name
         self.author = author
-        self.website = website
+        self.homepage = homepage
+        self.docs = docs
+        self.repo = repo
         self.icon = icon
         self.description = description
         self.keywords = keywords or []
@@ -292,16 +295,30 @@ class PluginInfo:
         current = listPlugins(which='all')
         return self.pipname in current
 
+    @property
+    def author(self):
+        if hasattr(self, "_author"):
+            return self._author
+
+    @author.setter
+    def author(self, value):
+        if isinstance(value, AuthorInfo):
+            # If given an AuthorInfo, use it directly
+            self._author = value
+        elif isinstance(value, dict):
+            # If given a dict, make an AuthorInfo from it
+            self._author = AuthorInfo(**value)
+        else:
+            # Otherwise, assume no author
+            self._author = AuthorInfo()
+
 
 class AuthorInfo:
     def __init__(self,
-                 name=None,
+                 name="",
                  email="",
                  github="",
                  avatar=None):
-        self.id = id
-        if name is None:
-            name = strtools.prettyname(id)
         self.name = name
         self.email = email
         self.github = github
