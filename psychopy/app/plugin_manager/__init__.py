@@ -5,6 +5,7 @@ import wx
 
 from psychopy.app import utils
 from psychopy.app.themes import handlers, colors, icons, fonts, theme
+from psychopy.plugins import AuthorInfo
 
 try:
     from wx import aui
@@ -25,6 +26,7 @@ from psychopy.preferences import prefs
 from psychopy.localization import _translate
 
 import os
+import webbrowser
 from PIL import Image as pil
 
 
@@ -296,6 +298,12 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
                                        style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL)
         self.sizer.Add(self.description, border=12, proportion=1, flag=wx.ALL | wx.EXPAND)
 
+        self.sizer.Add(wx.StaticLine(self), border=6, flag=wx.EXPAND | wx.ALL)
+
+        # Add author panel
+        self.author = AuthorDetailsPanel(self, info=None)
+        self.sizer.Add(self.author, border=6, flag=wx.EXPAND | wx.ALL)
+
         self.info = info
         self.Layout()
 
@@ -371,12 +379,15 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Set names
         self.title.SetLabelText(value.name)
         self.pipName.SetLabelText(value.pipname)
-        # Set description
-        self.description.SetValue(value.description)
         # Set installed
         self.markInstalled(value.installed)
         # Set activated
         self.activeBtn.SetValue(value.active)
+        # Set description
+        self.description.SetValue(value.description)
+
+        # Set author info
+        self.author.info = value.author
 
         self.Layout()
 
@@ -393,6 +404,107 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
             self.activeBtn.Disable()
             # Update label
             self.installBtn.SetLabelText(_translate("Install"))
+
+
+class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
+    avatarSize = (64, 64)
+
+    def __init__(self, parent, info):
+        wx.Panel.__init__(self, parent)
+
+        # Setup sizers
+        self.border = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.border)
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+
+        # Details sizer
+        self.detailsSizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.detailsSizer, proportion=1, border=6, flag=wx.LEFT | wx.EXPAND)
+        # Name
+        self.name = wx.StaticText(self)
+        self.detailsSizer.Add(self.name, border=6, flag=wx.ALIGN_RIGHT | wx.ALL)
+
+        # Button sizer
+        self.buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.detailsSizer.Add(self.buttonSizer, border=3, flag=wx.ALIGN_RIGHT | wx.ALL)
+        # Email button
+        self.emailBtn = wx.Button(self, size=(24, 24))
+        self.emailBtn.Bind(wx.EVT_BUTTON, self.onEmailBtn)
+        self.buttonSizer.Add(self.emailBtn, border=3, flag=wx.EXPAND | wx.ALL)
+        # GitHub button
+        self.githubBtn = wx.Button(self, size=(24, 24))
+        self.githubBtn.Bind(wx.EVT_BUTTON, self.onGithubBtn)
+        self.buttonSizer.Add(self.githubBtn, border=3, flag=wx.EXPAND | wx.ALL)
+
+        # Avatar
+        self.avatar = wx.StaticBitmap(self, bitmap=wx.Bitmap(), size=self.avatarSize, style=wx.BORDER_NONE)
+        self.sizer.Add(self.avatar, border=6, flag=wx.ALL | wx.EXPAND)
+
+        # Set initial info
+        if info is not None:
+            self.info = info
+
+        self.Layout()
+        self._applyAppTheme()
+
+    def _applyAppTheme(self):
+        # Name font
+        self.name.SetFont(fonts.appTheme['h4'].obj)
+        # Email button bitmap
+        self.emailBtn.SetBitmap(icons.ButtonIcon("email", 16).bitmap)
+        self.emailBtn.SetBitmapDisabled(icons.ButtonIcon("email", 16).bitmap)
+        # Github button bitmap
+        self.githubBtn.SetBitmap(icons.ButtonIcon("github", 16).bitmap)
+        self.githubBtn.SetBitmapDisabled(icons.ButtonIcon("github", 16).bitmap)
+
+    @property
+    def info(self):
+        if hasattr(self, "_info"):
+            return self._info
+
+    @info.setter
+    def info(self, value):
+        # Alias None
+        if value is None:
+            value = AuthorInfo(
+                name="..."
+            )
+        # Store value
+        self._info = value
+        # Update avatar
+        icon = value.avatar
+        if icon is None:
+            icon = wx.Bitmap()
+        if isinstance(icon, pil.Image):
+            # Resize to fit ctrl
+            icon = icon.resize(size=self.avatarSize)
+            # Supply an alpha channel if there is one
+            if "A" in icon.getbands():
+                alpha = icon.tobytes("raw", "A")
+            else:
+                alpha = None
+            icon = wx.BitmapFromBuffer(
+                width=icon.size[0],
+                height=icon.size[1],
+                dataBuffer=icon.tobytes("raw", "RGB"),
+                alphaBuffer=alpha
+            )
+        if not isinstance(icon, wx.Bitmap):
+            icon = wx.Bitmap(icon)
+        self.avatar.SetBitmap(icon)
+        # Update name
+        self.name.SetLabelText(value.name)
+        # Show/hide buttons
+        self.emailBtn.Show(bool(value.email))
+        self.githubBtn.Show(bool(value.github))
+
+    def onEmailBtn(self, evt=None):
+        webbrowser.open(f"mailto:{self.info.email}")
+
+    def onGithubBtn(self, evt=None):
+        webbrowser.open(f"github.com/{self.info.github}")
+
 
 # ---
 
