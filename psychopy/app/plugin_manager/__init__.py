@@ -258,6 +258,7 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
 
 
 class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
+    iconSize = (128, 128)
     def __init__(self, parent, info=None):
         wx.Panel.__init__(self, parent)
         self.parent = parent
@@ -269,7 +270,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.headSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(self.headSizer, flag=wx.EXPAND)
         # Icon ctrl
-        self.icon = wx.StaticBitmap(self, bitmap=wx.Bitmap(), size=(128, 128), style=wx.SIMPLE_BORDER)
+        self.icon = wx.StaticBitmap(self, bitmap=wx.Bitmap(), size=self.iconSize, style=wx.SIMPLE_BORDER)
         self.headSizer.Add(self.icon, border=6, flag=wx.ALL | wx.EXPAND)
         # Title
         self.titleSizer = wx.BoxSizer(wx.VERTICAL)
@@ -351,6 +352,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         if icon is None:
             icon = wx.Bitmap()
         if isinstance(icon, pil.Image):
+            icon = icon.resize(size=self.iconSize)
             icon = wx.BitmapFromBuffer(
                 width=icon.size[0],
                 height=icon.size[1],
