@@ -373,11 +373,40 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             # since were not the main instance, exit ...
             self.quit(None)
 
-    def onInit(self, showSplash=True, testMode=False, safeMode=False):
-        """This is launched immediately *after* the app initialises with wx
-        :Parameters:
+    def _refreshComponentPanels(self):
+        """Refresh Builder component panels.
 
-          testMode: bool
+        Since panels are created before loading plugins, calling this method is
+        required after loading plugins which contain components to have them
+        appear.
+
+        """
+        if self.builder is None:
+            return
+
+        if not isinstance(self.builder, list):
+            self.builder.componentButtons.Refresh()
+        else:
+            for builderFrame in self.builder:
+                self.builder.componentButtons.Refresh()
+
+    def onInit(self, showSplash=True, testMode=False, safeMode=False):
+        """This is launched immediately *after* the app initialises with
+        wxPython.
+
+        Plugins are loaded at the very end of this routine if `safeMode==False`.
+
+        Parameters
+        ----------
+        showSplash : bool
+            Display the splash screen on init.
+        testMode : bool
+            Are we running in test mode? If so, disable multi-instance checking
+            and other features that depend on the `EVT_IDLE` event.
+        safeMode : bool
+            Run PsychoPy in safe mode. This temporarily disables plugins and
+            resets configurations that may be causing problems running PsychoPy.
+
         """
         self.SetAppName('PsychoPy3')
 
@@ -604,7 +633,11 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         if splash:
             splash.SetText(_translate("  Loading plugins..."))
 
+        # Load plugins here after everything is realized, make sure that we
+        # refresh UI elements which are affected by plugins (e.g. the component
+        # panel in Builder).
         self._loadStartupPlugins()
+        self._refreshComponentPanels()
 
         # flush any errors to the last run log file
         logging.flush()
