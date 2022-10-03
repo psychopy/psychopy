@@ -352,11 +352,18 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         if icon is None:
             icon = wx.Bitmap()
         if isinstance(icon, pil.Image):
+            # Resize to fit ctrl
             icon = icon.resize(size=self.iconSize)
+            # Supply an alpha channel if there is one
+            if "A" in icon.getbands():
+                alpha = icon.tobytes("raw", "A")
+            else:
+                alpha = None
             icon = wx.BitmapFromBuffer(
                 width=icon.size[0],
                 height=icon.size[1],
-                dataBuffer=icon.tobytes()
+                dataBuffer=icon.tobytes("raw", "RGB"),
+                alphaBuffer=alpha
             )
         if not isinstance(icon, wx.Bitmap):
             icon = wx.Bitmap(icon)
