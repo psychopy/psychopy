@@ -47,16 +47,24 @@ def test_all_have_depth():
         # This won't be relevant for non-visual stimuli
         if compName in exceptions or not isinstance(comp, experiment.components.BaseVisualComponent):
             continue
-
-        # Crate buffer to get component code
-        buff = IndentingBuffer(target="PsychoPy")
-        # Write init code
-        comp.writeInitCode(buff)
-        script = buff.getvalue()
-        # Unless excepted, check that depth is in the output
-        assert "depth=" in script.replace(" ", ""), (
-            f"Could not find any reference to depth in init code for {compName}:\n"
-            f"{script}\n"
-            f"Any component drawn to the screen should be given a `depth` on init. If this component is a special "
-            f"case, you can mark it as exempt by adding it to the `exceptions` variable in this test.\n"
-        )
+        for target in ("PsychoPy", "PsychoJS"):
+            # Skip if target isn't applicable
+            if target not in comp.targets:
+                continue
+            # Crate buffer to get component code
+            buff = IndentingBuffer(target=target)
+            # Write init code
+            if target == "PsychoJS":
+                comp.writeInitCodeJS(buff)
+                sought = "depth:"
+            else:
+                comp.writeInitCode(buff)
+                sought = "depth="
+            script = buff.getvalue()
+            # Unless excepted, check that depth is in the output
+            assert sought in script.replace(" ", ""), (
+                f"Could not find any reference to depth in {target} init code for {compName}:\n"
+                f"{script}\n"
+                f"Any component drawn to the screen should be given a `depth` on init. If this component is a special "
+                f"case, you can mark it as exempt by adding it to the `exceptions` variable in this test.\n"
+            )
