@@ -212,6 +212,7 @@ class ButtonComponent(BaseVisualComponent):
 
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params, 'PsychoJS')
+        inits['depth'] = -self.getPosInRoutine()
 
         code = (
             "%(name)s = new visual.ButtonStim({\n"
@@ -228,7 +229,8 @@ class ButtonComponent(BaseVisualComponent):
                 "colorSpace: %(colorSpace)s,\n"
                 "pos: %(pos)s,\n"
                 "letterHeight: %(letterHeight)s,\n"
-                "size: %(size)s\n"
+                "size: %(size)s,\n"
+                "depth: %(depth)s\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)

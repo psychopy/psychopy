@@ -202,6 +202,7 @@ class FormComponent(BaseVisualComponent):
 
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params)
+        inits['depth'] = -self.getPosInRoutine()
         # build up an initialization string for Form():
         initStr = ("{name} = new visual.Form({{\n"
                    "  win : psychoJS.window, name:'{name}',\n"
@@ -212,7 +213,8 @@ class FormComponent(BaseVisualComponent):
                    "  size : {size},\n"
                    "  pos : {pos},\n"
                    "  style : {Style},\n"
-                   "  itemPadding : {Item Padding}\n"
+                   "  itemPadding : {Item Padding},\n"
+                   "  depth : {depth}\n"
                    "}});\n".format(**inits))
         buff.writeIndentedLines(initStr)
 

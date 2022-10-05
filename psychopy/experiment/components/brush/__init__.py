@@ -105,6 +105,7 @@ class BrushComponent(BaseVisualComponent):
     def writeInitCodeJS(self, buff):
         # JS code does not use Brush class
         params = getInitVals(self.params)
+        params['depth'] = -self.getPosInRoutine()
 
         code = ("{name} = {{}};\n"
                 "get{name} = function() {{\n"
@@ -115,12 +116,10 @@ class BrushComponent(BaseVisualComponent):
                 "    lineColor: new util.Color({lineColor}),\n"
                 "    opacity: {opacity},\n"
                 "    closeShape: false,\n"
-                "    autoLog: false\n"
+                "    autoLog: false,\n"
+                "    depth: {depth}\n"
                 "    }}))\n"
-                "}}\n\n").format(name=params['name'],
-                                 lineWidth=params['lineWidth'],
-                                 lineColor=params['lineColor'],
-                                 opacity=params['opacity'])
+                "}}\n\n").format(**params)
 
         buff.writeIndentedLines(code)
         # add reset function
