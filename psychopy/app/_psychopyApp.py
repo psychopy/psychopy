@@ -385,10 +385,10 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             return
 
         if not isinstance(self.builder, list):
-            self.builder.componentButtons.Refresh()
+            self.builder.componentButtons.populate()
         else:
             for builderFrame in self.builder:
-                self.builder.componentButtons.Refresh()
+                self.builder.componentButtons.populate()
 
     def onInit(self, showSplash=True, testMode=False, safeMode=False):
         """This is launched immediately *after* the app initialises with

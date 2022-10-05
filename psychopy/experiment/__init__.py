@@ -31,8 +31,9 @@ def getAllElements(fetchIcons=True):
     """
     comps = getAllComponents(fetchIcons=fetchIcons)
     rts = getAllStandaloneRoutines(fetchIcons=fetchIcons)
+    comps.update(rts)
 
-    return comps | rts
+    return comps
 
 
 def getAllCategories():
