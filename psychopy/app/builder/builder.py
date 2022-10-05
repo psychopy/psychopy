@@ -2344,39 +2344,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
                 state = event
             else:
                 state = event.GetSelection()
+            # Set state
             self.SetValue(state)
-            if state:
-                # If state is show, then show all non-hidden components
-                for btn in self.menu.GetChildren():
-                    btn = btn.GetWindow()
-                    if isinstance(btn, ComponentsPanel.ComponentButton):
-                        comp = btn.component
-                    elif isinstance(btn, ComponentsPanel.RoutineButton):
-                        comp = btn.routine
-                    else:
-                        return
-                    # Work out if it should be shown based on filter
-                    cond = True
-                    if self.parent.filter == 'Any':
-                        cond = True
-                    elif self.parent.filter == 'Both':
-                        cond = 'PsychoJS' in comp.targets and 'PsychoPy' in comp.targets
-                    elif self.parent.filter in ['PsychoPy', 'PsychoJS']:
-                        cond = self.parent.filter in comp.targets
-                    # Always hide if hidden by prefs
-                    if comp.__name__ in prefs.builder['hiddenComponents'] + alwaysHidden:
-                        cond = False
-                    btn.Show(cond)
-                # # Update icon
-                # self.icon.SetLabelText(chr(int("1401", 16)))
-            else:
-                # If state is hide, hide all components
-                self.menu.ShowItems(False)
-                # # Update icon
-                # self.icon.SetLabelText(chr(int("140A", 16)))
-            # Do layout
-            self.parent.Layout()
-            self.parent.SetupScrolling()
+            # Refresh view (which will show/hide according to this button's state)
+            self.parent.refreshView()
             # Restyle
             self.OnHover()
 
@@ -2406,6 +2377,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             # Bind to functions
             self.Bind(wx.EVT_BUTTON, self.onClick)
             self.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
+
+        @property
+        def element(self):
+            return self.component
 
         def onClick(self, evt=None, timeout=None):
             """Called when a component button is clicked on.
@@ -2529,6 +2504,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.Bind(wx.EVT_BUTTON, self.onClick)
             self.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
 
+        @property
+        def element(self):
+            return self.routine
+
         def onClick(self, evt=None, timeout=None):
             # Make a routine instance
             comp = self.routine(exp=self.parent.frame.exp)
@@ -2612,7 +2591,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         def onChange(self, evt=None):
             self.parent.filter = prefs.builder['componentFilter'] = self.GetValue()
             prefs.saveUserPrefs()
-            self.parent.Refresh()
+            self.parent.refreshView()
 
     faveThreshold = 20
 
@@ -2647,6 +2626,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.objectHandles = {}
         # Create buttons
         self.populate()
+        # Apply filter
+        self.refreshView()
         # Do sizing
         self.Fit()
         # double buffered better rendering except if retina
@@ -2749,6 +2730,41 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         # Show favourites on startup
         self.catLabels['Favorites'].ToggleMenu(True)
 
+    def refreshView(self):
+        # Get view value(s)
+        if prefs.builder['componentFilter'] == "Both":
+            view = ["PsychoPy", "PsychoJS"]
+        elif prefs.builder['componentFilter'] == "Any":
+            view = []
+        else:
+            view = [prefs.builder['componentFilter']]
+
+        # Iterate through categories and buttons
+        for cat in self.objectHandles:
+            anyShown = False
+            for name, btn in self.objectHandles[cat].items():
+                shown = True
+                # Check whether button is hidden by filter
+                for v in view:
+                    if v not in btn.element.targets:
+                        shown = False
+                # Check whether button is hidden by prefs
+                if name in prefs.builder['hiddenComponents'] + alwaysHidden:
+                    shown = False
+                # Show/hide button
+                btn.Show(shown)
+                # Count state towards category
+                anyShown = anyShown or shown
+            # Only show category button if there are some buttons
+            self.catLabels[cat].Show(anyShown)
+            # If comp button is set to hide, hide all regardless
+            if not self.catLabels[cat].GetValue():
+                self.catSizers[cat].ShowItems(False)
+
+        # Do sizing
+        self.Layout()
+        self.SetupScrolling()
+
     def _applyAppTheme(self, target=None):
         # Style component panel
         self.SetForegroundColour(colors.app['text'])
@@ -2789,35 +2805,6 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         for button in self.compButtons:
             button.Enable(enable)
         self.Update()
-
-    def Refresh(self, eraseBackground=True, rect=None):
-        wx.Window.Refresh(self, eraseBackground, rect)
-        # Get view value(s)
-        if prefs.builder['componentFilter'] == "Both":
-            view = ["PsychoPy", "PsychoJS"]
-        elif prefs.builder['componentFilter'] == "Any":
-            view = []
-        else:
-            view = [prefs.builder['componentFilter']]
-        # Toggle all categories so they refresh
-        for btn in self.catLabels.values():
-            btn.ToggleMenu(btn.GetValue())
-        # If every button in a category is hidden, hide the category
-        for cat, btn in self.catLabels.items():
-            empty = True
-            for child in self.catSizers[cat].Children:
-                if isinstance(child.Window, self.ComponentButton):
-                    name = child.Window.component.__name__
-                elif isinstance(child.Window, self.RoutineButton):
-                    name = child.Window.routine.__name__
-                else:
-                    name = ""
-                if name not in prefs.builder['hiddenComponents'] + alwaysHidden:
-                    empty = False
-            btn.Show(not empty)
-        # Do sizing
-        self.Layout()
-        self.SetupScrolling()
 
     def onFilterBtn(self, evt=None):
         dlg = self.FilterDialog(self)
