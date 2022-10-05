@@ -2644,7 +2644,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.catSizers = {}
         self.compButtons = []
         self.rtButtons = []
-        self.emtButtons = []
+        self.objectHandles = {}
         # Create buttons
         self.populate()
         # Do sizing
@@ -2703,33 +2703,49 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         return elements
 
     def populate(self):
+        """
+        Find all component/standalone routine classes and create buttons for each, sorted by category.
+
+        This *can* be called multiple times - already existing buttons are simply detached from their sizer and
+        reattached in the correct place given any changes since last called.
+        """
         elements = self.getSortedElements()
 
+        # Detach any extant category labels and sizers from main sizer
+        for cat in self.objectHandles:
+            self.sizer.Detach(self.catLabels[cat])
+            self.sizer.Detach(self.catSizers[cat])
+        # Add each category
         for cat, emts in elements.items():
-            if cat not in self.catSizers:
+            if cat not in self.objectHandles:
                 # Make category sizer
                 self.catSizers[cat] = wx.WrapSizer(orient=wx.HORIZONTAL)
                 # Make category button
                 self.catLabels[cat] = self.CategoryButton(self, name=cat, cat=cat)
-                # Add to sizer
-                self.sizer.Add(self.catLabels[cat], border=3, flag=wx.BOTTOM | wx.EXPAND)
-                self.sizer.Add(self.catSizers[cat], border=6, flag=wx.ALL | wx.ALIGN_CENTER)
+                # Store category reference
+                self.objectHandles[cat] = {}
+            # Add to sizer
+            self.sizer.Add(self.catLabels[cat], border=3, flag=wx.BOTTOM | wx.EXPAND)
+            self.sizer.Add(self.catSizers[cat], border=6, flag=wx.ALL | wx.ALIGN_CENTER)
+
+            # Detach any extant buttons from sizer
+            for btn in self.objectHandles[cat].values():
+                self.catSizers[cat].Detach(btn)
             # Add each element
             for name, emt in emts.items():
-                # Skip if element already added
-                if name in self.emtButtons:
-                    continue
-                # Otherwise, make appropriate button
-                if issubclass(emt, BaseStandaloneRoutine):
-                    emtBtn = self.RoutineButton(self, name=name, rt=emt, cat=cat)
-                    self.rtButtons.append(emtBtn)
-                else:
-                    emtBtn = self.ComponentButton(self, name=name, comp=emt, cat=cat)
-                    self.compButtons.append(emtBtn)
+                if name not in self.objectHandles[cat]:
+                    # Make appropriate button
+                    if issubclass(emt, BaseStandaloneRoutine):
+                        emtBtn = self.RoutineButton(self, name=name, rt=emt, cat=cat)
+                        self.rtButtons.append(emtBtn)
+                    else:
+                        emtBtn = self.ComponentButton(self, name=name, comp=emt, cat=cat)
+                        self.compButtons.append(emtBtn)
+                    # Store reference by category
+                    self.objectHandles[cat][name] = emtBtn
                 # Add to category sizer
-                self.catSizers[cat].Add(emtBtn, border=3, flag=wx.ALL)
-        # Store reference to all buttons
-        self.emtButtons = self.rtButtons + self.compButtons
+                self.catSizers[cat].Add(self.objectHandles[cat][name], border=3, flag=wx.ALL)
+
         # Show favourites on startup
         self.catLabels['Favorites'].ToggleMenu(True)
 
