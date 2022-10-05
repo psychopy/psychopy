@@ -23,3 +23,13 @@ from ._experiment import Experiment
 from .utils import unescapedDollarSign_re, valid_var_re, \
      nonalphanumeric_re
 from psychopy.experiment.utils import CodeGenerationException
+
+
+def getAllElements(fetchIcons=True):
+    """
+    Get all components and all standalone routines
+    """
+    comps = getAllComponents(fetchIcons=fetchIcons)
+    rts = getAllStandaloneRoutines(fetchIcons=fetchIcons)
+
+    return comps | rts
