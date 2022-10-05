@@ -33,3 +33,19 @@ def getAllElements(fetchIcons=True):
     rts = getAllStandaloneRoutines(fetchIcons=fetchIcons)
 
     return comps | rts
+
+
+def getAllCategories():
+    """
+    Get all categories which components and standalone routines can be
+    sorted into
+    """
+    categories = []
+    # For each component/standalone routine...
+    for name, thisComp in getAllElements().items():
+        for thisCat in thisComp.categories:
+            # If category is not already present, append it
+            if thisCat not in categories:
+                categories.append(thisCat)
+
+    return categories
