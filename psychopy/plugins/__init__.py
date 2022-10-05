@@ -19,6 +19,7 @@ import importlib
 from pathlib import Path
 
 import pkg_resources
+import requests
 
 from psychopy import logging
 from psychopy.app import utils
@@ -341,21 +342,18 @@ class AuthorInfo:
 def getAllPluginDetails():
     """
     Placeholder function - returns an example list of objects with desired structure.
-
-    todo: Actually scan for plugins
     """
-
-    names = listPlugins()
+    # Request plugin info list from server
+    resp = requests.get("https://psychopy.org/plugins.json")
+    # If 404, return None so the interface can handle this nicely rather than an unhandled error
+    if resp.status_code == 404:
+        return
+    # Create PluginInfo objects from info list
     objs = []
-    for name in names:
-        data = pluginMetadata(name)
-        obj = PluginInfo(
-            source="curated",
-            pipName=name, name=name,
-            icon=None, description=data['Summary'],
-            installed=True
+    for info in resp.json():
+        objs.append(
+            PluginInfo(**info)
         )
-        objs.append(obj)
 
     return objs
 
