@@ -2440,9 +2440,11 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             Defines rightclick behavior within builder view's
             components panel
             """
+            # Get fave levels
+            faveLevels = prefs.appDataCfg['builder']['favComponents']
             # Make menu
             menu = wx.Menu()
-            if self.component.__name__ in self.parent.favorites:
+            if faveLevels[self.component.__name__] > ComponentsPanel.faveThreshold:
                 # If is in favs
                 msg = "Remove from favorites"
                 fun = self.removeFromFavorites
@@ -2680,6 +2682,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             name, emt = faveDefaults.pop(0)
             if name not in elements['Favorites']:
                 elements['Favorites'][name] = emt
+                self.faveLevels[name] = self.faveThreshold + 1
 
         return elements
 
@@ -2784,10 +2787,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         name = comp.__name__
         # Mark component as a favorite
         self.faveLevels[name] = self.faveThreshold + 1
-        # Add button to favorites menu
-        btn = self.ComponentButton(self, name, comp, "Favorites")
-        self.compButtons.append(btn)
-        self.catSizers['Favorites'].Add(btn, border=3, flag=wx.ALL)
+        # Repopulate
+        self.populate()
         # Do sizing
         self.Layout()
 
@@ -2797,7 +2798,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         # Unmark component as favorite
         self.faveLevels[name] = 0
         # Remove button from favorites menu
-        button.Hide()
+        button.Destroy()
+        del self.objectHandles["Favorites"][name]
         # Do sizing
         self.Layout()
 
