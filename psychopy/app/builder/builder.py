@@ -11,6 +11,7 @@ Distributed under the terms of the GNU General Public License (GPL).
 import os, sys
 import subprocess
 import webbrowser
+from collections import OrderedDict
 from pathlib import Path
 import glob
 import copy
@@ -29,7 +30,7 @@ from ..pavlovia_ui import sync
 from ..pavlovia_ui.project import ProjectFrame
 from ..pavlovia_ui.search import SearchFrame
 from ..pavlovia_ui.user import UserFrame
-from ...experiment.components import getAllCategories
+from ...experiment import getAllElements, getAllCategories
 from ...experiment.routines import Routine, BaseStandaloneRoutine
 from ...tools.stringtools import prettyname
 
@@ -2343,39 +2344,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
                 state = event
             else:
                 state = event.GetSelection()
+            # Set state
             self.SetValue(state)
-            if state:
-                # If state is show, then show all non-hidden components
-                for btn in self.menu.GetChildren():
-                    btn = btn.GetWindow()
-                    if isinstance(btn, ComponentsPanel.ComponentButton):
-                        comp = btn.component
-                    elif isinstance(btn, ComponentsPanel.RoutineButton):
-                        comp = btn.routine
-                    else:
-                        return
-                    # Work out if it should be shown based on filter
-                    cond = True
-                    if self.parent.filter == 'Any':
-                        cond = True
-                    elif self.parent.filter == 'Both':
-                        cond = 'PsychoJS' in comp.targets and 'PsychoPy' in comp.targets
-                    elif self.parent.filter in ['PsychoPy', 'PsychoJS']:
-                        cond = self.parent.filter in comp.targets
-                    # Always hide if hidden by prefs
-                    if comp.__name__ in prefs.builder['hiddenComponents'] + alwaysHidden:
-                        cond = False
-                    btn.Show(cond)
-                # # Update icon
-                # self.icon.SetLabelText(chr(int("1401", 16)))
-            else:
-                # If state is hide, hide all components
-                self.menu.ShowItems(False)
-                # # Update icon
-                # self.icon.SetLabelText(chr(int("140A", 16)))
-            # Do layout
-            self.parent.Layout()
-            self.parent.SetupScrolling()
+            # Refresh view (which will show/hide according to this button's state)
+            self.parent.refreshView()
             # Restyle
             self.OnHover()
 
@@ -2405,6 +2377,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             # Bind to functions
             self.Bind(wx.EVT_BUTTON, self.onClick)
             self.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
+
+        @property
+        def element(self):
+            return self.component
 
         def onClick(self, evt=None, timeout=None):
             """Called when a component button is clicked on.
@@ -2464,9 +2440,11 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             Defines rightclick behavior within builder view's
             components panel
             """
+            # Get fave levels
+            faveLevels = prefs.appDataCfg['builder']['favComponents']
             # Make menu
             menu = wx.Menu()
-            if self.component.__name__ in self.parent.favorites:
+            if faveLevels[self.component.__name__] > ComponentsPanel.faveThreshold:
                 # If is in favs
                 msg = "Remove from favorites"
                 fun = self.removeFromFavorites
@@ -2527,6 +2505,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             # Bind to functions
             self.Bind(wx.EVT_BUTTON, self.onClick)
             self.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
+
+        @property
+        def element(self):
+            return self.routine
 
         def onClick(self, evt=None, timeout=None):
             # Make a routine instance
@@ -2611,7 +2593,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         def onChange(self, evt=None):
             self.parent.filter = prefs.builder['componentFilter'] = self.GetValue()
             prefs.saveUserPrefs()
-            self.parent.Refresh()
+            self.parent.refreshView()
+
+    faveThreshold = 20
 
     def __init__(self, frame, id=-1):
         """A panel that displays available components.
@@ -2635,76 +2619,154 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.filterBtn = wx.Button(self, size=(24, 24), style=wx.BORDER_NONE)
         self.sizer.Add(self.filterBtn, border=0, flag=wx.ALL | wx.ALIGN_RIGHT)
         self.filterBtn.Bind(wx.EVT_BUTTON, self.onFilterBtn)
-        # Get components
-        self.components = experiment.getAllComponents(
-            self.app.prefs.builder['componentsFolders'])
-        del self.components['SettingsComponent']
-        self.routines = experiment.getAllStandaloneRoutines()
-        # Get categories
-        self.categories = getAllCategories(
-            self.app.prefs.builder['componentsFolders'])
-        for name, rt in self.routines.items():
-            for cat in rt.categories:
-                if cat not in self.categories:
-                    self.categories.append(cat)
-        # Get favorites
-        self.faveThreshold = 20
-        self.faveLevels = self.prefs.appDataCfg['builder']['favComponents']
-        self.favorites = []
-        for comp in self.components:
-            # Add component to favorite levels with a score of 0 if it's not already present
-            if comp not in self.faveLevels:
-                self.faveLevels[comp] = 0
-            # Mark as a favorite if it exceeds a threshold
-            if self.faveLevels[comp] > self.faveThreshold:
-                self.favorites.append(comp)
-        # Fill in gaps in favorites with defaults
-        faveDefaults = ['ImageComponent', 'KeyboardComponent', 'SoundComponent',
-                        'TextComponent', 'MouseComponent', 'SliderComponent']
-        while len(self.favorites) < 6:
-            thisDef = faveDefaults.pop(0)
-            if thisDef not in self.favorites:
-                self.favorites.append(thisDef)
-        # Make a sizer and label for each category
-        self.catSizers = {cat: wx.WrapSizer(orient=wx.HORIZONTAL) for cat in self.categories}
-        self.catLabels = {cat: self.CategoryButton(self, name=_translate(str(cat)), cat=str(cat)) for cat in self.categories}
-        for cat in self.categories:
-            self.sizer.Add(self.catLabels[cat], border=3, flag=wx.BOTTOM | wx.EXPAND)
-            self.sizer.Add(self.catSizers[cat], border=6, flag=wx.ALL | wx.ALIGN_CENTER)
-        # Make a button for each component
+
+        # Attributes to store handles in
+        self.catLabels = {}
+        self.catSizers = {}
         self.compButtons = []
-        for name, comp in self.components.items():
-            for cat in comp.categories:  # make one button for each category
-                self.compButtons.append(
-                    self.ComponentButton(self, name, comp, cat)
-                )
-            if name in self.favorites:
-                self.compButtons.append(
-                    self.ComponentButton(self, name, comp, "Favorites")
-                )
-        # Add component buttons to category sizers
-        for btn in self.compButtons:
-            self.catSizers[btn.category].Add(btn, border=3, flag=wx.ALL)
-        # Make a button for each routine
         self.rtButtons = []
-        for name, rt in self.routines.items():
-            for cat in rt.categories:  # make one button for each category
-                self.rtButtons.append(
-                    self.RoutineButton(self, name, rt, cat)
-                )
-            if name in self.favorites:
-                self.rtButtons.append(
-                    self.RoutineButton(self, name, rt, "Favorites")
-                )
-        # Add component buttons to category sizers
-        for btn in self.rtButtons:
-            self.catSizers[btn.category].Add(btn, border=3, flag=wx.ALL)
-        # Show favourites on startup
-        self.catLabels['Favorites'].ToggleMenu(True)
+        self.objectHandles = {}
+        # Create buttons
+        self.populate()
+        # Apply filter
+        self.refreshView()
         # Do sizing
         self.Fit()
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(not self.frame.isRetina)
+
+    def getSortedElements(self):
+        allElements = getAllElements()
+        if "SettingsComponent" in allElements:
+            del allElements['SettingsComponent']
+
+        # Create array to store elements in
+        elements = OrderedDict()
+        # Specify which categories are fixed to start/end
+        firstCats = ['Favorites', 'Stimuli', 'Responses', 'Custom']
+        lastCats = ['I/O', 'Other']
+        # Add categories which are fixed to start
+        for cat in firstCats:
+            elements[cat] = {}
+        # Add unfixed categories
+        for cat in getAllCategories():
+            if cat not in lastCats + firstCats:
+                elements[cat] = {}
+        # Add categories which are fixed to end
+        for cat in lastCats:
+            elements[cat] = {}
+        # Get elements and sort by category
+        for name, emt in allElements.items():
+            for cat in emt.categories:
+                if cat in elements:
+                    elements[cat][name] = emt
+        # Assign favorites
+        self.faveLevels = prefs.appDataCfg['builder']['favComponents']
+        for name, emt in allElements.items():
+            # Make sure element has a level
+            if name not in self.faveLevels:
+                self.faveLevels[name] = 0
+            # If it exceeds the threshold, add to favorites
+            if self.faveLevels[name] > self.faveThreshold:
+                elements['Favorites'][name] = emt
+        # Fill in gaps in favorites with defaults
+        faveDefaults = [
+            ('ImageComponent', allElements['ImageComponent']),
+            ('KeyboardComponent', allElements['KeyboardComponent']),
+            ('SoundComponent', allElements['SoundComponent']),
+            ('TextComponent', allElements['TextComponent']),
+            ('MouseComponent', allElements['MouseComponent']),
+            ('SliderComponent', allElements['SliderComponent']),
+        ]
+        while len(elements['Favorites']) < 6:
+            name, emt = faveDefaults.pop(0)
+            if name not in elements['Favorites']:
+                elements['Favorites'][name] = emt
+                self.faveLevels[name] = self.faveThreshold + 1
+
+        return elements
+
+    def populate(self):
+        """
+        Find all component/standalone routine classes and create buttons for each, sorted by category.
+
+        This *can* be called multiple times - already existing buttons are simply detached from their sizer and
+        reattached in the correct place given any changes since last called.
+        """
+        elements = self.getSortedElements()
+
+        # Detach any extant category labels and sizers from main sizer
+        for cat in self.objectHandles:
+            self.sizer.Detach(self.catLabels[cat])
+            self.sizer.Detach(self.catSizers[cat])
+        # Add each category
+        for cat, emts in elements.items():
+            if cat not in self.objectHandles:
+                # Make category sizer
+                self.catSizers[cat] = wx.WrapSizer(orient=wx.HORIZONTAL)
+                # Make category button
+                self.catLabels[cat] = self.CategoryButton(self, name=cat, cat=cat)
+                # Store category reference
+                self.objectHandles[cat] = {}
+            # Add to sizer
+            self.sizer.Add(self.catLabels[cat], border=3, flag=wx.BOTTOM | wx.EXPAND)
+            self.sizer.Add(self.catSizers[cat], border=6, flag=wx.ALL | wx.ALIGN_CENTER)
+
+            # Detach any extant buttons from sizer
+            for btn in self.objectHandles[cat].values():
+                self.catSizers[cat].Detach(btn)
+            # Add each element
+            for name, emt in emts.items():
+                if name not in self.objectHandles[cat]:
+                    # Make appropriate button
+                    if issubclass(emt, BaseStandaloneRoutine):
+                        emtBtn = self.RoutineButton(self, name=name, rt=emt, cat=cat)
+                        self.rtButtons.append(emtBtn)
+                    else:
+                        emtBtn = self.ComponentButton(self, name=name, comp=emt, cat=cat)
+                        self.compButtons.append(emtBtn)
+                    # Store reference by category
+                    self.objectHandles[cat][name] = emtBtn
+                # Add to category sizer
+                self.catSizers[cat].Add(self.objectHandles[cat][name], border=3, flag=wx.ALL)
+
+        # Show favourites on startup
+        self.catLabels['Favorites'].ToggleMenu(True)
+
+    def refreshView(self):
+        # Get view value(s)
+        if prefs.builder['componentFilter'] == "Both":
+            view = ["PsychoPy", "PsychoJS"]
+        elif prefs.builder['componentFilter'] == "Any":
+            view = []
+        else:
+            view = [prefs.builder['componentFilter']]
+
+        # Iterate through categories and buttons
+        for cat in self.objectHandles:
+            anyShown = False
+            for name, btn in self.objectHandles[cat].items():
+                shown = True
+                # Check whether button is hidden by filter
+                for v in view:
+                    if v not in btn.element.targets:
+                        shown = False
+                # Check whether button is hidden by prefs
+                if name in prefs.builder['hiddenComponents'] + alwaysHidden:
+                    shown = False
+                # Show/hide button
+                btn.Show(shown)
+                # Count state towards category
+                anyShown = anyShown or shown
+            # Only show category button if there are some buttons
+            self.catLabels[cat].Show(anyShown)
+            # If comp button is set to hide, hide all regardless
+            if not self.catLabels[cat].GetValue():
+                self.catSizers[cat].ShowItems(False)
+
+        # Do sizing
+        self.Layout()
+        self.SetupScrolling()
 
     def _applyAppTheme(self, target=None):
         # Style component panel
@@ -2725,25 +2787,19 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         name = comp.__name__
         # Mark component as a favorite
         self.faveLevels[name] = self.faveThreshold + 1
-        self.favorites.append(name)
-        # Add button to favorites menu
-        btn = self.ComponentButton(self, name, comp, "Favorites")
-        self.compButtons.append(btn)
-        self.catSizers['Favorites'].Add(btn, border=3, flag=wx.ALL)
+        # Repopulate
+        self.populate()
         # Do sizing
         self.Layout()
 
     def removeFromFavorites(self, button):
         comp = button.component
         name = comp.__name__
-        # Skip if component isn't in favorites
-        if name not in self.favorites:
-            return
         # Unmark component as favorite
         self.faveLevels[name] = 0
-        self.favorites.remove(name)
         # Remove button from favorites menu
-        button.Hide()
+        button.Destroy()
+        del self.objectHandles["Favorites"][name]
         # Do sizing
         self.Layout()
 
@@ -2751,35 +2807,6 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         for button in self.compButtons:
             button.Enable(enable)
         self.Update()
-
-    def Refresh(self, eraseBackground=True, rect=None):
-        wx.Window.Refresh(self, eraseBackground, rect)
-        # Get view value(s)
-        if prefs.builder['componentFilter'] == "Both":
-            view = ["PsychoPy", "PsychoJS"]
-        elif prefs.builder['componentFilter'] == "Any":
-            view = []
-        else:
-            view = [prefs.builder['componentFilter']]
-        # Toggle all categories so they refresh
-        for btn in self.catLabels.values():
-            btn.ToggleMenu(btn.GetValue())
-        # If every button in a category is hidden, hide the category
-        for cat, btn in self.catLabels.items():
-            empty = True
-            for child in self.catSizers[cat].Children:
-                if isinstance(child.Window, self.ComponentButton):
-                    name = child.Window.component.__name__
-                elif isinstance(child.Window, self.RoutineButton):
-                    name = child.Window.routine.__name__
-                else:
-                    name = ""
-                if name not in prefs.builder['hiddenComponents'] + alwaysHidden:
-                    empty = False
-            btn.Show(not empty)
-        # Do sizing
-        self.Layout()
-        self.SetupScrolling()
 
     def onFilterBtn(self, evt=None):
         dlg = self.FilterDialog(self)

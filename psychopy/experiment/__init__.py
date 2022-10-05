@@ -23,3 +23,29 @@ from ._experiment import Experiment
 from .utils import unescapedDollarSign_re, valid_var_re, \
      nonalphanumeric_re
 from psychopy.experiment.utils import CodeGenerationException
+
+
+def getAllElements(fetchIcons=True):
+    """
+    Get all components and all standalone routines
+    """
+    comps = getAllComponents(fetchIcons=fetchIcons)
+    rts = getAllStandaloneRoutines(fetchIcons=fetchIcons)
+
+    return comps | rts
+
+
+def getAllCategories():
+    """
+    Get all categories which components and standalone routines can be
+    sorted into
+    """
+    categories = []
+    # For each component/standalone routine...
+    for name, thisComp in getAllElements().items():
+        for thisCat in thisComp.categories:
+            # If category is not already present, append it
+            if thisCat not in categories:
+                categories.append(thisCat)
+
+    return categories
