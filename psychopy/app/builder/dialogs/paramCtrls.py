@@ -320,14 +320,15 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
         self.SetStringSelection(val)
 
     def SetStringSelection(self, string):
-        if string not in self._choices:
+        strChoices = [str(choice) for choice in self._choices]
+        if str(string) not in strChoices:
             self._choices.append(string)
-            self._labels[string] = string
+            self._labels[string] = str(string)
             self.SetItems(
                 [self._labels[c] for c in self._choices]
             )
         # Don't use wx.Choice.SetStringSelection here because label string is localized.
-        wx.Choice.SetSelection(self, self._choices.index(string))
+        wx.Choice.SetSelection(self, strChoices.index(str(string)))
 
     def GetValue(self):
         # Don't use wx.Choice.GetStringSelection here because label string is localized.
