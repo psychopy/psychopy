@@ -26,6 +26,7 @@ from psychopy.app import utils
 from psychopy.preferences import prefs
 import psychopy.experiment.components as components
 from psychopy.tools import stringtools as strtools
+import subprocess as sp
 
 # Keep track of plugins that have been loaded. Keys are plugin names and values
 # are their entry point mappings.
@@ -310,7 +311,21 @@ class PluginInfo:
         if value is None:
             # Setting installed as None skips the whole process - useful for avoiding recursion
             return
-        # todo: put installation code here
+        # Get action string from value
+        if value:
+            act = "install"
+        else:
+            act = "uninstall"
+        # Install/uninstall
+        cmd = f"{sys.executable} -m pip {act} {self.pipname}"
+        output = sp.Popen(cmd,
+                          stdout=sp.PIPE,
+                          stderr=sp.PIPE,
+                          shell=True,
+                          universal_newlines=True)
+        stdout, stderr = output.communicate()
+        sys.stdout.write(stdout)
+        sys.stderr.write(stderr)
 
     def install(self):
         self.installed = True
