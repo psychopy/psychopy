@@ -150,14 +150,14 @@ class Param():
         """
         super(Param, self).__init__()
         self.label = label
-        self.allowedVals = allowedVals or []
-        self.allowedLabels = allowedLabels or []
         self.val = val
         self.valType = valType
         self.allowedTypes = allowedTypes or []
         self.hint = hint
         self.updates = updates
         self.allowedUpdates = allowedUpdates
+        self.allowedVals = allowedVals or []
+        self.allowedLabels = allowedLabels or []
         self.staticUpdater = None
         self.categ = categ
         self.readOnly = False
@@ -170,20 +170,6 @@ class Param():
             self.inputType = inputDefaults[valType]
         else:
             self.inputType = "String"
-
-    @property
-    def val(self):
-        if hasattr(self, "_val"):
-            return self._val
-
-    @val.setter
-    def val(self, value):
-        # If value looks like it's from labels rather than values, alias it
-        if value not in self.allowedVals and str(value) in self.allowedLabels:
-            i = self.allowedLabels.index(str(value))
-            value = self.allowedVals[i]
-        # Assign value
-        self._val = value
 
     def __str__(self):
         if self.valType == 'num':
