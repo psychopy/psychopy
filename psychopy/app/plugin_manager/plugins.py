@@ -29,9 +29,6 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
         self.pluginList.viewer = self.pluginViewer
         # Start of with nothing selected
         self.pluginList.onClick()
-        # Setup panel traversal
-        self.focusIndex = 0
-        self.Bind(wx.EVT_NAVIGATION_KEY, self.onCtrlTab)
 
         self.Layout()
         self.theme = theme.app
@@ -39,19 +36,6 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
     def _applyAppTheme(self):
         # Set colors
         self.SetBackgroundColour(colors.app['tab_bg'])
-
-    def onCtrlTab(self, evt=None):
-        if not evt.IsWindowChange():
-            # At dialog level, we only care about window change events
-            return
-        # Iterate focus index
-        self.focusIndex += 1
-        if self.focusIndex >= len(self.GetChildren()):
-            self.focusIndex = 0
-        # Get next child
-        target = self.GetChildren()[self.focusIndex]
-        # Focus target
-        target.SetFocus()
 
 
 class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
@@ -99,6 +83,9 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
             self.installed = info.installed
             self.markInstalled(info.installed)
             self.activeBtn.SetValue(info.active)
+
+            # Bind navigation
+            self.Bind(wx.EVT_NAVIGATION_KEY, self.onNavigation)
 
         def _applyAppTheme(self):
             # Set colors
@@ -159,6 +146,24 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
                 self.activeBtn.Disable()
                 # Update label
                 self.installBtn.SetLabelText(_translate("Install"))
+
+        def onNavigation(self, evt=None):
+            """
+            Use the tab key to progress to the next panel, or the arrow keys to change selection in this panel.
+
+            This is the same functionality as in a wx.ListCtrl
+            """
+            if evt.IsFromTab() and self.GetPrevSibling().HasFocus():
+                # If navigating via tab, move on to next object
+                if evt.GetDirection():
+                    next = self.parent.GetNextSibling()
+                else:
+                    next = self.parent.GetPrevSibling()
+                if hasattr(next, "SetFocus"):
+                    next.SetFocus()
+            else:
+                # Do usual behaviour
+                evt.Skip()
 
     def __init__(self, parent, viewer=None):
         wx.Panel.__init__(self, parent=parent)
