@@ -13,22 +13,29 @@ class EnvironmentManagerDlg(wx.Dialog, handlers.ThemeMixin):
     def __init__(self, parent):
         wx.Dialog.__init__(
             self, parent=parent,
+            title=_translate("Plugins & Packages"),
             size=(1080, 720),
             style=wx.RESIZE_BORDER | wx.DEFAULT_DIALOG_STYLE | wx.CENTER | wx.TAB_TRAVERSAL | wx.NO_BORDER
         )
         self.SetMinSize((980, 520))
         # Setup sizer
+        self.border = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.border)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(self.sizer)
+        self.border.Add(self.sizer, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
         # Create notebook
         self.notebook = wx.Notebook(self)
-        self.sizer.Add(self.notebook, border=12, proportion=1, flag=wx.EXPAND | wx.ALL)
+        self.sizer.Add(self.notebook, border=6, proportion=1, flag=wx.EXPAND | wx.ALL)
         # Plugin manager
         self.pluginMgr = PluginManagerPanel(self.notebook)
         self.notebook.AddPage(self.pluginMgr, text=_translate("Plugins"))
         # Package manager
         self.packageMgr = PackageManagerPanel(self.notebook)
         self.notebook.AddPage(self.packageMgr, text=_translate("Packages"))
+
+        # Buttons
+        self.btns = self.CreateStdDialogButtonSizer(flags=wx.OK | wx.CANCEL | wx.HELP)
+        self.sizer.Add(self.btns, border=6, flag=wx.EXPAND | wx.ALL)
 
 
 # --- Legacy ---

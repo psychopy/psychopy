@@ -44,7 +44,7 @@ class PIPTerminalPanel(wx.Panel):
             "returned text will appear below."
         ))
         self.instr.Wrap(self.GetSize()[0] - 24 - 6)
-        self.sizer.Add(self.instr, border=3, flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(self.instr, border=6, flag=wx.LEFT | wx.RIGHT | wx.TOP | wx.EXPAND)
 
         # Add text control
         self.consoleSzr = wx.BoxSizer(wx.HORIZONTAL)
@@ -53,11 +53,11 @@ class PIPTerminalPanel(wx.Panel):
         self.console = wx.TextCtrl(self, size=(-1, -1), style=wx.TE_PROCESS_ENTER)
         self.console.Bind(wx.EVT_TEXT_ENTER, self.onEnter)
         self.consoleSzr.Add(self.console, proportion=1)
-        self.sizer.Add(self.consoleSzr, border=3, flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(self.consoleSzr, border=6, flag=wx.ALL | wx.EXPAND)
 
         # Add output
         self.output = wx.richtext.RichTextCtrl(self, size=(480, -1), style=wx.TE_READONLY)
-        self.sizer.Add(self.output, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(self.output, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
 
         self.Center()
 
@@ -102,14 +102,14 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
         self.border = wx.BoxSizer()
         self.SetSizer(self.border)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        self.border.Add(self.sizer, proportion=1, border=12, flag=wx.ALL | wx.EXPAND)
 
         # Label
         self.lbl = wx.StaticText(self, label=_translate("Installed packages:"))
         self.sizer.Add(self.lbl, border=6, flag=wx.ALL | wx.EXPAND)
         # Create list ctrl
         self.ctrl = wx.ListCtrl(self, style=wx.LC_REPORT)
-        self.sizer.Add(self.ctrl, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(self.ctrl, proportion=1, border=6, flag=wx.LEFT | wx.RIGHT | wx.EXPAND)
         # Create refresh button
         self.refreshBtn = wx.Button(self, size=(24, 24))
         self.refreshBtn.Bind(wx.EVT_BUTTON, self.refresh)
@@ -122,7 +122,7 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
 
     def _applyAppTheme(self):
         self.refreshBtn.SetBitmap(
-            icons.ButtonIcon(stem="refresh", size=16).bitmap
+            icons.ButtonIcon(stem="view-refresh", size=16).bitmap
         )
 
     def refresh(self, evt=None):

@@ -447,8 +447,8 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                                       "specific, version"))
         self.Bind(wx.EVT_MENU, self.app.openUpdater, item)
         item = menu.Append(wx.ID_ANY,
-                           _translate("Plugin manager..."),
-                           _translate("Manage optional plugins for PsychoPy"))
+                           _translate("Plugin/packages manager..."),
+                           _translate("Manage Python packages and optional plugins for PsychoPy"))
         self.Bind(wx.EVT_MENU, self.openPluginManager, item)
         if hasattr(self.app, 'benchmarkWizard'):
             item = menu.Append(wx.ID_ANY,
