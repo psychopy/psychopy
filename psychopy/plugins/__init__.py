@@ -254,6 +254,12 @@ class PluginInfo:
     def __repr__(self):
         return f"<psychopy.plugins.PluginInfo: {self.name} [{self.pipname}] by {self.author} ({self.source})>"
 
+    def __eq__(self, other):
+        if isinstance(other, PluginInfo):
+            return self.pipname == other.pipname
+        else:
+            return self.pipname == str(other)
+
     @property
     def icon(self):
         if hasattr(self, "_icon"):
@@ -354,6 +360,28 @@ def getAllPluginDetails():
         objs.append(
             PluginInfo(**info)
         )
+    # Add info objects for local plugins which aren't found online
+    localPlugins = listPlugins(which='all')
+    for name in localPlugins:
+        # Check whether plugin is accounted for
+        if name not in objs:
+            # If not, get its metadata
+            data = pluginMetadata(name)
+            # Create best representation we can from metadata
+            author = AuthorInfo(
+                name=data['Author'],
+                email=data['Author-email']
+            )
+            info = PluginInfo(
+                source="unknown",
+                pipname=name, name=name,
+                author=author,
+                homepage=data['Home-page'],
+                keywords=data['Keywords'],
+                description=data['Summary']
+            )
+            # Add to list
+            objs.append(info)
 
     return objs
 
