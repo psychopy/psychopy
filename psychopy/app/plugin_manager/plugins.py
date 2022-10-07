@@ -123,15 +123,21 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
             self._applyAppTheme()
 
         def onInstall(self, evt=None):
+            # Install
+            self.info.install()
             # Mark installed
-            self.installed = self.info.installed = True
+            self.installed = True
             self.markInstalled(True)
             # If currently on this item's page, mark as installed there too
             if self.parent.viewer.info == self.info:
                 self.parent.viewer.markInstalled(True)
 
         def onActive(self, evt=None):
-            return
+            # Activate/deactivate
+            self.info.active = evt.IsChecked()
+
+            # Continue with normal checkbox behaviour
+            evt.Skip()
 
         def markInstalled(self, installed=True):
             if installed:

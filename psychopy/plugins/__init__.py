@@ -297,10 +297,26 @@ class PluginInfo:
     def activate(self):
         self.active = True
 
+    def deactivate(self):
+        self.active = False
+
     @property
     def installed(self):
         current = listPlugins(which='all')
         return self.pipname in current
+
+    @installed.setter
+    def installed(self, value):
+        if value is None:
+            # Setting installed as None skips the whole process - useful for avoiding recursion
+            return
+        # todo: put installation code here
+
+    def install(self):
+        self.installed = True
+
+    def uninstall(self):
+        self.installed = False
 
     @property
     def author(self):
