@@ -174,31 +174,42 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         self.SetSizer(self.border)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
-        # Setup items sizers
-        self.itemSizers = {
-            'curated': wx.BoxSizer(wx.VERTICAL),
-            'community': wx.BoxSizer(wx.VERTICAL)
+        # Define categories
+        self.categories = {
+            "curated": _translate("Curated Plugins"),
+            "community": _translate("Community Plugins"),
+            "unknown": _translate("Unknown Source")
         }
-        self.curatedLbl = wx.StaticText(self, label=_translate("Curated Plugins"))
-        self.sizer.Add(self.curatedLbl, border=3, flag=wx.ALL | wx.EXPAND)
-        self.sizer.Add(self.itemSizers['curated'], border=3, flag=wx.ALL | wx.EXPAND)
-        self.communityLbl = wx.StaticText(self, label=_translate("Community Plugins"))
-        self.sizer.Add(self.communityLbl, border=3, flag=wx.ALL | wx.EXPAND)
-        self.sizer.Add(self.itemSizers['community'], border=3, flag=wx.ALL | wx.EXPAND)
+        # Setup items sizers & labels
+        self.itemSizers = {}
+        self.itemLabels = {}
+        for category, label in self.categories.items():
+            # Create label
+            self.itemLabels[category] = wx.StaticText(self, label=label)
+            self.sizer.Add(self.itemLabels[category], border=3, flag=wx.ALL | wx.EXPAND)
+            # Create sizer
+            self.itemSizers[category] = wx.BoxSizer(wx.VERTICAL)
+            self.sizer.Add(self.itemSizers[category], border=3, flag=wx.ALL | wx.EXPAND)
+
         # Bind deselect
         self.Bind(wx.EVT_LEFT_DOWN, self.onClick)
 
         # Setup items
-        self.items = {'curated': [], 'community': []}
         self.populate()
 
     def populate(self):
+        self.items = {category: [] for category in self.categories}
         # Get all plugin details
         items = plugins.getAllPluginDetails()
         # Put installed packages at top of list
         items.sort(key=lambda obj: obj.installed, reverse=True)
         for item in items:
             self.appendItem(item)
+        # Hide any empty categories
+        for category in self.items:
+            shown = bool(self.items[category])
+            self.itemLabels[category].Show(shown)
+            self.itemSizers[category].ShowItems(shown)
 
     def onClick(self, evt=None):
         self.SetFocusIgnoringChildren()
@@ -208,10 +219,9 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         # Set colors
         self.SetBackgroundColour(colors.app['tab_bg'])
         # Set fonts
-        self.curatedLbl.SetFont(fonts.appTheme['h2'].obj)
-        self.curatedLbl.SetForegroundColour(colors.app['text'])
-        self.communityLbl.SetFont(fonts.appTheme['h2'].obj)
-        self.communityLbl.SetForegroundColour(colors.app['text'])
+        for lbl in self.itemLabels.values():
+            lbl.SetFont(fonts.appTheme['h2'].obj)
+            lbl.SetForegroundColour(colors.app['text'])
 
     def appendItem(self, info):
         item = self.PluginListItem(self, info)
