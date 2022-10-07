@@ -842,6 +842,12 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             None, 'PsychoPy Monitor Center')
         self.monCenter.Show(True)
 
+    def openPipInstaller(self, evt):
+        from psychopy.app.plugin_manager.pipManager import PIPManagerDlg
+        dlg = PIPManagerDlg()
+        dlg.theme = themes.theme.app
+        dlg.Show()
+
     def terminateHubProcess(self):
         """
         Send a UDP message to iohub informing it to exit.
