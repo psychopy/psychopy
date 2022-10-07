@@ -1380,7 +1380,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             return True
 
     def openPluginManager(self, evt=None):
-        dlg = plugin_manager.PluginManagerDlg(self)
+        dlg = plugin_manager.EnvironmentManagerDlg(self)
         dlg.ShowModal()
 
     def onPavloviaSync(self, evt=None):

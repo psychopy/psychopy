@@ -41,7 +41,7 @@ else:
 _startUpPluginsUpdated = False  # flag if plugins have been changed
 
 
-class PluginManagerDlg(wx.Dialog, handlers.ThemeMixin):
+class EnvironmentManagerDlg(wx.Dialog, handlers.ThemeMixin):
     def __init__(self, parent):
         wx.Dialog.__init__(
             self, parent=parent,
@@ -50,16 +50,45 @@ class PluginManagerDlg(wx.Dialog, handlers.ThemeMixin):
         )
         self.SetMinSize((980, 520))
         # Setup sizer
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.sizer)
+        # Create notebook
+        self.notebook = wx.Notebook(self)
+        self.sizer.Add(self.notebook, border=12, proportion=1, flag=wx.EXPAND | wx.ALL)
+        # Plugin manager
+        self.pluginMgr = PluginManagerPanel(self.notebook)
+        self.notebook.AddPage(self.pluginMgr, text=_translate("Plugins"))
+
+
+# --- Package Management ---
+
+
+class PackageManagerPanel(wx.Panel):
+    pass
+
+
+# --- Plugin Management ---
+
+
+class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent)
+        # Setup sizer
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         # Make list
         self.pluginList = PluginBrowserList(self)
-        self.sizer.Add(self.pluginList, border=6, flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(self.pluginList, flag=wx.EXPAND | wx.ALL)
+        # Seperator
+        self.sizer.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), border=6, flag=wx.EXPAND | wx.ALL)
         # Make viewer
         self.pluginViewer = PluginDetailsPanel(self)
-        self.sizer.Add(self.pluginViewer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(self.pluginViewer, proportion=1, flag=wx.EXPAND | wx.ALL)
+        # Cross-reference viewer & list
+        self.pluginViewer.list = self.pluginList
+        self.pluginList.viewer = self.pluginViewer
         # Start of with nothing selected
         self.pluginList.onClick()
         # Setup panel traversal
@@ -71,7 +100,7 @@ class PluginManagerDlg(wx.Dialog, handlers.ThemeMixin):
 
     def _applyAppTheme(self):
         # Set colors
-        self.SetBackgroundColour(colors.app['frame_bg'])
+        self.SetBackgroundColour(colors.app['tab_bg'])
 
     def onCtrlTab(self, evt=None):
         if not evt.IsWindowChange():
@@ -193,9 +222,10 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
                 # Update label
                 self.installBtn.SetLabelText(_translate("Install"))
 
-    def __init__(self, parent):
+    def __init__(self, parent, viewer=None):
         wx.Panel.__init__(self, parent=parent)
         self.parent = parent
+        self.viewer = viewer
         # Setup sizer
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -218,11 +248,6 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         # Setup items
         self.items = {'curated': [], 'community': []}
         self.populate()
-
-    @property
-    def viewer(self):
-        # The list associated with this info panel
-        return self.parent.pluginViewer
 
     def populate(self):
         # Get all plugin details
@@ -261,9 +286,11 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
 
 class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
     iconSize = (128, 128)
-    def __init__(self, parent, info=None):
+
+    def __init__(self, parent, info=None, list=None):
         wx.Panel.__init__(self, parent)
         self.parent = parent
+        self.list = list
         # Setup sizers
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -332,11 +359,6 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         item = self.list.getItem(self.info)
         if item is not None:
             item.markInstalled()
-
-    @property
-    def list(self):
-        # The list associated with this info panel
-        return self.parent.pluginList
 
     @property
     def info(self):
@@ -506,7 +528,7 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
         webbrowser.open(f"github.com/{self.info.github}")
 
 
-# ---
+# --- Legacy ---
 
 class PluginBrowserListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, CheckListCtrlMixin):
     """Custom ListCtrl that allows for automatic resizing of columns and
