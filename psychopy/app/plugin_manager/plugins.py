@@ -27,6 +27,9 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
         # Cross-reference viewer & list
         self.pluginViewer.list = self.pluginList
         self.pluginList.viewer = self.pluginViewer
+        # Mark installed on items now that we have necessary references
+        for item in self.pluginList.allItems:
+            item.markInstalled(item.info.installed)
         # Start of with nothing selected
         self.pluginList.onClick()
 
@@ -65,9 +68,7 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
             self.label.Add(self.pipNameLbl, flag=wx.ALIGN_LEFT)
             self.sizer.Add(self.label, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
             # Add install button
-            self.installBtn = utils.HoverButton(self,
-                                                label=_translate("Install"),
-                                                style=wx.BORDER_NONE | wx.BU_LEFT)
+            self.installBtn = PluginInstallBtn(self)
             self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
             self.sizer.AddSpacer(24)
             self.sizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
@@ -80,7 +81,6 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
             self.Bind(wx.EVT_KILL_FOCUS, self.onFocus)
 
             # Set initial value
-            self.installed = info.installed
             self.markInstalled(info.installed)
             self.activeBtn.SetValue(info.active)
 
@@ -103,11 +103,6 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
             # Set text colors
             self.nameLbl.SetForegroundColour(fg)
             self.pipNameLbl.SetForegroundColour(fg)
-            # Style button
-            self.installBtn.SetBitmap(icons.ButtonIcon("download", 16).bitmap)
-            self.installBtn.SetBitmapDisabled(icons.ButtonIcon("greytick", 16).bitmap)
-            self.installBtn.SetBitmapMargins(6, 3)
-            self.installBtn._applyAppTheme()
 
             self.Update()
             self.Refresh()
@@ -123,14 +118,12 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
             self._applyAppTheme()
 
         def onInstall(self, evt=None):
+            # Mark pending
+            self.markInstalled(None)
             # Install
             self.info.install()
             # Mark installed
-            self.installed = True
-            self.markInstalled(True)
-            # If currently on this item's page, mark as installed there too
-            if self.parent.viewer.info == self.info:
-                self.parent.viewer.markInstalled(True)
+            self.markInstalled(self.info.installed)
 
         def onActive(self, evt=None):
             # Activate/deactivate
@@ -140,18 +133,19 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
             evt.Skip()
 
         def markInstalled(self, installed=True):
-            if installed:
-                # Install button disabled, active box enabled
-                self.installBtn.Disable()
-                self.activeBtn.Enable()
-                # Update label
-                self.installBtn.SetLabelText(_translate("Installed"))
-            else:
-                # Install button enabled, active box disabled
-                self.installBtn.Enable()
-                self.activeBtn.Disable()
-                # Update label
-                self.installBtn.SetLabelText(_translate("Install"))
+            """
+            Shorthand to call markInstalled with self and corresponding item
+
+            Parameters
+            ----------
+            installed : bool or None
+                True if installed, False if not installed, None if pending/unclear
+            """
+            markInstalled(
+                pluginItem=self,
+                pluginPanel=self.parent.viewer,
+                installed=installed
+            )
 
         def onNavigation(self, evt=None):
             """
@@ -242,6 +236,16 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
             if item.info == info:
                 return item
 
+    @property
+    def allItems(self):
+        """
+        Get all items as a flat list
+        """
+        items = []
+        for val in self.items.values():
+            items += val
+        return items
+
 
 class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
     iconSize = (128, 128)
@@ -272,9 +276,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.titleSizer.AddStretchSpacer()
         self.titleSizer.Add(self.buttonSizer, flag=wx.EXPAND)
-        self.installBtn = utils.HoverButton(self,
-                                            label=_translate("Install"),
-                                            style=wx.BORDER_NONE | wx.BU_LEFT)
+        self.installBtn = PluginInstallBtn(self)
         self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
         self.buttonSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
         self.activeBtn = wx.CheckBox(self, label=_translate("Activated"))
@@ -301,23 +303,36 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.title.SetForegroundColour(colors.app['text'])
         self.pipName.SetFont(fonts.coderTheme.base.obj)
         self.pipName.SetForegroundColour(colors.app['text'])
-        # Style install button
-        self.installBtn.SetBitmap(icons.ButtonIcon("download", 16).bitmap)
-        self.installBtn.SetBitmapDisabled(icons.ButtonIcon("greytick", 16).bitmap)
-        self.installBtn.SetBitmapMargins(6, 3)
-        self.installBtn._applyAppTheme()
         # Style description
         self.description.SetForegroundColour(colors.app['text'])
         self.description.SetBackgroundColour(colors.app['tab_bg'])
 
+    def markInstalled(self, installed=True):
+        """
+        Shorthand to call markInstalled with self and corresponding item
+
+        Parameters
+        ----------
+        installed : bool or None
+            True if installed, False if not installed, None if pending/unclear
+        """
+        if self.list:
+            item = self.list.getItem(self.info)
+        else:
+            item = None
+        markInstalled(
+            pluginItem=item,
+            pluginPanel=self,
+            installed=installed
+        )
+
     def onInstall(self, evt=None):
-        # Mark installed here
+        # Mark as pending
+        self.markInstalled(installed=None)
+        # Do install
         self.info.installed = True
-        self.markInstalled()
-        # Mark installed in list
-        item = self.list.getItem(self.info)
-        if item is not None:
-            item.markInstalled()
+        # Mark according to install success
+        self.markInstalled(self.info.installed)
 
     @property
     def info(self):
@@ -371,20 +386,6 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.author.info = value.author
 
         self.Layout()
-
-    def markInstalled(self, installed=True):
-        if installed:
-            # Install button disabled, active box enabled
-            self.installBtn.Disable()
-            self.activeBtn.Enable()
-            # Update label
-            self.installBtn.SetLabelText(_translate("Installed"))
-        else:
-            # Install button enabled, active box disabled
-            self.installBtn.Enable()
-            self.activeBtn.Disable()
-            # Update label
-            self.installBtn.SetLabelText(_translate("Install"))
 
 
 class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
@@ -485,3 +486,72 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
 
     def onGithubBtn(self, evt=None):
         webbrowser.open(f"github.com/{self.info.github}")
+
+
+class PluginInstallBtn(utils.HoverButton, handlers.ThemeMixin):
+    """
+    Install button for a plugin, comes with a method to update its appearance according to installation
+    status & availability
+    """
+    def __init__(self, parent):
+        # Initialise
+        utils.HoverButton.__init__(
+            self, parent,
+            label="...",
+            style=wx.BORDER_NONE | wx.BU_LEFT
+        )
+
+    def markInstalled(self, installed=True):
+        """
+        Mark on this button whether install has completed / is in progress / is available
+
+        Parameters
+        ----------
+        installed : bool or None
+            True if installed, False if not installed, None if pending/unclear
+        """
+        if installed is None:
+            # If pending, disable and set label as ellipsis
+            self.Disable()
+            self.SetLabelText("...")
+        elif installed:
+            # If installed, disable and set label as installed
+            self.Disable()
+            self.SetLabelText(_translate("Installed"))
+        else:
+            # If not installed, enable and set label as not installed
+            self.Enable()
+            self.SetLabelText(_translate("Install"))
+
+    def _applyAppTheme(self):
+        # Do base method
+        utils.HoverButton._applyAppTheme(self)
+        # Setup icon
+        self.SetBitmap(icons.ButtonIcon("download", 16).bitmap)
+        self.SetBitmapDisabled(icons.ButtonIcon("greytick", 16).bitmap)
+        self.SetBitmapMargins(6, 3)
+
+
+def markInstalled(pluginItem, pluginPanel, installed=True):
+    """
+    Setup installed button according to install state
+
+    Parameters
+    ----------
+    pluginItem : PluginBrowserList.PluginListItem
+        Plugin list item associated with this plugin
+    pluginPanel : PluginDetailsPanel
+        Plugin viewer panel to update
+    installed : bool or None
+        True if installed, False if not installed, None if pending/unclear
+    """
+    # Update plugin item
+    if pluginItem:
+        pluginItem.installBtn.markInstalled(installed)
+        pluginItem.activeBtn.Enable(bool(installed))
+    # Update panel (if applicable)
+    if pluginPanel and pluginItem and pluginPanel.info == pluginItem.info:
+        pluginPanel.installBtn.markInstalled(installed)
+        pluginPanel.activeBtn.Enable(bool(installed))
+
+
