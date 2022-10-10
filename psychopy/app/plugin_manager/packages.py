@@ -148,7 +148,11 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
 
         # Label
         self.lbl = wx.StaticText(self, label=_translate("Installed packages:"))
-        self.sizer.Add(self.lbl, border=6, flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(self.lbl, border=6, flag=wx.LEFT | wx.RIGHT | wx.TOP | wx.EXPAND)
+        # Search bar
+        self.searchCtrl = wx.SearchCtrl(self)
+        self.searchCtrl.Bind(wx.EVT_SEARCH, self.refresh)
+        self.sizer.Add(self.searchCtrl, border=6, flag=wx.ALL | wx.EXPAND)
         # Create list ctrl
         self.ctrl = wx.ListCtrl(self, style=wx.LC_REPORT)
         self.ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDoubleClick)
@@ -180,6 +184,8 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
         wx.PostEvent(self, evt)
 
     def refresh(self, evt=None):
+        # Get search term
+        searchTerm = self.searchCtrl.GetValue()
         # Clear
         self.ctrl.ClearAll()
         self.ctrl.AppendColumn(_translate("Package"))
@@ -198,4 +204,6 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
             # If line is a valid version name - version pair, append to list
             parts = line.split("==")
             if len(parts) == 2:
-                self.ctrl.Append(parts)
+                # Filter packages by search term
+                if searchTerm in parts[0]:
+                    self.ctrl.Append(parts)
