@@ -23,6 +23,7 @@ import sys
 import wx
 import wx.lib.agw.aui as aui
 from wx.lib import platebtn
+import wx.lib.mixins.listctrl as listmixin
 
 import psychopy
 from psychopy import logging
@@ -1077,6 +1078,23 @@ class ToggleButtonArray(wx.Window, handlers.ThemeMixin):
         # Use OnHover event to set buttons to their default colors
         for btn in self.buttons.values():
             btn.OnHover()
+
+
+class ListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
+    def __init__(self, parent=None, id=wx.ID_ANY,
+                 pos=wx.DefaultPosition, size=wx.DefaultSize,
+                 style=wx.LC_REPORT,
+                 validator=wx.DefaultValidator, name=""):
+        wx.ListCtrl.__init__(
+            self, parent,
+            id=id,
+            pos=pos,
+            size=size,
+            style=style,
+            validator=validator,
+            name=name
+        )
+        listmixin.ListCtrlAutoWidthMixin.__init__(self)
 
 
 def sanitize(inStr):

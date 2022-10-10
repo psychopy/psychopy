@@ -2,6 +2,7 @@ import wx
 import sys
 import subprocess as sp
 
+from psychopy.app import utils
 from psychopy.app.themes import handlers, icons, fonts
 from psychopy.localization import _translate
 
@@ -154,7 +155,8 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
         self.searchCtrl.Bind(wx.EVT_SEARCH, self.refresh)
         self.sizer.Add(self.searchCtrl, border=6, flag=wx.ALL | wx.EXPAND)
         # Create list ctrl
-        self.ctrl = wx.ListCtrl(self, style=wx.LC_REPORT)
+        self.ctrl = utils.ListCtrl(self, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+        self.ctrl.setResizeColumn(0)
         self.ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDoubleClick)
         self.ctrl.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClick)
         self.sizer.Add(self.ctrl, proportion=1, border=6, flag=wx.LEFT | wx.RIGHT | wx.EXPAND)
