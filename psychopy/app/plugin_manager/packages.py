@@ -16,12 +16,51 @@ class PackageManagerPanel(wx.Panel, handlers.ThemeMixin):
         self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         # Add package list
         self.packageList = PackageListCtrl(self)
+        self.packageList.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onActivateItem)
+        self.packageList.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClickItem)
         self.sizer.Add(self.packageList, flag=wx.EXPAND | wx.ALL)
         # Seperator
         self.sizer.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), border=6, flag=wx.EXPAND | wx.ALL)
         # Add pip terminal
         self.pipCtrl = PIPTerminalPanel(self)
         self.sizer.Add(self.pipCtrl, flag=wx.EXPAND | wx.ALL)
+
+    def onActivateItem(self, evt=None):
+        # Get package name
+        pipname = evt.GetText()
+        # Pre-fill "pip show" for the user
+        self.pipCtrl.console.SetValue(f"pip show {pipname}")
+
+    def onRightClickItem(self, evt=None):
+        # Create menu
+        menu = wx.Menu()
+        # Define commands / labels
+        menu.commands = {
+            _translate("View"): ("show", ""),
+            _translate("Update"): ("install", "--upgrade"),
+            _translate("Uninstall"): ("uninstall", "")
+        }
+        # Add menu options
+        for lbl in menu.commands:
+            menu.Append(wx.ID_ANY, lbl)
+        # Store pip name as attribute of menu
+        menu.pipname = evt.GetText()
+        # Bind menu choice to function
+        menu.Bind(wx.EVT_MENU, self.onRightClickMenuChoice)
+        # Show menu
+        self.PopupMenu(menu)
+
+    def onRightClickMenuChoice(self, evt=None):
+        # Get menu object
+        menu = evt.GetEventObject()
+        # Get choice
+        choiceId = evt.GetId()
+        choice = menu.GetLabel(choiceId)
+        # Get command and params from choice
+        cmd = menu.commands[choice][0]
+        params = " ".join(menu.commands[choice][1:])
+        # Pre-fill "pip ..." for the user
+        self.pipCtrl.console.SetValue(f"pip {cmd} {menu.pipname} {params}")
 
 
 class PIPTerminalPanel(wx.Panel):
@@ -112,6 +151,8 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
         self.sizer.Add(self.lbl, border=6, flag=wx.ALL | wx.EXPAND)
         # Create list ctrl
         self.ctrl = wx.ListCtrl(self, style=wx.LC_REPORT)
+        self.ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDoubleClick)
+        self.ctrl.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClick)
         self.sizer.Add(self.ctrl, proportion=1, border=6, flag=wx.LEFT | wx.RIGHT | wx.EXPAND)
         # Create refresh button
         self.refreshBtn = wx.Button(self, size=(24, 24))
@@ -127,6 +168,16 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
         self.refreshBtn.SetBitmap(
             icons.ButtonIcon(stem="view-refresh", size=16).bitmap
         )
+
+    def onDoubleClick(self, evt=None):
+        # Post event so it can be caught by parent
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
+
+    def onRightClick(self, evt=None):
+        # Post event so it can be caught by parent
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
 
     def refresh(self, evt=None):
         # Clear
