@@ -436,6 +436,12 @@ class InstallErrorDlg(wx.Dialog, handlers.ThemeMixin):
         self.Layout()
         self._applyAppTheme()
 
+    def ShowModal(self):
+        # Make error noise
+        wx.Bell()
+        # Show as normal
+        wx.Dialog.ShowModal(self)
+
 
 def getAllPluginDetails():
     """
