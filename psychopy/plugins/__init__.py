@@ -20,10 +20,13 @@ from pathlib import Path
 
 import pkg_resources
 import requests
+import wx
 
 from psychopy import logging
 from psychopy.app import utils
+from psychopy.app.themes import icons, fonts, handlers
 from psychopy.preferences import prefs
+from psychopy.localization import _translate
 import psychopy.experiment.components as components
 from psychopy.tools import stringtools as strtools
 import subprocess as sp
@@ -317,7 +320,8 @@ class PluginInfo:
         else:
             act = "uninstall"
         # Install/uninstall
-        cmd = f"{sys.executable} -m pip {act} {self.pipname}"
+        emts = [sys.executable, "-m", "pip", act, self.pipname]
+        cmd = " ".join(emts)
         output = sp.Popen(cmd,
                           stdout=sp.PIPE,
                           stderr=sp.PIPE,
@@ -326,6 +330,14 @@ class PluginInfo:
         stdout, stderr = output.communicate()
         sys.stdout.write(stdout)
         sys.stderr.write(stderr)
+        # Throw up error dlg if needed
+        if stderr:
+            dlg = InstallErrorDlg(
+                cmd=" ".join(emts[2:]),
+                stdout=stdout,
+                stderr=stderr
+            )
+            dlg.ShowModal()
 
     def install(self):
         self.installed = True
@@ -374,6 +386,55 @@ class AuthorInfo:
 
     def __repr__(self):
         return f"<psychopy.plugins.AuthorInfo: {self.name} (@{self.github}, {self.email})>"
+
+
+class InstallErrorDlg(wx.Dialog, handlers.ThemeMixin):
+    def __init__(self, cmd="", stdout="", stderr=""):
+        wx.Dialog.__init__(
+            self, None,
+            size=(480, 620),
+            title=_translate("Plugin install error"),
+            style=wx.RESIZE_BORDER | wx.CLOSE_BOX | wx.CAPTION
+        )
+        # Setup sizer
+        self.border = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.border)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        # Create title sizer
+        self.title = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.title, border=6, flag=wx.ALL | wx.EXPAND)
+        # Create icon
+        self.icon = wx.StaticBitmap(
+            self, size=(32, 32),
+            bitmap=icons.ButtonIcon(stem="stop", size=32).bitmap
+        )
+        self.title.Add(self.icon, border=6, flag=wx.ALL | wx.EXPAND)
+        # Create title
+        self.titleLbl = wx.StaticText(self, label=_translate("Plugin could not be installed."))
+        self.titleLbl.SetFont(fonts.appTheme['h3'].obj)
+        self.title.Add(self.titleLbl, proportion=1, border=6, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        # Show what we tried
+        self.inLbl = wx.StaticText(self, label=_translate("We tried:"))
+        self.sizer.Add(self.inLbl, border=6, flag=wx.ALL | wx.EXPAND)
+        self.inCtrl = wx.TextCtrl(self, value=cmd, style=wx.TE_READONLY)
+        self.inCtrl.SetBackgroundColour("white")
+        self.inCtrl.SetFont(fonts.appTheme['code'].obj)
+        self.sizer.Add(self.inCtrl, border=6, flag=wx.ALL | wx.EXPAND)
+        # Show what we got
+        self.outLbl = wx.StaticText(self, label=_translate("We got:"))
+        self.sizer.Add(self.outLbl, border=6, flag=wx.ALL | wx.EXPAND)
+        self.outCtrl = wx.TextCtrl(self, value=f"{stdout}\n{stderr}",
+                                   size=(-1, 620), style=wx.TE_READONLY | wx.TE_MULTILINE)
+        self.outCtrl.SetFont(fonts.appTheme['code'].obj)
+        self.sizer.Add(self.outCtrl, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+
+        # Make buttons
+        self.btns = self.CreateStdDialogButtonSizer(flags=wx.OK)
+        self.border.Add(self.btns, border=6, flag=wx.ALIGN_RIGHT | wx.ALL)
+
+        self.Layout()
+        self._applyAppTheme()
 
 
 def getAllPluginDetails():

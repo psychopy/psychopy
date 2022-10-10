@@ -447,7 +447,8 @@ class AppTheme(dict):
             'h2': AppFont(pointSize=18),
             'h3': AppFont(pointSize=14),
             'h4': AppFont(pointSize=12),
-            'h5': AppFont(pointSize=9, bold=True)
+            'h5': AppFont(pointSize=9, bold=True),
+            'code': CodeFont()
         }
 
         dict.__setitem__(self, name, cache)
