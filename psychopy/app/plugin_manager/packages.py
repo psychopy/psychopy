@@ -71,8 +71,8 @@ class PIPTerminalPanel(wx.Panel):
 
     def runCommand(self, cmd):
         """Run the command."""
-        cmd = ' '.join([sys.executable, '-m', cmd])
-        output = sp.Popen(cmd,
+        emts = [sys.executable, "-m", cmd]
+        output = sp.Popen(' '.join(emts),
                           stdout=sp.PIPE,
                           stderr=sp.PIPE,
                           shell=True,
@@ -80,6 +80,9 @@ class PIPTerminalPanel(wx.Panel):
         stdout, stderr = output.communicate()
         sys.stdout.write(stdout)
         sys.stderr.write(stderr)
+
+        # Display input
+        self.output.AppendText("\n>> " + cmd)
 
         # Display output if error
         if output.returncode != 0:
