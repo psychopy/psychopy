@@ -153,13 +153,15 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.depth = depth
         self.anchor = anchor
 
-        self.tex = tex
+        # Removed the following line since setting this attribute will call
+        # `_createTexture` again.
+        # self.tex = tex
         self.mask = mask
         self.contrast = float(contrast)
         self.opacity = opacity
         self.autoLog = autoLog
         self.autoDraw = autoDraw
-        self.blendmode=blendmode
+        self.blendmode = blendmode
 
         # fix scaling to window coords
         self._calcCyclesPerStim()
