@@ -241,7 +241,7 @@ class CountdownTimer(Clock):
             while countdownTimer.getTime() > 0:
                 # do something
         """
-        
+
         self._timeAtLastReset += t
 
     def reset(self, t=None):
@@ -468,12 +468,3 @@ def getAbsTime():
 
     """
     return int(time.mktime(time.localtime()))
-
-
-if __name__ == "__main__":
-    clock = Clock()
-    countdowntimer = CountdownTimer()
-
-    clock.addTime(1)
-    countdowntimer.addTime(1)
-    print(clock.getTime(), countdowntimer.getTime())
