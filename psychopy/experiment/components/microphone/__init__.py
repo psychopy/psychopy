@@ -9,6 +9,7 @@
 from pathlib import Path
 
 from psychopy.alerts import alert
+from psychopy.tools import stringtools as st
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
 from psychopy.sound.microphone import Microphone, _hasPTB
 from psychopy.sound.audiodevice import sampleRateQualityLevels
@@ -20,12 +21,19 @@ _localized.update({'stereo': _translate('Stereo'),
                    'channel': _translate('Channel')})
 from psychopy.tests import _vmTesting
 
+# Get list of devices
 if _hasPTB and not _vmTesting:
-    devices = {d.deviceName: d for d in Microphone.getDevices()}
+    devices = Microphone.getDevices()
+    deviceIndices = [d.deviceIndex for d in devices]
+    deviceNames = [d.deviceName for d in devices]
 else:
-    devices = {}
+    devices = []
+    deviceIndices = []
+    deviceNames = []
+deviceIndices.append(None)
+deviceNames.append("default")
+# Get list of sample rates
 sampleRates = {r[1]: r[0] for r in sampleRateQualityLevels.values()}
-devices['default'] = None
 
 onlineTranscribers = {
     "Google": "GOOGLE"
@@ -77,7 +85,8 @@ class MicrophoneComponent(BaseComponent):
                          "experiments - online experiments ask the participant which mic to use.")
         self.params['device'] = Param(
             device, valType='str', inputType="choice", categ="Basic",
-            allowedVals=list(devices),
+            allowedVals=deviceIndices,
+            allowedLabels=deviceNames,
             hint=msg,
             label=_translate("Device")
         )
@@ -201,36 +210,37 @@ class MicrophoneComponent(BaseComponent):
         )
         buff.writeIndentedLines(code % inits)
 
-    def writeInitCode(self, buff):
+    def writeRunOnceInitCode(self, buff):
         inits = getInitVals(self.params)
+        # Substitute default if device not found
+        if inits['device'].val not in deviceIndices:
+            alert(4330, strFields={'device': self.params['device'].val})
+            inits['device'].val = None
         # Substitute sample rate value for numeric equivalent
         inits['sampleRate'] = sampleRates[inits['sampleRate'].val]
         # Substitute channel value for numeric equivalent
         inits['channels'] = {'mono': 1, 'stereo': 2, 'auto': None}[self.params['channels'].val]
-        # Substitute device name for device index, or default if not found
-        if self.params['device'].val in devices:
-            device = devices[self.params['device'].val]
-            if hasattr(device, "deviceIndex"):
-                inits['device'] = device.deviceIndex
-            else:
-                inits['device'] = None
-        else:
-            alert(4330, strFields={'device': self.params['device'].val})
-            inits['device'] = None
-        # Create Microphone object and clips dict
+        # Get device names
+        inits['deviceName'] = getDeviceName(inits['device'].val)
+        inits['deviceVarName'] = getDeviceVarName(inits['device'].val)
+        # Create Microphone object
         code = (
-            "%(name)s = sound.microphone.Microphone(\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                "device=%(device)s, channels=%(channels)s, \n"
-                "sampleRateHz=%(sampleRate)s, maxRecordingSize=%(maxSize)s\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
+            "# create a microphone object for device: %(deviceName)s\n"
+            "%(deviceVarName)s = sound.microphone.Microphone(\n"
+            "    device=%(device)s, channels=%(channels)s, \n"
+            "    sampleRateHz=%(sampleRate)s, maxRecordingSize=%(maxSize)s\n"
             ")\n"
+        )
+        buff.writeOnceIndentedLines(code % inits)
+
+    def writeInitCode(self, buff):
+        inits = getInitVals(self.params)
+        # Get device names
+        inits['deviceVarName'] = getDeviceVarName(inits['device'].val)
+        # Assign name to device var name
+        code = (
+            "# link %(name)s to device object\n"
+            "%(name)s = %(deviceVarName)s\n"
         )
         buff.writeIndentedLines(code % inits)
 
@@ -491,3 +501,44 @@ class MicrophoneComponent(BaseComponent):
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-2, relative=True)
+
+
+def getDeviceName(index):
+    """
+    Get device name from a given index
+
+    Parameters
+    ----------
+    index : int or None
+        Index of the device to use
+    """
+    # Alias None
+    if index not in deviceIndices:
+        index = None
+    # Get device name
+    i = deviceIndices.index(index)
+    name = deviceNames[i]
+
+    return name
+
+
+def getDeviceVarName(index, case="camel"):
+    """
+    Get device name from a given index and convert it to a valid variable name.
+
+    Parameters
+    ----------
+    index : int or None
+        Index of the device to use
+    case : str
+        Format of the variable name (see stringtools.makeValidVarName for info on accepted formats)
+    """
+    # Get device name
+    name = getDeviceName(index)
+    # If device name is just default, add "microphone" for clarity
+    if name == "default":
+        name += "_microphone"
+    # Make valid
+    varName = st.makeValidVarName(name, case=case)
+
+    return varName
