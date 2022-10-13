@@ -668,15 +668,10 @@ class BaseComponent:
         self.writeParamUpdates(buff, updateType, paramNames,
                                target="PsychoJS")
 
-    def writeParamUpdate(self, buff, compName, paramName, val, updateType,
-                         params=None, target="PsychoPy"):
-        """Writes an update string for a single parameter.
-        This should not need overriding for different components - try to keep
-        constant
+    def _getParamCaps(self, paramName):
         """
-        if params is None:
-            params = self.params
-        # first work out the name for the set____() function call
+        Get param name in title case, useful for working out the `.set____` function in boilerplate.
+        """
         if paramName == 'advancedParams':
             return  # advancedParams is not really a parameter itself
         elif paramName == 'letterHeight':
@@ -691,6 +686,19 @@ class BaseComponent:
             paramCaps = 'FieldPos'
         else:
             paramCaps = paramName[0].capitalize() + paramName[1:]
+
+        return paramCaps
+
+    def writeParamUpdate(self, buff, compName, paramName, val, updateType,
+                         params=None, target="PsychoPy"):
+        """Writes an update string for a single parameter.
+        This should not need overriding for different components - try to keep
+        constant
+        """
+        if params is None:
+            params = self.params
+        # first work out the name for the set____() function call
+        paramCaps = self._getParamCaps(paramName)
 
         # code conversions for PsychoJS
         if target == 'PsychoJS':
