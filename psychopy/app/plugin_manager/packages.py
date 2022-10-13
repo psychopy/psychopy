@@ -24,7 +24,7 @@ class PackageManagerPanel(wx.Panel, handlers.ThemeMixin):
         self.sizer.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), border=6, flag=wx.EXPAND | wx.ALL)
         # Add pip terminal
         self.pipCtrl = PIPTerminalPanel(self)
-        self.sizer.Add(self.pipCtrl, flag=wx.EXPAND | wx.ALL)
+        self.sizer.Add(self.pipCtrl, proportion=1, flag=wx.EXPAND | wx.ALL)
 
     def onActivateItem(self, evt=None):
         # Get package name
@@ -78,13 +78,17 @@ class PIPTerminalPanel(wx.Panel):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.border.Add(self.sizer, proportion=1, border=12, flag=wx.ALL | wx.EXPAND)
 
-        # Add instructions
-        self.instr = wx.StaticText(self, label=_translate(
-            "Type a PIP command below and press Enter to execute it in the installed PsychoPy environment, any "
-            "returned text will appear below."
-        ))
-        self.instr.Wrap(self.GetSize()[0] - 24 - 6)
-        self.sizer.Add(self.instr, border=6, flag=wx.LEFT | wx.RIGHT | wx.TOP | wx.EXPAND)
+        # Add output
+        self.output = wx.richtext.RichTextCtrl(
+            self,
+            value=_translate(
+                "Type a PIP command below and press Enter to execute it in the installed PsychoPy environment, any "
+                "returned text will appear below.\n"
+                "\n"
+            ),
+            size=(480, -1),
+            style=wx.TE_READONLY)
+        self.sizer.Add(self.output, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
 
         # Add text control
         self.consoleSzr = wx.BoxSizer(wx.HORIZONTAL)
@@ -95,9 +99,7 @@ class PIPTerminalPanel(wx.Panel):
         self.consoleSzr.Add(self.console, proportion=1)
         self.sizer.Add(self.consoleSzr, border=6, flag=wx.ALL | wx.EXPAND)
 
-        # Add output
-        self.output = wx.richtext.RichTextCtrl(self, size=(480, -1), style=wx.TE_READONLY)
-        self.sizer.Add(self.output, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        self._applyAppTheme()
 
         self.Center()
 
@@ -133,7 +135,12 @@ class PIPTerminalPanel(wx.Panel):
         # Update output ctrl to style new text
         handlers.ThemeMixin._applyAppTheme(self.output)
 
+        # Scroll to bottom
+        self.output.ShowPosition(self.output.GetLastPosition())
+
     def _applyAppTheme(self):
+        # Style output ctrl
+        handlers.ThemeMixin._applyAppTheme(self.output)
         # Apply code font to text ctrl
         self.console.SetFont(fonts.coderTheme.base.obj)
 
