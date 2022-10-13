@@ -53,6 +53,95 @@ def is_file(source):
     return path.is_file()
 
 
+def makeValidVarName(name, case="camel"):
+    """
+    Transform a string into a valid variable name
+
+    Parameters
+    ----------
+    name : str
+        Original name to be transformed
+    case : str
+        Case style for variable name to be in. Options are:
+        upper: UPPERCASE
+        title: TitleCase
+        camel: camelCase
+        snake: snake_case
+        lower: lowercase
+    """
+    # Mark which underscores which need preserving
+    private = name.startswith("_")
+    protected = name.startswith("__")
+    core = name.endswith("__")
+    # Replace all different wordbreaks with _
+    for wb in (" ", ".", ","):
+        name = name.replace(wb, "_")
+    # Insert a _ between lower/upper pairs and char/number pairs
+    lastChar = ""
+    processed = ""
+    for c in name:
+        # Insert a _ if...
+        if any([
+            lastChar.islower() and c.isupper(),  # previous char was lower and this is upper
+            lastChar.isnumeric() and c.isalpha(),  # previous char was a number and this is a letter
+            lastChar.isalpha() and c.isnumeric(),  # previous char was a letter and this is a number
+        ]):
+            processed += "_"
+        # Append char
+        processed += c
+        # Store last char
+        lastChar = c
+    name = processed
+    # Remove non-word characters
+    processed = ""
+    for c in name:
+        if c.isidentifier() or c.isdecimal():
+            processed += c
+        else:
+            processed += "_"
+    name = processed
+    # Split by underscore
+    name = name.split("_")
+    name = [word for word in name if len(word)]
+    # Remove numbers from start
+    while name[0].isnumeric():
+        name = name[1:]
+    # Process each word
+    processed = []
+    for i, word in enumerate(name):
+        # Handle case
+        word = word.lower()
+        if case in ("upper"):
+            word = word.upper()
+        if case in ("title", "camel"):
+            if case == "camel" and i == 0:
+                word = word.lower()
+            else:
+                word = word.title()
+        if case in ("snake", "lower"):
+            word = word.lower()
+        # Append word
+        processed.append(word)
+    name = processed
+    # Recombine
+    if case == "snake":
+        name = "_".join(name)
+    else:
+        name = "".join(name)
+    # Add special underscores
+    if private:
+        # If private, prepend _
+        name = "_" + name
+    if protected:
+        # If also protected, prepend another _
+        name = "_" + name
+    if core:
+        # If styled like a core variable (e.g. __file__), append __
+        name = name + "__"
+    return name
+
+
+
 def prettyname(name, wrap=False):
     """Convert a camelCase, TitleCase or underscore_delineated title to Full Title Case"""
     # Replace _ with space
