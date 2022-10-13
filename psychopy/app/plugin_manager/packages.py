@@ -122,7 +122,7 @@ class PIPTerminalPanel(wx.Panel):
         sys.stderr.write(stderr)
 
         # Display input
-        self.output.AppendText("\n>> " + cmd)
+        self.output.AppendText("\n>> " + cmd + "\n")
 
         # Display output if error
         if output.returncode != 0:
