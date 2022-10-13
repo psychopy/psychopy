@@ -3,7 +3,7 @@ import sys
 import subprocess as sp
 
 from psychopy.app import utils
-from psychopy.app.themes import handlers, icons, fonts
+from psychopy.app.themes import handlers, icons
 from psychopy.localization import _translate
 
 
@@ -146,6 +146,7 @@ class PIPTerminalPanel(wx.Panel):
         # Style output ctrl
         handlers.ThemeMixin._applyAppTheme(self.output)
         # Apply code font to text ctrl
+        from psychopy.app.themes import fonts
         self.console.SetFont(fonts.coderTheme.base.obj)
 
 

@@ -43,9 +43,6 @@ class EnvironmentManagerDlg(wx.Dialog, handlers.ThemeMixin):
 
 from pkg_resources import parse_version
 import wx
-
-from psychopy.app.themes import handlers, colors, icons, fonts, theme
-
 try:
     from wx import aui
 except ImportError:

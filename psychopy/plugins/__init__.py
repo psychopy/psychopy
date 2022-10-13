@@ -24,7 +24,7 @@ import wx
 
 from psychopy import logging
 from psychopy.app import utils
-from psychopy.app.themes import icons, fonts, handlers
+from psychopy.app.themes import icons, handlers
 from psychopy.preferences import prefs
 from psychopy.localization import _translate
 import psychopy.experiment.components as components
@@ -390,6 +390,8 @@ class AuthorInfo:
 
 class InstallErrorDlg(wx.Dialog, handlers.ThemeMixin):
     def __init__(self, cmd="", stdout="", stderr=""):
+        from psychopy.app.themes import fonts
+
         wx.Dialog.__init__(
             self, None,
             size=(480, 620),
