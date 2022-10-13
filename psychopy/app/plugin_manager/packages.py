@@ -31,6 +31,8 @@ class PackageManagerPanel(wx.Panel, handlers.ThemeMixin):
         pipname = evt.GetText()
         # Pre-fill "pip show" for the user
         self.pipCtrl.console.SetValue(f"pip show {pipname}")
+        # Switch focus to pip ctrl
+        self.pipCtrl.console.SetFocus()
 
     def onRightClickItem(self, evt=None):
         # Create menu
@@ -62,6 +64,8 @@ class PackageManagerPanel(wx.Panel, handlers.ThemeMixin):
         params = " ".join(menu.commands[choice][1:])
         # Pre-fill "pip ..." for the user
         self.pipCtrl.console.SetValue(f"pip {cmd} {menu.pipname} {params}")
+        # Switch focus to pip ctrl
+        self.pipCtrl.console.SetFocus()
 
 
 class PIPTerminalPanel(wx.Panel):
