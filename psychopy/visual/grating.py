@@ -186,14 +186,16 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
 
     @attributeSetter
     def sf(self, value):
-        """Spatial frequency of the grating texture
+        """Spatial frequency of the grating texture.
 
-        Should be a :ref:`x,y-pair <attrib-xy>` or :ref:`scalar <attrib-scalar>` or None.
-        If `units` == 'deg' or 'cm' units are in cycles per deg or cm as appropriate.
-        If `units` == 'norm' then sf units are in cycles per stimulus (and so SF scales with stimulus size).
-        If texture is an image loaded from a file then sf=None defaults to 1/stimSize to give one cycle of the image.
+        Should be a :ref:`x,y-pair <attrib-xy>` or :ref:`scalar <attrib-scalar>`
+        or None. If `units` == 'deg' or 'cm' units are in cycles per deg or cm
+        as appropriate. If `units` == 'norm' then sf units are in cycles per
+        stimulus (and so SF scales with stimulus size). If texture is an image
+        loaded from a file then sf=None defaults to 1/stimSize to give one cycle
+        of the image.
+
         """
-
         # Recode phase to numpy array
         if value is None:
             # Set the sf to default (e.g. to the 1.0/size of the loaded image
@@ -215,12 +217,13 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
     def phase(self, value):
         """Phase of the stimulus in each dimension of the texture.
 
-        Should be an :ref:`x,y-pair <attrib-xy>` or
-        :ref:`scalar <attrib-scalar>`
+        Should be an :ref:`x,y-pair <attrib-xy>` or :ref:`scalar
+        <attrib-scalar>`
 
-        **NB** phase has modulus 1 (rather than 360 or 2*pi)
-        This is a little unconventional but has the nice effect
-        that setting phase=t*n drifts a stimulus at n Hz
+        **NB** phase has modulus 1 (rather than 360 or 2*pi) This is a little
+        unconventional but has the nice effect that setting phase=t*n drifts a
+        stimulus at *n* Hz.
+
         """
         # Recode phase to numpy array
         value = val2array(value)
@@ -232,6 +235,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
     def foreColor(self):
         # Call setter of parent mixin
         return ColorMixin.foreColor.fget(self)
+
     @foreColor.setter
     def foreColor(self, value):
         # Call setter of parent mixin
@@ -244,6 +248,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
     def contrast(self):
         # Call setter of parent mixin
         return ColorMixin.contrast.fget(self)
+
     @contrast.setter
     def contrast(self, value):
         # Call setter of parent mixin
@@ -256,6 +261,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
     def opacity(self):
         # Call setter of parent mixin
         return BaseVisualStim.opacity.fget(self)
+
     @opacity.setter
     def opacity(self, value):
         # Call setter of parent mixin
@@ -266,24 +272,27 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
 
     @attributeSetter
     def tex(self, value):
-        """Texture to used on the stimulus as a grating (aka carrier)
+        """Texture to used on the stimulus as a grating (aka carrier).
 
         This can be one of various options:
             + **'sin'**,'sqr', 'saw', 'tri', None (resets to default)
             + the name of an image file (most formats supported)
             + a numpy array (1xN or NxN) ranging -1:1
 
-        If specifying your own texture using an image or numpy array
-        you should ensure that the image has square power-of-two dimesnions
-        (e.g. 256 x 256). If not then PsychoPy will upsample your stimulus
-        to the next larger power of two.
+        If specifying your own texture using an image or numpy array you should
+        ensure that the image has square power-of-two dimensions (e.g. 256 x
+        256). If not then PsychoPy will up-sample your stimulus to the next
+        larger power of two.
+
         """
-        self._createTexture(value, id=self._texID,
-                            pixFormat=GL.GL_RGB, stim=self,
-                            res=self.texRes, maskParams=self.maskParams)
-        # if user requested size=None then update the size for new stim here
-        if hasattr(self, '_requestedSize') and self._requestedSize is None:
-            self.size = None  # Reset size do default
+        self._createTexture(
+            value,
+            id=self._texID,
+            pixFormat=GL.GL_RGB,
+            stim=self,
+            res=self.texRes,
+            maskParams=self.maskParams)
+
         self.__dict__['tex'] = value
         self._needTextureUpdate = False
 
@@ -291,10 +300,10 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
     def blendmode(self, value):
         """The OpenGL mode in which the stimulus is draw
 
-        Can the 'avg' or 'add'. Average (avg) places the new stimulus over the old one
-        with a transparency given by its opacity. Opaque stimuli will hide other stimuli
-        transparent stimuli won't. Add performs the arithmetic sum of the new stimulus and the ones
-        already present.
+        Can the 'avg' or 'add'. Average (avg) places the new stimulus over the
+        old one with a transparency given by its opacity. Opaque stimuli will
+        hide other stimuli transparent stimuli won't. Add performs the
+        arithmetic sum of the new stimulus and the ones already present.
 
         """
         self.__dict__['blendmode'] = value
@@ -321,17 +330,25 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self._set('blendmode', value, log=log)
 
     def draw(self, win=None):
-        """Draw the stimulus in its relevant window. You must call
-        this method after every MyWin.flip() if you want the
-        stimulus to appear on that frame and then update the screen
-        again.
-        """
+        """Draw the stimulus in its relevant window.
 
+        You must call this method after every `MyWin.flip()` if you want the
+        stimulus to appear on that frame and then update the screen again.
+
+        Parameters
+        ----------
+        win : `~psychopy.visual.Window` or `None`
+            Window to draw the stimulus to. Context sharing must be enabled if
+            any other window beside the one specified during creation of this
+            stimulus is specified.
+
+        """
         if win is None:
             win = self.win
+
+        self._selectWindow(win)
         saveBlendMode = win.blendMode
         win.setBlendMode(self.blendmode, log=False)
-        self._selectWindow(win)
 
         # do scaling
         GL.glPushMatrix()  # push before the list, pop after
