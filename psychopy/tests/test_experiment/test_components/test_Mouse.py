@@ -7,12 +7,15 @@ from psychopy.experiment.routines import Routine
 from psychopy.experiment.components.mouse import MouseComponent
 from psychopy.experiment.components.polygon import PolygonComponent
 from psychopy.tests.utils import TESTS_DATA_PATH
+from psychopy.hardware.mouse import Mouse
 
 
 class TestMouseComponent(_TestBaseComponentsMixin, _TestDisabledMixin):
     """
     Test that Mouse coponents have the correct params and write as expected.
     """
+    libraryClass = Mouse
+
     def setup(self):
         # Make blank experiment
         self.exp = Experiment()
