@@ -172,7 +172,7 @@
         "font": "bold"
       },
       "link": {
-        "fg": "purple",
+        "fg": "blue",
         "bg": "",
         "font": "italic"
       },
@@ -212,17 +212,17 @@
         "font": "bold"
       },
       "code": {
-        "fg": "purple",
+        "fg": "green",
         "bg": "",
         "font": ""
       },
       "codeblock": {
-        "fg": "purple",
+        "fg": "green",
         "bg": "",
         "font": ""
       },
       "li": {
-        "fg": "purple",
+        "fg": "blue",
         "bg": "",
         "font": "bold"
       },
