@@ -25,6 +25,7 @@ import wx.lib.statbmp
 from wx.lib.agw.aui.aui_utilities import IndentPressedBitmap, ChopText, TakeScreenShot
 import sys
 import wx
+import wx.stc
 import wx.lib.agw.aui as aui
 from wx.lib import platebtn
 
@@ -316,7 +317,8 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.sizer.Add(self.btnSizer, border=0, flag=wx.ALL)
 
         # Make text control
-        self.rawTextCtrl = wx.TextCtrl(self, size=size, value="", style=wx.TE_MULTILINE | style)
+        self.rawTextCtrl = wx.stc.StyledTextCtrl(self, size=size, style=wx.TE_MULTILINE | style)
+        self.rawTextCtrl.SetLexer(wx.stc.STC_LEX_MARKDOWN)
         self.rawTextCtrl.Bind(wx.EVT_TEXT, self.onEdit)
         self.contentSizer.Add(self.rawTextCtrl, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
 
@@ -347,6 +349,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.toggleView(False)
         self.saveBtn.Disable()
         self.saveBtn.Show(self.file is not None)
+        self._applyAppTheme()
 
     def getValue(self):
         return self.rawTextCtrl.GetValue()
@@ -368,7 +371,6 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.rawTextCtrl.Show(edit)
         self.htmlPreview.Show(not edit)
 
-        self._applyAppTheme()
         self.Layout()
 
     def render(self, evt=None):
@@ -424,26 +426,20 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         spec = fonts.coderTheme.base
         # Set raw text font from coder theme
         self.rawTextCtrl.SetFont(spec.obj)
-        # Set all background colours from coder theme
-        self.rawTextCtrl.SetBackgroundColour(spec.backColor)
-        self.htmlPreview.SetBackgroundColour(spec.backColor)
-        # Set all foreground colours from coder theme
-        self.rawTextCtrl.SetForegroundColour(spec.foreColor)
-        self.htmlPreview.SetForegroundColour(spec.foreColor)
+        # Always style text ctrl
+        handlers.styleCodeEditor(self.rawTextCtrl)
 
         # Set save button icon
         self.saveBtn.SetBitmap(
             icons.ButtonIcon(stem="savebtn", size=(16, 16)).bitmap
         )
         # Set edit toggle icon
-        if self.editBtn.Value:
-            self.editBtn.SetBitmap(
-                icons.ButtonIcon(stem="viewbtn", size=(16, 16)).bitmap
-            )
-        else:
-            self.editBtn.SetBitmap(
-                icons.ButtonIcon(stem="editbtn", size=(16, 16)).bitmap
-            )
+        self.editBtn.SetBitmap(
+            icons.ButtonIcon(stem="editbtn", size=(16, 16)).bitmap
+        )
+        self.editBtn.SetBitmapPressed(
+            icons.ButtonIcon(stem="viewbtn", size=(16, 16)).bitmap
+        )
 
         self.Refresh()
 
