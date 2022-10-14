@@ -1,5 +1,6 @@
 import builtins
 import keyword
+import sys
 from pathlib import Path
 
 import wx
@@ -424,6 +425,104 @@ class CodeFont:
         )
 
 
+class AppTheme(dict):
+    def __getitem__(self, item):
+        # If theme isn't cached yet, load & cache it
+        self.load(theme.app)
+        # Return value from theme cache
+        return dict.__getitem__(self, theme.app)[item]
+
+    def __getattr__(self, attr):
+        # If theme isn't cached yet, load & cache it
+        self.load(theme.app)
+        # Return value
+        return getattr(self, attr)
+
+    def items(self):
+        # If theme isn't cached yet, load & cache it
+        self.load(theme.app)
+        return dict.__getitem__(self, theme.app).items()
+
+    def values(self):
+        # If theme isn't cached yet, load & cache it
+        self.load(theme.app)
+        return dict.__getitem__(self, theme.app).values()
+
+    def keys(self):
+        # If theme isn't cached yet, load & cache it
+        self.load(theme.app)
+        return dict.__getitem__(self, theme.app).keys()
+
+    def __iter__(self):
+        # If theme isn't cached yet, load & cache it
+        self.load(theme.app)
+        return dict.__getitem__(self, theme.app).__iter__()
+
+    def load(self, name):
+        # Make sure default color is up to date
+        AppFont.foreColor = colors.app['text']
+        # If theme is unchanged, do nothing
+        if name in self:
+            return
+        # If we have a new theme, do setup
+        cache = {
+            'base': AppFont(),
+            'h1': AppFont(pointSize=24),
+            'h2': AppFont(pointSize=18),
+            'h3': AppFont(pointSize=14),
+            'h4': AppFont(pointSize=12),
+            'h5': AppFont(pointSize=9, bold=True),
+            'code': CodeFont()
+        }
+
+        dict.__setitem__(self, name, cache)
+
+
+class AppFont:
+    # Defaults are defined at class level, so they can change with theme
+    pointSize = 9
+    foreColor = "#000000"
+    backColor = wx.TRANSPARENT
+    bold = False
+    italic = False
+    if sys.platform == 'win32':
+        faceName = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT).GetFaceName()
+    else:
+        faceName = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT).GetFaceName()
+
+    def __init__(self, pointSize=None, foreColor=None, backColor=None, bold=None, italic=None):
+        # Set point size
+        if pointSize in (None, ""):
+            pointSize = AppFont.pointSize
+        self.pointSize = pointSize
+        # Set foreground color
+        if foreColor in (None, ""):
+            foreColor = AppFont.foreColor
+        self.foreColor = foreColor
+        # Set background color
+        if backColor in (None, ""):
+            backColor = AppFont.backColor
+        self.backColor = backColor
+        # Set bold
+        if bold in (None, ""):
+            bold = AppFont.bold
+        self.bold = bold
+        # Set italic
+        if italic in (None, ""):
+            italic = AppFont.italic
+        self.italic = italic
+
+        style = wx.FONTSTYLE_ITALIC if self.italic else wx.FONTSTYLE_NORMAL
+        weight = wx.FONTWEIGHT_BOLD if self.bold else wx.FONTWEIGHT_NORMAL
+        self.obj = wx.Font(
+            pointSize=self.pointSize,
+            family=wx.FONTFAMILY_SWISS,
+            style=style,
+            weight=weight,
+            faceName=self.faceName,
+        )
+
+
 def extractAll(val):
     pointSize = int(prefs.coder['codeFontSize'])
     foreColor = extractColor(val['fg'])
@@ -495,4 +594,5 @@ def extractColor(val):
 
 
 coderTheme = CodeTheme()
+appTheme = AppTheme()
 

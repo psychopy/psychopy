@@ -48,7 +48,7 @@ if parse_version(wx.__version__) < parse_version('4.0.3'):
 
 from psychopy.localization import _translate
 from ... import experiment, prefs
-from .. import dialogs, utils
+from .. import dialogs, utils, plugin_manager
 from ..themes import icons, colors, handlers
 from ..themes.ui import ThemeSwitcher
 from ..ui import BaseAuiFrame
@@ -446,6 +446,10 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate("Update PsychoPy to the latest, or a "
                                       "specific, version"))
         self.Bind(wx.EVT_MENU, self.app.openUpdater, item)
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Plugin/packages manager..."),
+                           _translate("Manage Python packages and optional plugins for PsychoPy"))
+        self.Bind(wx.EVT_MENU, self.openPluginManager, item)
         if hasattr(self.app, 'benchmarkWizard'):
             item = menu.Append(wx.ID_ANY,
                                _translate("Benchmark wizard"),
@@ -1373,6 +1377,10 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         exportHtml = str(self.exp.settings.params['exportHTML'].val).lower()
         if exportHtml == pref.lower():
             return True
+
+    def openPluginManager(self, evt=None):
+        dlg = plugin_manager.EnvironmentManagerDlg(self)
+        dlg.ShowModal()
 
     def onPavloviaSync(self, evt=None):
         if Path(self.filename).is_file():

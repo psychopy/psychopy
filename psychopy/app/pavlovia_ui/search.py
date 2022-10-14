@@ -128,9 +128,9 @@ class SearchPanel(wx.Panel):
         self.sizer.Add(self.btnSizer, border=4, flag=wx.EXPAND | wx.ALL)
         # Add "me mode" button
         self.mineBtn = wx.ToggleButton(self, size=(64, -1), label=_translate("Me"))
-        self.mineBtn.SetBitmap(icons.ButtonIcon(stem="person_off", size=16).bitmap)
-        self.mineBtn.SetBitmapFocus(icons.ButtonIcon(stem="person_on", size=16).bitmap)
-        self.mineBtn.SetBitmapPressed(icons.ButtonIcon(stem="person_on", size=16).bitmap)
+        self.mineBtn.SetBitmap(icons.ButtonIcon(stem="person_off", size=16, theme="light").bitmap)
+        self.mineBtn.SetBitmapFocus(icons.ButtonIcon(stem="person_on", size=16, theme="light").bitmap)
+        self.mineBtn.SetBitmapPressed(icons.ButtonIcon(stem="person_on", size=16, theme="light").bitmap)
         self._mine = False
         self.mineBtn.Bind(wx.EVT_TOGGLEBUTTON, self.onMineBtn)
         self.mineBtn.Enable(self.session.userID is not None)

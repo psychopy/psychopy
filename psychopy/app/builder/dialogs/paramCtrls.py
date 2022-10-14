@@ -383,7 +383,7 @@ class FileCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         self._szr.Add(self, border=5, proportion=1, flag=wx.EXPAND | wx.RIGHT)
         # Add button to browse for file
-        fldr = icons.ButtonIcon(stem="folder", size=16).bitmap
+        fldr = icons.ButtonIcon(stem="folder", size=16, theme="light").bitmap
         self.findBtn = wx.BitmapButton(parent, -1, size=wx.Size(24, 24), bitmap=fldr)
         self.findBtn.SetToolTip(_translate("Specify file ..."))
         self.findBtn.Bind(wx.EVT_BUTTON, self.findFile)
@@ -472,13 +472,13 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         self._szr.Add(self, proportion=1, border=5, flag=wx.EXPAND | wx.RIGHT)
         # Add button to browse for file
-        fldr = icons.ButtonIcon(stem="folder", size=16).bitmap
+        fldr = icons.ButtonIcon(stem="folder", size=16, theme="light").bitmap
         self.findBtn = wx.BitmapButton(parent, -1, size=wx.Size(24,24), bitmap=fldr)
         self.findBtn.SetToolTip(_translate("Specify file ..."))
         self.findBtn.Bind(wx.EVT_BUTTON, self.findFile)
         self._szr.Add(self.findBtn)
         # Add button to open in Excel
-        xl = icons.ButtonIcon(stem="filecsv", size=16).bitmap
+        xl = icons.ButtonIcon(stem="filecsv", size=16, theme="light").bitmap
         self.xlBtn = wx.BitmapButton(parent, -1, size=wx.Size(24,24), bitmap=xl)
         self.xlBtn.SetToolTip(_translate("Open/create in your default table editor"))
         self.xlBtn.Bind(wx.EVT_BUTTON, self.openExcel)
@@ -566,8 +566,8 @@ class ColorCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         # Add ctrl to sizer
         self._szr.Add(self, proportion=1, border=5, flag=wx.EXPAND | wx.RIGHT)
         # Add button to activate color picker
-        fldr = icons.ButtonIcon(stem="color", size=16).bitmap
-        self.pickerBtn = wx.BitmapButton(parent, -1, size=wx.Size(24,24), bitmap=fldr)
+        fldr = icons.ButtonIcon(stem="color", size=16, theme="light").bitmap
+        self.pickerBtn = wx.BitmapButton(parent, -1, size=wx.Size(24, 24), bitmap=fldr)
         self.pickerBtn.SetToolTip(_translate("Specify color ..."))
         self.pickerBtn.Bind(wx.EVT_BUTTON, self.colorPicker)
         self._szr.Add(self.pickerBtn)

@@ -8,6 +8,7 @@
 """utility classes for the Builder
 """
 import glob
+import io
 import os
 import re
 import webbrowser
@@ -15,6 +16,7 @@ from pathlib import Path
 
 import PIL
 import numpy
+import requests
 from wx.html import HtmlWindow
 try:
     import markdown_it as md
@@ -28,13 +30,14 @@ import wx
 import wx.stc
 import wx.lib.agw.aui as aui
 from wx.lib import platebtn
+import wx.lib.mixins.listctrl as listmixin
 
 import psychopy
 from psychopy import logging
 from . import pavlovia_ui
 from .themes import colors, handlers, icons
 from psychopy.localization import _translate
-from psychopy.tools.stringtools import prettyname
+from psychopy.tools import stringtools as st
 from psychopy.tools.apptools import SortTerm
 from PIL import Image as pil
 
@@ -217,6 +220,35 @@ def getSystemFonts(encoding='system', fixedWidthOnly=False):
         encoding = getattr(wx, encoding)
 
     return fontEnum.GetFacenames(encoding, fixedWidthOnly=fixedWidthOnly)
+
+
+class ImageData(pil.Image):
+    def __new__(cls, source):
+        # If given a PIL image, use it directly
+        if isinstance(source, pil.Image):
+            return source
+        # If given None, use None
+        if source in (None, "None", "none", ""):
+            return None
+        # If source is or looks like a file path, load from file
+        if st.is_file(source):
+            path = Path(source)
+            # Only load if it looks like an image
+            if path.suffix in pil.registered_extensions():
+                return pil.open(source)
+        # If source is a url, load from server
+        if st.is_url(source):
+            # Only load if looks like an image
+            ext = "." + str(source).split(".")[-1]
+            if ext in pil.registered_extensions():
+                content = requests.get(source).content
+                data = io.BytesIO(content)
+                return pil.open(data)
+
+        # If couldn't interpret, raise error
+        raise ValueError(_translate(
+            "Could not get image from: {}"
+        ).format(source))
 
 
 class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
@@ -778,7 +810,7 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
         if isinstance(data, wx.Bitmap):
             # Sub in blank bitmaps
             if not data.IsOk():
-                data = icons.ButtonIcon(stem="user_none", size=128).bitmap
+                data = icons.ButtonIcon(stem="user_none", size=128, theme="light").bitmap
             # Store full size bitmap
             self._imageData = data
             # Resize bitmap
@@ -807,7 +839,7 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
                 dlg = wx.MessageDialog(None, msg, style=wx.ICON_WARNING)
                 dlg.ShowModal()
                 # then use a blank image
-                self._frames = [icons.ButtonIcon(stem="invalid_img", size=128).bitmap]
+                self._frames = [icons.ButtonIcon(stem="invalid_img", size=128, theme="light").bitmap]
 
         # Set first frame (updates non-animated images)
         self.SetBitmap(self._frames[self._frameI])
@@ -915,7 +947,7 @@ class FileCtrl(wx.TextCtrl):
         # Add button
         self.fileBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
         self.fileBtn.SetBackgroundColour(self.GetBackgroundColour())
-        self.fileBtn.SetBitmap(icons.ButtonIcon(stem="folder", size=16).bitmap)
+        self.fileBtn.SetBitmap(icons.ButtonIcon(stem="folder", size=16, theme="light").bitmap)
         self.sizer.Add(self.fileBtn, border=4, flag=wx.ALL)
         # Bind browse function
         self.fileBtn.Bind(wx.EVT_BUTTON, self.browse)
@@ -1198,6 +1230,23 @@ class ToggleButtonArray(wx.Window, handlers.ThemeMixin):
         # Use OnHover event to set buttons to their default colors
         for btn in self.buttons.values():
             btn.OnHover()
+
+
+class ListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
+    def __init__(self, parent=None, id=wx.ID_ANY,
+                 pos=wx.DefaultPosition, size=wx.DefaultSize,
+                 style=wx.LC_REPORT,
+                 validator=wx.DefaultValidator, name=""):
+        wx.ListCtrl.__init__(
+            self, parent,
+            id=id,
+            pos=pos,
+            size=size,
+            style=style,
+            validator=validator,
+            name=name
+        )
+        listmixin.ListCtrlAutoWidthMixin.__init__(self)
 
 
 def sanitize(inStr):
