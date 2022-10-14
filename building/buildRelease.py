@@ -49,12 +49,15 @@ def getSHA(cwd='.'):
 def buildRelease(versionStr, noCommit=False, interactive=True):
     #
     createInitFile(dist='sdist', version=versionStr, sha=getSHA())
-    dest = join(VERSIONS, "psychopy")
+    dest = VERSIONS / "psychopy"
     shutil.rmtree(dest)
     ignores = shutil.ignore_patterns("demos", "docs", "tests", "pylink",
                                      "*.pyo", "*.pyc", "*.orig", "*.bak",
                                      ".DS_Store", ".coverage")
     shutil.copytree("psychopy", dest, symlinks=False, ignore=ignores)
+    os.mkdir(dest/'tests')
+    shutil.copyfile("psychopy/tests/__init__.py", dest/'tests/__init__.py')
+    shutil.copyfile("psychopy/tests/utils.py", dest/'tests/utils.py')
 
     # todo: would be nice to check here that we didn't accidentally add anything large (check new folder size)
     Mb = float(subprocess.check_output(["du", "-sck", dest]).split()[0])/10**3

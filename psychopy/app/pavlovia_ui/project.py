@@ -346,7 +346,7 @@ class DetailsPanel(wx.Panel):
         # Sep
         self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
         # Description
-        self.description = wx.TextCtrl(self, size=(-1, -1), value="", style=wx.TE_MULTILINE)
+        self.description = utils.MarkdownCtrl(self, size=(-1, -1), value="", file=None)
         self.description.Bind(wx.EVT_TEXT, self.queueUpdate)
         self.sizer.Add(self.description, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         self.description.SetToolTip(_translate(
@@ -454,7 +454,7 @@ class DetailsPanel(wx.Panel):
             wx.TextCtrl.SetValue(self.localRoot, "")  # use base method to avoid callback
             self.localRoot.Disable()
             # Description
-            self.description.SetValue("")
+            self.description.setValue("")
             self.description.Disable()
             # Visibility
             self.visibility.SetSelection(wx.NOT_FOUND)
@@ -519,7 +519,7 @@ class DetailsPanel(wx.Panel):
             self.localRootLabel.Enable(project.editable)
             self.localRoot.Enable(project.editable)
             # Description
-            self.description.SetValue(project['description'])
+            self.description.setValue(project['description'])
             self.description.Enable(project.editable)
             # Visibility
             self.visibility.SetStringSelection(project['visibility'])
@@ -671,7 +671,7 @@ class DetailsPanel(wx.Panel):
             self.project = self.project
             success = True
         if obj == self.description and self.project.editable:
-            self.project['description'] = self.description.Value
+            self.project['description'] = self.description.getValue()
             success = self.project.save()
         if obj == self.visibility and self.project.editable:
             self.project['visibility'] = self.visibility.GetStringSelection().lower()

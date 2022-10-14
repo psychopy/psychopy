@@ -166,7 +166,7 @@ class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         # Add self to sizer
         self._szr.Add(self, proportion=1, border=5, flag=wx.EXPAND)
         # Bind to validation
-        self.Bind(wx.EVT_CHAR, self.validate)
+        self.Bind(wx.EVT_TEXT, self.validate)
         self.validate()
 
     def Show(self, value=True):
@@ -310,9 +310,9 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
             else:
                 self._labels[value] = value
         # Translate labels
-        for k in self._labels.keys():
-            if k in _localized:
-                self._labels[k] = _localized[k]
+        for v, l in self._labels.items():
+            if l in _localized:
+                self._labels[v] = _localized[l]
         # Create choice ctrl from labels
         wx.Choice.__init__(self)
         self.Create(parent, -1, size=size, choices=[self._labels[c] for c in self._choices], name=fieldName)

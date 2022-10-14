@@ -90,6 +90,29 @@ tags = {
         "comment": stc.STC_JSON_LINECOMMENT,
         "commentblock": stc.STC_JSON_BLOCKCOMMENT,
         "whitespace": stc.STC_JSON_DEFAULT
+    },
+    # Markdown
+    "markdown": {
+        "base": stc.STC_MARKDOWN_DEFAULT,
+        "whitespace": stc.STC_MARKDOWN_LINE_BEGIN,
+        "str": stc.STC_MARKDOWN_BLOCKQUOTE,
+        "code": stc.STC_MARKDOWN_CODE,
+        "codeblock": stc.STC_MARKDOWN_CODE2,
+        "italic": stc.STC_MARKDOWN_EM1,
+        "italic2": stc.STC_MARKDOWN_EM2,
+        "bold": stc.STC_MARKDOWN_STRONG1,
+        "bold2": stc.STC_MARKDOWN_STRONG2,
+        "h1": stc.STC_MARKDOWN_HEADER1,
+        "h2": stc.STC_MARKDOWN_HEADER2,
+        "h3": stc.STC_MARKDOWN_HEADER3,
+        "h4": stc.STC_MARKDOWN_HEADER4,
+        "h5": stc.STC_MARKDOWN_HEADER5,
+        "h6": stc.STC_MARKDOWN_HEADER6,
+        "hr": stc.STC_MARKDOWN_HRULE,
+        "link": stc.STC_MARKDOWN_LINK,
+        "num": stc.STC_MARKDOWN_OLIST_ITEM,
+        "prechar": stc.STC_MARKDOWN_PRECHAR,
+        "li": stc.STC_MARKDOWN_ULIST_ITEM,
     }
 }
 
@@ -99,6 +122,7 @@ lexerNames = {
     "c++": stc.STC_LEX_CPP,
     "r": stc.STC_LEX_R,
     "json": stc.STC_LEX_JSON,
+    "markdown": stc.STC_LEX_MARKDOWN,
 }
 
 

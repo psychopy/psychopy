@@ -11,16 +11,23 @@ import glob
 import io
 import os
 import re
+import webbrowser
 from pathlib import Path
 
 import PIL
 import numpy
 import requests
+from wx.html import HtmlWindow
+try:
+    import markdown_it as md
+except ImportError:
+    md = None
 from wx.lib.agw.aui.aui_constants import *
 import wx.lib.statbmp
 from wx.lib.agw.aui.aui_utilities import IndentPressedBitmap, ChopText, TakeScreenShot
 import sys
 import wx
+import wx.stc
 import wx.lib.agw.aui as aui
 from wx.lib import platebtn
 import wx.lib.mixins.listctrl as listmixin
@@ -326,6 +333,151 @@ class HoverButton(wx.Button, HoverMixin, handlers.ThemeMixin):
         self.BackgroundColourHover = colors.app['txtbutton_bg_hover']
         # Refresh
         self.OnHover(evt=None)
+
+
+class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
+    def __init__(self, parent, size=(-1, -1), value=None, file=None, style=wx.DEFAULT):
+        # Initialise superclass
+        self.parent = parent
+        wx.Panel.__init__(self, parent, size=size)
+        # Setup sizers
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.SetSizer(self.sizer)
+        self.contentSizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.contentSizer, proportion=1, flag=wx.EXPAND)
+        self.btnSizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.btnSizer, border=0, flag=wx.ALL)
+
+        # Make text control
+        self.rawTextCtrl = wx.stc.StyledTextCtrl(self, size=size, style=wx.TE_MULTILINE | style)
+        self.rawTextCtrl.SetLexer(wx.stc.STC_LEX_MARKDOWN)
+        self.rawTextCtrl.Bind(wx.EVT_TEXT, self.onEdit)
+        self.contentSizer.Add(self.rawTextCtrl, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
+
+        # Make HTML preview
+        self.htmlPreview = HtmlWindow(self, wx.ID_ANY)
+        self.htmlPreview.Bind(wx.html.EVT_HTML_LINK_CLICKED, self.onUrl)
+        self.contentSizer.Add(self.htmlPreview, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
+
+        # Make switch
+        self.editBtn = wx.ToggleButton(self, size=(24, 24))
+        self.editBtn.Bind(wx.EVT_TOGGLEBUTTON, self.toggleView)
+        self.btnSizer.Add(self.editBtn, border=3, flag=wx.ALL | wx.EXPAND)
+
+        # Make save button
+        self.saveBtn = wx.Button(self, size=(24, 24))
+        self.saveBtn.Bind(wx.EVT_BUTTON, self.save)
+        self.btnSizer.Add(self.saveBtn, border=3, flag=wx.ALL | wx.EXPAND)
+
+        # Get starting value
+        self.file = file
+        if value is None and self.file is not None:
+                self.load()
+        elif value is not None:
+            self.rawTextCtrl.SetValue(value)
+
+        # Set initial view
+        self.editBtn.SetValue(False)
+        self.toggleView(False)
+        self.saveBtn.Disable()
+        self.saveBtn.Show(self.file is not None)
+        self._applyAppTheme()
+
+    def getValue(self):
+        return self.rawTextCtrl.GetValue()
+
+    def setValue(self, value):
+        self.rawTextCtrl.SetValue(value)
+        # Render
+        self.toggleView(self.editBtn.Value)
+
+    def toggleView(self, evt=True):
+        if isinstance(evt, bool):
+            edit = evt
+        else:
+            edit = evt.EventObject.Value
+        # Render html
+        self.render()
+
+        # Show opposite control
+        self.rawTextCtrl.Show(edit)
+        self.htmlPreview.Show(not edit)
+
+        self._applyAppTheme()
+        self.Layout()
+
+    def render(self, evt=None):
+        # Render HTML
+        if md:
+            renderedText = md.MarkdownIt().render(self.rawTextCtrl.Value)
+        else:
+            renderedText = self.rawTextCtrl.Value.replace("\n", "<br>")
+        # Apply to preview ctrl
+        self.htmlPreview.SetPage(renderedText)
+        self.htmlPreview.Update()
+        self.htmlPreview.Refresh()
+
+    def load(self, evt=None):
+        if self.file is None:
+            return
+        # Set value from file
+        with open(self.file, "r") as f:
+            self.rawTextCtrl.SetValue(f.read())
+        # Disable save button
+        self.saveBtn.Disable()
+
+    def save(self, evt=None):
+        if self.file is None:
+            return
+        # Write current contents to file
+        with open(self.file, "w") as f:
+            f.write(self.rawTextCtrl.GetValue())
+        # Disable save button
+        self.saveBtn.Disable()
+
+    def getValue(self):
+        return self.rawTextCtrl.GetValue()
+
+    def setValue(self, value):
+        self.rawTextCtrl.SetValue(value)
+        self.render()
+
+    def onEdit(self, evt=None):
+        # Enable save button when edited
+        self.saveBtn.Enable()
+        # Post event
+        evt = wx.CommandEvent(wx.EVT_TEXT.typeId)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
+
+    @staticmethod
+    def onUrl(evt=None):
+        webbrowser.open(evt.LinkInfo.Href)
+
+    def _applyAppTheme(self):
+        from psychopy.app.themes import fonts
+        spec = fonts.coderTheme.base
+        # Set raw text font from coder theme
+        self.rawTextCtrl.SetFont(spec.obj)
+        # Always style text ctrl
+        handlers.styleCodeEditor(self.rawTextCtrl)
+        # Only style output if in a styled parent
+        if isinstance(self.GetTopLevelParent(), handlers.ThemeMixin):
+            handlers.styleHTMLCtrl(self.htmlPreview)
+
+        # Set save button icon
+        self.saveBtn.SetBitmap(
+            icons.ButtonIcon(stem="savebtn", size=(16, 16)).bitmap
+        )
+        # Set edit toggle icon
+        self.editBtn.SetBitmap(
+            icons.ButtonIcon(stem="editbtn", size=(16, 16)).bitmap
+        )
+        self.editBtn.SetBitmapPressed(
+            icons.ButtonIcon(stem="viewbtn", size=(16, 16)).bitmap
+        )
+
+        self.Refresh()
 
 
 class ButtonArray(wx.Window):
