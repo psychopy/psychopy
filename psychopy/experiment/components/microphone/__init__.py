@@ -60,7 +60,7 @@ class MicrophoneComponent(BaseComponent):
                  channels='auto', device="default",
                  sampleRate='DVD Audio (48kHz)', maxSize=24000,
                  outputType='default', speakTimes=True, trimSilent=False,
-                 transcribe=True, transcribeBackend="Google", transcribeLang="en-US", transcribeWords="",
+                 transcribe=False, transcribeBackend="Google", transcribeLang="en-US", transcribeWords="",
                  #legacy
                  stereo=None, channel=None):
         super(MicrophoneComponent, self).__init__(
