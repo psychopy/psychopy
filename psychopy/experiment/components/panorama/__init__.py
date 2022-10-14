@@ -268,9 +268,6 @@ class PanoramaComponent(BaseVisualComponent):
         for key in ["color", "fillColor", "borderColor", "colorSpace", "opacity", "contrast", "size", "pos", "units", "ori"]:
             del self.params[key]
 
-    def writeRoutineStartCode(self, buff):
-        pass
-
     def writeStartCode(self, buff):
         pass
 
@@ -300,9 +297,9 @@ class PanoramaComponent(BaseVisualComponent):
             code = (
                 "# store a dictionary to map keys to the amount to change by per frame\n"
                 "%(name)s.kb.deltas = {{\n"
-                "    {u}: np.array([0, -win.monitorFramePeriod]),\n"
+                "    {u}: np.array([0, +win.monitorFramePeriod]),\n"
                 "    {l}: np.array([-win.monitorFramePeriod, 0]),\n"
-                "    {d}: np.array([0, +win.monitorFramePeriod]),\n"
+                "    {d}: np.array([0, -win.monitorFramePeriod]),\n"
                 "    {r}: np.array([+win.monitorFramePeriod, 0]),\n"
                 "    {x}: np.array([0, 0]),\n"
                 "}}\n"
@@ -346,7 +343,7 @@ class PanoramaComponent(BaseVisualComponent):
             code = (
                 "# update panorama view from mouse pos\n"
                 "pos = layout.Position(%(name)s.mouse.getPos(), win.units, win)\n"
-                "%(name)s.azimuth = pos.norm[0] * %(posSensitivity)s\n"
+                "%(name)s.azimuth = -pos.norm[0] * %(posSensitivity)s\n"
                 "%(name)s.altitude = -pos.norm[1] * %(posSensitivity)s\n"
             )
             buff.writeIndentedLines(code % self.params)
@@ -359,7 +356,7 @@ class PanoramaComponent(BaseVisualComponent):
                 "if %(name)s.mouse.getPressed()[0]:\n"
                 "    %(name)s.momentum = rel.norm * %(posSensitivity)s\n"
                 "    %(name)s.azimuth -= %(name)s.momentum[0]\n"
-                "    %(name)s.altitude += %(name)s.momentum[1]\n"
+                "    %(name)s.altitude -= %(name)s.momentum[1]\n"
             )
             buff.writeIndentedLines(code % self.params)
             if self.params['smooth']:
@@ -368,7 +365,7 @@ class PanoramaComponent(BaseVisualComponent):
                 "else:\n"
                 "    # after click, keep moving a little\n"
                 "    %(name)s.azimuth -= %(name)s.momentum[0]\n"
-                "    %(name)s.altitude += %(name)s.momentum[1]\n"
+                "    %(name)s.altitude -= %(name)s.momentum[1]\n"
                 "    # decrease momentum every frame so that it approaches 0\n"
                 "    %(name)s.momentum = %(name)s.momentum * (1 - win.monitorFramePeriod * 2)\n"
                 )
@@ -418,22 +415,22 @@ class PanoramaComponent(BaseVisualComponent):
         elif self.params['zoomCtrl'].val in ("arrows", "plusmin", "keymap"):
             # If control style is key based, get keys from params/presets and set from pressed
             if self.params['zoomCtrl'].val == "arrows":
-                inKey, outKey = ("up", "down")
+                inKey, outKey = ("'up'", "'down'")
             elif self.params['zoomCtrl'].val == "plusmin":
-                inKey, outKey = ("equal", "minus")
+                inKey, outKey = ("'equal'", "'minus'")
             else:
                 inKey, outKey = (self.params['inKey'], self.params['outKey'])
             code = (
                 f"# update panorama zoom from key presses\n"
-                f"keys = %(name)s.kb.getKeys(['{inKey}', '{outKey}'], waitRelease=False, clear=False)\n"
+                f"keys = %(name)s.kb.getKeys([{inKey}, {outKey}], waitRelease=False, clear=False)\n"
                 f"# work out zoom change from keys pressed\n"
                 f"for key in keys:\n"
-                f"    if key.name == '{inKey}':\n"
+                f"    if key.name == {inKey}:\n"
                 f"        %(name)s.zoom += %(zoomSensitivity)s * win.monitorFramePeriod * 4\n"
-                f"    if key.name == '{outKey}':\n"
+                f"    if key.name == {outKey}:\n"
                 f"        %(name)s.zoom -= %(zoomSensitivity)s * win.monitorFramePeriod * 4\n"
                 f"# get keys which have been released and clear them from the buffer before next frame\n"
-                f"%(name)s.kb.getKeys(['{inKey}', '{outKey}'], waitRelease=True, clear=True)\n"
+                f"%(name)s.kb.getKeys([{inKey}, {outKey}], waitRelease=True, clear=True)\n"
             )
             buff.writeIndentedLines(code % self.params)
 

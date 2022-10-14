@@ -282,6 +282,7 @@ class PolygonComponent(BaseVisualComponent):
             interpolate = 'false'
 
         code += ("  ori: {ori}, pos: {pos},\n"
+                 "  anchor: {anchor},\n"
                  "  lineWidth: {lineWidth}, \n"
                  "  colorSpace: {colorSpace},\n"
                  "  lineColor: new util.Color({lineColor}),\n"
@@ -291,6 +292,7 @@ class PolygonComponent(BaseVisualComponent):
 
         buff.writeIndentedLines(code.format(name=inits['name'],
                                             unitsStr=unitsStr,
+                                            anchor=inits['anchor'],
                                             lineWidth=inits['lineWidth'],
                                             size=inits['size'],
                                             ori=inits['ori'],

@@ -118,10 +118,16 @@ class ParamCtrls():
                                                        val=str(param.val), valType=param.valType,
                                                        fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
         elif param.inputType == 'multi':
-            # Create multiline string control
-            self.valueCtrl = paramCtrls.MultiLineCtrl(parent,
-                                                      val=str(param.val), valType=param.valType,
-                                                      fieldName=fieldName, size=wx.Size(self.valueWidth, 144))
+            if param.valType == "extendedCode":
+                # Create multiline code control
+                self.valueCtrl = paramCtrls.CodeCtrl(parent,
+                                                     val=str(param.val), valType=param.valType,
+                                                     fieldName=fieldName, size=wx.Size(self.valueWidth, 144))
+            else:
+                # Create multiline string control
+                self.valueCtrl = paramCtrls.MultiLineCtrl(parent,
+                                                          val=str(param.val), valType=param.valType,
+                                                          fieldName=fieldName, size=wx.Size(self.valueWidth, 144))
             # Set focus if field is text of a Textbox or Text component
             if fieldName == 'text':
                 self.valueCtrl.SetFocus()
@@ -250,6 +256,8 @@ class ParamCtrls():
         """
         if ctrl is None:
             return None
+        elif ctrl == self.updateCtrl:
+            return ctrl.GetStringSelection()
         elif hasattr(ctrl, 'GetText'):
             return ctrl.GetText()
         elif hasattr(ctrl, 'GetValue'):  # e.g. TextCtrl

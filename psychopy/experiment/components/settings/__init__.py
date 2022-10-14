@@ -245,7 +245,7 @@ class SettingsComponent:
             backgroundFit, valType="str", inputType="choice", categ="Screen",
             allowedVals=("none", "cover", "contain", "fill", "scale-down"),
             hint=_translate("How should the background image scale to fit the window size?"),
-            label=_translate("Background image")
+            label=_translate("Background fit")
         )
         self.params['Units'] = Param(
             units, valType='str', inputType="choice", allowedTypes=[],
@@ -256,7 +256,8 @@ class SettingsComponent:
             label=_localized["Units"], categ='Screen')
         self.params['blendMode'] = Param(
             blendMode, valType='str', inputType="choice",
-            allowedTypes=[], allowedVals=['', 'add', 'avg'],
+            allowedVals=['add', 'avg', 'nofbo'],
+            allowedLabels=['add', 'average', 'average (no FBO)'],
             hint=_translate("Should new stimuli be added or averaged with "
                             "the stimuli that have been drawn already"),
             label=_localized["blendMode"], categ='Screen')
@@ -1370,8 +1371,10 @@ class SettingsComponent:
 
         code = ("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n"
                 "    backgroundImage=%(backgroundImg)s, backgroundFit=%(backgroundFit)s,\n")
-        if self.params['blendMode'].val:
+        if self.params['blendMode'].val in ("avg", "add"):
             code += "    blendMode=%(blendMode)s, useFBO=True, \n"
+        elif self.params['blendMode'].val in ("nofbo",):
+            code += "    blendMode='avg', useFBO=False, \n"
 
         if self.params['Units'].val != 'use prefs':
             code += "    units=%(Units)s"

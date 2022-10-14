@@ -254,10 +254,13 @@ def getInitVals(params, target="PsychoPy"):
                       'contrast', 'moddepth', 'envori', 'envphase', 'envsf',
                       'noiseClip', 'noiseBWO', 'noiseFilterUpper', 'noiseFilterLower',
                       'noiseBaseSf', 'noiseBW', 'noiseElementSize', 'noiseFilterOrder',
-                      'noiseFractalPower']:
+                      'noiseFractalPower', 'zoom']:
             inits[name].val = "1.0"
             inits[name].valType = 'code'
-        elif name in ['image', 'mask', 'envelope', 'carrier']:
+        elif name in ['image']:
+            inits[name].val = "default.png"
+            inits[name].valType = 'str'
+        elif name in ['mask', 'envelope', 'carrier']:
             inits[name].val = "sin"
             inits[name].valType = 'str'
         elif name == 'texture resolution':
