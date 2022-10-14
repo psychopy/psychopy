@@ -48,7 +48,7 @@ if parse_version(wx.__version__) < parse_version('4.0.3'):
 
 from psychopy.localization import _translate
 from ... import experiment, prefs
-from .. import dialogs
+from .. import dialogs, utils
 from ..themes import icons, colors, handlers
 from ..themes.ui import ThemeSwitcher
 from ..ui import BaseAuiFrame
@@ -841,9 +841,6 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def updateReadme(self):
         """Check whether there is a readme file in this folder and try to show
         """
-        # create the frame if we don't have one yet
-        if self.readmeFrame is None:
-            self.readmeFrame = ReadmeFrame(parent=self)
         # look for a readme file
         if self.filename and self.filename != 'untitled.psyexp':
             dirname = Path(self.filename).parent
@@ -858,8 +855,10 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 self.readmeFilename = str(possibles[0])  # take the first one found
         else:
             self.readmeFilename = None
-        self.readmeFrame.setFile(self.readmeFilename)
-        content = self.readmeFrame.ctrl.ToText()
+        # create the frame if we don't have one yet
+        if self.readmeFrame is None:
+            self.readmeFrame = ReadmeFrame(parent=self, filename=self.readmeFilename)
+        content = self.readmeFrame.ctrl.getValue()
         if content and self.prefs['alwaysShowReadme']:
             self.showReadme()
 
@@ -869,7 +868,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         if not self.readmeFrame:
             self.updateReadme()
         if not self.readmeFrame.IsShown():
-            self.readmeFrame.Show(value)
+            self.readmeFrame.show(value)
 
     def toggleReadme(self, evt=None):
         """Toggles visibility of Readme file
@@ -2796,10 +2795,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         dlg.ShowModal()
 
 
-class ReadmeFrame(wx.Frame):
+class ReadmeFrame(wx.Frame, handlers.ThemeMixin):
     """Defines construction of the Readme Frame"""
 
-    def __init__(self, parent):
+    def __init__(self, parent, filename=None):
         """
         A frame for presenting/loading/saving readme files
         """
@@ -2813,6 +2812,10 @@ class ReadmeFrame(wx.Frame):
         _style = wx.DEFAULT_FRAME_STYLE | wx.FRAME_FLOAT_ON_PARENT
         wx.Frame.__init__(self, parent, title=title,
                           size=(600, 500), pos=pos, style=_style)
+        # Setup sizer
+        self.sizer = wx.BoxSizer()
+        self.SetSizer(self.sizer)
+
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.Hide()
         # create icon
@@ -2822,15 +2825,19 @@ class ReadmeFrame(wx.Frame):
             iconFile = os.path.join(parent.paths['resources'], 'coder.ico')
             if os.path.isfile(iconFile):
                 self.SetIcon(wx.Icon(iconFile, wx.BITMAP_TYPE_ICO))
-        self.makeMenus()
-        self.rawText = ""
-        self.ctrl = HtmlWindow(self, wx.ID_ANY)
-        self.ctrl.Bind(wx.html.EVT_HTML_LINK_CLICKED, self.onUrl)
-        # Style
-        self.ctrl.SetFonts(normal_face="Open Sans", fixed_face="JetBrains Mono", sizes=[8, 10, 12, 14, 16, 18, 20])
+        self.ctrl = utils.MarkdownCtrl(self, file=filename)
+        self.sizer.Add(self.ctrl, border=6, proportion=1, flag=wx.ALL | wx.EXPAND)
 
-    def onUrl(self, evt=None):
-        webbrowser.open(evt.LinkInfo.Href)
+    def show(self, value=True):
+        self.Show()
+        self._applyAppTheme()
+
+    def _applyAppTheme(self):
+        from psychopy.app.themes import fonts
+        self.SetBackgroundColour(fonts.coderTheme.base.backColor)
+        self.ctrl.SetBackgroundColour(fonts.coderTheme.base.backColor)
+        self.Update()
+        self.Refresh()
 
     def onClose(self, evt=None):
         """
@@ -2896,12 +2903,7 @@ class ReadmeFrame(wx.Frame):
             return False
         f.close()
         self._fileLastModTime = os.path.getmtime(filename)
-        self.rawText = readmeText
-        if md:
-            renderedText = md.MarkdownIt().render(readmeText)
-        else:
-            renderedText = readmeText.replace("\n", "<br>")
-        self.ctrl.SetPage(renderedText)
+        self.ctrl.setValue(readmeText)
         self.SetTitle("%s readme (%s)" % (self.expName, filename))
 
     def refresh(self, evt=None):
