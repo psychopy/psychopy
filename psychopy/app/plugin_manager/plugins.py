@@ -38,7 +38,7 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
 
     def _applyAppTheme(self):
         # Set colors
-        self.SetBackgroundColour(colors.app['tab_bg'])
+        self.SetBackgroundColour("white")
 
 
 class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
@@ -218,12 +218,11 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
 
     def _applyAppTheme(self):
         # Set colors
-        self.SetBackgroundColour(colors.app['tab_bg'])
+        self.SetBackgroundColour("white")
         # Set fonts
         for lbl in self.itemLabels.values():
             from psychopy.app.themes import fonts
             lbl.SetFont(fonts.appTheme['h2'].obj)
-            lbl.SetForegroundColour(colors.app['text'])
 
     def appendItem(self, info):
         item = self.PluginListItem(self, info)
@@ -296,19 +295,15 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
 
         self.info = info
         self.Layout()
+        self._applyAppTheme()
 
     def _applyAppTheme(self):
         # Set background
-        self.SetBackgroundColour(colors.app['tab_bg'])
+        self.SetBackgroundColour("white")
         # Set fonts
         from psychopy.app.themes import fonts
         self.title.SetFont(fonts.appTheme['h1'].obj)
-        self.title.SetForegroundColour(colors.app['text'])
         self.pipName.SetFont(fonts.coderTheme.base.obj)
-        self.pipName.SetForegroundColour(colors.app['text'])
-        # Style description
-        self.description.SetForegroundColour(colors.app['text'])
-        self.description.SetBackgroundColour(colors.app['tab_bg'])
 
     def markInstalled(self, installed=True):
         """
