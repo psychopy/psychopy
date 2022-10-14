@@ -4,7 +4,7 @@ from psychopy.experiment import Param
 from pathlib import Path
 
 
-class AdvancedSurveyComponent(BaseComponent):
+class PavloviaSurveyComponent(BaseComponent):
     categories = ['Responses']
     targets = ["PsychoJS"]
     iconFile = Path(__file__).parent / "survey.png"
@@ -131,7 +131,7 @@ class AdvancedSurveyComponent(BaseComponent):
         inits = getInitVals(self.params, target="PsychoJS")
 
         code = (
-            "%(name)s = new visual.Survey({\n"
+            "%(name)s = new visual.SurveyStim({\n"
             "    win: psychoJS.window,\n"
             "    name: '%(name)s',\n"
             "    units: %(units)s,\n"
