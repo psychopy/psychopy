@@ -371,6 +371,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.rawTextCtrl.Show(edit)
         self.htmlPreview.Show(not edit)
 
+        self._applyAppTheme()
         self.Layout()
 
     def render(self, evt=None):
@@ -428,6 +429,9 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.rawTextCtrl.SetFont(spec.obj)
         # Always style text ctrl
         handlers.styleCodeEditor(self.rawTextCtrl)
+        # Only style output if in a styled parent
+        if isinstance(self.GetTopLevelParent(), handlers.ThemeMixin):
+            handlers.styleHTMLCtrl(self.htmlPreview)
 
         # Set save button icon
         self.saveBtn.SetBitmap(
