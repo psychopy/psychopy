@@ -8,6 +8,7 @@ import wx
 import wx.lib.agw.aui as aui
 import wx.stc as stc
 import wx.richtext
+from wx.html import HtmlWindow
 
 
 def styleFrame(target):
@@ -148,6 +149,10 @@ def styleListCtrl(target):
     target.Refresh()
 
 
+def styleHTMLCtrl(target):
+    target.SetBackgroundColour(colors.app['tab_bg'])
+
+
 # Define dict linking object types to style functions
 methods = {
     wx.Frame: styleFrame,
@@ -158,6 +163,7 @@ methods = {
     wx.richtext.RichTextCtrl: styleTextCtrl,
     wx.ToolBar: styleToolbar,
     wx.ListCtrl: styleListCtrl,
+    HtmlWindow: styleHTMLCtrl
 }
 
 

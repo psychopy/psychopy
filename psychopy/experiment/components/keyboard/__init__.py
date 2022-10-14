@@ -35,7 +35,7 @@ class KeyboardComponent(BaseComponent):
     tooltip = _translate('Keyboard: check and record keypresses')
 
     def __init__(self, exp, parentName, name='key_resp',
-                 allowedKeys="'y','n','left','right','space'",
+                 allowedKeys="'y','n','left','right','space'", registerOn="press",
                  store='last key', forceEndRoutine=True, storeCorrect=False,
                  correctAns="", discardPrev=True,
                  startType='time (s)', startVal=0.0,
@@ -55,8 +55,8 @@ class KeyboardComponent(BaseComponent):
         # params
 
         # NB name and timing params always come 1st
-        self.order += ['forceEndRoutine',  # Basic tab
-                       'allowedKeys', 'store', 'storeCorrect', 'correctAns'  # Data tab
+        self.order += ['forceEndRoutine', 'registerOn', 'allowedKeys',  # Basic tab
+                       'store', 'storeCorrect', 'correctAns'  # Data tab
                        ]
 
         msg = _translate(
@@ -69,6 +69,16 @@ class KeyboardComponent(BaseComponent):
             allowedUpdates=['constant', 'set every repeat'],
             hint=(msg),
             label=_localized['allowedKeys'])
+
+        msg = _translate(
+            "When should the keypress be registered? As soon as pressed, or when released?")
+        self.params['registerOn'] = Param(
+            registerOn, valType='str', inputType='choice',
+            categ='Basic', updates='constant',
+            allowedVals=["press", "release"],
+            hint=msg,
+            label=_translate("Register keypress on...")
+        )
 
         # hints say 'responses' not 'key presses' because the same hint is
         # also used with button boxes
@@ -235,12 +245,13 @@ class KeyboardComponent(BaseComponent):
             keyListStr = self.params['allowedKeys']
 
         # check for keypresses
-        code = ("theseKeys = {name}.getKeys(keyList={keyStr}, waitRelease=False)\n"
+        code = ("theseKeys = {name}.getKeys(keyList={keyStr}, waitRelease={waitRelease})\n"
                 "_{name}_allKeys.extend(theseKeys)\n"
                 "if len(_{name}_allKeys):\n")
         buff.writeIndentedLines(
             code.format(
                 name=self.params['name'],
+                waitRelease=self.params['registerOn'] == "release",
                 keyStr=(keyListStr or None)
             )
         )
@@ -373,12 +384,16 @@ class KeyboardComponent(BaseComponent):
             keyListStr = "%s" % repr(keyList)
 
         # check for keypresses
-        code = ("let theseKeys = {name}.getKeys({{keyList: {keyStr}, waitRelease: false}});\n"
+        waitRelease = "false"
+        if self.params['registerOn'] == "release":
+            waitRelease = "true"
+        code = ("let theseKeys = {name}.getKeys({{keyList: {keyStr}, waitRelease: {waitRelease}}});\n"
                 "_{name}_allKeys = _{name}_allKeys.concat(theseKeys);\n"
                 "if (_{name}_allKeys.length > 0) {{\n")
         buff.writeIndentedLines(
             code.format(
                 name=self.params['name'],
+                waitRelease=waitRelease,
                 keyStr=keyListStr
             )
         )
