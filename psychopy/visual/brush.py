@@ -15,6 +15,8 @@ from .basevisual import MinimalStim
 
 __author__ = 'David Bridges'
 
+from ..tools.attributetools import attributeSetter
+
 
 class Brush(MinimalStim):
     """A class for creating a freehand drawing tool.
@@ -148,6 +150,14 @@ class Brush(MinimalStim):
                 shape.setAutoDraw(False)
         self.atStartPoint = False
         self.shapes = []
+
+    @attributeSetter
+    def autoDraw(self, value):
+        # Do base setting
+        MinimalStim.autoDraw.func(self, value)
+        # Set autodraw on shapes
+        for shape in self.shapes:
+            shape.setAutoDraw(value)
 
     def setLineColor(self, value):
         """

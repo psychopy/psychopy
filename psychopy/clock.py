@@ -183,8 +183,8 @@ class Clock(MonotonicClock):
         e.g.::
 
             timer = core.Clock()
-            timer.add(5)
-            while timer.getTime()<0:
+            timer.addTime(5)
+            while timer.getTime() > 0:
                 # do something
         """
         self._timeAtLastReset -= t
@@ -230,6 +230,19 @@ class CountdownTimer(Clock):
         precision (`float`).
         """
         return self._timeAtLastReset - getTime()
+
+    def addTime(self, t):
+        """Add more time to the CountdownTimer
+        
+        e.g.:
+            countdownTimer = core.CountdownTimer()
+            countdownTimer.addTime(1)
+
+            while countdownTimer.getTime() > 0:
+                # do something
+        """
+
+        self._timeAtLastReset += t
 
     def reset(self, t=None):
         """Reset the time on the clock.
