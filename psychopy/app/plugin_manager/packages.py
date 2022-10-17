@@ -170,7 +170,7 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
         # Create list ctrl
         self.ctrl = utils.ListCtrl(self, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
         self.ctrl.setResizeColumn(0)
-        self.ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDoubleClick)
+        self.ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
         self.ctrl.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClick)
         self.sizer.Add(self.ctrl, proportion=1, border=6, flag=wx.LEFT | wx.RIGHT | wx.EXPAND)
         # Create button sizer
@@ -199,15 +199,40 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
             icons.ButtonIcon(stem="plus", size=16).bitmap
         )
 
-    def onDoubleClick(self, evt=None):
+    def onItemSelected(self, evt=None):
         # Post event so it can be caught by parent
         evt.SetEventObject(self)
         wx.PostEvent(self, evt)
 
     def onRightClick(self, evt=None):
-        # Post event so it can be caught by parent
-        evt.SetEventObject(self)
-        wx.PostEvent(self, evt)
+        # Create menu
+        menu = wx.Menu()
+        uninstallOpt = menu.Append(wx.ID_ANY, item=_translate("Uninstall"))
+        # Bind menu to functions
+        menu.functions = {
+            uninstallOpt.GetId(): self.onUninstall,
+        }
+        menu.Bind(wx.EVT_MENU, self.onRightClickMenuChoice)
+        # Store pip name as attribute of menu
+        menu.pipname = evt.GetText()
+        # Show menu
+        self.PopupMenu(menu)
+
+    def onRightClickMenuChoice(self, evt=None):
+        # Work out what was chosen
+        menu = evt.GetEventObject()
+        choice = evt.GetId()
+        if choice not in menu.functions:
+            return
+        # Perform associated method
+        menu.functions[choice](evt)
+
+    def onUninstall(self, evt=None):
+        # Get rightclick menu
+        menu = evt.GetEventObject()
+        # Uninstall
+        cmd = ["uninstall", menu.pipname]
+        self.execute(cmd)
 
     def refresh(self, evt=None):
         # Get search term
@@ -272,19 +297,22 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
             wildcard="Wheel files (.whl)|.whl|Source distribution files (.sdist)|.sdist",
             style=wx.FD_OPEN | wx.FD_SHOW_HIDDEN)
         if dlg.ShowModal() == wx.ID_OK:
-            self.add(dlg.GetPath())
+            cmd = ["install", dlg.GetPath()]
+            self.execute(cmd)
 
-    def add(self, ref):
+    def execute(self, params):
         """
-        Add a package
+        Execute a pip command
 
         Parameters
         ----------
-        ref : str
-            Reference to the package, either a pip name or the location of a wheel/egg file
+        params : str or list
+            Pip command params (everything after the word `pip`)
         """
+        if not isinstance(params, str):
+            params = " ".join(params)
         # Construct pip command
-        cmd = f"{sys.executable} -m pip install {ref}"
+        cmd = f"{sys.executable} -m pip {params}"
         # Send to console
         output = sp.Popen(cmd,
                           stdout=sp.PIPE,
@@ -295,6 +323,13 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
         # Show error dialog if something went wrong
         if stderr:
             dlg = InstallErrorDlg(cmd=cmd, stdout=stdout, stderr=stderr, mode="package")
+            dlg.ShowModal()
+        else:
+            dlg = wx.MessageDialog(
+                self,
+                message=_translate("Successfully completed: `pip {}`").format(params),
+                style=wx.ICON_INFORMATION
+            )
             dlg.ShowModal()
         # Refresh packages list
         self.refresh()
