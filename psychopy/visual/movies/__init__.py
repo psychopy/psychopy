@@ -136,7 +136,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._autoStart = autoStart
 
         # OpenGL data
-        self.interpolate = True
+        self.interpolate = interpolate
         self._texFilterNeedsUpdate = True
         self._metadata = NULL_MOVIE_METADATA
         self._pixbuffId = GL.GLuint(0)
