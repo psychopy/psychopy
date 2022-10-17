@@ -389,13 +389,15 @@ class AuthorInfo:
 
 
 class InstallErrorDlg(wx.Dialog, handlers.ThemeMixin):
-    def __init__(self, cmd="", stdout="", stderr=""):
+    def __init__(self, cmd="", stdout="", stderr="", mode="plugin"):
         from psychopy.app.themes import fonts
-
+        # Capitalise mode string
+        mode = mode.title()
+        # Initialise
         wx.Dialog.__init__(
             self, None,
             size=(480, 620),
-            title=_translate("Plugin install error"),
+            title=mode + _translate(" install error"),
             style=wx.RESIZE_BORDER | wx.CLOSE_BOX | wx.CAPTION
         )
         # Setup sizer
@@ -413,7 +415,7 @@ class InstallErrorDlg(wx.Dialog, handlers.ThemeMixin):
         )
         self.title.Add(self.icon, border=6, flag=wx.ALL | wx.EXPAND)
         # Create title
-        self.titleLbl = wx.StaticText(self, label=_translate("Plugin could not be installed."))
+        self.titleLbl = wx.StaticText(self, label=mode + _translate(" could not be installed."))
         self.titleLbl.SetFont(fonts.appTheme['h3'].obj)
         self.title.Add(self.titleLbl, proportion=1, border=6, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         # Show what we tried

@@ -2,6 +2,7 @@ import wx
 import sys
 import subprocess as sp
 
+from psychopy.plugins import InstallErrorDlg
 from psychopy.app import utils
 from psychopy.app.themes import handlers, icons
 from psychopy.localization import _translate
@@ -172,10 +173,18 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
         self.ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDoubleClick)
         self.ctrl.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClick)
         self.sizer.Add(self.ctrl, proportion=1, border=6, flag=wx.LEFT | wx.RIGHT | wx.EXPAND)
+        # Create button sizer
+        self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.btnSizer, flag=wx.EXPAND)
+        # Create add button
+        self.addBtn = wx.Button(self, label="▼", size=(48, 24))
+        self.addBtn.Bind(wx.EVT_BUTTON, self.onAddBtn)
+        self.btnSizer.Add(self.addBtn, border=6, flag=wx.ALL | wx.EXPAND)
         # Create refresh button
+        self.btnSizer.AddStretchSpacer(1)
         self.refreshBtn = wx.Button(self, size=(24, 24))
         self.refreshBtn.Bind(wx.EVT_BUTTON, self.refresh)
-        self.sizer.Add(self.refreshBtn, border=6, flag=wx.ALL | wx.ALIGN_RIGHT)
+        self.btnSizer.Add(self.refreshBtn, border=6, flag=wx.ALL | wx.EXPAND)
         # Initial data
         self.refresh()
 
@@ -185,6 +194,9 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
     def _applyAppTheme(self):
         self.refreshBtn.SetBitmap(
             icons.ButtonIcon(stem="view-refresh", size=16).bitmap
+        )
+        self.addBtn.SetBitmap(
+            icons.ButtonIcon(stem="plus", size=16).bitmap
         )
 
     def onDoubleClick(self, evt=None):
@@ -221,3 +233,68 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
                 # Filter packages by search term
                 if searchTerm in parts[0]:
                     self.ctrl.Append(parts)
+
+    def onAddBtn(self, evt=None):
+        # Get button
+        btn = evt.GetEventObject()
+        # Create menu
+        menu = wx.Menu()
+        nameOpt = menu.Append(wx.ID_ANY, item=_translate("Add package by name..."))
+        fileOpt = menu.Append(wx.ID_ANY, item=_translate("Add package from file..."))
+        # Bind menu to functions
+        menu.functions = {
+            nameOpt.GetId(): self.onAddByName,
+            fileOpt.GetId(): self.onAddFromFile
+        }
+        menu.Bind(wx.EVT_MENU, self.onAddMenuChoice)
+        # Show menu
+        btn.PopupMenu(menu)
+
+    def onAddMenuChoice(self, evt=None):
+        # Work out what was chosen
+        menu = evt.GetEventObject()
+        choice = evt.GetId()
+        if choice not in menu.functions:
+            return
+        # Perform associated method
+        menu.functions[choice](evt)
+
+    def onAddByName(self, evt=None):
+        # Create dialog to get package name
+        dlg = wx.TextEntryDialog(self, message=_translate("Package name:"))
+        if dlg.ShowModal() == wx.ID_OK:
+            self.add(dlg.GetValue())
+
+    def onAddFromFile(self, evt=None):
+        # Create dialog to get package file location
+        dlg = wx.FileDialog(
+            self,
+            wildcard="Wheel files (.whl)|.whl|Source distribution files (.sdist)|.sdist",
+            style=wx.FD_OPEN | wx.FD_SHOW_HIDDEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.add(dlg.GetPath())
+
+    def add(self, ref):
+        """
+        Add a package
+
+        Parameters
+        ----------
+        ref : str
+            Reference to the package, either a pip name or the location of a wheel/egg file
+        """
+        # Construct pip command
+        cmd = f"{sys.executable} -m pip install {ref}"
+        # Send to console
+        output = sp.Popen(cmd,
+                          stdout=sp.PIPE,
+                          stderr=sp.PIPE,
+                          shell=True,
+                          universal_newlines=True)
+        stdout, stderr = output.communicate()
+        # Show error dialog if something went wrong
+        if stderr:
+            dlg = InstallErrorDlg(cmd=cmd, stdout=stdout, stderr=stderr, mode="package")
+            dlg.ShowModal()
+        # Refresh packages list
+        self.refresh()
