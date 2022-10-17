@@ -78,66 +78,63 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
     anchor : str
         Anchor string to specify the origin of the stimulus.
     pos : array_like
-        Initial position (`x`, `y`) of the shape on-screen relative to
-        the origin located at the center of the window or buffer in `units`.
-        This can be updated after initialization by setting the `pos`
-        property. The default value is `(0.0, 0.0)` which results in no
-        translation.
+        Initial position (`x`, `y`) of the shape on-screen relative to the
+        origin located at the center of the window or buffer in `units`. This
+        can be updated after initialization by setting the `pos` property. The
+        default value is `(0.0, 0.0)` which results in no translation.
     size : array_like, float, int or None
-        Width and height of the shape as `(w, h)` or `[w, h]`. If a single
-        value is provided, the width and height will be set to the same
-        specified value. If `None` is specified, the `size` will be set
-        with values passed to `width` and `height`.
+        Width and height of the shape as `(w, h)` or `[w, h]`. If a single value
+        is provided, the width and height will be set to the same specified
+        value. If `None` is specified, the `size` will be set with values passed
+        to `width` and `height`.
     sf : float
         Spatial frequency for the grating. Values are dependent on the units in
         use to draw the stimuli.
     ori : float
-        Initial orientation of the shape in degrees about its origin.
-        Positive values will rotate the shape clockwise, while negative
-        values will rotate counterclockwise. The default value for `ori` is
-        0.0 degrees.
+        Initial orientation of the shape in degrees about its origin. Positive
+        values will rotate the shape clockwise, while negative values will
+        rotate counterclockwise. The default value for `ori` is 0.0 degrees.
     phase : ArrayLike
-        Initial phase of the grating along the vertical and horizontal
-        dimension `(x, y)`.
+        Initial phase of the grating along the vertical and horizontal dimension
+        `(x, y)`.
     texRes : int
         Resolution of the texture. The higher the resolutions, the less
         aliasing artifacts will be visible. However, this comes at the expense
         of higher video memory use. Power-of-two values are recommended
         (e.g. 256, 512, 1024, etc.)
-    opacity : float
-        Opacity of the shape. A value of 1.0 indicates fully opaque and 0.0
-        is fully transparent (therefore invisible). Values between 1.0 and
-        0.0 will result in colors being blended with objects in the
-        background. This value affects the fill (`fillColor`) and outline
-        (`lineColor`) colors of the shape.
-    contrast : float
-        Contrast level of the shape (0.0 to 1.0). This value is used to
-        modulate the contrast of colors passed to `lineColor` and
-        `fillColor`.
-    depth : int
-        Depth layer to draw the shape when `autoDraw` is enabled.
-        *DEPRECATED*
-    interpolate : bool
-        Enable smoothing (anti-aliasing) when drawing shape outlines. This
-        produces a smoother (less-pixelated) outline of the shape.
-    lineRGB, fillRGB: ArrayLike, :class:`~psychopy.colors.Color` or None
-        *Deprecated*. Please use `lineColor` and `fillColor`. These
-        arguments may be removed in a future version.
-    name : str
-        Optional name of the stimuli for logging.
-    autoLog : bool
-        Enable auto-logging of events associated with this stimuli. Useful
-        for debugging and to track timing when used in conjunction with
-        `autoDraw`.
-    autoDraw : bool
-        Enable auto drawing. When `True`, the stimulus will be drawn every
-        frame without the need to explicitly call the
-        :py:meth:`~psychopy.visual.shape.ShapeStim.draw()` method.
     color : array_like, str, :class:`~psychopy.colors.Color` or None
         Sets both the initial `lineColor` and `fillColor` of the shape.
     colorSpace : str
         Sets the colorspace, changing how values passed to `lineColor` and
         `fillColor` are interpreted.
+    contrast : float
+        Contrast level of the shape (0.0 to 1.0). This value is used to modulate
+        the contrast of colors passed to `lineColor` and `fillColor`.
+    opacity : float
+        Opacity of the shape. A value of 1.0 indicates fully opaque and 0.0 is
+        fully transparent (therefore invisible). Values between 1.0 and 0.0 will
+        result in colors being blended with objects in the background. This
+        value affects the fill (`fillColor`) and outline (`lineColor`) colors of
+        the shape.
+    depth : int
+        Depth layer to draw the shape when `autoDraw` is enabled. *DEPRECATED*
+    rgbPedestal : ArrayLike
+        Pedestal color `(r, g, b)`, presently unused.
+    interpolate : bool
+        Enable smoothing (anti-aliasing) when drawing shape outlines. This
+        produces a smoother (less-pixelated) outline of the shape.
+    lineRGB, fillRGB: ArrayLike, :class:`~psychopy.colors.Color` or None
+        *Deprecated*. Please use `lineColor` and `fillColor`. These arguments
+        may be removed in a future version.
+    name : str
+        Optional name of the stimuli for logging.
+    autoLog : bool
+        Enable auto-logging of events associated with this stimuli. Useful for
+        debugging and to track timing when used in conjunction with `autoDraw`.
+    autoDraw : bool
+        Enable auto drawing. When `True`, the stimulus will be drawn every frame
+        without the need to explicitly call the
+        :py:meth:`~psychopy.visual.shape.ShapeStim.draw()` method.
 
     Examples
     --------
