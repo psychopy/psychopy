@@ -18,55 +18,19 @@ class PackageManagerPanel(wx.Panel, handlers.ThemeMixin):
         self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         # Add package list
         self.packageList = PackageListCtrl(self)
-        self.packageList.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onActivateItem)
-        self.packageList.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClickItem)
+        self.packageList.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelectItem)
         self.sizer.Add(self.packageList, flag=wx.EXPAND | wx.ALL)
         # Seperator
         self.sizer.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), border=6, flag=wx.EXPAND | wx.ALL)
-        # Add pip terminal
-        self.pipCtrl = PIPTerminalPanel(self)
-        self.sizer.Add(self.pipCtrl, proportion=1, flag=wx.EXPAND | wx.ALL)
+        # Add details panel
+        self.detailsPanel = PackageDetailsPanel(self)
+        self.sizer.Add(self.detailsPanel, proportion=1, flag=wx.EXPAND | wx.ALL)
 
-    def onActivateItem(self, evt=None):
+    def onSelectItem(self, evt=None):
         # Get package name
         pipname = evt.GetText()
-        # Pre-fill "pip show" for the user
-        self.pipCtrl.console.SetValue(f"pip show {pipname}")
-        # Switch focus to pip ctrl
-        self.pipCtrl.console.SetFocus()
-
-    def onRightClickItem(self, evt=None):
-        # Create menu
-        menu = wx.Menu()
-        # Define commands / labels
-        menu.commands = {
-            _translate("View"): ("show", ""),
-            _translate("Update"): ("install", "--upgrade"),
-            _translate("Uninstall"): ("uninstall", "")
-        }
-        # Add menu options
-        for lbl in menu.commands:
-            menu.Append(wx.ID_ANY, lbl)
-        # Store pip name as attribute of menu
-        menu.pipname = evt.GetText()
-        # Bind menu choice to function
-        menu.Bind(wx.EVT_MENU, self.onRightClickMenuChoice)
-        # Show menu
-        self.PopupMenu(menu)
-
-    def onRightClickMenuChoice(self, evt=None):
-        # Get menu object
-        menu = evt.GetEventObject()
-        # Get choice
-        choiceId = evt.GetId()
-        choice = menu.GetLabel(choiceId)
-        # Get command and params from choice
-        cmd = menu.commands[choice][0]
-        params = " ".join(menu.commands[choice][1:])
-        # Pre-fill "pip ..." for the user
-        self.pipCtrl.console.SetValue(f"pip {cmd} {menu.pipname} {params}")
-        # Switch focus to pip ctrl
-        self.pipCtrl.console.SetFocus()
+        # Set pip details from name
+        self.detailsPanel.package = pipname
 
 
 class PIPTerminalPanel(wx.Panel):
@@ -175,16 +139,21 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
         self.sizer.Add(self.ctrl, proportion=1, border=6, flag=wx.LEFT | wx.RIGHT | wx.EXPAND)
         # Create button sizer
         self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.sizer.Add(self.btnSizer, flag=wx.EXPAND)
+        self.sizer.Add(self.btnSizer, border=3, flag=wx.ALL | wx.EXPAND)
         # Create add button
         self.addBtn = wx.Button(self, label="▼", size=(48, 24))
         self.addBtn.Bind(wx.EVT_BUTTON, self.onAddBtn)
-        self.btnSizer.Add(self.addBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        self.btnSizer.Add(self.addBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        # Add button to open pip
+        self.terminalBtn = wx.Button(self, size=(24, 24))
+        self.terminalBtn.SetToolTipString(_translate("Open PIP terminal to manage packages manually"))
+        self.btnSizer.Add(self.terminalBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        self.terminalBtn.Bind(wx.EVT_BUTTON, self.onOpenPipTerminal)
         # Create refresh button
         self.btnSizer.AddStretchSpacer(1)
         self.refreshBtn = wx.Button(self, size=(24, 24))
         self.refreshBtn.Bind(wx.EVT_BUTTON, self.refresh)
-        self.btnSizer.Add(self.refreshBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        self.btnSizer.Add(self.refreshBtn, border=3, flag=wx.ALL | wx.EXPAND)
         # Initial data
         self.refresh()
 
@@ -198,6 +167,23 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
         self.addBtn.SetBitmap(
             icons.ButtonIcon(stem="plus", size=16).bitmap
         )
+        self.terminalBtn.SetBitmap(
+            icons.ButtonIcon(stem="libroot", size=16).bitmap
+        )
+
+    def onOpenPipTerminal(self, evt=None):
+        # Make dialog
+        dlg = wx.Dialog(self, title="PIP Terminal", size=(480, 480), style=wx.RESIZE_BORDER | wx.CAPTION | wx.CLOSE_BOX)
+        # Setup sizer
+        dlg.sizer = wx.BoxSizer(wx.VERTICAL)
+        dlg.SetSizer(dlg.sizer)
+        # Add panel
+        panel = PIPTerminalPanel(dlg)
+        dlg.sizer.Add(panel, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        # Layout
+        dlg.Layout()
+        # Show
+        dlg.Show()
 
     def onItemSelected(self, evt=None):
         # Post event so it can be caught by parent
@@ -333,3 +319,123 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
             dlg.ShowModal()
         # Refresh packages list
         self.refresh()
+
+
+class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent)
+        # Setup sizers
+        self.border = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.border)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.border.Add(self.sizer, proportion=1, border=12, flag=wx.ALL | wx.EXPAND)
+
+        # Name sizer
+        self.nameSzr = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.nameSzr)
+        # Name
+        self.nameCtrl = wx.StaticText(self)
+        self.nameSzr.Add(self.nameCtrl, border=6, flag=wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND)
+        # Version
+        self.versionCtrl = wx.Choice(self)
+        self.nameSzr.Add(self.versionCtrl, border=6, flag=wx.ALIGN_BOTTOM | wx.ALL)
+        # Author
+        self.authorSzr = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.authorSzr, border=6, flag=wx.BOTTOM | wx.LEFT | wx.RIGHT | wx.EXPAND)
+        self.authorPre = wx.StaticText(self, label=_translate("by "))
+        self.authorSzr.Add(self.authorPre, border=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.authorCtrl = utils.HyperLinkCtrl(self)
+        self.authorSzr.Add(self.authorCtrl, border=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.licenseCtrl = wx.StaticText(self)
+        self.authorSzr.Add(self.licenseCtrl, border=0, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        # Header buttons sizer
+        self.headBtnSzr = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.headBtnSzr, border=3, flag=wx.ALL | wx.EXPAND)
+        # Homepage button
+        self.homeBtn = wx.Button(self, label=_translate("Homepage"))
+        self.headBtnSzr.Add(self.homeBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        # Location button
+        self.dirBtn = wx.Button(self, label=_translate("Folder"))
+        self.headBtnSzr.Add(self.dirBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        # Description
+        self.descCtrl = wx.TextCtrl(self, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL)
+        self.sizer.Add(self.descCtrl, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        # todo: Required by...
+
+        self.package = None
+
+    @property
+    def package(self):
+        if hasattr(self, "_package"):
+            return self._package
+
+    @package.setter
+    def package(self, pipname):
+        self._package = pipname
+
+        # Disable/enable according to whether None
+        active = pipname is not None
+        self.homeBtn.Enable(active)
+        self.dirBtn.Enable(active)
+        self.nameCtrl.Enable(active)
+        self.versionCtrl.Enable(active)
+        self.authorPre.Enable(active)
+        self.authorCtrl.Enable(active)
+        self.licenseCtrl.Enable(active)
+        self.descCtrl.Enable(active)
+        # Clear choices on version ctrl
+        self.versionCtrl.Clear()
+
+        # If None, set everything to blank
+        if pipname is None:
+            self.nameCtrl.SetLabelText("...")
+            self.authorCtrl.SetLabelText("...")
+        else:
+            # Use pip show to get details
+            cmd = f"{sys.executable} -m pip show {pipname}"
+            output = sp.Popen(cmd,
+                              stdout=sp.PIPE,
+                              stderr=sp.PIPE,
+                              shell=True,
+                              universal_newlines=True)
+            stdout, stderr = output.communicate()
+            # Parse pip show info
+            lines = stdout.split("\n")
+            self.params = {}
+            for line in lines:
+                if ":" not in line:
+                    continue
+                name, val = line.split(": ", 1)
+                self.params[name] = val
+            print(self.params)
+            # Get versions info
+            cmd = f"{sys.executable} -m pip index versions {pipname}"
+            output = sp.Popen(cmd,
+                              stdout=sp.PIPE,
+                              stderr=sp.PIPE,
+                              shell=True,
+                              universal_newlines=True)
+            stdout, stderr = output.communicate()
+            # Parse versions info
+            versions = stdout.split("\n")[1].strip()
+            versions = versions.split(": ")[1]
+            versions = versions.split(", ")
+
+            # Set info
+            self.nameCtrl.SetLabelText(self.params['Name'])
+            self.authorCtrl.SetLabel(self.params['Author'])
+            self.versionCtrl.AppendItems(versions)
+            self.versionCtrl.SetStringSelection(self.params['Version'])
+            self.authorCtrl.URL = "mailto:" + self.params['Author-email']
+            self.licenseCtrl.SetLabelText(f" (License: {self.params['License']})")
+            self.descCtrl.SetValue(self.params['Summary'])
+
+        self.Layout()
+        self._applyAppTheme()
+
+    def _applyAppTheme(self):
+        from psychopy.app.themes import fonts
+        self.nameCtrl.SetFont(fonts.appTheme['h1'].obj)
+        self.dirBtn.SetBitmap(icons.ButtonIcon(stem="folder", size=16).bitmap)
+        self.authorCtrl.SetBackgroundColour("white")
+
