@@ -40,24 +40,32 @@ __all__ = [
     'renderVideo'
 ]
 
-
-import platform
-import numpy as np
-import tempfile
 import os
 import os.path
+import platform
+import tempfile
+import threading
+import queue
+import time
 import shutil
 import math
-from psychopy.constants import STOPPED, NOT_STARTED, RECORDING, STARTED, \
-    STOPPING, PAUSED, FINISHED, INVALID
+import uuid
+import numpy as np
+from psychopy.constants import (
+    STOPPED,
+    NOT_STARTED,
+    RECORDING,
+    STARTED,
+    STOPPING,
+    PAUSED,
+    FINISHED,
+    INVALID)
 from psychopy.visual.movies.metadata import MovieMetadata, NULL_MOVIE_METADATA
 from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
 from psychopy.sound.microphone import Microphone
 import psychopy.logging as logging
 from ffpyplayer.player import MediaPlayer
 from ffpyplayer.tools import list_dshow_devices, get_format_codec
-
-# relative imports from `Camera`
 from .constants import (
     VIDEO_DEVICE_ROOT_LINUX,
     CAMERA_UNKNOWN_VALUE,
@@ -72,13 +80,6 @@ from .constants import (
     CAMERA_FRAMERATE_NOMINAL_NTSC)
 from .info import CameraInfo, getCameras, getCameraDescriptions
 from .stream import StreamData, StreamStatus, StreamWriterThread, renderVideo
-
-import uuid
-import threading
-import queue
-import time
-# import cv2  # used to get camera information
-
 
 # ------------------------------------------------------------------------------
 # Constants
@@ -1582,11 +1583,6 @@ class Camera:
 
         if hasattr(self, '_cleanUpTempDirs'):
             self._cleanUpTempDirs()
-
-
-# ------------------------------------------------------------------------------
-# Functions
-#
 
 
 if __name__ == "__main__":
