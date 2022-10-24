@@ -434,12 +434,12 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.sizer.Add(self.descCtrl, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         # todo: Required by...
 
-        self.package = None
-
         # Cache package information where possible to improve responsiveness of
         # the UI.
         self._packageInfoCache = dict()
         self._generatePackageInfoCache()
+
+        self.package = None
 
     def _generatePackageInfoCache(self):
         """Generate package info cache.
@@ -461,6 +461,9 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
     def package(self, pipname):
         self._package = pipname
 
+        # get package data from cache
+        pkgInfo = self._packageInfoCache.get(self._package, None)
+
         # Disable/enable according to whether None
         active = pipname is not None
         self.homeBtn.Enable(active)
@@ -479,44 +482,55 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
             self.nameCtrl.SetLabelText("...")
             self.authorCtrl.SetLabelText("...")
         else:
-            # Use pip show to get details
-            cmd = f"{sys.executable} -m pip show {pipname}"
-            output = sp.Popen(cmd,
-                              stdout=sp.PIPE,
-                              stderr=sp.PIPE,
-                              shell=True,
-                              universal_newlines=True)
-            stdout, stderr = output.communicate()
-            # Parse pip show info
-            lines = stdout.split("\n")
-            self.params = {}
-            for line in lines:
-                if ":" not in line:
-                    continue
-                name, val = line.split(": ", 1)
-                self.params[name] = val
-            print(self.params)
-            # Get versions info
-            cmd = f"{sys.executable} -m pip index versions {pipname}"
-            output = sp.Popen(cmd,
-                              stdout=sp.PIPE,
-                              stderr=sp.PIPE,
-                              shell=True,
-                              universal_newlines=True)
-            stdout, stderr = output.communicate()
-            # Parse versions info
-            versions = stdout.split("\n")[1].strip()
-            versions = versions.split(": ")[1]
-            versions = versions.split(", ")
+            self.params = pkgInfo
 
-            # Set info
-            self.nameCtrl.SetLabelText(self.params['Name'])
-            self.authorCtrl.SetLabel(self.params['Author'])
-            self.versionCtrl.AppendItems(versions)
-            self.versionCtrl.SetStringSelection(self.params['Version'])
-            self.authorCtrl.URL = "mailto:" + self.params['Author-email']
-            self.licenseCtrl.SetLabelText(f" (License: {self.params['License']})")
-            self.descCtrl.SetValue(self.params['Summary'])
+            # Use pip show to get details
+            # cmd = f"{sys.executable} -m pip show {pipname}"
+            # output = sp.Popen(cmd,
+            #                   stdout=sp.PIPE,
+            #                   stderr=sp.PIPE,
+            #                   shell=True,
+            #                   universal_newlines=True)
+            # stdout, stderr = output.communicate()
+            # # Parse pip show info
+            # lines = stdout.split("\n")
+            # self.params = {}
+            # for line in lines:
+            #     if ":" not in line:
+            #         continue
+            #     name, val = line.split(": ", 1)
+            #     self.params[name] = val
+            # print(self.params)
+            # # Get versions info
+            # cmd = f"{sys.executable} -m pip index versions {pipname}"
+            # output = sp.Popen(cmd,
+            #                   stdout=sp.PIPE,
+            #                   stderr=sp.PIPE,
+            #                   shell=True,
+            #                   universal_newlines=True)
+            # stdout, stderr = output.communicate()
+            # # Parse versions info
+            # versions = stdout.split("\n")[1].strip()
+            # versions = versions.split(": ")[1]
+            # versions = versions.split(", ")
+
+            if self.params is not None:
+                projectName = self.params.get('Name', pipname)  # missing? use `pipname`
+                version = self.params['Version']
+                authorName = self.params.get('Author', 'Unknown')
+                authorEmail = self.params.get('Author-email', 'Unknown')
+                license = self.params.get('License', 'Unknown')
+                summary = self.params.get('Summary', '')
+                desc = self.params.get('Description', '')
+
+                self.nameCtrl.SetLabelText(projectName)
+                self.versionCtrl.AppendItems([version])
+                self.versionCtrl.SetStringSelection(version)
+                self.authorCtrl.SetLabel(authorName)
+                self.authorCtrl.URL = "mailto:" + authorEmail
+                self.authorCtrl.SetToolTip(self.authorCtrl.URL)
+                self.licenseCtrl.SetLabelText(f" (License: {license})")
+                self.descCtrl.SetValue(summary + '\n\n' + desc)
 
         self.Layout()
         self._applyAppTheme()
