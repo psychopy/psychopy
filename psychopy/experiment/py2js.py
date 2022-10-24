@@ -89,7 +89,7 @@ def expression2js(expr):
             syntaxTree = ast.parse(str(expr))
         except Exception as err:
             logging.error(err)
-            return
+            return str(expr)
 
     for node in ast.walk(syntaxTree):
         TupleTransformer().visit(node)  # Transform tuples to list

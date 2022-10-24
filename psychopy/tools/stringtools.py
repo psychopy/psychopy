@@ -14,7 +14,43 @@ import ast
 __all__ = ["prettyname"]
 
 # Regex for identifying a valid Pavlovia project name
+import urllib
+from pathlib import Path
+
 valid_proj_name = re.compile(r'(\w|-)+')
+
+
+def is_url(source):
+    """
+    Check whether a string is a valid url.
+    """
+    # Make sure source is a string
+    source = str(source)
+    # Try to parse source, return False if it fails
+    try:
+        url = urllib.parse.urlparse(source)
+    except ValueError:
+        return False
+    # If parsed successfully, return True if we have a scheme and net location
+    return all((url.scheme, url.netloc))
+
+
+def is_file(source):
+    """
+    Check whether a string or Path object is a valid file.
+    """
+    # If source is already a Path, just use its is_file method
+    if isinstance(source, Path):
+        return source.is_file()
+    # Make sure source is a string
+    source = str(source)
+    # Try to create a Path object, return False if it fails
+    try:
+        path = Path(source)
+    except ValueError:
+        return False
+    # If creates successfully, return True if is_file
+    return path.is_file()
 
 
 def makeValidVarName(name, case="camel"):
