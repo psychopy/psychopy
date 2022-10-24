@@ -68,7 +68,19 @@ def getInstalledPackages():
     for pkg in pkg_resources.working_set:
         pkg = pkg_resources.get_distribution(pkg.key)
         metadata = pkg.get_metadata(pkg.PKG_INFO)
-        toReturn[pkg.key] = metadata
+
+        # parse metadata
+        metadict = dict()
+        for line in metadata.split('\n'):
+            if not line:
+                continue
+
+            line = line.strip().split(': ')
+            if len(line) == 2:
+                field, value = line
+                metadict[field] = value
+
+        toReturn[pkg.key] = metadict
 
     return toReturn
 
