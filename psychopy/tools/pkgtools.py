@@ -70,15 +70,48 @@ def getInstalledPackages():
         metadata = pkg.get_metadata(pkg.PKG_INFO)
 
         # parse metadata
+
+        inHeader = True
+        descriptionText = []
         metadict = dict()
         for line in metadata.split('\n'):
-            if not line:
+            if not line and inHeader:
+                inHeader = False
+
+            if not inHeader:
+                descriptionText.append(line + '\n')  # restore NL after split
                 continue
 
-            line = line.strip().split(': ')
-            if len(line) == 2:
-                field, value = line
-                metadict[field] = value
+            # valid single line fields
+            singleFields = (
+                'Metadata-Version',
+                'Name',
+                'Version',
+                'Summary',
+                'Home-page',
+                'Author',
+                'Author-email',
+                'License',
+                'Keywords',
+                'Description-Content-Type'
+            )
+
+            if any([line.startswith(f + ':') for f in singleFields]):
+                fieldName, fieldValue = [p.strip() for p in line.split(':', 1)]
+                # add only if the field is not already present
+                if fieldName not in metadict.keys():
+                    metadict[fieldName] = fieldValue
+            elif line.startswith('Classifier:'):  # todo - handle these cases
+                pass
+            elif line.startswith('Requires-Dist:'):
+                pass
+            elif line.startswith('Platform:'):
+                pass
+            elif line.startswith('Requires-Python:'):
+                pass
+
+        if descriptionText:
+            metadict['Description'] = ''.join(descriptionText)
 
         toReturn[pkg.key] = metadict
 
