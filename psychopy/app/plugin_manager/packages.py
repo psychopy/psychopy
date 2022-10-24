@@ -216,9 +216,21 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
     def onUninstall(self, evt=None):
         # Get rightclick menu
         menu = evt.GetEventObject()
-        # Uninstall
-        cmd = ["uninstall", menu.pipname]
-        self.execute(cmd)
+        pipname = menu.pipname
+        msg = wx.MessageDialog(
+            self,
+            "Are you sure you want to uninstall package `{}`?".format(pipname),
+            caption="Uninstall Package?",
+            style=wx.YES_NO | wx.NO_DEFAULT)
+
+        # if user selects NO, exit the routine
+        if msg.ShowModal() == wx.ID_YES:
+            # Issue uninstall command, use the `-y` argument to get around the
+            # prompt that requires sending bytes to the console.
+            cmd = ["uninstall", "-y", menu.pipname]
+            self.execute(cmd)
+
+        msg.Destroy()
 
     def refresh(self, evt=None):
         # Get search term
