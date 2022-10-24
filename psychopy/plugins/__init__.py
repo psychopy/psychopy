@@ -15,18 +15,11 @@ import inspect
 import collections
 import hashlib
 import importlib
-
 import pkg_resources
-import requests
-import wx
 
 from psychopy import logging
-from psychopy.app import utils
-from psychopy.app.themes import icons, handlers
 from psychopy.preferences import prefs
-from psychopy.localization import _translate
 import psychopy.experiment.components as components
-import subprocess as sp
 
 # Keep track of plugins that have been loaded. Keys are plugin names and values
 # are their entry point mappings.
@@ -39,11 +32,6 @@ _installed_plugins_ = collections.OrderedDict()
 
 # Keep track of plugins that failed to load here
 _failed_plugins_ = []
-
-
-# ------------------------------------------------------------------------------
-# Classes
-#
 
 
 # ------------------------------------------------------------------------------
