@@ -6,7 +6,7 @@ from psychopy.app import utils
 from psychopy.app.themes import handlers, icons
 from psychopy.localization import _translate
 
-
+from psychopy.tools.pkgtools import getInstalledPackages
 
 
 class InstallErrorDlg(wx.Dialog, handlers.ThemeMixin):
@@ -438,7 +438,7 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
 
         # Cache package information where possible to improve responsiveness of
         # the UI.
-        self._packageInfoCache = {}
+        self._packageInfoCache = dict()
         self._generatePackageInfoCache()
 
     def _generatePackageInfoCache(self):
@@ -449,7 +449,8 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
         clicks the item.
 
         """
-
+        self._packageInfoCache.clear()  # clear the cache
+        self._packageInfoCache.update(getInstalledPackages())
 
     @property
     def package(self):
@@ -526,3 +527,6 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.dirBtn.SetBitmap(icons.ButtonIcon(stem="folder", size=16).bitmap)
         self.authorCtrl.SetBackgroundColour("white")
 
+
+if __name__ == "__main__":
+    pass
