@@ -487,7 +487,7 @@ class Routine(list):
             'one component still running\n'
             'for thisComponent in %sComponents:\n'
             '    if hasattr(thisComponent, "status") and '
-            'thisComponent.status != FINISHED:\n'
+            'not thisComponent.status in (FINISHED, PLAYING_CONTINUOUS, STARTED_CONTINUOUS):\n'
             '        continueRoutine = True\n'
             '        break  # at least one component has not yet finished\n')
         buff.writeIndentedLines(code % self.name)

@@ -748,10 +748,11 @@ class SettingsComponent:
             )
         buff.write(
             "from psychopy import %s\n" % ', '.join(psychopyImports) +
-            "from psychopy.constants import (NOT_STARTED, STARTED, PLAYING,"
-            " PAUSED,\n"
-            "                                STOPPED, FINISHED, PRESSED, "
-            "RELEASED, FOREVER)\n\n"
+            "from psychopy.constants import (\n"
+            "    NOT_STARTED, STARTED, STARTED_CONTINUOUS, FINISHED, \n"
+            "    PLAYING, PLAYING_CONTINUOUS, PAUSED, STOPPED, \n"
+            "    PRESSED, RELEASED, FOREVER\n"
+            ")\n\n"
             "import numpy as np  # whole numpy lib is available, "
             "prepend 'np.'\n"
             "from numpy import (%s,\n" % ', '.join(_numpyImports[:7]) +
