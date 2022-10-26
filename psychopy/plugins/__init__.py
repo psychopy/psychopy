@@ -947,7 +947,7 @@ def _registerBuilderComponent(ep):
 
     Parameters
     ----------
-    module : ModuleType
+    ep : ModuleType
         Module containing the builder component to register.
 
     """
@@ -985,3 +985,7 @@ def _registerBuilderComponent(ep):
         # assign the module categories to the Component
         if not hasattr(components.pluginComponents[attrib], 'categories'):
             components.pluginComponents[attrib].categories = ['Custom']
+
+
+if __name__ == "__main__":
+    pass
