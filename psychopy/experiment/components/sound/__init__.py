@@ -26,7 +26,9 @@ class SoundComponent(BaseComponent):
     iconFile = Path(__file__).parent / 'sound.png'
     tooltip = _translate('Sound: play recorded files or generated sounds', )
 
-    def __init__(self, exp, parentName, name='sound_1', sound='A', volume=1,
+    def __init__(self, exp, parentName, name='sound_1',
+                 sound='A', volume=1,
+                 endWithRoutine=True,
                  startType='time (s)', startVal='0.0',
                  stopType='duration (s)', stopVal='1.0',
                  startEstim='', durationEstim='',
@@ -59,6 +61,12 @@ class SoundComponent(BaseComponent):
             hint=hnt,
             label=_localized['sound'])
         _allowed = ['constant', 'set every repeat', 'set every frame']
+        self.params['endWithRoutine'] = Param(
+            endWithRoutine, valType='bool', inputType='bool', categ='Basic', direct=False,
+            label=_translate("End with routine"),
+            hint=_translate("Should this sound stop when the routine ends, or continue playing until it either "
+                            "finishes or is stopped with code?")
+        )
         self.params['volume'] = Param(
             volume, valType='num', inputType="single", allowedTypes=[], updates='constant', categ='Playback',
             allowedUpdates=_allowed[:],  # use a copy
@@ -142,20 +150,34 @@ class SoundComponent(BaseComponent):
         buff.writeIndented("# start/stop %(name)s\n" % (self.params))
         # do this EVERY frame, even before/after playing?
         self.writeParamUpdates(buff, 'set every frame')
-        self.writeStartTestCode(buff)
-        if self.params['syncScreenRefresh'].val:
-            code = ("%(name)s.play(when=win)  # sync with win flip\n") % self.params
-        else:
-            code = "%(name)s.play()  # start the sound (it finishes automatically)\n" % self.params
-        buff.writeIndented(code)
-        # because of the 'if' statement of the time test
-        buff.setIndentLevel(-1, relative=True)
-        if not self.params['stopVal'].val in ['', None, -1, 'None']:
-            self.writeStopTestCode(buff)
-            code = ("%(name)s.stop()\n")
+        # Write code to start sound
+        if self.writeStartTestCode(buff):
+            code = "# start playing %(name)s\n"
             buff.writeIndentedLines(code % self.params)
-            # because of the 'if' statement of the time test
-            buff.setIndentLevel(-2, relative=True)
+            # Play with/without linking to window according to "sync screen" param
+            if self.params['syncScreenRefresh']:
+                code = "%(name)s.play(when=win)  # sync with win flip\n"
+            else:
+                code = "%(name)s.play()  # start the sound (it finishes automatically)\n"
+            buff.writeIndentedLines(code % self.params)
+            # Set status according to "end with routine" param
+            if self.params['endWithRoutine']:
+                code = "%(name)s.status = PLAYING\n"
+            else:
+                code = "%(name)s.status = PLAYING_CONTINUOUS\n"
+            buff.writeIndentedLines(code % self.params)
+
+            self.exitStartTest(buff)
+
+        # Write code to stop sound
+        if self.writeStopTestCode(buff):
+            code = (
+                "# stop playing %(name)s\n"
+                "%(name)s.stop()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+
+            self.exitStopTest(buff)
 
     def writeFrameCodeJS(self, buff):
         """Write the code that will be called every frame
@@ -197,8 +219,12 @@ class SoundComponent(BaseComponent):
             buff.writeIndented('}\n')
 
     def writeRoutineEndCode(self, buff):
-        code = "%s.stop()  # ensure sound has stopped at end of routine\n"
-        buff.writeIndented(code % self.params['name'])
+        if self.params['endWithRoutine']:
+            code = (
+                "# ensure sound has stopped at end of routine \n"
+                "%(name)s.stop()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCode(buff)  # noinspection
 
