@@ -668,6 +668,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
         # Set starting states on buttons
         self.toolbar.buttons['stopBtn'].Disable()
+        self.alertsToggleBtn.ToggleMenu(True)
+        self.stdoutToggleBtn.ToggleMenu(True)
 
         self.theme = parent.theme
 
