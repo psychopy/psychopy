@@ -488,6 +488,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
             ==========
             parent : wx.Window
                 Window to use as parent when creating this panel
+            runner : RunnerPanel
+                Runner panel containing all the necessary methods to bind button functions to
             """
             wx.Panel.__init__(self, parent)
             # Setup sizer
