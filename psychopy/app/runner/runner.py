@@ -687,9 +687,16 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         bmp = icons.ButtonIcon("alerts", size=(16, 16)).bitmap
         self.alertsToggleBtn.SetBitmap(bmp)
         self.alertsToggleBtn.SetBitmapMargins(x=6, y=0)
-
-        self.stdoutToggleBtn._applyAppTheme()
-        self.alertsToggleBtn._applyAppTheme()
+        # Apply app theme on objects in non-theme-mixin panels
+        for obj in (
+                self.alertsCtrl, self.alertsToggleBtn,
+                self.stdoutCtrl, self.stdoutToggleBtn,
+                self.expCtrl, self.toolbar
+        ):
+            if hasattr(obj, "_applyAppTheme"):
+                obj._applyAppTheme()
+            else:
+                handlers.ThemeMixin._applyAppTheme(obj)
 
         self.Refresh()
 
