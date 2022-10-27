@@ -488,78 +488,79 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
             ==========
             parent : wx.Window
                 Window to use as parent when creating this panel
-            runner : RunnerPanel
-                Runner panel containing all the necessary methods to bind button functions to
             """
             wx.Panel.__init__(self, parent)
             # Setup sizer
             self.sizer = wx.BoxSizer(wx.VERTICAL)
             self.SetSizer(self.sizer)
 
+            # Button storage
+            self.buttons = {}
+
             # Plus
-            btn = runner.plusBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            btn.SetToolTip(
+            self.buttons['plusBtn'] = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
+            self.buttons['plusBtn'].SetToolTip(
                 _translate("Add experiment to list")
             )
-            btn.Bind(wx.EVT_BUTTON, runner.addTask)
-            btn.stem = "addExp"
-            self.sizer.Add(btn, border=5, flag=wx.ALL)
+            self.buttons['plusBtn'].Bind(wx.EVT_BUTTON, runner.addTask)
+            self.buttons['plusBtn'].stem = "addExp"
+            self.sizer.Add(self.buttons['plusBtn'], border=5, flag=wx.ALL)
             # Minus
-            btn = runner.negBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            btn.SetToolTip(
+            self.buttons['negBtn'] = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
+            self.buttons['negBtn'].SetToolTip(
                 _translate("Remove experiment from list")
             )
-            btn.Bind(wx.EVT_BUTTON, runner.removeTask)
-            btn.stem = "removeExp"
-            self.sizer.Add(btn, border=5, flag=wx.ALL)
+            self.buttons['negBtn'].Bind(wx.EVT_BUTTON, runner.removeTask)
+            self.buttons['negBtn'].stem = "removeExp"
+            self.sizer.Add(self.buttons['negBtn'], border=5, flag=wx.ALL)
             # Save
-            btn = runner.saveBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            btn.SetToolTip(
+            self.buttons['saveBtn'] = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
+            self.buttons['saveBtn'].SetToolTip(
                 _translate("Save task list to a file")
             )
-            btn.Bind(wx.EVT_BUTTON, runner.parent.saveTaskList)
-            btn.stem = "filesaveas"
-            self.sizer.Add(btn, border=5, flag=wx.ALL)
+            self.buttons['saveBtn'].Bind(wx.EVT_BUTTON, runner.parent.saveTaskList)
+            self.buttons['saveBtn'].stem = "filesaveas"
+            self.sizer.Add(self.buttons['saveBtn'], border=5, flag=wx.ALL)
             # Load
-            btn = runner.loadBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            btn.SetToolTip(
+            self.buttons['loadBtn'] = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
+            self.buttons['loadBtn'].SetToolTip(
                 _translate("Load tasks from a file")
             )
-            btn.Bind(wx.EVT_BUTTON, runner.parent.loadTaskList)
-            btn.stem = "fileopen"
-            self.sizer.Add(btn, border=5, flag=wx.ALL)
+            self.buttons['loadBtn'].Bind(wx.EVT_BUTTON, runner.parent.loadTaskList)
+            self.buttons['loadBtn'].stem = "fileopen"
+            self.sizer.Add(self.buttons['loadBtn'], border=5, flag=wx.ALL)
             # Run
-            btn = runner.runBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            btn.SetToolTip(
+            self.buttons['runBtn'] = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
+            self.buttons['runBtn'].SetToolTip(
                 _translate("Run the current script in Python")
             )
-            btn.Bind(wx.EVT_BUTTON, runner.runLocal)
-            btn.stem = "run"
-            self.sizer.Add(btn, border=5, flag=wx.ALL)
+            self.buttons['runBtn'].Bind(wx.EVT_BUTTON, runner.runLocal)
+            self.buttons['runBtn'].stem = "run"
+            self.sizer.Add(self.buttons['runBtn'], border=5, flag=wx.ALL)
             # Stop
-            btn = runner.stopBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            btn.SetToolTip(
+            self.buttons['stopBtn'] = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
+            self.buttons['stopBtn'].SetToolTip(
                 _translate("Stop task")
             )
-            btn.Bind(wx.EVT_BUTTON, runner.stopTask)
-            btn.stem = "stop"
-            self.sizer.Add(btn, border=5, flag=wx.ALL)
+            self.buttons['stopBtn'].Bind(wx.EVT_BUTTON, runner.stopTask)
+            self.buttons['stopBtn'].stem = "stop"
+            self.sizer.Add(self.buttons['stopBtn'], border=5, flag=wx.ALL)
             # Run online
-            btn = runner.onlineBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            btn.SetToolTip(
+            self.buttons['onlineBtn'] = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
+            self.buttons['onlineBtn'].SetToolTip(
                 _translate("Run PsychoJS task from Pavlovia")
             )
-            btn.Bind(wx.EVT_BUTTON, runner.runOnline)
-            btn.stem = "globe_run"
-            self.sizer.Add(btn, border=5, flag=wx.ALL)
+            self.buttons['onlineBtn'].Bind(wx.EVT_BUTTON, runner.runOnline)
+            self.buttons['onlineBtn'].stem = "globe_run"
+            self.sizer.Add(self.buttons['onlineBtn'], border=5, flag=wx.ALL)
             # Debug online
-            btn = runner.onlineDebugBtn = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
-            btn.SetToolTip(
+            self.buttons['onlineDebugBtn'] = wx.Button(self, size=(32, 32), style=wx.BORDER_NONE)
+            self.buttons['onlineDebugBtn'].SetToolTip(
                 _translate("Run PsychoJS task in local debug mode")
             )
-            btn.Bind(wx.EVT_BUTTON, runner.runOnlineDebug)
-            btn.stem = "globe_bug"
-            self.sizer.Add(btn, border=5, flag=wx.ALL)
+            self.buttons['onlineDebugBtn'].Bind(wx.EVT_BUTTON, runner.runOnlineDebug)
+            self.buttons['onlineDebugBtn'].stem = "globe_bug"
+            self.sizer.Add(self.buttons['onlineDebugBtn'], border=5, flag=wx.ALL)
 
         def _applyAppTheme(self):
             # Iterate through buttons
@@ -665,8 +666,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.SetSizerAndFit(self.mainSizer)
         self.SetMinSize(self.Size)
 
-        # disable the stop button on start
-        self.stopBtn.Disable()
+        # Set starting states on buttons
+        self.toolbar.buttons['stopBtn'].Disable()
 
         self.theme = parent.theme
 
@@ -718,9 +719,9 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         if self.scriptProcess is not None:
             self.stopFile(event)
 
-        self.stopBtn.Disable()
+        self.toolbar.buttons['stopBtn'].Disable()
         if self.currentSelection:
-            self.runBtn.Enable()
+            self.toolbar.buttons['runBtn'].Enable()
 
     def runLocal(self, evt=None, focusOnExit='runner'):
         """Run experiment from new process using inherited ScriptProcess class methods."""
@@ -737,8 +738,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
         # Enable/Disable btns
         if procStarted:
-            self.runBtn.Disable()
-            self.stopBtn.Enable()
+            self.toolbar.buttons['runBtn'].Disable()
+            self.toolbar.buttons['stopBtn'].Enable()
 
     def runOnline(self, evt=None):
         """Run PsychoJS task from https://pavlovia.org."""
@@ -901,13 +902,13 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         # thisItem = self.entries[self.currentFile]
 
         if not self.running:  # if we aren't already running we can enable run button
-            self.runBtn.Enable()
+            self.toolbar.buttons['runBtn'].Enable()
         if self.currentFile.suffix == '.psyexp':
-            self.onlineBtn.Enable()
-            self.onlineDebugBtn.Enable()
+            self.toolbar.buttons['onlineBtn'].Enable()
+            self.toolbar.buttons['onlineDebugBtn'].Enable()
         else:
-            self.onlineBtn.Disable()
-            self.onlineDebugBtn.Disable()
+            self.toolbar.buttons['onlineBtn'].Disable()
+            self.toolbar.buttons['onlineDebugBtn'].Disable()
         self.updateAlerts()
         self.app.updateWindowMenu()
 
@@ -918,9 +919,9 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.currentFile = None
         self.currentExperiment = None
         self.currentProject = None
-        self.runBtn.Disable()
-        self.onlineBtn.Disable()
-        self.onlineDebugBtn.Disable()
+        self.toolbar.buttons['runBtn'].Disable()
+        self.toolbar.buttons['onlineBtn'].Disable()
+        self.toolbar.buttons['onlineDebugBtn'].Disable()
         self.app.updateWindowMenu()
 
     def updateAlerts(self):
