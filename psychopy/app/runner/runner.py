@@ -585,8 +585,6 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(parent.IsDoubleBuffered())
 
-        expCtrlSize = [500, 150]
-
         self.app = app
         self.prefs = self.app.prefs.coder
         self.paths = self.app.prefs.paths
@@ -615,8 +613,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         # ListCtrl for list of tasks
         self.expCtrl = wx.ListCtrl(self.topPanel,
                                    id=wx.ID_ANY,
-                                   style=wx.LC_REPORT | wx.BORDER_NONE |
-                                         wx.LC_NO_HEADER | wx.LC_SINGLE_SEL)
+                                   style=wx.LC_REPORT | wx.BORDER_NONE | wx.LC_NO_HEADER | wx.LC_SINGLE_SEL)
         self.expCtrl.SetMinSize((500, -1))
         self.expCtrl.Bind(wx.EVT_LIST_ITEM_SELECTED,
                           self.onItemSelected, self.expCtrl)
@@ -630,8 +627,6 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         # Toolbar
         self.toolbar = self.RunnerToolbar(self.topPanel, runner=self)
         self.topPanel.sizer.Add(self.toolbar, proportion=0, border=12, flag=wx.LEFT | wx.RIGHT | wx.EXPAND)
-
-        _style = platebtn.PB_STYLE_DROPARROW | platebtn.PB_STYLE_SQUARE
 
         # Setup panel for bottom half (alerts and stdout)
         self.bottomPanel = wx.Panel(self.splitter)
@@ -647,7 +642,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.alertsToggleBtn = self.SizerButton(self.bottomPanel, _translate("Alerts"), self.alertsCtrl)
         self.setAlertsVisible(True)
         self.bottomPanel.sizer.Add(self.alertsToggleBtn, 0, wx.TOP | wx.EXPAND, 10)
-        self.bottomPanel.sizer.Add(self.alertsCtrl, 1, wx.EXPAND | wx.ALL, 10)
+        self.bottomPanel.sizer.Add(self.alertsCtrl, proportion=1, border=10, flag=wx.EXPAND | wx.ALL)
 
         # StdOut
         self.stdoutCtrl = StdOutText(parent=self.bottomPanel,
@@ -656,8 +651,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.stdoutCtrl.SetMinSize((-1, 150))
         self.stdoutToggleBtn = self.SizerButton(self.bottomPanel, _translate("Stdout"), self.stdoutCtrl)
         self.setStdoutVisible(True)
-        self.bottomPanel.sizer.Add(self.stdoutToggleBtn, 0, wx.TOP | wx.EXPAND, 10)
-        self.bottomPanel.sizer.Add(self.stdoutCtrl, 1, wx.EXPAND | wx.ALL, 10)
+        self.bottomPanel.sizer.Add(self.stdoutToggleBtn, proportion=0, border=10, flag=wx.TOP | wx.EXPAND)
+        self.bottomPanel.sizer.Add(self.stdoutCtrl, proportion=1, border=10, flag=wx.EXPAND | wx.ALL)
 
         # Assign to splitter
         self.splitter.SplitHorizontally(
