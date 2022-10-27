@@ -10,26 +10,16 @@ __all__ = ['loadPlugin', 'listPlugins', 'computeChecksum', 'startUpPlugins',
            'pluginMetadata', 'pluginEntryPoints', 'scanPlugins',
            'requirePlugin', 'isPluginLoaded', 'isStartUpPlugin']
 
-import json
 import sys
 import inspect
 import collections
 import hashlib
 import importlib
-from pathlib import Path
-
 import pkg_resources
-import requests
-import wx
 
 from psychopy import logging
-from psychopy.app import utils
-from psychopy.app.themes import icons, handlers
 from psychopy.preferences import prefs
-from psychopy.localization import _translate
 import psychopy.experiment.components as components
-from psychopy.tools import stringtools as strtools
-import subprocess as sp
 
 # Keep track of plugins that have been loaded. Keys are plugin names and values
 # are their entry point mappings.
@@ -43,6 +33,10 @@ _installed_plugins_ = collections.OrderedDict()
 # Keep track of plugins that failed to load here
 _failed_plugins_ = []
 
+
+# ------------------------------------------------------------------------------
+# Functions
+#
 
 def resolveObjectFromName(name, basename=None, resolve=True, error=True):
     """Get an object within a module's namespace using a fully-qualified or
@@ -216,276 +210,6 @@ def computeChecksum(fpath, method='sha256', writeOut=None):
             f.write('\n' + checksumStr)
 
     return checksumStr
-
-
-class PluginInfo:
-    """
-    Minimal class to store info about a plugin.
-
-    Parameters
-    ----------
-    source : str
-        Is this a community plugin ("community") or one curated by us ("curated")?
-    pipname : str
-        Name of plugin on pip, e.g. "psychopy-legacy"
-    name : str
-        Plugin name for display, e.g. "Psychopy Legacy"
-    icon : wx.Bitmap, path or None
-        Icon for the plugin, if any (if None, will use blank bitmap)
-    description : str
-        Description of the plugin
-    installed : bool or None
-        Whether or not the plugin in installed on this system
-    active : bool
-        Whether or not the plug is enabled on this system (if not installed, will always be False)
-    """
-    def __init__(self, source,
-                 pipname, name="",
-                 author=None, homepage="", docs="", repo="",
-                 keywords=None,
-                 icon=None, description=""):
-        self.source = source
-        self.pipname = pipname
-        self.name = name
-        self.author = author
-        self.homepage = homepage
-        self.docs = docs
-        self.repo = repo
-        self.icon = icon
-        self.description = description
-        self.keywords = keywords or []
-
-    def __repr__(self):
-        return f"<psychopy.plugins.PluginInfo: {self.name} [{self.pipname}] by {self.author} ({self.source})>"
-
-    def __eq__(self, other):
-        if isinstance(other, PluginInfo):
-            return self.pipname == other.pipname
-        else:
-            return self.pipname == str(other)
-
-    @property
-    def icon(self):
-        if hasattr(self, "_icon"):
-            return self._icon
-
-    @icon.setter
-    def icon(self, value):
-        self._requestedIcon = value
-        self._icon = utils.ImageData(value)
-
-    @property
-    def active(self):
-        """
-        Is this plugin active? If so, it is loaded when the app starts. Otherwise, it remains installed but is not
-        loaded.
-        """
-        return isStartUpPlugin(self.pipname)
-
-    @active.setter
-    def active(self, value):
-        if value is None:
-            # Setting active as None skips the whole process - useful for avoiding recursion
-            return
-
-        if value:
-            # If active, add to list of startup plugins
-            startUpPlugins(self.pipname, add=True)
-        else:
-            # If active and changed to inactive, remove from list of startup plugins
-            current = listPlugins(which='startup')
-            if self.pipname in current:
-                current.remove(self.pipname)
-            startUpPlugins(current, add=False)
-
-    def activate(self):
-        self.active = True
-
-    def deactivate(self):
-        self.active = False
-
-    @property
-    def installed(self):
-        current = listPlugins(which='all')
-        return self.pipname in current
-
-    @installed.setter
-    def installed(self, value):
-        if value is None:
-            # Setting installed as None skips the whole process - useful for avoiding recursion
-            return
-        # Get action string from value
-        if value:
-            act = "install"
-        else:
-            act = "uninstall"
-        # Install/uninstall
-        emts = [sys.executable, "-m", "pip", act, self.pipname]
-        cmd = " ".join(emts)
-        output = sp.Popen(cmd,
-                          stdout=sp.PIPE,
-                          stderr=sp.PIPE,
-                          shell=True,
-                          universal_newlines=True)
-        stdout, stderr = output.communicate()
-        sys.stdout.write(stdout)
-        sys.stderr.write(stderr)
-        # Throw up error dlg if needed
-        if stderr:
-            dlg = InstallErrorDlg(
-                cmd=" ".join(emts[2:]),
-                stdout=stdout,
-                stderr=stderr
-            )
-            dlg.ShowModal()
-
-    def install(self):
-        self.installed = True
-
-    def uninstall(self):
-        self.installed = False
-
-    @property
-    def author(self):
-        if hasattr(self, "_author"):
-            return self._author
-
-    @author.setter
-    def author(self, value):
-        if isinstance(value, AuthorInfo):
-            # If given an AuthorInfo, use it directly
-            self._author = value
-        elif isinstance(value, dict):
-            # If given a dict, make an AuthorInfo from it
-            self._author = AuthorInfo(**value)
-        else:
-            # Otherwise, assume no author
-            self._author = AuthorInfo()
-
-
-class AuthorInfo:
-    def __init__(self,
-                 name="",
-                 email="",
-                 github="",
-                 avatar=None):
-        self.name = name
-        self.email = email
-        self.github = github
-        self.avatar = avatar
-
-    @property
-    def avatar(self):
-        if hasattr(self, "_avatar"):
-            return self._avatar
-
-    @avatar.setter
-    def avatar(self, value):
-        self._requestedAvatar = value
-        self._avatar = utils.ImageData(value)
-
-    def __repr__(self):
-        return f"<psychopy.plugins.AuthorInfo: {self.name} (@{self.github}, {self.email})>"
-
-
-class InstallErrorDlg(wx.Dialog, handlers.ThemeMixin):
-    def __init__(self, cmd="", stdout="", stderr="", mode="plugin"):
-        from psychopy.app.themes import fonts
-        # Capitalise mode string
-        mode = mode.title()
-        # Initialise
-        wx.Dialog.__init__(
-            self, None,
-            size=(480, 620),
-            title=mode + _translate(" install error"),
-            style=wx.RESIZE_BORDER | wx.CLOSE_BOX | wx.CAPTION
-        )
-        # Setup sizer
-        self.border = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(self.border)
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
-        # Create title sizer
-        self.title = wx.BoxSizer(wx.HORIZONTAL)
-        self.sizer.Add(self.title, border=6, flag=wx.ALL | wx.EXPAND)
-        # Create icon
-        self.icon = wx.StaticBitmap(
-            self, size=(32, 32),
-            bitmap=icons.ButtonIcon(stem="stop", size=32).bitmap
-        )
-        self.title.Add(self.icon, border=6, flag=wx.ALL | wx.EXPAND)
-        # Create title
-        self.titleLbl = wx.StaticText(self, label=mode + _translate(" could not be installed."))
-        self.titleLbl.SetFont(fonts.appTheme['h3'].obj)
-        self.title.Add(self.titleLbl, proportion=1, border=6, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        # Show what we tried
-        self.inLbl = wx.StaticText(self, label=_translate("We tried:"))
-        self.sizer.Add(self.inLbl, border=6, flag=wx.ALL | wx.EXPAND)
-        self.inCtrl = wx.TextCtrl(self, value=cmd, style=wx.TE_READONLY)
-        self.inCtrl.SetBackgroundColour("white")
-        self.inCtrl.SetFont(fonts.appTheme['code'].obj)
-        self.sizer.Add(self.inCtrl, border=6, flag=wx.ALL | wx.EXPAND)
-        # Show what we got
-        self.outLbl = wx.StaticText(self, label=_translate("We got:"))
-        self.sizer.Add(self.outLbl, border=6, flag=wx.ALL | wx.EXPAND)
-        self.outCtrl = wx.TextCtrl(self, value=f"{stdout}\n{stderr}",
-                                   size=(-1, 620), style=wx.TE_READONLY | wx.TE_MULTILINE)
-        self.outCtrl.SetFont(fonts.appTheme['code'].obj)
-        self.sizer.Add(self.outCtrl, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
-
-        # Make buttons
-        self.btns = self.CreateStdDialogButtonSizer(flags=wx.OK)
-        self.border.Add(self.btns, border=6, flag=wx.ALIGN_RIGHT | wx.ALL)
-
-        self.Layout()
-        self._applyAppTheme()
-
-    def ShowModal(self):
-        # Make error noise
-        wx.Bell()
-        # Show as normal
-        wx.Dialog.ShowModal(self)
-
-
-def getAllPluginDetails():
-    """
-    Placeholder function - returns an example list of objects with desired structure.
-    """
-    # Request plugin info list from server
-    resp = requests.get("https://psychopy.org/plugins.json")
-    # If 404, return None so the interface can handle this nicely rather than an unhandled error
-    if resp.status_code == 404:
-        return
-    # Create PluginInfo objects from info list
-    objs = []
-    for info in resp.json():
-        objs.append(
-            PluginInfo(**info)
-        )
-    # Add info objects for local plugins which aren't found online
-    localPlugins = listPlugins(which='all')
-    for name in localPlugins:
-        # Check whether plugin is accounted for
-        if name not in objs:
-            # If not, get its metadata
-            data = pluginMetadata(name)
-            # Create best representation we can from metadata
-            author = AuthorInfo(
-                name=data['Author'],
-                email=data['Author-email']
-            )
-            info = PluginInfo(
-                source="unknown",
-                pipname=name, name=name,
-                author=author,
-                homepage=data['Home-page'],
-                keywords=data['Keywords'],
-                description=data['Summary']
-            )
-            # Add to list
-            objs.append(info)
-
-    return objs
 
 
 def scanPlugins():
@@ -1223,7 +947,7 @@ def _registerBuilderComponent(ep):
 
     Parameters
     ----------
-    module : ModuleType
+    ep : ModuleType
         Module containing the builder component to register.
 
     """
@@ -1261,3 +985,7 @@ def _registerBuilderComponent(ep):
         # assign the module categories to the Component
         if not hasattr(components.pluginComponents[attrib], 'categories'):
             components.pluginComponents[attrib].categories = ['Custom']
+
+
+if __name__ == "__main__":
+    pass

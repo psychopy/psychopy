@@ -2,10 +2,70 @@ import wx
 import sys
 import subprocess as sp
 
-from psychopy.plugins import InstallErrorDlg
 from psychopy.app import utils
 from psychopy.app.themes import handlers, icons
 from psychopy.localization import _translate
+
+from psychopy.tools.pkgtools import getInstalledPackages
+
+
+class InstallErrorDlg(wx.Dialog, handlers.ThemeMixin):
+    def __init__(self, cmd="", stdout="", stderr="", mode="plugin"):
+        from psychopy.app.themes import fonts
+        # Capitalise mode string
+        mode = mode.title()
+        # Initialise
+        wx.Dialog.__init__(
+            self, None,
+            size=(480, 620),
+            title=mode + _translate(" install error"),
+            style=wx.RESIZE_BORDER | wx.CLOSE_BOX | wx.CAPTION
+        )
+        # Setup sizer
+        self.border = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.border)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        # Create title sizer
+        self.title = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.title, border=6, flag=wx.ALL | wx.EXPAND)
+        # Create icon
+        self.icon = wx.StaticBitmap(
+            self, size=(32, 32),
+            bitmap=icons.ButtonIcon(stem="stop", size=32).bitmap
+        )
+        self.title.Add(self.icon, border=6, flag=wx.ALL | wx.EXPAND)
+        # Create title
+        self.titleLbl = wx.StaticText(self, label=mode + _translate(" could not be installed."))
+        self.titleLbl.SetFont(fonts.appTheme['h3'].obj)
+        self.title.Add(self.titleLbl, proportion=1, border=6, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        # Show what we tried
+        self.inLbl = wx.StaticText(self, label=_translate("We tried:"))
+        self.sizer.Add(self.inLbl, border=6, flag=wx.ALL | wx.EXPAND)
+        self.inCtrl = wx.TextCtrl(self, value=cmd, style=wx.TE_READONLY)
+        self.inCtrl.SetBackgroundColour("white")
+        self.inCtrl.SetFont(fonts.appTheme['code'].obj)
+        self.sizer.Add(self.inCtrl, border=6, flag=wx.ALL | wx.EXPAND)
+        # Show what we got
+        self.outLbl = wx.StaticText(self, label=_translate("We got:"))
+        self.sizer.Add(self.outLbl, border=6, flag=wx.ALL | wx.EXPAND)
+        self.outCtrl = wx.TextCtrl(self, value=f"{stdout}\n{stderr}",
+                                   size=(-1, 620), style=wx.TE_READONLY | wx.TE_MULTILINE)
+        self.outCtrl.SetFont(fonts.appTheme['code'].obj)
+        self.sizer.Add(self.outCtrl, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+
+        # Make buttons
+        self.btns = self.CreateStdDialogButtonSizer(flags=wx.OK)
+        self.border.Add(self.btns, border=6, flag=wx.ALIGN_RIGHT | wx.ALL)
+
+        self.Layout()
+        self._applyAppTheme()
+
+    def ShowModal(self):
+        # Make error noise
+        wx.Bell()
+        # Show as normal
+        wx.Dialog.ShowModal(self)
 
 
 class PackageManagerPanel(wx.Panel, handlers.ThemeMixin):
@@ -216,9 +276,21 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
     def onUninstall(self, evt=None):
         # Get rightclick menu
         menu = evt.GetEventObject()
-        # Uninstall
-        cmd = ["uninstall", menu.pipname]
-        self.execute(cmd)
+        pipname = menu.pipname
+        msg = wx.MessageDialog(
+            self,
+            "Are you sure you want to uninstall package `{}`?".format(pipname),
+            caption="Uninstall Package?",
+            style=wx.YES_NO | wx.NO_DEFAULT)
+
+        # if user selects NO, exit the routine
+        if msg.ShowModal() == wx.ID_YES:
+            # Issue uninstall command, use the `-y` argument to get around the
+            # prompt that requires sending bytes to the console.
+            cmd = ["uninstall", "-y", menu.pipname]
+            self.execute(cmd)
+
+        msg.Destroy()
 
     def refresh(self, evt=None):
         # Get search term
@@ -362,7 +434,23 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.sizer.Add(self.descCtrl, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         # todo: Required by...
 
+        # Cache package information where possible to improve responsiveness of
+        # the UI.
+        self._packageInfoCache = dict()
+        self._generatePackageInfoCache()
+
         self.package = None
+
+    def _generatePackageInfoCache(self):
+        """Generate package info cache.
+
+        This iterates over all installed packages and obtains information about
+        them. The data is cached for later use instead of obtained when the user
+        clicks the item.
+
+        """
+        self._packageInfoCache.clear()  # clear the cache
+        self._packageInfoCache.update(getInstalledPackages())
 
     @property
     def package(self):
@@ -372,6 +460,9 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
     @package.setter
     def package(self, pipname):
         self._package = pipname
+
+        # get package data from cache
+        pkgInfo = self._packageInfoCache.get(self._package, None)
 
         # Disable/enable according to whether None
         active = pipname is not None
@@ -391,44 +482,55 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
             self.nameCtrl.SetLabelText("...")
             self.authorCtrl.SetLabelText("...")
         else:
-            # Use pip show to get details
-            cmd = f"{sys.executable} -m pip show {pipname}"
-            output = sp.Popen(cmd,
-                              stdout=sp.PIPE,
-                              stderr=sp.PIPE,
-                              shell=True,
-                              universal_newlines=True)
-            stdout, stderr = output.communicate()
-            # Parse pip show info
-            lines = stdout.split("\n")
-            self.params = {}
-            for line in lines:
-                if ":" not in line:
-                    continue
-                name, val = line.split(": ", 1)
-                self.params[name] = val
-            print(self.params)
-            # Get versions info
-            cmd = f"{sys.executable} -m pip index versions {pipname}"
-            output = sp.Popen(cmd,
-                              stdout=sp.PIPE,
-                              stderr=sp.PIPE,
-                              shell=True,
-                              universal_newlines=True)
-            stdout, stderr = output.communicate()
-            # Parse versions info
-            versions = stdout.split("\n")[1].strip()
-            versions = versions.split(": ")[1]
-            versions = versions.split(", ")
+            self.params = pkgInfo
 
-            # Set info
-            self.nameCtrl.SetLabelText(self.params['Name'])
-            self.authorCtrl.SetLabel(self.params['Author'])
-            self.versionCtrl.AppendItems(versions)
-            self.versionCtrl.SetStringSelection(self.params['Version'])
-            self.authorCtrl.URL = "mailto:" + self.params['Author-email']
-            self.licenseCtrl.SetLabelText(f" (License: {self.params['License']})")
-            self.descCtrl.SetValue(self.params['Summary'])
+            # Use pip show to get details
+            # cmd = f"{sys.executable} -m pip show {pipname}"
+            # output = sp.Popen(cmd,
+            #                   stdout=sp.PIPE,
+            #                   stderr=sp.PIPE,
+            #                   shell=True,
+            #                   universal_newlines=True)
+            # stdout, stderr = output.communicate()
+            # # Parse pip show info
+            # lines = stdout.split("\n")
+            # self.params = {}
+            # for line in lines:
+            #     if ":" not in line:
+            #         continue
+            #     name, val = line.split(": ", 1)
+            #     self.params[name] = val
+            # print(self.params)
+            # # Get versions info
+            # cmd = f"{sys.executable} -m pip index versions {pipname}"
+            # output = sp.Popen(cmd,
+            #                   stdout=sp.PIPE,
+            #                   stderr=sp.PIPE,
+            #                   shell=True,
+            #                   universal_newlines=True)
+            # stdout, stderr = output.communicate()
+            # # Parse versions info
+            # versions = stdout.split("\n")[1].strip()
+            # versions = versions.split(": ")[1]
+            # versions = versions.split(", ")
+
+            if self.params is not None:
+                projectName = self.params.get('Name', pipname)  # missing? use `pipname`
+                version = self.params['Version']
+                authorName = self.params.get('Author', 'Unknown')
+                authorEmail = self.params.get('Author-email', 'Unknown')
+                license = self.params.get('License', 'Unknown')
+                summary = self.params.get('Summary', '')
+                desc = self.params.get('Description', '')
+
+                self.nameCtrl.SetLabelText(projectName)
+                self.versionCtrl.AppendItems([version])
+                self.versionCtrl.SetStringSelection(version)
+                self.authorCtrl.SetLabel(authorName)
+                self.authorCtrl.URL = "mailto:" + authorEmail
+                self.authorCtrl.SetToolTip(self.authorCtrl.URL)
+                self.licenseCtrl.SetLabelText(f" (License: {license})")
+                self.descCtrl.SetValue(summary + '\n\n' + desc)
 
         self.Layout()
         self._applyAppTheme()
@@ -439,3 +541,6 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.dirBtn.SetBitmap(icons.ButtonIcon(stem="folder", size=16).bitmap)
         self.authorCtrl.SetBackgroundColour("white")
 
+
+if __name__ == "__main__":
+    pass
