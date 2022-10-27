@@ -104,16 +104,19 @@ class Rect(BaseShapeStim):
         rectangle in a single dimension after initialization.
 
     """
+
+    _defaultFillColor = 'white'
+    _defaultLineColor = None
+
     def __init__(self,
                  win,
                  width=.5,
                  height=.5,
                  units='',
                  lineWidth=1.5,
-                 lineColor=None,
-                 lineColorSpace=None,
-                 fillColor='white',
-                 fillColorSpace=None,
+                 lineColor=False,
+                 fillColor=False,
+                 colorSpace='rgb',
                  pos=(0, 0),
                  size=None,
                  anchor=None,
@@ -122,13 +125,16 @@ class Rect(BaseShapeStim):
                  contrast=1.0,
                  depth=0,
                  interpolate=True,
-                 lineRGB=False,
-                 fillRGB=False,
                  name=None,
                  autoLog=None,
                  autoDraw=False,
+                 # legacy
                  color=None,
-                 colorSpace='rgb'):
+                 lineColorSpace=None,
+                 fillColorSpace=None,
+                 lineRGB=False,
+                 fillRGB=False,
+                 ):
         # width and height attributes, these are later aliased with `size`
         self.__dict__['width'] = float(width)
         self.__dict__['height'] = float(height)

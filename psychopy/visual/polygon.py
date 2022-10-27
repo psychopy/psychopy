@@ -102,16 +102,18 @@ class Polygon(BaseShapeStim):
         `fillColor` are interpreted.
 
     """
+
+    _defaultFillColor = "white"
+    _defaultLineColor = "white"
+
     def __init__(self,
                  win,
                  edges=3,
                  radius=.5,
                  units='',
                  lineWidth=1.5,
-                 lineColor=None,
-                 lineColorSpace=None,
-                 fillColor='white',
-                 fillColorSpace=None,
+                 lineColor=False,
+                 fillColor=False,
                  pos=(0, 0),
                  size=1.0,
                  anchor=None,
@@ -120,13 +122,17 @@ class Polygon(BaseShapeStim):
                  contrast=1.0,
                  depth=0,
                  interpolate=True,
-                 lineRGB=False,
-                 fillRGB=False,
                  name=None,
                  autoLog=None,
                  autoDraw=False,
-                 color=None,
-                 colorSpace='rgb'):
+                 colorSpace='rgb',
+                 # legacy
+                 color=False,
+                 fillColorSpace=None,
+                 lineColorSpace=None,
+                 lineRGB=False,
+                 fillRGB=False,
+                 ):
 
         # what local vars are defined (these are the init params) for use by
         # __repr__
@@ -137,10 +143,6 @@ class Polygon(BaseShapeStim):
         self.__dict__['edges'] = edges
         self.radius = np.asarray(radius)
         self._calcVertices()
-        
-        # Set fillColor to False if color is used
-        if color is not None:
-            fillColor = False
 
         super(Polygon, self).__init__(
             win,
