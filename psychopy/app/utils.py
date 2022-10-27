@@ -8,26 +8,36 @@
 """utility classes for the Builder
 """
 import glob
+import io
 import os
 import re
+import webbrowser
 from pathlib import Path
 
 import PIL
 import numpy
+import requests
+from wx.html import HtmlWindow
+try:
+    import markdown_it as md
+except ImportError:
+    md = None
 from wx.lib.agw.aui.aui_constants import *
 import wx.lib.statbmp
 from wx.lib.agw.aui.aui_utilities import IndentPressedBitmap, ChopText, TakeScreenShot
 import sys
 import wx
+import wx.stc
 import wx.lib.agw.aui as aui
 from wx.lib import platebtn
+import wx.lib.mixins.listctrl as listmixin
 
 import psychopy
 from psychopy import logging
 from . import pavlovia_ui
 from .themes import colors, handlers, icons
 from psychopy.localization import _translate
-from psychopy.tools.stringtools import prettyname
+from psychopy.tools import stringtools as st
 from psychopy.tools.apptools import SortTerm
 from PIL import Image as pil
 
@@ -212,6 +222,35 @@ def getSystemFonts(encoding='system', fixedWidthOnly=False):
     return fontEnum.GetFacenames(encoding, fixedWidthOnly=fixedWidthOnly)
 
 
+class ImageData(pil.Image):
+    def __new__(cls, source):
+        # If given a PIL image, use it directly
+        if isinstance(source, pil.Image):
+            return source
+        # If given None, use None
+        if source in (None, "None", "none", ""):
+            return None
+        # If source is or looks like a file path, load from file
+        if st.is_file(source):
+            path = Path(source)
+            # Only load if it looks like an image
+            if path.suffix in pil.registered_extensions():
+                return pil.open(source)
+        # If source is a url, load from server
+        if st.is_url(source):
+            # Only load if looks like an image
+            ext = "." + str(source).split(".")[-1]
+            if ext in pil.registered_extensions():
+                content = requests.get(source).content
+                data = io.BytesIO(content)
+                return pil.open(data)
+
+        # If couldn't interpret, raise error
+        raise ValueError(_translate(
+            "Could not get image from: {}"
+        ).format(source))
+
+
 class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
     """Toolbar for the Builder/Coder Frame"""
     def __init__(self, frame):
@@ -294,6 +333,206 @@ class HoverButton(wx.Button, HoverMixin, handlers.ThemeMixin):
         self.BackgroundColourHover = colors.app['txtbutton_bg_hover']
         # Refresh
         self.OnHover(evt=None)
+
+
+class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
+    def __init__(self, parent, size=(-1, -1), value=None, file=None, style=wx.DEFAULT):
+        # Initialise superclass
+        self.parent = parent
+        wx.Panel.__init__(self, parent, size=size)
+        # Setup sizers
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.SetSizer(self.sizer)
+        self.contentSizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.contentSizer, proportion=1, flag=wx.EXPAND)
+        self.btnSizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.btnSizer, border=0, flag=wx.ALL)
+
+        # Make text control
+        self.rawTextCtrl = wx.stc.StyledTextCtrl(self, size=size, style=wx.TE_MULTILINE | style)
+        self.rawTextCtrl.SetLexer(wx.stc.STC_LEX_MARKDOWN)
+        self.rawTextCtrl.Bind(wx.EVT_TEXT, self.onEdit)
+        self.contentSizer.Add(self.rawTextCtrl, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
+
+        # Make HTML preview
+        self.htmlPreview = HtmlWindow(self, wx.ID_ANY)
+        self.htmlPreview.Bind(wx.html.EVT_HTML_LINK_CLICKED, self.onUrl)
+        self.contentSizer.Add(self.htmlPreview, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
+
+        # Make switch
+        self.editBtn = wx.ToggleButton(self, size=(24, 24))
+        self.editBtn.Bind(wx.EVT_TOGGLEBUTTON, self.toggleView)
+        self.btnSizer.Add(self.editBtn, border=3, flag=wx.ALL | wx.EXPAND)
+
+        # Make save button
+        self.saveBtn = wx.Button(self, size=(24, 24))
+        self.saveBtn.Bind(wx.EVT_BUTTON, self.save)
+        self.btnSizer.Add(self.saveBtn, border=3, flag=wx.ALL | wx.EXPAND)
+
+        # Get starting value
+        self.file = file
+        if value is None and self.file is not None:
+                self.load()
+        elif value is not None:
+            self.rawTextCtrl.SetValue(value)
+
+        # Set initial view
+        self.editBtn.SetValue(False)
+        self.toggleView(False)
+        self.saveBtn.Disable()
+        self.saveBtn.Show(self.file is not None)
+        self._applyAppTheme()
+
+    def getValue(self):
+        return self.rawTextCtrl.GetValue()
+
+    def setValue(self, value):
+        self.rawTextCtrl.SetValue(value)
+        # Render
+        self.toggleView(self.editBtn.Value)
+
+    def toggleView(self, evt=True):
+        if isinstance(evt, bool):
+            edit = evt
+        else:
+            edit = evt.EventObject.Value
+        # Render html
+        self.render()
+
+        # Show opposite control
+        self.rawTextCtrl.Show(edit)
+        self.htmlPreview.Show(not edit)
+
+        self._applyAppTheme()
+        self.Layout()
+
+    def render(self, evt=None):
+        # Render HTML
+        if md:
+            renderedText = md.MarkdownIt().render(self.rawTextCtrl.Value)
+        else:
+            renderedText = self.rawTextCtrl.Value.replace("\n", "<br>")
+        # Apply to preview ctrl
+        self.htmlPreview.SetPage(renderedText)
+        self.htmlPreview.Update()
+        self.htmlPreview.Refresh()
+
+    def load(self, evt=None):
+        if self.file is None:
+            return
+        # Set value from file
+        with open(self.file, "r") as f:
+            self.rawTextCtrl.SetValue(f.read())
+        # Disable save button
+        self.saveBtn.Disable()
+
+    def save(self, evt=None):
+        if self.file is None:
+            return
+        # Write current contents to file
+        with open(self.file, "w") as f:
+            f.write(self.rawTextCtrl.GetValue())
+        # Disable save button
+        self.saveBtn.Disable()
+
+    def getValue(self):
+        return self.rawTextCtrl.GetValue()
+
+    def setValue(self, value):
+        self.rawTextCtrl.SetValue(value)
+        self.render()
+
+    def onEdit(self, evt=None):
+        # Enable save button when edited
+        self.saveBtn.Enable()
+        # Post event
+        evt = wx.CommandEvent(wx.EVT_TEXT.typeId)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
+
+    @staticmethod
+    def onUrl(evt=None):
+        webbrowser.open(evt.LinkInfo.Href)
+
+    def _applyAppTheme(self):
+        from psychopy.app.themes import fonts
+        spec = fonts.coderTheme.base
+        # Set raw text font from coder theme
+        self.rawTextCtrl.SetFont(spec.obj)
+        # Always style text ctrl
+        handlers.styleCodeEditor(self.rawTextCtrl)
+        # Only style output if in a styled parent
+        if isinstance(self.GetTopLevelParent(), handlers.ThemeMixin):
+            handlers.styleHTMLCtrl(self.htmlPreview)
+
+        # Set save button icon
+        self.saveBtn.SetBitmap(
+            icons.ButtonIcon(stem="savebtn", size=(16, 16)).bitmap
+        )
+        # Set edit toggle icon
+        self.editBtn.SetBitmap(
+            icons.ButtonIcon(stem="editbtn", size=(16, 16)).bitmap
+        )
+        self.editBtn.SetBitmapPressed(
+            icons.ButtonIcon(stem="viewbtn", size=(16, 16)).bitmap
+        )
+
+        self.Refresh()
+
+
+class HyperLinkCtrl(wx.Button):
+    def __init__(self, parent,
+                 id=wx.ID_ANY, label="", URL="",
+                 pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.BU_LEFT,
+                 validator=wx.DefaultValidator, name=""):
+        # Create button with no background
+        wx.Button.__init__(self)
+        self.SetBackgroundStyle(wx.BG_STYLE_TRANSPARENT)
+        self.Create(
+            parent=parent,
+            id=id,
+            label=label,
+            pos=pos,
+            size=size,
+            style=wx.BORDER_NONE | style,
+            validator=validator,
+            name=name)
+        # Style as link
+        self.SetForegroundColour("blue")
+        self._font = self.GetFont().MakeUnderlined()
+        self.SetFont(self._font)
+        # Setup hover/focus behaviour
+        self.Bind(wx.EVT_SET_FOCUS, self.onFocus)
+        self.Bind(wx.EVT_KILL_FOCUS, self.onFocus)
+        self.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
+        self.Bind(wx.EVT_MOTION, self.onHover)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
+        # Set URL
+        self.URL = URL
+        self.Bind(wx.EVT_BUTTON, self.onClick)
+
+    def onClick(self, evt=None):
+        webbrowser.open(self.URL)
+
+    def onFocus(self, evt=None):
+        if evt.EventType == wx.EVT_SET_FOCUS.typeId:
+            self.SetFont(self._font.Bold())
+        elif evt.EventType == wx.EVT_KILL_FOCUS.typeId:
+            self.SetFont(self._font)
+        self.Update()
+        self.Layout()
+
+    def onHover(self, evt=None):
+        if evt.EventType == wx.EVT_LEAVE_WINDOW.typeId:
+            # If mouse is leaving window, reset cursor
+            wx.SetCursor(
+                wx.Cursor(wx.CURSOR_DEFAULT)
+            )
+        else:
+            # Otherwise, if a mouse event is received, it means the cursor is on this link
+            wx.SetCursor(
+                wx.Cursor(wx.CURSOR_HAND)
+            )
 
 
 class ButtonArray(wx.Window):
@@ -626,7 +865,7 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
         if isinstance(data, wx.Bitmap):
             # Sub in blank bitmaps
             if not data.IsOk():
-                data = icons.ButtonIcon(stem="user_none", size=128).bitmap
+                data = icons.ButtonIcon(stem="user_none", size=128, theme="light").bitmap
             # Store full size bitmap
             self._imageData = data
             # Resize bitmap
@@ -655,7 +894,7 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
                 dlg = wx.MessageDialog(None, msg, style=wx.ICON_WARNING)
                 dlg.ShowModal()
                 # then use a blank image
-                self._frames = [icons.ButtonIcon(stem="invalid_img", size=128).bitmap]
+                self._frames = [icons.ButtonIcon(stem="invalid_img", size=128, theme="light").bitmap]
 
         # Set first frame (updates non-animated images)
         self.SetBitmap(self._frames[self._frameI])
@@ -763,7 +1002,7 @@ class FileCtrl(wx.TextCtrl):
         # Add button
         self.fileBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
         self.fileBtn.SetBackgroundColour(self.GetBackgroundColour())
-        self.fileBtn.SetBitmap(icons.ButtonIcon(stem="folder", size=16).bitmap)
+        self.fileBtn.SetBitmap(icons.ButtonIcon(stem="folder", size=16, theme="light").bitmap)
         self.sizer.Add(self.fileBtn, border=4, flag=wx.ALL)
         # Bind browse function
         self.fileBtn.Bind(wx.EVT_BUTTON, self.browse)
@@ -1046,6 +1285,23 @@ class ToggleButtonArray(wx.Window, handlers.ThemeMixin):
         # Use OnHover event to set buttons to their default colors
         for btn in self.buttons.values():
             btn.OnHover()
+
+
+class ListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
+    def __init__(self, parent=None, id=wx.ID_ANY,
+                 pos=wx.DefaultPosition, size=wx.DefaultSize,
+                 style=wx.LC_REPORT,
+                 validator=wx.DefaultValidator, name=""):
+        wx.ListCtrl.__init__(
+            self, parent,
+            id=id,
+            pos=pos,
+            size=size,
+            style=style,
+            validator=validator,
+            name=name
+        )
+        listmixin.ListCtrlAutoWidthMixin.__init__(self)
 
 
 def sanitize(inStr):

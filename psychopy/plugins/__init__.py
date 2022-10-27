@@ -34,6 +34,10 @@ _installed_plugins_ = collections.OrderedDict()
 _failed_plugins_ = []
 
 
+# ------------------------------------------------------------------------------
+# Functions
+#
+
 def resolveObjectFromName(name, basename=None, resolve=True, error=True):
     """Get an object within a module's namespace using a fully-qualified or
     relative dotted name.
@@ -943,7 +947,7 @@ def _registerBuilderComponent(ep):
 
     Parameters
     ----------
-    module : ModuleType
+    ep : ModuleType
         Module containing the builder component to register.
 
     """
@@ -981,3 +985,7 @@ def _registerBuilderComponent(ep):
         # assign the module categories to the Component
         if not hasattr(components.pluginComponents[attrib], 'categories'):
             components.pluginComponents[attrib].categories = ['Custom']
+
+
+if __name__ == "__main__":
+    pass
