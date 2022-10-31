@@ -182,33 +182,29 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         buff.writeIndented("# *%(name)s* updates\n" % self.params)
         # write start code
         # writes an if statement to determine whether to start
-        self.writeStartTestCode(buff)
-        code = ("%(name)s.status = STARTED\n"
-                "%(name)s.clock.reset()  # now t=0\n")
-        buff.writeIndentedLines(code % self.params)
-
-        if self.params['discard previous'].val:
-            code = ("# clear %(name)s responses (in a loop - the Cedrus "
-                    "own function doesn't work well)\n"
-                    "%(name)s.poll_for_response()\n"
-                    "while len(%(name)s.response_queue):\n"
-                    "    %(name)s.clear_response_queue()\n"
-                    "    %(name)s.poll_for_response() #often there are "
-                    "more resps waiting!\n")
+        if self.writeStartTestCode(buff):
+            code = ("%(name)s.clock.reset()  # now t=0\n")
             buff.writeIndentedLines(code % self.params)
 
-        if useBoxTimer:
-            code = "%(name)s.reset_rt_timer()\n"
-            buff.writeIndented(code % self.params)
+            if self.params['discard previous'].val:
+                code = ("# clear %(name)s responses (in a loop - the Cedrus "
+                        "own function doesn't work well)\n"
+                        "%(name)s.poll_for_response()\n"
+                        "while len(%(name)s.response_queue):\n"
+                        "    %(name)s.clear_response_queue()\n"
+                        "    %(name)s.poll_for_response() #often there are "
+                        "more resps waiting!\n")
+                buff.writeIndentedLines(code % self.params)
 
-        # to get out of the if statement
-        buff.setIndentLevel(-1, relative=True)
+            if useBoxTimer:
+                code = "%(name)s.reset_rt_timer()\n"
+                buff.writeIndented(code % self.params)
+
+            self.exitStartTest(buff)
+
         # test for stop (only if there was some setting for duration or stop)
-        if self.params['stopVal'].val not in ['', None, -1, 'None']:
-            # writes an if statement to determine whether to draw etc
-            self.writeStopTestCode(buff)
-            buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
-            buff.setIndentLevel(-2, True)
+        if self.writeStopTestCode(buff):
+            self.exitStopTest(buff)
 
         buff.writeIndented("if %(name)s.status == STARTED:\n" % self.params)
         buff.setIndentLevel(1, relative=True)  # to get out of if statement

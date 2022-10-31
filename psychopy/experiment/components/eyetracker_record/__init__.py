@@ -100,27 +100,21 @@ class EyetrackerRecordComponent(BaseComponent):
 
         # test for whether we're just starting to record
         # writes an if statement to determine whether to draw etc
-        self.writeStartTestCode(buff)
-        code = (
-                "%(name)s.status = STARTED\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
+        if self.writeStartTestCode(buff):
+            self.exitStartTest(buff)
 
         # test for stop (only if there was some setting for duration or stop)
         org_val = self.params['stopVal'].val
         if self.params['actionType'].val.find('Start Only') >= 0:
             self.params['stopVal'].val = 0
 
-        if self.params['stopVal'].val not in ['', None, -1, 'None']:
-            # writes an if statement to determine whether to draw etc
-            self.writeStopTestCode(buff)
+        if self.writeStopTestCode(buff):
             code = (
                 "%(name)s.status = FINISHED\n"
             )
             buff.writeIndentedLines(code % self.params)
             # to get out of the if statement
-            buff.setIndentLevel(-2, relative=True)
+            self.exitStopTest(buff)
 
         self.params['stopVal'].val = org_val
 

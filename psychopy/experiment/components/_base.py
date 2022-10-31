@@ -594,6 +594,7 @@ class BaseComponent:
                 "pass\n"
             )
             buff.writeIndentedLines(code)
+        return True
 
     def exitActiveTest(self, buff):
         """
@@ -1068,26 +1069,21 @@ class BaseVisualComponent(BaseComponent):
         buff.writeIndented(f"\n")
         buff.writeIndented(f"# *{params['name']}* updates\n")
         # writes an if statement to determine whether to draw etc
-        self.writeStartTestCode(buff)
-        buff.writeIndented(f"{params['name']}.setAutoDraw(True)\n")
-        # to get out of the if statement
-        buff.setIndentLevel(-1, relative=True)
+        if self.writeStartTestCode(buff):
+            buff.writeIndented(f"{params['name']}.setAutoDraw(True)\n")
+            # to get out of the if statement
+            self.exitStartTest(buff)
 
         # test for stop (only if there was some setting for duration or stop)
-        if self.params['stopVal'].val not in ('', None, -1, 'None'):
-            # writes an if statement to determine whether to draw etc
-            self.writeStopTestCode(buff)
+        if self.writeStopTestCode(buff):
             buff.writeIndented(f"{params['name']}.setAutoDraw(False)\n")
             # to get out of the if statement
-            buff.setIndentLevel(-2, relative=True)
+            self.exitStopTest(buff)
 
-        # set parameters that need updating every frame
-        # do any params need updating? (this method inherited from _base)
-        if self.checkNeedToUpdate('set every frame'):
-            buff.writeIndented(f"if {params['name']}.status == STARTED:  # only update if drawing\n")
-            buff.setIndentLevel(+1, relative=True)  # to enter the if block
-            self.writeParamUpdates(buff, 'set every frame')
-            buff.setIndentLevel(-1, relative=True)  # to exit the if block
+        # test for started (will update parameters each frame as needed)
+        if self.writeActiveTestCode(buff):
+            # to get out of the if statement
+            self.exitActiveTest(buff)
 
     def writeFrameCodeJS(self, buff):
         """Write the code that will be called every frame

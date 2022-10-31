@@ -151,28 +151,26 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
         # if just now starting on this frame:
         buff.writeIndented("# *%(name)s* updates\n" % self.params)
         # writes an if statement to determine whether to draw etc
-        self.writeStartTestCode(buff)
-        code = "%(name)s.status = STARTED\n"
-        if self.params['discard previous'].val:
-            code += "%(name)s.clearEvents()\n"
+        if self.writeStartTestCode(buff):
+            code = "%(name)s.status = STARTED\n"
+            if self.params['discard previous'].val:
+                code += "%(name)s.clearEvents()\n"
 
-        # ioLabs bbox handles active internally, via setEnable(active)
-        # this is not the same as keyboard components, which have to handle
-        # their own allowedKeys
-        code += "# buttonbox checking is just starting\n"
-        if store != 'nothing':
-            code += ("%(name)s.resetClock()  # set bbox hardware internal clock to 0.000; ms accuracy\n")
-        buff.writeIndentedLines(code % self.params)
+            # ioLabs bbox handles active internally, via setEnable(active)
+            # this is not the same as keyboard components, which have to handle
+            # their own allowedKeys
+            code += "# buttonbox checking is just starting\n"
+            if store != 'nothing':
+                code += ("%(name)s.resetClock()  # set bbox hardware internal clock to 0.000; ms accuracy\n")
+            buff.writeIndentedLines(code % self.params)
 
-        # to get out of the if statement
-        buff.setIndentLevel(-1, relative=True)
+            # to get out of the if statement
+            self.exitStartTest(buff)
 
         # test for stop (only if there was some setting for duration or stop)
-        if self.params['stopVal'].val not in ['', None, -1, 'None']:
-            # writes an if statement to determine whether to draw etc
-            self.writeStopTestCode(buff)
+        if self.writeStopTestCode(buff):
             buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
-            buff.setIndentLevel(-2, True)
+            self.exitStopTest(buff)
 
         buff.writeIndented("if %(name)s.status == STARTED:\n" % self.params)
         buff.setIndentLevel(1, relative=True)  # to get out of the if statement

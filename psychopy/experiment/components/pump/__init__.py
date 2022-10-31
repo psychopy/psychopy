@@ -130,30 +130,25 @@ class QmixPumpComponent(BaseComponent):
         """Write the code that will be called every frame.
         """
         buff.writeIndented("# *%s* updates\n" % (self.params['name']))
-        self.writeStartTestCode(buff)
-        buff.writeIndented("%(name)s.status = STARTED\n" % self.params)
-
-        if self.params['syncToScreen'].val:
-            if self.params['pumpAction'] == 'aspirate':
-                code = ('win.callOnFlip(%(name)s.fill, '
-                        'flowRate=%(flowRate)s)\n') % self.params
+        if self.writeStartTestCode(buff):
+            if self.params['syncToScreen'].val:
+                if self.params['pumpAction'] == 'aspirate':
+                    code = ('win.callOnFlip(%(name)s.fill, '
+                            'flowRate=%(flowRate)s)\n') % self.params
+                else:
+                    code = 'win.callOnFlip(%(name)s.empty, flowRate=%(flowRate)s)\n' % self.params
             else:
-                code = 'win.callOnFlip(%(name)s.empty, flowRate=%(flowRate)s)\n' % self.params
-        else:
-            if self.params['pumpAction'] == 'aspirate':
-                code = '%(name)s.fill(flowRate=%(flowRate)s)\n' % self.params
-            else:
-                code = '%(name)s.empty(flowRate=%(flowRate)s)\n' % self.params
+                if self.params['pumpAction'] == 'aspirate':
+                    code = '%(name)s.fill(flowRate=%(flowRate)s)\n' % self.params
+                else:
+                    code = '%(name)s.empty(flowRate=%(flowRate)s)\n' % self.params
 
-        buff.writeIndentedLines(code)
-        buff.setIndentLevel(-1, relative=True)
+            buff.writeIndentedLines(code)
+            self.exitStartTest(buff)
 
         # Test for stop (only if there was some setting for duration or
         # stop).
-        if self.params['stopVal'].val not in ['', None, -1, 'None']:
-            self.writeStopTestCode(buff)
-            buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
-
+        if self.writeStopTestCode(buff):
             if self.params['syncToScreen'].val:
                 if self.params['switchValveWhenDone'].val:
                     code = ('win.callOnFlip(%(name)s.stop)\n'
@@ -170,7 +165,7 @@ class QmixPumpComponent(BaseComponent):
                     code = '%(name)s.stop()\n' % self.params
 
             buff.writeIndentedLines(code)
-            buff.setIndentLevel(-2, relative=True)
+            self.exitStopTest(buff)
 
     def writeRoutineEndCode(self, buff):
         # Make sure that we stop the pumps even if the routine has been

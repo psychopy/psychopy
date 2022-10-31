@@ -177,62 +177,57 @@ class KeyboardComponent(BaseComponent):
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
         if visualSync:
             buff.writeIndented("waitOnFlip = False\n")
+        allowedKeysIsVar = (valid_var_re.match(str(allowedKeys)) and not allowedKeys == 'None')
         # writes an if statement to determine whether to draw etc
-        self.writeStartTestCode(buff)
-        buff.writeIndented("%(name)s.status = STARTED\n" % self.params)
+        if self.writeStartTestCode(buff):
+            if allowedKeysIsVar:
+                # if it looks like a variable, check that the variable is suitable
+                # to eval at run-time
+                stringType = 'str'
+                code = ("# AllowedKeys looks like a variable named `{0}`\n"
+                        "if not type({0}) in [list, tuple, np.ndarray]:\n"
+                        "    if not isinstance({0}, {1}):\n"
+                        "        logging.error('AllowedKeys variable `{0}` is "
+                        "not string- or list-like.')\n"
+                        "        core.quit()\n"
+                        .format(allowedKeys, stringType))
 
-        allowedKeysIsVar = (valid_var_re.match(str(allowedKeys)) and not
-                            allowedKeys == 'None')
+                code += (
+                    "    elif not ',' in {0}:\n"
+                    "        {0} = ({0},)\n"
+                    "    else:\n"
+                    "        {0} = eval({0})\n"
+                    .format(allowedKeys))
+                buff.writeIndentedLines(code)
 
-        if allowedKeysIsVar:
-            # if it looks like a variable, check that the variable is suitable
-            # to eval at run-time
-            stringType = 'str'
-            code = ("# AllowedKeys looks like a variable named `{0}`\n"
-                    "if not type({0}) in [list, tuple, np.ndarray]:\n"
-                    "    if not isinstance({0}, {1}):\n"
-                    "        logging.error('AllowedKeys variable `{0}` is "
-                    "not string- or list-like.')\n"
-                    "        core.quit()\n"
-                    .format(allowedKeys, stringType))
+                keyListStr = "list(%s)" % allowedKeys  # eval at run time
 
-            code += (
-                "    elif not ',' in {0}:\n"
-                "        {0} = ({0},)\n"
-                "    else:\n"
-                "        {0} = eval({0})\n"
-                .format(allowedKeys))
+            buff.writeIndented("# keyboard checking is just starting\n")
+
+            if visualSync:
+                code = ("waitOnFlip = True\n"
+                        "win.callOnFlip(%(name)s.clock.reset)  "
+                        "# t=0 on next screen flip\n") % self.params
+            else:
+                code = "%(name)s.clock.reset()  # now t=0\n" % self.params
             buff.writeIndentedLines(code)
 
-            keyListStr = "list(%s)" % allowedKeys  # eval at run time
+            if self.params['discard previous'].val:
+                if visualSync:
+                    code = ("win.callOnFlip(%(name)s.clearEvents, eventType='keyboard')  "
+                            "# clear events on next screen flip\n") % self.params
+                else:
+                    code = "%(name)s.clearEvents(eventType='keyboard')\n" % self.params
+                buff.writeIndented(code)
 
-        buff.writeIndented("# keyboard checking is just starting\n")
+            # to get out of the if statement
+            self.exitStartTest(buff)
 
-        if visualSync:
-            code = ("waitOnFlip = True\n"
-                    "win.callOnFlip(%(name)s.clock.reset)  "
-                    "# t=0 on next screen flip\n") % self.params
-        else:
-            code = "%(name)s.clock.reset()  # now t=0\n" % self.params
-        buff.writeIndentedLines(code)
-
-        if self.params['discard previous'].val:
-            if visualSync:
-                code = ("win.callOnFlip(%(name)s.clearEvents, eventType='keyboard')  "
-                        "# clear events on next screen flip\n") % self.params
-            else:
-                code = "%(name)s.clearEvents(eventType='keyboard')\n" % self.params
-            buff.writeIndented(code)
-
-        # to get out of the if statement
-        buff.setIndentLevel(-1, relative=True)
         # test for stop (only if there was some setting for duration or stop)
-        if self.params['stopVal'].val not in ['', None, -1, 'None']:
-            # writes an if statement to determine whether to draw etc
-            self.writeStopTestCode(buff)
+        if self.writeStopTestCode(buff):
             buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
             # to get out of the if statement
-            buff.setIndentLevel(-2, relative=True)
+            self.exitStopTest(buff)
 
         buff.writeIndented("if %s.status == STARTED%s:\n"
                            % (self.params['name'], ['', ' and not waitOnFlip'][visualSync]))

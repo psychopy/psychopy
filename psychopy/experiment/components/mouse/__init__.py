@@ -324,31 +324,28 @@ class MouseComponent(BaseComponent):
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
 
         # writes an if statement to determine whether to draw etc
-        self.writeStartTestCode(buff)
-        code = ("%(name)s.status = STARTED\n")
-        if self.params['timeRelativeTo'].val.lower() == 'mouse onset':
-            code += "%(name)s.mouseClock.reset()\n"
+        if self.writeStartTestCode(buff):
+            code = ""
+            if self.params['timeRelativeTo'].val.lower() == 'mouse onset':
+                code += "%(name)s.mouseClock.reset()\n"
 
-        if self.params['newClicksOnly']:
-            code += (
-                "prevButtonState = %(name)s.getPressed()"
-                "  # if button is down already this ISN'T a new click\n")
-        else:
-            code += (
-                "prevButtonState = [0, 0, 0]"
-                "  # if now button is down we will treat as 'new' click\n")
-        buff.writeIndentedLines(code % self.params)
+            if self.params['newClicksOnly']:
+                code += (
+                    "prevButtonState = %(name)s.getPressed()"
+                    "  # if button is down already this ISN'T a new click\n")
+            else:
+                code += (
+                    "prevButtonState = [0, 0, 0]"
+                    "  # if now button is down we will treat as 'new' click\n")
+            buff.writeIndentedLines(code % self.params)
 
-        # to get out of the if statement
-        buff.setIndentLevel(-1, relative=True)
+            # to get out of the if statement
+            self.exitStartTest(buff)
 
         # test for stop (only if there was some setting for duration or stop)
-        if self.params['stopVal'].val not in ['', None, -1, 'None']:
-            # writes an if statement to determine whether to draw etc
-            self.writeStopTestCode(buff)
-            buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
+        if self.writeStopTestCode(buff):
             # to get out of the if statement
-            buff.setIndentLevel(-2, relative=True)
+            self.exitStopTest(buff)
 
         # only write code for cases where we are storing data as we go (each
         # frame or each click)

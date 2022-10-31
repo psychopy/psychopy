@@ -121,16 +121,14 @@ class ApertureComponent(PolygonComponent):
                 f"# *{params['name']}* updates\n")
         buff.writeIndented(code)
         # writes an if statement to determine whether to draw etc
-        self.writeStartTestCode(buff)
-        buff.writeIndented("%(name)s.enabled = True\n" % self.params)
-        # to get out of the if statement
-        buff.setIndentLevel(-1, relative=True)
-        if self.params['stopVal'].val not in ['', None, -1, 'None']:
-            # writes an if statement to determine whether to draw etc
-            self.writeStopTestCode(buff)
+        if self.writeStartTestCode(buff):
+            buff.writeIndented("%(name)s.enabled = True\n" % self.params)
+            # to get out of the if statement
+            self.exitStartTest(buff)
+        if self.writeStopTestCode(buff):
             buff.writeIndented("%(name)s.enabled = False\n" % self.params)
             # to get out of the if statement
-            buff.setIndentLevel(-2, relative=True)
+            self.exitStopTest(buff)
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)
         if self.checkNeedToUpdate('set every frame'):
