@@ -222,6 +222,12 @@ def scanPlugins():
     called automatically when PsychoPy starts, so you do not need to call this
     unless packages have been added since the session began.
 
+    Returns
+    -------
+    int
+        Number of plugins found during the scan. Calling `listPlugins()` will
+        return the names of the found plugins.
+
     """
     global _installed_plugins_
     _installed_plugins_ = {}  # clear installed plugins
@@ -236,6 +242,8 @@ def scanPlugins():
             logging.debug('Found plugin `{}` at location `{}`.'.format(
                 dist.project_name, dist.location))
             _installed_plugins_[dist.project_name] = entryMap
+
+    return len(_installed_plugins_)
 
 
 def listPlugins(which='all'):
@@ -482,7 +490,7 @@ def loadPlugin(plugin, *args, **kwargs):
                 (fqn == 'psychopy' and 'plugins' in attrs):
             logging.error(
                 "Plugin `{}` declares entry points into the `psychopy.plugins` "
-                "which is forbidden. Skipping.")
+                "module which is forbidden. Skipping.".format(plugin))
 
             if plugin not in _failed_plugins_:
                 _failed_plugins_.append(plugin)
@@ -495,7 +503,7 @@ def loadPlugin(plugin, *args, **kwargs):
         if targObj is None:
             logging.error(
                 "Plugin `{}` specified entry point group `{}` that does not "
-                "exist or is unreachable.")
+                "exist or is unreachable.".format(plugin, fqn))
 
             if plugin not in _failed_plugins_:
                 _failed_plugins_.append(plugin)
@@ -573,20 +581,21 @@ def loadPlugin(plugin, *args, **kwargs):
             if hasattr(targObj, attr):
                 # handle what to do if an attribute exists already here ...
                 if inspect.ismodule(getattr(targObj, attr)):
-                    logging.error(
+                    logging.warning(
                         "Plugin `{}` attempted to override module `{}`.".format(
                             plugin, fqn + '.' + attr))
 
-                    if plugin not in _failed_plugins_:
-                        _failed_plugins_.append(plugin)
-
-                    return False
+                    # if plugin not in _failed_plugins_:
+                    #     _failed_plugins_.append(plugin)
+                    #
+                    # return False
             try:
                 ep = ep.load()  # load the entry point
-            except ImportError:
+            except ImportError as e:
                 logging.error(
                     "Failed to load entry point `{}` of plugin `{}`. "
-                    " Skipping.".format(str(ep), plugin))
+                    "(`{}: {}`) "
+                    "Skipping.".format(str(ep), plugin, e.name, e.msg))
 
                 if plugin not in _failed_plugins_:
                     _failed_plugins_.append(plugin)
@@ -673,7 +682,8 @@ def requirePlugin(plugin):
 
     """
     if not isPluginLoaded(plugin):
-        raise RuntimeError('Required plugin `{}` has not been loaded.')
+        raise RuntimeError('Required plugin `{}` has not been loaded.'.format(
+            plugin))
 
 
 def startUpPlugins(plugins, add=True, verify=True):
