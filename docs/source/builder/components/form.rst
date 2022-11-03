@@ -10,6 +10,8 @@ participants can be presented with a series of questions requiring responses.
 Form items, defined as questions and response pairs, are presented
 simultaneously onscreen with a scrollable viewing window.
 
+*Note*: We have now introduced `Pavlovia Surveys <https://pavlovia.org/docs/surveys/overview>`_ which allow you to create online questionnaires. You can either use them by themselves or in conjunction with your experiments. Click here to watch our `Pavlovia Surveys Launch Webinar <https://youtu.be/1fs8CVKBPGk>`_ to find out more. 
+
 Properties
 ~~~~~~~~~~
 
