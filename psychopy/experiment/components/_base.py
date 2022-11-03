@@ -29,6 +29,7 @@ class BaseComponent:
 
     categories = ['Custom']
     targets = []
+    isPlugin = False
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
     tooltip = ""
 
@@ -125,6 +126,7 @@ class BaseComponent:
         # Make root element
         element = Element(self.__class__.__name__)
         element.set("name", self.params['name'].val)
+        element.set("isPlugin", str(self.isPlugin))
         # Add an element for each parameter
         for key, param in sorted(self.params.items()):
             # Create node
