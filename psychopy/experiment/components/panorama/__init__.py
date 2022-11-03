@@ -21,6 +21,7 @@ class PanoramaComponent(BaseVisualComponent):
     iconFile = Path(__file__).parent / 'panorama.png'
     tooltip = _translate('Panorama: Present a panoramic image (such as from a phone camera in Panorama mode) on '
                          'screen.')
+    beta = True
 
     def __init__(self, exp, parentName, name='pan',
                  startType='time (s)', startVal=0,
