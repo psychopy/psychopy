@@ -298,15 +298,15 @@ class ScriptProcess:
         self.scriptProcess = None  # reset
 
         # disable the stop button after exiting, no longer needed
-        if hasattr(self, 'stopBtn'):  # relies on this being a mixin class
-            self.stopBtn.Disable()
+        if hasattr(self, 'toolbar'):  # relies on this being a mixin class
+            self.toolbar.buttons['stopBtn'].Disable()
 
         # reactivate the current selection after running
-        if hasattr(self, 'expCtrl') and hasattr(self, 'runBtn'):
+        if hasattr(self, 'expCtrl') and hasattr(self, 'toolbar'):
             itemIdx = self.expCtrl.GetFirstSelected()
             if itemIdx >= 0:
                 self.expCtrl.Select(itemIdx)
-                self.runBtn.Enable()
+                self.toolbar.buttons['runBtn'].Disable()
 
         def _focusOnOutput(win):
             """Subroutine to focus on a given output window."""
