@@ -381,14 +381,14 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         appear.
 
         """
-        if self.builder is None:
-            return
+        if not hasattr(self, 'builder') or self.builder is None:
+            return  # nop if we haven't realized the builder UI yet
 
         if not isinstance(self.builder, list):
             self.builder.componentButtons.populate()
         else:
             for builderFrame in self.builder:
-                self.builder.componentButtons.populate()
+                builderFrame.componentButtons.populate()
 
     def onInit(self, showSplash=True, testMode=False, safeMode=False):
         """This is launched immediately *after* the app initialises with
