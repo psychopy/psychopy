@@ -664,6 +664,7 @@ class Experiment:
                         component = allCompons['UnknownPluginComponent'](
                             name=componentNode.get('name'),
                             parentName=routineNode.get('name'), exp=self)
+                        alert(7105, strFields={'name': componentNode.get('name'), 'plugin': plugin})
                     else:
                         # create UnknownComponent instead
                         component = allCompons['UnknownComponent'](

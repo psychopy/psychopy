@@ -87,6 +87,9 @@
 
 7000:
   cat: Python dependencies
+  7100:
+    cat: Plugins
+    7105: Component comes from uninstalled plugin
 
 8000:
   cat: Legacy
