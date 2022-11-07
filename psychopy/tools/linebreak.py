@@ -9,7 +9,7 @@ Code is based on uniseg 0.7.1 (https://pypi.org/project/uniseg/)
 
 import sys
 import re
-from psychopy.tools.linebreak_class import linebreak_class
+import pathlib
 
 __all__ = [
     'get_breakable_points',
@@ -64,6 +64,32 @@ else:
     def code_points(s):
         return list(s)
 
+def _read_uax14_table():
+    """Reads in 'LineBreak.txt' as a dictionary of codes
+
+    Reading and parsing the file takes roughly 70ms (macbook pro 2022)
+    LineBreak.txt comes from from https://www.unicode.org/reports/tr14/"""
+    # read in the LineBreak spec file for UAX14 (takes ~70ms)
+    with open(pathlib.Path(__file__).parent / 'LineBreak.txt') as f:
+        lb_table = {}
+        for row in f.readlines():
+            # remove comments
+            code = row.split('#')[0].strip()
+            if code:  # was it ONLY comments?
+                # could be range (02E0..02E4;AL) or single (02DF;BB)
+                chars, this_lb = code.split(';')
+                if '..' in chars:
+                    # range of vals
+                    start, stop = [int(val, base=16) for val in chars.split('..')]
+                    for charcode in range(start, stop + 1):
+                        lb_table[charcode] = this_lb
+                else:
+                    # single val
+                    lb_table[int(chars, base=16)] = this_lb
+    return lb_table
+
+line_break_table = _read_uax14_table()
+
 BK = 'BK'   # Mandatory Break
 CR = 'CR'   # Carriage Return
 LF = 'LF'   # Line Feed
@@ -107,8 +133,8 @@ XX = 'XX'   # Unknown
 
 def line_break(c, index=0):
     code = ord(code_point(c, index))
-    if code in linebreak_class:
-        return linebreak_class[code]
+    if code in line_break_table:
+        return line_break_table[code]
     return 'Other'
 
 def break_units(s, breakables):

@@ -70,18 +70,18 @@ class Test_RunnerFrame:
         # ---
 
         # check button states before running the file
-        assert runnerPanel.runBtn.Enabled, (
+        assert runnerPanel.toolbar.buttons['runBtn'].Enabled, (
             "Incorrect button state for `Runner.panel.runBtn` at start of "
             "experiment.")
-        assert not runnerPanel.stopBtn.Enabled, (
+        assert not runnerPanel.toolbar.buttons['stopBtn'].Enabled, (
             "Incorrect button state for `Runner.panel.stopBtn` at start of "
             "experiment.")
 
         # issue a button click event to run the file
         wx.PostEvent(
-            runnerPanel.runBtn.GetEventHandler(),
+            runnerPanel.toolbar.buttons['runBtn'].GetEventHandler(),
             wx.PyCommandEvent(wx.EVT_BUTTON.typeId,
-                              runnerPanel.runBtn.GetId())
+                              runnerPanel.toolbar.buttons['runBtn'].GetId())
         )
 
         # wait until the the subprocess wakes up
@@ -95,11 +95,11 @@ class Test_RunnerFrame:
             wx.YieldIfNeeded()
 
         # check button states during experiment
-        assert not runnerPanel.runBtn.Enabled, (
-            "Incorrect button state for `Runner.panel.runBtn` during "
-            "experiment.")
-        assert runnerPanel.stopBtn.Enabled, (
-            "Incorrect button state for `Runner.panel.stopBtn` during "
+        assert not runnerPanel.toolbar.buttons['runBtn'].Enabled, (
+            "Incorrect button state for `runnerPanel.toolbar.buttons['runBtn']` "
+            "during experiment.")
+        assert runnerPanel.toolbar.buttons['stopBtn'].Enabled, (
+            "Incorrect button state for `runnerPanel.toolbar.buttons['stopBtn']` "
             "experiment.")
 
         # wait until the subprocess ends
@@ -114,8 +114,8 @@ class Test_RunnerFrame:
 
         # check button states after running the file, make sure they are
         # correctly restored
-        assert not runnerPanel.stopBtn.Enabled, (
-            "Incorrect button state for `Runner.panel.stopBtn` at end of "
+        assert not runnerPanel.toolbar.buttons['stopBtn'].Enabled, (
+            "Incorrect button state for `runnerPanel.toolbar.buttons['stopBtn']` "
             "experiment.")
 
         # ---
@@ -127,9 +127,9 @@ class Test_RunnerFrame:
 
         # again, start the process using the run event
         wx.PostEvent(
-            runnerPanel.runBtn.GetEventHandler(),
+            runnerPanel.toolbar.buttons['runBtn'].GetEventHandler(),
             wx.PyCommandEvent(wx.EVT_BUTTON.typeId,
-                              runnerPanel.runBtn.GetId())
+                              runnerPanel.toolbar.buttons['runBtn'].GetId())
         )
 
         # wait until the subprocess wakes up
@@ -143,9 +143,9 @@ class Test_RunnerFrame:
 
         # kill the process a bit through it
         wx.PostEvent(
-            runnerPanel.stopBtn.GetEventHandler(),
+            runnerPanel.toolbar.buttons['stopBtn'].GetEventHandler(),
             wx.PyCommandEvent(wx.EVT_BUTTON.typeId,
-                              runnerPanel.stopBtn.GetId())
+                              runnerPanel.toolbar.buttons['stopBtn'].GetId())
         )
 
         # wait until the subprocess ends
@@ -159,8 +159,8 @@ class Test_RunnerFrame:
 
         # check button states after running the file, make sure they are
         # correctly restored
-        assert not runnerPanel.stopBtn.Enabled, (
-            "Incorrect button state for `Runner.panel.stopBtn` at end of "
+        assert not runnerPanel.toolbar.buttons['stopBtn'].Enabled, (
+            "Incorrect button state for `runnerPanel.toolbar.buttons['stopBtn']` "
             "experiment.")
 
         runner.clearTasks()  # clear task list
