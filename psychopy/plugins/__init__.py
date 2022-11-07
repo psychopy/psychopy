@@ -6,17 +6,25 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 """Utilities for extending PsychoPy with plugins."""
 
-__all__ = ['loadPlugin', 'listPlugins', 'computeChecksum', 'startUpPlugins',
-           'pluginMetadata', 'pluginEntryPoints', 'scanPlugins',
-           'requirePlugin', 'isPluginLoaded', 'isStartUpPlugin']
+__all__ = [
+    'loadPlugin',
+    'listPlugins',
+    'computeChecksum',
+    'startUpPlugins',
+    'pluginMetadata',
+    'pluginEntryPoints',
+    'scanPlugins',
+    'requirePlugin',
+    'isPluginLoaded',
+    'isStartUpPlugin',
+    'activatePlugins'
+]
 
-import json
 import sys
 import inspect
 import collections
 import hashlib
 import importlib
-from pathlib import Path
 
 import pkg_resources
 import requests
@@ -28,7 +36,6 @@ from psychopy.app.themes import icons, handlers
 from psychopy.preferences import prefs
 from psychopy.localization import _translate
 import psychopy.experiment.components as components
-from psychopy.tools import stringtools as strtools
 import subprocess as sp
 
 # Keep track of plugins that have been loaded. Keys are plugin names and values
@@ -1149,6 +1156,36 @@ def pluginEntryPoints(plugin, parse=False):
                   " installed or reachable.")
 
     return None
+
+
+def activatePlugins():
+    """Activate plugins.
+
+    Calling this routine will load all startup plugins into the current process.
+
+    Warnings
+    --------
+    This should only be called outside of PsychoPy sub-packages as plugins may
+    import them, causing a circular import condition.
+
+    """
+    if not scanPlugins():
+        logging.info(
+            'Calling `psychopy.plugins.activatePlugins()`, but no plugins have '
+            'been found in active distributions.')
+        return  # nop if no plugins
+
+    # go over the list of plugins and load them
+    for plugin in listPlugins('startup'):
+        loadPlugin(plugin)
+
+
+# ------------------------------------------------------------------------------
+# Registration functions
+#
+# These functions are called to perform additional operations when a plugin is
+# loaded.
+#
 
 
 def _registerWindowBackend(attr, ep):
