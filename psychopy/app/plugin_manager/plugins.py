@@ -458,8 +458,10 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.activeBtn = wx.CheckBox(self, label=_translate("Activated"))
         self.buttonSizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
         # Description
-        self.description = wx.TextCtrl(self, value="",
-                                       style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL)
+        self.description = utils.MarkdownCtrl(
+            self, value="",
+            style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL
+        )
         self.sizer.Add(self.description, border=12, proportion=1, flag=wx.ALL | wx.EXPAND)
 
         self.sizer.Add(wx.StaticLine(self), border=6, flag=wx.EXPAND | wx.ALL)
@@ -553,7 +555,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Set activated
         self.activeBtn.SetValue(value.active)
         # Set description
-        self.description.SetValue(value.description)
+        self.description.setValue(value.description)
 
         # Set author info
         self.author.info = value.author
