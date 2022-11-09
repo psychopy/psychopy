@@ -473,12 +473,16 @@ class AppTheme(dict):
         if name in self:
             return
         # If we have a new theme, do setup
+        rem = AppFont.pointSize
         cache = {
             'base': AppFont(),
-            'h1': AppFont(pointSize=36),
-            'h2': AppFont(pointSize=28),
-            'h3': AppFont(pointSize=24),
-            'h4': AppFont(pointSize=18),
+            'h1': AppFont(pointSize=int(rem*1.6)),
+            'h2': AppFont(pointSize=int(rem*1.5)),
+            'h3': AppFont(pointSize=int(rem*1.4)),
+            'h4': AppFont(pointSize=int(rem*1.3)),
+            'h5': AppFont(pointSize=int(rem*1.2)),
+            'h6': AppFont(pointSize=int(rem*1.1)),
+            'code': CodeFont()
         }
 
         dict.__setitem__(self, name, cache)
