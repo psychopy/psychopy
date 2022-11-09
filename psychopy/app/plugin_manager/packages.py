@@ -205,13 +205,13 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
         self.addBtn.Bind(wx.EVT_BUTTON, self.onAddBtn)
         self.btnSizer.Add(self.addBtn, border=3, flag=wx.ALL | wx.EXPAND)
         # Add button to open pip
-        self.terminalBtn = wx.Button(self, size=(24, 24))
+        self.terminalBtn = wx.Button(self, style=wx.BU_EXACTFIT)
         self.terminalBtn.SetToolTipString(_translate("Open PIP terminal to manage packages manually"))
         self.btnSizer.Add(self.terminalBtn, border=3, flag=wx.ALL | wx.EXPAND)
         self.terminalBtn.Bind(wx.EVT_BUTTON, self.onOpenPipTerminal)
         # Create refresh button
         self.btnSizer.AddStretchSpacer(1)
-        self.refreshBtn = wx.Button(self, size=(24, 24))
+        self.refreshBtn = wx.Button(self, style=wx.BU_EXACTFIT)
         self.refreshBtn.Bind(wx.EVT_BUTTON, self.refresh)
         self.btnSizer.Add(self.refreshBtn, border=3, flag=wx.ALL | wx.EXPAND)
         # Initial data
