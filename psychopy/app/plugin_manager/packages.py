@@ -205,13 +205,13 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
         self.addBtn.Bind(wx.EVT_BUTTON, self.onAddBtn)
         self.btnSizer.Add(self.addBtn, border=3, flag=wx.ALL | wx.EXPAND)
         # Add button to open pip
-        self.terminalBtn = wx.Button(self, size=(24, 24))
+        self.terminalBtn = wx.Button(self, style=wx.BU_EXACTFIT)
         self.terminalBtn.SetToolTipString(_translate("Open PIP terminal to manage packages manually"))
         self.btnSizer.Add(self.terminalBtn, border=3, flag=wx.ALL | wx.EXPAND)
         self.terminalBtn.Bind(wx.EVT_BUTTON, self.onOpenPipTerminal)
         # Create refresh button
         self.btnSizer.AddStretchSpacer(1)
-        self.refreshBtn = wx.Button(self, size=(24, 24))
+        self.refreshBtn = wx.Button(self, style=wx.BU_EXACTFIT)
         self.refreshBtn.Bind(wx.EVT_BUTTON, self.refresh)
         self.btnSizer.Add(self.refreshBtn, border=3, flag=wx.ALL | wx.EXPAND)
         # Initial data
@@ -430,7 +430,7 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.dirBtn = wx.Button(self, label=_translate("Folder"))
         self.headBtnSzr.Add(self.dirBtn, border=3, flag=wx.ALL | wx.EXPAND)
         # Description
-        self.descCtrl = wx.TextCtrl(self, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL)
+        self.descCtrl = utils.MarkdownCtrl(self, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL)
         self.sizer.Add(self.descCtrl, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         # todo: Required by...
 
@@ -530,7 +530,7 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
                 self.authorCtrl.URL = "mailto:" + authorEmail
                 self.authorCtrl.SetToolTip(self.authorCtrl.URL)
                 self.licenseCtrl.SetLabelText(f" (License: {license})")
-                self.descCtrl.SetValue(summary + '\n\n' + desc)
+                self.descCtrl.setValue(summary + '\n\n' + desc)
 
         self.Layout()
         self._applyAppTheme()
