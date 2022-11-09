@@ -389,7 +389,14 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         return self.rawTextCtrl.GetValue()
 
     def setValue(self, value):
+        # Get original readonly value
+        og = self.rawTextCtrl.GetReadOnly()
+        # Disable read only so value can change
+        self.rawTextCtrl.SetReadOnly(False)
+        # Change value
         self.rawTextCtrl.SetValue(value)
+        # Restore readonly state
+        self.rawTextCtrl.SetReadOnly(og)
         # Render
         self.toggleView(self.editBtn.Value)
 
@@ -436,13 +443,6 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
             f.write(self.rawTextCtrl.GetValue())
         # Disable save button
         self.saveBtn.Disable()
-
-    def getValue(self):
-        return self.rawTextCtrl.GetValue()
-
-    def setValue(self, value):
-        self.rawTextCtrl.SetValue(value)
-        self.render()
 
     def onEdit(self, evt=None):
         # Enable save button when edited
