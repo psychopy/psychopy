@@ -1207,7 +1207,7 @@ class SettingsComponent:
                 code = (
                     "'pupillometry_only': %(plPupillometryOnly)s,\n"
                     "'surface_name': %(plSurfaceName)s,\n"
-                    "'gaze_confidence_threshold': %(plConfidenceThreshold)s,\n"
+                    "'confidence_threshold': %(plConfidenceThreshold)s,\n"
                 )
                 buff.writeIndentedLines(code % inits)
 
