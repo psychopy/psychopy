@@ -34,7 +34,7 @@ class EnvironmentManagerDlg(wx.Dialog, handlers.ThemeMixin):
         self.notebook.AddPage(self.packageMgr, text=_translate("Packages"))
 
         # Buttons
-        self.btns = self.CreateStdDialogButtonSizer(flags=wx.OK | wx.CANCEL | wx.HELP)
+        self.btns = self.CreateStdDialogButtonSizer(flags=wx.HELP)
         self.sizer.Add(self.btns, border=6, flag=wx.EXPAND | wx.ALL)
 
 
