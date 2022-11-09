@@ -360,12 +360,12 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.contentSizer.Add(self.htmlPreview, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
 
         # Make switch
-        self.editBtn = wx.ToggleButton(self, size=(24, 24))
+        self.editBtn = wx.ToggleButton(self, style=wx.BU_EXACTFIT)
         self.editBtn.Bind(wx.EVT_TOGGLEBUTTON, self.toggleView)
         self.btnSizer.Add(self.editBtn, border=3, flag=wx.ALL | wx.EXPAND)
 
         # Make save button
-        self.saveBtn = wx.Button(self, size=(24, 24))
+        self.saveBtn = wx.Button(self, style=wx.BU_EXACTFIT)
         self.saveBtn.Bind(wx.EVT_BUTTON, self.save)
         self.btnSizer.Add(self.saveBtn, border=3, flag=wx.ALL | wx.EXPAND)
 
@@ -834,7 +834,8 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
         self.sizer.AddStretchSpacer(1)
         self.SetSizer(self.sizer)
         # Add edit button
-        self.editBtn = wx.Button(self, size=(24, 24), label=chr(int("270E", 16)))
+        self.editBtn = wx.Button(self, style=wx.BU_EXACTFIT)
+        self.editBtn.SetBitmap(icons.ButtonIcon("editbtn", size=16, theme="light").bitmap)
         self.editBtn.Bind(wx.EVT_BUTTON, self.LoadBitmap)
         self.sizer.Add(self.editBtn, border=6, flag=wx.ALIGN_BOTTOM | wx.ALL)
 
