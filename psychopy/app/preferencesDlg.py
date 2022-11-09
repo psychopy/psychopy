@@ -664,6 +664,18 @@ class PreferencesDlg(wx.Dialog):
                     self.proPrefs.addFileItem(
                         sectionName, pLabel, prefName, thisPref,
                         helpText=helpText)
+                # window backend items
+                elif prefName == 'winType':
+                    from psychopy.visual.backends import getAvailableWinTypes
+                    labels = getAvailableWinTypes()
+                    default = labels.index('pyglet')  # is always included
+                    self.proPrefs.addEnumItem(
+                            sectionName,
+                            pLabel,
+                            prefName,
+                            labels=labels,
+                            values=[i for i in range(len(labels))],
+                            value=default, helpText=helpText)
                 # # audio latency mode for the PTB driver
                 elif prefName == 'audioLatencyMode':
                     # get the labels from above

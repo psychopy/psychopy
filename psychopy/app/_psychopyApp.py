@@ -359,89 +359,19 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
                     # wait a bit for the buffer to become free
                     time.sleep(1)
                     attempts += 1
-                    
-        if not self.testMode:
-            if wx.Platform == '__WXMSW__':
-                tfile = tempfile.TemporaryFile(prefix="ag", suffix="tmp")
-                fno = tfile.fileno()
-                self._sharedMemory = mmap.mmap(
-                    fno, self.mmap_sz, "shared_memory")
             else:
-                tfile = open(
-                    os.path.join(
-                        tempfile.gettempdir(),
-                        tempfile.gettempprefix() + self.GetAppName() + '-' +
-                        wx.GetUserId() + "AGSharedMemory"),
-                    'w+b')
-
-                # insert markers into the buffer
-                tfile.write(b"*")
-                tfile.seek(self.mmap_sz)
-                tfile.write(b" ")
-                tfile.flush()
-                fno = tfile.fileno()
-                self._sharedMemory = mmap.mmap(fno, self.mmap_sz)
-
-            # use wx to determine if another instance is running
-            self._singleInstanceChecker = wx.SingleInstanceChecker(
-                self.GetAppName() + '-' + wx.GetUserId(),
-                tempfile.gettempdir())
-
-            # If another instance is running, message our args to it by writing
-            # the path the buffer.
-            if self._singleInstanceChecker.IsAnotherRunning():
-                # Message the extant running instance the arguments we want to
-                # process.
-                args = sys.argv[1:]
-
-                # if there are no args, tell the user another instance is
-                # running
-                if not args:
-                    errMsg = "Another instance of PsychoPy is already running."
+                if not self.testMode:
+                    # error that we could not access the memory-mapped file
+                    errMsg = \
+                        "Cannot communicate with running PsychoPy instance!"
                     errDlg = wx.MessageDialog(
                         None, errMsg, caption="PsychoPy Error",
                         style=wx.OK | wx.ICON_ERROR, pos=wx.DefaultPosition)
                     errDlg.ShowModal()
                     errDlg.Destroy()
 
-                    self.quit(None)
-
-                # serialize the data
-                data = pickle.dumps(args)
-
-                # Keep alive until the buffer is free for writing, this allows
-                # multiple files to be opened in succession. Times out after 5
-                # seconds.
-                attempts = 0
-                while attempts < 5:
-                    # try to write to the buffer
-                    self._sharedMemory.seek(0)
-                    marker = self._sharedMemory.read(1)
-                    if marker == b'\0' or marker == b'*':
-                        self._sharedMemory.seek(0)
-                        self._sharedMemory.write(b'-')
-                        self._sharedMemory.write(data)
-                        self._sharedMemory.seek(0)
-                        self._sharedMemory.write(b'+')
-                        self._sharedMemory.flush()
-                        break
-                    else:
-                        # wait a bit for the buffer to become free
-                        time.sleep(1)
-                        attempts += 1
-                else:
-                    if not self.testMode:
-                        # error that we could not access the memory-mapped file
-                        errMsg = \
-                            "Cannot communicate with running PsychoPy instance!"
-                        errDlg = wx.MessageDialog(
-                            None, errMsg, caption="PsychoPy Error",
-                            style=wx.OK | wx.ICON_ERROR, pos=wx.DefaultPosition)
-                        errDlg.ShowModal()
-                        errDlg.Destroy()
-
-                # since were not the main instance, exit ...
-                self.quit(None)
+            # since were not the main instance, exit ...
+            self.quit(None)
 
     def _refreshComponentPanels(self):
         """Refresh Builder component panels.
@@ -451,14 +381,14 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         appear.
 
         """
-        if self.builder is None:
-            return
+        if not hasattr(self, 'builder') or self.builder is None:
+            return  # nop if we haven't realized the builder UI yet
 
         if not isinstance(self.builder, list):
             self.builder.componentButtons.populate()
         else:
             for builderFrame in self.builder:
-                self.builder.componentButtons.populate()
+                builderFrame.componentButtons.populate()
 
     def onInit(self, showSplash=True, testMode=False, safeMode=False):
         """This is launched immediately *after* the app initialises with

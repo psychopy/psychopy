@@ -48,6 +48,10 @@ class ButtonStim(TextBox2):
     @property
     def isClicked(self):
         """Is this button currently being clicked on?"""
+        # Update vertices
+        if self._needVertexUpdate:
+            self._updateVertices()
+        # Return True if pressed in
         return bool(self.listener.isPressedIn(self))
 
     @property
