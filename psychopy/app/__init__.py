@@ -192,7 +192,19 @@ def getAppFrame(frameName):
     if frameName not in ('builder', 'coder', 'runner'):
         raise ValueError('Invalid identifier specified as `frameName`.')
 
-    return getattr(_psychopyApp, frameName, None)
+    # open the requested frame if no yet loaded
+    frameRef = getattr(_psychopyApp, frameName, None)
+    if frameRef is None:
+        if frameName == 'builder' and hasattr(_psychopyApp, 'showBuilder'):
+            _psychopyApp.showBuilder()
+        elif frameName == 'coder' and hasattr(_psychopyApp, 'showCoder'):
+            _psychopyApp.showCoder()
+        elif frameName == 'runner' and hasattr(_psychopyApp, 'showRunner'):
+            _psychopyApp.showRunner()
+        else:
+            raise AttributeError('Cannot load frame. Method not available.')
+
+    return frameRef
 
 
 if __name__ == "__main__":
