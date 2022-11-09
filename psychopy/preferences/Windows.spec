@@ -27,7 +27,7 @@
 # General settings
 [general]
     # which system to use as a backend for drawing
-    winType = option('pyglet', 'pygame', 'glfw', default='pyglet')
+    winType = option('pyglet', 'pygame', default='pyglet')
     # the default units for windows and visual stimuli
     units = option('deg', 'norm', 'cm', 'pix', 'height', default='norm')
     # full screen is best for accurate timing

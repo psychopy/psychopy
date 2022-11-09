@@ -236,6 +236,18 @@ class ButtonComponent(BaseVisualComponent):
         )
         buff.writeIndentedLines(code % inits)
 
+    def writeRoutineStartCode(self, buff):
+        # Write base code
+        BaseVisualComponent.writeRoutineStartCode(self, buff)
+        # If mouse is on button and already clicked, mark as `wasClicked` so button knows click is not new
+        code = (
+            "# if %(name)s is already clicked on when the routine starts, it's not a new click\n"
+            "if %(name)s.isClicked:\n"
+            "    %(name)s.wasClicked = True\n"
+            "\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
     def writeFrameCode(self, buff):
         BaseVisualComponent.writeFrameCode(self, buff)
         # do writing of init
@@ -279,7 +291,7 @@ class ButtonComponent(BaseVisualComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
         code = (
-                    f"else:\n"
+                    f"elif len(%(name)s.timesOff):\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)

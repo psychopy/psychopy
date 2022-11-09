@@ -2,10 +2,206 @@ import wx
 import webbrowser
 from PIL import Image as pil
 
+from .packages import InstallErrorDlg
 from psychopy.app.themes import theme, handlers, colors, icons
 from psychopy.app import utils
 from psychopy.localization import _translate
 from psychopy import plugins
+import subprocess as sp
+import sys
+import requests
+
+
+class AuthorInfo:
+    """Plugin author information.
+
+    Parameters
+    ----------
+    name : str
+        Author name.
+    email : str
+        Author email URL.
+    github : str
+        GitHub repo URL (optional).
+    avatar : str
+        Avatar image file or URL.
+
+    """
+    def __init__(self,
+                 name="",
+                 email="",
+                 github="",
+                 avatar=None):
+        self.name = name
+        self.email = email
+        self.github = github
+        self.avatar = avatar
+
+    @property
+    def avatar(self):
+        if hasattr(self, "_avatar"):
+            return self._avatar
+
+    @avatar.setter
+    def avatar(self, value):
+        self._requestedAvatar = value
+        self._avatar = utils.ImageData(value)
+
+    def __repr__(self):
+        return (f"<psychopy.app.plugins.AuthorInfo: "
+                f"{self.name} (@{self.github}, {self.email})>")
+
+
+class PluginInfo:
+    """Minimal class to store info about a plugin.
+
+    Parameters
+    ----------
+    source : str
+        Is this a community plugin ("community") or one curated by us
+        ("curated")?
+    pipname : str
+        Name of plugin on pip, e.g. "psychopy-legacy".
+    name : str
+        Plugin name for display, e.g. "Psychopy Legacy".
+    icon : wx.Bitmap, path or None
+        Icon for the plugin, if any (if None, will use blank bitmap).
+    description : str
+        Description of the plugin.
+    installed : bool or None
+        Whether or not the plugin in installed on this system.
+    active : bool
+        Whether or not the plug is enabled on this system (if not installed,
+        will always be False).
+
+    """
+
+    def __init__(self, source,
+                 pipname, name="",
+                 author=None, homepage="", docs="", repo="",
+                 keywords=None,
+                 icon=None, description=""):
+        self.source = source
+        self.pipname = pipname
+        self.name = name
+        self.author = author
+        self.homepage = homepage
+        self.docs = docs
+        self.repo = repo
+        self.icon = icon
+        self.description = description
+        self.keywords = keywords or []
+
+    def __repr__(self):
+        return (f"<psychopy.plugins.PluginInfo: {self.name} "
+                f"[{self.pipname}] by {self.author} ({self.source})>")
+
+    def __eq__(self, other):
+        if isinstance(other, PluginInfo):
+            return self.pipname == other.pipname
+        else:
+            return self.pipname == str(other)
+
+    @property
+    def icon(self):
+        if hasattr(self, "_icon"):
+            return self._icon
+
+    @icon.setter
+    def icon(self, value):
+        self._requestedIcon = value
+        self._icon = utils.ImageData(value)
+
+    @property
+    def active(self):
+        """
+        Is this plugin active? If so, it is loaded when the app starts.
+        Otherwise, it remains installed but is not loaded.
+        """
+        return plugins.isStartUpPlugin(self.pipname)
+
+    @active.setter
+    def active(self, value):
+        if value is None:
+            # Setting active as None skips the whole process - useful for
+            # avoiding recursion
+            return
+
+        if value:
+            # If active, add to list of startup plugins
+            plugins.startUpPlugins(self.pipname, add=True)
+        else:
+            # If active and changed to inactive, remove from list of startup
+            # plugins.
+            current = plugins.listPlugins(which='startup')
+            if self.pipname in current:
+                current.remove(self.pipname)
+            plugins.startUpPlugins(current, add=False)
+
+    def activate(self):
+        self.active = True
+
+    def deactivate(self):
+        self.active = False
+
+    @property
+    def installed(self):
+        current = plugins.listPlugins(which='all')
+        return self.pipname in current
+
+    @installed.setter
+    def installed(self, value):
+        if value is None:
+            # Setting installed as None skips the whole process - useful for
+            # avoiding recursion
+            return
+        # Get action string from value
+        if value:
+            act = "install"
+        else:
+            act = "uninstall"
+        # Install/uninstall
+        emts = [sys.executable, "-m", "pip", act, self.pipname]
+        cmd = " ".join(emts)
+        output = sp.Popen(cmd,
+                          stdout=sp.PIPE,
+                          stderr=sp.PIPE,
+                          shell=True,
+                          universal_newlines=True)
+        stdout, stderr = output.communicate()
+        sys.stdout.write(stdout)
+        sys.stderr.write(stderr)
+        # Throw up error dlg if needed
+        if stderr:
+            dlg = InstallErrorDlg(
+                cmd=" ".join(emts[2:]),
+                stdout=stdout,
+                stderr=stderr
+            )
+            dlg.ShowModal()
+
+    def install(self):
+        self.installed = True
+
+    def uninstall(self):
+        self.installed = False
+
+    @property
+    def author(self):
+        if hasattr(self, "_author"):
+            return self._author
+
+    @author.setter
+    def author(self, value):
+        if isinstance(value, AuthorInfo):
+            # If given an AuthorInfo, use it directly
+            self._author = value
+        elif isinstance(value, dict):
+            # If given a dict, make an AuthorInfo from it
+            self._author = AuthorInfo(**value)
+        else:
+            # Otherwise, assume no author
+            self._author = AuthorInfo()
 
 
 class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
@@ -150,7 +346,8 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
 
         def onNavigation(self, evt=None):
             """
-            Use the tab key to progress to the next panel, or the arrow keys to change selection in this panel.
+            Use the tab key to progress to the next panel, or the arrow keys to
+            change selection in this panel.
 
             This is the same functionality as in a wx.ListCtrl
             """
@@ -174,7 +371,8 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        self.border.Add(self.sizer, proportion=1, border=6,
+                        flag=wx.ALL | wx.EXPAND)
         # Define categories
         self.categories = {
             "curated": _translate("Curated Plugins"),
@@ -187,10 +385,12 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         for category, label in self.categories.items():
             # Create label
             self.itemLabels[category] = wx.StaticText(self, label=label)
-            self.sizer.Add(self.itemLabels[category], border=3, flag=wx.ALL | wx.EXPAND)
+            self.sizer.Add(self.itemLabels[category], border=3,
+                           flag=wx.ALL | wx.EXPAND)
             # Create sizer
             self.itemSizers[category] = wx.BoxSizer(wx.VERTICAL)
-            self.sizer.Add(self.itemSizers[category], border=3, flag=wx.ALL | wx.EXPAND)
+            self.sizer.Add(self.itemSizers[category], border=3,
+                           flag=wx.ALL | wx.EXPAND)
 
         # Bind deselect
         self.Bind(wx.EVT_LEFT_DOWN, self.onClick)
@@ -201,7 +401,7 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
     def populate(self):
         self.items = {category: [] for category in self.categories}
         # Get all plugin details
-        items = plugins.getAllPluginDetails()
+        items = getAllPluginDetails()
         # Put installed packages at top of list
         items.sort(key=lambda obj: obj.installed, reverse=True)
         for item in items:
@@ -344,7 +544,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.Enable(value is not None)
         # Handle None
         if value is None:
-            value = plugins.PluginInfo(
+            value = PluginInfo(
                 "community", "psychopy-...",
                 name="..."
             )
@@ -448,7 +648,7 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
     def info(self, value):
         # Alias None
         if value is None:
-            value = plugins.AuthorInfo(
+            value = AuthorInfo(
                 name="..."
             )
         # Store value
@@ -552,5 +752,55 @@ def markInstalled(pluginItem, pluginPanel, installed=True):
     if pluginPanel and pluginItem and pluginPanel.info == pluginItem.info:
         pluginPanel.installBtn.markInstalled(installed)
         pluginPanel.activeBtn.Enable(bool(installed))
+
+
+def getAllPluginDetails():
+    """
+    Placeholder function - returns an example list of objects with desired
+    structure.
+    """
+    # Request plugin info list from server
+    resp = requests.get("https://psychopy.org/plugins.json")
+    # If 404, return None so the interface can handle this nicely rather than an
+    # unhandled error.
+    if resp.status_code == 404:
+        return
+
+    # Create PluginInfo objects from info list
+    objs = []
+    for info in resp.json():
+        objs.append(
+            PluginInfo(**info)
+        )
+
+    # Add info objects for local plugins which aren't found online
+    localPlugins = plugins.listPlugins(which='all')
+    for name in localPlugins:
+        # Check whether plugin is accounted for
+        if name not in objs:
+            # If not, get its metadata
+            data = plugins.pluginMetadata(name)
+            # Create best representation we can from metadata
+            author = AuthorInfo(
+                name=data['Author'],
+                email=data['Author-email']
+            )
+            info = PluginInfo(
+                source="unknown",
+                pipname=name, name=name,
+                author=author,
+                homepage=data['Home-page'],
+                keywords=data['Keywords'],
+                description=data['Summary']
+            )
+            # Add to list
+            objs.append(info)
+
+    return objs
+
+
+if __name__ == "__main__":
+    pass
+
 
 

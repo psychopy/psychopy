@@ -5,10 +5,10 @@ Cedrus Button Box Component
 
 This component allows you to connect to a Cedrus Button Box to collect key presses.
 
-*Note that there is a limitation currently that a button box can only be used in a single Routine. Otherwise |PsychoPy| tries to initialise it twice which raises an error.* As a workaround, you need to insert the start-routine and each-frame code from the button box into a code component for a second routine.
+Before using your Cedrus response box make sure to install the `required drivers <https://cedrus.com/support/rbx30/tn1042_install_rbx30_win.htm>`_. From there, your response box should plug straight into your USB port! 
 
 Properties
-~~~~~~~~~~~
+~~~~~~~~~~~~
 
 Name : string
     Everything in a |PsychoPy| experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
@@ -47,6 +47,49 @@ Device number: integer
 
 Use box timer : true/false
     Set this to True to use the button box timer for timing information (may give better time resolution)
+
+Data output
+~~~~~~~~~~~~
+
+buttonBox.keys : A list of keys that were pressed (e.g. 0, 1, 2 ...)
+
+buttonBox.rt : A list of response times for each keypress
+
+
+Special use cases
+~~~~~~~~~~~~~~~~~~~~~
+
+If you want to detect both key presses and key lifts from your cedrus response box, at the moment you will need to use custom code. Add a code component to your Routine and in the Begin Experiment use:
+
+.. code-block::
+    
+    import pyxid2 as pyxid
+
+    # get a list of all attached XID devices
+    devices = pyxid.get_xid_devices()
+
+    dev = devices[0] # get the first device to use
+
+
+Then in the Each Frame tab use:
+
+.. code-block::
+    
+    dev.poll_for_response()
+    if dev.response_queue_size() > 0:
+        response = dev.get_next_response()
+        print(response)
+
+
+The printed response will return if the key is being pressed (i.e. a key down event) or not (i.e. a key up event):
+
+.. code-block::
+
+    {'port': 0, 'key': 0, 'pressed': True, 'time': 953}
+    {'port': 0, 'key': 0, 'pressed': False, 'time': 1298}
+    {'port': 0, 'key': 0, 'pressed': True, 'time': 2051}
+    {'port': 0, 'key': 0, 'pressed': False, 'time': 3140}
+
 
 .. seealso::
 
