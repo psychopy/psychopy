@@ -353,6 +353,8 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.rawTextCtrl.SetLexer(wx.stc.STC_LEX_MARKDOWN)
         self.rawTextCtrl.Bind(wx.EVT_TEXT, self.onEdit)
         self.contentSizer.Add(self.rawTextCtrl, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
+        # Manage readonly
+        self.rawTextCtrl.SetReadOnly(style | wx.TE_READONLY == style)
 
         # Make HTML preview
         self.htmlPreview = HtmlWindow(self, wx.ID_ANY)
