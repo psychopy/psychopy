@@ -430,7 +430,7 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.dirBtn = wx.Button(self, label=_translate("Folder"))
         self.headBtnSzr.Add(self.dirBtn, border=3, flag=wx.ALL | wx.EXPAND)
         # Description
-        self.descCtrl = wx.TextCtrl(self, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL)
+        self.descCtrl = utils.MarkdownCtrl(self, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL)
         self.sizer.Add(self.descCtrl, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         # todo: Required by...
 
@@ -530,7 +530,7 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
                 self.authorCtrl.URL = "mailto:" + authorEmail
                 self.authorCtrl.SetToolTip(self.authorCtrl.URL)
                 self.licenseCtrl.SetLabelText(f" (License: {license})")
-                self.descCtrl.SetValue(summary + '\n\n' + desc)
+                self.descCtrl.setValue(summary + '\n\n' + desc)
 
         self.Layout()
         self._applyAppTheme()
