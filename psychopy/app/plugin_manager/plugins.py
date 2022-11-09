@@ -224,7 +224,7 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
         self.pluginViewer.list = self.pluginList
         self.pluginList.viewer = self.pluginViewer
         # Mark installed on items now that we have necessary references
-        for item in self.pluginList.allItems:
+        for item in self.pluginList.items:
             item.markInstalled(item.info.installed)
         # Start of with nothing selected
         self.pluginList.onClick()
@@ -263,11 +263,21 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
             self.pipNameLbl = wx.StaticText(self, label=info.pipname)
             self.label.Add(self.pipNameLbl, flag=wx.ALIGN_LEFT)
             self.sizer.Add(self.label, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
+            # Button sizer
+            self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
+            self.sizer.Add(self.btnSizer, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
+            # Add curated marker
+            self.curatedMark = wx.StaticBitmap(self,
+                                               bitmap=icons.ButtonIcon("star", size=16).bitmap)
+            self.curatedMark.SetToolTipString(_translate(
+                "This plugin is maintained by the Open Science Tools team."
+            ))
+            self.curatedMark.Show(info.source == "curated")
+            self.btnSizer.Add(self.curatedMark, border=3, flag=wx.ALL | wx.EXPAND)
             # Add install button
             self.installBtn = PluginInstallBtn(self)
             self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
-            self.sizer.AddSpacer(24)
-            self.sizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
+            self.btnSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.EXPAND)
 
             # Map to onclick function
             self.Bind(wx.EVT_LEFT_DOWN, self.onClick)
@@ -371,26 +381,10 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.border.Add(self.sizer, proportion=1, border=6,
-                        flag=wx.ALL | wx.EXPAND)
-        # Define categories
-        self.categories = {
-            "curated": _translate("Curated Plugins"),
-            "community": _translate("Community Plugins"),
-            "unknown": _translate("Unknown Source")
-        }
+        self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         # Setup items sizers & labels
-        self.itemSizers = {}
-        self.itemLabels = {}
-        for category, label in self.categories.items():
-            # Create label
-            self.itemLabels[category] = wx.StaticText(self, label=label)
-            self.sizer.Add(self.itemLabels[category], border=3,
-                           flag=wx.ALL | wx.EXPAND)
-            # Create sizer
-            self.itemSizers[category] = wx.BoxSizer(wx.VERTICAL)
-            self.sizer.Add(self.itemSizers[category], border=3,
-                           flag=wx.ALL | wx.EXPAND)
+        self.itemSizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.itemSizer, border=3, flag=wx.ALL | wx.EXPAND)
 
         # Bind deselect
         self.Bind(wx.EVT_LEFT_DOWN, self.onClick)
@@ -399,18 +393,13 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         self.populate()
 
     def populate(self):
-        self.items = {category: [] for category in self.categories}
+        self.items = []
         # Get all plugin details
         items = getAllPluginDetails()
         # Put installed packages at top of list
         items.sort(key=lambda obj: obj.installed, reverse=True)
         for item in items:
             self.appendItem(item)
-        # Hide any empty categories
-        for category in self.items:
-            shown = bool(self.items[category])
-            self.itemLabels[category].Show(shown)
-            self.itemSizers[category].ShowItems(shown)
 
     def onClick(self, evt=None):
         self.SetFocusIgnoringChildren()
@@ -419,33 +408,19 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
     def _applyAppTheme(self):
         # Set colors
         self.SetBackgroundColour("white")
-        # Set fonts
-        for lbl in self.itemLabels.values():
-            from psychopy.app.themes import fonts
-            lbl.SetFont(fonts.appTheme['h2'].obj)
 
     def appendItem(self, info):
         item = self.PluginListItem(self, info)
-        self.items[info.source].append(item)
-        self.itemSizers[info.source].Add(item, border=6, flag=wx.ALL | wx.EXPAND)
+        self.items.append(item)
+        self.itemSizer.Add(item, border=6, flag=wx.ALL | wx.EXPAND)
 
     def getItem(self, info):
         """
         Get the PluginListItem object associated with a PluginInfo object
         """
-        for item in self.items['curated'] + self.items['community']:
+        for item in self.items:
             if item.info == info:
                 return item
-
-    @property
-    def allItems(self):
-        """
-        Get all items as a flat list
-        """
-        items = []
-        for val in self.items.values():
-            items += val
-        return items
 
 
 class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
