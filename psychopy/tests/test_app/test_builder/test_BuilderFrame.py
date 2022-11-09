@@ -135,7 +135,7 @@ class Test_BuilderFrame():
             frame=builderView,
             element=comp,
             experiment=exp,
-            timeout=0.5)
+            timeout=500)
         # Does the message delivered by the validator match what is expected?
         for case in tykes:
             if case['msg']:
