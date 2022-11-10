@@ -757,8 +757,17 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
         else:
             # If they cancel out of login prompt, cancel sync
             return
+
     # If not in a project, make one
     if project is None:
+        # Try to get project id from git files
+        projName = pavlovia.getNameWithNamespace(file)
+        if projName is not None:
+            # If successful, make PavloviaProject from local info
+            project = PavloviaProject(projName, localRoot=file)
+
+    if project is None:
+        # If project is still None
         msgDlg = wx.MessageDialog(parent,
                                message=_translate("This file doesn't belong to any existing project."),
                                style=wx.OK | wx.CANCEL | wx.CENTER)
