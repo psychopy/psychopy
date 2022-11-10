@@ -570,7 +570,7 @@ class PavloviaProject(dict):
     """
 
     def __init__(self, id, localRoot=None):
-        if not isinstance(id, int):
+        if not isinstance(id, (int, str)):
             # If given a dict from Pavlovia rather than an ID, store it rather than requesting again
             self._info = dict(id)
             if 'gitlabId' in self._info:
@@ -1297,7 +1297,7 @@ def getProject(filename):
                     except requests.exceptions.ConnectionError:
                         break
 
-        thisId = knownProjects[path]['idNumber']
+        thisId = knownProjects[path]['id']
         # Check that project still exists on Pavlovia
         requestVal = session.session.get(
             f"https://pavlovia.org/api/v2/experiments/{thisId}",
