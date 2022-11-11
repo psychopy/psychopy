@@ -70,14 +70,10 @@ def getAllPhotometers():
     :returns:
     A list of all photometer classes
     """
-    from . import minolta, pr, gammasci
-    from . import crs
+    from .photometer import getAllPhotometers
 
-    photometers = [pr.PR650, pr.PR655, minolta.CS100A, minolta.LS100, gammasci.S470]
-    if hasattr(crs, "ColorCAL"):
-        photometers.append(crs.ColorCAL)
-
-    return photometers
+    # need values returned as a list for now
+    return [phot for _, phot in getAllPhotometers().items()]
 
 
 def getPhotometerByName(name):

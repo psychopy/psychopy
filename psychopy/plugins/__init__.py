@@ -634,6 +634,8 @@ def loadPlugin(plugin, *args, **kwargs):
                 _registerWindowBackend(attr, ep)
             elif fqn == 'psychopy.experiment.components':  # if component
                 _registerBuilderComponent(ep)
+            elif fqn == 'psychopy.hardware.photometer':  # photometer
+                _registerPhotometer(attr, ep)
 
     # Retain information about the plugin's entry points, we will use this for
     # conflict resolution.
@@ -918,7 +920,6 @@ def activatePlugins():
 # loaded.
 #
 
-
 def _registerWindowBackend(attr, ep):
     """Make an entry point discoverable as a window backend.
 
@@ -935,7 +936,7 @@ def _registerWindowBackend(attr, ep):
     attr : str
         Attribute name the backend is being assigned in
         'psychopy.visual.backends'.
-    ep : ModuleType of ClassType
+    ep : ModuleType or ClassType
         Entry point which defines an object with window backends. Can be a class
         or module. If a module, the module will be scanned for subclasses of
         `BaseBackend` and they will be added as backends.
@@ -1037,6 +1038,38 @@ def _registerBuilderComponent(ep):
         # assign the module categories to the Component
         if not hasattr(components.pluginComponents[attrib], 'categories'):
             components.pluginComponents[attrib].categories = ['Custom']
+
+
+def _registerPhotometer(attr, ep):
+    """Register a photometer class.
+
+    Parameters
+    ----------
+    attr : str
+        Attribute name the backend is being assigned in
+        'psychopy.hardware.photometer'.
+    ep : ModuleType or ClassType
+        Entry point which defines an object serving as the interface for the
+        photometer.
+
+    """
+    # get reference to the backend class
+    fqn = 'psychopy.hardware.photometer'
+    photPkg = resolveObjectFromName(
+        fqn, resolve=(fqn not in sys.modules), error=False)
+
+    if photPkg is None:
+        logging.error("Failed to resolve name `{}`.".format(fqn))
+        return
+
+    # get attribute where photometers are stored and create a new entry
+    if hasattr(photPkg, 'availablePhotometers'):
+        photPkg.availablePhotometers[attr] = ep
+    else:
+        raise AttributeError(
+            "Cannot find attribute `availablePhotometers` in namespace "
+            "`{}`".format(fqn)
+        )
 
 
 if __name__ == "__main__":
