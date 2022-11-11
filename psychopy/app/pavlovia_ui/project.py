@@ -780,7 +780,7 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
             # If successful, make PavloviaProject from local info
             project = PavloviaProject(projName, localRoot=file)
 
-    if project is None:
+    if project is None or project.project is None:
         # If project is still None
         msgDlg = wx.MessageDialog(parent,
                                message=_translate("This file doesn't belong to any existing project."),
