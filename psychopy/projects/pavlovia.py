@@ -653,16 +653,17 @@ class PavloviaProject(dict):
         if 'gitlabId' in self._info:
             self.numericId = int(self._info['gitlabId'])
         if 'pathWithNamespace' in self._info:
-            self.stringId = int(self._info['gitlabId'])
-        # Reinitialise dict
-        dict.__init__(self, self.project.attributes)
-        # Convert datetime
-        dtRegex = re.compile("\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d(.\d\d\d)?")
-        for key in self._info:
-            if dtRegex.match(str(self.info[key])):
-                self._info[key] = pandas.to_datetime(self._info[key], format="%Y-%m-%d %H:%M:%S.%f")
-        # Update base dict
-        self.update(self.project.attributes)
+            self.stringId = self._info['pathWithNamespace']
+        if self.project is not None:
+            # Reinitialise dict
+            dict.__init__(self, self.project.attributes)
+            # Convert datetime
+            dtRegex = re.compile("\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d(.\d\d\d)?")
+            for key in self._info:
+                if dtRegex.match(str(self.info[key])):
+                    self._info[key] = pandas.to_datetime(self._info[key], format="%Y-%m-%d %H:%M:%S.%f")
+            # Update base dict
+            self.update(self.project.attributes)
 
     @property
     def session(self):
@@ -683,7 +684,18 @@ class PavloviaProject(dict):
             self._project = self.session.gitlab.projects.get(self.id)
             return self._project
         except gitlab.exceptions.GitlabGetError as e:
-            raise KeyError(f"Could not find GitLab project with id {self.id}.")
+            # dlg = wx.MessageDialog(
+            #     parent=None,
+            #     message=_translate(
+            #         "Could not find GitLab project with id {}.\n"
+            #         "\n"
+            #         "Please check that the project exists on Pavlovia, that you are logged in as the correct user in "
+            #         "the PsychoPy app, and that your account has access to the project."
+            #     ).format(self.id),
+            #     style=wx.ICON_ERROR
+            # )
+            # dlg.ShowModal()
+            return None
 
     @property
     def editable(self):
@@ -817,26 +829,32 @@ class PavloviaProject(dict):
             ), style=wx.ICON_ERROR | wx.OK)
             dlg.ShowModal()
             return
-        # Reset local repo so it checks again (rather than erroring if it's been deleted without an app restart)
-        self._repo = None
-        # Jot down start time
-        t0 = time.time()
-        # If first commit, do initial push
-        if not bool(self.project.attributes['default_branch']):
-            self.firstPush(infoStream=infoStream)
-        # Pull and push
-        self.pull(infoStream)
-        self.push(infoStream)
-        # Write updates
-        t1 = time.time()
-        msg = ("Successful sync at: {}, took {:.3f}s"
-               .format(time.strftime("%H:%M:%S", time.localtime()), t1 - t0))
-        logging.info(msg)
-        if infoStream:
-            infoStream.write("\n" + msg)
-            time.sleep(0.5)
-        # Refresh info
-        self.refresh()
+        if self.project is not None:
+            # Reset local repo so it checks again (rather than erroring if it's been deleted without an app restart)
+            self._repo = None
+            # Jot down start time
+            t0 = time.time()
+            # If first commit, do initial push
+            if not bool(self.project.attributes['default_branch']):
+                self.firstPush(infoStream=infoStream)
+            # Pull and push
+            self.pull(infoStream)
+            self.push(infoStream)
+            # Write updates
+            t1 = time.time()
+            msg = ("Successful sync at: {}, took {:.3f}s"
+                   .format(time.strftime("%H:%M:%S", time.localtime()), t1 - t0))
+            logging.info(msg)
+            if infoStream:
+                infoStream.write("\n" + msg)
+                time.sleep(0.5)
+            # Refresh info
+            self.refresh()
+        else:
+            # If project doesn't exist, tell the user
+            infoStream.write(
+                _translate("\n\nSync failed - could not find project with id {}").format(self.id)
+            )
 
         return 1
 
