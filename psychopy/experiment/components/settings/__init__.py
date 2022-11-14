@@ -737,6 +737,7 @@ class SettingsComponent:
             "from psychopy import locale_setup\n"
             "from psychopy import prefs\n"
             "from psychopy import plugins\n"
+            "plugins.activatePlugins()\n"  # activates plugins
         )
         # adjust the prefs for this study if needed
         if self.params['Audio lib'].val.lower() != 'use prefs':
@@ -786,8 +787,6 @@ class SettingsComponent:
             statement += "\n"
             buff.write(statement)
 
-        # write line with command to enable plugins
-        buff.write("\nplugins.activatePlugins()")
         buff.write("\n")
 
     def prepareResourcesJS(self):
