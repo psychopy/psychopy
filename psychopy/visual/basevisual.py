@@ -647,6 +647,15 @@ class ForeColorMixin(BaseColorMixin, LegacyForeColorMixin):
     def color(self, value):
         self.foreColor = value
 
+    @property
+    def fontColor(self):
+        """Alternative way of setting `foreColor`."""
+        return self.foreColor
+
+    @fontColor.setter
+    def fontColor(self, value):
+        self.foreColor = value
+
     def setForeColor(self, color, colorSpace=None, operation='', log=None):
         """Hard setter for foreColor, allows suppression of the log message,
         simultaneous colorSpace setting and calls update methods.
@@ -656,6 +665,9 @@ class ForeColorMixin(BaseColorMixin, LegacyForeColorMixin):
         self.updateColors()
 
     def setColor(self, color, colorSpace=None, operation='', log=None):
+        self.setForeColor(color, colorSpace=colorSpace, operation=operation, log=log)
+
+    def setFontColor(self, color, colorSpace=None, operation='', log=None):
         self.setForeColor(color, colorSpace=colorSpace, operation=operation, log=log)
 
 
