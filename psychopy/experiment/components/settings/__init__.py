@@ -245,7 +245,7 @@ class SettingsComponent:
             backgroundFit, valType="str", inputType="choice", categ="Screen",
             allowedVals=("none", "cover", "contain", "fill", "scale-down"),
             hint=_translate("How should the background image scale to fit the window size?"),
-            label=_translate("Background image")
+            label=_translate("Background fit")
         )
         self.params['Units'] = Param(
             units, valType='str', inputType="choice", allowedTypes=[],
@@ -736,6 +736,7 @@ class SettingsComponent:
             "\n"
             "from psychopy import locale_setup\n"
             "from psychopy import prefs\n"
+            "from psychopy import plugins\n"
         )
         # adjust the prefs for this study if needed
         if self.params['Audio lib'].val.lower() != 'use prefs':
@@ -785,8 +786,9 @@ class SettingsComponent:
             statement += "\n"
             buff.write(statement)
 
+        # write line with command to enable plugins
+        buff.write("\nplugins.activatePlugins()")
         buff.write("\n")
-
 
     def prepareResourcesJS(self):
         """Sets up the resources folder and writes the info.php file for PsychoJS
@@ -1205,7 +1207,7 @@ class SettingsComponent:
                 code = (
                     "'pupillometry_only': %(plPupillometryOnly)s,\n"
                     "'surface_name': %(plSurfaceName)s,\n"
-                    "'gaze_confidence_threshold': %(plConfidenceThreshold)s,\n"
+                    "'confidence_threshold': %(plConfidenceThreshold)s,\n"
                 )
                 buff.writeIndentedLines(code % inits)
 

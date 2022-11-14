@@ -269,6 +269,8 @@ class ParamCtrls():
             return None
         elif hasattr(ctrl, 'getValue'):
             return ctrl.getValue()
+        elif ctrl == self.updateCtrl:
+            return ctrl.GetStringSelection()
         elif hasattr(ctrl, 'GetText'):
             return ctrl.GetText()
         elif hasattr(ctrl, 'GetValue'):  # e.g. TextCtrl

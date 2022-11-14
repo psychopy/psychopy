@@ -136,7 +136,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._autoStart = autoStart
 
         # OpenGL data
-        self.interpolate = True
+        self.interpolate = interpolate
         self._texFilterNeedsUpdate = True
         self._metadata = NULL_MOVIE_METADATA
         self._pixbuffId = GL.GLuint(0)
@@ -295,7 +295,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._selectWindow(self.win if win is None else win)
 
         # handle autoplay
-        if self._autoStart and not self._player.isPlaying:
+        if self._autoStart and self.status == NOT_STARTED:
             self.play()
 
         # update the video frame and draw it to a quad

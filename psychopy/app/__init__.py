@@ -51,8 +51,7 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
         Must be `True` if creating an instance for unit testing.
     safeMode : bool
         Start PsychoPy in safe-mode. If `True`, the GUI application will launch
-        with without plugins and will use a default a configuration (planned
-        feature, not implemented yet).
+        with without loading plugins.
 
     """
     global _psychopyApp
@@ -83,7 +82,7 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
     # console.
     from psychopy.app._psychopyApp import PsychoPyApp
     _psychopyApp = PsychoPyApp(
-        0, testMode=testMode, showSplash=showSplash)
+        0, testMode=testMode, showSplash=showSplash, safeMode=safeMode)
 
     # After the app is loaded, we hand off logging to the stream dispatcher
     # using the provided log file path. The dispatcher will write out any log
@@ -193,7 +192,19 @@ def getAppFrame(frameName):
     if frameName not in ('builder', 'coder', 'runner'):
         raise ValueError('Invalid identifier specified as `frameName`.')
 
-    return getattr(_psychopyApp, frameName, None)
+    # open the requested frame if no yet loaded
+    frameRef = getattr(_psychopyApp, frameName, None)
+    if frameRef is None:
+        if frameName == 'builder' and hasattr(_psychopyApp, 'showBuilder'):
+            _psychopyApp.showBuilder()
+        elif frameName == 'coder' and hasattr(_psychopyApp, 'showCoder'):
+            _psychopyApp.showCoder()
+        elif frameName == 'runner' and hasattr(_psychopyApp, 'showRunner'):
+            _psychopyApp.showRunner()
+        else:
+            raise AttributeError('Cannot load frame. Method not available.')
+
+    return frameRef
 
 
 if __name__ == "__main__":

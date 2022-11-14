@@ -6,20 +6,32 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 """Utilities for extending PsychoPy with plugins."""
 
-__all__ = ['loadPlugin', 'listPlugins', 'computeChecksum', 'startUpPlugins',
-           'pluginMetadata', 'pluginEntryPoints', 'scanPlugins',
-           'requirePlugin', 'isPluginLoaded', 'isStartUpPlugin']
+__all__ = [
+    'loadPlugin',
+    'listPlugins',
+    'computeChecksum',
+    'startUpPlugins',
+    'pluginMetadata',
+    'pluginEntryPoints',
+    'scanPlugins',
+    'requirePlugin',
+    'isPluginLoaded',
+    'isStartUpPlugin',
+    'activatePlugins'
+]
 
 import sys
 import inspect
 import collections
 import hashlib
 import importlib
+
 import pkg_resources
 
 from psychopy import logging
 from psychopy.preferences import prefs
 import psychopy.experiment.components as components
+import subprocess as sp
 
 # Keep track of plugins that have been loaded. Keys are plugin names and values
 # are their entry point mappings.
@@ -33,6 +45,10 @@ _installed_plugins_ = collections.OrderedDict()
 # Keep track of plugins that failed to load here
 _failed_plugins_ = []
 
+
+# ------------------------------------------------------------------------------
+# Functions
+#
 
 def resolveObjectFromName(name, basename=None, resolve=True, error=True):
     """Get an object within a module's namespace using a fully-qualified or
@@ -218,6 +234,12 @@ def scanPlugins():
     called automatically when PsychoPy starts, so you do not need to call this
     unless packages have been added since the session began.
 
+    Returns
+    -------
+    int
+        Number of plugins found during the scan. Calling `listPlugins()` will
+        return the names of the found plugins.
+
     """
     global _installed_plugins_
     _installed_plugins_ = {}  # clear installed plugins
@@ -232,6 +254,8 @@ def scanPlugins():
             logging.debug('Found plugin `{}` at location `{}`.'.format(
                 dist.project_name, dist.location))
             _installed_plugins_[dist.project_name] = entryMap
+
+    return len(_installed_plugins_)
 
 
 def listPlugins(which='all'):
@@ -478,7 +502,7 @@ def loadPlugin(plugin, *args, **kwargs):
                 (fqn == 'psychopy' and 'plugins' in attrs):
             logging.error(
                 "Plugin `{}` declares entry points into the `psychopy.plugins` "
-                "which is forbidden. Skipping.")
+                "module which is forbidden. Skipping.".format(plugin))
 
             if plugin not in _failed_plugins_:
                 _failed_plugins_.append(plugin)
@@ -491,7 +515,7 @@ def loadPlugin(plugin, *args, **kwargs):
         if targObj is None:
             logging.error(
                 "Plugin `{}` specified entry point group `{}` that does not "
-                "exist or is unreachable.")
+                "exist or is unreachable.".format(plugin, fqn))
 
             if plugin not in _failed_plugins_:
                 _failed_plugins_.append(plugin)
@@ -569,20 +593,21 @@ def loadPlugin(plugin, *args, **kwargs):
             if hasattr(targObj, attr):
                 # handle what to do if an attribute exists already here ...
                 if inspect.ismodule(getattr(targObj, attr)):
-                    logging.error(
+                    logging.warning(
                         "Plugin `{}` attempted to override module `{}`.".format(
                             plugin, fqn + '.' + attr))
 
-                    if plugin not in _failed_plugins_:
-                        _failed_plugins_.append(plugin)
-
-                    return False
+                    # if plugin not in _failed_plugins_:
+                    #     _failed_plugins_.append(plugin)
+                    #
+                    # return False
             try:
                 ep = ep.load()  # load the entry point
-            except ImportError:
+            except ImportError as e:
                 logging.error(
                     "Failed to load entry point `{}` of plugin `{}`. "
-                    " Skipping.".format(str(ep), plugin))
+                    "(`{}: {}`) "
+                    "Skipping.".format(str(ep), plugin, e.name, e.msg))
 
                 if plugin not in _failed_plugins_:
                     _failed_plugins_.append(plugin)
@@ -669,7 +694,8 @@ def requirePlugin(plugin):
 
     """
     if not isPluginLoaded(plugin):
-        raise RuntimeError('Required plugin `{}` has not been loaded.')
+        raise RuntimeError('Required plugin `{}` has not been loaded.'.format(
+            plugin))
 
 
 def startUpPlugins(plugins, add=True, verify=True):
@@ -863,6 +889,36 @@ def pluginEntryPoints(plugin, parse=False):
     return None
 
 
+def activatePlugins():
+    """Activate plugins.
+
+    Calling this routine will load all startup plugins into the current process.
+
+    Warnings
+    --------
+    This should only be called outside of PsychoPy sub-packages as plugins may
+    import them, causing a circular import condition.
+
+    """
+    if not scanPlugins():
+        logging.info(
+            'Calling `psychopy.plugins.activatePlugins()`, but no plugins have '
+            'been found in active distributions.')
+        return  # nop if no plugins
+
+    # go over the list of plugins and load them
+    for plugin in listPlugins('startup'):
+        loadPlugin(plugin)
+
+
+# ------------------------------------------------------------------------------
+# Registration functions
+#
+# These functions are called to perform additional operations when a plugin is
+# loaded.
+#
+
+
 def _registerWindowBackend(attr, ep):
     """Make an entry point discoverable as a window backend.
 
@@ -943,7 +999,7 @@ def _registerBuilderComponent(ep):
 
     Parameters
     ----------
-    module : ModuleType
+    ep : ModuleType
         Module containing the builder component to register.
 
     """
@@ -981,3 +1037,7 @@ def _registerBuilderComponent(ep):
         # assign the module categories to the Component
         if not hasattr(components.pluginComponents[attrib], 'categories'):
             components.pluginComponents[attrib].categories = ['Custom']
+
+
+if __name__ == "__main__":
+    pass

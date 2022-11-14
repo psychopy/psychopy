@@ -23,6 +23,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                  ):
         # Initialise base routine
         BaseStandaloneRoutine.__init__(self, exp, name=name, disabled=disabled)
+        self.url = "https://psychopy.org/builder/components/eyetracker_calibration.html"
 
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
 
