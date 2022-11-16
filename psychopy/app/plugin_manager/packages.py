@@ -390,8 +390,7 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
             wildcard="Wheel files (.whl)|.whl|Source distribution files (.sdist)|.sdist",
             style=wx.FD_OPEN | wx.FD_SHOW_HIDDEN)
         if dlg.ShowModal() == wx.ID_OK:
-            cmd = ["install", dlg.GetPath()]
-            self.execute(cmd)
+            self.addPackage(dlg.GetPath())
 
     def execute(self, params):
         """
