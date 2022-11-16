@@ -783,13 +783,14 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.getPsychoJS()
 
         htmlPath = str(self.currentFile.parent / self.outputPath)
+        jsFile = self.currentFile.parent / (self.currentFile.stem + ".js")
         pythonExec = Path(sys.executable)
         command = [str(pythonExec), "-m", "http.server", str(port)]
 
-        if not os.path.exists(htmlPath):
-            print('##### HTML output path: "{}" does not exist. '
-                  'Try exporting your HTML, and try again #####\n'.format(self.outputPath))
-            return
+        if not os.path.exists(jsFile):
+            generateScript(experimentPath=str(jsFile),
+                           exp=self.loadExperiment(),
+                           target="PsychoJS")
 
         self.serverProcess = Popen(command,
                                    bufsize=1,

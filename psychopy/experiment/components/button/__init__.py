@@ -241,10 +241,18 @@ class ButtonComponent(BaseVisualComponent):
         BaseVisualComponent.writeRoutineStartCode(self, buff)
         # If mouse is on button and already clicked, mark as `wasClicked` so button knows click is not new
         code = (
-            "# if %(name)s is already clicked on when the routine starts, it's not a new click\n"
-            "if %(name)s.isClicked:\n"
-            "    %(name)s.wasClicked = True\n"
-            "\n"
+            "# reset %(name)s to account for continued clicks & clear times on/off\n"
+            "%(name)s.reset()\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+    def writeRoutineStartCodeJS(self, buff):
+        # Write base code
+        BaseVisualComponent.writeRoutineStartCodeJS(self, buff)
+        # If mouse is on button and already clicked, mark as `wasClicked` so button knows click is not new
+        code = (
+            "// reset %(name)s to account for continued clicks & clear times on/off\n"
+            "%(name)s.reset()\n"
         )
         buff.writeIndentedLines(code % self.params)
 
