@@ -114,7 +114,8 @@ class TestComponentCompilerPython():
 
     def test_component_type_in_experiment(self):
         for compName, compObj in self.allComp.items():
-            if compName not in ['SettingsComponent', 'UnknownComponent'] and "PsychoPy" in compObj.targets:
+            if (compName not in ['SettingsComponent', 'UnknownComponent', 'UnknownPluginComponent']
+                    and "PsychoPy" in compObj.targets):
                 # reset exp
                 self.reset_experiment()
                 # Add components
