@@ -419,6 +419,16 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         # Render HTML
         if md:
             renderedText = md.MarkdownIt().render(self.rawTextCtrl.Value)
+            # Remove images (wx doesn't like rendering them)
+            imgBuffer = renderedText.split("<img")
+            output = []
+            for line in imgBuffer:
+                if "/>" in line:
+                    lineBuffer = line.split("/>")
+                    output.append("".join(lineBuffer[1:]))
+                else:
+                    output.append("<img" + line)
+            renderedText = "".join(output)
         else:
             renderedText = self.rawTextCtrl.Value.replace("\n", "<br>")
         # Apply to preview ctrl
