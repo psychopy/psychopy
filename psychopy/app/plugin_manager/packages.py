@@ -1,3 +1,5 @@
+import webbrowser
+
 import wx
 import sys
 import subprocess as sp
@@ -463,9 +465,11 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Homepage button
         self.homeBtn = wx.Button(self, label=_translate("Homepage"))
         self.headBtnSzr.Add(self.homeBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        self.homeBtn.Bind(wx.EVT_BUTTON, self.onHomepage)
         # Location button
         self.dirBtn = wx.Button(self, label=_translate("Folder"))
         self.headBtnSzr.Add(self.dirBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        self.dirBtn.Bind(wx.EVT_BUTTON, self.onLocalDir)
         # Description
         self.descCtrl = utils.MarkdownCtrl(self, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL)
         self.sizer.Add(self.descCtrl, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
@@ -571,6 +575,43 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
 
         self.Layout()
         self._applyAppTheme()
+
+    def onHomepage(self, evt=None):
+        # Open homepage in browser
+        webbrowser.open(self.params.get('Home-page'))
+
+    def onLocalDir(self, evt=None):
+        # Get local dir from pip
+        output = sp.Popen(f"{sys.executable} -m pip show {self.package}",
+                          stdout=sp.PIPE,
+                          stderr=sp.PIPE,
+                          shell=True,
+                          universal_newlines=True)
+        stdout, stderr = output.communicate()
+        # Show error dialog if something went wrong
+        if stderr:
+            dlg = InstallErrorDlg(
+                cmd=f">> pip show {self.package}",
+                stdout=stdout,
+                stderr=stderr,
+                label=_translate("Could not find local directory for package {}").format(self.package))
+            dlg.ShowModal()
+        else:
+            # Open local director via default file browser
+            lines = stdout.split("\n")
+            for line in lines:
+                line = line.split(":", 1)
+                if line[0] == "Location":
+                    # Choose a command according to OS
+                    if sys.platform in ['win32']:
+                        comm = "explorer"
+                    elif sys.platform in ['darwin']:
+                        comm = "open"
+                    elif sys.platform in ['linux', 'linux2']:
+                        comm = "dolphin"
+                    # Use command to open themes folder
+                    sp.call(f"{comm} {line[1]}", shell=True)
+                    break
 
     def _applyAppTheme(self):
         from psychopy.app.themes import fonts
