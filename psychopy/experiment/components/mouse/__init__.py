@@ -324,7 +324,8 @@ class MouseComponent(BaseComponent):
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
 
         # writes an if statement to determine whether to draw etc
-        if self.writeStartTestCode(buff):
+        indented = self.writeStartTestCode(buff)
+        if indented:
             code = ""
             if self.params['timeRelativeTo'].val.lower() == 'mouse onset':
                 code += "%(name)s.mouseClock.reset()\n"
@@ -339,13 +340,13 @@ class MouseComponent(BaseComponent):
                     "  # if now button is down we will treat as 'new' click\n")
             buff.writeIndentedLines(code % self.params)
 
-            # to get out of the if statement
-            self.exitStartTest(buff)
+        # to get out of the if statement
+        buff.setIndentLevel(-indented, relative=True)
 
         # test for stop (only if there was some setting for duration or stop)
-        if self.writeStopTestCode(buff):
-            # to get out of the if statement
-            self.exitStopTest(buff)
+        indented = self.writeStopTestCode(buff)
+        # to get out of the if statement
+        buff.setIndentLevel(-indented, relative=True)
 
         # only write code for cases where we are storing data as we go (each
         # frame or each click)

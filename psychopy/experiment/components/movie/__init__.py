@@ -284,25 +284,27 @@ class MovieComponent(BaseVisualComponent):
         buff.writeIndented("\n")
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
         # writes an if statement to determine whether to draw etc
-        if self.writeStartTestCode(buff):
+        indented = self.writeStartTestCode(buff)
+        if indented:
             code = (
                 "%(name)s.setAutoDraw(True)\n"
             )
             if self.params['backend'].val not in ('moviepy', 'avbin', 'vlc'):
                 code += "%(name)s.play()\n"
             buff.writeIndentedLines(code % self.params)
-            # because of the 'if' statement of the time test
-            self.exitStartTest(buff)
+        # because of the 'if' statement of the time test
+        buff.setIndentLevel(-indented, relative=True)
 
-        if self.writeStopTestCode(buff):
+        indented = self.writeStopTestCode(buff)
+        if indented:
             code = (
                 "%(name)s.setAutoDraw(False)\n"
             )
             if self.params['backend'].val not in ('moviepy', 'avbin', 'vlc'):
                 code += "%(name)s.stop()\n"
             buff.writeIndentedLines(code % self.params)
-            # to get out of the if statement
-            self.exitStopTest(buff)
+        # to get out of the if statement
+        buff.setIndentLevel(-indented, relative=True)
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)
         if self.checkNeedToUpdate('set every frame'):

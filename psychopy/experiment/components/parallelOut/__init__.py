@@ -118,7 +118,8 @@ class ParallelOutComponent(BaseComponent):
 
         buff.writeIndented("# *%s* updates\n" % (self.params['name']))
         # writes an if statement to determine whether to draw etc
-        if self.writeStartTestCode(buff):
+        indented = self.writeStartTestCode(buff)
+        if indented:
             buff.writeIndented("%(name)s.status = STARTED\n" % self.params)
 
             if self.params['address'].val == 'LabJack U3':
@@ -136,11 +137,12 @@ class ParallelOutComponent(BaseComponent):
 
             buff.writeIndented(code)
 
-            # to get out of the if statement
-            self.exitStartTest(buff)
+        # to get out of the if statement
+        buff.setIndentLevel(-indented, relative=True)
 
         # test for stop (only if there was some setting for duration or stop)
-        if self.writeStopTestCode(buff):
+        indented = self.writeStopTestCode(buff)
+        if indented:
             if self.params['address'].val == 'LabJack U3':
                 if not self.params['syncScreen'].val:
                     code = "%(name)s.setData(int(%(stopData)s), address=%(register)s)\n" % self.params
@@ -156,8 +158,8 @@ class ParallelOutComponent(BaseComponent):
 
             buff.writeIndented(code)
 
-            # to get out of the if statement
-            self.exitStopTest(buff)
+        # to get out of the if statement
+        buff.setIndentLevel(-indented, relative=True)
 
         # dedent
 # buff.setIndentLevel(-dedentAtEnd, relative=True)#'if' statement of the

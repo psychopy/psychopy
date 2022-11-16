@@ -151,7 +151,8 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
         # if just now starting on this frame:
         buff.writeIndented("# *%(name)s* updates\n" % self.params)
         # writes an if statement to determine whether to draw etc
-        if self.writeStartTestCode(buff):
+        indented = self.writeStartTestCode(buff)
+        if indented:
             code = "%(name)s.status = STARTED\n"
             if self.params['discard previous'].val:
                 code += "%(name)s.clearEvents()\n"
@@ -164,13 +165,14 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
                 code += ("%(name)s.resetClock()  # set bbox hardware internal clock to 0.000; ms accuracy\n")
             buff.writeIndentedLines(code % self.params)
 
-            # to get out of the if statement
-            self.exitStartTest(buff)
+        # to get out of the if statement
+        buff.setIndentLevel(-indented, relative=True)
 
         # test for stop (only if there was some setting for duration or stop)
-        if self.writeStopTestCode(buff):
+        indented = self.writeStopTestCode(buff)
+        if indented:
             buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
-            self.exitStopTest(buff)
+        buff.setIndentLevel(-indented, relative=True)
 
         buff.writeIndented("if %(name)s.status == STARTED:\n" % self.params)
         buff.setIndentLevel(1, relative=True)  # to get out of the if statement

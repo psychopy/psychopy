@@ -129,7 +129,8 @@ class SerialOutComponent(BaseComponent):
         params['loop'] = self.currentLoop
 
         # On component start, send start bits
-        if self.writeStartTestCode(buff):
+        indented = self.writeStartTestCode(buff)
+        if indented:
             if self.params['syncScreenRefresh']:
                 code = (
                     "win.callOnFlip(%(name)s.write, bytes(%(startdata)s, 'utf8'))\n"
@@ -145,11 +146,12 @@ class SerialOutComponent(BaseComponent):
                     "%(loop)s.addData('%(name)s.startResp', %(name)s.read())\n"
                 )
                 buff.writeIndented(code % params)
-            # Dedent
-            self.exitStartTest(buff)
+        # Dedent
+        buff.setIndentLevel(-indented, relative=True)
 
         # On component stop, send stop pulse
-        if self.writeStopTestCode(buff):
+        indented = self.writeStopTestCode(buff)
+        if indented:
             if self.params['syncScreenRefresh']:
                 code = (
                     "win.callOnFlip(%(name)s.write, bytes(%(stopdata)s, 'utf8'))\n"
@@ -165,8 +167,8 @@ class SerialOutComponent(BaseComponent):
                     "%(loop)s.addData('%(name)s.stopResp', %(name)s.read())\n"
                 )
                 buff.writeIndented(code % params)
-            # Dedent
-            self.exitStopTest(buff)
+        # Dedent
+        buff.setIndentLevel(-indented, relative=True)
 
     def writeExperimentEndCode(self, buff):
         # Close the port

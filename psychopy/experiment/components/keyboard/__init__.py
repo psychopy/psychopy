@@ -179,7 +179,8 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented("waitOnFlip = False\n")
         allowedKeysIsVar = (valid_var_re.match(str(allowedKeys)) and not allowedKeys == 'None')
         # writes an if statement to determine whether to draw etc
-        if self.writeStartTestCode(buff):
+        indented = self.writeStartTestCode(buff)
+        if indented:
             if allowedKeysIsVar:
                 # if it looks like a variable, check that the variable is suitable
                 # to eval at run-time
@@ -220,14 +221,15 @@ class KeyboardComponent(BaseComponent):
                     code = "%(name)s.clearEvents(eventType='keyboard')\n" % self.params
                 buff.writeIndented(code)
 
-            # to get out of the if statement
-            self.exitStartTest(buff)
+        # to get out of the if statement
+        buff.setIndentLevel(-indented, relative=True)
 
         # test for stop (only if there was some setting for duration or stop)
-        if self.writeStopTestCode(buff):
+        indented = self.writeStopTestCode(buff)
+        if indented:
             buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
-            # to get out of the if statement
-            self.exitStopTest(buff)
+        # to get out of the if statement
+        buff.setIndentLevel(-indented, relative=True)
 
         buff.writeIndented("if %s.status == STARTED%s:\n"
                            % (self.params['name'], ['', ' and not waitOnFlip'][visualSync]))

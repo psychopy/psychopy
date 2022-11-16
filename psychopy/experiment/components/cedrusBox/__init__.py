@@ -182,7 +182,8 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         buff.writeIndented("# *%(name)s* updates\n" % self.params)
         # write start code
         # writes an if statement to determine whether to start
-        if self.writeStartTestCode(buff):
+        indented = self.writeStartTestCode(buff)
+        if indented:
             code = ("%(name)s.clock.reset()  # now t=0\n")
             buff.writeIndentedLines(code % self.params)
 
@@ -200,11 +201,11 @@ class cedrusButtonBoxComponent(KeyboardComponent):
                 code = "%(name)s.reset_rt_timer()\n"
                 buff.writeIndented(code % self.params)
 
-            self.exitStartTest(buff)
+        buff.setIndentLevel(-indented, relative=True)
 
         # test for stop (only if there was some setting for duration or stop)
-        if self.writeStopTestCode(buff):
-            self.exitStopTest(buff)
+        indented = self.writeStopTestCode(buff)
+        buff.setIndentLevel(-indented, relative=True)
 
         buff.writeIndented("if %(name)s.status == STARTED:\n" % self.params)
         buff.setIndentLevel(1, relative=True)  # to get out of if statement

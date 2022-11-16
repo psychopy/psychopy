@@ -283,21 +283,23 @@ class EnvGratingComponent(BaseVisualComponent):
         buff.writeIndented("\n")
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
         # writes an if statement to determine whether to draw etc
-        if self.writeStartTestCode(buff):
+        indented = self.writeStartTestCode(buff)
+        if indented:
             buff.writeIndented("%(name)s.setAutoDraw(True)\n" % self.params)
             #if self.params['blendmode'].val!='default':
                 #buff.writeIndented("%(name)s_SaveBlendMode=win.blendMode\n" %self.params)
                 #buff.writeIndented("win.blendMode=%(blendmode)s\n" %self.params)
             # to get out of the if statement
-            self.exitStartTest(buff)
+        buff.setIndentLevel(-indented, relative=True)
 
         # test for stop (only if there was some setting for duration or stop)
-        if self.writeStopTestCode(buff):
+        indented = self.writeStopTestCode(buff)
+        if indented:
             buff.writeIndented("%(name)s.setAutoDraw(False)\n" % self.params)
             #if self.params['blendmode'].val!='default':
                 #buff.writeIndented("win.blendMode=%(name)s_SaveBlendMode\n" % self.params)
             # to get out of the if statement
-            self.exitStopTest(buff)
+        buff.setIndentLevel(-indented, relative=True)
 
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)

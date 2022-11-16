@@ -142,19 +142,21 @@ class SoundComponent(BaseComponent):
         buff.writeIndented("# start/stop %(name)s\n" % (self.params))
         # do this EVERY frame, even before/after playing?
         self.writeParamUpdates(buff, 'set every frame')
-        if self.writeStartTestCode(buff):
+        indented = self.writeStartTestCode(buff)
+        if indented:
             if self.params['syncScreenRefresh'].val:
                 code = ("%(name)s.play(when=win)  # sync with win flip\n") % self.params
             else:
                 code = "%(name)s.play()  # start the sound (it finishes automatically)\n" % self.params
             buff.writeIndented(code)
-            # because of the 'if' statement of the time test
-            self.exitStartTest(buff)
-        if self.writeStopTestCode(buff):
+        # because of the 'if' statement of the time test
+        buff.setIndentLevel(-indented, relative=True)
+        indented = self.writeStopTestCode(buff)
+        if indented:
             code = ("%(name)s.stop()\n")
             buff.writeIndentedLines(code % self.params)
-            # because of the 'if' statement of the time test
-            self.exitStopTest(buff)
+        # because of the 'if' statement of the time test
+        buff.setIndentLevel(-indented, relative=True)
 
     def writeFrameCodeJS(self, buff):
         """Write the code that will be called every frame

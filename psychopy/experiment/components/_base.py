@@ -289,9 +289,13 @@ class BaseComponent:
             self.exitStartTest(buff)
         ```
         """
+
+        # Get starting indent level
+        startIndent = buff.indentLevel
+
         if self.params['startVal'].val in ('', None, -1, 'None'):
             # If we have no start time, don't write start code
-            return False
+            return buff.indentLevel - startIndent
 
         # Newline
         buff.writeIndentedLines("\n")
@@ -358,14 +362,7 @@ class BaseComponent:
         buff.writeIndentedLines(code % self.params)
 
         # Return True if start test was written
-        return True
-
-    def exitStartTest(self, buff):
-        """
-        Shorthand for doing necessary dedent after a start test loop
-        """
-        # Dedent
-        buff.setIndentLevel(-1, relative=True)
+        return buff.indentLevel - startIndent
 
     def writeStartTestCodeJS(self, buff):
         """Test whether we need to start
@@ -403,15 +400,6 @@ class BaseComponent:
         # Return True if start test was written
         return True
 
-    def exitStartTestJS(self, buff):
-        """
-        Shorthand for doing necessary dedent after a start test loop
-        """
-        # Dedent
-        buff.setIndentLevel(-1, relative=True)
-        # Close
-        buff.writeIndentedLines("}\n")
-
     def writeStopTestCode(self, buff):
         """
         Test whether we need to stop (if there is a stop time at all)
@@ -426,9 +414,13 @@ class BaseComponent:
             self.exitStartTest(buff)
         ```
         """
+
+        # Get starting indent level
+        startIndent = buff.indentLevel
+
         if self.params['stopVal'].val in ('', None, -1, 'None'):
             # If we have no stop time, don't write stop code
-            return
+            return buff.indentLevel - startIndent
 
         # Newline
         buff.writeIndentedLines("\n")
@@ -491,14 +483,7 @@ class BaseComponent:
         buff.writeIndentedLines(code % self.params)
 
         # Return True if stop test was written
-        return True
-
-    def exitStopTest(self, buff):
-        """
-        Shorthand for doing necessary dedent after a stop test loop
-        """
-        # Dedent
-        buff.setIndentLevel(-2, relative=True)
+        return buff.indentLevel - startIndent
 
     def writeStopTestCodeJS(self, buff):
         """Test whether we need to stop
@@ -547,15 +532,6 @@ class BaseComponent:
         # Return True if stop test was written
         return True
 
-    def exitStopTestJS(self, buff):
-        """
-        Shorthand for doing necessary dedent after a stop test loop
-        """
-        # Dedent
-        buff.setIndentLevel(-1, relative=True)
-        # Close
-        buff.writeIndentedLines("}\n")
-
     def writeActiveTestCode(self, buff):
         """
         Test whether component is started and has not finished.
@@ -595,13 +571,6 @@ class BaseComponent:
             )
             buff.writeIndentedLines(code)
         return True
-
-    def exitActiveTest(self, buff):
-        """
-        Shorthand for doing necessary dedent after an active test loop
-        """
-        # Dedent
-        buff.setIndentLevel(-1, relative=True)
 
     def writeActiveTestCodeJS(self, buff):
         """
@@ -1069,21 +1038,24 @@ class BaseVisualComponent(BaseComponent):
         buff.writeIndented(f"\n")
         buff.writeIndented(f"# *{params['name']}* updates\n")
         # writes an if statement to determine whether to draw etc
-        if self.writeStartTestCode(buff):
+        indented = self.writeStartTestCode(buff)
+        if indented:
             buff.writeIndented(f"{params['name']}.setAutoDraw(True)\n")
             # to get out of the if statement
-            self.exitStartTest(buff)
-
-        # test for stop (only if there was some setting for duration or stop)
-        if self.writeStopTestCode(buff):
-            buff.writeIndented(f"{params['name']}.setAutoDraw(False)\n")
-            # to get out of the if statement
-            self.exitStopTest(buff)
+            buff.setIndentLevel(-indented, relative=True)
 
         # test for started (will update parameters each frame as needed)
-        if self.writeActiveTestCode(buff):
+        indented = self.writeActiveTestCode(buff)
+        if indented:
             # to get out of the if statement
-            self.exitActiveTest(buff)
+            buff.setIndentLevel(-indented, relative=True)
+
+        # test for stop (only if there was some setting for duration or stop)
+        indented = self.writeStopTestCode(buff)
+        if indented:
+            buff.writeIndented(f"{params['name']}.setAutoDraw(False)\n")
+            # to get out of the if statement
+            buff.setIndentLevel(-indented, relative=True)
 
     def writeFrameCodeJS(self, buff):
         """Write the code that will be called every frame

@@ -241,9 +241,8 @@ class JoyButtonsComponent(BaseComponent):
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
         # writes an if statement to determine whether to draw etc
         allowedKeysIsVar = (valid_var_re.match(str(allowedKeys)) and not allowedKeys == 'None')
-        if self.writeStartTestCode(buff):
-
-
+        indented = self.writeStartTestCode(buff)
+        if indented:
             if allowedKeysIsVar:
                 # if it looks like a variable, check that the variable is suitable
                 # to eval at run-time
@@ -289,13 +288,13 @@ class JoyButtonsComponent(BaseComponent):
 
                 buff.writeIndented(code)
 
-            # to get out of the if statement
-            self.exitStartTest(buff)
+        # to get out of the if statement
+        buff.setIndentLevel(-indented, relative=True)
 
         # test for stop (only if there was some setting for duration or stop)
-        if self.writeStopTestCode(buff):
-            # to get out of the if statement
-            self.exitStopTest(buff)
+        indented = self.writeStopTestCode(buff)
+        # to get out of the if statement
+        buff.setIndentLevel(-indented, relative=True)
 
         buff.writeIndented("if %(name)s.status == STARTED:\n" % self.params)
         buff.setIndentLevel(1, relative=True)  # to get out of if statement
