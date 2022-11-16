@@ -7,6 +7,7 @@ import subprocess as sp
 from psychopy.app import utils
 from psychopy.app.themes import handlers, icons
 from psychopy.localization import _translate
+from psychopy.tools import filetools as ft
 
 from psychopy.tools.pkgtools import getInstalledPackages
 
@@ -602,15 +603,7 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
             for line in lines:
                 line = line.split(":", 1)
                 if line[0] == "Location":
-                    # Choose a command according to OS
-                    if sys.platform in ['win32']:
-                        comm = "explorer"
-                    elif sys.platform in ['darwin']:
-                        comm = "open"
-                    elif sys.platform in ['linux', 'linux2']:
-                        comm = "dolphin"
-                    # Use command to open themes folder
-                    sp.call(f"{comm} {line[1]}", shell=True)
+                    ft.openInExplorer(line[1])
                     break
 
     def _applyAppTheme(self):
