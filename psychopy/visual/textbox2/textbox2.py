@@ -562,50 +562,20 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     points[line] = point
         # Construct new vertices array
         verts = [list(coord) for coord in self.box.vertices]
-        # Map sides to coords of last corner in vertices array
-        coords = {
-            "top": [0.5, 0.5],
-            "bottom": [-0.5, -0.5],
-            "left": [-0.5, 0.5],
-            "right": [0.5, -0.5],
-        }
         for line, point in enumerate(points):
-            # Work out what side the point is on
-            ax = list(np.abs(point)).index(0.5)
-            if ax == 0:
-                # If axis is 0, then we're either left or right
-                if point[ax] == 0.5:
-                    side = "right"
-                else:
-                    side = "left"
-            else:
-                # If axis is 1, then we're either top or bottom
-                if point[ax] == 0.5:
-                    side = "top"
-                else:
-                    side = "bottom"
-            # Insert point at correct point for its side
-            i = verts.index(coords[side])
-            verts.insert(i, point)
-
-        # Add tail point
+            verts.append(point)
+        # Sort vertices clockwise from top right corner
+        verts = mt.sortClockwise(verts)
+        # Get point indices
         i0 = verts.index(points[0])
         i1 = verts.index(points[1])
-        # If both connections are on the same side, append the tail point between them
-        if abs(i0 - i1) == 1:
-            verts.insert(max(i0, i1), p0)
-        elif abs(i0 - i1) == 2:
-            # If connections are either side of a corner, replace the corner with the tail point
-            verts[max(i0, i1) - 1] = p0
-        elif verts[-1] not in (i0, i1):
-            # If connections are on the final corner, replace it with the tail point
-            verts[-1] = p0
-        elif verts[0] not in (i0, i1):
-            # If connections are on the first corner, replace it with the tail point
-            verts[0] = p0
-        else:
-            # If none of these are true it's probably directly on the start/end so just append it
-            verts.append(p0)
+        # Remove any corners trapped in a tail
+        if abs(i0 - i1) == 2:
+            del verts[max(i0, i1) - 1]
+        # Add tail point
+        verts.append(p0)
+        # Sort vertices clockwise from top right corner
+        verts = mt.sortClockwise(verts)
 
         # Assign vertices
         self.box.vertices = verts
