@@ -26,6 +26,7 @@ import re
 from ..aperture import Aperture
 from ..basevisual import BaseVisualStim, ColorMixin, ContainerMixin, WindowMixin
 from psychopy.tools.attributetools import attributeSetter, setAttribute
+from psychopy.tools import mathtools as mt
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import convertToPix
 from psychopy.colors import Color
@@ -80,6 +81,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  italic=False,
                  lineSpacing=None,
                  padding=None,  # gap between box and text
+                 tailPoint=None,
                  anchor='center',
                  alignment='left',
                  flipHoriz=False,
@@ -114,6 +116,13 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         italic
         lineSpacing
         padding
+        tailPoint : list, tuple, np.ndarray or None
+            Location of the end of a speech bubble tail on the textbox, relative to textbox
+            size. For example, (-0.6, 0.6) would be 10% of the textbox's width away from the
+            left edge and 10% of the textbox's height away from the top edge. If the point
+            sits within the textbox, the tail will be inverted.
+
+            Use `None` for no tail.
         anchor
         alignment
         fillColor
@@ -243,6 +252,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.editable = editable
         self.overflow = overflow
         self.caret = Caret(self, color=self.color, width=2)
+
+        # tail
+        self.tailPoint = tailPoint
 
         # Placeholder text (don't create if this textbox IS the placeholder)
         if not isinstance(self, PlaceholderText):
@@ -481,6 +493,122 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             ]
         # Create Vertices object
         self._vertices = layout.Vertices(value, obj=self.contentBox, flip=self.flip)
+
+    @attributeSetter
+    def tailPoint(self, value):
+        self.__dict__['tailPoint'] = value
+
+        # Start off with a square
+        self.box.vertices = [
+                [0.5, -0.5],
+                [-0.5, -0.5],
+                [-0.5, 0.5],
+                [0.5, 0.5],
+            ]
+        # Do nothing else if value is None
+        if value is None:
+            return
+
+        # Get coords of the triangle corners
+        p0 = np.asarray(value)
+        xNorm, yNorm = mt.normalize(value) * 0.25
+        p1 = np.asarray((-yNorm, xNorm))
+        p2 = np.asarray((yNorm, -xNorm))
+        # Convert the sides & midline to relative vectors
+        v0 = p0
+        v1 = (p0 - p1)
+        v2 = (p0 - p2)
+        # Get gradient of sides
+        g0 = v0[1] / v0[0]
+        g1 = v1[1] / v1[0]
+        g2 = v2[1] / v2[0]
+        # Substitute 0 for any gradients which are infinite
+        if g0 in (np.Inf, -np.Inf):
+            g0 = 0
+        if g1 in (np.Inf, -np.Inf):
+            g1 = 0
+        if g2 in (np.Inf, -np.Inf):
+            g2 = 0
+        # Get x offset
+        offset = p0[1] - p0[0] * g0
+        # Intersection with +-0.5
+        intersections = [[], []]
+        for x in (-0.5, 0.5):
+            # For first line
+            y = x*g1 + offset
+            intersections[0].append((x, y))
+            # For second line
+            y = x*g2 + offset
+            intersections[1].append((x, y))
+        for y in (-0.5, 0.5):
+            # For first line
+            x = (y - offset) / g1
+            intersections[0].append((x, y))
+            # For second line
+            x = (y - offset) / g2
+            intersections[1].append((x, y))
+        # Take the closest intersection for each line
+        points = [None, None]
+        for line, inters in enumerate(intersections):
+            deltas = [np.Infinity]
+            for point in inters:
+                if max(point) > 0.5 or min(point) < -0.5:
+                    continue
+                # Work out distance from this intersection to tail point
+                delta = np.hypot(*abs(point - p0))
+                deltas.append(delta)
+                # Is it the lowest so far?
+                if min(deltas) == delta:
+                    points[line] = point
+        # Construct new vertices array
+        verts = [list(coord) for coord in self.box.vertices]
+        # Map sides to coords of last corner in vertices array
+        coords = {
+            "top": [0.5, 0.5],
+            "bottom": [-0.5, -0.5],
+            "left": [-0.5, 0.5],
+            "right": [0.5, -0.5],
+        }
+        for line, point in enumerate(points):
+            # Work out what side the point is on
+            ax = list(np.abs(point)).index(0.5)
+            if ax == 0:
+                # If axis is 0, then we're either left or right
+                if point[ax] == 0.5:
+                    side = "right"
+                else:
+                    side = "left"
+            else:
+                # If axis is 1, then we're either top or bottom
+                if point[ax] == 0.5:
+                    side = "top"
+                else:
+                    side = "bottom"
+            # Insert point at correct point for its side
+            i = verts.index(coords[side])
+            verts.insert(i, point)
+
+        # Add tail point
+        i0 = verts.index(points[0])
+        i1 = verts.index(points[1])
+        # If both connections are on the same side, append the tail point between them
+        if abs(i0 - i1) == 1:
+            verts.insert(max(i0, i1), p0)
+        elif abs(i0 - i1) == 2:
+            # If connections are either side of a corner, replace the corner with the tail point
+            verts[max(i0, i1) - 1] = p0
+        elif verts[-1] not in (i0, i1):
+            # If connections are on the final corner, replace it with the tail point
+            verts[-1] = p0
+        elif verts[0] not in (i0, i1):
+            # If connections are on the first corner, replace it with the tail point
+            verts[0] = p0
+        else:
+            # If none of these are true it's probably directly on the start/end so just append it
+            verts.append(p0)
+
+        # Assign vertices
+        self.box.vertices = verts
 
     @property
     def padding(self):
