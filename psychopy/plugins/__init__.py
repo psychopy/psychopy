@@ -635,7 +635,7 @@ def loadPlugin(plugin, *args, **kwargs):
             elif fqn == 'psychopy.experiment.components':  # if component
                 _registerBuilderComponent(ep)
             elif fqn == 'psychopy.hardware.photometer':  # photometer
-                _registerPhotometer(attr, ep)
+                _registerPhotometer(ep)
 
     # Retain information about the plugin's entry points, we will use this for
     # conflict resolution.
@@ -1040,14 +1040,14 @@ def _registerBuilderComponent(ep):
             components.pluginComponents[attrib].categories = ['Custom']
 
 
-def _registerPhotometer(attr, ep):
+def _registerPhotometer(ep):
     """Register a photometer class.
+
+    This is called when the plugin specifies an entry point into
+    :class:`~psychopy.hardware.photometers`.
 
     Parameters
     ----------
-    attr : str
-        Attribute name the backend is being assigned in
-        'psychopy.hardware.photometer'.
     ep : ModuleType or ClassType
         Entry point which defines an object serving as the interface for the
         photometer.
@@ -1062,14 +1062,12 @@ def _registerPhotometer(attr, ep):
         logging.error("Failed to resolve name `{}`.".format(fqn))
         return
 
-    # get attribute where photometers are stored and create a new entry
-    if hasattr(photPkg, 'availablePhotometers'):
-        photPkg.availablePhotometers[attr] = ep
+    if hasattr(photPkg, 'addPhotometer'):
+        photPkg.addPhotometer(ep)
     else:
         raise AttributeError(
-            "Cannot find attribute `availablePhotometers` in namespace "
-            "`{}`".format(fqn)
-        )
+            "Cannot find function `addPhotometer()` in namespace "
+            "`{}`".format(fqn))
 
 
 if __name__ == "__main__":
