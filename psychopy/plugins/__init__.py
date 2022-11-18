@@ -910,6 +910,14 @@ def activatePlugins():
         loadPlugin(plugin)
 
 
+def getWindowBackends():
+    # get reference to the backend class
+    fqn = 'psychopy.visual.backends'
+    backend = resolveObjectFromName(
+        fqn, resolve=(fqn not in sys.modules), error=False)
+    # Return winTypes array from backend object
+    return backend.winTypes
+
 # ------------------------------------------------------------------------------
 # Registration functions
 #
