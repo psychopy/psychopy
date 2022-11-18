@@ -102,6 +102,8 @@ def getAllPhotometers():
     else:
         if hasattr(crs, "ColorCAL"):
             foundPhotometers['ColorCAL'] = crs.ColorCAL
+        if hasattr(crs, "OptiCAL"):
+            foundPhotometers['OptiCAL'] = crs.OptiCAL
 
     # classes we ship with, we can remove these as we offload them to plugins
     incPhotomList = [
