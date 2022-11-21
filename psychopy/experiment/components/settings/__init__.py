@@ -211,7 +211,7 @@ class SettingsComponent:
             hint=_translate("Run the experiment full-screen (recommended)"),
             label=_localized["Full-screen window"], categ='Screen')
         self.params['winBackend'] = Param(
-            winBackend, valType='str', inputType="choice", categ="Window",
+            winBackend, valType='str', inputType="choice", categ="Screen",
             allowedVals=plugins.getWindowBackends(),
             hint=_translate("What Python package should be used behind the scenes for drawing to the window?"),
             label=_translate("Window backend")
