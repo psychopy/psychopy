@@ -82,7 +82,7 @@ class SoundComponent(BaseComponent):
     def writeInitCode(self, buff):
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params)
-        if '$' in inits['stopVal'].val:
+        if '$' in str(inits['stopVal'].val):
             inits['stopVal'].val = -1
         else:
             if inits['stopVal'].val in ['', None, 'None']:
@@ -142,20 +142,21 @@ class SoundComponent(BaseComponent):
         buff.writeIndented("# start/stop %(name)s\n" % (self.params))
         # do this EVERY frame, even before/after playing?
         self.writeParamUpdates(buff, 'set every frame')
-        self.writeStartTestCode(buff)
-        if self.params['syncScreenRefresh'].val:
-            code = ("%(name)s.play(when=win)  # sync with win flip\n") % self.params
-        else:
-            code = "%(name)s.play()  # start the sound (it finishes automatically)\n" % self.params
-        buff.writeIndented(code)
+        indented = self.writeStartTestCode(buff)
+        if indented:
+            if self.params['syncScreenRefresh'].val:
+                code = ("%(name)s.play(when=win)  # sync with win flip\n") % self.params
+            else:
+                code = "%(name)s.play()  # start the sound (it finishes automatically)\n" % self.params
+            buff.writeIndented(code)
         # because of the 'if' statement of the time test
-        buff.setIndentLevel(-1, relative=True)
-        if not self.params['stopVal'].val in ['', None, -1, 'None']:
-            self.writeStopTestCode(buff)
+        buff.setIndentLevel(-indented, relative=True)
+        indented = self.writeStopTestCode(buff)
+        if indented:
             code = ("%(name)s.stop()\n")
             buff.writeIndentedLines(code % self.params)
-            # because of the 'if' statement of the time test
-            buff.setIndentLevel(-2, relative=True)
+        # because of the 'if' statement of the time test
+        buff.setIndentLevel(-indented, relative=True)
 
     def writeFrameCodeJS(self, buff):
         """Write the code that will be called every frame
