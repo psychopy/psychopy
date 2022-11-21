@@ -131,7 +131,7 @@ class PavloviaSurveyComponent(BaseComponent):
         inits = getInitVals(self.params, target="PsychoJS")
 
         code = (
-            "%(name)s = new visual.SurveyStim({\n"
+            "%(name)s = new visual.Survey({\n"
             "    win: psychoJS.window,\n"
             "    name: '%(name)s',\n"
             "    units: %(units)s,\n"
