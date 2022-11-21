@@ -353,6 +353,8 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.rawTextCtrl.SetLexer(wx.stc.STC_LEX_MARKDOWN)
         self.rawTextCtrl.Bind(wx.EVT_TEXT, self.onEdit)
         self.contentSizer.Add(self.rawTextCtrl, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
+        # Manage readonly
+        self.rawTextCtrl.SetReadOnly(style | wx.TE_READONLY == style)
 
         # Make HTML preview
         self.htmlPreview = HtmlWindow(self, wx.ID_ANY)
@@ -360,12 +362,12 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.contentSizer.Add(self.htmlPreview, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
 
         # Make switch
-        self.editBtn = wx.ToggleButton(self, size=(24, 24))
+        self.editBtn = wx.ToggleButton(self, style=wx.BU_EXACTFIT)
         self.editBtn.Bind(wx.EVT_TOGGLEBUTTON, self.toggleView)
         self.btnSizer.Add(self.editBtn, border=3, flag=wx.ALL | wx.EXPAND)
 
         # Make save button
-        self.saveBtn = wx.Button(self, size=(24, 24))
+        self.saveBtn = wx.Button(self, style=wx.BU_EXACTFIT)
         self.saveBtn.Bind(wx.EVT_BUTTON, self.save)
         self.btnSizer.Add(self.saveBtn, border=3, flag=wx.ALL | wx.EXPAND)
 
@@ -387,7 +389,14 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         return self.rawTextCtrl.GetValue()
 
     def setValue(self, value):
+        # Get original readonly value
+        og = self.rawTextCtrl.GetReadOnly()
+        # Disable read only so value can change
+        self.rawTextCtrl.SetReadOnly(False)
+        # Change value
         self.rawTextCtrl.SetValue(value)
+        # Restore readonly state
+        self.rawTextCtrl.SetReadOnly(og)
         # Render
         self.toggleView(self.editBtn.Value)
 
@@ -410,6 +419,16 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         # Render HTML
         if md:
             renderedText = md.MarkdownIt().render(self.rawTextCtrl.Value)
+            # Remove images (wx doesn't like rendering them)
+            imgBuffer = renderedText.split("<img")
+            output = []
+            for line in imgBuffer:
+                if "/>" in line:
+                    lineBuffer = line.split("/>")
+                    output.append("".join(lineBuffer[1:]))
+                else:
+                    output.append("<img" + line)
+            renderedText = "".join(output)
         else:
             renderedText = self.rawTextCtrl.Value.replace("\n", "<br>")
         # Apply to preview ctrl
@@ -434,13 +453,6 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
             f.write(self.rawTextCtrl.GetValue())
         # Disable save button
         self.saveBtn.Disable()
-
-    def getValue(self):
-        return self.rawTextCtrl.GetValue()
-
-    def setValue(self, value):
-        self.rawTextCtrl.SetValue(value)
-        self.render()
 
     def onEdit(self, evt=None):
         # Enable save button when edited
@@ -834,7 +846,8 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
         self.sizer.AddStretchSpacer(1)
         self.SetSizer(self.sizer)
         # Add edit button
-        self.editBtn = wx.Button(self, size=(24, 24), label=chr(int("270E", 16)))
+        self.editBtn = wx.Button(self, style=wx.BU_EXACTFIT)
+        self.editBtn.SetBitmap(icons.ButtonIcon("editbtn", size=16, theme="light").bitmap)
         self.editBtn.Bind(wx.EVT_BUTTON, self.LoadBitmap)
         self.sizer.Add(self.editBtn, border=6, flag=wx.ALIGN_BOTTOM | wx.ALL)
 

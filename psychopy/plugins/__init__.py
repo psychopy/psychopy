@@ -6,15 +6,26 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 """Utilities for extending PsychoPy with plugins."""
 
-__all__ = ['loadPlugin', 'listPlugins', 'computeChecksum', 'startUpPlugins',
-           'pluginMetadata', 'pluginEntryPoints', 'scanPlugins',
-           'requirePlugin', 'isPluginLoaded', 'isStartUpPlugin']
+__all__ = [
+    'loadPlugin',
+    'listPlugins',
+    'computeChecksum',
+    'startUpPlugins',
+    'pluginMetadata',
+    'pluginEntryPoints',
+    'scanPlugins',
+    'requirePlugin',
+    'isPluginLoaded',
+    'isStartUpPlugin',
+    'activatePlugins'
+]
 
 import sys
 import inspect
 import collections
 import hashlib
 import importlib
+
 import pkg_resources
 
 from psychopy import logging
@@ -875,6 +886,36 @@ def pluginEntryPoints(plugin, parse=False):
                   " installed or reachable.")
 
     return None
+
+
+def activatePlugins():
+    """Activate plugins.
+
+    Calling this routine will load all startup plugins into the current process.
+
+    Warnings
+    --------
+    This should only be called outside of PsychoPy sub-packages as plugins may
+    import them, causing a circular import condition.
+
+    """
+    if not scanPlugins():
+        logging.info(
+            'Calling `psychopy.plugins.activatePlugins()`, but no plugins have '
+            'been found in active distributions.')
+        return  # nop if no plugins
+
+    # go over the list of plugins and load them
+    for plugin in listPlugins('startup'):
+        loadPlugin(plugin)
+
+
+# ------------------------------------------------------------------------------
+# Registration functions
+#
+# These functions are called to perform additional operations when a plugin is
+# loaded.
+#
 
 
 def _registerWindowBackend(attr, ep):
