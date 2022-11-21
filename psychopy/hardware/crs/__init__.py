@@ -35,10 +35,18 @@ except (ModuleNotFoundError, ImportError):
         "enable support.")
 else:
     # Monkey-patch our metadata into CRS class if missing required attributes
-    setattr(OptiCAL, "longName", "CRS OptiCal")
-    setattr(OptiCAL, "driverFor", ["optical"])
-    setattr(ColorCAL, "longName", "CRS ColorCAL")
-    setattr(ColorCAL, "driverFor", ["colorcal"])
+    if not hasattr(OptiCAL, "longName"):
+        setattr(OptiCAL, "longName", "CRS OptiCal")
+
+    if not hasattr(OptiCAL, "driverFor"):
+        setattr(OptiCAL, "driverFor", ["optical"])
+
+    if not hasattr(ColorCAL, "longName"):
+        setattr(ColorCAL, "longName", "CRS ColorCAL")
+
+    if not hasattr(ColorCAL, "driverFor"):
+        setattr(ColorCAL, "driverFor", ["colorcal"])
+
 
 if __name__ == "__main__":
     pass
