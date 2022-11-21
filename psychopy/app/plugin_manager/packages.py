@@ -1,3 +1,5 @@
+import webbrowser
+
 import wx
 import sys
 import subprocess as sp
@@ -5,20 +7,19 @@ import subprocess as sp
 from psychopy.app import utils
 from psychopy.app.themes import handlers, icons
 from psychopy.localization import _translate
+from psychopy.tools import filetools as ft
 
 from psychopy.tools.pkgtools import getInstalledPackages
 
 
 class InstallErrorDlg(wx.Dialog, handlers.ThemeMixin):
-    def __init__(self, cmd="", stdout="", stderr="", mode="plugin"):
+    def __init__(self, label, caption=_translate("PIP error"), cmd="", stdout="", stderr=""):
         from psychopy.app.themes import fonts
-        # Capitalise mode string
-        mode = mode.title()
         # Initialise
         wx.Dialog.__init__(
             self, None,
             size=(480, 620),
-            title=mode + _translate(" install error"),
+            title=caption,
             style=wx.RESIZE_BORDER | wx.CLOSE_BOX | wx.CAPTION
         )
         # Setup sizer
@@ -36,7 +37,7 @@ class InstallErrorDlg(wx.Dialog, handlers.ThemeMixin):
         )
         self.title.Add(self.icon, border=6, flag=wx.ALL | wx.EXPAND)
         # Create title
-        self.titleLbl = wx.StaticText(self, label=mode + _translate(" could not be installed."))
+        self.titleLbl = wx.StaticText(self, label=label)
         self.titleLbl.SetFont(fonts.appTheme['h3'].obj)
         self.title.Add(self.titleLbl, proportion=1, border=6, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         # Show what we tried
@@ -231,6 +232,40 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
             icons.ButtonIcon(stem="libroot", size=16).bitmap
         )
 
+    def addPackage(self, name):
+        # Attempt to install
+        emts = [sys.executable, "-m pip install", name]
+        output = sp.Popen(' '.join(emts),
+                          stdout=sp.PIPE,
+                          stderr=sp.PIPE,
+                          shell=True,
+                          universal_newlines=True)
+        stdout, stderr = output.communicate()
+        sys.stdout.write(stdout)
+        sys.stderr.write(stderr)
+
+        if output.returncode != 0:
+            # Display output if error
+            cmd = "\n>> pip install" + name + "\n"
+            dlg = InstallErrorDlg(
+                cmd=cmd,
+                stdout=stdout,
+                stderr=stderr,
+                label=_translate("Package {} could not be installed.").format(name)
+            )
+        else:
+            # Display success message if success
+            dlg = wx.MessageDialog(
+                parent=None,
+                caption=_translate("Package installed"),
+                message=_translate("Package {} successfully installed!").format(name),
+                style=wx.ICON_INFORMATION
+            )
+        dlg.ShowModal()
+
+        # Reload packages
+        self.refresh()
+
     def onOpenPipTerminal(self, evt=None):
         # Make dialog
         dlg = wx.Dialog(self, title="PIP Terminal", size=(480, 480), style=wx.RESIZE_BORDER | wx.CAPTION | wx.CLOSE_BOX)
@@ -344,9 +379,9 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
 
     def onAddByName(self, evt=None):
         # Create dialog to get package name
-        dlg = wx.TextEntryDialog(self, message=_translate("Package name:"))
+        dlg = wx.TextEntryDialog(self, caption=_translate("Add package by name"), message=_translate("Package name:"))
         if dlg.ShowModal() == wx.ID_OK:
-            self.add(dlg.GetValue())
+            self.addPackage(dlg.GetValue())
 
     def onAddFromFile(self, evt=None):
         # Create dialog to get package file location
@@ -355,8 +390,7 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
             wildcard="Wheel files (.whl)|.whl|Source distribution files (.sdist)|.sdist",
             style=wx.FD_OPEN | wx.FD_SHOW_HIDDEN)
         if dlg.ShowModal() == wx.ID_OK:
-            cmd = ["install", dlg.GetPath()]
-            self.execute(cmd)
+            self.addPackage(dlg.GetPath())
 
     def execute(self, params):
         """
@@ -380,7 +414,12 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
         stdout, stderr = output.communicate()
         # Show error dialog if something went wrong
         if stderr:
-            dlg = InstallErrorDlg(cmd=cmd, stdout=stdout, stderr=stderr, mode="package")
+            mode = params.split(" ")[0]
+            dlg = InstallErrorDlg(
+                cmd=cmd,
+                stdout=stdout,
+                stderr=stderr,
+                label=_translate("Failed to {} package").format(mode))
             dlg.ShowModal()
         else:
             dlg = wx.MessageDialog(
@@ -426,9 +465,11 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Homepage button
         self.homeBtn = wx.Button(self, label=_translate("Homepage"))
         self.headBtnSzr.Add(self.homeBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        self.homeBtn.Bind(wx.EVT_BUTTON, self.onHomepage)
         # Location button
         self.dirBtn = wx.Button(self, label=_translate("Folder"))
         self.headBtnSzr.Add(self.dirBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        self.dirBtn.Bind(wx.EVT_BUTTON, self.onLocalDir)
         # Description
         self.descCtrl = utils.MarkdownCtrl(self, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL)
         self.sizer.Add(self.descCtrl, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
@@ -534,6 +575,35 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
 
         self.Layout()
         self._applyAppTheme()
+
+    def onHomepage(self, evt=None):
+        # Open homepage in browser
+        webbrowser.open(self.params.get('Home-page'))
+
+    def onLocalDir(self, evt=None):
+        # Get local dir from pip
+        output = sp.Popen(f"{sys.executable} -m pip show {self.package}",
+                          stdout=sp.PIPE,
+                          stderr=sp.PIPE,
+                          shell=True,
+                          universal_newlines=True)
+        stdout, stderr = output.communicate()
+        # Show error dialog if something went wrong
+        if stderr:
+            dlg = InstallErrorDlg(
+                cmd=f">> pip show {self.package}",
+                stdout=stdout,
+                stderr=stderr,
+                label=_translate("Could not find local directory for package {}").format(self.package))
+            dlg.ShowModal()
+        else:
+            # Open local director via default file browser
+            lines = stdout.split("\n")
+            for line in lines:
+                line = line.split(":", 1)
+                if line[0] == "Location":
+                    ft.openInExplorer(line[1])
+                    break
 
     def _applyAppTheme(self):
         from psychopy.app.themes import fonts

@@ -31,7 +31,6 @@ import pkg_resources
 from psychopy import logging
 from psychopy.preferences import prefs
 import psychopy.experiment.components as components
-import subprocess as sp
 
 # Keep track of plugins that have been loaded. Keys are plugin names and values
 # are their entry point mappings.

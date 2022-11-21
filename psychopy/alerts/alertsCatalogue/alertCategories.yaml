@@ -73,6 +73,10 @@
     4610: Transcription service not compatible locally
     4615: API key not found
 
+  4700:
+    cat: Loops
+    4705: Column name from conditions file clashes with variable name
+
 5000:
   cat: Online studies
   5050:
@@ -87,6 +91,9 @@
 
 7000:
   cat: Python dependencies
+  7100:
+    cat: Plugins
+    7105: Component comes from uninstalled plugin
 
 8000:
   cat: Legacy
