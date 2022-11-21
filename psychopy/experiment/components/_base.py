@@ -281,12 +281,13 @@ class BaseComponent:
 
         Returns True if start test was written, False if it was skipped. Recommended usage:
         ```
-        if self.writeStartTestCode(buff):
+        indented = self.writeStartTestCode(buff)
+        if indented:
             code = (
                 "%(name)s.attribute = value\n"
             )
             buff.writeIndentedLines(code % self.params)
-            self.exitStartTest(buff)
+            buff.setIndentLevel(-indented, relative=True)
         ```
         """
 
@@ -406,12 +407,13 @@ class BaseComponent:
 
         Returns True if stop test was written, False if it was skipped. Recommended usage:
         ```
-        if self.writeStopTestCode(buff):
+        indented = self.writeStopTestCode(buff)
+        if indented:
             code = (
                 "%(name)s.attribute = value\n"
             )
             buff.writeIndentedLines(code % self.params)
-            self.exitStartTest(buff)
+            buff.setIndentLevel(-indented, relative=True)
         ```
         """
 
