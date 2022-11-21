@@ -5,12 +5,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-# Acknowledgements:
-#    This code was mostly written by Jon Peirce.
-#    CRS Ltd provided support as needed.
-#    Shader code for mono++ and color++ modes was based on code in
-#    Psychtoolbox (Kleiner) but does not actually use that code directly
-
 """Interfaces for Cambridge Research Systems hardware.
 
 These are optional components that can be obtained by installing the
