@@ -158,36 +158,39 @@ class PavloviaSurveyComponent(BaseComponent):
         """Write the code that will be called every frame
         """
         # Write start code
-        if self.writeStartTestCodeJS(buff):
+        indented = self.writeStartTestCodeJS(buff)
+        if indented:
             code = (
                 "%(name)s.setAutoDraw(true);\n"
             )
             buff.writeIndentedLines(code % self.params)
-            self.exitStartTestJS(buff)
+        buff.setIndentLevel(-indented, relative=True)
         # Write each frame active code
-        self.writeActiveTestCodeJS(buff)
-        code = (
-            "// if %(name)s is marked as complete online, set status to FINISHED\n"
-            "if (%(name)s.isFinished) {\n"
-            "    %(name)s.status = PsychoJS.Status.FINISHED;\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        if self.params['forceEndRoutine']:
+        indented = self.writeActiveTestCodeJS(buff)
+        if indented:
             code = (
-            "    continueRoutine = false;\n"
+                "// if %(name)s is marked as complete online, set status to FINISHED\n"
+                "if (%(name)s.isFinished) {\n"
+                "    %(name)s.status = PsychoJS.Status.FINISHED;\n"
             )
             buff.writeIndentedLines(code % self.params)
-        code = (
-            "}\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        self.exitActiveTestJS(buff)
+            if self.params['forceEndRoutine']:
+                code = (
+                "    continueRoutine = false;\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+            code = (
+                "}\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(-indented, relative=True)
         # Write stop code
-        if self.writeStopTestCodeJS(buff):
+        indented = self.writeStopTestCodeJS(buff)
+        if indented:
             if self.params['forceEndRoutine']:
                 code = (
                     "// End the routine when %(name)s is completed\n"
                     "continueRoutine = false;\n"
                 )
                 buff.writeIndentedLines(code % self.params)
-            self.exitStopTestJS(buff)
+        buff.setIndentLevel(-indented, relative=True)
