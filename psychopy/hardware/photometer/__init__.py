@@ -95,10 +95,7 @@ def getAllPhotometers():
     try:
         from .. import crs  # replace with `psychopy_crs`
     except (ModuleNotFoundError, ImportError):
-        logging.warning(
-            "Support for Cambridge Research Systems photometers is not "
-            "available this session. Please install `psychopy-crs` and restart "
-            "the session to enable support.")
+        pass
     else:
         if hasattr(crs, "ColorCAL"):
             foundPhotometers['ColorCAL'] = crs.ColorCAL
