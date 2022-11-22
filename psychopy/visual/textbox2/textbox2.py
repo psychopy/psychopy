@@ -506,9 +506,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             return
 
         # Normalize point to vertex units
-        point = np.asarray(value)
-        point -= self.pos
-        point /= self.size
+        point = np.asarray([value])
+        point -= self.box.pos
+        point /= self.box._vertices._flip
+        point -= self.box._vertices.anchorAdjust * self.box.size
+        point /= self.box.size
         # Square with snap points and tail point
         verts = [
             # Top right -> Bottom right
@@ -536,7 +538,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             [0.1, 0.5],
             [0.3, 0.5],
             # Tail
-            point
+            point[0]
         ]
         # Sort clockwise so tail point moves to correct place in vertices order
         verts = mt.sortClockwise(verts)
