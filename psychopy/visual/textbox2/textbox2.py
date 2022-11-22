@@ -117,12 +117,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         lineSpacing
         padding
         tailPoint : list, tuple, np.ndarray or None
-            Location of the end of a speech bubble tail on the textbox, relative to textbox
-            size. For example, (-0.6, 0.6) would be 10% of the textbox's width away from the
-            left edge and 10% of the textbox's height away from the top edge. If the point
-            sits within the textbox, the tail will be inverted.
-
-            Use `None` for no tail.
+            Location of the end of a speech bubble tail on the textbox, in the same
+            units as this textbox. If the point sits within the textbox, the tail
+            will be inverted. Use `None` for no tail.
         anchor
         alignment
         fillColor
@@ -508,6 +505,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             ]
             return
 
+        # Normalize point to vertex units
+        point = np.asarray(value)
+        point -= self.pos
+        point /= self.size
         # Square with snap points and tail point
         verts = [
             # Top right -> Bottom right
@@ -535,7 +536,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             [0.1, 0.5],
             [0.3, 0.5],
             # Tail
-            value
+            point
         ]
         # Sort clockwise so tail point moves to correct place in vertices order
         verts = mt.sortClockwise(verts)
@@ -1725,6 +1726,7 @@ class Style:
         self.b[i:i] = style.b
         self.c[i:i] = style.c
         self.len += len(style)
+
 
 class PlaceholderText(TextBox2):
     """
