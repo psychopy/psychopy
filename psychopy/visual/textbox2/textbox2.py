@@ -494,6 +494,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     @attributeSetter
     def tailPoint(self, value):
         self.__dict__['tailPoint'] = value
+        # Match box size to own size
+        self.box.size = self.size
 
         # No tail if value is None
         if value is None:
@@ -506,11 +508,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             return
 
         # Normalize point to vertex units
-        point = np.asarray([value])
-        point -= self.box.pos
-        point /= self.box._vertices._flip
-        point -= self.box._vertices.anchorAdjust * self.box.size
-        point /= self.box.size
+        _point = layout.Vertices(
+            [[1, 1]], obj=self
+        )
+        _point.setas([value], self.units)
+        point = _point.base[0]
         # Square with snap points and tail point
         verts = [
             # Top right -> Bottom right
@@ -538,7 +540,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             [0.1, 0.5],
             [0.3, 0.5],
             # Tail
-            point[0]
+            point
         ]
         # Sort clockwise so tail point moves to correct place in vertices order
         verts = mt.sortClockwise(verts)
