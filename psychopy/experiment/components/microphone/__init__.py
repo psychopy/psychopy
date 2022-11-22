@@ -278,31 +278,33 @@ class MicrophoneComponent(BaseComponent):
         inits['routine'] = self.parentName
 
         # Start the recording
-        if self.writeStartTestCode(buff):
+        indented = self.writeStartTestCode(buff)
+        if indented:
             code = (
                 "# start recording with %(name)s\n"
                 "%(name)s.start()\n"
             )
             buff.writeIndentedLines(code % self.params)
-            self.exitStartTest(buff)
+        buff.setIndentLevel(-indented, relative=True)
 
         # Get clip each frame
-        self.writeActiveTestCode(buff)
+        indented = self.writeActiveTestCode(buff)
         code = (
                 "# update recorded clip for %(name)s\n"
                 "%(name)s.poll()\n"
         )
         buff.writeIndentedLines(code % self.params)
-        self.exitActiveTest(buff)
+        buff.setIndentLevel(-indented, relative=True)
 
         # Stop recording
-        if self.writeStopTestCode(buff):
+        indented = self.writeStopTestCode(buff)
+        if indented:
             code = (
                 "# stop recording with %(name)s\n"
                 "%(name)s.stop()\n"
             )
             buff.writeIndentedLines(code % self.params)
-            self.exitStopTest(buff)
+        buff.setIndentLevel(-indented, relative=True)
 
     def writeFrameCodeJS(self, buff):
         inits = getInitVals(self.params)

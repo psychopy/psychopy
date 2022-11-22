@@ -465,6 +465,20 @@ class DetailsPanel(wx.Panel):
             # Tags
             self.tags.clear()
             self.tags.Disable()
+        elif project.project is None:
+            # If project has been deleted, prompt to unlink
+            dlg = wx.MessageDialog(
+                self,
+                message=_translate(
+                    "Could not find GitLab project with id {}.\n"
+                    "\n"
+                    "Please check that the project exists on Pavlovia, that you are logged in as the correct user in "
+                    "the PsychoPy app, and that your account has access to the project."
+                ).format(project.id),
+                style=wx.ICON_ERROR
+            )
+            dlg.ShowModal()
+            self.project = None
         else:
             # Refresh project to make sure it has info
             if not hasattr(project, "_info"):
@@ -757,8 +771,17 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
         else:
             # If they cancel out of login prompt, cancel sync
             return
+
     # If not in a project, make one
     if project is None:
+        # Try to get project id from git files
+        projName = pavlovia.getNameWithNamespace(file)
+        if projName is not None:
+            # If successful, make PavloviaProject from local info
+            project = PavloviaProject(projName, localRoot=file)
+
+    if project is None or project.project is None:
+        # If project is still None
         msgDlg = wx.MessageDialog(parent,
                                message=_translate("This file doesn't belong to any existing project."),
                                style=wx.OK | wx.CANCEL | wx.CENTER)
@@ -785,31 +808,32 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
     # If no local root or dead local root, prompt to make one
     if not project.localRoot or not Path(project.localRoot).is_dir():
         defaultRoot = Path(file).parent
-        if not project.localRoot:
-            # If there is no local root at all, prompt user to make one
-            msg = _translate("Project root folder is not yet specified, specify project root now?")
-        elif not Path(project.localRoot).is_dir():
-            # If there is a local root but the folder is gone, prompt user to change it
-            msg = _translate("Project root folder does not exist, change project root now?")
-        # Ask user if they want to
-        dlg = wx.MessageDialog(parent, message=msg, style=wx.OK | wx.CANCEL)
-        # Get response
-        if dlg.ShowModal() == wx.ID_OK:
-            # Attempt to get folder of current file
+
+        # Handle missing or invalid local root
+        if not project.localRoot or not Path(project.localRoot).is_dir():
             if file and defaultRoot.is_dir():
                 # If we have a reference to the current folder, use it
                 project.localRoot = defaultRoot
             else:
-                # Otherwise, ask designer to specify manually
-                dlg = wx.DirDialog(parent, message=_translate("Specify folder..."), defaultPath=str(defaultRoot))
-                if dlg.ShowModal() == wx.ID_OK:
-                    project.localRoot = str(dlg.GetPath())
+                # Otherwise, ask user to choose a local root
+                if not project.localRoot:
+                    # If there is no local root at all, prompt user to make one
+                    msg = _translate("Project root folder is not yet specified, specify project root now?")
                 else:
-                    # If cancelled, cancel sync
+                    # If there is a local root but the folder is gone, prompt user to change it
+                    msg = _translate("Project root folder does not exist, change project root now?")
+                dlg = wx.MessageDialog(parent, message=msg, style=wx.OK | wx.CANCEL)
+                # Get response
+                if dlg.ShowModal() == wx.ID_OK:
+                    dlg = wx.DirDialog(parent, message=_translate("Specify folder..."), defaultPath=str(defaultRoot))
+                    if dlg.ShowModal() == wx.ID_OK:
+                        project.localRoot = str(dlg.GetPath())
+                    else:
+                        # If cancelled, cancel sync
+                        return
+                else:
+                    # If they don't want to specify, cancel sync
                     return
-        else:
-            # If they don't want to specify, cancel sync
-            return
     # Assign project to parent frame
     parent.project = project
     # If there is (now) a project, do sync
