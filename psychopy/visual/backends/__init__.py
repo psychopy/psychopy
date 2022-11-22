@@ -8,7 +8,6 @@
 """Backends provide the window creation and flipping commands.
 """
 
-from psychopy import logging
 import psychopy.plugins as plugins
 from ._base import BaseBackend
 
@@ -18,7 +17,7 @@ from ._base import BaseBackend
 # define subclasses of `BaseBackend` that have valid names.
 winTypes = {
     'pyglet': '.pygletbackend.PygletBackend',
-    # 'glfw': '.glfwbackend.GLFWBackend',  # moved to plugin
+    'glfw': '.glfwbackend.GLFWBackend',  # moved to plugin
     'pygame': '.pygamebackend.PygameBackend'
 }
 
@@ -43,7 +42,7 @@ def getBackend(win, *args, **kwargs):
 
     """
     # Look-up the backend module name for `winType`, this is going to be used
-    # when the plugin system goes live. For now we're leaving it here.
+    # when the plugin system goes live. For now, we're leaving it here.
     try:
         useBackend = winTypes[win.winType]
     except KeyError:
