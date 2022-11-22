@@ -6,10 +6,14 @@ Created on Thu May  8 10:46:41 2014
 """
 import pytest
 from psychopy import visual, core
-from psychopy.hardware import crs
 
 
 def test_bitsSharp():
+    try:
+        from psychopy.hardware import crs
+    except (ModuleNotFoundError, ImportError):
+        return
+
     win = visual.Window(screen=1, fullscr=True, useFBO=True, autoLog=True)
     win.setGamma(1.0) #make sure gfx card LUT is identity
     #initialise BitsSharp

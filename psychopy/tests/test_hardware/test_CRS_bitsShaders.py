@@ -5,7 +5,6 @@ Created on Mon Dec 15 15:22:48 2014
 @author: lpzjwp
 """
 from psychopy import visual
-from psychopy.hardware import crs
 from psychopy.tests import skip_under_vm, _vmTesting
 import numpy as np
 
@@ -58,6 +57,11 @@ expectedVals = {
 
 @skip_under_vm
 def test_bitsShaders():
+    try:
+        from psychopy.hardware import crs
+    except (ModuleNotFoundError, ImportError):
+        return
+
     win = visual.Window([1024, 768], fullscr=0, screen=1, useFBO=True,
                         autoLog=True)
     bits = crs.bits.BitsSharp(win, mode='bits++', noComms=True)
@@ -98,6 +102,7 @@ def test_bitsShaders():
                 print('R', repr(fr[0:10,-1,0]), repr(fr[250:256,-1,0]))
                 print('G', repr(fr[0:10,-1,1]), repr(fr[250:256,-1,0]))
             #event.waitKeys()
+
 
 if __name__=='__main__':
     test_bitsShaders()
