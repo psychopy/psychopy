@@ -10,7 +10,7 @@ from psychopy import visual, core
 
 def test_bitsSharp():
     try:
-        from psychopy.hardware import crs
+        from psychopy.hardware.crs import BitsSharp
     except (ModuleNotFoundError, ImportError):
         return
 
@@ -18,7 +18,7 @@ def test_bitsSharp():
     win.setGamma(1.0) #make sure gfx card LUT is identity
     #initialise BitsSharp
     try:
-        bits = crs.BitsSharp(win=win, mode='color++')
+        bits = BitsSharp(win=win, mode='color++')
     except ImportError:
         pytest.skip("crs.BitsSharp: could not initialize. possible:\nfrom serial.tools import list_ports\n"
            "ImportError: No module named tools")

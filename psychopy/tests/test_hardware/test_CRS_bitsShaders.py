@@ -58,13 +58,13 @@ expectedVals = {
 @skip_under_vm
 def test_bitsShaders():
     try:
-        from psychopy.hardware import crs
+        from psychopy.hardware.crs import bits
     except (ModuleNotFoundError, ImportError):
         return
 
     win = visual.Window([1024, 768], fullscr=0, screen=1, useFBO=True,
                         autoLog=True)
-    bits = crs.bits.BitsSharp(win, mode='bits++', noComms=True)
+    bits = bits.BitsSharp(win, mode='bits++', noComms=True)
 
     # draw a ramp across the screenexpectedVals = range(256)
     w, h = win.size

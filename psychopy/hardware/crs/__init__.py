@@ -15,13 +15,13 @@ These are optional components that can be obtained by installing the
 import psychopy.logging as logging
 
 try:
-    from psychopy_crs.bits import (
+    from .bits import (
         BitsSharp,
         BitsPlusPlus,
         DisplayPlusPlus,
         DisplayPlusPlusTouch)
-    from psychopy_crs.optical import OptiCAL
-    from psychopy_crs.colorcal import ColorCAL
+    from .optical import OptiCAL
+    from .colorcal import ColorCAL
 except (ModuleNotFoundError, ImportError):
     logging.error(
         "Support for Cambridge Research Systems hardware is not available this "
