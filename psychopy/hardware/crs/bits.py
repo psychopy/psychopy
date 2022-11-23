@@ -25,3 +25,6 @@ except (ModuleNotFoundError, ImportError):
         "Support for Cambridge Research Systems Bits#, Bits++, Display++ and "
         "Display++ Touch hardware is not available this session. Please "
         "install `psychopy-crs` and restart the session to enable support.")
+
+if __name__ == "__main__":
+    pass
