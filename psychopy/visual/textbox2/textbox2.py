@@ -544,6 +544,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         ]
         # Sort clockwise so tail point moves to correct place in vertices order
         verts = mt.sortClockwise(verts)
+        verts.reverse()
         # Assign vertices
         self.box.vertices = verts
 
