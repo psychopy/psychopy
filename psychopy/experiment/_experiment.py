@@ -652,16 +652,25 @@ class Experiment:
                 for componentNode in routineNode:
 
                     componentType = componentNode.tag
+                    plugin = componentNode.get('plugin')
+
                     if componentType in allCompons:
                         # create an actual component of that type
                         component = allCompons[componentType](
                             name=componentNode.get('name'),
                             parentName=routineNode.get('name'), exp=self)
+                    elif plugin:
+                        # create UnknownPluginComponent instead
+                        component = allCompons['UnknownPluginComponent'](
+                            name=componentNode.get('name'),
+                            parentName=routineNode.get('name'), exp=self)
+                        alert(7105, strFields={'name': componentNode.get('name'), 'plugin': plugin})
                     else:
                         # create UnknownComponent instead
                         component = allCompons['UnknownComponent'](
                             name=componentNode.get('name'),
                             parentName=routineNode.get('name'), exp=self)
+                    component.plugin = plugin
                     # check for components that were absent in older versions of
                     # the builder and change the default behavior
                     # (currently only the new behavior of choices for RatingScale,
