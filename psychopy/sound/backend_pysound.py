@@ -209,6 +209,9 @@ class SoundPySoundCard(_SoundBase):
             will be played over each other.
 
         """
+        if self.status == STARTED:
+            return
+
         if loops is not None:
             self.loops = loops
         self._stream.start()
@@ -219,6 +222,9 @@ class SoundPySoundCard(_SoundBase):
 
     def stop(self, log=True):
         """Stops the sound immediately"""
+        if self.status == STOPPED:  # already stopped
+            return
+
         self._stream.abort()  # _stream.stop() finishes current buffer
         self.status = STOPPED
         if log and self.autoLog:

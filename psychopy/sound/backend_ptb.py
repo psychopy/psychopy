@@ -514,6 +514,9 @@ class SoundPTB(_SoundBase):
     def play(self, loops=None, when=None, log=True):
         """Start the sound playing
         """
+        if self.status == STARTED:
+            return
+
         if loops is not None and self.loops != loops:
             self.setLoops(loops)
         self.status = STARTED
@@ -541,8 +544,10 @@ class SoundPTB(_SoundBase):
     def stop(self, reset=True, log=True):
         """Stop the sound and return to beginning
         """
+        # this uses FINISHED for some reason, all others use STOPPED
         if self.status == FINISHED:
             return
+
         self.track.stop()
         if reset:
             self.seek(0)

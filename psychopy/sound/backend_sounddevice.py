@@ -482,6 +482,9 @@ class SoundDeviceSound(_SoundBase):
             when: not used
                 Included for compatibility purposes
         """
+        if self.status == PLAYING:
+            return
+
         if loops is not None and self.loops != loops:
             self.setLoops(loops)
         self.status = PLAYING
@@ -492,12 +495,18 @@ class SoundDeviceSound(_SoundBase):
     def pause(self):
         """Stop the sound but play will continue from here if needed
         """
+        if self.status == PAUSED:
+            return
+
         self.status = PAUSED
         streams[self.streamLabel].remove(self)
 
     def stop(self, reset=True):
         """Stop the sound and return to beginning
         """
+        if self.status == STOPPED:
+            return
+
         streams[self.streamLabel].remove(self)
         if reset:
             self.seek(0)

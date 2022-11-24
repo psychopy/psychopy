@@ -374,6 +374,9 @@ class SoundPyo(_SoundBase):
         If you call `play()` while something is already playing the sounds
         will be played over each other.
         """
+        if self.status == STARTED:
+            return
+
         if loops is not None and self.loops != loops:
             self.setLoops(loops)
         if self.needsUpdate:
@@ -406,6 +409,9 @@ class SoundPyo(_SoundBase):
 
     def stop(self, log=True):
         """Stops the sound immediately"""
+        if self.status == STOPPED:
+            return
+
         self._snd.stop()
         try:
             self.terminator.cancel()

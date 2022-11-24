@@ -227,6 +227,9 @@ class SoundPygame(_SoundBase):
             will be played over each other.
 
         """
+        if self.status == STARTED:
+            return
+
         if loops is None:
             loops = self.loops
         self._snd.play(loops=loops)
@@ -238,6 +241,9 @@ class SoundPygame(_SoundBase):
     def stop(self, log=True):
         """Stops the sound immediately
         """
+        if self.status == STOPPED:
+            return
+
         self._snd.stop()
         self.status = STOPPED
         if log and self.autoLog:
