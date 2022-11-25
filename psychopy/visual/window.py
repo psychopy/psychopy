@@ -3263,6 +3263,7 @@ class Window():
                 self.recordFrameIntervals = recordFrmIntsOrig
                 self.frameIntervals = []
 
+                self._monitorFrameRate = rate
                 return rate
 
         # if we get here we reached end of `maxFrames` with no consistent value
