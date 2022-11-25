@@ -141,7 +141,7 @@ Counterbalancing can be a pain, but online it is even more painful! There are ma
 To get started you must make a record with the type, Dictionary. It must also have the following fields:
 
 
-.. figure:: /images/counterbalanceShelf.PNG
+.. figure:: /images/counterbalanceShelf1.PNG
     :name: shelfAccess
     :align: center
     :figclass: align-center
@@ -149,7 +149,7 @@ To get started you must make a record with the type, Dictionary. It must also ha
 |
     Example set up for a Shelf Record used to assist with counterbalancing. The Key Components need to have a meaningful name and since this record is for counterbalancing the groups, "my_groups" is used here. There are two types of scopes: 1) DESIGNER - This shelf record can be used for all experiments; 2) EXPERIMENT - This shelf record can only be used for the selected experiment.
 |
-.. figure:: /images/counterbalanceCodeComponent.PNG
+.. figure:: /images/counterbalanceCodeComponent1.PNG
     :name: shelfCodeComponent
     :align: center
     :figclass: align-center
