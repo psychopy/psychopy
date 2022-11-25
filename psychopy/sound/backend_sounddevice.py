@@ -172,6 +172,13 @@ class _SoundStream():
             atexit.register(self.__del__)
         self._tSoundRequestPlay = 0
 
+        self._isPlaying = False
+
+    @property
+    def isPlaying(self):
+        """`True` if the audio playback is ongoing."""
+        return self._isPlaying
+
     def callback(self, toSpk, blockSize, timepoint, status):
         """This is a callback for the SoundDevice lib
 
@@ -314,6 +321,14 @@ class SoundDeviceSound(_SoundBase):
         self.setSound(value, secs=self.secs, octave=self.octave,
                       hamming=self.hamming)
         self.status = NOT_STARTED
+
+        self._isPlaying = False
+
+    @property
+    def isPlaying(self):
+        """`True` if the audio playback is ongoing."""
+        return self._isPlaying
+
     @property
     def stereo(self):
         return self.__dict__['stereo']
@@ -482,12 +497,12 @@ class SoundDeviceSound(_SoundBase):
             when: not used
                 Included for compatibility purposes
         """
-        if self.status == PLAYING:
+        if self.isPlaying:
             return
 
         if loops is not None and self.loops != loops:
             self.setLoops(loops)
-        self.status = PLAYING
+        self._isPlaying = True
         self._tSoundRequestPlay = time.time()
         streams[self.streamLabel].takeTimeStamp = True
         streams[self.streamLabel].add(self)
@@ -495,25 +510,25 @@ class SoundDeviceSound(_SoundBase):
     def pause(self):
         """Stop the sound but play will continue from here if needed
         """
-        if self.status == PAUSED:
-            return
-
-        self.status = PAUSED
+        # if self.status == PAUSED:
+        #     return
+        #
+        # self.status = PAUSED
         streams[self.streamLabel].remove(self)
 
     def stop(self, reset=True):
         """Stop the sound and return to beginning
         """
-        if self.status == STOPPED:
+        if not self.isPlaying:
             return
 
         streams[self.streamLabel].remove(self)
         if reset:
             self.seek(0)
-        self.status = STOPPED
+        self._isPlaying = False
 
     def _nextBlock(self):
-        if self.status == STOPPED:
+        if not self.isPlaying:
             return
         samplesLeft = int((self.duration - self.t) * self.sampleRate)
         nSamples = min(self.blockSize, samplesLeft)
@@ -585,7 +600,7 @@ class SoundDeviceSound(_SoundBase):
             self.stop(reset=reset)
 
         streams[self.streamLabel].remove(self)
-        self.status = FINISHED
+        self._isPlaying = False
 
     @property
     def stream(self):
