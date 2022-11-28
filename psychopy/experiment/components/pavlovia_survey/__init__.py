@@ -164,7 +164,11 @@ class PavloviaSurveyComponent(BaseComponent):
                 "%(name)s.setAutoDraw(true);\n"
             )
             buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-indented, relative=True)
+            buff.setIndentLevel(-indented, relative=True)
+            code = (
+                "}\n"
+            )
+            buff.writeIndentedLines(code % self.params)
         # Write each frame active code
         indented = self.writeActiveTestCodeJS(buff)
         if indented:
@@ -183,7 +187,11 @@ class PavloviaSurveyComponent(BaseComponent):
                 "}\n"
             )
             buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-indented, relative=True)
+            buff.setIndentLevel(-indented, relative=True)
+            code = (
+                "}\n"
+            )
+            buff.writeIndentedLines(code % self.params)
         # Write stop code
         indented = self.writeStopTestCodeJS(buff)
         if indented:
@@ -193,4 +201,8 @@ class PavloviaSurveyComponent(BaseComponent):
                     "continueRoutine = false;\n"
                 )
                 buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-indented, relative=True)
+            buff.setIndentLevel(-indented, relative=True)
+            code = (
+                "}\n"
+            )
+            buff.writeIndentedLines(code % self.params)
