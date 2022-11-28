@@ -548,6 +548,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # Assign vertices
         self.box.vertices = verts
 
+    def setTailPoint(self, value, log=None):
+        setAttribute(self, 'tailPoint', value, log)
+
     @property
     def padding(self):
         if hasattr(self, "_padding"):
