@@ -29,6 +29,7 @@ class PavloviaSurveyComponent(BaseComponent):
                                saveStartStop=saveStartStop, syncScreenRefresh=syncScreenRefresh,
                                disabled=disabled)
         self.url = "https://psychopy.org/builder/components/advanced_survey.html"
+        self.type = "PavloviaSurvey"
 
         # Define relationships
         self.depends = []
