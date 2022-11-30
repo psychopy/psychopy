@@ -196,6 +196,11 @@ class PavloviaSurveyComponent(BaseComponent):
         # Write stop code
         indented = self.writeStopTestCodeJS(buff)
         if indented:
+            code = (
+                "// Save data once %(name)s is completed\n"
+                "await %(name)s.save();\n"
+            )
+            buff.writeIndentedLines(code % self.params)
             if self.params['forceEndRoutine']:
                 code = (
                     "// End the routine when %(name)s is completed\n"
