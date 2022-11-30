@@ -303,7 +303,17 @@ class Flow(list):
         script.writeIndentedLines(code)
 
         # Write resource list
-        resourceFiles = set([resource['rel'].replace("\\", "/") for resource in self.exp.getResourceFiles()])
+        resourceFiles = []
+        for resource in self.exp.getResourceFiles():
+            if isinstance(resource, dict):
+                if 'rel' in resource:
+                    # If resource is a file path, add its relative path
+                    resourceFiles.append(resource['rel'].replace("\\", "/"))
+                    continue
+                if 'surveyId' in resource:
+                    # If resource is a survey ID, add it and mark as a survey id
+                    resourceFiles.append("sid:" + resource['surveyId'])
+        resourceFiles = set(resourceFiles)
         if self.exp.htmlFolder:
             resourceFolderStr = "resources/"
         else:
@@ -323,6 +333,9 @@ class Flow(list):
                     name = resource.split('/')[-1]
                     fullPath = resource
                     temp = f"{{'name': '{name}', 'path': '{fullPath}'}}"
+                elif "sid:" in resource:
+                    thisId = resource.replace("sid:", "")
+                    temp = f"{{'surveyId': '{thisId}'}}"
                 else:
                     temp = "{{'name': '{0}', 'path': '{1}{0}'}}".format(resource, resourceFolderStr)
                 code += temp

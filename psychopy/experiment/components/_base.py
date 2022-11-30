@@ -370,9 +370,12 @@ class BaseComponent:
     def writeStartTestCodeJS(self, buff):
         """Test whether we need to start
         """
+        # Get starting indent level
+        startIndent = buff.indentLevel
+
         if self.params['startVal'].val in ('', None, -1, 'None'):
             # If we have no start time, don't write start code
-            return False
+            return buff.indentLevel - startIndent
 
         params = self.params
         if self.params['startType'].val == 'time (s)':
@@ -401,7 +404,7 @@ class BaseComponent:
         buff.writeIndentedLines(code)
 
         # Return True if start test was written
-        return True
+        return buff.indentLevel - startIndent
 
     def writeStopTestCode(self, buff):
         """
@@ -492,9 +495,12 @@ class BaseComponent:
     def writeStopTestCodeJS(self, buff):
         """Test whether we need to stop
         """
+        # Get starting indent level
+        startIndent = buff.indentLevel
+
         if self.params['stopVal'].val in ('', None, -1, 'None'):
             # If we have no stop time, don't write stop code
-            return
+            return buff.indentLevel - startIndent
 
         params = self.params
         if self.params['stopType'].val == 'time (s)':
@@ -534,7 +540,7 @@ class BaseComponent:
         buff.setIndentLevel(+1, relative=True)
 
         # Return True if stop test was written
-        return True
+        return buff.indentLevel - startIndent
 
     def writeActiveTestCode(self, buff):
         """
@@ -553,6 +559,8 @@ class BaseComponent:
         """
         # Newline
         buff.writeIndentedLines("\n")
+        # Get starting indent level
+        startIndent = buff.indentLevel
 
         # Write if statement
         code = (
@@ -574,7 +582,7 @@ class BaseComponent:
                 "pass\n"
             )
             buff.writeIndentedLines(code)
-        return True
+        return buff.indentLevel - startIndent
 
     def writeActiveTestCodeJS(self, buff):
         """
@@ -590,6 +598,9 @@ class BaseComponent:
         self.exitActiveTestJS(buff)
         ```
         """
+        # Get starting indent level
+        startIndent = buff.indentLevel
+
         # Newline
         buff.writeIndentedLines("\n")
 
@@ -610,14 +621,7 @@ class BaseComponent:
             buff.writeIndentedLines(code % self.params)
             self.writeParamUpdates(buff, 'set every frame')
 
-    def exitActiveTestJS(self, buff):
-        """
-        Shorthand for doing necessary dedent after an active test loop
-        """
-        # Dedent
-        buff.setIndentLevel(-1, relative=True)
-        # Close
-        buff.writeIndentedLines("}\n")
+        return buff.indentLevel - startIndent
 
     def writeParamUpdates(self, buff, updateType, paramNames=None,
                           target="PsychoPy"):
@@ -896,7 +900,8 @@ class BaseVisualComponent(BaseComponent):
                  startType='time (s)', startVal='',
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
-                 saveStartStop=True, syncScreenRefresh=True):
+                 saveStartStop=True, syncScreenRefresh=True,
+                 disabled=False):
 
         super(BaseVisualComponent, self).__init__(
             exp, parentName, name,
@@ -904,7 +909,7 @@ class BaseVisualComponent(BaseComponent):
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim,
             saveStartStop=saveStartStop,
-            syncScreenRefresh=syncScreenRefresh)
+            syncScreenRefresh=syncScreenRefresh, disabled=disabled)
 
         self.exp.requirePsychopyLibs(
             ['visual'])  # needs this psychopy lib to operate
