@@ -91,9 +91,16 @@ def getAllPhotometers():
     # build a dictionary with names
     foundPhotometers = {}
 
+    # classes we ship with, we can remove these as we offload them to plugins
+    incPhotomList = [
+        pr.PR650,
+        pr.PR655,
+        gammasci.S470
+    ]
+
     # special handling for CRS branded photometers
     try:
-        from .. import crs  # replace with `psychopy_crs`
+        from .. import crs
     except (ModuleNotFoundError, ImportError):
         pass
     else:
@@ -102,14 +109,27 @@ def getAllPhotometers():
         if hasattr(crs, "OptiCAL"):
             foundPhotometers['OptiCAL'] = crs.OptiCAL
 
-    # classes we ship with, we can remove these as we offload them to plugins
-    incPhotomList = [
-        pr.PR650,
-        pr.PR655,
-        minolta.CS100A,
-        minolta.LS100,
-        gammasci.S470
-    ]
+    # Photo Resaerch Inc. spectroradiometers
+    try:
+        from .. import pr
+    except (ModuleNotFoundError, ImportError):
+        pass
+    else:
+        if hasattr(pr, "PR650"):
+            incPhotomList.append(pr.PR650)
+        if hasattr(pr, "PR655"):
+            incPhotomList.append(pr.PR655)
+
+    # Konica Minolta light-measuring devices
+    try:
+        from .. import minolta
+    except (ModuleNotFoundError, ImportError):
+        pass
+    else:
+        if hasattr(minolta, "CS100A"):
+            incPhotomList.append(minolta.CS100A)
+        if hasattr(minolta, "LS100"):
+            incPhotomList.append(minolta.LS100)
 
     # iterate over all builtin photometer classes and register them
     for photom in incPhotomList:
