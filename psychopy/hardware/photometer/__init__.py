@@ -91,14 +91,12 @@ def getAllPhotometers():
     # build a dictionary with names
     foundPhotometers = {}
 
-    # classes we ship with, we can remove these as we offload them to plugins
-    incPhotomList = [
-        pr.PR650,
-        pr.PR655,
-        gammasci.S470
-    ]
+    # Classes from extant namespaces. Even though these are optional, we need
+    # to respect the namespaces for now.
+    incPhotomList = []
 
-    # special handling for CRS branded photometers
+    # special handling for legacy classes which have been offloaded to optional
+    # packages
     try:
         from .. import crs
     except (ModuleNotFoundError, ImportError):
@@ -131,7 +129,16 @@ def getAllPhotometers():
         if hasattr(minolta, "LS100"):
             incPhotomList.append(minolta.LS100)
 
-    # iterate over all builtin photometer classes and register them
+    # Gamma scientific devices
+    try:
+        from .. import gammasci
+    except (ModuleNotFoundError, ImportError):
+        pass
+    else:
+        if hasattr(gammasci, "S470"):
+            incPhotomList.append(gammasci.S470)
+
+    # iterate over all classes and register them as if they were plugins
     for photom in incPhotomList:
         addPhotometer(photom)
 

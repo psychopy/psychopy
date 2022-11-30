@@ -5,15 +5,10 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-"""PhotoResearch spectrophotometers
-See http://www.photoresearch.com/
-
---------
-"""
-"""Interfaces for Minolta light-measuring devices.
+"""Interfaces for Photo Research Inc. spectroradiometers.
 
 These are optional components that can be obtained by installing the
-`psychopy-minolta` extension into the current environment.
+`psychopy-photoresearch` extension into the current environment.
 
 """
 
