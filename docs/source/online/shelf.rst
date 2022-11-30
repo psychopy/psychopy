@@ -157,5 +157,5 @@ To get started you must make a record with the type, Dictionary. It must also ha
 **Note that the key within the code component uses the same name as the Key Component in the Shelf record.**
 
 |   
-In your experiment, you can then use :code:`[thisGroup, finished] = await psychoJS.shelf.counterBalanceSelect({key: ['my_groups'], groups: ['A', 'B', 'C'], groupSizes: [10, 10, 10]})` which will return two values, :code:`thisGroup` indicates the group selected for this participant and :code:`finished` indicating if sampling has completed (i.e. all groups are full). If during testing you notice that some groups need "topping up" e.g. the data from one participant is unusable, you can always edit the Shelf directly to allow more participants in each group.
+In your experiment, you can then use :code:`counterbal = await psychoJS.shelf.counterBalanceSelect({key: ['my_groups'], groups: ['A', 'B', 'C'], groupSizes: [10, 10, 10]})` which will return a counterbalance object `counterbal` with two properties, :code:`counterbal.group` indicates the group selected for this participant and :code:`counterbal.finished` indicating if sampling has completed (i.e. all groups are full). If during testing you notice that some groups need "topping up" e.g. the data from one participant is unusable, you can always edit the Shelf directly to allow more participants in each group.
 
