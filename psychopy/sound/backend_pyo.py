@@ -356,6 +356,13 @@ class SoundPyo(_SoundBase):
         self.setSound(value=value, secs=secs, octave=octave, hamming=hamming)
         self.needsUpdate = False
 
+        self._isPlaying = False
+
+    @property
+    def isPlaying(self):
+        """`True` if the audio playback is ongoing."""
+        return self._isPlaying
+
     def play(self, loops=None, autoStop=True, log=True, when=None):
         """Starts playing the sound on an available channel.
 
@@ -374,13 +381,16 @@ class SoundPyo(_SoundBase):
         If you call `play()` while something is already playing the sounds
         will be played over each other.
         """
+        if self.isPlaying:
+            return
+
         if loops is not None and self.loops != loops:
             self.setLoops(loops)
         if self.needsUpdate:
             # ~0.00015s, regardless of the size of self._sndTable
             self._updateSnd()
         self._snd.out()
-        self.status = STARTED
+        self._isPlaying = True
         if autoStop or self.loops != 0:
             # pyo looping is boolean: loop forever or not at all
             # so track requested loops using time; limitations: not
@@ -399,19 +409,22 @@ class SoundPyo(_SoundBase):
         # call _onEOS from a thread based on time, enables loop termination
         if self.loops != 0:  # then its looping forever as a pyo object
             self._snd.stop()
-        if self.status != NOT_STARTED:
+        if self.isPlaying:
             # in case of multiple successive trials
-            self.status = FINISHED
+            self._isPlaying = False
         return True
 
     def stop(self, log=True):
         """Stops the sound immediately"""
+        if not self.isPlaying:
+            return
+
         self._snd.stop()
         try:
             self.terminator.cancel()
         except Exception:  # pragma: no cover
             pass
-        self.status = STOPPED
+        self._isPlaying = False
         if log and self.autoLog:
             logging.exp(u"Sound %s stopped" % (self.name), obj=self)
 
