@@ -51,72 +51,46 @@ def addDistribution(distPath):
 
 
 def getInstalledPackages():
-    """Get a mapping of installed packages with their metadata for the current
-    environment.
+    """Get a list of installed packages and their versions.
+
+    Returns
+    -------
+    list
+        List of installed packages and their versions i.e. `('PsychoPy',
+        '2021.3.1')`.
+
+    """
+    # this is like calling `pip freeze` and parsing the output, but faster!
+    installedPackages = []
+    for pkg in pkg_resources.working_set:
+        thisPkg = pkg_resources.get_distribution(pkg.key)
+        installedPackages.append(
+            (thisPkg.project_name, thisPkg.version))
+
+    return installedPackages
+
+
+def getPackageMetadata(packageName):
+    """Get the metadata for a specified package.
 
     Returns
     -------
     dict
-        Mapping where keys (`str`) are found package names and values are
-        metadata. Metadata are mappings where keys (`str`) are field names and
-        values (`Any`) are data related to each field.
 
     """
-    toReturn = dict()
+    import email.parser
 
-    # get packages and metadata
-    for pkg in pkg_resources.working_set:
-        pkg = pkg_resources.get_distribution(pkg.key)
-        metadata = pkg.get_metadata(pkg.PKG_INFO)
+    dist = pkg_resources.get_distribution(packageName)
+    metadata = dist.get_metadata(dist.PKG_INFO)
 
-        # parse metadata
+    # parse the metadata using
+    metadict = dict()
+    for key, val in email.message_from_string(metadata).raw_items():
+        metadict[key] = val
 
-        inHeader = True
-        descriptionText = []
-        metadict = dict()
-        for line in metadata.split('\n'):
-            if not line and inHeader:
-                inHeader = False
-
-            if not inHeader:
-                descriptionText.append(line + '\n')  # restore NL after split
-                continue
-
-            # valid single line fields
-            singleFields = (
-                'Metadata-Version',
-                'Name',
-                'Version',
-                'Summary',
-                'Home-page',
-                'Author',
-                'Author-email',
-                'License',
-                'Keywords',
-                'Description-Content-Type'
-            )
-
-            if any([line.startswith(f + ':') for f in singleFields]):
-                fieldName, fieldValue = [p.strip() for p in line.split(':', 1)]
-                # add only if the field is not already present
-                if fieldName not in metadict.keys():
-                    metadict[fieldName] = fieldValue
-            elif line.startswith('Classifier:'):  # todo - handle these cases
-                pass
-            elif line.startswith('Requires-Dist:'):
-                pass
-            elif line.startswith('Platform:'):
-                pass
-            elif line.startswith('Requires-Python:'):
-                pass
-
-        if descriptionText:
-            metadict['Description'] = ''.join(descriptionText)
-
-        toReturn[pkg.key] = metadict
-
-    return toReturn
+    return metadict
 
 
 if __name__ == "__main__":
     pass
+
