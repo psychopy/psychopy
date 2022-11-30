@@ -456,6 +456,20 @@ class DetailsPanel(wx.Panel):
             # Tags
             self.tags.clear()
             self.tags.Disable()
+        elif project.project is None:
+            # If project has been deleted, prompt to unlink
+            dlg = wx.MessageDialog(
+                self,
+                message=_translate(
+                    "Could not find GitLab project with id {}.\n"
+                    "\n"
+                    "Please check that the project exists on Pavlovia, that you are logged in as the correct user in "
+                    "the PsychoPy app, and that your account has access to the project."
+                ).format(project.id),
+                style=wx.ICON_ERROR
+            )
+            dlg.ShowModal()
+            self.project = None
         else:
             # Refresh project to make sure it has info
             if not hasattr(project, "_info"):
