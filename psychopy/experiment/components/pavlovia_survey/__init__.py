@@ -178,12 +178,12 @@ class PavloviaSurveyComponent(BaseComponent):
                 "if (%(name)s.isFinished) {\n"
                 "    %(name)s.status = PsychoJS.Status.FINISHED;\n"
             )
-            buff.writeIndentedLines(code % self.params)
             if self.params['forceEndRoutine']:
-                code = (
-                "    continueRoutine = false;\n"
+                code += (
+                    "    // end the routine when %(name)s is completed\n"
+                    "    continueRoutine = false;\n"
                 )
-                buff.writeIndentedLines(code % self.params)
+            buff.writeIndentedLines(code % self.params)
             code = (
                 "}\n"
             )
@@ -197,18 +197,20 @@ class PavloviaSurveyComponent(BaseComponent):
         indented = self.writeStopTestCodeJS(buff)
         if indented:
             code = (
-                "// Save data once %(name)s is completed\n"
-                "await %(name)s.save();\n"
+                "%(name)s.status = PsychoJS.Status.FINISHED;\n"
             )
             buff.writeIndentedLines(code % self.params)
-            if self.params['forceEndRoutine']:
-                code = (
-                    "// End the routine when %(name)s is completed\n"
-                    "continueRoutine = false;\n"
-                )
-                buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(-indented, relative=True)
             code = (
                 "}\n"
             )
             buff.writeIndentedLines(code % self.params)
+
+
+    def writeRoutineEndCodeJS(self, buff):
+        # Save survey data
+        code = (
+            "// save %(name)s data\n"
+            "await %(name)s.save();\n"
+        )
+        buff.writeIndentedLines(code % self.params)
