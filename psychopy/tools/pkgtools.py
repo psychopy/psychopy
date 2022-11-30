@@ -11,7 +11,8 @@
 __all__ = [
     'getDistributions',
     'addDistribution',
-    'getInstalledPackages'
+    'getInstalledPackages',
+    'getPackageMetadata'
 ]
 
 import pkg_resources
@@ -73,14 +74,25 @@ def getInstalledPackages():
 def getPackageMetadata(packageName):
     """Get the metadata for a specified package.
 
+    Paramters
+    ---------
+    packageName : str
+        Project name of package to get metadata from.
+
     Returns
     -------
-    dict
+    dict or None
+        Dictionary of metadata fields. If `None` is returned, the package isn't
+        present in the current distribution.
 
     """
     import email.parser
 
-    dist = pkg_resources.get_distribution(packageName)
+    try:
+        dist = pkg_resources.get_distribution(packageName)
+    except pkg_resources.DistributionNotFound:
+        return  # do nothing
+
     metadata = dist.get_metadata(dist.PKG_INFO)
 
     # parse the metadata using
@@ -92,5 +104,5 @@ def getPackageMetadata(packageName):
 
 
 if __name__ == "__main__":
-    pass
+    getPackageMetadata('sdfdsfasdf')
 

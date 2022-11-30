@@ -9,7 +9,7 @@ from psychopy.app.themes import handlers, icons
 from psychopy.localization import _translate
 from psychopy.tools import filetools as ft
 
-from psychopy.tools.pkgtools import getInstalledPackages
+from psychopy.tools.pkgtools import getInstalledPackages, getPackageMetadata
 
 
 class InstallErrorDlg(wx.Dialog, handlers.ThemeMixin):
@@ -335,22 +335,10 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
         self.ctrl.AppendColumn(_translate("Package"))
         self.ctrl.AppendColumn(_translate("Version"))
         # Get list of packages
-        cmd = f"{sys.executable} -m pip freeze"
-        output = sp.Popen(cmd,
-                          stdout=sp.PIPE,
-                          stderr=sp.PIPE,
-                          shell=True,
-                          universal_newlines=True)
-        stdout, stderr = output.communicate()
-        # Parse output into a list of lines
-        lines = stdout.split("\n")
-        for line in lines:
+        for packageName, packageVersion in getInstalledPackages():
             # If line is a valid version name - version pair, append to list
-            parts = line.split("==")
-            if len(parts) == 2:
-                # Filter packages by search term
-                if searchTerm in parts[0]:
-                    self.ctrl.Append(parts)
+            if searchTerm in packageName:
+                self.ctrl.Append((packageName, packageVersion))
 
     def onAddBtn(self, evt=None):
         # Get button
@@ -475,23 +463,7 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.sizer.Add(self.descCtrl, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         # todo: Required by...
 
-        # Cache package information where possible to improve responsiveness of
-        # the UI.
-        self._packageInfoCache = dict()
-        self._generatePackageInfoCache()
-
         self.package = None
-
-    def _generatePackageInfoCache(self):
-        """Generate package info cache.
-
-        This iterates over all installed packages and obtains information about
-        them. The data is cached for later use instead of obtained when the user
-        clicks the item.
-
-        """
-        self._packageInfoCache.clear()  # clear the cache
-        self._packageInfoCache.update(getInstalledPackages())
 
     @property
     def package(self):
@@ -501,9 +473,6 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
     @package.setter
     def package(self, pipname):
         self._package = pipname
-
-        # get package data from cache
-        pkgInfo = self._packageInfoCache.get(self._package, None)
 
         # Disable/enable according to whether None
         active = pipname is not None
@@ -523,37 +492,7 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
             self.nameCtrl.SetLabelText("...")
             self.authorCtrl.SetLabelText("...")
         else:
-            self.params = pkgInfo
-
-            # Use pip show to get details
-            # cmd = f"{sys.executable} -m pip show {pipname}"
-            # output = sp.Popen(cmd,
-            #                   stdout=sp.PIPE,
-            #                   stderr=sp.PIPE,
-            #                   shell=True,
-            #                   universal_newlines=True)
-            # stdout, stderr = output.communicate()
-            # # Parse pip show info
-            # lines = stdout.split("\n")
-            # self.params = {}
-            # for line in lines:
-            #     if ":" not in line:
-            #         continue
-            #     name, val = line.split(": ", 1)
-            #     self.params[name] = val
-            # print(self.params)
-            # # Get versions info
-            # cmd = f"{sys.executable} -m pip index versions {pipname}"
-            # output = sp.Popen(cmd,
-            #                   stdout=sp.PIPE,
-            #                   stderr=sp.PIPE,
-            #                   shell=True,
-            #                   universal_newlines=True)
-            # stdout, stderr = output.communicate()
-            # # Parse versions info
-            # versions = stdout.split("\n")[1].strip()
-            # versions = versions.split(": ")[1]
-            # versions = versions.split(", ")
+            self.params = getPackageMetadata(self._package)
 
             if self.params is not None:
                 projectName = self.params.get('Name', pipname)  # missing? use `pipname`
