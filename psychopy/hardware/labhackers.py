@@ -14,7 +14,6 @@ These are optional components that can be obtained by installing the
 
 import psychopy.logging as logging
 
-
 try:
     from psychopy_labhackers import (
         getDevices, getSerialPorts, getUSB2TTL8s, USB2TTL8)
