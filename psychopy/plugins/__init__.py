@@ -30,7 +30,6 @@ import pkg_resources
 
 from psychopy import logging
 from psychopy.preferences import prefs
-import psychopy.experiment.components as components
 
 # Keep track of plugins that have been loaded. Keys are plugin names and values
 # are their entry point mappings.
@@ -383,7 +382,7 @@ def isStartUpPlugin(plugin):
     return plugin in listPlugins(which='startup')
 
 
-def loadPlugin(plugin, *args, **kwargs):
+def loadPlugin(plugin):
     """Load a plugin to extend PsychoPy.
 
     Plugins are packages which extend upon PsychoPy's existing functionality by
@@ -546,42 +545,6 @@ def loadPlugin(plugin, *args, **kwargs):
                         _failed_plugins_.append(plugin)
 
                     return False
-
-                # call the register function, check if exists and valid
-                if hasattr(imp, '__register__') and imp.__register__ is not None:
-                    if isinstance(imp.__register__, str):
-                        if hasattr(imp, imp.__register__):  # local to module
-                            func = getattr(imp, imp.__register__)
-                        else:  # could be a FQN?
-                            func = resolveObjectFromName(
-                                imp.__register__, error=False)
-                        # check if the reference object is callable
-                        if not callable(func):
-                            logging.error(
-                                "Plugin `{}` module defines `__register__` but "
-                                "the specified object is not a callable type. "
-                                "Skipping.".format(plugin))
-
-                            if plugin not in _failed_plugins_:
-                                _failed_plugins_.append(plugin)
-
-                            return False
-
-                    elif callable(imp.__register__):  # a function was supplied
-                        func = imp.__register__
-                    else:
-                        logging.error(
-                            "Plugin `{}` module defines `__register__` but "
-                            "is not `str` or callable type. Skipping.".format(
-                                plugin))
-
-                        if plugin not in _failed_plugins_:
-                            _failed_plugins_.append(plugin)
-
-                        return False
-
-                    # call the register function with arguments
-                    func(*args, **kwargs)
 
             # Ensure that we are not wholesale replacing an existing module.
             # We want plugins to be explicit about what they are changing.
@@ -999,44 +962,25 @@ def _registerBuilderComponent(ep):
 
     Parameters
     ----------
-    ep : ModuleType
-        Module containing the builder component to register.
+    ep : ClassType
+        Class defining the component.
 
     """
-    if not inspect.ismodule(ep):  # not a module
+    # get reference to the backend class
+    fqn = 'psychopy.experiment.components'
+    compPkg = resolveObjectFromName(
+        fqn, resolve=(fqn not in sys.modules), error=False)
+
+    if compPkg is None:
+        logging.error("Failed to resolve name `{}`.".format(fqn))
         return
 
-    # give a default category
-    if not hasattr(ep, 'categories'):
-        ep.categories = ['Custom']
-
-    # check if module contains components
-    for attrib in dir(ep):
-        # name and reference to component class
-        name = attrib
-        cls = getattr(ep, attrib)
-
-        if not inspect.isclass(cls):
-            continue
-
-        if not issubclass(cls, components.BaseComponent):
-            continue
-
-        components.pluginComponents[attrib] = getattr(ep, attrib)
-
-        # skip if this class was imported, not defined here
-        if ep.__name__ != components.pluginComponents[attrib].__module__:
-            continue  # class was defined in different module
-
-        if hasattr(ep, 'tooltip'):
-            components.tooltips[name] = ep.tooltip
-
-        if hasattr(ep, 'iconFile'):
-            components.iconFiles[name] = ep.iconFile
-
-        # assign the module categories to the Component
-        if not hasattr(components.pluginComponents[attrib], 'categories'):
-            components.pluginComponents[attrib].categories = ['Custom']
+    if hasattr(compPkg, 'addComponent'):
+        compPkg.addComponent(ep)
+    else:
+        raise AttributeError(
+            "Cannot find function `addComponent()` in namespace "
+            "`{}`".format(fqn))
 
 
 def _registerPhotometer(ep):
