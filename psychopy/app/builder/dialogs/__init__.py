@@ -1165,6 +1165,9 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.currentType = 'interleaved staircases'
         elif loop.type == 'QuestHandler':
             pass  # what to do for quest?
+        # Store conditions file
+        self.conditionsFileOrig = self._conditionsFile
+        self.conditionsOrig = self.conditions
         self.params['name'] = self.currentHandler.params['name']
         self.globalPanel = self.makeGlobalCtrls()
         self.stairPanel = self.makeStaircaseCtrls()
@@ -1231,6 +1234,24 @@ class DlgLoopProperties(_BaseParamsDlg):
             if checker:
                 checker.Validate(self)
         return self.warnings.OK
+
+    @property
+    def conditionsFile(self):
+        if self._conditionsFile is None:
+            # If no file, return None
+            return None
+        else:
+            # Otherwise return as unix string
+            return str(self._conditionsFile).replace("\\", "/")
+
+    @conditionsFile.setter
+    def conditionsFile(self, value):
+        if value is None:
+            # Store None as is
+            self._conditionsFile = None
+        else:
+            # Otherwise convert to Path
+            self._conditionsFile = Path(value)
 
     def makeGlobalCtrls(self):
         panel = wx.Panel(parent=self)
