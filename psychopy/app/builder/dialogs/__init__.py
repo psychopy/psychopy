@@ -1237,6 +1237,10 @@ class DlgLoopProperties(_BaseParamsDlg):
 
     @property
     def conditionsFile(self):
+        """
+        Location of the conditions file, in whatever format it is best available in. Ideally
+        relative to the experiment path, but if this is not possible, then absolute.
+        """
         if not hasattr(self, "_conditionsFile") or self._conditionsFile is None:
             # If no file, return None
             return None
@@ -1247,7 +1251,7 @@ class DlgLoopProperties(_BaseParamsDlg):
     @conditionsFile.setter
     def conditionsFile(self, value):
         # Store last value
-        self.conditionsFileOrig = self.conditionsFile
+        self.conditionsFileOrig = self.conditionsFileAbs
 
         if value is None:
             # Store None as is
@@ -1260,6 +1264,21 @@ class DlgLoopProperties(_BaseParamsDlg):
                 self._conditionsFile = value.relative_to(self.expPath)
             except ValueError:
                 self._conditionsFile = value
+
+    @property
+    def conditionsFileAbs(self):
+        """
+        Absolute path to the conditions file
+        """
+        if not hasattr(self, "_conditionsFile") or self._conditionsFile is None:
+            # If no file, return None
+            return None
+        elif self._conditionsFile.is_absolute():
+            # Return as is if absolute
+            return str(self._conditionsFile)
+        else:
+            # Append to experiment path if relative
+            return str(self.expPath / self._conditionsFile)
 
     def makeGlobalCtrls(self):
         panel = wx.Panel(parent=self)
@@ -1560,12 +1579,12 @@ class DlgLoopProperties(_BaseParamsDlg):
         dlg = wx.FileDialog(self, message=_translate("Open file ..."),
                             style=wx.FD_OPEN, defaultDir=expFolder)
         if dlg.ShowModal() == wx.ID_OK:
-            self.conditionsFile = newFullPath = dlg.GetPath()
+            self.conditionsFile = dlg.GetPath()
             # Check whether the file and path are the same as previously
-            isSameFilePathAndName = self.conditionsFile == self.expPath / self.conditionsFileOrig
+            isSameFilePathAndName = self.conditionsFileAbs == self.conditionsFileOrig
             needUpdate = False
             try:
-                _c, _n = data.importConditions(dlg.GetPath(),
+                _c, _n = data.importConditions(self.conditionsFileAbs,
                                                returnFieldNames=True)
                 self.conditions, self.condNamesInFile = _c, _n
                 needUpdate = True
@@ -1573,11 +1592,10 @@ class DlgLoopProperties(_BaseParamsDlg):
                 msg = str(msg)
                 if msg.startswith('Could not open'):
                     msg = _translate('Could not read conditions from:\n')
-                    _file = newFullPath.split(os.path.sep)[-1]
-                    self.currentCtrls['conditions'].setValue(msg + _file)
+                    self.currentCtrls['conditions'].setValue(msg + self._conditionsFile.name)
                     self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
                     logging.error(
-                        'Could not open as a conditions file: %s' % newFullPath)
+                        'Could not open as a conditions file: %s' % self.conditionsFileAbs)
                 else:
                     mo = re.search(r'".+\.[0-9]+"$', msg)
                     if 'cannot contain punctuation or spaces' in msg and mo:
@@ -1598,11 +1616,11 @@ class DlgLoopProperties(_BaseParamsDlg):
                         parent=self.frame, message=m2,
                         type='Info', title=_title).ShowModal()
                     msg = _translate('Bad condition name(s) in file:\n')
-                    val = msg + newFullPath.split(os.path.sep)[-1]
+                    val = msg + self._conditionsFile.name
                     self.currentCtrls['conditions'].setValue(val)
                     self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
                     msg = 'Rejected bad condition name(s) in file: %s'
-                    logging.error(msg % newFullPath)
+                    logging.error(msg % self.conditionsFileAbs)
                 self.conditionsFile = self.conditionsFileOrig
                 self.conditions = self.conditionsOrig
                 return  # no update or display changes
@@ -1614,11 +1632,11 @@ class DlgLoopProperties(_BaseParamsDlg):
                     builderVariables.append(condName)
             if builderVariables:
                 msg = _translate('Builder variable(s) ({}) in file:{}').format(
-                    ','.join(builderVariables), newFullPath.split(os.path.sep)[-1])
+                    ','.join(builderVariables), self._conditionsFile.name)
                 self.currentCtrls['conditions'].setValue(msg)
                 self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
                 msg = 'Rejected Builder variable(s) ({}) in file:{}'.format(
-                    ','.join(builderVariables), newFullPath.split(os.path.sep)[-1])
+                    ','.join(builderVariables), self._conditionsFile.name)
                 logging.error(msg)
                 self.conditionsFile = self.conditionsFileOrig
                 self.conditions = self.conditionsOrig
