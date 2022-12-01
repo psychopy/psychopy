@@ -1641,9 +1641,6 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.conditions = self.conditionsOrig
             return  # no update or display changes
 
-        # Replace backslashes
-        self.conditionsFile = self.conditionsFile.replace("\\", "/")
-
         duplCondNames = []
         if len(self.condNamesInFile):
             for condName in self.condNamesInFile:
@@ -1659,7 +1656,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                        'duplicate condition names in file: %s')
                 logging.info(msg % self.conditionsFile)
             else:
-                self.currentCtrls['conditionsFile'].setValue(self.conditionsFile)
+                self.currentCtrls['conditionsFile'].setValue(self.conditionsFile or "")
                 val = ('Warning: Condition names conflict with existing'
                        ':\n[' + duplCondNamesStr + ']\nProceed'
                        ' anyway? (= safe if these are in old file)')
@@ -1676,7 +1673,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         if (needUpdate
                 or ('conditionsFile' in list(self.currentCtrls.keys())
                     and not duplCondNames)):
-            self.currentCtrls['conditionsFile'].setValue(self.conditionsFile)
+            self.currentCtrls['conditionsFile'].setValue(self.conditionsFile or "")
             msg, OK = self.getTrialsSummary(self.conditions)
             self.currentCtrls['conditions'].setValue(msg)
             if OK:
