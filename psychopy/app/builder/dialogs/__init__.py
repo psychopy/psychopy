@@ -1110,6 +1110,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                            pos, size, style)
         self.helpUrl = helpUrl
         self.frame = frame
+        self.expPath = Path(self.frame.filename).parent
         self.exp = frame.exp
         self.app = frame.app
         self.dpi = self.app.dpi
@@ -1166,7 +1167,6 @@ class DlgLoopProperties(_BaseParamsDlg):
         elif loop.type == 'QuestHandler':
             pass  # what to do for quest?
         # Store conditions file
-        self.conditionsFileOrig = self._conditionsFile
         self.conditionsOrig = self.conditions
         self.params['name'] = self.currentHandler.params['name']
         self.globalPanel = self.makeGlobalCtrls()
@@ -1237,7 +1237,7 @@ class DlgLoopProperties(_BaseParamsDlg):
 
     @property
     def conditionsFile(self):
-        if self._conditionsFile is None:
+        if not hasattr(self, "_conditionsFile") or self._conditionsFile is None:
             # If no file, return None
             return None
         else:
@@ -1246,12 +1246,20 @@ class DlgLoopProperties(_BaseParamsDlg):
 
     @conditionsFile.setter
     def conditionsFile(self, value):
+        # Store last value
+        self.conditionsFileOrig = self.conditionsFile
+
         if value is None:
             # Store None as is
             self._conditionsFile = None
         else:
             # Otherwise convert to Path
-            self._conditionsFile = Path(value)
+            value = Path(value)
+            # Relativise if possible
+            try:
+                self._conditionsFile = value.relative_to(self.expPath)
+            except ValueError:
+                self._conditionsFile = value
 
     def makeGlobalCtrls(self):
         panel = wx.Panel(parent=self)
@@ -1552,19 +1560,9 @@ class DlgLoopProperties(_BaseParamsDlg):
         dlg = wx.FileDialog(self, message=_translate("Open file ..."),
                             style=wx.FD_OPEN, defaultDir=expFolder)
         if dlg.ShowModal() == wx.ID_OK:
-            newFullPath = dlg.GetPath()
-            if self.conditionsFile:
-                _path = os.path.join(expFolder, self.conditionsFile)
-                oldFullPath = os.path.abspath(_path)
-                isSameFilePathAndName = bool(newFullPath == oldFullPath)
-            else:
-                isSameFilePathAndName = False
-
-            try:
-                newPath = str(Path(newFullPath).relative_to(expFolder))
-            except ValueError:
-                newPath = str(Path(newFullPath).absolute())
-            self.conditionsFile = newPath
+            self.conditionsFile = newFullPath = dlg.GetPath()
+            # Check whether the file and path are the same as previously
+            isSameFilePathAndName = self.conditionsFile == self.expPath / self.conditionsFileOrig
             needUpdate = False
             try:
                 _c, _n = data.importConditions(dlg.GetPath(),
