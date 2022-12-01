@@ -1575,9 +1575,8 @@ class DlgLoopProperties(_BaseParamsDlg):
     def onBrowseTrialsFile(self, event):
         self.conditionsFileOrig = self.conditionsFile
         self.conditionsOrig = self.conditions
-        expFolder, expName = os.path.split(self.frame.filename)
         dlg = wx.FileDialog(self, message=_translate("Open file ..."),
-                            style=wx.FD_OPEN, defaultDir=expFolder)
+                            style=wx.FD_OPEN, defaultDir=str(self.expPath))
         if dlg.ShowModal() == wx.ID_OK:
             self.conditionsFile = dlg.GetPath()
             # Check whether the file and path are the same as previously
