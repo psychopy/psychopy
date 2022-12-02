@@ -34,7 +34,7 @@ from psychopy.alerts import alert
 from ...colorpicker import PsychoColorPicker
 from pathlib import Path
 
-from ...themes import handlers
+from ...themes import handlers, icons
 
 white = wx.Colour(255, 255, 255, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
@@ -1367,12 +1367,18 @@ class DlgLoopProperties(_BaseParamsDlg):
                                    param=text, noCtrls=True)
                 ctrls.valueCtrl = wx.StaticText(
                     panel, label=text, style=wx.ALIGN_RIGHT)
-                if hasattr(ctrls.valueCtrl, "_szr"):
-                    panelSizer.Add(ctrls.valueCtrl._szr, (row, 1),
-                                   flag=wx.ALIGN_RIGHT)
-                else:
-                    panelSizer.Add(ctrls.valueCtrl, (row, 1),
-                                   flag=wx.ALIGN_RIGHT)
+                ctrls.valueCtrl._szr = wx.BoxSizer(wx.HORIZONTAL)
+                ctrls.valueCtrl._szr.Add(ctrls.valueCtrl)
+                panelSizer.Add(ctrls.valueCtrl._szr, (row, 1),
+                               flag=wx.ALIGN_RIGHT)
+                # create refresh button
+                ctrls.refreshBtn = wx.Button(panel, style=wx.BU_EXACTFIT | wx.BORDER_NONE)
+                ctrls.refreshBtn.SetBitmap(
+                    icons.ButtonIcon("view-refresh", size=16).bitmap
+                )
+                ctrls.refreshBtn.Bind(wx.EVT_BUTTON, self.updateSummary)
+                ctrls.valueCtrl._szr.Prepend(ctrls.refreshBtn, border=12, flag=wx.LEFT | wx.RIGHT | wx.ALIGN_TOP)
+
                 row += 1
             else:  # normal text entry field
                 ctrls = ParamCtrls(dlg=self, parent=panel, label=label,
@@ -1387,6 +1393,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             # Link conditions file browse button to its own special method
             if fieldName == 'conditionsFile':
                 ctrls.valueCtrl.findBtn.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile)
+                ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.setNeedUpdate)
             # store info about the field
             self.constantsCtrls[fieldName] = ctrls
         panelSizer.AddGrowableCol(1, 1)
@@ -1591,7 +1598,14 @@ class DlgLoopProperties(_BaseParamsDlg):
             )
             self.updateSummary()
 
-    def updateSummary(self):
+    def setNeedUpdate(self, evt=None):
+        """
+        Mark that conditions need an update, i.e. enable the refresh button
+        """
+        self.constantsCtrls['conditions'].refreshBtn.Enable()
+
+    def updateSummary(self, evt=None):
+        self.conditionsFile = self.constantsCtrls['conditionsFile'].valueCtrl.GetValue()
         # Check whether the file and path are the same as previously
         isSameFilePathAndName = self.conditionsFileAbs == self.conditionsFileOrig
         # Start off with no message and assumed valid
@@ -1700,6 +1714,8 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
         self.Layout()
         self.Fit()
+        # Disable update button now that we're up to date
+        self.constantsCtrls['conditions'].refreshBtn.Disable()
 
     def getParams(self):
         """Retrieves data and re-inserts it into the handler and returns
