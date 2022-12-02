@@ -1258,7 +1258,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         # Store last value
         self.conditionsFileOrig = self.conditionsFileAbs
 
-        if value is None:
+        if value in (None, ""):
             # Store None as is
             self._conditionsFile = None
         elif "$" in str(value):
@@ -1586,6 +1586,9 @@ class DlgLoopProperties(_BaseParamsDlg):
                             style=wx.FD_OPEN, defaultDir=str(self.expPath))
         if dlg.ShowModal() == wx.ID_OK:
             self.conditionsFile = dlg.GetPath()
+            self.constantsCtrls['conditionsFile'].valueCtrl.SetValue(
+                self.conditionsFile
+            )
             self.updateSummary()
 
     def updateSummary(self):
@@ -1594,7 +1597,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         # Start off with no message and assumed valid
         msg = ""
         valid = True
-        if self.conditionsFile is None:
+        if self.conditionsFile in (None, ""):
             # If no conditions file, no message
             msg = ""
             valid = True
@@ -1708,7 +1711,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 continue  # this was deprecated in v1.62.00
             param = self.currentHandler.params[fieldName]
             if fieldName in ['conditionsFile']:
-                param.val = self.conditionsFile
+                param.val = self.conditionsFile or ""
                 # not the value from ctrl - that was abbreviated
                 # see onOK() for partial handling = check for '...'
             else:  # most other fields
