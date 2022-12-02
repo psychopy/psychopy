@@ -1741,53 +1741,10 @@ class DlgLoopProperties(_BaseParamsDlg):
                     param.updates = ctrls.getUpdates()
         return self.currentHandler.params
 
-    def refreshConditions(self):
-        """user might have manually edited the conditionsFile name,
-        which in turn affects self.conditions and namespace. It's harder
-        to handle changes to long names that have been abbrev()'d, so
-        skip them (names containing '...').
-        """
-        val = self.currentCtrls['conditionsFile'].valueCtrl.GetValue()
-        if val.find('...') == -1 and self.conditionsFile != val:
-            self.conditionsFile = val
-            if self.conditions:
-                self.exp.namespace.remove(list(self.conditions[0].keys()))
-            if os.path.isfile(self.conditionsFile):
-                try:
-                    self.conditions = data.importConditions(
-                        self.conditionsFile)
-                    msg, OK = self.getTrialsSummary(self.conditions)
-                    self.currentCtrls['conditions'].setValue(msg)
-                    if OK:
-                        self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Black")
-                    else:
-                        self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
-                except (ImportError, ValueError) as e:
-                    msg1 = _translate(
-                        'Badly formed condition name(s) in file:\n')
-                    msg2 = _translate('.\nNeed to be legal as var name; '
-                                      'edit file, try again.')
-                    val = msg1 + str(e).replace(':', '\n') + msg2
-                    self.currentCtrls['conditions'].setValue(val)
-                    self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
-                    self.conditions = ''
-                    msg3 = 'Reject bad condition name in conditions file: %s'
-                    logging.error(msg3 % str(e).split(':')[0])
-            else:
-                self.conditions = None
-                self.currentCtrls['conditions'].setValue(_translate(
-                    "No parameters set (conditionsFile not found)"))
-                self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
-        else:
-            msg = ('DlgLoop: could not determine if a condition'
-                   ' filename was edited')
-            logging.debug(msg)
-            # self.currentCtrls['conditions'] could be misleading here
-
     def onOK(self, event=None):
         # intercept OK in case user deletes or edits the filename manually
         if 'conditionsFile' in self.currentCtrls:
-            self.refreshConditions()
+            self.updateSummary()
         event.Skip()  # do the OK button press
 
 
