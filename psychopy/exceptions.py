@@ -33,7 +33,25 @@ class RepositoryError(Exception):
 
 
 class ConditionsImportError(Exception):
-    pass
+    """
+    Exception class to handle errors arising when attempting to import conditions
+    from a file. Includes attribute "reason" so that the source of the error can
+    be identified without parsing the error message, as this method falls down
+    when the error message is translated.
+
+    Parameters
+    ==========
+    msg : str
+        The error message to be displayed, same as any other Exception
+    reason : str
+        Language-agnostic label for the error.
+    """
+
+    def __init__(self, msg, reason=""):
+        # Initialise exception with message
+        Exception.__init__(self, msg)
+        # Add reason
+        self.reason = reason
 
 
 class MissingFontError(Exception):
