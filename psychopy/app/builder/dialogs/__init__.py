@@ -1126,6 +1126,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.conditions = None
         self.conditionsFile = None
+        self.condNamesInFile = []
         # create a valid new name; save old name in case we need to revert
         namespace = frame.exp.namespace
         defaultName = namespace.makeValid('trials')
@@ -1625,7 +1626,6 @@ class DlgLoopProperties(_BaseParamsDlg):
                 _c, _n = data.importConditions(self.conditionsFileAbs.strip(),
                                                returnFieldNames=True)
                 self.conditions, self.condNamesInFile = _c, _n
-                needUpdate = True
             except (ImportError, ValueError, OSError) as msg:
                 msg = str(msg)
                 if msg.startswith('Could not open'):
@@ -1700,9 +1700,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             # add after self.show() in __init__:
             self.duplCondNames = duplCondNames
 
-            if (needUpdate
-                    or ('conditionsFile' in list(self.currentCtrls.keys())
-                        and not duplCondNames)):
+            if ('conditionsFile' in list(self.currentCtrls.keys()) and not duplCondNames):
                 self.currentCtrls['conditionsFile'].setValue(self.conditionsFile or "")
                 msg, valid = self.getTrialsSummary(self.conditions)
 
