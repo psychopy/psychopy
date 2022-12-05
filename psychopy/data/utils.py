@@ -286,8 +286,8 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                 # tailor message to importConditions
                 msg = msg.replace('Variables', 'Parameters (column headers)')
                 raise exceptions.ConditionsImportError(
-                    _translate('Bad name in %s: %s (%s)') %
-                    (fileName, name, msg),
+                    _translate('Bad name: %s%s"%s"') %
+                    (name, os.linesep, msg),
                     reason=":".join(["varname", reason])
                 )
 
