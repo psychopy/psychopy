@@ -1394,7 +1394,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             # Link conditions file browse button to its own special method
             if fieldName == 'conditionsFile':
                 ctrls.valueCtrl.findBtn.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile)
-                ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.setNeedUpdate)
+                ctrls.setChangesCallback(self.setNeedUpdate)
             # store info about the field
             self.constantsCtrls[fieldName] = ctrls
         panelSizer.AddGrowableCol(1, 1)
