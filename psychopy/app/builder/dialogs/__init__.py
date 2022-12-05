@@ -1622,11 +1622,11 @@ class DlgLoopProperties(_BaseParamsDlg):
         else:
             duplCondNames = []
             try:
-                _c, _n = data.importConditions(self.conditionsFileAbs,
+                _c, _n = data.importConditions(self.conditionsFileAbs.strip(),
                                                returnFieldNames=True)
                 self.conditions, self.condNamesInFile = _c, _n
                 needUpdate = True
-            except (ImportError, ValueError) as msg:
+            except (ImportError, ValueError, OSError) as msg:
                 msg = str(msg)
                 if msg.startswith('Could not open'):
                     msg = _translate('Could not read conditions from: %s\n') % self.conditionsFile
