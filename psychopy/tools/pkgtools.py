@@ -11,7 +11,8 @@
 __all__ = [
     'getDistributions',
     'addDistribution',
-    'getInstalledPackages'
+    'getInstalledPackages',
+    'getPackageMetadata'
 ]
 
 import pkg_resources
@@ -51,72 +52,57 @@ def addDistribution(distPath):
 
 
 def getInstalledPackages():
-    """Get a mapping of installed packages with their metadata for the current
-    environment.
+    """Get a list of installed packages and their versions.
 
     Returns
     -------
-    dict
-        Mapping where keys (`str`) are found package names and values are
-        metadata. Metadata are mappings where keys (`str`) are field names and
-        values (`Any`) are data related to each field.
+    list
+        List of installed packages and their versions i.e. `('PsychoPy',
+        '2021.3.1')`.
 
     """
-    toReturn = dict()
-
-    # get packages and metadata
+    # this is like calling `pip freeze` and parsing the output, but faster!
+    installedPackages = []
     for pkg in pkg_resources.working_set:
-        pkg = pkg_resources.get_distribution(pkg.key)
-        metadata = pkg.get_metadata(pkg.PKG_INFO)
+        thisPkg = pkg_resources.get_distribution(pkg.key)
+        installedPackages.append(
+            (thisPkg.project_name, thisPkg.version))
 
-        # parse metadata
+    return installedPackages
 
-        inHeader = True
-        descriptionText = []
-        metadict = dict()
-        for line in metadata.split('\n'):
-            if not line and inHeader:
-                inHeader = False
 
-            if not inHeader:
-                descriptionText.append(line + '\n')  # restore NL after split
-                continue
+def getPackageMetadata(packageName):
+    """Get the metadata for a specified package.
 
-            # valid single line fields
-            singleFields = (
-                'Metadata-Version',
-                'Name',
-                'Version',
-                'Summary',
-                'Home-page',
-                'Author',
-                'Author-email',
-                'License',
-                'Keywords',
-                'Description-Content-Type'
-            )
+    Paramters
+    ---------
+    packageName : str
+        Project name of package to get metadata from.
 
-            if any([line.startswith(f + ':') for f in singleFields]):
-                fieldName, fieldValue = [p.strip() for p in line.split(':', 1)]
-                # add only if the field is not already present
-                if fieldName not in metadict.keys():
-                    metadict[fieldName] = fieldValue
-            elif line.startswith('Classifier:'):  # todo - handle these cases
-                pass
-            elif line.startswith('Requires-Dist:'):
-                pass
-            elif line.startswith('Platform:'):
-                pass
-            elif line.startswith('Requires-Python:'):
-                pass
+    Returns
+    -------
+    dict or None
+        Dictionary of metadata fields. If `None` is returned, the package isn't
+        present in the current distribution.
 
-        if descriptionText:
-            metadict['Description'] = ''.join(descriptionText)
+    """
+    import email.parser
 
-        toReturn[pkg.key] = metadict
+    try:
+        dist = pkg_resources.get_distribution(packageName)
+    except pkg_resources.DistributionNotFound:
+        return  # do nothing
 
-    return toReturn
+    metadata = dist.get_metadata(dist.PKG_INFO)
+
+    # parse the metadata using
+    metadict = dict()
+    for key, val in email.message_from_string(metadata).raw_items():
+        metadict[key] = val
+
+    return metadict
 
 
 if __name__ == "__main__":
-    pass
+    getPackageMetadata('sdfdsfasdf')
+

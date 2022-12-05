@@ -206,7 +206,11 @@ def getInitVals(params, target="PsychoPy"):
             "from exp settings",
             "none"
     ):
-        inits['units'].val = "win.units"
+        if target == "PsychoJS":
+            inits['units'].val = "psychoJS.window"
+        else:
+            inits['units'].val = "win.units"
+
         inits['units'].valType = 'code'
 
     for name in params:
