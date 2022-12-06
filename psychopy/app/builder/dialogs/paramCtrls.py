@@ -511,6 +511,10 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
     def validate(self, evt=None):
         """Redirect validate calls to global validate method, assigning appropriate valType"""
         validate(self, "file")
+        # Disable Excel button if value is from a variable
+        if "$" in self.GetValue():
+            self.xlBtn.Disable()
+            return
         # Enable Excel button if valid
         self.xlBtn.Enable(self.valid)
         # Is component type available?
