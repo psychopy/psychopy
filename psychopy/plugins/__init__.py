@@ -17,7 +17,8 @@ __all__ = [
     'requirePlugin',
     'isPluginLoaded',
     'isStartUpPlugin',
-    'activatePlugins'
+    'activatePlugins',
+    'discoverModuleClasses'
 ]
 
 import sys
@@ -420,9 +421,6 @@ def loadPlugin(plugin):
     plugin : str
         Name of the plugin package to load. This usually refers to the package
         or project name.
-    *args, **kwargs
-        Optional arguments and keyword arguments to pass to the plugin's
-        `__register__` function.
 
     Returns
     -------
@@ -484,7 +482,7 @@ def loadPlugin(plugin):
             'Specified package `{}` defines no entry points for PsychoPy. '
             'Skipping.'.format(plugin))
 
-        if plugin not in _failed_plugins_.keys():
+        if plugin not in _failed_plugins_:
             _failed_plugins_.append(plugin)
 
         return False  # can't do anything more here, so return
@@ -873,6 +871,94 @@ def activatePlugins():
     # go over the list of plugins and load them
     for plugin in listPlugins('startup'):
         loadPlugin(plugin)
+
+
+def discoverModuleClasses(nameSpace, classType, includeUnbound=True):
+    """Discover classes and sub-classes matching a specific type within a
+    namespace.
+
+    This function is used to scan a namespace for references to specific classes
+    and sub-classes. Classes may be either bound or unbound. This is useful for
+    scanning namespaces for plugins which have loaded their entry points into
+    them at runtime.
+
+    Parameters
+    ----------
+    nameSpace : str or ModuleType
+        Fully-qualified path to the namespace, or the reference itself. If the
+        specified module hasn't been loaded, it will be after calling this.
+    classType : Any
+        Which type of classes to get. Any value that `isinstance` or
+        `issubclass` expects as its second argument is valid.
+    includeUnbound : bool
+        Include unbound classes in the search. If `False` only bound objects are
+        returned. The default is `True`.
+
+    Returns
+    -------
+    dict
+        Mapping of names and associated classes.
+
+    Examples
+    --------
+    Get references to all visual stimuli classes. Since they all are derived
+    from `psychopy.visual.basevisual.BaseVisualStim`, we can specify that as
+    the type to search for::
+
+        import psychopy.plugins as plugins
+        import psychopy.visual as visual
+
+        foundClasses = plugins.discoverModuleClasses(
+            visual,   # base module to search
+            visual.basevisual.BaseVisualStim,  # type to search for
+            includeUnbound=True  # get unbound classes too
+        )
+
+    The resulting dictionary referenced by `foundClasses` will look like::
+
+        foundClasses = {
+           'BaseShapeStim': <class 'psychopy.visual.shape.BaseShapeStim'>,
+           'BaseVisualStim': <class 'psychopy.visual.basevisual.BaseVisualStim'>
+           # ~~~ snip ~~~
+           'TextStim': <class 'psychopy.visual.text.TextStim'>,
+           'VlcMovieStim': <class 'psychopy.visual.vlcmoviestim.VlcMovieStim'>
+        }
+
+    To search for classes more broadly, pass `object` as the type to search
+    for::
+
+        foundClasses = plugins.discoverModuleClasses(visual, object)
+
+    """
+    if isinstance(nameSpace, str):
+        module = resolveObjectFromName(
+            nameSpace,
+            resolve=(nameSpace not in sys.modules),
+            error=False)  # catch error below
+    elif inspect.ismodule(nameSpace):
+        module = nameSpace
+    else:
+        raise TypeError(
+            'Invalid type for parameter `nameSpace`. Must be `str` or '
+            '`ModuleType`')
+
+    if module is None:
+        raise ImportError("Cannot resolve namespace `{}`".format(nameSpace))
+
+    foundClasses = {}
+
+    if includeUnbound:  # get unbound classes in a module
+        for name, attr in inspect.getmembers(module):
+            if inspect.isclass(attr) and issubclass(attr, classType):
+                foundClasses[name] = attr
+
+    # now get bound objects, overwrites unbound names if they show up
+    for name in dir(module):
+        attr = getattr(module, name)
+        if inspect.isclass(attr) and issubclass(attr, classType):
+            foundClasses[name] = attr
+
+    return foundClasses
 
 
 # ------------------------------------------------------------------------------
