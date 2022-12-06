@@ -103,7 +103,8 @@ def isValidVariableName(name):
     if name[0].isdigit():
         return (
             False,
-            _translate("Variables cannot begin with numeric character"),
+            "Variables cannot begin with numeric character",
+            _translate("Variables cannot begin with numeric character")
         )
     if _nonalphanumeric_re.search(name):
         return (
