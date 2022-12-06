@@ -5,7 +5,7 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-"""Extensible set of components for the PsychoPy Builder view
+"""Extensible set of components for the PsychoPy Builder view.
 """
 
 import sys
@@ -26,7 +26,6 @@ excludeComponents = [
     'BaseVisualComponent',
     'BaseStandaloneRoutine'  # templates only
 ]  # this one isn't ready yet
-
 
 # Plugin components are added dynamically at runtime, usually from plugin
 # packages. These are managed by a different system than 'legacy'
