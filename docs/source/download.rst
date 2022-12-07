@@ -167,7 +167,7 @@ To activate the newly-created environment and run |PsychoPy|, execute::
 Developers install
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Ensure you have Python 3.6 and the latest version of pip installed::
+Ensure you have Python 3.8 and the latest version of pip installed::
 
   python --version
   pip --version
@@ -178,9 +178,9 @@ From the directory where you cloned the latest |PsychoPy| repository (i.e., wher
 
   pip install -e .
 
-This will install all |PsychoPy| dependencies to your default Python distribution (which should be Python 3.6). Next, you should create a new |PsychoPy| shortcut linking your newly installed dependencies to your current version of |PsychoPy| in the cloned repository. To do this, simply create a new .BAT file containing::
+This will install all |PsychoPy| dependencies to your default Python distribution (which should be Python 3.8). Next, you should create a new |PsychoPy| shortcut linking your newly installed dependencies to your current version of |PsychoPy| in the cloned repository. To do this, simply create a new .BAT file containing::
 
-"C:\PATH_TO_PYTHON3.6\python.exe C:\PATH_TO_CLONED_PSYCHOPY_REPO\psychopy\app\psychopyApp.py"
+"C:\PATH_TO_PYTHON3.8\python.exe C:\PATH_TO_CLONED_PSYCHOPY_REPO\psychopy\app\psychopyApp.py"
 
 Alternatively, you can run the psychopyApp.py from the command line::
 
