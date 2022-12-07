@@ -535,10 +535,20 @@ def loadPlugin(plugin):
                 try:
                     imp = importlib.import_module(ep.module_name)
                 except (ModuleNotFoundError, ImportError):
+                    importSuccess = False
                     logging.error(
                         "Plugin `{}` entry point requires module `{}`, but it"
                         "cannot be imported.".format(plugin, ep.module_name))
+                except (NameError, AttributeError):
+                    importSuccess = False
+                    logging.error(
+                        "Plugin `{}` entry point requires module `{}`, but an "
+                        "error occurred while loading it.".format(
+                            plugin, ep.module_name))
+                else:
+                    importSuccess = True
 
+                if not importSuccess:  # if we failed to import
                     if plugin not in _failed_plugins_:
                         _failed_plugins_.append(plugin)
 
