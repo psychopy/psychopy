@@ -12,6 +12,10 @@ by calling the :func:`getAllButtonBoxes()` function.
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
+__all__ = [
+    'getAllButtonBoxes'
+]
+
 import sys
 import psychopy.logging as logging
 
