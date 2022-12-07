@@ -30,9 +30,9 @@ except (ModuleNotFoundError, ImportError):
 
 # ioLabs
 try:
-    from ..iolab import ButtonBox as ioLabButtonBox
-except (ModuleNotFoundError, ImportError, NameError):  # NameError from dud package
-    ioLabButtonBox = None
+    from ..iolab import ButtonBox as ioLabsButtonBox
+except (ModuleNotFoundError, ImportError, NameError):  # NameError from dud pkg
+    ioLabsButtonBox = None
 
 
 def getAllButtonBoxes():
@@ -48,13 +48,14 @@ def getAllButtonBoxes():
     foundBBoxes = {}
 
     # classes from extant namespaces
-    optionalBBoxes = ('RB730', 'ioLabButtonBox')
+    optionalBBoxes = ('RB730', 'ioLabsButtonBox')
 
     for bboxName in optionalBBoxes:
         bboxClass = getattr(sys.modules[__name__], bboxName)
         if bboxClass is None:  # not loaded if `None`
             continue
 
+        logging.debug('Found button box class `{}`'.format(bboxName))
         foundBBoxes[bboxName] = bboxClass
 
     # Merge with classes from plugins. Duplicate names will be overwritten by
