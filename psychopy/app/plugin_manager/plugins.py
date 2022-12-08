@@ -241,7 +241,7 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
         self.SetBackgroundColour("white")
 
 
-class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
+class PluginBrowserList(wx.ScrolledWindow, handlers.ThemeMixin):
     class PluginListItem(wx.Window, handlers.ThemeMixin):
         """
         Individual item pointing to a plugin
@@ -378,7 +378,7 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
                 evt.Skip()
 
     def __init__(self, parent, viewer=None):
-        wx.Panel.__init__(self, parent=parent)
+        wx.ScrolledWindow.__init__(self, parent=parent, style=wx.VSCROLL)
         self.parent = parent
         self.viewer = viewer
         # Setup sizer
@@ -404,6 +404,8 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         items.sort(key=lambda obj: obj.installed, reverse=True)
         for item in items:
             self.appendItem(item)
+        # Layout
+        self.Layout()
 
     def onClick(self, evt=None):
         self.SetFocusIgnoringChildren()
