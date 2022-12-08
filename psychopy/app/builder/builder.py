@@ -860,9 +860,14 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 self.readmeFilename = str(possibles[0])  # take the first one found
         else:
             self.readmeFilename = None
+        # don't try to open viewer if there's no file
+        if Path(self.readmeFilename).is_file():
+            filename = self.readmeFilename
+        else:
+            filename = None
         # create the frame if we don't have one yet
         if self.readmeFrame is None:
-            self.readmeFrame = ReadmeFrame(parent=self, filename=self.readmeFilename)
+            self.readmeFrame = ReadmeFrame(parent=self, filename=filename)
         content = self.readmeFrame.ctrl.getValue()
         if content and self.prefs['alwaysShowReadme']:
             self.showReadme()

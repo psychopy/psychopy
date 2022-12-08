@@ -760,12 +760,16 @@ class Vertices:
         if hasattr(self, "_anchorX") and hasattr(self, "_anchorY"):
             # If set, return set values
             return self._anchorX, self._anchorY
+        if hasattr(self.obj, "anchor"):
+            return self.obj.anchor
 
         # Otherwise, assume center
         return "center", "center"
 
     @anchor.setter
     def anchor(self, anchor):
+        if anchor is None and hasattr(self.obj, "anchor"):
+            anchor = self.obj.anchor
         # Set defaults
         self._anchorY = None
         self._anchorX = None
@@ -826,6 +830,8 @@ class Vertices:
         value /= getattr(self.size, units)
         # Account for flip
         value *= self._flip
+        # Account for anchor
+        value -= self.anchorAdjust * getattr(self.size, units)
         # Account for pos
         if self.pos is None:
             raise ValueError(

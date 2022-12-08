@@ -546,7 +546,7 @@ class SoundPTB(_SoundBase):
         """Stop the sound but play will continue from here if needed
         """
         if self.isPlaying:
-            self.track.stop()
+            self.track.stop(reset=False)
             self._isPlaying = False
         else:
             self.play()

@@ -375,7 +375,7 @@ def getInitVals(params, target="PsychoPy"):
         elif name == 'vertices':
             inits[name].val = "[[-0.5,-0.5], [-0.5, 0.5], [0.5, 0.5], [0.5, -0.5]]"
             inits[name].valType = 'code'
-        elif name in ('movie', 'latitude', 'longitude', 'altitude', 'azimuth'):
+        elif name in ('movie', 'latitude', 'longitude', 'altitude', 'azimuth', 'tailPoint'):
             inits[name].val = 'None'
             inits[name].valType = 'code'
         else:
