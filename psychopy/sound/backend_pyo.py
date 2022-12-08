@@ -10,12 +10,15 @@ import os
 import atexit
 import threading
 from itertools import chain
+from pathlib import Path
+
 from numpy import float64
 from psychopy import prefs
 from .exceptions import DependencyError
 from psychopy import core, logging
 from psychopy.constants import (STARTED, FINISHED, STOPPED, NOT_STARTED,
                                 FOREVER)
+from psychopy.tools import filetools as ft
 from ._base import _SoundBase
 
 
@@ -425,6 +428,9 @@ class SoundPyo(_SoundBase):
                                   loop=doLoop, mul=self.volume)
 
     def _setSndFromFile(self, fileName):
+        # alias default names (so it always points to default.png)
+        if fileName in ft.defaultStim:
+            fileName = Path(prefs.paths['resources']) / ft.defaultStim[fileName]
         # want mono sound file played to both speakers, not just left / 0
         self.fileName = fileName
         self._sndTable = pyo.SndTable(initchnls=self.channels)

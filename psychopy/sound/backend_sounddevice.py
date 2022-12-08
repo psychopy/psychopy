@@ -6,15 +6,17 @@ import os
 import time
 import re
 import atexit
+from pathlib import Path
 
 try:
     import readline  # Work around GH-2230
 except ImportError:
     pass  # all that will happen is the stderr/stdout might get redirected
 
-from psychopy import logging
+from psychopy import logging, prefs
 from psychopy.constants import (PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED)
+from psychopy.tools import filetools as ft
 from .exceptions import SoundFormatError, DependencyError
 from ._base import _SoundBase, HammingWindow
 
@@ -389,6 +391,9 @@ class SoundDeviceSound(_SoundBase):
                                                 sampleRate=self.sampleRate)
 
     def _setSndFromFile(self, filename):
+        # alias default names (so it always points to default.png)
+        if filename in ft.defaultStim:
+            filename = Path(prefs.paths['resources']) / ft.defaultStim[filename]
         self.sndFile = f = sf.SoundFile(filename)
         self.sourceType = 'file'
         self.sampleRate = f.samplerate

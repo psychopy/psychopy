@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from pathlib import Path
 
 import numpy
 from os import path
-from psychopy import logging
+from psychopy import logging, prefs
 from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)
+from psychopy.tools import filetools as ft
 from ._base import _SoundBase
 from .exceptions import DependencyError
 
@@ -271,6 +273,9 @@ class SoundPygame(_SoundBase):
         return self.getVolume()
 
     def _setSndFromFile(self, fileName):
+        # alias default names (so it always points to default.png)
+        if fileName in ft.defaultStim:
+            fileName = Path(prefs.paths['resources']) / ft.defaultStim[fileName]
         # load the file
         if not path.isfile(fileName):
             msg = "Sound file %s could not be found." % fileName

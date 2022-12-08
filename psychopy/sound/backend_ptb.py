@@ -9,10 +9,12 @@ import os
 import time
 import re
 import weakref
+from pathlib import Path
 
 from psychopy import prefs, logging, exceptions
 from psychopy.constants import (STARTED, PAUSED, FINISHED, STOPPING,
                                 NOT_STARTED)
+from psychopy.tools import filetools as ft
 from .exceptions import SoundFormatError, DependencyError
 from ._base import _SoundBase, HammingWindow
 
@@ -426,6 +428,9 @@ class SoundPTB(_SoundBase):
         _SoundBase.setSound(self, value, secs, octave, hamming, log)
 
     def _setSndFromFile(self, filename):
+        # alias default names (so it always points to default.png)
+        if filename in ft.defaultStim:
+            filename = Path(prefs.paths['resources']) / ft.defaultStim[filename]
         self.sndFile = f = sf.SoundFile(filename)
         self.sourceType = 'file'
         self.sampleRate = f.samplerate

@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from pathlib import Path
 
-from psychopy import logging
+from psychopy import logging, prefs
 from .exceptions import DependencyError
 from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)
-from psychopy.tools import attributetools
+from psychopy.tools import attributetools, filetools as ft
 from ._base import _SoundBase
 
 try:
@@ -250,6 +251,9 @@ class SoundPySoundCard(_SoundBase):
         return value  # this is returned for historical reasons
 
     def _setSndFromFile(self, fileName):
+        # alias default names (so it always points to default.png)
+        if fileName in ft.defaultStim:
+            fileName = Path(prefs.paths['resources']) / ft.defaultStim[fileName]
         # load the file
         if not path.isfile(fileName):
             msg = "Sound file %s could not be found." % fileName
