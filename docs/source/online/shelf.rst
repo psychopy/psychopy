@@ -11,7 +11,7 @@ Using the Shelf for Multi-session testing, Counterbalancing and more online
 
 The `Shelf <https://psychopy.github.io/psychojs/module-data.Shelf.html>`_ is a flexible, multiuse tool to aid with online studies where information needs sharing between studies, either in real time or across sessions. Use cases for the shelf include:
 
-* Multi-session testing
+* :ref:`Multi-session testing <multi_session_testing>`
 * :ref:`Counterbalancing <counterbalanceShelf>`
 * Multi-player games
 
@@ -95,6 +95,8 @@ Imagine you have an experiment where you wish for many players to interact with 
 * :code:`psychoJS.shelf.popListValue()`
 
 First imagine you want to allow the player to clear the list of preexisting players (in our demo we achieve this though a drop down). We would do that using :code:`psychoJS.shelf.setListValue({key: ["player_list"], value: []})`. Then imagine we want to add this players screen name to the existing list of screen names, that is achieved using :code:`psychoJS.shelf.appendListValue({key: ["player_list"], elements: expInfo["screen name"]})` finally, to fetch the screen names (and we may wish to do this periodically) we can ude :code:`players = await psychoJS.shelf.getListValue({key: ["player_list"], defaultValue:[]})` (remember, it is important to use :code:`await` in order to retrieve the value once the JS Promise has been fulfilled.
+
+.. _multi_session_testing:
 
 Interacting with Dictionary Records
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
