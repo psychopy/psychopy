@@ -81,7 +81,7 @@ class PluginInfo:
 
     """
 
-    def __init__(self, source,
+    def __init__(self,
                  pipname, name="",
                  author=None, homepage="", docs="", repo="",
                  keywords=None,
@@ -526,7 +526,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Handle None
         if value is None:
             value = PluginInfo(
-                "community", "psychopy-...",
+                "psychopy-...",
                 name="..."
             )
         self._info = value
@@ -767,7 +767,6 @@ def getAllPluginDetails():
                 email=data['Author-email']
             )
             info = PluginInfo(
-                source="unknown",
                 pipname=name, name=name,
                 author=author,
                 homepage=data['Home-page'],
