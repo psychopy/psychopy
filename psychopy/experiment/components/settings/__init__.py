@@ -737,6 +737,7 @@ class SettingsComponent:
             "from psychopy import locale_setup\n"
             "from psychopy import prefs\n"
             "from psychopy import plugins\n"
+            "plugins.activatePlugins()\n"  # activates plugins
         )
         # adjust the prefs for this study if needed
         if self.params['Audio lib'].val.lower() != 'use prefs':
@@ -786,8 +787,6 @@ class SettingsComponent:
             statement += "\n"
             buff.write(statement)
 
-        # write line with command to enable plugins
-        buff.write("\nplugins.activatePlugins()")
         buff.write("\n")
 
     def prepareResourcesJS(self):
@@ -864,7 +863,17 @@ class SettingsComponent:
 
         # html header
         if self.exp.expPath:
-            template = readTextFile("JS_htmlHeader.tmpl")
+            # Do we need surveys?
+            needsSurveys = False
+            for rt in self.exp.routines.values():
+                for comp in rt:
+                    if comp.type == "PavloviaSurvey":
+                        needsSurveys = True
+            # If we need surveys, use different template with more imports
+            if needsSurveys:
+                template = readTextFile("JS_htmlSurveyHeader.tmpl")
+            else:
+                template = readTextFile("JS_htmlHeader.tmpl")
             header = template.format(
                 name=jsFilename,
                 version=useVer,

@@ -270,7 +270,7 @@ class AudioClip:
 
         Examples
         --------
-        Generate 5 seconds of silence to enjoy::
+        Generate 10 seconds of silence to enjoy::
 
             import psychopy.sound as sound
             silence = sound.AudioClip.silence(10.)

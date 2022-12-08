@@ -30,6 +30,7 @@ from . import paramCtrls
 from psychopy import data, logging
 from psychopy.localization import _translate
 from psychopy.tools import versionchooser as vc
+from psychopy.alerts import alert
 from ...colorpicker import PsychoColorPicker
 from pathlib import Path
 
@@ -150,6 +151,12 @@ class ParamCtrls():
             self.valueCtrl = paramCtrls.MultiChoiceCtrl(parent, valType=param.valType,
                                                         vals=param.val, choices=param.allowedVals, fieldName=fieldName,
                                                         size=wx.Size(self.valueWidth, -1))
+        elif param.inputType == 'richChoice':
+            self.valueCtrl = paramCtrls.RichChoiceCtrl(parent, valType=param.valType,
+                                                       vals=param.val,
+                                                       choices=param.allowedVals, labels=param.allowedLabels,
+                                                       fieldName=fieldName,
+                                                       size=wx.Size(self.valueWidth, -1))
         elif param.inputType == 'bool':
             self.valueCtrl = paramCtrls.BoolCtrl(parent,
                                                  name=fieldName, size=wx.Size(self.valueWidth, 24))
@@ -158,6 +165,11 @@ class ParamCtrls():
             self.valueCtrl = paramCtrls.FileCtrl(parent,
                                                  val=str(param.val), valType=param.valType,
                                                  fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
+            self.valueCtrl.allowedVals = param.allowedVals
+        elif param.inputType == 'survey':
+            self.valueCtrl = paramCtrls.SurveyCtrl(parent,
+                                                   val=str(param.val), valType=param.valType,
+                                                   fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
             self.valueCtrl.allowedVals = param.allowedVals
         elif param.inputType == 'fileList':
             self.valueCtrl = paramCtrls.FileListCtrl(parent,
@@ -256,6 +268,8 @@ class ParamCtrls():
         """
         if ctrl is None:
             return None
+        elif hasattr(ctrl, 'getValue'):
+            return ctrl.getValue()
         elif ctrl == self.updateCtrl:
             return ctrl.GetStringSelection()
         elif hasattr(ctrl, 'GetText'):
@@ -377,7 +391,7 @@ class ParamCtrls():
             self.valueCtrl.Bind(wx.stc.EVT_STC_CHANGE, callbackFunction)
         elif isinstance(self.valueCtrl, wx.ComboBox):
             self.valueCtrl.Bind(wx.EVT_COMBOBOX, callbackFunction)
-        elif isinstance(self.valueCtrl, wx.Choice):
+        elif isinstance(self.valueCtrl, (wx.Choice, paramCtrls.RichChoiceCtrl)):
             self.valueCtrl.Bind(wx.EVT_CHOICE, callbackFunction)
         elif isinstance(self.valueCtrl, wx.CheckListBox):
             self.valueCtrl.Bind(wx.EVT_CHECKLISTBOX, callbackFunction)
@@ -467,6 +481,7 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
     class CategoryPage(wx.Panel, handlers.ThemeMixin):
         def __init__(self, parent, dlg, params):
             wx.Panel.__init__(self, parent, size=(600, -1))
+            self.parent = parent
             self.parent = parent
             self.dlg = dlg
             self.app = self.dlg.app
@@ -1459,6 +1474,13 @@ class DlgLoopProperties(_BaseParamsDlg):
             # annoying for novice)
             paramStr = "["
             for param in conditions[0]:
+                # check for namespace clashes
+                clashes = self.exp.namespace.getCategories(param)
+                if clashes:
+                    alert(4705, strFields={
+                        'param': param,
+                        'category': ", ".join(clashes)
+                    })
                 paramStr += (str(param) + ', ')
             paramStr = paramStr[:-2] + "]"  # remove final comma and add ]
             # generate summary info

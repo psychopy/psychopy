@@ -1,0 +1,19 @@
+
+code: 4705
+cat: Loops
+msg: Column name '{param}' in conditions file already exists as a variable in this experiment ({category}).
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Column name from conditions file clashes with variable name
+
+synopsis: |
+  The name of a column in your conditions file already exists in this experiment.
+
+details: |
+  The name of a column in your conditions file already exists in this experiment. This means that either the existing variable will be overwritten by the value of this parameter, or that this parameter will be overwritten by the existing variable.
+
+solutions: |
+  Please choose a different column name.
+
+versions: |
+  All

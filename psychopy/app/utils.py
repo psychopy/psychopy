@@ -30,6 +30,8 @@ import wx
 import wx.stc
 import wx.lib.agw.aui as aui
 from wx.lib import platebtn
+from wx.lib.wordwrap import wordwrap
+from wx.lib.stattext import GenStaticText
 import wx.lib.mixins.listctrl as listmixin
 
 import psychopy
@@ -124,6 +126,33 @@ class HoverMixin:
     @BackgroundColourHover.setter
     def BackgroundColourHover(self, value):
         self._BackgroundColourHover = value
+
+
+class ButtonSizerMixin:
+    """
+    Overrides standard wx button layout to put Help on the left as it's historically been in PsychoPy.
+    """
+    def CreatePsychoPyDialogButtonSizer(self, flags=wx.OK | wx.CANCEL | wx.HELP):
+        # Do original wx method
+        sizer = wx.Dialog.CreateStdDialogButtonSizer(self, flags)
+        # Look for a help button
+        helpBtn = None
+        for child in sizer.GetChildren():
+            child = child.GetWindow()
+            if hasattr(child, "GetId") and child.GetId() == wx.ID_HELP:
+                helpBtn = child
+        # Stop here if there's no help button
+        if helpBtn is None:
+            return
+        # Detach from slider
+        sizer.Detach(helpBtn)
+        # Add stretch spacer to beginning
+        sizer.PrependStretchSpacer(prop=1)
+        # Add help button back at very beginning
+        sizer.Prepend(helpBtn)
+        # Layout and return
+        self.Layout()
+        return sizer
 
 
 class FileDropTarget(wx.FileDropTarget):
@@ -419,6 +448,16 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         # Render HTML
         if md:
             renderedText = md.MarkdownIt().render(self.rawTextCtrl.Value)
+            # Remove images (wx doesn't like rendering them)
+            imgBuffer = renderedText.split("<img")
+            output = []
+            for line in imgBuffer:
+                if "/>" in line:
+                    lineBuffer = line.split("/>")
+                    output.append("".join(lineBuffer[1:]))
+                else:
+                    output.append("<img" + line)
+            renderedText = "".join(output)
         else:
             renderedText = self.rawTextCtrl.Value.replace("\n", "<br>")
         # Apply to preview ctrl
@@ -480,6 +519,108 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         )
 
         self.Refresh()
+
+
+class HyperLinkCtrl(wx.Button):
+    def __init__(self, parent,
+                 id=wx.ID_ANY, label="", URL="",
+                 pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.BU_LEFT,
+                 validator=wx.DefaultValidator, name=""):
+        # Create button with no background
+        wx.Button.__init__(self)
+        self.SetBackgroundStyle(wx.BG_STYLE_TRANSPARENT)
+        self.Create(
+            parent=parent,
+            id=id,
+            label=label,
+            pos=pos,
+            size=size,
+            style=wx.BORDER_NONE | style,
+            validator=validator,
+            name=name)
+        # Style as link
+        self.SetForegroundColour("blue")
+        self._font = self.GetFont().MakeUnderlined()
+        self.SetFont(self._font)
+        # Setup hover/focus behaviour
+        self.Bind(wx.EVT_SET_FOCUS, self.onFocus)
+        self.Bind(wx.EVT_KILL_FOCUS, self.onFocus)
+        self.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
+        self.Bind(wx.EVT_MOTION, self.onHover)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
+        # Set URL
+        self.URL = URL
+        self.Bind(wx.EVT_BUTTON, self.onClick)
+
+    def onClick(self, evt=None):
+        webbrowser.open(self.URL)
+
+    def onFocus(self, evt=None):
+        if evt.EventType == wx.EVT_SET_FOCUS.typeId:
+            self.SetFont(self._font.Bold())
+        elif evt.EventType == wx.EVT_KILL_FOCUS.typeId:
+            self.SetFont(self._font)
+        self.Update()
+        self.Layout()
+
+    def onHover(self, evt=None):
+        if evt.EventType == wx.EVT_LEAVE_WINDOW.typeId:
+            # If mouse is leaving window, reset cursor
+            wx.SetCursor(
+                wx.Cursor(wx.CURSOR_DEFAULT)
+            )
+        else:
+            # Otherwise, if a mouse event is received, it means the cursor is on this link
+            wx.SetCursor(
+                wx.Cursor(wx.CURSOR_HAND)
+            )
+
+
+class WrappedStaticText(GenStaticText):
+    """
+    Similar to wx.StaticText, but wraps automatically.
+    """
+    def __init__(self, parent,
+                 id=wx.ID_ANY, label="",
+                 pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.TEXT_ALIGNMENT_LEFT,
+                 name=""):
+        GenStaticText.__init__(
+            self,
+            parent=parent,
+            ID=id,
+            label=label,
+            pos=pos,
+            size=size,
+            style=style,
+            name=name)
+        # Store original label
+        self._label = label
+        # Bind to wrapping function
+        self.Bind(wx.EVT_SIZE, self.onResize)
+
+    def onResize(self, evt=None):
+        # Get width to wrap to
+        w, h = evt.GetSize()
+        # Wrap
+        evt.Skip()
+        self.Wrap(w)
+
+    def Wrap(self, width):
+        """
+        Stolen from wx.lib.agw.infobar.AutoWrapStaticText
+        """
+
+        if width < 0:
+            return
+
+        self.Freeze()
+
+        dc = wx.ClientDC(self)
+        dc.SetFont(self.GetFont())
+        text = wordwrap(self._label, width, dc)
+        self.SetLabel(text)
+
+        self.Thaw()
 
 
 class HyperLinkCtrl(wx.Button):

@@ -653,16 +653,25 @@ class Experiment:
                 for componentNode in routineNode:
 
                     componentType = componentNode.tag
+                    plugin = componentNode.get('plugin')
+
                     if componentType in allCompons:
                         # create an actual component of that type
                         component = allCompons[componentType](
                             name=componentNode.get('name'),
                             parentName=routineNode.get('name'), exp=self)
+                    elif plugin:
+                        # create UnknownPluginComponent instead
+                        component = allCompons['UnknownPluginComponent'](
+                            name=componentNode.get('name'),
+                            parentName=routineNode.get('name'), exp=self)
+                        alert(7105, strFields={'name': componentNode.get('name'), 'plugin': plugin})
                     else:
                         # create UnknownComponent instead
                         component = allCompons['UnknownComponent'](
                             name=componentNode.get('name'),
                             parentName=routineNode.get('name'), exp=self)
+                    component.plugin = plugin
                     # check for components that were absent in older versions of
                     # the builder and change the default behavior
                     # (currently only the new behavior of choices for RatingScale,
@@ -959,6 +968,9 @@ class Experiment:
                             thisFile = getPaths(thisParam)
                         elif isinstance(thisParam.val, str):
                             thisFile = getPaths(thisParam.val)
+                        if paramName == "surveyId":
+                            # Survey IDs are a special case, they need adding verbatim, no path sanitizing
+                            thisFile = {'surveyId': thisParam.val}
                         # then check if it's a valid path and not yet included
                         if thisFile and thisFile not in compResources:
                             compResources.append(thisFile)
@@ -1008,10 +1020,11 @@ class Experiment:
             if res in list(ft.defaultStim):
                 # Skip default stim here
                 continue
-            if srcRoot not in res['abs'] and 'https://' not in res['abs']:
-                psychopy.logging.warning("{} is not in the experiment path and "
-                                         "so will not be copied to Pavlovia"
-                                         .format(res['rel']))
+            if isinstance(res, dict) and 'abs' in res and 'rel' in res:
+                if srcRoot not in res['abs'] and 'https://' not in res['abs']:
+                    psychopy.logging.warning("{} is not in the experiment path and "
+                                             "so will not be copied to Pavlovia"
+                                             .format(res['rel']))
 
         return resources
 

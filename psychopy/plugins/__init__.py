@@ -31,7 +31,6 @@ import pkg_resources
 from psychopy import logging
 from psychopy.preferences import prefs
 import psychopy.experiment.components as components
-import subprocess as sp
 
 # Keep track of plugins that have been loaded. Keys are plugin names and values
 # are their entry point mappings.
@@ -634,6 +633,8 @@ def loadPlugin(plugin, *args, **kwargs):
                 _registerWindowBackend(attr, ep)
             elif fqn == 'psychopy.experiment.components':  # if component
                 _registerBuilderComponent(ep)
+            elif fqn == 'psychopy.hardware.photometer':  # photometer
+                _registerPhotometer(ep)
 
     # Retain information about the plugin's entry points, we will use this for
     # conflict resolution.
@@ -918,7 +919,6 @@ def activatePlugins():
 # loaded.
 #
 
-
 def _registerWindowBackend(attr, ep):
     """Make an entry point discoverable as a window backend.
 
@@ -935,7 +935,7 @@ def _registerWindowBackend(attr, ep):
     attr : str
         Attribute name the backend is being assigned in
         'psychopy.visual.backends'.
-    ep : ModuleType of ClassType
+    ep : ModuleType or ClassType
         Entry point which defines an object with window backends. Can be a class
         or module. If a module, the module will be scanned for subclasses of
         `BaseBackend` and they will be added as backends.
@@ -1037,6 +1037,36 @@ def _registerBuilderComponent(ep):
         # assign the module categories to the Component
         if not hasattr(components.pluginComponents[attrib], 'categories'):
             components.pluginComponents[attrib].categories = ['Custom']
+
+
+def _registerPhotometer(ep):
+    """Register a photometer class.
+
+    This is called when the plugin specifies an entry point into
+    :class:`~psychopy.hardware.photometers`.
+
+    Parameters
+    ----------
+    ep : ModuleType or ClassType
+        Entry point which defines an object serving as the interface for the
+        photometer.
+
+    """
+    # get reference to the backend class
+    fqn = 'psychopy.hardware.photometer'
+    photPkg = resolveObjectFromName(
+        fqn, resolve=(fqn not in sys.modules), error=False)
+
+    if photPkg is None:
+        logging.error("Failed to resolve name `{}`.".format(fqn))
+        return
+
+    if hasattr(photPkg, 'addPhotometer'):
+        photPkg.addPhotometer(ep)
+    else:
+        raise AttributeError(
+            "Cannot find function `addPhotometer()` in namespace "
+            "`{}`".format(fqn))
 
 
 if __name__ == "__main__":

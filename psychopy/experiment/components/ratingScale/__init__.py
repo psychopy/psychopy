@@ -302,7 +302,7 @@ class RatingScaleComponent(BaseComponent):
         name = self.params['name']
         buff.writeIndented("# *%(name)s* updates\n" % (self.params))
         # try to handle blank start condition gracefully:
-        if not self.params['startVal'].val.strip():
+        if not str(self.params['startVal'].val).strip():
             self.params['startVal'].val = 0  # time, frame
             if self.params['startType'].val == 'condition':
                 self.params['startVal'].val = 'True'

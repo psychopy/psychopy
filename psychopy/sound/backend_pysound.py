@@ -184,6 +184,13 @@ class SoundPySoundCard(_SoundBase):
         self.requestedLoops = self.loops = int(loops)
         self.setSound(value=value, secs=secs, octave=octave)
 
+        self._isPlaying = False
+
+    @property
+    def isPlaying(self):
+        """`True` if the audio playback is ongoing."""
+        return self._isPlaying
+
     def play(self, fromStart=True, log=True, loops=None, when=None):
         """Starts playing the sound on an available channel.
 
@@ -210,18 +217,24 @@ class SoundPySoundCard(_SoundBase):
             will be played over each other.
 
         """
+        if self.isPlaying:
+            return
+
         if loops is not None:
             self.loops = loops
         self._stream.start()
-        self.status = STARTED
+        self._isPlaying = True
         if log and self.autoLog:
             logging.exp("Sound %s started" % (self.name), obj=self)
         return self
 
     def stop(self, log=True):
         """Stops the sound immediately"""
+        if not self.isPlaying:  # already stopped
+            return
+
         self._stream.abort()  # _stream.stop() finishes current buffer
-        self.status = STOPPED
+        self._isPlaying = False
         if log and self.autoLog:
             logging.exp("Sound %s stopped" % (self.name), obj=self)
 
@@ -230,8 +243,8 @@ class SoundPySoundCard(_SoundBase):
         Don't know why you would do this in psychophysics but it's easy
         and fun to include as a possibility :)
         """
-        pass  # todo
-        self.status = STOPPED
+        # todo
+        self._isPlaying = False
 
     def getDuration(self):
         """Gets the duration of the current sound in secs
@@ -320,7 +333,7 @@ class SoundPySoundCard(_SoundBase):
     def _onEOS(self, log=True):
         if log and self.autoLog:
             logging.exp("Sound %s finished" % (self.name), obj=self)
-        self.status = FINISHED
+        self._isPlaying = False
 
     def __del__(self):
         self._stream.close()
