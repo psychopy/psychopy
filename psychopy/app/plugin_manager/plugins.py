@@ -37,6 +37,14 @@ class AuthorInfo:
         self.github = github
         self.avatar = avatar
 
+    def __eq__(self, other):
+        if other == "ost":
+            # If author is us, check against our github
+            return self.github == "psychopy"
+        else:
+            # Otherwise check against string attributes
+            return other in (self.name, self.email, self.github)
+
     @property
     def avatar(self):
         if hasattr(self, "_avatar"):
@@ -57,9 +65,6 @@ class PluginInfo:
 
     Parameters
     ----------
-    source : str
-        Is this a community plugin ("community") or one curated by us
-        ("curated")?
     pipname : str
         Name of plugin on pip, e.g. "psychopy-legacy".
     name : str
@@ -81,7 +86,6 @@ class PluginInfo:
                  author=None, homepage="", docs="", repo="",
                  keywords=None,
                  icon=None, description=""):
-        self.source = source
         self.pipname = pipname
         self.name = name
         self.author = author
@@ -94,7 +98,7 @@ class PluginInfo:
 
     def __repr__(self):
         return (f"<psychopy.plugins.PluginInfo: {self.name} "
-                f"[{self.pipname}] by {self.author} ({self.source})>")
+                f"[{self.pipname}] by {self.author}>")
 
     def __eq__(self, other):
         if isinstance(other, PluginInfo):
@@ -272,7 +276,7 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
             self.curatedMark.SetToolTipString(_translate(
                 "This plugin is maintained by the Open Science Tools team."
             ))
-            self.curatedMark.Show(info.source == "curated")
+            self.curatedMark.Show(info.author == "ost")
             self.btnSizer.Add(self.curatedMark, border=3, flag=wx.ALL | wx.EXPAND)
             # Add install button
             self.installBtn = PluginInstallBtn(self)

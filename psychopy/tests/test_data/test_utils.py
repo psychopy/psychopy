@@ -67,13 +67,20 @@ class Test_utilsClass:
         assert len(selected_conditions) == num_selected_conditions
 
     def test_isValidVariableName(self):
-        assert utils.isValidVariableName('Name') == (True, '')
-        assert utils.isValidVariableName('a_b_c') == (True, '')
-        assert utils.isValidVariableName('') == (False, "Variables cannot be missing, None, or ''")
-        assert utils.isValidVariableName('0Name') == (False, "Variables cannot begin with numeric character")
-        assert utils.isValidVariableName('first second') == (False, "Variables cannot contain punctuation or spaces")
-        assert utils.isValidVariableName(None) == (False, "Variables cannot be missing, None, or ''")
-        assert utils.isValidVariableName(26) == (False, "Variables must be string-like")
+        cases = [
+            {'val': 'Name', 'valid': True, 'msg': ''},
+            {'val': 'a_b_c', 'valid': True, 'msg': ''},
+            {'val': '', 'valid': False, 'msg': "Variables cannot be missing, None, or ''"},
+            {'val': '0Name', 'valid': False, 'msg': 'Variables cannot begin with numeric character'},
+            {'val': 'first second', 'valid': False, 'msg': 'Variables cannot contain punctuation or spaces'},
+            {'val': None, 'valid': False, 'msg': "Variables cannot be missing, None, or ''"},
+            {'val': 26, 'valid': False, 'msg': 'Variables must be string-like'},
+        ]
+
+        for case in cases:
+            valid, msg, translated = utils.isValidVariableName(case['val'])
+            assert valid == case['valid']
+            assert msg == case['msg']
 
     def test_GetExcelCellName(self):
         assert utils._getExcelCellName(0,0) == 'A1'
