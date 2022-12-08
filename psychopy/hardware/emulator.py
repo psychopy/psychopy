@@ -25,9 +25,9 @@ try:
         SyncGenerator, ResponseEmulator, launchScan)
 except (ModuleNotFoundError, ImportError):
     logging.error(
-        "Support for Emotiv hardware is not available this session. Please "
-        "install `psychopy-mri-emulator` and restart the session to enable "
-        "support.")
+        "Support for software fMRI emulation is not available this session. "
+        "Please install `psychopy-mri-emulator` and restart the session to "
+        "enable support.")
 
 if __name__ == "__main__":
     pass
