@@ -38,6 +38,9 @@ defaultStim = {
     "default.mkv": "default.mp4",
     "default.avi": "default.mp4",
     "default.wmv": "default.mp4",
+    # Sound stimuli
+    "default.mp3": "default.wav",
+    "default.wav": "default.wav",
 }
 
 
