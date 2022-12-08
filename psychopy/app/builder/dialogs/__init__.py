@@ -27,14 +27,14 @@ from .. validators import NameValidator, CodeSnippetValidator, WarningManager
 from .dlgsConditions import DlgConditions
 from .dlgsCode import DlgCodeComponentProperties, CodeBox
 from . import paramCtrls
-from psychopy import data, logging
+from psychopy import data, logging, exceptions
 from psychopy.localization import _translate
 from psychopy.tools import versionchooser as vc
 from psychopy.alerts import alert
 from ...colorpicker import PsychoColorPicker
 from pathlib import Path
 
-from ...themes import handlers
+from ...themes import handlers, icons
 
 white = wx.Colour(255, 255, 255, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
@@ -1124,6 +1124,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                            pos, size, style)
         self.helpUrl = helpUrl
         self.frame = frame
+        self.expPath = Path(self.frame.filename).parent
         self.exp = frame.exp
         self.app = frame.app
         self.dpi = self.app.dpi
@@ -1139,6 +1140,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.conditions = None
         self.conditionsFile = None
+        self.condNamesInFile = []
         # create a valid new name; save old name in case we need to revert
         namespace = frame.exp.namespace
         defaultName = namespace.makeValid('trials')
@@ -1179,6 +1181,8 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.currentType = 'interleaved staircases'
         elif loop.type == 'QuestHandler':
             pass  # what to do for quest?
+        # Store conditions file
+        self.conditionsOrig = self.conditions
         self.params['name'] = self.currentHandler.params['name']
         self.globalPanel = self.makeGlobalCtrls()
         self.stairPanel = self.makeStaircaseCtrls()
@@ -1210,6 +1214,8 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.paramCtrls.update(self.constantsCtrls)
         self.paramCtrls.update(self.staircaseCtrls)
         self.paramCtrls.update(self.multiStairCtrls)
+
+        self.updateSummary()
 
         # show dialog and get most of the data
         self.show()
@@ -1245,6 +1251,61 @@ class DlgLoopProperties(_BaseParamsDlg):
             if checker:
                 checker.Validate(self)
         return self.warnings.OK
+
+    @property
+    def conditionsFile(self):
+        """
+        Location of the conditions file, in whatever format it is best available in. Ideally
+        relative to the experiment path, but if this is not possible, then absolute.
+        """
+        if not hasattr(self, "_conditionsFile") or self._conditionsFile is None:
+            # If no file, return None
+            return None
+        elif "$" in str(self._conditionsFile):
+            # If a variabel, return as string
+            return str(self._conditionsFile)
+        else:
+            # Otherwise return as unix string
+            return str(self._conditionsFile).replace("\\", "/")
+
+    @conditionsFile.setter
+    def conditionsFile(self, value):
+        # Store last value
+        self.conditionsFileOrig = self.conditionsFileAbs
+
+        if value in (None, ""):
+            # Store None as is
+            self._conditionsFile = None
+        elif "$" in str(value):
+            # Store variable as is
+            self._conditionsFile = str(value)
+        else:
+            # Otherwise convert to Path
+            value = Path(value)
+            try:
+                # Relativise if possible
+                self._conditionsFile = value.relative_to(self.expPath)
+            except ValueError:
+                # Otherwise as is
+                self._conditionsFile = value
+
+    @property
+    def conditionsFileAbs(self):
+        """
+        Absolute path to the conditions file
+        """
+        if not hasattr(self, "_conditionsFile") or self._conditionsFile is None:
+            # If no file, return None
+            return None
+        elif "$" in str(self._conditionsFile):
+            # If variable. return as is
+            return str(self._conditionsFile)
+        elif self._conditionsFile.is_absolute():
+            # Return as is if absolute
+            return str(self._conditionsFile)
+        else:
+            # Append to experiment path if relative
+            return str(self.expPath / self._conditionsFile)
 
     def makeGlobalCtrls(self):
         panel = wx.Panel(parent=self)
@@ -1315,23 +1376,24 @@ class DlgLoopProperties(_BaseParamsDlg):
                     text, OK = self.getTrialsSummary(_cond)
                 else:
                     text = _translate("No parameters set")
-                    OK = True # No condition file is not an error
                 # we'll create our own widgets
                 ctrls = ParamCtrls(dlg=self, parent=panel, label=label,
                                    fieldName=fieldName,
                                    param=text, noCtrls=True)
                 ctrls.valueCtrl = wx.StaticText(
                     panel, label=text, style=wx.ALIGN_RIGHT)
-                if OK:
-                    ctrls.valueCtrl.SetForegroundColour("Black")
-                else:
-                    ctrls.valueCtrl.SetForegroundColour("Red")
-                if hasattr(ctrls.valueCtrl, "_szr"):
-                    panelSizer.Add(ctrls.valueCtrl._szr, (row, 1),
-                                   flag=wx.ALIGN_RIGHT)
-                else:
-                    panelSizer.Add(ctrls.valueCtrl, (row, 1),
-                                   flag=wx.ALIGN_RIGHT)
+                ctrls.valueCtrl._szr = wx.BoxSizer(wx.HORIZONTAL)
+                ctrls.valueCtrl._szr.Add(ctrls.valueCtrl)
+                panelSizer.Add(ctrls.valueCtrl._szr, (row, 1),
+                               flag=wx.ALIGN_RIGHT)
+                # create refresh button
+                ctrls.refreshBtn = wx.Button(panel, style=wx.BU_EXACTFIT | wx.BORDER_NONE)
+                ctrls.refreshBtn.SetBitmap(
+                    icons.ButtonIcon("view-refresh", size=16).bitmap
+                )
+                ctrls.refreshBtn.Bind(wx.EVT_BUTTON, self.updateSummary)
+                ctrls.valueCtrl._szr.Prepend(ctrls.refreshBtn, border=12, flag=wx.LEFT | wx.RIGHT | wx.ALIGN_TOP)
+
                 row += 1
             else:  # normal text entry field
                 ctrls = ParamCtrls(dlg=self, parent=panel, label=label,
@@ -1346,6 +1408,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             # Link conditions file browse button to its own special method
             if fieldName == 'conditionsFile':
                 ctrls.valueCtrl.findBtn.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile)
+                ctrls.setChangesCallback(self.setNeedUpdate)
             # store info about the field
             self.constantsCtrls[fieldName] = ctrls
         panelSizer.AddGrowableCol(1, 1)
@@ -1541,67 +1604,71 @@ class DlgLoopProperties(_BaseParamsDlg):
     def onBrowseTrialsFile(self, event):
         self.conditionsFileOrig = self.conditionsFile
         self.conditionsOrig = self.conditions
-        expFolder, expName = os.path.split(self.frame.filename)
         dlg = wx.FileDialog(self, message=_translate("Open file ..."),
-                            style=wx.FD_OPEN, defaultDir=expFolder)
+                            style=wx.FD_OPEN, defaultDir=str(self.expPath))
         if dlg.ShowModal() == wx.ID_OK:
-            newFullPath = dlg.GetPath()
-            if self.conditionsFile:
-                _path = os.path.join(expFolder, self.conditionsFile)
-                oldFullPath = os.path.abspath(_path)
-                isSameFilePathAndName = bool(newFullPath == oldFullPath)
-            else:
-                isSameFilePathAndName = False
+            self.conditionsFile = dlg.GetPath()
+            self.constantsCtrls['conditionsFile'].valueCtrl.SetValue(
+                self.conditionsFile
+            )
+            self.updateSummary()
 
+    def setNeedUpdate(self, evt=None):
+        """
+        Mark that conditions need an update, i.e. enable the refresh button
+        """
+        self.constantsCtrls['conditions'].refreshBtn.Enable()
+
+    def updateSummary(self, evt=None):
+        """
+        Figure out what conditions we can get from the file and display them, or an error
+        or message, as appropriate. Upon completion this will disable the update button as
+        we are now up to date.
+        """
+        self.conditionsFile = self.constantsCtrls['conditionsFile'].valueCtrl.GetValue()
+        # Check whether the file and path are the same as previously
+        isSameFilePathAndName = self.conditionsFileAbs == self.conditionsFileOrig
+        # Start off with no message and assumed valid
+        msg = ""
+        valid = True
+        if self.conditionsFile in (None, ""):
+            # If no conditions file, no message
+            msg = ""
+            valid = True
+        elif "$" in str(self.conditionsFile):
+            # If set from a variable, message but no error
+            msg = _translate("Conditions file set from variable.")
+            valid = True
+        else:
+            duplCondNames = []
             try:
-                newPath = str(Path(newFullPath).relative_to(expFolder))
-            except ValueError:
-                newPath = str(Path(newFullPath).absolute())
-            self.conditionsFile = newPath
-            needUpdate = False
-            try:
-                _c, _n = data.importConditions(dlg.GetPath(),
+                _c, _n = data.importConditions(self.conditionsFileAbs.strip(),
                                                returnFieldNames=True)
                 self.conditions, self.condNamesInFile = _c, _n
-                needUpdate = True
-            except (ImportError, ValueError) as msg:
-                msg = str(msg)
-                if msg.startswith('Could not open'):
-                    msg = _translate('Could not read conditions from:\n')
-                    _file = newFullPath.split(os.path.sep)[-1]
-                    self.currentCtrls['conditions'].setValue(msg + _file)
-                    self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
+                msg, valid = self.getTrialsSummary(self.conditions)
+            except exceptions.ConditionsImportError as err:
+                # If import conditions errors, then value is not valid
+                valid = False
+                errMsg = str(err)
+                mo = re.search(r'".+\.[0-9]+"$', errMsg)
+                if "Could not open" in errMsg:
+                    msg = _translate('Could not read conditions from: %s\n') % self.conditionsFile
+                    logging.error('Could not open as a conditions file: %s' % self.conditionsFileAbs)
+                elif "Bad name:" in errMsg and "punctuation" in errMsg and mo:
+                    # column name is something like "stim.1", which may
+                    # be in conditionsFile or generated by pandas when
+                    # duplicated column names are found.
+                    msg = _translate(
+                        'Bad name in %s: Parameters (column headers) cannot contain dots or be duplicated.'
+                    ) % self.conditionsFile
                     logging.error(
-                        'Could not open as a conditions file: %s' % newFullPath)
+                        ('Bad name in %s: Parameters (column headers) cannot contain dots or be '
+                         'duplicated.') % self.conditionsFileAbs
+                    )
                 else:
-                    mo = re.search(r'".+\.[0-9]+"$', msg)
-                    if 'cannot contain punctuation or spaces' in msg and mo:
-                        # column name is something like "stim.1", which may
-                        # be in conditionsFile or generated by pandas when
-                        # duplicated column names are found.
-                        m2 = 'Parameters (column headers) cannot contain dots' \
-                             ' or be duplicated.'
-                    else:
-                        # other exceptions
-                        sep2 = os.linesep * 2
-                        m2 = msg.replace(
-                            'Conditions file ','').replace(': ', sep2)
-                    # Display error message dialog
-                    _title = _translate(
-                        'Configuration error in conditions file')
-                    dlgErr = dialogs.MessageDialog(
-                        parent=self.frame, message=m2,
-                        type='Info', title=_title).ShowModal()
-                    msg = _translate('Bad condition name(s) in file:\n')
-                    val = msg + newFullPath.split(os.path.sep)[-1]
-                    self.currentCtrls['conditions'].setValue(val)
-                    self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
-                    msg = 'Rejected bad condition name(s) in file: %s'
-                    logging.error(msg % newFullPath)
-                self.conditionsFile = self.conditionsFileOrig
-                self.conditions = self.conditionsOrig
-                return  # no update or display changes
-            
+                    msg = err.translated
+                    logging.error(msg)
+
             # check for Builder variables
             builderVariables = []
             for condName in self.condNamesInFile:
@@ -1609,20 +1676,13 @@ class DlgLoopProperties(_BaseParamsDlg):
                     builderVariables.append(condName)
             if builderVariables:
                 msg = _translate('Builder variable(s) ({}) in file:{}').format(
-                    ','.join(builderVariables), newFullPath.split(os.path.sep)[-1])
-                self.currentCtrls['conditions'].setValue(msg)
-                self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
-                msg = 'Rejected Builder variable(s) ({}) in file:{}'.format(
-                    ','.join(builderVariables), newFullPath.split(os.path.sep)[-1])
+                    ','.join(builderVariables), self.conditionsFile)
                 logging.error(msg)
-                self.conditionsFile = self.conditionsFileOrig
-                self.conditions = self.conditionsOrig
-                return  # no update or display changes
+                valid = False
+                msg = 'Rejected Builder variable(s) ({}) in file:{}'.format(
+                    ','.join(builderVariables), self.conditionsFile)
+                logging.error(msg)
 
-            # Replace backslashes
-            self.conditionsFile = self.conditionsFile.replace("\\", "/")
-
-            duplCondNames = []
             if len(self.condNamesInFile):
                 for condName in self.condNamesInFile:
                     if self.exp.namespace.exists(condName):
@@ -1633,36 +1693,38 @@ class DlgLoopProperties(_BaseParamsDlg):
                 duplCondNamesStr = duplCondNamesStr[:39] + '...'
             if len(duplCondNames):
                 if isSameFilePathAndName:
-                    msg = ('Assuming reloading file: same filename and '
-                           'duplicate condition names in file: %s')
-                    logging.info(msg % self.conditionsFile)
+                    logging.info(
+                        'Assuming reloading file: same filename and '
+                        'duplicate condition names in file: %s' % self.conditionsFile)
                 else:
-                    self.currentCtrls['conditionsFile'].setValue(self.conditionsFile)
-                    val = ('Warning: Condition names conflict with existing'
+                    self.currentCtrls['conditionsFile'].setValue(self.conditionsFile or "")
+                    logging.warning(
+                        'Warning: Condition names conflict with existing'
                            ':\n[' + duplCondNamesStr + ']\nProceed'
-                           ' anyway? (= safe if these are in old file)')
-                    self.currentCtrls['conditions'].setValue(val)
-                    self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
-                    msg = ('Duplicate condition names, different '
-                           'conditions file: %s')
-                    logging.warning(msg % duplCondNamesStr)
+                           ' anyway? (= safe if these are in old file)'
+                    )
+                    valid = False
+                    msg = _translate(
+                        'Duplicate condition names, different '
+                        'conditions file: %s'
+                    ) % duplCondNamesStr
             # stash condition names but don't add to namespace yet, user can
             # still cancel
             # add after self.show() in __init__:
             self.duplCondNames = duplCondNames
 
-            if (needUpdate
-                    or ('conditionsFile' in list(self.currentCtrls.keys())
-                        and not duplCondNames)):
-                self.currentCtrls['conditionsFile'].setValue(self.conditionsFile)
-                msg, OK = self.getTrialsSummary(self.conditions)
-                self.currentCtrls['conditions'].setValue(msg)
-                if OK:
-                    self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Black")
-                else:
-                    self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
-                self.Layout()
-                self.Fit()
+        # Update ctrl value in case it's been abbreviated by conditionsFile setter
+        self.currentCtrls['conditionsFile'].setValue(self.conditionsFile or "")
+        # Do actual value setting
+        self.currentCtrls['conditions'].setValue(msg)
+        if valid:
+            self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Black")
+        else:
+            self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
+        self.Layout()
+        self.Fit()
+        # Disable update button now that we're up to date
+        self.constantsCtrls['conditions'].refreshBtn.Disable()
 
     def getParams(self):
         """Retrieves data and re-inserts it into the handler and returns
@@ -1674,7 +1736,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 continue  # this was deprecated in v1.62.00
             param = self.currentHandler.params[fieldName]
             if fieldName in ['conditionsFile']:
-                param.val = self.conditionsFile
+                param.val = self.conditionsFile or ""
                 # not the value from ctrl - that was abbreviated
                 # see onOK() for partial handling = check for '...'
             else:  # most other fields
@@ -1688,53 +1750,10 @@ class DlgLoopProperties(_BaseParamsDlg):
                     param.updates = ctrls.getUpdates()
         return self.currentHandler.params
 
-    def refreshConditions(self):
-        """user might have manually edited the conditionsFile name,
-        which in turn affects self.conditions and namespace. It's harder
-        to handle changes to long names that have been abbrev()'d, so
-        skip them (names containing '...').
-        """
-        val = self.currentCtrls['conditionsFile'].valueCtrl.GetValue()
-        if val.find('...') == -1 and self.conditionsFile != val:
-            self.conditionsFile = val
-            if self.conditions:
-                self.exp.namespace.remove(list(self.conditions[0].keys()))
-            if os.path.isfile(self.conditionsFile):
-                try:
-                    self.conditions = data.importConditions(
-                        self.conditionsFile)
-                    msg, OK = self.getTrialsSummary(self.conditions)
-                    self.currentCtrls['conditions'].setValue(msg)
-                    if OK:
-                        self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Black")
-                    else:
-                        self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
-                except (ImportError, ValueError) as e:
-                    msg1 = _translate(
-                        'Badly formed condition name(s) in file:\n')
-                    msg2 = _translate('.\nNeed to be legal as var name; '
-                                      'edit file, try again.')
-                    val = msg1 + str(e).replace(':', '\n') + msg2
-                    self.currentCtrls['conditions'].setValue(val)
-                    self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
-                    self.conditions = ''
-                    msg3 = 'Reject bad condition name in conditions file: %s'
-                    logging.error(msg3 % str(e).split(':')[0])
-            else:
-                self.conditions = None
-                self.currentCtrls['conditions'].setValue(_translate(
-                    "No parameters set (conditionsFile not found)"))
-                self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
-        else:
-            msg = ('DlgLoop: could not determine if a condition'
-                   ' filename was edited')
-            logging.debug(msg)
-            # self.currentCtrls['conditions'] could be misleading here
-
     def onOK(self, event=None):
         # intercept OK in case user deletes or edits the filename manually
         if 'conditionsFile' in self.currentCtrls:
-            self.refreshConditions()
+            self.updateSummary()
         event.Skip()  # do the OK button press
 
 
