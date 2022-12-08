@@ -20,7 +20,7 @@ try:
     )
 except (ModuleNotFoundError, ImportError):
     logging.error(
-        "Support for the `SoundDevice` audio backend is not available this "
+        "Support for the `sounddevice` audio backend is not available this "
         "session. Please install `psychopy-sounddevice` and restart the "
         "session to enable support.")
 except (NameError, DependencyError):
