@@ -20,7 +20,14 @@ These are optional components that can be obtained by installing the
 import psychopy.logging as logging
 
 try:
-    from psychopy_curdes import ButtonBox
+    from psychopy_curdes import (
+        ButtonBox,
+        BUTTON_RED,
+        BUTTON_BLUE,
+        BUTTON_GREEN,
+        BUTTON_YELLOW,
+        BUTTON_TRIGGER,
+        BUTTON_MAP)
 except (ModuleNotFoundError, ImportError):
     logging.error(
         "Support for Current Designs Inc. hardware is not available this "
