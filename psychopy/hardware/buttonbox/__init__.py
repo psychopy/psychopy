@@ -38,6 +38,12 @@ try:
 except (ModuleNotFoundError, ImportError, NameError):  # NameError from dud pkg
     ioLabsButtonBox = None
 
+# Current Designs
+try:
+    from ..forp import ButtonBox as curdesButtonBox
+except (ModuleNotFoundError, ImportError):
+    curdesButtonBox = None
+
 
 def getAllButtonBoxes():
     """Get all button box interface classes.
@@ -52,7 +58,7 @@ def getAllButtonBoxes():
     foundBBoxes = {}
 
     # classes from extant namespaces
-    optionalBBoxes = ('RB730', 'ioLabsButtonBox')
+    optionalBBoxes = ('RB730', 'ioLabsButtonBox', 'curdesButtonBox')
 
     for bboxName in optionalBBoxes:
         bboxClass = getattr(sys.modules[__name__], bboxName)
