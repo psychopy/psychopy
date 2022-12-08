@@ -18,6 +18,7 @@ from pkg_resources import parse_version
 
 from psychopy import logging, exceptions
 from psychopy.tools.filetools import pathToString
+from psychopy.localization import _translate
 
 try:
     import openpyxl
@@ -54,44 +55,64 @@ def isValidVariableName(name):
     """Checks whether a certain string could be used as a valid variable.
 
     Usage::
-
-        OK, msg = isValidVariableName(name)
+        OK, msg, translated = isValidVariableName(name)
 
     >>> isValidVariableName('name')
-    (True, '')
+    (True, '', '')
     >>> isValidVariableName('0name')
-    (False, 'Variables cannot begin with numeric character')
+    (False, 'Variables cannot begin with numeric character', 'Variabiles non possunt incipere numerorum mores')
+    >>> isValidVariableName('first.second')
+    (False, 'Variables cannot contain punctuation or spaces', 'Variabiles non habet interpunctionem vel spatia')
     >>> isValidVariableName('first second')
-    (False, 'Variables cannot contain punctuation or spaces')
+    (False, 'Variables cannot contain punctuation or spaces', 'Variabiles non habet interpunctionem vel spatia')
     >>> isValidVariableName('')
-    (False, "Variables cannot be missing, None, or ''")
+    (False, "Variables cannot be missing, None, or ''", "Variabiles deesse non possunt, nemo, vel ''")
     >>> isValidVariableName(None)
-    (False, "Variables cannot be missing, None, or ''")
+    (False, "Variables cannot be missing, None, or ''", "Variabiles deesse non possunt, nemo, vel ''")
     >>> isValidVariableName(23)
-    (False, "Variables must be string-like")
+    (False, "Variables must be string-like", "Variabiles debent esse linea-similis")
     >>> isValidVariableName('a_b_c')
-    (True, '')
+    (True, '', '')
     """
     if not name:
-        return False, "Variables cannot be missing, None, or ''"
+        return (
+            False,
+            "Variables cannot be missing, None, or ''",
+            _translate("Variables cannot be missing, None, or ''")
+        )
     if not isinstance(name, str):
-        return False, "Variables must be string-like"
+        return (
+            False,
+            "Variables must be string-like",
+            _translate("Variables must be string-like")
+        )
     try:
         name = str(name)  # convert from unicode if possible
     except Exception:
         if type(name) in [str, np.unicode_]:
-            msg = ("name %s (type %s) contains non-ASCII characters"
-                   " (e.g. accents)")
-            raise AttributeError(msg % (name, type(name)))
+            raise exceptions.ConditionsImportError(
+                "name %s (type %s) contains non-ASCII characters (e.g. accents)" % (name, type(name)),
+                translated=_translate("name %s (type %s) contains non-ASCII characters (e.g. accents)") % (name, type(name))
+            )
         else:
-            msg = "name %s (type %s) could not be converted to a string"
-            raise AttributeError(msg % (name, type(name)))
+            raise exceptions.ConditionsImportError(
+                "name %s (type %s) could not be converted to a string",
+                translated=_translate("name %s (type %s) could not be converted to a string") % (name, type(name))
+            )
 
     if name[0].isdigit():
-        return False, "Variables cannot begin with numeric character"
+        return (
+            False,
+            "Variables cannot begin with numeric character",
+            _translate("Variables cannot begin with numeric character")
+        )
     if _nonalphanumeric_re.search(name):
-        return False, "Variables cannot contain punctuation or spaces"
-    return True, ''
+        return (
+            False,
+            "Variables cannot contain punctuation or spaces",
+            _translate("Variables cannot contain punctuation or spaces")
+        )
+    return True, '', ''
 
 
 def _getExcelCellName(col, row):
@@ -270,25 +291,30 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         """
         fileName = pathToString(fileName)
         if not all(fieldNames):
-            msg = ('Conditions file %s: Missing parameter name(s); '
-                   'empty cell(s) in the first row?')
-            raise exceptions.ConditionsImportError(msg % fileName)
+            raise exceptions.ConditionsImportError(
+                "Conditions file %s: Missing parameter name(s); empty cell(s) in the first row?" % fileName,
+                translated=_translate("Conditions file %s: Missing parameter name(s); empty cell(s) in the first row?") % fileName
+            )
         for name in fieldNames:
-            OK, msg = isValidVariableName(name)
+            OK, msg, translated = isValidVariableName(name)
             if not OK:
                 # tailor message to importConditions
                 msg = msg.replace('Variables', 'Parameters (column headers)')
+                translated = msg.replace('Variables', 'Parameters (column headers)')
                 raise exceptions.ConditionsImportError(
-                    'Conditions file %s: %s%s"%s"' %
-                    (fileName, msg, os.linesep * 2, name))
+                    'Bad name: %s%s"%s"' % (name, os.linesep, msg),
+                    translated='Bad name: %s%s"%s"' % (name, os.linesep, translated)
+                )
 
     if fileName in ['None', 'none', None]:
         if returnFieldNames:
             return [], []
         return []
     if not os.path.isfile(fileName):
-        msg = 'Conditions file not found: %s'
-        raise ValueError(msg % os.path.abspath(fileName))
+        raise exceptions.ConditionsImportError(
+            "Conditions file not found: %s" % fileName,
+            translated=_translate("Conditions file not found: %s") % fileName
+        )
 
     def pandasToDictList(dataframe):
         """Convert a pandas dataframe to a list of dicts.
@@ -346,8 +372,10 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
 
     elif fileName.endswith(('.xlsx','.xlsm')):  # no xlsread so use openpyxl
         if not haveOpenpyxl:
-            raise ImportError('openpyxl or xlrd is required for loading excel '
-                              'files, but neither was found.')
+            raise exceptions.ConditionsImportError(
+                "openpyxl or xlrd is required for loading excel files, but neither was found.",
+                _translate("openpyxl or xlrd is required for loading excel files, but neither was found.")
+            )
 
         # data_only was added in 1.8
         if parse_version(openpyxl.__version__) < parse_version('1.8'):
@@ -421,7 +449,10 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         try:
             trialsArr = pickle.loads(buffer)
         except Exception:
-            raise IOError('Could not open %s as conditions' % fileName)
+            raise exceptions.ConditionsImportError(
+                'Could not open %s as conditions' % fileName,
+                translated=_translate('Could not open %s as conditions') % fileName
+            )
         f.close()
         trialList = []
         # In Python3, strings returned by pickle() are unhashable so we have to
@@ -437,8 +468,10 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                 thisTrial[fieldName] = row[fieldN]
             trialList.append(thisTrial)
     else:
-        raise IOError('Your conditions file should be an '
-                      'xlsx, csv, dlm, tsv or pkl file')
+        raise exceptions.ConditionsImportError(
+            'Your conditions file should be an xlsx, csv, dlm, tsv or pkl file',
+            translated=_translate('Your conditions file should be an xlsx, csv, dlm, tsv or pkl file')
+        )
 
     # if we have a selection then try to parse it
     if isinstance(selection, str) and len(selection) > 0:
@@ -448,8 +481,10 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                 try:
                     assert n == int(n)
                 except AssertionError:
-                    raise TypeError("importConditions() was given some "
-                                    "`indices` but could not parse them")
+                    raise exceptions.ConditionsImportError(
+                        "importConditions() was given some `indices` but could not parse them",
+                        translated=_translate("importConditions() was given some `indices` but could not parse them")
+                    )
 
     # the selection might now be a slice or a series of indices
     if isinstance(selection, slice):

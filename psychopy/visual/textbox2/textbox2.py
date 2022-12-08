@@ -26,6 +26,7 @@ import re
 from ..aperture import Aperture
 from ..basevisual import BaseVisualStim, ColorMixin, ContainerMixin, WindowMixin
 from psychopy.tools.attributetools import attributeSetter, setAttribute
+from psychopy.tools import mathtools as mt
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import convertToPix
 from psychopy.colors import Color
@@ -80,6 +81,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  italic=False,
                  lineSpacing=None,
                  padding=None,  # gap between box and text
+                 tailPoint=None,
                  anchor='center',
                  alignment='left',
                  flipHoriz=False,
@@ -114,6 +116,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         italic
         lineSpacing
         padding
+        tailPoint : list, tuple, np.ndarray or None
+            Location of the end of a speech bubble tail on the textbox, in the same
+            units as this textbox. If the point sits within the textbox, the tail
+            will be inverted. Use `None` for no tail.
         anchor
         alignment
         fillColor
@@ -243,6 +249,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.editable = editable
         self.overflow = overflow
         self.caret = Caret(self, color=self.color, width=2)
+
+        # tail
+        self.tailPoint = tailPoint
 
         # Placeholder text (don't create if this textbox IS the placeholder)
         if not isinstance(self, PlaceholderText):
@@ -481,6 +490,66 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             ]
         # Create Vertices object
         self._vertices = layout.Vertices(value, obj=self.contentBox, flip=self.flip)
+
+    @attributeSetter
+    def tailPoint(self, value):
+        self.__dict__['tailPoint'] = value
+        # Match box size to own size
+        self.box.size = self.size
+
+        # No tail if value is None
+        if value is None:
+            self.box.vertices = [
+                [0.5, -0.5],
+                [-0.5, -0.5],
+                [-0.5, 0.5],
+                [0.5, 0.5],
+            ]
+            return
+
+        # Normalize point to vertex units
+        _point = layout.Vertices(
+            [[1, 1]], obj=self
+        )
+        _point.setas([value], self.units)
+        point = _point.base[0]
+        # Square with snap points and tail point
+        verts = [
+            # Top right -> Bottom right
+            [0.5, 0.5],
+            [0.5, 0.3],
+            [0.5, 0.1],
+            [0.5, -0.1],
+            [0.5, -0.3],
+            # Bottom right -> Bottom left
+            [0.5, -0.5],
+            [0.3, -0.5],
+            [0.1, -0.5],
+            [-0.1, -0.5],
+            [-0.3, -0.5],
+            # Bottom left -> Top left
+            [-0.5, -0.5],
+            [-0.5, -0.3],
+            [-0.5, -0.1],
+            [-0.5, 0.1],
+            [-0.5, 0.3],
+            # Top left -> Top right
+            [-0.5, 0.5],
+            [-0.3, 0.5],
+            [-0.1, 0.5],
+            [0.1, 0.5],
+            [0.3, 0.5],
+            # Tail
+            point
+        ]
+        # Sort clockwise so tail point moves to correct place in vertices order
+        verts = mt.sortClockwise(verts)
+        verts.reverse()
+        # Assign vertices
+        self.box.vertices = verts
+
+    def setTailPoint(self, value, log=None):
+        setAttribute(self, 'tailPoint', value, log)
 
     @property
     def padding(self):
@@ -1665,6 +1734,7 @@ class Style:
         self.b[i:i] = style.b
         self.c[i:i] = style.c
         self.len += len(style)
+
 
 class PlaceholderText(TextBox2):
     """
