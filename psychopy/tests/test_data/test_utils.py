@@ -4,6 +4,8 @@
 import os
 import pytest
 import numpy as np
+
+from psychopy import exceptions
 from psychopy.data import utils
 from os.path import join
 
@@ -42,16 +44,17 @@ class Test_utilsClass:
         assert utils.importConditions(fileName=None) == []
         assert utils.importConditions(fileName=None, returnFieldNames=True) == ([], [])
         # Test value error for non-existent file
-        with pytest.raises(ValueError) as errMsg:
+        with pytest.raises(exceptions.ConditionsImportError) as errMsg:
             utils.importConditions(fileName='raiseErrorfileName')
-        assert 'Conditions file not found: %s' % os.path.abspath('raiseErrorfileName') in str(errMsg.value)
+        assert 'Conditions file not found:' in str(errMsg.value)
+        assert 'raiseErrorfileName' in str(errMsg.value)
 
         conds = utils.importConditions(fileName_pkl)
         assert conds[0] == expected_cond
 
         # trialTypes.pkl saved in list of list format (see trialTypes.docx)
         # test assertion for invalid file type
-        with pytest.raises(IOError) as errMsg:
+        with pytest.raises(exceptions.ConditionsImportError) as errMsg:
             utils.importConditions(fileName_docx)
         assert ('Your conditions file should be an ''xlsx, csv, dlm, tsv or pkl file') == str(errMsg.value)
 
