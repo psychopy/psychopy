@@ -44,7 +44,8 @@ else:
     # if we succesfully load the package, warn the user to use the newer stuff
     logging.warning(
         "Attempting to import `psychopy.microphone`. Note that this library is "
-        "deprecated and unsupported. Use `psychopy.sound.microphone` for audio "
+        "deprecated for the purpose of audio capture, but may still provide "
+        "other useful functionality. Use `psychopy.sound.microphone` for audio "
         "capture instead."
     )
 
