@@ -81,7 +81,7 @@ class PluginInfo:
 
     """
 
-    def __init__(self, source,
+    def __init__(self,
                  pipname, name="",
                  author=None, homepage="", docs="", repo="",
                  keywords=None,
@@ -241,7 +241,7 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
         self.SetBackgroundColour("white")
 
 
-class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
+class PluginBrowserList(wx.ScrolledWindow, handlers.ThemeMixin):
     class PluginListItem(wx.Window, handlers.ThemeMixin):
         """
         Individual item pointing to a plugin
@@ -378,7 +378,7 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
                 evt.Skip()
 
     def __init__(self, parent, viewer=None):
-        wx.Panel.__init__(self, parent=parent)
+        wx.ScrolledWindow.__init__(self, parent=parent, style=wx.VSCROLL)
         self.parent = parent
         self.viewer = viewer
         # Setup sizer
@@ -404,6 +404,8 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         items.sort(key=lambda obj: obj.installed, reverse=True)
         for item in items:
             self.appendItem(item)
+        # Layout
+        self.Layout()
 
     def onClick(self, evt=None):
         self.SetFocusIgnoringChildren()
@@ -526,7 +528,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Handle None
         if value is None:
             value = PluginInfo(
-                "community", "psychopy-...",
+                "psychopy-...",
                 name="..."
             )
         self._info = value
@@ -767,7 +769,6 @@ def getAllPluginDetails():
                 email=data.get('Author-email', ''),
             )
             info = PluginInfo(
-                source="unknown",
                 pipname=name, name=name,
                 author=author,
                 homepage=data.get('Home-page', ''),
