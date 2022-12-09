@@ -35,11 +35,18 @@ try:
         wav2flac,
         switchOn,
         switchOff)
-except (ModuleNotFoundError, ImportError):
+except (ModuleNotFoundError, ImportError, NameError):
     logging.error(
-        "Support for Konica Minolta hardware is not available this session. "
-        "Please install `psychopy-minolta` and restart the session to enable "
-        "support.")
+        "Support for `psychopy.microphone` hardware is not available this "
+        "session. Please install `psychopy-legacy-mic` and restart the session "
+        "to enable support.")
+else:
+    # if we succesfully load the package, warn the user to use the newer stuff
+    logging.warning(
+        "Attempting to import `psychopy.microphone`. Note that this library is "
+        "deprecated and unsupported. Use `psychopy.sound.microphone` for audio "
+        "capture instead."
+    )
 
 if __name__ == "__main__":
     pass
