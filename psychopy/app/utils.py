@@ -274,10 +274,11 @@ class ImageData(pil.Image):
                 data = io.BytesIO(content)
                 return pil.open(data)
 
-        # If couldn't interpret, raise error
-        raise ValueError(_translate(
-            "Could not get image from: {}"
+        # If couldn't interpret, raise warning and return blank image
+        logging.warning(_translate(
+            "Could not get image from: {}, using blank image instead."
         ).format(source))
+        return pil.new('RGB', size=(16, 16))
 
 
 class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
