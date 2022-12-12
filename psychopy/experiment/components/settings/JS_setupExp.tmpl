@@ -7,7 +7,6 @@ async function updateInfo() {{
   expInfo['psychopyVersion'] = '{version}';
   expInfo['OS'] = window.navigator.platform;
 
-  psychoJS.experiment.dataFileName = (("." + "/") + {filename});
 
   // store frame rate of monitor if we can measure it successfully
   expInfo['frameRate'] = psychoJS.window.getActualFrameRate();
@@ -19,5 +18,10 @@ async function updateInfo() {{
   // add info from the URL:
   util.addInfoFromUrl(expInfo);
   {setRedirectURL}
+
+  
+  psychoJS.experiment.dataFileName = (("." + "/") + {filename});
+
+
   return Scheduler.Event.NEXT;
 }}
