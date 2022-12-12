@@ -248,6 +248,7 @@ class PluginBrowserList(wx.ScrolledWindow, handlers.ThemeMixin):
         """
         def __init__(self, parent, info):
             wx.Window.__init__(self, parent=parent, style=wx.SIMPLE_BORDER)
+            self.SetMaxSize((400, -1))
             self.parent = parent
             # Link info object
             self.info = info
