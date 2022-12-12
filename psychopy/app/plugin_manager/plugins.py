@@ -1,4 +1,5 @@
 import wx
+from wx.lib import scrolledpanel
 import webbrowser
 from PIL import Image as pil
 
@@ -216,17 +217,23 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
         self.SetSizer(self.border)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        # Make splitter
+        self.splitter = wx.SplitterWindow(self)
+        self.sizer.Add(self.splitter, proportion=1, border=0, flag=wx.EXPAND | wx.ALL)
         # Make list
-        self.pluginList = PluginBrowserList(self)
-        self.sizer.Add(self.pluginList, flag=wx.EXPAND | wx.ALL)
-        # Seperator
-        self.sizer.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), border=6, flag=wx.EXPAND | wx.ALL)
+        self.pluginList = PluginBrowserList(self.splitter)
         # Make viewer
-        self.pluginViewer = PluginDetailsPanel(self)
-        self.sizer.Add(self.pluginViewer, proportion=1, flag=wx.EXPAND | wx.ALL)
+        self.pluginViewer = PluginDetailsPanel(self.splitter)
         # Cross-reference viewer & list
         self.pluginViewer.list = self.pluginList
         self.pluginList.viewer = self.pluginViewer
+        # Assign to splitter
+        self.splitter.SplitVertically(
+            window1=self.pluginList,
+            window2=self.pluginViewer,
+            sashPosition=0
+        )
+        self.splitter.SetMinimumPaneSize(450)
         # Mark installed on items now that we have necessary references
         for item in self.pluginList.items:
             item.markInstalled(item.info.installed)
@@ -239,9 +246,12 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
     def _applyAppTheme(self):
         # Set colors
         self.SetBackgroundColour("white")
+        # Manually style children as Splitter interfered with inheritance
+        self.pluginList.theme = self.theme
+        self.pluginViewer.theme = self.theme
 
 
-class PluginBrowserList(wx.ScrolledWindow, handlers.ThemeMixin):
+class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
     class PluginListItem(wx.Window, handlers.ThemeMixin):
         """
         Individual item pointing to a plugin
@@ -379,7 +389,7 @@ class PluginBrowserList(wx.ScrolledWindow, handlers.ThemeMixin):
                 evt.Skip()
 
     def __init__(self, parent, viewer=None):
-        wx.ScrolledWindow.__init__(self, parent=parent, style=wx.VSCROLL)
+        scrolledpanel.ScrolledPanel.__init__(self, parent=parent, style=wx.VSCROLL)
         self.parent = parent
         self.viewer = viewer
         # Setup sizer
@@ -407,6 +417,7 @@ class PluginBrowserList(wx.ScrolledWindow, handlers.ThemeMixin):
             self.appendItem(item)
         # Layout
         self.Layout()
+        self.SetupScrolling()
 
     def onClick(self, evt=None):
         self.SetFocusIgnoringChildren()
