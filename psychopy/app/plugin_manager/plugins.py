@@ -309,7 +309,7 @@ class PluginBrowserList(wx.ScrolledWindow, handlers.ThemeMixin):
             self.SetForegroundColour(fg)
             # Set label fonts
             from psychopy.app.themes import fonts
-            self.nameLbl.SetFont(fonts.appTheme['h3'].obj)
+            self.nameLbl.SetFont(fonts.appTheme['h6'].obj)
             self.pipNameLbl.SetFont(fonts.coderTheme.base.obj)
             # Set text colors
             self.nameLbl.SetForegroundColour(fg)
