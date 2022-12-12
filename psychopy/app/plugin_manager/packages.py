@@ -1,15 +1,84 @@
 import webbrowser
 
+import requests
 import wx
 import sys
 import subprocess as sp
+from pypi_search import search as pypi
 
 from psychopy.app import utils
 from psychopy.app.themes import handlers, icons
 from psychopy.localization import _translate
 from psychopy.tools import filetools as ft
 
-from psychopy.tools.pkgtools import getInstalledPackages, getPackageMetadata
+from psychopy.tools.pkgtools import getInstalledPackages, getPackageMetadata, getPypiInfo, isInstalled
+
+
+def installPackage(name, version=None):
+    # Append version if given
+    if version is not None:
+        name += f"=={version}"
+    # Attempt to install
+    emts = [sys.executable, "-m pip install", name]
+    output = sp.Popen(' '.join(emts),
+                      stdout=sp.PIPE,
+                      stderr=sp.PIPE,
+                      shell=True,
+                      universal_newlines=True)
+    stdout, stderr = output.communicate()
+    sys.stdout.write(stdout)
+    sys.stderr.write(stderr)
+
+    if output.returncode != 0:
+        # Display output if error
+        cmd = "\n>> pip install" + name + "\n"
+        dlg = InstallErrorDlg(
+            cmd=cmd,
+            stdout=stdout,
+            stderr=stderr,
+            label=_translate("Package {} could not be installed.").format(name)
+        )
+    else:
+        # Display success message if success
+        dlg = wx.MessageDialog(
+            parent=None,
+            caption=_translate("Package installed"),
+            message=_translate("Package {} successfully installed!").format(name),
+            style=wx.ICON_INFORMATION
+        )
+    dlg.ShowModal()
+
+
+def uninstallPackage(name):
+    # Attempt to uninstall
+    emts = [sys.executable, "-m pip uninstall", name]
+    output = sp.Popen(' '.join(emts),
+                      stdout=sp.PIPE,
+                      stderr=sp.PIPE,
+                      shell=True,
+                      universal_newlines=True)
+    stdout, stderr = output.communicate()
+    sys.stdout.write(stdout)
+    sys.stderr.write(stderr)
+
+    if output.returncode != 0:
+        # Display output if error
+        cmd = "\n>> pip uninstall" + name + "\n"
+        dlg = InstallErrorDlg(
+            cmd=cmd,
+            stdout=stdout,
+            stderr=stderr,
+            label=_translate("Package {} could not be uninstalled.").format(name)
+        )
+    else:
+        # Display success message if success
+        dlg = wx.MessageDialog(
+            parent=None,
+            caption=_translate("Package uninstalled"),
+            message=_translate("Package {} successfully uninstalled!").format(name),
+            style=wx.ICON_INFORMATION
+        )
+    dlg.ShowModal()
 
 
 class InstallErrorDlg(wx.Dialog, handlers.ThemeMixin):
@@ -185,9 +254,6 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.border.Add(self.sizer, proportion=1, border=12, flag=wx.ALL | wx.EXPAND)
 
-        # Label
-        self.lbl = wx.StaticText(self, label=_translate("Installed packages:"))
-        self.sizer.Add(self.lbl, border=6, flag=wx.LEFT | wx.RIGHT | wx.TOP | wx.EXPAND)
         # Search bar
         self.searchCtrl = wx.SearchCtrl(self)
         self.searchCtrl.Bind(wx.EVT_SEARCH, self.refresh)
@@ -198,23 +264,21 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
         self.ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
         self.ctrl.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClick)
         self.sizer.Add(self.ctrl, proportion=1, border=6, flag=wx.LEFT | wx.RIGHT | wx.EXPAND)
-        # Create button sizer
-        self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.sizer.Add(self.btnSizer, border=3, flag=wx.ALL | wx.EXPAND)
-        # Create add button
-        self.addBtn = wx.Button(self, label="▼", size=(48, 24))
-        self.addBtn.Bind(wx.EVT_BUTTON, self.onAddBtn)
-        self.btnSizer.Add(self.addBtn, border=3, flag=wx.ALL | wx.EXPAND)
+
+        # "Or..." label
+        self.orLbl = wx.StaticText(self, label=_translate("or..."))
+        self.sizer.Add(self.orLbl, border=3, flag=wx.ALL | wx.ALIGN_CENTER)
+        # Add by file...
+        self.addFileBtn = utils.HoverButton(self, label=_translate("Install from file"))
+        self.addFileBtn.SetToolTipString(_translate("Install a package from a local file, such as a .egg or wheel."))
+        self.addFileBtn.Bind(wx.EVT_BUTTON, self.onAddFromFile)
+        self.sizer.Add(self.addFileBtn, border=6, flag=wx.ALL | wx.ALIGN_CENTER)
         # Add button to open pip
-        self.terminalBtn = wx.Button(self, style=wx.BU_EXACTFIT)
+        self.terminalBtn = utils.HoverButton(self, label=_translate("Open PIP terminal"))
         self.terminalBtn.SetToolTipString(_translate("Open PIP terminal to manage packages manually"))
-        self.btnSizer.Add(self.terminalBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(self.terminalBtn, border=3, flag=wx.ALL | wx.ALIGN_CENTER)
         self.terminalBtn.Bind(wx.EVT_BUTTON, self.onOpenPipTerminal)
-        # Create refresh button
-        self.btnSizer.AddStretchSpacer(1)
-        self.refreshBtn = wx.Button(self, style=wx.BU_EXACTFIT)
-        self.refreshBtn.Bind(wx.EVT_BUTTON, self.refresh)
-        self.btnSizer.Add(self.refreshBtn, border=3, flag=wx.ALL | wx.EXPAND)
+
         # Initial data
         self.refresh()
 
@@ -222,49 +286,7 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
         self._applyAppTheme()
 
     def _applyAppTheme(self):
-        self.refreshBtn.SetBitmap(
-            icons.ButtonIcon(stem="view-refresh", size=16).bitmap
-        )
-        self.addBtn.SetBitmap(
-            icons.ButtonIcon(stem="plus", size=16).bitmap
-        )
-        self.terminalBtn.SetBitmap(
-            icons.ButtonIcon(stem="libroot", size=16).bitmap
-        )
-
-    def addPackage(self, name):
-        # Attempt to install
-        emts = [sys.executable, "-m pip install", name]
-        output = sp.Popen(' '.join(emts),
-                          stdout=sp.PIPE,
-                          stderr=sp.PIPE,
-                          shell=True,
-                          universal_newlines=True)
-        stdout, stderr = output.communicate()
-        sys.stdout.write(stdout)
-        sys.stderr.write(stderr)
-
-        if output.returncode != 0:
-            # Display output if error
-            cmd = "\n>> pip install" + name + "\n"
-            dlg = InstallErrorDlg(
-                cmd=cmd,
-                stdout=stdout,
-                stderr=stderr,
-                label=_translate("Package {} could not be installed.").format(name)
-            )
-        else:
-            # Display success message if success
-            dlg = wx.MessageDialog(
-                parent=None,
-                caption=_translate("Package installed"),
-                message=_translate("Package {} successfully installed!").format(name),
-                style=wx.ICON_INFORMATION
-            )
-        dlg.ShowModal()
-
-        # Reload packages
-        self.refresh()
+        return
 
     def onOpenPipTerminal(self, evt=None):
         # Make dialog
@@ -288,11 +310,17 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
     def onRightClick(self, evt=None):
         # Create menu
         menu = wx.Menu()
-        uninstallOpt = menu.Append(wx.ID_ANY, item=_translate("Uninstall"))
-        # Bind menu to functions
-        menu.functions = {
-            uninstallOpt.GetId(): self.onUninstall,
-        }
+        # Map menu functions
+        menu.functions = {}
+        if isInstalled(evt.GetText()):
+            # Add uninstall if installed
+            uninstallOpt = menu.Append(wx.ID_ANY, item=_translate("Uninstall"))
+            menu.functions[uninstallOpt.GetId()] = self.onUninstall
+        else:
+            # Add install if not installed
+            uninstallOpt = menu.Append(wx.ID_ANY, item=_translate("Install"))
+            menu.functions[uninstallOpt.GetId()] = self.onInstall
+        # Bind choice event
         menu.Bind(wx.EVT_MENU, self.onRightClickMenuChoice)
         # Store pip name as attribute of menu
         menu.pipname = evt.GetText()
@@ -320,12 +348,16 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
 
         # if user selects NO, exit the routine
         if msg.ShowModal() == wx.ID_YES:
-            # Issue uninstall command, use the `-y` argument to get around the
-            # prompt that requires sending bytes to the console.
-            cmd = ["uninstall", "-y", menu.pipname]
-            self.execute(cmd)
+            uninstallPackage(pipname)
+            self.refresh()
 
-        msg.Destroy()
+    def onInstall(self, evt=None):
+        # Get rightclick menu
+        menu = evt.GetEventObject()
+        pipname = menu.pipname
+        # Install package
+        installPackage(pipname)
+        self.refresh()
 
     def refresh(self, evt=None):
         # Get search term
@@ -333,43 +365,32 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
         # Clear
         self.ctrl.ClearAll()
         self.ctrl.AppendColumn(_translate("Package"))
-        self.ctrl.AppendColumn(_translate("Version"))
-        # Get list of packages
-        for packageName, packageVersion in getInstalledPackages():
-            # If line is a valid version name - version pair, append to list
-            if searchTerm in packageName:
-                self.ctrl.Append((packageName, packageVersion))
+        self.ctrl.AppendColumn(_translate("Installed"))
 
-    def onAddBtn(self, evt=None):
-        # Get button
-        btn = evt.GetEventObject()
-        # Create menu
-        menu = wx.Menu()
-        nameOpt = menu.Append(wx.ID_ANY, item=_translate("Add package by name..."))
-        fileOpt = menu.Append(wx.ID_ANY, item=_translate("Add package from file..."))
-        # Bind menu to functions
-        menu.functions = {
-            nameOpt.GetId(): self.onAddByName,
-            fileOpt.GetId(): self.onAddFromFile
-        }
-        menu.Bind(wx.EVT_MENU, self.onAddMenuChoice)
-        # Show menu
-        btn.PopupMenu(menu)
-
-    def onAddMenuChoice(self, evt=None):
-        # Work out what was chosen
-        menu = evt.GetEventObject()
-        choice = evt.GetId()
-        if choice not in menu.functions:
+        # Get installed packages
+        installedPackages = dict(getInstalledPackages())
+        # If there's no search term, show all installed and return
+        if searchTerm in (None, ""):
+            for pkg, version in installedPackages.items():
+                item = self.ctrl.Append((pkg, version))
+                self.ctrl.SetItemFont(item, font=wx.Font().Bold())
             return
-        # Perform associated method
-        menu.functions[choice](evt)
-
-    def onAddByName(self, evt=None):
-        # Create dialog to get package name
-        dlg = wx.TextEntryDialog(self, caption=_translate("Add package by name"), message=_translate("Package name:"))
-        if dlg.ShowModal() == wx.ID_OK:
-            self.addPackage(dlg.GetValue())
+        # Add column for latest version if we're actually searching
+        self.ctrl.AppendColumn(_translate("Latest"))
+        # Get packages from search
+        foundPackages = pypi.find_packages(self.searchCtrl.GetValue())
+        # Populate
+        for pkg in foundPackages:
+            font = wx.Font()
+            if pkg['name'] in installedPackages:
+                # If installed, add row with value for installed version
+                item = self.ctrl.Append((pkg['name'], installedPackages[pkg['name']], pkg['version']))
+                font = font.Bold()
+            else:
+                # Otherwise, add row with installed version blank
+                item = self.ctrl.Append((pkg['name'], "-", pkg['version']))
+            # Style new row according to install status
+            self.ctrl.SetItemFont(item, font)
 
     def onAddFromFile(self, evt=None):
         # Create dialog to get package file location
@@ -378,7 +399,10 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
             wildcard="Wheel files (.whl)|.whl|Source distribution files (.sdist)|.sdist",
             style=wx.FD_OPEN | wx.FD_SHOW_HIDDEN)
         if dlg.ShowModal() == wx.ID_OK:
-            self.addPackage(dlg.GetPath())
+            # Install
+            installPackage(dlg.GetPath())
+            # Reload packages
+            self.refresh()
 
     def execute(self, params):
         """
@@ -435,9 +459,6 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Name
         self.nameCtrl = wx.StaticText(self)
         self.nameSzr.Add(self.nameCtrl, border=6, flag=wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND)
-        # Version
-        self.versionCtrl = wx.Choice(self)
-        self.nameSzr.Add(self.versionCtrl, border=6, flag=wx.ALIGN_BOTTOM | wx.ALL)
         # Author
         self.authorSzr = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(self.authorSzr, border=6, flag=wx.BOTTOM | wx.LEFT | wx.RIGHT | wx.EXPAND)
@@ -454,10 +475,15 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.homeBtn = wx.Button(self, label=_translate("Homepage"))
         self.headBtnSzr.Add(self.homeBtn, border=3, flag=wx.ALL | wx.EXPAND)
         self.homeBtn.Bind(wx.EVT_BUTTON, self.onHomepage)
-        # Location button
-        self.dirBtn = wx.Button(self, label=_translate("Folder"))
-        self.headBtnSzr.Add(self.dirBtn, border=3, flag=wx.ALL | wx.EXPAND)
-        self.dirBtn.Bind(wx.EVT_BUTTON, self.onLocalDir)
+        # Install button
+        self.installBtn = wx.Button(self, label=_translate("Install"))
+        self.headBtnSzr.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), border=6, flag=wx.LEFT | wx.RIGHT | wx.EXPAND)
+        self.headBtnSzr.Add(self.installBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
+        # Version chooser
+        self.versionCtrl = wx.Choice(self)
+        self.headBtnSzr.Add(self.versionCtrl, border=3, flag=wx.RIGHT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER)
+        self.versionCtrl.Bind(wx.EVT_CHOICE, self.onVersion)
         # Description
         self.descCtrl = utils.MarkdownCtrl(self, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL)
         self.sizer.Add(self.descCtrl, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
@@ -477,40 +503,63 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Disable/enable according to whether None
         active = pipname is not None
         self.homeBtn.Enable(active)
-        self.dirBtn.Enable(active)
+        self.installBtn.Enable(active)
         self.nameCtrl.Enable(active)
         self.versionCtrl.Enable(active)
         self.authorPre.Enable(active)
         self.authorCtrl.Enable(active)
         self.licenseCtrl.Enable(active)
         self.descCtrl.Enable(active)
-        # Clear choices on version ctrl
-        self.versionCtrl.Clear()
 
-        # If None, set everything to blank
-        if pipname is None:
-            self.nameCtrl.SetLabelText("...")
-            self.authorCtrl.SetLabelText("...")
+        if self._package is None:
+            # Show placeholder text
+            self.params = {
+                "name": "...",
+                "author": "...",
+                "authorEmail": "",
+                "license": "",
+                "summary": "",
+                "desc": "",
+                'version': None,
+                'releases': []
+            }
         else:
-            self.params = getPackageMetadata(self._package)
+            # Get data from pypi
+            pypiData = getPypiInfo(self._package)
+            # Get package metadata (if installed)
+            if self._package in dict(getInstalledPackages()):
+                metadata = getPackageMetadata(self._package)
+            else:
+                metadata = {}
+            # Get best data available, prioritising local metadata
+            self.params = {
+                'name': metadata.get('Name', pypiData.get('Name', pipname)),
+                'author': metadata.get('Author', pypiData.get('author', 'Unknown')),
+                'authorEmail': metadata.get('Author-email', pypiData.get('author_email', 'Unknown')),
+                'license': metadata.get('License', pypiData.get('license', 'Unknown')),
+                'summary': metadata.get('Summary', pypiData.get('summary', '')),
+                'desc': metadata.get('Description', pypiData.get('description', '')),
+                'version': metadata.get('Version', None),
+                'releases': pypiData.get('Releases', pypiData.get('releases', []))
+            }
 
-            if self.params is not None:
-                projectName = self.params.get('Name', pipname)  # missing? use `pipname`
-                version = self.params['Version']
-                authorName = self.params.get('Author', 'Unknown')
-                authorEmail = self.params.get('Author-email', 'Unknown')
-                license = self.params.get('License', 'Unknown')
-                summary = self.params.get('Summary', '')
-                desc = self.params.get('Description', '')
-
-                self.nameCtrl.SetLabelText(projectName)
-                self.versionCtrl.AppendItems([version])
-                self.versionCtrl.SetStringSelection(version)
-                self.authorCtrl.SetLabel(authorName)
-                self.authorCtrl.URL = "mailto:" + authorEmail
-                self.authorCtrl.SetToolTip(self.authorCtrl.URL)
-                self.licenseCtrl.SetLabelText(f" (License: {license})")
-                self.descCtrl.setValue(summary + '\n\n' + desc)
+        # Set values from params
+        self.nameCtrl.SetLabelText(self.params['name'])
+        self.authorCtrl.SetLabel(self.params['author'])
+        self.authorCtrl.URL = "mailto:" + self.params['authorEmail']
+        self.authorCtrl.SetToolTip(self.params['authorEmail'])
+        self.licenseCtrl.SetLabelText(" (License: %(license)s)" % self.params)
+        self.descCtrl.setValue("%(summary)s\n\n%(desc)s" % self.params)
+        # Set current and possible versions
+        self.versionCtrl.Clear()
+        self.versionCtrl.AppendItems(self.params['releases'])
+        if self.params['version'] is None:
+            self.versionCtrl.SetSelection(0)
+        else:
+            if self.params['version'] not in self.versionCtrl.GetStrings():
+                self.versionCtrl.Append(self.params['version'])
+            self.versionCtrl.SetStringSelection(self.params['version'])
+        self.onVersion()
 
         self.Layout()
         self._applyAppTheme()
@@ -544,10 +593,21 @@ class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
                     ft.openInExplorer(line[1])
                     break
 
+    def onInstall(self, evt=None):
+        # Install package then disable the button to indicate it's installed
+        installPackage(self.package, version=self.versionCtrl.GetStringSelection())
+        self.installBtn.Disable()
+
+    def onVersion(self, evt=None):
+        # When version selected, enable the install button if the version is different than installed
+        self.installBtn.Enable(
+            self.versionCtrl.GetStringSelection() != self.params['version'] and self.package is not None
+        )
+
     def _applyAppTheme(self):
         from psychopy.app.themes import fonts
         self.nameCtrl.SetFont(fonts.appTheme['h1'].obj)
-        self.dirBtn.SetBitmap(icons.ButtonIcon(stem="folder", size=16).bitmap)
+        self.installBtn.SetBitmap(icons.ButtonIcon(stem="download", size=16).bitmap)
         self.authorCtrl.SetBackgroundColour("white")
 
 
