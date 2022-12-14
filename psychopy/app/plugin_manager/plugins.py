@@ -281,14 +281,6 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             # Button sizer
             self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
             self.sizer.Add(self.btnSizer, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
-            # Add curated marker
-            self.curatedMark = wx.StaticBitmap(self,
-                                               bitmap=icons.ButtonIcon("star", size=16).bitmap)
-            self.curatedMark.SetToolTipString(_translate(
-                "This plugin is maintained by the Open Science Tools team."
-            ))
-            self.curatedMark.Show(info.author == "ost")
-            self.btnSizer.Add(self.curatedMark, border=3, flag=wx.ALL | wx.EXPAND)
             # Add install button
             self.installBtn = PluginInstallBtn(self)
             self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
@@ -626,10 +618,12 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.detailsSizer.Add(self.buttonSizer, border=3, flag=wx.ALIGN_RIGHT | wx.ALL)
         # Email button
         self.emailBtn = wx.Button(self, style=wx.BU_EXACTFIT)
+        self.emailBtn.SetToolTipString(_translate("Email author"))
         self.emailBtn.Bind(wx.EVT_BUTTON, self.onEmailBtn)
         self.buttonSizer.Add(self.emailBtn, border=3, flag=wx.EXPAND | wx.ALL)
         # GitHub button
         self.githubBtn = wx.Button(self, style=wx.BU_EXACTFIT)
+        self.githubBtn.SetToolTipString(_translate("Author's GitHub"))
         self.githubBtn.Bind(wx.EVT_BUTTON, self.onGithubBtn)
         self.buttonSizer.Add(self.githubBtn, border=3, flag=wx.EXPAND | wx.ALL)
 
@@ -692,6 +686,13 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.avatar.SetBitmap(icon)
         # Update name
         self.name.SetLabelText(value.name)
+        # Add tooltip for OST
+        if value == "ost":
+            self.name.SetToolTipString(_translate(
+                "That's us! We make PsychoPy and Pavlovia!"
+            ))
+        else:
+            self.name.SetToolTipString("")
         # Show/hide buttons
         self.emailBtn.Show(bool(value.email))
         self.githubBtn.Show(bool(value.github))
