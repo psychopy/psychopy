@@ -128,20 +128,21 @@ class Preferences:
             self.paths['userPrefsDir'] = join(os.environ['HOME'],
                                               '.psychopy3')
 
-        # # Define theme path
-        # self.paths['themes'] = join(self.paths['userPrefsDir'], 'themes')
-        # # Find / copy fonts
-        # self.paths['fonts'] = join(self.paths['userPrefsDir'], 'fonts')
-        # # packages and plugins
-        # self.paths['packages'] = join(self.paths['userPrefsDir'], 'packages')
+        # paths in user directory to create/check write access
+        userPrefsPaths = (
+            'userPrefsDir',  # root dir
+            'themes',  # define theme path
+            'fonts',  # find / copy fonts
+            'packages'  # packages and plugins
+        )
 
-        # paths to define
-        userPrefsPaths = ('userPrefsDir', 'themes', 'fonts', 'packages')
+        # build directory structure inside user directory
         for userPrefPath in userPrefsPaths:
             # define path
-            if userPrefPath != 'userPrefsDir':
+            if userPrefPath != 'userPrefsDir':  # skip creating root, just check
                 self.paths[userPrefPath] = join(
-                    self.paths['userPrefsDir'], userPrefPath)
+                    self.paths['userPrefsDir'],
+                    userPrefPath)
             # avoid silent fail-to-launch-app if bad permissions:
             try:
                 os.makedirs(self.paths[userPrefPath])
