@@ -200,9 +200,10 @@ jobs:
 
     - name: Install PsychoPy Dependencies
       run: |
+        # install optional components
+        pip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator psychopy-visionscience
         # to install all dependencies
         pip install .
-        pip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator psychopy-visionscience
 
     - name: Set nice level
       run: |
