@@ -627,6 +627,10 @@ class FileCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
         evt = wx.FileDirPickerEvent(wx.EVT_FILEPICKER_CHANGED.typeId, self, -1, file)
         evt.SetEventObject(self)
         wx.PostEvent(self, evt)
+        # Post keypress event to trigger onchange
+        evt = wx.FileDirPickerEvent(wx.EVT_KEY_UP.typeId, self, -1, file)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
 
 
 class FileListCtrl(wx.ListBox, _ValidatorMixin, _HideMixin, _FileMixin):
