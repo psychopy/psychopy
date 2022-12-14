@@ -34,7 +34,8 @@ try:
         flac2wav,
         wav2flac,
         switchOn,
-        switchOff)
+        switchOff,
+        _getFlacPath)
 except (ModuleNotFoundError, ImportError, NameError):
     logging.error(
         "Support for `psychopy.microphone` hardware is not available this "
