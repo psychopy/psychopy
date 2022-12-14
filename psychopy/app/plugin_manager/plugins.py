@@ -284,7 +284,7 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             # Add install button
             self.installBtn = PluginInstallBtn(self)
             self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
-            self.btnSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.EXPAND)
+            self.btnSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
 
             # Map to onclick function
             self.Bind(wx.EVT_LEFT_DOWN, self.onClick)
@@ -485,9 +485,9 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.titleSizer.Add(self.buttonSizer, flag=wx.EXPAND)
         self.installBtn = PluginInstallBtn(self)
         self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
-        self.buttonSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
+        self.buttonSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         self.activeBtn = wx.CheckBox(self, label=_translate("Activated"))
-        self.buttonSizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
+        self.buttonSizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         # Description
         self.description = utils.MarkdownCtrl(
             self, value="",
@@ -715,18 +715,18 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
         webbrowser.open(f"github.com/{self.info.github}")
 
 
-class PluginInstallBtn(utils.HoverButton, handlers.ThemeMixin):
+class PluginInstallBtn(wx.Button, handlers.ThemeMixin):
     """
     Install button for a plugin, comes with a method to update its appearance according to installation
     status & availability
     """
     def __init__(self, parent):
         # Initialise
-        utils.HoverButton.__init__(
+        wx.Button.__init__(
             self, parent,
-            label="...",
-            style=wx.BORDER_NONE | wx.BU_LEFT
+            label="..."
         )
+        self.SetBitmap(icons.ButtonIcon("download", 16).bitmap)
 
     def markInstalled(self, installed=True):
         """
@@ -741,21 +741,26 @@ class PluginInstallBtn(utils.HoverButton, handlers.ThemeMixin):
             # If pending, disable and set label as ellipsis
             self.Disable()
             self.SetLabelText("...")
+            self.setAllBitmaps(icons.ButtonIcon("view-refresh", 16).bitmap)
         elif installed:
             # If installed, disable and set label as installed
             self.Disable()
             self.SetLabelText(_translate("Installed"))
+            self.setAllBitmaps(icons.ButtonIcon("greytick", 16).bitmap)
         else:
             # If not installed, enable and set label as not installed
             self.Enable()
             self.SetLabelText(_translate("Install"))
+            self.setAllBitmaps(icons.ButtonIcon("download", 16).bitmap)
+
+    def setAllBitmaps(self, bmp):
+        self.SetBitmap(bmp)
+        self.SetBitmapDisabled(bmp)
+        self.SetBitmapPressed(bmp)
+        self.SetBitmapCurrent(bmp)
 
     def _applyAppTheme(self):
-        # Do base method
-        utils.HoverButton._applyAppTheme(self)
         # Setup icon
-        self.SetBitmap(icons.ButtonIcon("download", 16).bitmap)
-        self.SetBitmapDisabled(icons.ButtonIcon("greytick", 16).bitmap)
         self.SetBitmapMargins(6, 3)
 
 
