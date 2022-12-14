@@ -128,29 +128,26 @@ class Preferences:
             self.paths['userPrefsDir'] = join(os.environ['HOME'],
                                               '.psychopy3')
 
-        # Define theme path
-        self.paths['themes'] = join(self.paths['userPrefsDir'], 'themes')
-        # Find / copy fonts
-        self.paths['fonts'] = join(self.paths['userPrefsDir'], 'fonts')
-        # avoid silent fail-to-launch-app if bad permissions:
+        # # Define theme path
+        # self.paths['themes'] = join(self.paths['userPrefsDir'], 'themes')
+        # # Find / copy fonts
+        # self.paths['fonts'] = join(self.paths['userPrefsDir'], 'fonts')
+        # # packages and plugins
+        # self.paths['packages'] = join(self.paths['userPrefsDir'], 'packages')
 
-        try:
-            os.makedirs(self.paths['userPrefsDir'])
-        except OSError as err:
-            if err.errno != errno.EEXIST:
-                raise
-        # Create themes folder in user space if not one already
-        try:
-            os.makedirs(self.paths['themes'])
-        except OSError as err:
-            if err.errno != errno.EEXIST:
-                raise
-        # Make fonts folder in user space if not one already
-        try:
-            os.makedirs(self.paths['fonts'])
-        except OSError as err:
-            if err.errno != errno.EEXIST:
-                raise
+        # paths to define
+        userPrefsPaths = ('userPrefsDir', 'themes', 'fonts', 'packages')
+        for userPrefPath in userPrefsPaths:
+            # define path
+            if userPrefPath != 'userPrefsDir':
+                self.paths[userPrefPath] = join(
+                    self.paths['userPrefsDir'], userPrefPath)
+            # avoid silent fail-to-launch-app if bad permissions:
+            try:
+                os.makedirs(self.paths[userPrefPath])
+            except OSError as err:
+                if err.errno != errno.EEXIST:
+                    raise
 
         # Get dir for base and user themes
         baseThemeDir = Path(self.paths['appDir']) / "themes" / "spec"
