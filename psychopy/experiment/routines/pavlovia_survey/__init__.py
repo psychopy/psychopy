@@ -111,8 +111,6 @@ class PavloviaSurveyComponent(BaseStandaloneRoutine):
         buff.writeIndentedLines(code % inits)
 
     def writeRoutineBeginCodeJS(self, buff, modular):
-        # create the frame loop for this routine
-
         code = (
                 "\n"
                 "function %(name)sRoutineBegin(snapshot) {\n"
@@ -122,17 +120,24 @@ class PavloviaSurveyComponent(BaseStandaloneRoutine):
         buff.setIndentLevel(2, relative=True)
 
         # Usual routine setup stuff
-        code = ("TrialHandler.fromSnapshot(snapshot); // ensure that .thisN vals are up to date\n"
-                "\n"
-                "//--- Prepare to start Routine '%(name)s' ---\n"
-                "continueRoutine = true; // until we're told otherwise\n"
-                )
+        code = (
+            "TrialHandler.fromSnapshot(snapshot); // ensure that .thisN vals are up to date\n"
+            "\n"
+            "//--- Prepare to start Routine '%(name)s' ---\n"
+            "t = 0;\n"
+            "%(name)sClock.reset(); // clock\n"
+            "frameN = -1;\n"
+            "continueRoutine = true; // until we're told otherwise\n"
+        )
         buff.writeIndentedLines(code % self.params)
 
         # Set survey to draw
         code = (
             "//--- Starting Routine '%(name)s' ---\n"
             "%(name)s.setAutoDraw(true);\n"
+            "%(name)s.tStart = t;  // (not accounting for frame time here)\n"
+            "%(name)s.frameNStart = frameN;  // exact frame index\n"
+            "return Scheduler.Event.NEXT;\n"
         )
         buff.writeIndentedLines(code % self.params)
 
@@ -154,10 +159,13 @@ class PavloviaSurveyComponent(BaseStandaloneRoutine):
 
         # Write each frame active code
         code = (
+            "t = routine_1Clock.getTime();\n"
+            "frameN = frameN + 1;  // number of completed frames (so 0 is the first frame)\n"
             "// if %(name)s is completed, move on\n"
             "if (%(name)s.isFinished) {\n"
             "  %(name)s.setAutoDraw(false);\n"
             "  return Scheduler.Event.NEXT;\n"
+            "}\n"
         )
         buff.writeIndentedLines(code % self.params)
         # Check for escape
@@ -167,6 +175,11 @@ class PavloviaSurveyComponent(BaseStandaloneRoutine):
                     "  return quitPsychoJS('The [Escape] key was pressed. Goodbye!', false);\n"
                     "}\n")
             buff.writeIndentedLines(code)
+        # Flip frame
+        code = (
+            "return Scheduler.Event.FLIP_REPEAT;\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
         buff.setIndentLevel(-2, relative=True)
         code = (
@@ -186,11 +199,17 @@ class PavloviaSurveyComponent(BaseStandaloneRoutine):
 
         code = (
             "//--- Ending Routine '%(name)s' ---\n"
-            "%(name)s.status = PsychoJS.Status.FINISHED;\n"
             "// get data from %(name)s\n"
-            "let resp = %(name)s.getResponse();\n"
-            "psychoJS.experiment.addData('%(name)s.firstname', resp.firstname);\n"
-            "await questionnaire.save();\n"
+            "const %(name)sResponse =  %(name)s.getResponse();\n"
+            "for (const question in %(name)sResponse) {\n"
+            "  psychoJS.experiment.addData(`%(name)s.${question}`, %(name)sResponse[question]);\n"
+            "}\n"
+            "await %(name)s.save();\n"
+            "// Routines running outside a loop should always advance the datafile row\n"
+            "if (currentLoop === psychoJS.experiment) {\n"
+            "  psychoJS.experiment.nextEntry(snapshot);\n"
+            "}\n"
+            "return Scheduler.Event.NEXT;\n"
         )
         buff.writeIndentedLines(code % self.params)
 
