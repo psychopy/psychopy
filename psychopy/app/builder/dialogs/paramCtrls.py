@@ -815,6 +815,12 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
             if dlg.ShowModal() == wx.ID_OK:
                 # If OK, get value
                 self.SetValue(dlg.getValue())
+                # Validate
+                self.validate()
+                # Raise event
+                evt = wx.ListEvent(wx.EVT_KEY_UP.typeId)
+                evt.SetEventObject(self)
+                wx.PostEvent(self, evt)
 
 
 class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
