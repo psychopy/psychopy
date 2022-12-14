@@ -187,6 +187,7 @@ class PluginInfo:
         # Throw up error dlg if needed
         if stderr:
             dlg = InstallErrorDlg(
+                label=_translate("Could not install %s") % self.pipname,
                 cmd=" ".join(emts[2:]),
                 stdout=stdout,
                 stderr=stderr
