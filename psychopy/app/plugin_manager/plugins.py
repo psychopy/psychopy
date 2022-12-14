@@ -397,18 +397,24 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.SetSizer(self.border)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        # Add search box
+        self.searchCtrl = wx.SearchCtrl(self)
+        self.sizer.Add(self.searchCtrl, border=9, flag=wx.ALL | wx.EXPAND)
+        self.searchCtrl.Bind(wx.EVT_SEARCH, self.search)
         # Setup items sizers & labels
         self.itemSizer = wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(self.itemSizer, border=3, flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(self.itemSizer, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
 
         # Bind deselect
         self.Bind(wx.EVT_LEFT_DOWN, self.onClick)
 
         # Setup items
+        self.items = []
         self.populate()
 
     def populate(self):
-        self.items = []
+        for item in self.items:
+            self.removeItem(item)
         # Get all plugin details
         items = getAllPluginDetails()
         # Put installed packages at top of list
@@ -418,6 +424,21 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         # Layout
         self.Layout()
         self.SetupScrolling()
+
+    def search(self, evt=None):
+        searchTerm = self.searchCtrl.GetValue().strip()
+        for item in self.items:
+            # Otherwise show/hide according to search
+            match = any((
+                searchTerm == "",  # If search is blank, show all
+                searchTerm.lower() in item.info.name.lower(),
+                searchTerm.lower() in item.info.pipname.lower(),
+                searchTerm.lower() in [val.lower() for val in item.info.keywords],
+                searchTerm.lower() in item.info.author.name.lower(),
+            ))
+            item.Show(match)
+
+        self.Layout()
 
     def onClick(self, evt=None):
         self.SetFocusIgnoringChildren()
