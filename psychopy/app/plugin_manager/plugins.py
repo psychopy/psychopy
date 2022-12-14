@@ -143,10 +143,10 @@ class PluginInfo:
                 current.remove(self.pipname)
             plugins.startUpPlugins(current, add=False)
 
-    def activate(self):
+    def activate(self, evt=None):
         self.active = True
 
-    def deactivate(self):
+    def deactivate(self, evt=None):
         self.active = False
 
     def install(self):
@@ -489,6 +489,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
         self.buttonSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         self.activeBtn = wx.CheckBox(self, label=_translate("Activated"))
+        self.activeBtn.Bind(wx.EVT_CHECKBOX, self.onActivate)
         self.buttonSizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         # Description
         self.description = utils.MarkdownCtrl(
