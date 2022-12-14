@@ -202,7 +202,7 @@ jobs:
       run: |
         # to install all dependencies
         pip install .
-        pip install psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator psychopy-visionscience
+        pip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator psychopy-visionscience
 
     - name: Set nice level
       run: |
