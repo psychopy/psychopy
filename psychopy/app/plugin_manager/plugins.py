@@ -149,6 +149,12 @@ class PluginInfo:
     def deactivate(self):
         self.active = False
 
+    def install(self):
+        self._execute("install")
+
+    def uninstall(self):
+        self._execute("uninstall")
+
     @property
     def installed(self):
         current = plugins.listPlugins(which='all')
@@ -161,12 +167,14 @@ class PluginInfo:
             # avoiding recursion
             return
         # Get action string from value
-        if value:
-            act = "install"
-        else:
-            act = "uninstall"
+        if value and not self.installed:
+            self.install()
+        elif self.installed:
+            self.uninstall()
+
+    def _execute(self, action):
         # Install/uninstall
-        emts = [sys.executable, "-m", "pip", act, self.pipname]
+        emts = [sys.executable, "-m", "pip", action, self.pipname]
         cmd = " ".join(emts)
         output = sp.Popen(cmd,
                           stdout=sp.PIPE,
@@ -184,12 +192,6 @@ class PluginInfo:
                 stderr=stderr
             )
             dlg.ShowModal()
-
-    def install(self):
-        self.installed = True
-
-    def uninstall(self):
-        self.installed = False
 
     @property
     def author(self):
@@ -545,9 +547,25 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Mark as pending
         self.markInstalled(installed=None)
         # Do install
-        self.info.installed = True
+        self.info.install()
         # Mark according to install success
-        self.markInstalled(self.info.installed)
+        if self.info.installed:
+            self.markInstalled(True)
+        else:
+            dlg = wx.MessageDialog(
+                self,
+                message=_translate(
+                    "Plugin %s failed to install, no error given."
+                ) % self.info.pipname,
+                style=wx.ICON_ERROR
+            )
+            dlg.ShowModal()
+
+    def onActivate(self, evt=None):
+        if self.activeBtn.GetValue():
+            self.info.activate()
+        else:
+            self.info.deactivate()
 
     @property
     def info(self):
@@ -752,6 +770,8 @@ class PluginInstallBtn(wx.Button, handlers.ThemeMixin):
             self.Enable()
             self.SetLabelText(_translate("Install"))
             self.setAllBitmaps(icons.ButtonIcon("download", 16).bitmap)
+
+        self.Refresh()
 
     def setAllBitmaps(self, bmp):
         self.SetBitmap(bmp)
