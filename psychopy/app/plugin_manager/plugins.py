@@ -494,6 +494,14 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
             style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL
         )
         self.sizer.Add(self.description, border=12, proportion=1, flag=wx.ALL | wx.EXPAND)
+        # Keywords
+        self.keywordsCtrl = utils.ButtonArray(
+            self,
+            orient=wx.HORIZONTAL,
+            itemAlias=_translate("keyword"),
+            readonly=True
+        )
+        self.sizer.Add(self.keywordsCtrl, border=6, flag=wx.ALL | wx.EXPAND)
 
         self.sizer.Add(wx.StaticLine(self), border=6, flag=wx.EXPAND | wx.ALL)
 
@@ -508,6 +516,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
     def _applyAppTheme(self):
         # Set background
         self.SetBackgroundColour("white")
+        self.keywordsCtrl.SetBackgroundColour("white")
         # Set fonts
         from psychopy.app.themes import fonts
         self.title.SetFont(fonts.appTheme['h1'].obj)
@@ -587,6 +596,8 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.activeBtn.SetValue(value.active)
         # Set description
         self.description.setValue(value.description)
+        # Set keywords
+        self.keywordsCtrl.items = value.keywords
 
         # Set author info
         self.author.info = value.author
