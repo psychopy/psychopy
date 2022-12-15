@@ -17,7 +17,8 @@ __all__ = [
     'requirePlugin',
     'isPluginLoaded',
     'isStartUpPlugin',
-    'activatePlugins'
+    'activatePlugins',
+    'discoverModuleClasses'
 ]
 
 import sys
@@ -30,7 +31,6 @@ import pkg_resources
 
 from psychopy import logging
 from psychopy.preferences import prefs
-import psychopy.experiment.components as components
 
 # Keep track of plugins that have been loaded. Keys are plugin names and values
 # are their entry point mappings.
@@ -383,7 +383,7 @@ def isStartUpPlugin(plugin):
     return plugin in listPlugins(which='startup')
 
 
-def loadPlugin(plugin, *args, **kwargs):
+def loadPlugin(plugin):
     """Load a plugin to extend PsychoPy.
 
     Plugins are packages which extend upon PsychoPy's existing functionality by
@@ -421,9 +421,6 @@ def loadPlugin(plugin, *args, **kwargs):
     plugin : str
         Name of the plugin package to load. This usually refers to the package
         or project name.
-    *args, **kwargs
-        Optional arguments and keyword arguments to pass to the plugin's
-        `__register__` function.
 
     Returns
     -------
@@ -485,7 +482,7 @@ def loadPlugin(plugin, *args, **kwargs):
             'Specified package `{}` defines no entry points for PsychoPy. '
             'Skipping.'.format(plugin))
 
-        if plugin not in _failed_plugins_.keys():
+        if plugin not in _failed_plugins_:
             _failed_plugins_.append(plugin)
 
         return False  # can't do anything more here, so return
@@ -538,50 +535,24 @@ def loadPlugin(plugin, *args, **kwargs):
                 try:
                     imp = importlib.import_module(ep.module_name)
                 except (ModuleNotFoundError, ImportError):
+                    importSuccess = False
                     logging.error(
                         "Plugin `{}` entry point requires module `{}`, but it"
                         "cannot be imported.".format(plugin, ep.module_name))
+                except (NameError, AttributeError):
+                    importSuccess = False
+                    logging.error(
+                        "Plugin `{}` entry point requires module `{}`, but an "
+                        "error occurred while loading it.".format(
+                            plugin, ep.module_name))
+                else:
+                    importSuccess = True
 
+                if not importSuccess:  # if we failed to import
                     if plugin not in _failed_plugins_:
                         _failed_plugins_.append(plugin)
 
                     return False
-
-                # call the register function, check if exists and valid
-                if hasattr(imp, '__register__') and imp.__register__ is not None:
-                    if isinstance(imp.__register__, str):
-                        if hasattr(imp, imp.__register__):  # local to module
-                            func = getattr(imp, imp.__register__)
-                        else:  # could be a FQN?
-                            func = resolveObjectFromName(
-                                imp.__register__, error=False)
-                        # check if the reference object is callable
-                        if not callable(func):
-                            logging.error(
-                                "Plugin `{}` module defines `__register__` but "
-                                "the specified object is not a callable type. "
-                                "Skipping.".format(plugin))
-
-                            if plugin not in _failed_plugins_:
-                                _failed_plugins_.append(plugin)
-
-                            return False
-
-                    elif callable(imp.__register__):  # a function was supplied
-                        func = imp.__register__
-                    else:
-                        logging.error(
-                            "Plugin `{}` module defines `__register__` but "
-                            "is not `str` or callable type. Skipping.".format(
-                                plugin))
-
-                        if plugin not in _failed_plugins_:
-                            _failed_plugins_.append(plugin)
-
-                        return False
-
-                    # call the register function with arguments
-                    func(*args, **kwargs)
 
             # Ensure that we are not wholesale replacing an existing module.
             # We want plugins to be explicit about what they are changing.
@@ -912,6 +883,94 @@ def activatePlugins():
         loadPlugin(plugin)
 
 
+def discoverModuleClasses(nameSpace, classType, includeUnbound=True):
+    """Discover classes and sub-classes matching a specific type within a
+    namespace.
+
+    This function is used to scan a namespace for references to specific classes
+    and sub-classes. Classes may be either bound or unbound. This is useful for
+    scanning namespaces for plugins which have loaded their entry points into
+    them at runtime.
+
+    Parameters
+    ----------
+    nameSpace : str or ModuleType
+        Fully-qualified path to the namespace, or the reference itself. If the
+        specified module hasn't been loaded, it will be after calling this.
+    classType : Any
+        Which type of classes to get. Any value that `isinstance` or
+        `issubclass` expects as its second argument is valid.
+    includeUnbound : bool
+        Include unbound classes in the search. If `False` only bound objects are
+        returned. The default is `True`.
+
+    Returns
+    -------
+    dict
+        Mapping of names and associated classes.
+
+    Examples
+    --------
+    Get references to all visual stimuli classes. Since they all are derived
+    from `psychopy.visual.basevisual.BaseVisualStim`, we can specify that as
+    the type to search for::
+
+        import psychopy.plugins as plugins
+        import psychopy.visual as visual
+
+        foundClasses = plugins.discoverModuleClasses(
+            visual,   # base module to search
+            visual.basevisual.BaseVisualStim,  # type to search for
+            includeUnbound=True  # get unbound classes too
+        )
+
+    The resulting dictionary referenced by `foundClasses` will look like::
+
+        foundClasses = {
+           'BaseShapeStim': <class 'psychopy.visual.shape.BaseShapeStim'>,
+           'BaseVisualStim': <class 'psychopy.visual.basevisual.BaseVisualStim'>
+           # ~~~ snip ~~~
+           'TextStim': <class 'psychopy.visual.text.TextStim'>,
+           'VlcMovieStim': <class 'psychopy.visual.vlcmoviestim.VlcMovieStim'>
+        }
+
+    To search for classes more broadly, pass `object` as the type to search
+    for::
+
+        foundClasses = plugins.discoverModuleClasses(visual, object)
+
+    """
+    if isinstance(nameSpace, str):
+        module = resolveObjectFromName(
+            nameSpace,
+            resolve=(nameSpace not in sys.modules),
+            error=False)  # catch error below
+    elif inspect.ismodule(nameSpace):
+        module = nameSpace
+    else:
+        raise TypeError(
+            'Invalid type for parameter `nameSpace`. Must be `str` or '
+            '`ModuleType`')
+
+    if module is None:
+        raise ImportError("Cannot resolve namespace `{}`".format(nameSpace))
+
+    foundClasses = {}
+
+    if includeUnbound:  # get unbound classes in a module
+        for name, attr in inspect.getmembers(module):
+            if inspect.isclass(attr) and issubclass(attr, classType):
+                foundClasses[name] = attr
+
+    # now get bound objects, overwrites unbound names if they show up
+    for name in dir(module):
+        attr = getattr(module, name)
+        if inspect.isclass(attr) and issubclass(attr, classType):
+            foundClasses[name] = attr
+
+    return foundClasses
+
+
 # ------------------------------------------------------------------------------
 # Registration functions
 #
@@ -999,44 +1058,25 @@ def _registerBuilderComponent(ep):
 
     Parameters
     ----------
-    ep : ModuleType
-        Module containing the builder component to register.
+    ep : ClassType
+        Class defining the component.
 
     """
-    if not inspect.ismodule(ep):  # not a module
+    # get reference to the backend class
+    fqn = 'psychopy.experiment.components'
+    compPkg = resolveObjectFromName(
+        fqn, resolve=(fqn not in sys.modules), error=False)
+
+    if compPkg is None:
+        logging.error("Failed to resolve name `{}`.".format(fqn))
         return
 
-    # give a default category
-    if not hasattr(ep, 'categories'):
-        ep.categories = ['Custom']
-
-    # check if module contains components
-    for attrib in dir(ep):
-        # name and reference to component class
-        name = attrib
-        cls = getattr(ep, attrib)
-
-        if not inspect.isclass(cls):
-            continue
-
-        if not issubclass(cls, components.BaseComponent):
-            continue
-
-        components.pluginComponents[attrib] = getattr(ep, attrib)
-
-        # skip if this class was imported, not defined here
-        if ep.__name__ != components.pluginComponents[attrib].__module__:
-            continue  # class was defined in different module
-
-        if hasattr(ep, 'tooltip'):
-            components.tooltips[name] = ep.tooltip
-
-        if hasattr(ep, 'iconFile'):
-            components.iconFiles[name] = ep.iconFile
-
-        # assign the module categories to the Component
-        if not hasattr(components.pluginComponents[attrib], 'categories'):
-            components.pluginComponents[attrib].categories = ['Custom']
+    if hasattr(compPkg, 'addComponent'):
+        compPkg.addComponent(ep)
+    else:
+        raise AttributeError(
+            "Cannot find function `addComponent()` in namespace "
+            "`{}`".format(fqn))
 
 
 def _registerPhotometer(ep):
