@@ -223,7 +223,7 @@ class TestExperiment:
             "ISI",
             "text",
             "sound_1",
-            "buttonBox",
+            "polygonStim",
         ]
         # Define some param names which should be InvalidCtrl
         invParams = [

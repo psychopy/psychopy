@@ -122,19 +122,19 @@ class TestMicrophoneNoSound():
         if hasattr(self, 'tmp'):
             shutil.rmtree(self.tmp, ignore_errors=True)
 
-    def test_getFlacPath(self):
-        microphone.FLAC_PATH = None
-        with pytest.raises(microphone.MicrophoneError):
-            _getFlacPath('this is not the flac you are looking for')
-
-        microphone.FLAC_PATH = None
-        _getFlacPath('flac')
-
-        microphone.FLAC_PATH = 'flac'
-        assert microphone.FLAC_PATH
-
-        microphone.FLAC_PATH = None
-        _getFlacPath()
+    # def test_getFlacPath(self):
+    #     microphone.FLAC_PATH = None
+    #     with pytest.raises(microphone.MicrophoneError):
+    #         _getFlacPath('this is not the flac you are looking for')
+    #
+    #     microphone.FLAC_PATH = None
+    #     _getFlacPath('flac')
+    #
+    #     microphone.FLAC_PATH = 'flac'
+    #     assert microphone.FLAC_PATH
+    #
+    #     microphone.FLAC_PATH = None
+    #     _getFlacPath()
 
     def test_wav_flac(self):
         filename = os.path.join(self.tmp, 'test_bad_readWav')
