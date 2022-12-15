@@ -14,6 +14,7 @@ __all__ = [
     'sawtone',
     'whiteNoise',
     'audioBufferSize',
+    'sampleRateQualityLevels',
     'SAMPLE_RATE_8kHz', 'SAMPLE_RATE_TELCOM_QUALITY',
     'SAMPLE_RATE_16kHz', 'SAMPLE_RATE_VOIP_QUALITY', 'SAMPLE_RATE_VOICE_QUALITY',
     'SAMPLE_RATE_22p05kHz', 'SAMPLE_RATE_AM_RADIO_QUALITY',
@@ -21,7 +22,8 @@ __all__ = [
     'SAMPLE_RATE_44p1kHz', 'SAMPLE_RATE_CD_QUALITY',
     'SAMPLE_RATE_48kHz', 'SAMPLE_RATE_DVD_QUALITY',
     'SAMPLE_RATE_96kHz',
-    'SAMPLE_RATE_192kHz'
+    'SAMPLE_RATE_192kHz',
+    'AUDIO_SUPPORTED_CODECS',
 ]
 
 # Part of the PsychoPy library
@@ -55,6 +57,30 @@ SAMPLE_RATE_192kHz = 192000  # high-def
 
 # needed for converting float to int16, not exported by __all__
 MAX_16BITS_SIGNED = 1 << 15
+
+# Quality levels as strings and values. Used internally by the PsychoPy UI for
+# dropdowns and preferences. Persons using PsychoPy as a library would typically
+# use constants `SAMPLE_RATE_*` instead of looking up values in here.
+#
+# For voice recording applications, the recommended sample rate is `Voice`
+# (16kHz) and should appear as the default option in preferences and UI
+# dropdowns.
+#
+sampleRateQualityLevels = {
+    0: (SAMPLE_RATE_8kHz, 'Telephone/Two-way radio (8kHz)'),
+    1: (SAMPLE_RATE_16kHz, 'Voice (16kHz)'),  # <<< recommended for voice
+    2: (SAMPLE_RATE_44p1kHz, 'CD Audio (44.1kHz)'),
+    3: (SAMPLE_RATE_48kHz, 'DVD Audio (48kHz)'),  # <<< usually system default
+    4: (SAMPLE_RATE_96kHz, 'High-Def (96kHz)'),
+    5: (SAMPLE_RATE_192kHz, 'Ultra High-Def (192kHz)')
+}
+
+# supported formats for loading and saving audio samples to file
+try:
+    import soundfile as sf
+    AUDIO_SUPPORTED_CODECS = [s.lower() for s in sf.available_formats().keys()]
+except ImportError:
+    AUDIO_SUPPORTED_CODECS = []
 
 
 def array2wav(filename, samples, freq=48000):
