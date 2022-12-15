@@ -88,7 +88,7 @@ class PavloviaSurveyComponent(BaseStandaloneRoutine):
 
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params, target="PsychoJS")
-
+        # Create Survey object
         code = (
             "%(name)s = new visual.Survey({\n"
             "    win: psychoJS.window,\n"
@@ -107,6 +107,7 @@ class PavloviaSurveyComponent(BaseStandaloneRoutine):
         buff.writeIndentedLines(code % inits)
         code = (
             "});\n"
+            "%(name)sClock = new util.Clock();\n"
         )
         buff.writeIndentedLines(code % inits)
 
@@ -159,7 +160,7 @@ class PavloviaSurveyComponent(BaseStandaloneRoutine):
 
         # Write each frame active code
         code = (
-            "t = routine_1Clock.getTime();\n"
+            "t = %(name)sClock.getTime();\n"
             "frameN = frameN + 1;  // number of completed frames (so 0 is the first frame)\n"
             "// if %(name)s is completed, move on\n"
             "if (%(name)s.isFinished) {\n"
@@ -191,7 +192,7 @@ class PavloviaSurveyComponent(BaseStandaloneRoutine):
     def writeRoutineEndCodeJS(self, buff, modular):
         code = (
                 "\n"
-                "function %(name)sRoutineEnd() {\n"
+                "function %(name)sRoutineEnd(snapshot) {\n"
                 "  return async function () {\n"
         )
         buff.writeIndentedLines(code % self.params)
