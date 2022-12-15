@@ -376,21 +376,19 @@ class JoystickComponent(BaseComponent):
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
 
         # writes an if statement to determine whether to draw etc
-        self.writeStartTestCode(buff)
-        code = ("{name}.status = STARTED\n")
-        if self.params['timeRelativeTo'].val.lower() == 'joystick onset':
-            code += "{name}.joystickClock.reset()\n"
-        buff.writeIndentedLines(code.format(**self.params))
+        indented = self.writeStartTestCode(buff)
+        if indented:
+            code = ("{name}.status = STARTED\n")
+            if self.params['timeRelativeTo'].val.lower() == 'joystick onset':
+                code += "{name}.joystickClock.reset()\n"
+            buff.writeIndentedLines(code.format(**self.params))
         # to get out of the if statement
-        buff.setIndentLevel(-1, relative=True)
+        buff.setIndentLevel(-indented, relative=True)
 
         # test for stop (only if there was some setting for duration or stop)
-        if self.params['stopVal'].val not in ['', None, -1, 'None']:
-            # writes an if statement to determine whether to draw etc
-            self.writeStopTestCode(buff)
-            buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
-            # to get out of the if statement
-            buff.setIndentLevel(-2, relative=True)
+        indented = self.writeStopTestCode(buff)
+        # to get out of the if statement
+        buff.setIndentLevel(-indented, relative=True)
 
         # if STARTED and not FINISHED!
         code = ("if %(name)s.status == STARTED:  "

@@ -853,6 +853,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             if len(possibles) == 0:
                 possibles = list(dirname.glob('Readme*'))
                 possibles.extend(dirname.glob('README*'))
+
             # still haven't found a file so use default name
             if len(possibles) == 0:
                 self.readmeFilename = str(dirname / 'readme.md')  # use this as our default
@@ -860,12 +861,16 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 self.readmeFilename = str(possibles[0])  # take the first one found
         else:
             self.readmeFilename = None
-        # create the frame if we don't have one yet
-        if self.readmeFrame is None:
-            self.readmeFrame = ReadmeFrame(parent=self, filename=self.readmeFilename)
-        content = self.readmeFrame.ctrl.getValue()
-        if content and self.prefs['alwaysShowReadme']:
-            self.showReadme()
+
+        content = ''
+        if self.readmeFilename is not None:  # don't open viewer if no file
+            if Path(self.readmeFilename).is_file():
+                self.readmeFrame = ReadmeFrame(
+                    parent=self, filename=self.readmeFilename)
+                content = self.readmeFrame.ctrl.getValue()
+
+            if content and self.prefs['alwaysShowReadme']:  # make this or?
+                self.showReadme()
 
     def showReadme(self, evt=None, value=True):
         """Shows Readme file
@@ -2262,7 +2267,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         return self.getMaxTime() / pixels
 
 
-class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
+class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel):
     def __init__(self, parent, routine=None):
         # Init super
         scrolledpanel.ScrolledPanel.__init__(
@@ -2284,7 +2289,7 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.sizer.Add(self.ctrls, border=12, proportion=1, flag=wx.ALIGN_CENTER | wx.TOP)
         # Make buttons
         self.btnsSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.helpBtn = wx.Button(self, id=wx.ID_HELP, label=_translate("Help"))
+        self.helpBtn = utils.HoverButton(self, id=wx.ID_HELP, label=_translate("Help"))
         self.helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
         self.btnsSizer.Add(self.helpBtn, border=6, flag=wx.ALL | wx.EXPAND)
         self.btnsSizer.AddStretchSpacer(1)
@@ -2294,8 +2299,13 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         # Add buttons to sizer
         self.sizer.Add(self.btnsSizer, border=3, proportion=0, flag=wx.EXPAND | wx.ALL)
         # Style
-        self._applyAppTheme()
         self.SetupScrolling(scroll_y=True)
+
+    def _applyAppTheme(self):
+        self.SetBackgroundColour(colors.app['tab_bg'])
+        self.helpBtn._applyAppTheme()
+        self.Refresh()
+        self.Update()
 
     def updateExperiment(self, evt=None):
         """Update this routine's saved parameters to what is currently entered"""

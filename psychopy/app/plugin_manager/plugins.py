@@ -37,6 +37,14 @@ class AuthorInfo:
         self.github = github
         self.avatar = avatar
 
+    def __eq__(self, other):
+        if other == "ost":
+            # If author is us, check against our github
+            return self.github == "psychopy"
+        else:
+            # Otherwise check against string attributes
+            return other in (self.name, self.email, self.github)
+
     @property
     def avatar(self):
         if hasattr(self, "_avatar"):
@@ -57,9 +65,6 @@ class PluginInfo:
 
     Parameters
     ----------
-    source : str
-        Is this a community plugin ("community") or one curated by us
-        ("curated")?
     pipname : str
         Name of plugin on pip, e.g. "psychopy-legacy".
     name : str
@@ -76,12 +81,11 @@ class PluginInfo:
 
     """
 
-    def __init__(self, source,
+    def __init__(self,
                  pipname, name="",
                  author=None, homepage="", docs="", repo="",
                  keywords=None,
                  icon=None, description=""):
-        self.source = source
         self.pipname = pipname
         self.name = name
         self.author = author
@@ -94,7 +98,7 @@ class PluginInfo:
 
     def __repr__(self):
         return (f"<psychopy.plugins.PluginInfo: {self.name} "
-                f"[{self.pipname}] by {self.author} ({self.source})>")
+                f"[{self.pipname}] by {self.author}>")
 
     def __eq__(self, other):
         if isinstance(other, PluginInfo):
@@ -237,7 +241,7 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
         self.SetBackgroundColour("white")
 
 
-class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
+class PluginBrowserList(wx.ScrolledWindow, handlers.ThemeMixin):
     class PluginListItem(wx.Window, handlers.ThemeMixin):
         """
         Individual item pointing to a plugin
@@ -272,7 +276,7 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
             self.curatedMark.SetToolTipString(_translate(
                 "This plugin is maintained by the Open Science Tools team."
             ))
-            self.curatedMark.Show(info.source == "curated")
+            self.curatedMark.Show(info.author == "ost")
             self.btnSizer.Add(self.curatedMark, border=3, flag=wx.ALL | wx.EXPAND)
             # Add install button
             self.installBtn = PluginInstallBtn(self)
@@ -374,7 +378,7 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
                 evt.Skip()
 
     def __init__(self, parent, viewer=None):
-        wx.Panel.__init__(self, parent=parent)
+        wx.ScrolledWindow.__init__(self, parent=parent, style=wx.VSCROLL)
         self.parent = parent
         self.viewer = viewer
         # Setup sizer
@@ -400,6 +404,8 @@ class PluginBrowserList(wx.Panel, handlers.ThemeMixin):
         items.sort(key=lambda obj: obj.installed, reverse=True)
         for item in items:
             self.appendItem(item)
+        # Layout
+        self.Layout()
 
     def onClick(self, evt=None):
         self.SetFocusIgnoringChildren()
@@ -522,7 +528,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Handle None
         if value is None:
             value = PluginInfo(
-                "community", "psychopy-...",
+                "psychopy-...",
                 name="..."
             )
         self._info = value
@@ -759,16 +765,15 @@ def getAllPluginDetails():
             data = plugins.pluginMetadata(name)
             # Create best representation we can from metadata
             author = AuthorInfo(
-                name=data['Author'],
-                email=data['Author-email']
+                name=data.get('Author', ''),
+                email=data.get('Author-email', ''),
             )
             info = PluginInfo(
-                source="unknown",
                 pipname=name, name=name,
                 author=author,
-                homepage=data['Home-page'],
-                keywords=data['Keywords'],
-                description=data['Summary']
+                homepage=data.get('Home-page', ''),
+                keywords=data.get('Keywords', ''),
+                description=data.get('Summary', ''),
             )
             # Add to list
             objs.append(info)

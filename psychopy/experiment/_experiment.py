@@ -963,9 +963,26 @@ class Experiment:
                             thisFile = getPaths(thisParam)
                         elif isinstance(thisParam.val, str):
                             thisFile = getPaths(thisParam.val)
+                        if paramName == "surveyId":
+                            # Survey IDs are a special case, they need adding verbatim, no path sanitizing
+                            thisFile = {'surveyId': thisParam.val}
                         # then check if it's a valid path and not yet included
                         if thisFile and thisFile not in compResources:
                             compResources.append(thisFile)
+            elif isinstance(thisEntry, BaseStandaloneRoutine):
+                for paramName in thisEntry.params:
+                    thisParam = thisEntry.params[paramName]
+                    thisFile = ''
+                    if isinstance(thisParam, str):
+                        thisFile = getPaths(thisParam)
+                    elif isinstance(thisParam.val, str):
+                        thisFile = getPaths(thisParam.val)
+                    if paramName == "surveyId":
+                        # Survey IDs are a special case, they need adding verbatim, no path sanitizing
+                        thisFile = {'surveyId': thisParam.val}
+                    # then check if it's a valid path and not yet included
+                    if thisFile and thisFile not in compResources:
+                        compResources.append(thisFile)
             elif thisEntry.getType() == 'LoopInitiator' and "Stair" in thisEntry.loop.type:
                 url = 'https://lib.pavlovia.org/vendors/jsQUEST.min.js'
                 compResources.append({
@@ -1009,10 +1026,11 @@ class Experiment:
         resources = loopResources + compResources + chosenResources
         resources = [res for res in resources if res is not None]
         for res in resources:
-            if srcRoot not in res['abs'] and 'https://' not in res['abs']:
-                psychopy.logging.warning("{} is not in the experiment path and "
-                                         "so will not be copied to Pavlovia"
-                                         .format(res['rel']))
+            if isinstance(res, dict) and 'abs' in res and 'rel' in res:
+                if srcRoot not in res['abs'] and 'https://' not in res['abs']:
+                    psychopy.logging.warning("{} is not in the experiment path and "
+                                             "so will not be copied to Pavlovia"
+                                             .format(res['rel']))
 
         return resources
 
