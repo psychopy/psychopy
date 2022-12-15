@@ -18,7 +18,34 @@ __all__ = [
     'getAllPhotometerClasses'
 ]
 
-import logging
+import sys
+
+# Special handling for legacy classes which have been offloaded to optional
+# packages. This will change to allow more flexibility in the future to avoid
+# updating this package for additions to these sub-packages. We'll need a
+# photometer type to do that, but for now we're doing it like this.
+try:
+    from ..crs import ColorCAL, OptiCAL
+except (ModuleNotFoundError, ImportError):
+    ColorCAL = OptiCAL = None
+
+# Photo Resaerch Inc. spectroradiometers
+try:
+    from ..pr import PR655, PR650
+except (ModuleNotFoundError, ImportError):
+    PR655 = PR650 = None
+
+# Konica Minolta light-measuring devices
+try:
+    from ..minolta import LS100, CS100A
+except (ModuleNotFoundError, ImportError):
+    LS100 = CS100A = None
+
+# Gamma scientific devices
+try:
+    from ..gammasci import S470
+except (ModuleNotFoundError, ImportError):
+    S470 = None
 
 # photometer interfaces will be stored here after being registered
 photometerInterfaces = {}
@@ -86,57 +113,20 @@ def getAllPhotometers():
     # In the future, all photometer classes will be identified by possessing a
     # common base class and being a member of this module. This is much like
     # how Builder components are discovered.
-    from . import minolta, pr, gammasci
 
     # build a dictionary with names
     foundPhotometers = {}
 
     # Classes from extant namespaces. Even though these are optional, we need
     # to respect the namespaces for now.
+    optionalPhotometers = (
+        'ColorCAL', 'OptiCAL', 'S470', 'PR650', 'PR655', 'LS100', 'CS100A')
     incPhotomList = []
-
-    # special handling for legacy classes which have been offloaded to optional
-    # packages
-    try:
-        from .. import crs
-    except (ModuleNotFoundError, ImportError):
-        pass
-    else:
-        if hasattr(crs, "ColorCAL"):
-            foundPhotometers['ColorCAL'] = crs.ColorCAL
-        if hasattr(crs, "OptiCAL"):
-            foundPhotometers['OptiCAL'] = crs.OptiCAL
-
-    # Photo Resaerch Inc. spectroradiometers
-    try:
-        from .. import pr
-    except (ModuleNotFoundError, ImportError):
-        pass
-    else:
-        if hasattr(pr, "PR650"):
-            incPhotomList.append(pr.PR650)
-        if hasattr(pr, "PR655"):
-            incPhotomList.append(pr.PR655)
-
-    # Konica Minolta light-measuring devices
-    try:
-        from .. import minolta
-    except (ModuleNotFoundError, ImportError):
-        pass
-    else:
-        if hasattr(minolta, "CS100A"):
-            incPhotomList.append(minolta.CS100A)
-        if hasattr(minolta, "LS100"):
-            incPhotomList.append(minolta.LS100)
-
-    # Gamma scientific devices
-    try:
-        from .. import gammasci
-    except (ModuleNotFoundError, ImportError):
-        pass
-    else:
-        if hasattr(gammasci, "S470"):
-            incPhotomList.append(gammasci.S470)
+    for photName in optionalPhotometers:
+        photClass = getattr(sys.modules[__name__], photName)
+        if photClass is None:  # not loaded if `None`
+            continue
+        incPhotomList.append(photClass)
 
     # iterate over all classes and register them as if they were plugins
     for photom in incPhotomList:

@@ -102,24 +102,34 @@
         <Param name="startVal" val="0.0" valType="code" updates="None"/>
 	<Param name="Wacky" val="1" valType="num" updates="None"/>
       </SoundComponent>
-      <cedrusButtonBoxComponent name="buttonBox">
-        <Param name="correctAns" val="" valType="code" updates="constant"/>
-        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
-        <Param name="name" val="buttonBox" valType="code" updates="None"/>
-        <Param name="deviceNumber" val="0" valType="code" updates="constant"/>
-        <Param name="stopVal" val="1.0" valType="code" updates="constant"/>
-        <Param name="durationEstim" val="" valType="code" updates="None"/>
-        <Param name="useBoxTimer" val="False" valType="bool" updates="constant"/>
-        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
-        <Param name="startEstim" val="" valType="code" updates="None"/>
-        <Param name="discard previous" val="True" valType="bool" updates="constant"/>
-        <Param name="startType" val="time (s)" valType="str" updates="None"/>
-        <Param name="allowedKeys" val="" valType="code" updates="constant"/>
-        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
-        <Param name="startVal" val="0.0" valType="code" updates="None"/>
-        <Param name="store" val="first key" valType="str" updates="constant"/>
-	<Param name="Wacky" val="1" valType="num" updates="None"/>
-      </cedrusButtonBoxComponent>
+      <PolygonComponent name="polygonStim">
+        <Param val="center" valType="str" updates="constant" name="anchor"/>
+        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
+        <Param val="1" valType="num" updates="constant" name="contrast"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="white" valType="color" updates="set every frame" name="fillColor"/>
+        <Param val="linear" valType="str" updates="constant" name="interpolate"/>
+        <Param val="None" valType="color" updates="constant" name="lineColor"/>
+        <Param val="10" valType="num" updates="constant" name="lineWidth"/>
+        <Param val="" valType="int" updates="constant" name="nVertices"/>
+        <Param val="target" valType="code" updates="None" name="name"/>
+        <Param val="0.2" valType="num" updates="constant" name="opacity"/>
+        <Param val="0" valType="num" updates="constant" name="ori"/>
+        <Param val="(0, 0)" valType="list" updates="constant" name="pos"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="circle" valType="str" updates="None" name="shape"/>
+        <Param val="(0.5, 0.5)" valType="list" updates="constant" name="size"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="2" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val="from exp settings" valType="str" updates="None" name="units"/>
+        <Param val="" valType="list" updates="constant" name="vertices"/>
+        <Param name="Wacky" val="1" valType="num" updates="None"/>
+      </PolygonComponent>
     </Routine>
   </Routines>
   <Flow>

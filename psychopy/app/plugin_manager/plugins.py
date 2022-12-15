@@ -837,15 +837,15 @@ def getAllPluginDetails():
             data = plugins.pluginMetadata(name)
             # Create best representation we can from metadata
             author = AuthorInfo(
-                name=data['Author'],
-                email=data['Author-email']
+                name=data.get('Author', ''),
+                email=data.get('Author-email', ''),
             )
             info = PluginInfo(
                 pipname=name, name=name,
                 author=author,
-                homepage=data['Home-page'],
-                keywords=data['Keywords'],
-                description=data['Summary']
+                homepage=data.get('Home-page', ''),
+                keywords=data.get('Keywords', ''),
+                description=data.get('Summary', ''),
             )
             # Add to list
             objs.append(info)
