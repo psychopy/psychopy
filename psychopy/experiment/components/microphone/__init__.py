@@ -8,13 +8,23 @@
 # Author: Jeremy R. Gray, 2012
 from pathlib import Path
 
+from psychopy import logging
 from psychopy.alerts import alert
-from psychopy.tools import stringtools as st
+from psychopy.tools import stringtools as st, systemtools as syst, audiotools as at
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
-from psychopy.sound.microphone import Microphone, _hasPTB
 from psychopy.sound.audiodevice import sampleRateQualityLevels
-from psychopy.sound.audioclip import AUDIO_SUPPORTED_CODECS
 from psychopy.localization import _localized as __localized
+
+_hasPTB = True
+try:
+    import psychtoolbox.audio as audio
+except (ImportError, ModuleNotFoundError):
+    logging.warning(
+        "The 'psychtoolbox' library cannot be loaded but is required for audio "
+        "capture (use `pip install psychtoolbox` to get it). Microphone "
+        "recording will be unavailable this session. Note that opening a "
+        "microphone stream will raise an error.")
+    _hasPTB = False
 
 _localized = __localized.copy()
 _localized.update({'stereo': _translate('Stereo'),
@@ -23,7 +33,7 @@ from psychopy.tests import _vmTesting
 
 # Get list of devices
 if _hasPTB and not _vmTesting:
-    devices = Microphone.getDevices()
+    devices = syst.getAudioCaptureDevices()
     deviceIndices = [d.deviceIndex for d in devices]
     deviceNames = [d.deviceName for d in devices]
 else:
@@ -122,7 +132,7 @@ class MicrophoneComponent(BaseComponent):
             "What file type should output audio files be saved as?")
         self.params['outputType'] = Param(
             outputType, valType='code', inputType='choice', categ='Data',
-            allowedVals=["default"] + AUDIO_SUPPORTED_CODECS,
+            allowedVals=["default"] + at.AUDIO_SUPPORTED_CODECS,
             hint=msg,
             label=_translate("Output File Type")
         )
