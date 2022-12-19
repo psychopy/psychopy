@@ -138,6 +138,10 @@ class Polygon(BaseShapeStim):
         self.__dict__['lineWidth'] = lineWidth
         self.radius = np.asarray(radius)
         self._calcVertices()
+        
+        # Set fillColor to False if color is used
+        if color is not None:
+            fillColor = False
 
         super(Polygon, self).__init__(
             win,

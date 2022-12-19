@@ -8,6 +8,7 @@ import wx
 import wx.lib.agw.aui as aui
 import wx.stc as stc
 import wx.richtext
+from wx.html import HtmlWindow
 
 
 def styleFrame(target):
@@ -148,6 +149,10 @@ def styleListCtrl(target):
     target.Refresh()
 
 
+def styleHTMLCtrl(target):
+    target.SetBackgroundColour(colors.app['tab_bg'])
+
+
 # Define dict linking object types to style functions
 methods = {
     wx.Frame: styleFrame,
@@ -158,6 +163,7 @@ methods = {
     wx.richtext.RichTextCtrl: styleTextCtrl,
     wx.ToolBar: styleToolbar,
     wx.ListCtrl: styleListCtrl,
+    HtmlWindow: styleHTMLCtrl
 }
 
 
@@ -212,6 +218,9 @@ class ThemeMixin:
             if isinstance(child, ThemeMixin):
                 # If child is a ThemeMixin subclass, we can just set theme
                 child.theme = self.theme
+            if hasattr(child, "_applyAppTheme"):
+                # If it's manually been given an _applyAppTheme function, use it
+                child._applyAppTheme()
             else:
                 # Otherwise, look for appropriate method in methods array
                 for cls, fcn in methods.items():

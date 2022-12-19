@@ -44,9 +44,11 @@ class TextboxComponent(BaseVisualComponent):
     def __init__(self, exp, parentName, name='textbox',
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
-                 font='Open Sans', units='from exp settings', bold=False, italic=False,
+                 placeholder=_translate("Type here..."),
+                 font='Arial', units='from exp settings', bold=False, italic=False,
                  color='white', colorSpace='rgb', opacity="",
-                 pos=(0, 0), size=(None, None), letterHeight=0.05, ori=0,
+                 pos=(0, 0), size=(0.5, 0.5), letterHeight=0.05, ori=0,
+                 hasTail=False, tailPoint="",
                  anchor='center', alignment='center',
                  lineSpacing=1.0, padding=0,  # gap between box and text
                  startType='time (s)', startVal=0.0,
@@ -73,7 +75,7 @@ class TextboxComponent(BaseVisualComponent):
         self.type = 'Textbox'
         self.url = "https://www.psychopy.org/builder/components/textbox.html"
         self.order += [  # controls order of params within tabs
-            "editable", "text",  # Basic tab
+            "editable", "text", "usePlaceholder", "placeholder",  # Basic tab
             "borderWidth", "opacity",  # Appearance tab
             "font", "letterHeight", "lineSpacing", "bold", "italic",  # Formatting tab
             ]
@@ -88,6 +90,20 @@ class TextboxComponent(BaseVisualComponent):
             hint=_translate("The text to be displayed"),
             canBePath=False,
             label=_localized['text'])
+        self.depends.append(
+            {
+                "dependsOn": "editable",  # if...
+                "condition": "==True",  # meets...
+                "param": "placeholder",  # then...
+                "true": "show",  # should...
+                "false": "hide",  # otherwise...
+            }
+        )
+        self.params['placeholder'] = Param(
+            placeholder, valType='str', inputType="single", categ='Basic',
+            updates='constant', allowedUpdates=_allow3[:],
+            hint=_translate("Placeholder text to show when there is no text contents."),
+            label=_translate("Placeholder Text"))
         self.params['font'] = Param(
             font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
@@ -175,6 +191,27 @@ class TextboxComponent(BaseVisualComponent):
             updates='constant',
             hint=_translate("If the text is bigger than the textbox, how should it behave?"),
             label=_translate('Overflow'))
+        self.params['hasTail'] = Param(
+            hasTail, valType='bool', inputType="bool", categ='Appearance',
+            updates='constant', direct=False,
+            hint=_translate("Should this textbox have a tail like a speech bubble?"),
+            label=_translate("Speech bubble")
+        )
+        self.depends.append(
+            {
+                "dependsOn": "hasTail",  # if...
+                "condition": "==True",  # meets...
+                "param": "tailPoint",  # then...
+                "true": "show",  # should...
+                "false": "hide",  # otherwise...
+            }
+        )
+        self.params['tailPoint'] = Param(
+            tailPoint, valType='list', inputType="single", categ='Appearance',
+            updates='constant', allowedUpdates=_allow3[:], direct=False,
+            hint=_translate("Position of the tail's point."),
+            label=_translate("Tail position [x,y]")
+        )
         self.params['borderWidth'] = Param(
             borderWidth, valType='num', inputType="single", allowedTypes=[], categ='Appearance',
             updates='constant', allowedUpdates=_allow3[:],
@@ -201,17 +238,20 @@ class TextboxComponent(BaseVisualComponent):
         # do writing of init
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params, 'PsychoPy')
+        # if not using a tail, make tailPoint None
+        if not self.params['hasTail']:
+            inits['tailPoint'].val = None
         inits['depth'] = -self.getPosInRoutine()
         code = (
             "%(name)s = visual.TextBox2(\n"
-            "     win, text=%(text)s, font=%(font)s,\n"
+            "     win, text=%(text)s, placeholder=%(placeholder)s, font=%(font)s,\n"
             "     pos=%(pos)s," + unitsStr +
             "     letterHeight=%(letterHeight)s,\n"
             "     size=%(size)s, borderWidth=%(borderWidth)s,\n"
             "     color=%(color)s, colorSpace=%(colorSpace)s,\n"
             "     opacity=%(opacity)s,\n"
             "     bold=%(bold)s, italic=%(italic)s,\n"
-            "     lineSpacing=%(lineSpacing)s,\n"
+            "     lineSpacing=%(lineSpacing)s, tailPoint=%(tailPoint)s,\n"
             "     padding=%(padding)s, alignment=%(alignment)s,\n"
             "     anchor=%(anchor)s, overflow=%(overflow)s,\n"
             "     fillColor=%(fillColor)s, borderColor=%(borderColor)s,\n"

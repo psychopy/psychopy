@@ -1,0 +1,19 @@
+
+code: 7105
+cat: Plugins
+msg: Component {name} comes from the plugin {plugin}, which is either not installed or not activated.
+
+label: Component comes from uninstalled plugin
+
+synopsis: |
+  A component was found in the experiment file which comes from a plugin not currently activated. You will need to 
+  install and activate this plugin for this component to work as intended.
+
+details: |
+  
+
+solutions: |
+  Go to Tools -> Plugin/Package manager and install the plugin necessary for this component.
+
+versions: |
+  >= 2023.1.0

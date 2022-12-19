@@ -5,7 +5,7 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-"""Extensible set of components for the PsychoPy Builder view
+"""Extensible set of components for the PsychoPy Builder view.
 """
 
 import sys
@@ -21,10 +21,16 @@ from psychopy.localization import _translate
 from psychopy.experiment import py2js
 import psychopy.logging as logging
 
-excludeComponents = ['BaseComponent', 'BaseVisualComponent', 'BaseStandaloneRoutine'  # templates only
-                     ]  # this one isn't ready yet
+excludeComponents = [
+    'BaseComponent',
+    'BaseVisualComponent',
+    'BaseStandaloneRoutine'  # templates only
+]  # this one isn't ready yet
 
-pluginComponents = {}  # components registered by loaded plugins
+# Plugin components are added dynamically at runtime, usually from plugin
+# packages. These are managed by a different system than 'legacy'
+# components.
+pluginComponents = {}
 
 # try to remove old pyc files in case they're detected as components
 pycFiles = glob.glob(join(split(__file__)[0], "*.pyc"))
@@ -37,7 +43,54 @@ for filename in pycFiles:
             pass  # may not have sufficient privs
 
 
+def addComponent(compClass):
+    """Add a component to Builder.
+
+    This function will override any component already loaded with the same
+    class name. Usually, this function is called by the plugin system. The user
+    typically does not need to call this.
+
+    Parameters
+    ----------
+    compClass : object
+        Component class. Should be a subclass of `BaseComponent`.
+
+    """
+    global pluginComponents  # components loaded at runtime
+
+    compName = compClass.__name__
+    logging.debug("Registering Builder component class `{}`.".format(compName))
+
+    # check type and attributes of the class
+    if not issubclass(compClass, (BaseComponent, BaseVisualComponent)):
+        logging.warning(
+            "Component `{}` does not appear to be a subclass of "
+            "`psychopy.experiment.components._base.BaseComponent`. This may not"
+            " work correcty.".format(compName))
+    elif not hasattr(compClass, 'categories'):
+        logging.warning(
+            "Component `{}` does not define a `.categories` attribute.".format(
+                compName))
+
+    pluginComponents[compName] = compClass
+
+
 def getAllCategories(folderList=()):
+    """Get all component categories.
+
+    Parameters
+    ----------
+    folderList : list or tuple
+        List of directories to search for components. These are for
+        'legacy'-style components. Using plugins is now the prefered method of
+        adding components to Builder.
+
+    Returns
+    -------
+    list of str
+        Names of all categories which the working set of components specify.
+
+    """
     allComps = getAllComponents(folderList)
     # Hardcode some categories to always appear first/last
     firstCats = ['Favorites', 'Stimuli', 'Responses', 'Custom']
@@ -48,13 +101,22 @@ def getAllCategories(folderList=()):
         for thisCat in thisComp.categories:
             if thisCat not in allCats + lastCats:
                 allCats.append(thisCat)
+
     return allCats + lastCats
 
 
 def getAllComponents(folderList=(), fetchIcons=True):
-    """Get a dictionary of all available components, from the builtins as well
-    as all folders in the folderlist.
+    """Get all available components, from the builtins, plugins and folders.
+
     User-defined components will override built-ins with the same name.
+
+    Parameters
+    ----------
+    folderList : list or tuple
+        List of directories to search for components.
+    fetchIcons : bool
+        Whether to also fetch icons. Default is `True`.
+
     """
     if isinstance(folderList, str):
         raise TypeError('folderList should be iterable, not a string')
@@ -192,6 +254,7 @@ def getComponents(folder=None, fetchIcons=True):
                 # assign the module categories to the Component
                 if not hasattr(components[attrib], 'categories'):
                     components[attrib].categories = ['Custom']
+
     return components
 
 
@@ -206,7 +269,11 @@ def getInitVals(params, target="PsychoPy"):
             "from exp settings",
             "none"
     ):
-        inits['units'].val = "win.units"
+        if target == "PsychoJS":
+            inits['units'].val = "psychoJS.window"
+        else:
+            inits['units'].val = "win.units"
+
         inits['units'].valType = 'code'
 
     for name in params:
@@ -254,7 +321,7 @@ def getInitVals(params, target="PsychoPy"):
                       'contrast', 'moddepth', 'envori', 'envphase', 'envsf',
                       'noiseClip', 'noiseBWO', 'noiseFilterUpper', 'noiseFilterLower',
                       'noiseBaseSf', 'noiseBW', 'noiseElementSize', 'noiseFilterOrder',
-                      'noiseFractalPower']:
+                      'noiseFractalPower', 'zoom']:
             inits[name].val = "1.0"
             inits[name].valType = 'code'
         elif name in ['image']:
@@ -275,7 +342,7 @@ def getInitVals(params, target="PsychoPy"):
         elif name == 'units':
             inits[name].val = "norm"
             inits[name].valType = 'str'
-        elif name == 'text':
+        elif name in ('text', 'placeholder'):
             inits[name].val = ""
             inits[name].valType = 'str'
         elif name == 'flip':
@@ -308,7 +375,7 @@ def getInitVals(params, target="PsychoPy"):
         elif name == 'vertices':
             inits[name].val = "[[-0.5,-0.5], [-0.5, 0.5], [0.5, 0.5], [0.5, -0.5]]"
             inits[name].valType = 'code'
-        elif name in ('movie', 'latitude', 'longitude', 'altitude', 'azimuth'):
+        elif name in ('movie', 'latitude', 'longitude', 'altitude', 'azimuth', 'tailPoint'):
             inits[name].val = 'None'
             inits[name].valType = 'code'
         else:
@@ -318,5 +385,10 @@ def getInitVals(params, target="PsychoPy"):
 
     return inits
 
+
 tooltips = {}
 iconFiles = {}
+
+if __name__ == "__main__":
+    pass
+

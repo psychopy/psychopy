@@ -185,26 +185,28 @@ class CameraComponent(BaseComponent):
 
     def writeFrameCode(self, buff):
         # Start webcam at component start
-        if self.writeStartTestCode(buff):
+        indented = self.writeStartTestCode(buff)
+        if indented:
             code = (
                 "# Start %(name)s recording\n"
                 "%(name)s.record()\n"
             )
             buff.writeIndentedLines(code % self.params)
-            self.exitStartTest(buff)
+        buff.setIndentLevel(-indented, relative=True)
 
         # Update any params while active
-        self.writeActiveTestCode(buff)
-        self.exitActiveTest(buff)
+        indented = self.writeActiveTestCode(buff)
+        buff.setIndentLevel(-indented, relative=True)
 
         # Stop webcam at component stop
-        if self.writeStopTestCode(buff):
+        indented = self.writeStopTestCode(buff)
+        if indented:
             code = (
                 "# Stop %(name)s recording\n"
                 "%(name)s.stop()\n"
             )
             buff.writeIndentedLines(code % self.params)
-            self.exitStopTest(buff)
+        buff.setIndentLevel(-indented, relative=True)
 
     def writeFrameCodeJS(self, buff):
         # Start webcam at component start

@@ -1,8 +1,48 @@
 """Plugin manager for PsychoPy GUI apps (Builder and Coder)."""
 
-from pkg_resources import parse_version
+
 import wx
 
+from psychopy.app.themes import handlers
+
+from .plugins import PluginManagerPanel
+from .packages import PackageManagerPanel
+
+
+class EnvironmentManagerDlg(wx.Dialog, handlers.ThemeMixin):
+    def __init__(self, parent):
+        wx.Dialog.__init__(
+            self, parent=parent,
+            title=_translate("Plugins & Packages"),
+            size=(1080, 720),
+            style=wx.RESIZE_BORDER | wx.DEFAULT_DIALOG_STYLE | wx.CENTER | wx.TAB_TRAVERSAL | wx.NO_BORDER
+        )
+        self.SetMinSize((980, 520))
+        # Setup sizer
+        self.border = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.border)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.border.Add(self.sizer, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
+        # Create notebook
+        self.notebook = wx.Notebook(self)
+        self.sizer.Add(self.notebook, border=6, proportion=1, flag=wx.EXPAND | wx.ALL)
+        # Plugin manager
+        self.pluginMgr = PluginManagerPanel(self.notebook)
+        self.notebook.AddPage(self.pluginMgr, text=_translate("Plugins"))
+        # Package manager
+        self.packageMgr = PackageManagerPanel(self.notebook)
+        self.notebook.AddPage(self.packageMgr, text=_translate("Packages"))
+
+        # Buttons
+        self.btns = self.CreateStdDialogButtonSizer(flags=wx.HELP | wx.CLOSE)
+        self.sizer.Add(self.btns, border=6, flag=wx.EXPAND | wx.ALL)
+
+
+# --- Legacy ---
+
+
+from pkg_resources import parse_version
+import wx
 try:
     from wx import aui
 except ImportError:
@@ -11,6 +51,7 @@ try:
     from wx.adv import PseudoDC
 except ImportError:
     from wx import PseudoDC
+import wx.richtext
 
 if parse_version(wx.__version__) < parse_version('4.0.3'):
     wx.NewIdRef = wx.NewId
@@ -19,9 +60,9 @@ from psychopy import plugins
 from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin, CheckListCtrlMixin
 
 from psychopy.preferences import prefs
+from psychopy.localization import _translate
 
 import os
-
 
 # Get a copy of startup plugins, we want to defer changes made to preferences to
 # take effect after PsychoPy is shutdown. This prevents any sub-processed
