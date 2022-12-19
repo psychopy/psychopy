@@ -151,7 +151,8 @@ class SoundComponent(BaseComponent):
         # do this EVERY frame, even before/after playing?
         self.writeParamUpdates(buff, 'set every frame')
         # Write code to start sound
-        if self.writeStartTestCode(buff):
+        indented = self.writeStartTestCode(buff)
+        if indented:
             code = "# start playing %(name)s\n"
             buff.writeIndentedLines(code % self.params)
             # Play with/without linking to window according to "sync screen" param
@@ -167,17 +168,18 @@ class SoundComponent(BaseComponent):
                 code = "%(name)s.status = PLAYING_CONTINUOUS\n"
             buff.writeIndentedLines(code % self.params)
 
-            self.exitStartTest(buff)
+        buff.setIndentLevel(-indented, relative=True)
 
         # Write code to stop sound
-        if self.writeStopTestCode(buff):
+        indented = self.writeStopTestCode(buff)
+        if indented:
             code = (
                 "# stop playing %(name)s\n"
                 "%(name)s.stop()\n"
             )
             buff.writeIndentedLines(code % self.params)
 
-            self.exitStopTest(buff)
+        buff.setIndentLevel(-indented, relative=True)
 
     def writeFrameCodeJS(self, buff):
         """Write the code that will be called every frame
