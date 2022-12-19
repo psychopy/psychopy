@@ -34,8 +34,8 @@ from psychopy.tests import _vmTesting
 # Get list of devices
 if _hasPTB and not _vmTesting:
     devices = syst.getAudioCaptureDevices()
-    deviceIndices = [d.deviceIndex for d in devices]
-    deviceNames = [d.deviceName for d in devices]
+    deviceIndices = [d['index'] for d in devices.values()]
+    deviceNames = [d['name'] for d in devices.values()]
 else:
     devices = []
     deviceIndices = []
@@ -67,7 +67,7 @@ class MicrophoneComponent(BaseComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=2.0,
                  startEstim='', durationEstim='',
-                 channels='auto', device="default",
+                 channels='auto', device=None,
                  sampleRate='DVD Audio (48kHz)', maxSize=24000,
                  outputType='default', speakTimes=True, trimSilent=False,
                  transcribe=False, transcribeBackend="Google", transcribeLang="en-US", transcribeWords="",
