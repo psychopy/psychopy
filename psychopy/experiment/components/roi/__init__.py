@@ -149,12 +149,8 @@ class RegionOfInterestComponent(PolygonComponent):
         # do writing of init
         inits = getInitVals(self.params, 'PsychoPy')
         # Write start code
-        self.writeStartTestCode(buff)
-        code = (
-            "%(name)s.status = STARTED\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
+        indented = self.writeStartTestCode(buff)
+        buff.setIndentLevel(-indented, relative=True)
         # String to get time
         if inits['timeRelativeTo'] == 'roi onset':
             timing = "%(name)s.clock.getTime()"
@@ -165,11 +161,7 @@ class RegionOfInterestComponent(PolygonComponent):
         else:
             timing = "globalClock.getTime()"
         # Assemble code
-        code = (
-            f"if %(name)s.status == STARTED:\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
+        indented = self.writeActiveTestCode(buff)
         code = (
             f"# check whether %(name)s has been looked in\n"
             f"if %(name)s.isLookedIn:\n"
@@ -257,7 +249,10 @@ class RegionOfInterestComponent(PolygonComponent):
 
         )
         buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-2, relative=True)
+        buff.setIndentLevel(-1, relative=True)
+
+        buff.setIndentLevel(-indented, relative=True)
+
         code = (
             f"else:\n"
         )
@@ -269,14 +264,10 @@ class RegionOfInterestComponent(PolygonComponent):
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
+
         # Write stop code
-        if self.params['stopVal'].val not in ('', None, -1, 'None'):
-            self.writeStopTestCode(buff)
-            code = (
-                "%(name)s.status = FINISHED\n"
-            )
-            buff.writeIndentedLines(code % inits)
-            buff.setIndentLevel(-2, relative=True)
+        indented = self.writeStopTestCode(buff)
+        buff.setIndentLevel(-indented, relative=True)
 
     def writeRoutineEndCode(self, buff):
         BaseVisualComponent.writeRoutineEndCode(self, buff)

@@ -12,6 +12,7 @@ __all__ = ['MovieStim']
 
 
 import ctypes
+import os.path
 from pathlib import Path
 
 from psychopy import prefs
@@ -135,7 +136,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._autoStart = autoStart
 
         # OpenGL data
-        self.interpolate = True
+        self.interpolate = interpolate
         self._texFilterNeedsUpdate = True
         self._metadata = NULL_MOVIE_METADATA
         self._pixbuffId = GL.GLuint(0)
@@ -148,6 +149,8 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._filename = pathToString(filename)
         if self._filename:  # load a movie if provided
             self.loadMovie(self._filename)
+
+        self.autoLog = autoLog
 
     @property
     def filename(self):
@@ -194,11 +197,18 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         """
         # If given `default.mp4`, sub in full path
-        if filename == "default.mp4":
-            filename = Path(prefs.paths['resources']) / "default.mp4"
-        # If given a recording component, use its last clip
-        if hasattr(filename, "lastClip"):
-            filename = filename.lastClip
+        if isinstance(filename, str):
+            if filename == "default.mp4":
+                filename = Path(prefs.paths['resources']) / "default.mp4"
+
+            # check if the file has can be loaded
+            if not os.path.isfile(filename):
+                raise FileNotFoundError("Cannot open movie file `{}`".format(
+                    filename))
+        else:
+            # If given a recording component, use its last clip
+            if hasattr(filename, "lastClip"):
+                filename = filename.lastClip
 
         self._filename = filename
         self._player.load(self._filename)
@@ -300,34 +310,54 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
     @property
     def isPlaying(self):
-        """`True` if the video is presently playing (`bool`)."""
+        """`True` if the video is presently playing (`bool`).
+        """
         # Status flags as properties are pretty useful for users since they are
         # self documenting and prevent the user from touching the status flag
         # attribute directly.
         #
-        return self.status == PLAYING
+        if self._player is not None:
+            return self._player.isPlaying
+
+        return False
 
     @property
     def isNotStarted(self):
         """`True` if the video may not have started yet (`bool`). This status is
-        given after a video is loaded and play has yet to be called."""
-        return self.status == NOT_STARTED
+        given after a video is loaded and play has yet to be called.
+        """
+        if self._player is not None:
+            return self._player.isNotStarted
+
+        return True
 
     @property
     def isStopped(self):
-        """`True` if the video is stopped (`bool`)."""
-        return self.status == STOPPED
+        """`True` if the video is stopped (`bool`). It will resume from the
+        beginning if `play()` is called.
+        """
+        if self._player is not None:
+            return self._player.isStopped
+
+        return False
 
     @property
     def isPaused(self):
-        """`True` if the video is presently paused (`bool`)."""
-        return self.status == PAUSED
+        """`True` if the video is presently paused (`bool`).
+        """
+        if self._player is not None:
+            return self._player.isPaused
+
+        return False
 
     @property
     def isFinished(self):
-        """`True` if the video is finished (`bool`)."""
-        # why is this the same as STOPPED?
-        return self.status == FINISHED
+        """`True` if the video is finished (`bool`).
+        """
+        if self._player is not None:
+            return self._player.isFinished
+
+        return False
 
     def play(self, log=True):
         """Start or continue a paused movie from current position.
@@ -339,11 +369,10 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         """
         # get the absolute experiment time the first frame is to be presented
-        if self.status == NOT_STARTED:
-            self._player.volume = self._volume
+        # if self.status == NOT_STARTED:
+        #     self._player.volume = self._volume
 
         self._player.play(log=log)
-        self.status = PLAYING
 
     def pause(self, log=True):
         """Pause the current point in the movie. The image of the last frame
@@ -356,7 +385,22 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         """
         self._player.pause(log=log)
-        self.status = PAUSED
+
+    def toggle(self, log=True):
+        """Switch between playing and pausing the movie. If the movie is playing,
+        this function will pause it. If the movie is paused, this function will
+        play it.
+
+        Parameters
+        ----------
+        log : bool
+            Log this event.
+
+        """
+        if self.isPlaying:
+            self.pause()
+        else:
+            self.play()
 
     def stop(self, log=True):
         """Stop the current point in the movie (sound will stop, current frame
@@ -372,7 +416,6 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # stop should reset the video to the start and pause
         if self._player is not None:
             self._player.stop()
-        self.status = NOT_STARTED
 
     def seek(self, timestamp, log=True):
         """Seek to a particular timestamp in the movie.
@@ -431,7 +474,6 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         """
         self._player.replay(log=log)
-        self.status = NOT_STARTED
 
     # --------------------------------------------------------------------------
     # Audio stream control methods

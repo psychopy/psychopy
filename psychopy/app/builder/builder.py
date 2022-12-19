@@ -11,6 +11,7 @@ Distributed under the terms of the GNU General Public License (GPL).
 import os, sys
 import subprocess
 import webbrowser
+from collections import OrderedDict
 from pathlib import Path
 import glob
 import copy
@@ -29,7 +30,7 @@ from ..pavlovia_ui import sync
 from ..pavlovia_ui.project import ProjectFrame
 from ..pavlovia_ui.search import SearchFrame
 from ..pavlovia_ui.user import UserFrame
-from ...experiment.components import getAllCategories
+from ...experiment import getAllElements, getAllCategories
 from ...experiment.routines import Routine, BaseStandaloneRoutine
 from ...tools.stringtools import prettyname
 
@@ -48,7 +49,7 @@ if parse_version(wx.__version__) < parse_version('4.0.3'):
 
 from psychopy.localization import _translate
 from ... import experiment, prefs
-from .. import dialogs
+from .. import dialogs, utils, plugin_manager
 from ..themes import icons, colors, handlers
 from ..themes.ui import ThemeSwitcher
 from ..ui import BaseAuiFrame
@@ -94,7 +95,7 @@ _localized = {
 
 # Components which are always hidden
 alwaysHidden = [
-    'SettingsComponent', 'UnknownComponent', 'UnknownRoutine', 'UnknownStandaloneRoutine'
+    'SettingsComponent', 'UnknownComponent', 'UnknownRoutine', 'UnknownStandaloneRoutine', 'UnknownPluginComponent'
 ]
 
 
@@ -143,7 +144,6 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.frameType = 'builder'
         self.filename = fileName
         self.htmlPath = None
-        self.session = pavlovia.getCurrentSession()
         self.scriptProcess = None
         self.stdoutBuffer = None
         self.readmeFrame = None
@@ -268,6 +268,13 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.SetDropTarget(FileDropTarget(targetFrame=self))
 
         self.theme = colors.theme
+
+    @property
+    def session(self):
+        """
+        Current Pavlovia session
+        """
+        return pavlovia.getCurrentSession()
 
     # Synonymise Aui manager for use with theme mixin
     def GetAuiManager(self):
@@ -411,7 +418,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # Add Theme Switcher
         self.themesMenu = ThemeSwitcher(app=self.app)
         menu.AppendSubMenu(self.themesMenu,
-                               _translate("Themes"))
+                               _translate("&Themes"))
 
         # ---_tools ---#000000#FFFFFF-----------------------------------------
         self.toolsMenu = wx.Menu()
@@ -440,6 +447,10 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate("Update PsychoPy to the latest, or a "
                                       "specific, version"))
         self.Bind(wx.EVT_MENU, self.app.openUpdater, item)
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Plugin/packages manager..."),
+                           _translate("Manage Python packages and optional plugins for PsychoPy"))
+        self.Bind(wx.EVT_MENU, self.openPluginManager, item)
         if hasattr(self.app, 'benchmarkWizard'):
             item = menu.Append(wx.ID_ANY,
                                _translate("Benchmark wizard"),
@@ -449,7 +460,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         # ---_experiment---#000000#FFFFFF-------------------------------------
         self.expMenu = wx.Menu()
-        menuBar.Append(self.expMenu, _translate('&Experiment'))
+        menuBar.Append(self.expMenu, _translate('E&xperiment'))
         menu = self.expMenu
         item = menu.Append(wx.ID_ANY,
                            _translate("&New Routine\t%s") % keys['newRoutine'],
@@ -533,12 +544,12 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         # ---_onlineStudies---#000000#FFFFFF-------------------------------------------
         self.pavloviaMenu = pavlovia_ui.menu.PavloviaMenu(parent=self)
-        menuBar.Append(self.pavloviaMenu, _translate("Pavlovia.org"))
+        menuBar.Append(self.pavloviaMenu, _translate("&Pavlovia.org"))
 
         # ---_window---#000000#FFFFFF-----------------------------------------
         self.windowMenu = FrameSwitcher(self)
         menuBar.Append(self.windowMenu,
-                    _translate("Window"))
+                    _translate("&Window"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()
@@ -835,9 +846,6 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def updateReadme(self):
         """Check whether there is a readme file in this folder and try to show
         """
-        # create the frame if we don't have one yet
-        if self.readmeFrame is None:
-            self.readmeFrame = ReadmeFrame(parent=self)
         # look for a readme file
         if self.filename and self.filename != 'untitled.psyexp':
             dirname = Path(self.filename).parent
@@ -845,6 +853,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             if len(possibles) == 0:
                 possibles = list(dirname.glob('Readme*'))
                 possibles.extend(dirname.glob('README*'))
+
             # still haven't found a file so use default name
             if len(possibles) == 0:
                 self.readmeFilename = str(dirname / 'readme.md')  # use this as our default
@@ -852,10 +861,16 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 self.readmeFilename = str(possibles[0])  # take the first one found
         else:
             self.readmeFilename = None
-        self.readmeFrame.setFile(self.readmeFilename)
-        content = self.readmeFrame.ctrl.ToText()
-        if content and self.prefs['alwaysShowReadme']:
-            self.showReadme()
+
+        content = ''
+        if self.readmeFilename is not None:  # don't open viewer if no file
+            if Path(self.readmeFilename).is_file():
+                self.readmeFrame = ReadmeFrame(
+                    parent=self, filename=self.readmeFilename)
+                content = self.readmeFrame.ctrl.getValue()
+
+            if content and self.prefs['alwaysShowReadme']:  # make this or?
+                self.showReadme()
 
     def showReadme(self, evt=None, value=True):
         """Shows Readme file
@@ -863,7 +878,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         if not self.readmeFrame:
             self.updateReadme()
         if not self.readmeFrame.IsShown():
-            self.readmeFrame.Show(value)
+            self.readmeFrame.show(value)
 
     def toggleReadme(self, evt=None):
         """Toggles visibility of Readme file
@@ -1368,6 +1383,10 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         exportHtml = str(self.exp.settings.params['exportHTML'].val).lower()
         if exportHtml == pref.lower():
             return True
+
+    def openPluginManager(self, evt=None):
+        dlg = plugin_manager.EnvironmentManagerDlg(self)
+        dlg.ShowModal()
 
     def onPavloviaSync(self, evt=None):
         if Path(self.filename).is_file():
@@ -2064,7 +2083,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                 thisColor = colors.app['rt_comp_force']
         # check True/False on ForceEndRoutineOnPress
         if 'forceEndRoutineOnPress' in component.params:
-            if component.params['forceEndRoutineOnPress'].val in ['any click', 'valid click']:
+            if component.params['forceEndRoutineOnPress'].val in ['any click', 'correct click', 'valid click']:
                 thisColor = colors.app['rt_comp_force']
         # check True aliases on EndRoutineOn
         if 'endRoutineOn' in component.params:
@@ -2248,7 +2267,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         return self.getMaxTime() / pixels
 
 
-class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
+class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel):
     def __init__(self, parent, routine=None):
         # Init super
         scrolledpanel.ScrolledPanel.__init__(
@@ -2259,6 +2278,7 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.app = self.frame.app
         self.dpi = self.app.dpi
         self.routine = routine
+        self.helpUrl = self.routine.url
         self.params = routine.params
         # Setup sizer
         self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -2266,17 +2286,26 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         # Setup categ notebook
         self.ctrls = ParamNotebook(self, experiment=self.frame.exp, element=routine)
         self.paramCtrls = self.ctrls.paramCtrls
-        self.sizer.Add(self.ctrls, border=12, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL)
+        self.sizer.Add(self.ctrls, border=12, proportion=1, flag=wx.ALIGN_CENTER | wx.TOP)
         # Make buttons
         self.btnsSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.helpBtn = utils.HoverButton(self, id=wx.ID_HELP, label=_translate("Help"))
+        self.helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
+        self.btnsSizer.Add(self.helpBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        self.btnsSizer.AddStretchSpacer(1)
         # Add validator stuff
         self.warnings = WarningManager(self)
         self.sizer.Add(self.warnings.output, border=3, flag=wx.EXPAND | wx.ALL)
         # Add buttons to sizer
-        self.sizer.Add(self.btnsSizer, border=6, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL)
+        self.sizer.Add(self.btnsSizer, border=3, proportion=0, flag=wx.EXPAND | wx.ALL)
         # Style
-        self._applyAppTheme()
         self.SetupScrolling(scroll_y=True)
+
+    def _applyAppTheme(self):
+        self.SetBackgroundColour(colors.app['tab_bg'])
+        self.helpBtn._applyAppTheme()
+        self.Refresh()
+        self.Update()
 
     def updateExperiment(self, evt=None):
         """Update this routine's saved parameters to what is currently entered"""
@@ -2295,6 +2324,11 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.frame.routinePanel.SetPageText(page, self.routine.params['name'].val)
         # Update save button
         self.frame.setIsModified(True)
+
+    def onHelp(self, event=None):
+        """Uses self.app.followLink() to self.helpUrl
+        """
+        self.app.followLink(url=self.helpUrl)
 
     def Validate(self, *args, **kwargs):
         return self.ctrls.Validate()
@@ -2337,39 +2371,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
                 state = event
             else:
                 state = event.GetSelection()
+            # Set state
             self.SetValue(state)
-            if state:
-                # If state is show, then show all non-hidden components
-                for btn in self.menu.GetChildren():
-                    btn = btn.GetWindow()
-                    if isinstance(btn, ComponentsPanel.ComponentButton):
-                        comp = btn.component
-                    elif isinstance(btn, ComponentsPanel.RoutineButton):
-                        comp = btn.routine
-                    else:
-                        return
-                    # Work out if it should be shown based on filter
-                    cond = True
-                    if self.parent.filter == 'Any':
-                        cond = True
-                    elif self.parent.filter == 'Both':
-                        cond = 'PsychoJS' in comp.targets and 'PsychoPy' in comp.targets
-                    elif self.parent.filter in ['PsychoPy', 'PsychoJS']:
-                        cond = self.parent.filter in comp.targets
-                    # Always hide if hidden by prefs
-                    if comp.__name__ in prefs.builder['hiddenComponents'] + alwaysHidden:
-                        cond = False
-                    btn.Show(cond)
-                # # Update icon
-                # self.icon.SetLabelText(chr(int("1401", 16)))
-            else:
-                # If state is hide, hide all components
-                self.menu.ShowItems(False)
-                # # Update icon
-                # self.icon.SetLabelText(chr(int("140A", 16)))
-            # Do layout
-            self.parent.Layout()
-            self.parent.SetupScrolling()
+            # Refresh view (which will show/hide according to this button's state)
+            self.parent.refreshView()
             # Restyle
             self.OnHover()
 
@@ -2399,6 +2404,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             # Bind to functions
             self.Bind(wx.EVT_BUTTON, self.onClick)
             self.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
+
+        @property
+        def element(self):
+            return self.component
 
         def onClick(self, evt=None, timeout=None):
             """Called when a component button is clicked on.
@@ -2458,9 +2467,11 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             Defines rightclick behavior within builder view's
             components panel
             """
+            # Get fave levels
+            faveLevels = prefs.appDataCfg['builder']['favComponents']
             # Make menu
             menu = wx.Menu()
-            if self.component.__name__ in self.parent.favorites:
+            if faveLevels[self.component.__name__] > ComponentsPanel.faveThreshold:
                 # If is in favs
                 msg = "Remove from favorites"
                 fun = self.removeFromFavorites
@@ -2521,6 +2532,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             # Bind to functions
             self.Bind(wx.EVT_BUTTON, self.onClick)
             self.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
+
+        @property
+        def element(self):
+            return self.routine
 
         def onClick(self, evt=None, timeout=None):
             # Make a routine instance
@@ -2599,13 +2614,19 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.Layout()
             self._applyAppTheme()
 
+        def _applyAppTheme(self):
+            self.SetBackgroundColour(colors.app['panel_bg'])
+            self.label.SetForegroundColour(colors.app['text'])
+
         def GetValue(self):
             return self.viewCtrl.GetValue()
 
         def onChange(self, evt=None):
             self.parent.filter = prefs.builder['componentFilter'] = self.GetValue()
             prefs.saveUserPrefs()
-            self.parent.Refresh()
+            self.parent.refreshView()
+
+    faveThreshold = 20
 
     def __init__(self, frame, id=-1):
         """A panel that displays available components.
@@ -2629,76 +2650,154 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.filterBtn = wx.Button(self, size=(24, 24), style=wx.BORDER_NONE)
         self.sizer.Add(self.filterBtn, border=0, flag=wx.ALL | wx.ALIGN_RIGHT)
         self.filterBtn.Bind(wx.EVT_BUTTON, self.onFilterBtn)
-        # Get components
-        self.components = experiment.getAllComponents(
-            self.app.prefs.builder['componentsFolders'])
-        del self.components['SettingsComponent']
-        self.routines = experiment.getAllStandaloneRoutines()
-        # Get categories
-        self.categories = getAllCategories(
-            self.app.prefs.builder['componentsFolders'])
-        for name, rt in self.routines.items():
-            for cat in rt.categories:
-                if cat not in self.categories:
-                    self.categories.append(cat)
-        # Get favorites
-        self.faveThreshold = 20
-        self.faveLevels = self.prefs.appDataCfg['builder']['favComponents']
-        self.favorites = []
-        for comp in self.components:
-            # Add component to favorite levels with a score of 0 if it's not already present
-            if comp not in self.faveLevels:
-                self.faveLevels[comp] = 0
-            # Mark as a favorite if it exceeds a threshold
-            if self.faveLevels[comp] > self.faveThreshold:
-                self.favorites.append(comp)
-        # Fill in gaps in favorites with defaults
-        faveDefaults = ['ImageComponent', 'KeyboardComponent', 'SoundComponent',
-                        'TextComponent', 'MouseComponent', 'SliderComponent']
-        while len(self.favorites) < 6:
-            thisDef = faveDefaults.pop(0)
-            if thisDef not in self.favorites:
-                self.favorites.append(thisDef)
-        # Make a sizer and label for each category
-        self.catSizers = {cat: wx.WrapSizer(orient=wx.HORIZONTAL) for cat in self.categories}
-        self.catLabels = {cat: self.CategoryButton(self, name=_translate(str(cat)), cat=str(cat)) for cat in self.categories}
-        for cat in self.categories:
-            self.sizer.Add(self.catLabels[cat], border=3, flag=wx.BOTTOM | wx.EXPAND)
-            self.sizer.Add(self.catSizers[cat], border=6, flag=wx.ALL | wx.ALIGN_CENTER)
-        # Make a button for each component
+
+        # Attributes to store handles in
+        self.catLabels = {}
+        self.catSizers = {}
         self.compButtons = []
-        for name, comp in self.components.items():
-            for cat in comp.categories:  # make one button for each category
-                self.compButtons.append(
-                    self.ComponentButton(self, name, comp, cat)
-                )
-            if name in self.favorites:
-                self.compButtons.append(
-                    self.ComponentButton(self, name, comp, "Favorites")
-                )
-        # Add component buttons to category sizers
-        for btn in self.compButtons:
-            self.catSizers[btn.category].Add(btn, border=3, flag=wx.ALL)
-        # Make a button for each routine
         self.rtButtons = []
-        for name, rt in self.routines.items():
-            for cat in rt.categories:  # make one button for each category
-                self.rtButtons.append(
-                    self.RoutineButton(self, name, rt, cat)
-                )
-            if name in self.favorites:
-                self.rtButtons.append(
-                    self.RoutineButton(self, name, rt, "Favorites")
-                )
-        # Add component buttons to category sizers
-        for btn in self.rtButtons:
-            self.catSizers[btn.category].Add(btn, border=3, flag=wx.ALL)
-        # Show favourites on startup
-        self.catLabels['Favorites'].ToggleMenu(True)
+        self.objectHandles = {}
+        # Create buttons
+        self.populate()
+        # Apply filter
+        self.refreshView()
         # Do sizing
         self.Fit()
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(not self.frame.isRetina)
+
+    def getSortedElements(self):
+        allElements = getAllElements()
+        if "SettingsComponent" in allElements:
+            del allElements['SettingsComponent']
+
+        # Create array to store elements in
+        elements = OrderedDict()
+        # Specify which categories are fixed to start/end
+        firstCats = ['Favorites', 'Stimuli', 'Responses', 'Custom']
+        lastCats = ['I/O', 'Other']
+        # Add categories which are fixed to start
+        for cat in firstCats:
+            elements[cat] = {}
+        # Add unfixed categories
+        for cat in getAllCategories():
+            if cat not in lastCats + firstCats:
+                elements[cat] = {}
+        # Add categories which are fixed to end
+        for cat in lastCats:
+            elements[cat] = {}
+        # Get elements and sort by category
+        for name, emt in allElements.items():
+            for cat in emt.categories:
+                if cat in elements:
+                    elements[cat][name] = emt
+        # Assign favorites
+        self.faveLevels = prefs.appDataCfg['builder']['favComponents']
+        for name, emt in allElements.items():
+            # Make sure element has a level
+            if name not in self.faveLevels:
+                self.faveLevels[name] = 0
+            # If it exceeds the threshold, add to favorites
+            if self.faveLevels[name] > self.faveThreshold:
+                elements['Favorites'][name] = emt
+        # Fill in gaps in favorites with defaults
+        faveDefaults = [
+            ('ImageComponent', allElements['ImageComponent']),
+            ('KeyboardComponent', allElements['KeyboardComponent']),
+            ('SoundComponent', allElements['SoundComponent']),
+            ('TextComponent', allElements['TextComponent']),
+            ('MouseComponent', allElements['MouseComponent']),
+            ('SliderComponent', allElements['SliderComponent']),
+        ]
+        while len(elements['Favorites']) < 6:
+            name, emt = faveDefaults.pop(0)
+            if name not in elements['Favorites']:
+                elements['Favorites'][name] = emt
+                self.faveLevels[name] = self.faveThreshold + 1
+
+        return elements
+
+    def populate(self):
+        """
+        Find all component/standalone routine classes and create buttons for each, sorted by category.
+
+        This *can* be called multiple times - already existing buttons are simply detached from their sizer and
+        reattached in the correct place given any changes since last called.
+        """
+        elements = self.getSortedElements()
+
+        # Detach any extant category labels and sizers from main sizer
+        for cat in self.objectHandles:
+            self.sizer.Detach(self.catLabels[cat])
+            self.sizer.Detach(self.catSizers[cat])
+        # Add each category
+        for cat, emts in elements.items():
+            if cat not in self.objectHandles:
+                # Make category sizer
+                self.catSizers[cat] = wx.WrapSizer(orient=wx.HORIZONTAL)
+                # Make category button
+                self.catLabels[cat] = self.CategoryButton(self, name=cat, cat=cat)
+                # Store category reference
+                self.objectHandles[cat] = {}
+            # Add to sizer
+            self.sizer.Add(self.catLabels[cat], border=3, flag=wx.BOTTOM | wx.EXPAND)
+            self.sizer.Add(self.catSizers[cat], border=6, flag=wx.ALL | wx.ALIGN_CENTER)
+
+            # Detach any extant buttons from sizer
+            for btn in self.objectHandles[cat].values():
+                self.catSizers[cat].Detach(btn)
+            # Add each element
+            for name, emt in emts.items():
+                if name not in self.objectHandles[cat]:
+                    # Make appropriate button
+                    if issubclass(emt, BaseStandaloneRoutine):
+                        emtBtn = self.RoutineButton(self, name=name, rt=emt, cat=cat)
+                        self.rtButtons.append(emtBtn)
+                    else:
+                        emtBtn = self.ComponentButton(self, name=name, comp=emt, cat=cat)
+                        self.compButtons.append(emtBtn)
+                    # Store reference by category
+                    self.objectHandles[cat][name] = emtBtn
+                # Add to category sizer
+                self.catSizers[cat].Add(self.objectHandles[cat][name], border=3, flag=wx.ALL)
+
+        # Show favourites on startup
+        self.catLabels['Favorites'].ToggleMenu(True)
+
+    def refreshView(self):
+        # Get view value(s)
+        if prefs.builder['componentFilter'] == "Both":
+            view = ["PsychoPy", "PsychoJS"]
+        elif prefs.builder['componentFilter'] == "Any":
+            view = []
+        else:
+            view = [prefs.builder['componentFilter']]
+
+        # Iterate through categories and buttons
+        for cat in self.objectHandles:
+            anyShown = False
+            for name, btn in self.objectHandles[cat].items():
+                shown = True
+                # Check whether button is hidden by filter
+                for v in view:
+                    if v not in btn.element.targets:
+                        shown = False
+                # Check whether button is hidden by prefs
+                if name in prefs.builder['hiddenComponents'] + alwaysHidden:
+                    shown = False
+                # Show/hide button
+                btn.Show(shown)
+                # Count state towards category
+                anyShown = anyShown or shown
+            # Only show category button if there are some buttons
+            self.catLabels[cat].Show(anyShown)
+            # If comp button is set to hide, hide all regardless
+            if not self.catLabels[cat].GetValue():
+                self.catSizers[cat].ShowItems(False)
+
+        # Do sizing
+        self.Layout()
+        self.SetupScrolling()
 
     def _applyAppTheme(self, target=None):
         # Style component panel
@@ -2719,25 +2818,19 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         name = comp.__name__
         # Mark component as a favorite
         self.faveLevels[name] = self.faveThreshold + 1
-        self.favorites.append(name)
-        # Add button to favorites menu
-        btn = self.ComponentButton(self, name, comp, "Favorites")
-        self.compButtons.append(btn)
-        self.catSizers['Favorites'].Add(btn, border=3, flag=wx.ALL)
+        # Repopulate
+        self.populate()
         # Do sizing
         self.Layout()
 
     def removeFromFavorites(self, button):
         comp = button.component
         name = comp.__name__
-        # Skip if component isn't in favorites
-        if name not in self.favorites:
-            return
         # Unmark component as favorite
         self.faveLevels[name] = 0
-        self.favorites.remove(name)
         # Remove button from favorites menu
-        button.Hide()
+        button.Destroy()
+        del self.objectHandles["Favorites"][name]
         # Do sizing
         self.Layout()
 
@@ -2746,44 +2839,15 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             button.Enable(enable)
         self.Update()
 
-    def Refresh(self, eraseBackground=True, rect=None):
-        wx.Window.Refresh(self, eraseBackground, rect)
-        # Get view value(s)
-        if prefs.builder['componentFilter'] == "Both":
-            view = ["PsychoPy", "PsychoJS"]
-        elif prefs.builder['componentFilter'] == "Any":
-            view = []
-        else:
-            view = [prefs.builder['componentFilter']]
-        # Toggle all categories so they refresh
-        for btn in self.catLabels.values():
-            btn.ToggleMenu(btn.GetValue())
-        # If every button in a category is hidden, hide the category
-        for cat, btn in self.catLabels.items():
-            empty = True
-            for child in self.catSizers[cat].Children:
-                if isinstance(child.Window, self.ComponentButton):
-                    name = child.Window.component.__name__
-                elif isinstance(child.Window, self.RoutineButton):
-                    name = child.Window.routine.__name__
-                else:
-                    name = ""
-                if name not in prefs.builder['hiddenComponents'] + alwaysHidden:
-                    empty = False
-            btn.Show(not empty)
-        # Do sizing
-        self.Layout()
-        self.SetupScrolling()
-
     def onFilterBtn(self, evt=None):
         dlg = self.FilterDialog(self)
         dlg.ShowModal()
 
 
-class ReadmeFrame(wx.Frame):
+class ReadmeFrame(wx.Frame, handlers.ThemeMixin):
     """Defines construction of the Readme Frame"""
 
-    def __init__(self, parent):
+    def __init__(self, parent, filename=None):
         """
         A frame for presenting/loading/saving readme files
         """
@@ -2797,6 +2861,10 @@ class ReadmeFrame(wx.Frame):
         _style = wx.DEFAULT_FRAME_STYLE | wx.FRAME_FLOAT_ON_PARENT
         wx.Frame.__init__(self, parent, title=title,
                           size=(600, 500), pos=pos, style=_style)
+        # Setup sizer
+        self.sizer = wx.BoxSizer()
+        self.SetSizer(self.sizer)
+
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.Hide()
         # create icon
@@ -2806,15 +2874,19 @@ class ReadmeFrame(wx.Frame):
             iconFile = os.path.join(parent.paths['resources'], 'coder.ico')
             if os.path.isfile(iconFile):
                 self.SetIcon(wx.Icon(iconFile, wx.BITMAP_TYPE_ICO))
-        self.makeMenus()
-        self.rawText = ""
-        self.ctrl = HtmlWindow(self, wx.ID_ANY)
-        self.ctrl.Bind(wx.html.EVT_HTML_LINK_CLICKED, self.onUrl)
-        # Style
-        self.ctrl.SetFonts(normal_face="Open Sans", fixed_face="JetBrains Mono", sizes=[8, 10, 12, 14, 16, 18, 20])
+        self.ctrl = utils.MarkdownCtrl(self, file=filename)
+        self.sizer.Add(self.ctrl, border=6, proportion=1, flag=wx.ALL | wx.EXPAND)
 
-    def onUrl(self, evt=None):
-        webbrowser.open(evt.LinkInfo.Href)
+    def show(self, value=True):
+        self.Show()
+        self._applyAppTheme()
+
+    def _applyAppTheme(self):
+        from psychopy.app.themes import fonts
+        self.SetBackgroundColour(fonts.coderTheme.base.backColor)
+        self.ctrl.SetBackgroundColour(fonts.coderTheme.base.backColor)
+        self.Update()
+        self.Refresh()
 
     def onClose(self, evt=None):
         """
@@ -2880,12 +2952,7 @@ class ReadmeFrame(wx.Frame):
             return False
         f.close()
         self._fileLastModTime = os.path.getmtime(filename)
-        self.rawText = readmeText
-        if md:
-            renderedText = md.MarkdownIt().render(readmeText)
-        else:
-            renderedText = readmeText.replace("\n", "<br>")
-        self.ctrl.SetPage(renderedText)
+        self.ctrl.setValue(readmeText)
         self.SetTitle("%s readme (%s)" % (self.expName, filename))
 
     def refresh(self, evt=None):
@@ -4029,6 +4096,7 @@ class BuilderToolbar(BasePsychopyToolbar):
             self.frame.project = pavlovia.getProject(self.frame.filename)
         # Get project
         if self.frame.project is not None:
+            self.frame.project.refresh()
             dlg = ProjectFrame(app=self.frame.app,
                                project=self.frame.project,
                                parent=self.frame)

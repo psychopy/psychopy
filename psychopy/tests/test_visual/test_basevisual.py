@@ -356,7 +356,7 @@ class _TestUnitsMixin:
                     # Compare screenshot
                     filename = f"{self.__class__.__name__}_{size['suffix']}_{pos['suffix']}.png"
                     #win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
-                    utils.compareScreenshot(filename, win, crit=7)
+                    utils.compareScreenshot(filename, win, crit=8)
                     win.flip()
         # Cleanup
         win.close()

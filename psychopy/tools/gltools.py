@@ -101,8 +101,7 @@ import sys
 import platform
 import warnings
 import psychopy.tools.mathtools as mt
-from psychopy.visual.helpers import setColor
-
+from psychopy.visual.helpers import setColor, findImageFile
 
 _thisPlatform = platform.system()
 
@@ -1767,6 +1766,10 @@ def createTexImage2dFromFile(imgFile, transpose=True):
         Texture descriptor.
 
     """
+    # Attempt to find file with substitution (handles e.g. default.png)
+    tryImg = findImageFile(imgFile, checkResources=True)
+    if tryImg is not None:
+        imgFile = tryImg
     im = Image.open(imgFile)  # 8bpp!
     if transpose:
         im = im.transpose(Image.FLIP_TOP_BOTTOM)  # OpenGL origin is at bottom

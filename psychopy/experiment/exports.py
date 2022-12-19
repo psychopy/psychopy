@@ -156,6 +156,47 @@ class NameSpace:
             return "%s + [%d numpy]" % (str(varibs), len(self.numpy))
         return str(varibs + self.numpy)
 
+    @property
+    def all(self):
+        return (
+                self.builder +
+                self.constants +
+                self.keywords +
+                self.nonUserBuilder +
+                self.numpy +
+                self.psychopy +
+                self.user
+        )
+
+    def getCategories(self, name):
+        """
+        Get list of categories in which a given name is found.
+
+        Parameters
+        ----------
+        name : str
+            Name to look for
+        """
+        # Define possible categories
+        categories = (
+            "builder",
+            "constants",
+            "keywords",
+            "nonUserBuilder",
+            "numpy",
+            "psychopy",
+            "user"
+        )
+        # Check for name in each category
+        found = []
+        for cat in categories:
+            if name in getattr(self, cat):
+                found.append(cat)
+
+        return found
+
+
+
     def getDerived(self, basename):
         """ buggy
         idea: return variations on name, based on its type, to flag name that

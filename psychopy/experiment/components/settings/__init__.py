@@ -137,7 +137,7 @@ class SettingsComponent:
                  plPupilCaptureRecordingEnabled=True,
                  plPupilCaptureRecordingLocation="",
                  keyboardBackend="ioHub",
-                 filename=None, exportHTML='on Sync'):
+                 filename=None, exportHTML='on Sync', endMessage=''):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
@@ -161,7 +161,7 @@ class SettingsComponent:
                       'Data filename', 'Data file delimiter', 'Save excel file', 'Save csv file', 'Save wide csv file',
                       'Save psydat file', 'Save hdf5 file', 'Save log file', 'logging level',  # Data tab
                       'Audio lib', 'Audio latency priority', "Force stereo",  # Audio tab
-                      'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'Resources',  # Online tab
+                      'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'End Message', 'Resources',  # Online tab
                       'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Show mouse', 'Units', 'color',
                       'colorSpace',  # Screen tab
                       ]
@@ -245,7 +245,7 @@ class SettingsComponent:
             backgroundFit, valType="str", inputType="choice", categ="Screen",
             allowedVals=("none", "cover", "contain", "fill", "scale-down"),
             hint=_translate("How should the background image scale to fit the window size?"),
-            label=_translate("Background image")
+            label=_translate("Background fit")
         )
         self.params['Units'] = Param(
             units, valType='str', inputType="choice", allowedTypes=[],
@@ -256,7 +256,8 @@ class SettingsComponent:
             label=_localized["Units"], categ='Screen')
         self.params['blendMode'] = Param(
             blendMode, valType='str', inputType="choice",
-            allowedTypes=[], allowedVals=['add', 'avg'],
+            allowedVals=['add', 'avg', 'nofbo'],
+            allowedLabels=['add', 'average', 'average (no FBO)'],
             hint=_translate("Should new stimuli be added or averaged with "
                             "the stimuli that have been drawn already"),
             label=_localized["blendMode"], categ='Screen')
@@ -361,6 +362,10 @@ class SettingsComponent:
             [], valType='list', inputType="fileList", allowedTypes=[],
             hint=_translate("Any additional resources needed"),
             label="Additional Resources", categ='Online')
+        self.params['End Message'] = Param(
+            endMessage, valType='str', inputType='single',
+            hint=_translate("Message to display to participants upon completing the experiment"),
+            label="End Message", categ='Online')
         self.params['Completed URL'] = Param(
             '', valType='str', inputType="single",
             hint=_translate("Where should participants be redirected after the experiment on completion\n"
@@ -731,6 +736,8 @@ class SettingsComponent:
             "\n"
             "from psychopy import locale_setup\n"
             "from psychopy import prefs\n"
+            "from psychopy import plugins\n"
+            "plugins.activatePlugins()\n"  # activates plugins
         )
         # adjust the prefs for this study if needed
         if self.params['Audio lib'].val.lower() != 'use prefs':
@@ -781,7 +788,6 @@ class SettingsComponent:
             buff.write(statement)
 
         buff.write("\n")
-
 
     def prepareResourcesJS(self):
         """Sets up the resources folder and writes the info.php file for PsychoJS
@@ -857,7 +863,17 @@ class SettingsComponent:
 
         # html header
         if self.exp.expPath:
-            template = readTextFile("JS_htmlHeader.tmpl")
+            # Do we need surveys?
+            needsSurveys = False
+            for rt in self.exp.routines.values():
+                for comp in rt:
+                    if comp.type == "PavloviaSurvey":
+                        needsSurveys = True
+            # If we need surveys, use different template with more imports
+            if needsSurveys:
+                template = readTextFile("JS_htmlSurveyHeader.tmpl")
+            else:
+                template = readTextFile("JS_htmlHeader.tmpl")
             header = template.format(
                 name=jsFilename,
                 version=useVer,
@@ -1200,7 +1216,7 @@ class SettingsComponent:
                 code = (
                     "'pupillometry_only': %(plPupillometryOnly)s,\n"
                     "'surface_name': %(plSurfaceName)s,\n"
-                    "'gaze_confidence_threshold': %(plConfidenceThreshold)s,\n"
+                    "'confidence_threshold': %(plConfidenceThreshold)s,\n"
                 )
                 buff.writeIndentedLines(code % inits)
 
@@ -1335,7 +1351,7 @@ class SettingsComponent:
         for thisRoutine in list(self.exp.routines.values()):
             # a single routine is a list of components:
             for thisComp in thisRoutine:
-                if thisComp.type == 'Aperture':
+                if thisComp.type in ('Aperture', 'Textbox'):
                     allowStencil = True
                 if thisComp.type == 'RatingScale':
                     allowGUI = True  # to have a mouse
@@ -1366,8 +1382,10 @@ class SettingsComponent:
 
         code = ("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n"
                 "    backgroundImage=%(backgroundImg)s, backgroundFit=%(backgroundFit)s,\n")
-        if self.params['blendMode'].val:
+        if self.params['blendMode'].val in ("avg", "add"):
             code += "    blendMode=%(blendMode)s, useFBO=True, \n"
+        elif self.params['blendMode'].val in ("nofbo",):
+            code += "    blendMode='avg', useFBO=False, \n"
 
         if self.params['Units'].val != 'use prefs':
             code += "    units=%(Units)s"

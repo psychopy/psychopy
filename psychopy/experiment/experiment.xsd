@@ -98,6 +98,7 @@
       <xsd:element name="MouseComponent" type="Component"/>
       <xsd:element name="MovieComponent" type="Component"/>
       <xsd:element name="ParallelOutComponent" type="Component"/>
+      <xsd:element name="PanoramaComponent" type="Component"/>
       <xsd:element name="SerialComponent" type="Component"/>
       <xsd:element name="QmixPumpComponent" type="Component"/>
       <xsd:element name="PolygonComponent" type="Component"/>
