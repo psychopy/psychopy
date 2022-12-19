@@ -414,6 +414,7 @@ class StartStopCtrls(wx.GridBagSizer):
         # Make ctrls
         self.ctrls = {}
         self.parent = parent
+        empty = True
         for name, param in params.items():
             if name in ['startVal', 'stopVal']:
                 # Add dollar sign
@@ -426,6 +427,8 @@ class StartStopCtrls(wx.GridBagSizer):
                 self.updateCodeFont(self.ctrls[name])
                 self.label = wx.StaticText(parent, label=param.label)
                 self.Add(self.ctrls[name], (0, 2), border=6, flag=wx.EXPAND | wx.TOP)
+                # There is now content
+                empty = False
             if name in ['startType', 'stopType']:
                 localizedChoices = list(map(_translate, param.allowedVals or [param.val]))
                 self.ctrls[name] = wx.Choice(parent,
@@ -434,6 +437,8 @@ class StartStopCtrls(wx.GridBagSizer):
                 self.ctrls[name]._choices = copy.copy(param.allowedVals)
                 self.ctrls[name].SetSelection(param.allowedVals.index(str(param.val)))
                 self.Add(self.ctrls[name], (0, 1), border=6, flag=wx.EXPAND | wx.TOP)
+                # There is now content
+                empty = False
             if name in ['startEstim', 'durationEstim']:
                 self.ctrls[name] = wx.TextCtrl(parent,
                                                value=str(param.val), size=wx.Size(-1, 24))
@@ -444,7 +449,10 @@ class StartStopCtrls(wx.GridBagSizer):
                 self.estimLabel.SetForegroundColour("grey")
                 self.Add(self.estimLabel, (1, 1), border=6, flag=wx.EXPAND | wx.ALL)
                 self.Add(self.ctrls[name], (1, 2), border=6, flag=wx.EXPAND | wx.TOP | wx.BOTTOM)
-        self.AddGrowableCol(2)
+                # There is now content
+                empty = False
+        if not empty:
+            self.AddGrowableCol(2)
 
     def getVisible(self):
         return all(ctrl.IsShown() for ctrl in self.ctrls.values())

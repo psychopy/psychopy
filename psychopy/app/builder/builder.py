@@ -2267,7 +2267,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         return self.getMaxTime() / pixels
 
 
-class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
+class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel):
     def __init__(self, parent, routine=None):
         # Init super
         scrolledpanel.ScrolledPanel.__init__(
@@ -2289,7 +2289,7 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.sizer.Add(self.ctrls, border=12, proportion=1, flag=wx.ALIGN_CENTER | wx.TOP)
         # Make buttons
         self.btnsSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.helpBtn = wx.Button(self, id=wx.ID_HELP, label=_translate("Help"))
+        self.helpBtn = utils.HoverButton(self, id=wx.ID_HELP, label=_translate("Help"))
         self.helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
         self.btnsSizer.Add(self.helpBtn, border=6, flag=wx.ALL | wx.EXPAND)
         self.btnsSizer.AddStretchSpacer(1)
@@ -2299,8 +2299,13 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         # Add buttons to sizer
         self.sizer.Add(self.btnsSizer, border=3, proportion=0, flag=wx.EXPAND | wx.ALL)
         # Style
-        self._applyAppTheme()
         self.SetupScrolling(scroll_y=True)
+
+    def _applyAppTheme(self):
+        self.SetBackgroundColour(colors.app['tab_bg'])
+        self.helpBtn._applyAppTheme()
+        self.Refresh()
+        self.Update()
 
     def updateExperiment(self, evt=None):
         """Update this routine's saved parameters to what is currently entered"""
@@ -2608,6 +2613,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
 
             self.Layout()
             self._applyAppTheme()
+
+        def _applyAppTheme(self):
+            self.SetBackgroundColour(colors.app['panel_bg'])
+            self.label.SetForegroundColour(colors.app['text'])
 
         def GetValue(self):
             return self.viewCtrl.GetValue()

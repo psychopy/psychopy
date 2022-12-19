@@ -283,7 +283,7 @@ class Flow(list):
                             "flowScheduler.add({name}LoopEnd);\n"
                             .format(name=thisEntry.loop.params['name'].val))
                     loopStack.append(thisEntry.loop)
-                elif thisEntry.getType() == "Routine":
+                elif isinstance(thisEntry, (Routine, BaseStandaloneRoutine)):
                     code = ("flowScheduler.add({params[name]}RoutineBegin());\n"
                             "flowScheduler.add({params[name]}RoutineEachFrame());\n"
                             "flowScheduler.add({params[name]}RoutineEnd());\n"

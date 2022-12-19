@@ -42,8 +42,12 @@ if __git_sha__ == 'n/a':
 # update preferences and the user paths
 if 'installing' not in locals():
     from psychopy.preferences import prefs
+    # add optional search paths for libraries
     for pathName in prefs.general['paths']:
         sys.path.append(pathName)
+
+    # prepend path for user packages and plugins
+    sys.path.insert(0, prefs.paths['packages'])
 
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
 
