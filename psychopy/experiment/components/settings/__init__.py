@@ -1379,7 +1379,7 @@ class SettingsComponent:
             screenNumber = requestedScreenNumber - 1
 
         size = self.params['Window size (pixels)']
-        winType = self.exp.prefsGeneral['winType']
+        winType = self.params['winBackend']
 
         code = ("win = visual.Window(\n    size=%s, fullscr=%s, screen=%s, "
                 "\n    winType='%s', allowStencil=%s,\n")
