@@ -209,7 +209,7 @@ class CodeCtrl(BaseCodeEditor, handlers.ThemeMixin, _ValidatorMixin):
                                 ID=wx.ID_ANY, pos=wx.DefaultPosition, size=size,
                                 style=0)
         self.valType = valType
-        self.val = val
+        self.SetValue(val)
         self.fieldName = fieldName
         self.params = fieldName
         # Setup lexer to style text
@@ -219,6 +219,23 @@ class CodeCtrl(BaseCodeEditor, handlers.ThemeMixin, _ValidatorMixin):
         self.SetMarginWidth(0, 0)
         # Setup auto indent behaviour as in Code component
         self.Bind(wx.EVT_KEY_DOWN, self.onKey)
+
+    def getValue(self, evt=None):
+        return self.GetValue()
+
+    def setValue(self, value):
+        self.SetValue(value)
+
+    @property
+    def val(self):
+        """
+        Alias for Set/GetValue, as .val is used elsewhere
+        """
+        return self.getValue()
+
+    @val.setter
+    def val(self, value):
+        self.setValue(value)
 
     def onKey(self, evt=None):
         CodeBox.OnKeyPressed(self, evt)
@@ -610,6 +627,10 @@ class FileCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
         evt = wx.FileDirPickerEvent(wx.EVT_FILEPICKER_CHANGED.typeId, self, -1, file)
         evt.SetEventObject(self)
         wx.PostEvent(self, evt)
+        # Post keypress event to trigger onchange
+        evt = wx.FileDirPickerEvent(wx.EVT_KEY_UP.typeId, self, -1, file)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
 
 
 class FileListCtrl(wx.ListBox, _ValidatorMixin, _HideMixin, _FileMixin):
@@ -798,6 +819,12 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
             if dlg.ShowModal() == wx.ID_OK:
                 # If OK, get value
                 self.SetValue(dlg.getValue())
+                # Validate
+                self.validate()
+                # Raise event
+                evt = wx.ListEvent(wx.EVT_KEY_UP.typeId)
+                evt.SetEventObject(self)
+                wx.PostEvent(self, evt)
 
 
 class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
@@ -851,6 +878,10 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
     def validate(self, evt=None):
         """Redirect validate calls to global validate method, assigning appropriate valType"""
         validate(self, "file")
+        # Disable Excel button if value is from a variable
+        if "$" in self.GetValue():
+            self.xlBtn.Disable()
+            return
         # Enable Excel button if valid
         self.xlBtn.Enable(self.valid)
         # Is component type available?

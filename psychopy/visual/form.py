@@ -701,7 +701,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             The aperture setting viewable area for forms
         """
         aperture = psychopy.visual.Aperture(win=self.win,
-                                            name='aperture',
+                                            name=f"{self.name}_aperture",
                                             units=self.units,
                                             shape='square',
                                             size=self.size,
@@ -875,7 +875,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         # draw the box and scrollbar
         self._drawExternalDecorations()
         # enable aperture
-        self.aperture.enable()
+        self.aperture._reset()
         # draw the box and scrollbar
         self._drawDecorations()
         # Draw question and response objects

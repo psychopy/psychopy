@@ -12,10 +12,15 @@ __all__ = [
     'getDistributions',
     'addDistribution',
     'getInstalledPackages',
-    'getPackageMetadata'
+    'getPackageMetadata',
+    'getPypiInfo',
+    'isInstalled',
 ]
 
+from psychopy.localization import _translate
 import pkg_resources
+import requests
+import wx
 
 
 def getDistributions():
@@ -49,6 +54,10 @@ def addDistribution(distPath):
 
     """
     pkg_resources.working_set.add_entry(distPath)
+
+
+def isInstalled(packageName):
+    return packageName in dict(getInstalledPackages())
 
 
 def getInstalledPackages():
@@ -101,6 +110,32 @@ def getPackageMetadata(packageName):
         metadict[key] = val
 
     return metadict
+
+
+def getPypiInfo(packageName, silence=False):
+    try:
+        data = requests.get(
+            f"https://pypi.python.org/pypi/{packageName}/json"
+        ).json()
+    except (requests.ConnectionError, requests.JSONDecodeError) as err:
+        dlg = wx.MessageDialog(None, message=_translate(
+            f"Could not get info for package {packageName}. Reason:\n"
+            f"\n"
+            f"{err}"
+        ), style=wx.ICON_ERROR)
+        if not silence:
+            dlg.ShowModal()
+        return
+
+    return {
+        'name': data['info'].get('Name', packageName),
+        'author': data['info'].get('author', 'Unknown'),
+        'authorEmail': data['info'].get('author_email', 'Unknown'),
+        'license': data['info'].get('license', 'Unknown'),
+        'summary': data['info'].get('summary', ''),
+        'desc': data['info'].get('description', ''),
+        'releases': list(data['releases']),
+    }
 
 
 if __name__ == "__main__":
