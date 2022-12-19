@@ -92,6 +92,33 @@ class Test_Slider(_TestColorMixin, _TestBoilerplateMixin):
         for newPos in positions:
             s.pos = newPos
             assert array_equal(s.pos, newPos)
+
+    def test_triangle_marker(self):
+        # Test all combinations of horiz and flip
+        cases = [
+            {"horiz": True, "flip": True},
+            {"horiz": True, "flip": False},
+            {"horiz": False, "flip": True},
+            {"horiz": False, "flip": False},
+        ]
+        # Create slider
+        s = Slider(self.win, units="height", pos=(0, 0), ticks=(0, 1, 2), styleTweaks=["triangleMarker"])
+        s.rating = 1
+        # Try each case
+        for case in cases:
+            # Make horizontal/vertical
+            if case['horiz']:
+                s.size = (1, 0.1)
+            else:
+                s.size = (0.1, 1)
+            # Flip or not
+            s.flip = case['flip']
+            # Compare
+            s.draw()
+            filename = "test_slider_triangle_horiz_%(horiz)s_flip_%(flip)s.png" % case
+            #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+            utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win)
+            self.win.flip()
         
     def test_ratingToPos(self):
         s = Slider(self.win, size=(1, 0.1), )

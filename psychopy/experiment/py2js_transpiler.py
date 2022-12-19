@@ -17,11 +17,29 @@ except ImportError:
 import astunparse
 
 
+namesJS = {
+    'sin': 'Math.sin',
+    'cos': 'Math.cos',
+    'tan': 'Math.tan',
+    'pi': 'Math.PI',
+    'rand': 'Math.random',
+    'random': 'Math.random',
+    'sqrt': 'Math.sqrt',
+    'abs': 'Math.abs',
+    'randint': 'util.randint',
+    'round': 'util.round',  # better than Math.round, supports n DPs arg
+    'sum': 'util.sum',
+    'core.Clock': 'util.Clock',
+}
+
+
 class psychoJSTransformer(ast.NodeTransformer):
     """PsychoJS-specific AST transformer
     """
 
     def visit_Name(self, node):
+        if node.id in namesJS:
+            node.id = namesJS[node.id]
         # status = STOPPED --> status = PsychoJS.Status.STOPPED
         if node.id in ['STARTED', 'FINISHED', 'STOPPED'] and isinstance(node.ctx, ast.Load):
             return ast.copy_location(

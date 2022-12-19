@@ -90,7 +90,7 @@ class SoundComponent(BaseComponent):
     def writeInitCode(self, buff):
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params)
-        if '$' in inits['stopVal'].val:
+        if '$' in str(inits['stopVal'].val):
             inits['stopVal'].val = -1
         else:
             if inits['stopVal'].val in ['', None, 'None']:

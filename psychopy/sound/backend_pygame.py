@@ -121,53 +121,34 @@ def init(rate=22050, bits=16, stereo=True, buffer=1024):
 class SoundPygame(_SoundBase):
     """Create a sound object, from one of many ways.
 
-    :parameters:
-        value: can be a number, string or an array:
-            * If it's a number between 37 and 32767 then a tone will be
-              generated at that frequency in Hz.
-            * It could be a string for a note ('A', 'Bfl', 'B', 'C',
-              'Csh', ...). Then you may want to specify which octave as well
-            * Or a string could represent a filename in the current
-              location, or mediaLocation, or a full path combo
-            * Or by giving an Nx2 numpy array of floats (-1:1) you
-              can specify the sound yourself as a waveform
+    Parameters
+    ----------
+    value: int, float, str or ndarray
+        * If it's a number between 37 and 32767 then a tone will be generated at
+          that frequency in Hz.
+        * It could be a string for a note ('A', 'Bfl', 'B', 'C', 'Csh', ...).
+          Then you may want to specify which octave as well.
+        * Or a string could represent a filename in the current location, or
+          mediaLocation, or a full path combo.
+        * Or by giving an Nx2 numpy array of floats (-1:1) you can specify the
+          sound yourself as a waveform.
+    secs: float
+        Duration in seconds (only relevant if the value is a note name or a
+        frequency value.)
+    octave:
+        Middle octave of a piano is 4. Most computers won't output sounds in the
+        bottom octave (1) and the top octave (8) is generally painful. Is only
+        relevant if the value is a note name.
+    sampleRate: int
+        Audio sample rate, default is 44100 Hz.
+    bits:  int
+        Bit depth. Pygame uses the same bit depth for all sounds once
+        initialised. Default is 16.
 
-        secs: duration (only relevant if the value is a note name or a
-            frequency value)
-
-        octave: is only relevant if the value is a note name.
-            Middle octave of a piano is 4. Most computers won't
-            output sounds in the bottom octave (1) and the top
-            octave (8) is generally painful
-
-        sampleRate(=44100): If a sound has already been created or if the
-
-        bits(=16):  Pygame uses the same bit depth for all sounds once
-            initialised
     """
-
     def __init__(self, value="C", secs=0.5, octave=4, sampleRate=44100,
                  bits=16, name='', autoLog=True, loops=0, stereo=True,
                  hamming=False):
-        """
-        Parameters
-        ----------
-        value : int, str or array_like
-            * If it's a number between 37 and 32767 then a tone will be
-              generated at that frequency in Hz.
-            * It could be a string for a note ('A', 'Bfl', 'B', 'C', 'Csh',
-              ...). Then you may want to specify which octave as well.
-            * Or a string could represent a filename in the current location, or
-              mediaLocation, or a full path combo.
-            * Or by giving an Nx2 numpy array of floats (-1:1) you can specify
-              the sound yourself as a waveform.
-        secs : float
-            Duration of sound in seconds (only relevant if the value is a note
-            name or a frequency value).
-        octave :
-
-
-        """
         self.name = name  # only needed for autoLogging
         self.autoLog = autoLog
 
@@ -202,44 +183,56 @@ class SoundPygame(_SoundBase):
         self.requestedLoops = self.loops = int(loops)
         self.setSound(value=value, secs=secs, octave=octave, hamming=False)
 
+        self._isPlaying = False
+
+    @property
+    def isPlaying(self):
+        """`True` if the audio playback is ongoing."""
+        return self._isPlaying
+
     def play(self, fromStart=True, log=True, loops=None, when=None):
         """Starts playing the sound on an available channel.
 
-        :Parameters:
+        Parameters
+        ----------
+        fromStart : bool
+            Not yet implemented.
+        log : bool
+            Whether to log the playback event.
+        loops : int
+            How many times to repeat the sound after it plays once. If
+            `loops` == -1, the sound will repeat indefinitely until
+            stopped.
+        when: not used but included for compatibility purposes
 
-            fromStart : bool
-                Not yet implemented.
-            log : bool
-                Whether or not to log the playback event.
-            loops : int
-                How many times to repeat the sound after it plays once. If
-                `loops` == -1, the sound will repeat indefinitely until
-                stopped.
-            when: not used but included for compatibility purposes
-
-        :Notes:
-
-            If no sound channels are available, it will not play and return
-            None. This runs off a separate thread i.e. your code won't wait
-            for the sound to finish before continuing. You need to use a
-            psychopy.core.wait() command if you want things to pause.
-            If you call play() whiles something is already playing the sounds
-            will be played over each other.
+        Notes
+        -----
+        If no sound channels are available, it will not play and return `None`.
+        This runs off a separate thread i.e. your code won't wait for the sound
+        to finish before continuing. You need to use a `psychopy.core.wait()`
+        command if you want things to pause. If you call `play()` whiles
+        something is already playing the sounds will be played over each other.
 
         """
+        if self.isPlaying:
+            return
+
         if loops is None:
             loops = self.loops
         self._snd.play(loops=loops)
-        self.status = STARTED
+        self._isPlaying = True
         if log and self.autoLog:
-            logging.exp("Sound %s started" % (self.name), obj=self)
+            logging.exp("Sound %s started" % self.name, obj=self)
         return self
 
     def stop(self, log=True):
         """Stops the sound immediately
         """
+        if not self.isPlaying:
+            return
+
         self._snd.stop()
-        self.status = STOPPED
+        self._isPlaying = False
         if log and self.autoLog:
             logging.exp("Sound %s stopped" % (self.name), obj=self)
 

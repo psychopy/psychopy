@@ -31,6 +31,7 @@ class BaseStandaloneRoutine:
         self.params = {}
         self.name = name
         self.exp = exp
+        self.url = ""
         self.type = 'StandaloneRoutine'
         self.depends = []  # allows params to turn each other off/on
         self.order = ['stopVal', 'stopType', 'name']
@@ -407,7 +408,6 @@ class Routine(list):
         buff.writeIndentedLines(code % (self.name))
         code = (
             'continueRoutine = True\n'
-            'routineForceEnded = False\n'
         )
         buff.writeIndentedLines(code)
 
@@ -442,6 +442,13 @@ class Routine(list):
                 '\n# --- Run Routine "{name}" ---\n')
         buff.writeIndentedLines(code.format(name=self.name,
                                             clockName=self._clockName))
+        # initial value for forceRoutineEnded (needs to happen now as Code components will have executed
+        # their Begin Routine code)
+        code = (
+            'routineForceEnded = not continueRoutine\n'
+        )
+        buff.writeIndentedLines(code)
+
         if useNonSlip:
             code = f'while continueRoutine and routineTimer.getTime() < {maxTime}:\n'
         else:
