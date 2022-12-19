@@ -318,6 +318,7 @@ class Flow(list):
             resourceFolderStr = "resources/"
         else:
             resourceFolderStr = ""
+        # start PsychoJS
         script.writeIndented("psychoJS.start({\n")
         script.setIndentLevel(1, relative=True)
         script.writeIndentedLines("expName: expName,\n"
@@ -327,7 +328,18 @@ class Flow(list):
         if not self.exp.htmlFolder:
             script.writeIndentedLines("resources: [\n")
             script.setIndentLevel(1, relative=True)
-            code = ""
+            # do we need to load surveys?
+            needsSurveys = False
+            for rt in self:
+                for comp in rt:
+                    if comp.type == "PavloviaSurvey":
+                        needsSurveys = True
+            if needsSurveys:
+                script.writeIndentedLines(
+                    "// libraries:\n"
+                    "{'surveyLibrary': true},\n"
+                )
+            code = "// resources:\n"
             for idx, resource in enumerate(resourceFiles):
                 if "https://" in resource:
                     name = resource.split('/')[-1]
@@ -341,6 +353,7 @@ class Flow(list):
                 code += temp
                 if idx != (len(resourceFiles)-1):
                     code += ",\n"  # Trailing comma
+
             script.writeIndentedLines(code)
             script.setIndentLevel(-1, relative=True)
             script.writeIndented("]\n")
