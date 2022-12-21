@@ -98,7 +98,7 @@ def rms(data):
     Identical to `std` when the mean is zero; faster to compute just rms.
     """
     if data.dtype == np.int16:
-        md2 = data.astype(np.float) ** 2  # int16 wrap around --> negative
+        md2 = data.astype(float) ** 2  # int16 wrap around --> negative
     else:
         md2 = data ** 2
     return np.sqrt(np.mean(md2))
