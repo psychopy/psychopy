@@ -2649,13 +2649,13 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         # Top bar
         self.topBarSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(self.topBarSizer, border=0, flag=wx.ALL | wx.EXPAND)
-        self.topBarSizer.AddStretchSpacer(1)
         # Add plugins button
-        self.pluginBtn = wx.Button(self, style=wx.BU_EXACTFIT | wx.BORDER_NONE)
+        self.pluginBtn = wx.Button(self, label=_translate("Get more..."), style=wx.BU_EXACTFIT | wx.BORDER_NONE)
         self.pluginBtn.SetToolTip(_translate("Add new components and features via plugins."))
         self.topBarSizer.Add(self.pluginBtn, border=3, flag=wx.ALL)
         self.pluginBtn.Bind(wx.EVT_BUTTON, self.onPluginBtn)
         # Add filter button
+        self.topBarSizer.AddStretchSpacer(1)
         self.filterBtn = wx.Button(self, style=wx.BU_EXACTFIT | wx.BORDER_NONE)
         self.filterBtn.SetToolTip(_translate("Filter components by whether they work with PsychoJS, PsychoPy or both."))
         self.topBarSizer.Add(self.filterBtn, border=3, flag=wx.ALL)
@@ -2825,7 +2825,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.filterBtn.SetBitmapFocus(icon)
         # Style plugin button
         self.pluginBtn.SetBackgroundColour(colors.app['panel_bg'])
-        icon = icons.ButtonIcon("add", size=16).bitmap
+        icon = icons.ButtonIcon("plus", size=16).bitmap
         self.pluginBtn.SetBitmap(icon)
         self.pluginBtn.SetBitmapCurrent(icon)
         self.pluginBtn.SetBitmapPressed(icon)
