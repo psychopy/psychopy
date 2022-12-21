@@ -232,8 +232,8 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                 'Movie stimuli can only be used with a pyglet window')
             core.quit()
         self._retracerate = win._monitorFrameRate
-        if self._retracerate is None:
-            self._retracerate = win.getActualFrameRate()
+        # if self._retracerate is None:
+        #     self._retracerate = win.getActualFrameRate()
         if self._retracerate is None:
             logging.warning("FrameRate could not be supplied by psychopy; "
                             "defaulting to 60.0")

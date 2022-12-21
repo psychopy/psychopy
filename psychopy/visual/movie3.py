@@ -102,8 +102,8 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
                                          autoLog=False)
 
         retraceRate = win._monitorFrameRate
-        if retraceRate is None:
-            retraceRate = win.getActualFrameRate()
+        # if retraceRate is None:
+        #     retraceRate = win.getActualFrameRate()
         if retraceRate is None:
             logging.warning("FrameRate could not be supplied by psychopy; "
                             "defaulting to 60.0")
