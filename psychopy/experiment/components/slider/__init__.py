@@ -284,7 +284,8 @@ class SliderComponent(BaseVisualComponent):
                         'radio': 'RADIO',
                         'labels45': 'LABELS_45',
                         'whiteOnBlack': 'WHITE_ON_BLACK',
-                        'triangleMarker': 'TRIANGLE_MARKER'}
+                        'triangleMarker': 'TRIANGLE_MARKER',
+                        'choice': 'RADIO'}
 
         # If no style given, set default 'rating' as list
         if len(inits['styles'].val) == 0:
