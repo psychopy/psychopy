@@ -331,9 +331,8 @@ class Flow(list):
             # do we need to load surveys?
             needsSurveys = False
             for rt in self:
-                for comp in rt:
-                    if comp.type == "PavloviaSurvey":
-                        needsSurveys = True
+                if hasattr(rt, "type") and rt.type == "PavloviaSurvey":
+                    needsSurveys = True
             if needsSurveys:
                 script.writeIndentedLines(
                     "// libraries:\n"
