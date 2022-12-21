@@ -8,9 +8,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-
-
-
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
 # up by the pyglet GL engine and have no effect.
@@ -113,15 +110,15 @@ class RadialStim(GratingStim):
         self.setPhase = None
 
         self.colorSpace = colorSpace
-        if rgb != None:
+        if rgb is not None:
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead.")
             self.color = Color(rgb, space='rgb')
-        elif dkl != None:
+        elif dkl is not None:
             logging.warning("Use of dkl arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead.")
             self.color = Color(dkl, space='dkl')
-        elif lms != None:
+        elif lms is not None:
             logging.warning("Use of lms arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead.")
             self.color = Color(lms, space='lms')
@@ -138,9 +135,12 @@ class RadialStim(GratingStim):
         self.pos = numpy.array(pos, float)
         self.depth = depth
         self.__dict__['sf'] = 1
+
+        if size is None:
+            raise ValueError("`GratingStim` requires `size != None`.")
         self.size = size
 
-        self.tex = tex
+        # self.tex = tex
         self.mask = mask
         self.contrast = float(contrast)
         self.opacity = float(opacity)
