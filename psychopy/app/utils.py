@@ -682,7 +682,7 @@ class HyperLinkCtrl(wx.Button):
 class ButtonArray(wx.Window):
 
     class ArrayBtn(wx.Window):
-        def __init__(self, parent, label=""):
+        def __init__(self, parent, label="", readonly=False):
             wx.Window.__init__(self, parent)
             self.parent = parent
             # Setup sizer
@@ -698,22 +698,38 @@ class ButtonArray(wx.Window):
             self.removeBtn.Bind(wx.EVT_BUTTON, self.remove)
             # Bind button to button function
             self.button.Bind(wx.EVT_BUTTON, self.onClick)
+            # Set readonly
+            self.readonly = readonly
 
             self.SetBackgroundColour(self.parent.GetBackgroundColour())
-            self.Layout()
 
         def remove(self, evt=None):
             self.parent.removeItem(self)
 
         def onClick(self, evt=None):
-            evt = wx.CommandEvent(wx.EVT_BUTTON.typeId)
-            evt.SetEventObject(self)
-            wx.PostEvent(self.parent, evt)
+            if not self.readonly:
+                evt = wx.CommandEvent(wx.EVT_BUTTON.typeId)
+                evt.SetEventObject(self)
+                wx.PostEvent(self.parent, evt)
+
+        @property
+        def readonly(self):
+            return self._readonly
+
+        @readonly.setter
+        def readonly(self, value):
+            # Store value
+            self._readonly = value
+            # Show/hide controls
+            self.removeBtn.Show(not value)
+            # Layout
+            self.Layout()
 
     def __init__(self, parent, orient=wx.HORIZONTAL,
                  items=(),
                  options=None,
-                 itemAlias=_translate("item")):
+                 itemAlias=_translate("item"),
+                 readonly=False):
         # Create self
         wx.Window.__init__(self, parent)
         self.SetBackgroundColour(parent.GetBackgroundColour())
@@ -729,8 +745,8 @@ class ButtonArray(wx.Window):
         self.sizer.Add(self.addBtn, border=3, flag=wx.EXPAND | wx.ALL)
         # Add items
         self.items = items
-        # Layout
-        self.Layout()
+        # Set readonly
+        self.readonly = readonly
 
     def _applyAppTheme(self, target=None):
         for child in self.sizer.Children:
@@ -751,13 +767,31 @@ class ButtonArray(wx.Window):
             value = [value]
         if value is None or value is numpy.nan:
             value = []
-        assert isinstance(value, (list, tuple))
+        if isinstance(value, tuple):
+            value = list(value)
+        assert isinstance(value, list)
 
         value.reverse()
 
         self.clear()
         for item in value:
             self.addItem(item)
+
+    @property
+    def readonly(self):
+        return self._readonly
+
+    @readonly.setter
+    def readonly(self, value):
+        # Store value
+        self._readonly = value
+        # Show/hide controls
+        self.addBtn.Show(not value)
+        # Cascade readonly down
+        for item in self.items:
+            item.readonly = value
+        # Layout
+        self.Layout()
 
     def newItem(self, evt=None):
         msg = _translate("Add {}...").format(self.itemAlias)
@@ -775,7 +809,7 @@ class ButtonArray(wx.Window):
 
     def addItem(self, item):
         if not isinstance(item, wx.Window):
-            item = self.ArrayBtn(self, label=item)
+            item = self.ArrayBtn(self, label=item, readonly=self.readonly)
         self.sizer.Insert(0, item, border=3, flag=wx.EXPAND | wx.TOP | wx.BOTTOM | wx.RIGHT)
         self.Layout()
         # Raise event
