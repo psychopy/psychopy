@@ -35,7 +35,8 @@ class ButtonStim(TextBox2):
                                  alignment='center', editable=False, autoLog=None)
         self.listener = event.Mouse(win=win)
         self.buttonClock = core.Clock()
-        self.wasClicked = False # Attribute to save whether button was previously clicked
+        # Attribute to save whether button was previously clicked
+        self.wasClicked = False
         # Arrays to store times of clicks on and off
         self.timesOn = []
         self.timesOff = []
@@ -48,6 +49,10 @@ class ButtonStim(TextBox2):
     @property
     def isClicked(self):
         """Is this button currently being clicked on?"""
+        # Update vertices
+        if self._needVertexUpdate:
+            self._updateVertices()
+        # Return True if pressed in
         return bool(self.listener.isPressedIn(self))
 
     @property
@@ -61,6 +66,18 @@ class ButtonStim(TextBox2):
             self.buttonClock.reset()  # Reset clock
         # Set status
         self._status = value
+
+    def reset(self):
+        """
+        Clear previously stored times on / off and check current click state.
+
+        In Builder, this is called at the start of each routine.
+        """
+        # Update wasClicked (so continued clicks at routine start are considered)
+        self.wasClicked = self.isClicked
+        # Clear on/off times
+        self.timesOn = []
+        self.timesOff = []
 
 
 class CheckBoxStim(ShapeStim):

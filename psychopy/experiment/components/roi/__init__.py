@@ -149,8 +149,8 @@ class RegionOfInterestComponent(PolygonComponent):
         # do writing of init
         inits = getInitVals(self.params, 'PsychoPy')
         # Write start code
-        if self.writeStartTestCode(buff):
-            self.exitStartTest(buff)
+        indented = self.writeStartTestCode(buff)
+        buff.setIndentLevel(-indented, relative=True)
         # String to get time
         if inits['timeRelativeTo'] == 'roi onset':
             timing = "%(name)s.clock.getTime()"
@@ -161,7 +161,7 @@ class RegionOfInterestComponent(PolygonComponent):
         else:
             timing = "globalClock.getTime()"
         # Assemble code
-        self.writeActiveTestCode(buff)
+        indented = self.writeActiveTestCode(buff)
         code = (
             f"# check whether %(name)s has been looked in\n"
             f"if %(name)s.isLookedIn:\n"
@@ -250,7 +250,9 @@ class RegionOfInterestComponent(PolygonComponent):
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
-        self.exitActiveTest(buff)
+
+        buff.setIndentLevel(-indented, relative=True)
+
         code = (
             f"else:\n"
         )
@@ -264,8 +266,8 @@ class RegionOfInterestComponent(PolygonComponent):
         buff.setIndentLevel(-1, relative=True)
 
         # Write stop code
-        if self.writeStopTestCode(buff):
-            self.exitStopTest(buff)
+        indented = self.writeStopTestCode(buff)
+        buff.setIndentLevel(-indented, relative=True)
 
     def writeRoutineEndCode(self, buff):
         BaseVisualComponent.writeRoutineEndCode(self, buff)

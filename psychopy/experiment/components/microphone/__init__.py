@@ -8,13 +8,23 @@
 # Author: Jeremy R. Gray, 2012
 from pathlib import Path
 
+from psychopy import logging
 from psychopy.alerts import alert
-from psychopy.tools import stringtools as st
+from psychopy.tools import stringtools as st, systemtools as syst, audiotools as at
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
-from psychopy.sound.microphone import Microphone, _hasPTB
 from psychopy.sound.audiodevice import sampleRateQualityLevels
-from psychopy.sound.audioclip import AUDIO_SUPPORTED_CODECS
 from psychopy.localization import _localized as __localized
+
+_hasPTB = True
+try:
+    import psychtoolbox.audio as audio
+except (ImportError, ModuleNotFoundError):
+    logging.warning(
+        "The 'psychtoolbox' library cannot be loaded but is required for audio "
+        "capture (use `pip install psychtoolbox` to get it). Microphone "
+        "recording will be unavailable this session. Note that opening a "
+        "microphone stream will raise an error.")
+    _hasPTB = False
 
 _localized = __localized.copy()
 _localized.update({'stereo': _translate('Stereo'),
@@ -23,9 +33,9 @@ from psychopy.tests import _vmTesting
 
 # Get list of devices
 if _hasPTB and not _vmTesting:
-    devices = Microphone.getDevices()
-    deviceIndices = [d.deviceIndex for d in devices]
-    deviceNames = [d.deviceName for d in devices]
+    devices = syst.getAudioCaptureDevices()
+    deviceIndices = [d['index'] for d in devices.values()]
+    deviceNames = [d['name'] for d in devices.values()]
 else:
     devices = []
     deviceIndices = []
@@ -57,10 +67,10 @@ class MicrophoneComponent(BaseComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=2.0,
                  startEstim='', durationEstim='',
-                 channels='auto', device="default",
+                 channels='auto', device=None,
                  sampleRate='DVD Audio (48kHz)', maxSize=24000,
                  outputType='default', speakTimes=True, trimSilent=False,
-                 transcribe=True, transcribeBackend="Google", transcribeLang="en-US", transcribeWords="",
+                 transcribe=False, transcribeBackend="Google", transcribeLang="en-US", transcribeWords="",
                  #legacy
                  stereo=None, channel=None):
         super(MicrophoneComponent, self).__init__(
@@ -122,7 +132,7 @@ class MicrophoneComponent(BaseComponent):
             "What file type should output audio files be saved as?")
         self.params['outputType'] = Param(
             outputType, valType='code', inputType='choice', categ='Data',
-            allowedVals=["default"] + AUDIO_SUPPORTED_CODECS,
+            allowedVals=["default"] + at.AUDIO_SUPPORTED_CODECS,
             hint=msg,
             label=_translate("Output File Type")
         )
@@ -278,31 +288,33 @@ class MicrophoneComponent(BaseComponent):
         inits['routine'] = self.parentName
 
         # Start the recording
-        if self.writeStartTestCode(buff):
+        indented = self.writeStartTestCode(buff)
+        if indented:
             code = (
                 "# start recording with %(name)s\n"
                 "%(name)s.start()\n"
             )
             buff.writeIndentedLines(code % self.params)
-            self.exitStartTest(buff)
+        buff.setIndentLevel(-indented, relative=True)
 
         # Get clip each frame
-        self.writeActiveTestCode(buff)
+        indented = self.writeActiveTestCode(buff)
         code = (
                 "# update recorded clip for %(name)s\n"
                 "%(name)s.poll()\n"
         )
         buff.writeIndentedLines(code % self.params)
-        self.exitActiveTest(buff)
+        buff.setIndentLevel(-indented, relative=True)
 
         # Stop recording
-        if self.writeStopTestCode(buff):
+        indented = self.writeStopTestCode(buff)
+        if indented:
             code = (
                 "# stop recording with %(name)s\n"
                 "%(name)s.stop()\n"
             )
             buff.writeIndentedLines(code % self.params)
-            self.exitStopTest(buff)
+        buff.setIndentLevel(-indented, relative=True)
 
     def writeFrameCodeJS(self, buff):
         inits = getInitVals(self.params)

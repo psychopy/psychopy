@@ -21,6 +21,7 @@ class PanoramaComponent(BaseVisualComponent):
     iconFile = Path(__file__).parent / 'panorama.png'
     tooltip = _translate('Panorama: Present a panoramic image (such as from a phone camera in Panorama mode) on '
                          'screen.')
+    beta = True
 
     def __init__(self, exp, parentName, name='pan',
                  startType='time (s)', startVal=0,
@@ -326,121 +327,122 @@ class PanoramaComponent(BaseVisualComponent):
             self.params['zoom'].updates = "constant"
 
         # Start code
-        if self.writeStartTestCode(buff):
+        indented = self.writeStartTestCode(buff)
+        if indented:
             code = (
                 "# start drawing %(name)s\n"
                 "%(name)s.setAutoDraw(True)\n"
             )
             buff.writeIndentedLines(code % self.params)
-            self.exitStartTest(buff)
+        buff.setIndentLevel(-indented, relative=True)
 
         # Active code
-        self.writeActiveTestCode(buff)
-
-        # Pos control code
-        if self.params['posCtrl'].val == "mouse":
-            # If control style is mouse, set azimuth and elevation according to mouse pos
-            code = (
-                "# update panorama view from mouse pos\n"
-                "pos = layout.Position(%(name)s.mouse.getPos(), win.units, win)\n"
-                "%(name)s.azimuth = -pos.norm[0] * %(posSensitivity)s\n"
-                "%(name)s.altitude = -pos.norm[1] * %(posSensitivity)s\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-
-        elif self.params['posCtrl'].val == "drag":
-            # If control style is drag, set azimuth and elevation according to change in mouse pos
-            code = (
-                "# update panorama view from mouse change if clicked\n"
-                "rel = layout.Position(%(name)s.mouse.getRel(), win.units, win)\n"
-                "if %(name)s.mouse.getPressed()[0]:\n"
-                "    %(name)s.momentum = rel.norm * %(posSensitivity)s\n"
-                "    %(name)s.azimuth -= %(name)s.momentum[0]\n"
-                "    %(name)s.altitude -= %(name)s.momentum[1]\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-            if self.params['smooth']:
-                # If smoothing requested, let momentum decay sinusoidally
+        indented = self.writeActiveTestCode(buff)
+        if indented:
+            # Pos control code
+            if self.params['posCtrl'].val == "mouse":
+                # If control style is mouse, set azimuth and elevation according to mouse pos
                 code = (
-                "else:\n"
-                "    # after click, keep moving a little\n"
-                "    %(name)s.azimuth -= %(name)s.momentum[0]\n"
-                "    %(name)s.altitude -= %(name)s.momentum[1]\n"
-                "    # decrease momentum every frame so that it approaches 0\n"
-                "    %(name)s.momentum = %(name)s.momentum * (1 - win.monitorFramePeriod * 2)\n"
+                    "# update panorama view from mouse pos\n"
+                    "pos = layout.Position(%(name)s.mouse.getPos(), win.units, win)\n"
+                    "%(name)s.azimuth = -pos.norm[0] * %(posSensitivity)s\n"
+                    "%(name)s.altitude = -pos.norm[1] * %(posSensitivity)s\n"
                 )
                 buff.writeIndentedLines(code % self.params)
 
-        elif self.params['posCtrl'].val in ("arrows", "wasd", "keymap"):
-            # If control is keyboard, set azimuth and elevation according to keypresses
-            code = (
-                "# update panorama view from key presses\n"
-                "keys = %(name)s.kb.getKeys(list(%(name)s.kb.deltas), waitRelease=False, clear=False)\n"
-                "if len(keys):\n"
-                "    # work out momentum of movement from keys pressed\n"
-                "    %(name)s.momentum = np.asarray([0.0, 0.0])\n"
-                "    for key in keys:\n"
-                "        %(name)s.momentum += %(name)s.kb.deltas[key.name] * %(posSensitivity)s\n"
-                "    # apply momentum to panorama view\n"
-                "    %(name)s.azimuth += %(name)s.momentum[0]\n"
-                "    %(name)s.altitude += %(name)s.momentum[1]\n"
-                "    # get keys which have been released and clear them from the buffer before next frame\n"
-                "    %(name)s.kb.getKeys(list(%(name)s.kb.deltas), waitRelease=True, clear=True)\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-            if self.params['smooth']:
-                # If smoothing requested, let momentum decay sinusoidally
+            elif self.params['posCtrl'].val == "drag":
+                # If control style is drag, set azimuth and elevation according to change in mouse pos
                 code = (
-                "else:\n"
-                "    # after pressing, keep moving a little\n"
-                "    %(name)s.azimuth += %(name)s.momentum[0]\n"
-                "    %(name)s.altitude += %(name)s.momentum[1]\n"
-                "    # decrease momentum every frame so that it approaches 0\n"
-                "    %(name)s.momentum = %(name)s.momentum * (1 - win.monitorFramePeriod * 4)\n"
+                    "# update panorama view from mouse change if clicked\n"
+                    "rel = layout.Position(%(name)s.mouse.getRel(), win.units, win)\n"
+                    "if %(name)s.mouse.getPressed()[0]:\n"
+                    "    %(name)s.momentum = rel.norm * %(posSensitivity)s\n"
+                    "    %(name)s.azimuth -= %(name)s.momentum[0]\n"
+                    "    %(name)s.altitude -= %(name)s.momentum[1]\n"
                 )
                 buff.writeIndentedLines(code % self.params)
+                if self.params['smooth']:
+                    # If smoothing requested, let momentum decay sinusoidally
+                    code = (
+                    "else:\n"
+                    "    # after click, keep moving a little\n"
+                    "    %(name)s.azimuth -= %(name)s.momentum[0]\n"
+                    "    %(name)s.altitude -= %(name)s.momentum[1]\n"
+                    "    # decrease momentum every frame so that it approaches 0\n"
+                    "    %(name)s.momentum = %(name)s.momentum * (1 - win.monitorFramePeriod * 2)\n"
+                    )
+                    buff.writeIndentedLines(code % self.params)
 
-        # Zoom control code
-        if self.params['zoomCtrl'].val in ("wheel", "invwheel"):
-            # If control style is wheel, set zoom from mouse wheel
-            if self.params['zoomCtrl'].val == "invwheel":
-                _op = "-="
-            else:
-                _op = "+="
-            code = (
-                f"# update panorama zoom from mouse wheel\n"
-                f"%(name)s.zoom {_op} %(name)s.mouse.getWheelRel()[1] * %(zoomSensitivity)s * win.monitorFramePeriod * 4\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-        elif self.params['zoomCtrl'].val in ("arrows", "plusmin", "keymap"):
-            # If control style is key based, get keys from params/presets and set from pressed
-            if self.params['zoomCtrl'].val == "arrows":
-                inKey, outKey = ("'up'", "'down'")
-            elif self.params['zoomCtrl'].val == "plusmin":
-                inKey, outKey = ("'equal'", "'minus'")
-            else:
-                inKey, outKey = (self.params['inKey'], self.params['outKey'])
-            code = (
-                f"# update panorama zoom from key presses\n"
-                f"keys = %(name)s.kb.getKeys([{inKey}, {outKey}], waitRelease=False, clear=False)\n"
-                f"# work out zoom change from keys pressed\n"
-                f"for key in keys:\n"
-                f"    if key.name == {inKey}:\n"
-                f"        %(name)s.zoom += %(zoomSensitivity)s * win.monitorFramePeriod * 4\n"
-                f"    if key.name == {outKey}:\n"
-                f"        %(name)s.zoom -= %(zoomSensitivity)s * win.monitorFramePeriod * 4\n"
-                f"# get keys which have been released and clear them from the buffer before next frame\n"
-                f"%(name)s.kb.getKeys([{inKey}, {outKey}], waitRelease=True, clear=True)\n"
-            )
-            buff.writeIndentedLines(code % self.params)
+            elif self.params['posCtrl'].val in ("arrows", "wasd", "keymap"):
+                # If control is keyboard, set azimuth and elevation according to keypresses
+                code = (
+                    "# update panorama view from key presses\n"
+                    "keys = %(name)s.kb.getKeys(list(%(name)s.kb.deltas), waitRelease=False, clear=False)\n"
+                    "if len(keys):\n"
+                    "    # work out momentum of movement from keys pressed\n"
+                    "    %(name)s.momentum = np.asarray([0.0, 0.0])\n"
+                    "    for key in keys:\n"
+                    "        %(name)s.momentum += %(name)s.kb.deltas[key.name] * %(posSensitivity)s\n"
+                    "    # apply momentum to panorama view\n"
+                    "    %(name)s.azimuth += %(name)s.momentum[0]\n"
+                    "    %(name)s.altitude += %(name)s.momentum[1]\n"
+                    "    # get keys which have been released and clear them from the buffer before next frame\n"
+                    "    %(name)s.kb.getKeys(list(%(name)s.kb.deltas), waitRelease=True, clear=True)\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+                if self.params['smooth']:
+                    # If smoothing requested, let momentum decay sinusoidally
+                    code = (
+                    "else:\n"
+                    "    # after pressing, keep moving a little\n"
+                    "    %(name)s.azimuth += %(name)s.momentum[0]\n"
+                    "    %(name)s.altitude += %(name)s.momentum[1]\n"
+                    "    # decrease momentum every frame so that it approaches 0\n"
+                    "    %(name)s.momentum = %(name)s.momentum * (1 - win.monitorFramePeriod * 4)\n"
+                    )
+                    buff.writeIndentedLines(code % self.params)
 
-        self.exitActiveTest(buff)
+            # Zoom control code
+            if self.params['zoomCtrl'].val in ("wheel", "invwheel"):
+                # If control style is wheel, set zoom from mouse wheel
+                if self.params['zoomCtrl'].val == "invwheel":
+                    _op = "-="
+                else:
+                    _op = "+="
+                code = (
+                    f"# update panorama zoom from mouse wheel\n"
+                    f"%(name)s.zoom {_op} %(name)s.mouse.getWheelRel()[1] * %(zoomSensitivity)s * win.monitorFramePeriod * 4\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+            elif self.params['zoomCtrl'].val in ("arrows", "plusmin", "keymap"):
+                # If control style is key based, get keys from params/presets and set from pressed
+                if self.params['zoomCtrl'].val == "arrows":
+                    inKey, outKey = ("'up'", "'down'")
+                elif self.params['zoomCtrl'].val == "plusmin":
+                    inKey, outKey = ("'equal'", "'minus'")
+                else:
+                    inKey, outKey = (self.params['inKey'], self.params['outKey'])
+                code = (
+                    f"# update panorama zoom from key presses\n"
+                    f"keys = %(name)s.kb.getKeys([{inKey}, {outKey}], waitRelease=False, clear=False)\n"
+                    f"# work out zoom change from keys pressed\n"
+                    f"for key in keys:\n"
+                    f"    if key.name == {inKey}:\n"
+                    f"        %(name)s.zoom += %(zoomSensitivity)s * win.monitorFramePeriod * 4\n"
+                    f"    if key.name == {outKey}:\n"
+                    f"        %(name)s.zoom -= %(zoomSensitivity)s * win.monitorFramePeriod * 4\n"
+                    f"# get keys which have been released and clear them from the buffer before next frame\n"
+                    f"%(name)s.kb.getKeys([{inKey}, {outKey}], waitRelease=True, clear=True)\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(-indented, relative=True)
 
         # Stop code
-        if self.writeStopTestCode(buff):
+        indented = self.writeStopTestCode(buff)
+        if indented:
             code = (
                 "# Stop drawing %(name)s\n"
                 "%(name)s.setAutoDraw(False)\n"
             )
             buff.writeIndentedLines(code % self.params)
-            self.exitStopTest(buff)
+        buff.setIndentLevel(-indented, relative=True)
