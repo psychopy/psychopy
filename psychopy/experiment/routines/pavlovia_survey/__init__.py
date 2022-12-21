@@ -5,7 +5,7 @@ from psychopy.experiment import Param
 from pathlib import Path
 
 
-class PavloviaSurveyComponent(BaseStandaloneRoutine):
+class PavloviaSurveyRoutine(BaseStandaloneRoutine):
     categories = ['Responses']
     targets = ["PsychoJS"]
     iconFile = Path(__file__).parent / "survey.png"
