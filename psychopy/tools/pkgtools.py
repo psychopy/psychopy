@@ -11,14 +11,20 @@
 __all__ = [
     'getDistributions',
     'addDistribution',
+    'installPackage',
     'getInstalledPackages',
     'getPackageMetadata',
     'getPypiInfo',
     'isInstalled',
 ]
 
+
+import subprocess as sp
+from psychopy.preferences import prefs
 from psychopy.localization import _translate
 import pkg_resources
+import sys
+import os
 import requests
 import wx
 
@@ -56,7 +62,87 @@ def addDistribution(distPath):
     pkg_resources.working_set.add_entry(distPath)
 
 
+def installPackage(package, target=None, upgrade=False, forceReinstall=False,
+                   noDeps=False):
+    """Install a package using the default package management system.
+
+    This is intended to be used only by PsychoPy itself for installing plugins
+    and packages through the builtin package manager.
+
+    Parameters
+    ----------
+    package : str
+        Package name (e.g., `'psychopy-connect'`, `'scipy'`, etc.) with version
+        if needed. You may also specify URLs to Git repositories and such.
+    target : str or None
+        Location to install packages to. This defaults to the 'packages' folder
+        in the user PsychoPy folder if `None`.
+    upgrade : bool
+        Upgrade the specified package to the newest available version.
+    forceReinstall : bool
+        If `True`, the package and all it's dependencies will be reinstalled if
+        they are present in the current distribution.
+    noDeps : bool
+        Don't install dependencies if `True`.
+
+    Returns
+    -------
+    bool
+        `True` if the package installed without errors. If `False`, check
+        'stderr' for more information. The package may still have installed
+        correctly, but it doesn't work.
+
+    """
+    if target is None:
+        target = prefs.paths['packages']
+
+    # check the directory exists before installing
+    if not os.path.exists(target):
+        raise NotADirectoryError(
+            'Cannot install package "{}" to "{}", directory does not '
+            'exist.'.format(package, target))
+
+    # construct the pip command and execute as a subprocess
+    cmd = [sys.executable, "-m", "pip", "install", package, "--target", target]
+
+    # optional args
+    if upgrade:
+        cmd.append('--upgrade')
+    if forceReinstall:
+        cmd.append('--force-reinstall')
+    if noDeps:
+        cmd.append('--no-deps')
+
+    # do not prompt, we cannot accept input
+    cmd.append('--no-input')
+
+    # run command in subprocess
+    output = sp.Popen(
+        cmd,
+        stdout=sp.PIPE,
+        stderr=sp.PIPE,
+        shell=False,
+        universal_newlines=True)
+    stdout, stderr = output.communicate()  # blocks until process exits
+
+    sys.stdout.write(stdout)
+    sys.stderr.write(stderr)
+
+    if stderr:   # any error, return False
+        return False
+
+    return True
+
+
 def isInstalled(packageName):
+    """Check if a package is presently installed and reachable.
+
+    Returns
+    -------
+    bool
+        `True` if the specified package is installed.
+
+    """
     return packageName in dict(getInstalledPackages())
 
 
