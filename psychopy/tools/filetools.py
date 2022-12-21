@@ -24,6 +24,25 @@ except ImportError:
 
 from psychopy import logging
 from psychopy.tools.fileerrortools import handleFileCollision
+from pathlib import Path
+
+# Names accepted by stimulus classes & the filename of the default stimulus to use
+defaultStimRoot = Path(__file__).parent.parent / "app" / "Resources"
+defaultStim = {
+    # Image stimuli
+    "default.png": "default.png",
+    "default.jpg": "default.png",
+    "default.jpeg": "default.png",
+    # Movie stimuli
+    "default.mp4": "default.mp4",
+    "default.mov": "default.mp4",
+    "default.mkv": "default.mp4",
+    "default.avi": "default.mp4",
+    "default.wmv": "default.mp4",
+    # Sound stimuli
+    "default.mp3": "default.mp3",
+    "default.wav": "default.mp3",
+}
 
 
 def toFile(filename, data):
