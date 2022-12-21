@@ -227,9 +227,6 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.phase = val2array(phase, False)
         self._origSize = None  # updated if an image texture is loaded
 
-        if size is None:
-            raise ValueError("`GratingStim` requires `size != None`.")
-
         self._requestedSize = size
         self.size = size
         self.sf = val2array(sf)
