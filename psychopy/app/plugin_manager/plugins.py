@@ -1,4 +1,5 @@
 import wx
+from wx.lib import scrolledpanel
 import webbrowser
 from PIL import Image as pil
 
@@ -142,11 +143,17 @@ class PluginInfo:
                 current.remove(self.pipname)
             plugins.startUpPlugins(current, add=False)
 
-    def activate(self):
+    def activate(self, evt=None):
         self.active = True
 
-    def deactivate(self):
+    def deactivate(self, evt=None):
         self.active = False
+
+    def install(self):
+        self._execute("install")
+
+    def uninstall(self):
+        self._execute("uninstall")
 
     @property
     def installed(self):
@@ -160,12 +167,14 @@ class PluginInfo:
             # avoiding recursion
             return
         # Get action string from value
-        if value:
-            act = "install"
-        else:
-            act = "uninstall"
+        if value and not self.installed:
+            self.install()
+        elif self.installed:
+            self.uninstall()
+
+    def _execute(self, action):
         # Install/uninstall
-        emts = [sys.executable, "-m", "pip", act, self.pipname]
+        emts = [sys.executable, "-m", "pip", action, self.pipname]
         cmd = " ".join(emts)
         output = sp.Popen(cmd,
                           stdout=sp.PIPE,
@@ -178,17 +187,12 @@ class PluginInfo:
         # Throw up error dlg if needed
         if stderr:
             dlg = InstallErrorDlg(
+                label=_translate("Could not install %s") % self.pipname,
                 cmd=" ".join(emts[2:]),
                 stdout=stdout,
                 stderr=stderr
             )
             dlg.ShowModal()
-
-    def install(self):
-        self.installed = True
-
-    def uninstall(self):
-        self.installed = False
 
     @property
     def author(self):
@@ -216,17 +220,23 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
         self.SetSizer(self.border)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        # Make splitter
+        self.splitter = wx.SplitterWindow(self)
+        self.sizer.Add(self.splitter, proportion=1, border=0, flag=wx.EXPAND | wx.ALL)
         # Make list
-        self.pluginList = PluginBrowserList(self)
-        self.sizer.Add(self.pluginList, flag=wx.EXPAND | wx.ALL)
-        # Seperator
-        self.sizer.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), border=6, flag=wx.EXPAND | wx.ALL)
+        self.pluginList = PluginBrowserList(self.splitter)
         # Make viewer
-        self.pluginViewer = PluginDetailsPanel(self)
-        self.sizer.Add(self.pluginViewer, proportion=1, flag=wx.EXPAND | wx.ALL)
+        self.pluginViewer = PluginDetailsPanel(self.splitter)
         # Cross-reference viewer & list
         self.pluginViewer.list = self.pluginList
         self.pluginList.viewer = self.pluginViewer
+        # Assign to splitter
+        self.splitter.SplitVertically(
+            window1=self.pluginList,
+            window2=self.pluginViewer,
+            sashPosition=0
+        )
+        self.splitter.SetMinimumPaneSize(450)
         # Mark installed on items now that we have necessary references
         for item in self.pluginList.items:
             item.markInstalled(item.info.installed)
@@ -239,15 +249,19 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
     def _applyAppTheme(self):
         # Set colors
         self.SetBackgroundColour("white")
+        # Manually style children as Splitter interfered with inheritance
+        self.pluginList.theme = self.theme
+        self.pluginViewer.theme = self.theme
 
 
-class PluginBrowserList(wx.ScrolledWindow, handlers.ThemeMixin):
+class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
     class PluginListItem(wx.Window, handlers.ThemeMixin):
         """
         Individual item pointing to a plugin
         """
         def __init__(self, parent, info):
             wx.Window.__init__(self, parent=parent, style=wx.SIMPLE_BORDER)
+            self.SetMaxSize((400, -1))
             self.parent = parent
             # Link info object
             self.info = info
@@ -270,18 +284,10 @@ class PluginBrowserList(wx.ScrolledWindow, handlers.ThemeMixin):
             # Button sizer
             self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
             self.sizer.Add(self.btnSizer, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
-            # Add curated marker
-            self.curatedMark = wx.StaticBitmap(self,
-                                               bitmap=icons.ButtonIcon("star", size=16).bitmap)
-            self.curatedMark.SetToolTipString(_translate(
-                "This plugin is maintained by the Open Science Tools team."
-            ))
-            self.curatedMark.Show(info.author == "ost")
-            self.btnSizer.Add(self.curatedMark, border=3, flag=wx.ALL | wx.EXPAND)
             # Add install button
             self.installBtn = PluginInstallBtn(self)
             self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
-            self.btnSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.EXPAND)
+            self.btnSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
 
             # Map to onclick function
             self.Bind(wx.EVT_LEFT_DOWN, self.onClick)
@@ -309,7 +315,7 @@ class PluginBrowserList(wx.ScrolledWindow, handlers.ThemeMixin):
             self.SetForegroundColour(fg)
             # Set label fonts
             from psychopy.app.themes import fonts
-            self.nameLbl.SetFont(fonts.appTheme['h3'].obj)
+            self.nameLbl.SetFont(fonts.appTheme['h6'].obj)
             self.pipNameLbl.SetFont(fonts.coderTheme.base.obj)
             # Set text colors
             self.nameLbl.SetForegroundColour(fg)
@@ -378,7 +384,7 @@ class PluginBrowserList(wx.ScrolledWindow, handlers.ThemeMixin):
                 evt.Skip()
 
     def __init__(self, parent, viewer=None):
-        wx.ScrolledWindow.__init__(self, parent=parent, style=wx.VSCROLL)
+        scrolledpanel.ScrolledPanel.__init__(self, parent=parent, style=wx.VSCROLL)
         self.parent = parent
         self.viewer = viewer
         # Setup sizer
@@ -386,18 +392,24 @@ class PluginBrowserList(wx.ScrolledWindow, handlers.ThemeMixin):
         self.SetSizer(self.border)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        # Add search box
+        self.searchCtrl = wx.SearchCtrl(self)
+        self.sizer.Add(self.searchCtrl, border=9, flag=wx.ALL | wx.EXPAND)
+        self.searchCtrl.Bind(wx.EVT_SEARCH, self.search)
         # Setup items sizers & labels
         self.itemSizer = wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(self.itemSizer, border=3, flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(self.itemSizer, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
 
         # Bind deselect
         self.Bind(wx.EVT_LEFT_DOWN, self.onClick)
 
         # Setup items
+        self.items = []
         self.populate()
 
     def populate(self):
-        self.items = []
+        for item in self.items:
+            self.removeItem(item)
         # Get all plugin details
         items = getAllPluginDetails()
         # Put installed packages at top of list
@@ -405,6 +417,22 @@ class PluginBrowserList(wx.ScrolledWindow, handlers.ThemeMixin):
         for item in items:
             self.appendItem(item)
         # Layout
+        self.Layout()
+        self.SetupScrolling()
+
+    def search(self, evt=None):
+        searchTerm = self.searchCtrl.GetValue().strip()
+        for item in self.items:
+            # Otherwise show/hide according to search
+            match = any((
+                searchTerm == "",  # If search is blank, show all
+                searchTerm.lower() in item.info.name.lower(),
+                searchTerm.lower() in item.info.pipname.lower(),
+                searchTerm.lower() in [val.lower() for val in item.info.keywords],
+                searchTerm.lower() in item.info.author.name.lower(),
+            ))
+            item.Show(match)
+
         self.Layout()
 
     def onClick(self, evt=None):
@@ -460,15 +488,24 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.titleSizer.Add(self.buttonSizer, flag=wx.EXPAND)
         self.installBtn = PluginInstallBtn(self)
         self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
-        self.buttonSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
+        self.buttonSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         self.activeBtn = wx.CheckBox(self, label=_translate("Activated"))
-        self.buttonSizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
+        self.activeBtn.Bind(wx.EVT_CHECKBOX, self.onActivate)
+        self.buttonSizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         # Description
         self.description = utils.MarkdownCtrl(
             self, value="",
             style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL
         )
         self.sizer.Add(self.description, border=12, proportion=1, flag=wx.ALL | wx.EXPAND)
+        # Keywords
+        self.keywordsCtrl = utils.ButtonArray(
+            self,
+            orient=wx.HORIZONTAL,
+            itemAlias=_translate("keyword"),
+            readonly=True
+        )
+        self.sizer.Add(self.keywordsCtrl, border=6, flag=wx.ALL | wx.EXPAND)
 
         self.sizer.Add(wx.StaticLine(self), border=6, flag=wx.EXPAND | wx.ALL)
 
@@ -483,6 +520,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
     def _applyAppTheme(self):
         # Set background
         self.SetBackgroundColour("white")
+        self.keywordsCtrl.SetBackgroundColour("white")
         # Set fonts
         from psychopy.app.themes import fonts
         self.title.SetFont(fonts.appTheme['h1'].obj)
@@ -511,9 +549,25 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Mark as pending
         self.markInstalled(installed=None)
         # Do install
-        self.info.installed = True
+        self.info.install()
         # Mark according to install success
-        self.markInstalled(self.info.installed)
+        if self.info.installed:
+            self.markInstalled(True)
+        else:
+            dlg = wx.MessageDialog(
+                self,
+                message=_translate(
+                    "Plugin %s failed to install, no error given."
+                ) % self.info.pipname,
+                style=wx.ICON_ERROR
+            )
+            dlg.ShowModal()
+
+    def onActivate(self, evt=None):
+        if self.activeBtn.GetValue():
+            self.info.activate()
+        else:
+            self.info.deactivate()
 
     @property
     def info(self):
@@ -562,6 +616,8 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.activeBtn.SetValue(value.active)
         # Set description
         self.description.setValue(value.description)
+        # Set keywords
+        self.keywordsCtrl.items = value.keywords
 
         # Set author info
         self.author.info = value.author
@@ -593,10 +649,12 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.detailsSizer.Add(self.buttonSizer, border=3, flag=wx.ALIGN_RIGHT | wx.ALL)
         # Email button
         self.emailBtn = wx.Button(self, style=wx.BU_EXACTFIT)
+        self.emailBtn.SetToolTipString(_translate("Email author"))
         self.emailBtn.Bind(wx.EVT_BUTTON, self.onEmailBtn)
         self.buttonSizer.Add(self.emailBtn, border=3, flag=wx.EXPAND | wx.ALL)
         # GitHub button
         self.githubBtn = wx.Button(self, style=wx.BU_EXACTFIT)
+        self.githubBtn.SetToolTipString(_translate("Author's GitHub"))
         self.githubBtn.Bind(wx.EVT_BUTTON, self.onGithubBtn)
         self.buttonSizer.Add(self.githubBtn, border=3, flag=wx.EXPAND | wx.ALL)
 
@@ -659,6 +717,13 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.avatar.SetBitmap(icon)
         # Update name
         self.name.SetLabelText(value.name)
+        # Add tooltip for OST
+        if value == "ost":
+            self.name.SetToolTipString(_translate(
+                "That's us! We make PsychoPy and Pavlovia!"
+            ))
+        else:
+            self.name.SetToolTipString("")
         # Show/hide buttons
         self.emailBtn.Show(bool(value.email))
         self.githubBtn.Show(bool(value.github))
@@ -670,18 +735,18 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
         webbrowser.open(f"github.com/{self.info.github}")
 
 
-class PluginInstallBtn(utils.HoverButton, handlers.ThemeMixin):
+class PluginInstallBtn(wx.Button, handlers.ThemeMixin):
     """
     Install button for a plugin, comes with a method to update its appearance according to installation
     status & availability
     """
     def __init__(self, parent):
         # Initialise
-        utils.HoverButton.__init__(
+        wx.Button.__init__(
             self, parent,
-            label="...",
-            style=wx.BORDER_NONE | wx.BU_LEFT
+            label="..."
         )
+        self.SetBitmap(icons.ButtonIcon("download", 16).bitmap)
 
     def markInstalled(self, installed=True):
         """
@@ -696,21 +761,28 @@ class PluginInstallBtn(utils.HoverButton, handlers.ThemeMixin):
             # If pending, disable and set label as ellipsis
             self.Disable()
             self.SetLabelText("...")
+            self.setAllBitmaps(icons.ButtonIcon("view-refresh", 16).bitmap)
         elif installed:
             # If installed, disable and set label as installed
             self.Disable()
             self.SetLabelText(_translate("Installed"))
+            self.setAllBitmaps(icons.ButtonIcon("greytick", 16).bitmap)
         else:
             # If not installed, enable and set label as not installed
             self.Enable()
             self.SetLabelText(_translate("Install"))
+            self.setAllBitmaps(icons.ButtonIcon("download", 16).bitmap)
+
+        self.Refresh()
+
+    def setAllBitmaps(self, bmp):
+        self.SetBitmap(bmp)
+        self.SetBitmapDisabled(bmp)
+        self.SetBitmapPressed(bmp)
+        self.SetBitmapCurrent(bmp)
 
     def _applyAppTheme(self):
-        # Do base method
-        utils.HoverButton._applyAppTheme(self)
         # Setup icon
-        self.SetBitmap(icons.ButtonIcon("download", 16).bitmap)
-        self.SetBitmapDisabled(icons.ButtonIcon("greytick", 16).bitmap)
         self.SetBitmapMargins(6, 3)
 
 

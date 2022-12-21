@@ -2614,6 +2614,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.Layout()
             self._applyAppTheme()
 
+        def _applyAppTheme(self):
+            self.SetBackgroundColour(colors.app['panel_bg'])
+            self.label.SetForegroundColour(colors.app['text'])
+
         def GetValue(self):
             return self.viewCtrl.GetValue()
 

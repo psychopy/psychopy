@@ -28,8 +28,6 @@ import soundfile as sf
 from psychopy.tools.audiotools import *
 from .exceptions import *
 
-# supported formats for loading and saving audio samples to file
-AUDIO_SUPPORTED_CODECS = [s.lower() for s in sf.available_formats().keys()]
 
 # constants for specifying the number of channels
 AUDIO_CHANNELS_MONO = 1
