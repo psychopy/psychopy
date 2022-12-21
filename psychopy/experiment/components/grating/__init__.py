@@ -181,6 +181,7 @@ class GratingComponent(BaseVisualComponent):
                 "  name : '{inits[name]}', {units}\n"
                 "  tex : {inits[tex]}, mask : {inits[mask]},\n"
                 "  ori : {inits[ori]}, pos : {inits[pos]},\n"
+                "  anchor : {inits[anchor]},\n"
                 "  sf : {inits[sf]}, phase : {inits[phase]},\n"
                 "  size : {inits[size]},\n"
                 "  color : new util.Color({inits[color]}), opacity : {inits[opacity]},\n"

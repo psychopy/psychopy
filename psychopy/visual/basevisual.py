@@ -635,6 +635,8 @@ class ForeColorMixin(BaseColorMixin, LegacyForeColorMixin):
         if not self._foreColor:
             self._foreColor = Color()
             logging.error(f"'{value}' is not a valid {self.colorSpace} color")
+        # Handle logging
+        logAttrib(self, log=None, attrib="foreColor", value=value)
 
     @property
     def color(self):
@@ -643,6 +645,15 @@ class ForeColorMixin(BaseColorMixin, LegacyForeColorMixin):
 
     @color.setter
     def color(self, value):
+        self.foreColor = value
+
+    @property
+    def fontColor(self):
+        """Alternative way of setting `foreColor`."""
+        return self.foreColor
+
+    @fontColor.setter
+    def fontColor(self, value):
         self.foreColor = value
 
     def setForeColor(self, color, colorSpace=None, operation='', log=None):
@@ -654,6 +665,9 @@ class ForeColorMixin(BaseColorMixin, LegacyForeColorMixin):
         self.updateColors()
 
     def setColor(self, color, colorSpace=None, operation='', log=None):
+        self.setForeColor(color, colorSpace=colorSpace, operation=operation, log=log)
+
+    def setFontColor(self, color, colorSpace=None, operation='', log=None):
         self.setForeColor(color, colorSpace=colorSpace, operation=operation, log=log)
 
 
@@ -680,6 +694,8 @@ class FillColorMixin(BaseColorMixin, LegacyFillColorMixin):
             # If given an invalid color, set as transparent and log error
             self._fillColor = Color()
             logging.error(f"'{value}' is not a valid {self.colorSpace} color")
+        # Handle logging
+        logAttrib(self, log=None, attrib="fillColor", value=value)
 
     @property
     def backColor(self):
@@ -688,6 +704,15 @@ class FillColorMixin(BaseColorMixin, LegacyFillColorMixin):
 
     @backColor.setter
     def backColor(self, value):
+        self.fillColor = value
+
+    @property
+    def backgroundColor(self):
+        """Alternative way of setting fillColor"""
+        return self.fillColor
+
+    @backgroundColor.setter
+    def backgroundColor(self, value):
         self.fillColor = value
 
     def setFillColor(self, color, colorSpace=None, operation='', log=None):
@@ -699,7 +724,10 @@ class FillColorMixin(BaseColorMixin, LegacyFillColorMixin):
         self.updateColors()
 
     def setBackColor(self, color, colorSpace=None, operation='', log=None):
-        self.setFillColor(color, colorSpace=None, operation='', log=None)
+        self.setFillColor(color, colorSpace=colorSpace, operation=operation, log=log)
+
+    def setBackgroundColor(self, color, colorSpace=None, operation='', log=None):
+        self.setFillColor(color, colorSpace=colorSpace, operation=operation, log=log)
 
 
 class BorderColorMixin(BaseColorMixin, LegacyBorderColorMixin):
@@ -720,6 +748,9 @@ class BorderColorMixin(BaseColorMixin, LegacyBorderColorMixin):
             # If given an invalid color, set as transparent and log error
             self._borderColor = Color()
             logging.error(f"'{value}' is not a valid {self.colorSpace} color")
+
+        # Handle logging
+        logAttrib(self, log=None, attrib="borderColor", value=value)
 
     @property
     def lineColor(self):
@@ -1026,7 +1057,7 @@ class TextureMixin:
                 # get an image to configure the initial texture store
                 frame = tex.getVideoFrame()
                 if frame is not None:
-                    frameSize = frame.size
+                    self._origSize = frameSize = frame.size
                     im = Image.frombuffer(
                         'RGB',
                         frameSize,
@@ -1785,7 +1816,10 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         if units is None:
             # need to change this to create several units from one
             units = self.units
-        setAttribute(self, 'size', val2array(newSize, False), log, operation)
+        # If we have an original size (e.g. for an image or movie), then we CAN set size with None
+        useNone = hasattr(self, "origSize")
+        # Set attribute
+        setAttribute(self, 'size', val2array(newSize, useNone), log, operation)
 
     def setOri(self, newOri, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,

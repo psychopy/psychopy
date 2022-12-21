@@ -240,66 +240,61 @@ class JoyButtonsComponent(BaseComponent):
         buff.writeIndented("\n")
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
         # writes an if statement to determine whether to draw etc
-        self.writeStartTestCode(buff)
-        buff.writeIndented("%(name)s.status = STARTED\n" % self.params)
+        allowedKeysIsVar = (valid_var_re.match(str(allowedKeys)) and not allowedKeys == 'None')
+        indented = self.writeStartTestCode(buff)
+        if indented:
+            if allowedKeysIsVar:
+                # if it looks like a variable, check that the variable is suitable
+                # to eval at run-time
+                code = ("# AllowedKeys looks like a variable named `{0}`\n"
+                        "if not type({0}) in [list, tuple, np.ndarray]:\n")
 
-        allowedKeysIsVar = (valid_var_re.match(str(allowedKeys)) and not
-                            allowedKeys == 'None')
+                buff.writeIndentedLines(code.format(allowedKeys))
 
-        if allowedKeysIsVar:
-            # if it looks like a variable, check that the variable is suitable
-            # to eval at run-time
-            code = ("# AllowedKeys looks like a variable named `{0}`\n"
-                    "if not type({0}) in [list, tuple, np.ndarray]:\n")
+                buff.setIndentLevel(1, relative=True)
+                code = ("if type({0}) == int:\n")
+                buff.writeIndentedLines(code.format(allowedKeys))
 
-            buff.writeIndentedLines(code.format(allowedKeys))
+                buff.setIndentLevel(1, relative=True)
+                code = ("{0} = [{0}]\n")
+                buff.writeIndentedLines(code.format(allowedKeys))
+                buff.setIndentLevel(-1, relative=True)
 
-            buff.setIndentLevel(1, relative=True)
-            code = ("if type({0}) == int:\n")
-            buff.writeIndentedLines(code.format(allowedKeys))
+                code = ("elif not (isinstance({0}, str) "
+                        "or isinstance({0}, unicode)):\n")
+                buff.writeIndentedLines(code.format(allowedKeys))
 
-            buff.setIndentLevel(1, relative=True)
-            code = ("{0} = [{0}]\n")
-            buff.writeIndentedLines(code.format(allowedKeys))
-            buff.setIndentLevel(-1, relative=True)
+                buff.setIndentLevel(1, relative=True)
+                code = ("logging.error('AllowedKeys variable `{0}` is "
+                        "not string- or list-like.')\n"
+                        "core.quit()\n")
+                buff.writeIndentedLines(code.format(allowedKeys))
+                buff.setIndentLevel(-1, relative=True)
 
-            code = ("elif not (isinstance({0}, str) "
-                    "or isinstance({0}, unicode)):\n")
-            buff.writeIndentedLines(code.format(allowedKeys))
+                code = (
+                    "elif not ',' in {0}: {0} = eval(({0},))\n"
+                    "else: {0} = eval({0})\n")
+                buff.writeIndentedLines(code.format(allowedKeys))
+                buff.setIndentLevel(-1, relative=True)
 
-            buff.setIndentLevel(1, relative=True)
-            code = ("logging.error('AllowedKeys variable `{0}` is "
-                    "not string- or list-like.')\n"
-                    "core.quit()\n")
-            buff.writeIndentedLines(code.format(allowedKeys))
-            buff.setIndentLevel(-1, relative=True)
+            buff.writeIndented("# joyButtons checking is just starting\n")
 
-            code = (
-                "elif not ',' in {0}: {0} = eval(({0},))\n"
-                "else: {0} = eval({0})\n")
-            buff.writeIndentedLines(code.format(allowedKeys))
-            buff.setIndentLevel(-1, relative=True)
+            if store != 'nothing':
+                if self.params['syncScreenRefresh'].val:
+                    code = ("win.callOnFlip(%(name)s.clock.reset)  # t=0 on next"
+                            " screen flip\n") % self.params
+                else:
+                    code = "%(name)s.clock.reset()  # now t=0\n" % self.params
 
-        buff.writeIndented("# joyButtons checking is just starting\n")
-
-        if store != 'nothing':
-            if self.params['syncScreenRefresh'].val:
-                code = ("win.callOnFlip(%(name)s.clock.reset)  # t=0 on next"
-                        " screen flip\n") % self.params
-            else:
-                code = "%(name)s.clock.reset()  # now t=0\n" % self.params
-
-            buff.writeIndented(code)
+                buff.writeIndented(code)
 
         # to get out of the if statement
-        buff.setIndentLevel(-1, relative=True)
+        buff.setIndentLevel(-indented, relative=True)
+
         # test for stop (only if there was some setting for duration or stop)
-        if self.params['stopVal'].val not in ['', None, -1, 'None']:
-            # writes an if statement to determine whether to draw etc
-            self.writeStopTestCode(buff)
-            buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
-            # to get out of the if statement
-            buff.setIndentLevel(-2, relative=True)
+        indented = self.writeStopTestCode(buff)
+        # to get out of the if statement
+        buff.setIndentLevel(-indented, relative=True)
 
         buff.writeIndented("if %(name)s.status == STARTED:\n" % self.params)
         buff.setIndentLevel(1, relative=True)  # to get out of if statement

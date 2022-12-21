@@ -6,7 +6,7 @@ Part of the PsychoPy library
 Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
-
+import copy
 from pathlib import Path
 from xml.etree.ElementTree import Element
 
@@ -29,6 +29,7 @@ class BaseComponent:
 
     categories = ['Custom']
     targets = []
+    plugin = None
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
     tooltip = ""
 
@@ -125,6 +126,7 @@ class BaseComponent:
         # Make root element
         element = Element(self.__class__.__name__)
         element.set("name", self.params['name'].val)
+        element.set("plugin", str(self.plugin))
         # Add an element for each parameter
         for key, param in sorted(self.params.items()):
             # Create node
@@ -138,6 +140,26 @@ class BaseComponent:
     def __repr__(self):
         _rep = "psychopy.experiment.components.%s(name='%s', exp=%s)"
         return _rep % (self.__class__.__name__, self.name, self.exp)
+
+    def copy(self, exp=None, parentName=None, name=None):
+        # Alias None with current attributes
+        if exp is None:
+            exp = self.exp
+        if parentName is None:
+            parentName = self.parentName
+        if name is None:
+            name = self.name
+        # Create new component of same class with bare minimum inputs
+        newCompon = type(self)(exp=exp, parentName=parentName, name=name)
+        # Add params
+        for name, param in self.params.items():
+            # Don't copy name
+            if name == "name":
+                continue
+            # Copy other params
+            newCompon.params[name] = copy.deepcopy(param)
+
+        return newCompon
 
     def integrityCheck(self):
         """
@@ -256,14 +278,42 @@ class BaseComponent:
         pass
 
     def writeStartTestCode(self, buff):
-        """Test whether we need to start
         """
+        Test whether we need to start (if there is a start time at all)
+
+        Returns True if start test was written, False if it was skipped. Recommended usage:
+        ```
+        indented = self.writeStartTestCode(buff)
+        if indented:
+            code = (
+                "%(name)s.attribute = value\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(-indented, relative=True)
+        ```
+        """
+
+        # Get starting indent level
+        startIndent = buff.indentLevel
+
+        if self.params['startVal'].val in ('', None, -1, 'None'):
+            # If we have no start time, don't write start code
+            return buff.indentLevel - startIndent
+
+        # Newline
+        buff.writeIndentedLines("\n")
+
         if self.params['syncScreenRefresh']:
             tCompare = 'tThisFlip'
         else:
             tCompare = 't'
         params = self.params
         t = tCompare
+        # add handy comment
+        code = (
+            "# if %(name)s is starting this frame...\n"
+        )
+        buff.writeIndentedLines(code % params)
         if self.params['startType'].val == 'time (s)':
             # if startVal is an empty string then set to be 0.0
             if (isinstance(self.params['startVal'].val, str) and
@@ -307,10 +357,26 @@ class BaseComponent:
                 # use the time ignoring any flips
                 code += f"thisExp.addData('{params['name']}.started', t)\n"
         buff.writeIndentedLines(code)
+        # Set status
+        code = (
+            "# update status\n"
+            "%(name)s.status = STARTED\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        # Return True if start test was written
+        return buff.indentLevel - startIndent
 
     def writeStartTestCodeJS(self, buff):
         """Test whether we need to start
         """
+        # Get starting indent level
+        startIndent = buff.indentLevel
+
+        if self.params['startVal'].val in ('', None, -1, 'None'):
+            # If we have no start time, don't write start code
+            return buff.indentLevel - startIndent
+
         params = self.params
         if self.params['startType'].val == 'time (s)':
             # if startVal is an empty string then set to be 0.0
@@ -337,10 +403,42 @@ class BaseComponent:
                 f"{params['name']}.frameNStart = frameN;  // exact frame index\n\n")
         buff.writeIndentedLines(code)
 
+        # Return True if start test was written
+        return buff.indentLevel - startIndent
+
     def writeStopTestCode(self, buff):
-        """Test whether we need to stop
         """
+        Test whether we need to stop (if there is a stop time at all)
+
+        Returns True if stop test was written, False if it was skipped. Recommended usage:
+        ```
+        indented = self.writeStopTestCode(buff)
+        if indented:
+            code = (
+                "%(name)s.attribute = value\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(-indented, relative=True)
+        ```
+        """
+
+        # Get starting indent level
+        startIndent = buff.indentLevel
+
+        if self.params['stopVal'].val in ('', None, -1, 'None'):
+            # If we have no stop time, don't write stop code
+            return buff.indentLevel - startIndent
+
+        # Newline
+        buff.writeIndentedLines("\n")
+
         params = self.params
+        # add handy comment
+        code = (
+            "# if %(name)s is stopping this frame...\n"
+        )
+        buff.writeIndentedLines(code % params)
+
         buff.writeIndentedLines(f"if {params['name']}.status == STARTED:\n")
         buff.setIndentLevel(+1, relative=True)
 
@@ -384,9 +482,26 @@ class BaseComponent:
                 code += f"thisExp.addData('{params['name']}.stopped', t)\n"
         buff.writeIndentedLines(code)
 
+        # Set status
+        code = (
+            "# update status\n"
+            "%(name)s.status = FINISHED\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        # Return True if stop test was written
+        return buff.indentLevel - startIndent
+
     def writeStopTestCodeJS(self, buff):
         """Test whether we need to stop
         """
+        # Get starting indent level
+        startIndent = buff.indentLevel
+
+        if self.params['stopVal'].val in ('', None, -1, 'None'):
+            # If we have no stop time, don't write stop code
+            return buff.indentLevel - startIndent
+
         params = self.params
         if self.params['stopType'].val == 'time (s)':
             code = (f"frameRemains = {params['stopVal']} "
@@ -423,6 +538,90 @@ class BaseComponent:
 
         buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
+
+        # Return True if stop test was written
+        return buff.indentLevel - startIndent
+
+    def writeActiveTestCode(self, buff):
+        """
+        Test whether component is started and has not finished.
+
+        Recommended usage:
+        ```
+        self.writeActiveTestCode(buff):
+        code = (
+            "%(name)s.attribute = value\n"
+            "\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        self.exitActiveTest(buff)
+        ```
+        """
+        # Newline
+        buff.writeIndentedLines("\n")
+        # Get starting indent level
+        startIndent = buff.indentLevel
+
+        # Write if statement
+        code = (
+            "# if %(name)s is active this frame...\n"
+            "if %(name)s.status == STARTED:\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        # Indent
+        buff.setIndentLevel(+1, relative=True)
+        # Write param updates (if needed)
+        code = (
+            "# update params\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        if self.checkNeedToUpdate('set every frame'):
+            self.writeParamUpdates(buff, 'set every frame')
+        else:
+            code = (
+                "pass\n"
+            )
+            buff.writeIndentedLines(code)
+        return buff.indentLevel - startIndent
+
+    def writeActiveTestCodeJS(self, buff):
+        """
+        Test whether component is started and has not finished.
+
+        Recommended usage:
+        ```
+        self.writeActiveTestCodeJS(self, buff):
+        code = (
+            "%(name)s.attribute = value\n"
+            "\n"
+        )
+        self.exitActiveTestJS(buff)
+        ```
+        """
+        # Get starting indent level
+        startIndent = buff.indentLevel
+
+        # Newline
+        buff.writeIndentedLines("\n")
+
+        # Write if statement
+        code = (
+            "// if %(name)s is active this frame...\n"
+            "if (%(name)s.status == STARTED) {\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        # Indent
+        buff.setIndentLevel(+1, relative=True)
+
+        if self.checkNeedToUpdate('set every frame'):
+            # Write param updates (if needed)
+            code = (
+                "// update params\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            self.writeParamUpdates(buff, 'set every frame')
+
+        return buff.indentLevel - startIndent
 
     def writeParamUpdates(self, buff, updateType, paramNames=None,
                           target="PsychoPy"):
@@ -701,7 +900,8 @@ class BaseVisualComponent(BaseComponent):
                  startType='time (s)', startVal='',
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
-                 saveStartStop=True, syncScreenRefresh=True):
+                 saveStartStop=True, syncScreenRefresh=True,
+                 disabled=False):
 
         super(BaseVisualComponent, self).__init__(
             exp, parentName, name,
@@ -709,7 +909,7 @@ class BaseVisualComponent(BaseComponent):
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim,
             saveStartStop=saveStartStop,
-            syncScreenRefresh=syncScreenRefresh)
+            syncScreenRefresh=syncScreenRefresh, disabled=disabled)
 
         self.exp.requirePsychopyLibs(
             ['visual'])  # needs this psychopy lib to operate
@@ -847,26 +1047,24 @@ class BaseVisualComponent(BaseComponent):
         buff.writeIndented(f"\n")
         buff.writeIndented(f"# *{params['name']}* updates\n")
         # writes an if statement to determine whether to draw etc
-        self.writeStartTestCode(buff)
-        buff.writeIndented(f"{params['name']}.setAutoDraw(True)\n")
-        # to get out of the if statement
-        buff.setIndentLevel(-1, relative=True)
+        indented = self.writeStartTestCode(buff)
+        if indented:
+            buff.writeIndented(f"{params['name']}.setAutoDraw(True)\n")
+            # to get out of the if statement
+            buff.setIndentLevel(-indented, relative=True)
+
+        # test for started (will update parameters each frame as needed)
+        indented = self.writeActiveTestCode(buff)
+        if indented:
+            # to get out of the if statement
+            buff.setIndentLevel(-indented, relative=True)
 
         # test for stop (only if there was some setting for duration or stop)
-        if self.params['stopVal'].val not in ('', None, -1, 'None'):
-            # writes an if statement to determine whether to draw etc
-            self.writeStopTestCode(buff)
+        indented = self.writeStopTestCode(buff)
+        if indented:
             buff.writeIndented(f"{params['name']}.setAutoDraw(False)\n")
             # to get out of the if statement
-            buff.setIndentLevel(-2, relative=True)
-
-        # set parameters that need updating every frame
-        # do any params need updating? (this method inherited from _base)
-        if self.checkNeedToUpdate('set every frame'):
-            buff.writeIndented(f"if {params['name']}.status == STARTED:  # only update if drawing\n")
-            buff.setIndentLevel(+1, relative=True)  # to enter the if block
-            self.writeParamUpdates(buff, 'set every frame')
-            buff.setIndentLevel(-1, relative=True)  # to exit the if block
+            buff.setIndentLevel(-indented, relative=True)
 
     def writeFrameCodeJS(self, buff):
         """Write the code that will be called every frame

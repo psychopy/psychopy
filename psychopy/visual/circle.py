@@ -111,7 +111,7 @@ class Circle(Polygon):
     def __init__(self,
                  win,
                  radius=.5,
-                 edges=32,
+                 edges="circle",
                  units='',
                  lineWidth=1.5,
                  lineColor=False,

@@ -31,6 +31,7 @@ class BaseStandaloneRoutine:
         self.params = {}
         self.name = name
         self.exp = exp
+        self.url = ""
         self.type = 'StandaloneRoutine'
         self.depends = []  # allows params to turn each other off/on
         self.order = ['stopVal', 'stopType', 'name']
@@ -405,7 +406,9 @@ class Routine(list):
         # create the frame loop for this routine
         code = ('\n# --- Prepare to start Routine "%s" ---\n')
         buff.writeIndentedLines(code % (self.name))
-        code = 'continueRoutine = True\n'
+        code = (
+            'continueRoutine = True\n'
+        )
         buff.writeIndentedLines(code)
 
         # can we use non-slip timing?
@@ -439,6 +442,13 @@ class Routine(list):
                 '\n# --- Run Routine "{name}" ---\n')
         buff.writeIndentedLines(code.format(name=self.name,
                                             clockName=self._clockName))
+        # initial value for forceRoutineEnded (needs to happen now as Code components will have executed
+        # their Begin Routine code)
+        code = (
+            'routineForceEnded = not continueRoutine\n'
+        )
+        buff.writeIndentedLines(code)
+
         if useNonSlip:
             code = f'while continueRoutine and routineTimer.getTime() < {maxTime}:\n'
         else:
@@ -478,6 +488,7 @@ class Routine(list):
             '\n# check if all components have finished\n'
             'if not continueRoutine:  # a component has requested a '
             'forced-end of Routine\n'
+            '    routineForceEnded = True\n'
             '    break\n'
             'continueRoutine = False  # will revert to True if at least '
             'one component still running\n'
@@ -508,8 +519,14 @@ class Routine(list):
             event.writeRoutineEndCode(buff)
 
         if useNonSlip:
-            buff.writeIndented('# using non-slip timing so subtract the expected duration of this Routine\n')
-            buff.writeIndented('routineTimer.addTime(-%f)\n' % (maxTime))
+            code = (
+                "# using non-slip timing so subtract the expected duration of this Routine (unless ended on request)\n"
+                "if routineForceEnded:\n"
+                "    routineTimer.reset()\n"
+                "else:\n"
+                "    routineTimer.addTime(-%f)\n"
+            )
+            buff.writeIndentedLines(code % (maxTime))
 
     def writeRoutineBeginCodeJS(self, buff, modular):
 

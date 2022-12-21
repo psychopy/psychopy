@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import webbrowser
 
 import wx
 import re
@@ -19,7 +20,7 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
     A rich text ctrl for handling stdout/stderr
     """
 
-    def __init__(self, parent, style, size=None, font=None, fontSize=None):
+    def __init__(self, parent, style, size=None, font=None, fontSize=None, app=None):
         kwargs = {'parent': parent, 'style': style}
         if size is not None:
             kwargs['size'] = size
@@ -34,7 +35,25 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
             self.BeginFont(currFont)
 
         self.parent = parent
-        self.Bind(wx.EVT_TEXT_URL, parent.onURL)
+        self.app = app
+        self.Bind(wx.EVT_TEXT_URL, self.onURL)
+
+    def onURL(self, evt=None):
+        wx.BeginBusyCursor()
+        try:
+            if evt.String.startswith("http"):
+                webbrowser.open(evt.String)
+            else:
+                # decompose the URL of a file and line number"""
+                # "C:\Program Files\wxPython...\samples\hangman\hangman.py"
+                filename = evt.GetString().split('"')[1]
+                lineNumber = int(evt.GetString().split(',')[1][5:])
+                self.app.showCoder()
+                self.app.coder.gotoLine(filename, lineNumber)
+        except Exception as e:
+            print("##### Could not open URL: {} #####\n".format(evt.String))
+            print(e)
+        wx.EndBusyCursor()
 
     def write(self, inStr, evt=None):
         self.MoveEnd()  # always 'append' text rather than 'writing' it

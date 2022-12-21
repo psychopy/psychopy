@@ -79,7 +79,7 @@ packages = ['pydoc',  # needed for help()
             'pyglet', 'pytz', 'OpenGL', 'glfw',
             'scipy', 'matplotlib', 'openpyxl', 'pandas',
             'xml', 'xmlschema', 'elementpath',
-            'ffpyplayer', 'cython',
+            'ffpyplayer', 'cython', 'AVFoundation',
             'moviepy', 'imageio', 'imageio_ffmpeg',
             '_sounddevice_data', '_soundfile_data',
             'cffi', 'pycparser',

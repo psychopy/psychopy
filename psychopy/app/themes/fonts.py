@@ -1,5 +1,6 @@
 import builtins
 import keyword
+import sys
 from pathlib import Path
 
 import wx
@@ -89,6 +90,29 @@ tags = {
         "comment": stc.STC_JSON_LINECOMMENT,
         "commentblock": stc.STC_JSON_BLOCKCOMMENT,
         "whitespace": stc.STC_JSON_DEFAULT
+    },
+    # Markdown
+    "markdown": {
+        "base": stc.STC_MARKDOWN_DEFAULT,
+        "whitespace": stc.STC_MARKDOWN_LINE_BEGIN,
+        "str": stc.STC_MARKDOWN_BLOCKQUOTE,
+        "code": stc.STC_MARKDOWN_CODE,
+        "codeblock": stc.STC_MARKDOWN_CODE2,
+        "italic": stc.STC_MARKDOWN_EM1,
+        "italic2": stc.STC_MARKDOWN_EM2,
+        "bold": stc.STC_MARKDOWN_STRONG1,
+        "bold2": stc.STC_MARKDOWN_STRONG2,
+        "h1": stc.STC_MARKDOWN_HEADER1,
+        "h2": stc.STC_MARKDOWN_HEADER2,
+        "h3": stc.STC_MARKDOWN_HEADER3,
+        "h4": stc.STC_MARKDOWN_HEADER4,
+        "h5": stc.STC_MARKDOWN_HEADER5,
+        "h6": stc.STC_MARKDOWN_HEADER6,
+        "hr": stc.STC_MARKDOWN_HRULE,
+        "link": stc.STC_MARKDOWN_LINK,
+        "num": stc.STC_MARKDOWN_OLIST_ITEM,
+        "prechar": stc.STC_MARKDOWN_PRECHAR,
+        "li": stc.STC_MARKDOWN_ULIST_ITEM,
     }
 }
 
@@ -98,6 +122,7 @@ lexerNames = {
     "c++": stc.STC_LEX_CPP,
     "r": stc.STC_LEX_R,
     "json": stc.STC_LEX_JSON,
+    "markdown": stc.STC_LEX_MARKDOWN,
 }
 
 
@@ -374,21 +399,29 @@ class CodeFont:
             italic = CodeFont.italic
         self.italic = italic
 
-        # Make wx.FontInfo object
-        info = wx.FontInfo(self.pointSize).Bold(self.bold).Italic(self.italic)
-        # Make wx.Font object
-        self.obj = wx.Font(info)
+    @property
+    def obj(self):
+        # If wx.Font object not created, create one
+        if not hasattr(self, "_obj"):
+            # Make wx.FontInfo object
+            info = wx.FontInfo(self.pointSize).Bold(self.bold).Italic(self.italic)
+            # Make wx.Font object
+            self._obj = wx.Font(info)
+            # Try faces sequentially until one works
+            success = False
+            for name in self.faceNames:
+                success = self._obj.SetFaceName(name)
+                if success:
+                    break
+            # If nothing worked, use the default monospace
+            if not success:
+                self._obj = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
 
-        # Choose face from list
-        # Try faces sequentially until one works
-        success = False
-        for name in self.faceNames:
-            success = self.obj.SetFaceName(name)
-            if success:
-                break
-        # If nothing worked, use the default monospace
-        if not success:
-            self.obj = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
+        return self._obj
+
+    @obj.setter
+    def obj(self, value):
+        self._obj = value
 
     def __repr__(self):
         return (
@@ -398,6 +431,127 @@ class CodeFont:
             f"faceName={self.obj.GetFaceName()}, bold={self.bold}, italic={self.italic}"
             f">"
         )
+
+
+class AppTheme(dict):
+    def __getitem__(self, item):
+        # If theme isn't cached yet, load & cache it
+        self.load(theme.app)
+        # Return value from theme cache
+        return dict.__getitem__(self, theme.app)[item]
+
+    def __getattr__(self, attr):
+        # If theme isn't cached yet, load & cache it
+        self.load(theme.app)
+        # Return value
+        return getattr(self, attr)
+
+    def items(self):
+        # If theme isn't cached yet, load & cache it
+        self.load(theme.app)
+        return dict.__getitem__(self, theme.app).items()
+
+    def values(self):
+        # If theme isn't cached yet, load & cache it
+        self.load(theme.app)
+        return dict.__getitem__(self, theme.app).values()
+
+    def keys(self):
+        # If theme isn't cached yet, load & cache it
+        self.load(theme.app)
+        return dict.__getitem__(self, theme.app).keys()
+
+    def __iter__(self):
+        # If theme isn't cached yet, load & cache it
+        self.load(theme.app)
+        return dict.__getitem__(self, theme.app).__iter__()
+
+    def load(self, name):
+        # Make sure default color is up to date
+        AppFont.foreColor = colors.app['text']
+        # If theme is unchanged, do nothing
+        if name in self:
+            return
+        # If we have a new theme, do setup
+        rem = AppFont.pointSize
+        cache = {
+            'base': AppFont(),
+            'h1': AppFont(pointSize=int(rem*1.6)),
+            'h2': AppFont(pointSize=int(rem*1.5)),
+            'h3': AppFont(pointSize=int(rem*1.4)),
+            'h4': AppFont(pointSize=int(rem*1.3)),
+            'h5': AppFont(pointSize=int(rem*1.2)),
+            'h6': AppFont(pointSize=int(rem*1.1)),
+            'code': CodeFont()
+        }
+
+        dict.__setitem__(self, name, cache)
+
+
+class AppFont:
+    # Defaults are defined at class level, so they can change with theme
+    pointSize = 12
+    foreColor = "#000000"
+    backColor = wx.TRANSPARENT
+    bold = False
+    italic = False
+
+    def __init__(self, pointSize=None, foreColor=None, backColor=None, bold=None, italic=None):
+        # Set point size
+        if pointSize in (None, ""):
+            pointSize = AppFont.pointSize
+        self.pointSize = pointSize
+        # Set foreground color
+        if foreColor in (None, ""):
+            foreColor = AppFont.foreColor
+        self.foreColor = foreColor
+        # Set background color
+        if backColor in (None, ""):
+            backColor = AppFont.backColor
+        self.backColor = backColor
+        # Set bold
+        if bold in (None, ""):
+            bold = AppFont.bold
+        self.bold = bold
+        # Set italic
+        if italic in (None, ""):
+            italic = AppFont.italic
+        self.italic = italic
+
+
+    @property
+    def faceName(self):
+        if not hasattr(self, "_faceName"):
+            if sys.platform == 'win32':
+                self._faceName = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT).GetFaceName()
+            else:
+                self._faceName = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT).GetFaceName()
+
+        return self._faceName
+
+    @faceName.setter
+    def faceName(self, value):
+        self._faceName = value
+
+    @property
+    def obj(self):
+        # If wx.Font object not created, create one
+        if not hasattr(self, "_obj"):
+            style = wx.FONTSTYLE_ITALIC if self.italic else wx.FONTSTYLE_NORMAL
+            weight = wx.FONTWEIGHT_BOLD if self.bold else wx.FONTWEIGHT_NORMAL
+            self._obj = wx.Font(
+                pointSize=self.pointSize,
+                family=wx.FONTFAMILY_SWISS,
+                style=style,
+                weight=weight,
+                faceName=self.faceName,
+            )
+
+        return self._obj
+
+    @obj.setter
+    def obj(self, value):
+        self._obj = value
 
 
 def extractAll(val):
@@ -471,4 +625,5 @@ def extractColor(val):
 
 
 coderTheme = CodeTheme()
+appTheme = AppTheme()
 

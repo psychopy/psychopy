@@ -17,11 +17,29 @@ except ImportError:
 import astunparse
 
 
+namesJS = {
+    'sin': 'Math.sin',
+    'cos': 'Math.cos',
+    'tan': 'Math.tan',
+    'pi': 'Math.PI',
+    'rand': 'Math.random',
+    'random': 'Math.random',
+    'sqrt': 'Math.sqrt',
+    'abs': 'Math.abs',
+    'randint': 'util.randint',
+    'round': 'util.round',  # better than Math.round, supports n DPs arg
+    'sum': 'util.sum',
+    'core.Clock': 'util.Clock',
+}
+
+
 class psychoJSTransformer(ast.NodeTransformer):
     """PsychoJS-specific AST transformer
     """
 
     def visit_Name(self, node):
+        if node.id in namesJS:
+            node.id = namesJS[node.id]
         # status = STOPPED --> status = PsychoJS.Status.STOPPED
         if node.id in ['STARTED', 'FINISHED', 'STOPPED'] and isinstance(node.ctx, ast.Load):
             return ast.copy_location(
@@ -405,11 +423,12 @@ def transformNode(astNode):
     return pythonBuiltinTransformedNode, visitor.addons
 
 
-def transformPsychoJsCode(psychoJsCode, addons):
+def transformPsychoJsCode(psychoJsCode, addons, namespace=[]):
     """Transform the input PsychoJS code.
 
     Args:
         psychoJsCode (str): the input PsychoJS JavaScript code
+        namespace (list): list of varnames which are already defined
 
     Returns:
         (str) the transformed code
@@ -441,21 +460,38 @@ def transformPsychoJsCode(psychoJsCode, addons):
     else:
         startIndex = 0
 
-    if lines[startIndex].find('var ') == 0:
-        startIndex += 1
-
     for index in range(startIndex, len(lines)):
-        transformedPsychoJSCode += lines[index]
-        transformedPsychoJSCode += '\n'
+        include = True
+
+        # Remove var defs if variable is defined earlier in experiment
+        if lines[index].startswith("var "):
+            # Get var names
+            varNames = lines[index][4:-1].split(", ")
+            validVarNames = []
+            for varName in varNames:
+                if varName not in namespace:
+                    # If var name not is already in namespace, keep it in
+                    validVarNames.append(varName)
+            # If there are no var names left, remove statement altogether
+            if not len(validVarNames):
+                include = False
+            # Recombine line
+            lines[index] = f"var {', '.join(validVarNames)};"
+
+        # Append line
+        if include:
+            transformedPsychoJSCode += lines[index]
+            transformedPsychoJSCode += '\n'
 
     return transformedPsychoJSCode
 
 
-def translatePythonToJavaScript(psychoPyCode):
+def translatePythonToJavaScript(psychoPyCode, namespace=[]):
     """Translate PsychoPy python code into PsychoJS JavaScript code.
 
     Args:
         psychoPyCode (str): the input PsychoPy python code
+        namespace (list): list of varnames which are already defined
 
     Returns:
         str: the PsychoJS JavaScript code
@@ -497,7 +533,7 @@ def translatePythonToJavaScript(psychoPyCode):
 
     # transform the JavaScript code:
     try:
-        transformedPsychoJsCode = transformPsychoJsCode(psychoJsCode, addons)
+        transformedPsychoJsCode = transformPsychoJsCode(psychoJsCode, addons, namespace=namespace)
     except Exception as error:
         raise Exception('unable to transform the PsychoJS JavaScript code: ' + str(error))
 

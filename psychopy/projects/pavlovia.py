@@ -292,13 +292,26 @@ class PavloviaSession:
             gitlabProj = self.gitlab.projects.create(projDict)
         except gitlab.exceptions.GitlabCreateError as e:
             if 'has already been taken' in str(e.error_message):
+                # If name is taken, get instead of create
+                gitlabProj = self.gitlab.projects.get(f"{self.username}/{name}")
+            else:
+                # Otherwise, raise original error
+                raise e
+            # Check for bare remote
+            bareRemote = False
+            try:
+                gitlabProj.repository_tree()
+            except gitlab.exceptions.GitlabGetError:
+                # If we've made it thus far but can't get a tree, the remote is bare
+                bareRemote = True
+            # If remote is populated, handle and return
+            if not bareRemote:
                 dlg = wx.MessageDialog(None, message=_translate(
                     "Project `{namespace}/{name}` already exists, please choose another name."
                 ).format(namespace=namespace, name=name), style=wx.ICON_WARNING)
                 dlg.ShowModal()
                 return
-            else:
-                raise e
+            # Otherwise, continue as normal (bare remote is fine to replace)
 
         # Create pavlovia project object
         pavProject = PavloviaProject(gitlabProj.get_id(), localRoot=localRoot)
@@ -557,16 +570,20 @@ class PavloviaProject(dict):
     """
 
     def __init__(self, id, localRoot=None):
-        if not isinstance(id, int):
-            # If given a dict from Pavlovia rather than an ID, store it rather than requesting again
+        # Cache whatever form of ID is given, to avoid uneccesary calls to Pavlovia/GitLab later
+        if isinstance(id, int):
+            # If created using a numeric ID...
+            self.numericId = id
+        elif isinstance(id, str):
+            # If created using a "namespace/name" string...
+            self.stringId = id
+        else:
+            # If created using a dict with info from Pavlovia...
             self._info = dict(id)
             if 'gitlabId' in self._info:
-                self.id = int(self._info['gitlabId'])
-            else:
-                self.id = int(self._info['id'])
-        else:
-            # If given an ID, store this ready to fetch info when needed
-            self.id = id
+                self.numericId = int(self._info['gitlabId'])
+            if 'pathWithNamespace' in self._info:
+                self.stringId = int(self._info['gitlabId'])
         # Set local root
         if localRoot is not None:
             self.localRoot = localRoot
@@ -594,6 +611,17 @@ class PavloviaProject(dict):
         self.project.__setattr__(key, value)
 
     @property
+    def id(self):
+        """
+        ID of this project - will be either a numeric ID or a "namespace/name" string depending
+        on which is available. If both are available, "namespace/name" is prioritised.
+        """
+        if hasattr(self, "stringId"):
+            return self.stringId
+        elif hasattr(self, "numericId"):
+            return self.numericId
+
+    @property
     def info(self):
         """
         Returns the info about the project from Pavlovia API. This may have a delay after
@@ -616,20 +644,26 @@ class PavloviaProject(dict):
         # for a new project it may take time for Pavlovia to register the new ID so try for a while
         while self._info is None and (time.time() - start) < 30:
             requestVal = self.session.session.get(
-                f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
+                f"https://pavlovia.org/api/v2/experiments/{self.id}",
             ).json()
             self._info = requestVal['experiment']
         if self._info is None:
             raise ValueError(f"Could not find project with id `{self.id}` on Pavlovia: {requestVal}")
-        # Store own id
-        dict.__init__(self, self.project.attributes)
-        # Convert datetime
-        dtRegex = re.compile("\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d(.\d\d\d)?")
-        for key in self._info:
-            if dtRegex.match(str(self.info[key])):
-                self._info[key] = pandas.to_datetime(self._info[key], format="%Y-%m-%d %H:%M:%S.%f")
-        # Update base dict
-        self.update(self.project.attributes)
+        # Store received ID values from Pavlovia
+        if 'gitlabId' in self._info:
+            self.numericId = int(self._info['gitlabId'])
+        if 'pathWithNamespace' in self._info:
+            self.stringId = self._info['pathWithNamespace']
+        if self.project is not None:
+            # Reinitialise dict
+            dict.__init__(self, self.project.attributes)
+            # Convert datetime
+            dtRegex = re.compile("\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d(.\d\d\d)?")
+            for key in self._info:
+                if dtRegex.match(str(self.info[key])):
+                    self._info[key] = pandas.to_datetime(self._info[key], format="%Y-%m-%d %H:%M:%S.%f")
+            # Update base dict
+            self.update(self.project.attributes)
 
     @property
     def session(self):
@@ -650,7 +684,18 @@ class PavloviaProject(dict):
             self._project = self.session.gitlab.projects.get(self.id)
             return self._project
         except gitlab.exceptions.GitlabGetError as e:
-            raise KeyError(f"Could not find GitLab project with id {self.id}.")
+            # dlg = wx.MessageDialog(
+            #     parent=None,
+            #     message=_translate(
+            #         "Could not find GitLab project with id {}.\n"
+            #         "\n"
+            #         "Please check that the project exists on Pavlovia, that you are logged in as the correct user in "
+            #         "the PsychoPy app, and that your account has access to the project."
+            #     ).format(self.id),
+            #     style=wx.ICON_ERROR
+            # )
+            # dlg.ShowModal()
+            return None
 
     @property
     def editable(self):
@@ -730,29 +775,35 @@ class PavloviaProject(dict):
 
     @property
     def localRoot(self):
-        if self.project.path_with_namespace in knownProjects:
+        if hasattr(self, "stringId") and self.stringId in knownProjects:
             # If project has known local store, return its root
-            return knownProjects[self.project.path_with_namespace]['localRoot']
+            return knownProjects[self.stringId]['localRoot']
+        elif hasattr(self, "_localRootStatic"):
+            # If project has local root stored as static value, return it
+            return self._localRootStatic
         else:
             # Otherwise, return blank
             return ""
 
     @localRoot.setter
     def localRoot(self, value):
-        if self.project.path_with_namespace in knownProjects:
+        if hasattr(self, "stringId") and self.stringId in knownProjects:
             # If project has known local store, update its root
-            knownProjects[self.project.path_with_namespace]['localRoot'] = str(value)
+            knownProjects[self.stringId]['localRoot'] = str(value)
             knownProjects.save()
-        else:
-            # If project has no known local store, create one
-            knownProjects[self.project.path_with_namespace] = {
-                'id': self['path_with_namespace'],
-                'idNumber': self.id,
+        elif hasattr(self, "stringId") and hasattr(self, "numericId"):
+            # If project has no known local store and we are able to, create one
+            knownProjects[self.stringId] = {
+                'id': self.stringId,
+                'idNumber': self.numericId,
                 'localRoot': str(value),
-                'remoteHTTPS': f"https://gitlab.pavlovia.org/{self['path_with_namespace']}.git",
-                'remoteSSH': f"git@gitlab.pavlovia.org:{self['path_with_namespace']}.git"
+                'remoteHTTPS': f"https://gitlab.pavlovia.org/{self.stringId}.git",
+                'remoteSSH': f"git@gitlab.pavlovia.org:{self.stringId}.git"
             }
             knownProjects.save()
+        else:
+            # If we don't have enough info to save to knownProjects, just store the value given
+            self._localRootStatic = value
 
     def sync(self, infoStream=None):
         """Performs a pull-and-push operation on the remote
@@ -778,26 +829,32 @@ class PavloviaProject(dict):
             ), style=wx.ICON_ERROR | wx.OK)
             dlg.ShowModal()
             return
-        # Reset local repo so it checks again (rather than erroring if it's been deleted without an app restart)
-        self._repo = None
-        # Jot down start time
-        t0 = time.time()
-        # If first commit, do initial push
-        if not bool(self.project.attributes['default_branch']):
-            self.firstPush(infoStream=infoStream)
-        # Pull and push
-        self.pull(infoStream)
-        self.push(infoStream)
-        # Write updates
-        t1 = time.time()
-        msg = ("Successful sync at: {}, took {:.3f}s"
-               .format(time.strftime("%H:%M:%S", time.localtime()), t1 - t0))
-        logging.info(msg)
-        if infoStream:
-            infoStream.write("\n" + msg)
-            time.sleep(0.5)
-        # Refresh info
-        self.refresh()
+        if self.project is not None:
+            # Reset local repo so it checks again (rather than erroring if it's been deleted without an app restart)
+            self._repo = None
+            # Jot down start time
+            t0 = time.time()
+            # If first commit, do initial push
+            if not bool(self.project.attributes['default_branch']):
+                self.firstPush(infoStream=infoStream)
+            # Pull and push
+            self.pull(infoStream)
+            self.push(infoStream)
+            # Write updates
+            t1 = time.time()
+            msg = ("Successful sync at: {}, took {:.3f}s"
+                   .format(time.strftime("%H:%M:%S", time.localtime()), t1 - t0))
+            logging.info(msg)
+            if infoStream:
+                infoStream.write("\n" + msg)
+                time.sleep(0.5)
+            # Refresh info
+            self.refresh()
+        else:
+            # If project doesn't exist, tell the user
+            infoStream.write(
+                _translate("\n\nSync failed - could not find project with id {}").format(self.id)
+            )
 
         return 1
 
@@ -1114,7 +1171,20 @@ class PavloviaProject(dict):
 
     def save(self):
         """Saves the metadata to gitlab.pavlovia.org"""
-        self.project.save()
+        try:
+            self.project.save()
+            return True
+        except gitlab.GitlabUpdateError as err:
+            msgRoot = "Could not sync project.\n\n"
+            if err.response_code == 400:
+                # Error: Avatar is too big
+                msg = msgRoot + _translate("Avatar is too big, should be at most 200 KB.")
+                dlg = wx.MessageDialog(None, msg, style=wx.ICON_ERROR)
+                dlg.ShowModal()
+                # Reset avatar
+                self['avatar_url'] = ""
+            return False
+
         # note that saving info locally about known projects is done
         # by the knownProjects DictStorage class
 
@@ -1271,7 +1341,7 @@ def getProject(filename):
                     except requests.exceptions.ConnectionError:
                         break
 
-        thisId = knownProjects[path]['idNumber']
+        thisId = knownProjects[path]['id']
         # Check that project still exists on Pavlovia
         requestVal = session.session.get(
             f"https://pavlovia.org/api/v2/experiments/{thisId}",
@@ -1330,20 +1400,9 @@ def getProject(filename):
                                                                                    user=user))
 
                     if pavSession.user:
-                        # If we are now logged in, get project id via session
-                        requestVal = pavSession.session.get(
-                            f"https://pavlovia.org/api/v2/experiments/{namespaceName}",
-                        ).json()
-                        expInfo = requestVal['experiment']
-                        if expInfo is not None:
-                            # Get PavloviaProject via id
-                            proj = pavSession.getProject(expInfo['gitlabId'])
-                            proj.repo = localRepo
-                        else:
-                            # Warn user if there is a repo but no project
-                            logging.warning(
-                                _translate("We found a repository pointing to {} "
-                                           "but no project was found there (deleted?)").format(url))
+                        # Get PavloviaProject via id
+                        proj = pavSession.getProject(namespaceName)
+                        proj.repo = localRepo
                     else:
                         # If we are still logged out, prompt user
                         logging.warning(_translate("We found a repository pointing to {} "

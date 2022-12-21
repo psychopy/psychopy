@@ -96,7 +96,7 @@ class _TestBaseComponentsMixin:
                     # Dependent on another param
                     continue
                 if param.val in [
-                    "from exp settings",  # units and color space, aliased
+                    "from exp settings", "win.units",  # units and color space, aliased
                     'default',  # most of the time will be aliased
                 ]:
                     continue

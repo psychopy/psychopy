@@ -5,7 +5,6 @@ from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate, getInitVals
 from psychopy import prefs
 
-devices = ["default"]
 mics = ["default"]
 
 
@@ -25,7 +24,7 @@ class CameraComponent(BaseComponent):
             name='cam',
             startType='time (s)', startVal='0', startEstim='',
             stopType='duration (s)', stopVal='', durationEstim='',
-            device="Default", mic="Default",
+            device="default", mic="default",
             # Hardware
             resolution="", frameRate="",
             # Data
@@ -55,13 +54,20 @@ class CameraComponent(BaseComponent):
         self.exp.requireImport(importName="camera", importFrom="psychopy.hardware")
         self.exp.requireImport(importName="microphone", importFrom="psychopy.sound")
 
+        # Get list of camera specs
+        try:
+            from psychopy.hardware.camera import getCameraDescriptions
+            cams = getCameraDescriptions(collapse=True)
+        except:
+            cams = []
+
         # Basic
         msg = _translate("What device would you like to use to record video? This will only affect local "
                          "experiments - online experiments ask the participant which device to use.")
         self.params['device'] = Param(
             device, valType='str', inputType="choice", categ="Basic",
-            allowedVals=list(devices),
-            allowedLabels=[d.title() for d in list(devices)],
+            allowedVals=["default"] + cams,
+            allowedLabels=["default"] + cams,
             hint=msg,
             label=_translate("Video Device")
         )
@@ -179,22 +185,28 @@ class CameraComponent(BaseComponent):
 
     def writeFrameCode(self, buff):
         # Start webcam at component start
-        self.writeStartTestCode(buff)
-        code = (
-            "# Start %(name)s recording\n"
-            "%(name)s.record()\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
+        indented = self.writeStartTestCode(buff)
+        if indented:
+            code = (
+                "# Start %(name)s recording\n"
+                "%(name)s.record()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(-indented, relative=True)
+
+        # Update any params while active
+        indented = self.writeActiveTestCode(buff)
+        buff.setIndentLevel(-indented, relative=True)
 
         # Stop webcam at component stop
-        self.writeStopTestCode(buff)
-        code = (
-            "# Stop %(name)s recording\n"
-            "%(name)s.stop()\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-2, relative=True)
+        indented = self.writeStopTestCode(buff)
+        if indented:
+            code = (
+                "# Stop %(name)s recording\n"
+                "%(name)s.stop()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(-indented, relative=True)
 
     def writeFrameCodeJS(self, buff):
         # Start webcam at component start
@@ -224,7 +236,8 @@ class CameraComponent(BaseComponent):
     def writeRoutineEndCode(self, buff):
         code = (
             "# Make sure %(name)s has stopped recording\n"
-            "%(name)s.stop()\n"
+            "if %(name)s.status == STARTED:\n"
+            "    %(name)s.stop()\n"
         )
         buff.writeIndentedLines(code % self.params)
         if self.params['saveFile']:
