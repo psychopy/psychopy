@@ -4,7 +4,7 @@ from .. import constants
 from ..tools import gltools as gl, mathtools as mt, viewtools as vt
 import numpy as np
 
-from ..tools.attributetools import attributeSetter
+from ..tools.attributetools import attributeSetter, setAttribute
 
 
 class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
@@ -59,6 +59,16 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
         self.ctrl = None
 
     @attributeSetter
+    def image(self, value):
+        # Store value
+        self.__dict__['image'] = value
+        # Set texture
+        self.material.diffuseTexture = gl.createTexImage2dFromFile(value, transpose=False)
+
+    def setImage(self, value, log=None):
+        setAttribute(self, "image", value, log=log)
+
+    @attributeSetter
     def azimuth(self, value):
         """
         Horizontal view point between -1 (180 degrees to the left) and +1 (180 degrees to the right). Values
@@ -68,6 +78,8 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
             value = 0
         # Store value
         self.__dict__['azimuth'] = self.__dict__['longitude'] = value
+        # Shift 90deg left so centre of image is azimuth 0
+        value = value + 0.5
         # Get lat and long in degrees
         value = self._normToDegrees(value)
         # Calculate ori
@@ -81,11 +93,11 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
         """
         self.azimuth = value
 
-    def setAzimuth(self, value, log=False):
-        self.azimuth = value
+    def setAzimuth(self, value, operation='', log=False):
+        setAttribute(self, "azimuth", value, operation=operation, log=log)
 
-    def setLongitude(self, value, log=False):
-        self.longitude = value
+    def setLongitude(self, value, operation='', log=False):
+        setAttribute(self, "longitude", value, operation=operation, log=log)
 
     @attributeSetter
     def altitude(self, value):
@@ -98,7 +110,8 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
         # Store value
         value = np.clip(value, -1, 1)
         self.__dict__['altitude'] = self.__dict__['latitude'] = value
-        # Force to positive as we only need 180 degrees of rotation
+        # Force to positive as we only need 180 degrees of rotation, and flip
+        value = -value
         value += 1
         value /= 2
         value = np.clip(value, 0, 1)
@@ -115,11 +128,11 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
         """
         self.altitude = value
 
-    def setAltitude(self, value, log=False):
-        self.altitude = value
+    def setAltitude(self, value, operation='', log=False):
+        setAttribute(self, "altitude", value, operation=operation, log=log)
 
-    def setLatitude(self, value, log=False):
-        self.latitude = value
+    def setLatitude(self, value, operation='', log=False):
+        setAttribute(self, "latitude", value, operation=operation, log=log)
 
     @attributeSetter
     def zoom(self, value):
@@ -128,8 +141,8 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
         # Modify fov relative to actual view distance (in m)
         self.fov = value + self.win.monitor.getDistance() / 100
 
-    def setZoom(self, value, log=False):
-        self.zoom = value
+    def setZoom(self, value, operation='', log=False):
+        setAttribute(self, "zoom", value, operation=operation, log=log)
 
     @attributeSetter
     def fov(self, value):
@@ -144,8 +157,8 @@ class PanoramicImageStim(stim3d.SphereStim, MinimalStim):
         )
         self._projectionMatrix = vt.perspectiveProjectionMatrix(*fov)
 
-    def setFov(self, value, log=False):
-        self.fov = value
+    def setFov(self, value, operation='', log=False):
+        setAttribute(self, "fov", value, operation=operation, log=log)
 
     def draw(self, win=None):
         # Substitude with own win if none given

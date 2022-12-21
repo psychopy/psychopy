@@ -149,7 +149,7 @@ class TestExperiment:
             target = re.sub(isTime, "", target)
             # Compare two scripts to make sure saving and loading hasn't changed anything
             diff = difflib.unified_diff(target.splitlines(), test.splitlines())
-            assert list(diff) == []
+            assert list(diff) == [], f"Loading and saving {file.stem} demo changes the data."
 
     def test_xsd(self):
         # get files
@@ -223,7 +223,7 @@ class TestExperiment:
             "ISI",
             "text",
             "sound_1",
-            "buttonBox",
+            "polygonStim",
         ]
         # Define some param names which should be InvalidCtrl
         invParams = [

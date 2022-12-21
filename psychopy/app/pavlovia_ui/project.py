@@ -194,8 +194,8 @@ class DetailsPanel(wx.Panel):
             wx.Button.__init__(self, parent, label=_translate("Star"))
             # Setup icons
             self.icons = {
-                True: icons.ButtonIcon(stem="starred", size=16).bitmap,
-                False: icons.ButtonIcon(stem="unstarred", size=16).bitmap,
+                True: icons.ButtonIcon(stem="starred", size=16, theme="light").bitmap,
+                False: icons.ButtonIcon(stem="unstarred", size=16, theme="light").bitmap,
             }
             self.SetBitmapDisabled(self.icons[False])  # Always appear empty when disabled
             # Set start value
@@ -289,7 +289,7 @@ class DetailsPanel(wx.Panel):
         self.forkLbl = wx.StaticText(self, label="-")
         self.btnSizer.Add(self.forkLbl, border=6, flag=wx.LEFT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
         self.forkBtn = wx.Button(self, label=_translate("Fork"))
-        self.forkBtn.SetBitmap(icons.ButtonIcon(stem="fork", size=16).bitmap)
+        self.forkBtn.SetBitmap(icons.ButtonIcon(stem="fork", size=16, theme="light").bitmap)
         self.forkBtn.Bind(wx.EVT_BUTTON, self.fork)
         self.btnSizer.Add(self.forkBtn, border=6, flag=wx.ALL | wx.EXPAND)
         self.forkBtn.SetToolTip(_translate(
@@ -298,7 +298,7 @@ class DetailsPanel(wx.Panel):
         ))
         # Create button
         self.createBtn = wx.Button(self, label=_translate("Create"))
-        self.createBtn.SetBitmap(icons.ButtonIcon(stem="plus", size=16).bitmap)
+        self.createBtn.SetBitmap(icons.ButtonIcon(stem="plus", size=16, theme="light").bitmap)
         self.createBtn.Bind(wx.EVT_BUTTON, self.create)
         self.btnSizer.Add(self.createBtn, border=6, flag=wx.RIGHT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
         self.createBtn.SetToolTip(_translate(
@@ -306,7 +306,7 @@ class DetailsPanel(wx.Panel):
         ))
         # Sync button
         self.syncBtn = wx.Button(self, label=_translate("Sync"))
-        self.syncBtn.SetBitmap(icons.ButtonIcon(stem="view-refresh", size=16).bitmap)
+        self.syncBtn.SetBitmap(icons.ButtonIcon(stem="view-refresh", size=16, theme="light").bitmap)
         self.syncBtn.Bind(wx.EVT_BUTTON, self.sync)
         self.btnSizer.Add(self.syncBtn, border=6, flag=wx.ALL | wx.EXPAND)
         self.syncBtn.SetToolTip(_translate(
@@ -315,7 +315,7 @@ class DetailsPanel(wx.Panel):
         ))
         # Get button
         self.downloadBtn = wx.Button(self, label=_translate("Download"))
-        self.downloadBtn.SetBitmap(icons.ButtonIcon(stem="download", size=16).bitmap)
+        self.downloadBtn.SetBitmap(icons.ButtonIcon(stem="download", size=16, theme="light").bitmap)
         self.downloadBtn.Bind(wx.EVT_BUTTON, self.sync)
         self.btnSizer.Add(self.downloadBtn, border=6, flag=wx.ALL | wx.EXPAND)
         self.downloadBtn.SetToolTip(_translate(
@@ -346,7 +346,7 @@ class DetailsPanel(wx.Panel):
         # Sep
         self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
         # Description
-        self.description = wx.TextCtrl(self, size=(-1, -1), value="", style=wx.TE_MULTILINE)
+        self.description = utils.MarkdownCtrl(self, size=(-1, -1), value="", file=None)
         self.description.Bind(wx.EVT_TEXT, self.queueUpdate)
         self.sizer.Add(self.description, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         self.description.SetToolTip(_translate(
@@ -392,8 +392,8 @@ class DetailsPanel(wx.Panel):
             "useful to psychophysicists, you may want to add the keyword 'psychophysics'."
         ))
         # Update button
-        self.updateBtn = wx.Button(self, size=(24, 24))
-        self.updateBtn.SetBitmap(icons.ButtonIcon(stem="view-refresh", size=16).bitmap)
+        self.updateBtn = wx.Button(self, style=wx.BU_EXACTFIT)
+        self.updateBtn.SetBitmap(icons.ButtonIcon(stem="view-refresh", size=16, theme="light").bitmap)
         self.sizer.Add(self.updateBtn, flag=wx.ALIGN_RIGHT | wx.ALL)
         self.updateBtn.Bind(wx.EVT_BUTTON, self.doUpdate)
         self.updateBtn.Disable()
@@ -454,7 +454,7 @@ class DetailsPanel(wx.Panel):
             wx.TextCtrl.SetValue(self.localRoot, "")  # use base method to avoid callback
             self.localRoot.Disable()
             # Description
-            self.description.SetValue("")
+            self.description.setValue("")
             self.description.Disable()
             # Visibility
             self.visibility.SetSelection(wx.NOT_FOUND)
@@ -465,6 +465,20 @@ class DetailsPanel(wx.Panel):
             # Tags
             self.tags.clear()
             self.tags.Disable()
+        elif project.project is None:
+            # If project has been deleted, prompt to unlink
+            dlg = wx.MessageDialog(
+                self,
+                message=_translate(
+                    "Could not find GitLab project with id {}.\n"
+                    "\n"
+                    "Please check that the project exists on Pavlovia, that you are logged in as the correct user in "
+                    "the PsychoPy app, and that your account has access to the project."
+                ).format(project.id),
+                style=wx.ICON_ERROR
+            )
+            dlg.ShowModal()
+            self.project = None
         else:
             # Refresh project to make sure it has info
             if not hasattr(project, "_info"):
@@ -519,7 +533,7 @@ class DetailsPanel(wx.Panel):
             self.localRootLabel.Enable(project.editable)
             self.localRoot.Enable(project.editable)
             # Description
-            self.description.SetValue(project['description'])
+            self.description.setValue(project['description'])
             self.description.Enable(project.editable)
             # Visibility
             self.visibility.SetStringSelection(project['visibility'])
@@ -671,7 +685,7 @@ class DetailsPanel(wx.Panel):
             self.project = self.project
             success = True
         if obj == self.description and self.project.editable:
-            self.project['description'] = self.description.Value
+            self.project['description'] = self.description.getValue()
             success = self.project.save()
         if obj == self.visibility and self.project.editable:
             self.project['visibility'] = self.visibility.GetStringSelection().lower()
@@ -757,8 +771,17 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
         else:
             # If they cancel out of login prompt, cancel sync
             return
+
     # If not in a project, make one
     if project is None:
+        # Try to get project id from git files
+        projName = pavlovia.getNameWithNamespace(file)
+        if projName is not None:
+            # If successful, make PavloviaProject from local info
+            project = PavloviaProject(projName, localRoot=file)
+
+    if project is None or project.project is None:
+        # If project is still None
         msgDlg = wx.MessageDialog(parent,
                                message=_translate("This file doesn't belong to any existing project."),
                                style=wx.OK | wx.CANCEL | wx.CENTER)
@@ -785,31 +808,32 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
     # If no local root or dead local root, prompt to make one
     if not project.localRoot or not Path(project.localRoot).is_dir():
         defaultRoot = Path(file).parent
-        if not project.localRoot:
-            # If there is no local root at all, prompt user to make one
-            msg = _translate("Project root folder is not yet specified, specify project root now?")
-        elif not Path(project.localRoot).is_dir():
-            # If there is a local root but the folder is gone, prompt user to change it
-            msg = _translate("Project root folder does not exist, change project root now?")
-        # Ask user if they want to
-        dlg = wx.MessageDialog(parent, message=msg, style=wx.OK | wx.CANCEL)
-        # Get response
-        if dlg.ShowModal() == wx.ID_OK:
-            # Attempt to get folder of current file
+
+        # Handle missing or invalid local root
+        if not project.localRoot or not Path(project.localRoot).is_dir():
             if file and defaultRoot.is_dir():
                 # If we have a reference to the current folder, use it
                 project.localRoot = defaultRoot
             else:
-                # Otherwise, ask designer to specify manually
-                dlg = wx.DirDialog(parent, message=_translate("Specify folder..."), defaultPath=str(defaultRoot))
-                if dlg.ShowModal() == wx.ID_OK:
-                    project.localRoot = str(dlg.GetPath())
+                # Otherwise, ask user to choose a local root
+                if not project.localRoot:
+                    # If there is no local root at all, prompt user to make one
+                    msg = _translate("Project root folder is not yet specified, specify project root now?")
                 else:
-                    # If cancelled, cancel sync
+                    # If there is a local root but the folder is gone, prompt user to change it
+                    msg = _translate("Project root folder does not exist, change project root now?")
+                dlg = wx.MessageDialog(parent, message=msg, style=wx.OK | wx.CANCEL)
+                # Get response
+                if dlg.ShowModal() == wx.ID_OK:
+                    dlg = wx.DirDialog(parent, message=_translate("Specify folder..."), defaultPath=str(defaultRoot))
+                    if dlg.ShowModal() == wx.ID_OK:
+                        project.localRoot = str(dlg.GetPath())
+                    else:
+                        # If cancelled, cancel sync
+                        return
+                else:
+                    # If they don't want to specify, cancel sync
                     return
-        else:
-            # If they don't want to specify, cancel sync
-            return
     # Assign project to parent frame
     parent.project = project
     # If there is (now) a project, do sync

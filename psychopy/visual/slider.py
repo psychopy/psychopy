@@ -1116,16 +1116,23 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         self.__dict__['styleTweaks'] = styleTweaks
 
         if 'triangleMarker' in styleTweaks:
-            if self.horiz and self.flip:
-                ori = -90
-            elif self.horiz:
-                ori = -90
-            elif not self.horiz and self.flip:
-                ori = 180
+            # Vertices for corners of a square
+            tl = (-0.5, 0.5)
+            tr = (0.5, 0.5)
+            bl = (-0.5, -0.5)
+            br = (0.5, -0.5)
+            mid = (0, 0)
+            # Create triangles from 2 corners + center
+            if self.horiz:
+                if self.flip:
+                    self.marker.vertices = [mid, bl, br]
+                else:
+                    self.marker.vertices = [mid, tl, tr]
             else:
-                ori = 0
-
-            self.marker.vertices = [[0, 0], [0.5, 0.5], [0.5, -0.5]]
+                if self.flip:
+                    self.marker.vertices = [mid, tl, bl]
+                else:
+                    self.marker.vertices = [mid, tr, br]
 
         if 'labels45' in styleTweaks:
             for label in self.labelObjs:

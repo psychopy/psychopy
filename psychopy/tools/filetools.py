@@ -9,6 +9,7 @@
 """
 import os
 import shutil
+import subprocess
 import sys
 import atexit
 import codecs
@@ -303,3 +304,20 @@ def pathToString(filepath):
     if hasattr(filepath, "__fspath__"):
         return filepath.__fspath__()
     return filepath
+
+
+def openInExplorer(path):
+    """
+    Open a given director path in current operating system's file explorer.
+    """
+    # Choose a command according to OS
+    if sys.platform in ['win32']:
+        comm = "explorer"
+    elif sys.platform in ['darwin']:
+        comm = "open"
+    elif sys.platform in ['linux', 'linux2']:
+        comm = "dolphin"
+    # Use command to open folder
+    ret = subprocess.call(" ".join([comm, path]), shell=True)
+
+    return ret
