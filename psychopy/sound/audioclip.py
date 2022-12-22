@@ -23,9 +23,13 @@ __all__ = [
     'AUDIO_EAR_COUNT'
 ]
 
+from pathlib import Path
+
 import numpy as np
 import soundfile as sf
+from psychopy import prefs
 from psychopy.tools.audiotools import *
+from psychopy.tools import filetools as ft
 from .exceptions import *
 
 
@@ -772,6 +776,9 @@ def load(filename, codec=None):
         Audio clip containing samples loaded from the file.
 
     """
+    # alias default names (so it always points to default.png)
+    if filename in ft.defaultStim:
+        filename = Path(prefs.paths['resources']) / ft.defaultStim[filename]
     return AudioClip.load(filename, codec)
 
 

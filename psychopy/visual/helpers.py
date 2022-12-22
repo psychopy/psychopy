@@ -17,6 +17,7 @@ from psychopy import logging, colors, prefs
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.alerts import alert
+from psychopy.tools import filetools as ft
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import setAttribute
 from psychopy.tools.filetools import pathToString
@@ -248,6 +249,10 @@ def findImageFile(filename, checkResources=False):
     isfile = os.path.isfile
     if isfile(filename):
         return filename
+    # alias default names (so it always points to default.png)
+    if filename in ft.defaultStim:
+        filename = ft.defaultStim[filename]
+    # store original
     orig = copy.copy(filename)
 
     # search for file using additional extensions

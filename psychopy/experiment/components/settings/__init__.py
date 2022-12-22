@@ -845,6 +845,9 @@ class SettingsComponent:
         resourceFiles = self.exp.getResourceFiles()
 
         for srcFile in resourceFiles:
+            if "https://" in srcFile.get('abs', "") or srcFile.get('name', "") == "surveyId":
+                # URLs and survey IDs don't need copying
+                continue
             dstAbs = os.path.normpath(join(resFolder, srcFile['rel']))
             dstFolder = os.path.split(dstAbs)[0]
             if not os.path.isdir(dstFolder):

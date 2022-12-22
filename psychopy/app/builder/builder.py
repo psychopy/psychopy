@@ -2646,9 +2646,19 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         # Setup sizer
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
+        # Top bar
+        self.topBarSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.topBarSizer, border=0, flag=wx.ALL | wx.EXPAND)
+        # Add plugins button
+        self.pluginBtn = wx.Button(self, label=_translate("Get more..."), style=wx.BU_EXACTFIT | wx.BORDER_NONE)
+        self.pluginBtn.SetToolTip(_translate("Add new components and features via plugins."))
+        self.topBarSizer.Add(self.pluginBtn, border=3, flag=wx.ALL)
+        self.pluginBtn.Bind(wx.EVT_BUTTON, self.onPluginBtn)
         # Add filter button
-        self.filterBtn = wx.Button(self, size=(24, 24), style=wx.BORDER_NONE)
-        self.sizer.Add(self.filterBtn, border=0, flag=wx.ALL | wx.ALIGN_RIGHT)
+        self.topBarSizer.AddStretchSpacer(1)
+        self.filterBtn = wx.Button(self, style=wx.BU_EXACTFIT | wx.BORDER_NONE)
+        self.filterBtn.SetToolTip(_translate("Filter components by whether they work with PsychoJS, PsychoPy or both."))
+        self.topBarSizer.Add(self.filterBtn, border=3, flag=wx.ALL)
         self.filterBtn.Bind(wx.EVT_BUTTON, self.onFilterBtn)
 
         # Attributes to store handles in
@@ -2813,6 +2823,13 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.filterBtn.SetBitmapCurrent(icon)
         self.filterBtn.SetBitmapPressed(icon)
         self.filterBtn.SetBitmapFocus(icon)
+        # Style plugin button
+        self.pluginBtn.SetBackgroundColour(colors.app['panel_bg'])
+        icon = icons.ButtonIcon("plus", size=16).bitmap
+        self.pluginBtn.SetBitmap(icon)
+        self.pluginBtn.SetBitmapCurrent(icon)
+        self.pluginBtn.SetBitmapPressed(icon)
+        self.pluginBtn.SetBitmapFocus(icon)
 
     def addToFavorites(self, comp):
         name = comp.__name__
@@ -2841,6 +2858,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
 
     def onFilterBtn(self, evt=None):
         dlg = self.FilterDialog(self)
+        dlg.ShowModal()
+
+    def onPluginBtn(self, evt=None):
+        dlg = plugin_manager.EnvironmentManagerDlg(self)
         dlg.ShowModal()
 
 

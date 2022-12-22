@@ -67,7 +67,7 @@ class Aperture(MinimalStim, ContainerMixin):
 
     def __init__(self, win, size=1, pos=(0, 0), anchor=None, ori=0, nVert=120,
                  shape='circle', inverted=False, units=None,
-                 name=None, autoLog=None):
+                 name=None, depth=0, autoLog=None):
         # what local vars are defined (these are the init params) for use by
         # __repr__
         self._initParams = dir()
@@ -76,6 +76,7 @@ class Aperture(MinimalStim, ContainerMixin):
 
         # set self params
         self.autoLog = False  # change after attribs are set
+        self.depth = depth
         self.win = win
         if not win.allowStencil:
             logging.error('Aperture has no effect in a window created '

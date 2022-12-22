@@ -241,6 +241,7 @@ class TextboxComponent(BaseVisualComponent):
         # if not using a tail, make tailPoint None
         if not self.params['hasTail']:
             inits['tailPoint'].val = None
+        inits['depth'] = -self.getPosInRoutine()
         code = (
             "%(name)s = visual.TextBox2(\n"
             "     win, text=%(text)s, placeholder=%(placeholder)s, font=%(font)s,\n"
@@ -257,7 +258,7 @@ class TextboxComponent(BaseVisualComponent):
             "     flipHoriz=%(flipHoriz)s, flipVert=%(flipVert)s, languageStyle=%(languageStyle)s,\n"
             "     editable=%(editable)s,\n"
             "     name='%(name)s',\n"
-            "     autoLog=%(autoLog)s,\n"
+            "     depth=%(depth)s, autoLog=%(autoLog)s,\n"
             ")\n"
         )
         buff.writeIndentedLines(code % inits)
