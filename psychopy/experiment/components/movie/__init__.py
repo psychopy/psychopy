@@ -191,6 +191,7 @@ class MovieComponent(BaseVisualComponent):
             inits = getInitVals(self.params)
         else:
             inits = copy.deepcopy(self.params)
+        inits['depth'] = -self.getPosInRoutine()
 
         noAudio = '{}'.format(inits['No audio'].val).lower()
         loop = '{}'.format(inits['loop'].val).lower()
@@ -215,6 +216,7 @@ class MovieComponent(BaseVisualComponent):
                 "  opacity: {opacity},\n"
                 "  loop: {loop},\n"
                 "  noAudio: {noAudio},\n"
+                "  depth: {depth}\n"
                 "  }});\n").format(name=inits['name'],
                                    movie=inits['movie'],
                                    units=inits['units'],
@@ -224,12 +226,14 @@ class MovieComponent(BaseVisualComponent):
                                    ori=inits['ori'],
                                    loop=loop,
                                    opacity=inits['opacity'],
-                                   noAudio=noAudio)
+                                   noAudio=noAudio,
+                                   depth=inits['depth'])
         buff.writeIndentedLines(code)
 
     def writeInitCode(self, buff):
         # Get init values
         params = getInitVals(self.params)
+        params['depth'] = -self.getPosInRoutine()
 
         # synonymise "from experiment settings" with None
         if params["units"].val.lower() == "from exp settings":
@@ -255,6 +259,7 @@ class MovieComponent(BaseVisualComponent):
             "pos=%(pos)s, size=%(size)s, units=%(units)s,\n"
             "ori=%(ori)s, anchor=%(anchor)s,"
             "opacity=%(opacity)s, contrast=%(contrast)s,\n"
+            "depth=%(depth)s\n"
         )
         buff.writeIndentedLines(code % params)
         buff.setIndentLevel(-1, relative=True)

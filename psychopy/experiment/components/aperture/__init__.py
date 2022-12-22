@@ -83,6 +83,7 @@ class ApertureComponent(PolygonComponent):
     def writeInitCode(self, buff):
         # do writing of init
         inits = getInitVals(self.params)
+        inits['depth'] = -self.getPosInRoutine()
 
         # additional substitutions
         if self.params['units'].val == 'from exp settings':
@@ -102,7 +103,8 @@ class ApertureComponent(PolygonComponent):
         code = (
                 "win=win, name='%(name)s',\n"
                 "units=%(units)s, size=%(size)s, pos=%(pos)s, ori=%(ori)s,\n"
-                "shape=%(vertices)s, anchor=%(anchor)s\n"
+                "shape=%(vertices)s, anchor=%(anchor)s\n,"
+                "depth=%(depth)s\n"
         )
         buff.writeIndentedLines(code % inits)
 
