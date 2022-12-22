@@ -11,7 +11,7 @@ from os import path
 from psychopy import logging
 from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)
-from psychopy.tools.filetools import pathToString
+from psychopy.tools.filetools import pathToString, defaultStim, defaultStimRoot
 from sys import platform
 from .audioclip import AudioClip
 
@@ -163,6 +163,9 @@ class _SoundBase():
         """
         # Re-init sound to ensure bad values will raise error during setting:
         self._snd = None
+
+        if value in defaultStim:
+            value = defaultStimRoot / defaultStim[value]
 
         # Coerces pathlib obj to string, else returns inputted value
         value = pathToString(value)

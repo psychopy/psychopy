@@ -93,6 +93,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  name='',
                  autoLog=None,
                  autoDraw=False,
+                 depth=0,
                  onTextCallback=None):
         """
 
@@ -136,6 +137,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         """
 
         BaseVisualStim.__init__(self, win, units=units, name=name)
+        self.depth = depth
         self.win = win
         self.colorSpace = colorSpace
         ColorMixin.foreColor.fset(self, color)  # Have to call the superclass directly on init as text has not been set
@@ -212,7 +214,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # standard stimulus params
         self.pos = pos
         self.ori = 0.0
-        self.depth = 0.0
         # used at render time
         self._lines = None  # np.array the line numbers for each char
         self._colors = None

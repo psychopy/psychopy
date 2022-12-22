@@ -23,7 +23,7 @@ class PatchComponent(BaseVisualComponent):
     """An event class for presenting image-based stimuli"""
 
     categories = ['Stimuli']
-    targets = ['PsychoPy', 'PsychoJS']
+    targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'patch.png'
     tooltip = _translate('Patch: present images (bmp, jpg, tif...) or textures '
                          'like gratings')

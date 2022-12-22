@@ -223,6 +223,7 @@ class TextboxComponent(BaseVisualComponent):
         # do writing of init
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params, 'PsychoPy')
+        inits['depth'] = -self.getPosInRoutine()
         code = (
             "%(name)s = visual.TextBox2(\n"
             "     win, text=%(text)s, placeholder=%(placeholder)s, font=%(font)s,\n"
@@ -239,7 +240,7 @@ class TextboxComponent(BaseVisualComponent):
             "     flipHoriz=%(flipHoriz)s, flipVert=%(flipVert)s, languageStyle=%(languageStyle)s,\n"
             "     editable=%(editable)s,\n"
             "     name='%(name)s',\n"
-            "     autoLog=%(autoLog)s,\n"
+            "     depth=%(depth)s, autoLog=%(autoLog)s,\n"
             ")\n"
         )
         buff.writeIndentedLines(code % inits)

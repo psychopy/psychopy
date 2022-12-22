@@ -106,6 +106,10 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
     v1.84.00: ShapeStim became BaseShapeStim.
 
     """
+
+    _defaultFillColor = None
+    _defaultLineColor = "black"
+
     def __init__(self,
                  win,
                  units='',
@@ -158,7 +162,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
             self.fillColor = color
         else:
             # Default to None if neither are set
-            self.fillColor = None
+            self.fillColor = self._defaultFillColor
         if lineColor is not False:
             self.lineColor = lineColor
         elif color is not False:
@@ -166,7 +170,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
             self.lineColor = color
         else:
             # Default to black if neither are set
-            self.lineColor = 'black'
+            self.lineColor = self._defaultLineColor
         if lineRGB is not False:
             # Override with RGB if set
             logging.warning("Use of rgb arguments to stimuli are deprecated."

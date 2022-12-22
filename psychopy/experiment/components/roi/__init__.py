@@ -113,6 +113,7 @@ class RegionOfInterestComponent(PolygonComponent):
             unitsStr = "units=%(units)s, " % self.params
         # do writing of init
         inits = getInitVals(self.params, 'PsychoPy')
+        inits['depth'] = -self.getPosInRoutine()
         if self.params['shape'] == 'regular polygon...':
             inits['shape'] = self.params['nVertices']
         elif self.params['shape'] == 'custom polygon...':
@@ -126,7 +127,9 @@ class RegionOfInterestComponent(PolygonComponent):
         code = (
                 "debug=%(debug)s,\n"
                 "shape=%(shape)s,\n"
-                + unitsStr + "pos=%(pos)s, size=%(size)s, anchor=%(anchor)s, ori=0.0)\n"
+                + unitsStr + "pos=%(pos)s, size=%(size)s, \n"
+                "anchor=%(anchor)s, ori=0.0, depth=%(depth)s\n"
+                ")\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)

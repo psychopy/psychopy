@@ -218,7 +218,7 @@ class ThemeMixin:
             if isinstance(child, ThemeMixin):
                 # If child is a ThemeMixin subclass, we can just set theme
                 child.theme = self.theme
-            if hasattr(child, "_applyAppTheme"):
+            elif hasattr(child, "_applyAppTheme"):
                 # If it's manually been given an _applyAppTheme function, use it
                 child._applyAppTheme()
             else:
