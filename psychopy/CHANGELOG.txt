@@ -105,6 +105,24 @@ Fixed:
 - App: transcription setting on Mic Component now False by default (because most people don't have a Google API key set up) #2c8a27ed
 - Pkg: added missing Labjack lib to Windows Standalone distribution
 
+PsychoPy 2022.2.5
+~~~~~~~~~~~~~~~~~
+
+Fixed:
+
+- Several fixes to syncing of Pavlovia projects 
+  (e.g. when project has been deleted/recreated online or when files have been
+  copied over from another machine) #5117 #5221
+- Shape Component in Builder can now update vertices on each frame/repeat #e493ee2ca
+- Participant name missing from filename if given in URL query #5171
+- Eyetracker ROI stop code should only be written if a value is given to stop on #5156
+- Don't crash if Microphone.stop() called repeatedly #5121
+- TypeError in Window.resetViewport() #5135
+- PupilLabs lib was not being found due to missing `__init__` #5180
+- QUESTplus had ben removed from list of loop types #2da0cfa0a
+- Sound.pause() was reseting to start of track #a161e135a
+
+
 PsychoPy 2022.1
 ---------------
 
