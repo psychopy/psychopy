@@ -81,7 +81,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  italic=False,
                  lineSpacing=None,
                  padding=None,  # gap between box and text
-                 tailPoint=None,
+                 speechPoint=None,
                  anchor='center',
                  alignment='left',
                  flipHoriz=False,
@@ -93,6 +93,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  name='',
                  autoLog=None,
                  autoDraw=False,
+                 depth=0,
                  onTextCallback=None):
         """
 
@@ -116,7 +117,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         italic
         lineSpacing
         padding
-        tailPoint : list, tuple, np.ndarray or None
+        speechPoint : list, tuple, np.ndarray or None
             Location of the end of a speech bubble tail on the textbox, in the same
             units as this textbox. If the point sits within the textbox, the tail
             will be inverted. Use `None` for no tail.
@@ -136,6 +137,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         """
 
         BaseVisualStim.__init__(self, win, units=units, name=name)
+        self.depth = depth
         self.win = win
         self.colorSpace = colorSpace
         ColorMixin.foreColor.fset(self, color)  # Have to call the superclass directly on init as text has not been set
@@ -212,7 +214,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # standard stimulus params
         self.pos = pos
         self.ori = 0.0
-        self.depth = 0.0
         # used at render time
         self._lines = None  # np.array the line numbers for each char
         self._colors = None
@@ -251,7 +252,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.caret = Caret(self, color=self.color, width=2)
 
         # tail
-        self.tailPoint = tailPoint
+        self.speechPoint = speechPoint
 
         # Placeholder text (don't create if this textbox IS the placeholder)
         if not isinstance(self, PlaceholderText):
@@ -492,8 +493,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._vertices = layout.Vertices(value, obj=self.contentBox, flip=self.flip)
 
     @attributeSetter
-    def tailPoint(self, value):
-        self.__dict__['tailPoint'] = value
+    def speechPoint(self, value):
+        self.__dict__['speechPoint'] = value
         # Match box size to own size
         self.box.size = self.size
 
@@ -548,8 +549,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # Assign vertices
         self.box.vertices = verts
 
-    def setTailPoint(self, value, log=None):
-        setAttribute(self, 'tailPoint', value, log)
+    def setSpeechPoint(self, value, log=None):
+        setAttribute(self, 'speechPoint', value, log)
 
     @property
     def padding(self):
