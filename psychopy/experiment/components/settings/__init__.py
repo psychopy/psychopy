@@ -1375,7 +1375,7 @@ class SettingsComponent:
         winType = self.params['winBackend']
 
         code = ("win = visual.Window(\n    size=%s, fullscr=%s, screen=%s, "
-                "\n    winType='%s', allowStencil=%s,\n")
+                "\n    winType=%s, allowStencil=%s,\n")
         vals = (size, fullScr, screenNumber, winType, allowStencil)
         buff.writeIndented(code % vals)
 
