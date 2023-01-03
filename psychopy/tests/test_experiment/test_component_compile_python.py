@@ -51,6 +51,42 @@ class _TestBoilerplateMixin:
         # Set back to NOT_STARTED for other tests
         self.obj.status = constants.NOT_STARTED
 
+    # Define classes to skip depth tests on
+    depthExceptions = ("NoneType", "PanoramaStim")
+    # Error string for how to mark depth exempt
+    exemptInstr = (
+        "If this component is a special case, you can mark it as exempt by adding its class name to the "
+        "`depthExceptions` variable in this test."
+    )
+
+    def test_can_accept_depth(self):
+        # Get class name
+        compName = type(self.obj).__name__
+        # Skip if exception
+        if compName in self.depthExceptions:
+            return
+        # Get accepted varnames for init function
+        varnames = type(self.obj).__init__.__code__.co_varnames
+        # Check whether depth is in there
+        assert "depth" in varnames, (
+            f"Init function for class {compName} cannot accept `depth` as an input, only accepts:\n"
+            f"{varnames}\n"
+            f"Any component drawn to the screen should be given a `depth` on init. {self.exemptInstr}\n"
+        )
+
+    def test_depth_attr(self):
+        # Get class name
+        compName = type(self.obj).__name__
+        # Skip if exception
+        if compName in self.depthExceptions:
+            return
+        # Check that created object has a depth
+        assert hasattr(self.obj, "depth"), (
+            f"Could not find depth attribute in {compName}.\n"
+            f"\n"
+            f"Any component drawn to the screen should have a `depth` attribute. {self.exemptInstr}\n"
+        )
+
 
 class TestComponentCompilerPython():
     """A class for testing the Python code compiler for all components"""

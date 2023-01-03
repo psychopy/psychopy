@@ -845,6 +845,9 @@ class SettingsComponent:
         resourceFiles = self.exp.getResourceFiles()
 
         for srcFile in resourceFiles:
+            if "https://" in srcFile.get('abs', "") or srcFile.get('name', "") == "surveyId":
+                # URLs and survey IDs don't need copying
+                continue
             dstAbs = os.path.normpath(join(resFolder, srcFile['rel']))
             dstFolder = os.path.split(dstAbs)[0]
             if not os.path.isdir(dstFolder):
@@ -863,17 +866,7 @@ class SettingsComponent:
 
         # html header
         if self.exp.expPath:
-            # Do we need surveys?
-            needsSurveys = False
-            for rt in self.exp.routines.values():
-                for comp in rt:
-                    if comp.type == "PavloviaSurvey":
-                        needsSurveys = True
-            # If we need surveys, use different template with more imports
-            if needsSurveys:
-                template = readTextFile("JS_htmlSurveyHeader.tmpl")
-            else:
-                template = readTextFile("JS_htmlHeader.tmpl")
+            template = readTextFile("JS_htmlHeader.tmpl")
             header = template.format(
                 name=jsFilename,
                 version=useVer,

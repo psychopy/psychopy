@@ -138,6 +138,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                  units='height',
                  randomize=False,
                  autoLog=True,
+                 depth=0,
                  # legacy
                  color=None,
                  foreColor=None
@@ -154,7 +155,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.itemPadding = itemPadding
         self.scrollSpeed = self.setScrollSpeed(self.items, 4)
         self.units = units
-        self.depth = 0
+        self.depth = depth
 
         # Appearance
         self.colorSpace = colorSpace
