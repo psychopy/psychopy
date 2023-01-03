@@ -866,17 +866,7 @@ class SettingsComponent:
 
         # html header
         if self.exp.expPath:
-            # Do we need surveys?
-            needsSurveys = False
-            for rt in self.exp.routines.values():
-                for comp in rt:
-                    if comp.type == "PavloviaSurvey":
-                        needsSurveys = True
-            # If we need surveys, use different template with more imports
-            if needsSurveys:
-                template = readTextFile("JS_htmlSurveyHeader.tmpl")
-            else:
-                template = readTextFile("JS_htmlHeader.tmpl")
+            template = readTextFile("JS_htmlHeader.tmpl")
             header = template.format(
                 name=jsFilename,
                 version=useVer,
