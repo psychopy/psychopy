@@ -27,6 +27,8 @@ namesJS = {
     'sqrt': 'Math.sqrt',
     'abs': 'Math.abs',
     'randint': 'util.randint',
+    'range': 'util.range',
+    'randchoice': 'util.randchoice',
     'round': 'util.round',  # better than Math.round, supports n DPs arg
     'sum': 'util.sum',
     'core.Clock': 'util.Clock',

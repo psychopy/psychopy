@@ -303,21 +303,36 @@ class Flow(list):
         script.writeIndentedLines(code)
 
         # Write resource list
-        resourceFiles = []
+        resourceFiles = {}
         for resource in self.exp.getResourceFiles():
             if isinstance(resource, dict):
+                # Get name
+                if 'name' in resource:
+                    name = resource['name']
+                elif "https://" in resource:
+                    name = resource.split('/')[-1]
+                elif 'surveyId' in resource:
+                    name = 'surveyId'
+                else:
+                    name = resource['rel']
+
+                # Get resource
+                resourceFile = None
                 if 'rel' in resource:
                     # If resource is a file path, add its relative path
-                    resourceFiles.append(resource['rel'].replace("\\", "/"))
-                    continue
-                if 'surveyId' in resource:
+                    resourceFile = resource['rel'].replace("\\", "/")
+                elif 'surveyId' in resource:
                     # If resource is a survey ID, add it and mark as a survey id
-                    resourceFiles.append("sid:" + resource['surveyId'])
-        resourceFiles = set(resourceFiles)
+                    resourceFile = "sid:" + resource['surveyId']
+
+                # If we have a resource, add it
+                if resourceFile is not None:
+                    resourceFiles[name] = resourceFile
         if self.exp.htmlFolder:
             resourceFolderStr = "resources/"
         else:
             resourceFolderStr = ""
+        # start PsychoJS
         script.writeIndented("psychoJS.start({\n")
         script.setIndentLevel(1, relative=True)
         script.writeIndentedLines("expName: expName,\n"
@@ -327,20 +342,29 @@ class Flow(list):
         if not self.exp.htmlFolder:
             script.writeIndentedLines("resources: [\n")
             script.setIndentLevel(1, relative=True)
-            code = ""
-            for idx, resource in enumerate(resourceFiles):
-                if "https://" in resource:
-                    name = resource.split('/')[-1]
-                    fullPath = resource
-                    temp = f"{{'name': '{name}', 'path': '{fullPath}'}}"
-                elif "sid:" in resource:
-                    thisId = resource.replace("sid:", "")
-                    temp = f"{{'surveyId': '{thisId}'}}"
+            # do we need to load surveys?
+            needsSurveys = False
+            for rt in self:
+                if hasattr(rt, "type") and rt.type == "PavloviaSurvey":
+                    needsSurveys = True
+            if needsSurveys:
+                script.writeIndentedLines(
+                    "// libraries:\n"
+                    "{'surveyLibrary': true},\n"
+                )
+            code = "// resources:\n"
+            for name, resource in resourceFiles.items():
+                if "sid:" in resource:
+                    # Strip sid prefix from survey id
+                    resource = resource.replace("sid:", "")
+                elif "https://" in resource:
+                    # URL paths are already fine
+                    pass
                 else:
-                    temp = "{{'name': '{0}', 'path': '{1}{0}'}}".format(resource, resourceFolderStr)
-                code += temp
-                if idx != (len(resourceFiles)-1):
-                    code += ",\n"  # Trailing comma
+                    # Anything else make it relative to resources folder
+                    resource = resourceFolderStr + resource
+                # Add this line
+                code += f"{{'name': '{name}', 'path': '{resource}'}},\n"
             script.writeIndentedLines(code)
             script.setIndentLevel(-1, relative=True)
             script.writeIndented("]\n")
