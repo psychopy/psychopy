@@ -252,6 +252,24 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.setLineColor(color, colorSpace, operation, log)
         self.setFillColor(color, colorSpace, operation, log)
 
+    @property
+    def vertices(self):
+        return BaseVisualStim.vertices.fget(self)
+
+    @vertices.setter
+    def vertices(self, value):
+        # check if this is a name of one of our known shapes
+        if isinstance(value, str) and value in knownShapes:
+            value = knownShapes[value]
+        if value == "circle":
+            # If circle is requested, calculate how many points are needed for the gap between line rects to be < 1px
+            value = self._calculateMinEdges(self.lineWidth, threshold=5)
+        if isinstance(value, int):
+            value = self._calcEquilateralVertices(value)
+        # Check shape
+        WindowMixin.vertices.fset(self, value)
+        self._needVertexUpdate = True
+
     def setVertices(self, value=None, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message

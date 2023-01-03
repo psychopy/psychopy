@@ -75,7 +75,7 @@ class PolygonComponent(BaseVisualComponent):
         self.params['nVertices'] = Param(
             nVertices, valType='int', inputType="single", categ='Basic',
             updates='constant',
-            allowedUpdates=['constant'],
+            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['nVertices'])
 
@@ -156,11 +156,11 @@ class PolygonComponent(BaseVisualComponent):
             inits['size'].val = '[1.0, 1.0]'
 
         if self.params['shape'] == 'regular polygon...':
-            vertices = self.params['nVertices']
+            vertices = inits['nVertices']
         elif self.params['shape'] == 'custom polygon...':
-            vertices = self.params['vertices']
+            vertices = inits['vertices']
         else:
-            vertices = self.params['shape']
+            vertices = inits['shape']
         if vertices in ['line', '2']:
             code = ("%s = visual.Line(\n" % inits['name'] +
                     "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
