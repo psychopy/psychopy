@@ -1145,6 +1145,11 @@ class ConfigObj(Section):
         'true': True, 'false': False,
         }
 
+    # Names of legacy parameters which are needed for use version
+    legacy = {
+        'winType': "pyglet"
+    }
+
 
     def __init__(self, infile=None, options=None, configspec=None, encoding=None,
                  interpolation=True, raise_errors=False, list_values=True,
