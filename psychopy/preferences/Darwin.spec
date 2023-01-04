@@ -48,6 +48,8 @@
     startUpPlugins = list(default=list())
     # Google Cloud Platform key, required for the audio transcription using Google Speech Recognition. Specified as a path to a JSON file containing the key data.
     appKeyGoogleCloud = string(default='')
+    # LEGACY: which system to use as a backend for drawing
+    winType = option('pyglet', 'pygame', 'glfw', default='pyglet')
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]

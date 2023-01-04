@@ -48,6 +48,11 @@ class Preferences:
     directly if you want to affect the script that's running.
     """
 
+    # Names of legacy parameters which are needed for use version
+    legacy = [
+        "winType"
+    ]
+
     def __init__(self):
         super(Preferences, self).__init__()
         self.userPrefsCfg = None  # the config object for the preferences

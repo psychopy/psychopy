@@ -504,16 +504,8 @@ class Section(dict):
 
     def __getitem__(self, key):
         """Fetch the item and do string interpolation."""
-        try:
-            # Try getting the value from a dict as normal
-            val = dict.__getitem__(self, key)
-        except KeyError as err:
-            if key in ConfigObj.legacy:
-                # If key isn't there, but is in legacy, get it from legacy
-                val = ConfigObj.legacy[key]
-            else:
-                # Otherwise raise the error as normal
-                raise err
+        # Get the value from a dict as normal
+        val = dict.__getitem__(self, key)
 
         if self.main.interpolation:
             if isinstance(val, six.string_types):
@@ -1154,12 +1146,6 @@ class ConfigObj(Section):
         '1': True, '0': False,
         'true': True, 'false': False,
         }
-
-    # Names of legacy parameters which are needed for use version
-    legacy = {
-        'winType': "pyglet"
-    }
-
 
     def __init__(self, infile=None, options=None, configspec=None, encoding=None,
                  interpolation=True, raise_errors=False, list_values=True,
