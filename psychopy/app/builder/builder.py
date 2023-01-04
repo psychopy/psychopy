@@ -2825,6 +2825,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.filterBtn.SetBitmapFocus(icon)
         # Style plugin button
         self.pluginBtn.SetBackgroundColour(colors.app['panel_bg'])
+        self.pluginBtn.SetForegroundColour(colors.app['text'])
         icon = icons.ButtonIcon("plus", size=16).bitmap
         self.pluginBtn.SetBitmap(icon)
         self.pluginBtn.SetBitmapCurrent(icon)
