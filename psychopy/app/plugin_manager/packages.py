@@ -138,7 +138,7 @@ class InstallErrorDlg(wx.Dialog, handlers.ThemeMixin):
         wx.Dialog.ShowModal(self)
 
 
-class PackageManagerPanel(wx.Panel, handlers.ThemeMixin):
+class PackageManagerPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
         # Setup sizer
@@ -245,7 +245,7 @@ class PIPTerminalPanel(wx.Panel):
         self.console.SetFont(fonts.coderTheme.base.obj)
 
 
-class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
+class PackageListCtrl(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, size=(300, -1))
         # Setup sizers
@@ -269,12 +269,12 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
         self.orLbl = wx.StaticText(self, label=_translate("or..."))
         self.sizer.Add(self.orLbl, border=3, flag=wx.ALL | wx.ALIGN_CENTER)
         # Add by file...
-        self.addFileBtn = utils.HoverButton(self, label=_translate("Install from file"))
+        self.addFileBtn = wx.Button(self, label=_translate("Install from file"))
         self.addFileBtn.SetToolTipString(_translate("Install a package from a local file, such as a .egg or wheel."))
         self.addFileBtn.Bind(wx.EVT_BUTTON, self.onAddFromFile)
         self.sizer.Add(self.addFileBtn, border=6, flag=wx.ALL | wx.ALIGN_CENTER)
         # Add button to open pip
-        self.terminalBtn = utils.HoverButton(self, label=_translate("Open PIP terminal"))
+        self.terminalBtn = wx.Button(self, label=_translate("Open PIP terminal"))
         self.terminalBtn.SetToolTipString(_translate("Open PIP terminal to manage packages manually"))
         self.sizer.Add(self.terminalBtn, border=3, flag=wx.ALL | wx.ALIGN_CENTER)
         self.terminalBtn.Bind(wx.EVT_BUTTON, self.onOpenPipTerminal)
@@ -283,10 +283,6 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
         self.refresh()
 
         self.Layout()
-        self._applyAppTheme()
-
-    def _applyAppTheme(self):
-        return
 
     def onOpenPipTerminal(self, evt=None):
         # Make dialog
@@ -444,7 +440,7 @@ class PackageListCtrl(wx.Panel, handlers.ThemeMixin):
         self.refresh()
 
 
-class PackageDetailsPanel(wx.Panel, handlers.ThemeMixin):
+class PackageDetailsPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
         # Setup sizers
