@@ -583,7 +583,7 @@ class PavloviaProject(dict):
             if 'gitlabId' in self._info:
                 self.numericId = int(self._info['gitlabId'])
             if 'pathWithNamespace' in self._info:
-                self.stringId = int(self._info['gitlabId'])
+                self.stringId = self._info['pathWithNamespace']
         # Set local root
         if localRoot is not None:
             self.localRoot = localRoot

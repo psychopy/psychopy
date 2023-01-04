@@ -973,7 +973,7 @@ class TextureMixin:
         """
 
         # transform all variants of `None` to that, simplifies conditions below
-        if tex in ["none", "None", "color"]:
+        if isinstance(tex, str) and tex in ["none", "None", "color"]:
             tex = None
 
         # Create an intensity texture, ranging -1:1.0

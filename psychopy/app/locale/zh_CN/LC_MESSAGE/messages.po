@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2021.2.3\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2022-05-24 22:56+0800\n"
+"PO-Revision-Date: 2022-08-25 21:47+0800\n"
 "Last-Translator: Shun Wang <shuonwang@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "Generated-By: Babel 2.6.0\n"
-"X-Generator: Poedit 3.0.1\n"
+"X-Generator: Poedit 3.1\n"
 
 #: __init__.py:48
 msgid "Welcome to PsychoPy2!"
@@ -207,12 +207,12 @@ msgstr ""
 #: ../app/_psychopyApp.py:102 ../app/builder/builder.py:355
 #: ../app/coder/coder.py:1629
 msgid "&View"
-msgstr "&视图"
+msgstr "视图(&V)"
 
 #: ../app/_psychopyApp.py:103
 #, python-format
 msgid "&Open Builder view\t%s"
-msgstr "&打开 Builder 视图\t%s"
+msgstr "打开 Builder 视图(&O)\t%s"
 
 #: ../app/_psychopyApp.py:106
 msgid "Open a new Builder view"
@@ -221,7 +221,7 @@ msgstr "打开新的 Builder 视图"
 #: ../app/_psychopyApp.py:109
 #, python-format
 msgid "&Open Coder view\t%s"
-msgstr "&打开 Coder 视图\t%s"
+msgstr "打开 Coder 视图(&O)\t%s"
 
 #: ../app/_psychopyApp.py:112
 msgid "Open a new Coder view"
@@ -232,7 +232,7 @@ msgstr "打开新的 Coder 视图"
 #: ../app/pavlovia_ui/_base.py:39 ../app/runner/runner.py:140
 #, python-format
 msgid "&Quit\t%s"
-msgstr "&退出\t%s"
+msgstr "退出(&Q)\t%s"
 
 #: ../app/_psychopyApp.py:117 ../app/builder/builder.py:333
 #: ../app/coder/coder.py:1503 ../app/pavlovia_ui/_base.py:40
@@ -333,17 +333,17 @@ msgstr "移至尾部"
 #: ../app/coder/coder.py:1444 ../app/pavlovia_ui/_base.py:24
 #: ../monitors/MonitorCenter.py:235
 msgid "&File"
-msgstr "&文件"
+msgstr "文件(&F)"
 
 #: ../app/builder/builder.py:285 ../app/coder/coder.py:1458
 #, python-format
 msgid "&New\t%s"
-msgstr "&新建\t%s"
+msgstr "新建(&N)\t%s"
 
 #: ../app/builder/builder.py:288 ../app/coder/coder.py:1459
 #, python-format
 msgid "&Open...\t%s"
-msgstr "&打开...\t%s"
+msgstr "打开...(&O)\t%s"
 
 #: ../app/builder/builder.py:291 ../app/coder/coder.py:1460
 msgid "Open &Recent"
@@ -352,12 +352,12 @@ msgstr "打开最近使用"
 #: ../app/builder/builder.py:294 ../app/coder/coder.py:1462
 #, python-format
 msgid "&Save\t%s"
-msgstr "&保存\t%s"
+msgstr "保存(&S)\t%s"
 
 #: ../app/builder/builder.py:298 ../app/coder/coder.py:1465
 #, python-format
 msgid "Save &as...\t%s"
-msgstr "另存为...\t%s"
+msgstr "另存为...(&A)\t%s"
 
 #: ../app/builder/builder.py:302
 #, python-format
@@ -371,7 +371,7 @@ msgstr "导出实验到 html/javascript 文件"
 #: ../app/builder/builder.py:306 ../app/coder/coder.py:1468
 #, python-format
 msgid "&Close file\t%s"
-msgstr "&关闭文件\t%s"
+msgstr "关闭文件(&C)\t%s"
 
 #: ../app/builder/builder.py:307
 msgid "Close current experiment"
@@ -380,7 +380,7 @@ msgstr "关闭当前实验"
 #: ../app/builder/builder.py:318 ../app/coder/coder.py:1484
 #, python-format
 msgid "&Preferences\t%s"
-msgstr "&首选项\t%s"
+msgstr "首选项(&P)\t%s"
 
 #: ../app/builder/builder.py:321 ../app/coder/coder.py:1489
 msgid "Reset preferences..."
@@ -393,7 +393,7 @@ msgstr "关闭 PsychoPy Builder"
 #: ../app/builder/builder.py:338 ../app/coder/coder.py:1509
 #: ../monitors/MonitorCenter.py:243
 msgid "&Edit"
-msgstr "&编辑"
+msgstr "编辑(&E)"
 
 #: ../app/builder/builder.py:341 ../app/builder/builder.py:1105
 #: ../app/coder/coder.py:1575
@@ -410,12 +410,12 @@ msgstr "重做\t%s"
 #: ../app/builder/builder.py:350 ../app/coder/coder.py:1514
 #, python-format
 msgid "&Paste\t%s"
-msgstr "&粘贴\t%s"
+msgstr "粘贴(&P)\t%s"
 
 #: ../app/builder/builder.py:370 ../app/builder/builder.py:2678
 #, python-format
 msgid "&Toggle readme\t%s"
-msgstr "&切换自述文件(RM)\t%s"
+msgstr "切换自述文件(RM)(&T)\t%s"
 
 #: ../app/builder/builder.py:372 ../app/builder/builder.py:2680
 msgid "Toggle Readme"
@@ -424,7 +424,7 @@ msgstr "切换自述文件(RM)"
 #: ../app/builder/builder.py:375
 #, python-format
 msgid "&Flow Larger\t%s"
-msgstr "&放大实验流程\t%s"
+msgstr "放大实验流程(&F)\t%s"
 
 #: ../app/builder/builder.py:377
 msgid "Larger flow items"
@@ -433,7 +433,7 @@ msgstr "放大实验流程项目"
 #: ../app/builder/builder.py:380
 #, python-format
 msgid "&Flow Smaller\t%s"
-msgstr "&缩小实验流程\t%s"
+msgstr "缩小实验流程(&F)\t%s"
 
 #: ../app/builder/builder.py:382
 msgid "Smaller flow items"
@@ -442,7 +442,7 @@ msgstr "缩小显示实验流程的项目"
 #: ../app/builder/builder.py:385
 #, python-format
 msgid "&Routine Larger\t%s"
-msgstr "&放大显示例程\t%s"
+msgstr "放大显示例程(&R)\t%s"
 
 #: ../app/builder/builder.py:387
 msgid "Larger routine items"
@@ -451,7 +451,7 @@ msgstr "放大例程的项目"
 #: ../app/builder/builder.py:390
 #, python-format
 msgid "&Routine Smaller\t%s"
-msgstr "&缩小例程\t%s"
+msgstr "缩小例程(&R)\t%s"
 
 #: ../app/builder/builder.py:392
 msgid "Smaller routine items"
@@ -464,7 +464,7 @@ msgstr "主题风格"
 
 #: ../app/builder/builder.py:402 ../app/coder/coder.py:1709
 msgid "&Tools"
-msgstr "&工具"
+msgstr "工具(&T)"
 
 #: ../app/builder/builder.py:406 ../app/coder/coder.py:1712
 msgid "To set information about your monitor"
@@ -516,12 +516,12 @@ msgstr "检查软件和硬件，生成报告"
 
 #: ../app/builder/builder.py:436
 msgid "&Experiment"
-msgstr "&实验"
+msgstr "实验(&E)"
 
 #: ../app/builder/builder.py:439
 #, python-format
 msgid "&New Routine\t%s"
-msgstr "&新建例程\t%s"
+msgstr "新建例程(&N)\t%s"
 
 #: ../app/builder/builder.py:440
 msgid "Create a new routine (e.g. the trial definition)"
@@ -530,7 +530,7 @@ msgstr "创建新的例程（routine，例如试验定义）"
 #: ../app/builder/builder.py:444
 #, python-format
 msgid "&Copy Routine\t%s"
-msgstr "&复制例程(routine)\t%s"
+msgstr "复制例程(routine)(&E)\t%s"
 
 #: ../app/builder/builder.py:446
 msgid "Copy the current routine so it can be used in another exp"
@@ -539,7 +539,7 @@ msgstr "复制当前例程，以便它可以在另一个实验中使用"
 #: ../app/builder/builder.py:451
 #, python-format
 msgid "&Paste Routine\t%s"
-msgstr "&粘贴例程(routine)\t%s"
+msgstr "粘贴例程(routine)(&E)\t%s"
 
 #: ../app/builder/builder.py:453
 msgid "Paste the Routine into the current experiment"
@@ -548,7 +548,7 @@ msgstr "将例程粘贴到当前实验中"
 #: ../app/builder/builder.py:458
 #, python-format
 msgid "&Rename Routine\t%s"
-msgstr "&重命名例程\t%s"
+msgstr "重命名例程(&R)\t%s"
 
 #: ../app/builder/builder.py:460
 msgid "Change the name of this routine"
@@ -589,7 +589,7 @@ msgstr "添加或编辑打开实验时要显示的说明文本"
 
 #: ../app/builder/builder.py:497
 msgid "&Unpack Demos..."
-msgstr "&解压演示包..."
+msgstr "解压演示包...(&E)"
 
 #: ../app/builder/builder.py:498
 msgid "Unpack demos to a writable location (so that they can be run)"
@@ -613,7 +613,7 @@ msgstr "打开存储演示的本地文件夹"
 
 #: ../app/builder/builder.py:516 ../app/coder/coder.py:1756
 msgid "&Demos"
-msgstr "&演示"
+msgstr "演示(&D)"
 
 #: ../app/builder/builder.py:520 ../app/coder/coder.py:1784
 msgid "Pavlovia.org"
@@ -626,11 +626,11 @@ msgstr "窗口"
 
 #: ../app/builder/builder.py:529 ../app/coder/coder.py:1793
 msgid "&Help"
-msgstr "&帮助"
+msgstr "帮助(&H)"
 
 #: ../app/builder/builder.py:533 ../app/coder/coder.py:1795
 msgid "&PsychoPy Homepage"
-msgstr "&PsychoPy 主页"
+msgstr "PsychoPy 主页(&P)"
 
 #: ../app/builder/builder.py:534 ../app/coder/coder.py:1796
 msgid "Go to the PsychoPy homepage"
@@ -638,7 +638,7 @@ msgstr "转到 PsychoPy 主页"
 
 #: ../app/builder/builder.py:538
 msgid "&PsychoPy Builder Help"
-msgstr "&PsychoPy Builder 帮助"
+msgstr "PsychoPy Builder 帮助(&P)"
 
 #: ../app/builder/builder.py:539
 msgid "Go to the online documentation for PsychoPy Builder"
@@ -646,7 +646,7 @@ msgstr "转到 PsychoPy Builder 的在线文档"
 
 #: ../app/builder/builder.py:547 ../app/coder/coder.py:1811
 msgid "&System Info..."
-msgstr "&系统信息..."
+msgstr "系统信息...(&S)"
 
 #: ../app/builder/builder.py:548 ../app/coder/coder.py:1812
 msgid "Get system information."
@@ -654,7 +654,7 @@ msgstr "获取系统信息"
 
 #: ../app/builder/builder.py:552 ../app/coder/coder.py:1817
 msgid "&About..."
-msgstr "&关于..."
+msgstr "关于...(&A)"
 
 #: ../app/builder/builder.py:553 ../app/coder/coder.py:1818
 msgid "About PsychoPy"
@@ -662,7 +662,7 @@ msgstr "关于 PsychoPy"
 
 #: ../app/builder/builder.py:556 ../app/coder/coder.py:1822
 msgid "&News..."
-msgstr "&新闻..."
+msgstr "新闻...(&N)"
 
 #: ../app/builder/builder.py:557 ../app/coder/coder.py:1823
 msgid "News"
@@ -766,7 +766,7 @@ msgstr "编辑"
 #: ../app/builder/builder.py:2675
 #, python-format
 msgid "&Close readme\t%s"
-msgstr "&关闭 readme\t%s"
+msgstr "关闭 readme((&C))\t%s"
 
 #: ../app/builder/builder.py:2805
 msgid "rename"
@@ -1014,7 +1014,7 @@ msgstr "预览"
 msgid ""
 "Show all values as they would appear after saving to a file, without "
 "actually saving anything."
-msgstr ""
+msgstr "显示保存到文件后出现的所有值，而不实际保存任何内容。"
 
 #: ../app/builder/dialogs/dlgsConditions.py:506
 msgid "Save as"
@@ -1580,17 +1580,17 @@ msgstr "PsychoPy 单元测试"
 
 #: ../app/coder/coder.py:383
 msgid "&Tests"
-msgstr "&测试"
+msgstr "测试(&T)"
 
 #: ../app/coder/coder.py:386
 #, python-format
 msgid "&Run tests\t%s"
-msgstr "&运行测试\t%s"
+msgstr "运行测试(&R)\t%s"
 
 #: ../app/coder/coder.py:389
 #, python-format
 msgid "&Close tests panel\t%s"
-msgstr "&关闭测试面板\t%s"
+msgstr "关闭测试面板(&C)\t%s"
 
 #: ../app/coder/coder.py:394
 #, python-format
@@ -1707,12 +1707,12 @@ msgstr "关闭 Psychopy Coder"
 #: ../app/coder/coder.py:1510
 #, python-format
 msgid "Cu&t\t%s"
-msgstr "剪切\t%s"
+msgstr "剪切((&T)\t%s"
 
 #: ../app/coder/coder.py:1512
 #, python-format
 msgid "&Copy\t%s"
-msgstr "&复制\t%s"
+msgstr "复制((&C))\t%s"
 
 #: ../app/coder/coder.py:1516
 msgid "Duplicate the current line (or current selection)"
@@ -1721,17 +1721,17 @@ msgstr "重建当前行（或当前选择）"
 #: ../app/coder/coder.py:1518
 #, python-format
 msgid "&Duplicate\t%s"
-msgstr "&重建\t%s"
+msgstr "重建((&D)\t%s"
 
 #: ../app/coder/coder.py:1524
 #, python-format
 msgid "&Find\t%s"
-msgstr "&查找\t%s"
+msgstr "查找((&F)\t%s"
 
 #: ../app/coder/coder.py:1527
 #, python-format
 msgid "Find &Next\t%s"
-msgstr "查找 &下一个\t%s"
+msgstr "查找下一个(&N)\t%s"
 
 #: ../app/coder/coder.py:1532
 #, python-format
@@ -1850,7 +1850,7 @@ msgstr "显示输出和 shell 面板（并开始捕获标准输出）"
 #: ../app/coder/coder.py:1651
 #, python-format
 msgid "&Output/Shell\t%s"
-msgstr "&输出/Shell\t%s"
+msgstr "输出/Shell(&O)\t%s"
 
 #: ../app/coder/coder.py:1655
 msgid "Hide/show the source assistant pane."
@@ -1863,7 +1863,7 @@ msgstr "在编辑器中显示缩进级别的指南"
 #: ../app/coder/coder.py:1668
 #, python-format
 msgid "&Indentation guides\t%s"
-msgstr "&缩进指南\t%s"
+msgstr "缩进指南(&I)\t%s"
 
 #: ../app/coder/coder.py:1674
 msgid "Show whitespace characters in the code"
@@ -1872,7 +1872,7 @@ msgstr "在代码中显示空白字符"
 #: ../app/coder/coder.py:1676
 #, python-format
 msgid "&Whitespace\t%s"
-msgstr "&空格\t%s"
+msgstr "空格(&W)\t%s"
 
 #: ../app/coder/coder.py:1682
 msgid "Show End Of Line markers in the code"
@@ -1881,7 +1881,7 @@ msgstr "在代码中显示行尾标记(EOL)"
 #: ../app/coder/coder.py:1685
 #, python-format
 msgid "Show &EOLs\t%s"
-msgstr "显示 &EOLs\t%s"
+msgstr "显示 EOLs(&E)\t%s"
 
 #: ../app/coder/coder.py:1690
 msgid "Enable/disable line wrapping in editors."
@@ -1917,7 +1917,7 @@ msgstr "转到在线 PsychoPy 教程"
 
 #: ../app/coder/coder.py:1805
 msgid "&PsychoPy API (reference)"
-msgstr "&PsychoPy API（参考）"
+msgstr "PsychoPy API（参考）(&P)"
 
 #: ../app/coder/coder.py:1806
 msgid "Go to the online PsychoPy reference manual"
@@ -2042,13 +2042,13 @@ msgstr "打开当前工作目录"
 
 #: ../app/coder/fileBrowser.py:266 ../app/coder/fileBrowser.py:320
 msgid "Open the directory the current editor file is located"
-msgstr ""
+msgstr "打开当前编辑器文件所在的目录"
 
 #: ../app/coder/fileBrowser.py:298
 msgid ""
 "Cannot change working directory to location of file `{}`. It needs to be "
 "saved first."
-msgstr ""
+msgstr "无法将工作目录更改为文件'{}'的位置。 需要先保存。"
 
 #: ../app/coder/fileBrowser.py:339
 msgid "Enter folder name:"
@@ -2064,15 +2064,15 @@ msgstr "文件夹名称不能为空"
 
 #: ../app/coder/fileBrowser.py:363
 msgid "Cannot create folder `{}`, already exists."
-msgstr ""
+msgstr "无法创建文件夹 `{}`, 因为已经存在。"
 
 #: ../app/coder/fileBrowser.py:376
 msgid "Cannot create folder `{}`, permission denied."
-msgstr ""
+msgstr "无法创建文件夹`{}`，因为没有权限。"
 
 #: ../app/coder/fileBrowser.py:418
 msgid "Rename folder `{}` to:"
-msgstr ""
+msgstr "将文件夹`{}`重命名为："
 
 #: ../app/coder/fileBrowser.py:419
 msgid "Rename Folder"
@@ -2080,11 +2080,11 @@ msgstr "重命名文件夹"
 
 #: ../app/coder/fileBrowser.py:429 ../app/coder/fileBrowser.py:465
 msgid "Cannot rename `{}` to `{}`."
-msgstr ""
+msgstr "无法将`{}`重命名为`{}`。"
 
 #: ../app/coder/fileBrowser.py:452
 msgid "Rename file `{}` to:"
-msgstr ""
+msgstr "重命名文件`{}`为："
 
 #: ../app/coder/fileBrowser.py:453
 msgid "Rename file"
@@ -2092,59 +2092,59 @@ msgstr "重命名文件"
 
 #: ../app/coder/fileBrowser.py:490
 msgid "Are you sure you want to PERMANENTLY delete folder `{}`?"
-msgstr ""
+msgstr "您确定要永久删除文件夹 `{}`吗？"
 
 #: ../app/coder/fileBrowser.py:500
 msgid "Cannot delete folder `{}`, directory does not exist."
-msgstr ""
+msgstr "无法删除文件夹`{}`，目录不存在。"
 
 #: ../app/coder/fileBrowser.py:507
 msgid "Cannot delete folder `{}`, directory is not empty or permission denied."
-msgstr ""
+msgstr "无法删除文件夹`{}`，目录不为空或权限被拒绝。"
 
 #: ../app/coder/fileBrowser.py:519
 msgid "Are you sure you want to PERMANENTLY delete file `{}`?"
-msgstr ""
+msgstr "您确定要永久删除文件“{}”吗？"
 
 #: ../app/coder/fileBrowser.py:529
 msgid "Cannot delete folder `{}`, file does not exist."
-msgstr ""
+msgstr "无法删除文件夹“{}”，文件不存在。"
 
 #: ../app/coder/fileBrowser.py:536
 msgid "Cannot delete file `{}`, permission denied."
-msgstr ""
+msgstr "无法删除文件 `{}`，权限被拒绝。"
 
 #: ../app/coder/fileBrowser.py:557
 msgid "Specified path `{}` is not a directory."
-msgstr ""
+msgstr "指定路径 `{}`不是一个文件夹。"
 
 #: ../app/coder/fileBrowser.py:617
 msgid "Cannot access directory `{}`, permission denied."
-msgstr ""
+msgstr "无法访问目录 `{}`，权限被拒绝。"
 
 #: ../app/coder/fileBrowser.py:662
 msgid "Cannot access directory `{}`, not a directory."
-msgstr ""
+msgstr "无法访问目录 `{}`，因为不是一个目录。"
 
 #: ../app/colorpicker/__init__.py:121
 msgid "RGB"
-msgstr ""
+msgstr "RGB"
 
 #: ../app/colorpicker/__init__.py:122
 msgid "HSV"
-msgstr ""
+msgstr "HSV"
 
 #: ../app/colorpicker/__init__.py:196
 msgid "Output Space:"
-msgstr ""
+msgstr "输出空间："
 
 #: ../app/colorpicker/__init__.py:219
 msgid "&Insert"
-msgstr "&插入"
+msgstr "插入(&I)"
 
 #: ../app/colorpicker/__init__.py:225
 msgid "Canc&el"
-msgstr ""
+msgstr "取消(&E)"
 
 #: ../app/colorpicker/__init__.py:228
 msgid "Insert color value."
@@ -2156,11 +2156,11 @@ msgstr "复制色值到剪贴板"
 
 #: ../app/connections/updates.py:102
 msgid "Couldn't connect to psychopy.org to check for updates. \n"
-msgstr ""
+msgstr "无法连接到psychopy.org 来检查更新。 \n"
 
 #: ../app/connections/updates.py:104
 msgid "Check internet settings (and proxy setting in PsychoPy Preferences)."
-msgstr ""
+msgstr "检查互联网设置（以及 PsychoPy 首选项设置中的代理设置）。"
 
 #: ../app/connections/updates.py:108 ../app/connections/updates.py:157
 #: ../app/connections/updates.py:176
@@ -2173,15 +2173,17 @@ msgid ""
 "PsychoPy v%(latest)s is available (you are running %(running)s).\n"
 "\n"
 msgstr ""
+"PsychoPy v%(latest)s 可用（您当前运行 %(running)s）。.\n"
+"\n"
 
 #: ../app/connections/updates.py:151
 msgid "This version is too big an update to be handled automatically.\n"
-msgstr ""
+msgstr "此版本太大，无法自动处理。\n"
 
 #: ../app/connections/updates.py:153
 msgid ""
 "Please fetch the latest version from www.psychopy.org and install manually."
-msgstr ""
+msgstr "请从 www.psychopy.org 获取最新版本并手动安装。"
 
 #: ../app/connections/updates.py:158
 msgid "Go to downloads"
@@ -2193,7 +2195,7 @@ msgstr "转到更新日志"
 
 #: ../app/connections/updates.py:161
 msgid "Later"
-msgstr ""
+msgstr "稍后"
 
 #: ../app/connections/updates.py:171
 #, python-format
@@ -2274,6 +2276,8 @@ msgid ""
 "You are running PsychoPy v%s.\n"
 " "
 msgstr ""
+"您正在运行 PsychoPy 版本 v%s.\n"
+" "
 
 #: ../app/connections/updates.py:343
 msgid ""
@@ -2624,7 +2628,7 @@ msgstr ""
 
 #: ../app/pavlovia_ui/project.py:306
 msgid "Fork + sync..."
-msgstr ""
+msgstr "Fork + sync..."
 
 #: ../app/pavlovia_ui/project.py:313
 msgid "Tags:"
@@ -2640,7 +2644,7 @@ msgstr "项目信息"
 
 #: ../app/pavlovia_ui/project.py:471
 msgid "This file doesn't belong to any existing project."
-msgstr ""
+msgstr "此文件不属于任何现有项目。"
 
 #: ../app/pavlovia_ui/project.py:474
 msgid "Create a project"
@@ -2704,7 +2708,7 @@ msgstr "同步 Pavlovia.org"
 
 #: ../app/pavlovia_ui/toolbar.py:38
 msgid "Find existing studies online (at pavlovia.org)"
-msgstr ""
+msgstr "在线查找已存在的研究案例 (在 pavlovia.org)"
 
 #: ../app/pavlovia_ui/toolbar.py:42
 msgid "Log in to Pavlovia"
@@ -2712,7 +2716,7 @@ msgstr "登录到 Pavlovia"
 
 #: ../app/pavlovia_ui/toolbar.py:43
 msgid "Log in to (or create user at) Pavlovia.org"
-msgstr ""
+msgstr "登录(或创建用户)到 Pavlovia.org"
 
 #: ../app/pavlovia_ui/toolbar.py:47
 msgid "View project"
@@ -2864,15 +2868,15 @@ msgstr "组件文件夹"
 
 #: ../app/preferencesDlg.py:68
 msgid "componentFilter"
-msgstr ""
+msgstr "组件过滤器"
 
 #: ../app/preferencesDlg.py:69
 msgid "hidden components"
-msgstr ""
+msgstr "隐藏组件"
 
 #: ../app/preferencesDlg.py:70
 msgid "unpacked demos dir"
-msgstr ""
+msgstr "解压演示目录"
 
 #: ../app/preferencesDlg.py:71
 msgid "saved data folder"
@@ -3196,7 +3200,7 @@ msgstr "超时"
 
 #: ../app/preferencesDlg.py:156
 msgid "Builder, Coder and Runner"
-msgstr ""
+msgstr "Builder, Coder 和 Runner"
 
 #: ../app/preferencesDlg.py:157
 msgid "same as in the file"
@@ -3204,11 +3208,11 @@ msgstr "和文件中保持一致"
 
 #: ../app/preferencesDlg.py:158
 msgid "abort"
-msgstr ""
+msgstr "中止"
 
 #: ../app/preferencesDlg.py:159
 msgid "warn"
-msgstr ""
+msgstr "警告"
 
 #: ../app/preferencesDlg.py:169
 msgid "large icons"
@@ -3224,56 +3228,56 @@ msgstr "高DPI显示"
 
 #: ../app/preferencesDlg.py:172
 msgid "comment font"
-msgstr ""
+msgstr "评论字体"
 
 #: ../app/preferencesDlg.py:173
 msgid "switch to Builder"
-msgstr ""
+msgstr "切换到 Builder"
 
 #: ../app/preferencesDlg.py:174
 msgid "switch to Coder"
-msgstr ""
+msgstr "切换到 Coder"
 
 #: ../app/preferencesDlg.py:175
 msgid "switch to Runner"
-msgstr ""
+msgstr "切换到 Runner"
 
 #: ../app/preferencesDlg.py:176
 msgid "login to projects"
-msgstr ""
+msgstr "登录到项目"
 
 #: ../app/preferencesDlg.py:177
 msgid "use Runner"
-msgstr ""
+msgstr "使用 Runner"
 
 #: ../app/preferencesDlg.py:182
 #: ../experiment/components/settings/__init__.py:256
 msgid "Latency not important"
-msgstr ""
+msgstr "延迟不重要"
 
 #: ../app/preferencesDlg.py:183
 #: ../experiment/components/settings/__init__.py:257
 msgid "Share low-latency driver"
-msgstr ""
+msgstr "共享低延迟驱动程序"
 
 #: ../app/preferencesDlg.py:184
 #: ../experiment/components/settings/__init__.py:258
 msgid "Exclusive low-latency"
-msgstr ""
+msgstr "独占低延迟模式"
 
 #: ../app/preferencesDlg.py:185
 #: ../experiment/components/settings/__init__.py:259
 msgid "Aggressive low-latency"
-msgstr ""
+msgstr "激进低延迟模式（推荐）"
 
 #: ../app/preferencesDlg.py:186
 #: ../experiment/components/settings/__init__.py:260
 msgid "Latency critical"
-msgstr ""
+msgstr "延迟关键模式"
 
 #: ../app/preferencesDlg.py:453
 msgid "PsychoPy Preferences"
-msgstr ""
+msgstr "PsychoPy 首选项"
 
 #: ../app/preferencesDlg.py:657
 msgid "system locale"
@@ -3286,19 +3290,19 @@ msgstr ""
 
 #: ../app/preferencesDlg.py:838
 msgid "Error"
-msgstr ""
+msgstr "错误"
 
 #: ../app/runner/runner.py:121
 msgid "Add task"
-msgstr ""
+msgstr "添加任务"
 
 #: ../app/runner/runner.py:122
 msgid "Adding task"
-msgstr ""
+msgstr "正在添加任务"
 
 #: ../app/runner/runner.py:124
 msgid "Remove task"
-msgstr ""
+msgstr "移除任务"
 
 #: ../app/runner/runner.py:127
 msgid "Clear all"
@@ -3306,83 +3310,83 @@ msgstr "清除全部"
 
 #: ../app/runner/runner.py:128
 msgid "Clearing tasks"
-msgstr ""
+msgstr "正在清除任务"
 
 #: ../app/runner/runner.py:131
 msgid "Save list"
-msgstr ""
+msgstr "保存列表"
 
 #: ../app/runner/runner.py:132
 msgid "Saving task"
-msgstr ""
+msgstr "正在保存列表"
 
 #: ../app/runner/runner.py:134
 msgid "Open list"
-msgstr ""
+msgstr "打开列表"
 
 #: ../app/runner/runner.py:135
 msgid "Loading task"
-msgstr ""
+msgstr "任务加载中"
 
 #: ../app/runner/runner.py:138
 msgid "Closing Runner"
-msgstr ""
+msgstr "正在关闭 Runner"
 
 #: ../app/runner/runner.py:141
 msgid "Quitting PsychoPy"
-msgstr ""
+msgstr "正在退出 PsychoPy"
 
 #: ../app/runner/runner.py:146
 msgid "Open &Builder view"
-msgstr ""
+msgstr "打开 Builder 视图(&B)"
 
 #: ../app/runner/runner.py:147
 msgid "Opening Builder"
-msgstr ""
+msgstr "正在打开 Builder"
 
 #: ../app/runner/runner.py:148
 msgid "Open &Coder view"
-msgstr ""
+msgstr "打开编码器视图​​(&C)"
 
 #: ../app/runner/runner.py:149
 msgid "Opening Coder"
-msgstr ""
+msgstr "正在打开 Coder"
 
 #: ../app/runner/runner.py:155
 msgid "Running experiment"
-msgstr ""
+msgstr "正在运行试验"
 
 #: ../app/runner/runner.py:158
 msgid "Run JS for local debug"
-msgstr ""
+msgstr "运行 JS 进行本地调试"
 
 #: ../app/runner/runner.py:159
 msgid "Launching local debug of online study"
-msgstr ""
+msgstr "启动在线学习本地调试"
 
 #: ../app/runner/runner.py:162
 msgid "Run JS on Pavlovia"
-msgstr ""
+msgstr "在 Pavlovia 上运行 JS"
 
 #: ../app/runner/runner.py:163
 msgid "Launching online study at Pavlovia"
-msgstr ""
+msgstr "在 Pavlovia 启动在线学习"
 
 #: ../app/runner/runner.py:169
 msgid "Builder Demos"
-msgstr ""
+msgstr "Builder 演示资源"
 
 #: ../app/runner/runner.py:170
 msgid "Loading builder demos"
-msgstr ""
+msgstr "正在加载 builder 演示资源"
 
 #: ../app/runner/runner.py:173
 msgid "Coder Demos"
-msgstr ""
+msgstr "Coder 演示资源"
 
 #: ../app/runner/runner.py:174
 msgid "Loading coder demos"
-msgstr ""
+msgstr "正在加载 coder 演示资源"
 
 #: ../app/runner/runner.py:200 ../app/runner/runner.py:509
 msgid "File"
@@ -3390,202 +3394,202 @@ msgstr "文件"
 
 #: ../app/runner/runner.py:201
 msgid "View"
-msgstr ""
+msgstr "视图"
 
 #: ../app/runner/runner.py:203
 msgid "Demos"
-msgstr ""
+msgstr "演示"
 
 #: ../app/runner/runner.py:237
 msgid "Save task list as ..."
-msgstr ""
+msgstr "任务列表另存为..."
 
 #: ../app/runner/runner.py:269
 msgid "Open task list ..."
-msgstr ""
+msgstr "打开任务列表..."
 
 #: ../app/runner/runner.py:510
 msgid "Path"
-msgstr ""
+msgstr "路径"
 
 #: ../app/runner/runner.py:519
 msgid "Alerts"
-msgstr ""
+msgstr "告警"
 
 #: ../app/runner/runner.py:527
 msgid "Stdout"
-msgstr ""
+msgstr "标准输出"
 
 #: ../app/runner/runner.py:573
 msgid "Add experiment to list"
-msgstr ""
+msgstr "将实验添加到列表"
 
 #: ../app/runner/runner.py:581
 msgid "Remove experiment from list"
-msgstr ""
+msgstr "从列表中删除实验"
 
 #: ../app/runner/runner.py:589
 msgid "Save task list to a file"
-msgstr ""
+msgstr "将任务列表保存到文件"
 
 #: ../app/runner/runner.py:597
 msgid "Load tasks from a file"
-msgstr ""
+msgstr "从文件加载任务"
 
 #: ../app/runner/runner.py:604
 msgid "Run the current script in Python"
-msgstr ""
+msgstr "在 Python 中运行当前脚本"
 
 #: ../app/runner/runner.py:611
 msgid "Stop task"
-msgstr ""
+msgstr "停止任务"
 
 #: ../app/runner/runner.py:617
 msgid "Run PsychoJS task from Pavlovia"
-msgstr ""
+msgstr "从 Pavlovia 运行 PsychoJS 任务"
 
 #: ../app/runner/runner.py:625
 msgid "Run PsychoJS task in local debug mode"
-msgstr ""
+msgstr "在本地调试模式下运行 PsychoJS 任务"
 
 #: ../app/runner/runner.py:891
 msgid "Alerts ({})"
-msgstr ""
+msgstr "告警 ({})"
 
 #: ../app/coder/scriptOutput.py:95 ../app/stdOutRich.py:72
 msgid "For further info see "
-msgstr ""
+msgstr "欲了解更多信息，请参阅"
 
 #: ../app/themes/_themes.py:1090
 msgid "Open theme folder"
-msgstr ""
+msgstr "打开主题文件夹"
 
 #: ../app/utils.py:164 ../app/utils.py:239
 msgid "New"
-msgstr ""
+msgstr "新建"
 
 #: ../app/utils.py:166 ../app/utils.py:240
 msgid "Create new experiment file"
-msgstr ""
+msgstr "创建新的实验文件"
 
 #: ../app/utils.py:170 ../app/utils.py:242
 msgid "Open"
-msgstr ""
+msgstr "打开"
 
 #: ../app/utils.py:172 ../app/utils.py:243
 msgid "Open an existing experiment file"
-msgstr ""
+msgstr "打开现有的实验文件"
 
 #: ../app/builder/localizedStrings.py:34 ../app/utils.py:176
 #: ../app/utils.py:246 ../monitors/MonitorCenter.py:267
 msgid "Save"
-msgstr ""
+msgstr "保存"
 
 #: ../app/builder/builder.py:295 ../app/utils.py:178 ../app/utils.py:247
 msgid "Save current experiment file"
-msgstr ""
+msgstr "保存当前实验文件"
 
 #: ../app/utils.py:182 ../app/utils.py:249
 msgid "Save As..."
-msgstr ""
+msgstr "另存为..."
 
 #: ../app/builder/builder.py:299 ../app/utils.py:184 ../app/utils.py:250
 msgid "Save current experiment file as..."
-msgstr ""
+msgstr "将当前实验文件另存为"
 
 #: ../app/coder/codeEditorBase.py:115 ../app/coder/coder.py:151
 #: ../app/utils.py:188 ../app/utils.py:253
 msgid "Undo"
-msgstr ""
+msgstr "撤销"
 
 #: ../app/builder/builder.py:342 ../app/coder/coder.py:1576 ../app/utils.py:190
 #: ../app/utils.py:254
 msgid "Undo last action"
-msgstr ""
+msgstr "撤销上个操作"
 
 #: ../app/coder/codeEditorBase.py:116 ../app/coder/coder.py:152
 #: ../app/utils.py:194 ../app/utils.py:257
 msgid "Redo"
-msgstr ""
+msgstr "重做"
 
 #: ../app/builder/builder.py:347 ../app/coder/coder.py:1581 ../app/utils.py:196
 #: ../app/utils.py:258
 msgid "Redo last action"
-msgstr ""
+msgstr "重做上个操作"
 
 #: ../app/builder/builder.py:405 ../app/coder/coder.py:1711 ../app/utils.py:201
 #: ../app/utils.py:261
 msgid "Monitor Center"
-msgstr ""
+msgstr "显示器中心"
 
 #: ../app/utils.py:203 ../app/utils.py:262
 msgid "Monitor settings and calibration"
-msgstr ""
+msgstr "显示器设置和校准"
 
 #: ../app/utils.py:207
 msgid "Experiment Settings"
-msgstr ""
+msgstr "实验设置"
 
 #: ../app/utils.py:209
 msgid "Edit experiment settings"
-msgstr ""
+msgstr "编辑实验设置"
 
 #: ../app/utils.py:214
 msgid "Compile Python Script"
-msgstr ""
+msgstr "编译 Python 脚本"
 
 #: ../app/utils.py:216
 msgid "Compile to Python script"
-msgstr ""
+msgstr "编译成 Python 脚本"
 
 #: ../app/utils.py:220
 msgid "Compile JS Script"
-msgstr ""
+msgstr "编译 JS 脚本"
 
 #: ../app/utils.py:222
 msgid "Compile to JS script"
-msgstr ""
+msgstr "编译成 Javascript 脚本"
 
 #: ../app/utils.py:226 ../app/utils.py:269
 msgid "Runner"
-msgstr ""
+msgstr "Runner"
 
 #: ../app/utils.py:228 ../app/utils.py:270
 msgid "Send experiment to Runner"
-msgstr ""
+msgstr "将实验发送到 Runner"
 
 #: ../app/runner/runner.py:202 ../app/utils.py:232 ../app/utils.py:273
 msgid "Run"
-msgstr ""
+msgstr "运行"
 
 #: ../app/utils.py:234 ../app/utils.py:274
 msgid "Run experiment"
-msgstr ""
+msgstr "运行实验"
 
 #: ../app/colorpicker/__init__.py:37 ../app/utils.py:264
 msgid "Color Picker"
-msgstr ""
+msgstr "选色器"
 
 #: ../app/utils.py:265
 msgid "Color Picker -> clipboard"
-msgstr ""
+msgstr "选色器 -> 剪贴板"
 
 #: ../app/utils.py:438 ../app/utils.py:439
 #, python-format
 msgid "&Next Window\t%s"
-msgstr ""
+msgstr "下一个窗口(&N)\t%s"
 
 #: ../experiment/_experiment.py:500
 msgid ""
 "Name of the folder in which to save data and log files (blank defaults to "
 "the builder pref)"
-msgstr ""
+msgstr "保存数据和日志文件的文件夹的名称（空白默认为 builder 首选项）"
 
 #: ../experiment/_experiment.py:558
 msgid ""
 "This parameter is not known by this version of PsychoPy. It might be worth "
 "upgrading"
-msgstr ""
+msgstr "此参数在此版本的 PsychoPy 上未知。 可能需要升级"
 
 #: ../experiment/_experiment.py:568
 #, python-format
@@ -3594,19 +3598,21 @@ msgid ""
 "experiment file (saved by a future version of PsychoPy?). This experiment "
 "may not run correctly in the current version."
 msgstr ""
+"参数 %r 在此版本的 PsychoPy 上是未知的 ，但它来自您的实验文件（可能由 "
+"PsychoPy 的更新的版本保存？）。 此实验在当前版本中可能无法正常运行。"
 
 #: ../experiment/components/_base.py:60
 #: ../experiment/components/unknown/__init__.py:37
 msgid "Name of this component (alphanumeric or _, no spaces)"
-msgstr ""
+msgstr "此组件的名称（字母数字或 _，不能有空格）"
 
 #: ../experiment/components/_base.py:67
 msgid "How do you want to define your start point?"
-msgstr ""
+msgstr "你想如何定义你的起点？"
 
 #: ../experiment/components/_base.py:74 ../experiment/routines/_base.py:51
 msgid "How do you want to define your end point?"
-msgstr ""
+msgstr "你想如何定义你的终点？"
 
 #: ../experiment/components/_base.py:84
 msgid "When does the component start?"
@@ -3725,27 +3731,27 @@ msgstr ""
 
 #: ../experiment/components/brush/__init__.py:19
 msgid "Brush Size"
-msgstr ""
+msgstr "画笔大小"
 
 #: ../experiment/components/brush/__init__.py:20
 msgid "Brush Color"
-msgstr ""
+msgstr "画笔颜色"
 
 #: ../experiment/components/brush/__init__.py:21
 msgid "Brush Color Space"
-msgstr ""
+msgstr "画笔色彩空间"
 
 #: ../experiment/components/brush/__init__.py:22
 msgid "Press Button"
-msgstr ""
+msgstr "按下按钮"
 
 #: ../experiment/components/brush/__init__.py:30
 msgid "Brush: a drawing tool"
-msgstr ""
+msgstr "画笔：绘画工具"
 
 #: ../experiment/components/brush/__init__.py:54
 msgid "Fill color of this brush"
-msgstr ""
+msgstr "此画笔的填充颜色"
 
 #: ../experiment/components/brush/__init__.py:62
 msgid ""
@@ -3775,7 +3781,7 @@ msgstr ""
 
 #: ../experiment/components/button/__init__.py:20
 msgid "Button text"
-msgstr ""
+msgstr "按钮文本"
 
 #: ../experiment/components/button/__init__.py:21
 #: ../experiment/components/form/__init__.py:102
@@ -3783,76 +3789,76 @@ msgstr ""
 #: ../experiment/components/text/__init__.py:20
 #: ../experiment/components/textbox/__init__.py:21
 msgid "Font"
-msgstr ""
+msgstr "字体"
 
 #: ../experiment/components/button/__init__.py:22
 #: ../experiment/components/slider/__init__.py:177
 #: ../experiment/components/text/__init__.py:21
 #: ../experiment/components/textbox/__init__.py:22
 msgid "Letter height"
-msgstr ""
+msgstr "字符高度"
 
 #: ../experiment/components/button/__init__.py:23
 #: ../experiment/components/textbox/__init__.py:26
 msgid "Bold"
-msgstr ""
+msgstr "加粗"
 
 #: ../experiment/components/button/__init__.py:24
 #: ../experiment/components/textbox/__init__.py:27
 msgid "Italic"
-msgstr ""
+msgstr "斜体"
 
 #: ../experiment/components/button/__init__.py:25
 #: ../experiment/components/textbox/__init__.py:29
 msgid "Padding"
-msgstr ""
+msgstr "填充"
 
 #: ../experiment/components/button/__init__.py:26
 #: ../experiment/components/textbox/__init__.py:30
 msgid "Anchor"
-msgstr ""
+msgstr "对齐方式"
 
 #: ../experiment/components/button/__init__.py:27
 #: ../experiment/components/textbox/__init__.py:31
 msgid "Fill Colour"
-msgstr ""
+msgstr "填充色"
 
 #: ../experiment/components/button/__init__.py:28
 #: ../experiment/components/textbox/__init__.py:32
 msgid "Border Colour"
-msgstr ""
+msgstr "边框颜色"
 
 #: ../experiment/components/button/__init__.py:29
 #: ../experiment/components/textbox/__init__.py:33
 msgid "Border Width"
-msgstr ""
+msgstr "边框宽度"
 
 #: ../experiment/components/button/__init__.py:30
 msgid "Run once per click"
-msgstr ""
+msgstr "每次点击运行一次"
 
 #: ../experiment/components/button/__init__.py:31
 msgid "Record clicks"
-msgstr ""
+msgstr "录制点击动作"
 
 #: ../experiment/components/button/__init__.py:32
 #: ../experiment/components/joystick/__init__.py:23
 #: ../experiment/components/mouse/__init__.py:21
 msgid "Time relative to"
-msgstr ""
+msgstr "时间相对于"
 
 #: ../experiment/components/button/__init__.py:43
 msgid "Button: A clickable textbox"
-msgstr ""
+msgstr "按钮：可点击的文本框"
 
 #: ../experiment/components/button/__init__.py:50
 msgid "Click here"
-msgstr ""
+msgstr "点击此处"
 
 #: ../experiment/components/button/__init__.py:77
 #: ../experiment/components/textbox/__init__.py:86
 msgid "Text Color"
-msgstr ""
+msgstr "文本颜色"
 
 #: ../experiment/components/button/__init__.py:82
 #: ../experiment/components/joyButtons/__init__.py:83
@@ -3968,63 +3974,63 @@ msgstr ""
 
 #: ../experiment/components/code/__init__.py:18
 msgid "Code Type"
-msgstr ""
+msgstr "代码类型"
 
 #: ../experiment/components/code/__init__.py:19
 msgid "Before Experiment"
-msgstr ""
+msgstr "实验前"
 
 #: ../experiment/components/code/__init__.py:20
 msgid "Begin Experiment"
-msgstr ""
+msgstr "开始实验"
 
 #: ../experiment/components/code/__init__.py:21
 msgid "Begin Routine"
-msgstr ""
+msgstr "开始例程"
 
 #: ../experiment/components/code/__init__.py:22
 msgid "Each Frame"
-msgstr ""
+msgstr "每一帧"
 
 #: ../experiment/components/code/__init__.py:23
 msgid "End Routine"
-msgstr ""
+msgstr "结束例程"
 
 #: ../experiment/components/code/__init__.py:24
 msgid "End Experiment"
-msgstr ""
+msgstr "结束实验"
 
 #: ../experiment/components/code/__init__.py:25
 msgid "Before JS Experiment"
-msgstr ""
+msgstr "JS 实验前"
 
 #: ../experiment/components/code/__init__.py:26
 msgid "Begin JS Experiment"
-msgstr ""
+msgstr "开始 JS 实验"
 
 #: ../experiment/components/code/__init__.py:27
 msgid "Begin JS Routine"
-msgstr ""
+msgstr "开始 JS 例程"
 
 #: ../experiment/components/code/__init__.py:28
 msgid "Each JS Frame"
-msgstr ""
+msgstr "每个 JS 帧"
 
 #: ../experiment/components/code/__init__.py:29
 msgid "End JS Routine"
-msgstr ""
+msgstr "结束 JS 例程"
 
 #: ../experiment/components/code/__init__.py:30
 msgid "End JS Experiment"
-msgstr ""
+msgstr "结束 JS 实验"
 
 #: ../experiment/components/code/__init__.py:40
 msgid "Code: insert python commands into an experiment"
-msgstr ""
+msgstr "代码：将 python 命令插入实验"
 
 #: ../experiment/components/code/__init__.py:64
 msgid "Display Python or JS Code"
-msgstr ""
+msgstr "显示 Python 或 JS 代码"
 
 #: ../experiment/components/code/__init__.py:71
 msgid ""
@@ -4078,55 +4084,55 @@ msgstr ""
 
 #: ../experiment/components/dots/__init__.py:17
 msgid "Number of dots"
-msgstr ""
+msgstr "点数"
 
 #: ../experiment/components/dots/__init__.py:18
 msgid "Direction"
-msgstr ""
+msgstr "方向"
 
 #: ../experiment/components/dots/__init__.py:19
 msgid "Speed"
-msgstr ""
+msgstr "速度"
 
 #: ../experiment/components/dots/__init__.py:20
 msgid "Coherence"
-msgstr ""
+msgstr "连续性"
 
 #: ../experiment/components/dots/__init__.py:21
 msgid "Dot size"
-msgstr ""
+msgstr "点大小"
 
 #: ../experiment/components/dots/__init__.py:22
 msgid "Dot life-time"
-msgstr ""
+msgstr "点寿命"
 
 #: ../experiment/components/dots/__init__.py:23
 msgid "Signal dots"
-msgstr ""
+msgstr "信号点"
 
 #: ../experiment/components/dots/__init__.py:24
 msgid "Noise dots"
-msgstr ""
+msgstr "噪声点"
 
 #: ../experiment/components/dots/__init__.py:25
 msgid "Field shape"
-msgstr ""
+msgstr "区域形状"
 
 #: ../experiment/components/dots/__init__.py:26
 msgid "Field size"
-msgstr ""
+msgstr "区域大小"
 
 #: ../experiment/components/dots/__init__.py:27
 msgid "Field position"
-msgstr ""
+msgstr "区域位置"
 
 #: ../experiment/components/dots/__init__.py:28
 msgid "Dot refresh rule"
-msgstr ""
+msgstr "点刷新规则"
 
 #: ../experiment/components/dots/__init__.py:37
 msgid "Dots: Random Dot Kinematogram"
-msgstr ""
+msgstr "点：随机点运动图"
 
 #: ../experiment/components/dots/__init__.py:69
 msgid ""
@@ -4186,43 +4192,43 @@ msgstr ""
 
 #: ../experiment/components/dots/__init__.py:168
 msgid "Dot Color"
-msgstr ""
+msgstr "点颜色"
 
 #: ../experiment/components/dots/__init__.py:169
 msgid "Dot Color Space"
-msgstr ""
+msgstr "点 色彩空间"
 
 #: ../experiment/components/emotiv_marking/__init__.py:20
 msgid "Marker Label"
-msgstr ""
+msgstr "Marker 标签"
 
 #: ../experiment/components/emotiv_marking/__init__.py:21
 msgid "Marker Value"
-msgstr ""
+msgstr "Marker 值"
 
 #: ../experiment/components/emotiv_marking/__init__.py:22
 msgid "Stop Marker"
-msgstr ""
+msgstr "停止 Marker"
 
 #: ../experiment/components/emotiv_marking/__init__.py:30
 msgid "Mark a period of EEG"
-msgstr ""
+msgstr "标记一段脑电图"
 
 #: ../experiment/components/emotiv_marking/__init__.py:46
 msgid "Label of the marker to be inserted (interpreted as a string)"
-msgstr ""
+msgstr "要插入的标记的标签（解释为字符串）"
 
 #: ../experiment/components/emotiv_marking/__init__.py:54
 msgid "Value of the marker to be inserted (interpreted as a string)"
-msgstr ""
+msgstr "要插入的标记的值（解释为字符串）"
 
 #: ../experiment/components/emotiv_marking/__init__.py:62
 msgid "Check this box to include a stop marker"
-msgstr ""
+msgstr "选中此框以包含停止标记"
 
 #: ../experiment/components/emotiv_record/__init__.py:23
 msgid "Initialize EMOTIV hardware connection"
-msgstr ""
+msgstr "初始化 EMOTIV 硬件连接"
 
 #: ../experiment/components/envelopegrating/__init__.py:18
 msgid "Carrier texture"
@@ -4258,7 +4264,7 @@ msgstr ""
 #: ../experiment/components/noise/__init__.py:23
 #: ../experiment/components/patch/__init__.py:21
 msgid "Texture resolution"
-msgstr ""
+msgstr "纹理分辨率"
 
 #: ../experiment/components/envelopegrating/__init__.py:25
 #: ../experiment/components/grating/__init__.py:24
@@ -4301,7 +4307,7 @@ msgstr ""
 #: ../experiment/components/grating/__init__.py:23
 #: ../experiment/components/noise/__init__.py:40
 msgid "OpenGL blend mode"
-msgstr ""
+msgstr "OpenGL 混合模式"
 
 #: ../experiment/components/envelopegrating/__init__.py:42
 msgid ""
@@ -4413,91 +4419,91 @@ msgstr ""
 
 #: ../experiment/components/form/__init__.py:20
 msgid "Items"
-msgstr ""
+msgstr "项目"
 
 #: ../experiment/components/form/__init__.py:21
 msgid "Text Height"
-msgstr ""
+msgstr "文字高度"
 
 #: ../experiment/components/form/__init__.py:22
 #: ../experiment/components/slider/__init__.py:184
 msgid "Styles"
-msgstr ""
+msgstr "风格"
 
 #: ../experiment/components/form/__init__.py:23
 msgid "Item Padding"
-msgstr ""
+msgstr "项目填充"
 
 #: ../experiment/components/form/__init__.py:24
 msgid "Data Format"
-msgstr ""
+msgstr "数据格式"
 
 #: ../experiment/components/form/__init__.py:25
 msgid "Randomize"
-msgstr ""
+msgstr "随机化"
 
 #: ../experiment/components/form/__init__.py:36
 msgid "Form: a Psychopy survey tool"
-msgstr ""
+msgstr "表单：心理调查工具"
 
 #: ../experiment/components/form/__init__.py:89
 msgid "The csv filename containing the items for your survey."
-msgstr ""
+msgstr "包含调查项目的 csv 文件名。"
 
 #: ../experiment/components/form/__init__.py:95
 msgid "The size of the item text for Form"
-msgstr ""
+msgstr "表单项文本的大小"
 
 #: ../experiment/components/form/__init__.py:107
 msgid "Do you want to randomize the order of your questions?"
-msgstr ""
+msgstr "你想随机化你的问题的顺序吗？"
 
 #: ../experiment/components/form/__init__.py:113
 msgid "The padding or space between items."
-msgstr ""
+msgstr "项目之间的填充或空间。"
 
 #: ../experiment/components/form/__init__.py:120
 msgid "Store item data by columns, or rows"
-msgstr ""
+msgstr "按列或行存储项目数据"
 
 #: ../experiment/components/form/__init__.py:135
 msgid "Styles determine the appearance of the form"
-msgstr ""
+msgstr "样式决定表单的外观"
 
 #: ../experiment/components/form/__init__.py:148
 msgid "Color of the form's background"
-msgstr ""
+msgstr "表单背景的颜色"
 
 #: ../experiment/components/form/__init__.py:150
 msgid "Color of the outline around the form"
-msgstr ""
+msgstr "表单周围边框的颜色"
 
 #: ../experiment/components/form/__init__.py:156
 msgid "Base text color for questions"
-msgstr ""
+msgstr "问题的基本文本颜色"
 
 #: ../experiment/components/form/__init__.py:157
 msgid "Item Color"
-msgstr ""
+msgstr "项目颜色"
 
 #: ../experiment/components/form/__init__.py:163
 msgid ""
 "Base text color for responses, also sets color of lines in sliders and "
 "borders of textboxes"
-msgstr ""
+msgstr "响应的基本文本颜色，还设置滑块中的线条颜色和文本框的边框"
 
 #: ../experiment/components/form/__init__.py:164
 msgid "Response Color"
-msgstr ""
+msgstr "应答颜色"
 
 #: ../experiment/components/form/__init__.py:170
 msgid "Color of markers and the scrollbar"
-msgstr ""
+msgstr "标记和滚动条的颜色"
 
 #: ../experiment/components/form/__init__.py:171
 #: ../experiment/components/slider/__init__.py:155
 msgid "Marker Color"
-msgstr ""
+msgstr "标记颜色"
 
 #: ../experiment/components/grating/__init__.py:18
 msgid "Texture"
@@ -4765,21 +4771,21 @@ msgstr ""
 
 #: ../experiment/components/microphone/__init__.py:24
 msgid "Stereo"
-msgstr ""
+msgstr "立体声"
 
 #: ../experiment/components/microphone/__init__.py:25
 msgid "Channel"
-msgstr ""
+msgstr "声道"
 
 #: ../experiment/components/microphone/__init__.py:50
 msgid ""
 "Microphone: basic sound capture (fixed onset & duration), okay for spoken "
 "words"
-msgstr ""
+msgstr "麦克风：基本的声音捕捉（固定的开始和持续时间），可以用于口语"
 
 #: ../experiment/components/microphone/__init__.py:76
 msgid "The duration of the recording in seconds; blank = 0 sec"
-msgstr ""
+msgstr "录制的持续时间（以秒为单位）； 空白 = 0 秒"
 
 #: ../experiment/components/microphone/__init__.py:81
 msgid ""
@@ -4787,88 +4793,92 @@ msgid ""
 "affect local experiments - online experiments ask the participant which mic "
 "to use."
 msgstr ""
+"您希望使用哪种麦克风设备进行录音？ 这只会影响本地实验 - 在线实验会询问参与者"
+"使用哪个麦克风。"
 
 #: ../experiment/components/microphone/__init__.py:87
 msgid "Device"
-msgstr ""
+msgstr "设备"
 
 #: ../experiment/components/microphone/__init__.py:90
 msgid ""
 "Record two channels (stereo) or one (mono, smaller file). Select 'auto' to "
 "use as many channels as the selected device allows."
 msgstr ""
+"录制双声道（立体声）或单声道（mono，较小的文件）。 选择“自动”以使用所选设备允"
+"许的尽可能多的声道。"
 
 #: ../experiment/components/microphone/__init__.py:100
 msgid "Channels"
-msgstr ""
+msgstr "声道"
 
 #: ../experiment/components/microphone/__init__.py:102
 msgid "How many samples per second (Hz) to record at"
-msgstr ""
+msgstr "每秒记录多少个采样 (Hz)"
 
 #: ../experiment/components/microphone/__init__.py:108
 msgid "Sample Rate (Hz)"
-msgstr ""
+msgstr "采样率 (Hz)"
 
 #: ../experiment/components/microphone/__init__.py:110
 msgid ""
 "To avoid excessively large output files, what is the biggest file size you "
 "are likely to expect?"
-msgstr ""
+msgstr "为避免输出文件过大，您可能期望的最大文件尺寸是多大？"
 
 #: ../experiment/components/microphone/__init__.py:115
 msgid "Max Recording Size (kb)"
-msgstr ""
+msgstr "最大录制大小(kb)"
 
 #: ../experiment/components/microphone/__init__.py:117
 msgid "What file type should output audio files be saved as?"
-msgstr ""
+msgstr "输出音频文件应保存为什么文件类型？"
 
 #: ../experiment/components/microphone/__init__.py:123
 msgid "Output File Type"
-msgstr ""
+msgstr "输出文件类型"
 
 #: ../experiment/components/microphone/__init__.py:126
 msgid "Tick this to save times when the participant starts and stops speaking"
-msgstr ""
+msgstr "勾选此项以节省参与者开始和停止发言的时间"
 
 #: ../experiment/components/microphone/__init__.py:131
 msgid "Speaking Start / Stop Times"
-msgstr ""
+msgstr "发言开始/停止时间"
 
 #: ../experiment/components/microphone/__init__.py:134
 msgid "Trim periods of silence from the output file"
-msgstr ""
+msgstr "从输出文件中修剪无声时段"
 
 #: ../experiment/components/microphone/__init__.py:139
 msgid "Trim Silent"
-msgstr ""
+msgstr "修剪无声"
 
 #: ../experiment/components/microphone/__init__.py:151
 msgid "Whether to transcribe the audio recording and store the transcription"
-msgstr ""
+msgstr "是否转录录音并存储转录"
 
 #: ../experiment/components/microphone/__init__.py:152
 msgid "Transcribe Audio"
-msgstr ""
+msgstr "转录音频"
 
 #: ../experiment/components/microphone/__init__.py:167
 msgid "What transcription service to use to transcribe audio?"
-msgstr ""
+msgstr "使用什么转录服务来转录音频？"
 
 #: ../experiment/components/microphone/__init__.py:168
 msgid "Transcription Backend"
-msgstr ""
+msgstr "转录后端"
 
 #: ../experiment/components/microphone/__init__.py:173
 msgid ""
 "What language you expect the recording to be spoken in, e.g. en-US for "
 "English"
-msgstr ""
+msgstr "您希望录音使用什么语言，例如 en-US 英语"
 
 #: ../experiment/components/microphone/__init__.py:174
 msgid "Transcription Language"
-msgstr ""
+msgstr "转录语言"
 
 #: ../experiment/components/microphone/__init__.py:179
 #, python-format
@@ -4880,34 +4890,41 @@ msgid ""
 "using a colon after the word, e.g. 'red:100', 'green:80'. Otherwise, default "
 "confidence level is 80%."
 msgstr ""
+"设置要收听的词汇列表 - 如果空白将收听所选语言的所有词汇。\n"
+"\n"
+"如果使用内置转录器，您可以在词汇后使用冒号设置最小  % 置信度，例如  "
+"'red:100', 'green:80'。 否则，默认置信水平为 80%。"
 
 #: ../experiment/components/microphone/__init__.py:182
 msgid "Expected Words"
-msgstr ""
+msgstr "预期词汇"
 
 #: ../experiment/components/mouse/__init__.py:19
 msgid "Save mouse state"
-msgstr ""
+msgstr "保存鼠标状态"
 
 #: ../experiment/components/mouse/__init__.py:24
 msgid "New clicks only"
-msgstr ""
+msgstr "仅新点击"
 
 #: ../experiment/components/mouse/__init__.py:34
 msgid "Mouse: query mouse position and buttons"
-msgstr ""
+msgstr "鼠标：查询鼠标位置和按钮"
 
 #: ../experiment/components/mouse/__init__.py:58
 msgid ""
 "How often should the mouse state (x,y,buttons) be stored? On every video "
 "frame, every click or just at the end of the Routine?"
 msgstr ""
+"鼠标状态（x,y,buttons）应该多久存储一次？ 在每个视频帧上，每次点击或只是在例"
+"程结束时？"
 
 #: ../experiment/components/mouse/__init__.py:90
 msgid ""
 "If the mouse button is already down when we start checking then wait for it "
 "to be released before recording as a new click."
 msgstr ""
+"如果在我们开始检查时鼠标按钮已经按下，则等待它被释放，然后再记录为新的点击。"
 
 #: ../experiment/components/mouse/__init__.py:110
 msgid ""
@@ -4915,10 +4932,12 @@ msgid ""
 "for the stimulus that was\"clicked\" by the mouse. Make sure that all the "
 "clickable objects have all these params."
 msgstr ""
+"您要为其存储当前值的参数(e.g. name, text)，用于鼠标“单击”的刺激。 确保所有可"
+"点击对象都具有所有这些参数。"
 
 #: ../experiment/components/movie/__init__.py:19
 msgid "Movie file"
-msgstr ""
+msgstr "影片文件"
 
 #: ../experiment/components/movie/__init__.py:21
 msgid "backend"
@@ -4930,7 +4949,7 @@ msgstr ""
 
 #: ../experiment/components/movie/__init__.py:33
 msgid "Movie: play movie files"
-msgstr ""
+msgstr "影片：播放影片文件"
 
 #: ../experiment/components/movie/__init__.py:59
 #: ../experiment/components/sound/__init__.py:54
@@ -5547,7 +5566,7 @@ msgstr ""
 
 #: ../experiment/components/roi/__init__.py:97
 msgid "Save..."
-msgstr ""
+msgstr "保存..."
 
 #: ../experiment/components/roi/__init__.py:106
 msgid "Time Relative To..."
@@ -5567,64 +5586,64 @@ msgstr ""
 
 #: ../experiment/components/settings/__init__.py:49
 msgid "Experiment info"
-msgstr ""
+msgstr "实验信息"
 
 #: ../experiment/components/settings/__init__.py:50
 msgid "Data filename"
-msgstr ""
+msgstr "数据文件名称"
 
 #: ../experiment/components/settings/__init__.py:51
 #: ../experiment/components/settings/__init__.py:279
 msgid "Data file delimiter"
-msgstr ""
+msgstr "数据文件分隔符"
 
 #: ../experiment/components/settings/__init__.py:52
 msgid "Full-screen window"
-msgstr ""
+msgstr "全屏窗口"
 
 #: ../experiment/components/settings/__init__.py:53
 msgid "Window size (pixels)"
-msgstr ""
+msgstr "窗口大小（像素）"
 
 #: ../experiment/components/settings/__init__.py:55
 msgid "Monitor"
-msgstr ""
+msgstr "监视器"
 
 #: ../experiment/components/settings/__init__.py:57
 msgid "Color space"
-msgstr ""
+msgstr "色彩空间"
 
 #: ../experiment/components/settings/__init__.py:58
 msgid "Units"
-msgstr ""
+msgstr "单位"
 
 #: ../experiment/components/settings/__init__.py:59
 msgid "Blend mode"
-msgstr ""
+msgstr "混合模式"
 
 #: ../experiment/components/settings/__init__.py:60
 msgid "Show mouse"
-msgstr ""
+msgstr "显示鼠标"
 
 #: ../experiment/components/settings/__init__.py:61
 msgid "Save log file"
-msgstr ""
+msgstr "保存日志文件"
 
 #: ../experiment/components/settings/__init__.py:63
 msgid "Save csv file (trial-by-trial)"
-msgstr ""
+msgstr "保存 csv 文件（逐个trial）"
 
 #: ../experiment/components/settings/__init__.py:64
 msgid "Save csv file (summaries)"
-msgstr ""
+msgstr "保存 csv 文件（汇总）"
 
 #: ../experiment/components/settings/__init__.py:65
 msgid "Save excel file"
-msgstr ""
+msgstr "保存 excel 文件"
 
 #: ../experiment/components/settings/__init__.py:66
 msgid "Save psydat file"
-msgstr ""
+msgstr "保存 psydat 文件"
 
 #: ../experiment/components/settings/__init__.py:67
 msgid "Logging level"
@@ -5745,7 +5764,7 @@ msgstr ""
 
 #: ../experiment/components/settings/__init__.py:252
 msgid "Audio library"
-msgstr ""
+msgstr "音频库"
 
 #: ../experiment/components/settings/__init__.py:255
 msgid "use prefs"
@@ -6435,7 +6454,7 @@ msgstr ""
 
 #: ../experiment/routines/_base.py:43
 msgid "name"
-msgstr ""
+msgstr "名称"
 
 #: ../experiment/routines/_base.py:48
 msgid "When does the routine end? (blank is endless)"
@@ -6443,11 +6462,11 @@ msgstr ""
 
 #: ../experiment/routines/_base.py:49 ../localization/__init__.py:162
 msgid "Stop"
-msgstr ""
+msgstr "终止"
 
 #: ../experiment/routines/_base.py:56
 msgid "Stop Type..."
-msgstr ""
+msgstr "终止类型..."
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:12
 msgid "Calibration routine for eyetrackers"
@@ -6517,7 +6536,7 @@ msgstr ""
 #: ../experiment/routines/eyetracker_validate/__init__.py:127
 #: ../localization/__init__.py:169
 msgid "Color Space"
-msgstr ""
+msgstr "颜色空间"
 
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:92
 #: ../experiment/routines/eyetracker_validate/__init__.py:131
@@ -6675,19 +6694,19 @@ msgstr ""
 
 #: ../gui/qtgui.py:93
 msgid "PsychoPy Dialog"
-msgstr ""
+msgstr "Psychopy 对话框"
 
 #: ../gui/qtgui.py:509 ../gui/wxgui.py:336
 msgid "Select file to save"
-msgstr ""
+msgstr "选择要保存的文件"
 
 #: ../gui/qtgui.py:554
 msgid "Select file to open"
-msgstr ""
+msgstr "选择要打开的文件"
 
 #: ../gui/qtgui.py:604
 msgid "Information"
-msgstr ""
+msgstr "信息"
 
 #: ../gui/qtgui.py:606 ../gui/qtgui.py:612 ../gui/qtgui.py:618
 #: ../gui/qtgui.py:624
@@ -6712,15 +6731,15 @@ msgstr ""
 
 #: ../localization/__init__.py:159
 msgid "start type"
-msgstr ""
+msgstr "起始类型"
 
 #: ../localization/__init__.py:160
 msgid "stop type"
-msgstr ""
+msgstr "终止类型"
 
 #: ../localization/__init__.py:161
 msgid "Start"
-msgstr ""
+msgstr "起始"
 
 #: ../localization/__init__.py:163
 msgid "Expected start (s)"
@@ -6884,7 +6903,7 @@ msgstr ""
 
 #: ../monitors/MonitorCenter.py:288
 msgid "Copy..."
-msgstr ""
+msgstr "复制..."
 
 #: ../monitors/MonitorCenter.py:291
 msgid "Creates a new calibration entry for this monitor"
