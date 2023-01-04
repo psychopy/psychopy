@@ -21,6 +21,10 @@ except (ModuleNotFoundError, ImportError):
     logging.error(
         "Support for LabJack hardware is not available this session. Please "
         "install `psychopy-labjack` and restart the session to enable support.")
+except Exception as e:
+    logging.error(
+        "Error encountered while loading `psychopy-labjack`. Check logs for "
+        "more information.")
 
 if __name__ == "__main__":
     pass

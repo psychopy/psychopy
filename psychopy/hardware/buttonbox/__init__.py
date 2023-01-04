@@ -29,19 +29,19 @@ bboxInterfaces = {}
 # Cedrus
 try:
     from ..cedrus import RB730
-except (ModuleNotFoundError, ImportError):
+except Exception:
     RB730 = None
 
 # ioLabs
 try:
     from ..iolab import ButtonBox as ioLabsButtonBox
-except (ModuleNotFoundError, ImportError, NameError):  # NameError from dud pkg
+except Exception:  # NameError from dud pkg
     ioLabsButtonBox = None
 
 # Current Designs
 try:
     from ..forp import ButtonBox as curdesButtonBox
-except (ModuleNotFoundError, ImportError):
+except Exception:
     curdesButtonBox = None
 
 

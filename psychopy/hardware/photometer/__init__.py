@@ -26,25 +26,25 @@ import sys
 # photometer type to do that, but for now we're doing it like this.
 try:
     from ..crs import ColorCAL, OptiCAL
-except (ModuleNotFoundError, ImportError):
+except Exception:
     ColorCAL = OptiCAL = None
 
 # Photo Resaerch Inc. spectroradiometers
 try:
     from ..pr import PR655, PR650
-except (ModuleNotFoundError, ImportError):
+except Exception:
     PR655 = PR650 = None
 
 # Konica Minolta light-measuring devices
 try:
     from ..minolta import LS100, CS100A
-except (ModuleNotFoundError, ImportError):
+except Exception:
     LS100 = CS100A = None
 
 # Gamma scientific devices
 try:
     from ..gammasci import S470
-except (ModuleNotFoundError, ImportError):
+except Exception:
     S470 = None
 
 # photometer interfaces will be stored here after being registered

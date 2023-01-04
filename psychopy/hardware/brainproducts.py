@@ -22,6 +22,10 @@ except (ModuleNotFoundError, ImportError):
         "Support for Brain Products GMBH hardware is not available this "
         "session. Please install `psychopy-brainproducts` and restart the "
         "session to enable support.")
+except Exception as e:
+    logging.error(
+        "Error encountered while loading `psychopy-brainproducts`. Check logs "
+        "for more information.")
 
 if __name__ == "__main__":
     pass

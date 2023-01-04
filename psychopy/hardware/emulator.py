@@ -28,6 +28,10 @@ except (ModuleNotFoundError, ImportError):
         "Support for software fMRI emulation is not available this session. "
         "Please install `psychopy-mri-emulator` and restart the session to "
         "enable support.")
+except Exception as e:
+    logging.error(
+        "Error encountered while loading `psychopy-mri-emulator`. Check logs "
+        "for more information.")
 
 if __name__ == "__main__":
     pass
