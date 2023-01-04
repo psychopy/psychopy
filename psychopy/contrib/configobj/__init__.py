@@ -504,7 +504,17 @@ class Section(dict):
 
     def __getitem__(self, key):
         """Fetch the item and do string interpolation."""
-        val = dict.__getitem__(self, key)
+        try:
+            # Try getting the value from a dict as normal
+            val = dict.__getitem__(self, key)
+        except KeyError as err:
+            if key in ConfigObj.legacy:
+                # If key isn't there, but is in legacy, get it from legacy
+                val = ConfigObj.legacy[key]
+            else:
+                # Otherwise raise the error as normal
+                raise err
+
         if self.main.interpolation:
             if isinstance(val, six.string_types):
                 return self._interpolate(key, val)

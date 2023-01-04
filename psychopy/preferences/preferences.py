@@ -224,10 +224,6 @@ class Preferences:
         # then get the configuration file
         cfg = ConfigObj(self.paths['userPrefsFile'],
                         encoding='UTF8', configspec=self.prefsSpec)
-        # Remove legacy params
-        for param in cfg:
-            if param in ConfigObj.legacy:
-                del cfg[param]
         # cfg.validate(self._validator, copy=False)  # merge then validate
         # don't cfg.write(), see explanation above
         return cfg
@@ -239,11 +235,6 @@ class Preferences:
         self.validate()
         if not os.path.isdir(self.paths['userPrefsDir']):
             os.makedirs(self.paths['userPrefsDir'])
-        # Make sure there are values for legacy params
-        for param, val in ConfigObj.legacy.items():
-            if param not in self.userPrefsCfg:
-                self.userPrefsCfg[param] = val
-        # Write
         self.userPrefsCfg.write()
 
     def loadAppData(self):
