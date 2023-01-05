@@ -286,13 +286,12 @@ class SettingsComponent:
             hint=_translate("Force audio to stereo (2-channel) output"),
             label=_localized["Force stereo"])
         self.params['Audio lib'] = Param(
-            'use prefs', valType='str', inputType="choice",
-            allowedVals=['use prefs', 'ptb', 'pyo', 'sounddevice', 'pygame'],
+            'ptb', valType='str', inputType="choice",
+            allowedVals=['ptb', 'pyo', 'sounddevice', 'pygame'],
             hint=_translate("Which Python sound engine do you want to play your sounds?"),
             label=_translate("Audio library"), categ='Audio')
 
         audioLatencyLabels = [
-            _translate('use prefs'),
             '0: ' + _translate('Latency not important'),
             '1: ' + _translate('Share low-latency driver'),
             '2: ' + _translate('Exclusive low-latency'),
@@ -300,8 +299,8 @@ class SettingsComponent:
             '4: ' + _translate('Latency critical'),
         ]
         self.params['Audio latency priority'] = Param(
-            'use prefs', valType='str', inputType="choice",
-            allowedVals=['use prefs', '0', '1', '2', '3', '4'],
+            '3', valType='str', inputType="choice",
+            allowedVals=['0', '1', '2', '3', '4'],
             allowedLabels=audioLatencyLabels,
             hint=_translate("How important is audio latency for you? If essential then you may need to get all your sounds in correct formats."),
             label=_translate("Audio latency priority"), categ='Audio')

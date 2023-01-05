@@ -122,9 +122,9 @@
 
 # Settings for hardware
 [hardware]
-    # choice of audio library
+    # LEGACY: choice of audio library
     audioLib = list(default=list('sounddevice','PTB', 'pyo', 'pygame'))
-    # latency mode for PsychToolbox audio (3 is good for most applications. See
+    # LEGACY: latency mode for PsychToolbox audio (3 is good for most applications. See
     audioLatencyMode = option(0, 1, 2, 3, 4, default=3)
     # audio driver to use
     audioDriver = list(default=list('portaudio'))
