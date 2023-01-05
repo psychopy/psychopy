@@ -40,7 +40,7 @@ Interacting with Integer Records
 
 Imagine the simple case of wanting to count how many participants have completed your task. You would make an Integer Record, which starts at 0 and assign the scope of the Record to the experiment of interest.
 
-From within your experiment you can use several methods to interact with Integers including (though not limited to; see all methods `here <https://psychopy.github.io/psychojs/module-data.Shelf.html>`_):
+From within your experiment you can use several methods to interact with Integers including (though not limited to; see all methods `here <https://psychopy.github.io/psychojs/Shelf.html>`_):
 
 * :code:`psychoJS.shelf.getIntegerValue()`
 * :code:`psychoJS.shelf.setIntegerValue()`
