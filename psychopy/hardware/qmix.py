@@ -32,6 +32,10 @@ except (ModuleNotFoundError, ImportError):
         "Support for the Cetoni neMESYS syringe pump system is not available "
         "this session. Please install `psychopy-qmix` and restart the session "
         "to enable support.")
+except Exception as e:
+    logging.error(
+        "Error encountered while loading `psychopy-qmix`. Check logs for more "
+        "information.")
 
 if __name__ == "__main__":
     pass

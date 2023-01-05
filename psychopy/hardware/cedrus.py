@@ -27,6 +27,10 @@ except (ModuleNotFoundError, ImportError):
         "Support for Cedrus Corporation hardware is not available this "
         "session. Please install `psychopy-cedrus` and restart the session "
         "to enable support.")
+except Exception as e:
+    logging.error(
+        "Error encountered while loading `psychopy-cedrus`. Check logs for "
+        "more information.")
 
 if __name__ == "__main__":
     pass
