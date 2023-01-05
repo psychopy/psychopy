@@ -7,7 +7,7 @@ from pathlib import Path
 from xml.etree.ElementTree import Element
 import re
 import wx.__version__
-from psychopy import logging
+from psychopy import logging, plugins
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
 import psychopy.tools.versionchooser as versions
@@ -109,7 +109,7 @@ class SettingsComponent:
     tooltip = _translate("Edit settings for this experiment")
 
     def __init__(self, parentName, exp, expName='', fullScr=True,
-                 winSize=(1024, 768), screen=1, monitor='testMonitor',
+                 winSize=(1024, 768), screen=1, monitor='testMonitor', winBackend='pyglet',
                  showMouse=False, saveLogFile=True, showExpInfo=True,
                  expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'001'}",
                  units='height', logging='exp',
@@ -210,6 +210,12 @@ class SettingsComponent:
             fullScr, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Run the experiment full-screen (recommended)"),
             label=_localized["Full-screen window"], categ='Screen')
+        self.params['winBackend'] = Param(
+            winBackend, valType='str', inputType="choice", categ="Screen",
+            allowedVals=plugins.getWindowBackends(),
+            hint=_translate("What Python package should be used behind the scenes for drawing to the window?"),
+            label=_translate("Window backend")
+        )
         self.params['Window size (pixels)'] = Param(
             winSize, valType='list', inputType="single", allowedTypes=[],
             hint=_translate("Size of window (if not fullscreen)"),
@@ -1366,10 +1372,10 @@ class SettingsComponent:
             screenNumber = requestedScreenNumber - 1
 
         size = self.params['Window size (pixels)']
-        winType = self.exp.prefsGeneral['winType']
+        winType = self.params['winBackend']
 
         code = ("win = visual.Window(\n    size=%s, fullscr=%s, screen=%s, "
-                "\n    winType='%s', allowStencil=%s,\n")
+                "\n    winType=%s, allowStencil=%s,\n")
         vals = (size, fullScr, screenNumber, winType, allowStencil)
         buff.writeIndented(code % vals)
 

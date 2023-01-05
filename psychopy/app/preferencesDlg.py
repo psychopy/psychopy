@@ -391,6 +391,10 @@ class PrefPropGrid(wx.Panel):
             for s in sections:
                 _ = pagePtr.Append(pg.PropertyCategory(_localized[s], s))
                 for name, prop in self.sections[s].items():
+                    if name in prefs.legacy:
+                        # If this is included in the config file only for legacy, don't show it
+                        continue
+
                     item = pagePtr.Append(prop)
 
                     # set the appropriate control to edit the attribute

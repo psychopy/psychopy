@@ -430,7 +430,7 @@ class Window():
 
         # setup context and openGL()
         if winType is None:  # choose the default windowing
-            winType = prefs.general['winType']
+            winType = "pyglet"
         self.winType = winType
 
         # setup the context
