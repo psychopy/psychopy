@@ -1390,33 +1390,28 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
     def onPavloviaSync(self, evt=None):
         if Path(self.filename).is_file():
+            # Save file
             self.fileSave(self.filename)
+            # If allowed by prefs, export html and js files
             if self._getExportPref('on sync'):
                 htmlPath = self._getHtmlPath(self.filename)
                 if htmlPath:
                     self.fileExport(htmlPath=htmlPath)
                 else:
                     return
-
+        # Disable button
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
+        # Attempy sync, re-enable buttons if it fails
         try:
             pavlovia_ui.syncProject(parent=self, file=self.filename, project=self.project)
         finally:
             self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
 
     def onPavloviaRun(self, evt=None):
-        if self._getExportPref('on save') or self._getExportPref('on sync'):
-            # If export on save/sync, sync now
-            pavlovia_ui.syncProject(parent=self, project=self.project)
-        elif self._getExportPref('manually'):
-            # If set to manual, only sync if needed to create a project to run
-            if self.project is None:
-                pavlovia_ui.syncProject(parent=self, project=self.project)
+        # Sync project
+        self.onPavloviaSync()
 
         if self.project is not None:
-            # Make sure we have a html file to run
-            if not (Path(self.project.localRoot) / 'index.html').is_file():
-                self.fileExport(htmlPath=self._getHtmlPath(self.filename))
             # Update project status
             self.project.pavloviaStatus = 'ACTIVATED'
             # Run
