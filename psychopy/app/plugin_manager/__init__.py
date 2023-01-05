@@ -9,7 +9,7 @@ from .plugins import PluginManagerPanel
 from .packages import PackageManagerPanel
 
 
-class EnvironmentManagerDlg(wx.Dialog, handlers.ThemeMixin):
+class EnvironmentManagerDlg(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(
             self, parent=parent,

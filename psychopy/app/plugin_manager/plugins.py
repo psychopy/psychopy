@@ -306,11 +306,11 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         def _applyAppTheme(self):
             # Set colors
             if self.HasFocus():
-                bg = colors.app['panel_bg']
-                fg = colors.app['text']
+                bg = colors.app.light['panel_bg']
+                fg = colors.app.light['text']
             else:
-                bg = colors.app['tab_bg']
-                fg = colors.app['text']
+                bg = colors.app.light['tab_bg']
+                fg = colors.app.light['text']
             self.SetBackgroundColour(bg)
             self.SetForegroundColour(fg)
             # Set label fonts
