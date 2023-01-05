@@ -1416,7 +1416,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         if self.project is not None:
             # Make sure we have a html file to run
             if not (Path(self.project.localRoot) / 'index.html').is_file():
-                self.fileExport(htmlPath=Path(self.project.localRoot) / 'index.html')
+                self.fileExport(htmlPath=self._getHtmlPath(self.filename))
             # Update project status
             self.project.pavloviaStatus = 'ACTIVATED'
             # Run
