@@ -214,3 +214,10 @@ class Polygon(BaseShapeStim):
         but use this method if you need to suppress the log message
         """
         setAttribute(self, 'radius', radius, log, operation)
+
+    def setNVertices(self, nVerts, operation='', log=None):
+        """
+        Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        """
+        setAttribute(self, 'vertices', nVerts, log, operation)
