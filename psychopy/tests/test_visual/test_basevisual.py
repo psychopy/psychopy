@@ -351,6 +351,11 @@ class _TestUnitsMixin:
                     obj.units = units
                     obj.size = size[units]
                     obj.pos = pos[units]
+                    # If object can play, make sure it's paused at constant point
+                    if hasattr(self, "defaultFrame") and hasattr(self.obj, "seek"):
+                        self.obj.seek(self.defaultFrame)
+                    if hasattr(self.obj, "pause"):
+                        self.obj.pause()
                     # Draw
                     obj.draw()
                     # Compare screenshot
