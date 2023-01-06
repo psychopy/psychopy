@@ -157,7 +157,7 @@ class SettingsComponent:
         # params
         self.params = {}
         self.depends = []
-        self.order = ['expName', 'Use version', 'Show info dlg', 'Enable Escape',  'Experiment info',  # Basic tab
+        self.order = ['expName', 'Use version', 'Enable Escape',  'Show info dlg', 'Experiment info',  # Basic tab
                       'Data filename', 'Data file delimiter', 'Save excel file', 'Save csv file', 'Save wide csv file',
                       'Save psydat file', 'Save hdf5 file', 'Save log file', 'logging level',  # Data tab
                       'Audio lib', 'Audio latency priority', "Force stereo",  # Audio tab
