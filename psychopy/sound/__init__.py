@@ -81,23 +81,39 @@ if isinstance(prefs.hardware['audioLib'], str):
 for thisLibName in prefs.hardware['audioLib']:
     try:
         if thisLibName.lower() == 'ptb':
-            from . import backend_ptb as backend
-            Sound = backend.SoundPTB
-            audioDriver = backend.audioDriver
+            try:
+                # always installed
+                from . import backend_ptb as backend
+                Sound = backend.SoundPTB
+                audioDriver = backend.audioDriver
+            except Exception:
+                continue
         elif thisLibName == 'pyo':
-            from . import backend_pyo as backend
-            Sound = backend.SoundPyo
-            pyoSndServer = backend.pyoSndServer
-            audioDriver = backend.audioDriver
+            try:
+                from . import backend_pyo as backend
+                Sound = backend.SoundPyo
+                pyoSndServer = backend.pyoSndServer
+                audioDriver = backend.audioDriver
+            except Exception:
+                continue
         elif thisLibName == 'sounddevice':
-            from . import backend_sounddevice as backend
-            Sound = backend.SoundDeviceSound
+            try:
+                from . import backend_sounddevice as backend
+                Sound = backend.SoundDeviceSound
+            except Exception:
+                continue
         elif thisLibName == 'pygame':
-            from . import backend_pygame as backend
-            Sound = backend.SoundPygame
+            try:
+                from . import backend_pygame as backend
+                Sound = backend.SoundPygame
+            except Exception:
+                continue
         elif thisLibName == 'pysoundcard':
-            from . import backend_pysound as backend
-            Sound = backend.SoundPySoundCard
+            try:
+                from . import backend_pysound as backend
+                Sound = backend.SoundPySoundCard
+            except Exception:
+                continue
         else:
             msg = ("audioLib pref should be one of {!r}, not {!r}"
                    .format(_audioLibs, thisLibName))
