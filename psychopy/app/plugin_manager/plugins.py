@@ -3,7 +3,7 @@ from wx.lib import scrolledpanel
 import webbrowser
 from PIL import Image as pil
 
-from .packages import InstallErrorDlg
+from psychopy.tools.pkgtools import installPackage
 from psychopy.app.themes import theme, handlers, colors, icons
 from psychopy.app import utils
 from psychopy.localization import _translate
@@ -150,10 +150,11 @@ class PluginInfo:
         self.active = False
 
     def install(self):
-        self._execute("install")
+        installPackage(self.pipname)
 
     def uninstall(self):
-        self._execute("uninstall")
+        #todo: Use pkgtools.uninstallPackage when written
+        pass
 
     @property
     def installed(self):
@@ -171,28 +172,6 @@ class PluginInfo:
             self.install()
         elif self.installed:
             self.uninstall()
-
-    def _execute(self, action):
-        # Install/uninstall
-        emts = [sys.executable, "-m", "pip", action, self.pipname]
-        cmd = " ".join(emts)
-        output = sp.Popen(cmd,
-                          stdout=sp.PIPE,
-                          stderr=sp.PIPE,
-                          shell=True,
-                          universal_newlines=True)
-        stdout, stderr = output.communicate()
-        sys.stdout.write(stdout)
-        sys.stderr.write(stderr)
-        # Throw up error dlg if needed
-        if stderr:
-            dlg = InstallErrorDlg(
-                label=_translate("Could not install %s") % self.pipname,
-                cmd=" ".join(emts[2:]),
-                stdout=stdout,
-                stderr=stderr
-            )
-            dlg.ShowModal()
 
     @property
     def author(self):
@@ -551,17 +530,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Do install
         self.info.install()
         # Mark according to install success
-        if self.info.installed:
-            self.markInstalled(True)
-        else:
-            dlg = wx.MessageDialog(
-                self,
-                message=_translate(
-                    "Plugin %s failed to install, no error given."
-                ) % self.info.pipname,
-                style=wx.ICON_ERROR
-            )
-            dlg.ShowModal()
+        self.markInstalled(self.info.installed)
 
     def onActivate(self, evt=None):
         if self.activeBtn.GetValue():
