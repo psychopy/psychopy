@@ -329,6 +329,12 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_TEXT, self.onChangeScrPixVert, self.ctrlScrPixVert)
         ScrPixelsSizer = wx.BoxSizer(wx.HORIZONTAL)
         ScrPixelsSizer.AddMany([self.ctrlScrPixHoriz, self.ctrlScrPixVert])
+        # Button to run credit card test
+        self.ctrlScrPixCreditCard = wx.Button(parent, label="Calculate...")
+        self.ctrlScrPixCreditCard.SetToolTip(_translate(
+            "Use a credit card to work out the size of the screen."
+        ))
+        self.ctrlScrPixCreditCard.Bind(wx.EVT_BUTTON, self.calculateScreenSize)
 
         # date
         labelCalibDate = wx.StaticText(parent, -1,
@@ -357,6 +363,7 @@ class MainFrame(wx.Frame):
             labelScrDist, self.ctrlScrDist,
             labelScrPixels, ScrPixelsSizer,
             labelScrWidth, self.ctrlScrWidth,
+            (-1, -1), self.ctrlScrPixCreditCard,
             labelCalibDate, self.ctrlCalibDate
         ])
         infoBoxGrid.Layout()
@@ -741,6 +748,85 @@ class MainFrame(wx.Frame):
             newVal = None
         self.currentMon.setWidth(newVal)
         self.unSavedMonitor = True
+
+    def calculateScreenSize(self, evt=None):
+        from psychopy import visual, event, layout
+        import numpy as np
+
+        # Create window
+        win = visual.Window(
+            size=(self.ctrlScrPixHoriz.GetValue(), self.ctrlScrPixVert.GetValue()),
+            monitor=self.currentMonName,
+            fullscr=True
+        )
+        # Credit card object
+        obj = visual.ImageStim(win,
+                               image="creditCard.png",
+                               size=layout.Size((8.56, 5.398), units="cm", win=win),
+                               units="pix")
+        # Instructions
+        msg = _translate(
+            "Hold up a credit card to the screen and adjust the sliders until the image on screen is the same size as "
+            "the card in real life. Any credit-card-sized object will do, such as a library card or store gift card. "
+            "Based on this and the resolution of your screen in pixels, PsychoPy will work out the physical size of "
+            "your monitor.\n\n"
+            "Press ENTER when done, or ESCAPE at any time to quit."
+        )
+        instr = visual.TextBox2(win,
+                                text=msg,
+                                size=(1, 0.4),
+                                pos=(0, 0.8),
+                                units="norm",
+                                alignment="center")
+        # Width and height controls
+        widthCtrl = visual.Slider(win,
+                                  startValue=obj.size[0],
+                                  ticks=(100, win.size[0]),
+                                  style="slider",
+                                  pos=(0, -0.8),
+                                  size=layout.Size((0.6, 0.1), units="height", win=win),
+                                  units="norm")
+        heightCtrl = visual.Slider(win,
+                                   ticks=(100, win.size[1]),
+                                   startValue=obj.size[1],
+                                   style="slider",
+                                   pos=(0.8, 0),
+                                   size=layout.Size((0.1, 0.6), units="height", win=win),
+                                   units="norm")
+        # Start frame loop
+        keys = []
+        while not keys:
+            # Set object size according to width and height ctrls
+            obj.size = (widthCtrl.markerPos, heightCtrl.markerPos)
+            # Draw everything
+            obj.draw()
+            widthCtrl.draw()
+            heightCtrl.draw()
+            instr.draw()
+            # Flip screen
+            win.flip()
+            # Check for keypresses again
+            keys = event.getKeys(['return', 'escape'])
+
+        # Work out physical size of screen
+        if "return" in keys:
+            # Get dimensions of card in mm and pix
+            cardSizeMM = np.array([85.6, 53.98])
+            cardSizePix = obj.size
+            # Work out ratio of pixels to mm
+            pix2mm = cardSizeMM / cardSizePix
+            # Get dimensions of screen in pix
+            screenSizePix = win.size
+            # Apply ratio to get screen size in mm
+            screenSizeMM = screenSizePix * pix2mm
+            # Convert to cm
+            screenSizeCM = screenSizeMM / 10
+            # Set values
+            self.ctrlScrPixHoriz.SetValue(str(win.size[0]))
+            self.ctrlScrPixVert.SetValue(str(win.size[1]))
+            self.ctrlScrWidth.SetValue(str(screenSizeCM[0]))
+        # Close window
+        win.close()
 
     def onChangeScrPixHoriz(self, event):
         this = self.currentMon.currentCalib
