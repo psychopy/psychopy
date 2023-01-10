@@ -11,42 +11,7 @@ from psychopy.app.themes import handlers, icons
 from psychopy.localization import _translate
 from psychopy.tools import filetools as ft
 
-from psychopy.tools.pkgtools import getInstalledPackages, getPackageMetadata, getPypiInfo, isInstalled
-
-
-def installPackage(name, version=None):
-    # Append version if given
-    if version is not None:
-        name += f"=={version}"
-    # Attempt to install
-    emts = [sys.executable, "-m pip install", name]
-    output = sp.Popen(' '.join(emts),
-                      stdout=sp.PIPE,
-                      stderr=sp.PIPE,
-                      shell=True,
-                      universal_newlines=True)
-    stdout, stderr = output.communicate()
-    sys.stdout.write(stdout)
-    sys.stderr.write(stderr)
-
-    if output.returncode != 0:
-        # Display output if error
-        cmd = "\n>> pip install" + name + "\n"
-        dlg = InstallErrorDlg(
-            cmd=cmd,
-            stdout=stdout,
-            stderr=stderr,
-            label=_translate("Package {} could not be installed.").format(name)
-        )
-    else:
-        # Display success message if success
-        dlg = wx.MessageDialog(
-            parent=None,
-            caption=_translate("Package installed"),
-            message=_translate("Package {} successfully installed!").format(name),
-            style=wx.ICON_INFORMATION
-        )
-    dlg.ShowModal()
+from psychopy.tools.pkgtools import getInstalledPackages, getPackageMetadata, getPypiInfo, isInstalled, installPackage
 
 
 def uninstallPackage(name):
@@ -590,8 +555,13 @@ class PackageDetailsPanel(wx.Panel):
                     break
 
     def onInstall(self, evt=None):
+        name = self.package
+        version = self.versionCtrl.GetStringSelection()
+        # Append version if given
+        if version is not None:
+            name += f"=={version}"
         # Install package then disable the button to indicate it's installed
-        installPackage(self.package, version=self.versionCtrl.GetStringSelection())
+        installPackage(name)
         self.installBtn.Disable()
 
     def onVersion(self, evt=None):
