@@ -26,82 +26,6 @@ def uninstallPackage(name):
     sys.stdout.write(stdout)
     sys.stderr.write(stderr)
 
-    if output.returncode != 0:
-        # Display output if error
-        cmd = "\n>> pip uninstall" + name + "\n"
-        dlg = InstallErrorDlg(
-            cmd=cmd,
-            stdout=stdout,
-            stderr=stderr,
-            label=_translate("Package {} could not be uninstalled.").format(name)
-        )
-    else:
-        # Display success message if success
-        dlg = wx.MessageDialog(
-            parent=None,
-            caption=_translate("Package uninstalled"),
-            message=_translate("Package {} successfully uninstalled!").format(name),
-            style=wx.ICON_INFORMATION
-        )
-    dlg.ShowModal()
-
-
-class InstallErrorDlg(wx.Dialog, handlers.ThemeMixin):
-    def __init__(self, label, caption=_translate("PIP error"), cmd="", stdout="", stderr=""):
-        from psychopy.app.themes import fonts
-        # Initialise
-        wx.Dialog.__init__(
-            self, None,
-            size=(480, 620),
-            title=caption,
-            style=wx.RESIZE_BORDER | wx.CLOSE_BOX | wx.CAPTION
-        )
-        # Setup sizer
-        self.border = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(self.border)
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
-        # Create title sizer
-        self.title = wx.BoxSizer(wx.HORIZONTAL)
-        self.sizer.Add(self.title, border=6, flag=wx.ALL | wx.EXPAND)
-        # Create icon
-        self.icon = wx.StaticBitmap(
-            self, size=(32, 32),
-            bitmap=icons.ButtonIcon(stem="stop", size=32).bitmap
-        )
-        self.title.Add(self.icon, border=6, flag=wx.ALL | wx.EXPAND)
-        # Create title
-        self.titleLbl = wx.StaticText(self, label=label)
-        self.titleLbl.SetFont(fonts.appTheme['h3'].obj)
-        self.title.Add(self.titleLbl, proportion=1, border=6, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        # Show what we tried
-        self.inLbl = wx.StaticText(self, label=_translate("We tried:"))
-        self.sizer.Add(self.inLbl, border=6, flag=wx.ALL | wx.EXPAND)
-        self.inCtrl = wx.TextCtrl(self, value=cmd, style=wx.TE_READONLY)
-        self.inCtrl.SetBackgroundColour("white")
-        self.inCtrl.SetFont(fonts.appTheme['code'].obj)
-        self.sizer.Add(self.inCtrl, border=6, flag=wx.ALL | wx.EXPAND)
-        # Show what we got
-        self.outLbl = wx.StaticText(self, label=_translate("We got:"))
-        self.sizer.Add(self.outLbl, border=6, flag=wx.ALL | wx.EXPAND)
-        self.outCtrl = wx.TextCtrl(self, value=f"{stdout}\n{stderr}",
-                                   size=(-1, 620), style=wx.TE_READONLY | wx.TE_MULTILINE)
-        self.outCtrl.SetFont(fonts.appTheme['code'].obj)
-        self.sizer.Add(self.outCtrl, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
-
-        # Make buttons
-        self.btns = self.CreateStdDialogButtonSizer(flags=wx.OK)
-        self.border.Add(self.btns, border=6, flag=wx.ALIGN_RIGHT | wx.ALL)
-
-        self.Layout()
-        self._applyAppTheme()
-
-    def ShowModal(self):
-        # Make error noise
-        wx.Bell()
-        # Show as normal
-        wx.Dialog.ShowModal(self)
-
 
 class PackageManagerPanel(wx.Panel):
     def __init__(self, parent):
@@ -364,45 +288,6 @@ class PackageListCtrl(wx.Panel):
             installPackage(dlg.GetPath())
             # Reload packages
             self.refresh()
-
-    def execute(self, params):
-        """
-        Execute a pip command
-
-        Parameters
-        ----------
-        params : str or list
-            Pip command params (everything after the word `pip`)
-        """
-        if not isinstance(params, str):
-            params = " ".join(params)
-        # Construct pip command
-        cmd = f"{sys.executable} -m pip {params}"
-        # Send to console
-        output = sp.Popen(cmd,
-                          stdout=sp.PIPE,
-                          stderr=sp.PIPE,
-                          shell=True,
-                          universal_newlines=True)
-        stdout, stderr = output.communicate()
-        # Show error dialog if something went wrong
-        if stderr:
-            mode = params.split(" ")[0]
-            dlg = InstallErrorDlg(
-                cmd=cmd,
-                stdout=stdout,
-                stderr=stderr,
-                label=_translate("Failed to {} package").format(mode))
-            dlg.ShowModal()
-        else:
-            dlg = wx.MessageDialog(
-                self,
-                message=_translate("Successfully completed: `pip {}`").format(params),
-                style=wx.ICON_INFORMATION
-            )
-            dlg.ShowModal()
-        # Refresh packages list
-        self.refresh()
 
 
 class PackageDetailsPanel(wx.Panel):
