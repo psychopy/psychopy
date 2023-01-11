@@ -3,7 +3,7 @@ from wx.lib import scrolledpanel
 import webbrowser
 from PIL import Image as pil
 
-from psychopy.tools.pkgtools import installPackage
+from psychopy.tools.pkgtools import installPackage, uninstallPackage
 from psychopy.app.themes import theme, handlers, colors, icons
 from psychopy.app import utils
 from psychopy.localization import _translate
@@ -151,9 +151,11 @@ class PluginInfo:
 
     def install(self):
         installPackage(self.pipname)
+        plugins.scanPlugins()
 
     def uninstall(self):
-        #todo: Use pkgtools.uninstallPackage when written
+        uninstallPackage(self.pipname)
+        plugins.scanPlugins()
         pass
 
     @property
