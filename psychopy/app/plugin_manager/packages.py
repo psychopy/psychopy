@@ -11,20 +11,9 @@ from psychopy.app.themes import handlers, icons
 from psychopy.localization import _translate
 from psychopy.tools import filetools as ft
 
-from psychopy.tools.pkgtools import getInstalledPackages, getPackageMetadata, getPypiInfo, isInstalled, installPackage
-
-
-def uninstallPackage(name):
-    # Attempt to uninstall
-    emts = [sys.executable, "-m pip uninstall", name]
-    output = sp.Popen(' '.join(emts),
-                      stdout=sp.PIPE,
-                      stderr=sp.PIPE,
-                      shell=True,
-                      universal_newlines=True)
-    stdout, stderr = output.communicate()
-    sys.stdout.write(stdout)
-    sys.stderr.write(stderr)
+from psychopy.tools.pkgtools import (
+    getInstalledPackages, getPackageMetadata, getPypiInfo, isInstalled, installPackage, uninstallPackage
+)
 
 
 class PackageManagerPanel(wx.Panel):
