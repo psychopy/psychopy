@@ -194,19 +194,19 @@ def installPackage(package, target=None, upgrade=False, forceReinstall=False,
     # Handle errors
     if output.returncode != 0:
         # Display output if error
-        cmd = "\n>> pip uninstall" + package + "\n"
+        cmd = "\n>> " + " ".join(cmd) + "\n"
         dlg = InstallErrorDlg(
             cmd=cmd,
             stdout=stdout,
             stderr=stderr,
-            label=_translate("Package {} could not be uninstalled.").format(package)
+            label=_translate("Package {} could not be installed.").format(package)
         )
     else:
         # Display success message if success
         dlg = wx.MessageDialog(
             parent=None,
             caption=_translate("Package installed"),
-            message=_translate("Package {} successfully uninstalled!").format(package),
+            message=_translate("Package {} successfully installed!").format(package),
             style=wx.ICON_INFORMATION
         )
     dlg.ShowModal()
@@ -260,7 +260,7 @@ def uninstallPackage(package):
     # Handle errors
     if output.returncode != 0:
         # Display output if error
-        cmd = "\n>> pip install" + package + "\n"
+        cmd = "\n>> " + " ".join(cmd) + "\n"
         dlg = InstallErrorDlg(
             cmd=cmd,
             stdout=stdout,
