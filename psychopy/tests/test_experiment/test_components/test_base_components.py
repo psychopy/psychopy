@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from psychopy import experiment
+from psychopy.experiment.components import BaseComponent
 
 
 def _make_minimal_experiment(obj):
@@ -48,6 +49,9 @@ def _find_global_resource_in_js_experiment(script, resource):
 
 
 class _TestBaseComponentsMixin:
+    # Class in the PsychoPy libraries (visual, sound, hardware, etc.) corresponding to this component
+    libraryClass = None
+
     def test_icons(self):
         """Check that component has icons for each app theme"""
         # Skip whole test if required attributes aren't present
@@ -104,6 +108,42 @@ class _TestBaseComponentsMixin:
                 assert str(param) in script, (
                     f"Value {param} of <psychopy.experiment.params.Param: val={param.val}, valType={param.valType}> "
                     f"in {type(comp).__name__} not found in {target} script."
+                )
+
+    def test_param_settable(self):
+        """
+        Check that all params which are settable each frame/repeat have a set method in the corresponding class.
+        """
+        # Skip if there's no corresponding library class
+        if self.libraryClass is None:
+            return
+        # Make minimal experiment just for this test
+        comp, rt, exp = _make_minimal_experiment(self)
+        # Check each param
+        for paramName, param in comp.params.items():
+            if not param.direct:
+                # Skip if param is not directly used
+                continue
+            if param.allowedUpdates is None:
+                # Skip if no allowed updates
+                continue
+            # Check whether param is settable each frame/repeat
+            settable = {
+                "repeat": "set every repeat" in param.allowedUpdates,
+                "frame": "set every frame" in param.allowedUpdates
+            }
+            if any(settable.values()):
+                # Get string for settable type
+                settableList = []
+                for key in settable:
+                    if settable[key]:
+                        settableList.append(f"every {key}")
+                settableStr = " or ".join(settableList)
+                # Work out what method name should be
+                methodName = "set" + BaseComponent._getParamCaps(comp, paramName)
+                # If settable, check for a set method in library class
+                assert hasattr(self.libraryClass, methodName), (
+                    f"Parameter {paramName} can be set {settableStr}, but does not have a method {methodName}"
                 )
 
 

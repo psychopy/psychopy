@@ -28,6 +28,7 @@ import hashlib
 import importlib
 
 import pkg_resources
+import psychopy.tools.pkgtools as pkgtools
 
 from psychopy import logging
 from psychopy.preferences import prefs
@@ -243,6 +244,11 @@ def scanPlugins():
     global _installed_plugins_
     _installed_plugins_ = {}  # clear installed plugins
 
+    # make sure we have the plugin directory in the working set
+    pluginDir = prefs.paths['packages']
+    if pluginDir not in pkg_resources.working_set.entries:
+        pkg_resources.working_set.add_entry(pluginDir)
+
     # find all packages with entry points defined
     pluginEnv = pkg_resources.Environment()  # supported by the platform
     dists, _ = pkg_resources.working_set.find_plugins(pluginEnv)
@@ -253,6 +259,10 @@ def scanPlugins():
             logging.debug('Found plugin `{}` at location `{}`.'.format(
                 dist.project_name, dist.location))
             _installed_plugins_[dist.project_name] = entryMap
+
+            # try adding the plugin to the working set
+            if dist.location not in pkg_resources.working_set.entries:
+                pkg_resources.working_set.add(dist)
 
     return len(_installed_plugins_)
 

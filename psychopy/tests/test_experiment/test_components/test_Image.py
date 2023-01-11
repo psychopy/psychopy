@@ -2,10 +2,13 @@ from psychopy.experiment import Experiment
 from psychopy.experiment.components.image import ImageComponent
 from psychopy.experiment.loops import TrialHandler
 from psychopy.experiment.routines import Routine
-from .test_base_components import _TestDepthMixin
+from .test_base_components import _TestDepthMixin, _TestBaseComponentsMixin
+from psychopy.visual.image import ImageStim
 
 
-class TestImage(_TestDepthMixin):
+class TestImage(_TestBaseComponentsMixin, _TestDepthMixin):
+    libraryClass = ImageStim
+
     def setup(self):
         # Make blank experiment
         self.exp = Experiment()

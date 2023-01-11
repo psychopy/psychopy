@@ -12,6 +12,7 @@ __all__ = [
     'getDistributions',
     'addDistribution',
     'installPackage',
+    'uninstallPackage',
     'getInstalledPackages',
     'getPackageMetadata',
     'getPypiInfo',
@@ -175,8 +176,54 @@ def installPackage(package, target=None, upgrade=False, forceReinstall=False,
     if noDeps:
         cmd.append('--no-deps')
 
-    # do not prompt, we cannot accept input
-    cmd.append('--no-input')
+    cmd.append('--no-input')  # do not prompt, we cannot accept input
+    cmd.append('--no-color')  # no color for console, not supported
+
+    # run command in subprocess
+    output = sp.Popen(
+        cmd,
+        stdout=sp.PIPE,
+        stderr=sp.PIPE,
+        shell=False,
+        universal_newlines=True)
+    stdout, stderr = output.communicate()  # blocks until process exits
+
+    sys.stdout.write(stdout)
+    sys.stderr.write(stderr)
+
+    if stderr:   # any error, return False
+        return False
+
+    return True
+
+
+def uninstallPackage(package):
+    """Uninstall a package from the current distribution.
+
+    Parameters
+    ----------
+    package : str
+        Package name (e.g., `'psychopy-connect'`, `'scipy'`, etc.) with version
+        if needed. You may also specify URLs to Git repositories and such.
+
+    Returns
+    -------
+    bool
+        `True` if the package removed without errors. If `False`, check 'stderr'
+        for more information. The package may still have uninstalled correctly,
+        but some other issues may have arose during the process.
+
+    Notes
+    -----
+    * The `--yes` flag is appened to the pip command. No confirmation will be
+      requested if the package already exists.
+
+    """
+    # construct the pip command and execute as a subprocess
+    cmd = [sys.executable, "-m", "pip", "uninstall", package, "--yes"]
+
+    cmd.append('--no-input')  # cancels out `--yes`?
+    cmd.append('--no-color')  # no color for console, not supported
 
     # run command in subprocess
     output = sp.Popen(
