@@ -13,7 +13,7 @@ class TestImage(_TestUnitsMixin, _TestBoilerplateMixin):
     Test that images render as expected. Note: In BaseVisual tests, image colors will look different than
     seems intuitive as foreColor will be set to `"blue"`.
     """
-    def setup(self):
+    def setup_method(self):
         self.win = visual.Window()
         self.obj = visual.ImageStim(
             self.win,

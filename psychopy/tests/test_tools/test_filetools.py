@@ -67,7 +67,7 @@ class TestOpenOutputFile():
 
 
 class TestFromFile():
-    def setup(self):
+    def setup_method(self):
         self.tmp_dir = mkdtemp(prefix='psychopy-tests-%s' %
                                       type(self).__name__)
 
