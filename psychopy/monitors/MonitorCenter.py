@@ -755,7 +755,7 @@ class MainFrame(wx.Frame):
 
         # Create window
         win = visual.Window(
-            size=(self.ctrlScrPixHoriz.GetValue(), self.ctrlScrPixVert.GetValue()),
+            size=(float(self.ctrlScrPixHoriz.GetValue()), float(self.ctrlScrPixVert.GetValue())),
             monitor=self.currentMonName,
             fullscr=True
         )
@@ -822,9 +822,9 @@ class MainFrame(wx.Frame):
             # Convert to cm
             screenSizeCM = screenSizeMM / 10
             # Set values
-            self.ctrlScrPixHoriz.SetValue(str(win.size[0]))
-            self.ctrlScrPixVert.SetValue(str(win.size[1]))
-            self.ctrlScrWidth.SetValue(str(screenSizeCM[0]))
+            self.ctrlScrPixHoriz.SetValue(f"{win.size[0]:.0f}")
+            self.ctrlScrPixVert.SetValue(f"{win.size[1]:.0f}")
+            self.ctrlScrWidth.SetValue(f"{screenSizeCM[0]:.2f}")
         # Close window
         win.close()
 
