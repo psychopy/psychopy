@@ -330,7 +330,7 @@ class MainFrame(wx.Frame):
         ScrPixelsSizer = wx.BoxSizer(wx.HORIZONTAL)
         ScrPixelsSizer.AddMany([self.ctrlScrPixHoriz, self.ctrlScrPixVert])
         # Button to run credit card test
-        self.ctrlScrPixCreditCard = wx.Button(parent, label="Calculate...")
+        self.ctrlScrPixCreditCard = wx.Button(parent, label="Estimate...")
         self.ctrlScrPixCreditCard.SetToolTip(_translate(
             "Use a credit card to work out the size of the screen."
         ))
