@@ -387,6 +387,10 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         # Setup items
         self.items = []
         self.populate()
+        # Store state of plugins on init so we can detect changes later
+        self.initState = {}
+        for item in self.items:
+            self.initState[item.info.pipname] = {"installed": item.info.installed, "active": item.info.active}
 
     def populate(self):
         for item in self.items:
@@ -415,6 +419,36 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             item.Show(match)
 
         self.Layout()
+
+    def getChanges(self):
+        """
+        Check what plugins have changed state (installed, active) since this dialog was opened
+        """
+        changes = {}
+        for item in self.items:
+            info = item.info
+            # Skip if its init state wasn't stored
+            if info.pipname not in self.initState:
+                continue
+            # Get inits
+            inits = self.initState[info.pipname]
+
+            itemChanges = []
+            # Has it been activated?
+            if info.active and not inits['active']:
+                itemChanges.append("activated")
+            # Has it been deactivated?
+            if inits['active'] and not info.active:
+                itemChanges.append("deactivated")
+            # Has it been installed?
+            if info.installed and not inits['installed']:
+                itemChanges.append("installed")
+
+            # Add changes if there are any
+            if itemChanges:
+                changes[info.pipname] = itemChanges
+
+        return changes
 
     def onClick(self, evt=None):
         self.SetFocusIgnoringChildren()

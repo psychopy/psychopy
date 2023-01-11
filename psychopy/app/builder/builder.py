@@ -1387,6 +1387,8 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def openPluginManager(self, evt=None):
         dlg = plugin_manager.EnvironmentManagerDlg(self)
         dlg.ShowModal()
+        # Do post-close checks
+        dlg.onClose()
 
     def onPavloviaSync(self, evt=None):
         if Path(self.filename).is_file():
@@ -2859,6 +2861,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
     def onPluginBtn(self, evt=None):
         dlg = plugin_manager.EnvironmentManagerDlg(self)
         dlg.ShowModal()
+        # Do post-close checks
+        dlg.onClose()
 
 
 class ReadmeFrame(wx.Frame, handlers.ThemeMixin):
