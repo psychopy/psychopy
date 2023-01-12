@@ -200,15 +200,36 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
         self.themesMenu = ThemeSwitcher(app=self.app)
         viewMenu.AppendSubMenu(self.themesMenu,
                            _translate("&Themes"))
-        # Add frame switcher
-        self.windowMenu = FrameSwitcher(self)
 
         # Create menus
         self.runnerMenu.Append(fileMenu, _translate('&File'))
         self.runnerMenu.Append(viewMenu, _translate('&View'))
         self.runnerMenu.Append(runMenu, _translate('&Run'))
         self.runnerMenu.Append(demosMenu, _translate('&Demos'))
-        self.runnerMenu.Append(self.windowMenu, _translate('&Window'))
+
+        # Add frame switcher
+        self.windowMenu = FrameSwitcher(self)
+        if sys.platform == "darwin":
+            # If on Mac, Window is overwritten by OS, so add the buttons individually to the software menu item
+            windowMenuMac = self.runnerMenu.OSXGetAppleMenu()
+            windowMenuMac.AppendSeparator()
+            # Builder
+            item = windowMenuMac.Append(
+                wx.ID_ANY, _translate("Show &builder"), _translate("Show builder")
+            )
+            self.Bind(wx.EVT_MENU, self.app.showBuilder, item)
+            # Coder
+            item = windowMenuMac.Append(
+                wx.ID_ANY, _translate("Show &coder"), _translate("Show coder")
+            )
+            self.Bind(wx.EVT_MENU, self.app.showCoder, item)
+            # Builder
+            item = windowMenuMac.Append(
+                wx.ID_ANY, _translate("Show &runner"), _translate("Show runner")
+            )
+            self.Bind(wx.EVT_MENU, self.app.showRunner, item)
+        else:
+            self.runnerMenu.Append(self.windowMenu, _translate('&Window'))
 
     def saveTaskList(self, evt=None):
         """Save task list as psyrun file."""

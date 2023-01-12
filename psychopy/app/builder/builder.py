@@ -548,8 +548,28 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         # ---_window---#000000#FFFFFF-----------------------------------------
         self.windowMenu = FrameSwitcher(self)
-        menuBar.Append(self.windowMenu,
-                    _translate("&Window"))
+        if sys.platform == "darwin":
+            # If on Mac, Window is overwritten by OS, so add the buttons individually to the software menu item
+            windowMenuMac = menuBar.OSXGetAppleMenu()
+            windowMenuMac.AppendSeparator()
+            # Builder
+            item = windowMenuMac.Append(
+                wx.ID_ANY, _translate("Show &builder"), _translate("Show builder")
+            )
+            self.Bind(wx.EVT_MENU, self.app.showBuilder, item)
+            # Coder
+            item = windowMenuMac.Append(
+                wx.ID_ANY, _translate("Show &coder"), _translate("Show coder")
+            )
+            self.Bind(wx.EVT_MENU, self.app.showCoder, item)
+            # Builder
+            item = windowMenuMac.Append(
+                wx.ID_ANY, _translate("Show &runner"), _translate("Show runner")
+            )
+            self.Bind(wx.EVT_MENU, self.app.showRunner, item)
+        else:
+            menuBar.Append(self.windowMenu,
+                        _translate("&Window"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()
