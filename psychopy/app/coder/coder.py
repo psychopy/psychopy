@@ -1621,17 +1621,6 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         menu = self.viewMenu
         menuBar.Append(self.viewMenu, _translate('&View'))
 
-        # Frame switcher (legacy
-        # item = menu.Append(wx.ID_ANY,
-        #                    _translate("Go to Builder view"),
-        #                    _translate("Go to the Builder view"))
-        # self.Bind(wx.EVT_MENU, self.app.showBuilder, id=item.GetId())
-        #
-        # item = menu.Append(wx.ID_ANY,
-        #                    _translate("Open Runner view"),
-        #                    _translate("Open the Runner view"))
-        # self.Bind(wx.EVT_MENU, self.app.showRunner, item)
-        # menu.AppendSeparator()
         # Panel switcher
         self.panelsMenu = wx.Menu()
         menu.AppendSubMenu(self.panelsMenu,
@@ -1692,6 +1681,11 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.themesMenu = ThemeSwitcher(app=self.app)
         menu.AppendSubMenu(self.themesMenu,
                            _translate("&Themes"))
+
+        # Frame switcher
+        framesMenu = wx.Menu()
+        FrameSwitcher.makeViewSwitcherButtons(framesMenu, frame=self, app=self.app)
+        menu.AppendSubMenu(framesMenu, _translate("&Frames"))
 
         # ---_view---#000000#FFFFFF-------------------------------------------
         # self.shellMenu = wx.Menu()
@@ -1801,21 +1795,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
             # If on Mac, Window is overwritten by OS, so add the buttons individually to the software menu item
             windowMenuMac = menuBar.OSXGetAppleMenu()
             windowMenuMac.AppendSeparator()
-            # Builder
-            item = windowMenuMac.Append(
-                wx.ID_ANY, _translate("Show &builder"), _translate("Show builder")
-            )
-            self.Bind(wx.EVT_MENU, self.app.showBuilder, item)
-            # Coder
-            item = windowMenuMac.Append(
-                wx.ID_ANY, _translate("Show &coder"), _translate("Show coder")
-            )
-            self.Bind(wx.EVT_MENU, self.app.showCoder, item)
-            # Runner
-            item = windowMenuMac.Append(
-                wx.ID_ANY, _translate("Show &runner"), _translate("Show runner")
-            )
-            self.Bind(wx.EVT_MENU, self.app.showRunner, item)
+
         else:
             menuBar.Append(self.windowMenu,
                            _translate("&Window"))

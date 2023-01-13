@@ -415,10 +415,15 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate("Smaller routine items"))
         self.Bind(wx.EVT_MENU, self.routinePanel.decreaseSize, item)
         menu.AppendSeparator()
-        # Add Theme Switcher
+
+        # Frame switcher
+        framesMenu = wx.Menu()
+        FrameSwitcher.makeViewSwitcherButtons(framesMenu, frame=self, app=self.app)
+        menu.AppendSubMenu(framesMenu, _translate("&Frames"))
+
+        # Theme switcher
         self.themesMenu = ThemeSwitcher(app=self.app)
-        menu.AppendSubMenu(self.themesMenu,
-                               _translate("&Themes"))
+        menu.AppendSubMenu(self.themesMenu, _translate("&Themes"))
 
         # ---_tools ---#000000#FFFFFF-----------------------------------------
         self.toolsMenu = wx.Menu()
@@ -548,28 +553,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         # ---_window---#000000#FFFFFF-----------------------------------------
         self.windowMenu = FrameSwitcher(self)
-        if sys.platform == "darwin":
-            # If on Mac, Window is overwritten by OS, so add the buttons individually to the software menu item
-            windowMenuMac = menuBar.OSXGetAppleMenu()
-            windowMenuMac.AppendSeparator()
-            # Builder
-            item = windowMenuMac.Append(
-                wx.ID_ANY, _translate("Show &builder"), _translate("Show builder")
-            )
-            self.Bind(wx.EVT_MENU, self.app.showBuilder, item)
-            # Coder
-            item = windowMenuMac.Append(
-                wx.ID_ANY, _translate("Show &coder"), _translate("Show coder")
-            )
-            self.Bind(wx.EVT_MENU, self.app.showCoder, item)
-            # Runner
-            item = windowMenuMac.Append(
-                wx.ID_ANY, _translate("Show &runner"), _translate("Show runner")
-            )
-            self.Bind(wx.EVT_MENU, self.app.showRunner, item)
-        else:
-            menuBar.Append(self.windowMenu,
-                        _translate("&Window"))
+        menuBar.Append(self.windowMenu, _translate("&Window"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()

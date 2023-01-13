@@ -575,25 +575,6 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             for exp in [file for file in args if file.endswith('.psyexp') or file.endswith('.py')]:
                 self.runner.panel.runFile(exp)
 
-        # Add frame switching controls to common menu bar on Mac
-        if sys.platform == "darwin":
-            commonBar = wx.MenuBar.MacGetCommonMenuBar()
-            # Builder
-            item = commonBar.Append(
-                wx.ID_ANY, _translate("Show &builder"), _translate("Show builder")
-            )
-            self.Bind(wx.EVT_MENU, self.showBuilder, item)
-            # Coder
-            item = commonBar.Append(
-                wx.ID_ANY, _translate("Show &coder"), _translate("Show coder")
-            )
-            self.Bind(wx.EVT_MENU, self.showCoder, item)
-            # Runner
-            item = commonBar.Append(
-                wx.ID_ANY, _translate("Show &runner"), _translate("Show runner")
-            )
-            self.Bind(wx.EVT_MENU, self.showRunner, item)
-
         # send anonymous info to www.psychopy.org/usage.php
         # please don't disable this, it's important for PsychoPy's development
         self._latestAvailableVersion = None

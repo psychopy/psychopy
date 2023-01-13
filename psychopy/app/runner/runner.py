@@ -150,10 +150,6 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
         ]
 
         viewMenuItems = [
-            {'id': wx.ID_ANY, 'label': _translate("Open &Builder view"),
-             'status': _translate("Opening Builder"), 'func': self.viewBuilder},
-            {'id': wx.ID_ANY, 'label': _translate("Open &Coder view"),
-             'status': _translate('Opening Coder'), 'func': self.viewCoder},
         ]
 
         runMenuItems = [
@@ -196,10 +192,15 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
                 self.Bind(wx.EVT_MENU, item['func'], fileItem)
                 if item['label'].lower() in eachMenu['separators']:
                     eachMenu['menu'].AppendSeparator()
-        # Add Theme Switcher
+
+        # Theme switcher
         self.themesMenu = ThemeSwitcher(app=self.app)
-        viewMenu.AppendSubMenu(self.themesMenu,
-                           _translate("&Themes"))
+        viewMenu.AppendSubMenu(self.themesMenu, _translate("&Themes"))
+
+        # Frame switcher
+        framesMenu = wx.Menu()
+        FrameSwitcher.makeViewSwitcherButtons(framesMenu, frame=self, app=self.app)
+        viewMenu.AppendSubMenu(framesMenu, _translate("&Frames"))
 
         # Create menus
         self.runnerMenu.Append(fileMenu, _translate('&File'))
