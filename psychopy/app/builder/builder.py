@@ -562,7 +562,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 wx.ID_ANY, _translate("Show &coder"), _translate("Show coder")
             )
             self.Bind(wx.EVT_MENU, self.app.showCoder, item)
-            # Builder
+            # Runner
             item = windowMenuMac.Append(
                 wx.ID_ANY, _translate("Show &runner"), _translate("Show runner")
             )
