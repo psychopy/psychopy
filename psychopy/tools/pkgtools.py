@@ -23,11 +23,28 @@ __all__ = [
 import subprocess as sp
 from psychopy.preferences import prefs
 from psychopy.localization import _translate
+import psychopy.logging as logging
 import pkg_resources
 import sys
 import os
+import os.path
 import requests
-import wx
+import shutil
+
+
+def getUserPackagesPath():
+    """Get the path to the user's PsychoPy package directory.
+
+    This is the directory that plugin and extension packages are installed to
+    which is added to `sys.path` when `psychopy` is imported.
+
+    Returns
+    -------
+    str
+        Path to user's package directory.
+
+    """
+    return prefs.paths['packages']
 
 
 def getDistributions():
@@ -135,6 +152,155 @@ def installPackage(package, target=None, upgrade=False, forceReinstall=False,
     return True
 
 
+def _getUserPackageTopLevels():
+    """Get the top-level directories listed in package metadata installed to
+    the user's PsychoPy directory.
+
+    Returns
+    -------
+    dict
+        Mapping of project names and top-level packages associated with it which
+        are present in the user's PsychoPy packages directory.
+
+    """
+    # get all directories
+    userPackageDir = prefs.paths['packages']
+    userPackageDirs = os.listdir(userPackageDir)
+
+    foundTopLevelDirs = dict()
+    for foundDir in userPackageDirs:
+        if not  foundDir.endswith('.dist-info'):
+            continue
+
+        topLevelPath = os.path.join(userPackageDir, foundDir, 'top_level.txt')
+        if not os.path.isfile(topLevelPath):
+            continue  # file not present
+
+        with open(topLevelPath, 'r') as tl:
+            packageTopLevelDirs = []
+            for line in tl.readlines():
+                line = line.strip()
+                pkgDir = os.path.join(userPackageDir, line)
+                if not os.path.isdir(pkgDir):
+                    continue
+
+                packageTopLevelDirs.append(pkgDir)
+
+        foundTopLevelDirs[foundDir] = packageTopLevelDirs
+
+    return foundTopLevelDirs
+
+
+def _isUserPackage(package):
+    """Determine if the specified package in installed to the user's PsychoPy
+    package directory.
+
+    Parameters
+    ----------
+    package : str
+        Project name of the package (e.g. `psychopy-crs`) to check.
+
+    Returns
+    -------
+    bool
+        `True` if the package is present in the user's PsychoPy directory.
+
+    """
+    pass
+
+
+def _uninstallUserPackage(package):
+    """Uninstall packages in PsychoPy package directory.
+
+    This function will remove packages from the user's PsychoPy directory since
+    we can't do so using 'pip', yet. This reads the metadata associated with
+    the package and attempts to remove the packages.
+
+    Parameters
+    ----------
+    package : str
+        Project name of the package (e.g. `psychopy-crs`) to uninstall.
+
+    Returns
+    -------
+    bool
+        `True` if the package has been uninstalled successfully.
+
+    """
+    # todo - check if we imported the package and warn that we're uninstalling
+    #        something we're actively using.
+
+    # figure out he name of the metadata directory
+    pkgName = pkg_resources.safe_name(package)
+    thisPkg = pkg_resources.get_distribution(pkgName)
+
+    # build path to metadata based on project name
+    pathHead = pkg_resources.to_filename(thisPkg.project_name) + '-'
+    metaDir = pathHead + thisPkg.version
+    metaDir += '' if thisPkg.py_version is None else '.' + thisPkg.py_version
+    metaDir += '.dist-info'
+
+    # check if that directory exists
+    metaPath = os.path.join(prefs.paths['packages'], metaDir)
+    if not os.path.isdir(metaPath):
+        return False
+
+    # Get the top-levels for all packages in the user's PsychoPy directory, this
+    # is intended to safely remove packages without deleting common directories
+    # like `bin` which some packages insist on putting in there.
+    allTopLevelPackages = _getUserPackageTopLevels()
+
+    # get the top-levels associated with the package we want to uninstall
+    pkgTopLevelDirs = allTopLevelPackages[metaDir].copy()
+    del allTopLevelPackages[metaDir]  # remove from mapping
+
+    # Check which top-level directories are safe to remove if they are not used
+    # by other packages.
+    toRemove = []
+    for pkgTopLevel in pkgTopLevelDirs:
+        safeToRemove = True
+        for otherPkg, otherTopLevels in allTopLevelPackages.items():
+            if pkgTopLevel in otherTopLevels:
+                # check if another version of this package is sharing the dir
+                print(otherPkg)
+                if otherPkg.startswith(pathHead):
+                    logging.warning(
+                        'Found metadata for an older version of package '
+                        '`{}` in `{}`. This will also be removed.'.format(
+                            pkgName, otherPkg))
+                    toRemove.append(otherPkg)
+                else:
+                    # unrelated package
+                    logging.warning(
+                        'Found matching top-level directory `{}` in metadata '
+                        'for `{}`. Can not safely remove this directory since '
+                        'another package appears to use it.'.format(
+                            pkgTopLevel, otherPkg))
+                    safeToRemove = False
+                    break
+
+        if safeToRemove:
+            toRemove.append(pkgTopLevel)
+
+    # delete modules from the paths we found
+    for rmDir in toRemove:
+        if os.path.isfile(rmDir):
+            logging.info(
+                'Removing file `{}` from user package directory.'.format(
+                    rmDir))
+            # os.remove(rmDir)
+        elif os.path.isdir(rmDir):
+            logging.info(
+                'Removing directory `{}` from user package '
+                'directory.'.format(rmDir))
+            # shutil.rmtree(rmDir)
+
+    # cleanup by also deleting the metadata path
+    # shutil.rmtree(metaPath)
+
+    return True
+
+
 def uninstallPackage(package):
     """Uninstall a package from the current distribution.
 
@@ -163,20 +329,40 @@ def uninstallPackage(package):
     cmd.append('--no-input')  # cancels out `--yes`?
     cmd.append('--no-color')  # no color for console, not supported
 
-    # run command in subprocess
-    output = sp.Popen(
-        cmd,
-        stdout=sp.PIPE,
-        stderr=sp.PIPE,
-        shell=False,
-        universal_newlines=True)
-    stdout, stderr = output.communicate()  # blocks until process exits
+    # find the package and check if its in the user directory
+    isUserPackage = False
+    thisPkg = None
+    for pkg in pkg_resources.working_set:
+        if pkg_resources.safe_name(package) == pkg.key:
+            thisPkg = pkg_resources.get_distribution(pkg.key)
+            pkgLoc = thisPkg.location  # get the package location
 
-    sys.stdout.write(stdout)
-    sys.stderr.write(stderr)
+            if pkgLoc == prefs.paths['packages']:  # not in package dir
+                isUserPackage = True
 
-    if stderr:   # any error, return False
+            break
+
+    if thisPkg is None:  # cannot find distribution
         return False
+
+    # delete "manually" since pip dosen't work on user dirs
+    if isUserPackage:
+        pass
+
+    # # run command in subprocess
+    # output = sp.Popen(
+    #     cmd,
+    #     stdout=sp.PIPE,
+    #     stderr=sp.PIPE,
+    #     shell=False,
+    #     universal_newlines=True)
+    # stdout, stderr = output.communicate()  # blocks until process exits
+    #
+    # sys.stdout.write(stdout)
+    # sys.stderr.write(stderr)
+    #
+    # if stderr:   # any error, return False
+    #     return False
 
     return True
 
@@ -216,8 +402,8 @@ def getInstalledPackages():
 def getPackageMetadata(packageName):
     """Get the metadata for a specified package.
 
-    Paramters
-    ---------
+    Parameters
+    ----------
     packageName : str
         Project name of package to get metadata from.
 
@@ -251,6 +437,7 @@ def getPypiInfo(packageName, silence=False):
             f"https://pypi.python.org/pypi/{packageName}/json"
         ).json()
     except (requests.ConnectionError, requests.JSONDecodeError) as err:
+        import wx
         dlg = wx.MessageDialog(None, message=_translate(
             f"Could not get info for package {packageName}. Reason:\n"
             f"\n"
@@ -272,5 +459,16 @@ def getPypiInfo(packageName, silence=False):
 
 
 if __name__ == "__main__":
-    getPackageMetadata('sdfdsfasdf')
-
+    addDistribution(prefs.paths['packages'])
+    print(_getUserPackageTopLevels())
+    # installPackage('psychopy-labhackers', target=prefs.paths['packages'])
+    # print(getPackageMetadata('psychopy_crs'))
+    # for pkg in pkg_resources.working_set:
+    #     thisPkg = pkg_resources.get_distribution(pkg.key)
+    #     pkgLoc = thisPkg.location  # get the package location
+    #
+    #     print(thisPkg.egg_name())
+    # print(pkg_resources.to_filename(pkg_resources.safe_name('psychtoolbox')))
+    #import time
+    #time.sleep(5)
+    _uninstallUserPackage('numpy')
