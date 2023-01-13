@@ -241,7 +241,7 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
         for item in self.pluginList.items:
             item.markInstalled(item.info.installed)
         # Start of with nothing selected
-        self.pluginList.onClick()
+        self.pluginList.onDeselect()
 
         self.Layout()
         self.theme = theme.app
@@ -290,49 +290,72 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.btnSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
 
             # Map to onclick function
-            self.Bind(wx.EVT_LEFT_DOWN, self.onClick)
-            self.nameLbl.Bind(wx.EVT_LEFT_DOWN, self.onClick)
-            self.pipNameLbl.Bind(wx.EVT_LEFT_DOWN, self.onClick)
-            self.Bind(wx.EVT_SET_FOCUS, self.onFocus)
-            self.Bind(wx.EVT_KILL_FOCUS, self.onFocus)
+            self.Bind(wx.EVT_LEFT_DOWN, self.onSelect)
+            self.nameLbl.Bind(wx.EVT_LEFT_DOWN, self.onSelect)
+            self.pipNameLbl.Bind(wx.EVT_LEFT_DOWN, self.onSelect)
+            # Bind navigation
+            self.Bind(wx.EVT_NAVIGATION_KEY, self.onNavigation)
 
             # Set initial value
             self.markInstalled(info.installed)
             self.activeBtn.SetValue(info.active)
 
-            # Bind navigation
-            self.Bind(wx.EVT_NAVIGATION_KEY, self.onNavigation)
+            self._applyAppTheme()
 
         def _applyAppTheme(self):
-            # Set colors
-            if self.HasFocus():
-                bg = colors.app.light['panel_bg']
-                fg = colors.app.light['text']
-            else:
-                bg = colors.app.light['tab_bg']
-                fg = colors.app.light['text']
-            self.SetBackgroundColour(bg)
-            self.SetForegroundColour(fg)
             # Set label fonts
             from psychopy.app.themes import fonts
             self.nameLbl.SetFont(fonts.appTheme['h6'].obj)
             self.pipNameLbl.SetFont(fonts.coderTheme.base.obj)
-            # Set text colors
-            self.nameLbl.SetForegroundColour(fg)
-            self.pipNameLbl.SetForegroundColour(fg)
 
-            self.Update()
-            self.Refresh()
+        def onNavigation(self, evt=None):
+            """
+            Use the tab key to progress to the next panel, or the arrow keys to
+            change selection in this panel.
 
-        def onClick(self, evt=None):
-            self.SetFocus()
+            This is the same functionality as in a wx.ListCtrl
+            """
+            # Some shorthands for prev, next and whether each have focus
+            prev = self.GetPrevSibling()
+            prevFocus = False
+            if hasattr(prev, "HasFocus"):
+                prevFocus = prev.HasFocus()
+            next = self.GetNextSibling()
+            nextFocus = False
+            if hasattr(next, "HasFocus"):
+                nextFocus = next.HasFocus()
 
-        def onFocus(self, evt=None):
-            if evt.GetEventType() == wx.EVT_SET_FOCUS.typeId:
-                # Display info in viewer
-                self.parent.viewer.info = self.info
-            # Update appearance
-            self._applyAppTheme()
+            if evt.GetDirection() and prevFocus:
+                # If moving forwards from previous sibling, target is self
+                target = self
+            elif evt.GetDirection() and self.HasFocus():
+                # If moving forwards from self, target is next sibling
+                target = next
+            elif evt.GetDirection():
+                # If we're moving forwards from anything else, this event shouldn't have happened. Just deselect.
+                target = None
+            elif not evt.GetDirection() and nextFocus:
+                # If moving backwards from next sibling, target is self
+                target = self
+            elif not evt.GetDirection() and self.HasFocus():
+                # If moving backwards from self, target is prev sibling
+                target = prev
+            else:
+                # If we're moving backwards from anything else, this event shouldn't have happened. Just deselect.
+                target = None
+
+            # If target is self or another PluginListItem, select it
+            if target in self.parent.items:
+                self.parent.setSelection(target)
+                target.SetFocus()
+            else:
+                self.parent.setSelection(None)
+
+            # Do usual behaviour
+            evt.Skip()
+
+        def onSelect(self, evt=None):
+            self.parent.setSelection(self)
 
         def onInstall(self, evt=None):
             # Mark pending
@@ -364,25 +387,6 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
                 installed=installed
             )
 
-        def onNavigation(self, evt=None):
-            """
-            Use the tab key to progress to the next panel, or the arrow keys to
-            change selection in this panel.
-
-            This is the same functionality as in a wx.ListCtrl
-            """
-            if evt.IsFromTab() and self.GetPrevSibling().HasFocus():
-                # If navigating via tab, move on to next object
-                if evt.GetDirection():
-                    next = self.parent.GetNextSibling()
-                else:
-                    next = self.parent.GetPrevSibling()
-                if hasattr(next, "SetFocus"):
-                    next.SetFocus()
-            else:
-                # Do usual behaviour
-                evt.Skip()
-
     def __init__(self, parent, viewer=None):
         scrolledpanel.ScrolledPanel.__init__(self, parent=parent, style=wx.VSCROLL)
         self.parent = parent
@@ -401,7 +405,7 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.sizer.Add(self.itemSizer, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
 
         # Bind deselect
-        self.Bind(wx.EVT_LEFT_DOWN, self.onClick)
+        self.Bind(wx.EVT_LEFT_DOWN, self.onDeselect)
 
         # Setup items
         self.items = []
@@ -435,9 +439,49 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
 
         self.Layout()
 
-    def onClick(self, evt=None):
-        self.SetFocusIgnoringChildren()
-        self.viewer.info = None
+    def setSelection(self, item):
+        """
+        Set the current selection as either None or the handle of a PluginListItem
+        """
+        if item is None:
+            # If None, set to no selection
+            self.selected = None
+            self.viewer.info = None
+        elif isinstance(item, self.PluginListItem):
+            # If given a valid item, select it
+            self.selected = item
+            self.viewer.info = item.info
+        # Style all items
+        for obj in self.items:
+            if obj == self.selected:
+                # Selected colors
+                bg = colors.app.light['panel_bg']
+                fg = colors.app.light['text']
+            else:
+                # Deselected colors
+                bg = colors.app.light['tab_bg']
+                fg = colors.app.light['text']
+            # Set colors
+            obj.SetBackgroundColour(bg)
+            obj.SetForegroundColour(fg)
+            # Set text colors
+            obj.nameLbl.SetForegroundColour(fg)
+            obj.pipNameLbl.SetForegroundColour(fg)
+            # Refresh
+            obj.Update()
+            obj.Refresh()
+
+        # Post CHOICE event
+        evt = wx.CommandEvent(wx.EVT_CHOICE.typeId)
+        evt.SetEventObject(self)
+        evt.SetClientData(item)
+        wx.PostEvent(self, evt)
+
+    def onDeselect(self, evt=None):
+        """
+        If panel itself (not any children) are clicked on, set selection to None
+        """
+        self.setSelection(None)
 
     def _applyAppTheme(self):
         # Set colors
