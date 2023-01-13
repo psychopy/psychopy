@@ -1791,13 +1791,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         # ---_window---#000000#FFFFFF-----------------------------------------
         self.windowMenu = FrameSwitcher(self)
-        if sys.platform == "darwin":
-            # If on Mac, Window is overwritten by OS, so add the buttons individually to the software menu item
-            windowMenuMac = menuBar.OSXGetAppleMenu()
-            windowMenuMac.AppendSeparator()
-
-        else:
-            menuBar.Append(self.windowMenu,
+        menuBar.Append(self.windowMenu,
                            _translate("&Window"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
