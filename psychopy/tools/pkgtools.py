@@ -77,7 +77,8 @@ def addDistribution(distPath):
         file (e.g. ZIP).
 
     """
-    pkg_resources.working_set.add_entry(distPath)
+    if distPath not in pkg_resources.working_set.entries:
+        pkg_resources.working_set.add_entry(distPath)
 
 
 def installPackage(package, target=None, upgrade=False, forceReinstall=False,

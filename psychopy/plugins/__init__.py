@@ -26,12 +26,19 @@ import inspect
 import collections
 import hashlib
 import importlib
-
 import pkg_resources
 import psychopy.tools.pkgtools as pkgtools
-
 from psychopy import logging
 from psychopy.preferences import prefs
+
+
+# add the plugins folder to as a distribution location
+try:
+    pkgtools.addDistribution(prefs.paths['packages'])
+except KeyError:
+    # this error likely wont happen unless the prefs are missing keys
+    logging.error('Cannot add plugin directory as distribution location. '
+                  'Plugins will be unavailable this session.')
 
 # Keep track of plugins that have been loaded. Keys are plugin names and values
 # are their entry point mappings.
