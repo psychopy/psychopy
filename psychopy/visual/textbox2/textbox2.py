@@ -1555,11 +1555,29 @@ class Caret(ColorMixin):
         self.colorSpace = colorSpace
         self.color = color
 
-    def draw(self):
-        if not self.visible:
+    def draw(self, override=None):
+        """
+        Draw the caret
+
+        Parameters
+        ==========
+        override : bool or None
+            Set to True to always draw the caret, to False to never draw the caret, or leave as None to
+            draw only according to the usual conditions (being visible and within the correct timeframe
+            for the flashing effect)
+        """
+        if override is None:
+            # If no override, draw only if conditions are met
+            if not self.visible:
+                return
+            # Flash every other second
+            if core.getTime() % 1 > 0.6:
+                return
+        elif not override:
+            # If override is False, never draw
             return
-        if core.getTime() % 1 > 0.6:  # Flash every other second
-            return
+
+        # If no override and conditions are met, or override is True, draw
         gl.glLineWidth(self.width)
         gl.glColor4f(
             *self._foreColor.rgba1
