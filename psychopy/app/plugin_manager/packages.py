@@ -270,12 +270,12 @@ class PackageListCtrl(wx.Panel):
         self.sizer.Add(self.orLbl, border=3, flag=wx.ALL | wx.ALIGN_CENTER)
         # Add by file...
         self.addFileBtn = wx.Button(self, label=_translate("Install from file"))
-        self.addFileBtn.SetToolTipString(_translate("Install a package from a local file, such as a .egg or wheel."))
+        self.addFileBtn.SetToolTip(_translate("Install a package from a local file, such as a .egg or wheel."))
         self.addFileBtn.Bind(wx.EVT_BUTTON, self.onAddFromFile)
         self.sizer.Add(self.addFileBtn, border=6, flag=wx.ALL | wx.ALIGN_CENTER)
         # Add button to open pip
         self.terminalBtn = wx.Button(self, label=_translate("Open PIP terminal"))
-        self.terminalBtn.SetToolTipString(_translate("Open PIP terminal to manage packages manually"))
+        self.terminalBtn.SetToolTip(_translate("Open PIP terminal to manage packages manually"))
         self.sizer.Add(self.terminalBtn, border=3, flag=wx.ALL | wx.ALIGN_CENTER)
         self.terminalBtn.Bind(wx.EVT_BUTTON, self.onOpenPipTerminal)
 
