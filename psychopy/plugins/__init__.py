@@ -31,7 +31,6 @@ import psychopy.tools.pkgtools as pkgtools
 from psychopy import logging
 from psychopy.preferences import prefs
 
-
 # add the plugins folder to as a distribution location
 try:
     pkgtools.addDistribution(prefs.paths['packages'])

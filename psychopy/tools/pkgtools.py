@@ -9,6 +9,7 @@
 """
 
 __all__ = [
+    'getUserPackagesPath',
     'getDistributions',
     'addDistribution',
     'installPackage',
@@ -165,7 +166,7 @@ def _getUserPackageTopLevels():
 
     """
     # get all directories
-    userPackageDir = prefs.paths['packages']
+    userPackageDir = getUserPackagesPath()
     userPackageDirs = os.listdir(userPackageDir)
 
     foundTopLevelDirs = dict()
@@ -207,7 +208,14 @@ def _isUserPackage(package):
         `True` if the package is present in the user's PsychoPy directory.
 
     """
-    pass
+    userPackagePath = getUserPackagesPath()
+    for pkg in pkg_resources.working_set:
+        if pkg_resources.safe_name(package) == pkg.key:
+            thisPkg = pkg_resources.get_distribution(pkg.key)
+            if thisPkg.location == userPackagePath:
+                return True
+
+    return False
 
 
 def _uninstallUserPackage(package):
@@ -230,6 +238,10 @@ def _uninstallUserPackage(package):
     """
     # todo - check if we imported the package and warn that we're uninstalling
     #        something we're actively using.
+    userPackagePath = getUserPackagesPath()
+
+    logging.info('Attempting to uninstall user package `{}` from `{}`.'.format(
+        package, userPackagePath))
 
     # figure out he name of the metadata directory
     pkgName = pkg_resources.safe_name(package)
@@ -242,7 +254,7 @@ def _uninstallUserPackage(package):
     metaDir += '.dist-info'
 
     # check if that directory exists
-    metaPath = os.path.join(prefs.paths['packages'], metaDir)
+    metaPath = os.path.join(userPackagePath, metaDir)
     if not os.path.isdir(metaPath):
         return False
 
@@ -263,7 +275,6 @@ def _uninstallUserPackage(package):
         for otherPkg, otherTopLevels in allTopLevelPackages.items():
             if pkgTopLevel in otherTopLevels:
                 # check if another version of this package is sharing the dir
-                print(otherPkg)
                 if otherPkg.startswith(pathHead):
                     logging.warning(
                         'Found metadata for an older version of package '
@@ -289,15 +300,17 @@ def _uninstallUserPackage(package):
             logging.info(
                 'Removing file `{}` from user package directory.'.format(
                     rmDir))
-            # os.remove(rmDir)
+            os.remove(rmDir)
         elif os.path.isdir(rmDir):
             logging.info(
                 'Removing directory `{}` from user package '
                 'directory.'.format(rmDir))
-            # shutil.rmtree(rmDir)
+            shutil.rmtree(rmDir)
 
     # cleanup by also deleting the metadata path
-    # shutil.rmtree(metaPath)
+    shutil.rmtree(metaPath)
+
+    logging.info('Uninstalled package `{}`.'.format(package))
 
     return True
 
@@ -320,50 +333,30 @@ def uninstallPackage(package):
 
     Notes
     -----
-    * The `--yes` flag is appened to the pip command. No confirmation will be
+    * The `--yes` flag is appended to the pip command. No confirmation will be
       requested if the package already exists.
 
     """
-    # construct the pip command and execute as a subprocess
-    cmd = [sys.executable, "-m", "pip", "uninstall", package, "--yes"]
+    if _isUserPackage(package):  # delete 'manually' if in package dir
+        return _uninstallUserPackage(package)
+    else:  # use the following if in the main package dir
+        # construct the pip command and execute as a subprocess
+        cmd = [sys.executable, "-m", "pip", "uninstall", package, "--yes",
+               '--no-input', '--no-color']
+        # run command in subprocess
+        output = sp.Popen(
+            cmd,
+            stdout=sp.PIPE,
+            stderr=sp.PIPE,
+            shell=False,
+            universal_newlines=True)
+        stdout, stderr = output.communicate()  # blocks until process exits
 
-    cmd.append('--no-input')  # cancels out `--yes`?
-    cmd.append('--no-color')  # no color for console, not supported
+        sys.stdout.write(stdout)
+        sys.stderr.write(stderr)
 
-    # find the package and check if its in the user directory
-    isUserPackage = False
-    thisPkg = None
-    for pkg in pkg_resources.working_set:
-        if pkg_resources.safe_name(package) == pkg.key:
-            thisPkg = pkg_resources.get_distribution(pkg.key)
-            pkgLoc = thisPkg.location  # get the package location
-
-            if pkgLoc == prefs.paths['packages']:  # not in package dir
-                isUserPackage = True
-
-            break
-
-    if thisPkg is None:  # cannot find distribution
-        return False
-
-    # delete "manually" since pip dosen't work on user dirs
-    if isUserPackage:
-        pass
-
-    # # run command in subprocess
-    # output = sp.Popen(
-    #     cmd,
-    #     stdout=sp.PIPE,
-    #     stderr=sp.PIPE,
-    #     shell=False,
-    #     universal_newlines=True)
-    # stdout, stderr = output.communicate()  # blocks until process exits
-    #
-    # sys.stdout.write(stdout)
-    # sys.stderr.write(stderr)
-    #
-    # if stderr:   # any error, return False
-    #     return False
+        if stderr:   # any error, return False
+            return False
 
     return True
 
@@ -460,16 +453,4 @@ def getPypiInfo(packageName, silence=False):
 
 
 if __name__ == "__main__":
-    addDistribution(prefs.paths['packages'])
-    print(_getUserPackageTopLevels())
-    # installPackage('psychopy-labhackers', target=prefs.paths['packages'])
-    # print(getPackageMetadata('psychopy_crs'))
-    # for pkg in pkg_resources.working_set:
-    #     thisPkg = pkg_resources.get_distribution(pkg.key)
-    #     pkgLoc = thisPkg.location  # get the package location
-    #
-    #     print(thisPkg.egg_name())
-    # print(pkg_resources.to_filename(pkg_resources.safe_name('psychtoolbox')))
-    #import time
-    #time.sleep(5)
-    _uninstallUserPackage('numpy')
+    pass
