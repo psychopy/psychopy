@@ -68,7 +68,6 @@ debug = False
 
 class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def __init__(self, win, text,
-                 placeholder="Type here...",
                  font="Open Sans",
                  pos=(0, 0), units=None, letterHeight=None,
                  size=None,
@@ -79,6 +78,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  opacity=None,
                  bold=False,
                  italic=False,
+                 placeholder="Type here...",
                  lineSpacing=None,
                  padding=None,  # gap between box and text
                  speechPoint=None,
