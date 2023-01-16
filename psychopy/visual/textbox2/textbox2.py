@@ -768,7 +768,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             cstyle = self._styles[self.caret.index-1]
         self._styles.insert(self.caret.index, cstyle)
         self.caret.index += 1
-        self._text = txt
+        self.text = txt
         self._layout()
 
     def deleteCaretLeft(self):
@@ -779,7 +779,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             txt = txt[:ci-1] + txt[ci:]
             self._styles = self._styles[:ci-1]+self._styles[ci:]
             self.caret.index -= 1
-            self._text = txt
+            self.text = txt
             self._layout()
 
     def deleteCaretRight(self):
@@ -789,7 +789,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             txt = self._text
             txt = txt[:ci] + txt[ci+1:]
             self._styles = self._styles[:ci]+self._styles[ci+1:]
-            self._text = txt
+            self.text = txt
             self._layout()
         
     def _layout(self):
