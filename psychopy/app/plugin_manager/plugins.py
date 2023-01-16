@@ -598,11 +598,11 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
                 alpha = icon.tobytes("raw", "A")
             else:
                 alpha = None
-            icon = wx.BitmapFromBuffer(
+            icon = wx.Bitmap.FromBuffer(
                 width=icon.size[0],
                 height=icon.size[1],
-                dataBuffer=icon.tobytes("raw", "RGB"),
-                alphaBuffer=alpha
+                data=icon.tobytes("raw", "RGB"),
+                alpha=alpha
             )
         if not isinstance(icon, wx.Bitmap):
             icon = wx.Bitmap(icon)
@@ -706,11 +706,11 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
                 alpha = icon.tobytes("raw", "A")
             else:
                 alpha = None
-            icon = wx.BitmapFromBuffer(
+            icon = wx.Bitmap.FromBufferAndAlpha(
                 width=icon.size[0],
                 height=icon.size[1],
-                dataBuffer=icon.tobytes("raw", "RGB"),
-                alphaBuffer=alpha
+                data=icon.tobytes("raw", "RGB"),
+                alpha=alpha
             )
         if not isinstance(icon, wx.Bitmap):
             icon = wx.Bitmap(icon)

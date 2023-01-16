@@ -1064,7 +1064,15 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
                         fr.append(img.info['duration'])
                     # Create wx.Bitmap from frame
                     frame = img.resize(self.Size).convert("RGB")
-                    bmp = wx.BitmapFromBuffer(*frame.size, frame.tobytes())
+                    # Supply an alpha channel if there is one
+                    if "A" in frame.getbands():
+                        alpha = frame.tobytes("raw", "A")
+                    else:
+                        alpha = None
+                    bmp = wx.Bitmap.FromBufferAndAlpha(
+                        *frame.size,
+                        data=frame.tobytes("raw", "RGB"),
+                        alpha=alpha)
                     # Store bitmap
                     self._frames.append(bmp)
             except PIL.UnidentifiedImageError as err:
