@@ -321,12 +321,12 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_TEXT, self.onChangeScrWidth, self.ctrlScrWidth)
         scrCmSizer.Add(self.ctrlScrWidth)
         # Button to run screen width test
-        self.ctrlScrPixCreditCard = wx.Button(parent, label="Estimate...")
-        self.ctrlScrPixCreditCard.SetToolTip(_translate(
-            "Use a credit card to work out the size of the screen."
+        self.ctrlScrEstimate = wx.Button(parent, label="Estimate...")
+        self.ctrlScrEstimate.SetToolTip(_translate(
+            "Use a physical object to work out the size of the screen."
         ))
-        self.ctrlScrPixCreditCard.Bind(wx.EVT_BUTTON, self.calculateScreenSize)
-        scrCmSizer.Add(self.ctrlScrPixCreditCard, border=3, flag=wx.LEFT)
+        self.ctrlScrEstimate.Bind(wx.EVT_BUTTON, self.estimateScreenSize)
+        scrCmSizer.Add(self.ctrlScrEstimate, border=3, flag=wx.LEFT)
 
         # scr pixels
         _size = _translate("Size (pixels; Horiz,Vert):")
@@ -751,11 +751,13 @@ class MainFrame(wx.Frame):
         self.currentMon.setWidth(newVal)
         self.unSavedMonitor = True
 
-    def calculateScreenSize(self, evt=None):
+    def estimateScreenSize(self, evt=None):
         win = None
         try:
             from psychopy import visual, event, layout
             import numpy as np
+
+            # --- Setup persistent elements ---
 
             # Create window
             win = visual.Window(
@@ -763,45 +765,117 @@ class MainFrame(wx.Frame):
                 monitor=self.currentMonName,
                 fullscr=True
             )
-            # Credit card object
-            baseSize = layout.Size((8.56, 5.398), units="cm", win=win)
-            obj = visual.ImageStim(win,
-                                   image="creditCard.png",
-                                   size=baseSize,
-                                   units="pix")
-            # Instructions
+            # Persistent instructions message at bottom of screen
             msg = _translate(
-                "Hold up a credit card to the screen and adjust the slider until the image on screen is the same size as "
-                "the card in real life. Any credit-card-sized object will do, such as a library card or store gift card. "
-                "Based on this and the resolution of your screen in pixels, PsychoPy will work out the physical size of "
-                "your monitor."
+                "Press ESCAPE at any time to quit."
+            )
+            escInstr = visual.TextBox2(
+                win,
+                text=msg,
+                size=(1.5, 0.4),
+                pos=(0, -0.8),
+                letterHeight=0.05,
+                units="norm",
+                alignment="center")
+            # Variable instructions message at top of screen
+            instr = visual.TextBox2(
+                win,
+                text="",
+                size=(1.5, 0.6),
+                pos=(0, 0.7),
+                letterHeight=0.05,
+                units="norm",
+                alignment="center")
 
+            # --- Physical object choice ---
+
+            # Slider to choose an object
+            objChoice = visual.Slider(
+                win,
+                startValue=0,
+                ticks=(0, 1, 2),
+                labels=(_translate("Credit Card"), "USB", "USB-C"),
+                style="radio",
+                pos=(0, 0.4),
+                size=layout.Size((1, 0.05), units="height", win=win),
+                units="norm"
             )
-            instr = visual.TextBox2(win,
-                                    text=msg,
-                                    size=(1.5, 0.4),
-                                    pos=(0, 0.8),
-                                    letterHeight=0.05,
-                                    units="norm",
-                                    alignment="center")
-            msg = _translate(
-                "Press ENTER when done, or ESCAPE at any time to quit."
+            # Set instructions
+            instr.text = _translate(
+                "By lining up a physical object with a stimulus on the screen, PsychoPy can estimate the physical "
+                "width of your monitor. Please choose one of the objects below to use as a physical reference for "
+                "size. Any credit-card-sized object (such as a gift card or a library card) can be used in place of "
+                "a credit card.\n"
+                "\n"
+                "Press ENTER once you have made your selection.\n"
             )
-            escInstr = visual.TextBox2(win,
-                                    text=msg,
-                                    size=(1.5, 0.4),
-                                    pos=(0, -0.8),
-                                    letterHeight=0.05,
-                                    units="norm",
-                                    alignment="center")
-            # Width and height controls
-            sizeCtrl = visual.Slider(win,
-                                      startValue=1,
-                                      ticks=(0, max(win.size / baseSize.pix) * 0.6),
-                                      style="slider",
-                                      pos=(0.8, 0),
-                                      size=layout.Size((0.1, 0.6), units="height", win=win),
-                                      units="norm")
+            # Add images for each slider label
+            images = ["creditCard.png", "USB.png", "USB-C.png"]
+            imageObjects = []
+            for i, lbl in enumerate(objChoice.labelObjs):
+                imageObjects.append(
+                    visual.ImageStim(
+                        win,
+                        image=images[i],
+                        anchor="top center",
+                        pos=lbl._pos.norm - (0, lbl._size.norm[1]),
+                        size=(None, 0.4),
+                        units="norm")
+                )
+            # Start frame loop
+            keys = []
+            while not keys:
+                # Draw everything
+                objChoice.draw()
+                instr.draw()
+                escInstr.draw()
+                for img in imageObjects:
+                    img.draw()
+                # Flip screen
+                win.flip()
+                # Check for keypresses again
+                keys = event.getKeys(['return', 'escape'])
+            # Quit if esc
+            if 'escape' in keys:
+                win.close()
+                return
+            # Wait for keypress to end
+            while event.getKeys():
+                pass
+
+            # --- Sizing task ---
+
+            # Get base size from selection
+            sizes = [
+                layout.Size((8.56, 5.398), units="cm", win=win),  # Credit card
+                layout.Size((3.1, 5.398), units="cm", win=win),  # USB
+                layout.Size((3.1, 5.398), units="cm", win=win),  # USB-C
+            ]
+            baseSize = sizes[objChoice.markerPos]
+            # Get image from selection
+            img = images[objChoice.markerPos]
+            # Create object image
+            obj = visual.ImageStim(
+                win,
+                image=img,
+                size=baseSize,
+                units="pix")
+            # Set instructions
+            instr.text = _translate(
+                "Hold up your to the screen and adjust the slider until the image on screen is the same size as "
+                "the object in real life.\n"
+                "\n"
+                "Press ENTER when the sizes match up.\n"
+            )
+            # Size control
+            sizeCtrl = visual.Slider(
+                win,
+                startValue=1,
+                ticks=(0, max(win.size / baseSize.pix) * 0.6),
+                style="slider",
+                pos=(0.8, 0),
+                size=layout.Size((0.1, 0.6), units="height", win=win),
+                units="norm")
             # Start frame loop
             keys = []
             while not keys:
@@ -820,7 +894,7 @@ class MainFrame(wx.Frame):
             # Work out physical size of screen
             if "return" in keys:
                 # Get dimensions of card in mm and pix
-                cardSizeMM = np.array([85.6, 53.98])
+                cardSizeMM = baseSize.cm * 10
                 cardSizePix = obj.size
                 # Work out ratio of pixels to mm
                 pix2mm = cardSizeMM / cardSizePix
