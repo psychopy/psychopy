@@ -316,8 +316,17 @@ class MainFrame(wx.Frame):
         labelScrWidth = wx.StaticText(parent, -1,
                                       _translate("Screen Width (cm):"),
                                       style=wx.ALIGN_RIGHT)
+        scrCmSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.ctrlScrWidth = wx.TextCtrl(parent, idCtrlScrWidth, "")
         self.Bind(wx.EVT_TEXT, self.onChangeScrWidth, self.ctrlScrWidth)
+        scrCmSizer.Add(self.ctrlScrWidth)
+        # Button to run screen width test
+        self.ctrlScrPixCreditCard = wx.Button(parent, label="Estimate...")
+        self.ctrlScrPixCreditCard.SetToolTip(_translate(
+            "Use a credit card to work out the size of the screen."
+        ))
+        self.ctrlScrPixCreditCard.Bind(wx.EVT_BUTTON, self.calculateScreenSize)
+        scrCmSizer.Add(self.ctrlScrPixCreditCard, border=3, flag=wx.LEFT)
 
         # scr pixels
         _size = _translate("Size (pixels; Horiz,Vert):")
@@ -329,12 +338,6 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_TEXT, self.onChangeScrPixVert, self.ctrlScrPixVert)
         ScrPixelsSizer = wx.BoxSizer(wx.HORIZONTAL)
         ScrPixelsSizer.AddMany([self.ctrlScrPixHoriz, self.ctrlScrPixVert])
-        # Button to run credit card test
-        self.ctrlScrPixCreditCard = wx.Button(parent, label="Estimate...")
-        self.ctrlScrPixCreditCard.SetToolTip(_translate(
-            "Use a credit card to work out the size of the screen."
-        ))
-        self.ctrlScrPixCreditCard.Bind(wx.EVT_BUTTON, self.calculateScreenSize)
 
         # date
         labelCalibDate = wx.StaticText(parent, -1,
@@ -362,8 +365,7 @@ class MainFrame(wx.Frame):
             (1, 10), self.ctrlUseBits,
             labelScrDist, self.ctrlScrDist,
             labelScrPixels, ScrPixelsSizer,
-            labelScrWidth, self.ctrlScrWidth,
-            (-1, -1), self.ctrlScrPixCreditCard,
+            labelScrWidth, scrCmSizer,
             labelCalibDate, self.ctrlCalibDate
         ])
         infoBoxGrid.Layout()
@@ -827,8 +829,8 @@ class MainFrame(wx.Frame):
             # Convert to cm
             screenSizeCM = screenSizeMM / 10
             # Set values
-            self.ctrlScrPixHoriz.SetValue(f"{win.size[0]:.0f}")
-            self.ctrlScrPixVert.SetValue(f"{win.size[1]:.0f}")
+            # self.ctrlScrPixHoriz.SetValue(f"{win.size[0]:.0f}")
+            # self.ctrlScrPixVert.SetValue(f"{win.size[1]:.0f}")
             self.ctrlScrWidth.SetValue(f"{screenSizeCM[0]:.2f}")
         # Close window
         win.close()
