@@ -909,6 +909,10 @@ class MainFrame(wx.Frame):
                 # self.ctrlScrPixVert.SetValue(f"{win.size[1]:.0f}")
                 self.ctrlScrWidth.SetValue(f"{screenSizeCM[0]:.2f}")
         except BaseException as err:
+            # Close window
+            if win is not None:
+                win.close()
+                win = None
             # If routine errors for any reason, end it and print error rather than just crashing
             msg = _translate(
                 "Screen width estimation routine failed.\n"
