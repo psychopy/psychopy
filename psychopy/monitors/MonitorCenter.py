@@ -760,49 +760,54 @@ class MainFrame(wx.Frame):
             fullscr=True
         )
         # Credit card object
+        baseSize = layout.Size((8.56, 5.398), units="cm", win=win)
         obj = visual.ImageStim(win,
                                image="creditCard.png",
-                               size=layout.Size((8.56, 5.398), units="cm", win=win),
+                               size=baseSize,
                                units="pix")
         # Instructions
         msg = _translate(
-            "Hold up a credit card to the screen and adjust the sliders until the image on screen is the same size as "
+            "Hold up a credit card to the screen and adjust the slider until the image on screen is the same size as "
             "the card in real life. Any credit-card-sized object will do, such as a library card or store gift card. "
             "Based on this and the resolution of your screen in pixels, PsychoPy will work out the physical size of "
-            "your monitor.\n\n"
-            "Press ENTER when done, or ESCAPE at any time to quit."
+            "your monitor."
+
         )
         instr = visual.TextBox2(win,
                                 text=msg,
-                                size=(1, 0.4),
+                                size=(1.5, 0.4),
                                 pos=(0, 0.8),
+                                letterHeight=0.05,
+                                units="norm",
+                                alignment="center")
+        msg = _translate(
+            "Press ENTER when done, or ESCAPE at any time to quit."
+        )
+        escInstr = visual.TextBox2(win,
+                                text=msg,
+                                size=(1.5, 0.4),
+                                pos=(0, -0.8),
+                                letterHeight=0.05,
                                 units="norm",
                                 alignment="center")
         # Width and height controls
-        widthCtrl = visual.Slider(win,
-                                  startValue=obj.size[0],
-                                  ticks=(100, win.size[0]),
+        sizeCtrl = visual.Slider(win,
+                                  startValue=1,
+                                  ticks=(0, max(win.size / baseSize.pix) * 0.6),
                                   style="slider",
-                                  pos=(0, -0.8),
-                                  size=layout.Size((0.6, 0.1), units="height", win=win),
+                                  pos=(0.8, 0),
+                                  size=layout.Size((0.1, 0.6), units="height", win=win),
                                   units="norm")
-        heightCtrl = visual.Slider(win,
-                                   ticks=(100, win.size[1]),
-                                   startValue=obj.size[1],
-                                   style="slider",
-                                   pos=(0.8, 0),
-                                   size=layout.Size((0.1, 0.6), units="height", win=win),
-                                   units="norm")
         # Start frame loop
         keys = []
         while not keys:
             # Set object size according to width and height ctrls
-            obj.size = (widthCtrl.markerPos, heightCtrl.markerPos)
+            obj.size = baseSize * sizeCtrl.markerPos
             # Draw everything
             obj.draw()
-            widthCtrl.draw()
-            heightCtrl.draw()
+            sizeCtrl.draw()
             instr.draw()
+            escInstr.draw()
             # Flip screen
             win.flip()
             # Check for keypresses again
