@@ -752,88 +752,100 @@ class MainFrame(wx.Frame):
         self.unSavedMonitor = True
 
     def calculateScreenSize(self, evt=None):
-        from psychopy import visual, event, layout
-        import numpy as np
+        win = None
+        try:
+            from psychopy import visual, event, layout
+            import numpy as np
 
-        # Create window
-        win = visual.Window(
-            size=(float(self.ctrlScrPixHoriz.GetValue()), float(self.ctrlScrPixVert.GetValue())),
-            monitor=self.currentMonName,
-            fullscr=True
-        )
-        # Credit card object
-        baseSize = layout.Size((8.56, 5.398), units="cm", win=win)
-        obj = visual.ImageStim(win,
-                               image="creditCard.png",
-                               size=baseSize,
-                               units="pix")
-        # Instructions
-        msg = _translate(
-            "Hold up a credit card to the screen and adjust the slider until the image on screen is the same size as "
-            "the card in real life. Any credit-card-sized object will do, such as a library card or store gift card. "
-            "Based on this and the resolution of your screen in pixels, PsychoPy will work out the physical size of "
-            "your monitor."
+            # Create window
+            win = visual.Window(
+                size=(float(self.ctrlScrPixHoriz.GetValue()), float(self.ctrlScrPixVert.GetValue())),
+                monitor=self.currentMonName,
+                fullscr=True
+            )
+            # Credit card object
+            baseSize = layout.Size((8.56, 5.398), units="cm", win=win)
+            obj = visual.ImageStim(win,
+                                   image="creditCard.png",
+                                   size=baseSize,
+                                   units="pix")
+            # Instructions
+            msg = _translate(
+                "Hold up a credit card to the screen and adjust the slider until the image on screen is the same size as "
+                "the card in real life. Any credit-card-sized object will do, such as a library card or store gift card. "
+                "Based on this and the resolution of your screen in pixels, PsychoPy will work out the physical size of "
+                "your monitor."
 
-        )
-        instr = visual.TextBox2(win,
-                                text=msg,
-                                size=(1.5, 0.4),
-                                pos=(0, 0.8),
-                                letterHeight=0.05,
-                                units="norm",
-                                alignment="center")
-        msg = _translate(
-            "Press ENTER when done, or ESCAPE at any time to quit."
-        )
-        escInstr = visual.TextBox2(win,
-                                text=msg,
-                                size=(1.5, 0.4),
-                                pos=(0, -0.8),
-                                letterHeight=0.05,
-                                units="norm",
-                                alignment="center")
-        # Width and height controls
-        sizeCtrl = visual.Slider(win,
-                                  startValue=1,
-                                  ticks=(0, max(win.size / baseSize.pix) * 0.6),
-                                  style="slider",
-                                  pos=(0.8, 0),
-                                  size=layout.Size((0.1, 0.6), units="height", win=win),
-                                  units="norm")
-        # Start frame loop
-        keys = []
-        while not keys:
-            # Set object size according to width and height ctrls
-            obj.size = baseSize * sizeCtrl.markerPos
-            # Draw everything
-            obj.draw()
-            sizeCtrl.draw()
-            instr.draw()
-            escInstr.draw()
-            # Flip screen
-            win.flip()
-            # Check for keypresses again
-            keys = event.getKeys(['return', 'escape'])
+            )
+            instr = visual.TextBox2(win,
+                                    text=msg,
+                                    size=(1.5, 0.4),
+                                    pos=(0, 0.8),
+                                    letterHeight=0.05,
+                                    units="norm",
+                                    alignment="center")
+            msg = _translate(
+                "Press ENTER when done, or ESCAPE at any time to quit."
+            )
+            escInstr = visual.TextBox2(win,
+                                    text=msg,
+                                    size=(1.5, 0.4),
+                                    pos=(0, -0.8),
+                                    letterHeight=0.05,
+                                    units="norm",
+                                    alignment="center")
+            # Width and height controls
+            sizeCtrl = visual.Slider(win,
+                                      startValue=1,
+                                      ticks=(0, max(win.size / baseSize.pix) * 0.6),
+                                      style="slider",
+                                      pos=(0.8, 0),
+                                      size=layout.Size((0.1, 0.6), units="height", win=win),
+                                      units="norm")
+            # Start frame loop
+            keys = []
+            while not keys:
+                # Set object size according to width and height ctrls
+                obj.size = baseSize * sizeCtrl.markerPos
+                # Draw everything
+                obj.draw()
+                sizeCtrl.draw()
+                instr.draw()
+                escInstr.draw()
+                # Flip screen
+                win.flip()
+                # Check for keypresses again
+                keys = event.getKeys(['return', 'escape'])
 
-        # Work out physical size of screen
-        if "return" in keys:
-            # Get dimensions of card in mm and pix
-            cardSizeMM = np.array([85.6, 53.98])
-            cardSizePix = obj.size
-            # Work out ratio of pixels to mm
-            pix2mm = cardSizeMM / cardSizePix
-            # Get dimensions of screen in pix
-            screenSizePix = win.size
-            # Apply ratio to get screen size in mm
-            screenSizeMM = screenSizePix * pix2mm
-            # Convert to cm
-            screenSizeCM = screenSizeMM / 10
-            # Set values
-            # self.ctrlScrPixHoriz.SetValue(f"{win.size[0]:.0f}")
-            # self.ctrlScrPixVert.SetValue(f"{win.size[1]:.0f}")
-            self.ctrlScrWidth.SetValue(f"{screenSizeCM[0]:.2f}")
+            # Work out physical size of screen
+            if "return" in keys:
+                # Get dimensions of card in mm and pix
+                cardSizeMM = np.array([85.6, 53.98])
+                cardSizePix = obj.size
+                # Work out ratio of pixels to mm
+                pix2mm = cardSizeMM / cardSizePix
+                # Get dimensions of screen in pix
+                screenSizePix = win.size
+                # Apply ratio to get screen size in mm
+                screenSizeMM = screenSizePix * pix2mm
+                # Convert to cm
+                screenSizeCM = screenSizeMM / 10
+                # Set values
+                # self.ctrlScrPixHoriz.SetValue(f"{win.size[0]:.0f}")
+                # self.ctrlScrPixVert.SetValue(f"{win.size[1]:.0f}")
+                self.ctrlScrWidth.SetValue(f"{screenSizeCM[0]:.2f}")
+        except BaseException as err:
+            # If routine errors for any reason, end it and print error rather than just crashing
+            msg = _translate(
+                "Screen width estimation routine failed.\n"
+                "\n"
+                "%s: %s"
+            ) % (type(err).__name__, err)
+            dlg = wx.MessageDialog(self, message=msg, style=wx.ICON_ERROR)
+            dlg.ShowModal()
         # Close window
-        win.close()
+        if win is not None:
+            win.close()
 
     def onChangeScrPixHoriz(self, event):
         this = self.currentMon.currentCalib
