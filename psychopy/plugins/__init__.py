@@ -26,12 +26,19 @@ import inspect
 import collections
 import hashlib
 import importlib
-
 import pkg_resources
 import psychopy.tools.pkgtools as pkgtools
 
 from psychopy import logging
 from psychopy.preferences import prefs
+
+# add the plugins folder to as a distribution location
+try:
+    pkgtools.addDistribution(prefs.paths['packages'])
+except KeyError:
+    # this error likely wont happen unless the prefs are missing keys
+    logging.error('Cannot add plugin directory as distribution location. '
+                  'Plugins will be unavailable this session.')
 
 # Keep track of plugins that have been loaded. Keys are plugin names and values
 # are their entry point mappings.
@@ -588,6 +595,25 @@ def loadPlugin(plugin):
                     "Failed to load entry point `{}` of plugin `{}`. "
                     "(`{}: {}`) "
                     "Skipping.".format(str(ep), plugin, e.name, e.msg))
+
+                if plugin not in _failed_plugins_:
+                    _failed_plugins_.append(plugin)
+
+                return False
+            except pkg_resources.DistributionNotFound:
+                logging.error(
+                    "Failed to load entry point `{}` of plugin `{}` due to "
+                    "missing distribution required by the application."
+                    "Skipping.".format(str(ep), plugin))
+
+                if plugin not in _failed_plugins_:
+                    _failed_plugins_.append(plugin)
+
+                return False
+            except Exception:  # catch everything else
+                logging.error(
+                    "Failed to load entry point `{}` of plugin `{}` for unknown"
+                    "reasons. Skipping.".format(str(ep), plugin))
 
                 if plugin not in _failed_plugins_:
                     _failed_plugins_.append(plugin)

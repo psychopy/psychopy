@@ -976,7 +976,7 @@ class Experiment:
                             thisFile = getPaths(thisParam.val)
                         if paramName == "surveyId":
                             # Survey IDs are a special case, they need adding verbatim, no path sanitizing
-                            thisFile = {'name': 'surveyId', 'surveyId': thisParam.val}
+                            thisFile = {'surveyId': thisParam.val}
                         # then check if it's a valid path and not yet included
                         if thisFile and thisFile not in compResources:
                             compResources.append(thisFile)
@@ -990,7 +990,7 @@ class Experiment:
                         thisFile = getPaths(thisParam.val)
                     if paramName == "surveyId":
                         # Survey IDs are a special case, they need adding verbatim, no path sanitizing
-                        thisFile = {'name': 'surveyId', 'surveyId': thisParam.val}
+                        thisFile = {'surveyId': thisParam.val}
                     # then check if it's a valid path and not yet included
                     if thisFile and thisFile not in compResources:
                         compResources.append(thisFile)

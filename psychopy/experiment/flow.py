@@ -357,14 +357,17 @@ class Flow(list):
                 if "sid:" in resource:
                     # Strip sid prefix from survey id
                     resource = resource.replace("sid:", "")
-                elif "https://" in resource:
-                    # URL paths are already fine
-                    pass
+                    # Add this line
+                    code += f"{{'surveyId': '{resource}'}},\n"
                 else:
-                    # Anything else make it relative to resources folder
-                    resource = resourceFolderStr + resource
-                # Add this line
-                code += f"{{'name': '{name}', 'path': '{resource}'}},\n"
+                    if "https://" in resource:
+                        # URL paths are already fine
+                        pass
+                    else:
+                        # Anything else make it relative to resources folder
+                        resource = resourceFolderStr + resource
+                    # Add this line
+                    code += f"{{'name': '{name}', 'path': '{resource}'}},\n"
             script.writeIndentedLines(code)
             script.setIndentLevel(-1, relative=True)
             script.writeIndented("]\n")
