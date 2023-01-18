@@ -642,11 +642,11 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
                 alpha = icon.tobytes("raw", "A")
             else:
                 alpha = None
-            icon = wx.BitmapFromBuffer(
+            icon = wx.Bitmap.FromBuffer(
                 width=icon.size[0],
                 height=icon.size[1],
-                dataBuffer=icon.tobytes("raw", "RGB"),
-                alphaBuffer=alpha
+                data=icon.tobytes("raw", "RGB"),
+                alpha=alpha
             )
         if not isinstance(icon, wx.Bitmap):
             icon = wx.Bitmap(icon)
@@ -693,12 +693,12 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.detailsSizer.Add(self.buttonSizer, border=3, flag=wx.ALIGN_RIGHT | wx.ALL)
         # Email button
         self.emailBtn = wx.Button(self, style=wx.BU_EXACTFIT)
-        self.emailBtn.SetToolTipString(_translate("Email author"))
+        self.emailBtn.SetToolTip(_translate("Email author"))
         self.emailBtn.Bind(wx.EVT_BUTTON, self.onEmailBtn)
         self.buttonSizer.Add(self.emailBtn, border=3, flag=wx.EXPAND | wx.ALL)
         # GitHub button
         self.githubBtn = wx.Button(self, style=wx.BU_EXACTFIT)
-        self.githubBtn.SetToolTipString(_translate("Author's GitHub"))
+        self.githubBtn.SetToolTip(_translate("Author's GitHub"))
         self.githubBtn.Bind(wx.EVT_BUTTON, self.onGithubBtn)
         self.buttonSizer.Add(self.githubBtn, border=3, flag=wx.EXPAND | wx.ALL)
 
@@ -750,11 +750,11 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
                 alpha = icon.tobytes("raw", "A")
             else:
                 alpha = None
-            icon = wx.BitmapFromBuffer(
+            icon = wx.Bitmap.FromBufferAndAlpha(
                 width=icon.size[0],
                 height=icon.size[1],
-                dataBuffer=icon.tobytes("raw", "RGB"),
-                alphaBuffer=alpha
+                data=icon.tobytes("raw", "RGB"),
+                alpha=alpha
             )
         if not isinstance(icon, wx.Bitmap):
             icon = wx.Bitmap(icon)
@@ -763,11 +763,11 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.name.SetLabelText(value.name)
         # Add tooltip for OST
         if value == "ost":
-            self.name.SetToolTipString(_translate(
+            self.name.SetToolTip(_translate(
                 "That's us! We make PsychoPy and Pavlovia!"
             ))
         else:
-            self.name.SetToolTipString("")
+            self.name.SetToolTip("")
         # Show/hide buttons
         self.emailBtn.Show(bool(value.email))
         self.githubBtn.Show(bool(value.github))
