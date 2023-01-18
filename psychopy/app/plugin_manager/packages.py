@@ -12,9 +12,9 @@ from psychopy.localization import _translate
 from psychopy.tools import filetools as ft
 
 from psychopy.tools.pkgtools import (
-    getInstalledPackages, getPackageMetadata, getPypiInfo, isInstalled, installPackage
+    getInstalledPackages, getPackageMetadata, getPypiInfo, isInstalled, _isUserPackage
 )
-from .utils import uninstallPackage
+from .utils import uninstallPackage, installPackage
 
 
 class PackageManagerPanel(wx.Panel):
@@ -183,14 +183,19 @@ class PackageListCtrl(wx.Panel):
         wx.PostEvent(self, evt)
 
     def onRightClick(self, evt=None):
+        # Get package name
+        package = evt.GetText()
         # Create menu
         menu = wx.Menu()
         # Map menu functions
         menu.functions = {}
-        if isInstalled(evt.GetText()):
-            # Add uninstall if installed
+        if isInstalled(package) and _isUserPackage(package):
+            # Add uninstall if installed to user
             uninstallOpt = menu.Append(wx.ID_ANY, item=_translate("Uninstall"))
             menu.functions[uninstallOpt.GetId()] = self.onUninstall
+        elif isInstalled(package):
+            # Add nothing if installed to protected system folder
+            pass
         else:
             # Add install if not installed
             uninstallOpt = menu.Append(wx.ID_ANY, item=_translate("Install"))
