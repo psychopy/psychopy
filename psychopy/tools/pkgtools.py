@@ -24,7 +24,6 @@ __all__ = [
 import subprocess as sp
 from psychopy.preferences import prefs
 from psychopy.localization import _translate
-from psychopy.app.themes import icons, handlers
 import psychopy.logging as logging
 import pkg_resources
 import sys
@@ -32,7 +31,6 @@ import os
 import os.path
 import requests
 import shutil
-import wx
 
 
 def getUserPackagesPath():
@@ -48,67 +46,6 @@ def getUserPackagesPath():
 
     """
     return prefs.paths['packages']
-
-
-class InstallErrorDlg(wx.Dialog, handlers.ThemeMixin):
-    """
-    Dialog to display when something fails to install, contains info on what
-    command was tried and what output was received.
-    """
-    def __init__(self, label, caption=_translate("PIP error"), cmd="", stdout="", stderr=""):
-        from psychopy.app.themes import fonts
-        # Initialise
-        wx.Dialog.__init__(
-            self, None,
-            size=(480, 620),
-            title=caption,
-            style=wx.RESIZE_BORDER | wx.CLOSE_BOX | wx.CAPTION
-        )
-        # Setup sizer
-        self.border = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(self.border)
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
-        # Create title sizer
-        self.title = wx.BoxSizer(wx.HORIZONTAL)
-        self.sizer.Add(self.title, border=6, flag=wx.ALL | wx.EXPAND)
-        # Create icon
-        self.icon = wx.StaticBitmap(
-            self, size=(32, 32),
-            bitmap=icons.ButtonIcon(stem="stop", size=32).bitmap
-        )
-        self.title.Add(self.icon, border=6, flag=wx.ALL | wx.EXPAND)
-        # Create title
-        self.titleLbl = wx.StaticText(self, label=label)
-        self.titleLbl.SetFont(fonts.appTheme['h3'].obj)
-        self.title.Add(self.titleLbl, proportion=1, border=6, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        # Show what we tried
-        self.inLbl = wx.StaticText(self, label=_translate("We tried:"))
-        self.sizer.Add(self.inLbl, border=6, flag=wx.ALL | wx.EXPAND)
-        self.inCtrl = wx.TextCtrl(self, value=cmd, style=wx.TE_READONLY)
-        self.inCtrl.SetBackgroundColour("white")
-        self.inCtrl.SetFont(fonts.appTheme['code'].obj)
-        self.sizer.Add(self.inCtrl, border=6, flag=wx.ALL | wx.EXPAND)
-        # Show what we got
-        self.outLbl = wx.StaticText(self, label=_translate("We got:"))
-        self.sizer.Add(self.outLbl, border=6, flag=wx.ALL | wx.EXPAND)
-        self.outCtrl = wx.TextCtrl(self, value=f"{stdout}\n{stderr}",
-                                   size=(-1, 620), style=wx.TE_READONLY | wx.TE_MULTILINE)
-        self.outCtrl.SetFont(fonts.appTheme['code'].obj)
-        self.sizer.Add(self.outCtrl, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
-
-        # Make buttons
-        self.btns = self.CreateStdDialogButtonSizer(flags=wx.OK)
-        self.border.Add(self.btns, border=6, flag=wx.ALIGN_RIGHT | wx.ALL)
-
-        self.Layout()
-        self._applyAppTheme()
-
-    def ShowModal(self):
-        # Make error noise
-        wx.Bell()
-        # Show as normal
-        wx.Dialog.ShowModal(self)
 
 
 def getDistributions():
@@ -211,10 +148,10 @@ def installPackage(package, target=None, upgrade=False, forceReinstall=False,
     sys.stdout.write(stdout)
     sys.stderr.write(stderr)
 
-    if stderr:   # any error, return False
-        return False
-
-    return True
+    # if any error, return code should be False
+    retcode = bool(stderr)
+    # Return the return code and a dict of information from the console
+    return retcode, {"cmd": cmd, "stdout": stdout, "stderr": stderr}
 
 
 def _getUserPackageTopLevels():
@@ -301,10 +238,16 @@ def _uninstallUserPackage(package):
     """
     # todo - check if we imported the package and warn that we're uninstalling
     #        something we're actively using.
+    # string to use as stdout
+    stdout = ""
+    # take note of this function being run as if it was a command
+    cmd = f"python psychopy.tools.pkgtools._uninstallUserPackage(package)"
+
     userPackagePath = getUserPackagesPath()
 
-    logging.info('Attempting to uninstall user package `{}` from `{}`.'.format(
-        package, userPackagePath))
+    msg = 'Attempting to uninstall user package `{}` from `{}`.'.format(package, userPackagePath)
+    logging.info(msg)
+    stdout += msg + "\n"
 
     # figure out he name of the metadata directory
     pkgName = pkg_resources.safe_name(package)
@@ -319,7 +262,10 @@ def _uninstallUserPackage(package):
     # check if that directory exists
     metaPath = os.path.join(userPackagePath, metaDir)
     if not os.path.isdir(metaPath):
-        return False
+        return False, {
+        "cmd": cmd,
+        "stdout": stdout,
+        "stderr": "No package metadata found at {metaPath}"}
 
     # Get the top-levels for all packages in the user's PsychoPy directory, this
     # is intended to safely remove packages without deleting common directories
@@ -339,18 +285,22 @@ def _uninstallUserPackage(package):
             if pkgTopLevel in otherTopLevels:
                 # check if another version of this package is sharing the dir
                 if otherPkg.startswith(pathHead):
-                    logging.warning(
-                        'Found metadata for an older version of package '
-                        '`{}` in `{}`. This will also be removed.'.format(
-                            pkgName, otherPkg))
+                    msg = (
+                        'Found metadata for an older version of package `{}` in '
+                        '`{}`. This will also be removed.'
+                    ).format(pkgName, otherPkg)
+                    logging.warning(msg)
+                    stdout += msg + "\n"
                     toRemove.append(otherPkg)
                 else:
                     # unrelated package
-                    logging.warning(
+                    msg = (
                         'Found matching top-level directory `{}` in metadata '
                         'for `{}`. Can not safely remove this directory since '
-                        'another package appears to use it.'.format(
-                            pkgTopLevel, otherPkg))
+                        'another package appears to use it.'
+                    ).format(pkgTopLevel, otherPkg)
+                    logging.warning(msg)
+                    stdout += msg + "\n"
                     safeToRemove = False
                     break
 
@@ -360,22 +310,33 @@ def _uninstallUserPackage(package):
     # delete modules from the paths we found
     for rmDir in toRemove:
         if os.path.isfile(rmDir):
-            logging.info(
-                'Removing file `{}` from user package directory.'.format(
-                    rmDir))
+            msg = (
+                'Removing file `{}` from user package directory.'
+            ).format(rmDir)
+            logging.info(msg)
+            stdout += msg + "\n"
             os.remove(rmDir)
         elif os.path.isdir(rmDir):
-            logging.info(
+            msg = (
                 'Removing directory `{}` from user package '
-                'directory.'.format(rmDir))
+                'directory.'
+            ).format(rmDir)
+            logging.info(msg)
+            stdout += msg + "\n"
             shutil.rmtree(rmDir)
 
     # cleanup by also deleting the metadata path
     shutil.rmtree(metaPath)
 
-    logging.info('Uninstalled package `{}`.'.format(package))
+    msg = 'Uninstalled package `{}`.'.format(package)
+    logging.info(msg)
+    stdout += msg + "\n"
 
-    return True
+    # Return the return code and a dict of information from the console
+    return True, {
+        "cmd": cmd,
+        "stdout": stdout,
+        "stderr": ""}
 
 
 def uninstallPackage(package):
@@ -417,92 +378,10 @@ def uninstallPackage(package):
 
         sys.stdout.write(stdout)
         sys.stderr.write(stderr)
-
-    # Handle errors
-    if output.returncode != 0:
-        # Display output if error
-        cmd = "\n>> " + " ".join(cmd) + "\n"
-        dlg = InstallErrorDlg(
-            cmd=cmd,
-            stdout=stdout,
-            stderr=stderr,
-            label=_translate("Package {} could not be installed.").format(package)
-        )
-    else:
-        # Display success message if success
-        dlg = wx.MessageDialog(
-            parent=None,
-            caption=_translate("Package installed"),
-            message=_translate("Package {} successfully installed!").format(package),
-            style=wx.ICON_INFORMATION
-        )
-    dlg.ShowModal()
-
-    if stderr:   # any error, return False
-        return False
-
-    return True
-
-
-def uninstallPackage(package):
-    """Uninstall a package from the current distribution.
-
-    Parameters
-    ----------
-    package : str
-        Package name (e.g., `'psychopy-connect'`, `'scipy'`, etc.) with version
-        if needed. You may also specify URLs to Git repositories and such.
-
-    Returns
-    -------
-    bool
-        `True` if the package removed without errors. If `False`, check 'stderr'
-        for more information. The package may still have uninstalled correctly,
-        but some other issues may have arose during the process.
-
-    Notes
-    -----
-    * The `--yes` flag is appened to the pip command. No confirmation will be
-      requested if the package already exists.
-
-    """
-    # construct the pip command and execute as a subprocess
-    cmd = [sys.executable, "-m", "pip", "uninstall", package, "--yes"]
-
-    cmd.append('--no-input')  # cancels out `--yes`?
-    cmd.append('--no-color')  # no color for console, not supported
-
-    # run command in subprocess
-    output = sp.Popen(
-        cmd,
-        stdout=sp.PIPE,
-        stderr=sp.PIPE,
-        shell=False,
-        universal_newlines=True)
-    stdout, stderr = output.communicate()  # blocks until process exits
-
-    sys.stdout.write(stdout)
-    sys.stderr.write(stderr)
-
-    # Handle errors
-    if output.returncode != 0:
-        # Display output if error
-        cmd = "\n>> " + " ".join(cmd) + "\n"
-        dlg = InstallErrorDlg(
-            cmd=cmd,
-            stdout=stdout,
-            stderr=stderr,
-            label=_translate("Package {} could not be uninstalled.").format(package)
-        )
-    else:
-        # Display success message if success
-        dlg = wx.MessageDialog(
-            parent=None,
-            caption=_translate("Package installed"),
-            message=_translate("Package {} successfully uninstalled!").format(package),
-            style=wx.ICON_INFORMATION
-        )
-    dlg.ShowModal()
+    # if any error, return code should be False
+    retcode = bool(stderr)
+    # Return the return code and a dict of information from the console
+    return retcode, {"cmd": cmd, "stdout": stdout, "stderr": stderr}
 
 
 def isInstalled(packageName):

@@ -3,7 +3,8 @@ from wx.lib import scrolledpanel
 import webbrowser
 from PIL import Image as pil
 
-from psychopy.tools.pkgtools import installPackage, uninstallPackage
+from psychopy.tools.pkgtools import installPackage
+from .utils import uninstallPackage
 from psychopy.app.themes import theme, handlers, colors, icons
 from psychopy.app import utils
 from psychopy.localization import _translate

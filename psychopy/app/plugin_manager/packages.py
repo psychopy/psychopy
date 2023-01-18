@@ -12,8 +12,9 @@ from psychopy.localization import _translate
 from psychopy.tools import filetools as ft
 
 from psychopy.tools.pkgtools import (
-    getInstalledPackages, getPackageMetadata, getPypiInfo, isInstalled, installPackage, uninstallPackage
+    getInstalledPackages, getPackageMetadata, getPypiInfo, isInstalled, installPackage
 )
+from .utils import uninstallPackage
 
 
 class PackageManagerPanel(wx.Panel):
@@ -402,31 +403,6 @@ class PackageDetailsPanel(wx.Panel):
     def onHomepage(self, evt=None):
         # Open homepage in browser
         webbrowser.open(self.params.get('Home-page'))
-
-    def onLocalDir(self, evt=None):
-        # Get local dir from pip
-        output = sp.Popen(f"{sys.executable} -m pip show {self.package}",
-                          stdout=sp.PIPE,
-                          stderr=sp.PIPE,
-                          shell=True,
-                          universal_newlines=True)
-        stdout, stderr = output.communicate()
-        # Show error dialog if something went wrong
-        if stderr:
-            dlg = InstallErrorDlg(
-                cmd=f">> pip show {self.package}",
-                stdout=stdout,
-                stderr=stderr,
-                label=_translate("Could not find local directory for package {}").format(self.package))
-            dlg.ShowModal()
-        else:
-            # Open local director via default file browser
-            lines = stdout.split("\n")
-            for line in lines:
-                line = line.split(":", 1)
-                if line[0] == "Location":
-                    ft.openInExplorer(line[1])
-                    break
 
     def onInstall(self, evt=None):
         name = self.package
