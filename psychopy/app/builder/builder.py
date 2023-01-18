@@ -415,10 +415,15 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate("Smaller routine items"))
         self.Bind(wx.EVT_MENU, self.routinePanel.decreaseSize, item)
         menu.AppendSeparator()
-        # Add Theme Switcher
+
+        # Frame switcher
+        framesMenu = wx.Menu()
+        FrameSwitcher.makeViewSwitcherButtons(framesMenu, frame=self, app=self.app)
+        menu.AppendSubMenu(framesMenu, _translate("&Frames"))
+
+        # Theme switcher
         self.themesMenu = ThemeSwitcher(app=self.app)
-        menu.AppendSubMenu(self.themesMenu,
-                               _translate("&Themes"))
+        menu.AppendSubMenu(self.themesMenu, _translate("&Themes"))
 
         # ---_tools ---#000000#FFFFFF-----------------------------------------
         self.toolsMenu = wx.Menu()
@@ -548,8 +553,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         # ---_window---#000000#FFFFFF-----------------------------------------
         self.windowMenu = FrameSwitcher(self)
-        menuBar.Append(self.windowMenu,
-                    _translate("&Window"))
+        menuBar.Append(self.windowMenu, _translate("&Window"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()
