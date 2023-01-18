@@ -1,0 +1,7 @@
+text,letterColor,corrAns,congruent,Stim,myLabel,myDesc
+red,red,left,1,cng+,LRR+,RR
+red,green,down,0,icg+,LRG+,RG
+green,green,down,1,cng+,LGG+,GG
+green,blue,right,0,icg+,LGB+,GB
+blue,blue,right,1,cng+,LBB+,BB
+blue,red,left,0,icg+,LBR+,BR
