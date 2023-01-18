@@ -3,7 +3,7 @@ from wx.lib import scrolledpanel
 import webbrowser
 from PIL import Image as pil
 
-from .packages import InstallErrorDlg
+from .utils import uninstallPackage, installPackage
 from psychopy.app.themes import theme, handlers, colors, icons
 from psychopy.app import utils
 from psychopy.localization import _translate
@@ -150,10 +150,13 @@ class PluginInfo:
         self.active = False
 
     def install(self):
-        self._execute("install")
+        installPackage(self.pipname)
+        plugins.scanPlugins()
 
     def uninstall(self):
-        self._execute("uninstall")
+        uninstallPackage(self.pipname)
+        plugins.scanPlugins()
+        pass
 
     @property
     def installed(self):
@@ -171,28 +174,6 @@ class PluginInfo:
             self.install()
         elif self.installed:
             self.uninstall()
-
-    def _execute(self, action):
-        # Install/uninstall
-        emts = [sys.executable, "-m", "pip", action, self.pipname]
-        cmd = " ".join(emts)
-        output = sp.Popen(cmd,
-                          stdout=sp.PIPE,
-                          stderr=sp.PIPE,
-                          shell=True,
-                          universal_newlines=True)
-        stdout, stderr = output.communicate()
-        sys.stdout.write(stdout)
-        sys.stderr.write(stderr)
-        # Throw up error dlg if needed
-        if stderr:
-            dlg = InstallErrorDlg(
-                label=_translate("Could not install %s") % self.pipname,
-                cmd=" ".join(emts[2:]),
-                stdout=stdout,
-                stderr=stderr
-            )
-            dlg.ShowModal()
 
     @property
     def author(self):
@@ -410,6 +391,10 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         # Setup items
         self.items = []
         self.populate()
+        # Store state of plugins on init so we can detect changes later
+        self.initState = {}
+        for item in self.items:
+            self.initState[item.info.pipname] = {"installed": item.info.installed, "active": item.info.active}
 
     def populate(self):
         for item in self.items:
@@ -438,6 +423,40 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             item.Show(match)
 
         self.Layout()
+
+    def getChanges(self):
+        """
+        Check what plugins have changed state (installed, active) since this dialog was opened
+        """
+        changes = {}
+        for item in self.items:
+            info = item.info
+            # Skip if its init state wasn't stored
+            if info.pipname not in self.initState:
+                continue
+            # Get inits
+            inits = self.initState[info.pipname]
+
+            itemChanges = []
+            # Has it been activated?
+            if info.active and not inits['active']:
+                itemChanges.append("activated")
+            # Has it been deactivated?
+            if inits['active'] and not info.active:
+                itemChanges.append("deactivated")
+            # Has it been installed?
+            if info.installed and not inits['installed']:
+                itemChanges.append("installed")
+
+            # Add changes if there are any
+            if itemChanges:
+                changes[info.pipname] = itemChanges
+
+        return changes
+
+    def onClick(self, evt=None):
+        self.SetFocusIgnoringChildren()
+        self.viewer.info = None
 
     def setSelection(self, item):
         """
@@ -595,17 +614,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Do install
         self.info.install()
         # Mark according to install success
-        if self.info.installed:
-            self.markInstalled(True)
-        else:
-            dlg = wx.MessageDialog(
-                self,
-                message=_translate(
-                    "Plugin %s failed to install, no error given."
-                ) % self.info.pipname,
-                style=wx.ICON_ERROR
-            )
-            dlg.ShowModal()
+        self.markInstalled(self.info.installed)
 
     def onActivate(self, evt=None):
         if self.activeBtn.GetValue():

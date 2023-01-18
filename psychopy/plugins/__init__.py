@@ -28,6 +28,7 @@ import hashlib
 import importlib
 import pkg_resources
 import psychopy.tools.pkgtools as pkgtools
+
 from psychopy import logging
 from psychopy.preferences import prefs
 
