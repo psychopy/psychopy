@@ -426,9 +426,7 @@ class PackageDetailsPanel(wx.Panel):
             self.installBtn.Disable()
         # Disable all controls if we have None
         self.homeBtn.Enable(state is not None)
-        self.installBtn.Enable(state is not None)
         self.nameCtrl.Enable(state is not None)
-        self.versionCtrl.Enable(state is not None)
         self.authorPre.Enable(state is not None)
         self.authorCtrl.Enable(state is not None)
         self.licenseCtrl.Enable(state is not None)
