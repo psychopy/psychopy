@@ -384,6 +384,40 @@ def uninstallPackage(package):
     return retcode, {"cmd": cmd, "stdout": stdout, "stderr": stderr}
 
 
+def getInstallState(package):
+    """
+    Get a code indicating the installed state of a given package.
+
+    Returns
+    -------
+    str
+        "s": Installed to system environment
+        "u": Installed to user space
+        "n": Not installed
+    str or None
+        Version number installed, or None if not installed
+    """
+    # If given None, return None
+    if package is None:
+        return None, None
+
+    if isInstalled(package):
+        # If installed, get version from metadata
+        metadata = getPackageMetadata(package)
+        version = metadata.get('Version', None)
+        # Determine whether installed to system or user
+        if _isUserPackage(package):
+            state = "u"
+        else:
+            state = "s"
+    else:
+        # If not installed, we know the state and version
+        state = "n"
+        version = None
+
+    return state, version
+
+
 def isInstalled(packageName):
     """Check if a package is presently installed and reachable.
 

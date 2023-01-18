@@ -12,7 +12,7 @@ from psychopy.localization import _translate
 from psychopy.tools import filetools as ft
 
 from psychopy.tools.pkgtools import (
-    getInstalledPackages, getPackageMetadata, getPypiInfo, isInstalled, _isUserPackage
+    getInstalledPackages, getPackageMetadata, getPypiInfo, isInstalled, _isUserPackage, getInstallState
 )
 from .utils import uninstallPackage, installPackage
 
@@ -346,17 +346,6 @@ class PackageDetailsPanel(wx.Panel):
     def package(self, pipname):
         self._package = pipname
 
-        # Disable/enable according to whether None
-        active = pipname is not None
-        self.homeBtn.Enable(active)
-        self.installBtn.Enable(active)
-        self.nameCtrl.Enable(active)
-        self.versionCtrl.Enable(active)
-        self.authorPre.Enable(active)
-        self.authorCtrl.Enable(active)
-        self.licenseCtrl.Enable(active)
-        self.descCtrl.Enable(active)
-
         if self._package is None:
             # Show placeholder text
             self.params = {
@@ -405,12 +394,45 @@ class PackageDetailsPanel(wx.Panel):
             if self.params['version'] not in self.versionCtrl.GetStrings():
                 self.versionCtrl.Append(self.params['version'])
             self.versionCtrl.SetStringSelection(self.params['version'])
-        # Enable/disable buttons according to accessibility
-        self.uninstallBtn.Enable(isInstalled(pipname) and _isUserPackage(pipname))
-        self.onVersion()
 
+        self.refresh()
         self.Layout()
         self._applyAppTheme()
+
+    def refresh(self, evt=None):
+        state, version = getInstallState(self.package)
+
+        if state == "u":
+            # If installed to the user space, can be uninstalled or changed
+            self.uninstallBtn.Enable()
+            self.versionCtrl.Enable()
+            self.installBtn.Enable(
+                self.versionCtrl.GetStringSelection() != version
+            )
+        elif state == "s":
+            # If installed to the system, can't be uninstalled or changed
+            self.uninstallBtn.Disable()
+            self.versionCtrl.Disable()
+            self.installBtn.Disable()
+        elif state == "n":
+            # If uninstalled, can only be installed
+            self.uninstallBtn.Disable()
+            self.versionCtrl.Enable()
+            self.installBtn.Enable()
+        else:
+            # If None, disable everything
+            self.uninstallBtn.Disable()
+            self.versionCtrl.Disable()
+            self.installBtn.Disable()
+        # Disable all controls if we have None
+        self.homeBtn.Enable(state is not None)
+        self.installBtn.Enable(state is not None)
+        self.nameCtrl.Enable(state is not None)
+        self.versionCtrl.Enable(state is not None)
+        self.authorPre.Enable(state is not None)
+        self.authorCtrl.Enable(state is not None)
+        self.licenseCtrl.Enable(state is not None)
+        self.descCtrl.Enable(state is not None)
 
     def onHomepage(self, evt=None):
         # Open homepage in browser
@@ -424,7 +446,8 @@ class PackageDetailsPanel(wx.Panel):
             name += f"=={version}"
         # Install package then disable the button to indicate it's installed
         installPackage(name)
-        self.installBtn.Disable()
+        # Refresh view
+        self.refresh()
 
     def onUninstall(self, evt=None):
         # Get rightclick menu
@@ -437,15 +460,12 @@ class PackageDetailsPanel(wx.Panel):
         # if user selects NO, exit the routine
         if msg.ShowModal() == wx.ID_YES:
             uninstallPackage(self.package)
+        # Refresh view
+        self.refresh()
 
     def onVersion(self, evt=None):
-        # When version selected, enable the install button if the version is different than installed
-        self.installBtn.Enable((
-            self.versionCtrl.GetStringSelection() != self.params['version']
-            and self.package is not None
-            and isInstalled(self.package)
-            and _isUserPackage(self.package)
-        ))
+        # Refresh view
+        self.refresh()
 
     def _applyAppTheme(self):
         from psychopy.app.themes import fonts
