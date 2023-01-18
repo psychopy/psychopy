@@ -325,6 +325,11 @@ class PackageDetailsPanel(wx.Panel):
         self.versionCtrl = wx.Choice(self)
         self.headBtnSzr.Add(self.versionCtrl, border=3, flag=wx.RIGHT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER)
         self.versionCtrl.Bind(wx.EVT_CHOICE, self.onVersion)
+        # Uninstall button
+        self.uninstallBtn = wx.Button(self, label=_translate("Uninstall"))
+        self.headBtnSzr.AddStretchSpacer(1)
+        self.headBtnSzr.Add(self.uninstallBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        self.uninstallBtn.Bind(wx.EVT_BUTTON, self.onUninstall)
         # Description
         self.descCtrl = utils.MarkdownCtrl(self, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL)
         self.sizer.Add(self.descCtrl, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
@@ -400,6 +405,8 @@ class PackageDetailsPanel(wx.Panel):
             if self.params['version'] not in self.versionCtrl.GetStrings():
                 self.versionCtrl.Append(self.params['version'])
             self.versionCtrl.SetStringSelection(self.params['version'])
+        # Enable/disable buttons according to accessibility
+        self.uninstallBtn.Enable(isInstalled(pipname) and _isUserPackage(pipname))
         self.onVersion()
 
         self.Layout()
@@ -419,16 +426,32 @@ class PackageDetailsPanel(wx.Panel):
         installPackage(name)
         self.installBtn.Disable()
 
+    def onUninstall(self, evt=None):
+        # Get rightclick menu
+        msg = wx.MessageDialog(
+            self,
+            "Are you sure you want to uninstall package `{}`?".format(self.package),
+            caption="Uninstall Package?",
+            style=wx.YES_NO | wx.NO_DEFAULT)
+
+        # if user selects NO, exit the routine
+        if msg.ShowModal() == wx.ID_YES:
+            uninstallPackage(self.package)
+
     def onVersion(self, evt=None):
         # When version selected, enable the install button if the version is different than installed
-        self.installBtn.Enable(
-            self.versionCtrl.GetStringSelection() != self.params['version'] and self.package is not None
-        )
+        self.installBtn.Enable((
+            self.versionCtrl.GetStringSelection() != self.params['version']
+            and self.package is not None
+            and isInstalled(self.package)
+            and _isUserPackage(self.package)
+        ))
 
     def _applyAppTheme(self):
         from psychopy.app.themes import fonts
         self.nameCtrl.SetFont(fonts.appTheme['h1'].obj)
         self.installBtn.SetBitmap(icons.ButtonIcon(stem="download", size=16).bitmap)
+        self.uninstallBtn.SetBitmap(icons.ButtonIcon(stem="delete", size=16).bitmap)
         self.authorCtrl.SetBackgroundColour("white")
 
 
