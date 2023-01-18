@@ -153,6 +153,11 @@ class RegionOfInterestComponent(PolygonComponent):
         inits = getInitVals(self.params, 'PsychoPy')
         # Write start code
         indented = self.writeStartTestCode(buff)
+        if indented:
+            code = (
+                "%(name)s.setAutoDraw(True)\n"
+            )
+            buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-indented, relative=True)
         # String to get time
         if inits['timeRelativeTo'] == 'roi onset':
@@ -270,6 +275,11 @@ class RegionOfInterestComponent(PolygonComponent):
 
         # Write stop code
         indented = self.writeStopTestCode(buff)
+        if indented:
+            code = (
+                "%(name)s.setAutoDraw(False)\n"
+            )
+            buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-indented, relative=True)
 
     def writeRoutineEndCode(self, buff):
