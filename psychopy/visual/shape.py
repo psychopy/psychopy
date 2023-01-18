@@ -261,9 +261,9 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # check if this is a name of one of our known shapes
         if isinstance(value, str) and value in knownShapes:
             value = knownShapes[value]
-        if value == "circle":
-            # If circle is requested, calculate how many points are needed for the gap between line rects to be < 1px
-            value = self._calculateMinEdges(self.lineWidth, threshold=5)
+            if value == "circle":
+                # If circle is requested, calculate how many points are needed for the gap between line rects to be < 1px
+                value = self._calculateMinEdges(self.lineWidth, threshold=5)
         if isinstance(value, int):
             value = self._calcEquilateralVertices(value)
         # Check shape

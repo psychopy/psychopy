@@ -90,7 +90,7 @@ class _TestBoilerplateMixin:
 
 class TestComponentCompilerPython():
     """A class for testing the Python code compiler for all components"""
-    def setup(self):
+    def setup_method(self):
         self.temp_dir = mkdtemp()
         self.allComp = getAllComponents(fetchIcons=False)
         self.exp = Experiment() # create once, not every test

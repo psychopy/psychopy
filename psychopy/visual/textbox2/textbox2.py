@@ -68,7 +68,6 @@ debug = False
 
 class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def __init__(self, win, text,
-                 placeholder="Type here...",
                  font="Open Sans",
                  pos=(0, 0), units=None, letterHeight=None,
                  size=None,
@@ -79,6 +78,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  opacity=None,
                  bold=False,
                  italic=False,
+                 placeholder="Type here...",
                  lineSpacing=None,
                  padding=None,  # gap between box and text
                  speechPoint=None,
@@ -768,7 +768,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             cstyle = self._styles[self.caret.index-1]
         self._styles.insert(self.caret.index, cstyle)
         self.caret.index += 1
-        self._text = txt
+        self.text = txt
         self._layout()
 
     def deleteCaretLeft(self):
@@ -779,7 +779,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             txt = txt[:ci-1] + txt[ci:]
             self._styles = self._styles[:ci-1]+self._styles[ci:]
             self.caret.index -= 1
-            self._text = txt
+            self.text = txt
             self._layout()
 
     def deleteCaretRight(self):
@@ -789,7 +789,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             txt = self._text
             txt = txt[:ci] + txt[ci+1:]
             self._styles = self._styles[:ci]+self._styles[ci+1:]
-            self._text = txt
+            self.text = txt
             self._layout()
         
     def _layout(self):
@@ -1555,11 +1555,29 @@ class Caret(ColorMixin):
         self.colorSpace = colorSpace
         self.color = color
 
-    def draw(self):
-        if not self.visible:
+    def draw(self, override=None):
+        """
+        Draw the caret
+
+        Parameters
+        ==========
+        override : bool or None
+            Set to True to always draw the caret, to False to never draw the caret, or leave as None to
+            draw only according to the usual conditions (being visible and within the correct timeframe
+            for the flashing effect)
+        """
+        if override is None:
+            # If no override, draw only if conditions are met
+            if not self.visible:
+                return
+            # Flash every other second
+            if core.getTime() % 1 > 0.6:
+                return
+        elif not override:
+            # If override is False, never draw
             return
-        if core.getTime() % 1 > 0.6:  # Flash every other second
-            return
+
+        # If no override and conditions are met, or override is True, draw
         gl.glLineWidth(self.width)
         gl.glColor4f(
             *self._foreColor.rgba1

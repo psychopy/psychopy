@@ -1621,17 +1621,6 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         menu = self.viewMenu
         menuBar.Append(self.viewMenu, _translate('&View'))
 
-        # Frame switcher (legacy
-        # item = menu.Append(wx.ID_ANY,
-        #                    _translate("Go to Builder view"),
-        #                    _translate("Go to the Builder view"))
-        # self.Bind(wx.EVT_MENU, self.app.showBuilder, id=item.GetId())
-        #
-        # item = menu.Append(wx.ID_ANY,
-        #                    _translate("Open Runner view"),
-        #                    _translate("Open the Runner view"))
-        # self.Bind(wx.EVT_MENU, self.app.showRunner, item)
-        # menu.AppendSeparator()
         # Panel switcher
         self.panelsMenu = wx.Menu()
         menu.AppendSubMenu(self.panelsMenu,
@@ -1692,6 +1681,11 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.themesMenu = ThemeSwitcher(app=self.app)
         menu.AppendSubMenu(self.themesMenu,
                            _translate("&Themes"))
+
+        # Frame switcher
+        framesMenu = wx.Menu()
+        FrameSwitcher.makeViewSwitcherButtons(framesMenu, frame=self, app=self.app)
+        menu.AppendSubMenu(framesMenu, _translate("&Frames"))
 
         # ---_view---#000000#FFFFFF-------------------------------------------
         # self.shellMenu = wx.Menu()
@@ -1798,7 +1792,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # ---_window---#000000#FFFFFF-----------------------------------------
         self.windowMenu = FrameSwitcher(self)
         menuBar.Append(self.windowMenu,
-                    _translate("&Window"))
+                           _translate("&Window"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()

@@ -732,7 +732,7 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
             # Update button
             self.updateBtn = wx.Button(self.extraCtrls, size=(24, 24))
             self.updateBtn.SetBitmap(icons.ButtonIcon(stem="view-refresh", size=16).bitmap)
-            self.updateBtn.SetToolTipString(_translate(
+            self.updateBtn.SetToolTip(_translate(
                 "Refresh survey list"
             ))
             self.updateBtn.Bind(wx.EVT_BUTTON, self.populate)

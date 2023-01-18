@@ -9,7 +9,7 @@ from psychopy.visual.image import ImageStim
 class TestImage(_TestBaseComponentsMixin, _TestDepthMixin):
     libraryClass = ImageStim
 
-    def setup(self):
+    def setup_method(self):
         # Make blank experiment
         self.exp = Experiment()
         # Make blank routine

@@ -25,6 +25,7 @@ from wx.lib import scrolledpanel
 from wx.lib import platebtn
 from wx.html import HtmlWindow
 
+import psychopy.app.plugin_manager.dialog
 from .validators import WarningManager
 from ..pavlovia_ui import sync
 from ..pavlovia_ui.project import ProjectFrame
@@ -415,10 +416,15 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate("Smaller routine items"))
         self.Bind(wx.EVT_MENU, self.routinePanel.decreaseSize, item)
         menu.AppendSeparator()
-        # Add Theme Switcher
+
+        # Frame switcher
+        framesMenu = wx.Menu()
+        FrameSwitcher.makeViewSwitcherButtons(framesMenu, frame=self, app=self.app)
+        menu.AppendSubMenu(framesMenu, _translate("&Frames"))
+
+        # Theme switcher
         self.themesMenu = ThemeSwitcher(app=self.app)
-        menu.AppendSubMenu(self.themesMenu,
-                               _translate("&Themes"))
+        menu.AppendSubMenu(self.themesMenu, _translate("&Themes"))
 
         # ---_tools ---#000000#FFFFFF-----------------------------------------
         self.toolsMenu = wx.Menu()
@@ -548,8 +554,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         # ---_window---#000000#FFFFFF-----------------------------------------
         self.windowMenu = FrameSwitcher(self)
-        menuBar.Append(self.windowMenu,
-                    _translate("&Window"))
+        menuBar.Append(self.windowMenu, _translate("&Window"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()
@@ -1385,8 +1390,10 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             return True
 
     def openPluginManager(self, evt=None):
-        dlg = plugin_manager.EnvironmentManagerDlg(self)
+        dlg = psychopy.app.plugin_manager.dialog.EnvironmentManagerDlg(self)
         dlg.ShowModal()
+        # Do post-close checks
+        dlg.onClose()
 
     def onPavloviaSync(self, evt=None):
         if Path(self.filename).is_file():
@@ -2857,8 +2864,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         dlg.ShowModal()
 
     def onPluginBtn(self, evt=None):
-        dlg = plugin_manager.EnvironmentManagerDlg(self)
+        dlg = psychopy.app.plugin_manager.dialog.EnvironmentManagerDlg(self)
         dlg.ShowModal()
+        # Do post-close checks
+        dlg.onClose()
 
 
 class ReadmeFrame(wx.Frame, handlers.ThemeMixin):

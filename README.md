@@ -26,7 +26,7 @@ There is a range of documentation at:
 
 To contribute, please fork the repository, hack in a feature branch, and send a
 pull request.  For more, see [CONTRIBUTING.md](CONTRIBUTING.md)
-and the developers documentation at https://www.psychopy.org/developers/developers.html
+and the developers documentation at [https://www.psychopy.org/developers](https://psychopy.org/developers)
 
 ## Code Status
 

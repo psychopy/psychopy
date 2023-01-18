@@ -599,6 +599,25 @@ def loadPlugin(plugin):
                     _failed_plugins_.append(plugin)
 
                 return False
+            except pkg_resources.DistributionNotFound:
+                logging.error(
+                    "Failed to load entry point `{}` of plugin `{}` due to "
+                    "missing distribution required by the application."
+                    "Skipping.".format(str(ep), plugin))
+
+                if plugin not in _failed_plugins_:
+                    _failed_plugins_.append(plugin)
+
+                return False
+            except Exception:  # catch everything else
+                logging.error(
+                    "Failed to load entry point `{}` of plugin `{}` for unknown"
+                    "reasons. Skipping.".format(str(ep), plugin))
+
+                if plugin not in _failed_plugins_:
+                    _failed_plugins_.append(plugin)
+
+                return False
 
             # If we get here, the entry point is valid and we can safely add it
             # to PsychoPy's namespace.

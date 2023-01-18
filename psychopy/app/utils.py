@@ -1064,7 +1064,15 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
                         fr.append(img.info['duration'])
                     # Create wx.Bitmap from frame
                     frame = img.resize(self.Size).convert("RGB")
-                    bmp = wx.BitmapFromBuffer(*frame.size, frame.tobytes())
+                    # Supply an alpha channel if there is one
+                    if "A" in frame.getbands():
+                        alpha = frame.tobytes("raw", "A")
+                    else:
+                        alpha = None
+                    bmp = wx.Bitmap.FromBufferAndAlpha(
+                        *frame.size,
+                        data=frame.tobytes("raw", "RGB"),
+                        alpha=alpha)
                     # Store bitmap
                     self._frames.append(bmp)
             except PIL.UnidentifiedImageError as err:
@@ -1290,26 +1298,53 @@ class FrameSwitcher(wx.Menu):
         self.parent = parent
         self.app = parent.app
         self.itemFrames = {}
-        # Listen for window switch
-        self.next = self.Append(wx.ID_MDI_WINDOW_NEXT,
-                                _translate("&Next Window\t%s") % self.app.keys['cycleWindows'],
-                                _translate("&Next Window\t%s") % self.app.keys['cycleWindows'])
+        self.next = self.Append(
+            wx.ID_MDI_WINDOW_NEXT, _translate("&Next window\t%s") % self.app.keys['cycleWindows'],
+            _translate("&Next window\t%s") % self.app.keys['cycleWindows'])
         self.Bind(wx.EVT_MENU, self.nextWindow, self.next)
         self.AppendSeparator()
-        # Add creator options
-        self.minItemSpec = [
-            {'label': "&Builder", 'class': psychopy.app.builder.BuilderFrame, 'method': self.app.showBuilder},
-            {'label': "&Coder", 'class': psychopy.app.coder.CoderFrame, 'method': self.app.showCoder},
-            {'label': "&Runner", 'class': psychopy.app.runner.RunnerFrame, 'method': self.app.showRunner},
-        ]
-        for spec in self.minItemSpec:
-            if not isinstance(self.Window, spec['class']):
-                item = self.Append(
-                    wx.ID_ANY, spec['label'], spec['label']
-                )
-                self.Bind(wx.EVT_MENU, spec['method'], item)
+        self.makeViewSwitcherButtons(self, frame=self.Window, app=self.app)
         self.AppendSeparator()
         self.updateFrames()
+
+    @staticmethod
+    def makeViewSwitcherButtons(parent, frame, app):
+        """
+        Make buttons to show Builder, Coder & Runner
+
+        Parameters
+        ==========
+        parent : wx.Menu
+            Menu to append these buttons to
+        frame : wx.Frame
+            Frame for the menu to be attached to - used to check whether we need to skip one option
+        app : wx.App
+            Current PsychoPy app instance, from which to get showBuilder/showCoder/showRunner methods
+        """
+        items = {}
+
+        # Builder
+        if not isinstance(frame, psychopy.app.builder.BuilderFrame):
+            items['builder'] = parent.Append(
+                wx.ID_ANY, _translate("Show &builder"), _translate("Show builder")
+            )
+            parent.Bind(wx.EVT_MENU, app.showBuilder, items['builder'])
+
+        # Coder
+        if not isinstance(frame, psychopy.app.coder.CoderFrame):
+            items['coder'] = parent.Append(
+                wx.ID_ANY, _translate("Show &coder"), _translate("Show coder")
+            )
+            parent.Bind(wx.EVT_MENU, app.showCoder, items['coder'])
+
+        # Runner
+        if not isinstance(frame, psychopy.app.runner.RunnerFrame):
+            items['runner'] = parent.Append(
+                wx.ID_ANY, _translate("Show &runner"), _translate("Show runner")
+            )
+            parent.Bind(wx.EVT_MENU, app.showRunner, items['runner'])
+
+        return items
 
     @property
     def frames(self):

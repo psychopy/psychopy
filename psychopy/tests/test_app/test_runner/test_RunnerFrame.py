@@ -12,7 +12,7 @@ class Test_RunnerFrame:
     """
     This test opens Runner, and several processes.
     """
-    def setup(self):
+    def setup_method(self):
         self.tempFile = os.path.join(
             prefs.paths['tests'], 'data', 'test001EntryImporting.psyexp')
 
