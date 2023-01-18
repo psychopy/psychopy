@@ -95,7 +95,7 @@ class _baseVisualTest():
     def teardown_class(self):#run once for each test class (window)
         self.win.close()#shutil.rmtree(self.temp_dir)
 
-    def setup(self):#this is run for each test individually
+    def setup_method(self):#this is run for each test individually
         #make sure we start with a clean window
         self.win.flip()
 

@@ -14,7 +14,7 @@ class TestPolygonComponent(_TestBaseComponentsMixin, _TestDisabledMixin):
     """
     libraryClass = Polygon
 
-    def setup(self):
+    def setup_method(self):
         # Make blank experiment
         self.exp = Experiment()
         # Make blank routine

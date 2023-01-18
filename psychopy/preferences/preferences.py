@@ -50,7 +50,9 @@ class Preferences:
 
     # Names of legacy parameters which are needed for use version
     legacy = [
-        "winType"
+        "winType",  # 2023.1.0
+        "audioLib",  # 2023.1.0
+        "audioLatencyMode",  # 2023.1.0
     ]
 
     def __init__(self):

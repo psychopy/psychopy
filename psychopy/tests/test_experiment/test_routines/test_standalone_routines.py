@@ -13,7 +13,7 @@ class TestStandaloneRoutines:
         cls.expPy = experiment.Experiment()
         cls.expJS = experiment.Experiment()
 
-    def setup(self):
+    def setup_method(self):
         """This setup is done for each test individually
         """
         pass
