@@ -67,7 +67,7 @@ class TestExpt():
             # can't write to root on Linux
             cls.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
 
-    def setup(self):
+    def setup_method(self):
         """This setup is done for each test individually
         """
         self.here = path.abspath(path.dirname(__file__))
@@ -279,7 +279,7 @@ class TestExpt():
 
 
 class TestExpImports():
-    def setup(self):
+    def setup_method(self):
         self.exp = psychopy.experiment.Experiment()
         self.exp.requiredImports = []
 
@@ -365,7 +365,7 @@ class TestExpImports():
 
 
 class TestRunOnce():
-    def setup(self):
+    def setup_method(self):
         from psychopy.experiment import exports
         self.buff = exports.IndentingBuffer()
 

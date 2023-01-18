@@ -18,7 +18,7 @@ from psychopy.tests import utils
 
 @pytest.mark.textbox
 class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
-    def setup(self):
+    def setup_method(self):
         self.win = Window((128, 128), pos=(50, 50), monitor="testMonitor", allowGUI=False, autoLog=False)
         self.error = _BaseErrorHandler()
         self.textbox = TextBox2(self.win,
@@ -428,6 +428,6 @@ def test_font_manager():
 @pytest.mark.uax14
 class Test_uax14_textbox(Test_textbox):
     """Runs the same tests as for Test_textbox, but with the textbox set to uax14 line breaking"""
-    def setup(self):
-        Test_textbox.setup(self)
+    def setup_method(self):
+        Test_textbox.setup_method(self)
         self.textbox._lineBreaking = 'uax14'
