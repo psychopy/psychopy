@@ -32,6 +32,7 @@ import os
 import os.path
 import requests
 import shutil
+import wx
 
 
 def getUserPackagesPath():
