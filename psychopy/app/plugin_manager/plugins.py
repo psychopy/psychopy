@@ -538,8 +538,8 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.installBtn = PluginInstallBtn(self)
         self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
         self.buttonSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        self.activeBtn = wx.CheckBox(self, label=_translate("Activated"))
-        self.activeBtn.Bind(wx.EVT_CHECKBOX, self.onActivate)
+        self.activeBtn = wx.ToggleButton(self)
+        self.activeBtn.Bind(wx.EVT_TOGGLEBUTTON, self.onActivate)
         self.buttonSizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         # Description
         self.description = utils.MarkdownCtrl(
@@ -594,6 +594,27 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
             installed=installed
         )
 
+    def markActive(self, active=True):
+        """
+        Visually indicate that this item is either active or inactive
+
+        Parameters
+        ----------
+        active : bool
+            True if active, False if inactive
+        """
+        self.activeBtn.SetValue(active)
+        # Update button label
+        if active:
+            self.activeBtn.SetLabelText(_translate("Enabled"))
+        else:
+            self.activeBtn.SetLabelText(_translate("Disabled"))
+        # Style list item
+        if self.list:
+            item = self.list.getItem(self.info)
+            if item is not None:
+                item.markActive(active)
+
     def onInstall(self, evt=None):
         # Mark as pending
         self.markInstalled(installed=None)
@@ -619,10 +640,8 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
             self.info.activate()
         else:
             self.info.deactivate()
-        # Style list item to show this
-        if self.list:
-            item = self.list.getItem(self.info)
-            item.markActive(active)
+        # Visually update to show active status
+        self.markActive(active)
 
 
     @property
@@ -669,7 +688,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Set installed
         self.markInstalled(value.installed)
         # Set activated
-        self.activeBtn.SetValue(value.active)
+        self.markActive(value.active)
         # Set description
         self.description.setValue(value.description)
         # Set keywords
