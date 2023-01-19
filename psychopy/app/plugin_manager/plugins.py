@@ -537,10 +537,10 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.titleSizer.Add(self.buttonSizer, flag=wx.EXPAND)
         self.installBtn = PluginInstallBtn(self)
         self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
-        self.buttonSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.buttonSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.EXPAND)
         self.activeBtn = wx.ToggleButton(self)
         self.activeBtn.Bind(wx.EVT_TOGGLEBUTTON, self.onActivate)
-        self.buttonSizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.buttonSizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.EXPAND)
         # Description
         self.description = utils.MarkdownCtrl(
             self, value="",
