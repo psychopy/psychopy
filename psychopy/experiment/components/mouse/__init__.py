@@ -204,6 +204,7 @@ class MouseComponent(BaseComponent):
             "        };\n"
             "    };\n"
             "    %(name)s.corr.push(corr);\n"
+            "};\n"
 
         )
         # Write force end code
