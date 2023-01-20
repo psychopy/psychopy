@@ -135,6 +135,7 @@ def installPackage(package, target=None, upgrade=False, forceReinstall=False,
 
     cmd.append('--no-input')  # do not prompt, we cannot accept input
     cmd.append('--no-color')  # no color for console, not supported
+    cmd.append('--no-warn-conflicts')  # silence non-fatal errors
 
     # run command in subprocess
     output = sp.Popen(
