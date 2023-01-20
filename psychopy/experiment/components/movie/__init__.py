@@ -255,7 +255,7 @@ class MovieComponent(BaseVisualComponent):
         code = (
             "win, name='%(name)s',\n"
             "filename=%(movie)s, movieLib=%(backend)s,\n"
-            "loop=%(loop)s, volume=%(volume)s,\n"
+            "loop=%(loop)s, volume=%(volume)s, noAudio=%(No audio)s,\n"
             "pos=%(pos)s, size=%(size)s, units=%(units)s,\n"
             "ori=%(ori)s, anchor=%(anchor)s,"
             "opacity=%(opacity)s, contrast=%(contrast)s,\n"
