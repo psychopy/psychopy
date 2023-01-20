@@ -4,6 +4,7 @@ import webbrowser
 from PIL import Image as pil
 
 from .utils import uninstallPackage, installPackage
+from psychopy.tools import pkgtools
 from psychopy.app.themes import theme, handlers, colors, icons
 from psychopy.app import utils
 from psychopy.localization import _translate
@@ -160,8 +161,7 @@ class PluginInfo:
 
     @property
     def installed(self):
-        current = plugins.listPlugins(which='all')
-        return self.pipname in current
+        return pkgtools.isInstalled(self.pipname)
 
     @installed.setter
     def installed(self, value):
