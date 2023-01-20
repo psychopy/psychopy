@@ -25,6 +25,7 @@ from wx.lib import scrolledpanel
 from wx.lib import platebtn
 from wx.html import HtmlWindow
 
+import psychopy.app.plugin_manager.dialog
 from .validators import WarningManager
 from ..pavlovia_ui import sync
 from ..pavlovia_ui.project import ProjectFrame
@@ -1389,8 +1390,10 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             return True
 
     def openPluginManager(self, evt=None):
-        dlg = plugin_manager.EnvironmentManagerDlg(self)
+        dlg = psychopy.app.plugin_manager.dialog.EnvironmentManagerDlg(self)
         dlg.ShowModal()
+        # Do post-close checks
+        dlg.onClose()
 
     def onPavloviaSync(self, evt=None):
         if Path(self.filename).is_file():
@@ -2861,8 +2864,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         dlg.ShowModal()
 
     def onPluginBtn(self, evt=None):
-        dlg = plugin_manager.EnvironmentManagerDlg(self)
+        dlg = psychopy.app.plugin_manager.dialog.EnvironmentManagerDlg(self)
         dlg.ShowModal()
+        # Do post-close checks
+        dlg.onClose()
 
 
 class ReadmeFrame(wx.Frame, handlers.ThemeMixin):

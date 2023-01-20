@@ -11,131 +11,10 @@ from psychopy.app.themes import handlers, icons
 from psychopy.localization import _translate
 from psychopy.tools import filetools as ft
 
-from psychopy.tools.pkgtools import getInstalledPackages, getPackageMetadata, getPypiInfo, isInstalled
-
-
-def installPackage(name, version=None):
-    # Append version if given
-    if version is not None:
-        name += f"=={version}"
-    # Attempt to install
-    emts = [sys.executable, "-m pip install", name]
-    output = sp.Popen(' '.join(emts),
-                      stdout=sp.PIPE,
-                      stderr=sp.PIPE,
-                      shell=True,
-                      universal_newlines=True)
-    stdout, stderr = output.communicate()
-    sys.stdout.write(stdout)
-    sys.stderr.write(stderr)
-
-    if output.returncode != 0:
-        # Display output if error
-        cmd = "\n>> pip install" + name + "\n"
-        dlg = InstallErrorDlg(
-            cmd=cmd,
-            stdout=stdout,
-            stderr=stderr,
-            label=_translate("Package {} could not be installed.").format(name)
-        )
-    else:
-        # Display success message if success
-        dlg = wx.MessageDialog(
-            parent=None,
-            caption=_translate("Package installed"),
-            message=_translate("Package {} successfully installed!").format(name),
-            style=wx.ICON_INFORMATION
-        )
-    dlg.ShowModal()
-
-
-def uninstallPackage(name):
-    # Attempt to uninstall
-    emts = [sys.executable, "-m pip uninstall", name]
-    output = sp.Popen(' '.join(emts),
-                      stdout=sp.PIPE,
-                      stderr=sp.PIPE,
-                      shell=True,
-                      universal_newlines=True)
-    stdout, stderr = output.communicate()
-    sys.stdout.write(stdout)
-    sys.stderr.write(stderr)
-
-    if output.returncode != 0:
-        # Display output if error
-        cmd = "\n>> pip uninstall" + name + "\n"
-        dlg = InstallErrorDlg(
-            cmd=cmd,
-            stdout=stdout,
-            stderr=stderr,
-            label=_translate("Package {} could not be uninstalled.").format(name)
-        )
-    else:
-        # Display success message if success
-        dlg = wx.MessageDialog(
-            parent=None,
-            caption=_translate("Package uninstalled"),
-            message=_translate("Package {} successfully uninstalled!").format(name),
-            style=wx.ICON_INFORMATION
-        )
-    dlg.ShowModal()
-
-
-class InstallErrorDlg(wx.Dialog, handlers.ThemeMixin):
-    def __init__(self, label, caption=_translate("PIP error"), cmd="", stdout="", stderr=""):
-        from psychopy.app.themes import fonts
-        # Initialise
-        wx.Dialog.__init__(
-            self, None,
-            size=(480, 620),
-            title=caption,
-            style=wx.RESIZE_BORDER | wx.CLOSE_BOX | wx.CAPTION
-        )
-        # Setup sizer
-        self.border = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(self.border)
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
-        # Create title sizer
-        self.title = wx.BoxSizer(wx.HORIZONTAL)
-        self.sizer.Add(self.title, border=6, flag=wx.ALL | wx.EXPAND)
-        # Create icon
-        self.icon = wx.StaticBitmap(
-            self, size=(32, 32),
-            bitmap=icons.ButtonIcon(stem="stop", size=32).bitmap
-        )
-        self.title.Add(self.icon, border=6, flag=wx.ALL | wx.EXPAND)
-        # Create title
-        self.titleLbl = wx.StaticText(self, label=label)
-        self.titleLbl.SetFont(fonts.appTheme['h3'].obj)
-        self.title.Add(self.titleLbl, proportion=1, border=6, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        # Show what we tried
-        self.inLbl = wx.StaticText(self, label=_translate("We tried:"))
-        self.sizer.Add(self.inLbl, border=6, flag=wx.ALL | wx.EXPAND)
-        self.inCtrl = wx.TextCtrl(self, value=cmd, style=wx.TE_READONLY)
-        self.inCtrl.SetBackgroundColour("white")
-        self.inCtrl.SetFont(fonts.appTheme['code'].obj)
-        self.sizer.Add(self.inCtrl, border=6, flag=wx.ALL | wx.EXPAND)
-        # Show what we got
-        self.outLbl = wx.StaticText(self, label=_translate("We got:"))
-        self.sizer.Add(self.outLbl, border=6, flag=wx.ALL | wx.EXPAND)
-        self.outCtrl = wx.TextCtrl(self, value=f"{stdout}\n{stderr}",
-                                   size=(-1, 620), style=wx.TE_READONLY | wx.TE_MULTILINE)
-        self.outCtrl.SetFont(fonts.appTheme['code'].obj)
-        self.sizer.Add(self.outCtrl, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
-
-        # Make buttons
-        self.btns = self.CreateStdDialogButtonSizer(flags=wx.OK)
-        self.border.Add(self.btns, border=6, flag=wx.ALIGN_RIGHT | wx.ALL)
-
-        self.Layout()
-        self._applyAppTheme()
-
-    def ShowModal(self):
-        # Make error noise
-        wx.Bell()
-        # Show as normal
-        wx.Dialog.ShowModal(self)
+from psychopy.tools.pkgtools import (
+    getInstalledPackages, getPackageMetadata, getPypiInfo, isInstalled, _isUserPackage, getInstallState
+)
+from .utils import uninstallPackage, installPackage
 
 
 class PackageManagerPanel(wx.Panel):
@@ -304,14 +183,19 @@ class PackageListCtrl(wx.Panel):
         wx.PostEvent(self, evt)
 
     def onRightClick(self, evt=None):
+        # Get package name
+        package = evt.GetText()
         # Create menu
         menu = wx.Menu()
         # Map menu functions
         menu.functions = {}
-        if isInstalled(evt.GetText()):
-            # Add uninstall if installed
+        if isInstalled(package) and _isUserPackage(package):
+            # Add uninstall if installed to user
             uninstallOpt = menu.Append(wx.ID_ANY, item=_translate("Uninstall"))
             menu.functions[uninstallOpt.GetId()] = self.onUninstall
+        elif isInstalled(package):
+            # Add nothing if installed to protected system folder
+            pass
         else:
             # Add install if not installed
             uninstallOpt = menu.Append(wx.ID_ANY, item=_translate("Install"))
@@ -400,45 +284,6 @@ class PackageListCtrl(wx.Panel):
             # Reload packages
             self.refresh()
 
-    def execute(self, params):
-        """
-        Execute a pip command
-
-        Parameters
-        ----------
-        params : str or list
-            Pip command params (everything after the word `pip`)
-        """
-        if not isinstance(params, str):
-            params = " ".join(params)
-        # Construct pip command
-        cmd = f"{sys.executable} -m pip {params}"
-        # Send to console
-        output = sp.Popen(cmd,
-                          stdout=sp.PIPE,
-                          stderr=sp.PIPE,
-                          shell=True,
-                          universal_newlines=True)
-        stdout, stderr = output.communicate()
-        # Show error dialog if something went wrong
-        if stderr:
-            mode = params.split(" ")[0]
-            dlg = InstallErrorDlg(
-                cmd=cmd,
-                stdout=stdout,
-                stderr=stderr,
-                label=_translate("Failed to {} package").format(mode))
-            dlg.ShowModal()
-        else:
-            dlg = wx.MessageDialog(
-                self,
-                message=_translate("Successfully completed: `pip {}`").format(params),
-                style=wx.ICON_INFORMATION
-            )
-            dlg.ShowModal()
-        # Refresh packages list
-        self.refresh()
-
 
 class PackageDetailsPanel(wx.Panel):
     def __init__(self, parent):
@@ -480,6 +325,11 @@ class PackageDetailsPanel(wx.Panel):
         self.versionCtrl = wx.Choice(self)
         self.headBtnSzr.Add(self.versionCtrl, border=3, flag=wx.RIGHT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER)
         self.versionCtrl.Bind(wx.EVT_CHOICE, self.onVersion)
+        # Uninstall button
+        self.uninstallBtn = wx.Button(self, label=_translate("Uninstall"))
+        self.headBtnSzr.AddStretchSpacer(1)
+        self.headBtnSzr.Add(self.uninstallBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        self.uninstallBtn.Bind(wx.EVT_BUTTON, self.onUninstall)
         # Description
         self.descCtrl = utils.MarkdownCtrl(self, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL)
         self.sizer.Add(self.descCtrl, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
@@ -495,17 +345,6 @@ class PackageDetailsPanel(wx.Panel):
     @package.setter
     def package(self, pipname):
         self._package = pipname
-
-        # Disable/enable according to whether None
-        active = pipname is not None
-        self.homeBtn.Enable(active)
-        self.installBtn.Enable(active)
-        self.nameCtrl.Enable(active)
-        self.versionCtrl.Enable(active)
-        self.authorPre.Enable(active)
-        self.authorCtrl.Enable(active)
-        self.licenseCtrl.Enable(active)
-        self.descCtrl.Enable(active)
 
         if self._package is None:
             # Show placeholder text
@@ -555,55 +394,82 @@ class PackageDetailsPanel(wx.Panel):
             if self.params['version'] not in self.versionCtrl.GetStrings():
                 self.versionCtrl.Append(self.params['version'])
             self.versionCtrl.SetStringSelection(self.params['version'])
-        self.onVersion()
 
+        self.refresh()
         self.Layout()
         self._applyAppTheme()
+
+    def refresh(self, evt=None):
+        state, version = getInstallState(self.package)
+
+        if state == "u":
+            # If installed to the user space, can be uninstalled or changed
+            self.uninstallBtn.Enable()
+            self.versionCtrl.Enable()
+            self.installBtn.Enable(
+                self.versionCtrl.GetStringSelection() != version
+            )
+        elif state == "s":
+            # If installed to the system, can't be uninstalled or changed
+            self.uninstallBtn.Disable()
+            self.versionCtrl.Disable()
+            self.installBtn.Disable()
+        elif state == "n":
+            # If uninstalled, can only be installed
+            self.uninstallBtn.Disable()
+            self.versionCtrl.Enable()
+            self.installBtn.Enable()
+        else:
+            # If None, disable everything
+            self.uninstallBtn.Disable()
+            self.versionCtrl.Disable()
+            self.installBtn.Disable()
+        # Disable all controls if we have None
+        self.homeBtn.Enable(state is not None)
+        self.nameCtrl.Enable(state is not None)
+        self.authorPre.Enable(state is not None)
+        self.authorCtrl.Enable(state is not None)
+        self.licenseCtrl.Enable(state is not None)
+        self.descCtrl.Enable(state is not None)
 
     def onHomepage(self, evt=None):
         # Open homepage in browser
         webbrowser.open(self.params.get('Home-page'))
 
-    def onLocalDir(self, evt=None):
-        # Get local dir from pip
-        output = sp.Popen(f"{sys.executable} -m pip show {self.package}",
-                          stdout=sp.PIPE,
-                          stderr=sp.PIPE,
-                          shell=True,
-                          universal_newlines=True)
-        stdout, stderr = output.communicate()
-        # Show error dialog if something went wrong
-        if stderr:
-            dlg = InstallErrorDlg(
-                cmd=f">> pip show {self.package}",
-                stdout=stdout,
-                stderr=stderr,
-                label=_translate("Could not find local directory for package {}").format(self.package))
-            dlg.ShowModal()
-        else:
-            # Open local director via default file browser
-            lines = stdout.split("\n")
-            for line in lines:
-                line = line.split(":", 1)
-                if line[0] == "Location":
-                    ft.openInExplorer(line[1])
-                    break
-
     def onInstall(self, evt=None):
+        name = self.package
+        version = self.versionCtrl.GetStringSelection()
+        # Append version if given
+        if version is not None:
+            name += f"=={version}"
         # Install package then disable the button to indicate it's installed
-        installPackage(self.package, version=self.versionCtrl.GetStringSelection())
-        self.installBtn.Disable()
+        installPackage(name)
+        # Refresh view
+        self.refresh()
+
+    def onUninstall(self, evt=None):
+        # Get rightclick menu
+        msg = wx.MessageDialog(
+            self,
+            "Are you sure you want to uninstall package `{}`?".format(self.package),
+            caption="Uninstall Package?",
+            style=wx.YES_NO | wx.NO_DEFAULT)
+
+        # if user selects NO, exit the routine
+        if msg.ShowModal() == wx.ID_YES:
+            uninstallPackage(self.package)
+        # Refresh view
+        self.refresh()
 
     def onVersion(self, evt=None):
-        # When version selected, enable the install button if the version is different than installed
-        self.installBtn.Enable(
-            self.versionCtrl.GetStringSelection() != self.params['version'] and self.package is not None
-        )
+        # Refresh view
+        self.refresh()
 
     def _applyAppTheme(self):
         from psychopy.app.themes import fonts
         self.nameCtrl.SetFont(fonts.appTheme['h1'].obj)
         self.installBtn.SetBitmap(icons.ButtonIcon(stem="download", size=16).bitmap)
+        self.uninstallBtn.SetBitmap(icons.ButtonIcon(stem="delete", size=16).bitmap)
         self.authorCtrl.SetBackgroundColour("white")
 
 

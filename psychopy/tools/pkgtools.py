@@ -148,10 +148,10 @@ def installPackage(package, target=None, upgrade=False, forceReinstall=False,
     sys.stdout.write(stdout)
     sys.stderr.write(stderr)
 
-    if stderr:   # any error, return False
-        return False
-
-    return True
+    # if any error, return code should be False
+    retcode = bool(stderr)
+    # Return the return code and a dict of information from the console
+    return retcode, {"cmd": cmd, "stdout": stdout, "stderr": stderr}
 
 
 def _getUserPackageTopLevels():
@@ -238,10 +238,16 @@ def _uninstallUserPackage(package):
     """
     # todo - check if we imported the package and warn that we're uninstalling
     #        something we're actively using.
+    # string to use as stdout
+    stdout = ""
+    # take note of this function being run as if it was a command
+    cmd = f"python psychopy.tools.pkgtools._uninstallUserPackage(package)"
+
     userPackagePath = getUserPackagesPath()
 
-    logging.info('Attempting to uninstall user package `{}` from `{}`.'.format(
-        package, userPackagePath))
+    msg = 'Attempting to uninstall user package `{}` from `{}`.'.format(package, userPackagePath)
+    logging.info(msg)
+    stdout += msg + "\n"
 
     # figure out he name of the metadata directory
     pkgName = pkg_resources.safe_name(package)
@@ -256,7 +262,10 @@ def _uninstallUserPackage(package):
     # check if that directory exists
     metaPath = os.path.join(userPackagePath, metaDir)
     if not os.path.isdir(metaPath):
-        return False
+        return False, {
+        "cmd": cmd,
+        "stdout": stdout,
+        "stderr": "No package metadata found at {metaPath}"}
 
     # Get the top-levels for all packages in the user's PsychoPy directory, this
     # is intended to safely remove packages without deleting common directories
@@ -276,18 +285,22 @@ def _uninstallUserPackage(package):
             if pkgTopLevel in otherTopLevels:
                 # check if another version of this package is sharing the dir
                 if otherPkg.startswith(pathHead):
-                    logging.warning(
-                        'Found metadata for an older version of package '
-                        '`{}` in `{}`. This will also be removed.'.format(
-                            pkgName, otherPkg))
+                    msg = (
+                        'Found metadata for an older version of package `{}` in '
+                        '`{}`. This will also be removed.'
+                    ).format(pkgName, otherPkg)
+                    logging.warning(msg)
+                    stdout += msg + "\n"
                     toRemove.append(otherPkg)
                 else:
                     # unrelated package
-                    logging.warning(
+                    msg = (
                         'Found matching top-level directory `{}` in metadata '
                         'for `{}`. Can not safely remove this directory since '
-                        'another package appears to use it.'.format(
-                            pkgTopLevel, otherPkg))
+                        'another package appears to use it.'
+                    ).format(pkgTopLevel, otherPkg)
+                    logging.warning(msg)
+                    stdout += msg + "\n"
                     safeToRemove = False
                     break
 
@@ -297,22 +310,33 @@ def _uninstallUserPackage(package):
     # delete modules from the paths we found
     for rmDir in toRemove:
         if os.path.isfile(rmDir):
-            logging.info(
-                'Removing file `{}` from user package directory.'.format(
-                    rmDir))
+            msg = (
+                'Removing file `{}` from user package directory.'
+            ).format(rmDir)
+            logging.info(msg)
+            stdout += msg + "\n"
             os.remove(rmDir)
         elif os.path.isdir(rmDir):
-            logging.info(
+            msg = (
                 'Removing directory `{}` from user package '
-                'directory.'.format(rmDir))
+                'directory.'
+            ).format(rmDir)
+            logging.info(msg)
+            stdout += msg + "\n"
             shutil.rmtree(rmDir)
 
     # cleanup by also deleting the metadata path
     shutil.rmtree(metaPath)
 
-    logging.info('Uninstalled package `{}`.'.format(package))
+    msg = 'Uninstalled package `{}`.'.format(package)
+    logging.info(msg)
+    stdout += msg + "\n"
 
-    return True
+    # Return the return code and a dict of information from the console
+    return True, {
+        "cmd": cmd,
+        "stdout": stdout,
+        "stderr": ""}
 
 
 def uninstallPackage(package):
@@ -354,11 +378,44 @@ def uninstallPackage(package):
 
         sys.stdout.write(stdout)
         sys.stderr.write(stderr)
+    # if any error, return code should be False
+    retcode = bool(stderr)
+    # Return the return code and a dict of information from the console
+    return retcode, {"cmd": cmd, "stdout": stdout, "stderr": stderr}
 
-        if stderr:   # any error, return False
-            return False
 
-    return True
+def getInstallState(package):
+    """
+    Get a code indicating the installed state of a given package.
+
+    Returns
+    -------
+    str
+        "s": Installed to system environment
+        "u": Installed to user space
+        "n": Not installed
+    str or None
+        Version number installed, or None if not installed
+    """
+    # If given None, return None
+    if package is None:
+        return None, None
+
+    if isInstalled(package):
+        # If installed, get version from metadata
+        metadata = getPackageMetadata(package)
+        version = metadata.get('Version', None)
+        # Determine whether installed to system or user
+        if _isUserPackage(package):
+            state = "u"
+        else:
+            state = "s"
+    else:
+        # If not installed, we know the state and version
+        state = "n"
+        version = None
+
+    return state, version
 
 
 def isInstalled(packageName):
