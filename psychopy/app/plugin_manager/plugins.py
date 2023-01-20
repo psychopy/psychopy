@@ -4,6 +4,7 @@ import webbrowser
 from PIL import Image as pil
 
 from .utils import uninstallPackage, installPackage
+from psychopy.tools import pkgtools
 from psychopy.app.themes import theme, handlers, colors, icons
 from psychopy.app import utils
 from psychopy.localization import _translate
@@ -160,8 +161,7 @@ class PluginInfo:
 
     @property
     def installed(self):
-        current = plugins.listPlugins(which='all')
-        return self.pipname in current
+        return pkgtools.isInstalled(self.pipname)
 
     @installed.setter
     def installed(self, value):
@@ -251,10 +251,6 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.SetSizer(self.border)
             self.sizer = wx.BoxSizer(wx.HORIZONTAL)
             self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
-            # Add active checkbox
-            self.activeBtn = wx.CheckBox(self)
-            self.activeBtn.Bind(wx.EVT_CHECKBOX, self.onActive)
-            self.sizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.EXPAND)
             # Add label
             self.label = wx.BoxSizer(wx.VERTICAL)
             self.nameLbl = wx.StaticText(self, label=info.name)
@@ -277,10 +273,6 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             # Bind navigation
             self.Bind(wx.EVT_NAVIGATION_KEY, self.onNavigation)
 
-            # Set initial value
-            self.markInstalled(info.installed)
-            self.activeBtn.SetValue(info.active)
-
             self._applyAppTheme()
 
         def _applyAppTheme(self):
@@ -288,6 +280,9 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             from psychopy.app.themes import fonts
             self.nameLbl.SetFont(fonts.appTheme['h6'].obj)
             self.pipNameLbl.SetFont(fonts.coderTheme.base.obj)
+            # Mark installed/active
+            self.markInstalled(self.info.installed)
+            self.markActive(self.info.active)
 
         def onNavigation(self, evt=None):
             """
@@ -346,13 +341,6 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             # Mark installed
             self.markInstalled(self.info.installed)
 
-        def onActive(self, evt=None):
-            # Activate/deactivate
-            self.info.active = evt.IsChecked()
-
-            # Continue with normal checkbox behaviour
-            evt.Skip()
-
         def markInstalled(self, installed=True):
             """
             Shorthand to call markInstalled with self and corresponding item
@@ -367,6 +355,27 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
                 pluginPanel=self.parent.viewer,
                 installed=installed
             )
+
+        def markActive(self, active=True):
+            """
+            Visually indicate that this item is either active or inactive
+
+            Parameters
+            ----------
+            active : bool
+                True if active, False if inactive
+            """
+
+            # Get text color according to active status
+            if active:
+                col = colors.app.light['text']
+            else:
+                col = wx.SystemSettings.GetColour(wx.SYS_COLOUR_GRAYTEXT)
+            # Style text
+            self.nameLbl.SetForegroundColour(col)
+            self.pipNameLbl.SetForegroundColour(col)
+            self.Refresh()
+
 
     def __init__(self, parent, viewer=None):
         scrolledpanel.ScrolledPanel.__init__(self, parent=parent, style=wx.VSCROLL)
@@ -475,17 +484,13 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             if obj == self.selected:
                 # Selected colors
                 bg = colors.app.light['panel_bg']
-                fg = colors.app.light['text']
             else:
                 # Deselected colors
                 bg = colors.app.light['tab_bg']
-                fg = colors.app.light['text']
-            # Set colors
+            # Set color
             obj.SetBackgroundColour(bg)
-            obj.SetForegroundColour(fg)
-            # Set text colors
-            obj.nameLbl.SetForegroundColour(fg)
-            obj.pipNameLbl.SetForegroundColour(fg)
+            # Restyle item
+            obj._applyAppTheme()
             # Refresh
             obj.Update()
             obj.Refresh()
@@ -551,10 +556,10 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.titleSizer.Add(self.buttonSizer, flag=wx.EXPAND)
         self.installBtn = PluginInstallBtn(self)
         self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
-        self.buttonSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        self.activeBtn = wx.CheckBox(self, label=_translate("Activated"))
-        self.activeBtn.Bind(wx.EVT_CHECKBOX, self.onActivate)
-        self.buttonSizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.buttonSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        self.activeBtn = wx.ToggleButton(self)
+        self.activeBtn.Bind(wx.EVT_TOGGLEBUTTON, self.onActivate)
+        self.buttonSizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.EXPAND)
         # Description
         self.description = utils.MarkdownCtrl(
             self, value="",
@@ -608,6 +613,27 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
             installed=installed
         )
 
+    def markActive(self, active=True):
+        """
+        Visually indicate that this item is either active or inactive
+
+        Parameters
+        ----------
+        active : bool
+            True if active, False if inactive
+        """
+        self.activeBtn.SetValue(active)
+        # Update button label
+        if active:
+            self.activeBtn.SetLabelText(_translate("Enabled"))
+        else:
+            self.activeBtn.SetLabelText(_translate("Disabled"))
+        # Style list item
+        if self.list:
+            item = self.list.getItem(self.info)
+            if item is not None:
+                item.markActive(active)
+
     def onInstall(self, evt=None):
         # Mark as pending
         self.markInstalled(installed=None)
@@ -617,10 +643,15 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.markInstalled(self.info.installed)
 
     def onActivate(self, evt=None):
-        if self.activeBtn.GetValue():
+        active = self.activeBtn.GetValue()
+        # Activate plugin
+        if active:
             self.info.activate()
         else:
             self.info.deactivate()
+        # Visually update to show active status
+        self.markActive(active)
+
 
     @property
     def info(self):
@@ -651,7 +682,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
                 alpha = icon.tobytes("raw", "A")
             else:
                 alpha = None
-            icon = wx.Bitmap.FromBuffer(
+            icon = wx.Bitmap.FromBufferAndAlpha(
                 width=icon.size[0],
                 height=icon.size[1],
                 data=icon.tobytes("raw", "RGB"),
@@ -666,7 +697,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Set installed
         self.markInstalled(value.installed)
         # Set activated
-        self.activeBtn.SetValue(value.active)
+        self.markActive(value.active)
         # Set description
         self.description.setValue(value.description)
         # Set keywords
@@ -754,11 +785,13 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
         if isinstance(icon, pil.Image):
             # Resize to fit ctrl
             icon = icon.resize(size=self.avatarSize)
-            # Supply an alpha channel if there is one
-            if "A" in icon.getbands():
-                alpha = icon.tobytes("raw", "A")
-            else:
-                alpha = None
+            # Supply an alpha channel
+            if "A" not in icon.getbands():
+                # Make sure there's an alpha channel to supply
+                alpha = pil.new("L", icon.size, 255)
+                icon.putalpha(alpha)
+            alpha = icon.tobytes("raw", "A")
+
             icon = wx.Bitmap.FromBufferAndAlpha(
                 width=icon.size[0],
                 height=icon.size[1],
@@ -855,11 +888,26 @@ def markInstalled(pluginItem, pluginPanel, installed=True):
     # Update plugin item
     if pluginItem:
         pluginItem.installBtn.markInstalled(installed)
-        pluginItem.activeBtn.Enable(bool(installed))
     # Update panel (if applicable)
     if pluginPanel and pluginItem and pluginPanel.info == pluginItem.info:
         pluginPanel.installBtn.markInstalled(installed)
         pluginPanel.activeBtn.Enable(bool(installed))
+
+
+def markActive(pluginItem, pluginPanel, installed=True):
+    """
+    Setup installed button according to install state
+
+    Parameters
+    ----------
+    pluginItem : PluginBrowserList.PluginListItem
+        Plugin list item associated with this plugin
+    pluginPanel : PluginDetailsPanel
+        Plugin viewer panel to update
+    installed : bool or None
+        True if installed, False if not installed, None if pending/unclear
+    """
+
 
 
 def getAllPluginDetails():

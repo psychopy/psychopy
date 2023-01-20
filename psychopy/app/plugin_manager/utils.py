@@ -100,7 +100,15 @@ def installPackage(package):
     retcode, info = pkgtools.installPackage(package)
 
     # Handle errors
-    if retcode != 0:
+    if retcode:
+        # Display success message if success
+        dlg = wx.MessageDialog(
+            parent=None,
+            caption=_translate("Package installed"),
+            message=_translate("Package {} successfully installed!").format(package),
+            style=wx.ICON_INFORMATION
+        )
+    else:
         # Display output if error
         cmd = "\n>> " + " ".join(info['cmd']) + "\n"
         dlg = InstallErrorDlg(
@@ -108,13 +116,5 @@ def installPackage(package):
             stdout=info['stdout'],
             stderr=info['stderr'],
             label=_translate("Package {} could not be installed.").format(package)
-        )
-    else:
-        # Display success message if success
-        dlg = wx.MessageDialog(
-            parent=None,
-            caption=_translate("Package installed"),
-            message=_translate("Package {} successfully installed!").format(package),
-            style=wx.ICON_INFORMATION
         )
     dlg.ShowModal()

@@ -175,13 +175,13 @@ class MouseComponent(BaseComponent):
         code = (
             "# check whether click was in correct object\n"
             "if gotValidClick:\n"
-            "    corr = False\n"
+            "    corr = 0\n"
             "    corrAns = %(correctAns)s\n"
             "    if not isinstance(corrAns, (list, tuple, np.ndarray)):\n"
             "        corrAns = [corrAns]\n"
             "    for obj in corrAns:\n"
             "        if obj.contains(%(name)s):\n"
-            "            corr = True\n"
+            "            corr = 1\n"
             "    %(name)s.corr.append(corr)\n"
         )
         # Write force end code
@@ -196,14 +196,15 @@ class MouseComponent(BaseComponent):
         code = (
             "// check whether click was in correct object\n"
             "if (gotValidClick) {\n"
-            "    corr = false;\n"
+            "    corr = 0;\n"
             "    corrAns = %(correctAns)s;\n"
             "    for (let obj of [corrAns]) {\n"
             "        if (obj.contains(%(name)s)) {\n"
-            "            corr = true;\n"
+            "            corr = 1;\n"
             "        };\n"
             "    };\n"
             "    %(name)s.corr.push(corr);\n"
+            "};\n"
 
         )
         # Write force end code

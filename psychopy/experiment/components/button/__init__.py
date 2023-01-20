@@ -199,7 +199,7 @@ class ButtonComponent(BaseVisualComponent):
                     "bold=%(bold)s, italic=%(italic)s,\n"
                     "padding=%(padding)s,\n"
                     "anchor=%(anchor)s,\n"
-                    "name='%(name)s'\n"
+                    "name='%(name)s',\n"
                     "depth=%(depth)s\n"
         )
         buff.writeIndentedLines(code % inits)
