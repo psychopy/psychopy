@@ -321,7 +321,7 @@ class MovieComponent(BaseVisualComponent):
             buff.setIndentLevel(-1, relative=True)  # to exit the if block
         # do force end of trial code
         if self.params['forceEndRoutine'].val is True:
-            code = ("if %s.status == FINISHED:  # force-end the routine\n"
+            code = ("if %s.isFinished:  # force-end the routine\n"
                     "    continueRoutine = False\n" %
                     self.params['name'])
             buff.writeIndentedLines(code)
