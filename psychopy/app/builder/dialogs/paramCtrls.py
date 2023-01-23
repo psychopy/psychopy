@@ -826,6 +826,23 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
                 evt.SetEventObject(self)
                 wx.PostEvent(self, evt)
 
+    def getValue(self, evt=None):
+        """
+        Get the value of the text control, but sanitize such that if the user pastes a full survey URL
+        we only take the survey ID
+        """
+        # Get value by usual wx method
+        value = self.GetValue()
+        # Strip pavlovia url
+        if ".pavlovia.org/pavlovia/survey/?surveyId=" in value:
+            # Keep only the values after the URL
+            value = value.split(".pavlovia.org/pavlovia/survey/?surveyId=")[-1]
+            if "&" in value:
+                # If there are multiple URL parameters, only keep the Id
+                value = value.split("&")[0]
+
+        return value
+
 
 class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
     def __init__(self, parent, valType,
