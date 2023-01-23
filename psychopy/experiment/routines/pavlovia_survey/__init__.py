@@ -165,6 +165,8 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
             "// if %(name)s is completed, move on\n"
             "if (%(name)s.isFinished) {\n"
             "  %(name)s.setAutoDraw(false);\n"
+            "  // survey routines are not non-slip safe, so reset the non-slip timer\n"
+            "  routineTimer.reset();\n"
             "  return Scheduler.Event.NEXT;\n"
             "}\n"
         )
