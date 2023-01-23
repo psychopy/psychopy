@@ -138,6 +138,7 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
             "//--- Starting Routine '%(name)s' ---\n"
             "%(name)s.setAutoDraw(true);\n"
             "%(name)s.stauts = PsychoJS.Status.STARTED;\n"
+            "%(name)s.isFinished = false;\n"
             "%(name)s.tStart = t;  // (not accounting for frame time here)\n"
             "%(name)s.frameNStart = frameN;  // exact frame index\n"
             "return Scheduler.Event.NEXT;\n"
