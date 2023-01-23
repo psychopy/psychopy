@@ -69,7 +69,7 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
             hint=_translate(
                 "ID of the survey on Pavlovia"
             ),
-            label=_translate("Survey"))
+            label=_translate("Survey ID"))
 
         self.depends += [{
             "dependsOn": "surveyType",  # must be param name
@@ -84,7 +84,7 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
             hint=_translate(
                 "File path of the JSON file used to construct the survey"
             ),
-            label=_translate("Survey"))
+            label=_translate("Survey JSON"))
 
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params, target="PsychoJS")
