@@ -403,6 +403,10 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.saveBtn.Bind(wx.EVT_BUTTON, self.save)
         self.btnSizer.Add(self.saveBtn, border=3, flag=wx.ALL | wx.EXPAND)
 
+        # Bind rightclick
+        self.htmlPreview.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
+        self.rawTextCtrl.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
+
         # Get starting value
         self.file = file
         if value is None and self.file is not None:
@@ -431,6 +435,12 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.rawTextCtrl.SetReadOnly(og)
         # Render
         self.toggleView(self.editBtn.Value)
+
+    def showCode(self, evt=None):
+        self.toggleView(True)
+
+    def showHTML(self, evt=None):
+        self.toggleView(False)
 
     def toggleView(self, evt=True):
         if isinstance(evt, bool):
@@ -497,6 +507,19 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
     @staticmethod
     def onUrl(evt=None):
         webbrowser.open(evt.LinkInfo.Href)
+
+    def onRightClick(self, evt=None):
+        menu = wx.Menu()
+        # Show raw code button if in HTML view
+        if not self.rawTextCtrl.IsShown():
+            thisId = menu.Append(wx.ID_ANY, _translate("View raw code"))
+            menu.Bind(wx.EVT_MENU, self.showCode, source=thisId)
+        # Show HTML button if in code view
+        if not self.htmlPreview.IsShown():
+            thisId = menu.Append(wx.ID_ANY, _translate("View styled HTML"))
+            menu.Bind(wx.EVT_MENU, self.showHTML, source=thisId)
+
+        self.PopupMenu(menu)
 
     def _applyAppTheme(self):
         from psychopy.app.themes import fonts
