@@ -278,20 +278,21 @@ class TrialHandler(_BaseLoopHandler):
         thisLoop = loopDict[self]  # dict containing lists of children
         code = ""
         for thisChild in thisLoop:
-            if thisChild.getType() == 'Routine':
-                code += (
-                    "  {loopName}LoopScheduler.add({childName}RoutineBegin(snapshot));\n"
-                    "  {loopName}LoopScheduler.add({childName}RoutineEachFrame());\n"
-                    "  {loopName}LoopScheduler.add({childName}RoutineEnd(snapshot));\n"
-                    .format(childName=thisChild.params['name'],
-                            loopName=self.params['name'])
-                    )
-            else:  # for a LoopInitiator
+            if isinstance(thisChild, LoopInitiator):
+                # for a LoopInitiator
                 code += (
                     "  const {childName}LoopScheduler = new Scheduler(psychoJS);\n"
                     "  {loopName}LoopScheduler.add({childName}LoopBegin({childName}LoopScheduler, snapshot));\n"
                     "  {loopName}LoopScheduler.add({childName}LoopScheduler);\n"
                     "  {loopName}LoopScheduler.add({childName}LoopEnd);\n"
+                        .format(childName=thisChild.params['name'],
+                                loopName=self.params['name'])
+                )
+            else:
+                code += (
+                    "  {loopName}LoopScheduler.add({childName}RoutineBegin(snapshot));\n"
+                    "  {loopName}LoopScheduler.add({childName}RoutineEachFrame());\n"
+                    "  {loopName}LoopScheduler.add({childName}RoutineEnd(snapshot));\n"
                     .format(childName=thisChild.params['name'],
                             loopName=self.params['name'])
                     )
