@@ -31,7 +31,7 @@ class MovieComponent(BaseVisualComponent):
 
     def __init__(self, exp, parentName, name='movie', movie='',
                  units='from exp settings',
-                 pos=(0, 0), size='', anchor="center", ori=0,
+                 pos=(0, 0), size=(0.5, 0.5), anchor="center", ori=0,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',

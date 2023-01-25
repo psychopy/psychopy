@@ -204,8 +204,6 @@ class MouseComponent(BaseComponent):
             "        };\n"
             "    };\n"
             "    %(name)s.corr.push(corr);\n"
-            "};\n"
-
         )
         # Write force end code
         if self.params['forceEndRoutineOnPress'] == 'correct click':
@@ -214,8 +212,12 @@ class MouseComponent(BaseComponent):
             "        // end routine on correct answer\n"
             "        continueRoutine = false;\n"
             "    };\n"
-            "}\n"
             )
+        buff.writeIndentedLines(code % self.params)
+        # Close if statement
+        code = (
+            "};\n"
+        )
         buff.writeIndentedLines(code % self.params)
 
     def _writeClickableObjectsCodeJS(self, buff):
