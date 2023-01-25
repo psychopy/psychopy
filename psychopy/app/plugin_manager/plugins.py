@@ -918,12 +918,14 @@ def markInstalled(pluginItem, pluginPanel, installed=True):
         if installed is None:
             # If pending, show elipsis and refresh icon
             pluginPanel.installBtn.Show()
+            pluginPanel.installBtn.Enable()
             pluginPanel.installBtn.SetLabel("...")
             _setAllBitmaps(pluginPanel.installBtn, icons.ButtonIcon("view-refresh", 16).bitmap)
             # Hide active button while pending
             pluginPanel.activeBtn.Hide()
         elif installed:
             # If installed, show as installed with tick
+            pluginPanel.installBtn.Show()
             pluginPanel.installBtn.Disable()
             pluginPanel.installBtn.SetLabelText(_translate("Installed"))
             _setAllBitmaps(pluginPanel.installBtn, icons.ButtonIcon("greytick", 16).bitmap)
@@ -932,6 +934,7 @@ def markInstalled(pluginItem, pluginPanel, installed=True):
         else:
             # If not installed, show "Install" and download icon
             pluginPanel.installBtn.Show()
+            pluginPanel.installBtn.Enable()
             pluginPanel.installBtn.SetLabel(_translate("Install"))
             _setAllBitmaps(pluginPanel.installBtn, icons.ButtonIcon("download", 16).bitmap)
             # Hide active button when not installed
