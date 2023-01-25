@@ -33,6 +33,11 @@ import requests
 import shutil
 
 
+# add packages dir to import path
+if prefs.paths['packages'] not in pkg_resources.working_set.entries:
+    pkg_resources.working_set.add_entry(prefs.paths['packages'])
+
+
 def getUserPackagesPath():
     """Get the path to the user's PsychoPy package directory.
 
@@ -419,25 +424,13 @@ def getInstallState(package):
     return state, version
 
 
-def isInstalled(packageName):
-    """Check if a package is presently installed and reachable.
-
-    Returns
-    -------
-    bool
-        `True` if the specified package is installed.
-
-    """
-    return packageName in dict(getInstalledPackages())
-
-
 def getInstalledPackages():
     """Get a list of installed packages and their versions.
 
     Returns
     -------
     list
-        List of installed packages and their versions i.e. `('PsychoPy',
+         List of installed packages and their versions i.e. `('PsychoPy',
         '2021.3.1')`.
 
     """
@@ -449,6 +442,22 @@ def getInstalledPackages():
             (thisPkg.project_name, thisPkg.version))
 
     return installedPackages
+
+
+def isInstalled(packageName):
+    """Check if a package is presently installed and reachable.
+
+    Returns
+    -------
+    bool
+        `True` if the specified package is installed.
+
+    """
+    # installed packages are given as keys in the resulting dicts
+    installedPackages = [
+        pkg_resources.safe_name(p[0]) for p in getInstalledPackages()]
+
+    return pkg_resources.safe_name(packageName) in list(installedPackages)
 
 
 def getPackageMetadata(packageName):
