@@ -303,7 +303,7 @@ class Flow(list):
         script.writeIndentedLines(code)
 
         # Write resource list
-        resourceFiles = {}
+        resourceFiles = []
         for resource in self.exp.getResourceFiles():
             if isinstance(resource, dict):
                 # Get name
@@ -327,7 +327,7 @@ class Flow(list):
 
                 # If we have a resource, add it
                 if resourceFile is not None:
-                    resourceFiles[name] = resourceFile
+                    resourceFiles.append((name, resourceFile))
         if self.exp.htmlFolder:
             resourceFolderStr = "resources/"
         else:
@@ -353,7 +353,7 @@ class Flow(list):
                     "{'surveyLibrary': true},\n"
                 )
             code = "// resources:\n"
-            for name, resource in resourceFiles.items():
+            for name, resource in resourceFiles:
                 if "sid:" in resource:
                     # Strip sid prefix from survey id
                     resource = resource.replace("sid:", "")

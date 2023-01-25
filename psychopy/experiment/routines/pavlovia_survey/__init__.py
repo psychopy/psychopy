@@ -69,7 +69,7 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
             hint=_translate(
                 "ID of the survey on Pavlovia"
             ),
-            label=_translate("Survey"))
+            label=_translate("Survey ID"))
 
         self.depends += [{
             "dependsOn": "surveyType",  # must be param name
@@ -84,7 +84,7 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
             hint=_translate(
                 "File path of the JSON file used to construct the survey"
             ),
-            label=_translate("Survey"))
+            label=_translate("Survey JSON"))
 
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params, target="PsychoJS")
@@ -108,6 +108,7 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
         code = (
             "});\n"
             "%(name)sClock = new util.Clock();\n"
+            "%(name)s.stauts = PsychoJS.Status.NOT_STARTED;\n"
         )
         buff.writeIndentedLines(code % inits)
 
@@ -136,6 +137,8 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
         code = (
             "//--- Starting Routine '%(name)s' ---\n"
             "%(name)s.setAutoDraw(true);\n"
+            "%(name)s.stauts = PsychoJS.Status.STARTED;\n"
+            "%(name)s.isFinished = false;\n"
             "%(name)s.tStart = t;  // (not accounting for frame time here)\n"
             "%(name)s.frameNStart = frameN;  // exact frame index\n"
             "return Scheduler.Event.NEXT;\n"
@@ -165,6 +168,9 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
             "// if %(name)s is completed, move on\n"
             "if (%(name)s.isFinished) {\n"
             "  %(name)s.setAutoDraw(false);\n"
+            "  %(name)s.stauts = PsychoJS.Status.FINISHED;\n"
+            "  // survey routines are not non-slip safe, so reset the non-slip timer\n"
+            "  routineTimer.reset();\n"
             "  return Scheduler.Event.NEXT;\n"
             "}\n"
         )
