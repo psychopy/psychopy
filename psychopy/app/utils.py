@@ -370,6 +370,8 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         # Initialise superclass
         self.parent = parent
         wx.Panel.__init__(self, parent, size=size)
+        # Manage readonly
+        self.readonly = style | wx.TE_READONLY == style
         # Setup sizers
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self.sizer)
@@ -383,8 +385,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.rawTextCtrl.SetLexer(wx.stc.STC_LEX_MARKDOWN)
         self.rawTextCtrl.Bind(wx.EVT_TEXT, self.onEdit)
         self.contentSizer.Add(self.rawTextCtrl, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
-        # Manage readonly
-        self.rawTextCtrl.SetReadOnly(style | wx.TE_READONLY == style)
+        self.rawTextCtrl.SetReadOnly(self.readonly)
 
         # Make HTML preview
         self.htmlPreview = HtmlWindow(self, wx.ID_ANY)
@@ -395,6 +396,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.editBtn = wx.ToggleButton(self, style=wx.BU_EXACTFIT)
         self.editBtn.Bind(wx.EVT_TOGGLEBUTTON, self.toggleView)
         self.btnSizer.Add(self.editBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        self.editBtn.Show(not self.readonly)
 
         # Make save button
         self.saveBtn = wx.Button(self, style=wx.BU_EXACTFIT)
