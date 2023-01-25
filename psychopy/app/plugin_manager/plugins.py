@@ -1,3 +1,5 @@
+import time
+
 import wx
 from wx.lib import scrolledpanel
 import webbrowser
@@ -152,6 +154,7 @@ class PluginInfo:
 
     def install(self):
         installPackage(self.pipname)
+        time.sleep(1)
         plugins.scanPlugins()
 
     def uninstall(self):
@@ -259,12 +262,17 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.label.Add(self.pipNameLbl, flag=wx.ALIGN_LEFT)
             self.sizer.Add(self.label, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
             # Button sizer
-            self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
+            self.btnSizer = wx.BoxSizer(wx.VERTICAL)
             self.sizer.Add(self.btnSizer, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
+            self.btnSizer.AddStretchSpacer(1)
+            # Add active button
+            self.activeBtn = wx.Button(self)
+            self.activeBtn.Bind(wx.EVT_BUTTON, self.onToggleActivate)
+            self.btnSizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.ALIGN_RIGHT)
             # Add install button
-            self.installBtn = PluginInstallBtn(self)
+            self.installBtn = wx.Button(self)
             self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
-            self.btnSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
+            self.btnSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_RIGHT)
 
             # Map to onclick function
             self.Bind(wx.EVT_LEFT_DOWN, self.onSelect)
@@ -274,6 +282,13 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.Bind(wx.EVT_NAVIGATION_KEY, self.onNavigation)
 
             self._applyAppTheme()
+
+        @property
+        def viewer(self):
+            """
+            Return parent's linked viewer when asked for viewer
+            """
+            return self.parent.viewer
 
         def _applyAppTheme(self):
             # Set label fonts
@@ -333,14 +348,6 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         def onSelect(self, evt=None):
             self.parent.setSelection(self)
 
-        def onInstall(self, evt=None):
-            # Mark pending
-            self.markInstalled(None)
-            # Install
-            self.info.install()
-            # Mark installed
-            self.markInstalled(self.info.installed)
-
         def markInstalled(self, installed=True):
             """
             Shorthand to call markInstalled with self and corresponding item
@@ -358,23 +365,48 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
 
         def markActive(self, active=True):
             """
-            Visually indicate that this item is either active or inactive
+            Shorthand to call markActive with self and corresponding item
 
             Parameters
             ----------
-            active : bool
-                True if active, False if inactive
+            active : bool or None
+                True if active, False if not active, None if pending/unclear
             """
+            markActive(
+                pluginItem=self,
+                pluginPanel=self.parent.viewer,
+                active=active
+            )
 
-            # Get text color according to active status
-            if active:
-                col = colors.app.light['text']
+        def onInstall(self, evt=None):
+            # Mark as pending
+            self.markInstalled(None)
+            # Do install
+            self.info.install()
+            # Mark according to install success
+            self.markInstalled(self.info.installed)
+
+        def onToggleActivate(self, evt=None):
+            if self.info.active:
+                self.onDeactivate(evt=evt)
             else:
-                col = wx.SystemSettings.GetColour(wx.SYS_COLOUR_GRAYTEXT)
-            # Style text
-            self.nameLbl.SetForegroundColour(col)
-            self.pipNameLbl.SetForegroundColour(col)
-            self.Refresh()
+                self.onActivate(evt=evt)
+
+        def onActivate(self, evt=None):
+            # Mark as pending
+            self.markActive(None)
+            # Do activation
+            self.info.activate()
+            # Mark according to success
+            self.markInstalled(self.info.active)
+
+        def onDeactivate(self, evt=None):
+            # Mark as pending
+            self.markActive(None)
+            # Do deactivation
+            self.info.deactivate()
+            # Mark according to success
+            self.markInstalled(self.info.active)
 
 
     def __init__(self, parent, viewer=None):
@@ -554,11 +586,11 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.titleSizer.AddStretchSpacer()
         self.titleSizer.Add(self.buttonSizer, flag=wx.EXPAND)
-        self.installBtn = PluginInstallBtn(self)
+        self.installBtn = wx.Button(self)
         self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
         self.buttonSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.EXPAND)
-        self.activeBtn = wx.ToggleButton(self)
-        self.activeBtn.Bind(wx.EVT_TOGGLEBUTTON, self.onActivate)
+        self.activeBtn = wx.Button(self)
+        self.activeBtn.Bind(wx.EVT_BUTTON, self.onToggleActivate)
         self.buttonSizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.EXPAND)
         # Description
         self.description = utils.MarkdownCtrl(
@@ -582,6 +614,8 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.sizer.Add(self.author, border=6, flag=wx.EXPAND | wx.ALL)
 
         self.info = info
+        self.markInstalled(self.info.installed)
+        self.markActive(self.info.active)
         self.Layout()
         self._applyAppTheme()
 
@@ -615,42 +649,52 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
 
     def markActive(self, active=True):
         """
-        Visually indicate that this item is either active or inactive
+        Shorthand to call markActive with self and corresponding item
 
         Parameters
         ----------
-        active : bool
-            True if active, False if inactive
+        active : bool or None
+            True if active, False if not active, None if pending/unclear
         """
-        self.activeBtn.SetValue(active)
-        # Update button label
-        if active:
-            self.activeBtn.SetLabelText(_translate("Enabled"))
-        else:
-            self.activeBtn.SetLabelText(_translate("Disabled"))
-        # Style list item
         if self.list:
             item = self.list.getItem(self.info)
-            if item is not None:
-                item.markActive(active)
+        else:
+            item = None
+        markActive(
+            pluginItem=item,
+            pluginPanel=self,
+            active=active
+        )
 
     def onInstall(self, evt=None):
         # Mark as pending
-        self.markInstalled(installed=None)
+        self.markInstalled(None)
         # Do install
         self.info.install()
         # Mark according to install success
         self.markInstalled(self.info.installed)
 
-    def onActivate(self, evt=None):
-        active = self.activeBtn.GetValue()
-        # Activate plugin
-        if active:
-            self.info.activate()
+    def onToggleActivate(self, evt=None):
+        if self.info.active:
+            self.onDeactivate(evt=evt)
         else:
-            self.info.deactivate()
-        # Visually update to show active status
-        self.markActive(active)
+            self.onActivate(evt=evt)
+
+    def onActivate(self, evt=None):
+        # Mark as pending
+        self.markActive(None)
+        # Do activation
+        self.info.activate()
+        # Mark according to success
+        self.markInstalled(self.info.active)
+
+    def onDeactivate(self, evt=None):
+        # Mark as pending
+        self.markActive(None)
+        # Do deactivation
+        self.info.deactivate()
+        # Mark according to success
+        self.markInstalled(self.info.active)
 
 
     @property
@@ -821,57 +865,6 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
         webbrowser.open(f"github.com/{self.info.github}")
 
 
-class PluginInstallBtn(wx.Button, handlers.ThemeMixin):
-    """
-    Install button for a plugin, comes with a method to update its appearance according to installation
-    status & availability
-    """
-    def __init__(self, parent):
-        # Initialise
-        wx.Button.__init__(
-            self, parent,
-            label="..."
-        )
-        self.SetBitmap(icons.ButtonIcon("download", 16).bitmap)
-
-    def markInstalled(self, installed=True):
-        """
-        Mark on this button whether install has completed / is in progress / is available
-
-        Parameters
-        ----------
-        installed : bool or None
-            True if installed, False if not installed, None if pending/unclear
-        """
-        if installed is None:
-            # If pending, disable and set label as ellipsis
-            self.Disable()
-            self.SetLabelText("...")
-            self.setAllBitmaps(icons.ButtonIcon("view-refresh", 16).bitmap)
-        elif installed:
-            # If installed, disable and set label as installed
-            self.Disable()
-            self.SetLabelText(_translate("Installed"))
-            self.setAllBitmaps(icons.ButtonIcon("greytick", 16).bitmap)
-        else:
-            # If not installed, enable and set label as not installed
-            self.Enable()
-            self.SetLabelText(_translate("Install"))
-            self.setAllBitmaps(icons.ButtonIcon("download", 16).bitmap)
-
-        self.Refresh()
-
-    def setAllBitmaps(self, bmp):
-        self.SetBitmap(bmp)
-        self.SetBitmapDisabled(bmp)
-        self.SetBitmapPressed(bmp)
-        self.SetBitmapCurrent(bmp)
-
-    def _applyAppTheme(self):
-        # Setup icon
-        self.SetBitmapMargins(6, 3)
-
-
 def markInstalled(pluginItem, pluginPanel, installed=True):
     """
     Setup installed button according to install state
@@ -885,16 +878,70 @@ def markInstalled(pluginItem, pluginPanel, installed=True):
     installed : bool or None
         True if installed, False if not installed, None if pending/unclear
     """
+    def _setAllBitmaps(btn, bmp):
+        """
+        Set all bitmaps (enabled, disabled, focus, unfocus, etc.) for a button
+        """
+        btn.SetBitmap(bmp)
+        btn.SetBitmapDisabled(bmp)
+        btn.SetBitmapPressed(bmp)
+        btn.SetBitmapCurrent(bmp)
+        btn.SetBitmapMargins(6, 3)
+
     # Update plugin item
     if pluginItem:
-        pluginItem.installBtn.markInstalled(installed)
+        if installed is None:
+            # If pending, show elipsis and refresh icon
+            pluginItem.installBtn.Show()
+            pluginItem.installBtn.SetLabel("...")
+            _setAllBitmaps(pluginItem.installBtn, icons.ButtonIcon("view-refresh", 16).bitmap)
+            # Hide active button while pending
+            pluginItem.activeBtn.Hide()
+        elif installed:
+            # If installed, hide install button
+            pluginItem.installBtn.Hide()
+            # Show active button when installed
+            pluginItem.activeBtn.Show()
+        else:
+            # If not installed, show "Install" and download icon
+            pluginItem.installBtn.Show()
+            pluginItem.installBtn.SetLabel(_translate("Install"))
+            _setAllBitmaps(pluginItem.installBtn, icons.ButtonIcon("download", 16).bitmap)
+            # Hide active button when not installed
+            pluginItem.activeBtn.Hide()
+        # Refresh buttons
+        pluginItem.installBtn.Refresh()
+        pluginItem.activeBtn.Refresh()
+
     # Update panel (if applicable)
     if pluginPanel and pluginItem and pluginPanel.info == pluginItem.info:
-        pluginPanel.installBtn.markInstalled(installed)
-        pluginPanel.activeBtn.Enable(bool(installed))
+        if installed is None:
+            # If pending, show elipsis and refresh icon
+            pluginPanel.installBtn.Show()
+            pluginPanel.installBtn.SetLabel("...")
+            _setAllBitmaps(pluginPanel.installBtn, icons.ButtonIcon("view-refresh", 16).bitmap)
+            # Hide active button while pending
+            pluginPanel.activeBtn.Hide()
+        elif installed:
+            # If installed, show as installed with tick
+            pluginPanel.installBtn.Disable()
+            pluginPanel.installBtn.SetLabelText(_translate("Installed"))
+            _setAllBitmaps(pluginPanel.installBtn, icons.ButtonIcon("greytick", 16).bitmap)
+            # Show active button when installed
+            pluginPanel.activeBtn.Show()
+        else:
+            # If not installed, show "Install" and download icon
+            pluginPanel.installBtn.Show()
+            pluginPanel.installBtn.SetLabel(_translate("Install"))
+            _setAllBitmaps(pluginPanel.installBtn, icons.ButtonIcon("download", 16).bitmap)
+            # Hide active button when not installed
+            pluginPanel.activeBtn.Hide()
+        # Refresh buttons
+        pluginPanel.installBtn.Refresh()
+        pluginPanel.activeBtn.Refresh()
 
 
-def markActive(pluginItem, pluginPanel, installed=True):
+def markActive(pluginItem, pluginPanel, active=True):
     """
     Setup installed button according to install state
 
@@ -904,10 +951,52 @@ def markActive(pluginItem, pluginPanel, installed=True):
         Plugin list item associated with this plugin
     pluginPanel : PluginDetailsPanel
         Plugin viewer panel to update
-    installed : bool or None
-        True if installed, False if not installed, None if pending/unclear
+    active : bool or None
+        True if active, False if not active, None if pending/unclear
     """
+    def _setAllBitmaps(btn, bmp):
+        """
+        Set all bitmaps (enabled, disabled, focus, unfocus, etc.) for a button
+        """
+        btn.SetBitmap(bmp)
+        btn.SetBitmapDisabled(bmp)
+        btn.SetBitmapPressed(bmp)
+        btn.SetBitmapCurrent(bmp)
+        btn.SetBitmapMargins(6, 3)
 
+    # Update plugin item
+    if pluginItem:
+        if active is None:
+            # If pending, show elipsis and refresh icon
+            pluginItem.activeBtn.SetLabel("...")
+            _setAllBitmaps(pluginItem.activeBtn, icons.ButtonIcon("orangedot", 16).bitmap)
+        elif active:
+            # If active, show Enabled and green dot
+            pluginItem.activeBtn.SetLabel(_translate("Enabled"))
+            _setAllBitmaps(pluginItem.activeBtn, icons.ButtonIcon("greendot", 16).bitmap)
+        else:
+            # If not active, show Disabled and grey dot
+            pluginItem.activeBtn.SetLabel(_translate("Disabled"))
+            _setAllBitmaps(pluginItem.activeBtn, icons.ButtonIcon("greydot", 16).bitmap)
+        # Refresh
+        pluginItem.activeBtn.Refresh()
+
+    # Update panel (if applicable)
+    if pluginPanel and pluginItem and pluginPanel.info == pluginItem.info:
+        if active is None:
+            # If pending, show elipsis and refresh icon
+            pluginPanel.activeBtn.SetLabel("...")
+            _setAllBitmaps(pluginPanel.activeBtn, icons.ButtonIcon("orangedot", 16).bitmap)
+        elif active:
+            # If active, show Enabled and green dot
+            pluginPanel.activeBtn.SetLabel(_translate("Enabled"))
+            _setAllBitmaps(pluginPanel.activeBtn, icons.ButtonIcon("greendot", 16).bitmap)
+        else:
+            # If not active, show Disabled and grey dot
+            pluginPanel.activeBtn.SetLabel(_translate("Disabled"))
+            _setAllBitmaps(pluginPanel.activeBtn, icons.ButtonIcon("greydot", 16).bitmap)
+        # Refresh
+        pluginPanel.activeBtn.Refresh()
 
 
 def getAllPluginDetails():
