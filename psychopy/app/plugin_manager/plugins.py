@@ -597,15 +597,18 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
             self, value="",
             style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL
         )
-        self.sizer.Add(self.description, border=12, proportion=1, flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(self.description, border=0, proportion=1, flag=wx.ALL | wx.EXPAND)
         # Keywords
+        self.keywordsLbl = wx.StaticText(self, label=_translate("Keywords:"))
+        self.sizer.Add(self.keywordsLbl, border=12, flag=wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND)
         self.keywordsCtrl = utils.ButtonArray(
             self,
             orient=wx.HORIZONTAL,
             itemAlias=_translate("keyword"),
             readonly=True
         )
-        self.sizer.Add(self.keywordsCtrl, border=6, flag=wx.ALL | wx.EXPAND)
+        self.keywordsCtrl.Bind(wx.EVT_BUTTON, self.onKeyword)
+        self.sizer.Add(self.keywordsCtrl, border=6, flag=wx.BOTTOM | wx.LEFT | wx.RIGHT | wx.EXPAND)
 
         self.sizer.Add(wx.StaticLine(self), border=6, flag=wx.EXPAND | wx.ALL)
 
@@ -696,6 +699,12 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Mark according to success
         self.markInstalled(self.info.active)
 
+    def onKeyword(self, evt=None):
+        kw = evt.GetString()
+        if kw:
+            # If we have a keyword, use it in a search
+            self.list.searchCtrl.SetValue(kw)
+            self.list.search()
 
     @property
     def info(self):

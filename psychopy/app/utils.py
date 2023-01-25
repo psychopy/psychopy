@@ -691,6 +691,8 @@ class ButtonArray(wx.Window):
             # Create button
             self.button = wx.Button(self, label=label, style=wx.BORDER_NONE)
             self.sizer.Add(self.button, border=4, flag=wx.LEFT | wx.EXPAND)
+            self.label = wx.StaticText(self, label=label)
+            self.sizer.Add(self.label, border=6, flag=wx.LEFT | wx.EXPAND)
             # Create remove btn
             self.removeBtn = wx.Button(self, label="×", size=(24, -1))
             self.sizer.Add(self.removeBtn, border=4, flag=wx.RIGHT | wx.EXPAND)
@@ -707,10 +709,10 @@ class ButtonArray(wx.Window):
             self.parent.removeItem(self)
 
         def onClick(self, evt=None):
-            if not self.readonly:
-                evt = wx.CommandEvent(wx.EVT_BUTTON.typeId)
-                evt.SetEventObject(self)
-                wx.PostEvent(self.parent, evt)
+            evt = wx.CommandEvent(wx.EVT_BUTTON.typeId)
+            evt.SetString(self.button.GetLabel())
+            evt.SetEventObject(self)
+            wx.PostEvent(self.parent, evt)
 
         @property
         def readonly(self):
@@ -722,6 +724,9 @@ class ButtonArray(wx.Window):
             self._readonly = value
             # Show/hide controls
             self.removeBtn.Show(not value)
+            # Show/hide button and label
+            self.button.Show(not value)
+            self.label.Show(value)
             # Layout
             self.Layout()
 
