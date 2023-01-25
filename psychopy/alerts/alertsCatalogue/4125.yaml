@@ -1,0 +1,23 @@
+
+code: 4125
+cat: Timing
+msg: Microphone component `{name}` given blank stop time, using max duration allowed by buffer size ({stopVal}s).
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Microphone component given blank stop time
+
+synopsis: |
+  Mircophone components can't record forever - there is a "buffer" with a finite size which will eventually fill up. As 
+  you requested for a Microphone component to continue recording forever (by leaving the Stop field blank), PsychoPy 
+  has substituted in the maximum time which you Microphone can record for, given the size of its buffer and the sample 
+  rate it records at.
+
+details: |
+  
+
+solutions: |
+  No action is needed! Your Mircophone component will record for as long as it is able. To silence this alert, simply 
+  give your Microphone component a duration.
+
+versions: |
+  >2023.1.0
