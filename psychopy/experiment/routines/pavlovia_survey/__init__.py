@@ -211,7 +211,14 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
             "for (const question in %(name)sResponse) {\n"
             "  psychoJS.experiment.addData(`%(name)s.${question}`, %(name)sResponse[question]);\n"
             "}\n"
-            "await %(name)s.save();\n"
+        )
+        if self.params['surveyType'] == "id":
+            # Only call save if using an ID, otherwise saving is just to exp file
+            code += (
+                "await %(name)s.save();\n"
+            )
+        buff.writeIndentedLines(code % self.params)
+        code = (
             "// Routines running outside a loop should always advance the datafile row\n"
             "if (currentLoop === psychoJS.experiment) {\n"
             "  psychoJS.experiment.nextEntry(snapshot);\n"
