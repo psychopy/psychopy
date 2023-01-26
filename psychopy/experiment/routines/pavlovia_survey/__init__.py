@@ -67,7 +67,7 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
         self.params['surveyId'] = Param(
             surveyId, valType='str', inputType="survey", categ='Basic',
             hint=_translate(
-                "ID of the survey on Pavlovia"
+                "The ID for your survey on Pavlovia. Tip: Right click to open the survey in your browser!"
             ),
             label=_translate("Survey ID"))
 
