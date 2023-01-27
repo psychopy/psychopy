@@ -383,7 +383,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         # Make text control
         self.rawTextCtrl = wx.stc.StyledTextCtrl(self, size=size, style=wx.TE_MULTILINE | style)
         self.rawTextCtrl.SetLexer(wx.stc.STC_LEX_MARKDOWN)
-        self.rawTextCtrl.Bind(wx.EVT_TEXT, self.onEdit)
+        self.rawTextCtrl.Bind(wx.stc.EVT_STC_MODIFIED, self.onEdit)
         self.contentSizer.Add(self.rawTextCtrl, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
         self.rawTextCtrl.SetReadOnly(self.readonly)
 

@@ -31,7 +31,7 @@ class MovieComponent(BaseVisualComponent):
 
     def __init__(self, exp, parentName, name='movie', movie='',
                  units='from exp settings',
-                 pos=(0, 0), size='', anchor="center", ori=0,
+                 pos=(0, 0), size=(0.5, 0.5), anchor="center", ori=0,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
@@ -255,7 +255,7 @@ class MovieComponent(BaseVisualComponent):
         code = (
             "win, name='%(name)s',\n"
             "filename=%(movie)s, movieLib=%(backend)s,\n"
-            "loop=%(loop)s, volume=%(volume)s,\n"
+            "loop=%(loop)s, volume=%(volume)s, noAudio=%(No audio)s,\n"
             "pos=%(pos)s, size=%(size)s, units=%(units)s,\n"
             "ori=%(ori)s, anchor=%(anchor)s,"
             "opacity=%(opacity)s, contrast=%(contrast)s,\n"
@@ -321,7 +321,7 @@ class MovieComponent(BaseVisualComponent):
             buff.setIndentLevel(-1, relative=True)  # to exit the if block
         # do force end of trial code
         if self.params['forceEndRoutine'].val is True:
-            code = ("if %s.status == FINISHED:  # force-end the routine\n"
+            code = ("if %s.isFinished:  # force-end the routine\n"
                     "    continueRoutine = False\n" %
                     self.params['name'])
             buff.writeIndentedLines(code)
