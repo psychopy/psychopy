@@ -398,7 +398,7 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             # Do activation
             self.info.activate()
             # Mark according to success
-            self.markInstalled(self.info.active)
+            self.markActive(self.info.active)
 
         def onDeactivate(self, evt=None):
             # Mark as pending
@@ -406,7 +406,7 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             # Do deactivation
             self.info.deactivate()
             # Mark according to success
-            self.markInstalled(self.info.active)
+            self.markActive(self.info.active)
 
 
     def __init__(self, parent, viewer=None):
@@ -689,7 +689,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Do activation
         self.info.activate()
         # Mark according to success
-        self.markInstalled(self.info.active)
+        self.markActive(self.info.active)
 
     def onDeactivate(self, evt=None):
         # Mark as pending
@@ -697,7 +697,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Do deactivation
         self.info.deactivate()
         # Mark according to success
-        self.markInstalled(self.info.active)
+        self.markActive(self.info.active)
 
     def onKeyword(self, evt=None):
         kw = evt.GetString()
@@ -919,8 +919,8 @@ def markInstalled(pluginItem, pluginPanel, installed=True):
             # Hide active button when not installed
             pluginItem.activeBtn.Hide()
         # Refresh buttons
-        pluginItem.installBtn.Refresh()
-        pluginItem.activeBtn.Refresh()
+        pluginItem.Update()
+        pluginItem.Layout()
 
     # Update panel (if applicable)
     if pluginPanel and pluginItem and pluginPanel.info == pluginItem.info:
@@ -949,8 +949,7 @@ def markInstalled(pluginItem, pluginPanel, installed=True):
             # Hide active button when not installed
             pluginPanel.activeBtn.Hide()
         # Refresh buttons
-        pluginPanel.installBtn.Refresh()
-        pluginPanel.activeBtn.Refresh()
+        pluginPanel.Update()
 
 
 def markActive(pluginItem, pluginPanel, active=True):
@@ -974,6 +973,7 @@ def markActive(pluginItem, pluginPanel, active=True):
         btn.SetBitmapDisabled(bmp)
         btn.SetBitmapPressed(bmp)
         btn.SetBitmapCurrent(bmp)
+        btn.SetBitmapFocus(bmp)
         btn.SetBitmapMargins(6, 3)
 
     # Update plugin item
@@ -991,7 +991,8 @@ def markActive(pluginItem, pluginPanel, active=True):
             pluginItem.activeBtn.SetLabel(_translate("Disabled"))
             _setAllBitmaps(pluginItem.activeBtn, icons.ButtonIcon("greydot", 16).bitmap)
         # Refresh
-        pluginItem.activeBtn.Refresh()
+        pluginItem.Update()
+        pluginItem.Layout()
 
     # Update panel (if applicable)
     if pluginPanel and pluginItem and pluginPanel.info == pluginItem.info:
@@ -1008,7 +1009,7 @@ def markActive(pluginItem, pluginPanel, active=True):
             pluginPanel.activeBtn.SetLabel(_translate("Disabled"))
             _setAllBitmaps(pluginPanel.activeBtn, icons.ButtonIcon("greydot", 16).bitmap)
         # Refresh
-        pluginPanel.activeBtn.Refresh()
+        pluginPanel.Update()
 
 
 def getAllPluginDetails():
