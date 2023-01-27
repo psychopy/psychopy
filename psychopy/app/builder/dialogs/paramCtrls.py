@@ -8,6 +8,7 @@
 import os
 import subprocess
 import sys
+import webbrowser
 
 import wx
 import wx.stc
@@ -791,6 +792,8 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         wx.TextCtrl.__init__(self)
         self.Create(parent, -1, val, name=fieldName, size=size)
         self.valType = valType
+        # Add CTRL + click behaviour
+        self.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
         # Add placeholder
         self.SetHint("e.g. 1906fa4a-e009-49aa-b63d-798d8bf46c22")
         # Add sizer
@@ -805,12 +808,26 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         self.findBtn.SetBitmap(
             icons.ButtonIcon(stem="search", size=16).bitmap
         )
-        self.findBtn.SetToolTip(_translate("Get survey ID from a list of your surveys on Pavlovia"))
+        self.findBtn.SetToolTip(_translate(
+            "Get survey ID from a list of your surveys on Pavlovia"
+        ))
         self.findBtn.Bind(wx.EVT_BUTTON, self.findSurvey)
         self._szr.Add(self.findBtn)
         # Configure validation
         self.Bind(wx.EVT_TEXT, self.validate)
         self.validate()
+
+    def onRightClick(self, evt=None):
+        menu = wx.Menu()
+        thisId = menu.Append(wx.ID_ANY, item=f"https://pavlovia.org/surveys/{self.getValue()}")
+        menu.Bind(wx.EVT_MENU, self.openSurvey, source=thisId)
+        self.PopupMenu(menu)
+
+    def openSurvey(self, evt=None):
+        """
+        Open current survey in web browser
+        """
+        webbrowser.open(f"https://pavlovia.org/surveys/{self.getValue()}")
 
     def findSurvey(self, evt=None):
         # Import Pavlovia modules locally to avoid Pavlovia bugs affecting other param ctrls
@@ -841,13 +858,20 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         """
         # Get value by usual wx method
         value = self.GetValue()
-        # Strip pavlovia url
-        if ".pavlovia.org/pavlovia/survey/?surveyId=" in value:
+        # Strip pavlovia run url
+        if "run.pavlovia.org/pavlovia/survey/?surveyId=" in value:
             # Keep only the values after the URL
-            value = value.split(".pavlovia.org/pavlovia/survey/?surveyId=")[-1]
+            value = value.split("run.pavlovia.org/pavlovia/survey/?surveyId=")[-1]
             if "&" in value:
                 # If there are multiple URL parameters, only keep the Id
                 value = value.split("&")[0]
+        # Strip regular pavlovia url
+        elif "pavlovia.org/surveys/" in value:
+            # Keep only the values after the URL
+            value = value.split(".pavlovia.org/pavlovia/survey/")[-1]
+            if "&" in value:
+                # If there are URL parameters, only keep the Id
+                value = value.split("?")[0]
 
         return value
 
