@@ -100,7 +100,7 @@ def installPackage(package):
     retcode, info = pkgtools.installPackage(package)
 
     # Handle errors
-    if retcode:
+    if not len(info['stderr']):
         # Display success message if success
         dlg = wx.MessageDialog(
             parent=None,
