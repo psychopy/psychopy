@@ -95,7 +95,7 @@
         <Param val="wheel" valType="str" updates="constant" name="zoomCtrl"/>
         <Param val="1" valType="code" updates="None" name="zoomSensitivity"/>
       </PanoramaComponent>
-      <TextboxComponent name="textbox" plugin="None">
+      <TextboxComponent name="textbox">
         <Param val="center-left" valType="str" updates="constant" name="alignment"/>
         <Param val="bottom-left" valType="str" updates="constant" name="anchor"/>
         <Param val="True" valType="bool" updates="constant" name="autoLog"/>
