@@ -1,5 +1,6 @@
 import wx
 
+from psychopy.app import getAppInstance, getAppFrame
 from psychopy.app.themes import handlers, icons
 from psychopy.localization import _translate
 from psychopy.tools import pkgtools
@@ -97,24 +98,27 @@ def installPackage(package):
     """
     Call `pkgtools.installPackage` and handle any errors cleanly.
     """
+    # Install package
     retcode, info = pkgtools.installPackage(package)
-
-    # Handle errors
-    if retcode:
-        # Display success message if success
-        dlg = wx.MessageDialog(
-            parent=None,
-            caption=_translate("Package installed"),
-            message=_translate("Package {} successfully installed!").format(package),
-            style=wx.ICON_INFORMATION
-        )
-    else:
-        # Display output if error
-        cmd = "\n>> " + " ".join(info['cmd']) + "\n"
-        dlg = InstallErrorDlg(
-            cmd=cmd,
-            stdout=info['stdout'],
-            stderr=info['stderr'],
-            label=_translate("Package {} could not be installed.").format(package)
-        )
+    # Construct output
+    output = _translate("--- Installing package {} ---\n").format(package)
+    output += "\n>> " + " ".join(info['cmd']) + "\n"
+    output += info['stdout']
+    output += info['stderr']
+    output += (
+        "---\n"
+        "\n"
+    )
+    # Show in Runner
+    app = getAppInstance()
+    app.showRunner()
+    runner = getAppFrame("runner")
+    runner.panel.stdoutCtrl.write(output)
+    # Display completion message
+    dlg = wx.MessageDialog(
+        parent=None,
+        caption=_translate("Installation attempt complete"),
+        message=_translate("Package {} has finished installing, check stdout in Runner for details.").format(package),
+        style=wx.ICON_INFORMATION
+    )
     dlg.ShowModal()

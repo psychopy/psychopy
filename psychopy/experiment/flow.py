@@ -307,14 +307,16 @@ class Flow(list):
         for resource in self.exp.getResourceFiles():
             if isinstance(resource, dict):
                 # Get name
-                if 'name' in resource:
-                    name = resource['name']
-                elif "https://" in resource:
+                if "https://" in resource:
                     name = resource.split('/')[-1]
                 elif 'surveyId' in resource:
                     name = 'surveyId'
-                else:
+                elif 'rel' in resource:
                     name = resource['rel']
+                elif 'name' in resource:
+                    name = resource['name']
+                else:
+                    name = ""
 
                 # Get resource
                 resourceFile = None
