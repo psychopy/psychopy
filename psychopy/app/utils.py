@@ -370,6 +370,8 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         # Initialise superclass
         self.parent = parent
         wx.Panel.__init__(self, parent, size=size)
+        # Manage readonly
+        self.readonly = style | wx.TE_READONLY == style
         # Setup sizers
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self.sizer)
@@ -383,8 +385,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.rawTextCtrl.SetLexer(wx.stc.STC_LEX_MARKDOWN)
         self.rawTextCtrl.Bind(wx.stc.EVT_STC_MODIFIED, self.onEdit)
         self.contentSizer.Add(self.rawTextCtrl, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
-        # Manage readonly
-        self.rawTextCtrl.SetReadOnly(style | wx.TE_READONLY == style)
+        self.rawTextCtrl.SetReadOnly(self.readonly)
 
         # Make HTML preview
         self.htmlPreview = HtmlWindow(self, wx.ID_ANY)
@@ -395,11 +396,16 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.editBtn = wx.ToggleButton(self, style=wx.BU_EXACTFIT)
         self.editBtn.Bind(wx.EVT_TOGGLEBUTTON, self.toggleView)
         self.btnSizer.Add(self.editBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        self.editBtn.Show(not self.readonly)
 
         # Make save button
         self.saveBtn = wx.Button(self, style=wx.BU_EXACTFIT)
         self.saveBtn.Bind(wx.EVT_BUTTON, self.save)
         self.btnSizer.Add(self.saveBtn, border=3, flag=wx.ALL | wx.EXPAND)
+
+        # Bind rightclick
+        self.htmlPreview.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
+        self.rawTextCtrl.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
 
         # Get starting value
         self.file = file
@@ -429,6 +435,12 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.rawTextCtrl.SetReadOnly(og)
         # Render
         self.toggleView(self.editBtn.Value)
+
+    def showCode(self, evt=None):
+        self.toggleView(True)
+
+    def showHTML(self, evt=None):
+        self.toggleView(False)
 
     def toggleView(self, evt=True):
         if isinstance(evt, bool):
@@ -495,6 +507,19 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
     @staticmethod
     def onUrl(evt=None):
         webbrowser.open(evt.LinkInfo.Href)
+
+    def onRightClick(self, evt=None):
+        menu = wx.Menu()
+        # Show raw code button if in HTML view
+        if not self.rawTextCtrl.IsShown():
+            thisId = menu.Append(wx.ID_ANY, _translate("View raw code"))
+            menu.Bind(wx.EVT_MENU, self.showCode, source=thisId)
+        # Show HTML button if in code view
+        if not self.htmlPreview.IsShown():
+            thisId = menu.Append(wx.ID_ANY, _translate("View styled HTML"))
+            menu.Bind(wx.EVT_MENU, self.showHTML, source=thisId)
+
+        self.PopupMenu(menu)
 
     def _applyAppTheme(self):
         from psychopy.app.themes import fonts
@@ -691,6 +716,8 @@ class ButtonArray(wx.Window):
             # Create button
             self.button = wx.Button(self, label=label, style=wx.BORDER_NONE)
             self.sizer.Add(self.button, border=4, flag=wx.LEFT | wx.EXPAND)
+            self.label = wx.StaticText(self, label=label)
+            self.sizer.Add(self.label, border=6, flag=wx.LEFT | wx.EXPAND)
             # Create remove btn
             self.removeBtn = wx.Button(self, label="×", size=(24, -1))
             self.sizer.Add(self.removeBtn, border=4, flag=wx.RIGHT | wx.EXPAND)
@@ -707,10 +734,10 @@ class ButtonArray(wx.Window):
             self.parent.removeItem(self)
 
         def onClick(self, evt=None):
-            if not self.readonly:
-                evt = wx.CommandEvent(wx.EVT_BUTTON.typeId)
-                evt.SetEventObject(self)
-                wx.PostEvent(self.parent, evt)
+            evt = wx.CommandEvent(wx.EVT_BUTTON.typeId)
+            evt.SetString(self.button.GetLabel())
+            evt.SetEventObject(self)
+            wx.PostEvent(self.parent, evt)
 
         @property
         def readonly(self):
@@ -722,6 +749,9 @@ class ButtonArray(wx.Window):
             self._readonly = value
             # Show/hide controls
             self.removeBtn.Show(not value)
+            # Show/hide button and label
+            self.button.Show(not value)
+            self.label.Show(value)
             # Layout
             self.Layout()
 

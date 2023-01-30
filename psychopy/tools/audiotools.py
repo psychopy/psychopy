@@ -309,5 +309,26 @@ def audioBufferSize(duration=1.0, freq=SAMPLE_RATE_48kHz):
     return int(duration * freq * sizef32)
 
 
+def audioMaxDuration(bufferSize=1536000, freq=SAMPLE_RATE_48kHz):
+    """
+    Work out the max duration of audio able to be recorded given the buffer size (kb) and frequency (Hz).
+
+    Parameters
+    ----------
+    bufferSize : int, float
+        Size of the buffer in bytes
+        freq : int
+        Sampling frequency in Hz.
+
+    Returns
+    -------
+    float
+        Estimated max duration
+    """
+    sizef32 = 32  # duh
+
+    return bufferSize / (sizef32 * freq)
+
+
 if __name__ == "__main__":
     pass

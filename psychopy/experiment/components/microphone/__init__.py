@@ -287,6 +287,15 @@ class MicrophoneComponent(BaseComponent):
         inits = getInitVals(self.params)
         inits['routine'] = self.parentName
 
+        # If stop time is blank, substitute max stop
+        if self.params['stopVal'] in ('', None, -1, 'None'):
+            self.params['stopVal'].val = at.audioMaxDuration(
+                bufferSize=float(self.params['maxSize'].val) * 1000,
+                freq=float(sampleRates[self.params['sampleRate'].val])
+            )
+            # Show alert
+            alert(4125, strFields={'name': self.params['name'].val, 'stopVal': self.params['stopVal'].val})
+
         # Start the recording
         indented = self.writeStartTestCode(buff)
         if indented:
