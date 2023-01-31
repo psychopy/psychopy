@@ -153,12 +153,18 @@ class MouseComponent(BaseComponent):
         code = (
             "# check if the mouse was inside our 'clickable' objects\n"
             "gotValidClick = False\n"
-            "try:\n"
-            "    iter(%(clickable)s)\n"
-            "    clickableList = %(clickable)s\n"
-            "except:\n"
-            "    clickableList = [%(clickable)s]\n"
+            "clickableList = %(clickable)s\n"
+            "if isinstance(clickableList, str) and \",\" in clickableList:\n"
+            "    clickableList = [obj.strip() for obj in clickableList.split(\",\")]\n"
+            "if not isinstance(clickableList, (list, tuple, np.ndarray)):\n"
+            "    clickableList = [clickableList]\n"
             "for obj in clickableList:\n"
+            "    # if obj is just the name of a component, get the component\n"
+            "    if obj in locals():\n"
+            "        obj = locals()[obj]\n"
+            "    if obj in globals():\n"
+            "        obj = globals()[obj]\n"
+            "    # is this object clicked on?\n"
             "    if obj.contains(%(name)s):\n"
             "        gotValidClick = True\n")
         buff.writeIndentedLines(code % self.params)
