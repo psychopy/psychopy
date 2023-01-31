@@ -156,6 +156,8 @@ class PluginInfo:
         installPackage(self.pipname)
         time.sleep(1)
         plugins.scanPlugins()
+        time.sleep(1)
+        self.activate()
 
     def uninstall(self):
         uninstallPackage(self.pipname)
