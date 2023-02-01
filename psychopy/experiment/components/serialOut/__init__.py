@@ -136,54 +136,56 @@ class SerialOutComponent(BaseComponent):
         params['loop'] = self.currentLoop
 
         # On component start, send start bits
-        self.writeStartTestCode(buff)
-        if self.params['syncScreenRefresh']:
+        indented = self.writeStartTestCode(buff)
+        if indented:
+            if self.params['syncScreenRefresh']:
+                code = (
+                    "win.callOnFlip(%(name)s.write, bytes(%(startdata)s, 'utf8'))\n"
+                )
+            else:
+                code = (
+                    "%(name)s.write(bytes(%(startdata)s, 'utf8'))\n"
+                )
+            buff.writeIndented(code % params)
+            # Update status
             code = (
-                "win.callOnFlip(%(name)s.write, bytes(%(startdata)s, 'utf8'))\n"
-            )
-        else:
-            code = (
-                "%(name)s.write(bytes(%(startdata)s, 'utf8'))\n"
-            )
-        buff.writeIndented(code % params)
-        # Update status
-        code = (
-            "%(name)s.status = STARTED\n"
-        )
-        buff.writeIndented(code % params)
-        # If we want responses, get them
-        if self.params['getResponse']:
-            code = (
-                "%(loop)s.addData('%(name)s.startResp', %(name)s.read())\n"
+                "%(name)s.status = STARTED\n"
             )
             buff.writeIndented(code % params)
+            # If we want responses, get them
+            if self.params['getResponse']:
+                code = (
+                    "%(loop)s.addData('%(name)s.startResp', %(name)s.read())\n"
+                )
+                buff.writeIndented(code % params)
         # Dedent
-        buff.setIndentLevel(-1, relative=True)
+        buff.setIndentLevel(-indented, relative=True)
 
         # On component stop, send stop pulse
-        self.writeStopTestCode(buff)
-        if self.params['syncScreenRefresh']:
+        indented = self.writeStopTestCode(buff)
+        if indented:
+            if self.params['syncScreenRefresh']:
+                code = (
+                    "win.callOnFlip(%(name)s.write, bytes(%(stopdata)s, 'utf8'))\n"
+                )
+            else:
+                code = (
+                    "%(name)s.write(bytes(%(stopdata)s, 'utf8'))\n"
+                )
+            buff.writeIndented(code % params)
+            # Update status
             code = (
-                "win.callOnFlip(%(name)s.write, bytes(%(stopdata)s, 'utf8'))\n"
-            )
-        else:
-            code = (
-                "%(name)s.write(bytes(%(stopdata)s, 'utf8'))\n"
-            )
-        buff.writeIndented(code % params)
-        # Update status
-        code = (
-            "%(name)s.status = FINISHED\n"
-        )
-        buff.writeIndented(code % params)
-        # If we want responses, get them
-        if self.params['getResponse']:
-            code = (
-                "%(loop)s.addData('%(name)s.stopResp', %(name)s.read())\n"
+                "%(name)s.status = FINISHED\n"
             )
             buff.writeIndented(code % params)
+            # If we want responses, get them
+            if self.params['getResponse']:
+                code = (
+                    "%(loop)s.addData('%(name)s.stopResp', %(name)s.read())\n"
+                )
+                buff.writeIndented(code % params)
         # Dedent
-        buff.setIndentLevel(-2, relative=True)
+        buff.setIndentLevel(-indented, relative=True)
 
     def writeExperimentEndCode(self, buff):
         # Close the port
