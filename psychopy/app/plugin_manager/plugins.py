@@ -128,57 +128,34 @@ class PluginInfo:
         """
         return plugins.isStartUpPlugin(self.pipname)
 
-    @active.setter
-    def active(self, value):
-        if value is None:
-            # Setting active as None skips the whole process - useful for
-            # avoiding recursion
-            return
-
-        if value:
-            # If active, add to list of startup plugins
-            plugins.startUpPlugins(self.pipname, add=True)
-        else:
-            # If active and changed to inactive, remove from list of startup
-            # plugins.
-            current = plugins.listPlugins(which='startup')
-            if self.pipname in current:
-                current.remove(self.pipname)
-            plugins.startUpPlugins(current, add=False)
-
     def activate(self, evt=None):
-        self.active = True
+        # If active, add to list of startup plugins
+        plugins.startUpPlugins(self.pipname, add=True)
 
     def deactivate(self, evt=None):
-        self.active = False
+        # Remove from list of startup plugins
+        current = plugins.listPlugins(which='startup')
+        if self.pipname in current:
+            current.remove(self.pipname)
+        plugins.startUpPlugins(current, add=False)
 
     def install(self):
         installPackage(self.pipname)
         time.sleep(1)
+        pkgtools.refreshPackages()
         plugins.scanPlugins()
         time.sleep(1)
-        self.activate()
+        if self.installed:
+            self.activate()
 
     def uninstall(self):
         uninstallPackage(self.pipname)
+        pkgtools.refreshPackages()
         plugins.scanPlugins()
-        pass
 
     @property
     def installed(self):
         return pkgtools.isInstalled(self.pipname)
-
-    @installed.setter
-    def installed(self, value):
-        if value is None:
-            # Setting installed as None skips the whole process - useful for
-            # avoiding recursion
-            return
-        # Get action string from value
-        if value and not self.installed:
-            self.install()
-        elif self.installed:
-            self.uninstall()
 
     @property
     def author(self):
