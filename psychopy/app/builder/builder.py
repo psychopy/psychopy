@@ -2768,6 +2768,12 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
                     else:
                         emtBtn = self.ComponentButton(self, name=name, comp=emt, cat=cat)
                         self.compButtons.append(emtBtn)
+                        # If we're in standalone routine view, disable new component button
+                        rtPage = self.frame.routinePanel.getCurrentPage()
+                        if rtPage:
+                            emtBtn.Enable(
+                                not isinstance(rtPage.routine, BaseStandaloneRoutine)
+                            )
                     # Store reference by category
                     self.objectHandles[cat][name] = emtBtn
                 # Add to category sizer

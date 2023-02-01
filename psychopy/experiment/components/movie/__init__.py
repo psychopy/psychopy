@@ -275,14 +275,6 @@ class MovieComponent(BaseVisualComponent):
             # create the code using init vals
             self._writeCreationCodeJS(buff, useInits=True)
 
-    def writeRoutineStartCodeJS(self, buff):
-        # If needed then use _writeCreationCode()
-        # Movie could be created here or in writeInitCode()
-        if self.params['movie'].updates != 'constant':
-            # create the code using params, not vals (unless set during static component)
-            useInits = 'during' in self.params['movie'].updates
-            self._writeCreationCodeJS(buff, useInits=useInits)
-
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
         """
