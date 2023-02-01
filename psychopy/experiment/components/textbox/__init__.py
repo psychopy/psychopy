@@ -266,6 +266,7 @@ class TextboxComponent(BaseVisualComponent):
                 "  win: psychoJS.window,\n"
                 "  name: '%(name)s',\n"
                 "  text: %(text)s,\n"
+                "  placeholder: %(placeholder)s,\n"
                 "  font: %(font)s,\n" 
                 "  pos: %(pos)s, letterHeight: %(letterHeight)s,\n"
                 "  size: %(size)s," + unitsStr +

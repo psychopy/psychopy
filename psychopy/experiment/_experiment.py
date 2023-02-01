@@ -974,7 +974,7 @@ class Experiment:
                             thisFile = getPaths(thisParam)
                         elif isinstance(thisParam.val, str):
                             thisFile = getPaths(thisParam.val)
-                        if paramName == "surveyId":
+                        if paramName == "surveyId" and thisComp.params.get('surveyType', "") == "id":
                             # Survey IDs are a special case, they need adding verbatim, no path sanitizing
                             thisFile = {'surveyId': thisParam.val}
                         # then check if it's a valid path and not yet included
@@ -988,7 +988,7 @@ class Experiment:
                         thisFile = getPaths(thisParam)
                     elif isinstance(thisParam.val, str):
                         thisFile = getPaths(thisParam.val)
-                    if paramName == "surveyId":
+                    if paramName == "surveyId" and thisEntry.params.get('surveyType', "") == "id":
                         # Survey IDs are a special case, they need adding verbatim, no path sanitizing
                         thisFile = {'surveyId': thisParam.val}
                     # then check if it's a valid path and not yet included
