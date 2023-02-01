@@ -16,6 +16,7 @@ from ..pavlovia_ui.search import SearchFrame
 from ..pavlovia_ui.user import UserFrame
 from ..themes.ui import ThemeSwitcher
 from wx.html import HtmlEasyPrinting
+from wx._core import wxAssertionError
 
 import wx.lib.agw.aui as aui  # some versions of phoenix
 
@@ -2736,8 +2737,11 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
             # hide the pane
             self.prefs['showOutput'] = False
             self.paneManager.GetPane('Shelf').Hide()
-        self.app.prefs.saveUserPrefs()  # includes a validation
-        self.paneManager.Update()
+        self.app.prefs.saveUserPrefs()
+        try:  # includes a validation
+            self.paneManager.Update()
+        except wxAssertionError as err:
+            logging.warn("Exception caught: " + str(err))
 
     def setShowIndentGuides(self, event):
         # show/hide the source assistant (from the view menu control)

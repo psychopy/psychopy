@@ -42,16 +42,16 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
                  'body': _translate(
                      "Linking to a survey ID from Pavlovia Surveys means that the content will automatically update "
                      "if that survey changes (better for dynamic use)"),
-                 'linkText': _translate("Take me to Pavlovia..."),
-                 'link': "https://pavlovia.org/dashboard?tab=4",
+                 'linkText': _translate("How do I get my survey ID?"),
+                 'link': "https://psychopy.org/builder/components/advanced_survey.html#get-id",
                  'startShown': 'always'},
 
                 {'label': _translate("Survey Model File"),
                  'body': _translate(
                     "Inserting a JSON file (exported from Pavlovia Surveys) means that the survey is embedded within "
                     "this project and will not change unless you import it again (better for archiving)"),
-                 'linkText': _translate("Take me to Pavlovia..."),
-                 'link': "https://pavlovia.org/dashboard?tab=4",
+                 'linkText': _translate("How do I get my survey model file?"),
+                 'link': "https://psychopy.org/builder/components/advanced_survey.html#get-json",
                  'startShown': 'always'},
             ],
             label=_translate("Survey type"))
@@ -67,7 +67,7 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
         self.params['surveyId'] = Param(
             surveyId, valType='str', inputType="survey", categ='Basic',
             hint=_translate(
-                "ID of the survey on Pavlovia"
+                "The ID for your survey on Pavlovia. Tip: Right click to open the survey in your browser!"
             ),
             label=_translate("Survey ID"))
 
@@ -211,7 +211,14 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
             "for (const question in %(name)sResponse) {\n"
             "  psychoJS.experiment.addData(`%(name)s.${question}`, %(name)sResponse[question]);\n"
             "}\n"
-            "await %(name)s.save();\n"
+        )
+        if self.params['surveyType'] == "id":
+            # Only call save if using an ID, otherwise saving is just to exp file
+            code += (
+                "await %(name)s.save();\n"
+            )
+        buff.writeIndentedLines(code % self.params)
+        code = (
             "// Routines running outside a loop should always advance the datafile row\n"
             "if (currentLoop === psychoJS.experiment) {\n"
             "  psychoJS.experiment.nextEntry(snapshot);\n"
