@@ -680,6 +680,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
     def _applyAppTheme(self):
         # Srt own background
         self.SetBackgroundColour(colors.app['panel_bg'])
+        self.topPanel.SetBackgroundColour(colors.app['panel_bg'])
+        self.bottomPanel.SetBackgroundColour(colors.app['panel_bg'])
         # Theme buttons
         self.toolbar.theme = self.theme
         # Add icons to buttons
