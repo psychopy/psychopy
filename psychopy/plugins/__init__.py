@@ -26,8 +26,8 @@ import inspect
 import collections
 import hashlib
 import importlib
-import pkg_resources
 import psychopy.tools.pkgtools as pkgtools
+import pkg_resources
 from psychopy import logging
 from psychopy.preferences import prefs
 
@@ -247,6 +247,9 @@ def scanPlugins():
         return the names of the found plugins.
 
     """
+    import importlib
+    importlib.reload(pkg_resources)  # reload this to make `working_set` current
+
     global _installed_plugins_
     _installed_plugins_ = {}  # clear installed plugins
 
@@ -785,6 +788,7 @@ def startUpPlugins(plugins, add=True, verify=True):
         return
 
     # check if the plugins are installed before adding to `startUpPlugins`
+    scanPlugins()
     installedPlugins = listPlugins()
     if verify:
         notInstalled = [plugin not in installedPlugins for plugin in plugins]
@@ -925,6 +929,7 @@ def getWindowBackends():
         fqn, resolve=(fqn not in sys.modules), error=False)
     # Return winTypes array from backend object
     return backend.winTypes
+
 
 def discoverModuleClasses(nameSpace, classType, includeUnbound=True):
     """Discover classes and sub-classes matching a specific type within a
