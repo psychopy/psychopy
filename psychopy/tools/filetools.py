@@ -82,11 +82,6 @@ defaultStim = {
     "default.mp4": "default.mp4",
     # Sound stimuli
     "default.mp3": "default.mp3",
-}
-defaultStim = _synonymiseExtensions(defaultStim)
-
-# Names accepted by JS as assets
-assetStim = {
     # Credit card image
     "creditCard.png": "creditCard.png",
     "CreditCard.png": "creditCard.png",
@@ -102,7 +97,7 @@ assetStim = {
     "usb_c.png": "USB-C.png",
     "usbc.png": "USB-C.png",
 }
-assetStim = _synonymiseExtensions(assetStim)
+defaultStim = _synonymiseExtensions(defaultStim)
 
 
 def toFile(filename, data):
