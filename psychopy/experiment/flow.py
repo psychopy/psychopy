@@ -312,7 +312,7 @@ class Flow(list):
                     name = resource.split('/')[-1]
                 elif 'surveyId' in resource:
                     name = 'surveyId'
-                elif 'name' in resource and resource['name'] in ft.defaultStim:
+                elif 'name' in resource and resource['name'] in list(ft.defaultStim) + list(ft.assetStim):
                     name = resource['name']
                 elif 'rel' in resource:
                     name = resource['rel']

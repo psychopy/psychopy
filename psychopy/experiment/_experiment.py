@@ -883,9 +883,14 @@ class Experiment:
             #    Path('C:/test/test.xlsx').is_absolute() returns False
             #    Path('/folder/file.xlsx').relative_to('/Applications') gives error
             #    but os.path.relpath('/folder/file.xlsx', '/Applications') correctly uses ../
-            if filePath in list(ft.defaultStim):
-                # Default stim are a special case as the file doesn't exist in the usual path
-                thisFile['rel'] = thisFile['abs'] = "https://pavlovia.org/assets/default/" + ft.defaultStim[filePath]
+            if filePath in list(ft.defaultStim) + list(ft.assetStim):
+                # Default/asset stim are a special case as the file doesn't exist in the usual path
+                path = ""
+                if filePath in list(ft.defaultStim):
+                    path = "https://pavlovia.org/assets/default/" + ft.defaultStim[filePath]
+                elif filePath in list(ft.assetStim):
+                    path = "https://pavlovia.org/assets/default/" + ft.assetStim[filePath]
+                thisFile['rel'] = thisFile['abs'] = path
                 thisFile['name'] = filePath
                 return thisFile
             if len(filePath) > 2 and (filePath[0] == "/" or filePath[1] == ":")\
@@ -1037,7 +1042,7 @@ class Experiment:
         resources = loopResources + compResources + chosenResources
         resources = [res for res in resources if res is not None]
         for res in resources:
-            if res in list(ft.defaultStim):
+            if res in list(ft.defaultStim) + list(ft.assetStim):
                 # Skip default stim here
                 continue
             if isinstance(res, dict) and 'abs' in res and 'rel' in res:
