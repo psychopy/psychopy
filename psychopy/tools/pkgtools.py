@@ -18,6 +18,7 @@ __all__ = [
     'getPackageMetadata',
     'getPypiInfo',
     'isInstalled',
+    'refreshPackages'
 ]
 
 
@@ -25,6 +26,7 @@ import subprocess as sp
 from psychopy.preferences import prefs
 from psychopy.localization import _translate
 import psychopy.logging as logging
+import importlib
 import pkg_resources
 import sys
 import os
@@ -36,6 +38,22 @@ import shutil
 # add packages dir to import path
 if prefs.paths['packages'] not in pkg_resources.working_set.entries:
     pkg_resources.working_set.add_entry(prefs.paths['packages'])
+
+
+def refreshPackages():
+    """Refresh the packaging system.
+
+    This needs to be called after adding and removing packages, or making any
+    changes to `sys.path`. Functions `installPackages` and `uninstallPackages`
+    calls this everytime.
+
+    Warnings
+    --------
+    Calling this forces a reload of `pkg_resources`. This can cause side-effects
+    for other modules using it!
+
+    """
+    importlib.reload(pkg_resources)
 
 
 def getUserPackagesPath():
@@ -112,10 +130,11 @@ def installPackage(package, target=None, upgrade=False, forceReinstall=False,
 
     Returns
     -------
-    bool
+    tuple
         `True` if the package installed without errors. If `False`, check
         'stderr' for more information. The package may still have installed
-        correctly, but it doesn't work.
+        correctly, but it doesn't work. Second value contains standard output
+        and error from the subprocess.
 
     """
     if target is None:
@@ -153,6 +172,8 @@ def installPackage(package, target=None, upgrade=False, forceReinstall=False,
 
     sys.stdout.write(stdout)
     sys.stderr.write(stderr)
+
+    refreshPackages()
 
     # if any error, return code should be False
     retcode = bool(stderr)
@@ -239,7 +260,8 @@ def _uninstallUserPackage(package):
     Returns
     -------
     bool
-        `True` if the package has been uninstalled successfully.
+        `True` if the package has been uninstalled successfully. Second value
+        contains standard output and error from the subprocess.
 
     """
     # todo - check if we imported the package and warn that we're uninstalling
@@ -251,7 +273,8 @@ def _uninstallUserPackage(package):
 
     userPackagePath = getUserPackagesPath()
 
-    msg = 'Attempting to uninstall user package `{}` from `{}`.'.format(package, userPackagePath)
+    msg = 'Attempting to uninstall user package `{}` from `{}`.'.format(
+        package, userPackagePath)
     logging.info(msg)
     stdout += msg + "\n"
 
@@ -269,9 +292,9 @@ def _uninstallUserPackage(package):
     metaPath = os.path.join(userPackagePath, metaDir)
     if not os.path.isdir(metaPath):
         return False, {
-        "cmd": cmd,
-        "stdout": stdout,
-        "stderr": "No package metadata found at {metaPath}"}
+            "cmd": cmd,
+            "stdout": stdout,
+            "stderr": "No package metadata found at {metaPath}"}
 
     # Get the top-levels for all packages in the user's PsychoPy directory, this
     # is intended to safely remove packages without deleting common directories
@@ -356,7 +379,7 @@ def uninstallPackage(package):
 
     Returns
     -------
-    bool
+    tuple
         `True` if the package removed without errors. If `False`, check 'stderr'
         for more information. The package may still have uninstalled correctly,
         but some other issues may have arose during the process.
@@ -368,7 +391,8 @@ def uninstallPackage(package):
 
     """
     if _isUserPackage(package):  # delete 'manually' if in package dir
-        return _uninstallUserPackage(package)
+        return (_uninstallUserPackage(package),
+                {"cmd": '', "stdout": '', "stderr": ''})
     else:  # use the following if in the main package dir
         # construct the pip command and execute as a subprocess
         cmd = [sys.executable, "-m", "pip", "uninstall", package, "--yes",
@@ -384,8 +408,12 @@ def uninstallPackage(package):
 
         sys.stdout.write(stdout)
         sys.stderr.write(stderr)
-    # if any error, return code should be False
-    retcode = bool(stderr)
+
+        # if any error, return code should be False
+        retcode = bool(stderr)
+
+    refreshPackages()
+
     # Return the return code and a dict of information from the console
     return retcode, {"cmd": cmd, "stdout": stdout, "stderr": stderr}
 
@@ -434,6 +462,8 @@ def getInstalledPackages():
         '2021.3.1')`.
 
     """
+    refreshPackages()
+
     # this is like calling `pip freeze` and parsing the output, but faster!
     installedPackages = []
     for pkg in pkg_resources.working_set:
