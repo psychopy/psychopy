@@ -247,9 +247,6 @@ def scanPlugins():
         return the names of the found plugins.
 
     """
-    import importlib
-    importlib.reload(pkg_resources)  # reload this to make `working_set` current
-
     global _installed_plugins_
     _installed_plugins_ = {}  # clear installed plugins
 
