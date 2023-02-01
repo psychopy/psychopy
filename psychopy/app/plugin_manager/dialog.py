@@ -39,10 +39,10 @@ class EnvironmentManagerDlg(wx.Dialog):
         pluginChanges = self.pluginMgr.pluginList.getChanges()
 
         # If any plugins have been disabled, prompt user to restart
-        if any(["deactivated" in changes for changes in pluginChanges.values()]):
+        if any(["installed" in changes for changes in pluginChanges.values()]):
             msg = _translate(
-                "It looks like you've disabled some plugins. In order for this to take effect, you will need to restart "
-                "the PsychoPy app.\n"
+                "It looks like you've installed some plugins. In order for this to take effect, you will need to "
+                "restart the PsychoPy app.\n"
             )
             dlg = wx.MessageDialog(
                 None, msg,
