@@ -13,6 +13,7 @@ from xml.etree.ElementTree import Element
 from psychopy.experiment import getAllStandaloneRoutines
 from psychopy.experiment.routines._base import Routine, BaseStandaloneRoutine
 from psychopy.experiment.loops import LoopTerminator, LoopInitiator
+from psychopy.tools import filetools as ft
 
 
 class Flow(list):
@@ -311,10 +312,10 @@ class Flow(list):
                     name = resource.split('/')[-1]
                 elif 'surveyId' in resource:
                     name = 'surveyId'
+                elif 'name' in resource and resource['name'] in list(ft.defaultStim):
+                    name = resource['name']
                 elif 'rel' in resource:
                     name = resource['rel']
-                elif 'name' in resource:
-                    name = resource['name']
                 else:
                     name = ""
 
