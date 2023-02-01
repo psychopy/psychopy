@@ -147,6 +147,7 @@ class PluginInfo:
         time.sleep(1)
         if self.installed:
             self.activate()
+            plugins.loadPlugin(self.pipname)
 
     def uninstall(self):
         uninstallPackage(self.pipname)
@@ -467,6 +468,9 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             # Has it been installed?
             if info.installed and not inits['installed']:
                 itemChanges.append("installed")
+            # Has it been uninstalled?
+            if inits['installed'] and not info.installed:
+                itemChanges.append("uninstalled")
 
             # Add changes if there are any
             if itemChanges:
