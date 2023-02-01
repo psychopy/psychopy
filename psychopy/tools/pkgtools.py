@@ -412,8 +412,6 @@ def uninstallPackage(package):
         # if any error, return code should be False
         retcode = bool(stderr)
 
-    refreshPackages()
-
     # Return the return code and a dict of information from the console
     return retcode, {"cmd": cmd, "stdout": stdout, "stderr": stderr}
 
@@ -462,8 +460,6 @@ def getInstalledPackages():
         '2021.3.1')`.
 
     """
-    refreshPackages()
-
     # this is like calling `pip freeze` and parsing the output, but faster!
     installedPackages = []
     for pkg in pkg_resources.working_set:
