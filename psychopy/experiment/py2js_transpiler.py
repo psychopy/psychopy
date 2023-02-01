@@ -471,7 +471,7 @@ def transformPsychoJsCode(psychoJsCode, addons, namespace=[]):
             varNames = lines[index][4:-1].split(", ")
             validVarNames = []
             for varName in varNames:
-                if varName not in namespace:
+                if namespace is not None and varName not in namespace:
                     # If var name not is already in namespace, keep it in
                     validVarNames.append(varName)
             # If there are no var names left, remove statement altogether
@@ -493,7 +493,7 @@ def translatePythonToJavaScript(psychoPyCode, namespace=[]):
 
     Args:
         psychoPyCode (str): the input PsychoPy python code
-        namespace (list): list of varnames which are already defined
+        namespace (list, None): list of varnames which are already defined
 
     Returns:
         str: the PsychoJS JavaScript code
