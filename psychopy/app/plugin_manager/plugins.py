@@ -11,6 +11,7 @@ from psychopy.app.themes import theme, handlers, colors, icons
 from psychopy.app import utils
 from psychopy.localization import _translate
 from psychopy import plugins
+from psychopy.experiment import getAllElements
 import subprocess as sp
 import sys
 import requests
@@ -140,14 +141,36 @@ class PluginInfo:
         plugins.startUpPlugins(current, add=False)
 
     def install(self):
-        installPackage(self.pipname)
-        time.sleep(1)
-        pkgtools.refreshPackages()
+        dlg = installPackage(self.pipname)
+        # Refresh and enable
         plugins.scanPlugins()
-        time.sleep(1)
         if self.installed:
             self.activate()
             plugins.loadPlugin(self.pipname)
+        # Show list of components/routines now available
+        emts = []
+        for name, emt in getAllElements().items():
+            if hasattr(emt, "plugin") and emt.plugin == self.pipname:
+                cats = ", ".join(emt.categories)
+                emts.append(f"{name} ({cats})")
+        if len(emts):
+            msg = _translate(
+                "The following components/routines should now be visible in the Components panel:\n"
+            )
+            for emt in emts:
+                msg += (
+                    f"    - {emt}\n"
+                )
+            dlg.write(msg)
+        # Show info link
+        if self.docs:
+            msg = _translate(
+                "\n"
+                "\n"
+                "For more information about the %s plugin, read the documentation at:\n"
+            ) % self.name
+            dlg.write(msg)
+            dlg.writeLink(self.docs, link=self.docs)
 
     def uninstall(self):
         uninstallPackage(self.pipname)
