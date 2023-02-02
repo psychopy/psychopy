@@ -434,7 +434,7 @@ class PackageDetailsPanel(wx.Panel):
 
     def onHomepage(self, evt=None):
         # Open homepage in browser
-        webbrowser.open(self.params.get('Home-page'))
+        webbrowser.open(self.params.get('Home-page', ""))
 
     def onInstall(self, evt=None):
         name = self.package
