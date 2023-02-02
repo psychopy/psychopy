@@ -132,14 +132,14 @@ class PluginInfo:
 
     def activate(self, evt=None):
         # If active, add to list of startup plugins
-        plugins.startUpPlugins(self.pipname, add=True)
+        plugins.startUpPlugins(self.pipname, add=True, verify=False)
 
     def deactivate(self, evt=None):
         # Remove from list of startup plugins
         current = plugins.listPlugins(which='startup')
         if self.pipname in current:
             current.remove(self.pipname)
-        plugins.startUpPlugins(current, add=False)
+        plugins.startUpPlugins(current, add=False, verify=False)
 
     def install(self):
         dlg = installPackage(self.pipname)
