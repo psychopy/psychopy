@@ -11,6 +11,7 @@ from psychopy.app.themes import theme, handlers, colors, icons
 from psychopy.app import utils
 from psychopy.localization import _translate
 from psychopy import plugins
+from psychopy.preferences import prefs
 from psychopy.experiment import getAllElements
 import subprocess as sp
 import sys
@@ -144,9 +145,14 @@ class PluginInfo:
         dlg = installPackage(self.pipname)
         # Refresh and enable
         plugins.scanPlugins()
-        if self.installed:
+        try:
             self.activate()
             plugins.loadPlugin(self.pipname)
+        except RuntimeError:
+            prefs.general['startUpPlugins'].append(self.pipname)
+            dlg.writeStdErr(_translate(
+                "[Warning] Could not activate plugin. PsychoPy may need to restart for plugin to take effect."
+            ))
         # Show list of components/routines now available
         emts = []
         for name, emt in getAllElements().items():
