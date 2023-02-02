@@ -233,6 +233,7 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
         self.pluginList.onDeselect()
 
         self.Layout()
+        self.splitter.SetSashPosition(1, True)
         self.theme = theme.app
 
     def _applyAppTheme(self):
