@@ -599,9 +599,23 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.author = AuthorDetailsPanel(self, info=None)
         self.sizer.Add(self.author, border=6, flag=wx.EXPAND | wx.ALL)
 
+        # Add placeholder for when there's no plugin selected
+        self.placeholder = wx.StaticText(
+            self,
+            label=_translate("Select a plugin to view details."),
+            style=wx.TEXT_ALIGNMENT_CENTER
+        )
+        self.border.Add(
+            self.placeholder,
+            proportion=1,
+            border=12,
+            flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL)
+
+        # Set info and installed status
         self.info = info
         self.markInstalled(self.info.installed)
         #self.markActive(self.info.active)
+        # Style
         self.Layout()
         self._applyAppTheme()
 
@@ -698,7 +712,10 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
 
     @info.setter
     def info(self, value):
-        self.Enable(value is not None)
+        # Hide/show everything according to None
+        self.sizer.ShowItems(value is not None)
+        # Show/hide placeholder according to None
+        self.placeholder.Show(value is None)
         # Handle None
         if value is None:
             value = PluginInfo(
