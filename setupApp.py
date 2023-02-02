@@ -88,7 +88,6 @@ packages = ['pydoc',  # needed for help()
             'objc', 'Quartz', 'AppKit', 'QTKit', 'Cocoa',
             'Foundation', 'CoreFoundation',
             'pkg_resources',  # needed for objc
-            'pyo',
             'requests', 'certifi', 'cryptography',
             'json_tricks',  # allows saving arrays/dates in json
             'git', 'gitlab',

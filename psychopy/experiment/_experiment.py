@@ -884,7 +884,7 @@ class Experiment:
             #    Path('/folder/file.xlsx').relative_to('/Applications') gives error
             #    but os.path.relpath('/folder/file.xlsx', '/Applications') correctly uses ../
             if filePath in list(ft.defaultStim):
-                # Default stim are a special case as the file doesn't exist in the usual path
+                # Default/asset stim are a special case as the file doesn't exist in the usual path
                 thisFile['rel'] = thisFile['abs'] = "https://pavlovia.org/assets/default/" + ft.defaultStim[filePath]
                 thisFile['name'] = filePath
                 return thisFile

@@ -309,8 +309,7 @@ class DlgCodeComponentProperties(wx.Dialog):
 
         try:
             if pythonCode:
-                namespace = self.component.exp.namespace
-                jsCode = translatePythonToJavaScript(pythonCode, namespace=namespace.all)
+                jsCode = translatePythonToJavaScript(pythonCode, namespace=None)
 
             if codeChangeTest:
                 return jsCode
