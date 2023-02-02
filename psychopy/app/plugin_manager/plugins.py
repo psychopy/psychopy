@@ -226,9 +226,7 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
             sashPosition=0
         )
         self.splitter.SetMinimumPaneSize(450)
-        # Mark installed on items now that we have necessary references
-        for item in self.pluginList.items:
-            item.markInstalled(item.info.installed)
+
         # Start of with nothing selected
         self.pluginList.onDeselect()
 
@@ -691,13 +689,43 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
             active=active
         )
 
-    def onInstall(self, evt=None):
+    def _doInstall(self):
+        """Routine to run the installation of a package after the `onInstall`
+        event is processed.
+        """
         # Mark as pending
         self.markInstalled(None)
         # Do install
         self.info.install()
         # Mark according to install success
         self.markInstalled(self.info.installed)
+
+    def onInstall(self, evt=None):
+        """Event called when the install button is clicked.
+        """
+        wx.CallAfter(self._doInstall)  # call after processing button events
+        if evt is not None and hasattr(evt, 'Skip'):
+            evt.Skip()
+
+    def _doActivate(self, disable=False):
+        """Activate a plugin or package after the `onActivate` event.
+
+        Parameters
+        ----------
+        disable : bool
+            Disable instead of activating the plugin. Default is `False`.
+
+        """
+        # Mark as pending
+        self.markActive(None)
+
+        if not disable:  # handle activation
+            self.info.activate()
+        else:
+            self.info.deactivate()
+
+        # Mark according to success
+        self.markActive(self.info.active)
 
     def onToggleActivate(self, evt=None):
         if self.info.active:
@@ -706,20 +734,14 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
             self.onActivate(evt=evt)
 
     def onActivate(self, evt=None):
-        # Mark as pending
-        self.markActive(None)
-        # Do activation
-        self.info.activate()
-        # Mark according to success
-        self.markActive(self.info.active)
+        wx.CallAfter(self._doActivate, True)  # call after processing button events
+        if evt is not None and hasattr(evt, 'Skip'):
+            evt.Skip()
 
     def onDeactivate(self, evt=None):
-        # Mark as pending
-        self.markActive(None)
-        # Do deactivation
-        self.info.deactivate()
-        # Mark according to success
-        self.markActive(self.info.active)
+        wx.CallAfter(self._doActivate, False)
+        if evt is not None and hasattr(evt, 'Skip'):
+            evt.Skip()
 
     def onKeyword(self, evt=None):
         kw = evt.GetString()

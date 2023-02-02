@@ -3,6 +3,9 @@ import wx
 from psychopy.app import getAppInstance
 from psychopy.app.plugin_manager import PluginManagerPanel, PackageManagerPanel
 from psychopy.localization import _translate
+import psychopy.tools.pkgtools as pkgtools
+
+pkgtools.refreshPackages()  # build initial package cache
 
 
 class EnvironmentManagerDlg(wx.Dialog):
