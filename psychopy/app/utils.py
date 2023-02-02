@@ -1356,21 +1356,21 @@ class FrameSwitcher(wx.Menu):
         # Builder
         if not isinstance(frame, psychopy.app.builder.BuilderFrame):
             items['builder'] = parent.Append(
-                wx.ID_ANY, _translate("Show &builder"), _translate("Show builder")
+                wx.ID_ANY, _translate("Show &builder"), _translate("Show Builder")
             )
             parent.Bind(wx.EVT_MENU, app.showBuilder, items['builder'])
 
         # Coder
         if not isinstance(frame, psychopy.app.coder.CoderFrame):
             items['coder'] = parent.Append(
-                wx.ID_ANY, _translate("Show &coder"), _translate("Show coder")
+                wx.ID_ANY, _translate("Show &coder"), _translate("Show Coder")
             )
             parent.Bind(wx.EVT_MENU, app.showCoder, items['coder'])
 
         # Runner
         if not isinstance(frame, psychopy.app.runner.RunnerFrame):
             items['runner'] = parent.Append(
-                wx.ID_ANY, _translate("Show &runner"), _translate("Show runner")
+                wx.ID_ANY, _translate("Show &runner"), _translate("Show Runner")
             )
             parent.Bind(wx.EVT_MENU, app.showRunner, items['runner'])
 
