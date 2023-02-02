@@ -175,8 +175,8 @@ def installPackage(package, target=None, upgrade=False, forceReinstall=False,
 
     refreshPackages()
 
-    # if any error, return code should be False
-    retcode = bool(stderr)
+    # Return True if installed, False if not
+    retcode = isInstalled(package)
     # Return the return code and a dict of information from the console
     return retcode, {"cmd": cmd, "stdout": stdout, "stderr": stderr}
 

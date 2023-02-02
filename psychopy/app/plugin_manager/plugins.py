@@ -11,6 +11,8 @@ from psychopy.app.themes import theme, handlers, colors, icons
 from psychopy.app import utils
 from psychopy.localization import _translate
 from psychopy import plugins
+from psychopy.preferences import prefs
+from psychopy.experiment import getAllElements
 import subprocess as sp
 import sys
 import requests
@@ -140,14 +142,41 @@ class PluginInfo:
         plugins.startUpPlugins(current, add=False)
 
     def install(self):
-        installPackage(self.pipname)
-        time.sleep(1)
-        pkgtools.refreshPackages()
+        dlg = installPackage(self.pipname)
+        # Refresh and enable
         plugins.scanPlugins()
-        time.sleep(1)
-        if self.installed:
+        try:
             self.activate()
             plugins.loadPlugin(self.pipname)
+        except RuntimeError:
+            prefs.general['startUpPlugins'].append(self.pipname)
+            dlg.writeStdErr(_translate(
+                "[Warning] Could not activate plugin. PsychoPy may need to restart for plugin to take effect."
+            ))
+        # Show list of components/routines now available
+        emts = []
+        for name, emt in getAllElements().items():
+            if hasattr(emt, "plugin") and emt.plugin == self.pipname:
+                cats = ", ".join(emt.categories)
+                emts.append(f"{name} ({cats})")
+        if len(emts):
+            msg = _translate(
+                "The following components/routines should now be visible in the Components panel:\n"
+            )
+            for emt in emts:
+                msg += (
+                    f"    - {emt}\n"
+                )
+            dlg.write(msg)
+        # Show info link
+        if self.docs:
+            msg = _translate(
+                "\n"
+                "\n"
+                "For more information about the %s plugin, read the documentation at:\n"
+            ) % self.name
+            dlg.write(msg)
+            dlg.writeLink(self.docs, link=self.docs)
 
     def uninstall(self):
         uninstallPackage(self.pipname)
@@ -599,9 +628,22 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.author = AuthorDetailsPanel(self, info=None)
         self.sizer.Add(self.author, border=6, flag=wx.EXPAND | wx.ALL)
 
+        # Add placeholder for when there's no plugin selected
+        self.placeholder = utils.MarkdownCtrl(
+            self, value=_translate("Select a plugin to view details."),
+            style=wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL
+        )
+        self.border.Add(
+            self.placeholder,
+            proportion=1,
+            border=12,
+            flag=wx.ALL | wx.EXPAND)
+
+        # Set info and installed status
         self.info = info
         self.markInstalled(self.info.installed)
         #self.markActive(self.info.active)
+        # Style
         self.Layout()
         self._applyAppTheme()
 
@@ -698,7 +740,11 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
 
     @info.setter
     def info(self, value):
-        self.Enable(value is not None)
+        # Hide/show everything according to None
+        self.sizer.ShowItems(value is not None)
+        # Show/hide placeholder according to None
+        self.placeholder.Show(value is None)
+        self.placeholder.editBtn.Hide()
         # Handle None
         if value is None:
             value = PluginInfo(
