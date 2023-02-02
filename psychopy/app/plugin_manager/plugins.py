@@ -1,5 +1,3 @@
-import time
-
 import wx
 from wx.lib import scrolledpanel
 import webbrowser
@@ -13,8 +11,6 @@ from psychopy.localization import _translate
 from psychopy import plugins
 from psychopy.preferences import prefs
 from psychopy.experiment import getAllElements
-import subprocess as sp
-import sys
 import requests
 
 
