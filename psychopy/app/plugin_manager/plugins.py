@@ -600,16 +600,15 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.sizer.Add(self.author, border=6, flag=wx.EXPAND | wx.ALL)
 
         # Add placeholder for when there's no plugin selected
-        self.placeholder = wx.StaticText(
-            self,
-            label=_translate("Select a plugin to view details."),
-            style=wx.TEXT_ALIGNMENT_CENTER
+        self.placeholder = utils.MarkdownCtrl(
+            self, value=_translate("Select a plugin to view details."),
+            style=wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL
         )
         self.border.Add(
             self.placeholder,
             proportion=1,
             border=12,
-            flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL)
+            flag=wx.ALL | wx.EXPAND)
 
         # Set info and installed status
         self.info = info
@@ -716,6 +715,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.sizer.ShowItems(value is not None)
         # Show/hide placeholder according to None
         self.placeholder.Show(value is None)
+        self.placeholder.editBtn.Hide()
         # Handle None
         if value is None:
             value = PluginInfo(
