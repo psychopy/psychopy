@@ -86,32 +86,6 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
             ),
             label=_translate("Survey JSON"))
 
-    def writeInitCodeJS(self, buff):
-        inits = getInitVals(self.params, target="PsychoJS")
-        # Create Survey object
-        code = (
-            "%(name)s = new visual.Survey({\n"
-            "    win: psychoJS.window,\n"
-            "    name: '%(name)s',\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        # Write either survey ID or model
-        if self.params['surveyType'] == "id":
-            code = (
-            "    surveyId: %(surveyId)s,\n"
-            )
-        else:
-            code = (
-            "    model: %(surveyJson)s,\n"
-            )
-        buff.writeIndentedLines(code % inits)
-        code = (
-            "});\n"
-            "%(name)sClock = new util.Clock();\n"
-            "%(name)s.stauts = PsychoJS.Status.NOT_STARTED;\n"
-        )
-        buff.writeIndentedLines(code % inits)
-
     def writeRoutineBeginCodeJS(self, buff, modular):
         code = (
                 "\n"
@@ -133,9 +107,27 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
         )
         buff.writeIndentedLines(code % self.params)
 
-        # Set survey to draw
+        # Create Survey object
         code = (
             "//--- Starting Routine '%(name)s' ---\n"
+            "%(name)s = new visual.Survey({\n"
+            "    win: psychoJS.window,\n"
+            "    name: '%(name)s',\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        # Write either survey ID or model
+        if self.params['surveyType'] == "id":
+            code = (
+            "    surveyId: %(surveyId)s,\n"
+            )
+        else:
+            code = (
+            "    model: %(surveyJson)s,\n"
+            )
+        buff.writeIndentedLines(code % self.params)
+        code = (
+            "});\n"
+            "%(name)sClock = new util.Clock();\n"
             "%(name)s.setAutoDraw(true);\n"
             "%(name)s.stauts = PsychoJS.Status.STARTED;\n"
             "%(name)s.isFinished = false;\n"
