@@ -593,12 +593,18 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.titleSizer.AddStretchSpacer()
         self.titleSizer.Add(self.buttonSizer, flag=wx.EXPAND)
+        # Install btn
         self.installBtn = wx.Button(self)
         self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
         self.buttonSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        # Active btn
         # self.activeBtn = wx.Button(self)
         # self.activeBtn.Bind(wx.EVT_BUTTON, self.onToggleActivate)
         # self.buttonSizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        # Homepage btn
+        self.homepageBtn = wx.Button(self, label=_translate("Homepage"))
+        self.homepageBtn.Bind(wx.EVT_BUTTON, self.onHomepage)
+        self.buttonSizer.Add(self.homepageBtn, border=3, flag=wx.ALL | wx.EXPAND)
         # Description
         self.description = utils.MarkdownCtrl(
             self, value="",
@@ -750,6 +756,10 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
             self.list.searchCtrl.SetValue(kw)
             self.list.search()
 
+    def onHomepage(self, evt=None):
+        if self.info.homepage:
+            webbrowser.open(self.info.homepage)
+
     @property
     def info(self):
         """
@@ -797,6 +807,8 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.pipName.SetLabelText(value.pipname)
         # Set installed
         self.markInstalled(value.installed)
+        # Enable/disable homepage
+        self.homepageBtn.Enable(bool(self.info.homepage))
         # Set activated
         # self.markActive(value.active)
         # Set description
