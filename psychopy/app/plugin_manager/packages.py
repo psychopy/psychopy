@@ -18,21 +18,22 @@ from .utils import uninstallPackage, installPackage
 
 
 class PackageManagerPanel(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent, dlg):
         wx.Panel.__init__(self, parent)
+        self.dlg = dlg
         # Setup sizer
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         # Add package list
-        self.packageList = PackageListCtrl(self)
+        self.packageList = PackageListCtrl(self, dlg=self.dlg)
         self.packageList.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelectItem)
         self.sizer.Add(self.packageList, flag=wx.EXPAND | wx.ALL)
         # Seperator
         self.sizer.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), border=6, flag=wx.EXPAND | wx.ALL)
         # Add details panel
-        self.detailsPanel = PackageDetailsPanel(self)
+        self.detailsPanel = PackageDetailsPanel(self, dlg=self.dlg)
         self.sizer.Add(self.detailsPanel, proportion=1, flag=wx.EXPAND | wx.ALL)
 
     def onSelectItem(self, evt=None):
@@ -125,8 +126,9 @@ class PIPTerminalPanel(wx.Panel):
 
 
 class PackageListCtrl(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent, dlg):
         wx.Panel.__init__(self, parent, size=(300, -1))
+        self.dlg = dlg
         # Setup sizers
         self.border = wx.BoxSizer()
         self.SetSizer(self.border)
@@ -236,7 +238,7 @@ class PackageListCtrl(wx.Panel):
         menu = evt.GetEventObject()
         pipname = menu.pipname
         # Install package
-        installPackage(pipname)
+        installPackage(pipname, stream=self.dlg.output)
         self.refresh()
 
     def refresh(self, evt=None):
@@ -286,8 +288,9 @@ class PackageListCtrl(wx.Panel):
 
 
 class PackageDetailsPanel(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent, dlg):
         wx.Panel.__init__(self, parent)
+        self.dlg = dlg
         # Setup sizers
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -443,7 +446,7 @@ class PackageDetailsPanel(wx.Panel):
         if version is not None:
             name += f"=={version}"
         # Install package then disable the button to indicate it's installed
-        installPackage(name)
+        installPackage(name, stream=self.dlg.output)
         # Refresh view
         self.refresh()
 

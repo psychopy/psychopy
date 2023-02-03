@@ -67,33 +67,44 @@ class InstallErrorDlg(wx.Dialog, handlers.ThemeMixin):
         wx.Dialog.ShowModal(self)
 
 
-class InstallStdoutDlg(wx.Dialog, handlers.ThemeMixin):
-    def __init__(self, parent, pipname="package"):
-        wx.Dialog.__init__(
-            self, parent,
-            size=(480, 620),
-            title=_translate("Installing..."),
-            style=wx.RESIZE_BORDER | wx.CLOSE_BOX | wx.CAPTION
+class InstallStdoutPanel(wx.Panel, handlers.ThemeMixin):
+    def __init__(self, parent):
+        wx.Panel.__init__(
+            self, parent
         )
+        self.SetMinSize((320, 300))
         # Setup sizer
-        self.border = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(self.border)
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
-        # Create title
-        self.titleLbl = wx.StaticText(self, label=_translate("Installing %s...") % pipname)
-        self.sizer.Add(self.titleLbl, border=6, flag=wx.ALL | wx.EXPAND)
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.SetSizer(self.sizer)
         # Output
         self.output = wx.richtext.RichTextCtrl(self)
         self.output.Bind(wx.EVT_TEXT_URL, self.onLink)
-        self.sizer.Add(self.output, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(self.output, proportion=1, border=0, flag=wx.ALL | wx.EXPAND)
         # Close
-        btns = self.CreateStdDialogButtonSizer(flags=wx.CLOSE)
-        self.sizer.Add(btns, border=6, flag=wx.ALL | wx.EXPAND)
-
+        self.closeBtn = wx.Button(self, label="<", style=wx.BU_EXACTFIT)
+        self.closeBtn.SetToolTip(_translate("Hide this panel"))
+        self.closeBtn.Bind(wx.EVT_BUTTON, self.onClose)
+        self.sizer.Add(self.closeBtn, border=6, flag=wx.LEFT | wx.ALIGN_TOP)
+        # Start off hidden
+        self.Hide()
         self.Layout()
-        self.Update()
-        self.Refresh()
+
+    def onClose(self, evt=None):
+        self.close()
+
+    def close(self):
+        if not self.IsShown():
+            return
+        self.Hide()
+        self.GetParent().Fit()
+        self.GetParent().Layout()
+
+    def open(self):
+        if self.IsShown():
+            return
+        self.Show()
+        self.GetParent().Fit()
+        self.GetParent().Layout()
 
     def write(self, content, color="black", style=""):
         from psychopy.app.themes import fonts
@@ -112,6 +123,8 @@ class InstallStdoutDlg(wx.Dialog, handlers.ThemeMixin):
         self.output.EndItalic()
         # Scroll to end
         self.output.ShowPosition(self.output.GetLastPosition())
+        # Make sure we're shown
+        self.open()
         # Update
         self.Update()
         self.Refresh()
@@ -134,7 +147,7 @@ class InstallStdoutDlg(wx.Dialog, handlers.ThemeMixin):
         self.write(f"{lines}\n", color=colors.scheme["red"])
 
     def writeTerminus(self):
-        self.write("\n\n---\n\n", color=colors.scheme["green"])
+        self.write("\n---\n\n\n", color=colors.scheme["green"])
 
     def onLink(self, evt=None):
         webbrowser.open(evt.String)
@@ -167,28 +180,21 @@ def uninstallPackage(package):
     dlg.ShowModal()
 
 
-def installPackage(package):
+def installPackage(package, stream):
     """
     Call `pkgtools.installPackage` and handle any errors cleanly.
     """
-    # Show install dialog
-    dlg = InstallStdoutDlg(
-        parent=None, pipname=package
-    )
-    dlg.Show()
     # Install package
     retcode, info = pkgtools.installPackage(package)
     # Write command
-    dlg.writeCmd(" ".join(info['cmd']))
+    stream.writeCmd(" ".join(info['cmd']))
     # Write output
-    dlg.writeStdOut(info['stdout'])
-    dlg.writeStdErr(info['stderr'])
-    # Terminate output
-    dlg.writeTerminus()
+    stream.writeStdOut(info['stdout'])
+    stream.writeStdErr(info['stderr'])
     # Report success
     if retcode:
-        dlg.writeStdOut(_translate("Installation complete. See above for info.\n"))
+        stream.writeStdOut(_translate("Installation complete. See above for info.\n"))
     else:
-        dlg.writeStdErr(_translate("Installation failed. See above for info.\n"))
+        stream.writeStdErr(_translate("Installation failed. See above for info.\n"))
 
-    return dlg
+    return stream

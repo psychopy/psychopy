@@ -137,8 +137,8 @@ class PluginInfo:
             current.remove(self.pipname)
         plugins.startUpPlugins(current, add=False, verify=False)
 
-    def install(self):
-        dlg = installPackage(self.pipname)
+    def install(self, stream):
+        stream = installPackage(self.pipname, stream=stream)
         # Refresh and enable
         plugins.scanPlugins()
         try:
@@ -146,7 +146,7 @@ class PluginInfo:
             plugins.loadPlugin(self.pipname)
         except RuntimeError:
             prefs.general['startUpPlugins'].append(self.pipname)
-            dlg.writeStdErr(_translate(
+            stream.writeStdErr(_translate(
                 "[Warning] Could not activate plugin. PsychoPy may need to restart for plugin to take effect."
             ))
         # Show list of components/routines now available
@@ -163,7 +163,7 @@ class PluginInfo:
                 msg += (
                     f"    - {emt}\n"
                 )
-            dlg.write(msg)
+            stream.write(msg)
         # Show info link
         if self.docs:
             msg = _translate(
@@ -171,8 +171,10 @@ class PluginInfo:
                 "\n"
                 "For more information about the %s plugin, read the documentation at:\n"
             ) % self.name
-            dlg.write(msg)
-            dlg.writeLink(self.docs, link=self.docs)
+            stream.write(msg)
+            stream.writeLink(self.docs, link=self.docs)
+        # Finish
+        stream.writeTerminus()
 
     def uninstall(self):
         uninstallPackage(self.pipname)
@@ -202,8 +204,9 @@ class PluginInfo:
 
 
 class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
-    def __init__(self, parent):
+    def __init__(self, parent, dlg):
         wx.Panel.__init__(self, parent, style=wx.NO_BORDER)
+        self.dlg = dlg
         # Setup sizer
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -213,9 +216,9 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
         self.splitter = wx.SplitterWindow(self, style=wx.NO_BORDER)
         self.sizer.Add(self.splitter, proportion=1, border=0, flag=wx.EXPAND | wx.ALL)
         # Make list
-        self.pluginList = PluginBrowserList(self.splitter)
+        self.pluginList = PluginBrowserList(self.splitter, stream=dlg.output)
         # Make viewer
-        self.pluginViewer = PluginDetailsPanel(self.splitter)
+        self.pluginViewer = PluginDetailsPanel(self.splitter, stream=self.dlg.output)
         # Cross-reference viewer & list
         self.pluginViewer.list = self.pluginList
         self.pluginList.viewer = self.pluginViewer
@@ -386,7 +389,7 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             # Mark as pending
             self.markInstalled(None)
             # Do install
-            self.info.install()
+            self.info.install(stream=self.parent.stream)
             # Mark according to install success
             self.markInstalled(self.info.installed)
 
@@ -413,10 +416,11 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.markActive(self.info.active)
 
 
-    def __init__(self, parent, viewer=None):
+    def __init__(self, parent, stream, viewer=None):
         scrolledpanel.ScrolledPanel.__init__(self, parent=parent, style=wx.VSCROLL)
         self.parent = parent
         self.viewer = viewer
+        self.stream = stream
         # Setup sizer
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -567,10 +571,12 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
 class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
     iconSize = (128, 128)
 
-    def __init__(self, parent, info=None, list=None):
+    def __init__(self, parent, stream, info=None, list=None):
         wx.Panel.__init__(self, parent)
+        self.SetMinSize((480, 620))
         self.parent = parent
         self.list = list
+        self.stream = stream
         # Setup sizers
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -696,7 +702,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Mark as pending
         self.markInstalled(None)
         # Do install
-        self.info.install()
+        self.info.install(stream=self.stream)
         # Mark according to install success
         self.markInstalled(self.info.installed)
 
