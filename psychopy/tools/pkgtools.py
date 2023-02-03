@@ -39,6 +39,10 @@ import shutil
 if prefs.paths['packages'] not in pkg_resources.working_set.entries:
     pkg_resources.working_set.add_entry(prefs.paths['packages'])
 
+# cache list of packages to speed up checks
+_installedPackageCache = []
+_installedPackageNamesCache = []
+
 
 def refreshPackages():
     """Refresh the packaging system.
@@ -53,7 +57,21 @@ def refreshPackages():
     for other modules using it!
 
     """
-    importlib.reload(pkg_resources)
+    global _installedPackageCache
+    global _installedPackageNamesCache
+
+    _installedPackageCache.clear()
+    _installedPackageNamesCache.clear()
+
+    importlib.reload(pkg_resources)  # reload since package paths might be stale
+
+    # this is like calling `pip freeze` and parsing the output, but faster!
+    for pkg in pkg_resources.working_set:
+        thisPkg = pkg_resources.get_distribution(pkg.key)
+        _installedPackageCache.append(
+            (thisPkg.project_name, thisPkg.version))
+        _installedPackageNamesCache.append(pkg_resources.safe_name(
+            thisPkg.project_name))  # names only
 
 
 def getUserPackagesPath():
@@ -175,8 +193,8 @@ def installPackage(package, target=None, upgrade=False, forceReinstall=False,
 
     refreshPackages()
 
-    # if any error, return code should be False
-    retcode = bool(stderr)
+    # Return True if installed, False if not
+    retcode = isInstalled(package)
     # Return the return code and a dict of information from the console
     return retcode, {"cmd": cmd, "stdout": stdout, "stderr": stderr}
 
@@ -480,10 +498,7 @@ def isInstalled(packageName):
 
     """
     # installed packages are given as keys in the resulting dicts
-    installedPackages = [
-        pkg_resources.safe_name(p[0]) for p in getInstalledPackages()]
-
-    return pkg_resources.safe_name(packageName) in list(installedPackages)
+    return pkg_resources.safe_name(packageName) in _installedPackageNamesCache
 
 
 def getPackageMetadata(packageName):

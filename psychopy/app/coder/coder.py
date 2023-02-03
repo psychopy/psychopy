@@ -40,6 +40,7 @@ from ..utils import FileDropTarget, BasePsychopyToolbar, FrameSwitcher, updateDe
 from ..ui import BaseAuiFrame
 from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
+import psychopy.app.plugin_manager.dialog
 from psychopy.app.console import StdStreamDispatcher
 from psychopy.app.errorDlg import exceptionCallback
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
@@ -1744,6 +1745,10 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate("Update PsychoPy to the latest, or a specific, version"))
         self.Bind(wx.EVT_MENU, self.app.openUpdater, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
+                           _translate("Plugin/packages manager..."),
+                           _translate("Manage Python packages and optional plugins for PsychoPy"))
+        self.Bind(wx.EVT_MENU, self.openPluginManager, item)
+        item = menu.Append(wx.ID_ANY,
                            _translate("Benchmark wizard"),
                            _translate("Check software & hardware, generate report"))
         self.Bind(wx.EVT_MENU, self.app.benchmarkWizard, id=item.GetId())
@@ -2857,6 +2862,12 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         else:
             self.unitTestFrame = UnitTestFrame(app=self.app)
         # UnitTestFrame.Show()
+
+    def openPluginManager(self, evt=None):
+        dlg = psychopy.app.plugin_manager.dialog.EnvironmentManagerDlg(self)
+        dlg.ShowModal()
+        # Do post-close checks
+        dlg.onClose()
 
     def onPavloviaSync(self, evt=None):
         """Push changes to project repo, or create new proj if proj is None"""

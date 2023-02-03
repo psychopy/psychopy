@@ -1,5 +1,3 @@
-import time
-
 import wx
 from wx.lib import scrolledpanel
 import webbrowser
@@ -11,8 +9,8 @@ from psychopy.app.themes import theme, handlers, colors, icons
 from psychopy.app import utils
 from psychopy.localization import _translate
 from psychopy import plugins
-import subprocess as sp
-import sys
+from psychopy.preferences import prefs
+from psychopy.experiment import getAllElements
 import requests
 
 
@@ -130,24 +128,51 @@ class PluginInfo:
 
     def activate(self, evt=None):
         # If active, add to list of startup plugins
-        plugins.startUpPlugins(self.pipname, add=True)
+        plugins.startUpPlugins(self.pipname, add=True, verify=False)
 
     def deactivate(self, evt=None):
         # Remove from list of startup plugins
         current = plugins.listPlugins(which='startup')
         if self.pipname in current:
             current.remove(self.pipname)
-        plugins.startUpPlugins(current, add=False)
+        plugins.startUpPlugins(current, add=False, verify=False)
 
     def install(self):
-        installPackage(self.pipname)
-        time.sleep(1)
-        pkgtools.refreshPackages()
+        dlg = installPackage(self.pipname)
+        # Refresh and enable
         plugins.scanPlugins()
-        time.sleep(1)
-        if self.installed:
+        try:
             self.activate()
             plugins.loadPlugin(self.pipname)
+        except RuntimeError:
+            prefs.general['startUpPlugins'].append(self.pipname)
+            dlg.writeStdErr(_translate(
+                "[Warning] Could not activate plugin. PsychoPy may need to restart for plugin to take effect."
+            ))
+        # Show list of components/routines now available
+        emts = []
+        for name, emt in getAllElements().items():
+            if hasattr(emt, "plugin") and emt.plugin == self.pipname:
+                cats = ", ".join(emt.categories)
+                emts.append(f"{name} ({cats})")
+        if len(emts):
+            msg = _translate(
+                "The following components/routines should now be visible in the Components panel:\n"
+            )
+            for emt in emts:
+                msg += (
+                    f"    - {emt}\n"
+                )
+            dlg.write(msg)
+        # Show info link
+        if self.docs:
+            msg = _translate(
+                "\n"
+                "\n"
+                "For more information about the %s plugin, read the documentation at:\n"
+            ) % self.name
+            dlg.write(msg)
+            dlg.writeLink(self.docs, link=self.docs)
 
     def uninstall(self):
         uninstallPackage(self.pipname)
@@ -178,14 +203,14 @@ class PluginInfo:
 
 class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
     def __init__(self, parent):
-        wx.Panel.__init__(self, parent)
+        wx.Panel.__init__(self, parent, style=wx.NO_BORDER)
         # Setup sizer
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         # Make splitter
-        self.splitter = wx.SplitterWindow(self)
+        self.splitter = wx.SplitterWindow(self, style=wx.NO_BORDER)
         self.sizer.Add(self.splitter, proportion=1, border=0, flag=wx.EXPAND | wx.ALL)
         # Make list
         self.pluginList = PluginBrowserList(self.splitter)
@@ -201,13 +226,12 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
             sashPosition=0
         )
         self.splitter.SetMinimumPaneSize(450)
-        # Mark installed on items now that we have necessary references
-        for item in self.pluginList.items:
-            item.markInstalled(item.info.installed)
+
         # Start of with nothing selected
         self.pluginList.onDeselect()
 
         self.Layout()
+        self.splitter.SetSashPosition(1, True)
         self.theme = theme.app
 
     def _applyAppTheme(self):
@@ -599,9 +623,22 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.author = AuthorDetailsPanel(self, info=None)
         self.sizer.Add(self.author, border=6, flag=wx.EXPAND | wx.ALL)
 
+        # Add placeholder for when there's no plugin selected
+        self.placeholder = utils.MarkdownCtrl(
+            self, value=_translate("Select a plugin to view details."),
+            style=wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL
+        )
+        self.border.Add(
+            self.placeholder,
+            proportion=1,
+            border=12,
+            flag=wx.ALL | wx.EXPAND)
+
+        # Set info and installed status
         self.info = info
         self.markInstalled(self.info.installed)
         #self.markActive(self.info.active)
+        # Style
         self.Layout()
         self._applyAppTheme()
 
@@ -652,13 +689,43 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
             active=active
         )
 
-    def onInstall(self, evt=None):
+    def _doInstall(self):
+        """Routine to run the installation of a package after the `onInstall`
+        event is processed.
+        """
         # Mark as pending
         self.markInstalled(None)
         # Do install
         self.info.install()
         # Mark according to install success
         self.markInstalled(self.info.installed)
+
+    def onInstall(self, evt=None):
+        """Event called when the install button is clicked.
+        """
+        wx.CallAfter(self._doInstall)  # call after processing button events
+        if evt is not None and hasattr(evt, 'Skip'):
+            evt.Skip()
+
+    def _doActivate(self, state=True):
+        """Activate a plugin or package after the `onActivate` event.
+
+        Parameters
+        ----------
+        state : bool
+            Active state to set, True for active or False for inactive. Default is `True`.
+
+        """
+        # Mark as pending
+        self.markActive(None)
+
+        if state:  # handle activation
+            self.info.activate()
+        else:
+            self.info.deactivate()
+
+        # Mark according to success
+        self.markActive(self.info.active)
 
     def onToggleActivate(self, evt=None):
         if self.info.active:
@@ -667,20 +734,14 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
             self.onActivate(evt=evt)
 
     def onActivate(self, evt=None):
-        # Mark as pending
-        self.markActive(None)
-        # Do activation
-        self.info.activate()
-        # Mark according to success
-        self.markActive(self.info.active)
+        wx.CallAfter(self._doActivate, True)  # call after processing button events
+        if evt is not None and hasattr(evt, 'Skip'):
+            evt.Skip()
 
     def onDeactivate(self, evt=None):
-        # Mark as pending
-        self.markActive(None)
-        # Do deactivation
-        self.info.deactivate()
-        # Mark according to success
-        self.markActive(self.info.active)
+        wx.CallAfter(self._doActivate, False)
+        if evt is not None and hasattr(evt, 'Skip'):
+            evt.Skip()
 
     def onKeyword(self, evt=None):
         kw = evt.GetString()
@@ -698,7 +759,11 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
 
     @info.setter
     def info(self, value):
-        self.Enable(value is not None)
+        # Hide/show everything according to None
+        self.sizer.ShowItems(value is not None)
+        # Show/hide placeholder according to None
+        self.placeholder.Show(value is None)
+        self.placeholder.editBtn.Hide()
         # Handle None
         if value is None:
             value = PluginInfo(
