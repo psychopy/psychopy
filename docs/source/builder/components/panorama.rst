@@ -3,8 +3,12 @@
 Panorama Component
 ------------------
 
-The panorama component provides a way to present panoramic images (e.g. a phone camera in Panorama mode) on screen.
-**Note: The image used cannot be more than 178956970 pixels.**
+The panorama component provides a way to present panoramic images (e.g. a phone camera in Panorama mode) on screen. *The image used cannot be more than 178956970 pixels.*
+
+**Note: When using panorama stimulus, Blend mode (see Experiment Settings > Screen) needs to be set to 'average (no FBO)'. This is because the panorama component currently doesn't support frame buffer object, which supports off-screen rendering within PsychoPy.**
+
+.. image:: /images/blendMode.png
+    :align: center
 
 For a demo in builder mode, after unpacking the demos, click on Demos > Feature Demos > panorama.
 

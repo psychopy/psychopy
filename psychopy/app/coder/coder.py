@@ -2343,7 +2343,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                     n += 1
 
                 # create modification time for in memory document
-                self.currentDoc.fileModTime = time.ctime()
+                self.currentDoc.fileModTime = time.time()
 
             self.currentDoc.EmptyUndoBuffer()
 
@@ -2865,7 +2865,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
     def openPluginManager(self, evt=None):
         dlg = psychopy.app.plugin_manager.dialog.EnvironmentManagerDlg(self)
-        dlg.ShowModal()
+        dlg.Show()
         # Do post-close checks
         dlg.onClose()
 
