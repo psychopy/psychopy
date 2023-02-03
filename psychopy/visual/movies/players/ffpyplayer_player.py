@@ -808,9 +808,10 @@ class FFPyPlayer(BaseMoviePlayer):
     def unload(self):
         """Unload the video stream and reset.
         """
-        self._tStream.shutdown()
-        self._tStream.join()  # wait until thread exits
-        self._tStream = None
+        if self._tStream is not None:
+            self._tStream.shutdown()
+            self._tStream.join()  # wait until thread exits
+            self._tStream = None
 
         # if self._handle is not None:
         #     self._handle.close_player()
@@ -955,7 +956,9 @@ class FFPyPlayer(BaseMoviePlayer):
             Log the stop event.
 
         """
-        self._tStream.stop()
+        if self._tStream  is not None:
+            self._tStream.stop()
+
         self._status = STOPPED
 
     def pause(self, log=False):

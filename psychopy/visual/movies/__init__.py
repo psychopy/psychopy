@@ -10,7 +10,8 @@
 
 __all__ = ['MovieStim']
 
-
+import logging
+import sys
 import ctypes
 import os.path
 from pathlib import Path
@@ -210,6 +211,13 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
             # If given a recording component, use its last clip
             if hasattr(filename, "lastClip"):
                 filename = filename.lastClip
+
+        # stop and unload the video before creating a new one
+        if self._player is not None:
+            logging.warn("Player is: " + repr(self._player) + " eval as " + str(self._player is not None))
+            #logging.flush()
+            self._player.stop()
+            self._player.unload()
 
         self._filename = filename
         self._player.load(self._filename)
