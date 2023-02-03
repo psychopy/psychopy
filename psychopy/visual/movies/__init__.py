@@ -214,8 +214,6 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         # stop and unload the video before creating a new one
         if self._player is not None:
-            logging.warn("Player is: " + repr(self._player) + " eval as " + str(self._player is not None))
-            #logging.flush()
             self._player.stop()
             self._player.unload()
 
