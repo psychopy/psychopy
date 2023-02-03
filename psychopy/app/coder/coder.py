@@ -2865,7 +2865,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
     def openPluginManager(self, evt=None):
         dlg = psychopy.app.plugin_manager.dialog.EnvironmentManagerDlg(self)
-        dlg.ShowModal()
+        dlg.Show()
         # Do post-close checks
         dlg.onClose()
 
