@@ -707,19 +707,19 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         if evt is not None and hasattr(evt, 'Skip'):
             evt.Skip()
 
-    def _doActivate(self, disable=False):
+    def _doActivate(self, state=True):
         """Activate a plugin or package after the `onActivate` event.
 
         Parameters
         ----------
-        disable : bool
-            Disable instead of activating the plugin. Default is `False`.
+        state : bool
+            Active state to set, True for active or False for inactive. Default is `True`.
 
         """
         # Mark as pending
         self.markActive(None)
 
-        if not disable:  # handle activation
+        if state:  # handle activation
             self.info.activate()
         else:
             self.info.deactivate()
