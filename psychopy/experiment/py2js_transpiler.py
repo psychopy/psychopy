@@ -17,11 +17,31 @@ except ImportError:
 import astunparse
 
 
+namesJS = {
+    'sin': 'Math.sin',
+    'cos': 'Math.cos',
+    'tan': 'Math.tan',
+    'pi': 'Math.PI',
+    'rand': 'Math.random',
+    'random': 'Math.random',
+    'sqrt': 'Math.sqrt',
+    'abs': 'Math.abs',
+    'randint': 'util.randint',
+    'range': 'util.range',
+    'randchoice': 'util.randchoice',
+    'round': 'util.round',  # better than Math.round, supports n DPs arg
+    'sum': 'util.sum',
+    'core.Clock': 'util.Clock',
+}
+
+
 class psychoJSTransformer(ast.NodeTransformer):
     """PsychoJS-specific AST transformer
     """
 
     def visit_Name(self, node):
+        if node.id in namesJS:
+            node.id = namesJS[node.id]
         # status = STOPPED --> status = PsychoJS.Status.STOPPED
         if node.id in ['STARTED', 'FINISHED', 'STOPPED'] and isinstance(node.ctx, ast.Load):
             return ast.copy_location(
@@ -451,7 +471,7 @@ def transformPsychoJsCode(psychoJsCode, addons, namespace=[]):
             varNames = lines[index][4:-1].split(", ")
             validVarNames = []
             for varName in varNames:
-                if varName not in namespace:
+                if namespace is not None and varName not in namespace:
                     # If var name not is already in namespace, keep it in
                     validVarNames.append(varName)
             # If there are no var names left, remove statement altogether
@@ -473,7 +493,7 @@ def translatePythonToJavaScript(psychoPyCode, namespace=[]):
 
     Args:
         psychoPyCode (str): the input PsychoPy python code
-        namespace (list): list of varnames which are already defined
+        namespace (list, None): list of varnames which are already defined
 
     Returns:
         str: the PsychoJS JavaScript code

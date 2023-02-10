@@ -40,6 +40,7 @@ elif sys.platform == 'win32':
                    dlportio=('_dlportio', 'PParallelDLPortIO'))
     from ctypes import windll
     from importlib import import_module
+    ParallelPort = None
     for key, val in drivers.items():
         driver_name, class_name = val
         try:

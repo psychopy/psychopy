@@ -153,12 +153,9 @@ class MouseComponent(BaseComponent):
         code = (
             "# check if the mouse was inside our 'clickable' objects\n"
             "gotValidClick = False\n"
-            "try:\n"
-            "    iter(%(clickable)s)\n"
-            "    clickableList = %(clickable)s\n"
-            "except:\n"
-            "    clickableList = [%(clickable)s]\n"
+            "clickableList = core.getFromNames(%(clickable)s)\n"
             "for obj in clickableList:\n"
+            "    # is this object clicked on?\n"
             "    if obj.contains(%(name)s):\n"
             "        gotValidClick = True\n")
         buff.writeIndentedLines(code % self.params)
@@ -175,13 +172,12 @@ class MouseComponent(BaseComponent):
         code = (
             "# check whether click was in correct object\n"
             "if gotValidClick:\n"
-            "    corr = False\n"
-            "    corrAns = %(correctAns)s\n"
-            "    if not isinstance(corrAns, (list, tuple, np.ndarray)):\n"
-            "        corrAns = [corrAns]\n"
+            "    corr = 0\n"
+            "    corrAns = core.getFromNames(%(correctAns)s)\n"
             "    for obj in corrAns:\n"
+            "        # is this object clicked on?\n"
             "        if obj.contains(%(name)s):\n"
-            "            corr = True\n"
+            "            corr = 1\n"
             "    %(name)s.corr.append(corr)\n"
         )
         # Write force end code
@@ -196,15 +192,14 @@ class MouseComponent(BaseComponent):
         code = (
             "// check whether click was in correct object\n"
             "if (gotValidClick) {\n"
-            "    corr = false;\n"
+            "    corr = 0;\n"
             "    corrAns = %(correctAns)s;\n"
             "    for (let obj of [corrAns]) {\n"
             "        if (obj.contains(%(name)s)) {\n"
-            "            corr = true;\n"
+            "            corr = 1;\n"
             "        };\n"
             "    };\n"
             "    %(name)s.corr.push(corr);\n"
-
         )
         # Write force end code
         if self.params['forceEndRoutineOnPress'] == 'correct click':
@@ -213,8 +208,12 @@ class MouseComponent(BaseComponent):
             "        // end routine on correct answer\n"
             "        continueRoutine = false;\n"
             "    };\n"
-            "}\n"
             )
+        buff.writeIndentedLines(code % self.params)
+        # Close if statement
+        code = (
+            "};\n"
+        )
         buff.writeIndentedLines(code % self.params)
 
     def _writeClickableObjectsCodeJS(self, buff):

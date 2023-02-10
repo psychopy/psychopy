@@ -26,6 +26,7 @@ import re
 from ..aperture import Aperture
 from ..basevisual import BaseVisualStim, ColorMixin, ContainerMixin, WindowMixin
 from psychopy.tools.attributetools import attributeSetter, setAttribute
+from psychopy.tools import mathtools as mt
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import convertToPix
 from psychopy.colors import Color
@@ -67,7 +68,6 @@ debug = False
 
 class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def __init__(self, win, text,
-                 placeholder="Type here...",
                  font="Open Sans",
                  pos=(0, 0), units=None, letterHeight=None,
                  size=None,
@@ -78,8 +78,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  opacity=None,
                  bold=False,
                  italic=False,
+                 placeholder="Type here...",
                  lineSpacing=None,
                  padding=None,  # gap between box and text
+                 speechPoint=None,
                  anchor='center',
                  alignment='left',
                  flipHoriz=False,
@@ -91,6 +93,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  name='',
                  autoLog=None,
                  autoDraw=False,
+                 depth=0,
                  onTextCallback=None):
         """
 
@@ -114,6 +117,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         italic
         lineSpacing
         padding
+        speechPoint : list, tuple, np.ndarray or None
+            Location of the end of a speech bubble tail on the textbox, in the same
+            units as this textbox. If the point sits within the textbox, the tail
+            will be inverted. Use `None` for no tail.
         anchor
         alignment
         fillColor
@@ -130,6 +137,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         """
 
         BaseVisualStim.__init__(self, win, units=units, name=name)
+        self.depth = depth
         self.win = win
         self.colorSpace = colorSpace
         ColorMixin.foreColor.fset(self, color)  # Have to call the superclass directly on init as text has not been set
@@ -206,7 +214,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # standard stimulus params
         self.pos = pos
         self.ori = 0.0
-        self.depth = 0.0
         # used at render time
         self._lines = None  # np.array the line numbers for each char
         self._colors = None
@@ -243,6 +250,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.editable = editable
         self.overflow = overflow
         self.caret = Caret(self, color=self.color, width=2)
+
+        # tail
+        self.speechPoint = speechPoint
 
         # Placeholder text (don't create if this textbox IS the placeholder)
         if not isinstance(self, PlaceholderText):
@@ -482,6 +492,66 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # Create Vertices object
         self._vertices = layout.Vertices(value, obj=self.contentBox, flip=self.flip)
 
+    @attributeSetter
+    def speechPoint(self, value):
+        self.__dict__['speechPoint'] = value
+        # Match box size to own size
+        self.box.size = self.size
+
+        # No tail if value is None
+        if value is None:
+            self.box.vertices = [
+                [0.5, -0.5],
+                [-0.5, -0.5],
+                [-0.5, 0.5],
+                [0.5, 0.5],
+            ]
+            return
+
+        # Normalize point to vertex units
+        _point = layout.Vertices(
+            [[1, 1]], obj=self
+        )
+        _point.setas([value], self.units)
+        point = _point.base[0]
+        # Square with snap points and tail point
+        verts = [
+            # Top right -> Bottom right
+            [0.5, 0.5],
+            [0.5, 0.3],
+            [0.5, 0.1],
+            [0.5, -0.1],
+            [0.5, -0.3],
+            # Bottom right -> Bottom left
+            [0.5, -0.5],
+            [0.3, -0.5],
+            [0.1, -0.5],
+            [-0.1, -0.5],
+            [-0.3, -0.5],
+            # Bottom left -> Top left
+            [-0.5, -0.5],
+            [-0.5, -0.3],
+            [-0.5, -0.1],
+            [-0.5, 0.1],
+            [-0.5, 0.3],
+            # Top left -> Top right
+            [-0.5, 0.5],
+            [-0.3, 0.5],
+            [-0.1, 0.5],
+            [0.1, 0.5],
+            [0.3, 0.5],
+            # Tail
+            point
+        ]
+        # Sort clockwise so tail point moves to correct place in vertices order
+        verts = mt.sortClockwise(verts)
+        verts.reverse()
+        # Assign vertices
+        self.box.vertices = verts
+
+    def setSpeechPoint(self, value, log=None):
+        setAttribute(self, 'speechPoint', value, log)
+
     @property
     def padding(self):
         if hasattr(self, "_padding"):
@@ -530,13 +600,15 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @property
     def lineSpacing(self):
-        return self.glFont.lineSpacing
+        if hasattr(self.glFont, "lineSpacing"):
+            return self.glFont.lineSpacing
 
     @lineSpacing.setter
     def lineSpacing(self, value):
         if hasattr(self, "_placeholder"):
             self._placeholder.lineSpacing = value
-        self.glFont.lineSpacing = value
+        if hasattr(self.glFont, "lineSpacing"):
+            self.glFont.lineSpacing = value
         self._needVertexUpdate = True
 
     @property
@@ -696,7 +768,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             cstyle = self._styles[self.caret.index-1]
         self._styles.insert(self.caret.index, cstyle)
         self.caret.index += 1
-        self._text = txt
+        self.text = txt
         self._layout()
 
     def deleteCaretLeft(self):
@@ -707,7 +779,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             txt = txt[:ci-1] + txt[ci:]
             self._styles = self._styles[:ci-1]+self._styles[ci:]
             self.caret.index -= 1
-            self._text = txt
+            self.text = txt
             self._layout()
 
     def deleteCaretRight(self):
@@ -717,7 +789,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             txt = self._text
             txt = txt[:ci] + txt[ci+1:]
             self._styles = self._styles[:ci]+self._styles[ci+1:]
-            self._text = txt
+            self.text = txt
             self._layout()
         
     def _layout(self):
@@ -1483,11 +1555,29 @@ class Caret(ColorMixin):
         self.colorSpace = colorSpace
         self.color = color
 
-    def draw(self):
-        if not self.visible:
+    def draw(self, override=None):
+        """
+        Draw the caret
+
+        Parameters
+        ==========
+        override : bool or None
+            Set to True to always draw the caret, to False to never draw the caret, or leave as None to
+            draw only according to the usual conditions (being visible and within the correct timeframe
+            for the flashing effect)
+        """
+        if override is None:
+            # If no override, draw only if conditions are met
+            if not self.visible:
+                return
+            # Flash every other second
+            if core.getTime() % 1 > 0.6:
+                return
+        elif not override:
+            # If override is False, never draw
             return
-        if core.getTime() % 1 > 0.6:  # Flash every other second
-            return
+
+        # If no override and conditions are met, or override is True, draw
         gl.glLineWidth(self.width)
         gl.glColor4f(
             *self._foreColor.rgba1
@@ -1665,6 +1755,7 @@ class Style:
         self.b[i:i] = style.b
         self.c[i:i] = style.c
         self.len += len(style)
+
 
 class PlaceholderText(TextBox2):
     """

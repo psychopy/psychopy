@@ -7,7 +7,7 @@ from pathlib import Path
 from xml.etree.ElementTree import Element
 import re
 import wx.__version__
-from psychopy import logging
+from psychopy import logging, plugins
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
 import psychopy.tools.versionchooser as versions
@@ -109,7 +109,7 @@ class SettingsComponent:
     tooltip = _translate("Edit settings for this experiment")
 
     def __init__(self, parentName, exp, expName='', fullScr=True,
-                 winSize=(1024, 768), screen=1, monitor='testMonitor',
+                 winSize=(1024, 768), screen=1, monitor='testMonitor', winBackend='pyglet',
                  showMouse=False, saveLogFile=True, showExpInfo=True,
                  expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'001'}",
                  units='height', logging='exp',
@@ -157,7 +157,7 @@ class SettingsComponent:
         # params
         self.params = {}
         self.depends = []
-        self.order = ['expName', 'Use version', 'Show info dlg', 'Enable Escape',  'Experiment info',  # Basic tab
+        self.order = ['expName', 'Use version', 'Enable Escape',  'Show info dlg', 'Experiment info',  # Basic tab
                       'Data filename', 'Data file delimiter', 'Save excel file', 'Save csv file', 'Save wide csv file',
                       'Save psydat file', 'Save hdf5 file', 'Save log file', 'logging level',  # Data tab
                       'Audio lib', 'Audio latency priority', "Force stereo",  # Audio tab
@@ -210,6 +210,12 @@ class SettingsComponent:
             fullScr, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Run the experiment full-screen (recommended)"),
             label=_localized["Full-screen window"], categ='Screen')
+        self.params['winBackend'] = Param(
+            winBackend, valType='str', inputType="choice", categ="Screen",
+            allowedVals=plugins.getWindowBackends(),
+            hint=_translate("What Python package should be used behind the scenes for drawing to the window?"),
+            label=_translate("Window backend")
+        )
         self.params['Window size (pixels)'] = Param(
             winSize, valType='list', inputType="single", allowedTypes=[],
             hint=_translate("Size of window (if not fullscreen)"),
@@ -280,13 +286,12 @@ class SettingsComponent:
             hint=_translate("Force audio to stereo (2-channel) output"),
             label=_localized["Force stereo"])
         self.params['Audio lib'] = Param(
-            'use prefs', valType='str', inputType="choice",
-            allowedVals=['use prefs', 'ptb', 'pyo', 'sounddevice', 'pygame'],
+            'ptb', valType='str', inputType="choice",
+            allowedVals=['ptb', 'pyo', 'sounddevice', 'pygame'],
             hint=_translate("Which Python sound engine do you want to play your sounds?"),
             label=_translate("Audio library"), categ='Audio')
 
         audioLatencyLabels = [
-            _translate('use prefs'),
             '0: ' + _translate('Latency not important'),
             '1: ' + _translate('Share low-latency driver'),
             '2: ' + _translate('Exclusive low-latency'),
@@ -294,8 +299,8 @@ class SettingsComponent:
             '4: ' + _translate('Latency critical'),
         ]
         self.params['Audio latency priority'] = Param(
-            'use prefs', valType='str', inputType="choice",
-            allowedVals=['use prefs', '0', '1', '2', '3', '4'],
+            '3', valType='str', inputType="choice",
+            allowedVals=['0', '1', '2', '3', '4'],
             allowedLabels=audioLatencyLabels,
             hint=_translate("How important is audio latency for you? If essential then you may need to get all your sounds in correct formats."),
             label=_translate("Audio latency priority"), categ='Audio')
@@ -845,6 +850,9 @@ class SettingsComponent:
         resourceFiles = self.exp.getResourceFiles()
 
         for srcFile in resourceFiles:
+            if "https://" in srcFile.get('abs', "") or srcFile.get('name', "") == "surveyId":
+                # URLs and survey IDs don't need copying
+                continue
             dstAbs = os.path.normpath(join(resFolder, srcFile['rel']))
             dstFolder = os.path.split(dstAbs)[0]
             if not os.path.isdir(dstFolder):
@@ -1363,10 +1371,10 @@ class SettingsComponent:
             screenNumber = requestedScreenNumber - 1
 
         size = self.params['Window size (pixels)']
-        winType = self.exp.prefsGeneral['winType']
+        winType = self.params['winBackend']
 
         code = ("win = visual.Window(\n    size=%s, fullscr=%s, screen=%s, "
-                "\n    winType='%s', allowStencil=%s,\n")
+                "\n    winType=%s, allowStencil=%s,\n")
         vals = (size, fullScr, screenNumber, winType, allowStencil)
         buff.writeIndented(code % vals)
 

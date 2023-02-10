@@ -13,6 +13,7 @@ from xml.etree.ElementTree import Element
 from psychopy.experiment import getAllStandaloneRoutines
 from psychopy.experiment.routines._base import Routine, BaseStandaloneRoutine
 from psychopy.experiment.loops import LoopTerminator, LoopInitiator
+from psychopy.tools import filetools as ft
 
 
 class Flow(list):
@@ -283,7 +284,7 @@ class Flow(list):
                             "flowScheduler.add({name}LoopEnd);\n"
                             .format(name=thisEntry.loop.params['name'].val))
                     loopStack.append(thisEntry.loop)
-                elif thisEntry.getType() == "Routine":
+                elif isinstance(thisEntry, (Routine, BaseStandaloneRoutine)):
                     code = ("flowScheduler.add({params[name]}RoutineBegin());\n"
                             "flowScheduler.add({params[name]}RoutineEachFrame());\n"
                             "flowScheduler.add({params[name]}RoutineEnd());\n"
@@ -303,11 +304,38 @@ class Flow(list):
         script.writeIndentedLines(code)
 
         # Write resource list
-        resourceFiles = set([resource['rel'].replace("\\", "/") for resource in self.exp.getResourceFiles()])
+        resourceFiles = []
+        for resource in self.exp.getResourceFiles():
+            if isinstance(resource, dict):
+                # Get name
+                if "https://" in resource:
+                    name = resource.split('/')[-1]
+                elif 'surveyId' in resource:
+                    name = 'surveyId'
+                elif 'name' in resource and resource['name'] in list(ft.defaultStim):
+                    name = resource['name']
+                elif 'rel' in resource:
+                    name = resource['rel']
+                else:
+                    name = ""
+
+                # Get resource
+                resourceFile = None
+                if 'rel' in resource:
+                    # If resource is a file path, add its relative path
+                    resourceFile = resource['rel'].replace("\\", "/")
+                elif 'surveyId' in resource:
+                    # If resource is a survey ID, add it and mark as a survey id
+                    resourceFile = "sid:" + resource['surveyId']
+
+                # If we have a resource, add it
+                if resourceFile is not None:
+                    resourceFiles.append((name, resourceFile))
         if self.exp.htmlFolder:
             resourceFolderStr = "resources/"
         else:
             resourceFolderStr = ""
+        # start PsychoJS
         script.writeIndented("psychoJS.start({\n")
         script.setIndentLevel(1, relative=True)
         script.writeIndentedLines("expName: expName,\n"
@@ -317,17 +345,32 @@ class Flow(list):
         if not self.exp.htmlFolder:
             script.writeIndentedLines("resources: [\n")
             script.setIndentLevel(1, relative=True)
-            code = ""
-            for idx, resource in enumerate(resourceFiles):
-                if "https://" in resource:
-                    name = resource.split('/')[-1]
-                    fullPath = resource
-                    temp = f"{{'name': '{name}', 'path': '{fullPath}'}}"
+            # do we need to load surveys?
+            needsSurveys = False
+            for rt in self:
+                if hasattr(rt, "type") and rt.type == "PavloviaSurvey":
+                    needsSurveys = True
+            if needsSurveys:
+                script.writeIndentedLines(
+                    "// libraries:\n"
+                    "{'surveyLibrary': true},\n"
+                )
+            code = "// resources:\n"
+            for name, resource in resourceFiles:
+                if "sid:" in resource:
+                    # Strip sid prefix from survey id
+                    resource = resource.replace("sid:", "")
+                    # Add this line
+                    code += f"{{'surveyId': '{resource}'}},\n"
                 else:
-                    temp = "{{'name': '{0}', 'path': '{1}{0}'}}".format(resource, resourceFolderStr)
-                code += temp
-                if idx != (len(resourceFiles)-1):
-                    code += ",\n"  # Trailing comma
+                    if "https://" in resource:
+                        # URL paths are already fine
+                        pass
+                    else:
+                        # Anything else make it relative to resources folder
+                        resource = resourceFolderStr + resource
+                    # Add this line
+                    code += f"{{'name': '{name}', 'path': '{resource}'}},\n"
             script.writeIndentedLines(code)
             script.setIndentLevel(-1, relative=True)
             script.writeIndented("]\n")

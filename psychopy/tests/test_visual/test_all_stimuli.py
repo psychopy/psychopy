@@ -55,6 +55,32 @@ class Test_Window():
         self.win.callOnFlip(assertThisIs2, 2)
         self.win.flip()
 
+    def test_resetViewport(self):
+        # Check if the `Window.resetViewport()` method works correctly. Not
+        # checking if the OpenGL state is correct here, just if the property
+        # setter `Window.viewport` updates accordingly.
+        #
+        # bugfix: https://github.com/psychopy/psychopy/issues/5135
+        #
+        viewportOld = self.win.viewport.copy()  # store old viewport value
+
+        # Create a new viewport, ensure that the test value never equals the
+        # windows size.
+        viewportNew = [0, 0] + [max(int(v / 2.0), 1) for v in viewportOld[2:]]
+        self.win.viewport = viewportNew
+
+        # assert that the change has been made correctly after setting
+        assert numpy.allclose(self.win.viewport, viewportNew), \
+            "Failed to change viewport, expected `{}` got `{}`.".format(
+                viewportNew, list(self.win.viewport))  # show as list
+
+        # reset the viewport and check if the value is reset to original
+        self.win.resetViewport()
+
+        assert numpy.allclose(self.win.viewport, viewportOld), \
+            "Failed to reset viewport, expected `{}` got `{}`.".format(
+                viewportOld, list(self.win.viewport))
+
 
 class _baseVisualTest():
     #this class allows others to be created that inherit all the tests for
@@ -69,7 +95,7 @@ class _baseVisualTest():
     def teardown_class(self):#run once for each test class (window)
         self.win.close()#shutil.rmtree(self.temp_dir)
 
-    def setup(self):#this is run for each test individually
+    def setup_method(self):#this is run for each test individually
         #make sure we start with a clean window
         self.win.flip()
 
@@ -701,7 +727,7 @@ class _baseVisualTest():
         grating.draw()
         utils.compareScreenshot('aperture1_%s.png' %(self.contextName), win)
         #aperture should automatically disable on exit
-        for shape, nVert, pos in [(None, 120, (0,0)), ('circle', 17, (.2, -.7)),
+        for shape, nVert, pos in [(None, 4, (0,0)), ('circle', 72, (.2, -.7)),
                                   ('square', 4, (-.5,-.5)), ('triangle', 3, (1,1))]:
             aperture = visual.Aperture(win, pos=pos, shape=shape, nVert=nVert)
             assert len(aperture.vertices) == nVert  # true for BaseShapeStim; expect (nVert-2)*3 if tesselated

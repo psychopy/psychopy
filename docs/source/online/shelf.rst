@@ -11,7 +11,7 @@ Using the Shelf for Multi-session testing, Counterbalancing and more online
 
 The `Shelf <https://psychopy.github.io/psychojs/module-data.Shelf.html>`_ is a flexible, multiuse tool to aid with online studies where information needs sharing between studies, either in real time or across sessions. Use cases for the shelf include:
 
-* Multi-session testing
+* :ref:`Multi-session testing <multi_session_testing>`
 * :ref:`Counterbalancing <counterbalanceShelf>`
 * Multi-player games
 
@@ -40,7 +40,7 @@ Interacting with Integer Records
 
 Imagine the simple case of wanting to count how many participants have completed your task. You would make an Integer Record, which starts at 0 and assign the scope of the Record to the experiment of interest.
 
-From within your experiment you can use several methods to interact with Integers including (though not limited to; see all methods `here <https://psychopy.github.io/psychojs/module-data.Shelf.html>`_):
+From within your experiment you can use several methods to interact with Integers including (though not limited to; see all methods `here <https://psychopy.github.io/psychojs/Shelf.html>`_):
 
 * :code:`psychoJS.shelf.getIntegerValue()`
 * :code:`psychoJS.shelf.setIntegerValue()`
@@ -96,6 +96,8 @@ Imagine you have an experiment where you wish for many players to interact with 
 
 First imagine you want to allow the player to clear the list of preexisting players (in our demo we achieve this though a drop down). We would do that using :code:`psychoJS.shelf.setListValue({key: ["player_list"], value: []})`. Then imagine we want to add this players screen name to the existing list of screen names, that is achieved using :code:`psychoJS.shelf.appendListValue({key: ["player_list"], elements: expInfo["screen name"]})` finally, to fetch the screen names (and we may wish to do this periodically) we can ude :code:`players = await psychoJS.shelf.getListValue({key: ["player_list"], defaultValue:[]})` (remember, it is important to use :code:`await` in order to retrieve the value once the JS Promise has been fulfilled.
 
+.. _multi_session_testing:
+
 Interacting with Dictionary Records
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -138,15 +140,24 @@ Counterbalancing can be a pain, but online it is even more painful! There are ma
 
 * :code:`psychoJS.shelf.counterbalanceSelect()`
 
-To get started you must make a record with the type Dictionary, it must also have the following fields:
+To get started you must make a record with the type, Dictionary. It must also have the following fields:
 
 
-.. figure:: /images/counterbalancerecord.PNG
+.. figure:: /images/counterbalanceShelf1.png
     :name: shelfAccess
     :align: center
     :figclass: align-center
 
-    Example set up for a Shelf Record used to assist counterbalancing. The Record must be a Dictionary and it must contain the fields "groups" and "groupSizes", indicating the group names and size of each group accordingly.
+|
+    Example set up for a Shelf Record used to assist with counterbalancing. The Key Components need to have a meaningful name and since this record is for counterbalancing the groups, "my_groups" is used here. There are two types of scopes: 1) DESIGNER - This shelf record can be used for all experiments; 2) EXPERIMENT - This shelf record can only be used for the selected experiment.
+|
+.. figure:: /images/counterbalanceCodeComponent1.png
+    :name: shelfCodeComponent
+    :align: center
+    :figclass: align-center
 
-In your experiment, you can then use :code:`[thisGroup, finished] = await psychoJS.shelf.counterBalanceSelect({key: ['groups'], groups: ['A', 'B', 'C'], groupSizes: [10, 10, 10]})` which will return two values, :code:`thisGroup` indicates the group selected for this participant and :code:`finished` indicating if sampling has completed (i.e. all groups are full). If during testing you notice that some groups need "topping up" e.g. the data from one participant is unusable, you can always edit the Shelf directly to allow more participants in each group.
+**Note that the key within the code component uses the same name as the Key Component in the Shelf record.**
+
+|   
+In your experiment, you can then use :code:`counterbal = await psychoJS.shelf.counterBalanceSelect({key: ['my_groups']})` which will return a counterbalance object `counterbal` with two properties, :code:`counterbal.group` indicates the group selected for this participant and :code:`counterbal.finished` indicating if sampling has completed (i.e. all groups are full). If during testing you notice that some groups need "topping up" e.g. the data from one participant is unusable, you can always edit the Shelf directly to allow more participants in each group.
 

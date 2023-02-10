@@ -504,7 +504,9 @@ class Section(dict):
 
     def __getitem__(self, key):
         """Fetch the item and do string interpolation."""
+        # Get the value from a dict as normal
         val = dict.__getitem__(self, key)
+
         if self.main.interpolation:
             if isinstance(val, six.string_types):
                 return self._interpolate(key, val)
@@ -1144,7 +1146,6 @@ class ConfigObj(Section):
         '1': True, '0': False,
         'true': True, 'false': False,
         }
-
 
     def __init__(self, infile=None, options=None, configspec=None, encoding=None,
                  interpolation=True, raise_errors=False, list_values=True,

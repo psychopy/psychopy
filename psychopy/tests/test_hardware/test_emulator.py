@@ -25,7 +25,7 @@ BASE_MR_SETTINGS = {
 @pytest.mark.emulator
 class TestLaunchScan():
     '''A base class to test launchScan with different MR_settings'''
-    def setup(self):
+    def setup_method(self):
         self.win = visual.Window(fullscr=False, autoLog=False)
         self.globalClock = core.Clock()
         self.MR_settings = BASE_MR_SETTINGS.copy()

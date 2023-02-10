@@ -76,14 +76,13 @@ class PsychoColorPicker(ColorPickerDialog):
 
         if not self.allowInsert:
             self.cmdInsert.Disable()
+            self.cmdInsert.Hide()
 
         self.allowCopy = allowCopy
 
         if not self.allowCopy:
             self.cmdCopy.Disable()
             self.cmdCopy.Hide()
-            # make insert show 'OK' if the only option
-            self.cmdInsert.Label = u'&OK'
 
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
         self.SetSize(wx.Size(640, 480))

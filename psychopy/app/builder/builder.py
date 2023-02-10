@@ -25,6 +25,7 @@ from wx.lib import scrolledpanel
 from wx.lib import platebtn
 from wx.html import HtmlWindow
 
+import psychopy.app.plugin_manager.dialog
 from .validators import WarningManager
 from ..pavlovia_ui import sync
 from ..pavlovia_ui.project import ProjectFrame
@@ -415,10 +416,15 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate("Smaller routine items"))
         self.Bind(wx.EVT_MENU, self.routinePanel.decreaseSize, item)
         menu.AppendSeparator()
-        # Add Theme Switcher
+
+        # Frame switcher
+        framesMenu = wx.Menu()
+        FrameSwitcher.makeViewSwitcherButtons(framesMenu, frame=self, app=self.app)
+        menu.AppendSubMenu(framesMenu, _translate("&Frames"))
+
+        # Theme switcher
         self.themesMenu = ThemeSwitcher(app=self.app)
-        menu.AppendSubMenu(self.themesMenu,
-                               _translate("&Themes"))
+        menu.AppendSubMenu(self.themesMenu, _translate("&Themes"))
 
         # ---_tools ---#000000#FFFFFF-----------------------------------------
         self.toolsMenu = wx.Menu()
@@ -548,8 +554,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         # ---_window---#000000#FFFFFF-----------------------------------------
         self.windowMenu = FrameSwitcher(self)
-        menuBar.Append(self.windowMenu,
-                    _translate("&Window"))
+        menuBar.Append(self.windowMenu, _translate("&Window"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()
@@ -853,6 +858,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             if len(possibles) == 0:
                 possibles = list(dirname.glob('Readme*'))
                 possibles.extend(dirname.glob('README*'))
+
             # still haven't found a file so use default name
             if len(possibles) == 0:
                 self.readmeFilename = str(dirname / 'readme.md')  # use this as our default
@@ -860,12 +866,16 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 self.readmeFilename = str(possibles[0])  # take the first one found
         else:
             self.readmeFilename = None
-        # create the frame if we don't have one yet
-        if self.readmeFrame is None:
-            self.readmeFrame = ReadmeFrame(parent=self, filename=self.readmeFilename)
-        content = self.readmeFrame.ctrl.getValue()
-        if content and self.prefs['alwaysShowReadme']:
-            self.showReadme()
+
+        content = ''
+        if self.readmeFilename is not None:  # don't open viewer if no file
+            if Path(self.readmeFilename).is_file():
+                self.readmeFrame = ReadmeFrame(
+                    parent=self, filename=self.readmeFilename)
+                content = self.readmeFrame.ctrl.getValue()
+
+            if content and self.prefs['alwaysShowReadme']:  # make this or?
+                self.showReadme()
 
     def showReadme(self, evt=None, value=True):
         """Shows Readme file
@@ -1380,38 +1390,35 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             return True
 
     def openPluginManager(self, evt=None):
-        dlg = plugin_manager.EnvironmentManagerDlg(self)
-        dlg.ShowModal()
+        dlg = psychopy.app.plugin_manager.dialog.EnvironmentManagerDlg(self)
+        dlg.Show()
+        # Do post-close checks
+        dlg.onClose()
 
     def onPavloviaSync(self, evt=None):
         if Path(self.filename).is_file():
+            # Save file
             self.fileSave(self.filename)
+            # If allowed by prefs, export html and js files
             if self._getExportPref('on sync'):
                 htmlPath = self._getHtmlPath(self.filename)
                 if htmlPath:
                     self.fileExport(htmlPath=htmlPath)
                 else:
                     return
-
+        # Disable button
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
+        # Attempy sync, re-enable buttons if it fails
         try:
             pavlovia_ui.syncProject(parent=self, file=self.filename, project=self.project)
         finally:
             self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
 
     def onPavloviaRun(self, evt=None):
-        if self._getExportPref('on save') or self._getExportPref('on sync'):
-            # If export on save/sync, sync now
-            pavlovia_ui.syncProject(parent=self, project=self.project)
-        elif self._getExportPref('manually'):
-            # If set to manual, only sync if needed to create a project to run
-            if self.project is None:
-                pavlovia_ui.syncProject(parent=self, project=self.project)
+        # Sync project
+        self.onPavloviaSync()
 
         if self.project is not None:
-            # Make sure we have a html file to run
-            if not (Path(self.project.localRoot) / 'index.html').is_file():
-                self.fileExport(htmlPath=Path(self.project.localRoot) / 'index.html')
             # Update project status
             self.project.pavloviaStatus = 'ACTIVATED'
             # Run
@@ -2262,7 +2269,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         return self.getMaxTime() / pixels
 
 
-class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
+class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel):
     def __init__(self, parent, routine=None):
         # Init super
         scrolledpanel.ScrolledPanel.__init__(
@@ -2284,7 +2291,7 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.sizer.Add(self.ctrls, border=12, proportion=1, flag=wx.ALIGN_CENTER | wx.TOP)
         # Make buttons
         self.btnsSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.helpBtn = wx.Button(self, id=wx.ID_HELP, label=_translate("Help"))
+        self.helpBtn = utils.HoverButton(self, id=wx.ID_HELP, label=_translate("Help"))
         self.helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
         self.btnsSizer.Add(self.helpBtn, border=6, flag=wx.ALL | wx.EXPAND)
         self.btnsSizer.AddStretchSpacer(1)
@@ -2294,8 +2301,13 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         # Add buttons to sizer
         self.sizer.Add(self.btnsSizer, border=3, proportion=0, flag=wx.EXPAND | wx.ALL)
         # Style
-        self._applyAppTheme()
         self.SetupScrolling(scroll_y=True)
+
+    def _applyAppTheme(self):
+        self.SetBackgroundColour(colors.app['tab_bg'])
+        self.helpBtn._applyAppTheme()
+        self.Refresh()
+        self.Update()
 
     def updateExperiment(self, evt=None):
         """Update this routine's saved parameters to what is currently entered"""
@@ -2604,6 +2616,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.Layout()
             self._applyAppTheme()
 
+        def _applyAppTheme(self):
+            self.SetBackgroundColour(colors.app['panel_bg'])
+            self.label.SetForegroundColour(colors.app['text'])
+
         def GetValue(self):
             return self.viewCtrl.GetValue()
 
@@ -2632,9 +2648,19 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         # Setup sizer
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
+        # Top bar
+        self.topBarSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.topBarSizer, border=0, flag=wx.ALL | wx.EXPAND)
+        # Add plugins button
+        self.pluginBtn = wx.Button(self, label=_translate("Get more..."), style=wx.BU_EXACTFIT | wx.BORDER_NONE)
+        self.pluginBtn.SetToolTip(_translate("Add new components and features via plugins."))
+        self.topBarSizer.Add(self.pluginBtn, border=3, flag=wx.ALL)
+        self.pluginBtn.Bind(wx.EVT_BUTTON, self.onPluginBtn)
         # Add filter button
-        self.filterBtn = wx.Button(self, size=(24, 24), style=wx.BORDER_NONE)
-        self.sizer.Add(self.filterBtn, border=0, flag=wx.ALL | wx.ALIGN_RIGHT)
+        self.topBarSizer.AddStretchSpacer(1)
+        self.filterBtn = wx.Button(self, style=wx.BU_EXACTFIT | wx.BORDER_NONE)
+        self.filterBtn.SetToolTip(_translate("Filter components by whether they work with PsychoJS, PsychoPy or both."))
+        self.topBarSizer.Add(self.filterBtn, border=3, flag=wx.ALL)
         self.filterBtn.Bind(wx.EVT_BUTTON, self.onFilterBtn)
 
         # Attributes to store handles in
@@ -2742,6 +2768,12 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
                     else:
                         emtBtn = self.ComponentButton(self, name=name, comp=emt, cat=cat)
                         self.compButtons.append(emtBtn)
+                        # If we're in standalone routine view, disable new component button
+                        rtPage = self.frame.routinePanel.getCurrentPage()
+                        if rtPage:
+                            emtBtn.Enable(
+                                not isinstance(rtPage.routine, BaseStandaloneRoutine)
+                            )
                     # Store reference by category
                     self.objectHandles[cat][name] = emtBtn
                 # Add to category sizer
@@ -2799,6 +2831,14 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         self.filterBtn.SetBitmapCurrent(icon)
         self.filterBtn.SetBitmapPressed(icon)
         self.filterBtn.SetBitmapFocus(icon)
+        # Style plugin button
+        self.pluginBtn.SetBackgroundColour(colors.app['panel_bg'])
+        self.pluginBtn.SetForegroundColour(colors.app['text'])
+        icon = icons.ButtonIcon("plus", size=16).bitmap
+        self.pluginBtn.SetBitmap(icon)
+        self.pluginBtn.SetBitmapCurrent(icon)
+        self.pluginBtn.SetBitmapPressed(icon)
+        self.pluginBtn.SetBitmapFocus(icon)
 
     def addToFavorites(self, comp):
         name = comp.__name__
@@ -2828,6 +2868,12 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
     def onFilterBtn(self, evt=None):
         dlg = self.FilterDialog(self)
         dlg.ShowModal()
+
+    def onPluginBtn(self, evt=None):
+        dlg = psychopy.app.plugin_manager.dialog.EnvironmentManagerDlg(self)
+        dlg.Show()
+        # Do post-close checks
+        dlg.onClose()
 
 
 class ReadmeFrame(wx.Frame, handlers.ThemeMixin):

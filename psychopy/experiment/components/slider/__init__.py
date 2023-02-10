@@ -184,7 +184,6 @@ class SliderComponent(BaseVisualComponent):
         self.params['font'] = Param(
                 font, valType='str', inputType="single", categ='Formatting',
                 updates='constant',
-                allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate(
                         "Font for the labels"),
                 label=_translate('Font'))
@@ -192,7 +191,6 @@ class SliderComponent(BaseVisualComponent):
         self.params['letterHeight'] = Param(
                 letterHeight, valType='num', inputType="single", categ='Formatting',
                 updates='constant',
-                allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate(
                         "Letter height for text in labels"),
                 label=_translate('Letter height'))
@@ -286,7 +284,8 @@ class SliderComponent(BaseVisualComponent):
                         'radio': 'RADIO',
                         'labels45': 'LABELS_45',
                         'whiteOnBlack': 'WHITE_ON_BLACK',
-                        'triangleMarker': 'TRIANGLE_MARKER'}
+                        'triangleMarker': 'TRIANGLE_MARKER',
+                        'choice': 'RADIO'}
 
         # If no style given, set default 'rating' as list
         if len(inits['styles'].val) == 0:
@@ -341,9 +340,11 @@ class SliderComponent(BaseVisualComponent):
 
     def writeRoutineStartCode(self, buff):
         buff.writeIndented("%(name)s.reset()\n" % (self.params))
+        self.writeParamUpdates(buff, 'set every repeat')
 
     def writeRoutineStartCodeJS(self, buff):
         buff.writeIndented("%(name)s.reset()\n" % (self.params))
+        self.writeParamUpdates(buff, 'set every repeat')
 
     def writeFrameCode(self, buff):
         super(SliderComponent, self).writeFrameCode(buff)  # Write basevisual frame code

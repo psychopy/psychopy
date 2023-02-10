@@ -8,7 +8,7 @@ import pytest
 
 @pytest.mark.needs_wx
 class TestDlgFromDictWx:
-    def setup(self):
+    def setup_method(self):
         self.d = dict(
             participant='000',
             handedness=['r', 'l'],
@@ -78,5 +78,5 @@ class TestDlgFromDictWx:
 
 if __name__ == '__main__':
     cls = TestDlgFromDictWx()
-    cls.setup()
+    cls.setup_method()
     cls.test_fixed()

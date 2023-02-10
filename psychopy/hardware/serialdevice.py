@@ -197,3 +197,7 @@ class SerialDevice:
         if self.com is None:
             return None
         return self.com.isOpen()
+
+
+if __name__ == "__main__":
+    pass

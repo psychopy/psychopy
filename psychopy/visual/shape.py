@@ -89,6 +89,7 @@ knownShapes = {
         (0.5, 0.0)
     ],
 }
+knownShapes['square'] = knownShapes['rectangle']
 
 
 class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
@@ -106,6 +107,10 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
     v1.84.00: ShapeStim became BaseShapeStim.
 
     """
+
+    _defaultFillColor = None
+    _defaultLineColor = "black"
+
     def __init__(self,
                  win,
                  units='',
@@ -158,7 +163,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
             self.fillColor = color
         else:
             # Default to None if neither are set
-            self.fillColor = None
+            self.fillColor = self._defaultFillColor
         if lineColor is not False:
             self.lineColor = lineColor
         elif color is not False:
@@ -166,7 +171,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
             self.lineColor = color
         else:
             # Default to black if neither are set
-            self.lineColor = 'black'
+            self.lineColor = self._defaultLineColor
         if lineRGB is not False:
             # Override with RGB if set
             logging.warning("Use of rgb arguments to stimuli are deprecated."
@@ -247,6 +252,24 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         ColorMixin.setForeColor(self, color, colorSpace, operation, log)
         self.setLineColor(color, colorSpace, operation, log)
         self.setFillColor(color, colorSpace, operation, log)
+
+    @property
+    def vertices(self):
+        return BaseVisualStim.vertices.fget(self)
+
+    @vertices.setter
+    def vertices(self, value):
+        # check if this is a name of one of our known shapes
+        if isinstance(value, str) and value in knownShapes:
+            value = knownShapes[value]
+            if value == "circle":
+                # If circle is requested, calculate how many points are needed for the gap between line rects to be < 1px
+                value = self._calculateMinEdges(self.lineWidth, threshold=5)
+        if isinstance(value, int):
+            value = self._calcEquilateralVertices(value)
+        # Check shape
+        WindowMixin.vertices.fset(self, value)
+        self._needVertexUpdate = True
 
     def setVertices(self, value=None, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,

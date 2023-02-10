@@ -297,7 +297,7 @@ class AppSigner:
                     if "PsychoPy" in part.name:
                         print("Ejecting - ", part.name, part.mount_point)
                         try:
-                            sh.diskutil("unmount", "force", f"/dev/{disk.device_id}")
+                            sh.diskutil("unmountDisk", "force", f"/dev/{disk.device_id}")
                             sh.diskutil("eject", f"/dev/{disk.device_id}")
                         except sh.ErrorReturnCode_1:
                             print("still can't eject that disk")

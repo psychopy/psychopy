@@ -16,7 +16,7 @@ import os.path
 from pathlib import Path
 
 from psychopy import prefs
-from psychopy.tools.filetools import pathToString
+from psychopy.tools.filetools import pathToString, defaultStim
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin, ColorMixin
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 
@@ -134,6 +134,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.loop = loop
         self._recentFrame = None
         self._autoStart = autoStart
+        self._isLoaded = False
 
         # OpenGL data
         self.interpolate = interpolate
@@ -162,6 +163,8 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.loadMovie(value)
 
     def setMovie(self, value):
+        if self._isLoaded:
+            self.unload()
         self.loadMovie(value)
 
     @property
@@ -198,8 +201,9 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """
         # If given `default.mp4`, sub in full path
         if isinstance(filename, str):
-            if filename == "default.mp4":
-                filename = Path(prefs.paths['resources']) / "default.mp4"
+            # alias default names (so it always points to default.png)
+            if filename in defaultStim:
+                filename = Path(prefs.paths['resources']) / defaultStim[filename]
 
             # check if the file has can be loaded
             if not os.path.isfile(filename):
@@ -215,6 +219,8 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         self._freeBuffers()  # free buffers (if any) before creating a new one
         self._setupTextureBuffers()
+
+        self._isLoaded = True
 
     def load(self, filename):
         """Load a movie file from disk (alias of `loadMovie`).
@@ -239,6 +245,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._player.stop(log=log)
         self._player.unload()
         self._freeBuffers()  # free buffer before creating a new one
+        self._isLoaded = False
 
     @property
     def frameTexture(self):

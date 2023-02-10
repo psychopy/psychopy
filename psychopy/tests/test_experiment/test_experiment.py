@@ -26,7 +26,7 @@ class TestExperiment:
             # can't write to root on Linux
             cls.tempDir = mkdtemp(prefix='psychopy-tests-app')
 
-    def setup(self):
+    def setup_method(self):
         # Make a basic experiment with one routine
         self.exp = experiment.Experiment()
         self.rt = self.exp.addRoutine("testRoutine")
@@ -223,7 +223,7 @@ class TestExperiment:
             "ISI",
             "text",
             "sound_1",
-            "buttonBox",
+            "polygonStim",
         ]
         # Define some param names which should be InvalidCtrl
         invParams = [

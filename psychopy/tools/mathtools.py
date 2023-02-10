@@ -794,6 +794,32 @@ def angleTo(v, point, degrees=True, out=None, dtype=None):
     return np.degrees(angle) if degrees else angle
 
 
+def sortClockwise(verts):
+    """
+    Sort vertices clockwise from 12 O'Clock (aka vertex (0, 1)).
+
+    Parameters
+    ==========
+    verts : array
+        Array of vertices to sort
+    """
+    # Blank array of angles
+    angles = []
+    # Calculate angle of each vertex
+    for vert in verts:
+        # Get angle
+        ang = angleTo(v=[0, 1], point=vert)
+        # Flip angle if we're past 6 O'clock
+        if vert[0] < 0:
+            ang = 360 - ang
+        # Append to angles array
+        angles.append(ang)
+    # Sort vertices by angles array values
+    verts = [x for _, x in sorted(zip(angles, verts), key=lambda pair: pair[0])]
+
+    return verts
+
+
 def surfaceNormal(tri, norm=True, out=None, dtype=None):
     """Compute the surface normal of a given triangle.
 
