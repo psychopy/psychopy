@@ -149,6 +149,88 @@
     },
     "json": {
 
+    },
+    "markdown": {
+      "italic": {
+        "fg": "orange",
+        "bg": "",
+        "font": "italic"
+      },
+      "italic2": {
+        "fg": "orange",
+        "bg": "",
+        "font": "italic"
+      },
+      "bold": {
+        "fg": "orange",
+        "bg": "",
+        "font": "bold"
+      },
+      "bold2": {
+        "fg": "orange",
+        "bg": "",
+        "font": "bold"
+      },
+      "link": {
+        "fg": "blue",
+        "bg": "",
+        "font": "italic"
+      },
+      "hr": {
+        "fg": "blue",
+        "bg": "",
+        "font": "bold"
+      },
+      "h1": {
+        "fg": "red",
+        "bg": "",
+        "font": "bold"
+      },
+      "h2": {
+        "fg": "red",
+        "bg": "",
+        "font": "bold"
+      },
+      "h3": {
+        "fg": "red",
+        "bg": "",
+        "font": "bold"
+      },
+      "h4": {
+        "fg": "red",
+        "bg": "",
+        "font": "bold"
+      },
+      "h5": {
+        "fg": "red",
+        "bg": "",
+        "font": "bold"
+      },
+      "h6": {
+        "fg": "red",
+        "bg": "",
+        "font": "bold"
+      },
+      "code": {
+        "fg": "green",
+        "bg": "",
+        "font": ""
+      },
+      "codeblock": {
+        "fg": "green",
+        "bg": "",
+        "font": ""
+      },
+      "li": {
+        "fg": "blue",
+        "bg": "",
+        "font": "bold"
+      },
+      "prechar": {
+        "fg": "#B8B8BB",
+        "bg": "",
+        "font": "bold"
+      }
     }
   }
 }

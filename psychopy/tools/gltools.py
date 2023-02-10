@@ -96,10 +96,14 @@ import pyglet.gl as GL  # using Pyglet for now
 from contextlib import contextmanager
 from PIL import Image
 import numpy as np
-import os, sys
+import os
+import sys
+import platform
 import warnings
 import psychopy.tools.mathtools as mt
-from psychopy.visual.helpers import setColor
+from psychopy.visual.helpers import setColor, findImageFile
+
+_thisPlatform = platform.system()
 
 # create a query counter to get absolute GPU time
 
@@ -1762,6 +1766,10 @@ def createTexImage2dFromFile(imgFile, transpose=True):
         Texture descriptor.
 
     """
+    # Attempt to find file with substitution (handles e.g. default.png)
+    tryImg = findImageFile(imgFile, checkResources=True)
+    if tryImg is not None:
+        imgFile = tryImg
     im = Image.open(imgFile)  # 8bpp!
     if transpose:
         im = im.transpose(Image.FLIP_TOP_BOTTOM)  # OpenGL origin is at bottom
@@ -2280,8 +2288,13 @@ def createVAO(attribBuffers, indexBuffer=None, attribDivisors=None, legacy=False
 
     # create a vertex buffer ID
     vaoId = GL.GLuint()
-    GL.glGenVertexArrays(1, ctypes.byref(vaoId))
-    GL.glBindVertexArray(vaoId)
+
+    if _thisPlatform != 'Darwin':
+        GL.glGenVertexArrays(1, ctypes.byref(vaoId))
+        GL.glBindVertexArray(vaoId)
+    else:
+        GL.glGenVertexArraysAPPLE(1, ctypes.byref(vaoId))
+        GL.glBindVertexArrayAPPLE(vaoId)
 
     # add attribute pointers
     activeAttribs = {}
@@ -2344,7 +2357,10 @@ def createVAO(attribBuffers, indexBuffer=None, attribDivisors=None, legacy=False
         for key, val in attribDivisors.items():
             GL.glVertexAttribDivisor(key, val)
 
-    GL.glBindVertexArray(0)
+    if _thisPlatform != 'Darwin':
+        GL.glBindVertexArray(0)
+    else:
+        GL.glBindVertexArrayAPPLE(0)
 
     return VertexArrayInfo(vaoId.value,
                            count,
@@ -2387,7 +2403,11 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, instanceCount=None,
 
     """
     # draw the array
-    GL.glBindVertexArray(vao.name)
+    if _thisPlatform != 'Darwin':
+        GL.glBindVertexArray(vao.name)
+    else:
+        GL.glBindVertexArrayAPPLE(vao.name)
+
     if count is None:
         count = vao.count
     else:
@@ -2412,7 +2432,10 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, instanceCount=None,
         GL.glFlush()
 
     # reset
-    GL.glBindVertexArray(0)
+    if _thisPlatform != 'Darwin':
+        GL.glBindVertexArray(0)
+    else:
+        GL.glBindVertexArrayAPPLE(0)
 
 
 def deleteVAO(vao):

@@ -26,6 +26,7 @@ from pkg_resources import parse_version
 
 import psychopy
 from psychopy import data, __version__, logging
+from psychopy.tools import filetools as ft
 from .components.resourceManager import ResourceManagerComponent
 from .components.static import StaticComponent
 from .exports import IndentingBuffer, NameSpace
@@ -652,16 +653,25 @@ class Experiment:
                 for componentNode in routineNode:
 
                     componentType = componentNode.tag
+                    plugin = componentNode.get('plugin')
+
                     if componentType in allCompons:
                         # create an actual component of that type
                         component = allCompons[componentType](
                             name=componentNode.get('name'),
                             parentName=routineNode.get('name'), exp=self)
+                    elif plugin:
+                        # create UnknownPluginComponent instead
+                        component = allCompons['UnknownPluginComponent'](
+                            name=componentNode.get('name'),
+                            parentName=routineNode.get('name'), exp=self)
+                        alert(7105, strFields={'name': componentNode.get('name'), 'plugin': plugin})
                     else:
                         # create UnknownComponent instead
                         component = allCompons['UnknownComponent'](
                             name=componentNode.get('name'),
                             parentName=routineNode.get('name'), exp=self)
+                    component.plugin = plugin
                     # check for components that were absent in older versions of
                     # the builder and change the default behavior
                     # (currently only the new behavior of choices for RatingScale,
@@ -873,14 +883,24 @@ class Experiment:
             #    Path('C:/test/test.xlsx').is_absolute() returns False
             #    Path('/folder/file.xlsx').relative_to('/Applications') gives error
             #    but os.path.relpath('/folder/file.xlsx', '/Applications') correctly uses ../
+            if filePath in list(ft.defaultStim):
+                # Default/asset stim are a special case as the file doesn't exist in the usual path
+                thisFile['rel'] = thisFile['abs'] = "https://pavlovia.org/assets/default/" + ft.defaultStim[filePath]
+                thisFile['name'] = filePath
+                return thisFile
             if len(filePath) > 2 and (filePath[0] == "/" or filePath[1] == ":")\
                     and os.path.isfile(filePath):
                 thisFile['abs'] = filePath
                 thisFile['rel'] = os.path.relpath(filePath, srcRoot)
+                thisFile['name'] = Path(filePath).name
                 return thisFile
             else:
                 thisFile['rel'] = filePath
                 thisFile['abs'] = os.path.normpath(join(srcRoot, filePath))
+                if "/" in filePath:
+                    thisFile['name'] = filePath.split("/")[-1]
+                else:
+                    thisFile['name'] = filePath
                 if len(thisFile['abs']) <= 256 and os.path.isfile(thisFile['abs']):
                     return thisFile
 
@@ -954,9 +974,26 @@ class Experiment:
                             thisFile = getPaths(thisParam)
                         elif isinstance(thisParam.val, str):
                             thisFile = getPaths(thisParam.val)
+                        if paramName == "surveyId" and thisComp.params.get('surveyType', "") == "id":
+                            # Survey IDs are a special case, they need adding verbatim, no path sanitizing
+                            thisFile = {'surveyId': thisParam.val}
                         # then check if it's a valid path and not yet included
                         if thisFile and thisFile not in compResources:
                             compResources.append(thisFile)
+            elif isinstance(thisEntry, BaseStandaloneRoutine):
+                for paramName in thisEntry.params:
+                    thisParam = thisEntry.params[paramName]
+                    thisFile = ''
+                    if isinstance(thisParam, str):
+                        thisFile = getPaths(thisParam)
+                    elif isinstance(thisParam.val, str):
+                        thisFile = getPaths(thisParam.val)
+                    if paramName == "surveyId" and thisEntry.params.get('surveyType', "") == "id":
+                        # Survey IDs are a special case, they need adding verbatim, no path sanitizing
+                        thisFile = {'surveyId': thisParam.val}
+                    # then check if it's a valid path and not yet included
+                    if thisFile and thisFile not in compResources:
+                        compResources.append(thisFile)
             elif thisEntry.getType() == 'LoopInitiator' and "Stair" in thisEntry.loop.type:
                 url = 'https://lib.pavlovia.org/vendors/jsQUEST.min.js'
                 compResources.append({
@@ -1000,10 +1037,14 @@ class Experiment:
         resources = loopResources + compResources + chosenResources
         resources = [res for res in resources if res is not None]
         for res in resources:
-            if srcRoot not in res['abs'] and 'https://' not in res['abs']:
-                psychopy.logging.warning("{} is not in the experiment path and "
-                                         "so will not be copied to Pavlovia"
-                                         .format(res['rel']))
+            if res in list(ft.defaultStim):
+                # Skip default stim here
+                continue
+            if isinstance(res, dict) and 'abs' in res and 'rel' in res:
+                if srcRoot not in res['abs'] and 'https://' not in res['abs']:
+                    psychopy.logging.warning("{} is not in the experiment path and "
+                                             "so will not be copied to Pavlovia"
+                                             .format(res['rel']))
 
         return resources
 

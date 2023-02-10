@@ -25,7 +25,7 @@ class _baseVersionChooser():
 
 
 class Test_Same_Version(_baseVersionChooser):
-    def setup(self):
+    def setup_method(self):
         self.requested = '1.90.0'
         useVersion(self.requested)
 
@@ -34,7 +34,7 @@ class Test_Same_Version(_baseVersionChooser):
 
 
 class Test_Older_Version(_baseVersionChooser):
-    def setup(self):
+    def setup_method(self):
         self.requested = '1.90.0'
         self.temp = Path(mkdtemp())
 

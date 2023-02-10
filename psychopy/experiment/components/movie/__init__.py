@@ -31,7 +31,7 @@ class MovieComponent(BaseVisualComponent):
 
     def __init__(self, exp, parentName, name='movie', movie='',
                  units='from exp settings',
-                 pos=(0, 0), size='', anchor="center", ori=0,
+                 pos=(0, 0), size=(0.5, 0.5), anchor="center", ori=0,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
@@ -191,6 +191,7 @@ class MovieComponent(BaseVisualComponent):
             inits = getInitVals(self.params)
         else:
             inits = copy.deepcopy(self.params)
+        inits['depth'] = -self.getPosInRoutine()
 
         noAudio = '{}'.format(inits['No audio'].val).lower()
         loop = '{}'.format(inits['loop'].val).lower()
@@ -209,25 +210,30 @@ class MovieComponent(BaseVisualComponent):
                 "  units: {units},\n"
                 "  movie: {movie},\n"
                 "  pos: {pos},\n"
+                "  anchor: {anchor},\n"
                 "  size: {size},\n"
                 "  ori: {ori},\n"
                 "  opacity: {opacity},\n"
                 "  loop: {loop},\n"
                 "  noAudio: {noAudio},\n"
+                "  depth: {depth}\n"
                 "  }});\n").format(name=inits['name'],
                                    movie=inits['movie'],
                                    units=inits['units'],
                                    pos=inits['pos'],
+                                   anchor=inits['anchor'],
                                    size=inits['size'],
                                    ori=inits['ori'],
                                    loop=loop,
                                    opacity=inits['opacity'],
-                                   noAudio=noAudio)
+                                   noAudio=noAudio,
+                                   depth=inits['depth'])
         buff.writeIndentedLines(code)
 
     def writeInitCode(self, buff):
         # Get init values
         params = getInitVals(self.params)
+        params['depth'] = -self.getPosInRoutine()
 
         # synonymise "from experiment settings" with None
         if params["units"].val.lower() == "from exp settings":
@@ -249,10 +255,11 @@ class MovieComponent(BaseVisualComponent):
         code = (
             "win, name='%(name)s',\n"
             "filename=%(movie)s, movieLib=%(backend)s,\n"
-            "loop=%(loop)s, volume=%(volume)s,\n"
+            "loop=%(loop)s, volume=%(volume)s, noAudio=%(No audio)s,\n"
             "pos=%(pos)s, size=%(size)s, units=%(units)s,\n"
             "ori=%(ori)s, anchor=%(anchor)s,"
             "opacity=%(opacity)s, contrast=%(contrast)s,\n"
+            "depth=%(depth)s\n"
         )
         buff.writeIndentedLines(code % params)
         buff.setIndentLevel(-1, relative=True)
@@ -268,43 +275,33 @@ class MovieComponent(BaseVisualComponent):
             # create the code using init vals
             self._writeCreationCodeJS(buff, useInits=True)
 
-    def writeRoutineStartCodeJS(self, buff):
-        # If needed then use _writeCreationCode()
-        # Movie could be created here or in writeInitCode()
-        if self.params['movie'].updates != 'constant':
-            # create the code using params, not vals (unless set during static component)
-            useInits = 'during' in self.params['movie'].updates
-            self._writeCreationCodeJS(buff, useInits=useInits)
-
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
         """
         buff.writeIndented("\n")
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
         # writes an if statement to determine whether to draw etc
-        self.writeStartTestCode(buff)
-        # buff.writeIndented(
-        #     "%s.seek(0.00001)  # make sure we're at the start\n"
-        #     % (self.params['name']))
-        code = (
-            "%(name)s.setAutoDraw(True)\n"
-        )
-        if self.params['backend'].val not in ('moviepy', 'avbin', 'vlc'):
-            code += "%(name)s.play()\n"
-        buff.writeIndentedLines(code % self.params)
+        indented = self.writeStartTestCode(buff)
+        if indented:
+            code = (
+                "%(name)s.setAutoDraw(True)\n"
+            )
+            if self.params['backend'].val not in ('moviepy', 'avbin', 'vlc'):
+                code += "%(name)s.play()\n"
+            buff.writeIndentedLines(code % self.params)
         # because of the 'if' statement of the time test
-        buff.setIndentLevel(-1, relative=True)
-        if self.params['stopVal'].val not in ['', None, -1, 'None']:
-            # writes an if statement to determine whether to draw etc
-            self.writeStopTestCode(buff)
+        buff.setIndentLevel(-indented, relative=True)
+
+        indented = self.writeStopTestCode(buff)
+        if indented:
             code = (
                 "%(name)s.setAutoDraw(False)\n"
             )
             if self.params['backend'].val not in ('moviepy', 'avbin', 'vlc'):
                 code += "%(name)s.stop()\n"
             buff.writeIndentedLines(code % self.params)
-            # to get out of the if statement
-            buff.setIndentLevel(-2, relative=True)
+        # to get out of the if statement
+        buff.setIndentLevel(-indented, relative=True)
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)
         if self.checkNeedToUpdate('set every frame'):
@@ -316,7 +313,7 @@ class MovieComponent(BaseVisualComponent):
             buff.setIndentLevel(-1, relative=True)  # to exit the if block
         # do force end of trial code
         if self.params['forceEndRoutine'].val is True:
-            code = ("if %s.status == FINISHED:  # force-end the routine\n"
+            code = ("if %s.isFinished:  # force-end the routine\n"
                     "    continueRoutine = False\n" %
                     self.params['name'])
             buff.writeIndentedLines(code)

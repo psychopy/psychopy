@@ -174,6 +174,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             t0 = time.time()
 
         self._appLoaded = False  # set to true when all frames are created
+        self.builder = None
         self.coder = None
         self.runner = None
         self.version = psychopy.__version__
@@ -192,6 +193,9 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         self._stdout = sys.stdout
         self._stderr = sys.stderr
         self._stdoutFrame = None
+
+        # set as false to disable loading plugins on startup
+        self._safeMode = kwargs.get('safeMode', True)
 
         # Shared memory used for messaging between app instances, this gets
         # allocated when `OnInit` is called.
@@ -246,110 +250,172 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             linuxConfDlg.ShowModal()
             linuxConfDlg.Destroy()
 
-    def onInit(self, showSplash=True, testMode=False):
-        """This is launched immediately *after* the app initialises with wx
+    def _loadStartupPlugins(self):
+        """Routine for loading plugins registered to be loaded at startup.
         """
-        self.SetAppName('PsychoPy3')
+        if self._safeMode:  # nop, if running safe mode
+            return
 
-        # Single instance check is done here prior to loading any GUI stuff.
-        # This permits one instance of PsychoPy from running at any time.
-        # Clicking on files will open them in the extant instance rather than
-        # loading up a new one.
-        #
-        # Inter-process messaging is done via a memory-mapped file created by
-        # the first instance. Successive instances will write their args to
-        # this file and promptly close. The main instance will read this file
-        # periodically for data and open and file names stored to this buffer.
-        #
-        # This uses similar logic to this example:
-        # https://github.com/wxWidgets/wxPython-Classic/blob/master/wx/lib/pydocview.py
+        # load any plugins
+        from psychopy.plugins import scanPlugins, loadPlugin, listPlugins
 
+        # if we find valid plugins, attempt to load them
+        if not scanPlugins():
+            logging.debug("No PsychoPy plugin packages found in environment.")
+            return
+
+        # If we find plugins in the current environment, try loading the ones
+        # specified as startup plugins.
+        for pluginName in listPlugins('startup'):
+            logging.debug(
+                "Loading startup plugin `{}`.".format(pluginName))
+
+            if not loadPlugin(pluginName):
+                logging.error(
+                    "Failed to load plugin `{}`!".format(pluginName))
+
+    def _doSingleInstanceCheck(self):
+        """Set up the routines which check for and communicate with other
+        PsychoPy GUI processes.
+
+        Single instance check is done here prior to loading any GUI stuff. This
+        permits one instance of PsychoPy from running at any time. Clicking on
+        files will open them in the extant instance rather than loading up a new
+        one.
+
+        Inter-process messaging is done via a memory-mapped file created by the
+        first instance. Successive instances will write their args to this file
+        and promptly close. The main instance will read this file periodically
+        for data and open and file names stored to this buffer.
+
+        This uses similar logic to this example:
+        https://github.com/wxWidgets/wxPython-Classic/blob/master/wx/lib/pydocview.py
+
+        """
         # Create the memory-mapped file if not present, this is handled
         # differently between Windows and UNIX-likes.
-        if not self.testMode:
-            if wx.Platform == '__WXMSW__':
-                tfile = tempfile.TemporaryFile(prefix="ag", suffix="tmp")
-                fno = tfile.fileno()
-                self._sharedMemory = mmap.mmap(
-                    fno, self.mmap_sz, "shared_memory")
+        if wx.Platform == '__WXMSW__':
+            tfile = tempfile.TemporaryFile(prefix="ag", suffix="tmp")
+            fno = tfile.fileno()
+            self._sharedMemory = mmap.mmap(fno, self.mmap_sz, "shared_memory")
+        else:
+            tfile = open(
+                os.path.join(
+                    tempfile.gettempdir(),
+                    tempfile.gettempprefix() + self.GetAppName() + '-' +
+                    wx.GetUserId() + "AGSharedMemory"),
+                'w+b')
+
+            # insert markers into the buffer
+            tfile.write(b"*")
+            tfile.seek(self.mmap_sz)
+            tfile.write(b" ")
+            tfile.flush()
+            fno = tfile.fileno()
+            self._sharedMemory = mmap.mmap(fno, self.mmap_sz)
+
+        # use wx to determine if another instance is running
+        self._singleInstanceChecker = wx.SingleInstanceChecker(
+            self.GetAppName() + '-' + wx.GetUserId(),
+            tempfile.gettempdir())
+
+        # If another instance is running, message our args to it by writing the
+        # path the buffer.
+        if self._singleInstanceChecker.IsAnotherRunning():
+            # Message the extant running instance the arguments we want to
+            # process.
+            args = sys.argv[1:]
+
+            # if there are no args, tell the user another instance is running
+            if not args:
+                errMsg = "Another instance of PsychoPy is already running."
+                errDlg = wx.MessageDialog(
+                    None, errMsg, caption="PsychoPy Error",
+                    style=wx.OK | wx.ICON_ERROR, pos=wx.DefaultPosition)
+                errDlg.ShowModal()
+                errDlg.Destroy()
+
+                self.quit(None)
+
+            # serialize the data
+            data = pickle.dumps(args)
+
+            # Keep alive until the buffer is free for writing, this allows
+            # multiple files to be opened in succession. Times out after 5
+            # seconds.
+            attempts = 0
+            while attempts < 5:
+                # try to write to the buffer
+                self._sharedMemory.seek(0)
+                marker = self._sharedMemory.read(1)
+                if marker == b'\0' or marker == b'*':
+                    self._sharedMemory.seek(0)
+                    self._sharedMemory.write(b'-')
+                    self._sharedMemory.write(data)
+                    self._sharedMemory.seek(0)
+                    self._sharedMemory.write(b'+')
+                    self._sharedMemory.flush()
+                    break
+                else:
+                    # wait a bit for the buffer to become free
+                    time.sleep(1)
+                    attempts += 1
             else:
-                tfile = open(
-                    os.path.join(
-                        tempfile.gettempdir(),
-                        tempfile.gettempprefix() + self.GetAppName() + '-' +
-                        wx.GetUserId() + "AGSharedMemory"),
-                    'w+b')
-
-                # insert markers into the buffer
-                tfile.write(b"*")
-                tfile.seek(self.mmap_sz)
-                tfile.write(b" ")
-                tfile.flush()
-                fno = tfile.fileno()
-                self._sharedMemory = mmap.mmap(fno, self.mmap_sz)
-
-            # use wx to determine if another instance is running
-            self._singleInstanceChecker = wx.SingleInstanceChecker(
-                self.GetAppName() + '-' + wx.GetUserId(),
-                tempfile.gettempdir())
-
-            # If another instance is running, message our args to it by writing
-            # the path the buffer.
-            if self._singleInstanceChecker.IsAnotherRunning():
-                # Message the extant running instance the arguments we want to
-                # process.
-                args = sys.argv[1:]
-
-                # if there are no args, tell the user another instance is
-                # running
-                if not args:
-                    errMsg = "Another instance of PsychoPy is already running."
+                if not self.testMode:
+                    # error that we could not access the memory-mapped file
+                    errMsg = \
+                        "Cannot communicate with running PsychoPy instance!"
                     errDlg = wx.MessageDialog(
                         None, errMsg, caption="PsychoPy Error",
                         style=wx.OK | wx.ICON_ERROR, pos=wx.DefaultPosition)
                     errDlg.ShowModal()
                     errDlg.Destroy()
 
-                    self.quit(None)
+            # since were not the main instance, exit ...
+            self.quit(None)
 
-                # serialize the data
-                data = pickle.dumps(args)
+    def _refreshComponentPanels(self):
+        """Refresh Builder component panels.
 
-                # Keep alive until the buffer is free for writing, this allows
-                # multiple files to be opened in succession. Times out after 5
-                # seconds.
-                attempts = 0
-                while attempts < 5:
-                    # try to write to the buffer
-                    self._sharedMemory.seek(0)
-                    marker = self._sharedMemory.read(1)
-                    if marker == b'\0' or marker == b'*':
-                        self._sharedMemory.seek(0)
-                        self._sharedMemory.write(b'-')
-                        self._sharedMemory.write(data)
-                        self._sharedMemory.seek(0)
-                        self._sharedMemory.write(b'+')
-                        self._sharedMemory.flush()
-                        break
-                    else:
-                        # wait a bit for the buffer to become free
-                        time.sleep(1)
-                        attempts += 1
-                else:
-                    if not self.testMode:
-                        # error that we could not access the memory-mapped file
-                        errMsg = \
-                            "Cannot communicate with running PsychoPy instance!"
-                        errDlg = wx.MessageDialog(
-                            None, errMsg, caption="PsychoPy Error",
-                            style=wx.OK | wx.ICON_ERROR, pos=wx.DefaultPosition)
-                        errDlg.ShowModal()
-                        errDlg.Destroy()
+        Since panels are created before loading plugins, calling this method is
+        required after loading plugins which contain components to have them
+        appear.
 
-                # since were not the main instance, exit ...
-                self.quit(None)
+        """
+        if not hasattr(self, 'builder') or self.builder is None:
+            return  # nop if we haven't realized the builder UI yet
 
-        # ----
+        if not isinstance(self.builder, list):
+            self.builder.componentButtons.populate()
+        else:
+            for builderFrame in self.builder:
+                builderFrame.componentButtons.populate()
+
+    def onInit(self, showSplash=True, testMode=False, safeMode=False):
+        """This is launched immediately *after* the app initialises with
+        wxPython.
+
+        Plugins are loaded at the very end of this routine if `safeMode==False`.
+
+        Parameters
+        ----------
+        showSplash : bool
+            Display the splash screen on init.
+        testMode : bool
+            Are we running in test mode? If so, disable multi-instance checking
+            and other features that depend on the `EVT_IDLE` event.
+        safeMode : bool
+            Run PsychoPy in safe mode. This temporarily disables plugins and
+            resets configurations that may be causing problems running PsychoPy.
+
+        """
+        self.SetAppName('PsychoPy3')
+
+        # Check for other running instances and communicate with them. This is
+        # done to allow a single instance to accept file open requests without
+        # opening it in a seperate process.
+        #
+        self._doSingleInstanceCheck()
 
         if showSplash:
             # show splash screen
@@ -560,16 +626,26 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         if self.coder:
             self.coder.setOutputWindow()  # takes control of sys.stdout
 
+        # if the program gets here, there are no other instances running
+        self._timer = wx.PyTimer(self._bgCheckAndLoad)
+        self._timer.Start(250)
+
+        # load plugins after the app has been mostly realized
+        if splash:
+            splash.SetText(_translate("  Loading plugins..."))
+
+        # Load plugins here after everything is realized, make sure that we
+        # refresh UI elements which are affected by plugins (e.g. the component
+        # panel in Builder).
+        self._loadStartupPlugins()
+        self._refreshComponentPanels()
+
         # flush any errors to the last run log file
         logging.flush()
         sys.stdout.flush()
         # we wanted debug mode while loading but safe to go back to info mode
         if not self.prefs.app['debugMode']:
             logging.console.setLevel(logging.INFO)
-
-        # if the program gets here, there are no other instances running
-        self._timer = wx.PyTimer(self._bgCheckAndLoad)
-        self._timer.Start(250)
 
         return True
 

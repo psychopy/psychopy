@@ -17,7 +17,7 @@ np.random.seed(1000)
 
 
 class _BaseTestStairHandler():
-    def setup(self):
+    def setup_method(self):
         self.tmp_dir = mkdtemp(prefix='psychopy-tests-%s' %
                                       type(self).__name__)
 

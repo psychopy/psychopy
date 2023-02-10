@@ -28,45 +28,125 @@ from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import attributeSetter
 from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
                                         ContainerMixin, TextureMixin)
-
 import numpy
 
 
 class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
-    """Stimulus object for drawing arbitrary bitmaps that can repeat (cycle)
-    in either dimension.
+    """Stimulus object for drawing arbitrary bitmaps that can repeat (cycle) in
+    either dimension.
 
     One of the main stimuli for PsychoPy.
 
-    Formally GratingStim is just a texture behind an optional
-    transparency mask (an 'alpha mask'). Both the texture and mask can be
-    arbitrary bitmaps and their combination allows an enormous variety of
-    stimuli to be drawn in realtime.
+    Formally `GratingStim` is just a texture behind an optional transparency
+    mask  (an 'alpha mask'). Both the texture and mask can be arbitrary bitmaps
+    and their combination allows an enormous variety of stimuli to be drawn in
+    realtime.
 
-    **Examples**::
+    A `GratingStim` can be rotated scaled and shifted in position, its texture
+    can be drifted in X and/or Y and it can have a spatial frequency in X
+    and/or Y (for an image file that simply draws multiple copies in the patch).
 
-        myGrat = GratingStim(tex='sin', mask='circle')  # circular grating
-        myGabor = GratingStim(tex='sin', mask='gauss')  # gives a 'Gabor'
-
-    A GratingStim can be rotated scaled and shifted in position,
-    its texture can be drifted in X and/or Y and it can have a spatial
-    frequency in X and/or Y (for an image file that simply draws multiple
-    copies in the patch).
-
-    Also since transparency can be controlled two GratingStims can
-    combine e.g. to form a plaid.
+    Also since transparency can be controlled, two `GratingStim` objects can be
+    combined (e.g. to form a plaid.)
 
     **Using GratingStim with images from disk (jpg, tif, png, ...)**
 
-    Ideally texture images to be rendered should be square with
-    'power-of-2' dimensions e.g. 16 x 16, 128 x 128. Any image that is
-    not will be upscaled (with linear interpolation) to the nearest such
-    texture by PsychoPy. The size of the stimulus should be specified in
-    the normal way using the appropriate units (deg, pix, cm, ...). Be
-    sure to get the aspect ratio the same as the image (if you don't want it
-    stretched!).
-    """
+    Ideally texture images to be rendered should be square with 'power-of-2'
+    dimensions e.g. 16 x 16, 128 x 128. Any image that is not will be up-scaled
+    (with linear interpolation) to the nearest such texture by PsychoPy. The
+    size of the stimulus should be specified in the normal way using the
+    appropriate units (deg, pix, cm, ...). Be sure to get the aspect ratio the
+    same as the image (if you don't want it stretched!).
 
+    Parameters
+    ----------
+    win : :class:`~psychopy.visual.Window`
+        Window this shape is being drawn to. The stimulus instance will allocate
+        its required resources using that Windows context. In many cases, a
+        stimulus instance cannot be drawn on different windows unless those
+        windows share the same OpenGL context, which permits resources to be
+        shared between them.
+    tex : str or None
+        Texture to use for the primary carrier. Values may be one of `'sin'`,
+        `'sin'`, `'sqr'`, `'saw'`, `'tri'`, or `None`.
+    mask : str or None
+        Optional mask to control the shape of the grating. Values may be one of
+        `'circle'`, `'sin'`, `'sqr'`, `'saw'`, `'tri'`, or `None`.
+    units : str
+        Units to use when drawing. This will affect how parameters and
+        attributes `pos`, `size` and `radius` are interpreted.
+    anchor : str
+        Anchor string to specify the origin of the stimulus.
+    pos : array_like
+        Initial position (`x`, `y`) of the shape on-screen relative to the
+        origin located at the center of the window or buffer in `units`. This
+        can be updated after initialization by setting the `pos` property. The
+        default value is `(0.0, 0.0)` which results in no translation.
+    size : array_like, float, int or None
+        Width and height of the shape as `(w, h)` or `[w, h]`. If a single value
+        is provided, the width and height will be set to the same specified
+        value. If `None` is specified, the `size` will be set with values passed
+        to `width` and `height`.
+    sf : float
+        Spatial frequency for the grating. Values are dependent on the units in
+        use to draw the stimuli.
+    ori : float
+        Initial orientation of the shape in degrees about its origin. Positive
+        values will rotate the shape clockwise, while negative values will
+        rotate counterclockwise. The default value for `ori` is 0.0 degrees.
+    phase : ArrayLike
+        Initial phase of the grating along the vertical and horizontal dimension
+        `(x, y)`.
+    texRes : int
+        Resolution of the texture. The higher the resolutions, the less
+        aliasing artifacts will be visible. However, this comes at the expense
+        of higher video memory use. Power-of-two values are recommended
+        (e.g. 256, 512, 1024, etc.)
+    color : array_like, str, :class:`~psychopy.colors.Color` or None
+        Sets both the initial `lineColor` and `fillColor` of the shape.
+    colorSpace : str
+        Sets the colorspace, changing how values passed to `lineColor` and
+        `fillColor` are interpreted.
+    contrast : float
+        Contrast level of the shape (0.0 to 1.0). This value is used to modulate
+        the contrast of colors passed to `lineColor` and `fillColor`.
+    opacity : float
+        Opacity of the shape. A value of 1.0 indicates fully opaque and 0.0 is
+        fully transparent (therefore invisible). Values between 1.0 and 0.0 will
+        result in colors being blended with objects in the background. This
+        value affects the fill (`fillColor`) and outline (`lineColor`) colors of
+        the shape.
+    depth : int
+        Depth layer to draw the shape when `autoDraw` is enabled. *DEPRECATED*
+    rgbPedestal : ArrayLike
+        Pedestal color `(r, g, b)`, presently unused.
+    interpolate : bool
+        Enable smoothing (anti-aliasing) when drawing shape outlines. This
+        produces a smoother (less-pixelated) outline of the shape.
+    lineRGB, fillRGB: ArrayLike, :class:`~psychopy.colors.Color` or None
+        *Deprecated*. Please use `lineColor` and `fillColor`. These arguments
+        may be removed in a future version.
+    name : str
+        Optional name of the stimuli for logging.
+    autoLog : bool
+        Enable auto-logging of events associated with this stimuli. Useful for
+        debugging and to track timing when used in conjunction with `autoDraw`.
+    autoDraw : bool
+        Enable auto drawing. When `True`, the stimulus will be drawn every frame
+        without the need to explicitly call the
+        :py:meth:`~psychopy.visual.shape.ShapeStim.draw()` method.
+
+    Examples
+    --------
+    Creating a circular grating with a sinusoidal pattern::
+
+        myGrat = GratingStim(tex='sin', mask='circle')
+
+    Create a 'Gabor'::
+
+        myGabor = GratingStim(tex='sin', mask='gauss')
+
+    """
     def __init__(self,
                  win,
                  tex="sin",
@@ -129,15 +209,15 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         # below.
         self.colorSpace = colorSpace
         self.color = color
-        if rgb != None:
+        if rgb is not None:
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
             self.color = Color(rgb, 'rgb')
-        elif dkl != None:
+        elif dkl is not None:
             logging.warning("Use of dkl arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
             self.color = Color(dkl, 'dkl')
-        elif lms != None:
+        elif lms is not None:
             logging.warning("Use of lms arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
             self.color = Color(lms, 'lms')
@@ -146,6 +226,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.ori = float(ori)
         self.phase = val2array(phase, False)
         self._origSize = None  # updated if an image texture is loaded
+
         self._requestedSize = size
         self.size = size
         self.sf = val2array(sf)
@@ -153,13 +234,13 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.depth = depth
         self.anchor = anchor
 
-        self.tex = tex
+        # self.tex = tex
         self.mask = mask
         self.contrast = float(contrast)
         self.opacity = opacity
         self.autoLog = autoLog
         self.autoDraw = autoDraw
-        self.blendmode=blendmode
+        self.blendmode = blendmode
 
         # fix scaling to window coords
         self._calcCyclesPerStim()
@@ -186,14 +267,16 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
 
     @attributeSetter
     def sf(self, value):
-        """Spatial frequency of the grating texture
+        """Spatial frequency of the grating texture.
 
-        Should be a :ref:`x,y-pair <attrib-xy>` or :ref:`scalar <attrib-scalar>` or None.
-        If `units` == 'deg' or 'cm' units are in cycles per deg or cm as appropriate.
-        If `units` == 'norm' then sf units are in cycles per stimulus (and so SF scales with stimulus size).
-        If texture is an image loaded from a file then sf=None defaults to 1/stimSize to give one cycle of the image.
+        Should be a :ref:`x,y-pair <attrib-xy>` or :ref:`scalar <attrib-scalar>`
+        or None. If `units` == 'deg' or 'cm' units are in cycles per deg or cm
+        as appropriate. If `units` == 'norm' then sf units are in cycles per
+        stimulus (and so SF scales with stimulus size). If texture is an image
+        loaded from a file then sf=None defaults to 1/stimSize to give one cycle
+        of the image.
+
         """
-
         # Recode phase to numpy array
         if value is None:
             # Set the sf to default (e.g. to the 1.0/size of the loaded image
@@ -215,12 +298,13 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
     def phase(self, value):
         """Phase of the stimulus in each dimension of the texture.
 
-        Should be an :ref:`x,y-pair <attrib-xy>` or
-        :ref:`scalar <attrib-scalar>`
+        Should be an :ref:`x,y-pair <attrib-xy>` or :ref:`scalar
+        <attrib-scalar>`
 
-        **NB** phase has modulus 1 (rather than 360 or 2*pi)
-        This is a little unconventional but has the nice effect
-        that setting phase=t*n drifts a stimulus at n Hz
+        **NB** phase has modulus 1 (rather than 360 or 2*pi) This is a little
+        unconventional but has the nice effect that setting phase=t*n drifts a
+        stimulus at *n* Hz.
+
         """
         # Recode phase to numpy array
         value = val2array(value)
@@ -232,6 +316,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
     def foreColor(self):
         # Call setter of parent mixin
         return ColorMixin.foreColor.fget(self)
+
     @foreColor.setter
     def foreColor(self, value):
         # Call setter of parent mixin
@@ -244,6 +329,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
     def contrast(self):
         # Call setter of parent mixin
         return ColorMixin.contrast.fget(self)
+
     @contrast.setter
     def contrast(self, value):
         # Call setter of parent mixin
@@ -256,6 +342,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
     def opacity(self):
         # Call setter of parent mixin
         return BaseVisualStim.opacity.fget(self)
+
     @opacity.setter
     def opacity(self, value):
         # Call setter of parent mixin
@@ -266,24 +353,27 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
 
     @attributeSetter
     def tex(self, value):
-        """Texture to used on the stimulus as a grating (aka carrier)
+        """Texture to used on the stimulus as a grating (aka carrier).
 
         This can be one of various options:
             + **'sin'**,'sqr', 'saw', 'tri', None (resets to default)
             + the name of an image file (most formats supported)
             + a numpy array (1xN or NxN) ranging -1:1
 
-        If specifying your own texture using an image or numpy array
-        you should ensure that the image has square power-of-two dimesnions
-        (e.g. 256 x 256). If not then PsychoPy will upsample your stimulus
-        to the next larger power of two.
+        If specifying your own texture using an image or numpy array you should
+        ensure that the image has square power-of-two dimensions (e.g. 256 x
+        256). If not then PsychoPy will up-sample your stimulus to the next
+        larger power of two.
+
         """
-        self._createTexture(value, id=self._texID,
-                            pixFormat=GL.GL_RGB, stim=self,
-                            res=self.texRes, maskParams=self.maskParams)
-        # if user requested size=None then update the size for new stim here
-        if hasattr(self, '_requestedSize') and self._requestedSize is None:
-            self.size = None  # Reset size do default
+        self._createTexture(
+            value,
+            id=self._texID,
+            pixFormat=GL.GL_RGB,
+            stim=self,
+            res=self.texRes,
+            maskParams=self.maskParams)
+
         self.__dict__['tex'] = value
         self._needTextureUpdate = False
 
@@ -291,10 +381,10 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
     def blendmode(self, value):
         """The OpenGL mode in which the stimulus is draw
 
-        Can the 'avg' or 'add'. Average (avg) places the new stimulus over the old one
-        with a transparency given by its opacity. Opaque stimuli will hide other stimuli
-        transparent stimuli won't. Add performs the arithmetic sum of the new stimulus and the ones
-        already present.
+        Can the 'avg' or 'add'. Average (avg) places the new stimulus over the
+        old one with a transparency given by its opacity. Opaque stimuli will
+        hide other stimuli transparent stimuli won't. Add performs the
+        arithmetic sum of the new stimulus and the ones already present.
 
         """
         self.__dict__['blendmode'] = value
@@ -321,17 +411,25 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self._set('blendmode', value, log=log)
 
     def draw(self, win=None):
-        """Draw the stimulus in its relevant window. You must call
-        this method after every MyWin.flip() if you want the
-        stimulus to appear on that frame and then update the screen
-        again.
-        """
+        """Draw the stimulus in its relevant window.
 
+        You must call this method after every `MyWin.flip()` if you want the
+        stimulus to appear on that frame and then update the screen again.
+
+        Parameters
+        ----------
+        win : `~psychopy.visual.Window` or `None`
+            Window to draw the stimulus to. Context sharing must be enabled if
+            any other window beside the one specified during creation of this
+            stimulus is specified.
+
+        """
         if win is None:
             win = self.win
+
+        self._selectWindow(win)
         saveBlendMode = win.blendMode
         win.setBlendMode(self.blendmode, log=False)
-        self._selectWindow(win)
 
         # do scaling
         GL.glPushMatrix()  # push before the list, pop after

@@ -442,8 +442,8 @@ class EyeTracker(EyeTrackerDevice):
             self._gp3set('CALIBRATE_START', STATE=1)
 
         else:
-            from .gazepointCalibrationGraphics import GazepointPsychopyCalibrationGraphics
-            calibration = GazepointPsychopyCalibrationGraphics(self, calibration_args)
+            from .calibration import GazepointCalibrationProcedure
+            calibration = GazepointCalibrationProcedure(self, calibration_args)
 
             calibration.runCalibration()
 

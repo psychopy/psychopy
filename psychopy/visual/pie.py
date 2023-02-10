@@ -113,6 +113,10 @@ class Pie(BaseShapeStim):
         if radius != 0.5 which will result in undefined behavior.
 
     """
+
+    _defaultFillColor = None
+    _defaultLineColor = None
+
     def __init__(self,
                  win,
                  radius=.5,
@@ -121,10 +125,8 @@ class Pie(BaseShapeStim):
                  edges=32,
                  units='',
                  lineWidth=1.5,
-                 lineColor=None,
-                 lineColorSpace='rgb',
-                 fillColor=None,
-                 fillColorSpace='rgb',
+                 lineColor=False,
+                 fillColor=False,
                  pos=(0, 0),
                  size=1.0,
                  ori=0.0,
@@ -132,13 +134,17 @@ class Pie(BaseShapeStim):
                  contrast=1.0,
                  depth=0,
                  interpolate=True,
-                 lineRGB=False,
-                 fillRGB=False,
                  name=None,
                  autoLog=None,
                  autoDraw=False,
-                 color=None,
-                 colorSpace=None):
+                 colorSpace=None,
+                 # legacy
+                 color=False,
+                 fillColorSpace='rgb',
+                 lineColorSpace='rgb',
+                 lineRGB=False,
+                 fillRGB=False,
+                 ):
 
         self.__dict__['radius'] = radius
         self.__dict__['edges'] = edges

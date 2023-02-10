@@ -6,6 +6,7 @@ import wx
 from pathlib import Path
 from . import theme, Theme
 from psychopy.localization import _translate
+from psychopy.tools import filetools as ft
 from ... import prefs
 
 
@@ -43,7 +44,7 @@ class ThemeSwitcher(wx.Menu):
             self.Bind(wx.EVT_MENU, self.onThemeChange, item)
         self.AppendSeparator()
         # Add Theme Folder button
-        item = self.Append(wx.ID_ANY, _translate("Open theme folder"))
+        item = self.Append(wx.ID_ANY, _translate("&Open theme folder"))
         self.Bind(wx.EVT_MENU, self.openThemeFolder, item)
         # Cache self
         menuCache.append(self)
@@ -69,13 +70,5 @@ class ThemeSwitcher(wx.Menu):
                 # Check or uncheck item to match current theme
                 item.Check(menu.GetLabelText(item.GetId()) == newTheme)
 
-    def openThemeFolder(self, event):
-        # Choose a command according to OS
-        if sys.platform in ['win32']:
-            comm = "explorer"
-        elif sys.platform in ['darwin']:
-            comm = "open"
-        elif sys.platform in ['linux', 'linux2']:
-            comm = "dolphin"
-        # Use command to open themes folder
-        subprocess.call(f"{comm} {prefs.paths['themes']}", shell=True)
+    def openThemeFolder(self, event=None):
+        ft.openInExplorer(prefs.paths['themes'])

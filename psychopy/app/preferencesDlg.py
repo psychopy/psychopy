@@ -391,6 +391,10 @@ class PrefPropGrid(wx.Panel):
             for s in sections:
                 _ = pagePtr.Append(pg.PropertyCategory(_localized[s], s))
                 for name, prop in self.sections[s].items():
+                    if name in prefs.legacy:
+                        # If this is included in the config file only for legacy, don't show it
+                        continue
+
                     item = pagePtr.Append(prop)
 
                     # set the appropriate control to edit the attribute
@@ -664,6 +668,18 @@ class PreferencesDlg(wx.Dialog):
                     self.proPrefs.addFileItem(
                         sectionName, pLabel, prefName, thisPref,
                         helpText=helpText)
+                # window backend items
+                elif prefName == 'winType':
+                    from psychopy.visual.backends import getAvailableWinTypes
+                    labels = getAvailableWinTypes()
+                    default = labels.index('pyglet')  # is always included
+                    self.proPrefs.addEnumItem(
+                            sectionName,
+                            pLabel,
+                            prefName,
+                            labels=labels,
+                            values=[i for i in range(len(labels))],
+                            value=default, helpText=helpText)
                 # # audio latency mode for the PTB driver
                 elif prefName == 'audioLatencyMode':
                     # get the labels from above

@@ -258,6 +258,7 @@ class Color:
     """
     def __init__(self, color=None, space=None, contrast=None, conematrix=None):
         self._cache = {}
+        self._renderCache = {}
         self.contrast = contrast if isinstance(contrast, (int, float)) else 1
         self.alpha = 1
         self.valid = False
@@ -376,8 +377,9 @@ class Color:
         """
         if space not in colorSpaces:
             raise ValueError(f"{space} is not a valid color space")
-        if np.all(self.contrast == 1):
-             return getattr(self, space)
+        # If value is cached, return it rather than doing calculations again
+        if space in self._renderCache:
+            return self._renderCache[space]
         # Transform contrast to match rgb
         contrast = self.contrast
         contrast = np.reshape(contrast, (-1, 1))
@@ -518,6 +520,20 @@ class Color:
             value = max(value, 0)
         # Set value
         self._alpha = value
+        # Clear render cache
+        self._renderCache = {}
+
+    @property
+    def contrast(self):
+        if hasattr(self, "_contrast"):
+            return self._contrast
+
+    @contrast.setter
+    def contrast(self, value):
+        # Set value
+        self._contrast = value
+        # Clear render cache
+        self._renderCache = {}
 
     @property
     def opacity(self):
@@ -575,12 +591,13 @@ class Color:
         # Validate
         color, space = self.validate(color, space='rgb')
         if space != 'rgb':
-            setattr(self, space)
+            setattr(self, space, color)
             return
         # Set color
         self._franca = color
         # Clear outdated values from cache
         self._cache = {'rgb': color}
+        self._renderCache = {}
 
     @property
     def rgba255(self):
@@ -609,12 +626,13 @@ class Color:
         # Validate
         color, space = self.validate(color, space='rgb255')
         if space != 'rgb255':
-            setattr(self, space)
+            setattr(self, space, color)
             return
         # Iterate through values and do conversion
         self.rgb = 2 * (color / 255 - 0.5)
         # Clear outdated values from cache
         self._cache = {'rgb255': color}
+        self._renderCache = {}
 
     @property
     def rgba1(self):
@@ -643,12 +661,13 @@ class Color:
         # Validate
         color, space = self.validate(color, space='rgb1')
         if space != 'rgb1':
-            setattr(self, space)
+            setattr(self, space, color)
             return
         # Iterate through values and do conversion
         self.rgb = 2 * (color - 0.5)
         # Clear outdated values from cache
         self._cache = {'rgb1': color}
+        self._renderCache = {}
 
     @property
     def hex(self):
@@ -689,7 +708,7 @@ class Color:
         # Validate
         color, space = self.validate(color, space='hex')
         if space != 'hex':
-            setattr(self, space)
+            setattr(self, space, color)
             return
         if len(color) > 1:
             # Handle arrays
@@ -720,6 +739,7 @@ class Color:
         self.rgb255 = rgb255
         # Clear outdated values from cache
         self._cache = {'hex': color}
+        self._renderCache = {}
 
     @property
     def named(self):
@@ -762,7 +782,7 @@ class Color:
         # Validate
         color, space = self.validate(color=color, space='named')
         if space != 'named':
-            setattr(self, space)
+            setattr(self, space, color)
             return
         # Retrieve named colour
         if len(color) > 1:
@@ -781,6 +801,7 @@ class Color:
                 self.alpha = 0
         # Clear outdated values from cache
         self._cache = {'named': color}
+        self._renderCache = {}
 
     @property
     def hsva(self):
@@ -805,12 +826,13 @@ class Color:
         # Validate
         color, space = self.validate(color=color, space='hsv')
         if space != 'hsv':
-            setattr(self, space)
+            setattr(self, space, color)
             return
         # Apply via rgba255
         self.rgb = ct.hsv2rgb(color)
         # Clear outdated values from cache
         self._cache = {'hsv': color}
+        self._renderCache = {}
 
     @property
     def lmsa(self):
@@ -835,12 +857,13 @@ class Color:
         # Validate
         color, space = self.validate(color=color, space='lms')
         if space != 'lms':
-            setattr(self, space)
+            setattr(self, space, color)
             return
         # Apply via rgba255
         self.rgb = ct.lms2rgb(color, self.conematrix)
         # Clear outdated values from cache
         self._cache = {'lms': color}
+        self._renderCache = {}
 
     @property
     def dkla(self):
@@ -866,12 +889,13 @@ class Color:
         # Validate
         color, space = self.validate(color=color, space='dkl')
         if space != 'dkl':
-            setattr(self, space)
+            setattr(self, space, color)
             return
         # Apply via rgba255
         self.rgb = ct.dkl2rgb(color, self.conematrix)
         # Clear outdated values from cache
         self._cache = {'dkl': color}
+        self._renderCache = {}
 
     @property
     def dklaCart(self):
@@ -897,12 +921,13 @@ class Color:
         # Validate
         color, space = self.validate(color=color, space='dklCart')
         if space != 'dkl':
-            setattr(self, space)
+            setattr(self, space, color)
             return
         # Apply via rgba255
         self.rgb = ct.dklCart2rgb(color, self.conematrix)
         # Clear outdated values from cache
         self._cache = {'dklCart': color}
+        self._renderCache = {}
 
     @property
     def srgb(self):
@@ -918,12 +943,13 @@ class Color:
         # Validate
         color, space = self.validate(color=color, space='srgb')
         if space != 'srgb':
-            setattr(self, space)
+            setattr(self, space, color)
             return
         # Apply via rgba255
         self.rgb = ct.srgbTF(color, reverse=True)
         # Clear outdated values from cache
         self._cache = {'srgb': color}
+        self._renderCache = {}
 
     # removing for now
     # @property
@@ -937,12 +963,13 @@ class Color:
     #     # Validate
     #     color, space = self.validate(color=color, space='rec709TF')
     #     if space != 'rec709TF':
-    #         setattr(self, space)
+    #         setattr(self, space, color)
     #         return
     #     # Apply via rgba255
     #     self.rgb = ct.rec709TF(color, reverse=True)
     #     # Clear outdated values from cache
     #     self._cache = {'rec709TF': color}
+    #     self._renderCache = {}
 
 
 # ------------------------------------------------------------------------------

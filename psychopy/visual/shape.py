@@ -48,7 +48,7 @@ knownShapes = {
         [ .5, -.5],  # Bottom left
         [-.5, -.5],  # Bottom right
     ],
-    "circle": 100,  # Make 100 point equilateral
+    "circle": "circle",  # Placeholder, value calculated on set based on line width
     "cross": [
         (-0.1, +0.5),  # up
         (+0.1, +0.5),
@@ -78,8 +78,18 @@ knownShapes = {
         (-0.19, 0.04),
         (-0.39, 0.31),
         (-0.09, 0.18)
-    ]
+    ],
+    "arrow": [
+        (0.0, 0.5),
+        (-0.5, 0.0),
+        (-1/6, 0.0),
+        (-1/6, -0.5),
+        (1/6, -0.5),
+        (1/6, 0.0),
+        (0.5, 0.0)
+    ],
 }
+knownShapes['square'] = knownShapes['rectangle']
 
 
 class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
@@ -97,6 +107,10 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
     v1.84.00: ShapeStim became BaseShapeStim.
 
     """
+
+    _defaultFillColor = None
+    _defaultLineColor = "black"
+
     def __init__(self,
                  win,
                  units='',
@@ -149,7 +163,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
             self.fillColor = color
         else:
             # Default to None if neither are set
-            self.fillColor = None
+            self.fillColor = self._defaultFillColor
         if lineColor is not False:
             self.lineColor = lineColor
         elif color is not False:
@@ -157,7 +171,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
             self.lineColor = color
         else:
             # Default to black if neither are set
-            self.lineColor = 'black'
+            self.lineColor = self._defaultLineColor
         if lineRGB is not False:
             # Override with RGB if set
             logging.warning("Use of rgb arguments to stimuli are deprecated."
@@ -248,9 +262,9 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # check if this is a name of one of our known shapes
         if isinstance(value, str) and value in knownShapes:
             value = knownShapes[value]
-        if value == "circle":
-            # If circle is requested, calculate how many points are needed for the gap between line rects to be < 1px
-            value = self._calculateMinEdges(self.lineWidth, threshold=5)
+            if value == "circle":
+                # If circle is requested, calculate how many points are needed for the gap between line rects to be < 1px
+                value = self._calculateMinEdges(self.lineWidth, threshold=5)
         if isinstance(value, int):
             value = self._calcEquilateralVertices(value)
         # Check shape
@@ -274,6 +288,31 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
             [numpy.asarray((numpy.sin(e * d), numpy.cos(e * d))) * radius
              for e in range(int(round(edges)))])
         return vertices
+
+    @staticmethod
+    def _calculateMinEdges(lineWidth, threshold=180):
+        """
+        Calculate how many points are needed in an equilateral polygon for the gap between line rects to be < 1px and
+        for corner angles to exceed a threshold.
+
+        In other words, how many edges does a polygon need to have to appear smooth?
+
+        lineWidth : int, float, np.ndarray
+            Width of the line in pixels
+
+        threshold : int
+            Maximum angle (degrees) for corners of the polygon, useful for drawing a circle. Supply 180 for no maximum
+            angle.
+        """
+        # sin(theta) = opp / hyp, we want opp to be 1/8 (meaning gap between rects is 1/4px, 1/2px in retina)
+        opp = 1/8
+        hyp = lineWidth / 2
+        thetaR = numpy.arcsin(opp / hyp)
+        theta = numpy.degrees(thetaR)
+        # If theta is below threshold, use threshold instead
+        theta = min(theta, threshold / 2)
+        # Angles in a shape add up to 360, so theta is 360/2n, solve for n
+        return int((360 / theta) / 2)
 
     def draw(self, win=None, keepMatrix=False):
         """Draw the stimulus in its relevant window.
@@ -569,6 +608,9 @@ class ShapeStim(BaseShapeStim):
         # check if this is a name of one of our known shapes
         if isinstance(value, str) and value in knownShapes:
             value = knownShapes[value]
+        if value == "circle":
+            # If circle is requested, calculate how many points are needed for the gap between line rects to be < 1px
+            value = self._calculateMinEdges(self.lineWidth, threshold=5)
         if isinstance(value, int):
             value = self._calcEquilateralVertices(value)
         # Check shape

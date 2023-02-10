@@ -22,8 +22,6 @@
 
 # General settings
 [general]
-    # which system to use as a backend for drawing
-    winType = option('pyglet', 'pygame', 'glfw', default='pyglet')
     # the default units for windows and visual stimuli
     units = option('deg', 'norm', 'cm', 'pix', 'height', default='norm')
     # full screen is best for accurate timing
@@ -46,6 +44,8 @@
     startUpPlugins = list(default=list())
     # Google Cloud Platform key, required for the audio transcription using Google Speech Recognition. Specified as a path to a JSON file containing the key data.
     appKeyGoogleCloud = string(default='')
+    # LEGACY: which system to use as a backend for drawing
+    winType = option('pyglet', 'pygame', 'glfw', default='pyglet')
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]
@@ -122,9 +122,9 @@
 
 # Settings for hardware
 [hardware]
-    # choice of audio library
+    # LEGACY: choice of audio library
     audioLib = list(default=list('sounddevice','PTB', 'pyo', 'pygame'))
-    # latency mode for PsychToolbox audio (3 is good for most applications. See
+    # LEGACY: latency mode for PsychToolbox audio (3 is good for most applications. See
     audioLatencyMode = option(0, 1, 2, 3, 4, default=3)
     # audio driver to use
     audioDriver = list(default=list('portaudio'))

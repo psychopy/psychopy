@@ -44,15 +44,17 @@ class TextboxComponent(BaseVisualComponent):
     def __init__(self, exp, parentName, name='textbox',
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
-                 font='Open Sans', units='from exp settings', bold=False, italic=False,
+                 placeholder=_translate("Type here..."),
+                 font='Arial', units='from exp settings', bold=False, italic=False,
                  color='white', colorSpace='rgb', opacity="",
-                 pos=(0, 0), size=(None, None), letterHeight=0.05, ori=0,
+                 pos=(0, 0), size=(0.5, 0.5), letterHeight=0.05, ori=0,
+                 speechPoint="",
                  anchor='center', alignment='center',
                  lineSpacing=1.0, padding=0,  # gap between box and text
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
-                 languageStyle='LTR', fillColor="None",
+                 overflow="visible", languageStyle='LTR', fillColor="None",
                  borderColor="None", borderWidth=2,
                  flipHoriz=False,
                  flipVert=False,
@@ -73,7 +75,7 @@ class TextboxComponent(BaseVisualComponent):
         self.type = 'Textbox'
         self.url = "https://www.psychopy.org/builder/components/textbox.html"
         self.order += [  # controls order of params within tabs
-            "editable", "text",  # Basic tab
+            "editable", "text", "usePlaceholder", "placeholder",  # Basic tab
             "borderWidth", "opacity",  # Appearance tab
             "font", "letterHeight", "lineSpacing", "bold", "italic",  # Formatting tab
             ]
@@ -88,6 +90,20 @@ class TextboxComponent(BaseVisualComponent):
             hint=_translate("The text to be displayed"),
             canBePath=False,
             label=_localized['text'])
+        self.depends.append(
+            {
+                "dependsOn": "editable",  # if...
+                "condition": "==True",  # meets...
+                "param": "placeholder",  # then...
+                "true": "show",  # should...
+                "false": "hide",  # otherwise...
+            }
+        )
+        self.params['placeholder'] = Param(
+            placeholder, valType='str', inputType="single", categ='Basic',
+            updates='constant', allowedUpdates=_allow3[:],
+            hint=_translate("Placeholder text to show when there is no text contents."),
+            label=_translate("Placeholder Text"))
         self.params['font'] = Param(
             font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
@@ -166,6 +182,21 @@ class TextboxComponent(BaseVisualComponent):
             updates='constant',
             hint=_translate("How should text be laid out within the box?"),
             label=_translate("Alignment"))
+        self.params['overflow'] = Param(
+            overflow, valType='str', inputType="choice", categ='Layout',
+            allowedVals=['visible',
+                         'scroll',
+                         'hidden',
+                         ],
+            updates='constant',
+            hint=_translate("If the text is bigger than the textbox, how should it behave?"),
+            label=_translate('Overflow'))
+        self.params['speechPoint'] = Param(
+            speechPoint, valType='list', inputType="single", categ='Appearance',
+            updates='constant', allowedUpdates=_allow3[:], direct=False,
+            hint=_translate("If specified, adds a speech bubble tail going to that point on screen."),
+            label=_translate("Speech point [x,y]")
+        )
         self.params['borderWidth'] = Param(
             borderWidth, valType='num', inputType="single", allowedTypes=[], categ='Appearance',
             updates='constant', allowedUpdates=_allow3[:],
@@ -192,23 +223,24 @@ class TextboxComponent(BaseVisualComponent):
         # do writing of init
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params, 'PsychoPy')
+        inits['depth'] = -self.getPosInRoutine()
         code = (
             "%(name)s = visual.TextBox2(\n"
-            "     win, text=%(text)s, font=%(font)s,\n"
+            "     win, text=%(text)s, placeholder=%(placeholder)s, font=%(font)s,\n"
             "     pos=%(pos)s," + unitsStr +
             "     letterHeight=%(letterHeight)s,\n"
             "     size=%(size)s, borderWidth=%(borderWidth)s,\n"
             "     color=%(color)s, colorSpace=%(colorSpace)s,\n"
             "     opacity=%(opacity)s,\n"
             "     bold=%(bold)s, italic=%(italic)s,\n"
-            "     lineSpacing=%(lineSpacing)s,\n"
+            "     lineSpacing=%(lineSpacing)s, speechPoint=%(speechPoint)s,\n"
             "     padding=%(padding)s, alignment=%(alignment)s,\n"
-            "     anchor=%(anchor)s,\n"
+            "     anchor=%(anchor)s, overflow=%(overflow)s,\n"
             "     fillColor=%(fillColor)s, borderColor=%(borderColor)s,\n"
             "     flipHoriz=%(flipHoriz)s, flipVert=%(flipVert)s, languageStyle=%(languageStyle)s,\n"
             "     editable=%(editable)s,\n"
             "     name='%(name)s',\n"
-            "     autoLog=%(autoLog)s,\n"
+            "     depth=%(depth)s, autoLog=%(autoLog)s,\n"
             ")\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -234,6 +266,7 @@ class TextboxComponent(BaseVisualComponent):
                 "  win: psychoJS.window,\n"
                 "  name: '%(name)s',\n"
                 "  text: %(text)s,\n"
+                "  placeholder: %(placeholder)s,\n"
                 "  font: %(font)s,\n" 
                 "  pos: %(pos)s, letterHeight: %(letterHeight)s,\n"
                 "  size: %(size)s," + unitsStr +
@@ -244,6 +277,7 @@ class TextboxComponent(BaseVisualComponent):
                 "  opacity: %(opacity)s,\n"
                 "  padding: %(padding)s,\n"
                 "  alignment: %(alignment)s,\n"
+                "  overflow: %(overflow)s,\n"
                 "  editable: %(editable)s,\n"
                 "  multiline: true,\n"
                 "  anchor: %(anchor)s,\n")

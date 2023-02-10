@@ -54,7 +54,7 @@ class TestComponents():
                 pass  # not needed if can't import it
             cls.allComp = getAllComponents(fetchIcons=False)
 
-    def setup(self):
+    def setup_method(self):
         """This setup is done for each test individually
         """
         pass

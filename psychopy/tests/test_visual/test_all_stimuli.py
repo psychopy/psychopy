@@ -95,7 +95,7 @@ class _baseVisualTest():
     def teardown_class(self):#run once for each test class (window)
         self.win.close()#shutil.rmtree(self.temp_dir)
 
-    def setup(self):#this is run for each test individually
+    def setup_method(self):#this is run for each test individually
         #make sure we start with a clean window
         self.win.flip()
 
@@ -727,7 +727,7 @@ class _baseVisualTest():
         grating.draw()
         utils.compareScreenshot('aperture1_%s.png' %(self.contextName), win)
         #aperture should automatically disable on exit
-        for shape, nVert, pos in [(None, 120, (0,0)), ('circle', 17, (.2, -.7)),
+        for shape, nVert, pos in [(None, 4, (0,0)), ('circle', 72, (.2, -.7)),
                                   ('square', 4, (-.5,-.5)), ('triangle', 3, (1,1))]:
             aperture = visual.Aperture(win, pos=pos, shape=shape, nVert=nVert)
             assert len(aperture.vertices) == nVert  # true for BaseShapeStim; expect (nVert-2)*3 if tesselated

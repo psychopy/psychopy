@@ -55,6 +55,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.frame = frame
         self.app = frame.app
         self.helpUrl = helpUrl
+        self.component = element
         self.params = element.params  # dict
         self.order = element.order
         self.title = title
@@ -308,7 +309,7 @@ class DlgCodeComponentProperties(wx.Dialog):
 
         try:
             if pythonCode:
-                jsCode = translatePythonToJavaScript(pythonCode)
+                jsCode = translatePythonToJavaScript(pythonCode, namespace=None)
 
             if codeChangeTest:
                 return jsCode

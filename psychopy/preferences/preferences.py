@@ -48,6 +48,13 @@ class Preferences:
     directly if you want to affect the script that's running.
     """
 
+    # Names of legacy parameters which are needed for use version
+    legacy = [
+        "winType",  # 2023.1.0
+        "audioLib",  # 2023.1.0
+        "audioLatencyMode",  # 2023.1.0
+    ]
+
     def __init__(self):
         super(Preferences, self).__init__()
         self.userPrefsCfg = None  # the config object for the preferences
@@ -113,7 +120,7 @@ class Preferences:
         self.paths['resources'] = dirResources
         self.paths['tests'] = join(dirPsychoPy, 'tests')
         # path to libs/frameworks
-        if 'PsychoPy2.app/Contents' in exePath:
+        if 'PsychoPy.app/Contents' in exePath:
             self.paths['libs'] = exePath.replace("MacOS/python", "Frameworks")
         else:
             self.paths['libs'] = ''  # we don't know where else to look!
@@ -128,29 +135,27 @@ class Preferences:
             self.paths['userPrefsDir'] = join(os.environ['HOME'],
                                               '.psychopy3')
 
-        # Define theme path
-        self.paths['themes'] = join(self.paths['userPrefsDir'], 'themes')
-        # Find / copy fonts
-        self.paths['fonts'] = join(self.paths['userPrefsDir'], 'fonts')
-        # avoid silent fail-to-launch-app if bad permissions:
+        # paths in user directory to create/check write access
+        userPrefsPaths = (
+            'userPrefsDir',  # root dir
+            'themes',  # define theme path
+            'fonts',  # find / copy fonts
+            'packages'  # packages and plugins
+        )
 
-        try:
-            os.makedirs(self.paths['userPrefsDir'])
-        except OSError as err:
-            if err.errno != errno.EEXIST:
-                raise
-        # Create themes folder in user space if not one already
-        try:
-            os.makedirs(self.paths['themes'])
-        except OSError as err:
-            if err.errno != errno.EEXIST:
-                raise
-        # Make fonts folder in user space if not one already
-        try:
-            os.makedirs(self.paths['fonts'])
-        except OSError as err:
-            if err.errno != errno.EEXIST:
-                raise
+        # build directory structure inside user directory
+        for userPrefPath in userPrefsPaths:
+            # define path
+            if userPrefPath != 'userPrefsDir':  # skip creating root, just check
+                self.paths[userPrefPath] = join(
+                    self.paths['userPrefsDir'],
+                    userPrefPath)
+            # avoid silent fail-to-launch-app if bad permissions:
+            try:
+                os.makedirs(self.paths[userPrefPath])
+            except OSError as err:
+                if err.errno != errno.EEXIST:
+                    raise
 
         # Get dir for base and user themes
         baseThemeDir = Path(self.paths['appDir']) / "themes" / "spec"

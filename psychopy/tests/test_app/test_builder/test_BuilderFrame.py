@@ -32,7 +32,7 @@ class Test_BuilderFrame():
     settings, they can be added to a Routine and result in a script that compiles
     """
 
-    def setup(self):
+    def setup_method(self):
 
         self.here = path.abspath(path.dirname(__file__))
         self.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
@@ -135,7 +135,7 @@ class Test_BuilderFrame():
             frame=builderView,
             element=comp,
             experiment=exp,
-            timeout=0.5)
+            timeout=500)
         # Does the message delivered by the validator match what is expected?
         for case in tykes:
             if case['msg']:

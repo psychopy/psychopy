@@ -83,6 +83,7 @@ class ApertureComponent(PolygonComponent):
     def writeInitCode(self, buff):
         # do writing of init
         inits = getInitVals(self.params)
+        inits['depth'] = -self.getPosInRoutine()
 
         # additional substitutions
         if self.params['units'].val == 'from exp settings':
@@ -102,7 +103,8 @@ class ApertureComponent(PolygonComponent):
         code = (
                 "win=win, name='%(name)s',\n"
                 "units=%(units)s, size=%(size)s, pos=%(pos)s, ori=%(ori)s,\n"
-                "shape=%(vertices)s, anchor=%(anchor)s\n"
+                "shape=%(vertices)s, anchor=%(anchor)s\n,"
+                "depth=%(depth)s\n"
         )
         buff.writeIndentedLines(code % inits)
 
@@ -121,16 +123,16 @@ class ApertureComponent(PolygonComponent):
                 f"# *{params['name']}* updates\n")
         buff.writeIndented(code)
         # writes an if statement to determine whether to draw etc
-        self.writeStartTestCode(buff)
-        buff.writeIndented("%(name)s.enabled = True\n" % self.params)
+        indented = self.writeStartTestCode(buff)
+        if indented:
+            buff.writeIndented("%(name)s.enabled = True\n" % self.params)
         # to get out of the if statement
-        buff.setIndentLevel(-1, relative=True)
-        if self.params['stopVal'].val not in ['', None, -1, 'None']:
-            # writes an if statement to determine whether to draw etc
-            self.writeStopTestCode(buff)
+        buff.setIndentLevel(-indented, relative=True)
+        indented = self.writeStopTestCode(buff)
+        if indented:
             buff.writeIndented("%(name)s.enabled = False\n" % self.params)
-            # to get out of the if statement
-            buff.setIndentLevel(-2, relative=True)
+        # to get out of the if statement
+        buff.setIndentLevel(-indented, relative=True)
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)
         if self.checkNeedToUpdate('set every frame'):
