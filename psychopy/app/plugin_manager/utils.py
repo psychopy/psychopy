@@ -1,7 +1,6 @@
-import webbrowser
 import wx
 import wx.richtext
-from psychopy.app.themes import handlers, icons, colors
+from psychopy.app.themes import handlers, icons
 from psychopy.localization import _translate
 from psychopy.tools import pkgtools
 
@@ -67,92 +66,6 @@ class InstallErrorDlg(wx.Dialog, handlers.ThemeMixin):
         wx.Dialog.ShowModal(self)
 
 
-class InstallStdoutPanel(wx.Panel, handlers.ThemeMixin):
-    def __init__(self, parent):
-        wx.Panel.__init__(
-            self, parent
-        )
-        self.SetMinSize((320, 300))
-        # Setup sizer
-        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.SetSizer(self.sizer)
-        # Output
-        self.output = wx.richtext.RichTextCtrl(self)
-        self.output.Bind(wx.EVT_TEXT_URL, self.onLink)
-        self.sizer.Add(self.output, proportion=1, border=0, flag=wx.ALL | wx.EXPAND)
-        # Close
-        self.closeBtn = wx.Button(self, label="<", style=wx.BU_EXACTFIT)
-        self.closeBtn.SetToolTip(_translate("Hide this panel"))
-        self.closeBtn.Bind(wx.EVT_BUTTON, self.onClose)
-        self.sizer.Add(self.closeBtn, border=6, flag=wx.LEFT | wx.ALIGN_TOP)
-        # Start off hidden
-        self.Hide()
-        self.Layout()
-
-    def onClose(self, evt=None):
-        self.close()
-
-    def close(self):
-        if not self.IsShown():
-            return
-        self.Hide()
-        self.GetParent().Fit()
-        self.GetParent().Layout()
-
-    def open(self):
-        if self.IsShown():
-            return
-        self.Show()
-        self.GetParent().Fit()
-        self.GetParent().Layout()
-
-    def write(self, content, color="black", style=""):
-        from psychopy.app.themes import fonts
-        self.output.BeginFont(fonts.CodeFont().obj)
-        # Set style
-        self.output.BeginTextColour(color)
-        if "b" in style:
-            self.output.BeginBold()
-        if "i" in style:
-            self.output.BeginItalic()
-        # Write content
-        self.output.WriteText(content)
-        # End style
-        self.output.EndTextColour()
-        self.output.EndBold()
-        self.output.EndItalic()
-        # Scroll to end
-        self.output.ShowPosition(self.output.GetLastPosition())
-        # Make sure we're shown
-        self.open()
-        # Update
-        self.Update()
-        self.Refresh()
-
-    def writeLink(self, content, link=""):
-        # Begin style
-        self.output.BeginURL(link)
-        # Write content
-        self.write(content, color=colors.scheme["blue"], style="i")
-        # End style
-        self.output.EndURL()
-
-    def writeCmd(self, cmd=""):
-        self.write(f">> {cmd}\n", style="bi")
-
-    def writeStdOut(self, lines=""):
-        self.write(f"{lines}\n")
-
-    def writeStdErr(self, lines=""):
-        self.write(f"{lines}\n", color=colors.scheme["red"])
-
-    def writeTerminus(self):
-        self.write("\n---\n\n\n", color=colors.scheme["green"])
-
-    def onLink(self, evt=None):
-        webbrowser.open(evt.String)
-
-
 def uninstallPackage(package):
     """
     Call `pkgtools.uninstallPackage` and handle any errors cleanly.
@@ -184,6 +97,8 @@ def installPackage(package, stream):
     """
     Call `pkgtools.installPackage` and handle any errors cleanly.
     """
+    # Show output
+    stream.open()
     # Install package
     retcode, info = pkgtools.installPackage(package)
     # Write command

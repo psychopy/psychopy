@@ -1,7 +1,7 @@
 import wx
 
 from psychopy.app import getAppInstance
-from psychopy.app.plugin_manager import PluginManagerPanel, PackageManagerPanel
+from psychopy.app.plugin_manager import PluginManagerPanel, PackageManagerPanel, InstallStdoutPanel
 from psychopy.localization import _translate
 import psychopy.tools.pkgtools as pkgtools
 
@@ -29,17 +29,19 @@ class EnvironmentManagerDlg(wx.Dialog):
         self.notebook = wx.Notebook(self)
         self.sizer.Add(self.notebook, border=6, proportion=1, flag=wx.EXPAND | wx.ALL)
         # Output panel
-        self.output = utils.InstallStdoutPanel(self)
-        self.sizer.Add(self.output, border=6, flag=wx.EXPAND | wx.ALL)
+        self.output = InstallStdoutPanel(self.notebook)
+        self.notebook.AddPage(self.output, text=_translate("Output"))
         # Plugin manager
         self.pluginMgr = PluginManagerPanel(self.notebook, dlg=self)
-        self.notebook.AddPage(self.pluginMgr, text=_translate("Plugins"))
+        self.notebook.InsertPage(0, self.pluginMgr, text=_translate("Plugins"))
         # Package manager
         self.packageMgr = PackageManagerPanel(self.notebook, dlg=self)
-        self.notebook.AddPage(self.packageMgr, text=_translate("Packages"))
+        self.notebook.InsertPage(1, self.packageMgr, text=_translate("Packages"))
         # Buttons
         self.btns = self.CreateStdDialogButtonSizer(flags=wx.HELP | wx.CLOSE)
         self.border.Add(self.btns, border=12, flag=wx.EXPAND | wx.ALL)
+
+        self.notebook.ChangeSelection(0)
 
     def onClose(self, evt=None):
         # Get changes to plugin states
