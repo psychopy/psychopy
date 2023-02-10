@@ -1601,7 +1601,10 @@ class DlgLoopProperties(_BaseParamsDlg):
     @property
     def type(self):
         """What type of loop is represented by this dlg"""
-        return self.currentHandler.type
+        if self.currentHandler.type == "MultiStairHandler":
+            return "MultiStairHandler:" + self.currentHandler.params['stairType'].val
+        else:
+            return self.currentHandler.type
 
     @type.setter
     def type(self, value):
