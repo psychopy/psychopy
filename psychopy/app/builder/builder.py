@@ -869,10 +869,14 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         content = ''
         if self.readmeFilename is not None:  # don't open viewer if no file
-            if Path(self.readmeFilename).is_file():
-                self.readmeFrame = ReadmeFrame(
-                    parent=self, filename=self.readmeFilename)
-                content = self.readmeFrame.ctrl.getValue()
+            if not Path(self.readmeFilename).is_file():
+                # If no file but there should be, make one
+                with open(self.readmeFilename, "w") as f:
+                    f.write(content)
+            # Open frame
+            self.readmeFrame = ReadmeFrame(
+                parent=self, filename=self.readmeFilename)
+            content = self.readmeFrame.ctrl.getValue()
 
             if content and self.prefs['alwaysShowReadme']:  # make this or?
                 self.showReadme()
@@ -882,7 +886,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """
         if not self.readmeFrame:
             self.updateReadme()
-        if not self.readmeFrame.IsShown():
+        if self.readmeFrame and not self.readmeFrame.IsShown():
             self.readmeFrame.show(value)
 
     def toggleReadme(self, evt=None):
