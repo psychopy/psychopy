@@ -9,7 +9,56 @@ class Progress(shape.ShapeStim):
 
     Parameters
     ==========
-
+    win : :class:`~psychopy.visual.Window`
+        Window this shape is being drawn to. The stimulus instance will
+        allocate its required resources using that Windows context. In many
+        cases, a stimulus instance cannot be drawn on different windows
+        unless those windows share the same OpenGL context, which permits
+        resources to be shared between them.
+    name : str
+        Name to refer to this Progress bar by
+    progress : float
+        Value between 0 (not started) and 1 (complete) to set the progress
+        bar to.
+    direction : str
+        Which dimension the bar should fill along, either "horizontal"
+        (also accepts "horiz", "x" or 0) or "vertical" (also accepts
+        "vert", "y" or 1)
+    pos : array_like
+        Initial position (`x`, `y`) of the shape on-screen relative to
+        the origin located at the center of the window or buffer in `units`.
+        This can be updated after initialization by setting the `pos`
+        property. The default value is `(0.0, 0.0)` which results in no
+        translation.
+    size : array_like, float, int or None
+        Width and height of the shape as `(w, h)` or `[w, h]`. If a single
+        value is provided, the width and height will be set to the same
+        specified value. If `None` is specified, the `size` will be set
+        with values passed to `width` and `height`.
+    anchor : str
+        Point within the shape where size and pos are set from. This also
+        affects where the progress bar fills up from (e.g. if anchor is
+        "left" and direction is "horizontal", then the bar will fill from
+        left to right)
+    units : str
+        Units to use when drawing. This will affect how parameters and
+        attributes `pos` and `size` are interpreted.
+    foreColor : array_like, str, :class:`~psychopy.colors.Color` or None
+        Color of the full part of the progress bar.
+    backColor, fillColor : array_like, str, :class:`~psychopy.colors.Color` or None
+        Color of the empty part of the progress bar.
+    lineColor : array_like, str, :class:`~psychopy.colors.Color` or None
+        Color of the outline around the outside of the progress bar.
+    colorSpace : str
+        Sets the colorspace, changing how values passed to `foreColor`,
+        `lineColor` and `fillColor` are interpreted.
+    lineWidth : float
+        Width of the shape outline.
+    opacity : float
+        Opacity of the shape. A value of 1.0 indicates fully opaque and 0.0
+        is fully transparent (therefore invisible). Values between 1.0 and
+        0.0 will result in colors being blended with objects in the
+        background.
     """
     def __init__(
             self, win, name="pb",
