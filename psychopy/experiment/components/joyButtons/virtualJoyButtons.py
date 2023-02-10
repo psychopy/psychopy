@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Support for fake joystick/gamepad during development
@@ -19,6 +19,8 @@ class VirtualJoyButtons:
         self.modifierKeys=['ctrl','alt']
         self.mouse = event.Mouse()
         event.Mouse(visible=False)
+        # Create .corr property with placeholder value
+        self.corr = False
 
     def getNumButtons(self):
         return len(self.numberKeys)

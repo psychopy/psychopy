@@ -32,7 +32,7 @@ class Test_BuilderFrame():
     settings, they can be added to a Routine and result in a script that compiles
     """
 
-    def setup(self):
+    def setup_method(self):
 
         self.here = path.abspath(path.dirname(__file__))
         self.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
@@ -123,6 +123,7 @@ class Test_BuilderFrame():
         # Define 'tykes' - combinations of values likely to cause an error if certain features aren't working
         tykes = [
             {'fieldName': "brokenCode", 'param': Param(val="for + :", valType="code"), 'msg': "Python syntax error in field `{fieldName}`:  {param.val}"}, # Make sure it's picking up clearly broken code
+            {'fieldName': "variableDef", 'param': Param(val="visual = 1", valType="code"), 'msg': "Variable name $visual is in use (by Psychopy module). Try another name."},
             {'fieldName': "correctAns", 'param': Param(val="'space'", valType="code"), 'msg': ""}, # Single-element lists should not cause warning
         ]
         for case in tykes:
@@ -134,7 +135,7 @@ class Test_BuilderFrame():
             frame=builderView,
             element=comp,
             experiment=exp,
-            timeout=0.5)
+            timeout=500)
         # Does the message delivered by the validator match what is expected?
         for case in tykes:
             if case['msg']:

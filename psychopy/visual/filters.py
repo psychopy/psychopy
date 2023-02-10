@@ -6,7 +6,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import numpy
@@ -234,14 +234,17 @@ def makeGauss(x, mean=0.0, sd=1.0, gain=1.0, base=0.0):
 
     """
     simpleGauss = numpy.exp((-numpy.power(mean - x, 2) / (2 * sd**2)))
-    return base + gain * (simpleGauss)
+    return base + gain * simpleGauss
+
 
 def make2DGauss(x,y, mean=0.0, sd=1.0, gain=1.0, base=0.0):
     """
     Return the gaussian distribution for a given set of x-vals
 
-   :Parameters:
-        x,y should be x and y indexes  as might be created by numpy.mgrid
+   Parameters
+   -----------
+        x,y :
+            should be x and y indexes as might be created by numpy.mgrid
         mean: float
             the centre of the distribution - may be a tuple
         sd: float
@@ -259,7 +262,8 @@ def make2DGauss(x,y, mean=0.0, sd=1.0, gain=1.0, base=0.0):
         mean = [mean, mean]
         
     simpleGauss = numpy.exp((-numpy.power(x - mean[0], 2) / (2 * sd[0]**2))-(numpy.power(y - mean[1], 2) / (2 * sd[1]**2)))
-    return base + gain * (simpleGauss)
+    return base + gain * simpleGauss
+
 
 def getRMScontrast(matrix):
     """Returns the RMS contrast (the sample standard deviation) of a array

@@ -5,6 +5,9 @@ import errno
 import os
 import sys
 import platform
+from pathlib import Path
+from .. import __version__
+
 from pkg_resources import parse_version
 import shutil
 
@@ -44,6 +47,13 @@ class Preferences:
     Use the instance of `prefs`, as above, rather than the `Preferences` class
     directly if you want to affect the script that's running.
     """
+
+    # Names of legacy parameters which are needed for use version
+    legacy = [
+        "winType",  # 2023.1.0
+        "audioLib",  # 2023.1.0
+        "audioLatencyMode",  # 2023.1.0
+    ]
 
     def __init__(self):
         super(Preferences, self).__init__()
@@ -110,7 +120,7 @@ class Preferences:
         self.paths['resources'] = dirResources
         self.paths['tests'] = join(dirPsychoPy, 'tests')
         # path to libs/frameworks
-        if 'PsychoPy2.app/Contents' in exePath:
+        if 'PsychoPy.app/Contents' in exePath:
             self.paths['libs'] = exePath.replace("MacOS/python", "Frameworks")
         else:
             self.paths['libs'] = ''  # we don't know where else to look!
@@ -125,50 +135,47 @@ class Preferences:
             self.paths['userPrefsDir'] = join(os.environ['HOME'],
                                               '.psychopy3')
 
-        # Find / copy themes
-        self.paths['themes'] = join(self.paths['userPrefsDir'], 'themes')
-        baseThemes = join(self.paths['appDir'], 'themes')
-        baseAppThemes = join(self.paths['appDir'], 'themes', 'app')
-        # Find / copy fonts
-        self.paths['fonts'] = join(self.paths['userPrefsDir'], 'fonts')
-        # avoid silent fail-to-launch-app if bad permissions:
+        # paths in user directory to create/check write access
+        userPrefsPaths = (
+            'userPrefsDir',  # root dir
+            'themes',  # define theme path
+            'fonts',  # find / copy fonts
+            'packages'  # packages and plugins
+        )
 
-        try:
-            os.makedirs(self.paths['userPrefsDir'])
-        except OSError as err:
-            if err.errno != errno.EEXIST:
-                raise
-        # Create themes folder in user space if not one already
-        try:
-            os.makedirs(self.paths['themes'])
-        except OSError as err:
-            if err.errno != errno.EEXIST:
-                raise
-        try:
-            os.makedirs(join(self.paths['themes'], "app"))
-        except OSError as err:
-            if err.errno != errno.EEXIST:
-                raise
-        # Make fonts folder in user space if not one already
-        try:
-            os.makedirs(self.paths['fonts'])
-        except OSError as err:
-            if err.errno != errno.EEXIST:
-                raise
-        # Make sure all the base themes are present in user's folder
-        #try:
-        for file in os.listdir(baseThemes):
-            if file.endswith('.json'):
+        # build directory structure inside user directory
+        for userPrefPath in userPrefsPaths:
+            # define path
+            if userPrefPath != 'userPrefsDir':  # skip creating root, just check
+                self.paths[userPrefPath] = join(
+                    self.paths['userPrefsDir'],
+                    userPrefPath)
+            # avoid silent fail-to-launch-app if bad permissions:
+            try:
+                os.makedirs(self.paths[userPrefPath])
+            except OSError as err:
+                if err.errno != errno.EEXIST:
+                    raise
+
+        # Get dir for base and user themes
+        baseThemeDir = Path(self.paths['appDir']) / "themes" / "spec"
+        userThemeDir = Path(self.paths['themes'])
+        # Check what version user themes were last updated in
+        if (userThemeDir / "last.ver").is_file():
+            with open(userThemeDir / "last.ver", "r") as f:
+                lastVer = parse_version(f.read())
+        else:
+            # if no version available, assume it was the first version to have themes
+            lastVer = parse_version("2020.2.0")
+        # If version has changed since base themes last copied, they need updating
+        updateThemes = lastVer < parse_version(__version__)
+        # Copy base themes to user themes folder if missing or need update
+        for file in baseThemeDir.glob("*.json"):
+            if updateThemes or not (Path(self.paths['themes']) / file.name).is_file():
                 shutil.copyfile(
-                    join(baseThemes, file),
-                    join(self.paths['themes'], file)
+                    file,
+                    Path(self.paths['themes']) / file.name
                 )
-        for file in os.listdir(baseAppThemes):
-            if file.endswith('.json'):
-                shutil.copyfile(
-                    join(baseAppThemes, file),
-                    join(self.paths['themes'], "app", file)
-                    )
 
     def loadAll(self):
         """Load the user prefs and the application data

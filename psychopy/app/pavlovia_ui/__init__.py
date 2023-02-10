@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # DONE: add+commit before push
@@ -19,4 +19,4 @@ from psychopy.projects import pavlovia
 from .functions import *
 from .project import ProjectEditor, syncProject
 from ._base import PavloviaMiniBrowser
-from . import menu, project, search, toolbar
+from . import menu, project, search

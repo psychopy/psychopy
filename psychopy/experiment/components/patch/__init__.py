@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
@@ -23,7 +23,7 @@ class PatchComponent(BaseVisualComponent):
     """An event class for presenting image-based stimuli"""
 
     categories = ['Stimuli']
-    targets = ['PsychoPy', 'PsychoJS']
+    targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'patch.png'
     tooltip = _translate('Patch: present images (bmp, jpg, tif...) or textures '
                          'like gratings')

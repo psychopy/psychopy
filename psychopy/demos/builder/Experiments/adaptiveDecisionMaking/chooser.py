@@ -111,7 +111,7 @@ def gui_get_desired_model(gui, core):
         expt_type_value = expt_type['Experiment type']
         print(expt_type_value)
         logging.error(f'Value of experiment type ({expt_type_value}) not recognised')
-        raise ValueError('Filed to indentify selected experiment type')
+        raise ValueError('Filed to identify selected experiment type')
 
     model_type = {'Model': models_available}
     dlg = gui.DlgFromDict(dictionary=model_type, title='Choose your model')

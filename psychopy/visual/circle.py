@@ -6,7 +6,7 @@ as a special case of a :class:`~psychopy.visual.Polygon`
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import psychopy  # so we can get the __path__
@@ -104,18 +104,22 @@ class Circle(Polygon):
         if radius != 0.5 which will result in undefined behavior.
 
     """
+
+    _defaultFillColor = "white"
+    _defaultLineColor = None
+
     def __init__(self,
                  win,
                  radius=.5,
-                 edges=32,
+                 edges="circle",
                  units='',
                  lineWidth=1.5,
-                 lineColor=None,
-                 lineColorSpace=None,
-                 fillColor='white',
-                 fillColorSpace=None,
+                 lineColor=False,
+                 fillColor=False,
+                 colorSpace='rgb',
                  pos=(0, 0),
                  size=1.0,
+                 anchor=None,
                  ori=0.0,
                  opacity=None,
                  contrast=1.0,
@@ -126,8 +130,11 @@ class Circle(Polygon):
                  name=None,
                  autoLog=None,
                  autoDraw=False,
-                 color=None,
-                 colorSpace='rgb'):
+                 # legacy
+                 color=False,
+                 fillColorSpace=None,
+                 lineColorSpace=None,
+                 ):
 
         # what local vars are defined (these are the init params) for use by
         # __repr__
@@ -147,6 +154,7 @@ class Circle(Polygon):
             fillColorSpace=fillColorSpace,
             pos=pos,
             size=size,
+            anchor=anchor,
             ori=ori,
             opacity=opacity,
             contrast=contrast,

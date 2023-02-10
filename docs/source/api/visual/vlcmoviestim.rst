@@ -2,7 +2,7 @@
 :class:`VlcMovieStim`
 ---------------------
 
-A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy using a
+A stimulus class for playing movies (mpeg, avi, etc...) in |PsychoPy| using a
 local installation of VLC media player (https://www.videolan.org/).
 
 Requires version ``3.0.11115`` of ``python-vlc`` on Windows. Other platforms

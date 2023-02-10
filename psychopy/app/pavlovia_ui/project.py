@@ -2,29 +2,40 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
+import io
 import sys
+import tempfile
 import time
 import os
 import traceback
 from pathlib import Path
 
+import gitlab
+import requests
 from .functions import (setLocalPath, showCommitDialog, logInPavlovia,
                         noGitWarning)
 from psychopy.localization import _translate
 from psychopy.projects import pavlovia
 from psychopy import logging
 
-from psychopy.app.pavlovia_ui import sync
+from psychopy.app.pavlovia_ui import sync, functions
 
 import wx
 from wx.lib import scrolledpanel as scrlpanel
+
+from .. import utils
+from ..themes import icons
+from ...projects.pavlovia import PavloviaProject
 
 try:
     import wx.lib.agw.hyperlink as wxhl  # 4.0+
 except ImportError:
     import wx.lib.hyperlink as wxhl  # <3.0.2
+
+_starred = u"\u2605"
+_unstarred = u"\u2606"
 
 
 class ProjectEditor(wx.Dialog):
@@ -176,208 +187,533 @@ class ProjectEditor(wx.Dialog):
         self.Raise()
 
 
-class DetailsPanel(scrlpanel.ScrolledPanel):
+class DetailsPanel(wx.Panel):
 
-    def __init__(self, parent, noTitle=False,
-                 style=wx.VSCROLL | wx.NO_BORDER,
-                 project={}):
+    class StarBtn(wx.Button):
+        def __init__(self, parent, value=False):
+            wx.Button.__init__(self, parent, label=_translate("Star"))
+            # Setup icons
+            self.icons = {
+                True: icons.ButtonIcon(stem="starred", size=16, theme="light").bitmap,
+                False: icons.ButtonIcon(stem="unstarred", size=16, theme="light").bitmap,
+            }
+            self.SetBitmapDisabled(self.icons[False])  # Always appear empty when disabled
+            # Set start value
+            self.value = value
 
-        scrlpanel.ScrolledPanel.__init__(self, parent, -1, style=style)
+        @property
+        def value(self):
+            return self._value
+
+        @value.setter
+        def value(self, value):
+            # Store value
+            self._value = bool(value)
+            # Change icon
+            self.SetBitmap(self.icons[self._value])
+            self.SetBitmapCurrent(self.icons[self._value])
+            self.SetBitmapFocus(self.icons[self._value])
+
+        def toggle(self):
+            self.value = (not self.value)
+
+    def __init__(self, parent, project=None,
+                 size=(650, 650),
+                 style=wx.NO_BORDER):
+
+        wx.Panel.__init__(self, parent, -1,
+                          size=size,
+                          style=style)
+        self.SetBackgroundColour("white")
         self.parent = parent
-        self.project = project  # type: pavlovia.PavloviaProject
-        self.noTitle = noTitle
-        self.localFolder = ''
-        self.syncPanel = None
-
-        if not noTitle:
-            self.title = wx.StaticText(parent=self, id=-1,
-                                       label="", style=wx.ALIGN_CENTER)
-            font = wx.Font(18, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
-            self.title.SetFont(font)
-
-        # if we've synced before we should know the local location
-        self.localFolderCtrl = wx.StaticText(
-            parent=self, id=wx.ID_ANY,
-            label=_translate("Local root: "))
-        self.browseLocalBtn = wx.Button(parent=self, id=wx.ID_ANY,
-                                        label=_translate("Browse..."))
-        self.browseLocalBtn.Bind(wx.EVT_BUTTON, self.onBrowseLocalFolder)
-
-        # remote attributes
-        self.url = wxhl.HyperLinkCtrl(parent=self, id=-1,
-                                      label="https://pavlovia.org",
-                                      URL="https://pavlovia.org",
-                                      )
-        self.description = wx.StaticText(parent=self, id=-1,
-                                         label=_translate(
-                                             "Select a project for details"))
-        self.tags = wx.StaticText(parent=self, id=-1,
-                                  label="")
-        self.visibility = wx.StaticText(parent=self, id=-1,
-                                        label="")
-
-        self.syncButton = wx.Button(self, -1, _translate("Sync..."))
-        self.syncButton.Enable(False)
-        self.syncButton.Bind(wx.EVT_BUTTON, self.onSyncButton)
-        self.syncPanel = sync.SyncStatusPanel(parent=self, id=wx.ID_ANY)
-
-        # layout
-        # sizers: on the right we have detail
+        self._updateQueue = []
+        # Setup sizer
+        self.contentBox = wx.BoxSizer()
+        self.SetSizer(self.contentBox)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        # self.sizer.Add(wx.StaticText(self, -1, _translate("Project Info")),
-        #                flag=wx.ALL,
-        #                border=5)
-        if not noTitle:
-            self.sizer.Add(self.title, border=5,
-                           flag=wx.ALL | wx.CENTER)
-        self.sizer.Add(self.url, border=5,
-                       flag=wx.ALL | wx.CENTER)
-        self.sizer.Add(self.localFolderCtrl, border=5,
-                             flag=wx.ALL | wx.EXPAND),
-        self.sizer.Add(self.browseLocalBtn, border=5,
-                             flag=wx.ALL | wx.LEFT)
-        self.sizer.Add(self.tags, border=5, flag=wx.ALL | wx.EXPAND)
-        self.sizer.Add(self.visibility, border=5, flag=wx.ALL | wx.EXPAND)
-        self.sizer.Add(wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL),
-                       flag=wx.ALL | wx.EXPAND)
-        self.sizer.Add(self.description, border=10, flag=wx.ALL | wx.EXPAND)
-
-        self.sizer.Add(wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL),
-                       flag=wx.ALL | wx.EXPAND)
-        self.sizer.Add(self.syncButton,
-                       flag=wx.ALL | wx.RIGHT, border=5)
-        self.sizer.Add(self.syncPanel, border=5, proportion=1,
-                       flag=wx.ALL | wx.RIGHT | wx.EXPAND)
-
-        if self.project:
-            self.setProject(self.project)
-            self.syncPanel.setStatus(_translate("Ready to sync"))
-        else:
-            self.syncPanel.setStatus(
-                    _translate("This file doesn't belong to a project yet"))
-
-        self.SetAutoLayout(True)
-        self.SetSizerAndFit(self.sizer)
-        self.SetupScrolling()
-        self.Bind(wx.EVT_SIZE, self.onResize)
-
-
-    def setProject(self, project, localRoot=''):
-        if not isinstance(project, pavlovia.PavloviaProject):
-            project = pavlovia.getCurrentSession().getProject(project)
-        if project is None:
-            return  # we're done
+        self.contentBox.Add(self.sizer, proportion=1, border=12, flag=wx.ALL | wx.EXPAND)
+        # Head sizer
+        self.headSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.headSizer, border=0, flag=wx.EXPAND)
+        # Icon
+        self.icon = utils.ImageCtrl(self, bitmap=wx.Bitmap(), size=(128, 128))
+        self.icon.SetBackgroundColour("#f2f2f2")
+        self.icon.Bind(wx.EVT_FILEPICKER_CHANGED, self.queueUpdate)
+        self.headSizer.Add(self.icon, border=6, flag=wx.ALL)
+        self.icon.SetToolTip(_translate(
+            "An image to represent this project, this helps it stand out when browsing on Pavlovia."
+        ))
+        # Title sizer
+        self.titleSizer = wx.BoxSizer(wx.VERTICAL)
+        self.headSizer.Add(self.titleSizer, proportion=1, flag=wx.EXPAND)
+        # Title
+        self.title = wx.TextCtrl(self,
+                                 size=(-1, 30 if sys.platform == 'darwin' else -1),
+                                 value="")
+        self.title.Bind(wx.EVT_TEXT, self.queueUpdate)
+        self.title.SetFont(
+            wx.Font(24, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        )
+        self.titleSizer.Add(self.title, border=6, flag=wx.ALL | wx.EXPAND)
+        self.title.SetToolTip(_translate(
+            "Title of the project. Unlike the project name, this isn't used as a filename anywhere; so you can "
+            "add spaces, apostrophes and emojis to your heart's content! 🦕✨"
+        ))
+        # Author
+        self.author = wx.StaticText(self, size=(-1, -1), label="by ---")
+        self.titleSizer.Add(self.author, border=6, flag=wx.LEFT | wx.RIGHT)
+        # Pavlovia link
+        self.link = wxhl.HyperLinkCtrl(self, -1,
+                                       label="https://pavlovia.org/",
+                                       URL="https://pavlovia.org/",
+                                       )
+        self.link.SetBackgroundColour("white")
+        self.titleSizer.Add(self.link, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM)
+        self.link.SetToolTip(_translate(
+            "Click to view the project in Pavlovia."
+        ))
+        # Button sizer
+        self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.titleSizer.Add(self.btnSizer, flag=wx.EXPAND)
+        # Star button
+        self.starLbl = wx.StaticText(self, label="-")
+        self.btnSizer.Add(self.starLbl, border=6, flag=wx.LEFT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
+        self.starBtn = self.StarBtn(self)
+        self.starBtn.Bind(wx.EVT_BUTTON, self.star)
+        self.btnSizer.Add(self.starBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        self.starBtn.SetToolTip(_translate(
+            "'Star' this project to get back to it easily. Projects you've starred will appear first in your searches "
+            "and projects with more stars in total will appear higher in everyone's searches."
+        ))
+        # Fork button
+        self.forkLbl = wx.StaticText(self, label="-")
+        self.btnSizer.Add(self.forkLbl, border=6, flag=wx.LEFT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
+        self.forkBtn = wx.Button(self, label=_translate("Fork"))
+        self.forkBtn.SetBitmap(icons.ButtonIcon(stem="fork", size=16, theme="light").bitmap)
+        self.forkBtn.Bind(wx.EVT_BUTTON, self.fork)
+        self.btnSizer.Add(self.forkBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        self.forkBtn.SetToolTip(_translate(
+            "Create a copy of this project on your own Pavlovia account so that you can make changes without affecting "
+            "the original project."
+        ))
+        # Create button
+        self.createBtn = wx.Button(self, label=_translate("Create"))
+        self.createBtn.SetBitmap(icons.ButtonIcon(stem="plus", size=16, theme="light").bitmap)
+        self.createBtn.Bind(wx.EVT_BUTTON, self.create)
+        self.btnSizer.Add(self.createBtn, border=6, flag=wx.RIGHT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
+        self.createBtn.SetToolTip(_translate(
+            "Create a Pavlovia project for the current experiment."
+        ))
+        # Sync button
+        self.syncBtn = wx.Button(self, label=_translate("Sync"))
+        self.syncBtn.SetBitmap(icons.ButtonIcon(stem="view-refresh", size=16, theme="light").bitmap)
+        self.syncBtn.Bind(wx.EVT_BUTTON, self.sync)
+        self.btnSizer.Add(self.syncBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        self.syncBtn.SetToolTip(_translate(
+            "Synchronise this project's local files with their online counterparts. This will 'pull' changes from "
+            "Pavlovia and 'push' changes from your local files."
+        ))
+        # Get button
+        self.downloadBtn = wx.Button(self, label=_translate("Download"))
+        self.downloadBtn.SetBitmap(icons.ButtonIcon(stem="download", size=16, theme="light").bitmap)
+        self.downloadBtn.Bind(wx.EVT_BUTTON, self.sync)
+        self.btnSizer.Add(self.downloadBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        self.downloadBtn.SetToolTip(_translate(
+            "'Clone' this project, creating local copies of all its files and tracking any changes you make so that "
+            "they can be applied when you next 'sync' the project."
+        ))
+        # Sync label
+        self.syncLbl = wx.StaticText(self, size=(-1, -1), label="---")
+        self.btnSizer.Add(self.syncLbl, border=6, flag=wx.RIGHT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
+        self.syncLbl.SetToolTip(_translate(
+            "Last synced at..."
+        ))
+        self.btnSizer.AddStretchSpacer(1)
+        # Sep
+        self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
+        # Local root
+        self.rootSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.rootSizer, flag=wx.EXPAND)
+        self.localRootLabel = wx.StaticText(self, label="Local root:")
+        self.rootSizer.Add(self.localRootLabel, border=6, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+        self.localRoot = utils.FileCtrl(self, dlgtype="dir")
+        self.localRoot.Bind(wx.EVT_FILEPICKER_CHANGED, self.queueUpdate)
+        self.rootSizer.Add(self.localRoot, proportion=1, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM)
+        self.localRoot.SetToolTip(_translate(
+            "Folder in which local files are stored for this project. Changes to files in this folder will be tracked "
+            "and applied to the project when you 'sync', so make sure the only files in this folder are relevant!"
+        ))
+        # Sep
+        self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
+        # Description
+        self.description = utils.MarkdownCtrl(self, size=(-1, -1), value="", file=None)
+        self.description.Bind(wx.EVT_TEXT, self.queueUpdate)
+        self.sizer.Add(self.description, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        self.description.SetToolTip(_translate(
+            "Description of the project to be shown on Pavlovia. Note: This is different than a README file!"
+        ))
+        # Sep
+        self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
+        # Visibility
+        self.visSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.visSizer, flag=wx.EXPAND)
+        self.visLbl = wx.StaticText(self, label=_translate("Visibility:"))
+        self.visSizer.Add(self.visLbl, border=6, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+        self.visibility = wx.Choice(self, choices=["Private", "Public"])
+        self.visibility.Bind(wx.EVT_CHOICE, self.queueUpdate)
+        self.visSizer.Add(self.visibility, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
+        self.visibility.SetToolTip(_translate(
+            "Visibility of the current project; whether its visible only to its creator (Private) or to any user "
+            "(Public)."
+        ))
+        # Status
+        self.statusSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.statusSizer, flag=wx.EXPAND)
+        self.statusLbl = wx.StaticText(self, label=_translate("Status:"))
+        self.statusSizer.Add(self.statusLbl, border=6, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+        self.status = wx.Choice(self, choices=["Running", "Piloting", "Inactive"])
+        self.status.Bind(wx.EVT_CHOICE, self.queueUpdate)
+        self.statusSizer.Add(self.status, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
+        self.status.SetToolTip(_translate(
+            "Project status; whether it can be run to collect data (Running), run by its creator without saving "
+            "data (Piloting) or cannot be run (Inactive)."
+        ))
+        # Tags
+        self.tagSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.tagSizer, flag=wx.EXPAND)
+        self.tagLbl = wx.StaticText(self, label=_translate("Keywords:"))
+        self.tagSizer.Add(self.tagLbl, border=6, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+        self.tags = utils.ButtonArray(self, orient=wx.HORIZONTAL, items=[], itemAlias=_translate("tag"))
+        self.tags.Bind(wx.EVT_LIST_INSERT_ITEM, self.queueUpdate)
+        self.tags.Bind(wx.EVT_LIST_DELETE_ITEM, self.queueUpdate)
+        self.tagSizer.Add(self.tags, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
+        self.tags.SetToolTip(_translate(
+            "Keywords associated with this project, helping others to find it. For example, if your experiment is "
+            "useful to psychophysicists, you may want to add the keyword 'psychophysics'."
+        ))
+        # Update button
+        self.updateBtn = wx.Button(self, style=wx.BU_EXACTFIT)
+        self.updateBtn.SetBitmap(icons.ButtonIcon(stem="view-refresh", size=16, theme="light").bitmap)
+        self.sizer.Add(self.updateBtn, flag=wx.ALIGN_RIGHT | wx.ALL)
+        self.updateBtn.Bind(wx.EVT_BUTTON, self.doUpdate)
+        self.updateBtn.Disable()
+        # Populate
+        if project is not None:
+            project.refresh()
         self.project = project
+        # Bind close function
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.close)
 
-        if not self.noTitle:
-            # use the id (namespace/name) but give space around /
-            self.title.SetLabel(project.id.replace("/", " / "))
+    @property
+    def project(self):
+        return self._project
 
-        # url
-        self.url.SetLabel(self.project.web_url)
-        self.url.SetURL(self.project.web_url)
+    @project.setter
+    def project(self, project):
+        self._project = project
 
-        # public / private
-        if hasattr(project.attributes, 'description') and project.attributes['description']:
-            self.description.SetLabel(project.attributes['description'])
+        # Populate fields
+        if project is None:
+            # Icon
+            self.icon.setImage(wx.Bitmap())
+            self.icon.SetBackgroundColour("#f2f2f2")
+            self.icon.Disable()
+            # Title
+            self.title.SetValue("")
+            self.title.Disable()
+            # Author
+            self.author.SetLabel("by --- on ---")
+            self.author.Disable()
+            # Link
+            self.link.SetLabel("---/---")
+            self.link.SetURL("https://pavlovia.org/")
+            self.link.Disable()
+            # Star button
+            self.starBtn.Disable()
+            self.starBtn.value = False
+            # Star label
+            self.starLbl.SetLabel("-")
+            self.starLbl.Disable()
+            # Fork button
+            self.forkBtn.Disable()
+            # Fork label
+            self.forkLbl.SetLabel("-")
+            self.forkLbl.Disable()
+            # Create button
+            self.createBtn.Show()
+            self.createBtn.Enable(bool(self.session.user))
+            # Sync button
+            self.syncBtn.Hide()
+            # Get button
+            self.downloadBtn.Hide()
+            # Sync label
+            self.syncLbl.SetLabel("---")
+            self.syncLbl.Disable()
+            # Local root
+            self.localRootLabel.Disable()
+            wx.TextCtrl.SetValue(self.localRoot, "")  # use base method to avoid callback
+            self.localRoot.Disable()
+            # Description
+            self.description.setValue("")
+            self.description.Disable()
+            # Visibility
+            self.visibility.SetSelection(wx.NOT_FOUND)
+            self.visibility.Disable()
+            # Status
+            self.status.SetSelection(wx.NOT_FOUND)
+            self.status.Disable()
+            # Tags
+            self.tags.clear()
+            self.tags.Disable()
+        elif project.project is None:
+            # If project has been deleted, prompt to unlink
+            dlg = wx.MessageDialog(
+                self,
+                message=_translate(
+                    "Could not find GitLab project with id {}.\n"
+                    "\n"
+                    "Please check that the project exists on Pavlovia, that you are logged in as the correct user in "
+                    "the PsychoPy app, and that your account has access to the project."
+                ).format(project.id),
+                style=wx.ICON_ERROR
+            )
+            dlg.ShowModal()
+            self.project = None
         else:
-            self.description.SetLabel('')
-        if not hasattr(project, 'visibility'):
-            visib = _translate("User not logged in!")
-        elif project.visibility in ['public', 'internal']:
-            visib = "Public"
-        else:
-            visib = "Private"
-        self.visibility.SetLabel(_translate("Visibility: {}").format(visib))
+            # Refresh project to make sure it has info
+            if not hasattr(project, "_info"):
+                project.refresh()
+            # Icon
+            if 'avatarUrl' in project.info:
+                try:
+                    content = self.session.session.get(project['avatar_url']).content
+                    icon = io.BytesIO(content)
+                except requests.exceptions.MissingSchema:
+                    icon = wx.Bitmap()
+            else:
+                icon = wx.Bitmap()
+            self.icon.setImage(icon)
+            self.icon.SetBackgroundColour("#f2f2f2")
+            self.icon.Enable(project.editable)
+            # Title
+            self.title.SetValue(project['name'])
+            self.title.Enable(project.editable)
+            # Author
+            self.author.SetLabel(f"by {project['path_with_namespace'].split('/')[0]} on {project['created_at']:%d %B %Y}")
+            self.author.Enable()
+            # Link
+            self.link.SetLabel(project['path_with_namespace'])
+            self.link.SetURL("https://pavlovia.org/" + project['path_with_namespace'])
+            self.link.Enable()
+            # Star button
+            self.starBtn.value = project.starred
+            self.starBtn.Enable(bool(project.session.user))
+            # Star label
+            self.starLbl.SetLabel(str(project['star_count']))
+            self.starLbl.Enable()
+            # Fork button
+            self.forkBtn.Enable(bool(project.session.user) and not project.owned)
+            # Fork label
+            self.forkLbl.SetLabel(str(project['forks_count']))
+            self.forkLbl.Enable()
+            # Create button
+            self.createBtn.Hide()
+            # Sync button
+            self.syncBtn.Show(bool(project.localRoot) or (not project.editable))
+            self.syncBtn.Enable(project.editable)
+            # Get button
+            self.downloadBtn.Show(not bool(project.localRoot) and project.editable)
+            self.downloadBtn.Enable(project.editable)
+            # Sync label
+            self.syncLbl.SetLabel(f"{project['last_activity_at']:%d %B %Y, %I:%M%p}")
+            self.syncLbl.Show(bool(project.localRoot) or (not project.editable))
+            self.syncLbl.Enable(project.editable)
+            # Local root
+            wx.TextCtrl.SetValue(self.localRoot, project.localRoot or "")  # use base method to avoid callback
+            self.localRootLabel.Enable(project.editable)
+            self.localRoot.Enable(project.editable)
+            # Description
+            self.description.setValue(project['description'])
+            self.description.Enable(project.editable)
+            # Visibility
+            self.visibility.SetStringSelection(project['visibility'])
+            self.visibility.Enable(project.editable)
+            # Status
+            self.status.SetStringSelection(str(project['status2']).title())
+            self.status.Enable(project.editable)
+            # Tags
+            self.tags.items = project['keywords']
+            self.tags.Enable(project.editable)
 
-        # do we have a local location?
-        localFolder = project.localRoot
-        if not localFolder:
-            localFolder = _translate("<not yet synced>")
-        self.localFolderCtrl.SetLabel(_translate("Local root: {}").format(localFolder))
-
-        # Check permissions: login, fork or sync
-        perms = project.permissions
-
-        # we've got the permissions value so use it
-        if not pavlovia.getCurrentSession().user:
-            self.syncButton.SetLabel(_translate('Log in to sync...'))
-        elif not perms or perms < pavlovia.permissions['developer']:
-            self.syncButton.SetLabel(_translate('Fork + sync...'))
-        else:
-            self.syncButton.SetLabel(_translate('Sync...'))
-        self.syncButton.Enable(True)  # now we have a project we should enable
-
-        while None in project.tags:
-            project.tags.remove(None)
-        self.tags.SetLabel(_translate("Tags:") + " " + ", ".join(project.tags))
-        # call onResize to get correct wrapping of description box and title
-        self.onResize()
-
-    def onResize(self, evt=None):
-        if self.project is None:
-            return
-        w, h = self.GetSize()
-        # if it hasn't been created yet then we won't have attributes
-        if hasattr(self.project, 'attributes') and self.project.attributes['description'] is not None:
-                self.description.SetLabel(self.project.attributes['description'])
-                self.description.Wrap(w - 20)
-        # noTitle in some uses of the detailsPanel
-        if not self.noTitle and 'name' in self.project:
-            self.title.SetLabel(self.project.name)
-            self.title.Wrap(w - 20)
+        # Layout
         self.Layout()
+        # Clear update queue as we've just set from online
+        self._updateQueue = []
+        self.updateBtn.Disable()
 
-    def onSyncButton(self, event):
-        if not pavlovia.haveGit:
-            noGitWarning(parent=self.parent)
-            return 0
+    @property
+    def session(self):
+        # Cache session if not cached
+        if not hasattr(self, "_session"):
+            self._session = pavlovia.getCurrentSession()
+        # Return cached session
+        return self._session
 
-        if self.project is None:
-            raise AttributeError("User pressed the sync button with no "
-                                 "current project existing.")
+    def create(self, evt=None):
+        """
+        Create a new project
+        """
+        dlg = sync.CreateDlg(self, user=self.session.user)
+        dlg.ShowModal()
+        self.project = dlg.project
 
-        # log in first if needed
-        if not pavlovia.getCurrentSession().user:
-            logInPavlovia(parent=self.parent)
+    def sync(self, evt=None):
+        # If not synced locally, choose a folder
+        if not self.localRoot.GetValue():
+            self.localRoot.browse()
+        # If cancelled, return
+        if not self.localRoot.GetValue():
             return
+        self.project.localRoot = self.localRoot.GetValue()
+        # Enable ctrl now that there is a local root
+        self.localRoot.Enable()
+        self.localRootLabel.Enable()
+        # Get filename if available
+        if hasattr(self.GetTopLevelParent(), "filename"):
+            file = self.parent.filename
+        else:
+            file = ""
+        # Do sync
+        syncProject(self, self.project, file=file)
+        # Update project
+        self.project.refresh()
+        # Update last sync date & show
+        self.syncLbl.SetLabel(f"{self.project['last_activity_at']:%d %B %Y, %I:%M%p}")
+        self.syncLbl.Show()
+        self.syncLbl.Enable()
+        # Switch buttons to show Sync rather than Download/Create
+        self.createBtn.Hide()
+        self.downloadBtn.Hide()
+        self.syncBtn.Show()
+        self.syncBtn.Enable()
 
-        # fork first if needed
-        perms = self.project.permissions
-        if not perms or perms < pavlovia.permissions['developer']:
-            # specifying the group to fork to has no effect so don't use it
-            # dlg = ForkDlg(parent=self.parent, project=self.project)
-            # if dlg.ShowModal() == wx.ID_CANCEL:
-            #     return
-            # else:
-            #     newGp = dlg.groupField.GetStringSelection()
-            #     newName = dlg.nameField.GetValue()
-            fork = self.project.forkTo()  # logged-in user
-            self.setProject(fork.id)
+    def fork(self, evt=None):
+        # Do fork
+        try:
+            proj = self.project.fork()
+        except gitlab.GitlabCreateError as e:
+            # If project already exists, ask user if they want to view it rather than create again
+            dlg = wx.MessageDialog(self, f"{e.error_message}\n\nOpen forked project?", style=wx.YES_NO)
+            if dlg.ShowModal() == wx.ID_YES:
+                # If yes, show forked project
+                projData = requests.get(
+                    f"https://pavlovia.org/api/v2/experiments/{self.project.session.user['username']}/{self.project.info['pathWithNamespace'].split('/')[1]}"
+                ).json()
+                self.project = PavloviaProject(projData['experiment']['gitlabId'])
+                return
+            else:
+                # If no, return
+                return
+        # Switch to new project
+        self.project = proj
+        # Sync
+        dlg = wx.MessageDialog(self, "Fork created! Sync it to a local folder?", style=wx.YES_NO)
+        if dlg.ShowModal() == wx.ID_YES:
+            self.sync()
 
-        # if project.localRoot doesn't exist, or is empty
-        if 'localRoot' not in self.project or not self.project.localRoot:
-            # we first need to choose a location for the repository
-            newPath = setLocalPath(self, self.project)
-            if newPath:
-                self.localFolderCtrl.SetLabel(
-                    label=_translate("Local root: {}").format(newPath))
-            self.project.local = newPath
-            self.Layout()
-            self.Raise()
+    def star(self, evt=None):
+        # Toggle button
+        self.starBtn.toggle()
+        # Star/unstar project
+        self.queueUpdate(evt)
+        # todo: Refresh stars count
 
-        self.syncPanel.setStatus(_translate("Synchronizing..."))
-        self.project.sync(infoStream=self.syncPanel.infoStream)
-        self.parent.Raise()
+    def queueUpdate(self, evt=None):
+        # Skip if no project
+        if self.project is None or evt is None:
+            return
+        # Get object
+        obj = evt.GetEventObject()
+        # Mark object as needing update
+        if obj not in self._updateQueue:
+            self._updateQueue.append(obj)
+        # Enable update button
+        self.updateBtn.Enable()
 
-    def onBrowseLocalFolder(self, evt):
-        self.localFolder = setLocalPath(self, self.project)
-        if self.localFolder:
-            self.localFolderCtrl.SetLabel(
-                label=_translate("Local root: {}").format(self.localFolder))
-        self.localFolderCtrl.Wrap(self.GetSize().width)
-        self.Layout()
-        self.parent.Raise()
+    def doUpdate(self, evt=None):
+        # Update each object in queue
+        success = []
+        for obj in self._updateQueue:
+            success.append(self.updateProject(obj))
+        # Disable update button
+        self.updateBtn.Enable(not all(success))
+
+    def updateProject(self, obj):
+        success = False
+        # Update project attribute according to supplying object
+        if obj == self.title and self.project.editable:
+            self.project['name'] = self.title.Value
+            success = self.project.save()
+        if obj == self.icon:
+            # Create temporary image file
+            _, temp = tempfile.mkstemp(suffix=".png")
+            self.icon.BitmapFull.SaveFile(temp, wx.BITMAP_TYPE_PNG)
+            # Load and upload from temp file
+            self.project['avatar'] = open(temp, "rb")
+            success = self.project.save()
+            # Delete temp file
+            #os.remove(temp)
+        if obj == self.starBtn:
+            self.project.starred = self.starBtn.value
+            self.starLbl.SetLabel(str(self.project.info['nbStars']))
+            success = True
+        if obj == self.localRoot:
+            if Path(self.localRoot.Value).is_dir():
+                self.project.localRoot = self.localRoot.Value
+            else:
+                dlg = wx.MessageDialog(self,
+                                       message=_translate(
+                                           "Could not find folder {directory}, please select a different "
+                                           "local root.".format(directory=self.localRoot.Value)
+                                       ),
+                                       caption="Directory not found",
+                                       style=wx.ICON_ERROR)
+                self.localRoot.SetValue("")
+                self.project.localRoot = ""
+                dlg.ShowModal()
+            # Set project again to trigger a refresh
+            self.project = self.project
+            success = True
+        if obj == self.description and self.project.editable:
+            self.project['description'] = self.description.getValue()
+            success = self.project.save()
+        if obj == self.visibility and self.project.editable:
+            self.project['visibility'] = self.visibility.GetStringSelection().lower()
+            success = self.project.save()
+        if obj == self.status and self.project.editable:
+            retval = self.session.session.put(
+                f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
+                json={'status2': self.status.GetStringSelection().upper()}
+            )
+            success = True
+        if obj == self.tags and self.project.editable:
+            retval = self.session.session.put(
+                f"https://pavlovia.org/api/v2/experiments/{self.project.id}",
+                json={"keywords": self.tags.GetValue()}
+            )
+            success = True
+        # Clear from update queue
+        if obj in self._updateQueue:
+            self._updateQueue.remove(obj)
+
+        return success
+
+    def close(self, evt=None):
+        if len(self._updateQueue):
+            wx.MessageDialog(self, message=_translate(
+                "Project info has changed, update online before closing?"
+            ), style=wx.YES_NO | wx.CANCEL)
+
 
 
 class ProjectFrame(wx.Dialog):
@@ -388,7 +724,7 @@ class ProjectFrame(wx.Dialog):
             style = (wx.DEFAULT_DIALOG_STYLE | wx.CENTER |
                      wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
         if project:
-            title = project.title
+            title = project['name']
         else:
             title = _translate("Project info")
         self.frameType = 'ProjectInfo'
@@ -401,14 +737,15 @@ class ProjectFrame(wx.Dialog):
         self.detailsPanel = DetailsPanel(parent=self, project=self.project)
 
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(self.detailsPanel, 1, wx.EXPAND | wx.ALL, 5)
+        self.mainSizer.Add(self.detailsPanel, proportion=1, border=12, flag=wx.EXPAND | wx.ALL)
         self.SetSizerAndFit(self.mainSizer)
 
         if self.parent:
             self.CenterOnParent()
         self.Layout()
 
-def syncProject(parent, project=None, closeFrameWhenDone=False):
+
+def syncProject(parent, project, file="", closeFrameWhenDone=False):
     """A function to sync the current project (if there is one)
 
     Returns
@@ -417,154 +754,104 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
         0 for fail
         -1 for cancel at some point in the process
     """
-    if not pavlovia.haveGit:
-        noGitWarning(parent)
-        return 0
-
-    isCoder = hasattr(parent, 'currentDoc')
-
-    # Test and reject sync from invalid folders
-    if project:
-        expectedPath = Path(project.localRoot)
-    else:
-        expectedPath = None
-
-    if isCoder:
-        currentPath = Path(parent.currentDoc.filename).parent
-    else:
-        currentPath = Path(parent.filename).parent
-
-    currentPath = os.path.normcase(os.path.expanduser(currentPath))
-    invalidFolders = [os.path.normcase(os.path.expanduser('~/Desktop')),
-                      os.path.normcase(os.path.expanduser('~/My Documents'))]
-
-    if currentPath in invalidFolders:
-        wx.MessageBox(("You cannot sync projects from:\n\n"
-                      "  - Desktop\n"
-                      "  - My Documents\n\n"
-                      "Please move your project files to another folder, and try again."),
-                      "Project Sync Error",
-                      wx.ICON_QUESTION | wx.OK)
-        return -1
-    # If paths don't match, update project path to local
-    if expectedPath:
-        if not currentPath == expectedPath:
-            project.localRoot = str(currentPath)
-
-
-    if not project and "BuilderFrame" in repr(parent):
-        # try getting one from the frame
-        project = parent.project  # type: pavlovia.PavloviaProject
-
-    if not project:  # ask the user to create one
-
-        # if we're going to create a project we need user to be logged in
-        pavSession = pavlovia.getCurrentSession()
-        try:
-            username = pavSession.user.username
-        except:
-            username = logInPavlovia(parent)
-        if not username:
-            return -1  # never logged in
-
-        # create project dialog
-        msg = _translate("This file doesn't belong to any existing project.")
-        style = wx.OK | wx.CANCEL | wx.CENTER
-        dlg = wx.MessageDialog(parent=parent, message=msg, style=style)
-        dlg.SetOKLabel(_translate("Create a project"))
+    # Error catch logged out
+    session = pavlovia.getCurrentSession()
+    if not session or not session.user:
+        # If not logged in, prompt to login
+        dlg = wx.MessageDialog(None, message=_translate(
+            "You are not logged in to Pavlovia. Please log in to sync project."
+        ), style=wx.ICON_AUTH_NEEDED | wx.OK | wx.CANCEL)
+        dlg.SetOKLabel(_translate("Login..."))
         if dlg.ShowModal() == wx.ID_OK:
-            if isCoder:
-                if parent.currentDoc:
-                    localRoot = os.path.dirname(parent.currentDoc.filename)
+            # If they click Login, open login screen
+            user = functions.logInPavlovia(None)
+            # If they cancelled out of login screen, cancel sync
+            if not user:
+                return
+        else:
+            # If they cancel out of login prompt, cancel sync
+            return
+
+    # If not in a project, make one
+    if project is None:
+        # Try to get project id from git files
+        projName = pavlovia.getNameWithNamespace(file)
+        if projName is not None:
+            # If successful, make PavloviaProject from local info
+            project = PavloviaProject(projName, localRoot=file)
+
+    if project is None or project.project is None:
+        # If project is still None
+        msgDlg = wx.MessageDialog(parent,
+                               message=_translate("This file doesn't belong to any existing project."),
+                               style=wx.OK | wx.CANCEL | wx.CENTER)
+        msgDlg.SetOKLabel(_translate("Create a project"))
+        if msgDlg.ShowModal() == wx.ID_OK:
+            # Get start path and name from builder/coder if possible
+            if file:
+                file = Path(file)
+                name = file.stem
+                path = file.parent
+            else:
+                name = path = ""
+            # Open dlg to create new project
+            createDlg = sync.CreateDlg(parent,
+                                       user=pavlovia.getCurrentSession().user,
+                                       name=name,
+                                       path=path)
+            if createDlg.ShowModal() == wx.ID_OK and createDlg.project is not None:
+                project = createDlg.project
+            else:
+                return
+        else:
+            return
+    # If no local root or dead local root, prompt to make one
+    if not project.localRoot or not Path(project.localRoot).is_dir():
+        defaultRoot = Path(file).parent
+
+        # Handle missing or invalid local root
+        if not project.localRoot or not Path(project.localRoot).is_dir():
+            if file and defaultRoot.is_dir():
+                # If we have a reference to the current folder, use it
+                project.localRoot = defaultRoot
+            else:
+                # Otherwise, ask user to choose a local root
+                if not project.localRoot:
+                    # If there is no local root at all, prompt user to make one
+                    msg = _translate("Project root folder is not yet specified, specify project root now?")
                 else:
-                    localRoot = ''
-            else:
-                localRoot = os.path.dirname(parent.filename)
-            # open the project editor (with no project to create one)
-            editor = ProjectEditor(parent=parent, localRoot=localRoot)
-            if editor.ShowModal() == wx.ID_OK:
-                project = editor.project
-            else:
-                project = None
-        else:
-            return -1  # user pressed cancel
-
-    if not project:  # we did our best for them. Give up!
-        return 0
-
-    # if project.localRoot doesn't exist, or is empty
-    if 'localRoot' not in project or not project.localRoot:
-        # we first need to choose a location for the repository
-        setLocalPath(parent, project)
-        parent.Raise()  # make sure that frame is still visible
-
-    #check that the project does exist remotely
-    if not project.pavlovia:
-        # project didn't exist at Pavlovia (deleted?)
-        recreatorDlg = ProjectRecreator(parent=parent, project=project)
-        ok = recreatorDlg.ShowModal()
-        if ok > 0:
-            project = recreatorDlg.project
-        else:
-            logging.error("Failed to recreate project to sync with")
-            return 0
-
-    # a sync will be necessary so set the target to Runner stdout
-    parent.app.showRunner()
-    syncFrame = parent.app.runner.stdOut
-
-    if project._newRemote:
-        # new remote so this will be a first push
-        if project.getRepo(forceRefresh=True) is None:
-            # no local repo yet so create one
-            project.newRepo(syncFrame)
-        # add the local files and commit them
-        ok = showCommitDialog(parent=parent, project=project,
-                              initMsg="First commit",
-                              infoStream=syncFrame)
-        if ok == -1:  # cancelled
-            syncFrame.Destroy()
-            return -1
-        syncFrame.setStatus("Pushing files to Pavlovia")
-        wx.Yield()
-        time.sleep(0.001)
-        # git push -u origin master
-        try:
-            project.firstPush(infoStream=syncFrame)
-            project._newRemote = False
-        except Exception as e:
-            closeFrameWhenDone = False
-            syncFrame.statusAppend(traceback.format_exc())
-    else:
-        # existing remote which we should sync (or clone)
-        try:
-            ok = project.getRepo(syncFrame)
-            if not ok:
-                closeFrameWhenDone = False
-        except Exception as e:
-            closeFrameWhenDone = False
-            syncFrame.statusAppend(traceback.format_exc())
-        # check for anything to commit before pull/push
-        outcome = showCommitDialog(parent, project,
-                                   infoStream=syncFrame)
-        # 0=nothing to do, 1=OK, -1=cancelled
-        if outcome == -1:  # user cancelled
-            return -1
-        try:
-            status = project.sync(syncFrame)
-            if status == -1:
-                syncFrame.statusAppend("Couldn't sync")
-        except Exception:  # not yet sure what errors might occur
-            # send the error to panel
-            syncFrame.statusAppend(traceback.format_exc())
-            return 0
-
-    wx.Yield()
-    project._lastKnownSync = time.time()
-    if closeFrameWhenDone:
-        pass
-
-    return 1
+                    # If there is a local root but the folder is gone, prompt user to change it
+                    msg = _translate("Project root folder does not exist, change project root now?")
+                dlg = wx.MessageDialog(parent, message=msg, style=wx.OK | wx.CANCEL)
+                # Get response
+                if dlg.ShowModal() == wx.ID_OK:
+                    dlg = wx.DirDialog(parent, message=_translate("Specify folder..."), defaultPath=str(defaultRoot))
+                    if dlg.ShowModal() == wx.ID_OK:
+                        project.localRoot = str(dlg.GetPath())
+                    else:
+                        # If cancelled, cancel sync
+                        return
+                else:
+                    # If they don't want to specify, cancel sync
+                    return
+    # Assign project to parent frame
+    parent.project = project
+    # If there is (now) a project, do sync
+    if project is not None:
+        # Show sync dlg
+        dlg = sync.SyncDialog(parent, project)
+        # Commit changes
+        committed = functions.showCommitDialog(parent, project, initMsg="", infoStream=dlg.status)
+        # Cancel sync if commit cancelled
+        if committed == -1:
+            dlg.status.write(_translate(
+                "\n"
+                "Sync cancelled by user."
+            ))
+            dlg.OKbtn.Enable(True)
+            return
+        # Do sync
+        dlg.sync()
 
 
 class ForkDlg(wx.Dialog):
@@ -576,7 +863,7 @@ class ForkDlg(wx.Dialog):
 
         existingName = project.name
         session = pavlovia.getCurrentSession()
-        groups = [session.user.username]
+        groups = [session.user['username']]
         groups.extend(session.listUserGroups())
         msg = wx.StaticText(self, label="Where shall we fork to?")
         groupLbl = wx.StaticText(self, label="Group:")

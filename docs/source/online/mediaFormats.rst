@@ -7,7 +7,7 @@ Media formats suitable for online studies
 
 When you want to present images, sounds, or movies online, two things are important to take into account:
 
-1. Web-browsers may support different formats than PsychoPy does
+1. Web-browsers may support different formats than |PsychoPy| does
 2. Because all media need to be downloaded via internet, it can be handy to use formats that compress your media, so that they produce smaller files.
 
 Below are some recommended formats and pointers how to convert your media with free and open source software.
@@ -27,7 +27,7 @@ Here you can find an `overview <https://developer.mozilla.org/en-US/docs/Web/Gui
 
 For converting sound to MP3, you could use `VLC Player <https://www.videolan.org/vlc/>`_. See `this tutorial <https://www.vlchelp.com/convert-audio-format/>`_ for instructions on how to convert multiple sounds at once using VLC.
 
-NB - Presently, PsychoPy does not yet support MP3.
+NB - Presently, |PsychoPy| does not yet support MP3.
 
 Movies: MP4 + H.264 & MP3
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -63,4 +63,3 @@ For converting movies, you could use `VLC Player <https://www.videolan.org/vlc/>
     :figclass: align-center
 
     Profile settings for encoding video to MP4 + H.264 & MP3
-

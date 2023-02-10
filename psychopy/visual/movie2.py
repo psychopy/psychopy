@@ -58,7 +58,7 @@ Testing has only been done on Windows and Linux so far.
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 #
 # Contributed by Sol Simpson, April 2014.
@@ -115,7 +115,7 @@ except Exception as err:
         bits = 64
     else:
         bits = 32
-    if "wrong architecture" in err:
+    if "wrong architecture" in str(err):
         msg = ("Failed to import vlc module for MovieStim2.\n"
                "You're using %i-bit python. Is your VLC install the same?"
                % bits)
@@ -188,6 +188,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                  units='pix',
                  size=None,
                  pos=(0.0, 0.0),
+                 anchor="center",
                  ori=0.0,
                  flipVert=False,
                  flipHoriz=False,
@@ -231,8 +232,8 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                 'Movie stimuli can only be used with a pyglet window')
             core.quit()
         self._retracerate = win._monitorFrameRate
-        if self._retracerate is None:
-            self._retracerate = win.getActualFrameRate()
+        # if self._retracerate is None:
+        #     self._retracerate = win.getActualFrameRate()
         if self._retracerate is None:
             logging.warning("FrameRate could not be supplied by psychopy; "
                             "defaulting to 60.0")
@@ -242,6 +243,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
         self.pos = numpy.asarray(pos, float)
+        self.anchor = anchor
         self.depth = depth
         self.opacity = float(opacity)
         self.volume = volume

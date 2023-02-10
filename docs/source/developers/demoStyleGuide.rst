@@ -3,9 +3,9 @@
 Style-guide for coder demos
 ===========================
 
-Each coder demo is intended to illustrate a key PsychoPy feature (or two), especially in ways that show usage in practice, and go beyond the description in the API. The aim is not to illustrate every aspect, but to get people up to speed quickly, so they understand how basic usage works, and could then play around with advanced features.
+Each coder demo is intended to illustrate a key |PsychoPy| feature (or two), especially in ways that show usage in practice, and go beyond the description in the API. The aim is not to illustrate every aspect, but to get people up to speed quickly, so they understand how basic usage works, and could then play around with advanced features.
 
-As a newcomer to PsychoPy, you are in a great position to judge whether the comments and documentation are clear enough or not. If something is not clear, you may need to ask a PsychoPy contributor for a description; email psychopy-dev@googlegroups.com.
+As a newcomer to |PsychoPy|, you are in a great position to judge whether the comments and documentation are clear enough or not. If something is not clear, you may need to ask a |PsychoPy| contributor for a description; email psychopy-dev@googlegroups.com.
 
 Here are some style guidelines, written for the OpenHatch event(s) but hopefully useful after that too. These are intended specifically for the coder demos, not for the internal code-base (although they are generally quite close).
 
@@ -21,11 +21,11 @@ The idea is to have clean code that looks and works the same way across demos, w
     """Demo name, purpose, description (1-2 sentences, although some demos need more explanation).
     """
 
-For the comment / description, it's a good idea to read and be informed by the relevant parts of the API (see http://psychopy.org/api/api.html), but there's no need to duplicate that text in your comment. If you are unsure, please post to the dev list psychopy-dev@googlegroups.com.
+For the comment / description, it's a good idea to read and be informed by the relevant parts of the API (see https://psychopy.org/api/api.html), but there's no need to duplicate that text in your comment. If you are unsure, please post to the dev list psychopy-dev@googlegroups.com.
 
 - Follow PEP-8 mostly, some exceptions:
 
-  - current PsychoPy convention is to use camelCase for variable names, so don't convert those to underscores
+  - current |PsychoPy| convention is to use camelCase for variable names, so don't convert those to underscores
 
   - 80 char columns can spill over a little. Try to keep things within 80 chars most of the time.
 

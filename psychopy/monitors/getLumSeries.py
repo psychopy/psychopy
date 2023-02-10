@@ -1,15 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """This function can be run as a script or imported and run as a function.
 The advantage of running as a script is that this won't interact with your
 existing namespace (e.g. avbin can load because scipy won't already have
 been loaded).
 """
-from psychopy import logging
-from .calibTools import DACrange
-import numpy
-import time
 
 
 def getLumSeries(lumLevels=8,
@@ -50,138 +45,6 @@ def getLumSeries(lumLevels=8,
             screen (use this to see that the display is performing as
             expected).
     """
-    import psychopy.visual
-    from psychopy import core
-    if photometer is None:
-        havePhotom = False
-    elif not hasattr(photometer, 'getLum'):
-        msg = ("photometer argument to monitors.getLumSeries should be a "
-               "type of photometer object, not a %s")
-        logging.error(msg % type(photometer))
-        return None
-    else:
-        havePhotom = True
+    from .calibTools import getLumSeries as _new_getLumSeries
 
-    if gamma == 1:
-        initRGB = 0.5 ** (1 / 2.0) * 2 - 1
-    else:
-        initRGB = 0.8
-    # setup screen and "stimuli"
-    myWin = psychopy.visual.Window(fullscr=0, size=winSize,
-                                   gamma=gamma, units='norm', monitor=monitor,
-                                   allowGUI=True, winType='pyglet')
-    if useBits == 'Bits++':
-        from psychopy.hardware import crs
-        bits = crs.BitsPlusPlus(myWin, gamma=[1, 1, 1])
-
-    instructions = ("Point the photometer at the central bar. "
-                    "Hit a key when ready (or wait 30s)")
-    message = psychopy.visual.TextStim(myWin, text=instructions, height=0.1,
-                                       pos=(0, -0.85), rgb=[1, -1, -1])
-    noise = numpy.random.rand(512, 512).round() * 2 - 1
-    backPatch = psychopy.visual.PatchStim(myWin, tex=noise, size=2,
-                                          units='norm',
-                                          sf=[winSize[0] / 512.0,
-                                              winSize[1] / 512.0])
-    testPatch = psychopy.visual.PatchStim(myWin,
-                                          tex='sqr',
-                                          size=stimSize,
-                                          rgb=initRGB,
-                                          units='norm')
-
-    # stay like this until key press (or 30secs has passed)
-    waitClock = core.Clock()
-    tRemain = 30
-    msg = ("Point the photometer at the central white bar. "
-           "Hit a key when ready (or wait %iss)")
-    while tRemain > 0:
-        tRemain = 30 - waitClock.getTime()
-        instructions = msg % tRemain
-        backPatch.draw()
-        testPatch.draw()
-        message.setText(instructions)
-        message.draw()
-        myWin.flip()
-        if len(psychopy.event.getKeys()):
-            break  # we got a keypress so move on
-
-    if autoMode != 'semi':
-        message.setText('Q to quit at any time')
-    else:
-        message.setText('Spacebar for next patch')
-
-    # LS100 likes to take at least one bright measurement
-    if havePhotom and photometer.type == 'LS100':
-        _ = photometer.getLum()  # get junk, throw it away
-
-    # what are the test values of luminance
-    if (type(lumLevels) is int) or (type(lumLevels) is float):
-        toTest = DACrange(lumLevels)
-    else:
-        toTest = numpy.asarray(lumLevels)
-
-    # FIXME - this is a bit confusing here, `guns` might not be defined!
-    if allGuns:
-        guns = [0, 1, 2, 3]  # gun=0 is the white luminance measure
-    else:
-        allGuns = [0]
-
-    # this will hold the measured luminance values
-    lumsList = numpy.zeros((len(guns), len(toTest)), 'd')
-    # for each gun, for each value run test
-    for gun in guns:
-        for valN, DACval in enumerate(toTest):
-            lum = (DACval / 127.5) - 1  # get into range -1:1
-            # only do luminanc=-1 once
-            if lum == -1 and gun > 0:
-                continue
-            # set hte patch color
-            if gun > 0:
-                rgb = [-1, -1, -1]
-                rgb[gun - 1] = lum
-            else:
-                rgb = [lum, lum, lum]
-
-            backPatch.draw()
-            testPatch.setColor(rgb)
-            testPatch.draw()
-            message.draw()
-            myWin.flip()
-
-            time.sleep(0.2)  # allowing the screen to settle (no good reason!)
-
-            # take measurement
-            if havePhotom and autoMode == 'auto':
-                actualLum = photometer.getLum()
-                print("At DAC value %i\t: %.2fcd/m^2" % (DACval, actualLum))
-                if lum == -1 or not allGuns:
-                    # if the screen is black set all guns to this lum value!
-                    lumsList[:, valN] = actualLum
-                else:
-                    # otherwise just this gun
-                    lumsList[gun, valN] = actualLum
-
-                # check for quit request
-                for thisKey in psychopy.event.getKeys():
-                    if thisKey in ('q', 'Q', 'escape'):
-                        myWin.close()
-                        return numpy.array([])
-
-            elif autoMode == 'semi':
-                print("At DAC value %i" % DACval)
-
-                done = False
-                while not done:
-                    # check for quit request
-                    for thisKey in psychopy.event.getKeys():
-                        if thisKey in ('q', 'Q', 'escape'):
-                            myWin.close()
-                            return numpy.array([])
-                        elif thisKey in (' ', 'space'):
-                            done = True
-
-    myWin.close()  # we're done with the visual stimuli
-    if havePhotom:
-        return lumsList
-    else:
-        return numpy.array([])
+    return _new_getLumSeries(lumLevels, winSize, monitor, gamma, allGuns, useBits, autoMode, stimSize, photometer, screen=0)

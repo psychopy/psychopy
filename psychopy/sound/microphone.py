@@ -5,14 +5,14 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = ['Microphone']
 
 import sys
 import psychopy.logging as logging
-from psychopy.constants import NOT_STARTED, STARTED
+from psychopy.constants import NOT_STARTED
 from psychopy.preferences import prefs
 from .audioclip import *
 from .audiodevice import *
@@ -313,7 +313,7 @@ class Microphone:
     Creating an instance of this class will open a stream using the specified
     device. Streams should remain open for the duration of your session. When a
     stream is opened, a buffer is allocated to store samples coming off it.
-    Samples from the input stream will written to the buffer once
+    Samples from the input stream will writen to the buffer once
     :meth:`~Microphone.start()` is called.
 
     Parameters
@@ -346,9 +346,9 @@ class Microphone:
         be used.
     audioRunMode : int
         Run mode for the recording device. Default is standby-mode (`0`) which
-        allows the system to put the device to sleep. However when the device is
-        needed, waking the device results in some latency. Using a run mode of
-        `1` will keep the microphone running (or 'hot') with reduces latency
+        allows the system to put the device to sleep. However, when the device
+        is needed, waking the device results in some latency. Using a run mode
+        of `1` will keep the microphone running (or 'hot') with reduces latency
         when th recording is started. Cannot be set when after initialization at
         this time.
 
@@ -391,7 +391,7 @@ class Microphone:
     def __init__(self,
                  device=None,
                  sampleRateHz=None,
-                 channels=2,
+                 channels=None,
                  streamBufferSecs=2.0,
                  maxRecordingSize=24000,
                  policyWhenFull='warn',
@@ -505,7 +505,7 @@ class Microphone:
             'Allocated stream buffer to hold {} seconds of data'.format(
                 self._streamBufferSecs))
 
-        # status flag
+        # status flag for Builder
         self._statusFlag = NOT_STARTED
 
         # setup recording buffer
@@ -521,6 +521,7 @@ class Microphone:
         self.lastClip = None
         self.scripts = {}
         self.lastScript = None
+        self._isStarted = False  # internal state
 
         logging.debug('Audio capture device #{} ready'.format(
             self._device.deviceIndex))
@@ -637,6 +638,10 @@ class Microphone:
         """Status flag for the microphone. Value can be one of
         ``psychopy.constants.STARTED`` or ``psychopy.constants.NOT_STARTED``.
 
+        This is attribute is used by Builder and does not correspond to the
+        actual state of the microphone. Use `streamStatus` and `isStarted`
+        instead.
+
         For detailed stream status information, use the
         :attr:`~psychopy.sound.microphone.Microphone.streamStatus` property.
 
@@ -690,7 +695,13 @@ class Microphone:
     @property
     def isStarted(self):
         """``True`` if stream recording has been started (`bool`)."""
-        return self.status == STARTED
+        return self._isStarted
+
+    @property
+    def isRecording(self):
+        """``True`` if stream recording has been started (`bool`). Alias of
+        `isStarted`."""
+        return self.isStarted
 
     def start(self, when=None, waitForStart=0, stopTime=None):
         """Start an audio recording.
@@ -738,7 +749,7 @@ class Microphone:
             stop_time=stopTime)
 
         # recording has begun or is scheduled to do so
-        self._statusFlag = STARTED
+        self._isStarted = True
 
         logging.debug(
             'Scheduled start of audio capture for device #{} at t={}.'.format(
@@ -793,14 +804,16 @@ class Microphone:
 
         Returns
         -------
-        tuple
+        tuple or None
             Tuple containing `startTime`, `endPositionSecs`, `xruns` and
-            `estStopTime`.
+            `estStopTime`. Returns `None` if `stop` or `pause` was called
+            previously before `start`.
 
         """
+        # This function must be idempotent since it can be invoked at any time
+        # whether a stream is started or not.
         if not self.isStarted:
-            raise AudioStreamError(
-                "Cannot stop a stream that has not been started.")
+            return
 
         # poll remaining samples, if any
         if not self.isRecBufferFull:
@@ -809,7 +822,7 @@ class Microphone:
         startTime, endPositionSecs, xruns, estStopTime = self._stream.stop(
             block_until_stopped=int(blockUntilStopped),
             stopTime=stopTime)
-        self._statusFlag = NOT_STARTED
+        self._isStarted = False
 
         logging.debug(
             ('Device #{} stopped capturing audio samples at estimated time '
@@ -835,9 +848,10 @@ class Microphone:
 
         Returns
         -------
-        tuple
+        tuple or None
             Tuple containing `startTime`, `endPositionSecs`, `xruns` and
-            `estStopTime`.
+            `estStopTime`. Returns `None` if `stop()` or `pause()` was called
+            previously before `start()`.
 
         """
         return self.stop(blockUntilStopped=blockUntilStopped, stopTime=stopTime)
@@ -912,14 +926,20 @@ class Microphone:
         # make sure the tag exists in both clips and transcripts dicts
         if tag not in self.clips:
             self.clips[tag] = []
+
         if tag not in self.scripts:
             self.scripts[tag] = []
+
         # append current recording to clip list according to tag
         self.lastClip = self.getRecording()
         self.clips[tag].append(self.lastClip)
+
         # synonymise null values
-        if transcribe in ('undefined', 'NONE', 'None', 'none', 'False', 'false', 'FALSE'):
+        nullVals = (
+            'undefined', 'NONE', 'None', 'none', 'False', 'false', 'FALSE')
+        if transcribe in nullVals:
             transcribe = False
+
         # append current clip's transcription according to tag
         if transcribe:
             if transcribe in ('Built-in', True, 'BUILT_IN', 'BUILT-IN',
@@ -927,13 +947,21 @@ class Microphone:
                 engine = "sphinx"
             elif type(transcribe) == str:
                 engine = transcribe
+            else:
+                raise ValueError(
+                    "Invalid transcription engine {} specified.".format(
+                        transcribe))
+
             self.lastScript = self.lastClip.transcribe(
                 engine=engine, **kwargs)
         else:
             self.lastScript = "Transcription disabled."
+
         self.scripts[tag].append(self.lastScript)
+
         # clear recording buffer
         self._recording.clear()
+
         # return banked items
         if transcribe:
             return self.lastClip, self.lastScript
@@ -952,7 +980,6 @@ class Microphone:
         """Get a copy of all banked clips, then clear the clips from storage."""
         # get copy of clips dict
         clips = self.clips.copy()
-        # clear
         self.clear()
 
         return clips

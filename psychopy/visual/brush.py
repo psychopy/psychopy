@@ -6,7 +6,7 @@ Inspired by rockNroll87q - https://github.com/rockNroll87q/pyDrawing
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy import event, logging
@@ -14,6 +14,8 @@ from .shape import ShapeStim
 from .basevisual import MinimalStim
 
 __author__ = 'David Bridges'
+
+from ..tools.attributetools import attributeSetter
 
 
 class Brush(MinimalStim):
@@ -148,6 +150,14 @@ class Brush(MinimalStim):
                 shape.setAutoDraw(False)
         self.atStartPoint = False
         self.shapes = []
+
+    @attributeSetter
+    def autoDraw(self, value):
+        # Do base setting
+        MinimalStim.autoDraw.func(self, value)
+        # Set autodraw on shapes
+        for shape in self.shapes:
+            shape.setAutoDraw(value)
 
     def setLineColor(self, value):
         """

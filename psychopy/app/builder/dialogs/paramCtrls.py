@@ -2,25 +2,44 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import os
 import subprocess
 import sys
+import webbrowser
 
 import wx
+import wx.stc
 
 from psychopy.app.colorpicker import PsychoColorPicker
 from psychopy.app.dialogs import ListWidget
-from psychopy.app.themes import ThemeMixin
 from psychopy.colors import Color
 from psychopy.localization import _translate
 from psychopy import data, prefs, experiment
 import re
 from pathlib import Path
 
+from . import CodeBox
 from ..localizedStrings import _localizedDialogs as _localized
+from ...coder import BaseCodeEditor
+from ...themes import icons, handlers
+from ... import utils
+from ...themes import icons
+
+
+class _FrameMixin:
+    @property
+    def frame(self):
+        """
+        Top level frame associated with this ctrl
+        """
+        topParent = self.GetTopLevelParent()
+        if hasattr(topParent, "frame"):
+            return topParent.frame
+        else:
+            return topParent
 
 
 class _ValidatorMixin:
@@ -29,6 +48,9 @@ class _ValidatorMixin:
         appropriate `valType`.
         """
         validate(self, self.valType)
+
+        if evt is not None:
+            evt.Skip()
 
     def showValid(self, valid):
         """Style input box according to valid"""
@@ -63,12 +85,12 @@ class _ValidatorMixin:
             self.SetFont(fontNormal)
 
 
-class _FileMixin:
+class _FileMixin(_FrameMixin):
     @property
     def rootDir(self):
         if not hasattr(self, "_rootDir"):
             # Store location of root directory if not defined
-            self._rootDir = Path(self.GetTopLevelParent().frame.exp.filename)
+            self._rootDir = Path(self.frame.exp.filename)
             if self._rootDir.is_file():
                 # Move up a dir if root is a file
                 self._rootDir = self._rootDir.parent
@@ -89,7 +111,7 @@ class _FileMixin:
             filename = Path(file).relative_to(self.rootDir)
         except ValueError:
             filename = Path(file).absolute()
-        return str(filename)
+        return str(filename).replace("\\", "/")
 
     def getFiles(self, msg="Specify file or files...", wildcard="All Files (*.*)|*.*"):
         dlg = wx.FileDialog(self, message=_translate(msg), defaultDir=str(self.rootDir),
@@ -104,7 +126,7 @@ class _FileMixin:
                 filename = Path(file).relative_to(self.rootDir)
             except ValueError:
                 filename = Path(file).absolute()
-            outList.append(str(filename))
+            outList.append(str(filename).replace("\\", "/"))
         return outList
 
 
@@ -124,7 +146,7 @@ class _HideMixin:
             self.Show(visible)
 
     def HideAll(self):
-        self.Show(True)
+        self.Show(False)
 
     def tunnelShow(self, sizer, visible):
         if sizer is not None:
@@ -140,11 +162,16 @@ class _HideMixin:
 class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
-                 size=wx.Size(-1, 24), style=wx.DEFAULT):
+                 size=wx.Size(-1, 24), style=wx.TE_LEFT):
         # Create self
         wx.TextCtrl.__init__(self)
         self.Create(parent, -1, val, name=fieldName, size=size, style=style)
         self.valType = valType
+
+        # On MacOS, we need to disable smart quotes
+        if sys.platform == 'darwin':
+            self.OSXDisableAllSmartSubstitutions()
+
         # Add sizer
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         if not valType == "str" and not fieldName == "name":
@@ -162,6 +189,8 @@ class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         wx.TextCtrl.Show(self, value)
         if hasattr(self, "dollarLbl"):
             self.dollarLbl.Show(value)
+        if hasattr(self, "deleteBtn"):
+            self.deleteBtn.Show(value)
 
 
 class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin, _HideMixin):
@@ -171,6 +200,109 @@ class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin, _HideMixin):
         SingleLineCtrl.__init__(self, parent, valType,
                                 val=val, fieldName=fieldName,
                                 size=size, style=wx.TE_MULTILINE)
+
+
+class CodeCtrl(BaseCodeEditor, handlers.ThemeMixin, _ValidatorMixin):
+    def __init__(self, parent, valType,
+                 val="", fieldName="",
+                 size=wx.Size(-1, 144)):
+        BaseCodeEditor.__init__(self, parent,
+                                ID=wx.ID_ANY, pos=wx.DefaultPosition, size=size,
+                                style=0)
+        self.valType = valType
+        self.SetValue(val)
+        self.fieldName = fieldName
+        self.params = fieldName
+        # Setup lexer to style text
+        self.SetLexer(wx.stc.STC_LEX_PYTHON)
+        self._applyAppTheme()
+        # Hide margin
+        self.SetMarginWidth(0, 0)
+        # Setup auto indent behaviour as in Code component
+        self.Bind(wx.EVT_KEY_DOWN, self.onKey)
+
+    def getValue(self, evt=None):
+        return self.GetValue()
+
+    def setValue(self, value):
+        self.SetValue(value)
+
+    @property
+    def val(self):
+        """
+        Alias for Set/GetValue, as .val is used elsewhere
+        """
+        return self.getValue()
+
+    @val.setter
+    def val(self, value):
+        self.setValue(value)
+
+    def onKey(self, evt=None):
+        CodeBox.OnKeyPressed(self, evt)
+
+
+class InvalidCtrl(SingleLineCtrl, _ValidatorMixin, _HideMixin):
+    def __init__(self, parent, valType,
+                 val="", fieldName="",
+                 size=wx.Size(-1, 24), style=wx.DEFAULT):
+        SingleLineCtrl.__init__(self, parent, valType,
+                                val=val, fieldName=fieldName,
+                                size=size, style=style)
+        self.Disable()
+        # Add delete button
+        self.deleteBtn = wx.Button(parent, label="×", size=(24, 24))
+        self.deleteBtn.SetForegroundColour("red")
+        self.deleteBtn.Bind(wx.EVT_BUTTON, self.deleteParam)
+        self.deleteBtn.SetToolTip(_translate(
+            "This parameter has come from an older version of PsychoPy. "
+            "In the latest version of PsychoPy, it is not used. Click this "
+            "button to delete it. WARNING: This may affect how this experiment "
+            "works in older versions!"))
+        self._szr.Add(self.deleteBtn, border=6, flag=wx.LEFT | wx.RIGHT)
+        # Add deleted label
+        self.deleteLbl = wx.StaticText(parent, label=_translate("DELETED"))
+        self.deleteLbl.SetForegroundColour("red")
+        self.deleteLbl.Hide()
+        self._szr.Add(self.deleteLbl, border=6, proportion=1, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        # Add undo delete button
+        self.undoBtn = wx.Button(parent, label="⟲", size=(24, 24))
+        self.undoBtn.SetToolTip(_translate(
+            "This parameter will not be deleted until you click Okay. "
+            "Click this button to revert the deletion and keep the parameter."))
+        self.undoBtn.Hide()
+        self.undoBtn.Bind(wx.EVT_BUTTON, self.undoDelete)
+        self._szr.Add(self.undoBtn, border=6, flag=wx.LEFT | wx.RIGHT)
+
+        # Set deletion flag
+        self.forDeletion = False
+
+    def deleteParam(self, evt=None):
+        """
+        When the remove button is pressed, mark this param as for deletion
+        """
+        # Mark for deletion
+        self.forDeletion = True
+        # Hide value ctrl and delete button
+        self.Hide()
+        self.deleteBtn.Hide()
+        # Show delete label and
+        self.undoBtn.Show()
+        self.deleteLbl.Show()
+
+        self._szr.Layout()
+
+    def undoDelete(self, evt=None):
+        # Mark not for deletion
+        self.forDeletion = False
+        # Show value ctrl and delete button
+        self.Show()
+        self.deleteBtn.Show()
+        # Hide delete label and
+        self.undoBtn.Hide()
+        self.deleteLbl.Hide()
+
+        self._szr.Layout()
 
 
 class IntCtrl(wx.SpinCtrl, _ValidatorMixin, _HideMixin):
@@ -197,29 +329,51 @@ BoolCtrl = wx.CheckBox
 
 class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
     def __init__(self, parent, valType,
-                 val="", choices=[], fieldName="",
+                 val="", choices=[], labels=[], fieldName="",
                  size=wx.Size(-1, 24)):
-        # translate add each label to the dropdown
-        choiceLabels = []
-        for item in choices:
-            try:
-                choiceLabels.append(_localized[item])
-            except KeyError:
-                choiceLabels.append(item)
-
+        self._choices = list(choices)
+        # If not given any labels, alias values
+        if not labels:
+            labels = self._choices
+        # Map labels to values
+        self._labels = {}
+        for i, value in enumerate(self._choices):
+            if i < len(labels):
+                self._labels[value] = labels[i]
+            else:
+                self._labels[value] = value
+        # Translate labels
+        for v, l in self._labels.items():
+            if l in _localized:
+                self._labels[v] = _localized[l]
+        # Create choice ctrl from labels
         wx.Choice.__init__(self)
-        self.Create(parent, -1, size=size, choices=choiceLabels, name=fieldName)
-        self._choices = choices
+        self.Create(parent, -1, size=size, choices=[self._labels[c] for c in self._choices], name=fieldName)
         self.valType = valType
         self.SetStringSelection(val)
 
     def SetStringSelection(self, string):
+        strChoices = [str(choice) for choice in self._choices]
         if string not in self._choices:
-            self._choices.append(string)
-            self.SetItems(self._choices)
-        # Don't use wx.Choice.SetStringSelection here
-        # because label string is localized.
+            if string in strChoices:
+                # If string is a stringified version of a value in choices, stringify the value in choices
+                i = strChoices.index(string)
+                self._labels[string] = self._labels.pop(self._choices[i])
+                self._choices[i] = string
+            else:
+                # Otherwise it is a genuinely new value, so add it to options
+                self._choices.append(string)
+                self._labels[string] = string
+            # Refresh items
+            self.SetItems(
+                [self._labels[c] for c in self._choices]
+            )
+        # Don't use wx.Choice.SetStringSelection here because label string is localized.
         wx.Choice.SetSelection(self, self._choices.index(string))
+
+    def GetValue(self):
+        # Don't use wx.Choice.GetStringSelection here because label string is localized.
+        return self._choices[self.GetSelection()]
 
 
 class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin, _HideMixin):
@@ -250,6 +404,196 @@ class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin, _HideMixin):
         return self.GetCheckedStrings()
 
 
+class RichChoiceCtrl(wx.Panel, _ValidatorMixin, _HideMixin):
+    class RichChoiceItem(wx.Panel):
+        def __init__(self, parent, value, label, body="", linkText="", link="", startShown="always", viewToggle=True):
+            # Initialise
+            wx.Panel.__init__(self, parent, style=wx.BORDER_THEME)
+            self.parent = parent
+            self.value = value
+            self.startShown = startShown
+            # Setup sizer
+            self.border = wx.BoxSizer()
+            self.SetSizer(self.border)
+            self.sizer = wx.FlexGridSizer(cols=3)
+            self.sizer.AddGrowableCol(idx=1, proportion=1)
+            self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+            # Check
+            self.check = wx.CheckBox(self, label=" ")
+            self.check.Bind(wx.EVT_CHECKBOX, self.onCheck)
+            self.check.Bind(wx.EVT_KEY_UP, self.onToggle)
+            self.sizer.Add(self.check, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+            # Title
+            self.title = wx.StaticText(self, label=label)
+            self.title.SetFont(self.title.GetFont().Bold())
+            self.sizer.Add(self.title, border=3,  flag=wx.ALL | wx.EXPAND)
+            # Toggle
+            self.toggleView = wx.ToggleButton(self, style=wx.BU_EXACTFIT)
+            self.toggleView.Bind(wx.EVT_TOGGLEBUTTON, self.onToggleView)
+            self.toggleView.Show(viewToggle)
+            self.sizer.Add(self.toggleView, border=3, flag=wx.ALL | wx.EXPAND)
+            # Body
+            self.body = utils.WrappedStaticText(self, label=body)
+            self.sizer.AddStretchSpacer(1)
+            self.sizer.Add(self.body, border=3, proportion=1, flag=wx.ALL | wx.EXPAND)
+            self.sizer.AddStretchSpacer(1)
+            # Link
+            self.link = utils.HyperLinkCtrl(self, label=linkText, URL=link)
+            self.link.SetBackgroundColour(self.GetBackgroundColour())
+            self.sizer.AddStretchSpacer(1)
+            self.sizer.Add(self.link, border=3, flag=wx.ALL | wx.ALIGN_LEFT)
+            self.sizer.AddStretchSpacer(1)
+
+            # Style
+            self.SetBackgroundColour("white")
+            self.body.SetBackgroundColour("white")
+            self.link.SetBackgroundColour("white")
+
+            self.Layout()
+
+        def getChecked(self):
+            return self.check.GetValue()
+
+        def setChecked(self, state):
+            if self.parent.multi:
+                # If multi select is allowed, leave other values unchanged
+                values = self.parent.getValue()
+                if not isinstance(values, (list, tuple)):
+                    values = [values]
+                if state:
+                    # Add this item to list if checked
+                    values.append(self.value)
+                else:
+                    # Remove this item from list if unchecked
+                    if self.value in values:
+                        values.remove(self.value)
+                self.parent.setValue(values)
+            elif state:
+                # If single only, set at parent level so others are unchecked
+                self.parent.setValue(self.value)
+
+        def onCheck(self, evt):
+            self.setChecked(evt.IsChecked())
+
+        def onToggle(self, evt):
+            if evt.GetUnicodeKey() in (wx.WXK_SPACE, wx.WXK_NUMPAD_SPACE):
+                self.setChecked(not self.check.IsChecked())
+
+        def onToggleView(self, evt):
+            # If called with a boolean, use it directly, otherwise get bool from event
+            if isinstance(evt, bool):
+                val = evt
+            else:
+                val = evt.IsChecked()
+            # Update toggle ctrl label
+            if val:
+                lbl = "⯆"
+            else:
+                lbl = "⯇"
+            self.toggleView.SetLabel(lbl)
+            # Show/hide body based on value
+            self.body.Show(val)
+            self.link.Show(val)
+            # Layout
+            self.Layout()
+            self.parent.parent.Layout()  # layout params notebook page
+
+    def __init__(self, parent, valType,
+                 vals="", fieldName="",
+                 choices=[], labels=[],
+                 size=wx.Size(-1, -1),
+                 viewToggle=True):
+        # Initialise
+        wx.Panel.__init__(self, parent, size=size)
+        self.parent = parent
+        self.valType = valType
+        self.fieldName = fieldName
+        self.multi = False
+        self.viewToggle = viewToggle
+        # Setup sizer
+        self.border = wx.BoxSizer()
+        self.SetSizer(self.border)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        self.SetSizer(self.border)
+        # Store values
+        self.choices = {}
+        for i, val in enumerate(choices):
+            self.choices[val] = labels[i]
+        # Populate
+        self.populate()
+        # Set value
+        self.setValue(vals)
+        # Start off showing according to param
+        for obj in self.items:
+            # Work out if we should start out shown
+            if self.viewToggle:
+                if obj.startShown == "never":
+                    startShown = False
+                elif obj.startShown == "checked":
+                    startShown = obj.check.IsChecked()
+                elif obj.startShown == "unchecked":
+                    startShown = not obj.check.IsChecked()
+                else:
+                    startShown = True
+            else:
+                startShown = True
+            # Apply starting view
+            obj.toggleView.SetValue(startShown)
+            obj.onToggleView(startShown)
+
+        self.Layout()
+
+    def populate(self):
+        self.items = []
+        for val, label in self.choices.items():
+            if not isinstance(label, dict):
+                # Make sure label is dict
+                label = {"label": label}
+            # Add item control
+            self.addItem(val, label=label)
+        self.Layout()
+
+    def addItem(self, value, label={}):
+        # Create item object
+        item = self.RichChoiceItem(self, value=value, viewToggle=self.viewToggle, **label)
+        self.items.append(item)
+        # Add to sizer
+        self.sizer.Add(item, border=3, flag=wx.ALL | wx.EXPAND)
+
+    def getValue(self):
+        # Get corresponding value for each checked item
+        values = []
+        for item in self.items:
+            if item.getChecked():
+                # If checked, append value
+                values.append(item.value)
+        # Strip list if not multi
+        if not self.multi:
+            if len(values):
+                values = values[0]
+            else:
+                values = ""
+
+        return values
+
+    def setValue(self, value):
+        # Make sure value is iterable
+        if not isinstance(value, (list, tuple)):
+            value = [value]
+        # Check/uncheck corresponding items
+        for item in self.items:
+            state = item.value in value
+            item.check.SetValue(state)
+
+        # Post event
+        evt = wx.ListEvent(commandType=wx.EVT_CHOICE.typeId, id=-1)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
+
+        self.Layout()
+
+
 class FileCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
@@ -262,8 +606,8 @@ class FileCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         self._szr.Add(self, border=5, proportion=1, flag=wx.EXPAND | wx.RIGHT)
         # Add button to browse for file
-        fldr = parent.app.iconCache.getBitmap(name="folder", size=16, theme="light")
-        self.findBtn = wx.BitmapButton(parent, -1, size=wx.Size(24, 24), bitmap=fldr)
+        fldr = icons.ButtonIcon(stem="folder", size=16, theme="light").bitmap
+        self.findBtn = wx.BitmapButton(parent, -1, bitmap=fldr, style=wx.BU_EXACTFIT)
         self.findBtn.SetToolTip(_translate("Specify file ..."))
         self.findBtn.Bind(wx.EVT_BUTTON, self.findFile)
         self._szr.Add(self.findBtn)
@@ -274,8 +618,20 @@ class FileCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
     def findFile(self, evt):
         file = self.getFile()
         if file:
-            self.SetValue(file)
+            self.setFile(file)
             self.validate(evt)
+
+    def setFile(self, file):
+        # Set text value
+        wx.TextCtrl.SetValue(self, file)
+        # Post event
+        evt = wx.FileDirPickerEvent(wx.EVT_FILEPICKER_CHANGED.typeId, self, -1, file)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
+        # Post keypress event to trigger onchange
+        evt = wx.FileDirPickerEvent(wx.EVT_KEY_UP.typeId, self, -1, file)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
 
 
 class FileListCtrl(wx.ListBox, _ValidatorMixin, _HideMixin, _FileMixin):
@@ -288,13 +644,15 @@ class FileListCtrl(wx.ListBox, _ValidatorMixin, _HideMixin, _FileMixin):
         if type(choices) == str:
             choices = data.utils.listFromString(choices)
         self.Create(id=wx.ID_ANY, parent=parent, choices=choices, size=size, style=wx.LB_EXTENDED | wx.LB_HSCROLL)
+        self.addCustomBtn = wx.Button(parent, -1, size=(24,24), style=wx.BU_EXACTFIT, label="...")
+        self.addCustomBtn.Bind(wx.EVT_BUTTON, self.addCustomItem)
         self.addBtn = wx.Button(parent, -1, size=(24,24), style=wx.BU_EXACTFIT, label="+")
         self.addBtn.Bind(wx.EVT_BUTTON, self.addItem)
         self.subBtn = wx.Button(parent, -1, size=(24,24), style=wx.BU_EXACTFIT, label="-")
         self.subBtn.Bind(wx.EVT_BUTTON, self.removeItem)
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         self.btns = wx.BoxSizer(wx.VERTICAL)
-        self.btns.AddMany((self.addBtn, self.subBtn))
+        self.btns.AddMany((self.addCustomBtn, self.addBtn, self.subBtn))
         self._szr.Add(self, proportion=1, flag=wx.EXPAND)
         self._szr.Add(self.btns)
 
@@ -321,8 +679,201 @@ class FileListCtrl(wx.ListBox, _ValidatorMixin, _HideMixin, _FileMixin):
                  if index not in i]
         self.SetItems(items)
 
+    def addCustomItem(self, event):
+        # Create string dialog
+        dlg = wx.TextEntryDialog(parent=self, message=_translate("Add custom item"))
+        # Show dialog
+        if dlg.ShowModal() != wx.ID_OK:
+            return
+        # Get string
+        stringEntry = dlg.GetValue()
+        # Add to list
+        if stringEntry:
+            self.InsertItems([stringEntry], 0)
+
     def GetValue(self):
         return self.Items
+
+
+class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
+    class SurveyFinderDlg(wx.Dialog, utils.ButtonSizerMixin):
+        def __init__(self, parent, session):
+            wx.Dialog.__init__(self, parent=parent, size=(-1, 496), style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+            self.session = session
+            # Setup sizer
+            self.border = wx.BoxSizer(wx.VERTICAL)
+            self.SetSizer(self.border)
+            self.sizer = wx.BoxSizer(wx.VERTICAL)
+            self.border.Add(self.sizer, border=12, proportion=1, flag=wx.ALL | wx.EXPAND)
+            # Add instructions
+            self.instr = utils.WrappedStaticText(self, label=_translate(
+                "Below are all of the surveys linked to your Pavlovia account - select the one you want and "
+                "press OK to add its ID."
+            ))
+            self.sizer.Add(self.instr, border=6, flag=wx.ALL | wx.EXPAND)
+            # Add ctrl
+            self.ctrl = wx.ListCtrl(self, size=(-1, 248), style=wx.LC_REPORT)
+            self.sizer.Add(self.ctrl, border=6, proportion=1, flag=wx.ALL | wx.EXPAND)
+            # Add placeholder for when there are no surveys
+            self.placeholder = wx.TextCtrl(self, size=(-1, 248), value=_translate(
+                "There are no surveys linked to your Pavlovia account."
+            ), style=wx.TE_READONLY | wx.TE_MULTILINE)
+            self.sizer.Add(self.placeholder, border=6, proportion=1, flag=wx.ALL | wx.EXPAND)
+            self.placeholder.Hide()
+            # Sizer for extra ctrls
+            self.extraCtrls = wx.Panel(self)
+            self.extraCtrls.sizer = wx.BoxSizer(wx.HORIZONTAL)
+            self.extraCtrls.SetSizer(self.extraCtrls.sizer)
+            self.sizer.Add(self.extraCtrls, border=6, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND)
+            # Link to Pavlovia
+            self.pavLink = utils.HyperLinkCtrl(self.extraCtrls, label=_translate(
+                "Click here to manage surveys on Pavlovia."
+            ), URL="https://pavlovia.org/dashboard?tab=4")
+            self.extraCtrls.sizer.Add(self.pavLink, flag=wx.ALL | wx.ALIGN_LEFT)
+            # Update button
+            self.updateBtn = wx.Button(self.extraCtrls, size=(24, 24))
+            self.updateBtn.SetBitmap(icons.ButtonIcon(stem="view-refresh", size=16).bitmap)
+            self.updateBtn.SetToolTip(_translate(
+                "Refresh survey list"
+            ))
+            self.updateBtn.Bind(wx.EVT_BUTTON, self.populate)
+            self.extraCtrls.sizer.AddStretchSpacer(prop=1)
+            self.extraCtrls.sizer.Add(self.updateBtn, flag=wx.ALL | wx.EXPAND)
+
+            # Setup dialog buttons
+            self.btnSizer = self.CreatePsychoPyDialogButtonSizer(flags=wx.OK | wx.CANCEL | wx.HELP)
+            self.sizer.AddSpacer(12)
+            self.border.Add(self.btnSizer, border=6, flag=wx.ALL | wx.EXPAND)
+
+            # Populate
+            self.populate()
+            self.Layout()
+
+        def populate(self, evt=None):
+            # Clear ctrl
+            self.ctrl.ClearAll()
+            self.ctrl.InsertColumn(0, "Name")
+            self.ctrl.InsertColumn(1, "ID")
+            # Ask Pavlovia for list of surveys
+            resp = self.session.session.get(
+                "https://pavlovia.org/api/v2/surveys",
+                timeout=10
+            ).json()
+            # Get surveys from returned json
+            surveys = resp['surveys']
+            # If there are no surveys, hide the ctrl and present link to survey designer
+            if len(surveys):
+                self.ctrl.Show()
+                self.placeholder.Hide()
+            else:
+                self.ctrl.Hide()
+                self.placeholder.Show()
+            # Populate control
+            for survey in surveys:
+                self.ctrl.Append([
+                    survey['surveyName'],
+                    survey['surveyId']
+                ])
+            # Resize columns
+            self.ctrl.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+            self.ctrl.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+
+        def getValue(self):
+            i = self.ctrl.GetFirstSelected()
+            if i > -1:
+                return self.ctrl.GetItem(i, col=1).Text
+            else:
+                return ""
+
+    def __init__(self, parent, valType,
+                 val="", fieldName="",
+                 size=wx.Size(-1, 24)):
+        # Create self
+        wx.TextCtrl.__init__(self)
+        self.Create(parent, -1, val, name=fieldName, size=size)
+        self.valType = valType
+        # Add CTRL + click behaviour
+        self.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
+        # Add placeholder
+        self.SetHint("e.g. 1906fa4a-e009-49aa-b63d-798d8bf46c22")
+        # Add sizer
+        self._szr = wx.BoxSizer(wx.HORIZONTAL)
+        self._szr.Add(self, border=5, proportion=1, flag=wx.EXPAND | wx.RIGHT)
+        # Add button to browse for survey
+        self.findBtn = wx.Button(
+            parent, -1,
+            label=_translate("Find online..."),
+            size=wx.Size(-1, 24)
+        )
+        self.findBtn.SetBitmap(
+            icons.ButtonIcon(stem="search", size=16).bitmap
+        )
+        self.findBtn.SetToolTip(_translate(
+            "Get survey ID from a list of your surveys on Pavlovia"
+        ))
+        self.findBtn.Bind(wx.EVT_BUTTON, self.findSurvey)
+        self._szr.Add(self.findBtn)
+        # Configure validation
+        self.Bind(wx.EVT_TEXT, self.validate)
+        self.validate()
+
+    def onRightClick(self, evt=None):
+        menu = wx.Menu()
+        thisId = menu.Append(wx.ID_ANY, item=f"https://pavlovia.org/surveys/{self.getValue()}")
+        menu.Bind(wx.EVT_MENU, self.openSurvey, source=thisId)
+        self.PopupMenu(menu)
+
+    def openSurvey(self, evt=None):
+        """
+        Open current survey in web browser
+        """
+        webbrowser.open(f"https://pavlovia.org/surveys/{self.getValue()}")
+
+    def findSurvey(self, evt=None):
+        # Import Pavlovia modules locally to avoid Pavlovia bugs affecting other param ctrls
+        from psychopy.projects.pavlovia import getCurrentSession
+        from ...pavlovia_ui import checkLogin
+        # Get session
+        session = getCurrentSession()
+        # Check Pavlovia login
+        if checkLogin(session):
+            # Get session again incase login process changed it
+            session = getCurrentSession()
+            # Show survey finder dialog
+            dlg = self.SurveyFinderDlg(self, session)
+            if dlg.ShowModal() == wx.ID_OK:
+                # If OK, get value
+                self.SetValue(dlg.getValue())
+                # Validate
+                self.validate()
+                # Raise event
+                evt = wx.ListEvent(wx.EVT_KEY_UP.typeId)
+                evt.SetEventObject(self)
+                wx.PostEvent(self, evt)
+
+    def getValue(self, evt=None):
+        """
+        Get the value of the text control, but sanitize such that if the user pastes a full survey URL
+        we only take the survey ID
+        """
+        # Get value by usual wx method
+        value = self.GetValue()
+        # Strip pavlovia run url
+        if "run.pavlovia.org/pavlovia/survey/?surveyId=" in value:
+            # Keep only the values after the URL
+            value = value.split("run.pavlovia.org/pavlovia/survey/?surveyId=")[-1]
+            if "&" in value:
+                # If there are multiple URL parameters, only keep the Id
+                value = value.split("&")[0]
+        # Strip regular pavlovia url
+        elif "pavlovia.org/surveys/" in value:
+            # Keep only the values after the URL
+            value = value.split(".pavlovia.org/pavlovia/survey/")[-1]
+            if "&" in value:
+                # If there are URL parameters, only keep the Id
+                value = value.split("?")[0]
+
+        return value
 
 
 class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
@@ -337,14 +888,14 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         self._szr.Add(self, proportion=1, border=5, flag=wx.EXPAND | wx.RIGHT)
         # Add button to browse for file
-        fldr = parent.app.iconCache.getBitmap(name="folder", size=16, theme="light")
-        self.findBtn = wx.BitmapButton(parent, -1, size=wx.Size(24,24), bitmap=fldr)
+        fldr = icons.ButtonIcon(stem="folder", size=16, theme="light").bitmap
+        self.findBtn = wx.BitmapButton(parent, -1, bitmap=fldr, style=wx.BU_EXACTFIT)
         self.findBtn.SetToolTip(_translate("Specify file ..."))
         self.findBtn.Bind(wx.EVT_BUTTON, self.findFile)
         self._szr.Add(self.findBtn)
         # Add button to open in Excel
-        xl = parent.app.iconCache.getBitmap(name="filecsv", size=16, theme="light")
-        self.xlBtn = wx.BitmapButton(parent, -1, size=wx.Size(24,24), bitmap=xl)
+        xl = icons.ButtonIcon(stem="filecsv", size=16, theme="light").bitmap
+        self.xlBtn = wx.BitmapButton(parent, -1, bitmap=xl, style=wx.BU_EXACTFIT)
         self.xlBtn.SetToolTip(_translate("Open/create in your default table editor"))
         self.xlBtn.Bind(wx.EVT_BUTTON, self.openExcel)
         self._szr.Add(self.xlBtn)
@@ -376,6 +927,10 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
     def validate(self, evt=None):
         """Redirect validate calls to global validate method, assigning appropriate valType"""
         validate(self, "file")
+        # Disable Excel button if value is from a variable
+        if "$" in self.GetValue():
+            self.xlBtn.Disable()
+            return
         # Enable Excel button if valid
         self.xlBtn.Enable(self.valid)
         # Is component type available?
@@ -431,17 +986,17 @@ class ColorCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         # Add ctrl to sizer
         self._szr.Add(self, proportion=1, border=5, flag=wx.EXPAND | wx.RIGHT)
         # Add button to activate color picker
-        fldr = parent.app.iconCache.getBitmap(name="color", size=16, theme="light")
-        self.pickerBtn = wx.BitmapButton(parent, -1, size=wx.Size(24,24), bitmap=fldr)
+        fldr = icons.ButtonIcon(stem="color", size=16, theme="light").bitmap
+        self.pickerBtn = wx.BitmapButton(parent, -1, bitmap=fldr, style=wx.BU_EXACTFIT)
         self.pickerBtn.SetToolTip(_translate("Specify color ..."))
         self.pickerBtn.Bind(wx.EVT_BUTTON, self.colorPicker)
         self._szr.Add(self.pickerBtn)
         # Bind to validation
-        self.Bind(wx.EVT_TEXT, self.validate)
+        self.Bind(wx.EVT_CHAR, self.validate)
         self.validate()
 
     def colorPicker(self, evt):
-        dlg = PsychoColorPicker(self)  # open a color picker
+        dlg = PsychoColorPicker(self, context=self, allowCopy=False)  # open a color picker
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -518,6 +1073,7 @@ def validate(obj, valType):
             # If control has specified list of ext, does value end in correct ext?
             if val.suffix not in obj.validExt:
                 valid = False
+
     # If additional allowed values are defined, override validation
     if hasattr(obj, "allowedVals"):
         if val in obj.allowedVals:
@@ -542,6 +1098,8 @@ class DictCtrl(ListWidget, _ValidatorMixin, _HideMixin):
         if isinstance(val, dict):
             newVal = []
             for key, v in val.items():
+                if hasattr(v, "val"):
+                    v = v.val
                 newVal.append({'Field': key, 'Default': v})
             val = newVal
         # If any items within the list are not dicts or are dicts longer than 1, throw error
@@ -554,3 +1112,39 @@ class DictCtrl(ListWidget, _ValidatorMixin, _HideMixin):
         for child in self.Children:
             if hasattr(child, "SetForegroundColour"):
                 child.SetForegroundColour(color)
+
+    def Enable(self, enable=True):
+        """
+        Enable or disable all items in the dict ctrl
+        """
+        # Iterate through all children
+        for cell in self.Children:
+            # Get the actual child rather than the sizer item
+            child = cell.Window
+            # If it can be enabled/disabled, enable/disable it
+            if hasattr(child, "Enable"):
+                child.Enable(enable)
+
+    def Disable(self):
+        """
+        Disable all items in the dict ctrl
+        """
+        self.Enable(False)
+
+    def Show(self, show=True):
+        """
+        Show or hide all items in the dict ctrl
+        """
+        # Iterate through all children
+        for cell in self.Children:
+            # Get the actual child rather than the sizer item
+            child = cell.Window
+            # If it can be shown/hidden, show/hide it
+            if hasattr(child, "Show"):
+                child.Show(show)
+
+    def Hide(self):
+        """
+        Hide all items in the dict ctrl
+        """
+        self.Show(False)

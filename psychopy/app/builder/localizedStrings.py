@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """
@@ -22,6 +22,7 @@ _localizedCategories = {
     'Layout': _translate('Layout'),
     'Data': _translate('Data'),
     'Screen': _translate('Screen'),
+    'Input': _translate('Input'),
     'Dots': _translate('Dots'),
     'Grating': _translate('Grating'),
     'Advanced': _translate('Advanced'),
@@ -84,6 +85,17 @@ _localizedDialogs = {
     # units not translated:
     'pix': 'pix', 'deg': 'deg', 'cm': 'cm',
     'norm': 'norm', 'height': 'height',
+    'degFlat': 'degFlat', 'degFlatPos':'degFlatPos',
+    # anchor
+    'center': _translate('center'),
+    'top-center': _translate('top-center'),
+    'bottom-center': _translate('bottom-center'),
+    'center-left': _translate('center-left'),
+    'center-right': _translate('center-right'),
+    'top-left': _translate('top-left'),
+    'top-right': _translate('top-right'),
+    'bottom-left': _translate('bottom-left'),
+    'bottom-right': _translate('bottom-right'),
     # tex resolution:
     '32': '32', '64': '64', '128': '128', '256': '256', '512': '512',
     'routine': 'Routine',
@@ -111,6 +123,7 @@ _localizedDialogs = {
     # Mouse:
     'any click': _translate('any click'),
     'valid click': _translate('valid click'),
+    'on valid click': _translate('on valid click'),
     'mouse onset':_translate('mouse onset'),
     'Routine': _translate('Routine'),
     # Joystick:
@@ -151,7 +164,15 @@ _localizedDialogs = {
     'every look': _translate('every look'),
     'first look': _translate('first look'),
     'last look': _translate('last look'),
-    'roi onset': _translate('roi onset')
+    'roi onset': _translate('roi onset'),
+    # Eyetracker - Recording
+    'Start and Stop': _translate('Start and Stop'),
+    'Start Only': _translate('Start Only'),
+    'Stop Only': _translate('Stop Only'),
+    # ResourceManager
+    'Start and Check': _translate('Start and Check'),
+    # 'Start Only': _translate('Start Only'),  # defined in Eyetracker - Recording
+    'Check Only': _translate('Check Only')
 }
 
 

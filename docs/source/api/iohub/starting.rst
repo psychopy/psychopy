@@ -4,7 +4,7 @@
 Starting the psychopy.iohub Process
 =====================================
 
-To use ioHub within your PsychoPy Coder experiment script, ioHub needs to
+To use ioHub within your |PsychoPy| Coder experiment script, ioHub needs to
 be started at the beginning of the experiment script. 
 
 The easiest way to do this is by calling the launchHubServer function.
@@ -25,4 +25,3 @@ accessing iohub devices and events.
     :exclude-members: eventListToObject, eventListToDict, eventListToNamedTuple, _isErrorReply, _startServer, _createDeviceList, _addDeviceView, _sendToHubServer, _sendExperimentInfo, _sendSessionInfo, addDeviceToMonitor, getHubServerConfig, getExperimentID, getExperimentMetaData, getSessionMetaData, initializeConditionVariableTable, addRowToConditionVariableTable, registerWindowHandles, unregisterWindowHandles, wait
     :members:
     :member-order: bysource
-

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import numpy
@@ -11,7 +11,7 @@ from os import path
 from psychopy import logging
 from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)
-from psychopy.tools.filetools import pathToString
+from psychopy.tools.filetools import pathToString, defaultStim, defaultStimRoot
 from sys import platform
 from .audioclip import AudioClip
 
@@ -163,6 +163,9 @@ class _SoundBase():
         """
         # Re-init sound to ensure bad values will raise error during setting:
         self._snd = None
+
+        if value in defaultStim:
+            value = defaultStimRoot / defaultStim[value]
 
         # Coerces pathlib obj to string, else returns inputted value
         value = pathToString(value)

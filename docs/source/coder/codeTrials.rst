@@ -33,4 +33,3 @@ Staircases are predominately used in psychophysics to measure the discrimination
 The StairHandler systematically generates numbers based on staircase parameters. These can then be used to define a stimulus parameter e.g. spatial frequency, stimulus presentation duration. If the participant gives the incorrect response the number generated will get larger and if the participant gives the correct response the number will get smaller.
 
 see :class:`~psychopy.data.StairHandler` for more details
-

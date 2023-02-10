@@ -1,3 +1,5 @@
+import numpy as np
+
 from .shape import ShapeStim
 from ..event import Mouse
 from ..core import Clock
@@ -58,16 +60,17 @@ class ROI(ShapeStim):
     def __init__(self, win, name=None, device=None,
                  debug=False,
                  shape="rectangle",
-                 units='', pos=(0, 0), size=(1, 1), ori=0.0,
-                 autoLog=None):
+                 units='', pos=(0, 0), size=(1, 1), anchor="center", ori=0.0,
+                 depth=0, autoLog=None, autoDraw=False):
 
         # Create red polygon which doesn't draw if `debug == False`
         ShapeStim.__init__(self, win, name=name,
-                         units=units, pos=pos, size=size, ori=ori,
+                         units=units, pos=pos, size=size, anchor=anchor, ori=ori,
                          vertices=shape,
-                         fillColor='red', opacity=int(debug),
-                         autoLog=autoLog)
-        self.opacity = int(debug)
+                         fillColor='white', lineColor="#F2545B", lineWidth=2, opacity=0.5,
+                         autoLog=autoLog, autoDraw=autoDraw)
+        self.depth = depth
+        self.debug = debug
         if device is None:
             self.device = Mouse(win=win)
         else:
@@ -87,8 +90,13 @@ class ROI(ShapeStim):
         """Is this ROI currently being looked at"""
         try:
             # Get current device position
-            pos = self.device.getPos()
-            if not isinstance(pos, (list, tuple)):
+            if hasattr(self.device, "getPos"):
+                pos = self.device.getPos()
+            elif hasattr(self.device, "pos"):
+                pos = self.device.pos
+            else:
+                raise AttributeError(f"ROI device ({self.device}) does not have any method for getting position.")
+            if not isinstance(pos, (list, tuple, np.ndarray)):
                 # If there's no valid device position, assume False
                 return False
             # Check contains
@@ -126,3 +134,8 @@ class ROI(ShapeStim):
         self.timesOff = []
         self.clock.reset()
         self.wasLookedIn = False
+
+    def draw(self, win=None, keepMatrix=False):
+        if self.debug:
+            # Only draw if in debug mode
+            ShapeStim.draw(self, win=win, keepMatrix=keepMatrix)

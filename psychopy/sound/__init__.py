@@ -8,7 +8,7 @@ sounds in PsychoPy. We started with `Pygame`, then tried `pyo` and `sounddevice`
 but we now strongly recommend you use the PTB setting. That uses the
 `PsychPortAudio`_ engine, written by Mario Kleiner for `Psychophysics Toolbox`_.
 
-With the PTB backend you get some options about how agressively you want to try
+With the PTB backend you get some options about how aggressively you want to try
 for low latency, and there is also an option to pre-schedule a sound to play at
 a given time in the future.
 
@@ -30,19 +30,36 @@ After importing sound, the sound lib and driver being used will be stored as::
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = []
 
 import sys
 import os
+import traceback
 from psychopy import logging, prefs, constants
 from .exceptions import DependencyError, SoundFormatError
 from .audiodevice import *
 from .audioclip import *  # import objects related to AudioClip
-from .microphone import *  # import objects related to the microphone class
-from .transcribe import *  # import transcription engine stuff
+
+# import microphone if possible
+try:
+    from .microphone import *  # import objects related to the microphone class
+except ImportError as err:
+    formatted_tb = ''.join(traceback.format_exception(type(err), err, err.__traceback__))
+    logging.error("Failed to import psychopy.sound.microphone. Mic recordings will not be"
+                  "possible on this machine. For details see stack trace below:\n"
+                  f"{formatted_tb}")
+
+# import transcription if possible
+try:
+    from .transcribe import *  # import transcription engine stuff
+except ImportError as err:
+    formatted_tb = ''.join(traceback.format_exception(type(err), err, err.__traceback__))
+    logging.error("Failed to import psychopy.sound.transcribe. Transcription will not be"
+                  "possible on this machine. For details see stack trace below:\n"
+                  f"{formatted_tb}")
 
 pyoSndServer = None
 Sound = None
@@ -64,23 +81,39 @@ if isinstance(prefs.hardware['audioLib'], str):
 for thisLibName in prefs.hardware['audioLib']:
     try:
         if thisLibName.lower() == 'ptb':
-            from . import backend_ptb as backend
-            Sound = backend.SoundPTB
-            audioDriver = backend.audioDriver
+            try:
+                # always installed
+                from . import backend_ptb as backend
+                Sound = backend.SoundPTB
+                audioDriver = backend.audioDriver
+            except Exception:
+                continue
         elif thisLibName == 'pyo':
-            from . import backend_pyo as backend
-            Sound = backend.SoundPyo
-            pyoSndServer = backend.pyoSndServer
-            audioDriver = backend.audioDriver
+            try:
+                from . import backend_pyo as backend
+                Sound = backend.SoundPyo
+                pyoSndServer = backend.pyoSndServer
+                audioDriver = backend.audioDriver
+            except Exception:
+                continue
         elif thisLibName == 'sounddevice':
-            from . import backend_sounddevice as backend
-            Sound = backend.SoundDeviceSound
+            try:
+                from . import backend_sounddevice as backend
+                Sound = backend.SoundDeviceSound
+            except Exception:
+                continue
         elif thisLibName == 'pygame':
-            from . import backend_pygame as backend
-            Sound = backend.SoundPygame
+            try:
+                from . import backend_pygame as backend
+                Sound = backend.SoundPygame
+            except Exception:
+                continue
         elif thisLibName == 'pysoundcard':
-            from . import backend_pysound as backend
-            Sound = backend.SoundPySoundCard
+            try:
+                from . import backend_pysound as backend
+                Sound = backend.SoundPySoundCard
+            except Exception:
+                continue
         else:
             msg = ("audioLib pref should be one of {!r}, not {!r}"
                    .format(_audioLibs, thisLibName))

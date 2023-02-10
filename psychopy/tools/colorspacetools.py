@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Tools related to working with various color spaces.
@@ -174,7 +174,7 @@ def rec709TF(rgb, **kwargs):
     """Apply the Rec 709 transfer function (or gamma) to linear RGB values.
 
     This transfer function is defined in the ITU-R BT.709 (2015) recommendation
-    document (http://www.itu.int/rec/R-REC-BT.709-6-201506-I/en) and is
+    document (https://www.itu.int/rec/R-REC-BT.709-6-201506-I/en) and is
     commonly used with HDTV televisions.
 
     Parameters
@@ -573,7 +573,7 @@ def hsv2rgb(hsv_Nx3):
     PsychoPy functions.
     """
     # based on method in
-    # http://en.wikipedia.org/wiki/HSL_and_HSV#Converting_to_RGB
+    # https://en.wikipedia.org/wiki/HSL_and_HSV#Converting_to_RGB
 
     hsv_Nx3 = numpy.asarray(hsv_Nx3, dtype=float)
     # we expect a 2D array so convert there if needed
@@ -713,5 +713,3 @@ def rgb2dklCart(picture, conversionMatrix=None):
     dklPicture = numpy.reshape(numpy.transpose(dkl), origShape)
 
     return dklPicture
-
-

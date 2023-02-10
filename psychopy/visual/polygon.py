@@ -5,7 +5,7 @@
 :class:`~psychopy.visual.ShapeStim`"""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import psychopy  # so we can get the __path__
@@ -102,30 +102,37 @@ class Polygon(BaseShapeStim):
         `fillColor` are interpreted.
 
     """
+
+    _defaultFillColor = "white"
+    _defaultLineColor = "white"
+
     def __init__(self,
                  win,
                  edges=3,
                  radius=.5,
                  units='',
                  lineWidth=1.5,
-                 lineColor=None,
-                 lineColorSpace=None,
-                 fillColor='white',
-                 fillColorSpace=None,
+                 lineColor=False,
+                 fillColor=False,
                  pos=(0, 0),
                  size=1.0,
+                 anchor=None,
                  ori=0.0,
                  opacity=None,
                  contrast=1.0,
                  depth=0,
                  interpolate=True,
-                 lineRGB=False,
-                 fillRGB=False,
                  name=None,
                  autoLog=None,
                  autoDraw=False,
-                 color=None,
-                 colorSpace='rgb'):
+                 colorSpace='rgb',
+                 # legacy
+                 color=False,
+                 fillColorSpace=None,
+                 lineColorSpace=None,
+                 lineRGB=False,
+                 fillRGB=False,
+                 ):
 
         # what local vars are defined (these are the init params) for use by
         # __repr__
@@ -134,6 +141,7 @@ class Polygon(BaseShapeStim):
 
         self.autoLog = False  # but will be changed if needed at end of init
         self.__dict__['edges'] = edges
+        self.__dict__['lineWidth'] = lineWidth
         self.radius = np.asarray(radius)
         self._calcVertices()
 
@@ -149,6 +157,7 @@ class Polygon(BaseShapeStim):
             closeShape=True,
             pos=pos,
             size=size,
+            anchor=anchor,
             ori=ori,
             opacity=opacity,
             contrast=contrast,
@@ -163,7 +172,12 @@ class Polygon(BaseShapeStim):
             colorSpace=colorSpace)
 
     def _calcVertices(self):
-        self.vertices = self._calcEquilateralVertices(self.edges, self.radius)
+        if self.edges == "circle":
+            # If circle is requested, calculate min edges needed for it to appear smooth
+            edges = self._calculateMinEdges(self.__dict__['lineWidth'], threshold=1)
+        else:
+            edges = self.edges
+        self.vertices = self._calcEquilateralVertices(edges, self.radius)
 
     @attributeSetter
     def edges(self, edges):
@@ -200,3 +214,10 @@ class Polygon(BaseShapeStim):
         but use this method if you need to suppress the log message
         """
         setAttribute(self, 'radius', radius, log, operation)
+
+    def setNVertices(self, nVerts, operation='', log=None):
+        """
+        Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        """
+        setAttribute(self, 'vertices', nVerts, log, operation)

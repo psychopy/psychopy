@@ -5,7 +5,7 @@ Monitor Center
 .. image:: /images/monitor_center.png
   :width: 5%
 
-PsychoPy provides a simple and intuitive way for you to calibrate your monitor and provide other information about it and then import that information into your experiment.
+|PsychoPy| provides a simple and intuitive way for you to calibrate your monitor and provide other information about it and then import that information into your experiment.
 
 Information is inserted in the |MC| (Tools menu), which allows you to store information about multiple monitors and keep track of multiple calibrations for the same monitor.
 
@@ -19,7 +19,7 @@ Of course, the name of the monitor in the script needs to match perfectly the na
 Real world units
 -----------------
 
-One of the particular features of PsychoPy is that you can specify the size and location of stimuli in units that are independent of your particular setup, such as degrees of visual angle (see :ref:`units`). In order for this to be possible you need to inform PsychoPy of some characteristics of your monitor. Your choice of units determines the information you need to provide:
+One of the particular features of |PsychoPy| is that you can specify the size and location of stimuli in units that are independent of your particular setup, such as degrees of visual angle (see :ref:`units`). In order for this to be possible you need to inform |PsychoPy| of some characteristics of your monitor. Your choice of units determines the information you need to provide:
 
 ======================================  ============================================================
   Units                                             Requires    
@@ -32,9 +32,9 @@ One of the particular features of PsychoPy is that you can specify the size and 
 Calibrating your monitor
 --------------------------
 
-PsychoPy can also store and use information about the gamma correction required for your monitor. If you have a Spectrascan PR650, PR655/PR670, Minolta LS100/LS110 or a CRS ColorCAL you can perform an automated calibration in which PsychoPy will measure the necessary gamma value to be applied to your monitor. Alternatively this can be added manually into the grid to the right of the Monitor Center. To run a calibration, connect the photometer via the serial port and, immediately after turning it on press the `Get Photometer` button in the |MC|.
+|PsychoPy| can also store and use information about the gamma correction required for your monitor. If you have a Spectrascan PR650, PR655/PR670, Minolta LS100/LS110 or a CRS ColorCAL you can perform an automated calibration in which |PsychoPy| will measure the necessary gamma value to be applied to your monitor. Alternatively this can be added manually into the grid to the right of the Monitor Center. To run a calibration, connect the photometer via the serial port and, immediately after turning it on press the `Get Photometer` button in the |MC|.
 
-Note that, if you don't have a photometer to hand then there is a method for determining the necessary gamma value psychophysically included in PsychoPy (see gammaMotionNull and gammaMotionAnalysis in the coder demos menu, under "experiment control").
+Note that, if you don't have a photometer to hand then there is a method for determining the necessary gamma value psychophysically included in |PsychoPy| (see gammaMotionNull and gammaMotionAnalysis in the coder demos menu, under "experiment control").
 
 The two additional tables in the Calibration box of the Monitor Center provide conversion from :ref:`DKL <DKL>` and :ref:`LMS <LMS>` colour spaces to :ref:`RGB <RGB>`. 
 

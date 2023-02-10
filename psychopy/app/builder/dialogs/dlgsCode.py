@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Dialog classes for the Builder Code component
@@ -15,7 +15,7 @@ import wx
 from collections import OrderedDict
 from psychopy.experiment.components.code import CodeComponent
 from ..validators import WarningManager
-from ...themes import ThemeMixin
+from ...themes import handlers
 
 from importlib.util import find_spec as loader
 hasMetapensiero = loader("metapensiero") is not None
@@ -55,6 +55,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.frame = frame
         self.app = frame.app
         self.helpUrl = helpUrl
+        self.component = element
         self.params = element.params  # dict
         self.order = element.order
         self.title = title
@@ -75,7 +76,6 @@ class DlgCodeComponentProperties(wx.Dialog):
         #   and also can't be killed
 
         openToPage = None
-        tabN = -1
         for paramN, paramName in enumerate(self.order):
             param = self.params.get(paramName)
             if paramName == 'name':
@@ -116,9 +116,9 @@ class DlgCodeComponentProperties(wx.Dialog):
                     _panel = self.tabs[tabName]
                 else:
                     _panel = wx.Panel(self.codeNotebook, wx.ID_ANY)
+                    _panel.tabN = len(self.tabs)
                     _panel.app = self.app
                     self.tabs[tabName] = _panel
-                    tabN += 1
 
                 self.codeBoxes[paramName] = CodeBox(_panel, wx.ID_ANY,
                                                     pos=wx.DefaultPosition,
@@ -129,9 +129,10 @@ class DlgCodeComponentProperties(wx.Dialog):
                 self.codeBoxes[paramName].AddText(param.val)
                 self.codeBoxes[paramName].Bind(wx.EVT_KEY_UP, self.onKeyUp)  # For real time translation
 
-                if len(param.val.strip()) and openToPage is None:
-                    # index of first non-blank page
-                    openToPage = tabN
+                if len(param.val.strip()) and hasattr(_panel, "tabN"):
+                    if openToPage is None or openToPage > _panel.tabN:
+                        # index of first non-blank page
+                        openToPage = _panel.tabN
 
         if self.helpUrl is not None:
             self.helpButton = wx.Button(self, wx.ID_HELP,
@@ -145,7 +146,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.warnings = WarningManager(self)  # to store warnings for all fields
         self.__do_layout()
         if openToPage is None:
-            openToPage = 1
+            openToPage = 0
         self.codeNotebook.SetSelection(openToPage)
         self.Update()
         self.Bind(wx.EVT_BUTTON, self.helpButtonHandler, self.helpButton)
@@ -277,7 +278,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         for boxName in self.codeBoxes:
             # If it is not JS...
             if 'JS' not in boxName:
-                # Traslate to JS
+                # Translate to JS
                 self.runTranslation(boxName)
 
         if event:
@@ -308,7 +309,7 @@ class DlgCodeComponentProperties(wx.Dialog):
 
         try:
             if pythonCode:
-                jsCode = translatePythonToJavaScript(pythonCode)
+                jsCode = translatePythonToJavaScript(pythonCode, namespace=None)
 
             if codeChangeTest:
                 return jsCode
@@ -400,7 +401,10 @@ class DlgCodeComponentProperties(wx.Dialog):
             # Add a visual indicator when tab contains code
             emptyCodeComp = CodeComponent('', '') # Spawn empty code component
             # If code tab is not empty and not the same as in empty code component, add an asterisk to tab name
-            if (self.params.get(pyName).val or self.params.get(jsName).val) and not (self.params.get(pyName).val == emptyCodeComp.params.get(pyName).val or self.params.get(jsName).val == emptyCodeComp.params.get(jsName).val):
+            hasContents = self.params.get(pyName).val or self.params.get(jsName).val
+            pyEmpty = self.params.get(pyName).val == emptyCodeComp.params.get(pyName).val
+            jsEmpty = self.params.get(jsName).val == emptyCodeComp.params.get(jsName).val
+            if hasContents and not (pyEmpty and jsEmpty):
                 tabLabel += ' *'
             self.codeNotebook.AddPage(panel, tabLabel)
 
@@ -467,7 +471,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.app.followLink(url=self.helpUrl)
 
 
-class CodeBox(BaseCodeEditor, ThemeMixin):
+class CodeBox(BaseCodeEditor, handlers.ThemeMixin):
     # this comes mostly from the wxPython demo styledTextCtrl 2
 
     def __init__(self, parent, ID, prefs,

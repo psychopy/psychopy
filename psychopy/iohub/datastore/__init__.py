@@ -12,41 +12,36 @@ from ..server import DeviceEvent
 from ..constants import EventConstants
 from ..errors import ioHubError, printExceptionDetailsToStdErr, print2err
 
-
 import tables
 from tables import parameters, StringCol, UInt32Col, UInt16Col, NoSuchNodeError
+
 if parse_version(tables.__version__) < parse_version('3'):
     from tables import openFile as open_file
+
     create_table = "createTable"
     create_group = "createGroup"
     f_get_child = "_f_getChild"
 else:
     from tables import open_file
+
     create_table = "create_table"
     create_group = "create_group"
     _f_get_child = "_f_get_child"
 
-
 parameters.MAX_NUMEXPR_THREADS = None
 """The maximum number of threads that PyTables should use internally in
 Numexpr.  If `None`, it is automatically set to the number of cores in
-your machine. In general, it is a good idea to set this to the number of
-cores in your machine or, when your machine has many of them (e.g. > 4),
-perhaps one less than this. < S. Simpson Note: These are 'not' GIL bound
-threads and therefore actually improve performance > """
+your machine."""
 
 parameters.MAX_BLOSC_THREADS = None
 """The maximum number of threads that PyTables should use internally in
 Blosc.  If `None`, it is automatically set to the number of cores in
-your machine. In general, it is a good idea to set this to the number of
-cores in your machine or, when your machine has many of them (e.g. > 4),
-perhaps one less than this.  < S. Simpson Note: These are 'not' GIL bound
-threads and therefore actually improve performance > """
+your machine."""
 
 DATA_FILE_TITLE = "ioHub DataStore - Experiment Data File."
-FILE_VERSION = '0.9.1.1'
+FILE_VERSION = '0.9.1.2'
 SCHEMA_AUTHORS = 'Sol Simpson'
-SCHEMA_MODIFIED_DATE = 'March 19th, 2021'
+SCHEMA_MODIFIED_DATE = 'October 27, 2021'
 
 
 class DataStoreFile():
@@ -80,74 +75,54 @@ class DataStoreFile():
 
     def loadTableMappings(self):
         # create meta-data tables
-        self.TABLES['EXPERIMENT_METADETA']=self.emrtFile.root.data_collection.experiment_meta_data
-        self.TABLES['SESSION_METADETA']=self.emrtFile.root.data_collection.session_meta_data
-        self.TABLES['CLASS_TABLE_MAPPINGS']=self.emrtFile.root.class_table_mapping
-        
+        self.TABLES['EXPERIMENT_METADETA'] = self.emrtFile.root.data_collection.experiment_meta_data
+        self.TABLES['SESSION_METADETA'] = self.emrtFile.root.data_collection.session_meta_data
+        self.TABLES['CLASS_TABLE_MAPPINGS'] = self.emrtFile.root.class_table_mapping
+
     def buildOutTemplate(self):
         self.emrtFile.title = DATA_FILE_TITLE
         self.emrtFile.FILE_VERSION = FILE_VERSION
         self.emrtFile.SCHEMA_DESIGNER = SCHEMA_AUTHORS
         self.emrtFile.SCHEMA_MODIFIED = SCHEMA_MODIFIED_DATE
 
-        #CREATE GROUPS
-        self.TABLES['CLASS_TABLE_MAPPINGS'] = getattr(self.emrtFile, create_table)(
-            self.emrtFile.root,
-            'class_table_mapping',
-            ClassTableMappings,
-            title='ioHub DeviceEvent Class to DataStore Table Mappings.')
+        create_group_func = getattr(self.emrtFile, create_group)
+        create_table_func = getattr(self.emrtFile, create_table)
 
-        getattr(self.emrtFile, create_group)(
-            self.emrtFile.root,
-            'data_collection',
-            title='Data Collected using the ioHub Event Framework.'
-        )
+        # CREATE GROUPS
+        self.TABLES['CLASS_TABLE_MAPPINGS'] = create_table_func(self.emrtFile.root, 'class_table_mapping',
+                                                                ClassTableMappings, title='ioHub DeviceEvent Class to '
+                                                                                          'DataStore Table Mappings.')
+
+        create_group_func(self.emrtFile.root, 'data_collection', title='Data collected using ioHub.')
         self.flush()
 
-        getattr(self.emrtFile, create_group)(
-            self.emrtFile.root.data_collection,
-            'events',
-            title='Data Collected using the ioHub Event Framework.'
-        )
+        create_group_func(self.emrtFile.root.data_collection, 'events', title='Events collected using ioHub.')
 
-        getattr(self.emrtFile, create_group)(
-            self.emrtFile.root.data_collection,
-            'condition_variables',
-            title="Experiment Session DV and IV's Values."
-        )
+        create_group_func(self.emrtFile.root.data_collection, 'condition_variables', title="Experiment Condition "
+                                                                                           "Variable Data.")
         self.flush()
 
+        self.TABLES['EXPERIMENT_METADETA'] = create_table_func(self.emrtFile.root.data_collection,
+                                                               'experiment_meta_data', ExperimentMetaData,
+                                                               title='Experiment Metadata.')
 
-        self.TABLES['EXPERIMENT_METADETA'] = getattr(self.emrtFile, create_table)(
-            self.emrtFile.root.data_collection,
-            'experiment_meta_data',
-            ExperimentMetaData,
-            title='Information About Experiments Saved to This ioHub DataStore File.'
-        )
-        self.TABLES['SESSION_METADETA'] = getattr(self.emrtFile, create_table)(
-            self.emrtFile.root.data_collection,
-            'session_meta_data',
-            SessionMetaData,
-            title='Information About Sessions Saved to This ioHub DataStore File.'
-        )
+        self.TABLES['SESSION_METADETA'] = create_table_func(self.emrtFile.root.data_collection, 'session_meta_data',
+                                                            SessionMetaData, title='Session Metadata.')
         self.flush()
 
-        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'experiment', title='Experiment Device Events.')
-        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'keyboard', title='Keyboard Device Events.')
-        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'mouse', title='Mouse Device Events.')
-        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'wintab', title='Wintab Device Events.')
-        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'eyetracker', title='EyeTracker Device Events.')
-        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'serial', title='Serial Interface Events.')
-        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'pstbox', title='Serial Pstbox Device Events.')
+        create_group_func(self.emrtFile.root.data_collection.events, 'experiment', title='Experiment Device Events.')
+        create_group_func(self.emrtFile.root.data_collection.events, 'keyboard', title='Keyboard Device Events.')
+        create_group_func(self.emrtFile.root.data_collection.events, 'mouse', title='Mouse Device Events.')
+        create_group_func(self.emrtFile.root.data_collection.events, 'wintab', title='Wintab Device Events.')
+        create_group_func(self.emrtFile.root.data_collection.events, 'eyetracker', title='EyeTracker Device Events.')
+        create_group_func(self.emrtFile.root.data_collection.events, 'serial', title='Serial Interface Events.')
+        create_group_func(self.emrtFile.root.data_collection.events, 'pstbox', title='Serial Pstbox Device Events.')
+
         self.flush()
 
     @staticmethod
     def eventTableLabel2ClassName(event_table_label):
-        tokens = str(
-            event_table_label[0] +
-            event_table_label[
-                1:].lower() +
-            'Event').split('_')
+        tokens = str(event_table_label[0] + event_table_label[1:].lower() + 'Event').split('_')
         return ''.join([t[0].upper() + t[1:] for t in tokens])
 
     def groupNodeForEvent(self, event_cls):
@@ -158,88 +133,66 @@ class DataStoreFile():
             return datevts_node._f_get_child(evt_group_label)
         except tables.NoSuchNodeError:
             # Create the group node for the event....
-            egtitle = "%s%s Device Events."%(evt_group_label[0].upper(),
-                                             evt_group_label[1:])
-            self.emrtFile.createGroup(datevts_node, evt_group_label,
-                                      title=egtitle)
+            egtitle = "%s%s Device Events." % (evt_group_label[0].upper(), evt_group_label[1:])
+            self.emrtFile.createGroup(datevts_node, evt_group_label, title=egtitle)
             return datevts_node._f_get_child(evt_group_label)
 
     def updateDataStoreStructure(self, device_instance, event_class_dict):
-        dfilter = tables.Filters(
-            complevel=0,
-            complib='zlib',
-            shuffle=False,
-            fletcher32=False)
+        dfilter = tables.Filters(complevel=0, complib='zlib', shuffle=False, fletcher32=False)
 
         for event_cls_name, event_cls in event_class_dict.items():
             if event_cls.IOHUB_DATA_TABLE:
-                event_table_label = event_cls.IOHUB_DATA_TABLE
-                if event_table_label not in self.TABLES:
+                table_label = event_cls.IOHUB_DATA_TABLE
+                if table_label not in self.TABLES:
                     try:
-                        self.TABLES[event_table_label] = getattr(self.emrtFile, create_table)(
-                            self.groupNodeForEvent(event_cls),
-                            self.eventTableLabel2ClassName(event_table_label),
-                            event_cls.NUMPY_DTYPE,
-                            title='%s Data' %
-                            (device_instance.__class__.__name__,
-                             ),
-                            filters=dfilter.copy())
+                        tc_name = self.eventTableLabel2ClassName(table_label)
+                        create_table_func = getattr(self.emrtFile, create_table)
+                        dc_name = device_instance.__class__.__name__
+                        self.TABLES[table_label] = create_table_func(self.groupNodeForEvent(event_cls),
+                                                                     tc_name,
+                                                                     event_cls.NUMPY_DTYPE,
+                                                                     title='%s Data' % dc_name,
+                                                                     filters=dfilter.copy())
                         self.flush()
                     except tables.NodeError:
-                        self.TABLES[event_table_label] = self.groupNodeForEvent(event_cls)._f_get_child(self.eventTableLabel2ClassName(event_table_label))
+                        self.TABLES[table_label] = self.groupNodeForEvent(event_cls)._f_get_child(tc_name)
                     except Exception as e:
                         print2err('---------------ERROR------------------')
-                        print2err(
-                            'Exception %s in iohub.datastore.updateDataStoreStructure:' %
-                            (e.__class__.__name__))
+                        print2err('Exception %s in iohub.datastore.updateDataStoreStructure:' % (e.__class__.__name__))
                         print2err('\tevent_cls: {0}'.format(event_cls))
-                        print2err(
-                            '\tevent_cls_name: {0}'.format(event_cls_name))
-                        print2err(
-                            '\tevent_table_label: {0}'.format(event_table_label))
-                        print2err(
-                            '\teventTableLabel2ClassName: {0}'.format(
-                                self.eventTableLabel2ClassName(event_table_label)))
-                        print2err(
-                            '\tgroupNodeForEvent(event_cls): {0}'.format(
-                                self.groupNodeForEvent(event_cls)))
+                        print2err('\tevent_cls_name: {0}'.format(event_cls_name))
+                        print2err('\tevent_table_label: {0}'.format(table_label))
+                        print2err('\teventTable2ClassName: {0}'.format(tc_name))
+                        print2err('\tgroupNodeForEvent(event_cls): {0}'.format(self.groupNodeForEvent(event_cls)))
                         print2err('\nException:')
                         printExceptionDetailsToStdErr()
                         print2err('--------------------------------------')
 
-                if event_table_label in self.TABLES:
-                    self.addClassMapping(event_cls,
-                                         self.TABLES[event_table_label])
+                if table_label in self.TABLES:
+                    self.addClassMapping(event_cls, self.TABLES[table_label])
                 else:
-                    print2err(
-                        '---- IOHUB.DATASTORE CANNOT ADD CLASS MAPPING ----')
-                    print2err(
-                        '\t** TABLES missing key: {0}'.format(event_table_label))
+                    print2err('---- IOHUB.DATASTORE CANNOT ADD CLASS MAPPING ----')
+                    print2err('\t** TABLES missing key: {0}'.format(table_label))
                     print2err('\tevent_cls: {0}'.format(event_cls))
                     print2err('\tevent_cls_name: {0}'.format(event_cls_name))
-                    print2err(
-                        '\teventTableLabel2ClassName: {0}'.format(
-                            self.eventTableLabel2ClassName(event_table_label)))
+                    print2err('\teventTableLabel2ClassName: {0}'.format(self.eventTableLabel2ClassName(table_label)))
                     print2err('----------------------------------------------')
 
-    def addClassMapping(self,ioClass,ctable):
-        names = [
-            x['class_id'] for x in self.TABLES['CLASS_TABLE_MAPPINGS'].where(
-                '(class_id == %d)' %
-                (ioClass.EVENT_TYPE_ID))]
-        if len(names)==0:
-            trow = self.TABLES['CLASS_TABLE_MAPPINGS'].row
+    def addClassMapping(self, ioClass, ctable):
+        cmtable = self.TABLES['CLASS_TABLE_MAPPINGS']
+        names = [x['class_id'] for x in cmtable.where('(class_id == %d)' % ioClass.EVENT_TYPE_ID)]
+        if len(names) == 0:
+            trow = cmtable.row
             trow['class_id'] = ioClass.EVENT_TYPE_ID
-            trow['class_type_id'] = 1 # Device or Event etc.
+            trow['class_type_id'] = 1  # Device or Event etc.
             trow['class_name'] = ioClass.__name__
-            trow['table_path']  = ctable._v_pathname
+            trow['table_path'] = ctable._v_pathname
             trow.append()
             self.flush()
 
-    def createOrUpdateExperimentEntry(self,experimentInfoList):
+    def createOrUpdateExperimentEntry(self, experimentInfoList):
         experiment_metadata = self.TABLES['EXPERIMENT_METADETA']
-        result = [row for row in experiment_metadata.iterrows() if row[
-            'code'] == experimentInfoList[1]]
+        result = [row for row in experiment_metadata.iterrows() if row['code'] == experimentInfoList[1]]
         if len(result) > 0:
             result = result[0]
             self.active_experiment_id = result['experiment_id']
@@ -262,14 +215,9 @@ class DataStoreFile():
             max_id = np.amax(id_col)
         self.active_session_id = int(max_id + 1)
 
-        values = (
-            self.active_session_id,
-            self.active_experiment_id,
-            sessionInfoDict['code'],
-            sessionInfoDict['name'],
-            sessionInfoDict['comments'],
-            sessionInfoDict['user_variables']
-        )
+        values = (self.active_session_id, self.active_experiment_id, sessionInfoDict['code'], sessionInfoDict['name'],
+                  sessionInfoDict['comments'], sessionInfoDict['user_variables'])
+
         session_metadata.append([values, ])
         self.flush()
         return self.active_session_id
@@ -277,54 +225,54 @@ class DataStoreFile():
     def initConditionVariableTable(
             self, experiment_id, session_id, np_dtype):
         expcv_table = None
-        exp_session = [('EXPERIMENT_ID','i4'),('SESSION_ID','i4')]
+        exp_session = [('EXPERIMENT_ID', 'i4'), ('SESSION_ID', 'i4')]
         exp_session.extend(np_dtype)
         np_dtype = []
         for npctype in exp_session:
             if isinstance(npctype[0], str):
-                nv = [str(npctype[0]),]
+                nv = [str(npctype[0]), ]
                 nv.extend(npctype[1:])
                 np_dtype.append(tuple(nv))
             else:
                 np_dtype.append(npctype)
 
-        np_dtype2=[]
+        np_dtype2 = []
         for adtype in np_dtype:
-            adtype2=[]
+            adtype2 = []
             for a in adtype:
-                if isinstance(a, bytes): 
+                if isinstance(a, bytes):
                     a = str(a, 'utf-8')
                 adtype2.append(a)
             np_dtype2.append(tuple(adtype2))
-        np_dtype = np_dtype2    
+        np_dtype = np_dtype2
         self._EXP_COND_DTYPE = np.dtype(np_dtype)
         try:
-            expCondTableName = "EXP_CV_%d"%(experiment_id)
-            experimentConditionVariableTable = getattr(self.emrtFile.root.data_collection.condition_variables, _f_get_child)(expCondTableName)
+            expCondTableName = "EXP_CV_%d" % (experiment_id)
+            experimentConditionVariableTable = getattr(self.emrtFile.root.data_collection.condition_variables,
+                                                       _f_get_child)(expCondTableName)
             self.TABLES['EXP_CV'] = experimentConditionVariableTable
         except NoSuchNodeError:
             try:
-                experimentConditionVariableTable = getattr(self.emrtFile, create_table)(self.emrtFile.root.data_collection.condition_variables, expCondTableName, self._EXP_COND_DTYPE, title='Condition Variable Values for Experiment ID %d' % (experiment_id))
+                experimentConditionVariableTable = getattr(self.emrtFile, create_table)(
+                    self.emrtFile.root.data_collection.condition_variables, expCondTableName, self._EXP_COND_DTYPE,
+                    title='Condition Variable Values for Experiment ID %d' % experiment_id)
                 self.TABLES['EXP_CV'] = experimentConditionVariableTable
                 self.emrtFile.flush()
             except Exception:
                 printExceptionDetailsToStdErr()
                 return False
         except Exception:
-            print2err(
-                'Error getting expcv_table for experiment %d, table name: %s' %
-                (experiment_id, expCondTableName))
+            print2err('Error getting expcv_table for experiment %d, table name: %s' % (experiment_id, expCondTableName))
             printExceptionDetailsToStdErr()
             return False
         self._activeRunTimeConditionVariableTable = expcv_table
         return True
 
-
     def extendConditionVariableTable(self, experiment_id, session_id, data):
         if self._EXP_COND_DTYPE is None:
             return False
         if self.emrtFile and 'EXP_CV' in self.TABLES:
-            temp = [experiment_id,session_id]
+            temp = [experiment_id, session_id]
             temp.extend(data)
             data = temp
             try:
@@ -332,17 +280,13 @@ class DataStoreFile():
                 for i, d in enumerate(data):
                     if isinstance(d, (list, tuple)):
                         data[i] = tuple(d)
-                np_array = np.array([tuple(data), ],
-                                    dtype=self._EXP_COND_DTYPE)
+                np_array = np.array([tuple(data), ], dtype=self._EXP_COND_DTYPE)
                 etable.append(np_array)
                 self.bufferedFlush()
                 return True
             except Exception:
                 printExceptionDetailsToStdErr()
         return False
-
-    def addMetaDataToFile(self, metaData):
-        pass
 
     def checkForExperimentAndSessionIDs(self, event=None):
         if self.active_experiment_id is None or self.active_session_id is None:
@@ -357,11 +301,10 @@ class DataStoreFile():
 
     def checkIfSessionCodeExists(self, sessionCode):
         if self.emrtFile:
-            sessionsForExperiment = self.emrtFile.root.data_collection.session_meta_data.where(
-                'experiment_id == %d' % (self.active_experiment_id,))
-            sessionCodeMatch = [
-                sess for sess in sessionsForExperiment if sess['code'] == sessionCode]
-            if len(sessionCodeMatch)>0:
+            wclause = 'experiment_id == %d' % (self.active_experiment_id,)
+            sessionsForExperiment = self.emrtFile.root.data_collection.session_meta_data.where(wclause)
+            sessionCodeMatch = [sess for sess in sessionsForExperiment if sess['code'] == sessionCode]
+            if len(sessionCodeMatch) > 0:
                 return True
             return False
 
@@ -407,7 +350,7 @@ class DataStoreFile():
         except Exception:
             printExceptionDetailsToStdErr()
 
-    def bufferedFlush(self,eventCount=1):
+    def bufferedFlush(self, eventCount=1):
         """
         If flushCounter threshold is >=0 then do some checks. If it is < 0,
         then flush only occurs when command is sent to ioHub,
@@ -444,6 +387,7 @@ class DataStoreFile():
         except Exception:
             pass
 
+
 ## -------------------- Utility Functions ------------------------ ##
 
 
@@ -463,17 +407,19 @@ def close_open_data_files(verbose):
             if verbose:
                 print2err('done')
 
+
 registered_close_open_data_files = True
 atexit.register(close_open_data_files, False)
+
 
 ## ---------------------- Pytable Definitions ------------------- ##
 
 
 class ClassTableMappings(tables.IsDescription):
     class_id = UInt32Col(pos=1)
-    class_type_id = UInt32Col(pos=2) # Device or Event etc.
+    class_type_id = UInt32Col(pos=2)  # Device or Event etc.
     class_name = StringCol(32, pos=3)
-    table_path  = StringCol(128, pos=4)
+    table_path = StringCol(128, pos=4)
 
 
 class ExperimentMetaData(tables.IsDescription):
@@ -490,5 +436,4 @@ class SessionMetaData(tables.IsDescription):
     code = StringCol(256, pos=3)
     name = StringCol(256, pos=4)
     comments = StringCol(4096, pos=5)
-    user_variables = StringCol(16384, pos=6) # Holds json encoded version of user variable dict for session
-
+    user_variables = StringCol(16384, pos=6)  # Holds json encoded version of user variable dict for session

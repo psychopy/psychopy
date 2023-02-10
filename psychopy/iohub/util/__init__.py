@@ -10,7 +10,7 @@ import warnings
 import numpy
 import numbers  # numbers.Integral is like (int, long) but supports Py3
 import datetime
-from ..errors import print2err
+from ..errors import print2err, printExceptionDetailsToStdErr
 import re
 import collections.abc
 
@@ -46,6 +46,7 @@ def readConfig(scr_path):
     '''
     return yload(open(scr_path, 'r'), Loader=yLoader)
 
+
 def mergeConfigurationFiles(base_config_file_path, update_from_config_file_path, merged_save_to_path):
     """Merges two iohub configuration files into one and saves it to a file
     using the path/file name in merged_save_to_path."""
@@ -76,6 +77,7 @@ def mergeConfigurationFiles(base_config_file_path, update_from_config_file_path,
     ydump(merged, open(merged_save_to_path, 'w'), Dumper=yDumper)
 
     return merged
+
 ########################
 
 
@@ -156,6 +158,7 @@ def getDevicePaths(device_name=""):
                     scs_yaml_paths.append((device_folder, dfile))
     return scs_yaml_paths
 
+
 def getDeviceDefaultConfig(device_name, builder_hides=True):
     """
     Return the default iohub config dictionary for the given device(s). The dictionary contains the
@@ -209,6 +212,7 @@ def getDeviceDefaultConfig(device_name, builder_hides=True):
         # simplify return value when only one device was requested
         return list(device_configs[0].values())[0]
     return device_configs
+
 
 def getDeviceNames(device_name="eyetracker.hw", get_paths=True):
     """
@@ -325,17 +329,66 @@ def showWindow(win, force=False):
     else:
         print("Warning: Unhandled sys.platform: ", sys.platform)
 
+def createCustomCalibrationStim(win, cal_settings):
+    """
+    Create a custom calibration target using the CUSTOM eyetracker calibration settings. Returns an instance of
+    target_attributes:custom:class_name class. If no custom target is defined, returns None.
+
+    :param win: psychopy.visual.Window instance
+    :param cal_settings: eye tracker calibration settings dictionary
+    :return: visual stim instance
+    """
+    try:
+        import importlib
+
+        custom_target_settings = cal_settings.get('target_attributes').get('custom')
+        TargetClass = getattr(importlib.import_module(custom_target_settings.get('module_name')),
+                              custom_target_settings.get('class_name'))
+        targ_kwargs = custom_target_settings.get('class_kwargs', {})
+        targ_kwargs['win'] = win
+
+        path_kwargs = ['filename', 'image']
+        for pkwarg in path_kwargs:
+            if pkwarg in targ_kwargs.keys():
+                if not os.path.isfile(targ_kwargs.get(pkwarg)):
+                    import psychopy
+                    abspath = os.path.join(psychopy.iohub.EXP_SCRIPT_DIRECTORY, targ_kwargs.get(pkwarg))
+                    if os.path.isfile(abspath):
+                        targ_kwargs[pkwarg] = abspath
+
+        # Instantiate the class (pass arguments to the constructor, if needed)
+        return TargetClass(**targ_kwargs)
+    except Exception:
+        printExceptionDetailsToStdErr()
+        print2err("Error creating custom iohub calibration graphics. Using default FixationTarget.")
+
+
+def getObjectModuleAndClassName(obj, split=True):
+    """
+    Get the fully-qualified class name of a python object.
+    """
+    cls = type(obj)
+    module = cls.__module__
+    name = cls.__qualname__
+    if module in ("__builtin__", "__main__"):
+        module = None
+    if split:
+        return module, name
+    if module is not None:
+        name = module + "." + name
+    return name
+
+
 # Recursive updating of values from one dict into another if the key does not key exist.
 # Supported nested dicts and uses deep copy when setting values in the
 # target dict.
-
-
 def updateDict(add_to, add_from):
     for key, value in add_from.items():
         if key not in add_to:
             add_to[key] = copy.deepcopy(value)
         elif isinstance(value, dict) and isinstance(add_to[key], dict):
             updateDict(add_to[key], value)
+
 
 def updateSettings(d, u):
     for k, v in u.items():
@@ -348,6 +401,7 @@ def updateSettings(d, u):
                 v = v.decode('UTF-8')
             d[k] = v
     return d
+
 
 # Convert Camel to Snake variable name format
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
@@ -387,6 +441,7 @@ def complement(r, g, b):
     k = hilo(r, g, b)
     return tuple(k - u for u in (r, g, b))
 
+
 class NumPyRingBuffer():
     """NumPyRingBuffer is a circular buffer implemented using a one dimensional
     numpy array on the backend. The algorithm used to implement the ring buffer
@@ -415,7 +470,7 @@ class NumPyRingBuffer():
 
     Methods that can be called from a standard numpy array can also be called using the
     NumPyRingBuffer instance created. However Numpy module level functions will not accept
-    a NumPyRingBuffer as a valid arguement.
+    a NumPyRingBuffer as a valid argument.
 
     To clear the ring buffer and start with no data in the buffer, without
     needing to create a new NumPyRingBuffer object, call the clear() method
@@ -627,4 +682,3 @@ def rotate2D(pts, origin, ang=None):
                                    numpy.sin(ang)],
                                   [-numpy.sin(ang),
                                    numpy.cos(ang)]])) + origin
-

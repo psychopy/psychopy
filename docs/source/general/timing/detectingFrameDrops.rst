@@ -12,13 +12,12 @@ Occasionally you will drop frames if you:
 Things to avoid:
 
 * recreating textures for stimuli
-* building new stimuli from scratch (create them once at the top of your script
-and then change them using :meth:`stim.setOri(ori)`, `stim.setPos([x,y]...)`
+* building new stimuli from scratch (create them once at the top of your script and then change them using :meth:`stim.setOri(ori)`, `stim.setPos([x,y]...)`
 
 Turn on frame time recording
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The key sometimes is *knowing* if you are dropping frames. PsychoPy can help
+The key sometimes is *knowing* if you are dropping frames. |PsychoPy| can help
 with that by keeping track of frame durations. By default, frame time tracking
 is turned off because many people don't need it, but it can be turned on any
 time after :class:`~psychopy.visual.Window` creation::
@@ -37,7 +36,7 @@ will give spurious results.
 Warn me if I drop a frame
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The simplest way to check if a frame has been dropped is to get PsychoPy to
+The simplest way to check if a frame has been dropped is to get |PsychoPy| to
 report a warning if it thinks a frame was dropped::
 
     from psychopy import visual, logging
@@ -75,8 +74,7 @@ Or you could save them to disk. A convenience function is provided for this::
     win.saveFrameIntervals(fileName=None, clear=True)
 
 The above will save the currently stored frame intervals (using the default
-filename, 'lastFrameIntervals.log') and then clears the data. The saved file is
- a simple text file.
+filename, 'lastFrameIntervals.log') and then clears the data. The saved file is a simple text file.
 
 At any time you can also retrieve the time of the /last/ frame flip using
 win.lastFrameT (the time is synchronised with logging.defaultClock so it will
@@ -87,7 +85,7 @@ match any logging commands that your script uses).
 'Blocking' on the VBI
 ~~~~~~~~~~~~~~~~~~~~~
 
-As of version 1.62 PsychoPy 'blocks' on the vertical blank interval meaning
+As of version 1.62 |PsychoPy| 'blocks' on the vertical blank interval meaning
 that, once Window.flip() has been called, no code will be executed until that
 flip actually takes place. The timestamp for the above frame interval
 measurements is taken immediately after the flip occurs. Run the timeByFrames

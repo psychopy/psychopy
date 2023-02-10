@@ -18,23 +18,16 @@ Entering parameters
 
 Most of the entry boxes for Component parameters simply receive text or numeric values or lists (sequences of values surrounded by square brackets) as input. In addition, the user can insert variables and code into most of these, which will be interpreted either at the beginning of the experiment or at regular intervals within it.
 
-To indicate to PsychoPy that the value represents a variable or python code, rather than literal text, it should be preceded by a `$`. For example, inserting `intensity` into the text field of the Text Component will cause that word literally to be presented, whereas `$intensity` will cause python to search for the variable called intensity in the script.
+To indicate to |PsychoPy| that the value represents a variable or python code, rather than literal text, it should be preceded by a `$`. For example, inserting `intensity` into the text field of the Text Component will cause that word literally to be presented, whereas `$intensity` will cause python to search for the variable called intensity in the script.
 
 Variables associated with :ref:`loops` can also be entered in this way (see :ref:`accessingParams` for further details). But it can also be used to evaluate arbitrary python code. 
 
 For example:
 
-    * $random(2)
-        will generate a pair of random numbers
-
-    * $"yn"[randint(2)]
-        will randomly choose the first or second character (y or n)
-
-    *  $globalClock.getTime()
-        will insert the current time in secs of the globalClock object
-
-    *  $[sin(angle), cos(angle)]
-        will insert the sin and cos of an angle (e.g. into the x,y coords of a stimulus)
+* :code:`$random(2)` will generate a pair of random numbers
+* :code:`$"yn"[randint(2)]` will randomly choose the first or second character (y or n)
+* :code:`$globalClock.getTime()` will insert the current time in secs of the globalClock object
+* :code:`$[sin(angle), cos(angle)]` will insert the sin and cos of an angle (e.g. into the x,y coords of a stimulus)
 
 
 How often to evaluate the variable/code

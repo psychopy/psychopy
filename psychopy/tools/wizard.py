@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Author: Jeremy Gray, Oct 2012; localization 2014
@@ -221,7 +221,7 @@ class BaseWizard():
         nDropped = sum(intervalsMS > (1.5 * median))
         if nDropped:
             msg = _translate(
-                'Warning: could not keep up during <a href="http://'
+                'Warning: could not keep up during <a href="https://'
                 'www.psychopy.org/api/visual/dotstim.html">DotStim</a>'
                 ' with 100 random dots.')
             warn = True
@@ -324,7 +324,7 @@ class BaseWizard():
                         import PIL
                         ver = PIL.__version__
                     elif pkg == 'pynetstation':
-                        from psychopy.hardware import egi
+                        import egi_pynetstation
                         ver = 'import ok'
                     elif pkg == 'pyserial':
                         import serial
@@ -535,10 +535,10 @@ class ConfigWizard(BaseWizard):
                 <li> On Windows, don't use the windows option to check for updates
                   - it can report that there are no updates available.
                 <li> If your card is made by NVIDIA, go to
-                  <a href="http://www.nvidia.com/Drivers">the NVIDIA website</a>
+                  <a href="https://www.nvidia.com/download/index.aspx">the NVIDIA website</a>
                   and use the 'auto detect' option. Try here for
-                  <a href="http://support.amd.com/">ATI / Radeon drivers</a>. Or try
-                  <a href="http://www.google.com/search?q=download+drivers+%(card2)s">
+                  <a href="https://www.amd.com/fr/support">ATI / Radeon drivers</a>. Or try
+                  <a href="https://www.google.com/search?q=download+drivers+%(card2)s">
                   this google search</a> [google.com].
                 <li> Download and install the driver.
                 <li> Reboot the computer.

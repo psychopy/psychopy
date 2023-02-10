@@ -60,14 +60,31 @@ class udpServer(DatagramServer):
         self.unpacker = msgpack.Unpacker(use_list=True)
         self.unpack = self.unpacker.unpack
         self.feed = self.unpacker.feed
+        self.multipacket_reads = 0
         DatagramServer.__init__(self, address)
 
     def handle(self, request, replyTo):
         if self._running is False:
             return False
+
         self.feed(request)
+
+        if self.multipacket_reads > 0:
+            # Multi packet request handling...
+            self.multipacket_reads -= 1
+            if self.multipacket_reads > 0:
+                # If reading part of multi packet request, just return and wait for next part of request
+                return False
+
         request = self.unpack()
-        # print2err(">> Rx Packet: {}, {}".format(request, replyTo))
+
+        if request[0] == 'IOHUB_MULTIPACKET_REQUEST':
+            # setup multi packet request read
+            self.multipacket_reads = request[1]
+            return False
+        else:
+            self.multipacket_reads = 0
+
         request_type = request.pop(0)
         if not isinstance(request_type, str):
             request_type = str(request_type, 'utf-8') # convert bytes to string for compatibility

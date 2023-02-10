@@ -754,7 +754,7 @@ msgstr ""
 #: app/builder/dialogs/__init__.py:1094
 #: app/builder/dialogs/dlgsConditions.py:304
 #: app/builder/dialogs/dlgsConditions.py:579 app/builder/validators.py:110
-msgid "Name must be alpha-numeric or _, no spaces"
+msgid "Name must be alphanumeric or _, no spaces"
 msgstr ""
 
 #: app/builder/dialogs/__init__.py:1318 app/builder/dialogs/__init__.py:1467
@@ -2589,7 +2589,7 @@ msgstr ""
 #: experiment/components/_base.py:48
 #: experiment/components/eyetracker/__init__.py:40
 #: experiment/components/unknown/__init__.py:36
-msgid "Name of this component (alpha-numeric or _, no spaces)"
+msgid "Name of this component (alphanumeric or _, no spaces)"
 msgstr ""
 
 #: experiment/components/_base.py:54
@@ -3316,7 +3316,7 @@ msgstr ""
 
 #: experiment/components/keyboard/__init__.py:75
 msgid ""
-"Do you want to discard all responses occuring before the onset of this "
+"Do you want to discard all responses occurring before the onset of this "
 "component?"
 msgstr ""
 

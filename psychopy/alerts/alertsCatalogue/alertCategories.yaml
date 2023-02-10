@@ -38,6 +38,8 @@
     cat: Timing
     4105: Component start time exceeds stop times
     4115: Frames must be given as whole numbers
+    4120: Component stop duration with no start time
+    4125: Microphone given no stop duration
   4200:
     cat: Code component syntax
     4205: Python syntax error
@@ -50,6 +52,8 @@
     4320: Non-local font
     4325: Font not available
     4330: Recording device not found
+    4335: Component or routine not implemented in Python
+    4340: Component or routine not implemented in JavaScript
   4400:
     cat: Conflicts
     4405: Textbox and keyboard conflict
@@ -62,12 +66,17 @@
     4530: Auto pace param not used
     4540: Eyetracking requires window to be fullscreen
     4545: Eyetracking requires a monitor config
+    4550: Eye tracker experiments should use 'ioHub' as the Input -> Keyboard Backend setting
 
   4600:
     cat: Audio Transcription
     4605: Transcription service not compatible online
     4610: Transcription service not compatible locally
     4615: API key not found
+
+  4700:
+    cat: Loops
+    4705: Column name from conditions file clashes with variable name
 
 5000:
   cat: Online studies
@@ -79,10 +88,13 @@
   cat: Interface
   6100:
     cat: File not found
-    6105: Run nonexistant file
+    6105: Run nonexistent file
 
 7000:
   cat: Python dependencies
+  7100:
+    cat: Plugins
+    7105: Component comes from uninstalled plugin
 
 8000:
   cat: Legacy

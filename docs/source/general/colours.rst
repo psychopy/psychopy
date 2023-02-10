@@ -9,7 +9,7 @@ Color spaces
 *You can explore colors in PsychoPy Builder through accessing the color picker from any parameter that takes a color value.*
 
 
-The color of stimuli can be specified when creating a stimulus and when using setColor() in a variety of ways. From Builder view you can also use the color picker to pick the color you want and explore what value that color would correspond to in a variety of spaces. There are three basic color spaces that PsychoPy can use, RGB, DKL and LMS but colors can also be specified by a name (e.g. 'DarkSalmon') or by a hexadecimal string (e.g. '#00FF00').
+The color of stimuli can be specified when creating a stimulus and when using setColor() in a variety of ways. From Builder view you can also use the color picker to pick the color you want and explore what value that color would correspond to in a variety of spaces. There are three basic color spaces that |PsychoPy| can use, RGB, DKL and LMS but colors can also be specified by a name (e.g. 'DarkSalmon') or by a hexadecimal string (e.g. '#00FF00').
 
 examples::
 
@@ -25,7 +25,7 @@ examples::
 
 Colors by name
 ----------------
-Any of the `web/X11 color names <https://www.w3schools.com/Colors/colors_names.asp>`_ can be used to specify a color. These are then converted into RGB space by PsychoPy.
+Any of the `web/X11 color names <https://www.w3schools.com/Colors/colors_names.asp>`_ can be used to specify a color. These are then converted into RGB space by |PsychoPy|.
 
 These are not case sensitive, but should not include any spaces.
 
@@ -33,7 +33,7 @@ These are not case sensitive, but should not include any spaces.
 
 Colors by hex value
 --------------------
-This is really just another way of specifying the r,g,b values of a color, where each gun's value is given by two hexadecimal characters. For some examples see `this chart <http://html-color-codes.com/>`_. To use these in PsychoPy they should be formatted as a string, beginning with `#` and with no spaces. (NB on a British Mac keyboard the # key is hidden - you need to press Alt-3)
+This is really just another way of specifying the r,g,b values of a color, where each gun's value is given by two hexadecimal characters. For some examples see `this chart <https://html-color-codes.com/>`_. To use these in |PsychoPy| they should be formatted as a string, beginning with `#` and with no spaces. (NB on a British Mac keyboard the # key is hidden - you need to press Alt-3)
 
 .. _RGB:
 
@@ -49,18 +49,18 @@ Examples:
 * :code:`[1.0,-1,-1]` is red
 * :code:`[1.0,0.6,0.6]` is pink
 
-The reason that these colors are expressed ranging between 1 and -1 (rather than 0:1 or 0:255) is that many experiments, particularly in visual science where PsychoPy has its roots, express colors as deviations from a grey screen. Under that scheme a value of -1 is the maximum decrement from grey and +1 is the maximum increment above grey.
+The reason that these colors are expressed ranging between 1 and -1 (rather than 0:1 or 0:255) is that many experiments, particularly in visual science where |PsychoPy| has its roots, express colors as deviations from a grey screen. Under that scheme a value of -1 is the maximum decrement from grey and +1 is the maximum increment above grey.
 
-You can still specify colors in RGB from 0:1 or 0:255, but you will need to let PsychoPy know that this is what you're doing. To do this, set the color space to be `rgb1` for 0:1 or `rgb255` for 0:255 - if the color space is just `rgb`, then values will be from -1:1
+You can still specify colors in RGB from 0:1 or 0:255, but you will need to let |PsychoPy| know that this is what you're doing. To do this, set the color space to be `rgb1` for 0:1 or `rgb255` for 0:255 - if the color space is just `rgb`, then values will be from -1:1
 
-Note that PsychoPy will use your monitor calibration to linearize this for each gun. E.g., 0 will be halfway between the minimum luminance and maximum luminance for each gun, if your monitor gammaGrid is set correctly.
+Note that |PsychoPy| will use your monitor calibration to linearize this for each gun. E.g., 0 will be halfway between the minimum luminance and maximum luminance for each gun, if your monitor gammaGrid is set correctly.
 
 .. _HSV:
 
 HSV color space
 ------------------
 
-Another way to specify colors is in terms of their Hue, Saturation and 'Value' (HSV). For a description of the color space see the `Wikipedia HSV entry <http://en.wikipedia.org/wiki/HSL_and_HSV>`_. The Hue in this case is specified in degrees, the saturation ranging 0:1 and the 'value' also ranging 0:1.
+Another way to specify colors is in terms of their Hue, Saturation and 'Value' (HSV). For a description of the color space see the `Wikipedia HSV entry <https://en.wikipedia.org/wiki/HSL_and_HSV>`_. The Hue in this case is specified in degrees, the saturation ranging 0:1 and the 'value' also ranging 0:1.
 
 Examples:
 
@@ -83,9 +83,9 @@ In the Derrington, Krauskopf and Lennie [#dkl1984]_ color space (based on the Ma
 
 .. image:: /images/dklSpace.png
 
-In PsychoPy these values are specified in units of degrees for elevation and azimuth and as a float (ranging -1:1) for the contrast.
+In |PsychoPy| these values are specified in units of degrees for elevation and azimuth and as a float (ranging -1:1) for the contrast.
 
-Note that not all colors that can be specified in DKL color space can be reproduced on a monitor. `Here <http://youtu.be/xwoVrGoBaWg>`_ is a movie plotting in DKL space (showing `cartesian` coordinates, not spherical coordinates) the gamut of colors available on an example CRT monitor.
+Note that not all colors that can be specified in DKL color space can be reproduced on a monitor. You can see `here a movie plotting colors in DKL space <https://youtu.be/xwoVrGoBaWg>`_ (showing `cartesian` coordinates, not spherical coordinates) to show the gamut of colors available on an example monitor.
 
 Examples:
 

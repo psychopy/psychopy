@@ -15,7 +15,7 @@ details: |
   you may want to plug in a microphone to your laptop and tell PsychoPy to use that microphone rather than the one
   built into your laptop. For this reason, you can specify a device for a Microphone component.
 
-  However, when running online, we cannot be sure what microphone devices the participant will have conencted. As such,
+  However, when running online, we cannot be sure what microphone devices the participant will have connected. As such,
   the device parameter does not apply to online experiments and will not be used online.
 
 solutions: |

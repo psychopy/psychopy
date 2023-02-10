@@ -6,7 +6,7 @@
 urls = dict()
 
 # links based on string names
-urls['builder'] = "https://www.psychopy.org/builder/builder.html"
+urls['builder'] = "https://www.psychopy.org/builder"
 urls['builder.loops'] = "https://www.psychopy.org/builder/flow.html#loops"
 # NB. builder components get their urls defined by the component code
 # (so a custom component can have a url)
@@ -24,7 +24,7 @@ urls['prefs.connections'] = general + "prefs.html#connection-settings"
 
 # links keyed by wxIDs (e.g. menu item IDs)
 urls['psychopyHome'] = "https://www.psychopy.org/"
-urls['psychopyReference'] = "https://www.psychopy.org/api/api.html"
+urls['psychopyReference'] = "https://www.psychopy.org/api"
 urls['coderTutorial'] = "https://www.psychopy.org/coder/tutorial1.html"
 urls['builderHelp'] = urls['builder']
 urls['builderDemos'] = "http://code.google.com/p/psychopy/downloads/list?can=2&q=demos"

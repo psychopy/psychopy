@@ -6,7 +6,7 @@ independently controlled. Suitable for creating 'global form' stimuli or more
 detailed random dot stimuli."""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
@@ -117,8 +117,8 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         self.interpolate = interpolate
         self.__dict__['fieldDepth'] = fieldDepth
         self.__dict__['depths'] = depths
-        if self.win.winType != 'pyglet':
-            raise TypeError('ElementArrayStim requires a pyglet context')
+        if self.win.winType == 'pygame':
+            raise TypeError('ElementArrayStim is not supported in a pygame context')
         if not self.win._haveShaders:
             raise Exception("ElementArrayStim requires shaders support"
                             " and floating point textures")

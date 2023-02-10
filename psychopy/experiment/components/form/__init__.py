@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
@@ -36,7 +36,7 @@ class FormComponent(BaseVisualComponent):
     def __init__(self, exp, parentName,
                  name='form',
                  items='.csv',
-                 textHeight=.03,
+                 textHeight=0.03,
                  font="Open Sans",
                  randomize=False,
                  fillColor='',
@@ -172,6 +172,7 @@ class FormComponent(BaseVisualComponent):
 
     def writeInitCode(self, buff):
         inits = getInitVals(self.params)
+        inits['depth'] = -self.getPosInRoutine()
         # build up an initialization string for Form():
         code = (
             "win.allowStencil = True\n"
@@ -189,7 +190,8 @@ class FormComponent(BaseVisualComponent):
             "responseColor=%(responseColor)s, markerColor=%(markerColor)s, colorSpace=%(colorSpace)s, \n"
             "size=%(size)s,\n"
             "pos=%(pos)s,\n"
-            "itemPadding=%(Item Padding)s"
+            "itemPadding=%(Item Padding)s,\n"
+            "depth=%(depth)s\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
@@ -200,6 +202,7 @@ class FormComponent(BaseVisualComponent):
 
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params)
+        inits['depth'] = -self.getPosInRoutine()
         # build up an initialization string for Form():
         initStr = ("{name} = new visual.Form({{\n"
                    "  win : psychoJS.window, name:'{name}',\n"
@@ -210,7 +213,8 @@ class FormComponent(BaseVisualComponent):
                    "  size : {size},\n"
                    "  pos : {pos},\n"
                    "  style : {Style},\n"
-                   "  itemPadding : {Item Padding}\n"
+                   "  itemPadding : {Item Padding},\n"
+                   "  depth : {depth}\n"
                    "}});\n".format(**inits))
         buff.writeIndentedLines(initStr)
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
@@ -302,7 +302,7 @@ class RatingScaleComponent(BaseComponent):
         name = self.params['name']
         buff.writeIndented("# *%(name)s* updates\n" % (self.params))
         # try to handle blank start condition gracefully:
-        if not self.params['startVal'].val.strip():
+        if not str(self.params['startVal'].val).strip():
             self.params['startVal'].val = 0  # time, frame
             if self.params['startType'].val == 'condition':
                 self.params['startVal'].val = 'True'

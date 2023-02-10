@@ -6,7 +6,7 @@ pygame to be installed).
 See demo_mouse.py and i{demo_joystick.py} for examples
 """
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # 01/2011 modified by Dave Britton to get mouse event timing
@@ -650,7 +650,7 @@ class Mouse():
             lastPosPix[1] = self.win.size[1] / 2 - lastPosPix[1]
             lastPosPix[0] = lastPosPix[0] - self.win.size[0] / 2
             self.lastPos = self._pix2windowUnits(lastPosPix)
-        elif useGLFW:
+        elif useGLFW and self.win.winType=='glfw':
             lastPosPix[:] = self.win.backend.getMousePos()
             if self.win.useRetina:
                 lastPosPix *= 2.0

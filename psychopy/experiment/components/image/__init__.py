@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
@@ -30,7 +30,7 @@ class ImageComponent(BaseVisualComponent):
     def __init__(self, exp, parentName, name='image', image='', mask='',
                  interpolate='linear', units='from exp settings',
                  color='$[1,1,1]', colorSpace='rgb', pos=(0, 0),
-                 size=(0.5, 0.5), ori=0, texRes='128', flipVert=False,
+                 size=(0.5, 0.5), anchor="center", ori=0, texRes='128', flipVert=False,
                  flipHoriz=False,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
@@ -100,6 +100,21 @@ class ImageComponent(BaseVisualComponent):
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized["flipHoriz"])
+        self.params['anchor'] = Param(
+            anchor, valType='str', inputType="choice", categ='Layout',
+            allowedVals=['center',
+                         'top-center',
+                         'bottom-center',
+                         'center-left',
+                         'center-right',
+                         'top-left',
+                         'top-right',
+                         'bottom-left',
+                         'bottom-right',
+                         ],
+            updates='constant',
+            hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
+            label=_translate('Anchor'))
 
         del self.params['fillColor']
         del self.params['borderColor']
@@ -116,7 +131,7 @@ class ImageComponent(BaseVisualComponent):
         code = ("{inits[name]} = visual.ImageStim(\n"
                 "    win=win,\n"
                 "    name='{inits[name]}', {units}\n"
-                "    image={inits[image]}, mask={inits[mask]},\n"
+                "    image={inits[image]}, mask={inits[mask]}, anchor={inits[anchor]},\n"
                 "    ori={inits[ori]}, pos={inits[pos]}, size={inits[size]},\n"
                 "    color={inits[color]}, colorSpace={inits[colorSpace]}, opacity={inits[opacity]},\n"
                 "    flipHoriz={inits[flipHoriz]}, flipVert={inits[flipVert]},\n"
@@ -157,6 +172,7 @@ class ImageComponent(BaseVisualComponent):
                 "  win : psychoJS.window,\n"
                 "  name : '{inits[name]}', {units}\n"
                 "  image : {inits[image]}, mask : {inits[mask]},\n"
+                "  anchor : {inits[anchor]},\n"
                 "  ori : {inits[ori]}, pos : {inits[pos]}, size : {inits[size]},\n"
                 "  color : new util.Color({inits[color]}), opacity : {inits[opacity]},\n"
                 "  flipHoriz : {inits[flipHoriz]}, flipVert : {inits[flipVert]},\n"

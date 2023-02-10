@@ -1,23 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import webbrowser
 
 import wx
 import re
 import wx.richtext
 import locale
 from psychopy.localization import _translate
+from .utils import sanitize
 
 _prefEncoding = locale.getpreferredencoding()
 
 from psychopy.alerts._alerts import AlertEntry
 from psychopy.alerts._errorHandler import _BaseErrorHandler
 
+
 class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
     """
     A rich text ctrl for handling stdout/stderr
     """
 
-    def __init__(self, parent, style, size=None, font=None, fontSize=None):
+    def __init__(self, parent, style, size=None, font=None, fontSize=None, app=None):
         kwargs = {'parent': parent, 'style': style}
         if size is not None:
             kwargs['size'] = size
@@ -32,7 +35,25 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
             self.BeginFont(currFont)
 
         self.parent = parent
-        self.Bind(wx.EVT_TEXT_URL, parent.onURL)
+        self.app = app
+        self.Bind(wx.EVT_TEXT_URL, self.onURL)
+
+    def onURL(self, evt=None):
+        wx.BeginBusyCursor()
+        try:
+            if evt.String.startswith("http"):
+                webbrowser.open(evt.String)
+            else:
+                # decompose the URL of a file and line number"""
+                # "C:\Program Files\wxPython...\samples\hangman\hangman.py"
+                filename = evt.GetString().split('"')[1]
+                lineNumber = int(evt.GetString().split(',')[1][5:])
+                self.app.showCoder()
+                self.app.coder.gotoLine(filename, lineNumber)
+        except Exception as e:
+            print("##### Could not open URL: {} #####\n".format(evt.String))
+            print(e)
+        wx.EndBusyCursor()
 
     def write(self, inStr, evt=None):
         self.MoveEnd()  # always 'append' text rather than 'writing' it
@@ -130,16 +151,3 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
 
         self.errors = []
         self.alerts = []
-
-
-def sanitize(inStr):
-    """Hide any sensitive info from the alert"""
-    # Key-value pairs of patterns with what to replace them with
-    patterns = {
-        "https\:\/\/oauth2\:[\d\w]{64}@gitlab\.pavlovia\.org\/.*\.git": "[[OAUTH key hidden]]" # Remove any oauth keys
-    }
-    # Replace each pattern
-    for pattern, repl in patterns.items():
-        inStr = re.sub(pattern, repl, inStr)
-
-    return inStr

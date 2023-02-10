@@ -22,5 +22,3 @@ Classes and functions
     :inherited-members:
 
 .. autofunction:: getKeyboards
-
-

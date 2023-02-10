@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from .calibData import wavelength_5nm, juddVosXYZ1976_5nm, cones_SmithPokorny
@@ -65,7 +65,7 @@ class Monitor:
     This will be loaded automatically from disk if the
     monitor name is already defined (see methods).
 
-    Many settings from the stored monitor can easilly be overridden
+    Many settings from the stored monitor can easily be overridden
     either by adding them as arguments during the initial call.
 
     **arguments**:
@@ -124,7 +124,7 @@ class Monitor:
             logging.warning("Monitor specification not found. "
                             "Creating a temporary one...")
 
-        # overide current monitor settings with the vals given
+        # override current monitor settings with the vals given
         if width:
             self.setWidth(width)
         if distance:
@@ -412,7 +412,7 @@ class Monitor:
         return self.currentCalib['notes']
 
     def getUseBits(self):
-        """Was this calibration carried out witha a bits++ box
+        """Was this calibration carried out with a bits++ box
         """
         return self.currentCalib['usebits']
 
@@ -825,7 +825,7 @@ def makeXYZ2RGB(red_xy,
     display's phosphor 'guns' are usually measured with a spectrophotometer.
 
     The routines here are based on methods found at:
-    http://www.ryanjuckett.com/programming/rgb-color-space-conversion/
+    https://www.ryanjuckett.com/rgb-color-space-conversion/
 
     Parameters
     ----------
@@ -1000,7 +1000,10 @@ def getLumSeries(lumLevels=8,
         message.setText('Spacebar for next patch')
 
     # LS100 likes to take at least one bright measurement
+    # assuming the same for the CS100A
     if havePhotom and photometer.type == 'LS100':
+        junk = photometer.getLum()
+    if havePhotom and photometer.type == 'CS100A':
         junk = photometer.getLum()
 
     # what are the test values of luminance
@@ -1012,7 +1015,7 @@ def getLumSeries(lumLevels=8,
     if allGuns:
         guns = [0, 1, 2, 3]  # gun=0 is the white luminance measure
     else:
-        allGuns = [0]
+        guns = [0]
     # this will hold the measured luminance values
     lumsList = np.zeros((len(guns), len(toTest)), 'd')
     # for each gun, for each value run test

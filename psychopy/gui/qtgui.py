@@ -4,7 +4,7 @@
 # To build simple dialogues etc. (requires pyqt4)
 #
 #  Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 haveQt = False  # until we confirm otherwise
@@ -48,6 +48,7 @@ def ensureQtApp():
     # dialog
     if qtapp is None:
         qtapp = QtWidgets.QApplication(sys.argv)
+        qtapp.setStyle('Fusion')  # use this to avoid annoying PyQt bug with OK being greyed-out
 
 
 wasMouseVisible = True
@@ -334,6 +335,8 @@ class Dlg(QtWidgets.QDialog):
         QtWidgets.QDialog.show(self)
         self.raise_()
         self.activateWindow()
+        if self.inputFields:
+            self.inputFields[0].setFocus()
 
         self.OK = False
         if QtWidgets.QDialog.exec_(self) == QtWidgets.QDialog.Accepted:
@@ -512,7 +515,7 @@ def fileSaveDlg(initFilePath="", initFileName="",
         allowed: string
             a string to specify file filters.
             e.g. "Text files (\\*.txt) ;; Image files (\\*.bmp \\*.gif)"
-            See http://pyqt.sourceforge.net/Docs/PyQt4/qfiledialog.html
+            See https://www.riverbankcomputing.com/static/Docs/PyQt4/qfiledialog.html
             #getSaveFileName
             for further details
 
@@ -559,7 +562,7 @@ def fileOpenDlg(tryFilePath="",
         allowed: string (available since v1.62.01)
             a string to specify file filters.
             e.g. "Text files (\\*.txt) ;; Image files (\\*.bmp \\*.gif)"
-            See http://pyqt.sourceforge.net/Docs/PyQt4/qfiledialog.html
+            See https://www.riverbankcomputing.com/static/Docs/PyQt4/qfiledialog.html
             #getOpenFileNames
             for further details
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -31,11 +31,12 @@ from .utils import nonalphanumeric_re, valid_var_re
 
 class IndentingBuffer(io.StringIO):
 
-    def __init__(self, *args, **kwargs):
-        io.StringIO.__init__(self, *args, **kwargs)
+    def __init__(self, target='PsychoPy', initial_value='', newline='\n'):
+        io.StringIO.__init__(self, initial_value, newline)
         self.oneIndent = "    "
         self.indentLevel = 0
         self._writtenOnce = []
+        self.target = target  # useful to keep track of what language is written here
 
     def writeIndented(self, text):
         """Write to the StringIO buffer, but add the current indent.
@@ -154,6 +155,47 @@ class NameSpace:
         if numpy_count_only:
             return "%s + [%d numpy]" % (str(varibs), len(self.numpy))
         return str(varibs + self.numpy)
+
+    @property
+    def all(self):
+        return (
+                self.builder +
+                self.constants +
+                self.keywords +
+                self.nonUserBuilder +
+                self.numpy +
+                self.psychopy +
+                self.user
+        )
+
+    def getCategories(self, name):
+        """
+        Get list of categories in which a given name is found.
+
+        Parameters
+        ----------
+        name : str
+            Name to look for
+        """
+        # Define possible categories
+        categories = (
+            "builder",
+            "constants",
+            "keywords",
+            "nonUserBuilder",
+            "numpy",
+            "psychopy",
+            "user"
+        )
+        # Check for name in each category
+        found = []
+        for cat in categories:
+            if name in getattr(self, cat):
+                found.append(cat)
+
+        return found
+
+
 
     def getDerived(self, basename):
         """ buggy

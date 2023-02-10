@@ -1,0 +1,19 @@
+
+code: 4550
+cat: Eyetracking
+msg: Eye tracker experiments should use 'ioHub' as the Input -> Keyboard Backend setting
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Input -> Keyboard Backend not set to 'ioHub'
+
+synopsis: |
+  Experiment is configured to use an eye tracker but Input -> Keyboard Backend experiment setting is set to 'PsychToolbox'.
+
+details: |
+  Eye trackers run using ioHub, which also handles Keyboard events, so Input -> Keyboard Backend experiment setting should be 'ioHub'.
+
+solutions: |
+  Switch the Input -> Keyboard Backend experiment setting to use 'ioHub'
+
+versions: |
+  >=2022.1

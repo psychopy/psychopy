@@ -6,15 +6,19 @@ Created on Thu May  8 10:46:41 2014
 """
 import pytest
 from psychopy import visual, core
-from psychopy.hardware import crs
 
 
 def test_bitsSharp():
+    try:
+        from psychopy.hardware.crs import BitsSharp
+    except (ModuleNotFoundError, ImportError):
+        return
+
     win = visual.Window(screen=1, fullscr=True, useFBO=True, autoLog=True)
     win.setGamma(1.0) #make sure gfx card LUT is identity
     #initialise BitsSharp
     try:
-        bits = crs.BitsSharp(win=win, mode='color++')
+        bits = BitsSharp(win=win, mode='color++')
     except ImportError:
         pytest.skip("crs.BitsSharp: could not initialize. possible:\nfrom serial.tools import list_ports\n"
            "ImportError: No module named tools")
@@ -29,8 +33,9 @@ def test_bitsSharp():
     bits.getVideoLine(lineN=1, nPixels=1)
     core.wait(5) #wait for status mode to take effect
 
-    #createa  stimulus to check luminance values
-    screenSqr = visual.GratingStim(win, tex=None, mask=None, size=2)
+    #create a stimulus to check luminance values
+    screenSqr = visual.GratingStim(win,tex=None, mask=None,
+               size=2)
 
     print('\n  up from zero:')
     bit16 = (2.0 ** 16) - 1

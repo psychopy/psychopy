@@ -346,7 +346,7 @@ class EyeTracker(EyeTrackerDevice):
         """
         try:
             if time_offset is not None:
-                print2err('Warning: GP3 EyeTracker.sendMessage time_offset arguement is ignored.')
+                print2err('Warning: GP3 EyeTracker.sendMessage time_offset argument is ignored.')
             if self._gp3 and self.isRecordingEnabled() is True:
                 strMessage = '<SET ID="USER_DATA" VALUE="{0}"/>\r\n'.format(message_contents)
                 self._gp3.sendall(strMessage)
@@ -442,8 +442,8 @@ class EyeTracker(EyeTrackerDevice):
             self._gp3set('CALIBRATE_START', STATE=1)
 
         else:
-            from .gazepointCalibrationGraphics import GazepointPsychopyCalibrationGraphics
-            calibration = GazepointPsychopyCalibrationGraphics(self, calibration_args)
+            from .calibration import GazepointCalibrationProcedure
+            calibration = GazepointCalibrationProcedure(self, calibration_args)
 
             calibration.runCalibration()
 
@@ -550,7 +550,7 @@ class EyeTracker(EyeTrackerDevice):
 
     def _createStartFixEvt(self, m, logged_time, tracker_time):
         # Create start fixation evt based on m
-        # GP3 does not craete separate left and right eye fix evts, so we
+        # GP3 does not create separate left and right eye fix evts, so we
         # create a left and right fix evt each time.
         gaze = m.get('FPOGX', ET_UNDEFINED), m.get('FPOGY', ET_UNDEFINED)
 

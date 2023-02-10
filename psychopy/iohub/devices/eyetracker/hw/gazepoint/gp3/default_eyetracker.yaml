@@ -44,7 +44,12 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
     calibration:
         # True: Use GazePoint Control app calibration window.
         # False: Use custom calibration graphics.
-        use_builtin: True
+        use_builtin: False
+
+        # auto_pace: Ggazepoint only supports auto pacing,so it automatically progresses from
+        # one calibration point to the next.
+        #
+        auto_pace: True
 
         # target_duration is the number of sec.msec that a calibration point should
         # be displayed before moving onto the next point. Target size expansion / contraction
@@ -80,6 +85,10 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
         # text_color specifies the foreground color of any text used during calibration.
         # If empty, text_color is calculated automatically based on screen_background_color.
         text_color:
+
+        # target_type: Defines what form of calibration graphic should be used
+        # during calibration, validation, etc. Valid options are CIRCLE_TARGET, or CUSTOM.
+        target_type: CIRCLE_TARGET
 
         # The associated target attribute properties can be supplied
         # for the given target_type.
@@ -137,4 +146,3 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
     # device configuration, or you can complete any ones that are relevant for FYI
     # purposes only at this time.
     device_number: 0
-

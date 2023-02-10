@@ -4,12 +4,12 @@
 Credits
 =====================================
 
-PsychoPy is developed almost entirely by volunteers. If you see those contributors at a conference do pat them on the back and say thanks. And if you need a (paid) consultant on your project then the people listed on this page would be good candidates!
+|PsychoPy| is largely developed by volunteers. If you see those contributors at a conference do pat them on the back and say thanks. And if you need a (paid) consultant on your project then the people listed on this page would be good candidates!
 
 Developers
 ---------------
 
-PsychoPy was initially created and maintained by `Jon Peirce`_ but has many contributors to the code. For a full list you can see the contributions on `openhub.net <https://www.openhub.net/p/PsychoPy/contributors>`_ but some notable contributors are:
+|PsychoPy| was initially created and maintained by `Jon Peirce`_ but has many contributors to the code. For a full list you can see the contributions on `openhub.net <https://www.openhub.net/p/PsychoPy/contributors>`_ but some notable contributors are:
 
     Michael MacAskill, Richard Höchenberger, David Bridges, Jeremy Gray, Sol Simpson, Jonas Lindeløv,  Hiroyuki Sogo, Yaroslav Halchenko, Erik Kastman, William Hogman, `Ilixa Ltd.`_
 
@@ -23,16 +23,16 @@ If you need substantial support from anyone in that team you may be able to hire
 
 **Sol Simpson** wrote ioHub (the most advanced Python library for eye-tracking and precise hardware interfacing). If you need support for some advanced Python code especially in the field of hardware and eyetracking you might want to chat with Sol.
 
-`Ilixa Ltd.`_ wrote the new **PsychoJS library** with funding from `Wellcome Trust`_. `PsychoJS` will allow PsychoPy Builder experiments to be launched online, and *Ilixa* have done a wonderful job of creating the JavaScript equivalent of the original PsychoPy Python library. If you need a `science programmer <http://www.ilixa.com>`_, then *Ilixa Ltd.* come with Jon's personal recommendation.
+`Ilixa Ltd.`_ wrote the new **PsychoJS library** with funding from `Wellcome Trust`_. `PsychoJS` will allow |PsychoPy| Builder experiments to be launched online, and *Ilixa* have done a wonderful job of creating the JavaScript equivalent of the original |PsychoPy| Python library. If you need a `science programmer <http://www.ilixa.com>`_, then *Ilixa Ltd.* come with Jon's personal recommendation.
 
-PsychoPy also stands on top of a large number of other developers' work. It wouldn't be possible to write this package without the preceding work of those that wrote the :ref:`dependencies`
+|PsychoPy| also stands on top of a large number of other developers' work. It wouldn't be possible to write this package without the preceding work of those that wrote the :ref:`dependencies`
 
 Support and training providers
 -----------------------------------
 
 Software projects aren't just about code. A great deal of work is done by the community in terms of supporting each other.
 
-You can see the most `active posters on the user forum <https://discourse.psychopy.org/u?period=all>`_ and those `answering PsychoPy questions on StackOverflow here <http://stackoverflow.com/tags/psychopy/info>`_ but notable examples that have done a fantastic job of supporting users:
+You can see the most `active posters on the user forum <https://discourse.psychopy.org/u?period=all>`_ and those `answering PsychoPy questions on StackOverflow here <https://stackoverflow.com/tags/psychopy/info>`_ but notable examples that have done a fantastic job of supporting users:
 
 - Mike MacAskill (New Zealand)
 - Jonas Lindeløv (Denmark)
@@ -46,14 +46,14 @@ Funding
 
 We are very grateful to the `Welcome Trust <https://wellcome.org/>`_ for their generous funding 2018-2020.
 
-The PsychoPy project has also attracted small grants from the following organisations:
+The |PsychoPy| project has also attracted small grants from the following organisations:
 
 - the `Higher Education Academy`_ Psychology Network
 - `Cambridge Research Systems`_
 - the `Center for Open Science`_
 - the `Chan Zuckerburg initiative`_
 
-Jon is paid by `The University of Nottingham`_ (which allows him to spend time on this) and his previous grants from the `BBSRC`_ and `Wellcome Trust`_ have also helped the development PsychoPy.
+Jon is paid by `The University of Nottingham`_ (which allows him to spend time on this) and his previous grants from the `BBSRC`_ and `Wellcome Trust`_ have also helped the development of |PsychoPy|.
 
 
 .. _Jon Peirce: http://www.peirce.org.uk

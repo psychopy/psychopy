@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy import logging
@@ -164,13 +164,13 @@ def getThreadPolicy(getDefault, flavour):
            .constrain
            .preemptible
 
-    See http://docs.huihoo.com/darwin/kernel-programming-guide/scheduler/chapter_8_section_4.html
+    See https://docs.huihoo.com/darwin/kernel-programming-guide/scheduler/chapter_8_section_4.html
     """
     if importCtypesFailed:
         return False
 
     extendedPolicy = _timeConstraintThreadPolicy()  # to store the infos
-    # we want to retrive actual policy or the default
+    # we want to retrieve actual policy or the default
     getDefault = ctypes.c_int(getDefault)
     err = cocoa.thread_policy_get(cocoa.mach_thread_self(),
                                   THREAD_TIME_CONSTRAINT_POLICY,

@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
+
+from psychopy.experiment import Param
 from psychopy.experiment.components import getInitVals, _translate
 from psychopy.experiment.components.polygon import PolygonComponent
 from psychopy.localization import _localized as __localized
@@ -27,7 +29,7 @@ class ApertureComponent(PolygonComponent):
                          'region')
 
     def __init__(self, exp, parentName, name='aperture', units='norm',
-                 size=1, pos=(0, 0), ori=0,
+                 size=1, pos=(0, 0), anchor="center", ori=0,
                  shape='triangle', nVertices=4, vertices="",
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
@@ -48,6 +50,23 @@ class ApertureComponent(PolygonComponent):
         msg = _translate(
             "How big is the aperture? (a single number for diameter)")
         self.params['size'].hint = msg
+
+        self.params['anchor'] = Param(
+            anchor, valType='str', inputType="choice", categ='Layout',
+            allowedVals=['center',
+                         'top-center',
+                         'bottom-center',
+                         'center-left',
+                         'center-right',
+                         'top-left',
+                         'top-right',
+                         'bottom-left',
+                         'bottom-right',
+                         ],
+            updates='constant',
+            hint=_translate("Which point on the aperture should be anchored to its exact position?"),
+            label=_translate("Anchor"))
+
         # only localize hints and labels
         self.params['size'].label = _translate("Size")
         self.params['pos'].hint = _translate("Where is the aperture centred?")
@@ -64,15 +83,16 @@ class ApertureComponent(PolygonComponent):
     def writeInitCode(self, buff):
         # do writing of init
         inits = getInitVals(self.params)
+        inits['depth'] = -self.getPosInRoutine()
 
         # additional substitutions
         if self.params['units'].val == 'from exp settings':
             inits['units'].val = None
 
         if self.params['shape'] == 'regular polygon...':
-            inits['vertices'].val = self.params['nVertices'].val
+            inits['vertices'] = self.params['nVertices']
         elif self.params['shape'] != 'custom polygon...':
-            inits['vertices'].val = self.params['shape'].val
+            inits['vertices'] = self.params['shape']
 
         code = (
             "%(name)s = visual.Aperture(\n"
@@ -83,7 +103,8 @@ class ApertureComponent(PolygonComponent):
         code = (
                 "win=win, name='%(name)s',\n"
                 "units=%(units)s, size=%(size)s, pos=%(pos)s, ori=%(ori)s,\n"
-                "shape=%(vertices)s\n"
+                "shape=%(vertices)s, anchor=%(anchor)s\n,"
+                "depth=%(depth)s\n"
         )
         buff.writeIndentedLines(code % inits)
 
@@ -102,16 +123,16 @@ class ApertureComponent(PolygonComponent):
                 f"# *{params['name']}* updates\n")
         buff.writeIndented(code)
         # writes an if statement to determine whether to draw etc
-        self.writeStartTestCode(buff)
-        buff.writeIndented("%(name)s.enabled = True\n" % self.params)
+        indented = self.writeStartTestCode(buff)
+        if indented:
+            buff.writeIndented("%(name)s.enabled = True\n" % self.params)
         # to get out of the if statement
-        buff.setIndentLevel(-1, relative=True)
-        if self.params['stopVal'].val not in ['', None, -1, 'None']:
-            # writes an if statement to determine whether to draw etc
-            self.writeStopTestCode(buff)
+        buff.setIndentLevel(-indented, relative=True)
+        indented = self.writeStopTestCode(buff)
+        if indented:
             buff.writeIndented("%(name)s.enabled = False\n" % self.params)
-            # to get out of the if statement
-            buff.setIndentLevel(-2, relative=True)
+        # to get out of the if statement
+        buff.setIndentLevel(-indented, relative=True)
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)
         if self.checkNeedToUpdate('set every frame'):

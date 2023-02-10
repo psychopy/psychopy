@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import os
@@ -49,6 +49,37 @@ def setLocalPath(parent, project=None, path=""):
             if project:
                 project.localRoot = newPath
         return newPath
+
+
+def checkLogin(session=None):
+    """
+    Check whether a given session, or the current session if left blank, is logged in to Pavlovia.
+
+    Returns:
+        status : bool
+            True if logged in after process is completed, False otherwise.
+    """
+    if session is None:
+        # Substitute default session
+        session = pavlovia.getCurrentSession()
+
+    if session and session.user:
+        # If logged in, return positive
+        return True
+    else:
+        # If not logged in, prompt to login
+        dlg = wx.MessageDialog(None, message=_translate(
+            "You are not logged in to Pavlovia. Please log in to continue."
+        ), style=wx.ICON_AUTH_NEEDED | wx.OK | wx.CANCEL)
+        dlg.SetOKLabel(_translate("Login..."))
+        if dlg.ShowModal() == wx.ID_OK:
+            # If they click Login, open login screen
+            user = logInPavlovia(None)
+            # Return positive or negative based on whether login succeeded
+            return bool(user)
+        else:
+            # If they cancel out of login prompt, return negative
+            return False
 
 
 def logInPavlovia(parent, event=None):

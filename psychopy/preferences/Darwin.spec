@@ -26,8 +26,6 @@
 
 # General settings
 [general]
-    # which system to use as a backend for drawing
-    winType = option('pyglet', 'pygame', 'glfw', default='pyglet')
     # the default units for windows and visual stimuli
     units = option('deg', 'norm', 'cm', 'pix', 'height', default='norm')
     # full screen is best for accurate timing
@@ -50,6 +48,8 @@
     startUpPlugins = list(default=list())
     # Google Cloud Platform key, required for the audio transcription using Google Speech Recognition. Specified as a path to a JSON file containing the key data.
     appKeyGoogleCloud = string(default='')
+    # LEGACY: which system to use as a backend for drawing
+    winType = option('pyglet', 'pygame', 'glfw', default='pyglet')
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]
@@ -68,7 +68,7 @@
     # Show an error dialog when PsychoPy encounters an unhandled internal error.
     errorDialog = boolean(default='True')
     # Theme
-    theme = string(default='PsychopyDark')
+    theme = string(default='PsychopyLight')
 
 # Settings for the Coder window
 [coder]
@@ -100,7 +100,7 @@
 # Settings for the Builder window
 [builder]
     # whether to automatically reload a previously open experiment
-    reloadPrevExp = boolean(default=False)
+    reloadPrevExp = boolean(default=True)
     # Default to when writing code components
     codeComponentLanguage = option('Py', 'JS', 'Both', 'Auto->JS', default='Auto->JS')
     # if False will create scripts with an 'easier' but more cluttered namespace
@@ -124,6 +124,7 @@
     # Ask for confirmation when closing a routine tab.
     confirmRoutineClose = boolean(default=True)
 
+# Settings for hardware
 [hardware]
     # choice of audio library
     audioLib = list(default=list('sounddevice','PTB', 'pyo', 'pygame'))

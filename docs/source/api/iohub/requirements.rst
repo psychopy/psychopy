@@ -18,7 +18,7 @@ influences the minimum suggested specifications as follows:
 * Windows 7 +, OS X 10.7.5 +, or Linux Kernel 2.6 +
 
 Please see the :ref:`hardware` section for further information
-that applies to PsychoPy in general.
+that applies to |PsychoPy| in general.
 
 Usage Considerations
 ---------------------
@@ -28,9 +28,9 @@ constrains should be noted:
 
 1. The pyglet graphics backend must be used; pygame is not supported.
 2. ioHub devices that report position data use the unit type defined by the
-   PsychoPy Window. However, position data is reported using the full screen
+   |PsychoPy| Window. However, position data is reported using the full screen
    area and size the window was created in. Therefore, for accurate window position
-   reporting, the PsychoPy window must be made full screen.
+   reporting, the |PsychoPy| window must be made full screen.
 3. On macOS, Assistive Device support must be enabled when using psychopy.iohub:
 
    * See `instructions for OS X 10.7 - 10.8.5 <http://mizage.com/help/accessibility.html#10.8>`_

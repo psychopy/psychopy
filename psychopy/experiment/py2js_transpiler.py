@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import ast
@@ -17,11 +17,31 @@ except ImportError:
 import astunparse
 
 
+namesJS = {
+    'sin': 'Math.sin',
+    'cos': 'Math.cos',
+    'tan': 'Math.tan',
+    'pi': 'Math.PI',
+    'rand': 'Math.random',
+    'random': 'Math.random',
+    'sqrt': 'Math.sqrt',
+    'abs': 'Math.abs',
+    'randint': 'util.randint',
+    'range': 'util.range',
+    'randchoice': 'util.randchoice',
+    'round': 'util.round',  # better than Math.round, supports n DPs arg
+    'sum': 'util.sum',
+    'core.Clock': 'util.Clock',
+}
+
+
 class psychoJSTransformer(ast.NodeTransformer):
     """PsychoJS-specific AST transformer
     """
 
     def visit_Name(self, node):
+        if node.id in namesJS:
+            node.id = namesJS[node.id]
         # status = STOPPED --> status = PsychoJS.Status.STOPPED
         if node.id in ['STARTED', 'FINISHED', 'STOPPED'] and isinstance(node.ctx, ast.Load):
             return ast.copy_location(
@@ -60,9 +80,30 @@ class psychoJSTransformer(ast.NodeTransformer):
                 ctx=ast.Load()
             )
 
+        # _thisDir -->  '.'
+        elif node.id == '_thisDir' and isinstance(node.ctx, ast.Load):
+            return ast.Constant(
+                value='.',
+                kind=None
+            )
         # return the node by default:
         return node
 
+
+    def visit_Attribute(self, node):
+
+        node.value = psychoJSTransformer().visit(node.value)
+
+        if isinstance(node.value, ast.Name):
+            # os.sep --> '/'
+            if node.value.id == 'os' and node.attr == 'sep':
+                return ast.Constant(
+                    value='/',
+                    kind=None
+                )
+
+        # return the node by default:
+        return node
 
 class pythonTransformer(ast.NodeTransformer):
     """Python-specific AST transformer
@@ -76,7 +117,7 @@ class pythonTransformer(ast.NodeTransformer):
 
     # operation from the math python module or builtin operations that are available
     # in util/Util.js:
-    utilOperations = ['sum', 'average', 'randint', 'range', 'sort', 'shuffle', 'randchoice']
+    utilOperations = ['sum', 'average', 'randint', 'range', 'sort', 'shuffle', 'randchoice', 'pad']
 
     def visit_BinOp(self, node):
 
@@ -84,9 +125,37 @@ class pythonTransformer(ast.NodeTransformer):
         node.left = pythonTransformer().visit(node.left)
         node.right = pythonTransformer().visit(node.right)
 
-        # formatted strings with %:
+        # formatted strings with %
+        # note: we have extended the pythong syntax slightly, to accommodate both tuples and lists
+        # so both '%_%' % (1,2) and '%_%' % [1,2] are successfully transpiled
         if isinstance(node.op, ast.Mod) and isinstance(node.left, ast.Str):
-            raise Exception('string formatting using % is not currently supported, please use f-strings instead')
+            # transform the node into an f-string node:
+            stringFormat = node.left.value
+            stringTuple = node.right.elts if (
+              isinstance(node.right, ast.Tuple) or isinstance(node.right, ast.List))\
+                else [node.right]
+
+            values = []
+            tupleIndex = 0
+            while True:
+                # TODO deal with more complicated formats, such as %.3f
+                match = re.search(r'%.', stringFormat)
+                if match is None:
+                    break
+                values.append(ast.Constant(value=stringFormat[0:match.span(0)[0]], kind=None))
+                values.append(
+                    self.visit_FormattedValue(
+                        ast.FormattedValue(
+                            value=stringTuple[tupleIndex],
+                            conversion=-1,
+                            format_spec=None
+                        )
+                    )
+                )
+                stringFormat = stringFormat[match.span(0)[1]:]
+                tupleIndex += 1
+
+            return ast.JoinedStr(values)
 
         return node
 
@@ -130,22 +199,22 @@ class pythonTransformer(ast.NodeTransformer):
             precisionCall = ast.Call(
                 func=ast.Attribute(
                     value=conversionFunc,
-                    attr='toPrecision',
+                    attr='toFixed',
                     ctx=ast.Load()
                 ),
-                args=[ast.Num(n=precision)],
+                args=[ast.Constant(value=precision, kind=None)],
                 keywords=[]
             )
 
             # deal with width:
             widthCall = ast.Call(
                 func=ast.Name(id='pad', ctx=ast.Load()),
-                args=[precisionCall, ast.Num(n=width)],
+                args=[precisionCall, ast.Constant(value=width, kind=None)],
                 keywords=[]
             )
 
             # return the node:
-            node.value = widthCall
+            node.value = self.visit_Call(widthCall)
             node.conversion = -1
             node.format_spec = None
 
@@ -154,7 +223,6 @@ class pythonTransformer(ast.NodeTransformer):
         raise Exception('formatted f-string are not all supported at the moment')
 
     def visit_Call(self, node):
-
         # transform the node arguments:
         nbArgs = len(node.args)
         for i in range(0, nbArgs):
@@ -324,7 +392,7 @@ class pythonTransformer(ast.NodeTransformer):
 
 class pythonAddonVisitor(ast.NodeVisitor):
     # operations that require an addon:
-    addonOperations = ['list', 'pad']
+    addonOperations = ['list']
 
     def __init__(self):
         self.addons = []
@@ -357,11 +425,12 @@ def transformNode(astNode):
     return pythonBuiltinTransformedNode, visitor.addons
 
 
-def transformPsychoJsCode(psychoJsCode, addons):
+def transformPsychoJsCode(psychoJsCode, addons, namespace=[]):
     """Transform the input PsychoJS code.
 
     Args:
         psychoJsCode (str): the input PsychoJS JavaScript code
+        namespace (list): list of varnames which are already defined
 
     Returns:
         (str) the transformed code
@@ -384,20 +453,6 @@ def transformPsychoJsCode(psychoJsCode, addons):
 
         """
 
-    if 'pad' in addons:
-        transformedPsychoJSCode += r"""
-        // add-on: pad(n: number, width: number): string
-        function pad(n, width) {
-            width = width || 2;
-            integerPart = Number.parseInt(n);
-            decimalPart = (n+'').match(/\.[0-9]*/);
-            if (!decimalPart)
-                decimalPart = '';
-            return (integerPart+'').padStart(width,'0') + decimalPart;
-        }
-
-        """
-
     lines = psychoJsCode.splitlines()
 
     # remove the initial variable declarations, unless it is for _pj:
@@ -407,21 +462,38 @@ def transformPsychoJsCode(psychoJsCode, addons):
     else:
         startIndex = 0
 
-    if lines[startIndex].find('var ') == 0:
-        startIndex += 1
-
     for index in range(startIndex, len(lines)):
-        transformedPsychoJSCode += lines[index]
-        transformedPsychoJSCode += '\n'
+        include = True
+
+        # Remove var defs if variable is defined earlier in experiment
+        if lines[index].startswith("var "):
+            # Get var names
+            varNames = lines[index][4:-1].split(", ")
+            validVarNames = []
+            for varName in varNames:
+                if namespace is not None and varName not in namespace:
+                    # If var name not is already in namespace, keep it in
+                    validVarNames.append(varName)
+            # If there are no var names left, remove statement altogether
+            if not len(validVarNames):
+                include = False
+            # Recombine line
+            lines[index] = f"var {', '.join(validVarNames)};"
+
+        # Append line
+        if include:
+            transformedPsychoJSCode += lines[index]
+            transformedPsychoJSCode += '\n'
 
     return transformedPsychoJSCode
 
 
-def translatePythonToJavaScript(psychoPyCode):
+def translatePythonToJavaScript(psychoPyCode, namespace=[]):
     """Translate PsychoPy python code into PsychoJS JavaScript code.
 
     Args:
         psychoPyCode (str): the input PsychoPy python code
+        namespace (list, None): list of varnames which are already defined
 
     Returns:
         str: the PsychoJS JavaScript code
@@ -463,7 +535,7 @@ def translatePythonToJavaScript(psychoPyCode):
 
     # transform the JavaScript code:
     try:
-        transformedPsychoJsCode = transformPsychoJsCode(psychoJsCode, addons)
+        transformedPsychoJsCode = transformPsychoJsCode(psychoJsCode, addons, namespace=namespace)
     except Exception as error:
         raise Exception('unable to transform the PsychoJS JavaScript code: ' + str(error))
 

@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import os
@@ -26,7 +26,7 @@ import psychopy.event
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 from psychopy.tools.attributetools import attributeSetter, setAttribute
-from psychopy.visual.shape import BaseShapeStim
+from psychopy.visual.shape import BaseShapeStim, knownShapes
 from psychopy.visual.image import ImageStim
 from psychopy.visual.basevisual import MinimalStim, ContainerMixin, WindowMixin
 
@@ -44,15 +44,17 @@ class Aperture(MinimalStim, ContainerMixin):
     the Aperture. Once disabled, subsequent draw operations affect the whole
     screen as usual.
 
-    If shape is 'square' or 'triangle' then that is what will be used
-    If shape is 'circle' or `None` then a polygon with nVerts will be used (120 for a rough circle)
-    If shape is an integer, then a polygon with that many vertices will be used
-    If shape is a list or numpy array (Nx2) then it will be used directly
-        as the vertices to a :class:`~psychopy.visual.ShapeStim`
-    If shape is a filename then it will be used to load and image as a
-        :class:`~psychopy.visual.ImageStim`. Note that transparent parts
-        in the image (e.g. in a PNG file) will not be included in the mask
-        shape. The color of the image will be ignored.
+    Supported shapes:
+
+    * 'square', 'triangle', 'circle' or `None`: a polygon with appropriate nVerts will be used
+      (120 for 'circle')
+    * integer: a polygon with that many vertices will be used
+    * list or numpy array (Nx2): it will be used directly as the vertices to a
+      :class:`~psychopy.visual.ShapeStim`
+    * a filename then it will be used to load and image as a
+      :class:`~psychopy.visual.ImageStim`. Note that transparent parts
+      in the image (e.g. in a PNG file) will not be included in the mask
+      shape. The color of the image will be ignored.
 
     See demos/stimuli/aperture.py for example usage
 
@@ -63,9 +65,9 @@ class Aperture(MinimalStim, ContainerMixin):
         2015, Thomas Emmerling added ImageStim option
     """
 
-    def __init__(self, win, size=1, pos=(0, 0), ori=0, nVert=120,
+    def __init__(self, win, size=1, pos=(0, 0), anchor=None, ori=0, nVert=120,
                  shape='circle', inverted=False, units=None,
-                 name=None, autoLog=None):
+                 name=None, depth=0, autoLog=None):
         # what local vars are defined (these are the init params) for use by
         # __repr__
         self._initParams = dir()
@@ -74,6 +76,7 @@ class Aperture(MinimalStim, ContainerMixin):
 
         # set self params
         self.autoLog = False  # change after attribs are set
+        self.depth = depth
         self.win = win
         if not win.allowStencil:
             logging.error('Aperture has no effect in a window created '
@@ -89,33 +92,18 @@ class Aperture(MinimalStim, ContainerMixin):
         else:
             self.units = win.units
 
-        # set vertices using shape, or default to a circle with nVerts edges
-        if hasattr(shape, 'lower') and not os.path.isfile(shape):
-            shape = shape.lower()
-        if shape is None or shape == 'circle':
-            # NB: pentagon etc point upwards by setting x,y to be y,x
-            # (sin,cos):
-            vertices = [(0.5 * sin(radians(theta)), 0.5 * cos(radians(theta)))
-                        for theta in numpy.linspace(0, 360, nVert, False)]
-        elif isinstance(shape, int):
-            # if given a number, take it as a number of vertices and behave as if shape=='circle and nVerts==shape
-            vertices = [(0.5 * sin(radians(theta)), 0.5 * cos(radians(theta)))
-                        for theta in numpy.linspace(0, 360, shape, False)]
-        elif shape == 'square':
-            vertices = [[0.5, -0.5], [-0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]]
-        elif shape == 'triangle':
-            vertices = [[0.5, -0.5], [0, 0.5], [-0.5, -0.5]]
-        elif type(shape) in [tuple, list, numpy.ndarray] and len(shape) > 2:
-            vertices = shape
-        elif isinstance(shape, str):
-            # is a string - see if it points to a file
-            if os.path.isfile(shape):
-                self.__dict__['filename'] = shape
-            else:
-                msg = ("Unrecognized shape for aperture. Expected 'circle',"
-                       " 'square', 'triangle', vertices, filename, or None;"
-                       " got %s")
-                logging.error(msg % repr(shape))
+        vertices = shape
+        if shape in knownShapes:
+            # if given a shape name, get vertices from known shapes
+            vertices = knownShapes[shape]
+        elif isinstance(shape, str) and os.path.isfile(shape):
+            # see if it points to a file
+            self.__dict__['filename'] = shape
+        else:
+            msg = ("Unrecognized shape for aperture. Expected 'circle',"
+                   " 'square', 'triangle', vertices, filename, or None;"
+                   " got %s")
+            logging.error(msg % repr(shape))
 
         if self.__dict__['filename']:
             self._shape = ImageStim(
@@ -124,7 +112,7 @@ class Aperture(MinimalStim, ContainerMixin):
         else:
             self._shape = BaseShapeStim(
                 win=self.win, vertices=vertices, fillColor=1, lineColor=None, colorSpace='rgb',
-                interpolate=False, pos=pos, size=size, autoLog=False, units=self.units)
+                interpolate=False, pos=pos, size=size, anchor=anchor, autoLog=False, units=self.units)
             self.vertices = self._shape.vertices
             self._needVertexUpdate = True
 
@@ -164,7 +152,7 @@ class Aperture(MinimalStim, ContainerMixin):
             GL.glStencilFunc(GL.GL_NEVER, 0, 0)
             GL.glStencilOp(GL.GL_INCR, GL.GL_INCR, GL.GL_INCR)
 
-            if self.__dict__['filename']:
+            if isinstance(self._shape, ImageStim):
                 GL.glEnable(GL.GL_ALPHA_TEST)
                 GL.glAlphaFunc(GL.GL_GREATER, 0)
                 self._shape.draw()
@@ -260,13 +248,23 @@ class Aperture(MinimalStim, ContainerMixin):
         setAttribute(self, 'pos', pos, log)
 
     @property
+    def anchor(self):
+        return WindowMixin.anchor.fget(self._shape)
+
+    @anchor.setter
+    def anchor(self, value):
+        WindowMixin.anchor.fset(self._shape, value)
+
+    def setAnchor(self, value, log=None):
+        setAttribute(self, 'anchor', value, log)
+
+    @property
     def vertices(self):
-        return WindowMixin.vertices.fget(self)
+        return WindowMixin.vertices.fget(self._shape)
 
     @vertices.setter
     def vertices(self, value):
-        WindowMixin.vertices.fset(self, value)
-        self._shape.vertices = value  # a ShapeStim
+        WindowMixin.vertices.fset(self._shape, value)
 
     @property
     def flip(self):

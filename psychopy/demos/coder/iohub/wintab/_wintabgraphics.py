@@ -53,7 +53,7 @@ class PenPositionStim(MinimalStim):
         self.tiltline_color = tiltline_color
         self.tiltline_width = tiltline_width
         self.tiltline_scalar = tiltline_scalar
-        # Create a Gausian blob stim to use for pen position graphic
+        # Create a Gaussian blob stim to use for pen position graphic
         self.pen_guass = visual.PatchStim(win, units='norm', tex='none',
                                           mask='gauss', pos=(0, 0),
                                           colorSpace='rgb255',
@@ -224,7 +224,7 @@ class PenTracesStim(MinimalStim):
         """Start a new pen trace, by creating a new ShapeStim, adding it to
         the pentracestim list, and making it the current_pentrace.
 
-        :param first_point: the first point in the ShapStim being craeted.
+        :param first_point: the first point in the ShapStim being created.
         :return: None
         """
         self.end()

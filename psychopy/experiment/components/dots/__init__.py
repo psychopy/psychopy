@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from os import path
@@ -39,7 +39,7 @@ class DotsComponent(BaseVisualComponent):
                  direction=0.0, speed=0.1, coherence=1.0,
                  dotSize=2,
                  dotLife=3, signalDots='same', noiseDots='direction', refreshDots='repeat',
-                 fieldShape='circle', fieldSize=1.0, fieldPos=(0.0, 0.0),
+                 fieldShape='circle', fieldSize=1.0, fieldAnchor="center", fieldPos=(0.0, 0.0),
                  color='$[1.0,1.0,1.0]', colorSpace='rgb',
                  opacity="",
                  units='from exp settings',
@@ -162,6 +162,22 @@ class DotsComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['fieldPos'])
 
+        self.params['anchor'] = Param(
+            fieldAnchor, valType='str', inputType="choice", categ='Layout',
+            allowedVals=['center',
+                         'top-center',
+                         'bottom-center',
+                         'center-left',
+                         'center-right',
+                         'top-left',
+                         'top-right',
+                         'bottom-left',
+                         'bottom-right',
+                         ],
+            updates='constant',
+            hint=_translate("Which point on the field should be anchored to its exact position?"),
+            label=_translate('Field Anchor'))
+
         # Reword colour parameters
         self.params['color'].label = _translate("Dot Color")
         self.params['colorSpace'].label = _translate("Dot Color Space")
@@ -187,7 +203,7 @@ class DotsComponent(BaseVisualComponent):
                 "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
                 "    nDots=%(nDots)s, dotSize=%(dotSize)s,\n" % inits +
                 "    speed=%(speed)s, dir=%(dir)s, coherence=%(coherence)s,\n" % inits +
-                "    fieldPos=%(fieldPos)s, fieldSize=%(fieldSize)s,fieldShape=%(fieldShape)s,\n" % inits +
+                "    fieldPos=%(fieldPos)s, fieldSize=%(fieldSize)s, fieldAnchor=%(anchor)s, fieldShape=%(fieldShape)s,\n" % inits +
                 "    signalDots=%(signalDots)s, noiseDots=%(noiseDots)s,dotLife=%(dotLife)s,\n" % inits +
                 "    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" % inits +
                 "    depth=%.1f)\n" % depth)

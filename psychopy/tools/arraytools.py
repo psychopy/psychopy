@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Functions and classes related to array handling
@@ -217,6 +217,55 @@ def array2pointer(arr, dtype=None):
     # convert to ctypes, also we ensure the array is contiguous
     return numpy.ascontiguousarray(arr, dtype=dtype).ctypes.data_as(
         ctypes.POINTER(numpy.ctypeslib.as_ctypes_type(dtype)))
+
+
+def snapto(values, points):
+    """
+    Snap values in array x to their closest equivalent in an array of target values, returning an array of the closest value in `points` to each value in `x`.
+
+    Parameters
+    ----------
+    values : list, tuple or numpy.ndarray
+        Array of values to be snapped to `points`
+    points : list, tuple or numpy.ndarray
+        Array of values to be snapped to
+
+    Returns
+    -------
+    snapped
+        Array of values, each corresponds to a value in `x` and is the closest value in `points`.
+
+    Examples
+    --------
+    Snap labels on a Slider to the x positions of each tick::
+
+        labelPositions = [-1, -2/3, -1/3, 1/3, 2/3, 1]
+        tickPositions = [-1, -0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8, 1]
+        snappedLabelPositions = snapto(x=labelPositions, points=tickPositions)
+
+        assert snappedLabelPositions = [-1, -0.6, -0.4, 0.4, 0.6, 1]
+    """
+
+    # Force values to 1d numpy arrays, though keep track of original shape of x
+    ogShape = numpy.asarray(values).shape
+    values = numpy.asarray(values).reshape((1, -1))
+    points = numpy.asarray(points).reshape((1, -1))
+
+    # Get sort order of values and points
+    valuesi = numpy.argsort(values[0])
+    pointsi = numpy.argsort(points[0])
+    # Shift values indices to sit evenly within points indices
+    valuesi -= min(pointsi)
+    valuesi = valuesi / max(valuesi) * max(pointsi)
+    valuesi = valuesi.round().astype(int)
+    # Get indices of points corresponding to each x value
+    i = pointsi[valuesi]
+    # Get corresponding points
+    snapped1d = points[0, i]
+    # Reshape to original shape of x
+    snapped = snapped1d.reshape(ogShape)
+
+    return snapped
 
 
 def createLumPattern(patternType, res, texParams=None, maskParams=None):

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """shaders programs for either pyglet or pygame
@@ -396,17 +396,18 @@ void main (void)
         // realism
         vec4 emission = clamp(gl_FrontMaterial.emission, 0.0, 1.0);
         
-        finalColor += ambient + emission + attenuation * (diffuse + specular);
+        finalColor += (ambient + emission) + attenuation * (diffuse + specular);
     }
     gl_FragColor = finalColor;  // use texture alpha
 #else
-    // no lights, only track ambient component, frontColor modulates ambient
+    // no lights, only track ambient and emission component
+    vec4 emission = clamp(gl_FrontMaterial.emission, 0.0, 1.0);
     vec4 ambient = gl_FrontLightProduct[0].ambient * gl_LightModel.ambient; 
     ambient = clamp(ambient, 0.0, 1.0); 
 #ifdef DIFFUSE_TEXTURE
-    gl_FragColor = ambient * texture2D(diffTexture, gl_TexCoord[0].st);
+    gl_FragColor = (ambient + emission) * texture2D(diffTexture, gl_TexCoord[0].st);
 #else
-    gl_FragColor = ambient;
+    gl_FragColor = ambient + emission;
 #endif
 #endif
 }

@@ -23,6 +23,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                  ):
         # Initialise base routine
         BaseStandaloneRoutine.__init__(self, exp, name=name, disabled=disabled)
+        self.url = "https://psychopy.org/builder/components/eyetracker_calibration.html"
 
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
 
@@ -108,7 +109,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
 
         self.params['innerRadius'] = Param(innerRadius,
                                            valType='num', inputType="single", categ='Target',
-                                           hint=_translate("Size (radius) of te inner part of the target"),
+                                           hint=_translate("Size (radius) of the inner part of the target"),
                                            label=_translate("Inner Radius"))
 
         self.params['units'] = Param(units,

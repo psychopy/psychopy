@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Provides functions for logging error and other messages to one or more
@@ -395,7 +395,7 @@ def log(msg, level, t=None, obj=None):
     """Log a message
 
     usage::
-        log(level, msg, t=t, obj=obj)
+        log(msg, level, t=t, obj=obj)
 
     Log the msg, at a  given level on the root logger
     """

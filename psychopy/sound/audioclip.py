@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
@@ -23,13 +23,15 @@ __all__ = [
     'AUDIO_EAR_COUNT'
 ]
 
+from pathlib import Path
+
 import numpy as np
 import soundfile as sf
+from psychopy import prefs
 from psychopy.tools.audiotools import *
+from psychopy.tools import filetools as ft
 from .exceptions import *
 
-# supported formats for loading and saving audio samples to file
-AUDIO_SUPPORTED_CODECS = [s.lower() for s in sf.available_formats().keys()]
 
 # constants for specifying the number of channels
 AUDIO_CHANNELS_MONO = 1
@@ -67,7 +69,7 @@ class AudioClip:
     You can play `AudioClip` by directly passing instances of this object to
     the :class:`~psychopy.sound.Sound` class::
 
-        inport psychopy.core as core
+        import psychopy.core as core
         import psyhcopy.sound as sound
 
         myTone = AudioClip.sine(duration=5.0)  # generate a tone
@@ -266,7 +268,7 @@ class AudioClip:
 
         Examples
         --------
-        Generate 5 seconds of silence to enjoy::
+        Generate 10 seconds of silence to enjoy::
 
             import psychopy.sound as sound
             silence = sound.AudioClip.silence(10.)
@@ -774,6 +776,9 @@ def load(filename, codec=None):
         Audio clip containing samples loaded from the file.
 
     """
+    # alias default names (so it always points to default.png)
+    if filename in ft.defaultStim:
+        filename = Path(prefs.paths['resources']) / ft.defaultStim[filename]
     return AudioClip.load(filename, codec)
 
 

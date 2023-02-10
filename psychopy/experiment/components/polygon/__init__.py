@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
@@ -33,7 +33,7 @@ class PolygonComponent(BaseVisualComponent):
                          '...circle)')
 
     def __init__(self, exp, parentName, name='polygon', interpolate='linear',
-                 units='from exp settings',
+                 units='from exp settings', anchor='center',
                  lineColor='white', lineColorSpace='rgb', lineWidth=1,
                  fillColor='white', fillColorSpace='rgb',
                  shape='triangle', nVertices=4, vertices="",
@@ -75,7 +75,7 @@ class PolygonComponent(BaseVisualComponent):
         self.params['nVertices'] = Param(
             nVertices, valType='int', inputType="single", categ='Basic',
             updates='constant',
-            allowedUpdates=['constant'],
+            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['nVertices'])
 
@@ -87,16 +87,31 @@ class PolygonComponent(BaseVisualComponent):
             hint=msg,
             label=_translate("Vertices")
         )
+        self.params['anchor'] = Param(
+            anchor, valType='str', inputType="choice", categ='Layout',
+            allowedVals=['center',
+                         'top-center',
+                         'bottom-center',
+                         'center-left',
+                         'center-right',
+                         'top-left',
+                         'top-right',
+                         'bottom-left',
+                         'bottom-right',
+                         ],
+            updates='constant',
+            hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
+            label=_translate("Anchor"))
 
         msg = _translate("What shape is this? With 'regular polygon...' you "
                          "can set number of vertices and with 'custom "
                          "polygon...' you can set vertices")
         self.params['shape'] = Param(
             shape, valType='str', inputType="choice", categ='Basic',
-            allowedVals=["line", "triangle", "rectangle", "circle", "cross", "star",
+            allowedVals=["line", "triangle", "rectangle", "circle", "cross", "star", "arrow",
                          "regular polygon...", "custom polygon..."],
             hint=msg, direct=False,
-            label=_localized['shape'])
+            label=_translate("Shape"))
 
         self.params['lineColor'] = self.params['borderColor']
         del self.params['borderColor']
@@ -141,11 +156,11 @@ class PolygonComponent(BaseVisualComponent):
             inits['size'].val = '[1.0, 1.0]'
 
         if self.params['shape'] == 'regular polygon...':
-            vertices = self.params['nVertices']
+            vertices = inits['nVertices']
         elif self.params['shape'] == 'custom polygon...':
-            vertices = self.params['vertices']
+            vertices = inits['vertices']
         else:
-            vertices = self.params['shape']
+            vertices = inits['shape']
         if vertices in ['line', '2']:
             code = ("%s = visual.Line(\n" % inits['name'] +
                     "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
@@ -170,7 +185,7 @@ class PolygonComponent(BaseVisualComponent):
             code = ("%s = visual.ShapeStim(\n" % inits['name'] +
                     "    win=win, name='%s', vertices='cross',%s\n" % (inits['name'], unitsStr) +
                     "    size=%(size)s,\n" % inits)
-        elif isinstance(vertices, (int, float, str)):
+        elif self.params['shape'] == 'regular polygon...':
             code = ("%s = visual.Polygon(\n" % inits['name'] +
                     "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
                     "    edges=%s," % str(inits['nVertices'].val) +
@@ -180,7 +195,7 @@ class PolygonComponent(BaseVisualComponent):
                     "    win=win, name='%s', vertices=%s,%s\n" % (inits['name'], vertices, unitsStr) +
                     "    size=%(size)s,\n" % inits)
 
-        code += ("    ori=%(ori)s, pos=%(pos)s,\n"
+        code += ("    ori=%(ori)s, pos=%(pos)s, anchor=%(anchor)s,\n"
                  "    lineWidth=%(lineWidth)s, "
                  "    colorSpace=%(colorSpace)s,  lineColor=%(lineColor)s, fillColor=%(fillColor)s,\n"
                  "    opacity=%(opacity)s, " % inits)
@@ -251,6 +266,10 @@ class PolygonComponent(BaseVisualComponent):
             code = ("{name} = new visual.ShapeStim ({{\n"
                     "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
                     "  vertices: 'cross', size:{size},\n")
+        elif vertices in ['arrow']:
+            code = ("{name} = new visual.ShapeStim ({{\n"
+                    "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
+                    "  vertices: 'arrow', size:{size},\n")
         else:
             code = ("{name} = new visual.Polygon ({{\n"
                     "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
@@ -263,17 +282,22 @@ class PolygonComponent(BaseVisualComponent):
             interpolate = 'false'
 
         code += ("  ori: {ori}, pos: {pos},\n"
-                 "  lineWidth: {lineWidth}, lineColor: new util.Color({lineColor}),\n"
+                 "  anchor: {anchor},\n"
+                 "  lineWidth: {lineWidth}, \n"
+                 "  colorSpace: {colorSpace},\n"
+                 "  lineColor: new util.Color({lineColor}),\n"
                  "  fillColor: new util.Color({fillColor}),\n"
                  "  opacity: {opacity}, depth: {depth}, interpolate: {interpolate},\n"
                  "}});\n\n")
 
         buff.writeIndentedLines(code.format(name=inits['name'],
                                             unitsStr=unitsStr,
+                                            anchor=inits['anchor'],
                                             lineWidth=inits['lineWidth'],
                                             size=inits['size'],
                                             ori=inits['ori'],
                                             pos=inits['pos'],
+                                            colorSpace=inits['colorSpace'],
                                             lineColor=inits['lineColor'],
                                             fillColor=inits['fillColor'],
                                             opacity=inits['opacity'],

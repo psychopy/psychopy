@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -115,6 +115,7 @@ class Param():
     def __init__(self, val, valType, inputType=None, allowedVals=None, allowedTypes=None,
                  hint="", label="", updates=None, allowedUpdates=None,
                  allowedLabels=None, direct=True,
+                 canBePath=True,
                  categ="Basic"):
         """
         @param val: the value for this parameter
@@ -139,8 +140,12 @@ class Param():
         @param categ: category for this parameter
             will populate tabs in Component Dlg
         @type allowedUpdates: string
+        @param canBePath: is it possible for this parameter to be
+            a path? If so, writing as str will check for pathlike
+            characters and sanitise if needed.
+        @type canBePath: bool
         @param direct: purely used in the test suite, marks whether this
-            param's value is expected to appear in the script
+        param's value is expected to appear in the script
         @type direct: bool
         """
         super(Param, self).__init__()
@@ -157,6 +162,7 @@ class Param():
         self.categ = categ
         self.readOnly = False
         self.codeWanted = False
+        self.canBePath = canBePath
         self.direct = direct
         if inputType:
             self.inputType = inputType
@@ -203,12 +209,16 @@ class Param():
                             # if target is python2.x then unicode will be u'something'
                             # but for other targets that will raise an annoying error
                             val = val[1:]
-                    if self.valType in ['file', 'table']:
-                        # If param is a file of any kind, use Path to make sure it's valid
-                        val = Path(val).as_posix()  # Convert to a valid path with / not \
-                    val=re.sub("\n", "\\n", val)  # Replace line breaks with escaped line break character
-                    val=re.sub("\\\\", "/", val)  # handle older exps where files were valType=str not file
-                    return repr(val)                              
+                    # If param is a path or pathlike use Path to make sure it's valid (with / not \)
+                    isPathLike = bool(re.findall(r"[\\/](?!\W)", val))
+                    if self.valType in ['file', 'table'] or (isPathLike and self.canBePath):
+                        val = val.replace("\\\\", "/")
+                        val = val.replace("\\", "/")
+                    # Hide escape char on escaped $ (other escaped chars are handled by wx but $ is unique to us)
+                    val = re.sub(r"\\\$", "$", val)
+                    # Replace line breaks with escaped line break character
+                    val = re.sub("\n", "\\n", val)
+                    return repr(val)
             return repr(self.val)
         elif self.valType in ['code', 'extendedCode']:
             isStr = isinstance(self.val, str)
@@ -268,6 +278,9 @@ class Param():
             raise TypeError("Can't represent a Param of type %s" %
                             self.valType)
 
+    def __repr__(self):
+        return f"<Param: val={self.val}, valType={self.valType}>"
+
     def __eq__(self, other):
         """Test for equivalence is needed for Params because what really
         typically want to test is whether the val is the same
@@ -293,7 +306,7 @@ class Param():
         return bool(self.val)
 
     @property
-    def xml(self):
+    def _xml(self):
         # Make root element
         element = Element('Param')
         # Assign values
@@ -332,8 +345,8 @@ class Param():
                 if len(re.findall(r"\$", val)) == len(re.findall(r"\$", inComment)):
                     # Return if all $ are commented out
                     return True, val
-                if len(re.findall(r"\$", val)) - len(re.findall(r"\$", inComment)) == len(re.findall(r"\\\$", inQuotes)):
-                    # Return if all non-commended $ are in strings and escaped
+                if len(re.findall(r"\$", val)) - len(re.findall(r"\$", inComment)) == len(re.findall(r"\$", inQuotes)):
+                    # Return if all non-commended $ are in strings
                     return True, val
             else:
                 # If value does not begin with an unescaped $, treat it as a string
@@ -349,15 +362,19 @@ class Param():
     __nonzero__ = __bool__  # for python2 compatibility
 
 
-def getCodeFromParamStr(val):
+def getCodeFromParamStr(val, target=None):
     """Convert a Param.val string to its intended python code
     (as triggered by special char $)
     """
-    tmp = re.sub(r"^(\$)+", '', val)  # remove leading $, if any
+    # Substitute target
+    if target is None:
+        target = utils.scriptTarget
+    # remove leading $, if any
+    tmp = re.sub(r"^(\$)+", '', val)
     # remove all nonescaped $, squash $$$$$
     tmp2 = re.sub(r"([^\\])(\$)+", r"\1", tmp)
     out = re.sub(r"[\\]\$", '$', tmp2)  # remove \ from all \$
-    if utils.scriptTarget=='PsychoJS':
+    if target == 'PsychoJS':
         out = py2js.expression2js(out)
     return out if out else ''
 

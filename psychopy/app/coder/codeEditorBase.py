@@ -7,17 +7,17 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
 import wx.stc
-from ..themes import ThemeMixin
+from ..themes import handlers
 
 from psychopy.localization import _translate
 
 
-class BaseCodeEditor(wx.stc.StyledTextCtrl, ThemeMixin):
+class BaseCodeEditor(wx.stc.StyledTextCtrl, handlers.ThemeMixin):
     """Provides base class for code editors
        See the wxPython demo styledTextCtrl 2.
     """
@@ -201,7 +201,7 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl, ThemeMixin):
         nLines = len(self._GetSelectedLineNumbers())
         nHashtags = self.HashtagCounter(self.GetTextRange(startText, endText))
         passDec = False # pass decision - only pass  if line is blank
-        # Test decision criteria, and catch devision errors
+        # Test decision criteria, and catch division errors
         # when caret starts at line with no text, or at beginning of line...
         try:
             devCrit, decVal = .6, nHashtags / nLines # Decision criteria and value

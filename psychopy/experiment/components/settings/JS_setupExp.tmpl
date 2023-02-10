@@ -1,10 +1,12 @@
 psychoJS.experimentLogger.setLevel(core.Logger.ServerLevel.{loggingLevel});
 
 async function updateInfo() {{
+  currentLoop = psychoJS.experiment;  // right now there are no loops
   expInfo['date'] = util.MonotonicClock.getDateStr();  // add a simple timestamp
   expInfo['expName'] = expName;
   expInfo['psychopyVersion'] = '{version}';
   expInfo['OS'] = window.navigator.platform;
+
 
   // store frame rate of monitor if we can measure it successfully
   expInfo['frameRate'] = psychoJS.window.getActualFrameRate();
@@ -16,5 +18,10 @@ async function updateInfo() {{
   // add info from the URL:
   util.addInfoFromUrl(expInfo);
   {setRedirectURL}
+
+  
+  psychoJS.experiment.dataFileName = (("." + "/") + {filename});
+
+
   return Scheduler.Event.NEXT;
 }}

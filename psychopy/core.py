@@ -4,7 +4,7 @@
 """Basic functions, including timing, rush (imported), quit
 """
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys
@@ -23,7 +23,6 @@ from psychopy.clock import (MonotonicClock, Clock, CountdownTimer,
 from psychopy.platform_specific import rush  # pylint: disable=W0611
 from psychopy import logging
 from psychopy.constants import STARTED, NOT_STARTED, FINISHED
-from psychopy.iohub.client import ioHubConnection
 
 try:
     import pyglet
@@ -74,6 +73,8 @@ def quit():
     logging.flush()
 
     # properly shutdown ioHub server
+    from psychopy.iohub.client import ioHubConnection
+
     if ioHubConnection.ACTIVE_CONNECTION:
         ioHubConnection.ACTIVE_CONNECTION.quit()
 
@@ -163,3 +164,65 @@ def shellCall(shellCmd, stdin='', stderr=False, env=None, encoding=None):
         return stdoutData.strip(), stderrData.strip()
     else:
         return stdoutData.strip()
+
+
+def getFromNames(names, namespace=None):
+    """
+    Get a component, or any other object handle, from a string containing its variable name.
+
+    Parameters
+    ==========
+    names : str, list or tuple
+        String representing the name of a variable, or a list/tuple (or listlike string) of names.
+    namespace : dict or None
+        dict mapping names to values, if None will use `globals()`
+    """
+    # If listlike string, split into list
+    if isinstance(names, str) and "," in names:
+        # Strip perentheses
+        if (
+                (names.startswith("[") and names.endswith("]"))
+                or (names.startswith("(") and names.endswith(")"))
+        ):
+            names = names[1:-1]
+        # Split at commas
+        namesList = []
+        for thisName in names.split(","):
+            # Strip spaces
+            thisName = thisName.strip()
+            # Strip quotes
+            if (
+                    (thisName.startswith('"') and thisName.endswith('"'))
+                    or (thisName.startswith("'") and thisName.endswith("'"))
+            ):
+                thisName = thisName[1:-1]
+            # Append
+            namesList.append(thisName)
+        names = namesList
+
+    # If single name, put in list
+    from collections.abc import Iterable
+    if isinstance(names, str) or not isinstance(names, Iterable):
+        names = [names]
+
+    # Get objects
+    objs = []
+    for nm in names:
+        # Get from globals if no namespace
+        if namespace is None:
+            namespace = globals()
+        # Get (use original value if not present)
+        obj = namespace.get(nm, nm)
+        # Append
+        objs.append(obj)
+
+    return objs
+
+
+class ComponentPlaceholder:
+    """
+    When a component is not implemented, we need an object to represent it when running, which will accept any
+    attribute given without causing an error and breaking the experiment. This object extends the base Python
+    `object` class, with no additions.
+    """
+    pass

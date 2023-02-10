@@ -55,7 +55,7 @@ Example usage
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -126,11 +126,12 @@ class Keyboard:
     systems.
 
     """
+    _backend = None
     _iohubKeyboard = None
     _iohubOffset = 0.0
-    backend = ''  # Set at runtime to one of 'ptb', 'iohub', or 'event'
+    _ptbOffset = 0.0
 
-    def __init__(self, device=-1, bufferSize=10000, waitForStart=False, clock=None):
+    def __init__(self, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None):
         """Create the device (default keyboard or select one)
 
         Parameters
@@ -153,6 +154,17 @@ class Keyboard:
 
         """
         global havePTB
+
+        if self._backend is None and backend in ['iohub', 'ptb', 'event', '']:
+            Keyboard._backend = backend
+
+        if self._backend is None:
+            Keyboard._backend = ''
+
+        if backend and self._backend != backend:
+            logging.warning("keyboard.Keyboard already using '%s' backend. Can not switch to '%s'" % (self._backend,
+                                                                                                      backend))
+
         self.status = NOT_STARTED
         # Initiate containers for storing responses
         self.keys = []  # the key(s) pressed
@@ -165,17 +177,23 @@ class Keyboard:
         else:
             self.clock = psychopy.clock.Clock()
 
-        if Keyboard.backend == '':
+        if Keyboard._backend in ['', 'iohub']:
             from psychopy.iohub.client import ioHubConnection
             from psychopy.iohub.devices import Computer
-            if ioHubConnection.getActiveConnection():
+            if not ioHubConnection.getActiveConnection() and Keyboard._backend == 'iohub':
+                # iohub backend was explicitly requested, but iohub is not running, so start it up
+                # setting keyboard to use standard psychopy key mappings
+                from psychopy.iohub import launchHubServer
+                launchHubServer(Keyboard=dict(use_keymap='psychopy'))
+
+            if ioHubConnection.getActiveConnection() and Keyboard._iohubKeyboard is None:
                 Keyboard._iohubKeyboard = ioHubConnection.getActiveConnection().getDevice('keyboard')
                 Keyboard._iohubOffset = Computer.global_clock.getLastResetTime()
-                if Keyboard._iohubKeyboard:
-                    Keyboard.backend = 'iohub'
+                Keyboard._backend = 'iohub'
 
-        if Keyboard.backend in ['', 'ptb'] and havePTB:
-            Keyboard.backend = 'ptb'
+        if Keyboard._backend in ['', 'ptb'] and havePTB:
+            Keyboard._backend = 'ptb'
+            Keyboard._ptbOffset = self.clock.getLastResetTime()
             # get the necessary keyboard buffer(s)
             if sys.platform == 'win32':
                 self._ids = [-1]  # no indexing possible so get the combo keyboard
@@ -201,20 +219,50 @@ class Keyboard:
             if not waitForStart:
                 self.start()
 
-        elif Keyboard.backend == '':
-            Keyboard.backend = 'event'
+        if Keyboard._backend in ['', 'event']:
+            global event
+            from psychopy import event
+            Keyboard._backend = 'event'
 
-        logging.info('keyboard.Keyboard is using %s backend.' % Keyboard.backend)
+        logging.info('keyboard.Keyboard is using %s backend.' % Keyboard._backend)
+
+    @classmethod
+    def getBackend(self):
+        """Return backend being used."""
+        return self._backend
+
+    @classmethod
+    def setBackend(self, backend):
+        """
+        Set backend event handler. Returns currently active handler.
+
+        :param backend: 'iohub', 'ptb', 'event', or ''
+        :return: str
+        """
+        if self._backend is None:
+            if backend in ['iohub', 'ptb', 'event', '']:
+                Keyboard._backend = backend
+            else:
+                logging.warning("keyboard.Keyboard.setBackend failed. backend must be one of %s"
+                                % str(['iohub', 'ptb', 'event', '']))
+            if backend == 'event':
+                global event
+                from psychopy import event
+        else:
+            logging.warning("keyboard.Keyboard.setBackend already using '%s' backend. "
+                            "Can not switch to '%s'" % (self._backend, backend))
+
+        return self._backend
 
     def start(self):
         """Start recording from this keyboard """
-        if Keyboard.backend == 'ptb':
+        if Keyboard._backend == 'ptb':
             for buffer in self._buffers.values():
                 buffer.start()
 
     def stop(self):
         """Start recording from this keyboard"""
-        if Keyboard.backend == 'ptb':
+        if Keyboard._backend == 'ptb':
             logging.warning("Stopping key buffers but this could be dangerous if"
                             "other keyboards rely on the same.")
             for buffer in self._buffers.values():
@@ -248,35 +296,56 @@ class Keyboard:
 
         """
         keys = []
-        if Keyboard.backend == 'ptb':
+        if Keyboard._backend == 'ptb':
             for buffer in self._buffers.values():
                 for origKey in buffer.getKeys(keyList, waitRelease, clear):
                     # calculate rt from time and self.timer
                     thisKey = copy.copy(origKey)  # don't alter the original
                     thisKey.rt = thisKey.tDown - self.clock.getLastResetTime()
+                    thisKey.tDown = thisKey.tDown - self._ptbOffset 
                     keys.append(thisKey)
-        elif Keyboard.backend == 'iohub':
+        elif Keyboard._backend == 'iohub':
             watchForKeys = keyList
             if waitRelease:
                 key_events = Keyboard._iohubKeyboard.getReleases(keys=watchForKeys, clear=clear)
             else:
-                key_events = Keyboard._iohubKeyboard.getPresses(keys=watchForKeys, clear=clear)
+                key_events = []
+                released_press_evt_ids = []
+                all_key_events = Keyboard._iohubKeyboard.getKeys(keys=watchForKeys, clear=clear)
+                if all_key_events:
+                    all_key_events_ids = [k.id for k in all_key_events]
+                    all_key_events.reverse()
+                    for k in all_key_events:
+                        if hasattr(k, 'pressEventID'):
+                            if k.pressEventID in all_key_events_ids:
+                                # Only if press event also occurs,
+                                # use release key event so duration can be calculated.
+                                released_press_evt_ids.append(k.pressEventID)
+                                key_events.append(k)
+                        elif k.id not in released_press_evt_ids:
+                            # Add press key event as long as release key event has not already been
+                            # handled.
+                            key_events.append(k)
+
+                    key_events.reverse()
 
             for k in key_events:
                 kname = k.key
 
-                if waitRelease:
+                if hasattr(k, 'duration'):
                     tDown = k.time-k.duration
                 else:
                     tDown = k.time
 
-                kpress = KeyPress(code=None, tDown=tDown, name=kname)
+                kpress = KeyPress(code=k.char, tDown=tDown, name=kname)
                 kpress.rt = kpress.tDown - self.clock.getLastResetTime() + Keyboard._iohubOffset
-                if waitRelease:
+                if hasattr(k, 'duration'):
                     kpress.duration = k.duration
+
 
                 keys.append(kpress)
         else:  # Keyboard.backend == 'event'
+            global event
             name = event.getKeys(keyList, modifiers=False, timeStamped=False)
             rt = self.clock.getTime()
             if len(name):
@@ -328,15 +397,16 @@ class Keyboard:
 
     def clearEvents(self, eventType=None):
         """"""
-        if Keyboard.backend == 'ptb':
+        if Keyboard._backend == 'ptb':
             for buffer in self._buffers.values():
                 buffer.flush()  # flush the device events to the soft buffer
                 buffer._evts.clear()
                 buffer._keys.clear()
                 buffer._keysStillDown.clear()
-        elif Keyboard.backend == 'iohub':
+        elif Keyboard._backend == 'iohub':
             Keyboard._iohubKeyboard.clearEvents()
         else:
+            global event
             event.clearEvents(eventType)
 
 
@@ -370,10 +440,10 @@ class KeyPress(object):
         self.tDown = tDown
         self.duration = None
         self.rt = None
-        if Keyboard.backend == 'event':  # we have event.getKeys()
+        if Keyboard._backend == 'event':  # we have event.getKeys()
             self.name = name
             self.rt = tDown
-        elif Keyboard.backend == 'ptb':
+        elif Keyboard._backend == 'ptb':
             if code not in keyNames:
                 self.name = 'n/a'
                 logging.warning("Got keycode {} but that code isn't yet known")
@@ -384,7 +454,7 @@ class KeyPress(object):
                 self.name = 'unknown'
             else:
                 self.name = keyNames[code]
-        elif Keyboard.backend == 'iohub':
+        elif Keyboard._backend == 'iohub':
             self.name = name
 
     def __eq__(self, other):
@@ -481,11 +551,12 @@ class _KeyBuffer(object):
         if not keyList and not waitRelease:
             keyPresses = list(self._keysStillDown)
             for k in list(self._keys):
-                if k not in keyPresses:
+                if not any(x.name == k.name and x.tDown == k.tDown  for x in keyPresses):
                     keyPresses.append(k)
             if clear:
                 self._keys = deque()
                 self._keysStillDown = deque()
+            keyPresses.sort(key=lambda x: x.tDown, reverse=False)
             return keyPresses
 
         # otherwise loop through and check each key

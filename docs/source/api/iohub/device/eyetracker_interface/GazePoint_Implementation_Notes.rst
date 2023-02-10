@@ -18,7 +18,7 @@ Additional Software Requirements
 #################################
 
 To use your Gazepoint GP3 during an experiment you must first start the
-Gazepoint Control software on the computer running PsychoPy.
+Gazepoint Control software on the computer running |PsychoPy|.
 
 EyeTracker Class
 ################
@@ -176,4 +176,3 @@ Default Device Settings
 
 
 **Last Updated:** January, 2021
-

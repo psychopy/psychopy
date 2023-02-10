@@ -77,6 +77,14 @@ class TargetStim:
             s.setPos(pos)
 
     @property
+    def pos(self):
+        return self.stim[0].pos
+
+    @pos.setter
+    def pos(self, value):
+        self.setPos(value)
+
+    @property
     def radius(self):
         return self._radius
 
@@ -324,7 +332,7 @@ class ValidationProcedure:
         if self.show_intro_screen:
             # Display Validation Intro Screen
             self.showIntroScreen()
-            if self.terminate_key and self.terminate_key in keyboard.waitForReleases(keys=[' ', self.terminate_key]):
+            if self.terminate_key and self.terminate_key in keyboard.waitForReleases(keys=[' ', 'space',self.terminate_key]):
                 print("Escape key pressed. Exiting validation")
                 self._validation_results = None
                 return
@@ -342,15 +350,15 @@ class ValidationProcedure:
 
         if self.show_results_screen:
             self.showResultsScreen()
-            kb_presses = keyboard.waitForPresses(keys=['space', self.terminate_key, self.targetsequence.gaze_cursor_key])
-            while 'space' not in kb_presses:
+            kb_presses = keyboard.waitForPresses(keys=['space',' ', self.terminate_key, self.targetsequence.gaze_cursor_key])
+            while 'space' not in kb_presses and ' ' not in kb_presses:
                 if self.targetsequence.gaze_cursor_key in kb_presses:
                     self.targetsequence.display_gaze = not self.targetsequence.display_gaze
                     self.showResultsScreen()
                 if self.terminate_key in kb_presses:
                     print("Escape key pressed. Exiting validation")
                     break
-                kb_presses = keyboard.waitForPresses(keys=['space',
+                kb_presses = keyboard.waitForPresses(keys=['space', ' ',
                                                            self.terminate_key,
                                                            self.targetsequence.gaze_cursor_key])
 
@@ -378,6 +386,7 @@ class ValidationProcedure:
                                                    wrapWidth=self.win.size[0] * .8)
 
         self.intro_text_stim.draw()
+        self.win.flip()
         return self.win.flip()
 
     @property
@@ -645,7 +654,7 @@ class ValidationProcedure:
         results = self.getValidationResults()
 
         for tp in self.positions.getPositions():
-            self.targetsequence.target.setPos(tp)
+            self.targetsequence.target.pos = tp
             self.targetsequence.target.draw()
 
         title_txt = 'Validation Results\nMin: %.4f, Max: %.4f,' \
@@ -698,7 +707,7 @@ class ValidationProcedure:
                     else:
                         g_pos = toPix(self.win, gaze_x[i], gaze_y[i])
                         g_pos = g_pos[0][0], g_pos[1][0]
-                    sample_gfx.setPos(g_pos)
+                    sample_gfx.pos = g_pos
                     sample_gfx.draw()
                 txt_bold = False
                 position_txt = "Gaze Error:\nMin: %.4f\nMax: %.4f\n" \
@@ -856,7 +865,7 @@ class ValidationTargetRenderer:
                     v2 = topos
                     t = 60.0 * ((1.0 / 10.0) * t ** 5 - (1.0 / 4.0) * t ** 4 + (1.0 / 6.0) * t ** 3)
                     moveTo = ((1.0 - t) * v1[0] + t * v2[0], (1.0 - t) * v1[1] + t * v2[1])
-                    self.target.setPos(moveTo)
+                    self.target.pos = moveTo
                     self._draw()
                     fliptime = self.win.flip()
                     io.sendMessageEvent('POS_UPDATE %.4f,%.4f' % (moveTo[0], moveTo[1]), self.msgcategory,
@@ -873,7 +882,7 @@ class ValidationTargetRenderer:
                     if self._terminate_requested:
                         return 0
 
-        self.target.setPos(topos)
+        self.target.pos = topos
         self._draw()
         fliptime = self.win.flip()
         io.sendMessageEvent('TARGET_POS %.4f,%.4f' % (topos[0], topos[1]), self.msgcategory, sec_time=fliptime)
@@ -1055,7 +1064,7 @@ class ValidationTargetRenderer:
 
         To setup target animation between grid positions, the following keyword
         arguments are supported. If an option is not specified, the animation
-        related to it is not preformed.
+        related to it is not performed.
 
 
 
@@ -1173,7 +1182,7 @@ class ValidationTargetRenderer:
         def getSampleData(s):
             sampledata = [s.time, s.status]
             binoc_sample_types = [EventConstants.BINOCULAR_EYE_SAMPLE, EventConstants.GAZEPOINT_SAMPLE]
-            if self.sample_type in binoc_sample_types:
+            if s.type in binoc_sample_types:
                 sampledata.extend((s.left_gaze_x, s.left_gaze_y, s.left_pupil_measure1,
                                    s.right_gaze_x, s.right_gaze_y, s.right_pupil_measure1))
                 return sampledata

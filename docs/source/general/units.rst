@@ -5,9 +5,9 @@
 Units for the window and stimuli
 ====================================
 
-One of the key advantages of PsychoPy over many other experiment-building software packages is that stimuli can be described in a wide variety of real-world, device-independent units. In most other systems you provide the stimuli at a fixed size and location in pixels, or percentage of the screen, and then have to calculate how many cm or degrees of visual angle that was.
+One of the key advantages of |PsychoPy| over many other experiment-building software packages is that stimuli can be described in a wide variety of real-world, device-independent units. In most other systems you provide the stimuli at a fixed size and location in pixels, or percentage of the screen, and then have to calculate how many cm or degrees of visual angle that was.
 
-In PsychoPy, after providing information about your monitor, via the :doc:`monitors`, you can simply specify your stimulus in the unit of your choice and allow PsychoPy to calculate the appropriate pixel size for you.
+In |PsychoPy|, after providing information about your monitor, via the :doc:`monitors`, you can simply specify your stimulus in the unit of your choice and allow |PsychoPy| to calculate the appropriate pixel size for you.
 
 Your choice of unit depends on the circumstances. For conducting demos, the two normalised units ('norm' and 'height') are often handy because the stimulus scales naturally with the window size. For running an experiment it's usually best to use something like 'cm' or 'deg' so that the stimulus is a fixed size irrespective of the monitor/window.
 

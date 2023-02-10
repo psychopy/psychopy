@@ -6,9 +6,12 @@ import glob
 import os
 import sys
 from sys import platform
+import setuptools  # noqa: setuptools complains if it isn't implicitly imported before distutils
 from distutils.core import setup
 from pkg_resources import parse_version
-# import versioneer
+import bdist_mpkg  # noqa: needed to build bdist, even though not explicitly used here
+import py2app  # noqa: needed to build app bundle, even though not explicitly used here
+
 import psychopy
 version = psychopy.__version__
 
@@ -28,8 +31,6 @@ requires = []
 if platform != 'darwin':
     raise RuntimeError("setupApp.py is only for building Mac Standalone bundle")
 
-import bdist_mpkg
-import py2app
 resources = glob.glob('psychopy/app/Resources/*')
 frameworks = [ # these installed using homebrew
               "/usr/local/opt/libevent/lib/libevent.dylib", 
@@ -55,7 +56,8 @@ if parse_version(macholib.__version__) <= parse_version('1.7'):
         return dyld_find_1_7(name, **kwargs)
     macholib.MachOGraph.dyld_find = dyld_find
 
-includes = ['Tkinter', 'tkFileDialog',
+includes = ['_sitebuiltins',  # needed for help()
+            'Tkinter', 'tkFileDialog',
             'imp', 'subprocess', 'shlex',
             'shelve',  # for scipy.io
             '_elementtree', 'pyexpat',  # for openpyxl
@@ -69,48 +71,52 @@ includes = ['Tkinter', 'tkFileDialog',
             'vlc',  # install with pip install python-vlc
             'msgpack_numpy',
             'configparser',
+            'ntplib',  # for egi-pynetstation
             ]
-packages = ['wx', 'psychopy',
+packages = ['pydoc',  # needed for help()
+            'wx', 'psychopy',
+            'PyQt5',
             'pyglet', 'pytz', 'OpenGL', 'glfw',
-            'scipy', 'matplotlib', 'openpyxl',
+            'scipy', 'matplotlib', 'openpyxl', 'pandas',
             'xml', 'xmlschema', 'elementpath',
+            'ffpyplayer', 'cython', 'AVFoundation',
             'moviepy', 'imageio', 'imageio_ffmpeg',
             '_sounddevice_data', '_soundfile_data',
             'cffi', 'pycparser',
             'PIL',  # 'Image',
+            'freetype',
             'objc', 'Quartz', 'AppKit', 'QTKit', 'Cocoa',
             'Foundation', 'CoreFoundation',
             'pkg_resources',  # needed for objc
-            'pyo',
             'requests', 'certifi', 'cryptography',
-            # for unit testing
-            'coverage',
-            # handy external science libs
-            'serial',
-            'egi', 'pylink', 'tobiiresearch',
-            'pyxid2', 'ftd2xx',  # ftd2xx is used by cedrus
-            'pandas', 'tables',  # 'cython',
-            'msgpack', 'yaml', 'gevent',  # for ioHub
-            # these aren't needed, but liked
-            'bidi', 'arabic_reshaper',  # for right-left language conversions
-            # for Py3 compatibility
-            'ujson',  # faster than built-in json
             'json_tricks',  # allows saving arrays/dates in json
             'git', 'gitlab',
+            'msgpack', 'yaml', 'gevent',  # for ioHub
             'astunparse', 'esprima',  # for translating/adapting py/JS
+            'metapensiero.pj', 'dukpy', 'macropy',
+            'jedi', 'parso',
+            'bidi', 'arabic_reshaper',  # for right-left language conversions
+            'ujson',  # faster than built-in json
+            'six',  # needed by configobj
+            # for unit testing
+            'coverage',
+            # hardware
+            'serial',
+            'egi_pynetstation', 'pylink', 'tobiiresearch',
+            'pyxid2', 'ftd2xx',  # ftd2xx is used by cedrus
+            # handy science tools
+            'tables',  # 'cython',
+            # these aren't needed, but liked
             'pylsl', 'pygaze',
+            'Phidget22',
             'smite',  # https://github.com/marcus-nystrom/SMITE (not pypi!)
             'cv2',
             'badapted', 'darc_toolbox',  # adaptive methods from Ben Vincent
             'questplus',
-            'metapensiero.pj', 'dukpy', 'macropy',
-            'jedi', 'parso',
             'psychtoolbox',
-            'freetype', 'h5py',
+            'h5py',
             'markdown_it',
             'speech_recognition', 'googleapiclient', 'pocketsphinx',
-            'six',  # needed by configobj
-            'PyQt5',
             ]
 
 setup(
@@ -139,6 +145,9 @@ setup(
                   NSHumanReadableCopyright   = "Open Science Tools Limited",
                   CFBundleDocumentTypes=[dict(CFBundleTypeExtensions=['*'],
                                               CFBundleTypeRole='Editor')],
+                  CFBundleURLTypes=[dict(CFBundleURLName='psychopy',  # respond to psychopy://
+                                         CFBundleURLSchemes='psychopy',
+                                         CFBundleTypeRole='Editor')],
                   LSEnvironment=dict(PATH="/usr/local/git/bin:/usr/local/bin:"
                                           "/usr/local:/usr/bin:/usr/sbin"),
             ),

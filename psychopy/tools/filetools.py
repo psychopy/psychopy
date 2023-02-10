@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Functions and classes related to file and directory handling
 """
 import os
 import shutil
+import subprocess
 import sys
 import atexit
 import codecs
@@ -23,6 +24,80 @@ except ImportError:
 
 from psychopy import logging
 from psychopy.tools.fileerrortools import handleFileCollision
+from pathlib import Path
+
+
+def _synonymiseExtensions(assets):
+    """
+    Synonymise filetypes which refer to the same media types.
+
+    Parameters
+    ==========
+    assets : dict
+        Dict of {name: path} pairs
+
+    Returns
+    ==========
+    dict
+        Same dict which was passed in, but any names ending in a recognised extension
+        will have variants with the same stem but different (and synonymous) extensions,
+        pointing to the same path. For example:
+        {"default.png": "default.png"}
+        becomes
+        {"default.png": "default.png", "default.jpg": "default.png", "default.jpeg": "default.png"}
+    """
+    # Alias filetypes
+    newAssets = {}
+    for key, val in assets.items():
+        # Skip if no ext
+        if "." not in key:
+            continue
+        # Get stem and ext
+        stem, ext = key.split(".")
+        # Synonymise image types
+        imgTypes = ("png", "jpg", "jpeg")
+        if ext in imgTypes:
+            for thisExt in imgTypes:
+                newAssets[stem + "." + thisExt] = val
+        # Synonymise movie types
+        movTypes = ("mp4", "mov", "mkv", "avi", "wmv")
+        if ext in movTypes:
+            for thisExt in movTypes:
+                newAssets[stem + "." + thisExt] = val
+        # Synonymise audio types
+        sndTypes = ("mp3", "wav")
+        if ext in sndTypes:
+            for thisExt in sndTypes:
+                newAssets[stem + "." + thisExt] = val
+
+    return newAssets
+
+
+# Names accepted by stimulus classes & the filename of the default stimulus to use
+defaultStimRoot = Path(__file__).parent.parent / "app" / "Resources"
+defaultStim = {
+    # Image stimuli
+    "default.png": "default.png",
+    # Movie stimuli
+    "default.mp4": "default.mp4",
+    # Sound stimuli
+    "default.mp3": "default.mp3",
+    # Credit card image
+    "creditCard.png": "creditCard.png",
+    "CreditCard.png": "creditCard.png",
+    "creditcard.png": "creditCard.png",
+    # USB image
+    "USB.png": "USB.png",
+    "usb.png": "USB.png",
+    # USB-C image
+    "USB-C.png": "USB-C.png",
+    "USB_C.png": "USB-C.png",
+    "USBC.png": "USB-C.png",
+    "usb-c.png": "USB-C.png",
+    "usb_c.png": "USB-C.png",
+    "usbc.png": "USB-C.png",
+}
+defaultStim = _synonymiseExtensions(defaultStim)
 
 
 def toFile(filename, data):
@@ -173,7 +248,7 @@ def openOutputFile(fileName=None, append=False, fileCollisionMethod='rename',
     if os.path.exists(fileName) and mode in ['w', 'wb']:
         logging.warning('Data file %s will be overwritten!' % fileName)
 
-    # The file wil always be opened in binary writing mode,
+    # The file will always be opened in binary writing mode,
     # see https://docs.python.org/2/library/codecs.html#codecs.open
     f = codecs.open(fileName, mode=mode, encoding=encoding)
     return f
@@ -285,8 +360,8 @@ def pathToString(filepath):
     """
     Coerces pathlib Path objects to a string (only python version 3.6+)
     any other objects passed to this function will be returned as is.
-    This WILL NOT work with on Python 3.4, 3.5 since the __fspath__ dunder
-    method did not exist in those verisions, however psychopy does not support
+    This WILL NOT work with on Python 3.4, 3.5 since the __fspath__ under
+    method did not exist in those versions, however psychopy does not support
     these versions of python anyways.
 
     :Parameters:
@@ -303,3 +378,20 @@ def pathToString(filepath):
     if hasattr(filepath, "__fspath__"):
         return filepath.__fspath__()
     return filepath
+
+
+def openInExplorer(path):
+    """
+    Open a given director path in current operating system's file explorer.
+    """
+    # Choose a command according to OS
+    if sys.platform in ['win32']:
+        comm = "explorer"
+    elif sys.platform in ['darwin']:
+        comm = "open"
+    elif sys.platform in ['linux', 'linux2']:
+        comm = "dolphin"
+    # Use command to open folder
+    ret = subprocess.call(" ".join([comm, path]), shell=True)
+
+    return ret

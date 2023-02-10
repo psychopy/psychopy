@@ -7,7 +7,7 @@ import math
 from psychopy.iohub.constants import EventConstants, EyeTrackerConstants
 from psychopy.iohub.devices import Computer, Device
 from psychopy.iohub.devices.eyetracker import EyeTrackerDevice
-from psychopy.iohub.devices.eyetracker.hw.tobii.tobiiCalibrationGraphics import TobiiPsychopyCalibrationGraphics
+from psychopy.iohub.devices.eyetracker.hw.tobii.calibration import TobiiCalibrationProcedure
 from psychopy.iohub.devices.eyetracker.eye_events import *
 from psychopy.iohub.errors import print2err, printExceptionDetailsToStdErr
 try:
@@ -200,9 +200,10 @@ class EyeTracker(EyeTrackerDevice):
         tracking system.
         """
         try:
-            genv = TobiiPsychopyCalibrationGraphics(self, calibration_args)
+            genv = TobiiCalibrationProcedure(self, calibration_args)
 
-            calibrationOK = genv.runCalibration()
+            genv.runCalibration()
+            calibration_result = genv.cal_result_dict
 
             # On some graphics cards, we have to minimize before closing or the calibration window will stay visible
             # after close is called.
@@ -214,7 +215,7 @@ class EyeTracker(EyeTrackerDevice):
             genv._unregisterEventMonitors()
             genv.clearAllEventBuffers()
 
-            return calibrationOK
+            return calibration_result
 
         except Exception:
             print2err('Error during runSetupProcedure')
@@ -322,7 +323,7 @@ class EyeTracker(EyeTrackerDevice):
         The above remarks are true for any eye tracker in general.
 
         The getLastGazePosition method returns the most recent eye gaze position
-        retieved from the eye tracker device. This is the position on the
+        retrieved from the eye tracker device. This is the position on the
         calibrated 2D surface that the eye tracker is reporting as the current
         eye position. The units are in the units in use by the Display device.
 

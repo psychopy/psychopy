@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -20,12 +20,15 @@ import os
 import codecs
 import xml.etree.ElementTree as xml
 from xml.dom import minidom
-from copy import deepcopy
+from copy import deepcopy, copy
 from pathlib import Path
 from pkg_resources import parse_version
 
 import psychopy
 from psychopy import data, __version__, logging
+from psychopy.tools import filetools as ft
+from .components.resourceManager import ResourceManagerComponent
+from .components.static import StaticComponent
 from .exports import IndentingBuffer, NameSpace
 from .flow import Flow
 from .loops import TrialHandler, LoopInitiator, \
@@ -126,7 +129,7 @@ class Experiment:
         # What libs are needed (make sound come first)
         self.requiredImports = []
         libs = ('sound', 'gui', 'visual', 'core', 'data', 'event',
-                'logging', 'clock', 'colors')
+                'logging', 'clock', 'colors', 'layout')
         self.requirePsychopyLibs(libs=libs)
         self.requireImport(importName='keyboard',
                            importFrom='psychopy.hardware')
@@ -190,7 +193,7 @@ class Experiment:
         an empty one if none is given.
         """
         if routine is None:
-            # create a deafult routine with this name
+            # create a default routine with this name
             self.routines[routineName] = Routine(routineName, exp=self)
         else:
             self.routines[routineName] = routine
@@ -220,7 +223,7 @@ class Experiment:
         # set this so that params write for approp target
         utils.scriptTarget = target
         self.expPath = expPath
-        script = IndentingBuffer(u'')  # a string buffer object
+        script = IndentingBuffer(target=target)  # a string buffer object
 
         # get date info, in format preferred by current locale as set by app:
         if hasattr(locale, 'nl_langinfo'):
@@ -232,18 +235,24 @@ class Experiment:
         # Remove disabled components, but leave original experiment unchanged.
         self_copy = deepcopy(self)
         for key, routine in list(self_copy.routines.items()):  # PY2/3 compat
-            if isinstance(routine, BaseStandaloneRoutine):
-                if routine.params['disabled']:
-                    for node in self_copy.flow:
-                        if node == routine:
-                            self_copy.flow.removeComponent(node)
-            else:
-                for component in routine:
-                    try:
-                        if component.params['disabled']:
-                            routine.removeComponent(component)
-                    except KeyError:
-                        pass
+            # Remove disabled / unimplemented routines
+            if routine.disabled or target not in routine.targets:
+                for node in self_copy.flow:
+                    if node == routine:
+                        self_copy.flow.removeComponent(node)
+                        if target not in routine.targets:
+                            # If this routine isn't implemented in target library, print alert and mute it
+                            alertCode = 4335 if target == "PsychoPy" else 4340
+                            alert(alertCode, strFields={'comp': type(routine).__name__})
+            # Remove disabled / unimplemented components within routine
+            if isinstance(routine, Routine):
+                for component in [comp for comp in routine]:
+                    if component.disabled or target not in component.targets:
+                        routine.removeComponent(component)
+                        if component.targets and target not in component.targets:
+                            # If this component isn't implemented in target library, print alert and mute it
+                            alertCode = 4335 if target == "PsychoPy" else 4340
+                            alert(alertCode, strFields={'comp': type(component).__name__})
 
         if target == "PsychoPy":
             self_copy.settings.writeInitCode(script, self_copy.psychopyVersion,
@@ -279,13 +288,14 @@ class Experiment:
                                                localDateTime, modular)
 
             script.writeIndentedLines("// Start code blocks for 'Before Experiment'")
-            routinesToWrite = list(self_copy.routines)
+            toWrite = list(self_copy.routines)
+            toWrite.extend(list(self_copy.flow))
             for entry in self_copy.flow:
                 # NB each entry is a routine or LoopInitiator/Terminator
                 self_copy._currentRoutine = entry
-                if hasattr(entry, 'writePreCodeJS') and entry.name in routinesToWrite:
+                if hasattr(entry, 'writePreCodeJS') and entry.name in toWrite:
                     entry.writePreCodeJS(script)
-                    routinesToWrite.remove(entry.name)  # this one's done
+                    toWrite.remove(entry.name)  # this one's done
 
             # Write window code
             self_copy.settings.writeWindowCodeJS(script)
@@ -299,13 +309,14 @@ class Experiment:
             script.setIndentLevel(1, relative=True)
 
             # routine init sections
-            routinesToWrite = list(self_copy.routines)
+            toWrite = list(self_copy.routines)
+            toWrite.extend(list(self_copy.flow))
             for entry in self_copy.flow:
                 # NB each entry is a routine or LoopInitiator/Terminator
                 self_copy._currentRoutine = entry
-                if hasattr(entry, 'writeInitCodeJS') and entry.name in routinesToWrite:
+                if hasattr(entry, 'writeInitCodeJS') and entry.name in toWrite:
                     entry.writeInitCodeJS(script)
-                    routinesToWrite.remove(entry.name)  # this one's done
+                    toWrite.remove(entry.name)  # this one's done
 
             # create globalClock etc
             code = ("// Create some handy timers\n"
@@ -322,16 +333,16 @@ class Experiment:
             # Routines once (whether or not they get used) because we're using
             # functions that may or may not get called later.
             # Do the Routines of the experiment first
-            routinesToWrite = list(self_copy.routines)
+            toWrite = list(self_copy.routines)
             for thisItem in self_copy.flow:
                 if thisItem.getType() in ['LoopInitiator', 'LoopTerminator']:
                     self_copy.flow.writeLoopHandlerJS(script, modular)
-                elif thisItem.name in routinesToWrite:
+                elif thisItem.name in toWrite:
                     self_copy._currentRoutine = self_copy.routines[thisItem.name]
                     self_copy._currentRoutine.writeRoutineBeginCodeJS(script, modular)
                     self_copy._currentRoutine.writeEachFrameCodeJS(script, modular)
                     self_copy._currentRoutine.writeRoutineEndCodeJS(script, modular)
-                    routinesToWrite.remove(thisItem.name)
+                    toWrite.remove(thisItem.name)
             self_copy.settings.writeEndCodeJS(script)
 
             # Add JS variable declarations e.g., var msg;
@@ -343,21 +354,21 @@ class Experiment:
         return script
 
     @property
-    def xml(self):
+    def _xml(self):
         # Create experiment root element
         experimentNode = xml.Element("PsychoPy2experiment")
         experimentNode.set('encoding', 'utf-8')
         experimentNode.set('version', __version__)
         # Add settings node
-        settingsNode = self.settings.xml
+        settingsNode = self.settings._xml
         experimentNode.append(settingsNode)
         # Add routines node
         routineNode = xml.Element("Routines")
         for key, routine in self.routines.items():
-            routineNode.append(routine.xml)
+            routineNode.append(routine._xml)
         experimentNode.append(routineNode)
         # Add flow node
-        flowNode = self.flow.xml
+        flowNode = self.flow._xml
         experimentNode.append(flowNode)
 
         return experimentNode
@@ -365,7 +376,7 @@ class Experiment:
     def saveToXML(self, filename):
         self.psychopyVersion = psychopy.__version__  # make sure is current
         # create the dom object
-        self.xmlRoot = self.xml
+        self.xmlRoot = self._xml
         # convert to a pretty string
         # update our document to use the new root
         self._doc._setroot(self.xmlRoot)
@@ -452,7 +463,7 @@ class Experiment:
             elif val[0] == '$':
                 newVal = val[1:]  # they were using code (which we can reuse)
             elif val.startswith('[') and val.endswith(']'):
-                # they were using code (slightly incorectly!)
+                # they were using code (slightly incorrectly!)
                 newVal = val[1:-1]
             elif val in ['return', 'space', 'left', 'right', 'escape']:
                 newVal = val  # they were using code
@@ -546,15 +557,15 @@ class Experiment:
                 else:
                     # we found an unknown parameter (probably from the future)
                     params[name] = Param(
-                        val, valType=paramNode.get('valType'),
+                        val, valType=paramNode.get('valType'), inputType="inv",
                         allowedTypes=[], label=_translate(name),
                         hint=_translate(
                             "This parameter is not known by this version "
-                            "of PsychoPy. It might be worth upgrading"))
+                            "of PsychoPy. It might be worth upgrading, otherwise "
+                            "press the X button to remove this parameter."))
                     params[name].allowedTypes = paramNode.get('allowedTypes')
                     if params[name].allowedTypes is None:
                         params[name].allowedTypes = []
-                    params[name].readOnly = True
                     if name not in legacyParams + ['JS libs', 'OSF Project ID']:
                         # don't warn people if we know it's OK (e.g. for params
                         # that have been removed
@@ -588,7 +599,6 @@ class Experiment:
         """
         self._doc.parse(filename)
         root = self._doc.getroot()
-
 
         # some error checking on the version (and report that this isn't valid
         # .psyexp)?
@@ -643,21 +653,30 @@ class Experiment:
                 for componentNode in routineNode:
 
                     componentType = componentNode.tag
+                    plugin = componentNode.get('plugin')
+
                     if componentType in allCompons:
                         # create an actual component of that type
                         component = allCompons[componentType](
                             name=componentNode.get('name'),
                             parentName=routineNode.get('name'), exp=self)
+                    elif plugin:
+                        # create UnknownPluginComponent instead
+                        component = allCompons['UnknownPluginComponent'](
+                            name=componentNode.get('name'),
+                            parentName=routineNode.get('name'), exp=self)
+                        alert(7105, strFields={'name': componentNode.get('name'), 'plugin': plugin})
                     else:
                         # create UnknownComponent instead
                         component = allCompons['UnknownComponent'](
                             name=componentNode.get('name'),
                             parentName=routineNode.get('name'), exp=self)
+                    component.plugin = plugin
                     # check for components that were absent in older versions of
                     # the builder and change the default behavior
                     # (currently only the new behavior of choices for RatingScale,
                     # HS, November 2012)
-                    # HS's modification superceded Jan 2014, removing several
+                    # HS's modification superseded Jan 2014, removing several
                     # RatingScale options
                     if componentType == 'RatingScaleComponent':
                         if (componentNode.get('choiceLabelsAboveLine') or
@@ -711,10 +730,16 @@ class Experiment:
                                    "exists")
                             logging.warning(msg % (thisParamName, static))
                         else:
+                            thisRoutine = \
+                                self.routines[routine].getComponentFromName(
+                                    static)
+                            if thisRoutine is None:
+                                continue
                             self.routines[routine].getComponentFromName(
                                 static).addComponentUpdate(
                                 thisRoutine.params['name'],
                                 thisComp.params['name'], thisParamName)
+
         # fetch flow settings
         flowNode = root.find('Flow')
         loops = {}
@@ -820,7 +845,7 @@ class Experiment:
                 return comp
         return None
 
-    def getComponentFromType(self, type):
+    def getComponentFromType(self, thisType):
         """Searches all the Routines in the Experiment for a matching component type
 
         :param name: str type of a component e.g., 'KeyBoard'
@@ -828,6 +853,7 @@ class Experiment:
         """
         for routine in self.routines.values():
             exists = routine.getComponentFromType(type)
+            exists = routine.getComponentFromType(thisType)
             if exists:
                 return True
         return False
@@ -857,14 +883,24 @@ class Experiment:
             #    Path('C:/test/test.xlsx').is_absolute() returns False
             #    Path('/folder/file.xlsx').relative_to('/Applications') gives error
             #    but os.path.relpath('/folder/file.xlsx', '/Applications') correctly uses ../
+            if filePath in list(ft.defaultStim):
+                # Default/asset stim are a special case as the file doesn't exist in the usual path
+                thisFile['rel'] = thisFile['abs'] = "https://pavlovia.org/assets/default/" + ft.defaultStim[filePath]
+                thisFile['name'] = filePath
+                return thisFile
             if len(filePath) > 2 and (filePath[0] == "/" or filePath[1] == ":")\
                     and os.path.isfile(filePath):
                 thisFile['abs'] = filePath
                 thisFile['rel'] = os.path.relpath(filePath, srcRoot)
+                thisFile['name'] = Path(filePath).name
                 return thisFile
             else:
                 thisFile['rel'] = filePath
                 thisFile['abs'] = os.path.normpath(join(srcRoot, filePath))
+                if "/" in filePath:
+                    thisFile['name'] = filePath.split("/")[-1]
+                else:
+                    thisFile['name'] = filePath
                 if len(thisFile['abs']) <= 256 and os.path.isfile(thisFile['abs']):
                     return thisFile
 
@@ -921,17 +957,16 @@ class Experiment:
 
             return paths
 
-        resources = []
+        # Get resources for components
+        compResources = []
+        handled = False
         for thisEntry in self.flow:
-            if thisEntry.getType() == 'LoopInitiator':
-                # find all loops and check for conditions filename
-                params = thisEntry.loop.params
-                if 'conditionsFile' in params:
-                    condsPaths = findPathsInFile(params['conditionsFile'].val)
-                    resources.extend(condsPaths)
-            elif thisEntry.getType() == 'Routine':
+            if thisEntry.getType() == 'Routine':
                 # find all params of all compons and check if valid filename
                 for thisComp in thisEntry:
+                    # if current component is a Resource Manager, we don't need to pre-load ANY resources
+                    if isinstance(thisComp, (ResourceManagerComponent, StaticComponent)):
+                        handled = True
                     for paramName in thisComp.params:
                         thisParam = thisComp.params[paramName]
                         thisFile = ''
@@ -939,22 +974,77 @@ class Experiment:
                             thisFile = getPaths(thisParam)
                         elif isinstance(thisParam.val, str):
                             thisFile = getPaths(thisParam.val)
+                        if paramName == "surveyId" and thisComp.params.get('surveyType', "") == "id":
+                            # Survey IDs are a special case, they need adding verbatim, no path sanitizing
+                            thisFile = {'surveyId': thisParam.val}
                         # then check if it's a valid path and not yet included
-                        if thisFile and thisFile not in resources:
-                            resources.append(thisFile)
+                        if thisFile and thisFile not in compResources:
+                            compResources.append(thisFile)
+            elif isinstance(thisEntry, BaseStandaloneRoutine):
+                for paramName in thisEntry.params:
+                    thisParam = thisEntry.params[paramName]
+                    thisFile = ''
+                    if isinstance(thisParam, str):
+                        thisFile = getPaths(thisParam)
+                    elif isinstance(thisParam.val, str):
+                        thisFile = getPaths(thisParam.val)
+                    if paramName == "surveyId" and thisEntry.params.get('surveyType', "") == "id":
+                        # Survey IDs are a special case, they need adding verbatim, no path sanitizing
+                        thisFile = {'surveyId': thisParam.val}
+                    # then check if it's a valid path and not yet included
+                    if thisFile and thisFile not in compResources:
+                        compResources.append(thisFile)
+            elif thisEntry.getType() == 'LoopInitiator' and "Stair" in thisEntry.loop.type:
+                url = 'https://lib.pavlovia.org/vendors/jsQUEST.min.js'
+                compResources.append({
+                    'rel': url, 'abs': url,
+                })
+        if handled:
+            # If resources are handled, clear all component resources
+            compResources = []
+
+        # Get resources for loops
+        loopResources = []
+        for thisEntry in self.flow:
+            if thisEntry.getType() == 'LoopInitiator':
+                # find all loops and check for conditions filename
+                params = thisEntry.loop.params
+                if 'conditionsFile' in params:
+                    condsPaths = findPathsInFile(params['conditionsFile'].val)
+                    # If handled, remove non-conditions file resources
+                    if handled:
+                        condsPathsRef = copy(condsPaths)  # copy of condsPaths for reference in loop
+                        for thisPath in condsPathsRef:
+                            isCondFile = any([
+                                str(thisPath['rel']).endswith('.xlsx'),
+                                str(thisPath['rel']).endswith('.xls'),
+                                str(thisPath['rel']).endswith('.csv'),
+                                str(thisPath['rel']).endswith('.tsv'),
+                            ])
+                            if not isCondFile:
+                                condsPaths.remove(thisPath)
+                    loopResources.extend(condsPaths)
 
         # Add files from additional resources box
+        chosenResources = []
         val = self.settings.params['Resources'].val
         for thisEntry in val:
             thisFile = getPaths(thisEntry)
             if thisFile:
-                resources.append(thisFile)
+                chosenResources.append(thisFile)
+
         # Check for any resources not in experiment path
+        resources = loopResources + compResources + chosenResources
+        resources = [res for res in resources if res is not None]
         for res in resources:
-            if srcRoot not in res['abs']:
-                psychopy.logging.warning("{} is not in the experiment path and "
-                                         "so will not be copied to Pavlovia"
-                                         .format(res['rel']))
+            if res in list(ft.defaultStim):
+                # Skip default stim here
+                continue
+            if isinstance(res, dict) and 'abs' in res and 'rel' in res:
+                if srcRoot not in res['abs'] and 'https://' not in res['abs']:
+                    psychopy.logging.warning("{} is not in the experiment path and "
+                                             "so will not be copied to Pavlovia"
+                                             .format(res['rel']))
 
         return resources
 

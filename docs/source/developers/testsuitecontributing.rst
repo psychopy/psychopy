@@ -1,4 +1,4 @@
-Contributing to the PsychoPy Test Suite
+Contributing to the |PsychoPy| Test Suite
 ==========================================
 
 Why do we need a test suite?
@@ -24,7 +24,7 @@ The more bugs the test suite finds, the better!
 
 How does it work?
 ------------------------------------------
-The test suite uses a Python module called [pytest](https://pypi.org/project/pytest/) to run tests on various parts of the PsychoPy code. These tests work by calling functions, initialising objects and generally trying to use as much of the code in the PsychoPy repo as possible - then, if an uncaught error is hit at any point, `pytest` will spit out some informative text on what went wrong. This means that, if the test suite can run without error, then the software can do everything done in the test suite without error.
+The test suite uses a Python module called [pytest](https://pypi.org/project/pytest/) to run tests on various parts of the |PsychoPy| code. These tests work by calling functions, initialising objects and generally trying to use as much of the code in the PsychoPy repo as possible - then, if an uncaught error is hit at any point, `pytest` will spit out some informative text on what went wrong. This means that, if the test suite can run without error, then the software can do everything done in the test suite without error.
 
 To mark something as a test, it needs three things:
 
@@ -125,7 +125,7 @@ Running tests in PyCharm
 
 One of the really useful features on PyCharm is its ability to run tests with just a click. If you have `pytest` installed, then any valid test will have a green play button next to its name, in the line margins:
 
-.. figure:: /images/run_btn.png
+.. figure:: /images/run_btn_pycharm.png
   :alt: Arrow pointing to the run button in PyCharm
   :height: 100px
 
@@ -364,4 +364,3 @@ Adding a `teardown_class` method to your TestRect class:
             self.win.close()
             # Delete the object
             del self.rect
-

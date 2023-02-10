@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import time
@@ -376,9 +376,9 @@ class MainFrame(wx.Frame):
         self.comPortLabel = wx.StaticText(parent, -1, " ", size=(150, 20))
         # photometer button
         # photom type choices should not need localization:
-        _choices = list([p.longName for p in hardware.getAllPhotometers()])
+        self._photomTypeItems = list([p.longName for p in hardware.getAllPhotometers()] + ["Get more..."])
         self.ctrlPhotomType = wx.Choice(parent, -1, name="Type:",
-                                        choices=_choices)
+                                        choices=self._photomTypeItems)
 
         _ports = list(hardware.getSerialPorts())
         self._photomChoices = [_translate("Scan all ports")] + _ports
@@ -388,7 +388,7 @@ class MainFrame(wx.Frame):
                                           choices=self._photomChoices,
                                           size=_size)
 
-        # self.Bind(wx.EVT_CHOICE, self.onChangePhotomType, self.ctrlPhotomType)
+        self.ctrlPhotomType.Bind(wx.EVT_CHOICE, self.onChangePhotomType)
         self.btnFindPhotometer = wx.Button(parent, -1,
                                            _translate("Get Photometer"))
         self.Bind(wx.EVT_BUTTON,
@@ -945,10 +945,22 @@ class MainFrame(wx.Frame):
     def onCtrlPhotomType(self, event):
         pass
 
+    def onChangePhotomType(self, evt=None):
+        if evt.GetSelection() == len(self._photomTypeItems) - 1:
+            # if they chose "Get more...", clear selection and open plugin dlg
+            self.ctrlPhotomType.SetSelection(-1)
+            from ..app.plugin_manager.dialog import EnvironmentManagerDlg
+            dlg = EnvironmentManagerDlg(self)
+            dlg.pluginMgr.pluginList.searchCtrl.SetValue("photometer")
+            dlg.pluginMgr.pluginList.search()
+            dlg.Show()
+        else:
+            evt.Skip()
+
     def onBtnFindPhotometer(self, event):
 
         # safer to get by index, but GetStringSelection will work for
-        # nonlocalized techincal names:
+        # nonlocalized technical names:
         photName = self.ctrlPhotomType.GetStringSelection()
         # not sure how
         photPort = self.ctrlPhotomPort.GetValue().strip()

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import io
@@ -38,6 +38,7 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
     Returns
     -------
     """
+    import logging  # import here not at top of script (or useVersion fails)
     print("Generating {} script...\n".format(target))
     exp.expPath = os.path.abspath(experimentPath)
 
@@ -66,14 +67,22 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
         stdout, stderr = output.communicate()
         sys.stdout.write(stdout)
         sys.stderr.write(stderr)
+
+        # we got a non-zero error code, raise an error
+        if output.returncode != 0:
+            raise ChildProcessError(
+                'Error: process exited with code {}, check log for '
+                'output.'.format(output.returncode))
+
     else:
         compileScript(infile=exp, version=None, outfile=filename)
+
 
 def compileScript(infile=None, version=None, outfile=None):
     """
     Compile either Python or JS PsychoPy script from .psyexp file.
 
-    Paramaters
+    Parameters
     ----------
 
     infile: string, experiment.Experiment object
@@ -100,8 +109,8 @@ def compileScript(infile=None, version=None, outfile=None):
             from psychopy import useVersion
             useVersion(version)
 
+        # import logging here not at top of script (or useVersion fails)
         global logging
-
         from psychopy import logging
 
         if __name__ != '__main__' and version not in [None, 'None', 'none', '']:

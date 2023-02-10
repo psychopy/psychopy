@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
@@ -29,6 +29,8 @@ SIGN_ALL = True
 
 # handy resources for info:
 #
+# to get a new APple app-specific password:
+#   https://appleid.apple.com/account/manage NOT developer.apple.com
 # why use zip file to notarize as well as dmg:
 #   https://deciphertools.com/blog/notarizing-dmg/
 # notarize from Python:
@@ -285,7 +287,22 @@ class AppSigner:
                 break  # succeeded so stop
         if exitcode != 0:
             print(f'*********Failed to detach {volName} (wrong name?) *************')
-            exit(1)
+            time.sleep(10)  # wait for 10s and then try more forcefully
+            import diskutil_parser.cmd
+            import sh
+            disks = diskutil_parser.cmd.diskutil_list()
+            for disk in disks:
+                print(f"checking /dev/{disk.device_id} ({disk.partition_scheme})")
+                for part in disk.partitions:
+                    if "PsychoPy" in part.name:
+                        print("Ejecting - ", part.name, part.mount_point)
+                        try:
+                            sh.diskutil("unmountDisk", "force", f"/dev/{disk.device_id}")
+                            sh.diskutil("eject", f"/dev/{disk.device_id}")
+                        except sh.ErrorReturnCode_1:
+                            print("still can't eject that disk")
+                            exit(1)
+
 
     def dmgCompress(self):
         dmgFilename = str(self.appFile).replace(".app", "_rw.dmg")

@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
@@ -34,9 +34,9 @@ try:
     import speech_recognition as sr
 except (ImportError, ModuleNotFoundError):
     logging.warning(
-        "Speech-to-text recognition module not available (use command `pip "
-        "install SpeechRecognition` to get it. Transcription will be "
-        "unavailable.")
+        "Speech-to-text recognition module for PocketSphinx is not available "
+        "(use command `pip install SpeechRecognition` to get it). "
+        "Transcription will be unavailable using that service this session.")
     _hasSpeechRecognition = False
 
 # Google Cloud API
@@ -46,6 +46,12 @@ try:
     import google.cloud.speech
     import google.auth.exceptions
 except (ImportError, ModuleNotFoundError):
+    logging.warning(
+        "Speech-to-text recognition using Google online services is not "
+        "available (use command `pip install google-api-core google-auth "
+        "google-cloud google-cloud-speech googleapis-common-protos` to get "
+        "it). Transcription will be unavailable using that service this "
+        "session.")
     _hasGoogleCloud = False
 
 try:
@@ -53,7 +59,7 @@ try:
     sphinxLangs = [folder.stem for folder
                    in Path(pocketsphinx.get_model_path()).glob('??-??')]
     haveSphinx = True
-except ModuleNotFoundError:
+except (ImportError, ModuleNotFoundError):
     haveSphinx = False
     sphinxLangs = None
 
@@ -496,7 +502,8 @@ def recognizeSphinx(audioClip=None, language='en-US', expectedWords=None,
     config['language'] = language  # sphinx users en-us not en-US
     config['show_all'] = False
     if expectedWords is not None:
-        config['keyword_entries'] = zip(_parseExpectedWords(expectedWords))
+        words, sens = _parseExpectedWords(expectedWords)
+        config['keyword_entries'] = tuple(zip(words, sens))
 
     # convert audio to format for transcription
     sampleWidth = 2  # two bytes per sample

@@ -6,7 +6,7 @@ determines how they change on every call to the .draw() method.
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Bugfix by Andrew Schofield.
@@ -36,7 +36,7 @@ from psychopy import logging
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
 from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
-                                        ContainerMixin)
+                                        ContainerMixin, WindowMixin)
 from psychopy.layout import Size
 
 import numpy as np
@@ -130,6 +130,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  fieldPos=(0.0, 0.0),
                  fieldSize=(1.0, 1.0),
                  fieldShape='sqr',
+                 fieldAnchor="center",
                  dotSize=2.0,
                  dotLife=3,
                  dir=0.0,
@@ -282,6 +283,8 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         self._update_dotsXY()
 
+        self.anchor = fieldAnchor
+
         # set autoLog now that params have been initialised
         wantLog = autoLog is None and self.win.autoLog
         self.__dict__['autoLog'] = autoLog or wantLog
@@ -301,6 +304,17 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         If changed while drawing, dots outside new envelope will be respawned.
         """
         self.__dict__['fieldShape'] = fieldShape
+
+    @property
+    def anchor(self):
+        return WindowMixin.anchor.fget(self)
+
+    @anchor.setter
+    def anchor(self, value):
+        WindowMixin.anchor.fset(self, value)
+
+    def setAnchor(self, value, log=None):
+        setAttribute(self, 'anchor', value, log)
 
     @property
     def dotSize(self):
@@ -561,7 +575,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
     def refreshDots(self):
         """Callable user function to choose a new set of dots."""
-        self._verticesBase = self._dotsXY = self._newDotsXY(self.nDots)
+        self.vertices = self._verticesBase = self._dotsXY = self._newDotsXY(self.nDots)
 
         # Don't allocate another array if the new number of dots is equal to
         # the last.
@@ -645,6 +659,8 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         nOutOfBounds = outofbounds.sum()
         if nOutOfBounds:
             self._verticesBase[outofbounds, :] = self._newDotsXY(nOutOfBounds)
+
+        self.vertices = self._verticesBase / self.fieldSize
 
         # update the pixel XY coordinates in pixels (using _BaseVisual class)
         self._updateVertices()

@@ -5,11 +5,8 @@
 '''
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-
-
-
 
 import os
 import glob
@@ -31,7 +28,7 @@ from psychopy import logging
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 from psychopy.tools.attributetools import attributeSetter, setAttribute
-from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
+from psychopy.visual.basevisual import (BaseVisualStim, ForeColorMixin,
                                         ContainerMixin, WindowMixin)
 from psychopy.colors import Color
 
@@ -40,7 +37,7 @@ from bidi import algorithm as bidi_algorithm # sufficient for Hebrew
 # extra step needed to reshape Arabic/Farsi characters depending on
 # their neighbours:
 try:
-    import arabic_reshaper
+    from arabic_reshaper import ArabicReshaper
     haveArabic = True
 except ImportError:
     haveArabic = False
@@ -73,7 +70,7 @@ defaultWrapWidth = {'cm': 15.0,
                     'pixels': 500}
 
 
-class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
+class TextStim(BaseVisualStim, ForeColorMixin, ContainerMixin):
     """Class of text stimuli to be displayed in a
     :class:`~psychopy.visual.Window`
     """
@@ -105,7 +102,8 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  flipVert=False,
                  languageStyle='LTR',
                  name=None,
-                 autoLog=None):
+                 autoLog=None,
+                 autoDraw=False):
         """
         **Performance OBS:** in general, TextStim is slower than many other
         visual stimuli, i.e. it takes longer to change some attributes.
@@ -178,6 +176,10 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.__dict__['flipHoriz'] = flipHoriz
         self.__dict__['flipVert'] = flipVert
         self.__dict__['languageStyle'] = languageStyle
+        if languageStyle.lower() == 'arabic':
+            arabic_config = {'delete_harakat': False,  # if present, retain any diacritics
+                             'shift_harakat_position': True}  # shift by 1 to be compatible with the bidi algorithm
+            self.__dict__['arabic_reshaper'] = ArabicReshaper(configuration = arabic_config)
         self._pygletTextObj = None
         self.pos = pos
         # deprecated attributes
@@ -224,6 +226,8 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # calcSizeRendered is called
         self.setText(text, log=False)
         self._needUpdate = True
+
+        self.autoDraw = autoDraw
 
         # set autoLog now that params have been initialised
         wantLog = autoLog is None and self.win.autoLog
@@ -362,8 +366,8 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
             if style == 'arabic' and haveArabic:
                 # reshape Arabic characters from their isolated form so that
                 # they flow and join correctly to their neighbours:
-                text = arabic_reshaper.reshape(text)
-            if style == 'rtl' or style == 'arabic' and haveArabic:
+                text = self.arabic_reshaper.reshape(text)
+            if style == 'rtl' or (style == 'arabic' and haveArabic):
                 # deal with right-to-left text presentation by applying the
                 # bidirectional algorithm:
                 text = bidi_algorithm.get_display(text)

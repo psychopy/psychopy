@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import os
 import re
 import ast
 import pickle
-import time
+import time, datetime
 import numpy as np
 import pandas as pd
 
@@ -18,6 +18,7 @@ from pkg_resources import parse_version
 
 from psychopy import logging, exceptions
 from psychopy.tools.filetools import pathToString
+from psychopy.localization import _translate
 
 try:
     import openpyxl
@@ -54,44 +55,64 @@ def isValidVariableName(name):
     """Checks whether a certain string could be used as a valid variable.
 
     Usage::
-
-        OK, msg = isValidVariableName(name)
+        OK, msg, translated = isValidVariableName(name)
 
     >>> isValidVariableName('name')
-    (True, '')
+    (True, '', '')
     >>> isValidVariableName('0name')
-    (False, 'Variables cannot begin with numeric character')
+    (False, 'Variables cannot begin with numeric character', 'Variabiles non possunt incipere numerorum mores')
+    >>> isValidVariableName('first.second')
+    (False, 'Variables cannot contain punctuation or spaces', 'Variabiles non habet interpunctionem vel spatia')
     >>> isValidVariableName('first second')
-    (False, 'Variables cannot contain punctuation or spaces')
+    (False, 'Variables cannot contain punctuation or spaces', 'Variabiles non habet interpunctionem vel spatia')
     >>> isValidVariableName('')
-    (False, "Variables cannot be missing, None, or ''")
+    (False, "Variables cannot be missing, None, or ''", "Variabiles deesse non possunt, nemo, vel ''")
     >>> isValidVariableName(None)
-    (False, "Variables cannot be missing, None, or ''")
+    (False, "Variables cannot be missing, None, or ''", "Variabiles deesse non possunt, nemo, vel ''")
     >>> isValidVariableName(23)
-    (False, "Variables must be string-like")
+    (False, "Variables must be string-like", "Variabiles debent esse linea-similis")
     >>> isValidVariableName('a_b_c')
-    (True, '')
+    (True, '', '')
     """
     if not name:
-        return False, "Variables cannot be missing, None, or ''"
+        return (
+            False,
+            "Variables cannot be missing, None, or ''",
+            _translate("Variables cannot be missing, None, or ''")
+        )
     if not isinstance(name, str):
-        return False, "Variables must be string-like"
+        return (
+            False,
+            "Variables must be string-like",
+            _translate("Variables must be string-like")
+        )
     try:
         name = str(name)  # convert from unicode if possible
     except Exception:
         if type(name) in [str, np.unicode_]:
-            msg = ("name %s (type %s) contains non-ASCII characters"
-                   " (e.g. accents)")
-            raise AttributeError(msg % (name, type(name)))
+            raise exceptions.ConditionsImportError(
+                "name %s (type %s) contains non-ASCII characters (e.g. accents)" % (name, type(name)),
+                translated=_translate("name %s (type %s) contains non-ASCII characters (e.g. accents)") % (name, type(name))
+            )
         else:
-            msg = "name %s (type %s) could not be converted to a string"
-            raise AttributeError(msg % (name, type(name)))
+            raise exceptions.ConditionsImportError(
+                "name %s (type %s) could not be converted to a string",
+                translated=_translate("name %s (type %s) could not be converted to a string") % (name, type(name))
+            )
 
     if name[0].isdigit():
-        return False, "Variables cannot begin with numeric character"
+        return (
+            False,
+            "Variables cannot begin with numeric character",
+            _translate("Variables cannot begin with numeric character")
+        )
     if _nonalphanumeric_re.search(name):
-        return False, "Variables cannot contain punctuation or spaces"
-    return True, ''
+        return (
+            False,
+            "Variables cannot contain punctuation or spaces",
+            _translate("Variables cannot contain punctuation or spaces")
+        )
+    return True, '', ''
 
 
 def _getExcelCellName(col, row):
@@ -270,25 +291,30 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         """
         fileName = pathToString(fileName)
         if not all(fieldNames):
-            msg = ('Conditions file %s: Missing parameter name(s); '
-                   'empty cell(s) in the first row?')
-            raise exceptions.ConditionsImportError(msg % fileName)
+            raise exceptions.ConditionsImportError(
+                "Conditions file %s: Missing parameter name(s); empty cell(s) in the first row?" % fileName,
+                translated=_translate("Conditions file %s: Missing parameter name(s); empty cell(s) in the first row?") % fileName
+            )
         for name in fieldNames:
-            OK, msg = isValidVariableName(name)
+            OK, msg, translated = isValidVariableName(name)
             if not OK:
                 # tailor message to importConditions
                 msg = msg.replace('Variables', 'Parameters (column headers)')
+                translated = msg.replace('Variables', 'Parameters (column headers)')
                 raise exceptions.ConditionsImportError(
-                    'Conditions file %s: %s%s"%s"' %
-                    (fileName, msg, os.linesep * 2, name))
+                    'Bad name: %s%s"%s"' % (name, os.linesep, msg),
+                    translated='Bad name: %s%s"%s"' % (name, os.linesep, translated)
+                )
 
     if fileName in ['None', 'none', None]:
         if returnFieldNames:
             return [], []
         return []
     if not os.path.isfile(fileName):
-        msg = 'Conditions file not found: %s'
-        raise ValueError(msg % os.path.abspath(fileName))
+        raise exceptions.ConditionsImportError(
+            "Conditions file not found: %s" % fileName,
+            translated=_translate("Conditions file not found: %s") % fileName
+        )
 
     def pandasToDictList(dataframe):
         """Convert a pandas dataframe to a list of dicts.
@@ -346,8 +372,10 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
 
     elif fileName.endswith(('.xlsx','.xlsm')):  # no xlsread so use openpyxl
         if not haveOpenpyxl:
-            raise ImportError('openpyxl or xlrd is required for loading excel '
-                              'files, but neither was found.')
+            raise exceptions.ConditionsImportError(
+                "openpyxl or xlrd is required for loading excel files, but neither was found.",
+                _translate("openpyxl or xlrd is required for loading excel files, but neither was found.")
+            )
 
         # data_only was added in 1.8
         if parse_version(openpyxl.__version__) < parse_version('1.8'):
@@ -421,7 +449,10 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         try:
             trialsArr = pickle.loads(buffer)
         except Exception:
-            raise IOError('Could not open %s as conditions' % fileName)
+            raise exceptions.ConditionsImportError(
+                'Could not open %s as conditions' % fileName,
+                translated=_translate('Could not open %s as conditions') % fileName
+            )
         f.close()
         trialList = []
         # In Python3, strings returned by pickle() are unhashable so we have to
@@ -437,8 +468,10 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                 thisTrial[fieldName] = row[fieldN]
             trialList.append(thisTrial)
     else:
-        raise IOError('Your conditions file should be an '
-                      'xlsx, csv, dlm, tsv or pkl file')
+        raise exceptions.ConditionsImportError(
+            'Your conditions file should be an xlsx, csv, dlm, tsv or pkl file',
+            translated=_translate('Your conditions file should be an xlsx, csv, dlm, tsv or pkl file')
+        )
 
     # if we have a selection then try to parse it
     if isinstance(selection, str) and len(selection) > 0:
@@ -448,8 +481,10 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                 try:
                     assert n == int(n)
                 except AssertionError:
-                    raise TypeError("importConditions() was given some "
-                                    "`indices` but could not parse them")
+                    raise exceptions.ConditionsImportError(
+                        "importConditions() was given some `indices` but could not parse them",
+                        translated=_translate("importConditions() was given some `indices` but could not parse them")
+                    )
 
     # the selection might now be a slice or a series of indices
     if isinstance(selection, slice):
@@ -634,15 +669,45 @@ def functionFromStaircase(intensities, responses, bins=10):
     return binnedInten, binnedResp, nPoints
 
 
-def getDateStr(format="%Y_%b_%d_%H%M"):
-    """Uses ``time.strftime()``_ to generate a string of the form
-    2012_Apr_19_1531 for 19th April 3.31pm, 2012.
+def getDateStr(format="%Y-%m-%d_%Hh%M.%S.%f", fractionalSecondDigits=3):
+    """Uses ``datetime.now().strftime(format)``_ to generate a string
+    based on ISO 8601 but made safe for filename use::
+
+        "2022-01-14_18h35.05.386"
+
+    represents 14th Jan 2022 at 6:35pm with 5 sec and 386 ms
+
     This is often useful appended to data filenames to provide unique names.
-    To include the year: getDateStr(format="%Y_%b_%d_%H%M")
-    returns '2011_Mar_16_1307' depending on locale, can have unicode chars
-    in month names, so utf_8_decode them
-    For date in the format of the current localization, do:
-        data.getDateStr(format=locale.nl_langinfo(locale.D_T_FMT))
+
+    Parameters
+    ----------
+    format : str
+        See the documentation for `datetime.datetime.strftime` for more
+        information on format syntax:
+        https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
+        default="%Y-%m-%d_%Hh%M.%S.%f"
+    fractionalSecondDigits : int
+        An integer value 1-6 indicating the number of digits of fractional
+        seconds to include if the `%f` parameter is included in the format.
+        This would normally give 6 digits (microseconds) but to get just
+        milliseconds you can set fractionalSecondDigits=3
+
     """
-    now = time.strftime(format, time.localtime())
-    return now
+    now = datetime.datetime.now().astimezone()
+    microsecs = now.strftime("%f")
+    nowStr = now.strftime(format)
+    if "%f" in format and (
+            fractionalSecondDigits < 1
+            or int(fractionalSecondDigits) != fractionalSecondDigits
+    ):
+        raise TypeError("fractionalSecondDigits argument to getDateStr should "
+                        f"be an integer greater than 1, not {fractionalSecondDigits}")
+    elif  "%f" in format and fractionalSecondDigits > len(microsecs):
+        logging.warning("fractionalSecondDigits argument to getDateStr requested "
+                        f"{fractionalSecondDigits} digits but only {len(microsecs)} "
+                        f"are available. Truncating to {len(microsecs)}.")
+    elif "%f" in format:
+        nowStr = nowStr.replace(
+            microsecs, microsecs[:int(fractionalSecondDigits)],
+        )
+    return nowStr

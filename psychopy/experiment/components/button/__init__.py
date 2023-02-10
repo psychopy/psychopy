@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from os import path
@@ -48,7 +48,7 @@ class ButtonComponent(BaseVisualComponent):
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
                  text=_translate("Click here"), font='Arvo',
-                 pos=(0, 0), size="", padding="", anchor='center', units='from exp settings', ori=0,
+                 pos=(0, 0), size=(0.5, 0.5), padding="", anchor='center', units='from exp settings', ori=0,
                  color="white", fillColor="darkgrey", borderColor="None", borderWidth=0, colorSpace='rgb', opacity="",
                  letterHeight=0.05, bold=True, italic=False,
                  callback="", save='every click', timeRelativeTo='button onset', forceEndRoutine=True, oncePerClick=True):
@@ -182,6 +182,7 @@ class ButtonComponent(BaseVisualComponent):
             unitsStr = "units=%(units)s," % self.params
         # do writing of init
         inits = getInitVals(self.params, 'PsychoPy')
+        inits['depth'] = -self.getPosInRoutine()
         code = (
                 "%(name)s = visual.ButtonStim(win, \n"
         )
@@ -198,7 +199,8 @@ class ButtonComponent(BaseVisualComponent):
                     "bold=%(bold)s, italic=%(italic)s,\n"
                     "padding=%(padding)s,\n"
                     "anchor=%(anchor)s,\n"
-                    "name='%(name)s'\n"
+                    "name='%(name)s',\n"
+                    "depth=%(depth)s\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
@@ -210,6 +212,7 @@ class ButtonComponent(BaseVisualComponent):
 
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params, 'PsychoJS')
+        inits['depth'] = -self.getPosInRoutine()
 
         code = (
             "%(name)s = new visual.ButtonStim({\n"
@@ -226,7 +229,8 @@ class ButtonComponent(BaseVisualComponent):
                 "colorSpace: %(colorSpace)s,\n"
                 "pos: %(pos)s,\n"
                 "letterHeight: %(letterHeight)s,\n"
-                "size: %(size)s\n"
+                "size: %(size)s,\n"
+                "depth: %(depth)s\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
@@ -236,99 +240,118 @@ class ButtonComponent(BaseVisualComponent):
         )
         buff.writeIndentedLines(code % inits)
 
+    def writeRoutineStartCode(self, buff):
+        # Write base code
+        BaseVisualComponent.writeRoutineStartCode(self, buff)
+        # If mouse is on button and already clicked, mark as `wasClicked` so button knows click is not new
+        code = (
+            "# reset %(name)s to account for continued clicks & clear times on/off\n"
+            "%(name)s.reset()\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+    def writeRoutineStartCodeJS(self, buff):
+        # Write base code
+        BaseVisualComponent.writeRoutineStartCodeJS(self, buff)
+        # If mouse is on button and already clicked, mark as `wasClicked` so button knows click is not new
+        code = (
+            "// reset %(name)s to account for continued clicks & clear times on/off\n"
+            "%(name)s.reset()\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
     def writeFrameCode(self, buff):
-        BaseVisualComponent.writeFrameCode(self, buff)
-        # do writing of init
-        inits = getInitVals(self.params, 'PsychoPy')
         # Get callback from params
-        callback = inits['callback']
-        if inits['callback']:
-            callback = str(callback)
+        if self.params['callback'].val:
+            callback = str(self.params['callback'].val)
         else:
-            callback = ""
+            callback = "pass"
         # String to get time
-        if inits['timeRelativeTo'] == 'button onset':
+        if self.params['timeRelativeTo'] == 'button onset':
             timing = "%(name)s.buttonClock.getTime()"
-        elif inits['timeRelativeTo'] == 'experiment':
+        elif self.params['timeRelativeTo'] == 'experiment':
             timing = "globalClock.getTime()"
-        elif inits['timeRelativeTo'] == 'routine':
+        elif self.params['timeRelativeTo'] == 'routine':
             timing = "routineTimer.getTime()"
         else:
             timing = "globalClock.getTime()"
-        # Assemble code
+
+        # Write comment
         code = (
-            f"if %(name)s.status == STARTED:\n"
+            "# *%(name)s* updates\n"
         )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                f"# check whether %(name)s has been pressed\n"
-                f"if %(name)s.isClicked:\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                    f"if not %(name)s.wasClicked:\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                        f"%(name)s.timesOn.append({timing}) # store time of first click\n"
-                        f"%(name)s.timesOff.append({timing}) # store time clicked until\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-                    f"else:\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                        f"%(name)s.timesOff[-1] = {timing} # update time clicked until\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
-        if self.params['oncePerClick'].val or self.params['forceEndRoutine'].val:
+        buff.writeIndentedLines(code % self.params)
+
+        # Start code
+        indented = self.writeStartTestCode(buff)
+        if indented:
             code = (
-                f"if not %(name)s.wasClicked:\n"
+                "%(name)s.setAutoDraw(True)\n"
             )
-            buff.writeIndentedLines(code % inits)
+            buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(-indented, relative=True)
+
+        # Active code
+        indented = self.writeActiveTestCode(buff)
+        if indented:
+            code = (
+                    f"# check whether %(name)s has been pressed\n"
+                    f"if %(name)s.isClicked:\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            # If clicked...
             buff.setIndentLevel(1, relative=True)
-            if self.params['forceEndRoutine'].val:
+            code = (
+                        f"if not %(name)s.wasClicked:\n"
+                        f"    # if this is a new click, store time of first click and clicked until\n"
+                        f"    %(name)s.timesOn.append({timing})\n"
+                        f"    %(name)s.timesOff.append({timing})\n"
+                        f"elif len(%(name)s.timesOff):\n"
+                        f"    # if click is continuing from last frame, update time of clicked until\n"
+                        f"    %(name)s.timesOff[-1] = {timing}\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            # Handle force end routine
+            if self.params['forceEndRoutine']:
                 code = (
-                        f"continueRoutine = False  # end routine when %(name)s is clicked\n"
+                        f"if not %(name)s.wasClicked:\n"
+                        f"    # end routine when %(name)s is clicked\n"
+                        f"    continueRoutine = False\n"
                 )
-                buff.writeIndentedLines(code % inits)
-            if self.params['oncePerClick'].val:
-                buff.writeIndentedLines(callback % inits)
+                buff.writeIndentedLines(code % self.params)
+            # Callback code
+            if self.params['oncePerClick']:
+                code = (
+                        f"if not %(name)s.wasClicked:\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+                buff.setIndentLevel(1, relative=True)
+            code = (
+                        f"# run callback code when %(name)s is clicked\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.writeIndentedLines(callback % self.params)
+            if self.params['oncePerClick']:
                 buff.setIndentLevel(-1, relative=True)
-        if not self.params['oncePerClick'].val:
-            buff.writeIndentedLines(callback % inits)
+            buff.setIndentLevel(-1, relative=True)
+        buff.setIndentLevel(-indented, relative=True)
+
+        # Update wasClicked
         code = (
-                    f"%(name)s.wasClicked = True  # if %(name)s is still clicked next frame, it is not a new click\n"
+            f"# take note of whether %(name)s was clicked, so that next frame we know if clicks are new\n"
+            f"%(name)s.wasClicked = %(name)s.isClicked and %(name)s.status == STARTED\n"
         )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-                f"else:\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                    f"%(name)s.wasClicked = False  # if %(name)s is clicked next frame, it is a new click\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-2, relative=True)
-        code = (
-            f"else:\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-            f"%(name)s.wasClicked = False  # if %(name)s is clicked next frame, it is a new click\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines(code % self.params)
+
+        # Stop code
+        indented = self.writeStopTestCode(buff)
+        if indented:
+            code = (
+                "%(name)s.setAutoDraw(False)\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            # to get out of the if statement
+            buff.setIndentLevel(-indented, relative=True)
 
     def writeFrameCodeJS(self, buff):
         BaseVisualComponent.writeFrameCodeJS(self, buff)
@@ -336,7 +359,7 @@ class ButtonComponent(BaseVisualComponent):
         inits = getInitVals(self.params, 'PsychoJS')
         # Get callback from params
         callback = inits['callback']
-        if inits['callback'].val:
+        if inits['callback'].val not in [None, "None", "none", "undefined"]:
             callback = translatePythonToJavaScript(str(callback))
         else:
             callback = ""
@@ -361,6 +384,7 @@ class ButtonComponent(BaseVisualComponent):
         code = (
                         "// store time of first click\n"
                         "%(name)s.timesOn.push(%(name)s.clock.getTime());\n"
+                        "%(name)s.numClicks += 1;\n"
                         "// store time clicked until\n"
                         "%(name)s.timesOff.push(%(name)s.clock.getTime());\n"
         )
@@ -418,7 +442,7 @@ class ButtonComponent(BaseVisualComponent):
         buff.setIndentLevel(1, relative=True)
         code = (
                     "// if %(name)s is clicked next frame, it is a new click\n"
-                    "%(name)s.wasClicked = false\n"
+                    "%(name)s.wasClicked = false;\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
@@ -469,6 +493,15 @@ class ButtonComponent(BaseVisualComponent):
                 f"   {currLoop.params['name']}.addData('{name}.timesOff', \"\")\n"
             )
             buff.writeIndentedLines(code)
+
+    def writeRoutineEndCodeJS(self, buff):
+        # Save data
+        code = (
+            "psychoJS.experiment.addData('%(name)s.numClicks', %(name)s.numClicks);\n"
+            "psychoJS.experiment.addData('%(name)s.timesOn', %(name)s.timesOn);\n"
+            "psychoJS.experiment.addData('%(name)s.timesOff', %(name)s.timesOff);\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def integrityCheck(self):
         super().integrityCheck()  # run parent class checks first

@@ -33,8 +33,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.mathjax',
               'sphinx.ext.napoleon',
               'sphinx.ext.intersphinx',
-              'sphinx.ext.viewcode',
-              'rinoh.frontend.sphinx']
+              'sphinx.ext.viewcode']
 
 autoclass_content = 'both'
 autosummary_generate = True
@@ -61,6 +60,15 @@ master_doc = 'documentation'
 # General information about the project.
 project = u'PsychoPy'
 copyright = u'2002-18, Jonathan Peirce; 2019-21 Open Science Tools Ltd.'
+
+# use restructured text epilog to get around problem with not being able to use replace and superscript together
+rst_epilog = """
+.. role:: raw-html(raw)
+   :format: html
+
+.. |PsychoPy| replace:: :raw-html:`PsychoPy<sup>®</sup>`
+.. |Pavlovia| replace:: :raw-html:`<a href="https://pavlovia.org">Pavlovia<sup>®</sup></a>`
+"""
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -187,8 +195,7 @@ htmlhelp_basename = 'PsychoPydoc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
-# xelatex or pdflatex (but pdflatex on mac struggles with Höchenberger!)
-latex_engine = 'xelatex'
+latex_engine = 'pdflatex'  # xelatex or pdflatex
 # latex_elements = {
 #    'babel': '\\usepackage{babel}',
 #    'inputenc': '\\usepackage[utf8]{inputenc}'

@@ -9,10 +9,12 @@ import os
 import time
 import re
 import weakref
+from pathlib import Path
 
 from psychopy import prefs, logging, exceptions
 from psychopy.constants import (STARTED, PAUSED, FINISHED, STOPPING,
                                 NOT_STARTED)
+from psychopy.tools import filetools as ft
 from .exceptions import SoundFormatError, DependencyError
 from ._base import _SoundBase, HammingWindow
 
@@ -330,7 +332,13 @@ class SoundPTB(_SoundBase):
         # setSound (determines sound type)
         self.setSound(value, secs=self.secs, octave=self.octave,
                       hamming=self.hamming)
+        self._isPlaying = False  # set `True` after `play()` is called
         self.status = NOT_STARTED
+
+    @property
+    def isPlaying(self):
+        """`True` if the audio playback is ongoing."""
+        return self._isPlaying
 
     def _getDefaultSampleRate(self):
         """Check what streams are open and use one of these"""
@@ -426,6 +434,9 @@ class SoundPTB(_SoundBase):
         _SoundBase.setSound(self, value, secs, octave, hamming, log)
 
     def _setSndFromFile(self, filename):
+        # alias default names (so it always points to default.png)
+        if filename in ft.defaultStim:
+            filename = Path(prefs.paths['resources']) / ft.defaultStim[filename]
         self.sndFile = f = sf.SoundFile(filename)
         self.sourceType = 'file'
         self.sampleRate = f.samplerate
@@ -514,9 +525,12 @@ class SoundPTB(_SoundBase):
     def play(self, loops=None, when=None, log=True):
         """Start the sound playing
         """
+        if self.isPlaying:
+            return
+
         if loops is not None and self.loops != loops:
             self.setLoops(loops)
-        self.status = STARTED
+
         self._tSoundRequestPlay = time.time()
 
         if hasattr(when, 'getFutureFlipTime'):
@@ -528,6 +542,7 @@ class SoundPTB(_SoundBase):
         else:
             logTime = None
         self.track.start(repetitions=loops, when=when)
+        self._isPlaying = True
         # time.sleep(0.)
         if log and self.autoLog:
             logging.exp(u"Sound %s started" % (self.name), obj=self, t=logTime)
@@ -535,20 +550,26 @@ class SoundPTB(_SoundBase):
     def pause(self):
         """Stop the sound but play will continue from here if needed
         """
-        self.status = PAUSED
-        self.track.stop()
+        if self.isPlaying:
+            self.track.stop(reset=False)
+            self._isPlaying = False
+        else:
+            self.play()
 
     def stop(self, reset=True, log=True):
         """Stop the sound and return to beginning
         """
-        if self.status == FINISHED:
+        # this uses FINISHED for some reason, all others use STOPPED
+        if not self.isPlaying:
             return
+
         self.track.stop()
+        self._isPlaying = False
+
         if reset:
             self.seek(0)
         if log and self.autoLog:
             logging.exp(u"Sound %s stopped" % (self.name), obj=self)
-        self.status = FINISHED
 
     def seek(self, t):
         self.t = t
@@ -559,14 +580,15 @@ class SoundPTB(_SoundBase):
     def _EOS(self, reset=True, log=True):
         """Function called on End Of Stream
         """
-        self.status = STOPPING
         self._loopsFinished += 1
         if self.loops == 0:
             self.stop(reset=reset, log=False)
-        elif self.loops > 0 and self._loopsFinished >= self.loops:
+        elif 0 < self.loops <= self._loopsFinished:
             self.stop(reset=reset, log=False)
+
+        self._isPlaying = False
         if log and self.autoLog:
-            logging.exp(u"Sound %s reached end of file" % (self.name), obj=self)
+            logging.exp(u"Sound %s reached end of file" % self.name, obj=self)
 
     @property
     def stream(self):

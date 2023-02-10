@@ -8,9 +8,9 @@ def test_essential_imports():
     import matplotlib
     #import pygame  # soft dependency only
     import pyglet
-    import OpenGL
     import openpyxl
     import pandas
+
 
 def test_extra_imports():
     # only Jon needs to run this, so test first if you are him!
@@ -26,23 +26,13 @@ def test_extra_imports():
     #OK, it's Jon , so run it
     import bidi #for right-left languages
     import yaml, msgpack, gevent
-    import IPython, tornado
     import psychopy_ext
-    import IPython, tornado
-    import psychopy_ext
-    import IPython, tornado, zmq, jinja2, jsonschema
+    import zmq, jinja2, jsonschema
     import psychopy_ext, pandas, seaborn
     #avbin
     import pyglet
-    assert pyglet.media.have_avbin
     import serial
     import pyo
     #specific hardware libs
-    import egi
-    try:
-        import labjack
-    except Exception:
-        import u3, u6, ue9, LabJackPython
-    import ioLabs
-    #platform specific
-    import pylink
+    import egi_pynetstation
+

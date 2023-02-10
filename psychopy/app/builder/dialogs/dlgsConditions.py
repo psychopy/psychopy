@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Conditions-file preview and mini-editor for the Builder
@@ -293,7 +293,7 @@ class DlgConditions(wx.Dialog):
             if (name and not valid_var_re.match(name)
                     or not valid_var_re.match(event.GetString())):
                 msg, enable = _translate(
-                    "Name must be alpha-numeric or _, no spaces"), False
+                    "Name must be alphanumeric or _, no spaces"), False
             else:
                 msg, enable = "", True
         self.tmpMsg.SetLabel(msg)
@@ -580,7 +580,7 @@ class DlgConditions(wx.Dialog):
                     adjustedNames = True
             elif not valid_var_re.match(paramName):
                 msg, enable = _translate(
-                    "Name must be alpha-numeric or _, no spaces"), False
+                    "Name must be alphanumeric or _, no spaces"), False
                 newName = _nonalphanumeric_re.sub('_', newName)
                 adjustedNames = True
             else:

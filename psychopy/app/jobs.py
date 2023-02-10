@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Classes and functions for creating and managing subprocesses spawned by the
@@ -33,8 +33,10 @@ __all__ = [
     'Job'
 ]
 
+import os.path
+
 import wx
-import sys
+import os
 from subprocess import Popen, PIPE
 from threading import Thread, Event
 from queue import Queue, Empty
@@ -67,6 +69,8 @@ KILL_ACCESS_DENIED = wx.KILL_ACCESS_DENIED
 KILL_NO_PROCESS = wx.KILL_NO_PROCESS
 KILL_ERROR = wx.KILL_ERROR
 
+# PIPE_READER_POLL_INTERVAL = 0.025  # seconds
+
 
 class PipeReader(Thread):
     """Thread for reading standard stream pipes. This is used by the `Job` class
@@ -76,8 +80,6 @@ class PipeReader(Thread):
     ----------
     fdpipe : Any
         File descriptor for the pipe, either `Popen.stdout` or `Popen.stderr`.
-    pollMillis : int or float
-        Number of milliseconds to wait between pipe reads.
 
     """
     def __init__(self, fdpipe):
@@ -93,6 +95,7 @@ class PipeReader(Thread):
         self._overflowBuffer = []
         # used to signal to the thread that it's time to stop
         self._stopSignal = Event()
+        self._closedSignal = Event()
 
     @property
     def isAvailable(self):
@@ -121,7 +124,7 @@ class PipeReader(Thread):
         enqueues them.
         """
         # read bytes in chunks until EOF
-        for pipeBytes in iter(self._fdpipe.readline, ''):
+        for pipeBytes in iter(self._fdpipe.readline, b''):
             # put bytes into the queue, handle overflows if the queue is full
             if not self._queue.full():
                 # we have room, check if we have a backlog of bytes to send
@@ -137,20 +140,18 @@ class PipeReader(Thread):
                 # space.
                 self._overflowBuffer.append(pipeBytes)
 
-            # Put the thread to sleep for a bit, not sure if we need this since
-            # this loop will block execution of this thread if there is nothing
-            # to read.
-            time.sleep(0.1)
-
-            # exit the loop
             if self._stopSignal.is_set():
                 break
 
-        self._fdpipe.close()  # close the pipe if stopped
+        self._closedSignal.set()
 
     def stop(self):
         """Call this to signal the thread to stop reading bytes."""
         self._stopSignal.set()
+        while not self._closedSignal.is_set():
+            time.sleep(0.01)
+
+        return self._fdpipe
 
 
 class Job:
@@ -163,9 +164,6 @@ class Job:
     command : list or tuple
         Command to execute when the job is started. Similar to who you would
         specify the command to `Popen`.
-    flags : int
-        Execution flags for the subprocess. These are specified using symbolic
-        constants ``EXEC_*`` at the module level.
     terminateCallback : callable
         Callback function to call when the process exits. This can be used to
         inform the application that the subprocess is done.
@@ -176,11 +174,6 @@ class Job:
         Callback function called when `poll` is invoked and the error pipe has
         data. Data is passed to the first argument of the callable object. You
         may set `inputCallback` and `errorCallback` using the same function.
-    pollMillis : int or None
-        Time in milliseconds between polling intervals. When interval specified
-        by `pollMillis` elapses, the input and error streams will be read and
-        callback functions will be called. If `None`, then the timer will be
-        disabled and the `poll()` method will need to be invoked.
 
     Examples
     --------
@@ -194,16 +187,17 @@ class Job:
         pid = job.start()  # returns a PID for the sub process
 
     """
-    def __init__(self, command='', flags=EXEC_ASYNC, terminateCallback=None,
-                 inputCallback=None, errorCallback=None, pollMillis=None):
+    def __init__(self, parent, command='', terminateCallback=None,
+                 inputCallback=None, errorCallback=None):
 
         # command to be called, cannot be changed after spawning the process
+        self.parent = parent
         self._command = command
         self._pid = None
-        self._flags = flags
+        # self._flags = flags  # unused right now
         self._process = None
-        self._pollMillis = None
-        self._pollTimer = wx.Timer()
+        # self._pollMillis = None
+        # self._pollTimer = wx.Timer()
 
         # user defined callbacks
         self._inputCallback = None
@@ -212,7 +206,6 @@ class Job:
         self.inputCallback = inputCallback
         self.errorCallback = errorCallback
         self.terminateCallback = terminateCallback
-        self.pollMillis = pollMillis
 
         # non-blocking pipe reading threads and FIFOs
         self._stdoutReader = None
@@ -243,26 +236,27 @@ class Job:
         # start the sub-process
         command = self._command
 
-        self._process = Popen(
-            args=command,
-            bufsize=1,
-            executable=None,
-            stdin=None,
-            stdout=PIPE,
-            stderr=PIPE,
-            preexec_fn=None,
-            shell=False,
-            cwd=cwd,
-            env=None,
-            universal_newlines=True,  # gives us back a string instead of bytes
-            creationflags=0
-        )
+        try:
+            self._process = Popen(
+                args=command,
+                bufsize=1,
+                executable=None,
+                stdin=None,
+                stdout=PIPE,
+                stderr=PIPE,
+                preexec_fn=None,
+                shell=False,
+                cwd=cwd,
+                env=None,
+                universal_newlines=True,  # gives us back a string instead of bytes
+                creationflags=0,
+                text=True
+            )
+        except FileNotFoundError:
+            return -1  # negative PID means failure
 
         # get the PID
         self._pid = self._process.pid
-
-        # bind the event called when the process ends
-        # self._process.Bind(wx.EVT_END_PROCESS, self.onTerminate)
 
         # setup asynchronous readers of the subprocess pipes
         self._stdoutReader = PipeReader(self._process.stdout)
@@ -270,10 +264,9 @@ class Job:
         self._stdoutReader.start()
         self._stderrReader.start()
 
-        # start polling for data from the subprocesses
-        if self._pollMillis is not None:
-            self._pollTimer.Notify = self.onNotify  # override
-            self._pollTimer.Start(self._pollMillis, oneShot=wx.TIMER_CONTINUOUS)
+        # bind the event called when the process ends
+        # self._process.Bind(wx.EVT_END_PROCESS, self.onTerminate)
+        self.parent.Bind(wx.EVT_IDLE, self.poll)
 
         return self._pid
 
@@ -291,28 +284,31 @@ class Job:
         if not self.isRunning:
             return False  # nop
 
+        self.parent.Unbind(wx.EVT_IDLE)
+
         # isOk = wx.Process.Kill(self._pid, signal, flags) is wx.KILL_OK
-        self._pollTimer.Stop()
-        self._process.terminate()  # kill the process
+        self._process.kill()  # kill the process
+        #self._pollTimer.Stop()
 
         # Wait for the process to exit completely, return code will be incorrect
         # if we don't.
-        processStillRunning = True
-        while processStillRunning:
-            wx.Yield()  # yield to the GUI main loop
-            processStillRunning = self._process.poll() is None
-            time.sleep(0.1)  # sleep a bit to avoid CPU over-utilization
+        if self._process is not None:
+            processStillRunning = True
+            while processStillRunning:
+                wx.Yield()  # yield to the GUI main loop
+                if self._process is None:
+                    processStillRunning = False
+                    continue
 
-        # stop the pipe reader threads now
-        self._stdoutReader.stop()
-        self._stderrReader.stop()
+                processStillRunning = self._process.poll() is None
+                time.sleep(0.1)  # sleep a bit to avoid CPU over-utilization
 
-        # get the return code of the subprocess
-        retcode = self._process.returncode
+            # get the return code of the subprocess
+            retcode = self._process.returncode
+        else:
+            retcode = 0
+
         self.onTerminate(retcode)
-
-        self._process = self._pid = None  # reset
-        self._flags = 0
 
         return retcode is None
 
@@ -422,28 +418,28 @@ class Job:
     def terminateCallback(self, val):
         self._terminateCallback = val
 
-    @property
-    def pollMillis(self):
-        """Polling interval for input and error pipes (`int` or `None`).
-        """
-        return self._pollMillis
+    # @property
+    # def pollMillis(self):
+    #     """Polling interval for input and error pipes (`int` or `None`).
+    #     """
+    #     return self._pollMillis
 
-    @pollMillis.setter
-    def pollMillis(self, val):
-        if isinstance(val, (int, float)):
-            self._pollMillis = int(val)
-        elif val is None:
-            self._pollMillis = None
-        else:
-            raise TypeError("Value must be must be `int` or `None`.")
-
-        if not self._pollTimer.IsRunning():
-            return
-
-        if self._pollMillis is None:  # if `None`, stop the timer
-            self._pollTimer.Stop()
-        else:
-            self._pollTimer.Start(self._pollMillis, oneShot=wx.TIMER_CONTINUOUS)
+    # @pollMillis.setter
+    # def pollMillis(self, val):
+    #     if isinstance(val, (int, float)):
+    #         self._pollMillis = int(val)
+    #     elif val is None:
+    #         self._pollMillis = None
+    #     else:
+    #         raise TypeError("Value must be must be `int` or `None`.")
+    #
+    #     if not self._pollTimer.IsRunning():
+    #         return
+    #
+    #     if self._pollMillis is None:  # if `None`, stop the timer
+    #         self._pollTimer.Stop()
+    #     else:
+    #         self._pollTimer.Start(self._pollMillis, oneShot=wx.TIMER_CONTINUOUS)
 
     #   ~~~
     #   NB - Keep these here commented until wxPython fixes the `env` bug with
@@ -552,16 +548,8 @@ class Job:
     #
     #     return self._process.ErrorStream
 
-    def poll(self):
-        """Poll input and error streams for data, pass them to callbacks if
-        specified. Input stream data is processed before error.
-        """
-        if self._process is None:  # do nothing if there is no process
-            return
-
-        # poll the subprocess
-        retCode = self._process.poll()
-
+    def _readPipes(self):
+        """Read data available on the pipes."""
         # get data from pipes
         if self.isInputAvailable:
             stdinText = self.getInputData()
@@ -573,8 +561,23 @@ class Job:
             if self._errorCallback is not None:
                 wx.CallAfter(self._errorCallback, stderrText)
 
+    def poll(self, evt=None):
+        """Poll input and error streams for data, pass them to callbacks if
+        specified. Input stream data is processed before error.
+        """
+        if self._process is None:  # do nothing if there is no process
+            return
+
+        # poll the subprocess
+        retCode = self._process.poll()
         if retCode is not None:  # process has exited?
+            # unbind the idle loop used to poll the subprocess
+            self.parent.Bind(wx.EVT_IDLE, None)
+            time.sleep(0.1)  # give time for pipes to flush
             wx.CallAfter(self.onTerminate, retCode)
+
+        # get data from pipes
+        self._readPipes()
 
     def onTerminate(self, exitCode):
         """Called when the process exits.
@@ -588,23 +591,38 @@ class Job:
         called.
 
         """
-        if self._pollTimer.IsRunning():
-            self._pollTimer.Stop()
+        # if self._pollTimer.IsRunning():
+        #     self._pollTimer.Stop()
 
-        # flush remaining data from pipes, process it
-        # self.poll()
+        self._readPipes()  # read remaining data
+
+        # catch remaining data
+        for i, p in enumerate((self._stdoutReader, self._stderrReader)):
+            subprocPipeFd = p.stop()
+            subprocPipeFd.flush()
+            pipeBytes = subprocPipeFd.read()
+            wx.CallAfter(
+                self._inputCallback if i == 0 else self._errorCallback,
+                pipeBytes)
+
+        # flush remaining bytes, write out
+        self._stdoutReader.join(timeout=1)
+        self._stderrReader.join(timeout=1)
 
         # if callback is provided, else nop
         if self._terminateCallback is not None:
             wx.CallAfter(self._terminateCallback, self._pid, exitCode)
 
-    def onNotify(self):
-        """Called when the polling timer elapses.
+        self._process = self._pid = None  # reset
+        # self._flags = 0
 
-        Default action is to read input and error streams and broadcast any data
-        to user defined callbacks (if `poll()` has not been overwritten).
-        """
-        self.poll()
+    # def onNotify(self):
+    #     """Called when the polling timer elapses.
+    #
+    #     Default action is to read input and error streams and broadcast any data
+    #     to user defined callbacks (if `poll()` has not been overwritten).
+    #     """
+    #     self.poll()
 
     def __del__(self):
         """Called when the object is garbage collected or deleted."""

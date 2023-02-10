@@ -1,12 +1,12 @@
 
-Can PsychoPy deliver millisecond precision?
+Can |PsychoPy| deliver millisecond precision?
 ---------------------------------------------
 
-.. _Labhackers Millikey: http://labhackers.com/millikey.html
+.. _Labhackers Millikey: https://labhackers.com/millikey.html
 
-The simple answer is 'yes'. PsychoPy's timing is as good as (or in most cases better than) any package out there. 
+The simple answer is 'yes'. PsychoPy's timing is as good as (or in most cases better than) any package out there. For detailed Studies of timing see `Bridges et al., 2020 <https://peerj.com/articles/9414/>`_
 
-The longer answer is that you should test the timing of your own experimental stimuli on your own hardware. Very often a computer is not optimally configured to produce good timing, and a poorly code experiment could also destroy your timing. Many software and hardware manufacturers will suggest that the key to this is using computer clocks with high precision (lots of decimal places) but that is not the answer at all. The sources of error in stimulus/response timing are almost never to do with the poor precision of the clock. The following issues are extremely common and **until you actually test your experiment you don't realise that your timing is being affected by them**:
+The longer answer is that you should test the timing of your own experimental stimuli on your own hardware. Very often a computer is not optimally configured to produce good timing, and a poorly coded experiment could also destroy your timing (which is one reason we now recommend even good coders use :ref:`builder`!). Many software and hardware manufacturers will suggest that the key to good timing is using computer clocks with high precision (lots of decimal places) but that is not the answer at all. The sources of error in stimulus/response timing are almost never to do with the poor precision of the clock. The following issues are extremely common and **until you actually test your experiment you don't realise that your timing is being affected by them**:
 
 - :ref:`monitorDelays`: e.g. the monitor taking additional time to process the image before presentation
 - :ref:`OSdelays`: Windows, Linux and Mac all perform further processing on the images, depending on settings and this can delay your visual stimulus delivery by a further frame interval or more
@@ -14,10 +14,10 @@ The longer answer is that you should test the timing of your own experimental st
 - :ref:`keyboardDelays`
 - :ref:`audioDelays`
 
-The clocks that PsychoPy uses do have sub-millisecond precision but your keyboard has a latency of 4-25ms depending on your platform and keyboard. You could buy a response pad (e.g. a `Labhackers Millikey`_) for response timing with a sub-ms precision, but note that there will still be an apparent lag that is dependent on the monitor's absolute lag and the position of the stimulus on it.
+The clocks that |PsychoPy| uses do have sub-millisecond precision but your keyboard has a latency of 4-25ms depending on your platform and keyboard. You could buy a response pad (e.g. a `Labhackers Millikey`_) for response timing with a sub-ms precision, but note that there will still be an apparent lag that is dependent on the monitor's absolute lag and the position of the stimulus on it.
 
 Also note that the variance in terms of response times between your participants, and from trial to trial within a participant, probably dwarfs that of your keyboard and monitor issues!
-That said, PsychoPy does aim to give you as high a temporal precision as possible and, in a well-configured system achieves this very well.
+That said, |PsychoPy| does aim to give you as high a temporal precision as possible and, in a well-configured system achieves this very well.
 
 .. _monitorTiming:
 
@@ -37,7 +37,7 @@ Monitors have fixed refresh rates
 
 Most monitors have fixed refresh rates, typically 60 Hz for a flat-panel display. You probably knew that but it's very easy to forget that this means certain stimulus durations won't be possible. If your screen is a standard 60 Hz monitor then your frame period is 1/60 s, roughly 16.7 ms. That means you can generate stimuli that last for 16.7 ms, or 33.3 ms or 50 ms, but you **cannot** present a stimulus for 20, 40, or 60 ms.
 
-The caveat to this is that you can now buy specialist monitors that support variable refresh rates (although not below at least 5 ms between refreshes). These are using a technology called G-Sync (nVidia) or FreeSync (everyone else) and PsychoPy can make use of those technologies but support isn't built in to the library. See the publication by `Poth et al (2018) <https://link.springer.com/article/10.3758/s13428-017-1003-6>`_ for example code.
+The caveat to this is that you can now buy specialist monitors that support variable refresh rates (although not below at least 5 ms between refreshes). These are using a technology called G-Sync (nVidia) or FreeSync (everyone else) and |PsychoPy| can make use of those technologies but support isn't built in to the library. See the publication by `Poth et al (2018) <https://link.springer.com/article/10.3758/s13428-017-1003-6>`_ for example code.
 
 .. _monitorRendersTopFirst:
 
@@ -70,9 +70,9 @@ Delays caused by drivers and OS
 
 All three major operating systems are capable of introducing timing errors into your visual presentations, although these are usually observed as (relatively) constant lags. The particularly annoying factor here is that your experiment might work with very good timing for a while and then the operating system performs and automatic update and the timing gets worse! Again, the only way you would typically know about these sorts of changes is by testing with hardware.
 
-**Triple buffering:** In general PsychoPy, and similar graphics systems, are expecting a double-buffered rendering pipeline, whereby we are drawing to one copy of the screen (the "back buffer") and when we have finished drawing our stimuli we "flip" the screen, at which point it will wait for the next screen refresh period and become visible as the "front buffer". Triple-buffering is a system whereby the images being rendered to the screen are put in a 3rd buffer, and the operating system can do further processing as the rendered image moves from this 3rd buffer to the back buffer. Such a system means that your images all appear exactly one frame later than expected.
+**Triple buffering:** In general |PsychoPy|, and similar graphics systems, are expecting a double-buffered rendering pipeline, whereby we are drawing to one copy of the screen (the "back buffer") and when we have finished drawing our stimuli we "flip" the screen, at which point it will wait for the next screen refresh period and become visible as the "front buffer". Triple-buffering is a system whereby the images being rendered to the screen are put in a 3rd buffer, and the operating system can do further processing as the rendered image moves from this 3rd buffer to the back buffer. Such a system means that your images all appear exactly one frame later than expected.
 
-Errors caused by triple buffering, either by the operating system or by the monitor, cannot be detected by PsychoPy and will not show up in your log files.
+Errors caused by triple buffering, either by the operating system or by the monitor, cannot be detected by |PsychoPy| and will not show up in your log files.
 
 MacOS
 ~~~~~~~~~~~
@@ -111,9 +111,9 @@ Common ways for this to happen are to forget the operations that are potentially
 
 For image stimuli where the image is constant the image should be loaded from disk at the beginning of the script (Builder-generate experiments will do so automatically for you). When an image stimulus has to *change on each trial*, it must be loaded from disk at some point. That typically takes several milliseconds (possibly hundreds of milliseconds for a large image) and while that is happening the screen will not be refreshing. You need to take your image-loading time into account and allow it to occur during a static period of the screen. 
 
-In Builder experiments if you set something to update "On every repeat" then it will update as that Routine begins so, if your trial Routine simply begins with 0.5s fixation period, all your stimuli can be loaded/updated in that period and you will have no further problems. Sometimes you want to load/update your stimulus explicitly at a different point in time and then you can insert a "Static Component" into your Builder experiment (a "Static Period" in the Python API) and then set your stimulus to update during that period (it will show up as an update option after you insert the Static Component).
+In B :ref:`builder` experiments if you set something to update "On every repeat" then it will update as that Routine begins so, if your trial Routine simply begins with 0.5s fixation period, all your stimuli can be loaded/updated in that period and you will have no further problems. Sometimes you want to load/update your stimulus explicitly at a different point in time and then you can insert a  :ref:`static` Component into your Builder experiment (a "Static Period" in the Python API) and then set your stimulus to update during that period (it will show up as an update option after you insert the Static Component).
 
-The good news is that a lot of the visual timing issues caused by coding problems **are** visible in the log files, unlike the problems with hardware and operating systems introducing lags.
+The good news is that a lot of the visual timing issues caused by coding problems **are** visible in the :ref:`Log Files <logFile>`, unlike the problems with hardware and operating systems introducing lags.
 
 .. _keyboardDelays:
 
@@ -128,14 +128,14 @@ Keyboards are hopeless for timing. We should expand on that. But for now, it's a
 Audio delays
 ---------------------------------------------
 
-PsychoPy has a number of settings for audio and the main issue here is that the user needs to know to turn on the optimal settings.
+|PsychoPy| has a number of settings for audio and the main issue here is that the user needs to know to turn on the optimal settings.
 
 For years we were looking for a library that provided fast reliable audio and we went through an number of libraries to optimize that (pygame was the first, with 100ms latencies, then pyo and sounddevice which were faster).
 
 Most recently we added support for the Psychophysics Toolbox audio library (PsychPortAudio), which Mario Kleiner has ported Python in 2018. With that library we can achieve really remarkable audio timing (thanks to Mario for his fantastic work). But still there are several things you need to check to make use of this library and use it to its full potential:
 
 - Make sure you're running with a 64bit installation of Python3. The PsychPortAudio code has not, and almost certainly will not, be built to support legacy Python installations
-- Set the PsychoPy preferences to use it! As of PsychoPy version 3.2.x the PTB backend was not the default. In future versions this will probably be the default, but as of version 3.2.x you need to set PsychoPy to use it (we didn't want to make it the default until it had been used without issue in a number of labs in "the wild").
+- Set the |PsychoPy| preferences to use it! As of |PsychoPy| version 3.2.x the PTB backend was not the default. In future versions this will probably be the default, but as of version 3.2.x you need to set |PsychoPy| to use it (we didn't want to make it the default until it had been used without issue in a number of labs in "the wild").
 - Make sure that the library settings are using a high 
 
 For further information please see the documentation about the :ref:`Sound library <soundAPI>`
@@ -143,4 +143,3 @@ For further information please see the documentation about the :ref:`Sound libra
 .. figure:: /images/audioScope_win10_PTB_mode3.png
 
     With the new PTB library you can achieve not only sub-millisecond precision, but roughly sub-millisecond lags!! You do need to know how to configure this though and testing it can only be done with hardware.
-

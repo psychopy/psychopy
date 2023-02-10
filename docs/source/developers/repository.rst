@@ -3,7 +3,7 @@
 Using the repository
 ------------------------------
 
-Any code that you want to be included into PsychoPy is done via Git in the GitHub repository. There's something of a learning curve to this, but it's common to development in many other packages.
+Any code that you want to be included into |PsychoPy| is done via Git in the GitHub repository. There's something of a learning curve to this, but it's common to development in many other packages.
 
 **For developers experienced with Git from other projects** the only things you need to note are:
 
@@ -45,7 +45,7 @@ Around a major (feature) release the two trunks will generally become synchronis
 .. _commitMessages:
 
 PsychoPy commit messages
-~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Informative commit messages are really useful when we have to go back through the repository finding the time that a particular change to the code occurred. Precede your message with one or more of the following:
 
@@ -83,7 +83,7 @@ When you first start using the repo there are a few additional steps that you wo
 Create your own fork of the central repository
 ________________________________________________
 
-Go to `github <http://www.github.com>`_, create an account and make a fork of the `psychopy repository <https://github.com/psychopy/psychopy>`_
+Go to `github <https://www.github.com>`_, create an account and make a fork of the `psychopy repository <https://github.com/psychopy/psychopy>`_
 You can change your fork in any way you choose without it affecting the central project. You can also share your fork with others, including the central project.
 
 .. _fetchLocalCopy:
@@ -91,7 +91,7 @@ You can change your fork in any way you choose without it affecting the central 
 Fetch a local copy
 ________________________________________________
 
-`Install git on your computer <http://book.git-scm.com/2_installing_git.html>`_.
+`Install git on your computer <https://book.git-scm.com/book/en/v2/Getting-Started-Installing-Git>`_.
 Create and upload an ssh key to your github account - this is necessary for you to push changes back to your fork of the project at github.
 
 Then, in a folder of your choosing fetch your fork::
@@ -102,7 +102,7 @@ Then, in a folder of your choosing fetch your fork::
 
 The last line connects your copy (with read access) to the central server so you can easily fetch any updates to the central repository.
 
-Run PsychoPy using your local repo copy
+Run |PsychoPy| using your local repo copy
 ________________________________________________
 
 Now that you've fetched the latest version of psychopy using git, you should run this version in order to try out yours/others latest improvements. To use your github version all the time you should install that as a "developer" install so that the files stay in this location and as they get updated that is reflected in the installed version. This differs from a standard install where the files get copied to Python's site-packages and then changes you make have no effect until you install again. To run the developer install choose one of::
@@ -117,8 +117,8 @@ Now that you've fetched the latest version of psychopy using git, you should run
 To check that worked you should open python in the terminal and try to import psychopy and see if it's the version you expected::
 
     $ python
-    Python 3.6.8 (v3.6.8:3c6b436a57, Dec 24 2018, 02:04:31)
-    [GCC 4.2.1 Compatible Apple LLVM 6.0 (clang-600.0.57)] on darwin
+    Python 3.8.10 (v3.8.10:3d8993a744, May  3 2021, 08:55:58)
+    [Clang 6.0 (clang-600.0.57)] on darwin
     Type "help", "copyright", "credits" or "license" for more information.
     >>> import psychopy
     >>> print(psychopy.__version__)
