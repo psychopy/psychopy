@@ -1669,30 +1669,51 @@ class TrialHandlerExt(TrialHandler):
             if self.trialWeights is None:
                 thisData = self.data[dataType]
             else:
-                resizedData = np.ma.masked_array(
-                    np.zeros((len(self.trialList),
-                                 max(self.trialWeights) * self.nReps)),
-                    np.ones((len(self.trialList),
-                                max(self.trialWeights) * self.nReps),
-                               dtype=bool))
-                for curTrialIndex in range(len(self.trialList)):
-                    thisDataChunk = self.data[dataType][
-                                    idx_data == curTrialIndex, :]
-                    padWidth = (max(self.trialWeights) * self.nReps -
-                                np.prod(thisDataChunk.shape))
-                    thisDataChunkRowPadded = np.pad(
-                        thisDataChunk.transpose().flatten().data,
-                        (0, padWidth), mode='constant',
-                        constant_values=(0, 0))
-                    thisDataChunkRowPaddedMask = np.pad(
-                        thisDataChunk.transpose().flatten().mask,
-                        (0, padWidth), mode='constant',
-                        constant_values=(0, True))
+                # BF_202302210_trialHandlerExt_save_nonnumeric_excel
+                # Allow saving non-numeric data to the excel format
+                # Previous case: masked arrays for numeric data
+                if self.data.isNumeric[dataType]:
+                    resizedData = np.ma.masked_array(
+                        np.zeros((len(self.trialList),
+                                     max(self.trialWeights) * self.nReps)),
+                        np.ones((len(self.trialList),
+                                    max(self.trialWeights) * self.nReps),
+                                   dtype=bool))
+                    for curTrialIndex in range(len(self.trialList)):
+                        thisDataChunk = self.data[dataType][
+                                        idx_data == curTrialIndex, :]
+                        padWidth = (max(self.trialWeights) * self.nReps -
+                                    np.prod(thisDataChunk.shape))
+                        thisDataChunkRowPadded = np.pad(
+                            thisDataChunk.transpose().flatten().data,
+                            (0, padWidth), mode='constant',
+                            constant_values=(0, 0))
+                        thisDataChunkRowPaddedMask = np.pad(
+                            thisDataChunk.transpose().flatten().mask,
+                            (0, padWidth), mode='constant',
+                            constant_values=(0, True))
 
-                    thisDataChunkRow = np.ma.masked_array(
-                        thisDataChunkRowPadded,
-                        mask=thisDataChunkRowPaddedMask)
-                    resizedData[curTrialIndex, :] = thisDataChunkRow
+                        thisDataChunkRow = np.ma.masked_array(
+                            thisDataChunkRowPadded,
+                            mask=thisDataChunkRowPaddedMask)
+                        resizedData[curTrialIndex, :] = thisDataChunkRow
+                # For non-numeric data, Psychopy uses typical object arrays in-
+                # stead of masked arrays. Adjust accordingly, filling with '--'
+                # instead of masks
+                else:
+                    resizedData = np.array(np.zeros((len(self.trialList),
+                                                     max(self.trialWeights) *
+                                                     self.nReps)), dtype='O')
+                    for curTrialIndex in range(len(self.trialList)):
+                        thisDataChunk = self.data[dataType][
+                                        idx_data == curTrialIndex, :]
+                        padWidth = (max(self.trialWeights) * self.nReps -
+                                    np.prod(thisDataChunk.shape))
+                        thisDataChunkRowPadded = np.pad(
+                            thisDataChunk.transpose().flatten().data,
+                            (0, padWidth), mode='constant',
+                            constant_values=('--', '--'))
+                        resizedData[curTrialIndex, :] = thisDataChunkRowPadded
 
                 thisData = resizedData
 
