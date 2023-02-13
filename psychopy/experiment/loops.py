@@ -278,7 +278,7 @@ class TrialHandler(_BaseLoopHandler):
         thisLoop = loopDict[self]  # dict containing lists of children
         code = ""
         for thisChild in thisLoop:
-            if isinstance(thisChild, LoopInitiator):
+            if isinstance(thisChild, (LoopInitiator, _BaseLoopHandler)):
                 # for a LoopInitiator
                 code += (
                     "  const {childName}LoopScheduler = new Scheduler(psychoJS);\n"
