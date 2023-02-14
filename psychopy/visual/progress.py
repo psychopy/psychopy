@@ -116,6 +116,8 @@ class Progress(shape.ShapeStim):
         self.direction = direction
         self.progress = progress
 
+    # --- Basic ---
+
     @attributeSetter
     def progress(self, value):
         """
@@ -146,7 +148,8 @@ class Progress(shape.ShapeStim):
     @attributeSetter
     def direction(self, value):
         """
-        What direction is this progress bar progressing in?
+        What direction is this progress bar progressing in? Use in combination with "anchor"
+        to control which direction the bar fills up from.
 
         Parameters
         ==========
@@ -194,6 +197,102 @@ class Progress(shape.ShapeStim):
             if self.progress == 1:
                 self.progress = 0
 
+    def setComplete(self, value, log, operation=False):
+        setAttribute(self, "complete", value, log=log, operation=operation)
+
+    @property
+    def win(self):
+        return shape.ShapeStim.win.fget(self)
+
+    @win.setter
+    def win(self, value):
+        shape.ShapeStim.win.fset(self, value)
+        if hasattr(self, "bar"):
+            self.bar.win = value
+
     def draw(self, win=None, keepMatrix=False):
         shape.ShapeStim.draw(self, win=win, keepMatrix=keepMatrix)
         self.bar.draw()
+
+    # --- Appearance ---
+
+    @property
+    def foreColor(self):
+        """
+        Color of the full part of the progress bar.
+        """
+        if hasattr(self, "bar"):
+            return self.bar.fillColor
+
+    @foreColor.setter
+    def foreColor(self, value):
+        if hasattr(self, "bar"):
+            self.bar.fillColor = value
+            # Store bar color as protected attribute, mostly just for the test suite
+            self._foreColor = self.bar._fillColor
+
+    @property
+    def opacity(self):
+        return shape.ShapeStim.opacity.fget(self)
+
+    @opacity.setter
+    def opacity(self, value):
+        shape.ShapeStim.opacity.fset(self, value)
+        if hasattr(self, "bar"):
+            self.bar.opacity = value
+
+    @property
+    def colorSpace(self):
+        return shape.ShapeStim.colorSpace.fget(self)
+
+    @colorSpace.setter
+    def colorSpace(self, value):
+        # Set color space for self and bar
+        shape.ShapeStim.colorSpace.fset(self, value)
+        if hasattr(self, "bar"):
+            self.bar.colorSpace = value
+
+    # --- Layout ---
+    @property
+    def pos(self):
+        return shape.ShapeStim.pos.fget(self)
+
+    @pos.setter
+    def pos(self, value):
+        shape.ShapeStim.pos.fset(self, value)
+        if hasattr(self, "bar"):
+            self.bar.pos = value
+
+    @property
+    def size(self):
+        return shape.ShapeStim.size.fget(self)
+
+    @size.setter
+    def size(self, value):
+        shape.ShapeStim.size.fset(self, value)
+        if hasattr(self, "bar"):
+            self.progress = self.progress
+
+    @property
+    def anchor(self):
+        return shape.ShapeStim.anchor.fget(self)
+
+    @anchor.setter
+    def anchor(self, value):
+        shape.ShapeStim.anchor.fset(self, value)
+        if hasattr(self, "bar"):
+            self.bar.anchor = value
+
+    @property
+    def units(self):
+        return shape.ShapeStim.units.fget(self)
+
+    @units.setter
+    def units(self, value):
+        shape.ShapeStim.units.fset(self, value)
+        if hasattr(self, "bar"):
+            self.bar.units = value
+
+    @attributeSetter
+    def ori(self, value):
+        shape.ShapeStim.ori.func(self, value)
