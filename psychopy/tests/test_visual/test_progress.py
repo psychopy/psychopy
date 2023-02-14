@@ -1,6 +1,8 @@
 from psychopy import visual
 from .test_basevisual import _TestColorMixin, _TestUnitsMixin
 from psychopy.tests.test_experiment.test_component_compile_python import _TestBoilerplateMixin
+from psychopy.tests import utils
+from pathlib import Path
 
 
 class TestProgress(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
@@ -33,7 +35,9 @@ class TestProgress(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
         """
         Check that setting the value of progress has the desired effect
         """
+        # Values to test
         vals = [0, 0.3, 0.6, 1]
+        # Layouts to test them in
         layouts = [
             {'anchor': "left center", 'direction': "horizontal"},
             {'anchor': "center center", 'direction': "horizontal"},
@@ -42,4 +46,41 @@ class TestProgress(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
             {'anchor': "center center", 'direction': "vertical"},
             {'anchor': "bottom center", 'direction': "vertical"},
         ]
+        # Create cases list
+        cases = []
+        for val in vals:
+            for lo in layouts:
+                lo = lo.copy()
+                lo.update({'val': val})
+                cases.append(lo)
+        # Test each case
+        for case in cases:
+            # Prepare window
+            self.win.flip()
+            # Set anchor from case
+            self.obj.anchor = case['anchor']
+            # Set pos so it's always centred
+            pos = [0, 0]
+            if "left" in case['anchor']:
+                pos[0] = -64
+            if "right" in case['anchor']:
+                pos[0] = 64
+            if "bottom" in case['anchor']:
+                pos[1] = -32
+            if "top" in case['anchor']:
+                pos[1] = 32
+            self.obj.pos = pos
+            # Set direction and progress from case
+            self.obj.direction = case['direction']
+            self.obj.progress = case['val']
+            # Draw
+            self.obj.draw()
+            # Compare screenshot
+            if case['val'] not in (0, 1):
+                filename = f"{self.__class__.__name__}_testValue_%(direction)s_%(anchor)s_%(val)s.png" % case
+            else:
+                filename = f"{self.__class__.__name__}_testValue_minmax_%(val)s.png" % case
+            self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+            #utils.compareScreenshot(filename, self.win, crit=8)
+
 
