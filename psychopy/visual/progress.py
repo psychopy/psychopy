@@ -1,6 +1,26 @@
 from . import shape
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 
+# Aliases for directions
+_directionAliases = {
+        # Horizontal
+        "horizontal": "horizontal",
+        "horiz": "horizontal",
+        "x": "horizontal",
+        "0": "horizontal",
+        "False": "horizontal",
+        0: "horizontal",
+        False: "horizontal",
+        # Vertical
+        "vertical": "vertical",
+        "vert": "vertical",
+        "y": "vertical",
+        "1": "vertical",
+        "True": "vertical",
+        1: "vertical",
+        True: "vertical",
+    }
+
 
 class Progress(shape.ShapeStim):
     """
@@ -123,35 +143,42 @@ class Progress(shape.ShapeStim):
     def setProgress(self, value, log, operation=False):
         setAttribute(self, "progress", value, log=log, operation=operation)
 
+    @attributeSetter
+    def direction(self, value):
+        """
+        What direction is this progress bar progressing in?
+
+        Parameters
+        ==========
+        value : str, int, bool
+            Is progress bar horizontal or vertical? Accepts the following values:
+            * horizontal: "horizontal", "horiz", "x", "0", "False", 0, False
+            * vertical: "vertical", "vert", "y", "1", "True", 1, True
+        """
+        # Set value (sanitized)
+        self.__dict__['direction'] = self._sanitizeDirection(value)
+
+        if not isinstance(self.progress, attributeSetter):
+            # Get current progress
+            progress = self.progress
+            # Set progress to 1 so both dimensions are the same as box size
+            self.setProgress(1, log=False)
+            # Set progress back to layout
+            self.setProgress(progress, log=False)
+
+    def setDirection(self, value, log, operation=False):
+        setAttribute(self, "direction", value, log=log, operation=operation)
+
     @staticmethod
     def _sanitizeDirection(direction):
         """
         Take a value indicating direction and convert it to a human readable string
         """
-        # Map aliases to direction
-        aliases = {
-            # Horizontal
-            "horizontal": "horizontal",
-            "horiz": "horizontal",
-            "x": "horizontal",
-            "0": "horizontal",
-            "False": "horizontal",
-            0: "horizontal",
-            False: "horizontal",
-            # Vertical
-            "vertical": "vertical",
-            "vert": "vertical",
-            "y": "vertical",
-            "1": "vertical",
-            "True": "vertical",
-            1: "vertical",
-            True: "vertical",
-        }
         # Ignore case for strings
         if isinstance(direction, str):
             direction = direction.lower().strip()
         # Return sanitized if valid, otherwise assume horizontal
-        return aliases.get(direction, default="horizontal")
+        return _directionAliases.get(direction, "horizontal")
 
     @property
     def complete(self):
