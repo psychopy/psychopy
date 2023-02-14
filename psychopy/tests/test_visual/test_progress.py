@@ -80,7 +80,7 @@ class TestProgress(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
                 filename = f"{self.__class__.__name__}_testValue_%(direction)s_%(anchor)s_%(val)s.png" % case
             else:
                 filename = f"{self.__class__.__name__}_testValue_minmax_%(val)s.png" % case
-            self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
-            #utils.compareScreenshot(filename, self.win, crit=8)
+            # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+            utils.compareScreenshot(filename, self.win, crit=8)
 
 
