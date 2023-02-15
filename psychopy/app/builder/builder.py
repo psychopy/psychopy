@@ -740,11 +740,11 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         # Show README
         if self.prefs['alwaysShowReadme']:
-            # If prefs are to always show README, show it regardless
-            self.updateReadme(show=True)
-        else:
-            # Otherwise show by automatic rules (only show if populated)
+            # If prefs are to always show README, show if populated
             self.updateReadme()
+        else:
+            # Otherwise update so we have the object, but don't show until asked
+            self.updateReadme(show=False)
 
         self.fileHistory.AddFileToHistory(filename)
         self.htmlPath = None  # so we won't accidentally save to other html exp
