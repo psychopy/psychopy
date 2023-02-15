@@ -2752,7 +2752,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
                 # Make category sizer
                 self.catSizers[cat] = wx.WrapSizer(orient=wx.HORIZONTAL)
                 # Make category button
-                self.catLabels[cat] = self.CategoryButton(self, name=cat, cat=cat)
+                self.catLabels[cat] = self.CategoryButton(self, name=_translate(cat), cat=cat)
                 # Store category reference
                 self.objectHandles[cat] = {}
             # Add to sizer
