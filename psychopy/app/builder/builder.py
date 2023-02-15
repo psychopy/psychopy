@@ -836,7 +836,6 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             dlg.ShowModal()
             return
         self.updateReadme()
-        self.showReadme()
         return
 
     def getShortFilename(self):
@@ -851,7 +850,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def updateReadme(self):
         """Check whether there is a readme file in this folder and try to show
         """
-        # look for a readme file
+        # Make sure we have a file
         if self.filename and self.filename != 'untitled.psyexp':
             dirname = Path(self.filename).parent
             possibles = list(dirname.glob('readme*'))
@@ -867,26 +866,20 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         else:
             self.readmeFilename = None
 
-        content = ''
-        if self.readmeFilename is not None:  # don't open viewer if no file
-            if not Path(self.readmeFilename).is_file():
-                # If no file but there should be, make one
-                with open(self.readmeFilename, "w") as f:
-                    f.write(content)
-            # Open frame
+        # Make sure we have a frame
+        if self.readmeFrame is None:
             self.readmeFrame = ReadmeFrame(
-                parent=self, filename=self.readmeFilename)
-            content = self.readmeFrame.ctrl.getValue()
+                parent=self, filename=self.readmeFilename
+            )
 
-            if content and self.prefs['alwaysShowReadme']:  # make this or?
-                self.showReadme()
+        # Show/hide frame as appropriate
+        show = len(self.readmeFrame.ctrl.getValue()) > 0
+        self.readmeFrame.show(show)
 
     def showReadme(self, evt=None, value=True):
         """Shows Readme file
         """
-        if not self.readmeFrame:
-            self.updateReadme()
-        if self.readmeFrame and not self.readmeFrame.IsShown():
+        if not self.readmeFrame.IsShown():
             self.readmeFrame.show(value)
 
     def toggleReadme(self, evt=None):
@@ -2914,8 +2907,9 @@ class ReadmeFrame(wx.Frame, handlers.ThemeMixin):
         self.sizer.Add(self.ctrl, border=6, proportion=1, flag=wx.ALL | wx.EXPAND)
 
     def show(self, value=True):
-        self.Show()
-        self._applyAppTheme()
+        self.Show(value)
+        if value:
+            self._applyAppTheme()
 
     def _applyAppTheme(self):
         from psychopy.app.themes import fonts
