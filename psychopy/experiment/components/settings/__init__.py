@@ -101,8 +101,6 @@ keyboardBackendMap = {
 class SettingsComponent:
     """This component stores general info about how to run the experiment
     """
-    targets = ['PsychoPy']
-
     categories = ['Custom']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'settings.png'
