@@ -869,10 +869,6 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         content = ''
         if self.readmeFilename is not None:  # don't open viewer if no file
-            if not Path(self.readmeFilename).is_file():
-                # If no file but there should be, make one
-                with open(self.readmeFilename, "w") as f:
-                    f.write(content)
             # Open frame
             self.readmeFrame = ReadmeFrame(
                 parent=self, filename=self.readmeFilename)
