@@ -795,7 +795,7 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         # Add CTRL + click behaviour
         self.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
         # Add placeholder
-        self.SetHint("e.g. 1906fa4a-e009-49aa-b63d-798d8bf46c22")
+        self.SetHint("e.g. e89cd6eb-296e-4960-af14-103026a59c14")
         # Add sizer
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         self._szr.Add(self, border=5, proportion=1, flag=wx.EXPAND | wx.RIGHT)
