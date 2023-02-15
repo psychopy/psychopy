@@ -1015,7 +1015,12 @@ class Experiment:
                 })
         if handled:
             # If resources are handled, clear all component resources
+            handledResources = compResources
             compResources = []
+            # Still add default stim
+            for thisFile in handledResources:
+                if thisFile.get('name', False) in list(ft.defaultStim):
+                    compResources.append(thisFile)
 
         # Get resources for loops
         loopResources = []
