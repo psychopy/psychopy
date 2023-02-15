@@ -737,7 +737,15 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             # routinePanel.redrawRoutines(), called by self.updateAllViews()
             # update the views
             self.updateAllViews()  # if frozen effect will be visible on thaw
-        self.updateReadme()
+
+        # Show README
+        if self.prefs['alwaysShowReadme']:
+            # If prefs are to always show README, show it regardless
+            self.updateReadme(show=True)
+        else:
+            # Otherwise show by automatic rules (only show if populated)
+            self.updateReadme()
+
         self.fileHistory.AddFileToHistory(filename)
         self.htmlPath = None  # so we won't accidentally save to other html exp
 
@@ -847,8 +855,15 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     #     """Show the plugin manager frame."""
     #     PluginManagerFrame(self).ShowModal()
 
-    def updateReadme(self):
+    def updateReadme(self, show=None):
         """Check whether there is a readme file in this folder and try to show
+
+        Parameters
+        ==========
+        show : bool or None
+            If True, always show Readme frame.
+            If False, never show Readme frame.
+            If None, show only when there is content.
         """
         # Make sure we have a file
         if self.filename and self.filename != 'untitled.psyexp':
@@ -873,7 +888,8 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             )
 
         # Show/hide frame as appropriate
-        show = len(self.readmeFrame.ctrl.getValue()) > 0
+        if show is None:
+            show = len(self.readmeFrame.ctrl.getValue()) > 0
         self.readmeFrame.show(show)
 
     def showReadme(self, evt=None, value=True):
