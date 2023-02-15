@@ -25,7 +25,7 @@ class TestProgress(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
         cls.forePoint = (64, 64)
         cls.foreUsed = True
 
-    def setup(self):
+    def setup_method(self):
         # Set progress mid way at start of each test
         self.obj.progress = 0.5
         # Set direction to horizontal
