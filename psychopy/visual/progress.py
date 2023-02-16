@@ -142,7 +142,7 @@ class Progress(shape.ShapeStim):
         sz[i] *= value
         self.bar.size = sz
 
-    def setProgress(self, value, log, operation=False):
+    def setProgress(self, value, log=None, operation=False):
         setAttribute(self, "progress", value, log=log, operation=operation)
 
     @attributeSetter
@@ -169,7 +169,7 @@ class Progress(shape.ShapeStim):
             # Set progress back to layout
             self.setProgress(progress, log=False)
 
-    def setDirection(self, value, log, operation=False):
+    def setDirection(self, value, log=None, operation=False):
         setAttribute(self, "direction", value, log=log, operation=operation)
 
     @staticmethod

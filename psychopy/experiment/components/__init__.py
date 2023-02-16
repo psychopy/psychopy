@@ -324,6 +324,9 @@ def getInitVals(params, target="PsychoPy"):
                       'noiseFractalPower', 'zoom']:
             inits[name].val = "1.0"
             inits[name].valType = 'code'
+        elif name in ['progress']:
+            inits[name].val = "0.0"
+            inits[name].valType = 'code'
         elif name in ['image']:
             inits[name].val = "default.png"
             inits[name].valType = 'str'

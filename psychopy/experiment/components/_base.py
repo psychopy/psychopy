@@ -969,7 +969,7 @@ class BaseVisualComponent(BaseComponent):
             hint=msg,
             label=_localized['fillColor'])
 
-        msg = _translate("Color of this stimulus (e.g. $[1,1,0], red )")
+        msg = _translate("Border color of this stimulus (e.g. $[1,1,0], red )")
         self.params['borderColor'] = Param(borderColor,
             valType='color', inputType="color", categ='Appearance',
             updates='constant',allowedTypes=[],
