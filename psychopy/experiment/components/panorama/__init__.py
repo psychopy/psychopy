@@ -118,7 +118,7 @@ class PanoramaComponent(BaseVisualComponent):
             }
         )
         msg = _translate(
-            "Vertical look position, ranging from -1 (fully left) to 1 (fully right)"
+            "Vertical look position, ranging from -1 (fully down) to 1 (fully up)"
         )
         self.params['altitude'] = Param(
             altitude, valType='code', inputType='single', categ='Basic',
