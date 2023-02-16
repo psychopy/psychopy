@@ -10,7 +10,7 @@ class ProgressComponent(BaseVisualComponent):
 
     """
     categories = ['Stimuli']
-    targets = ['PsychoPy']
+    targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'progress.png'
     tooltip = _translate('Progress: Present a progress bar, with values ranging from 0 to 1.')
     beta = True
