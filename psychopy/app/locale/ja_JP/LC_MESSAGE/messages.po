@@ -1,9 +1,9 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: PsychoPy 2020.1.3\n"
+"Project-Id-Version: PsychoPy 2023.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-15 19:56+0900\n"
-"PO-Revision-Date: 2023-02-15 19:57+0900\n"
+"POT-Creation-Date: 2023-02-16 14:31+0900\n"
+"PO-Revision-Date: 2023-02-16 16:02+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -1046,13 +1046,13 @@ msgstr "名前を付けて保存..."
 
 #: psychopy/app/builder/builder.py:3996
 #: psychopy/app/coder/codeEditorBase.py:110 psychopy/app/coder/coder.py:152
-#: psychopy/app/coder/coder.py:2962 psychopy/app/coder/repl.py:35
+#: psychopy/app/coder/coder.py:2962
 msgid "Undo"
 msgstr "元に戻す"
 
 #: psychopy/app/builder/builder.py:4004
 #: psychopy/app/coder/codeEditorBase.py:111 psychopy/app/coder/coder.py:153
-#: psychopy/app/coder/coder.py:2970 psychopy/app/coder/repl.py:36
+#: psychopy/app/coder/coder.py:2970
 msgid "Redo"
 msgstr "繰り返す"
 
@@ -1163,6 +1163,7 @@ msgstr " のプロパティ"
 #: psychopy/app/builder/dialogs/__init__.py:909
 #: psychopy/app/builder/dialogs/dlgsCode.py:139
 #: psychopy/app/builder/dialogs/dlgsConditions.py:508
+#: psychopy/app/preferencesDlg.py:506
 msgid " Help "
 msgstr " ヘルプ "
 
@@ -1173,7 +1174,8 @@ msgstr "このコンポーネントのオンラインヘルプを開きます"
 
 #: psychopy/app/builder/dialogs/__init__.py:916
 #: psychopy/app/builder/dialogs/dlgsCode.py:142
-#: psychopy/app/builder/dialogs/dlgsConditions.py:514 psychopy/gui/qtgui.py:86
+#: psychopy/app/builder/dialogs/dlgsConditions.py:514
+#: psychopy/app/preferencesDlg.py:513 psychopy/gui/qtgui.py:86
 #: psychopy/gui/wxgui.py:68 psychopy/monitors/MonitorCenter.py:1121
 #: psychopy/monitors/MonitorCenter.py:1228
 msgid " OK "
@@ -1181,7 +1183,8 @@ msgstr " OK "
 
 #: psychopy/app/builder/dialogs/__init__.py:921
 #: psychopy/app/builder/dialogs/dlgsCode.py:145
-#: psychopy/app/builder/dialogs/dlgsConditions.py:521 psychopy/gui/qtgui.py:87
+#: psychopy/app/builder/dialogs/dlgsConditions.py:521
+#: psychopy/app/preferencesDlg.py:514 psychopy/gui/qtgui.py:87
 #: psychopy/gui/wxgui.py:69 psychopy/monitors/MonitorCenter.py:1123
 #: psychopy/monitors/MonitorCenter.py:1231
 msgid " Cancel "
@@ -2076,17 +2079,15 @@ msgid "Variable name ${newName} is in use (by {used}). Try another name."
 msgstr "変数名${newName}は{used}で使用されています. 名前を変更してください."
 
 #: psychopy/app/coder/codeEditorBase.py:112 psychopy/app/coder/coder.py:157
-#: psychopy/app/coder/repl.py:40
 msgid "Cut"
 msgstr "切り取り"
 
 #: psychopy/app/coder/codeEditorBase.py:113 psychopy/app/coder/coder.py:158
-#: psychopy/app/coder/repl.py:41
+#: psychopy/app/colorpicker/ui.py:209
 msgid "Copy"
 msgstr "コピー"
 
 #: psychopy/app/coder/codeEditorBase.py:114 psychopy/app/coder/coder.py:160
-#: psychopy/app/coder/repl.py:43
 msgid "Paste"
 msgstr "貼り付け"
 
@@ -2097,7 +2098,6 @@ msgid "Delete"
 msgstr "削除"
 
 #: psychopy/app/coder/codeEditorBase.py:116 psychopy/app/coder/coder.py:166
-#: psychopy/app/coder/repl.py:49
 msgid "Select All"
 msgstr "すべて選択"
 
@@ -2133,15 +2133,15 @@ msgstr "その他"
 msgid "PyShell in PsychoPy - type some commands!"
 msgstr "Pyshell in PsychoPy - コマンドを入力してください."
 
-#: psychopy/app/coder/coder.py:159 psychopy/app/coder/repl.py:42
+#: psychopy/app/coder/coder.py:159
 msgid "Copy With Prompts"
 msgstr "プロンプト込みでコピー"
 
-#: psychopy/app/coder/coder.py:161 psychopy/app/coder/repl.py:44
+#: psychopy/app/coder/coder.py:161
 msgid "Paste And Run"
 msgstr "貼り付けて実行"
 
-#: psychopy/app/coder/coder.py:162 psychopy/app/coder/repl.py:45
+#: psychopy/app/coder/coder.py:162
 msgid "Clear"
 msgstr "削除"
 
@@ -2715,31 +2715,55 @@ msgstr "`{}`は権限がないのでアクセスできません."
 msgid "Cannot access directory `{}`, not a directory."
 msgstr "'{}'はフォルダではないのでアクセスできません."
 
-#: psychopy/app/coder/repl.py:79 psychopy/app/coder/repl.py:99
+#: psychopy/app/coder/repl.py:56 psychopy/app/coder/repl.py:76
 msgid "Close the current shell."
 msgstr "現在のシェルを閉じます."
 
-#: psychopy/app/coder/repl.py:89
+#: psychopy/app/coder/repl.py:66
 msgid ""
 "Close the current shell and start a new one, this will clear any variables."
 msgstr ""
 "現在のシェルを閉じて新しいシェルを開始: 現在の変数はすべて削除されます."
 
-#: psychopy/app/coder/repl.py:109 psychopy/app/coder/scriptOutput.py:54
+#: psychopy/app/coder/repl.py:86 psychopy/app/coder/scriptOutput.py:54
 msgid "Clear all previous output."
 msgstr "これまでの出力をクリアします."
 
-#: psychopy/app/coder/repl.py:199
+#: psychopy/app/coder/repl.py:176
 msgid "Hit [Return] to start a Python session."
 msgstr "リターンキーを押してPythonのセッションを開始."
 
-#: psychopy/app/coder/repl.py:219
+#: psychopy/app/coder/repl.py:196
 msgid "Hit [Return] to start a Python shell."
 msgstr "リターンキーを押してPythonのシェルを開始."
 
 #: psychopy/app/coder/scriptOutput.py:162 psychopy/app/stdOutRich.py:91
 msgid "For further info see "
 msgstr "詳しい情報は以下を参照： "
+
+#: psychopy/app/colorpicker/ui.py:40
+msgid " RGB Channels "
+msgstr "RGBチャネル"
+
+#: psychopy/app/colorpicker/ui.py:91
+msgid "Hex/HTML"
+msgstr "16進/HTML"
+
+#: psychopy/app/colorpicker/ui.py:99
+msgid "RGB Format"
+msgstr "RGBフォーマット"
+
+#: psychopy/app/colorpicker/ui.py:125
+msgid " HSV Channels "
+msgstr "HSVチャネル"
+
+#: psychopy/app/colorpicker/ui.py:199
+msgid "Output Space:"
+msgstr "出力空間:"
+
+#: psychopy/app/colorpicker/ui.py:212
+msgid "Insert"
+msgstr "挿入"
 
 #: psychopy/app/connections/updates.py:93
 msgid "Couldn't connect to psychopy.org to check for updates. \n"
@@ -4236,6 +4260,10 @@ msgstr "3.で厳密に要求が満たされない場合はエラー"
 #: psychopy/app/preferencesDlg.py:457
 msgid "PsychoPy Preferences"
 msgstr "PsychoPyの設定"
+
+#: psychopy/app/preferencesDlg.py:512
+msgid " Apply "
+msgstr "適用"
 
 #: psychopy/app/preferencesDlg.py:652
 msgid "system locale"
@@ -9998,12 +10026,6 @@ msgstr "PsychoPyに戻るにはキャンセルをクリックします."
 #~ msgid "HSV"
 #~ msgstr "HSV"
 
-#~ msgid "Output Space:"
-#~ msgstr "出力空間:"
-
-#~ msgid "&Insert"
-#~ msgstr "挿入(&I)"
-
 #~ msgid "Canc&el"
 #~ msgstr "キャンセル(&e)"
 
@@ -10553,9 +10575,6 @@ msgstr "PsychoPyに戻るにはキャンセルをクリックします."
 #~ msgstr ""
 #~ "警告：HTMLへのエクスポートは開発段階です. \n"
 #~ "現時点ではテスト用に実装されています."
-
-#~ msgid "Apply"
-#~ msgstr "適用"
 
 #~ msgid "Apply these prefs (in all sections) and continue"
 #~ msgstr "全てのセクションの設定を適用します"
