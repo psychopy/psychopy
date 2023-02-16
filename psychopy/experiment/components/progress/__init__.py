@@ -120,3 +120,21 @@ class ProgressComponent(BaseVisualComponent):
             ")\n"
         )
         buff.writeIndentedLines(code % inits)
+
+    def writeInitCodeJS(self, buff):
+        # Get inits
+        inits = getInitVals(self.params, target="PsychoJS")
+        inits['depth'] = -self.getPosInRoutine()
+        # Create object
+        code = (
+            "%(name)s = visual.Progress({\n"
+            "    win, name: '%(name)s',\n"
+            "    progress: %(progress)s, direction: %(direction)s,\n"
+            "    pos: %(pos)s, size: %(size)s, anchor: %(anchor)s, units: %(units)s,\n"
+            "    foreColor: %(color)s, backColor: %(fillColor)s, lineColor: %(borderColor)s, "
+            "colorSpace: %(colorSpace)s,\n"
+            "    lineWidth: %(lineWidth)s, opacity: %(opacity)s, ori: %(ori)s\n"
+            "    depth: %(depth)s\n"
+            "})\n"
+        )
+        buff.writeIndentedLines(code % inits)
