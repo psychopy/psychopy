@@ -22,18 +22,18 @@ msgstr ""
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:12
 #, python-brace-format
 msgid "Your stimulus size exceeds the {dimension} dimension of your window."
-msgstr "Saiz stimulus anda melebihi {dimension} dimensi tetingkap anda "
+msgstr "Saiz stimulus anda melebihi {dimension} dimensi tetingkap anda."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:16
 #, python-brace-format
 msgid "Your stimulus size is smaller than 1 pixel ({dimension} dimension)."
-msgstr ""
+msgstr "Saiz stimulus anda lebih kecil daripada 1 pixel ({dimension} dimensi)."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:20
 #, python-brace-format
 msgid ""
 "Your stimulus position exceeds the {dimension} dimension of your window."
-msgstr ""
+msgstr "Posisi stimulus anda melebihi {dimension} dimensi tetingkap anda."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:24
 #, python-brace-format
@@ -56,6 +56,9 @@ msgid ""
 "recommend either updating PsychoPy or changing the \"Use Version\" setting "
 "in Experiment Settings to this version."
 msgstr ""
+"Eksperimen anda dibina menggunakan versi kelak PsychoPy ({version}), kami "
+"mencadang anda mengemaskinikan PsychoPy atau mengubah \"Use Version\" di "
+"Experiment Settings dalam versi ini."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:36
 #, python-brace-format
@@ -63,6 +66,9 @@ msgid ""
 "Experiment was built in a past version of PsychoPy ({version}), saving it in "
 "this version may add parameters which cannot be parsed."
 msgstr ""
+"Eksperimen anda dibina menggunakan versi lama PsychoPy ({version}), "
+"menyimpan fail dalam versi mungkin akan menambah parameter baru yang tidak "
+"boleh dihuraikan."
 
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:40
 #, python-brace-format
@@ -250,7 +256,7 @@ msgstr ""
 
 #: psychopy/app/Resources/psychopy.desktop:7
 msgid "Psychology software in Python"
-msgstr ""
+msgstr "Perisian psikologi menggunakan Python"
 
 #: psychopy/app/_psychopyApp.py:98 psychopy/app/builder/builder.py:379
 #: psychopy/app/coder/coder.py:1624 psychopy/app/runner/runner.py:207
@@ -759,10 +765,8 @@ msgid "&About..."
 msgstr ""
 
 #: psychopy/app/builder/builder.py:585 psychopy/app/coder/coder.py:1830
-#, fuzzy
-#| msgid "Welcome to PsychoPy2!"
 msgid "About PsychoPy"
-msgstr "Selamat datang ke PsychoPy2!"
+msgstr "Tentang PsychoPy"
 
 #: psychopy/app/builder/builder.py:588 psychopy/app/coder/coder.py:1834
 msgid "&News..."
@@ -1996,10 +2000,8 @@ msgid "Go to the Coder view"
 msgstr ""
 
 #: psychopy/app/coder/coder.py:403
-#, fuzzy
-#| msgid "Welcome to PsychoPy2!"
 msgid "Terminate PsychoPy"
-msgstr "Selamat datang ke PsychoPy2!"
+msgstr "Tamatkan PsychoPy"
 
 #: psychopy/app/coder/coder.py:406
 msgid "&Preferences"
@@ -2067,10 +2069,8 @@ msgid "Shelf"
 msgstr ""
 
 #: psychopy/app/coder/coder.py:1350 psychopy/tools/wizard.py:509
-#, fuzzy
-#| msgid "Welcome to PsychoPy2!"
 msgid "Welcome to PsychoPy3!"
-msgstr "Selamat datang ke PsychoPy2!"
+msgstr "Selamat datang ke PsychoPy3!"
 
 #: psychopy/app/coder/coder.py:1458
 msgid "Save current file"
@@ -3311,6 +3311,8 @@ msgid ""
 "[Warning] Could not activate plugin. PsychoPy may need to restart for plugin "
 "to take effect."
 msgstr ""
+"[Amaran] Tidak boleh mengaktifkan plugin. PsychoPy mungkin memerlukan "
+"restart untuk plugin berkuat kasa."
 
 #: psychopy/app/plugin_manager/plugins.py:160
 msgid ""
@@ -8752,4 +8754,4 @@ msgstr ""
 
 #: psychopy/tools/wizard.py:712
 msgid "Click Cancel to stay in PsychoPy."
-msgstr ""
+msgstr "Klik Cancel untuk tinggal di PsychoPy."
