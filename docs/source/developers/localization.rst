@@ -26,7 +26,7 @@ A free app called poedit is useful for managing a translation. For a given langu
 
     - make a new directory `psychopy/app/locale/LANG/LC_MESSAGE/` if needed. Your `LANG` will be auto-detected within |PsychoPy| only if you follow this convention. You can copy metadata (such as the project name) from another .po file.
 
-  Set your name and e-mail address from "Preferences..." of "File" menu. Set translation properties (such as project name, language and charset) from Catalog Properties Dialog, which can be opened from "Properties..." of "Catalog" menu.
+  Set your name and e-mail address from "Preferences..." of "File" menu. Set translation properties (such as project name, language and charset) from Catalog Properties Dialog, which can be opened from "Properties..." of "Translation" menu.
 
   In poedit's properties dialog, set the "source keywords" to include '_translate'. This allows poedit to find the strings in |PsychoPy| that are to be translated.
 
