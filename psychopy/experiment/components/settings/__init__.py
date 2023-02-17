@@ -371,13 +371,13 @@ class SettingsComponent:
             label="End Message", categ='Online')
         self.params['Completed URL'] = Param(
             '', valType='str', inputType="single",
-            hint=_translate("Where should participants be redirected after the experiment on completion\n"
-                            " INSERT COMPLETION URL E.G.?"),
+            hint=_translate("Where should participants be redirected after the experiment on completion, e.g.\n"
+                            "https://pavlovia.org/surveys/XXXXXX-XXXX-XXXXXXX?tab=0"),
             label="Completed URL", categ='Online')
         self.params['Incomplete URL'] = Param(
             '', valType='str', inputType="single",
-            hint=_translate("Where participants are redirected if they do not complete the task\n"
-                            " INSERT INCOMPLETION URL E.G.?"),
+            hint=_translate("Where participants are redirected if they do not complete the task, e.g.\n"
+                            "https://pavlovia.org/surveys/XXXXXX-XXXX-XXXXXXX?tab=0"),
             label="Incomplete URL", categ='Online')
         self.params['exportHTML'] = Param(
             exportHTML, valType='str', inputType="choice",
