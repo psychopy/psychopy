@@ -135,7 +135,9 @@ class StdStreamDispatcher:
 
         # write to log file
         if self._logFile is not None:
-            with open(self._logFile, 'a') as lf:
+            import io
+            # with open(self._logFile, 'a') as lf:
+            with io.open(self._logFile, 'a', encoding="utf-8") as lf:
                 lf.write(text)
                 lf.flush()
 
