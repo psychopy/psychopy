@@ -1,6 +1,5 @@
 import webbrowser
 
-import requests
 import wx
 import sys
 import subprocess as sp
@@ -9,7 +8,6 @@ from pypi_search import search as pypi
 from psychopy.app import utils
 from psychopy.app.themes import handlers, icons
 from psychopy.localization import _translate
-from psychopy.tools import filetools as ft
 
 from psychopy.tools.pkgtools import (
     getInstalledPackages, getPackageMetadata, getPypiInfo, isInstalled,
