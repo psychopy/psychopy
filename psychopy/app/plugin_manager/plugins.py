@@ -3,14 +3,11 @@ from wx.lib import scrolledpanel
 import webbrowser
 from PIL import Image as pil
 
-from .utils import uninstallPackage, installPackage
 from psychopy.tools import pkgtools
 from psychopy.app.themes import theme, handlers, colors, icons
 from psychopy.app import utils
 from psychopy.localization import _translate
 from psychopy import plugins
-from psychopy.preferences import prefs
-from psychopy.experiment import getAllElements
 import requests
 
 
@@ -98,6 +95,8 @@ class PluginInfo:
         self.description = description
         self.keywords = keywords or []
 
+        self.parent = None   # set after
+
     def __repr__(self):
         return (f"<psychopy.plugins.PluginInfo: {self.name} "
                 f"[{self.pipname}] by {self.author}>")
@@ -107,6 +106,20 @@ class PluginInfo:
             return self.pipname == other.pipname
         else:
             return self.pipname == str(other)
+
+    def setParent(self, parent):
+        """Set the parent window or panel.
+
+        Need a parent to invoke methods on the top-level window. Might not
+        be set.
+
+        Parameters
+        ----------
+        parent : wx.Window or wx.Panel
+            Parent window or panel.
+
+        """
+        self.parent = parent
 
     @property
     def icon(self):
@@ -138,48 +151,18 @@ class PluginInfo:
         plugins.startUpPlugins(current, add=False, verify=False)
 
     def install(self, stream):
-        stream = installPackage(self.pipname, stream=stream)
-        # Refresh and enable
-        plugins.scanPlugins()
-        try:
-            self.activate()
-            plugins.loadPlugin(self.pipname)
-        except RuntimeError:
-            prefs.general['startUpPlugins'].append(self.pipname)
-            stream.writeStdErr(_translate(
-                "[Warning] Could not activate plugin. PsychoPy may need to restart for plugin to take effect."
-            ))
-        # Show list of components/routines now available
-        emts = []
-        for name, emt in getAllElements().items():
-            if hasattr(emt, "plugin") and emt.plugin == self.pipname:
-                cats = ", ".join(emt.categories)
-                emts.append(f"{name} ({cats})")
-        if len(emts):
-            msg = _translate(
-                "The following components/routines should now be visible in the Components panel:\n"
-            )
-            for emt in emts:
-                msg += (
-                    f"    - {emt}\n"
-                )
-            stream.write(msg)
-        # Show info link
-        if self.docs:
-            msg = _translate(
-                "\n"
-                "\n"
-                "For more information about the %s plugin, read the documentation at:\n"
-            ) % self.name
-            stream.write(msg)
-            stream.writeLink(self.docs, link=self.docs)
-        # Finish
-        stream.writeTerminus()
+        if self.parent is None:
+            return
+
+        wx.CallAfter(
+            self.parent.GetTopLevelParent().installPackage, self.pipname)
 
     def uninstall(self):
-        uninstallPackage(self.pipname)
-        pkgtools.refreshPackages()
-        plugins.scanPlugins()
+        if self.parent is None:
+            return
+
+        wx.CallAfter(
+            self.parent.GetTopLevelParent().uninstallPackage, self.pipname)
 
     @property
     def installed(self):
@@ -453,7 +436,9 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         # Put installed packages at top of list
         items.sort(key=lambda obj: obj.installed, reverse=True)
         for item in items:
+            item.setParent(self)
             self.appendItem(item)
+
         # Layout
         self.Layout()
         self.SetupScrolling()
@@ -725,7 +710,8 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         Parameters
         ----------
         state : bool
-            Active state to set, True for active or False for inactive. Default is `True`.
+            Active state to set, True for active or False for inactive. Default
+            is `True`.
 
         """
         # Mark as pending
@@ -786,6 +772,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
                 "psychopy-...",
                 name="..."
             )
+
         self._info = value
         # Set icon
         icon = value.icon

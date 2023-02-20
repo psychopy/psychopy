@@ -12,9 +12,9 @@ from psychopy.localization import _translate
 from psychopy.tools import filetools as ft
 
 from psychopy.tools.pkgtools import (
-    getInstalledPackages, getPackageMetadata, getPypiInfo, isInstalled, _isUserPackage, getInstallState
+    getInstalledPackages, getPackageMetadata, getPypiInfo, isInstalled,
+    _isUserPackage, getInstallState
 )
-from .utils import uninstallPackage, installPackage
 
 
 class PackageManagerPanel(wx.Panel):
@@ -230,7 +230,7 @@ class PackageListCtrl(wx.Panel):
 
         # if user selects NO, exit the routine
         if msg.ShowModal() == wx.ID_YES:
-            uninstallPackage(pipname)
+            self.GetTopLevelParent().uninstallPackage(pipname)
             self.refresh()
 
     def onInstall(self, evt=None):
@@ -238,7 +238,7 @@ class PackageListCtrl(wx.Panel):
         menu = evt.GetEventObject()
         pipname = menu.pipname
         # Install package
-        installPackage(pipname, stream=self.dlg.output)
+        self.GetTopLevelParent().installPackage(pipname)
         self.refresh()
 
     def refresh(self, evt=None):
@@ -282,7 +282,7 @@ class PackageListCtrl(wx.Panel):
             style=wx.FD_OPEN | wx.FD_SHOW_HIDDEN)
         if dlg.ShowModal() == wx.ID_OK:
             # Install
-            installPackage(dlg.GetPath())
+            self.GetTopLevelParent().installPackage(dlg.GetPath())
             # Reload packages
             self.refresh()
 
@@ -446,7 +446,8 @@ class PackageDetailsPanel(wx.Panel):
         if version is not None:
             name += f"=={version}"
         # Install package then disable the button to indicate it's installed
-        installPackage(name, stream=self.dlg.output)
+        win = self.GetTopLevelParent()
+        wx.CallAfter(win.installPackage, name)
         # Refresh view
         self.refresh()
 
@@ -460,7 +461,8 @@ class PackageDetailsPanel(wx.Panel):
 
         # if user selects NO, exit the routine
         if msg.ShowModal() == wx.ID_YES:
-            uninstallPackage(self.package)
+            win = self.GetTopLevelParent()
+            wx.CallAfter(win.uninstallPackage, self.package)
         # Refresh view
         self.refresh()
 
