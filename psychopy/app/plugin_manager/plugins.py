@@ -97,6 +97,9 @@ class PluginInfo:
 
         self.parent = None   # set after
 
+        # icon graphic
+        self._icon = None
+
     def __repr__(self):
         return (f"<psychopy.plugins.PluginInfo: {self.name} "
                 f"[{self.pipname}] by {self.author}>")
@@ -123,13 +126,16 @@ class PluginInfo:
 
     @property
     def icon(self):
+        # memoize on first access
+        if self._requestedIcon is not None:
+            self._icon = utils.ImageData(self._requestedIcon)
+
         if hasattr(self, "_icon"):
             return self._icon
 
     @icon.setter
     def icon(self, value):
         self._requestedIcon = value
-        self._icon = utils.ImageData(value)
 
     @property
     def active(self):
