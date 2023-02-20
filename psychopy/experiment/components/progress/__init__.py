@@ -20,7 +20,7 @@ class ProgressComponent(BaseVisualComponent):
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
                  saveStartStop=True, syncScreenRefresh=True,
-                 progress=0, direction="horizontal",
+                 progress=0,
                  color="white", fillColor="None", borderColor="white", colorSpace="rgb",
                  opacity=1, lineWidth=4,
                  pos=(0, 0), size=(0.5, 0.5), anchor="center left", ori=0, units="height",
@@ -51,8 +51,8 @@ class ProgressComponent(BaseVisualComponent):
         self.params['fillColor'].hint = _translate(
             "Color of the empty part of the progress bar."
         )
-        self.params['fillColor'].label = _translate("Border color")
-        self.params['fillColor'].hint = _translate(
+        self.params['borderColor'].label = _translate("Border color")
+        self.params['borderColor'].hint = _translate(
             "Color of the line around the progress bar."
         )
 
@@ -64,18 +64,6 @@ class ProgressComponent(BaseVisualComponent):
                 "Value between 0 (not started) and 1 (complete) to set the progress bar to."
             ),
             label=_translate("Progress"))
-
-        self.params['direction'] = Param(
-            direction, valType="str", inputType="choice", categ="Basic",
-            updates='constant', allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            allowedVals=["horizontal", "vertical"],
-            allowedLabels=[_translate("Horizontal"), _translate("Vertical")],
-            hint=_translate(
-                "Which dimension the bar should fill along, either 'horizontal' (also accepts 'horiz', "
-                "'x' or 0) or 'vertical' (also accepts 'vert', 'y' or 1)"
-            ),
-            label=_translate("Direction")
-        )
 
         # --- Appearance ---
         msg = _translate("Width of the shape's line (always in pixels - this"
@@ -112,9 +100,10 @@ class ProgressComponent(BaseVisualComponent):
         code = (
             "%(name)s = visual.Progress(\n"
             "    win, name='%(name)s',\n"
-            "    progress=%(progress)s, direction=%(direction)s,\n"
+            "    progress=%(progress)s,\n"
             "    pos=%(pos)s, size=%(size)s, anchor=%(anchor)s, units=%(units)s,\n"
-            "    foreColor=%(color)s, backColor=%(fillColor)s, lineColor=%(borderColor)s, colorSpace=%(colorSpace)s,\n"
+            "    barColor=%(color)s, backColor=%(fillColor)s, borderColor=%(borderColor)s, "
+            "colorSpace=%(colorSpace)s,\n"
             "    lineWidth=%(lineWidth)s, opacity=%(opacity)s, ori=%(ori)s,\n"
             "    depth=%(depth)s\n"
             ")\n"
@@ -129,9 +118,9 @@ class ProgressComponent(BaseVisualComponent):
         code = (
             "%(name)s = visual.Progress({\n"
             "    win, name: '%(name)s',\n"
-            "    progress: %(progress)s, direction: %(direction)s,\n"
+            "    progress: %(progress)s,\n"
             "    pos: %(pos)s, size: %(size)s, anchor: %(anchor)s, units: %(units)s,\n"
-            "    foreColor: %(color)s, backColor: %(fillColor)s, lineColor: %(borderColor)s, "
+            "    barColor: %(color)s, backColor: %(fillColor)s, borderColor: %(borderColor)s, "
             "colorSpace: %(colorSpace)s,\n"
             "    lineWidth: %(lineWidth)s, opacity: %(opacity)s, ori: %(ori)s\n"
             "    depth: %(depth)s\n"
