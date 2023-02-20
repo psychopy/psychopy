@@ -1,9 +1,11 @@
 import wx
 
 from psychopy.app import getAppInstance
-from psychopy.app.plugin_manager import PluginManagerPanel, PackageManagerPanel
+from psychopy.app.plugin_manager import PluginManagerPanel, PackageManagerPanel, InstallStdoutPanel
 from psychopy.localization import _translate
 import psychopy.tools.pkgtools as pkgtools
+
+from . import utils
 
 pkgtools.refreshPackages()  # build initial package cache
 
@@ -21,21 +23,25 @@ class EnvironmentManagerDlg(wx.Dialog):
         # Setup sizer
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.border.Add(self.sizer, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
         # Create notebook
         self.notebook = wx.Notebook(self)
         self.sizer.Add(self.notebook, border=6, proportion=1, flag=wx.EXPAND | wx.ALL)
+        # Output panel
+        self.output = InstallStdoutPanel(self.notebook)
+        self.notebook.AddPage(self.output, text=_translate("Output"))
         # Plugin manager
-        self.pluginMgr = PluginManagerPanel(self.notebook)
-        self.notebook.AddPage(self.pluginMgr, text=_translate("Plugins"))
+        self.pluginMgr = PluginManagerPanel(self.notebook, dlg=self)
+        self.notebook.InsertPage(0, self.pluginMgr, text=_translate("Plugins"))
         # Package manager
-        self.packageMgr = PackageManagerPanel(self.notebook)
-        self.notebook.AddPage(self.packageMgr, text=_translate("Packages"))
-
+        self.packageMgr = PackageManagerPanel(self.notebook, dlg=self)
+        self.notebook.InsertPage(1, self.packageMgr, text=_translate("Packages"))
         # Buttons
         self.btns = self.CreateStdDialogButtonSizer(flags=wx.HELP | wx.CLOSE)
-        self.sizer.Add(self.btns, border=6, flag=wx.EXPAND | wx.ALL)
+        self.border.Add(self.btns, border=12, flag=wx.EXPAND | wx.ALL)
+
+        self.notebook.ChangeSelection(0)
 
     def onClose(self, evt=None):
         # Get changes to plugin states
