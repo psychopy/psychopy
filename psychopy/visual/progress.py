@@ -63,11 +63,11 @@ class Progress(shape.ShapeStim):
     units : str
         Units to use when drawing. This will affect how parameters and
         attributes `pos` and `size` are interpreted.
-    foreColor : array_like, str, :class:`~psychopy.colors.Color` or None
+    barColor, foreColor : array_like, str, :class:`~psychopy.colors.Color` or None
         Color of the full part of the progress bar.
     backColor, fillColor : array_like, str, :class:`~psychopy.colors.Color` or None
         Color of the empty part of the progress bar.
-    lineColor : array_like, str, :class:`~psychopy.colors.Color` or None
+    borderColor, lineColor : array_like, str, :class:`~psychopy.colors.Color` or None
         Color of the outline around the outside of the progress bar.
     colorSpace : str
         Sets the colorspace, changing how values passed to `foreColor`,
@@ -84,21 +84,26 @@ class Progress(shape.ShapeStim):
             self, win, name="pb",
             progress=0, direction="horizontal",
             pos=(-.5, 0), size=(1, 0.1), anchor="center left", units=None,
-            foreColor="white", backColor=False, lineColor="white", colorSpace=None,
+            barColor=False, backColor=False, borderColor=False, colorSpace=None,
             lineWidth=1.5, opacity=1.0, ori=0.0,
             depth=0, autoLog=None, autoDraw=False,
             # aliases
-            fillColor=False
+            foreColor="white", fillColor=False, lineColor="white",
     ):
-        # If fillColor given in place of backColor, use it
+        # Alias color names
         if backColor is False and fillColor is not False:
             backColor = fillColor
+        if barColor is False and foreColor is not False:
+            barColor = foreColor
+        if borderColor is False and lineColor is not False:
+            borderColor = lineColor
+
 
         # Create backboard
         shape.ShapeStim.__init__(
             self, win, name=name,
             pos=pos, size=size, anchor=anchor, units=units,
-            fillColor=backColor, lineColor=lineColor, colorSpace=colorSpace,
+            fillColor=backColor, lineColor=borderColor, colorSpace=colorSpace,
             lineWidth=lineWidth, opacity=opacity, ori=ori,
             depth=depth, autoLog=autoLog, autoDraw=autoDraw,
             vertices="rectangle"
@@ -107,7 +112,7 @@ class Progress(shape.ShapeStim):
         self.bar = shape.ShapeStim(
             win, name=f"{name}Bar",
             pos=pos, size=size, anchor=anchor, units=units,
-            fillColor=foreColor, lineColor=None, colorSpace=colorSpace,
+            fillColor=barColor, lineColor=None, colorSpace=colorSpace,
             opacity=opacity, ori=ori,
             depth=depth, autoLog=autoLog, autoDraw=autoDraw,
             vertices="rectangle"
@@ -215,6 +220,14 @@ class Progress(shape.ShapeStim):
         self.bar.draw()
 
     # --- Appearance ---
+
+    @property
+    def barColor(self):
+        return self.foreColor
+
+    @barColor.setter
+    def barColor(self, value):
+        self.foreColor = value
 
     @property
     def foreColor(self):
