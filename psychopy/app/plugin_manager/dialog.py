@@ -180,7 +180,7 @@ class EnvironmentManagerDlg(wx.Dialog):
         )
         self.pipProcess.start()
 
-    def installPackage(self, packageName, version=None):
+    def installPackage(self, packageName, version=None, extra=None):
         """Install a package.
 
         Calling this will invoke a `pip` command which will install the
@@ -199,7 +199,9 @@ class EnvironmentManagerDlg(wx.Dialog):
         version : str or None
             Version of the package to install. If `None`, the latest version
             will be installed.
-
+        extra : dict or None
+            Dict of extra variables to be accessed by callback functions, use None
+            for a blank dict.
         """
         # alert if busy
         if self.isBusy:
@@ -238,6 +240,12 @@ class EnvironmentManagerDlg(wx.Dialog):
         command = [pyExec, '-m', 'pip', 'install', packageName, '--target', bundlePath]
         # write command to output panel
         self.output.writeCmd(" ".join(command))
+        # append own name to extra
+        if extra is None:
+            extra = {}
+        extra.update(
+            {'pipname': packageName}
+        )
 
         # create a new job with the user script
         self.pipProcess = jobs.Job(
@@ -246,7 +254,8 @@ class EnvironmentManagerDlg(wx.Dialog):
             # flags=execFlags,
             inputCallback=self.output.writeStdOut,  # both treated the same
             errorCallback=self.output.writeStdErr,
-            terminateCallback=self.output.writeTerminus
+            terminateCallback=self.onInstallExit,
+            extra=extra
         )
         self.pipProcess.start()
 
@@ -272,46 +281,71 @@ class EnvironmentManagerDlg(wx.Dialog):
         """
         self.installPackage(
             packageName=pluginInfo.pipname,
-            version=version
+            version=version,
+            extra={
+                'pluginInfo': pluginInfo
+            }
         )
 
-        # scan plugins
-        plugins.scanPlugins()
-        # enable plugin
-        try:
-            pluginInfo.activate()
-            plugins.loadPlugin(pluginInfo.pipname)
-        except RuntimeError:
-            prefs.general['startUpPlugins'].append(pluginInfo.pipname)
-            self.output.writeStdErr(_translate(
-                "[Warning] Could not activate plugin. PsychoPy may need to restart for plugin to take effect."
-            ))
-        # show list of components/routines now available
-        emts = []
-        for name, emt in getAllElements().items():
-            if hasattr(emt, "plugin") and emt.plugin == pluginInfo.pipname:
-                cats = ", ".join(emt.categories)
-                emts.append(f"{name} ({cats})")
-        if len(emts):
-            msg = _translate(
-                "The following components/routines should now be visible in the Components panel:\n"
-            )
-            for emt in emts:
-                msg += (
-                    f"    - {emt}\n"
-                )
-            self.output.write(msg)
-        # show info link
-        if pluginInfo.docs:
-            msg = _translate(
-                "\n"
-                "\n"
-                "For more information about the %s plugin, read the documentation at:\n"
-            ) % pluginInfo.name
-            self.output.writeStdOut(msg)
-            self.output.writeLink(pluginInfo.docs, link=pluginInfo.docs)
-            self.output.writeStdOut("\n")
+    def onInstallExit(self, pid, exitCode):
+        """
+        Callback function to handle a pip process exiting. Prints a termination statement
+        to the output panel then, if installing a plugin, provides helpful info about that
+        plugin.
+        """
+        if self.pipProcess is None:
+            # if pip process is None, this has been called by mistake, do nothing
+            return
 
+        # write installation termination statement
+        msg = "Installation complete"
+        if 'pipname' in self.pipProcess.extra:
+            msg = f"Finished installing %(pipname)s" % self.pipProcess.extra
+        self.output.writeTerminus(msg)
+
+        # if we have a plugin, write additional plugin information post-install
+        if 'pluginInfo' in self.pipProcess.extra:
+            # get plugin info object
+            pluginInfo = self.pipProcess.extra['pluginInfo']
+            # scan plugins
+            plugins.scanPlugins()
+            # enable plugin
+            try:
+                pluginInfo.activate()
+                plugins.loadPlugin(pluginInfo.pipname)
+            except RuntimeError:
+                prefs.general['startUpPlugins'].append(pluginInfo.pipname)
+                self.output.writeStdErr(_translate(
+                    "[Warning] Could not activate plugin. PsychoPy may need to restart for plugin to take effect."
+                ))
+            # show list of components/routines now available
+            emts = []
+            for name, emt in getAllElements().items():
+                if hasattr(emt, "plugin") and emt.plugin == pluginInfo.pipname:
+                    cats = ", ".join(emt.categories)
+                    emts.append(f"{name} ({cats})")
+            if len(emts):
+                msg = _translate(
+                    "The following components/routines should now be visible in the Components panel:\n"
+                )
+                for emt in emts:
+                    msg += (
+                        f"    - {emt}\n"
+                    )
+                self.output.write(msg)
+            # show info link
+            if pluginInfo.docs:
+                msg = _translate(
+                    "\n"
+                    "\n"
+                    "For more information about the %s plugin, read the documentation at:\n"
+                ) % pluginInfo.name
+                self.output.writeStdOut(msg)
+                self.output.writeLink(pluginInfo.docs, link=pluginInfo.docs)
+                self.output.writeStdOut("\n")
+
+        # clear pip process
+        self.pipProcess = None
 
     def onClose(self, evt=None):
         # Get changes to plugin states
