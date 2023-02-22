@@ -1,7 +1,9 @@
 import wx
 
+from psychopy import prefs
 from psychopy.app import getAppInstance
 from psychopy.app.plugin_manager import PluginManagerPanel, PackageManagerPanel, InstallStdoutPanel
+from psychopy.experiment import getAllElements
 from psychopy.localization import _translate
 import psychopy.tools.pkgtools as pkgtools
 import psychopy.app.jobs as jobs
@@ -247,6 +249,68 @@ class EnvironmentManagerDlg(wx.Dialog):
             terminateCallback=self.output.writeTerminus
         )
         self.pipProcess.start()
+
+    def installPlugin(self, pluginInfo, version=None):
+        """Install a package.
+
+        Calling this will invoke a `pip` command which will install the
+        specified package. Packages are installed to bundles and added to the
+        system path when done.
+
+        During an installation, the UI will make the console tab visible. It
+        will display any messages coming from the subprocess. No way to cancel
+        and installation midway at this point.
+
+        Parameters
+        ----------
+        pluginInfo : psychopy.app.plugin_manager.plugins.PluginInfo
+            Info object of the plugin to install.
+        version : str or None
+            Version of the package to install. If `None`, the latest version
+            will be installed.
+
+        """
+        self.installPackage(
+            packageName=pluginInfo.pipname,
+            version=version
+        )
+
+        # scan plugins
+        plugins.scanPlugins()
+        # enable plugin
+        try:
+            pluginInfo.activate()
+            plugins.loadPlugin(pluginInfo.pipname)
+        except RuntimeError:
+            prefs.general['startUpPlugins'].append(pluginInfo.pipname)
+            self.output.writeStdErr(_translate(
+                "[Warning] Could not activate plugin. PsychoPy may need to restart for plugin to take effect."
+            ))
+        # show list of components/routines now available
+        emts = []
+        for name, emt in getAllElements().items():
+            if hasattr(emt, "plugin") and emt.plugin == pluginInfo.pipname:
+                cats = ", ".join(emt.categories)
+                emts.append(f"{name} ({cats})")
+        if len(emts):
+            msg = _translate(
+                "The following components/routines should now be visible in the Components panel:\n"
+            )
+            for emt in emts:
+                msg += (
+                    f"    - {emt}\n"
+                )
+            self.output.write(msg)
+        # show info link
+        if pluginInfo.docs:
+            msg = _translate(
+                "\n"
+                "\n"
+                "For more information about the %s plugin, read the documentation at:\n"
+            ) % pluginInfo.name
+            self.output.write(msg)
+            self.output.writeLink(pluginInfo.docs, link=pluginInfo.docs)
+
 
     def onClose(self, evt=None):
         # Get changes to plugin states

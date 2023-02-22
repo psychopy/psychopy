@@ -156,12 +156,12 @@ class PluginInfo:
             current.remove(self.pipname)
         plugins.startUpPlugins(current, add=False, verify=False)
 
-    def install(self, stream):
+    def install(self):
         if self.parent is None:
             return
 
         wx.CallAfter(
-            self.parent.GetTopLevelParent().installPackage, self.pipname)
+            self.parent.GetTopLevelParent().installPlugin, self)
 
     def uninstall(self):
         if self.parent is None:
@@ -378,7 +378,7 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             # Mark as pending
             self.markInstalled(None)
             # Do install
-            self.info.install(stream=self.parent.stream)
+            self.info.install()
             # Mark according to install success
             self.markInstalled(self.info.installed)
 
@@ -699,7 +699,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Mark as pending
         self.markInstalled(None)
         # Do install
-        self.info.install(stream=self.stream)
+        self.info.install()
         # Mark according to install success
         self.markInstalled(self.info.installed)
 
