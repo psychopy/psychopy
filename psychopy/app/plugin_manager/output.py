@@ -112,21 +112,17 @@ class InstallStdoutPanel(wx.Panel, handlers.ThemeMixin):
         """
         self.write(f"{lines}\n", color=colors.scheme["red"])
 
-    def writeTerminus(self, pid, exitCode):
+    def writeTerminus(self, msg="Process completed"):
         """
         Write output when the subprocess exits.
 
         Parameters
         ----------
-        pid : int
-            Process ID number for the terminated subprocess.
-        exitCode : int
-            Program exit code.
-
+        msg : str
+            Message to be printed flanked by `#` characters.
         """
         # Construct a close message, shows the exit code
-        closeMsg = " Package installation complete "
-        closeMsg = closeMsg.center(80, '#') + '\n'
+        closeMsg = f" {msg} ".center(80, '#') + '\n'
         # Write close message
         self.write(closeMsg, color=colors.scheme["green"])
 
