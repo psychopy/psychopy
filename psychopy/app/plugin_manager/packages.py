@@ -1,6 +1,5 @@
 import webbrowser
 
-import requests
 import wx
 import sys
 import subprocess as sp
@@ -9,30 +8,30 @@ from pypi_search import search as pypi
 from psychopy.app import utils
 from psychopy.app.themes import handlers, icons
 from psychopy.localization import _translate
-from psychopy.tools import filetools as ft
 
 from psychopy.tools.pkgtools import (
-    getInstalledPackages, getPackageMetadata, getPypiInfo, isInstalled, _isUserPackage, getInstallState
+    getInstalledPackages, getPackageMetadata, getPypiInfo, isInstalled,
+    _isUserPackage, getInstallState
 )
-from .utils import uninstallPackage, installPackage
 
 
 class PackageManagerPanel(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent, dlg):
         wx.Panel.__init__(self, parent)
+        self.dlg = dlg
         # Setup sizer
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         # Add package list
-        self.packageList = PackageListCtrl(self)
+        self.packageList = PackageListCtrl(self, dlg=self.dlg)
         self.packageList.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelectItem)
         self.sizer.Add(self.packageList, flag=wx.EXPAND | wx.ALL)
         # Seperator
         self.sizer.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), border=6, flag=wx.EXPAND | wx.ALL)
         # Add details panel
-        self.detailsPanel = PackageDetailsPanel(self)
+        self.detailsPanel = PackageDetailsPanel(self, dlg=self.dlg)
         self.sizer.Add(self.detailsPanel, proportion=1, flag=wx.EXPAND | wx.ALL)
 
     def onSelectItem(self, evt=None):
@@ -125,8 +124,9 @@ class PIPTerminalPanel(wx.Panel):
 
 
 class PackageListCtrl(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent, dlg):
         wx.Panel.__init__(self, parent, size=(300, -1))
+        self.dlg = dlg
         # Setup sizers
         self.border = wx.BoxSizer()
         self.SetSizer(self.border)
@@ -228,7 +228,7 @@ class PackageListCtrl(wx.Panel):
 
         # if user selects NO, exit the routine
         if msg.ShowModal() == wx.ID_YES:
-            uninstallPackage(pipname)
+            self.GetTopLevelParent().uninstallPackage(pipname)
             self.refresh()
 
     def onInstall(self, evt=None):
@@ -236,7 +236,7 @@ class PackageListCtrl(wx.Panel):
         menu = evt.GetEventObject()
         pipname = menu.pipname
         # Install package
-        installPackage(pipname)
+        self.GetTopLevelParent().installPackage(pipname)
         self.refresh()
 
     def refresh(self, evt=None):
@@ -280,14 +280,15 @@ class PackageListCtrl(wx.Panel):
             style=wx.FD_OPEN | wx.FD_SHOW_HIDDEN)
         if dlg.ShowModal() == wx.ID_OK:
             # Install
-            installPackage(dlg.GetPath())
+            self.GetTopLevelParent().installPackage(dlg.GetPath())
             # Reload packages
             self.refresh()
 
 
 class PackageDetailsPanel(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent, dlg):
         wx.Panel.__init__(self, parent)
+        self.dlg = dlg
         # Setup sizers
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -443,7 +444,8 @@ class PackageDetailsPanel(wx.Panel):
         if version is not None:
             name += f"=={version}"
         # Install package then disable the button to indicate it's installed
-        installPackage(name)
+        win = self.GetTopLevelParent()
+        wx.CallAfter(win.installPackage, name)
         # Refresh view
         self.refresh()
 
@@ -457,7 +459,8 @@ class PackageDetailsPanel(wx.Panel):
 
         # if user selects NO, exit the routine
         if msg.ShowModal() == wx.ID_YES:
-            uninstallPackage(self.package)
+            win = self.GetTopLevelParent()
+            wx.CallAfter(win.uninstallPackage, self.package)
         # Refresh view
         self.refresh()
 

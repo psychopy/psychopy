@@ -2,3 +2,4 @@
 
 from .plugins import PluginManagerPanel
 from .packages import PackageManagerPanel
+from .output import InstallStdoutPanel
