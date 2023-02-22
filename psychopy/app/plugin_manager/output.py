@@ -30,6 +30,25 @@ class InstallStdoutPanel(wx.Panel, handlers.ThemeMixin):
         notebook.ChangeSelection(i)
 
     def write(self, content, color="black", style=""):
+        """Write out bytes coming from the current subprocess.
+
+        Parameters
+        ----------
+        content : str or bytes
+            Text to write.
+        color : bool
+            Color to show the text as
+        style : str
+            Whether to show the text as bold and/or italic.
+            * ""  = Regular
+            * "b" = Bold
+            * "i" = Italic
+            * "bi" / "ib" = Bold Italic
+        """
+        # Decode content if needed
+        if isinstance(content, bytes):
+            content = content.decode('utf-8')
+        # Set font
         from psychopy.app.themes import fonts
         self.output.BeginFont(fonts.CodeFont().obj)
         # Set style
@@ -61,16 +80,55 @@ class InstallStdoutPanel(wx.Panel, handlers.ThemeMixin):
         self.output.EndURL()
 
     def writeCmd(self, cmd=""):
+        """
+        Write input (black, bold, italic, prefaced by >>) text to the output panel.
+
+        Parameters
+        ----------
+        cmd : bytes or str
+            Command which was supplied to the subprocess
+        """
         self.write(f">> {cmd}\n", style="bi")
 
     def writeStdOut(self, lines=""):
+        """
+        Write output (black) text to the output panel.
+
+        Parameters
+        ----------
+        lines : bytes or str
+            String to print, can also be bytes (as is the case when retrieved directly from the subprocess).
+        """
         self.write(f"{lines}\n")
 
     def writeStdErr(self, lines=""):
+        """
+        Write error (red) text to the output panel.
+
+        Parameters
+        ----------
+        lines : bytes or str
+            String to print, can also be bytes (as is the case when retrieved directly from the subprocess).
+        """
         self.write(f"{lines}\n", color=colors.scheme["red"])
 
-    def writeTerminus(self):
-        self.write("\n---\n\n\n", color=colors.scheme["green"])
+    def writeTerminus(self, pid, exitCode):
+        """
+        Write output when the subprocess exits.
+
+        Parameters
+        ----------
+        pid : int
+            Process ID number for the terminated subprocess.
+        exitCode : int
+            Program exit code.
+
+        """
+        # Construct a close message, shows the exit code
+        closeMsg = " Package installation complete "
+        closeMsg = closeMsg.center(80, '#') + '\n'
+        # Write close message
+        self.write(closeMsg, color=colors.scheme["green"])
 
     def onLink(self, evt=None):
         webbrowser.open(evt.String)

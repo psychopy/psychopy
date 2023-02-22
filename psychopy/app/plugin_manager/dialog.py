@@ -109,70 +109,6 @@ class EnvironmentManagerDlg(wx.Dialog):
 
         return nullVersion
 
-    def _writeOutput(self, text, flush=True):
-        """Write out bytes coming from the current subprocess.
-
-        Parameters
-        ----------
-        text : str or bytes
-            Text to write.
-        flush : bool
-            Flush text so it shows up immediately on the pipe.
-
-        """
-        if isinstance(text, bytes):
-            text = text.decode('utf-8')
-
-        self.output.write(text)
-
-    def _onInputCallback(self, streamBytes):
-        """Callback to process data from the input stream of the subprocess.
-        This is called when `~psychopy.app.jobs.Jobs.poll` is called and only if
-        there is data in the associated pipe.
-
-        Parameters
-        ----------
-        streamBytes : bytes or str
-            Data from the 'stdin' streams connected to the subprocess.
-
-        """
-        self._writeOutput(streamBytes)
-
-    def _onErrorCallback(self, streamBytes):
-        """Callback to process data from the error stream of the subprocess.
-        This is called when `~psychopy.app.jobs.Jobs.poll` is called and only if
-        there is data in the associated pipe.
-
-        Parameters
-        ----------
-        streamBytes : bytes or str
-            Data from the 'sdterr' streams connected to the subprocess.
-
-        """
-        self._onInputCallback(streamBytes)
-
-    def _onTerminateCallback(self, pid, exitCode):
-        """Callback invoked when the subprocess exits.
-
-        Parameters
-        ----------
-        pid : int
-            Process ID number for the terminated subprocess.
-        exitCode : int
-            Program exit code.
-
-        """
-        # write a close message, shows the exit code
-        closeMsg = " Package installation complete "
-        closeMsg = closeMsg.center(80, '#') + '\n'
-        self._writeOutput(closeMsg)
-
-        self.pipProcess = None  # clear Job object
-
-        pkgtools.refreshPackages()
-        plugins.scanPlugins()
-        self.packageMgr.packageList.refresh()
-
     @property
     def isBusy(self):
         """`True` if there is currently a `pip` subprocess running.
@@ -192,6 +128,7 @@ class EnvironmentManagerDlg(wx.Dialog):
             formats may work.
 
         """
+        # alert if busy
         if self.isBusy:
             msg = wx.MessageDialog(
                 self,
@@ -202,12 +139,13 @@ class EnvironmentManagerDlg(wx.Dialog):
             msg.ShowModal()
             return
 
-        self.notebook.SetSelection(2)  # go to console page
+        # tab to output
+        self.output.open()
 
         if pkgtools._isUserPackage(packageName):
             msg = 'Uninstalling package bundle for `{}` ...\n'.format(
                 packageName)
-            self._writeOutput(msg)
+            self.output.writeStdOut(msg)
 
             success = pkgtools._uninstallUserPackage(packageName)
             if success:
@@ -217,7 +155,7 @@ class EnvironmentManagerDlg(wx.Dialog):
                 msg = ('Failed to remove package `{}`, check log for '
                        'details.\n').format(packageName)
 
-            self._writeOutput(msg)
+            self.output.writeStdOut(msg)
 
             return
 
@@ -226,15 +164,17 @@ class EnvironmentManagerDlg(wx.Dialog):
 
         # build the shell command to run the script
         command = [pyExec, '-m', 'pip', 'uninstall', packageName, '--yes']
+        # write command to output panel
+        self.output.writeCmd(" ".join(command))
 
         # create a new job with the user script
         self.pipProcess = jobs.Job(
             self,
             command=command,
             # flags=execFlags,
-            inputCallback=self._onInputCallback,  # both treated the same
-            errorCallback=self._onErrorCallback,
-            terminateCallback=self._onTerminateCallback
+            inputCallback=self.output.writeStdOut,  # both treated the same
+            errorCallback=self.output.writeStdErr,
+            terminateCallback=self.output.writeTerminus
         )
         self.pipProcess.start()
 
@@ -259,6 +199,7 @@ class EnvironmentManagerDlg(wx.Dialog):
             will be installed.
 
         """
+        # alert if busy
         if self.isBusy:
             msg = wx.MessageDialog(
                 self,
@@ -269,7 +210,8 @@ class EnvironmentManagerDlg(wx.Dialog):
             msg.ShowModal()
             return
 
-        self.notebook.SetSelection(2)  # go to console page
+        # tab to output
+        self.output.open()
 
         # interpreter path
         pyExec = sys.executable
@@ -277,12 +219,12 @@ class EnvironmentManagerDlg(wx.Dialog):
         # determine installation path for bundle, create it if needed
         bundlePath = plugins.getBundleInstallTarget(packageName)
         if not os.path.exists(bundlePath):
-            self._writeOutput(
+            self.output.writeStdOut(
                 "Creating bundle path `{}` for package `{}`.\n".format(
                     bundlePath, packageName))
             os.mkdir(bundlePath)  # make the directory
         else:
-            self._writeOutput(
+            self.output.writeStdOut(
                 "Using existing bundle path `{}` for package `{}`.\n".format(
                     bundlePath, packageName))
 
@@ -291,17 +233,18 @@ class EnvironmentManagerDlg(wx.Dialog):
             sys.path.insert(0, bundlePath)
 
         # build the shell command to run the script
-        command = [pyExec, '-m', 'pip', 'install', packageName, '--target',
-                   bundlePath]
+        command = [pyExec, '-m', 'pip', 'install', packageName, '--target', bundlePath]
+        # write command to output panel
+        self.output.writeCmd(" ".join(command))
 
         # create a new job with the user script
         self.pipProcess = jobs.Job(
             self,
             command=command,
             # flags=execFlags,
-            inputCallback=self._onInputCallback,  # both treated the same
-            errorCallback=self._onErrorCallback,
-            terminateCallback=self._onTerminateCallback
+            inputCallback=self.output.writeStdOut,  # both treated the same
+            errorCallback=self.output.writeStdErr,
+            terminateCallback=self.output.writeTerminus
         )
         self.pipProcess.start()
 
