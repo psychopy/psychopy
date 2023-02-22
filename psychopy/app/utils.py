@@ -481,6 +481,12 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
     def load(self, evt=None):
         if self.file is None:
             return
+        if not Path(self.file).is_file():
+            # If given a path to no file, enable save and load nothing
+            self.rawTextCtrl.SetValue("")
+            self.render()
+            self.saveBtn.Enable()
+            return
         # Set value from file
         with open(self.file, "r") as f:
             self.rawTextCtrl.SetValue(f.read())
