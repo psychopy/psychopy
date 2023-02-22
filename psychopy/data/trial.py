@@ -699,7 +699,7 @@ class TrialHandler(_BaseTrialHandler):
             for prmName in header:
                 nextLine = nextLine + prmName + delim
             # remove the final orphaned tab character
-            f.write(nextLine[:-1] + '\n')
+            f.write(nextLine[:-1] + os.linesep)
 
         # write the data matrix:
         for trial in dataOut:
@@ -708,7 +708,7 @@ class TrialHandler(_BaseTrialHandler):
                 nextLine = nextLine + str(trial[prmName]) + delim
             # remove the final orphaned tab character
             nextLine = nextLine[:-1]
-            f.write(nextLine + '\n')
+            f.write(nextLine + os.linesep)
 
         if f != sys.stdout:
             f.close()
@@ -1883,11 +1883,11 @@ class TrialHandlerExt(TrialHandler):
 
         # write a header row:
         if not matrixOnly:
-            f.write(delim.join(header) + '\n')
+            f.write(delim.join(header) + os.linesep)
         # write the data matrix:
         for trial in dataOut:
             line = delim.join([str(trial[prm]) for prm in header])
-            f.write(line + '\n')
+            f.write(line + os.linesep)
 
         if (fileName is not None) and (fileName != 'stdout'):
             f.close()
