@@ -308,8 +308,9 @@ class EnvironmentManagerDlg(wx.Dialog):
                 "\n"
                 "For more information about the %s plugin, read the documentation at:\n"
             ) % pluginInfo.name
-            self.output.write(msg)
+            self.output.writeStdOut(msg)
             self.output.writeLink(pluginInfo.docs, link=pluginInfo.docs)
+            self.output.writeStdOut("\n")
 
 
     def onClose(self, evt=None):
