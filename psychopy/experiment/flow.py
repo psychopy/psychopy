@@ -216,6 +216,37 @@ class Flow(list):
     def writeBody(self, script):
         """Write the rest of the code
         """
+        # Open function def
+        code = (
+            '\n'
+            'def run(expInfo, thisExp, win, inputs):\n'
+            '    """\n'
+            '    Run the experiment flow.\n'
+            '    """\n'
+        )
+        script.writeIndentedLines(code)
+        script.setIndentLevel(+1, relative=True)
+
+        # unpack inputs
+        code = (
+            "# get device handles from dict of input devices\n"
+            "defaultKeyboard = inputs['defaultKeyboard']\n"
+            "eyetracker = inputs['eyetracker']\n"
+        )
+        script.writeIndentedLines(code)
+        # unpack filename
+        code = (
+            "# get filename from ExperimentHandler for convenience\n"
+            "filename = thisExp.filename\n"
+            "frameTolerance = 0.001  # how close to onset before 'same' frame\n"
+
+        )
+        if self.exp.settings.params['Enable Escape'].val:
+            code += (
+            "endExpNow = False  # flag for 'escape' or other condition => quit the exp\n"
+            )
+        script.writeIndentedLines(code)
+
         # writeStartCode and writeInitCode:
         for entry in self:
             # NB each entry is a routine or LoopInitiator/Terminator
@@ -238,6 +269,9 @@ class Flow(list):
         for entry in self:
             self._currentRoutine = entry
             entry.writeExperimentEndCode(script)
+
+        # Exit function def
+        script.setIndentLevel(-1, relative=True)
 
     def writeFlowSchedulerJS(self, script):
         """Initialise each component and then write the per-frame code too

@@ -255,8 +255,11 @@ class Experiment:
                             alert(alertCode, strFields={'comp': type(component).__name__})
 
         if target == "PsychoPy":
+            # Imports
             self_copy.settings.writeInitCode(script, self_copy.psychopyVersion,
                                              localDateTime)
+            # Global variables
+            self_copy.settings.writeGlobals(script, version=self_copy.psychopyVersion)
 
             # Write "run once" code sections
             for entry in self_copy.flow:
@@ -266,18 +269,36 @@ class Experiment:
                     entry.writeRunOnceInitCode(script)
                 if hasattr(entry, 'writePreCode'):
                     entry.writePreCode(script)
-            script.write("\n\n")
 
-            # present info, make logfile
-            self_copy.settings.writeStartCode(script, self_copy.psychopyVersion)
+            # present info
+            self_copy.settings.writeExpInfoCode(script)
+            # setup data and saving
+            self_copy.settings.writeDataCode(script)
+            # make logfile
+            self_copy.settings.writeLoggingCode(script)
             # writes any components with a writeStartCode()
             self_copy.flow.writeStartCode(script)
+            # setup window
             self_copy.settings.writeWindowCode(script)  # create our visual.Window()
+            # setup inputs
             self_copy.settings.writeIohubCode(script)
             # for JS the routine begin/frame/end code are funcs so write here
 
             # write the rest of the code for the components
             self_copy.flow.writeBody(script)
+
+            # to do if running as main
+            code = (
+                "if __name__ == __main__:\n"
+                "    expInfo = setupExpInfo()\n"
+                "    thisExp = setupData(expInfo=expInfo)\n"
+                "    logFile = setupLogging(filename=thisExp.filename)\n"
+                "    win = setupWindow(expInfo=expInfo)\n"
+                "    inputs = setupInputs(expInfo=expInfo)\n"
+                "    run(expInfo, thisExp, win, inputs)\n"
+            )
+            script.writeIndentedLines(code)
+
             self_copy.settings.writeEndCode(script)  # close log file
             script = script.getvalue()
 

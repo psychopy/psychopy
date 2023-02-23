@@ -792,6 +792,28 @@ class SettingsComponent:
 
         buff.write("\n")
 
+    def writeGlobals(self, buff, version):
+        """
+        Create some global variables which functions will need
+        """
+        # Substitute params
+        params = self.params.copy()
+        params['version'] = version
+        if self.params['expName'].val in [None, '']:
+            params['expName'].val = "untitled.py"
+
+        code = (
+            "# --- Setup global variables (available in all functions) ---\n"
+            "# Ensure that relative paths start from the same directory as this script\n"
+            "_thisDir = os.path.dirname(os.path.abspath(__file__))\n"
+            "os.chdir(_thisDir)\n"
+            "# Store info about the experiment session\n"
+            "psychopyVersion = '%(version)s'\n"
+            "expName = %(expName)s  # from the Builder filename that created this script\n"
+            "\n"
+        )
+        buff.writeIndentedLines(code % params)
+
     def prepareResourcesJS(self):
         """Sets up the resources folder and writes the info.php file for PsychoJS
         """
@@ -946,58 +968,20 @@ class SettingsComponent:
         )
         buff.writeIndentedLines(code)
 
-    def writeStartCode(self, buff, version):
-
-        code = ("# Ensure that relative paths start from the same directory "
-                "as this script\n"
-                "_thisDir = os.path.dirname(os.path.abspath(__file__))\n"
-                "os.chdir(_thisDir)\n"
-                "# Store info about the experiment session\n"
-                "psychopyVersion = '{version}'\n".format(version=version))
+    def writeDataCode(self, buff):
+        """
+        Write code to handle data and saving (create ExperimentHandler, pick filename, etc.)
+        """
+        # Enter function def
+        code = (
+            '\n'
+            'def setupData(expInfo):\n'
+            '    """\n'
+            '    Make an ExperimentHandler to handle trials and saving.\n'
+            '    """'
+        )
         buff.writeIndentedLines(code)
-
-        if self.params['expName'].val in [None, '']:
-            buff.writeIndented("expName = 'untitled.py'\n")
-        else:
-            code = ("expName = %s  # from the Builder filename that created"
-                    " this script\n")
-            buff.writeIndented(code % self.params['expName'])
-
-        # Construct exp info string
-        expInfoDict = self.getInfo()
-        code = (
-            "expInfo = {"
-        )
-        if len(expInfoDict):
-            # Only make the dict multiline if it actually has contents
-            code += "\n"
-        buff.writeIndented(code)
-        buff.setIndentLevel(1, relative=True)
-        for key, value in self.getInfo().items():
-            code = (
-                f"'{key}': {value},\n"
-            )
-            buff.writeIndented(code)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-            "}\n"
-        )
-        buff.writeIndented(code)
-
-        sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
-        if self.params['Show info dlg'].val:
-            buff.writeIndentedLines(
-                f"# --- Show participant info dialog --\n"
-                f"dlg = gui.DlgFromDict(dictionary=expInfo, "
-                f"sortKeys={sorting}, title=expName)\n"
-                f"if dlg.OK == False:\n"
-                f"    core.quit()  # user pressed cancel\n"
-            )
-        buff.writeIndentedLines(
-            "expInfo['date'] = data.getDateStr()  # add a simple timestamp\n"
-            "expInfo['expName'] = expName\n"
-            "expInfo['psychopyVersion'] = psychopyVersion\n")
-        level = self.params['logging level'].val.upper()
+        buff.setIndentLevel(+1, relative=True)
 
         saveToDir = self.getSaveDataDir()
         buff.writeIndentedLines("\n# Data file name stem = absolute path +"
@@ -1047,20 +1031,112 @@ class SettingsComponent:
                 "wide csv file)s,\n    dataFileName=filename)\n")
         buff.writeIndentedLines(code % self.params)
 
+        code = (
+            "# return experiment handler\n"
+            "return thisExp\n"
+        )
+        buff.writeIndentedLines(code)
+        # Exit function def
+        buff.setIndentLevel(-1, relative=True)
+
+    def writeLoggingCode(self, buff):
+        # Enter function def
+        code = (
+            '\n'
+            'def setupLogging(filename):\n'
+            '    """\n'
+            '    Setup a log file and tell it what level to log at.\n'
+            '    """'
+        )
+        buff.writeIndentedLines(code)
+        buff.setIndentLevel(+1, relative=True)
+
+        level = self.params['logging level'].val.upper()
+
         if self.params['Save log file'].val:
-            code = ("# save a log file for detail verbose info\nlogFile = "
-                    "logging.LogFile(filename+'.log', level=logging.%s)\n")
+            code = (
+                "# save a log file for detail verbose info\n"
+                "logFile = logging.LogFile(filename+'.log', level=logging.%s)\n"
+            )
             buff.writeIndentedLines(code % level)
         buff.writeIndented("logging.console.setLevel(logging.WARNING)  "
                            "# this outputs to the screen, not a file\n")
 
-        if self.exp.settings.params['Enable Escape'].val:
-            buff.writeIndentedLines("\nendExpNow = False  # flag for 'escape'"
-                                    " or other condition => quit the exp\n")
+        code = (
+            "# return log file\n"
+            "return logFile\n"
+        )
+        buff.writeIndentedLines(code)
+        # Exit function def
+        buff.setIndentLevel(-1, relative=True)
 
-        buff.writeIndented("frameTolerance = 0.001  # how close to onset before 'same' frame\n")
+    def writeExpInfoCode(self, buff):
+        # Enter function def
+        code = (
+            '\n'
+            'def setupExp():\n'
+            '    """\n'
+            '    Construct the expInfo dict, and show participant info dialog (if requested).\n'
+            '    """'
+        )
+        buff.writeIndentedLines(code)
+        buff.setIndentLevel(+1, relative=True)
+
+        # Construct exp info string
+        expInfoDict = self.getInfo()
+        code = (
+            "expInfo = {"
+        )
+        if len(expInfoDict):
+            # Only make the dict multiline if it actually has contents
+            code += "\n"
+        buff.writeIndented(code)
+        buff.setIndentLevel(1, relative=True)
+        for key, value in self.getInfo().items():
+            code = (
+                f"'{key}': {value},\n"
+            )
+            buff.writeIndented(code)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "}\n"
+        )
+        buff.writeIndented(code)
+
+        sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
+        if self.params['Show info dlg'].val:
+            buff.writeIndentedLines(
+                f"# --- Show participant info dialog --\n"
+                f"dlg = gui.DlgFromDict(dictionary=expInfo, "
+                f"sortKeys={sorting}, title=expName)\n"
+                f"if dlg.OK == False:\n"
+                f"    core.quit()  # user pressed cancel\n"
+            )
+        buff.writeIndentedLines(
+            "expInfo['date'] = data.getDateStr()  # add a simple timestamp\n"
+            "expInfo['expName'] = expName\n"
+            "expInfo['psychopyVersion'] = psychopyVersion\n")
+
+        code = (
+            "# return expInfo\n"
+            "return expInfo\n"
+        )
+        buff.writeIndentedLines(code)
+        # Exit function def
+        buff.setIndentLevel(-1, relative=True)
 
     def writeIohubCode(self, buff):
+        # Open function def
+        code = (
+            '\n'
+            'def setupInputs(expInfo=None, inputs={}):\n'
+            '    """\n'
+            '    Setup whatever inputs are available (mouse, keyboard, eyetracker, etc.)\n'
+            '    """\n'
+        )
+        buff.writeIndentedLines(code)
+        buff.setIndentLevel(+1, relative=True)
+
         # Substitute inits
         inits = deepcopy(self.params)
         if inits['mgMove'].val == "CONTINUOUS":
@@ -1334,10 +1410,31 @@ class SettingsComponent:
         )
         buff.writeIndentedLines(code % inits)
 
+        code = (
+            "# return inputs dict\n"
+            "return {\n"
+            "    'defaultKeyboard': defaultKeyboard,\n"
+            "    'eyetracker': eyetracker,\n"
+            "}\n"
+        )
+        buff.writeIndentedLines(code)
+        # Exit function def
+        buff.setIndentLevel(-1, relative=True)
+
     def writeWindowCode(self, buff):
         """Setup the window code.
         """
-        buff.writeIndentedLines("\n# --- Setup the Window ---\n")
+        # Open function def
+        code = (
+            '\n'
+            'def setupWindow(expInfo=None):\n'
+            '    """\n'
+            '    Setup the Window\n'
+            '    """\n'
+        )
+        buff.writeIndentedLines(code)
+        buff.setIndentLevel(+1, relative=True)
+
         # get parameters for the Window
         fullScr = self.params['Full-screen window'].val
         # if fullscreen then hide the mouse, unless its requested explicitly
@@ -1402,13 +1499,17 @@ class SettingsComponent:
             buff.writeIndentedLines("\n# Enable sound input/output:\n"
                                     "microphone.switchOn()\n")
 
-        code = ("# store frame rate of monitor if we can measure it\n"
-                "expInfo['frameRate'] = win.getActualFrameRate()\n"
-                "if expInfo['frameRate'] != None:\n"
-                "    frameDur = 1.0 / round(expInfo['frameRate'])\n"
-                "else:\n"
-                "    frameDur = 1.0 / 60.0  # could not measure, so guess\n")
+        code = ("if expInfo is not None:\n"
+                "    # store frame rate of monitor if we can measure it\n"
+                "    expInfo['frameRate'] = win.getActualFrameRate()\n"
+                "    if expInfo['frameRate'] != None:\n"
+                "        frameDur = 1.0 / round(expInfo['frameRate'])\n"
+                "    else:\n"
+                "        frameDur = 1.0 / 60.0  # could not measure, so guess\n")
         buff.writeIndentedLines(code)
+
+        # Exit function def
+        buff.setIndentLevel(-1, relative=True)
 
     def writeWindowCodeJS(self, buff):
         """Setup the JS window code.
