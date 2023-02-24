@@ -276,30 +276,31 @@ class Experiment:
             self_copy.settings.writeDataCode(script)
             # make logfile
             self_copy.settings.writeLoggingCode(script)
-            # writes any components with a writeStartCode()
-            self_copy.flow.writeStartCode(script)
             # setup window
             self_copy.settings.writeWindowCode(script)  # create our visual.Window()
             # setup inputs
             self_copy.settings.writeIohubCode(script)
-            # for JS the routine begin/frame/end code are funcs so write here
-
-            # write the rest of the code for the components
+            # write the bulk of the experiment code
             self_copy.flow.writeBody(script)
+            # save data
+            self_copy.settings.writeSaveDataCode(script)
 
             # to do if running as main
             code = (
+                "\n"
+                "# if running this experiment as a script...\n"
                 "if __name__ == __main__:\n"
+                "    # call all functions in order\n"
                 "    expInfo = setupExpInfo()\n"
                 "    thisExp = setupData(expInfo=expInfo)\n"
                 "    logFile = setupLogging(filename=thisExp.filename)\n"
                 "    win = setupWindow(expInfo=expInfo)\n"
                 "    inputs = setupInputs(expInfo=expInfo)\n"
                 "    run(expInfo, thisExp, win, inputs)\n"
+                "    saveData(thisExp)\n"
             )
             script.writeIndentedLines(code)
 
-            self_copy.settings.writeEndCode(script)  # close log file
             script = script.getvalue()
 
         elif target == "PsychoJS":

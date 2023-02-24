@@ -239,7 +239,6 @@ class Flow(list):
             "# get filename from ExperimentHandler for convenience\n"
             "filename = thisExp.filename\n"
             "frameTolerance = 0.001  # how close to onset before 'same' frame\n"
-
         )
         if self.exp.settings.params['Enable Escape'].val:
             code += (
@@ -247,6 +246,8 @@ class Flow(list):
             )
         script.writeIndentedLines(code)
 
+        # writes any components with a writeStartCode()
+        self.writeStartCode(script)
         # writeStartCode and writeInitCode:
         for entry in self:
             # NB each entry is a routine or LoopInitiator/Terminator
@@ -269,6 +270,9 @@ class Flow(list):
         for entry in self:
             self._currentRoutine = entry
             entry.writeExperimentEndCode(script)
+        # final experiment end code
+        self.exp.settings.writeEndCode(script)
+        script.writeIndentedLines("\n")
 
         # Exit function def
         script.setIndentLevel(-1, relative=True)

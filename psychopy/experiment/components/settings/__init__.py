@@ -1511,6 +1511,28 @@ class SettingsComponent:
         # Exit function def
         buff.setIndentLevel(-1, relative=True)
 
+    def writeSaveDataCode(self, buff):
+        # Open function def
+        code = (
+            'def saveData(thisExp):\n'
+            '    """\n'
+            '    Save data from this experiment\n'
+            '    """\n'
+        )
+        buff.writeIndentedLines(code)
+        buff.setIndentLevel(+1, relative=True)
+
+        buff.writeIndented("# these shouldn't be strictly necessary "
+                           "(should auto-save)\n")
+        if self.params['Save wide csv file'].val:
+            buff.writeIndented("thisExp.saveAsWideText(filename+'.csv', "
+                               "delim={})\n".format(self.params['Data file delimiter']))
+        if self.params['Save psydat file'].val:
+            buff.writeIndented("thisExp.saveAsPickle(filename)\n")
+
+        # Exit function def
+        buff.setIndentLevel(-1, relative=True)
+
     def writeWindowCodeJS(self, buff):
         """Setup the JS window code.
         """
@@ -1545,13 +1567,7 @@ class SettingsComponent:
                 'win.flip()\n\n')
         buff.writeIndentedLines(code)
 
-        buff.writeIndented("# these shouldn't be strictly necessary "
-                           "(should auto-save)\n")
-        if self.params['Save wide csv file'].val:
-            buff.writeIndented("thisExp.saveAsWideText(filename+'.csv', "
-                               "delim={})\n".format(self.params['Data file delimiter']))
-        if self.params['Save psydat file'].val:
-            buff.writeIndented("thisExp.saveAsPickle(filename)\n")
+
         if self.params['Save log file'].val:
             buff.writeIndented("logging.flush()\n")
         code = ("# make sure everything is closed down\n"
