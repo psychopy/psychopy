@@ -978,7 +978,18 @@ class SettingsComponent:
             'def setupData(expInfo):\n'
             '    """\n'
             '    Make an ExperimentHandler to handle trials and saving.\n'
-            '    """'
+            '    \n'
+            '    Parameters\n'
+            '    ==========\n'
+            '    expInfo : dict\n'
+            '        Information about this experiment, created by the `setupExpInfo` function.\n'
+            '    \n'
+            '    Returns\n'
+            '    ==========\n'
+            '    psychopy.data.ExperimentHandler\n'
+            '        Handler object for this experiment, contains the data to save and information about \n'
+            '        where to save it to.\n'
+            '    """\n'
         )
         buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
@@ -1046,7 +1057,17 @@ class SettingsComponent:
             'def setupLogging(filename):\n'
             '    """\n'
             '    Setup a log file and tell it what level to log at.\n'
-            '    """'
+            '    \n'
+            '    Parameters\n'
+            '    ==========\n'
+            '    filename : str or pathlib.Path\n'
+            '        Filename to save log file and data files as, doesn\'t need an extension.\n'
+            '    \n'
+            '    Returns\n'
+            '    ==========\n'
+            '    psychopy.logging.LogFile\n'
+            '        Text stream to receive inputs from the logging system.\n'
+            '    """\n'
         )
         buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
@@ -1077,7 +1098,12 @@ class SettingsComponent:
             'def setupExpInfo():\n'
             '    """\n'
             '    Construct the expInfo dict, and show participant info dialog (if requested).\n'
-            '    """'
+            '    \n'
+            '    Returns\n'
+            '    ==========\n'
+            '    dict\n'
+            '        Information about this experiment.\n'
+            '    """\n'
         )
         buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
@@ -1129,9 +1155,19 @@ class SettingsComponent:
         # Open function def
         code = (
             '\n'
-            'def setupInputs(expInfo=None, inputs={}):\n'
+            'def setupInputs(expInfo=None):\n'
             '    """\n'
             '    Setup whatever inputs are available (mouse, keyboard, eyetracker, etc.)\n'
+            '    \n'
+            '    Parameters\n'
+            '    ==========\n'
+            '    expInfo : dict\n'
+            '        Information about this experiment, created by the `setupExpInfo` function.\n'
+            '    \n'
+            '    Returns\n'
+            '    ==========\n'
+            '    dict\n'
+            '        Dictionary of input devices by name.\n'
             '    """\n'
         )
         buff.writeIndentedLines(code)
@@ -1147,6 +1183,7 @@ class SettingsComponent:
         # Make ioConfig dict
         code = (
             "# --- Setup input devices ---\n"
+            "inputs = {}\n"
             "ioConfig = {}\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -1430,6 +1467,16 @@ class SettingsComponent:
             'def setupWindow(expInfo=None):\n'
             '    """\n'
             '    Setup the Window\n'
+            '    \n'
+            '    Parameters\n'
+            '    ==========\n'
+            '    expInfo : dict\n'
+            '        Information about this experiment, created by the `setupExpInfo` function.\n'
+            '    \n'
+            '    Returns\n'
+            '    ==========\n'
+            '    psychopy.visual.Window\n'
+            '        Window in which to run this experiment.\n'
             '    """\n'
         )
         buff.writeIndentedLines(code)
@@ -1521,6 +1568,12 @@ class SettingsComponent:
             'def saveData(thisExp):\n'
             '    """\n'
             '    Save data from this experiment\n'
+            '    \n'
+            '    Parameters\n'
+            '    ==========\n'
+            '    thisExp : psychopy.data.ExperimentHandler\n'
+            '        Handler object for this experiment, contains the data to save and information about \n'
+            '        where to save it to.\n'
             '    """\n'
         )
         buff.writeIndentedLines(code)

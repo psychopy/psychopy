@@ -296,7 +296,12 @@ class Experiment:
                 "    logFile = setupLogging(filename=thisExp.dataFileName)\n"
                 "    win = setupWindow(expInfo=expInfo)\n"
                 "    inputs = setupInputs(expInfo=expInfo)\n"
-                "    run(expInfo, thisExp, win, inputs)\n"
+                "    run(\n"
+                "        expInfo=expInfo, \n"
+                "        thisExp=thisExp, \n"
+                "        win=win, \n"
+                "        inputs=inputs\n"
+                "    )\n"
                 "    saveData(thisExp)\n"
             )
             script.writeIndentedLines(code)

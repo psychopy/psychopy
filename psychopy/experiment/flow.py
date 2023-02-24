@@ -222,6 +222,18 @@ class Flow(list):
             'def run(expInfo, thisExp, win, inputs):\n'
             '    """\n'
             '    Run the experiment flow.\n'
+            '    \n'
+            '    Parameters\n'
+            '    ==========\n'
+            '    expInfo : dict\n'
+            '        Information about this experiment, created by the `setupExpInfo` function.\n'
+            '    thisExp : psychopy.data.ExperimentHandler\n'
+            '        Handler object for this experiment, contains the data to save and information about \n'
+            '        where to save it to.\n'
+            '    psychopy.visual.Window\n'
+            '        Window in which to run this experiment.\n'
+            '    inputs : dict\n'
+            '        Dictionary of input devices by name.\n'
             '    """\n'
         )
         script.writeIndentedLines(code)
