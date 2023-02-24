@@ -1074,7 +1074,7 @@ class SettingsComponent:
         # Enter function def
         code = (
             '\n'
-            'def setupExp():\n'
+            'def setupExpInfo():\n'
             '    """\n'
             '    Construct the expInfo dict, and show participant info dialog (if requested).\n'
             '    """'
@@ -1509,6 +1509,10 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
 
         # Exit function def
+        code = (
+            "return win\n"
+        )
+        buff.writeIndentedLines(code)
         buff.setIndentLevel(-1, relative=True)
 
     def writeSaveDataCode(self, buff):

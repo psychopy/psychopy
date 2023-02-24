@@ -289,11 +289,11 @@ class Experiment:
             code = (
                 "\n"
                 "# if running this experiment as a script...\n"
-                "if __name__ == __main__:\n"
+                "if __name__ == '__main__':\n"
                 "    # call all functions in order\n"
                 "    expInfo = setupExpInfo()\n"
                 "    thisExp = setupData(expInfo=expInfo)\n"
-                "    logFile = setupLogging(filename=thisExp.filename)\n"
+                "    logFile = setupLogging(filename=thisExp.dataFileName)\n"
                 "    win = setupWindow(expInfo=expInfo)\n"
                 "    inputs = setupInputs(expInfo=expInfo)\n"
                 "    run(expInfo, thisExp, win, inputs)\n"

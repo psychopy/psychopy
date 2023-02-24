@@ -237,7 +237,7 @@ class Flow(list):
         # unpack filename
         code = (
             "# get filename from ExperimentHandler for convenience\n"
-            "filename = thisExp.filename\n"
+            "filename = thisExp.dataFileName\n"
             "frameTolerance = 0.001  # how close to onset before 'same' frame\n"
         )
         if self.exp.settings.params['Enable Escape'].val:
