@@ -241,6 +241,8 @@ class Flow(list):
 
         # unpack inputs
         code = (
+            "# make sure variables created by exec are available globally\n"
+            "exec = core.setExecEnvironment(globals())\n"
             "# get device handles from dict of input devices\n"
             "defaultKeyboard = inputs['defaultKeyboard']\n"
             "eyetracker = inputs['eyetracker']\n"
