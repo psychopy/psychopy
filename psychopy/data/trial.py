@@ -1015,6 +1015,17 @@ class TrialHandler2(_BaseTrialHandler):
 
     next = __next__  # allows user to call without a loop `val = trials.next()`
 
+    def abortCurrentTrial(self, action='random'):
+        """Abort the current trial.
+
+        Parameters
+        ----------
+        action : str
+            Action to take with the aborted trial. Can be either of ...
+
+        """
+        pass
+
     def getFutureTrial(self, n=1):
         """Returns the condition for n trials into the future, without
         advancing the trials. Returns 'None' if attempting to go beyond
