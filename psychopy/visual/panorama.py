@@ -64,6 +64,10 @@ class PanoramicImageStim(ImageStim):
             radius=1.0,
             flipFaces=True)  # faces are on the inside of the sphere
 
+        # flip texture coords to view upright
+        textureCoords = np.ascontiguousarray(
+            np.flipud(textureCoords), dtype=textureCoords.dtype)
+
         # handle to the VAO used to draw the sphere
         self._vao = None
         self._createVAO(vertices, textureCoords, normals, faces)
