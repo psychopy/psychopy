@@ -1155,7 +1155,7 @@ class SettingsComponent:
         # Open function def
         code = (
             '\n'
-            'def setupInputs(expInfo=None):\n'
+            'def setupInputs(expInfo, win):\n'
             '    """\n'
             '    Setup whatever inputs are available (mouse, keyboard, eyetracker, etc.)\n'
             '    \n'
@@ -1164,6 +1164,8 @@ class SettingsComponent:
             '    expInfo : dict\n'
             '        Information about this experiment, created by the `setupExpInfo` function.\n'
             '    \n'
+            '    win : psychopy.visual.Window\n'
+            '        Window in which to run this experiment.\n'
             '    Returns\n'
             '    ==========\n'
             '    dict\n'
@@ -1464,7 +1466,7 @@ class SettingsComponent:
         # Open function def
         code = (
             '\n'
-            'def setupWindow(expInfo=None):\n'
+            'def setupWindow(expInfo=None, win=None):\n'
             '    """\n'
             '    Setup the Window\n'
             '    \n'
@@ -1472,6 +1474,8 @@ class SettingsComponent:
             '    ==========\n'
             '    expInfo : dict\n'
             '        Information about this experiment, created by the `setupExpInfo` function.\n'
+            '    psychopy.visual.Window\n'
+            '        Window to setup - leave as None to create a new window.\n'
             '    \n'
             '    Returns\n'
             '    ==========\n'
@@ -1482,10 +1486,12 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
 
+        params = self.params.copy()
+
         # get parameters for the Window
-        fullScr = self.params['Full-screen window'].val
+        params['fullScr'] = self.params['Full-screen window'].val
         # if fullscreen then hide the mouse, unless its requested explicitly
-        allowGUI = (not bool(fullScr)) or bool(self.params['Show mouse'].val)
+        allowGUI = (not bool(params['fullScr'])) or bool(self.params['Show mouse'].val)
         allowStencil = False
         # NB routines is a dict:
         for thisRoutine in list(self.exp.routines.values()):
@@ -1495,6 +1501,16 @@ class SettingsComponent:
                     allowStencil = True
                 if thisComp.type == 'RatingScale':
                     allowGUI = True  # to have a mouse
+        params['allowGUI'] = allowGUI
+        params['allowStencil'] = allowStencil
+        # use fbo?
+        params['useFBO'] = "True"
+        if params['blendMode'].val in ("nofbo",):
+            params['blendMode'].val = 'avg'
+            params['useFBO'] = "False"
+        # Substitute units
+        if self.params['Units'].val == 'use prefs':
+            params['Units'] = "None"
 
         requestedScreenNumber = int(self.params['Screen'].val)
         nScreens = 10
@@ -1507,30 +1523,59 @@ class SettingsComponent:
         if requestedScreenNumber > nScreens:
             logging.warn("Requested screen can't be found. Writing script "
                          "using first available screen.")
-            screenNumber = 0
+            params['screenNumber'] = 0
         else:
             # computer has 1 as first screen
-            screenNumber = requestedScreenNumber - 1
+            params['screenNumber'] = requestedScreenNumber - 1
 
-        size = self.params['Window size (pixels)']
-        winType = self.params['winBackend']
+        params['size'] = self.params['Window size (pixels)']
+        params['winType'] = self.params['winBackend']
 
-        code = ("win = visual.Window(\n    size=%s, fullscr=%s, screen=%s, "
-                "\n    winType=%s, allowStencil=%s,\n")
-        vals = (size, fullScr, screenNumber, winType, allowStencil)
-        buff.writeIndented(code % vals)
+        # Do we need to make a new window?
+        code = (
+            "if win is None:\n"
+            "    # if not given a window to setup, make one"
+        )
+        buff.writeIndentedLines(code)
+        buff.setIndentLevel(+1, relative=True)
+        code = (
+            "win = visual.Window(\n"
+            "    size=%(size)s, fullscr=%(fullScr)s, screen=%(screenNumber)s,\n"
+            "    winType=%(winType)s, allowStencil=%(allowStencil)s,\n"
+            "    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n"
+            "    backgroundImage=%(backgroundImg)s, backgroundFit=%(backgroundFit)s,\n"
+            "    blendMode=%(blendMode)s, useFBO=%(useFBO)s,\n"
+            "    units=%(Units)s\n"
+            ")\n"
+        )
+        buff.writeIndentedLines(code % params)
+        buff.setIndentLevel(-1, relative=True)
 
-        code = ("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n"
-                "    backgroundImage=%(backgroundImg)s, backgroundFit=%(backgroundFit)s,\n")
-        if self.params['blendMode'].val in ("avg", "add"):
-            code += "    blendMode=%(blendMode)s, useFBO=True, \n"
-        elif self.params['blendMode'].val in ("nofbo",):
-            code += "    blendMode='avg', useFBO=False, \n"
-
-        if self.params['Units'].val != 'use prefs':
-            code += "    units=%(Units)s"
-        code = code.rstrip(', \n') + ')\n'
+        # If we have a window already, set its attributes
+        code = (
+            "else:\n"
+            "    # if we have a window, set all settable attributes\n"
+        )
         buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(+1, relative=True)
+        code = (
+            "win.fullscr=%(fullScr)s\n"
+            "win.windowedSize=%(size)s\n"
+            "win.screen=%(screenNumber)s\n"
+            "win.winType=%(winType)s\n"
+            "win.allowStencil=%(allowStencil)s\n"
+            "win.monitor=%(Monitor)s\n"
+            "win.color=%(color)s\n"
+            "win.colorSpace=%(colorSpace)s\n"
+            "win.backgroundImage=%(backgroundImg)s\n"
+            "win.backgroundFit=%(backgroundFit)s\n"
+            "win.blendMode=%(blendMode)s\n"
+            "win.useFBO=%(useFBO)s\n"
+            "win.units=%(Units)s\n"
+        )
+        buff.writeIndentedLines(code % params)
+        buff.setIndentLevel(-1, relative=True)
+
         # Show/hide mouse according to param
         code = (
             "win.mouseVisible = %s\n"
