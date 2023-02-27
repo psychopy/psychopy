@@ -1018,10 +1018,18 @@ class TrialHandler2(_BaseTrialHandler):
     def abortCurrentTrial(self, action='random'):
         """Abort the current trial.
 
+        Calling this during an experiment will immediatley end the current
+        trial. What happens to the trial depends on the specified `action`:
+
+        * `'random'`: Present the trial again at a random point later on in the
+           session.
+        * `'append'`: Move the trial to the very end of the block.
+
         Parameters
         ----------
         action : str
-            Action to take with the aborted trial. Can be either of ...
+            Action to take with the aborted trial. Can be either of `'random'`
+            or `'append'`. The default action is `'random'`.
 
         """
         pass
