@@ -1560,6 +1560,7 @@ class SettingsComponent:
         buff.setIndentLevel(+1, relative=True)
         code = (
             "win.fullscr=%(fullScr)s\n"
+            "win.windowedSize=%(size)s\n"
             "win.screen=%(screenNumber)s\n"
             "win.winType=%(winType)s\n"
             "win.allowStencil=%(allowStencil)s\n"
