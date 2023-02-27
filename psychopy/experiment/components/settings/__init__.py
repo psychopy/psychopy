@@ -1155,7 +1155,7 @@ class SettingsComponent:
         # Open function def
         code = (
             '\n'
-            'def setupInputs(expInfo=None):\n'
+            'def setupInputs(expInfo, win):\n'
             '    """\n'
             '    Setup whatever inputs are available (mouse, keyboard, eyetracker, etc.)\n'
             '    \n'
@@ -1164,6 +1164,8 @@ class SettingsComponent:
             '    expInfo : dict\n'
             '        Information about this experiment, created by the `setupExpInfo` function.\n'
             '    \n'
+            '    win : psychopy.visual.Window\n'
+            '        Window in which to run this experiment.\n'
             '    Returns\n'
             '    ==========\n'
             '    dict\n'
