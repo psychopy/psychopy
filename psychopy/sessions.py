@@ -24,8 +24,7 @@ class PsychopySession:
     ('error' is fewest messages, 'debug' is most)
 
     expInfo : dict, str or None
-        Dictionary in which to store information for this session. Leave as None for a blank dict,
-        or supply the name of an experiment to use the `setupExpInfo` method from that experiment.
+        Dictionary in which to store information for this session. Leave as None for a blank dict.
 
     inputs: dict, str or None
         Dictionary of input objects for this session. Leave as None for a blank dict, or supply the
@@ -65,9 +64,6 @@ class PsychopySession:
         self.expInfo = {}
         if isinstance(expInfo, dict):
             self.expInfo = expInfo
-        elif expInfo in self.experiments:
-            # If expInfo is the name of an experiment, setup from that experiment's method
-            self.setupExpInfoFromExperiment(expInfo)
         # Store/create window object
         self.win = win
         if win in self.experiments:
