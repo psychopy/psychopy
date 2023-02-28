@@ -806,7 +806,6 @@ class SettingsComponent:
             "# --- Setup global variables (available in all functions) ---\n"
             "# Ensure that relative paths start from the same directory as this script\n"
             "_thisDir = os.path.dirname(os.path.abspath(__file__))\n"
-            "os.chdir(_thisDir)\n"
             "# Store info about the experiment session\n"
             "psychopyVersion = '%(version)s'\n"
             "expName = %(expName)s  # from the Builder filename that created this script\n"

@@ -246,6 +246,8 @@ class Flow(list):
             "# get device handles from dict of input devices\n"
             "defaultKeyboard = inputs['defaultKeyboard']\n"
             "eyetracker = inputs['eyetracker']\n"
+            "# make sure we're running in the directory for this experiment\n"
+            "os.chdir(_thisDir)\n"
         )
         script.writeIndentedLines(code)
         # unpack filename
