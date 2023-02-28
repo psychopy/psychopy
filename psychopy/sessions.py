@@ -53,7 +53,7 @@ class PsychopySession:
         # Create log file
         self.logFile = logging.LogFile(
             self.root / (self.root.stem + '.log'),
-            level=getattr(logging, loggingLevel)
+            level=getattr(logging, loggingLevel.upper())
         )
         # Add experiments
         self.experiments = {}
