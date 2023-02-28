@@ -68,6 +68,7 @@ class PsychopySession:
         self.win = win
         if win in self.experiments:
             # If win is the name of an experiment, setup from that experiment's method
+            self.win = None
             self.setupWindowFromExperiment(win)
         # Store/create inputs dict
         self.inputs = {}
