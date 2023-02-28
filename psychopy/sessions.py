@@ -34,11 +34,13 @@ class PsychopySession:
         if not file.is_absolute():
             # If relative, treat as relative to root
             file = self.root / file
-        # Get project folder
+        # Get project folder if not specified
         if folder is None:
             folder = file.parent
         # Initialise as module
-        (folder / "__init__.py").write_text("")
+        moduleInitFile = (folder / "__init__.py")
+        if not moduleInitFile.is_file():
+            moduleInitFile.write_text("")
         # Construct relative path starting from root
         relPath = []
         for parent in file.relative_to(self.root).parents:
@@ -50,10 +52,12 @@ class PsychopySession:
         # Join with . so it's a valid import path
         importPath = ".".join(relPath)
         # Write experiment as Python script
-        exp = experiment.Experiment()
-        exp.loadFromXML(file)
-        script = exp.writeScript(target="PsychoPy")
-        (file.parent / (file.stem + ".py")).write_text(script, encoding="utf8")
+        pyFile = file.parent / (file.stem + ".py")
+        if not pyFile.is_file():
+            exp = experiment.Experiment()
+            exp.loadFromXML(file)
+            script = exp.writeScript(target="PsychoPy")
+            pyFile.write_text(script, encoding="utf8")
         # Import python file
         self.experiments[file.stem] = importlib.import_module(importPath)
 
