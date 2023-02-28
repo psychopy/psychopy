@@ -3,30 +3,83 @@ import sys
 from pathlib import Path
 import shutil
 
-from psychopy import experiment
+from psychopy import experiment, logging
 
 
 class PsychopySession:
+    """
+    Parameters
+    ==========
+    root : str or pathlib.Path
+        Root folder for this session - should contain all of the experiments to be run.
+
+    loggingLevel : str
+    How much output do you want in the log files? Should be one of the following:
+        - 'error'
+        - 'warning'
+        - 'data'
+        - 'exp'
+        - 'info'
+        - 'debug'
+    ('error' is fewest messages, 'debug' is most)
+
+    expInfo : dict, str or None
+        Dictionary in which to store information for this session. Leave as None for a blank dict,
+        or supply the name of an experiment to use the `setupExpInfo` method from that experiment.
+
+    inputs: dict, str or None
+        Dictionary of input objects for this session. Leave as None for a blank dict, or supply the
+        name of an experiment to use the `setupInputs` method from that experiment.
+
+    win : psychopy.visual.Window, str or None
+        Window in which to run experiments this session. Leave as None for a blank dict, or supply
+        the name of an experiment to use the `setupInputs` method from that experiment.
+
+    experiments : list or None
+        List of experiments which this Session can run. Each should be the file path of a .psyexp
+        file, contained somewhere within the folder supplied for `root`. Paths can be absolute or
+        relative to the root folder. Leave as None for a blank list, experiments can be added
+        later on via `addExperiment()`.
+    """
     def __init__(self,
-                 expInfo,
-                 win,
-                 inputs,
                  root,
+                 loggingLevel="info",
+                 expInfo=None,
+                 inputs=None,
+                 win=None,
                  experiments=None):
-        self.expInfo = expInfo
-        self.win = win
-        self.inputs = inputs
-        # Add root to Python path
+        # Store root and add to Python path
         self.root = Path(root)
         sys.path.insert(1, str(self.root))
+        # Create log file
+        self.logFile = logging.LogFile(
+            self.root / (self.root.stem + '.log'),
+            level=getattr(logging, loggingLevel)
+        )
         # Add experiments
         self.experiments = {}
         if experiments is not None:
             for exp in experiments:
                 self.addExperiment(exp)
-
-    def close(self):
-        shutil.rmtree(self.root)
+        # Store/create expInfo dict
+        self.expInfo = {}
+        if isinstance(expInfo, dict):
+            self.expInfo = expInfo
+        elif expInfo in self.experiments:
+            # If expInfo is the name of an experiment, setup from that experiment's method
+            self.setupExpInfoFromExperiment(expInfo)
+        # Store/create window object
+        self.win = win
+        if win in self.experiments:
+            # If win is the name of an experiment, setup from that experiment's method
+            self.setupWindowFromExperiment(win)
+        # Store/create inputs dict
+        self.inputs = {}
+        if isinstance(inputs, dict):
+            self.inputs = inputs
+        elif inputs in self.experiments:
+            # If inputs is the name of an experiment, setup from that experiment's method
+            self.setupInputsFromExperiment(inputs)
 
     def addExperiment(self, file, folder=None):
         # Path-ise file
@@ -61,6 +114,72 @@ class PsychopySession:
         # Import python file
         self.experiments[file.stem] = importlib.import_module(importPath)
 
+    def setupExpInfoFromExperiment(self, stem):
+        """
+        Update expInfo for this Session via the 'setupExpInfo` method from one of this Session's experiments.
+
+        Parameters
+        ==========
+        stem : str
+            Stem of the experiment file - in other words, the name of the experiment.
+        """
+        # Run the expInfo method
+        self.expInfo = self.experiments[stem].setupExpInfo()
+
+    def setupWindowFromExperiment(self, stem):
+        """
+        Setup the window for this Session via the 'setupWindow` method from one of this Session's experiments.
+
+        Parameters
+        ==========
+        stem : str
+            Stem of the experiment file - in other words, the name of the experiment.
+        """
+        # Run the setupWindow method
+        self.win = self.experiments[stem].setupWindow(expInfo=self.expInfo, win=self.win)
+
+    def setupInputsFromExperiment(self, stem):
+        """
+        Setup inputs for this Session via the 'setupInputs` method from one of this Session's experiments.
+
+        Parameters
+        ==========
+        stem : str
+            Stem of the experiment file - in other words, the name of the experiment.
+        """
+        # Run the setupInputs method
+        self.inputs = self.experiments[stem].setupInputs(expInfo=self.expInfo, win=self.win)
+
     def runExperiment(self, stem):
+        """
+        Run the `setupData` and `run` methods from one of this Session's experiments.
+
+        Parameters
+        ==========
+        stem : str
+            Stem of the experiment file - in other words, the name of the experiment.
+        """
+        # Setup data for this experiment
         thisExp = self.experiments[stem].setupData(self.expInfo)
-        self.experiments[stem].run(expInfo=self.expInfo, thisExp=thisExp, win=self.win, inputs=self.inputs)
+        # Run this experiment
+        self.experiments[stem].run(
+            expInfo=self.expInfo,
+            thisExp=thisExp,
+            win=self.win,
+            inputs=self.inputs
+        )
+
+        return thisExp
+
+    def saveDataToExperiment(self, stem, thisExp):
+        """
+        Run the `saveData` method from one of this Session's experiments, on a given ExperimentHandler.
+
+        Parameters
+        ==========
+        stem : str
+            Stem of the experiment file - in other words, the name of the experiment.
+        thisExp : psychopy.data.ExperimentHandler
+            ExperimentHandler object to save the data from.
+        """
+        self.experiments[stem].saveData(thisExp)
