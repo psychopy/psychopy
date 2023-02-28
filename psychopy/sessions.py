@@ -161,6 +161,8 @@ class PsychopySession:
         """
         # Setup data for this experiment
         thisExp = self.experiments[stem].setupData(self.expInfo)
+        # Setup logging
+        self.experiments[stem].run.__globals__['logFile'] = self.logFile
         # Run this experiment
         self.experiments[stem].run(
             expInfo=self.expInfo,
