@@ -1018,21 +1018,25 @@ class TrialHandler2(_BaseTrialHandler):
     def abortCurrentTrial(self, action='random'):
         """Abort the current trial.
 
-        Calling this during an experiment will immediatley end the current
-        trial. What happens to the trial depends on the specified `action`:
-
-        * `'random'`: Present the trial again at a random point later on in the
-           session.
-        * `'append'`: Move the trial to the very end of the block.
+        Calling this during an experiment replace this trial. The condition
+        related to the aborted trial will be replaced elsewhere in the session
+        depending on the `method` in use for sampling conditions.
 
         Parameters
         ----------
         action : str
-            Action to take with the aborted trial. Can be either of `'random'`
+            Action to take with the aborted trial. Can be either of `'random'`,
             or `'append'`. The default action is `'random'`.
 
         """
-        pass
+        if not isinstance(action, str):  # type checks for params
+            raise TypeError(
+                "Parameter `action` specified incorrect type, must be `str`.")
+
+        if self.method in ('random', 'sequential'):
+            pass
+        elif self.method == 'fullRandom':
+            pass
 
     def getFutureTrial(self, n=1):
         """Returns the condition for n trials into the future, without
