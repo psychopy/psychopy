@@ -31,8 +31,8 @@ class PsychopySession:
         name of an experiment to use the `setupInputs` method from that experiment.
 
     win : psychopy.visual.Window, str or None
-        Window in which to run experiments this session. Leave as None for a blank dict, or supply
-        the name of an experiment to use the `setupInputs` method from that experiment.
+        Window in which to run experiments this session. Supply a dict of parameters to make a Window
+        from them, or supply the name of an experiment to use the `setupWindow` method from that experiment.
 
     experiments : list or None
         List of experiments which this Session can run. Each should be the file path of a .psyexp
@@ -66,6 +66,9 @@ class PsychopySession:
             self.expInfo = expInfo
         # Store/create window object
         self.win = win
+        if isinstance(win, dict):
+            from psychopy import visual
+            self.win = visual.Window(**win)
         if win in self.experiments:
             # If win is the name of an experiment, setup from that experiment's method
             self.win = None
