@@ -1553,23 +1553,15 @@ class SettingsComponent:
         # If we have a window already, set its attributes
         code = (
             "else:\n"
-            "    # if we have a window, set all settable attributes\n"
+            "    # if we have a window, just set the attributes which are safe to set\n"
         )
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(+1, relative=True)
         code = (
-            "win.fullscr=%(fullScr)s\n"
-            "win.windowedSize=%(size)s\n"
-            "win.screen=%(screenNumber)s\n"
-            "win.winType=%(winType)s\n"
-            "win.allowStencil=%(allowStencil)s\n"
-            "win.monitor=%(Monitor)s\n"
             "win.color=%(color)s\n"
             "win.colorSpace=%(colorSpace)s\n"
             "win.backgroundImage=%(backgroundImg)s\n"
             "win.backgroundFit=%(backgroundFit)s\n"
-            "win.blendMode=%(blendMode)s\n"
-            "win.useFBO=%(useFBO)s\n"
             "win.units=%(Units)s\n"
         )
         buff.writeIndentedLines(code % params)

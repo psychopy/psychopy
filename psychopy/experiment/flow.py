@@ -219,7 +219,7 @@ class Flow(list):
         # Open function def
         code = (
             '\n'
-            'def run(expInfo, thisExp, win, inputs):\n'
+            'def run(expInfo, thisExp, win, inputs, session=None):\n'
             '    """\n'
             '    Run the experiment flow.\n'
             '    \n'
