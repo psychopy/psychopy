@@ -157,7 +157,9 @@ class PsychopySession:
             Stem of the experiment file - in other words, the name of the experiment.
         """
         # Setup data for this experiment
-        thisExp = self.experiments[stem].setupData(self.expInfo)
+        thisExp = self.experiments[stem].setupData(expInfo=self.expInfo)
+        # Setup window for this experiment
+        self.win = self.experiments[stem].setupWindow(expInfo=self.expInfo, win=self.win)
         # Setup logging
         self.experiments[stem].run.__globals__['logFile'] = self.logFile
         # Run this experiment
@@ -165,7 +167,8 @@ class PsychopySession:
             expInfo=self.expInfo,
             thisExp=thisExp,
             win=self.win,
-            inputs=self.inputs
+            inputs=self.inputs,
+            session=self
         )
 
         return thisExp
