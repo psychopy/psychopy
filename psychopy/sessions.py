@@ -160,6 +160,8 @@ class PsychopySession:
         thisExp = self.experiments[stem].setupData(expInfo=self.expInfo)
         # Setup window for this experiment
         self.win = self.experiments[stem].setupWindow(expInfo=self.expInfo, win=self.win)
+        # Hold all autodraw stimuli
+        self.win.holdAutoDraw()
         # Setup logging
         self.experiments[stem].run.__globals__['logFile'] = self.logFile
         # Run this experiment
@@ -170,6 +172,8 @@ class PsychopySession:
             inputs=self.inputs,
             session=self
         )
+        # Reinstate autodraw stimuli
+        self.win.releaseAutoDraw()
 
         return thisExp
 
