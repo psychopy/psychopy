@@ -1052,7 +1052,7 @@ class Window():
         """
         Window.backend.dispatchEvents()
 
-    def holdAutoDraw(self):
+    def stashAutoDraw(self):
         """
         Put autoDraw components on 'hold', meaning they get autoDraw set to False but
         are added to an internal list to be 'released' when .releaseAutoDraw is called.
@@ -1063,7 +1063,7 @@ class Window():
             # add stim to held list
             self._heldDraw.append(thisStim)
 
-    def releaseAutoDraw(self):
+    def retrieveAutoDraw(self):
         """
         Add all stimuli which are on 'hold' back into the autoDraw list, and clear the
         hold list.
