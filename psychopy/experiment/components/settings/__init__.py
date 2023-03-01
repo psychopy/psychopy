@@ -1049,6 +1049,7 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
         # Exit function def
         buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines("\n")
 
     def writeLoggingCode(self, buff):
         # Enter function def
@@ -1090,6 +1091,7 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
         # Exit function def
         buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines("\n")
 
     def writeExpInfoCode(self, buff):
         # Enter function def
@@ -1150,6 +1152,7 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
         # Exit function def
         buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines("\n")
 
     def writeIohubCode(self, buff):
         # Open function def
@@ -1459,6 +1462,7 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
         # Exit function def
         buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines("\n")
 
     def writeWindowCode(self, buff):
         """Setup the window code.
@@ -1598,10 +1602,12 @@ class SettingsComponent:
         )
         buff.writeIndentedLines(code)
         buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines("\n")
 
     def writeSaveDataCode(self, buff):
         # Open function def
         code = (
+            '\n'
             'def saveData(thisExp):\n'
             '    """\n'
             '    Save data from this experiment\n'
@@ -1631,6 +1637,7 @@ class SettingsComponent:
 
         # Exit function def
         buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines("\n")
 
     def writeWindowCodeJS(self, buff):
         """Setup the JS window code.
@@ -1660,6 +1667,7 @@ class SettingsComponent:
         """
         # Open function def
         code = (
+            '\n'
             'def endExperiment(thisExp, inputs=None, win=None):\n'
             '    """\n'
             '    End this experiment, closing any window given.\n'
@@ -1696,12 +1704,12 @@ class SettingsComponent:
                 "if 'eyetracker' in inputs and inputs['eyetracker'] is not None:\n"
                 "    eyetracker.setConnectionState(False)\n"
                 "thisExp.abort()  # or data files will save again on exit\n"
-                "core.quit()\n"
-                "\n")
+                "core.quit()\n")
         buff.writeIndentedLines(code)
 
         # Exit function def
         buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines("\n")
 
     def writeEndCodeJS(self, buff):
         """Write some general functions that might be used by any Scheduler/object"""

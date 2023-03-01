@@ -286,8 +286,8 @@ class Flow(list):
             entry.writeExperimentEndCode(script)
 
         # Exit function def
-        script.writeIndentedLines("\n")
         script.setIndentLevel(-1, relative=True)
+        script.writeIndentedLines("\n")
 
     def writeFlowSchedulerJS(self, script):
         """Initialise each component and then write the per-frame code too
