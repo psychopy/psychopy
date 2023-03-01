@@ -286,11 +286,9 @@ class Flow(list):
         for entry in self:
             self._currentRoutine = entry
             entry.writeExperimentEndCode(script)
-        # final experiment end code
-        self.exp.settings.writeEndCode(script)
-        script.writeIndentedLines("\n")
 
         # Exit function def
+        script.writeIndentedLines("\n")
         script.setIndentLevel(-1, relative=True)
 
     def writeFlowSchedulerJS(self, script):

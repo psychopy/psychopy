@@ -284,6 +284,8 @@ class Experiment:
             self_copy.flow.writeBody(script)
             # save data
             self_copy.settings.writeSaveDataCode(script)
+            # end experiment
+            self_copy.settings.writeEndCode(script)
 
             # to do if running as main
             code = (
@@ -303,6 +305,7 @@ class Experiment:
                 "        inputs=inputs\n"
                 "    )\n"
                 "    saveData(thisExp)\n"
+                "    endExperiment(thisExp, win=win, inputs=inputs)\n"
             )
             script.writeIndentedLines(code)
 

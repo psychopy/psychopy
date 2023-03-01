@@ -1614,6 +1614,11 @@ class SettingsComponent:
         )
         buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
+        # Get filename from thisExp
+        code = (
+            "filename = thisExp.dataFileName\n"
+        )
+        buff.writeIndentedLines(code)
 
         buff.writeIndented("# these shouldn't be strictly necessary "
                            "(should auto-save)\n")
@@ -1652,24 +1657,50 @@ class SettingsComponent:
     def writeEndCode(self, buff):
         """Write code for end of experiment (e.g. close log file).
         """
+        # Open function def
+        code = (
+            'def endExperiment(thisExp, inputs=None, win=None):\n'
+            '    """\n'
+            '    End this experiment, closing any window given.\n'
+            '    \n'
+            '    Parameters\n'
+            '    ==========\n'
+            '    thisExp : psychopy.data.ExperimentHandler\n'
+            '        Handler object for this experiment, contains the data to save and information about \n'
+            '        where to save it to.\n'
+            '    inputs : dict\n'
+            '        Dictionary of input devices by name.\n'
+            '    psychopy.visual.Window\n'
+            '        Window to close.\n'
+            '    """\n'
+        )
+        buff.writeIndentedLines(code)
+        buff.setIndentLevel(+1, relative=True)
         code = ('\n'
                 '# --- End experiment ---'
                 '\n'
-                '# Flip one final time so any remaining win.callOnFlip() \n'
-                '# and win.timeOnFlip() tasks get executed before quitting\n'
-                'win.flip()\n\n')
+                'if win is not None:\n'
+                '    # Flip one final time so any remaining win.callOnFlip() \n'
+                '    # and win.timeOnFlip() tasks get executed before quitting\n'
+                '    win.flip()\n'
+                '\n')
         buff.writeIndentedLines(code)
-
 
         if self.params['Save log file'].val:
             buff.writeIndented("logging.flush()\n")
+
         code = ("# make sure everything is closed down\n"
-                "if eyetracker:\n"
+                "if win is not None:\n"
+                "    win.close()\n"
+                "if 'eyetracker' in inputs and inputs['eyetracker'] is not None:\n"
                 "    eyetracker.setConnectionState(False)\n"
                 "thisExp.abort()  # or data files will save again on exit\n"
-                "win.close()\n"
-                "core.quit()\n")
+                "core.quit()\n"
+                "\n")
         buff.writeIndentedLines(code)
+
+        # Exit function def
+        buff.setIndentLevel(-1, relative=True)
 
     def writeEndCodeJS(self, buff):
         """Write some general functions that might be used by any Scheduler/object"""
