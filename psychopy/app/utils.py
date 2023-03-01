@@ -462,15 +462,18 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         if md:
             renderedText = md.MarkdownIt().render(self.rawTextCtrl.Value)
             # Remove images (wx doesn't like rendering them)
-            imgBuffer = renderedText.split("<img")
+            imgBuffer = renderedText.split("<img ")
             output = []
-            for line in imgBuffer:
-                if "/>" in line:
-                    lineBuffer = line.split("/>")
-                    output.append("".join(lineBuffer[1:]))
+            for cell in imgBuffer:
+                if "/>" in cell:
+                    output.extend(cell.split("/>")[1:])
+                elif "</img>" in cell:
+                    output.extend(cell.split("</img>")[1:])
                 else:
-                    output.append("<img" + line)
-            renderedText = "".join(output)
+                    output.append(cell)
+            renderedText = "".join(imgBuffer)
+            # This could also be done by regex, we're avoiding regex for
+            # renderedText = re.sub(r"<img[\s>].*(?:\/>|<\/img>)", "", renderedText)
         else:
             renderedText = self.rawTextCtrl.Value.replace("\n", "<br>")
         # Apply to preview ctrl
