@@ -64,9 +64,14 @@ class PanoramicImageStim(ImageStim):
             radius=1.0,
             flipFaces=True)  # faces are on the inside of the sphere
 
+        # flip verts
+        vertices = np.ascontiguousarray(
+            np.flipud(vertices), dtype=vertices.dtype)
+
         # flip texture coords to view upright
+        textureCoords[:, 0] = np.flipud(textureCoords[:, 0])
         textureCoords = np.ascontiguousarray(
-            np.flipud(textureCoords), dtype=textureCoords.dtype)
+           textureCoords, dtype=textureCoords.dtype)
 
         # handle to the VAO used to draw the sphere
         self._vao = None
@@ -248,6 +253,8 @@ class PanoramicImageStim(ImageStim):
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
         GL.glEnable(GL.GL_TEXTURE_2D)
 
+        GL.glFrontFace(GL.GL_CW)
+
         gt.useProgram(self.win._shaders['imageStim'])
 
         # pass values to OpenGL as material
@@ -268,6 +275,8 @@ class PanoramicImageStim(ImageStim):
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glDisable(GL.GL_TEXTURE_2D)
+
+        GL.glFrontFace(GL.GL_CW)
 
         # Exit 3d perspective
         win.useLights = False
