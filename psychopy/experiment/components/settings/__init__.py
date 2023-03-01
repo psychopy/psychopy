@@ -1558,11 +1558,11 @@ class SettingsComponent:
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(+1, relative=True)
         code = (
-            "win.color=%(color)s\n"
-            "win.colorSpace=%(colorSpace)s\n"
-            "win.backgroundImage=%(backgroundImg)s\n"
-            "win.backgroundFit=%(backgroundFit)s\n"
-            "win.units=%(Units)s\n"
+            "win.color = %(color)s\n"
+            "win.colorSpace = %(colorSpace)s\n"
+            "win.backgroundImage = %(backgroundImg)s\n"
+            "win.backgroundFit = %(backgroundFit)s\n"
+            "win.units = %(Units)s\n"
         )
         buff.writeIndentedLines(code % params)
         buff.setIndentLevel(-1, relative=True)
