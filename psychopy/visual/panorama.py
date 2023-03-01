@@ -32,6 +32,7 @@ class PanoramicImageStim(ImageStim):
                  altitude=None,
                  azimuth=None,
                  depth=0,
+                 interpolate=True,
                  autoDraw=False,
                  name=None,
                  autoLog=False):
@@ -40,7 +41,8 @@ class PanoramicImageStim(ImageStim):
         self._initParams.remove('self')
 
         super(PanoramicImageStim, self).__init__(
-            win, image=image, units="", name=name, autoLog=autoLog)
+            win, image=image, units="", interpolate=interpolate, name=name,
+            autoLog=autoLog)
 
         # internal object for storing information pose
         self._thePose = stim3d.RigidBodyPose()
