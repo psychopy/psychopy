@@ -755,6 +755,7 @@ class SettingsComponent:
             )
         buff.write(
             "from psychopy import %s\n" % ', '.join(psychopyImports) +
+            "from psychopy.tools import environmenttools"
             "from psychopy.constants import (NOT_STARTED, STARTED, PLAYING,"
             " PAUSED,\n"
             "                                STOPPED, FINISHED, PRESSED, "
