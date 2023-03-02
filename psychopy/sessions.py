@@ -1,4 +1,5 @@
 import importlib
+import os
 import sys
 from pathlib import Path
 import shutil
@@ -162,9 +163,11 @@ class PsychopySession:
         # Setup data for this experiment
         thisExp = self.experiments[stem].setupData(expInfo=self.expInfo)
         # Setup window for this experiment
-        self.win = self.experiments[stem].setupWindow(expInfo=self.expInfo, win=self.win)
+        self.setupWindowFromExperiment(stem=stem)
+        self.win.flip()
+        self.win.flip()
         # Hold all autodraw stimuli
-        self.win.holdAutoDraw()
+        self.win.stashAutoDraw()
         # Setup logging
         self.experiments[stem].run.__globals__['logFile'] = self.logFile
         # Run this experiment
@@ -176,7 +179,9 @@ class PsychopySession:
             session=self
         )
         # Reinstate autodraw stimuli
-        self.win.releaseAutoDraw()
+        self.win.retrieveAutoDraw()
+        # Restore original chdir
+        os.chdir(str(self.root))
 
         return thisExp
 
