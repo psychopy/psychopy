@@ -36,7 +36,8 @@ class MovieComponent(BaseVisualComponent):
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
                  forceEndRoutine=False, backend='ffpyplayer',
-                 loop=False, volume=1, noAudio=False
+                 loop=False, volume=1, noAudio=False,
+                 stopWithRoutine=True
                  ):
         super(MovieComponent, self).__init__(
             exp, parentName, name=name, units=units,
@@ -107,6 +108,12 @@ class MovieComponent(BaseVisualComponent):
             loop, valType='bool', inputType="bool", categ='Playback',
             hint=msg,
             label=_translate('Loop playback'))
+        self.params['stopWithRoutine'] = Param(
+            stopWithRoutine, valType='bool', inputType="bool", updates='constant', categ='Playback',
+            hint=_translate(
+                "Should playback cease when the Routine ends? Untick to continue playing "
+                "after the routine has finished."),
+            label=_translate('Stop with Routine?'))
         self.params['anchor'] = Param(
             anchor, valType='str', inputType="choice", categ='Layout',
             allowedVals=['center',
@@ -357,9 +364,17 @@ class MovieComponent(BaseVisualComponent):
             buff.writeIndentedLines(code)
 
     def writeRoutineEndCode(self, buff):
-        # always stop at the end of the routine. (should this be a param?)
-        buff.writeIndentedLines("{name}.stop()\n".format(**self.params))
+        if self.params['stopWithRoutine']:
+            # stop at the end of the routine, if requested
+            code = (
+                "%(name)s.stop()  # ensure movie has stopped at end of routine\n"
+            )
+            buff.writeIndentedLines(code % self.params)
 
     def writeRoutineEndCodeJS(self, buff):
-        # always stop at the end of the routine. (should this be a param?)
-        buff.writeIndentedLines("{name}.stop();\n".format(**self.params))
+        if self.params['stopWithRoutine']:
+            # stop at the end of the routine, if requested
+            code = (
+                "%(name)s.stop();  // ensure movie has stopped at end of routine\n"
+            )
+            buff.writeIndentedLines(code % self.params)
