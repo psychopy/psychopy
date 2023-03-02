@@ -129,6 +129,7 @@ class PsychopySession:
         stem : str
             Stem of the experiment file - in other words, the name of the experiment.
         """
+        return self.experiments[stem].expInfo
 
     def showExpInfoDlgFromExperiment(self, stem):
         """
