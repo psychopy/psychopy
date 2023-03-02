@@ -271,7 +271,7 @@ class Experiment:
                     entry.writePreCode(script)
 
             # present info
-            self_copy.settings.writeExpInfoCode(script)
+            self_copy.settings.writeExpInfoDlgCode(script)
             # setup data and saving
             self_copy.settings.writeDataCode(script)
             # make logfile
@@ -293,7 +293,13 @@ class Experiment:
                 "# if running this experiment as a script...\n"
                 "if __name__ == '__main__':\n"
                 "    # call all functions in order\n"
-                "    expInfo = setupExpInfo()\n"
+            )
+            if self_copy.settings.params['Show info dlg'].val:
+                # Only show exp info dlg if indicated to by settings
+                code += (
+                "    expInfo = showExpInfoDlg()\n"
+                )
+            code += (
                 "    thisExp = setupData(expInfo=expInfo)\n"
                 "    logFile = setupLogging(filename=thisExp.dataFileName)\n"
                 "    win = setupWindow(expInfo=expInfo)\n"

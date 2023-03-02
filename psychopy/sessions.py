@@ -56,15 +56,15 @@ class PsychopySession:
             self.root / (self.root.stem + '.log'),
             level=getattr(logging, loggingLevel.upper())
         )
+        # Store/create expInfo dict
+        self.expInfo = {}
+        if isinstance(expInfo, dict):
+            self.expInfo = expInfo
         # Add experiments
         self.experiments = {}
         if experiments is not None:
             for exp in experiments:
                 self.addExperiment(exp)
-        # Store/create expInfo dict
-        self.expInfo = {}
-        if isinstance(expInfo, dict):
-            self.expInfo = expInfo
         # Store/create window object
         self.win = win
         if isinstance(win, dict):
@@ -114,10 +114,25 @@ class PsychopySession:
             pyFile.write_text(script, encoding="utf8")
         # Import python file
         self.experiments[file.stem] = importlib.import_module(importPath)
+        # Update any missing keys in expInfo
+        for key, val in self.experiments[file.stem].expInfo.items():
+            if key not in self.expInfo:
+                self.expInfo[key] = val
 
-    def setupExpInfoFromExperiment(self, stem):
+    def getExpInfoFromExperiment(self, stem):
         """
-        Update expInfo for this Session via the 'setupExpInfo` method from one of this Session's experiments.
+        Get the global-level expInfo object from one of this Session's experiments. This will contain all of
+        the keys needed for this experiment, alongside their default values.
+
+        Parameters
+        ==========
+        stem : str
+            Stem of the experiment file - in other words, the name of the experiment.
+        """
+
+    def showExpInfoDlgFromExperiment(self, stem):
+        """
+        Update expInfo for this Session via the 'showExpInfoDlg` method from one of this Session's experiments.
 
         Parameters
         ==========
@@ -125,7 +140,7 @@ class PsychopySession:
             Stem of the experiment file - in other words, the name of the experiment.
         """
         # Run the expInfo method
-        self.expInfo = self.experiments[stem].setupExpInfo()
+        self.expInfo = self.experiments[stem].showExpInfoDlg()
 
     def setupWindowFromExperiment(self, stem):
         """
