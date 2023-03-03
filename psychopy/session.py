@@ -7,7 +7,7 @@ import shutil
 from psychopy import experiment, logging
 
 
-class PsychopySession:
+class Session:
     """
     Parameters
     ==========

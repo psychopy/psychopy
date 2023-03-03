@@ -1,4 +1,4 @@
-from psychopy import sessions, visual
+from psychopy import session, visual
 from psychopy.hardware import keyboard
 from .. import utils
 from pathlib import Path
@@ -15,7 +15,7 @@ class TestSession:
             'eyetracker': None
         }
         win = visual.Window([128,128], pos=[50,50], allowGUI=False, autoLog=False)
-        cls.sess = sessions.PsychopySession(
+        cls.sess = session.Session(
             root,
             loggingLevel="info",
             expInfo=expInfo,
