@@ -1,4 +1,5 @@
 import codecs
+import logging
 import shutil
 import sys
 from pathlib import Path
@@ -51,6 +52,8 @@ class TestLoops:
 
             # Run Python script to generate data file
             stdout, stderr = core.shellCall([sys.executable, str(pyScriptFile)], stderr=True)
+            if stdout:
+                logging.error(stdout)
             # Load data file
             with open(datafile, "rb") as f:
                 data = np.recfromcsv(f, case_sensitive=True)
