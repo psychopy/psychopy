@@ -56,10 +56,6 @@ class PsychopySession:
             self.root / (self.root.stem + '.log'),
             level=getattr(logging, loggingLevel.upper())
         )
-        # Store/create expInfo dict
-        self.expInfo = {}
-        if isinstance(expInfo, dict):
-            self.expInfo = expInfo
         # Add experiments
         self.experiments = {}
         if experiments is not None:
@@ -116,10 +112,6 @@ class PsychopySession:
             pyFile.write_text(script, encoding="utf8")
         # Import python file
         self.experiments[file.stem] = importlib.import_module(importPath)
-        # Update any missing keys in expInfo
-        for key, val in self.experiments[file.stem].expInfo.items():
-            if key not in self.expInfo:
-                self.expInfo[key] = val
 
     def getExpInfoFromExperiment(self, stem):
         """
@@ -133,7 +125,7 @@ class PsychopySession:
         """
         return self.experiments[stem].expInfo
 
-    def showExpInfoDlgFromExperiment(self, stem):
+    def showExpInfoDlgFromExperiment(self, stem, expInfo=None):
         """
         Update expInfo for this Session via the 'showExpInfoDlg` method from one of this Session's experiments.
 
@@ -141,11 +133,16 @@ class PsychopySession:
         ==========
         stem : str
             Stem of the experiment file - in other words, the name of the experiment.
+        expInfo : dict
+            Information about the experiment, created by the `setupExpInfo` function.
         """
+        if expInfo is None:
+            expInfo = self.getExpInfoFromExperiment(stem)
         # Run the expInfo method
-        self.expInfo = self.experiments[stem].showExpInfoDlg()
+        expInfo = self.experiments[stem].showExpInfoDlg(expInfo=expInfo)
+        return expInfo
 
-    def setupWindowFromExperiment(self, stem):
+    def setupWindowFromExperiment(self, stem, expInfo=None):
         """
         Setup the window for this Session via the 'setupWindow` method from one of this Session's experiments.
 
@@ -153,11 +150,15 @@ class PsychopySession:
         ==========
         stem : str
             Stem of the experiment file - in other words, the name of the experiment.
+        expInfo : dict
+            Information about the experiment, created by the `setupExpInfo` function.
         """
+        if expInfo is None:
+            expInfo = self.getExpInfoFromExperiment(stem)
         # Run the setupWindow method
-        self.win = self.experiments[stem].setupWindow(expInfo=self.expInfo, win=self.win)
+        self.win = self.experiments[stem].setupWindow(expInfo=expInfo, win=self.win)
 
-    def setupInputsFromExperiment(self, stem):
+    def setupInputsFromExperiment(self, stem, expInfo=None):
         """
         Setup inputs for this Session via the 'setupInputs` method from one of this Session's experiments.
 
@@ -165,11 +166,15 @@ class PsychopySession:
         ==========
         stem : str
             Stem of the experiment file - in other words, the name of the experiment.
+        expInfo : dict
+            Information about the experiment, created by the `setupExpInfo` function.
         """
+        if expInfo is None:
+            expInfo = self.getExpInfoFromExperiment(stem)
         # Run the setupInputs method
-        self.inputs = self.experiments[stem].setupInputs(expInfo=self.expInfo, win=self.win)
+        self.inputs = self.experiments[stem].setupInputs(expInfo=expInfo, win=self.win)
 
-    def runExperiment(self, stem):
+    def runExperiment(self, stem, expInfo=None):
         """
         Run the `setupData` and `run` methods from one of this Session's experiments.
 
@@ -177,9 +182,13 @@ class PsychopySession:
         ==========
         stem : str
             Stem of the experiment file - in other words, the name of the experiment.
+        expInfo : dict
+            Information about the experiment, created by the `setupExpInfo` function.
         """
+        if expInfo is None:
+            expInfo = self.getExpInfoFromExperiment(stem)
         # Setup data for this experiment
-        thisExp = self.experiments[stem].setupData(expInfo=self.expInfo)
+        thisExp = self.experiments[stem].setupData(expInfo=expInfo)
         # Setup window for this experiment
         self.setupWindowFromExperiment(stem=stem)
         self.win.flip()
@@ -190,7 +199,7 @@ class PsychopySession:
         self.experiments[stem].run.__globals__['logFile'] = self.logFile
         # Run this experiment
         self.experiments[stem].run(
-            expInfo=self.expInfo,
+            expInfo=expInfo,
             thisExp=thisExp,
             win=self.win,
             inputs=self.inputs,

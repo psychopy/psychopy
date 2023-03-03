@@ -1112,7 +1112,7 @@ class SettingsComponent:
         # Enter function def
         code = (
             '\n'
-            'def showExpInfoDlg():\n'
+            'def showExpInfoDlg(expInfo):\n'
             '    """\n'
             '    Show participant info dialog.\n'
             '    Parameters\n'
@@ -1133,9 +1133,9 @@ class SettingsComponent:
         code = (
             f"# temporarily remove keys which the dialog doesn't need to show\n"
             f"poppedKeys = {{\n"
-            f"    'date': expInfo.pop('date'),\n"
-            f"    'expName': expInfo.pop('expName'),\n"
-            f"    'psychopyVersion': expInfo.pop('psychopyVersion'),\n"
+            f"    'date': expInfo.pop('date', data.getDateStr()),\n"
+            f"    'expName': expInfo.pop('expName', expName),\n"
+            f"    'psychopyVersion': expInfo.pop('psychopyVersion', psychopyVersion),\n"
             f"}}\n"
             f"# show participant info dialog\n"
             f"dlg = gui.DlgFromDict(dictionary=expInfo, "
