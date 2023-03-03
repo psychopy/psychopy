@@ -54,6 +54,8 @@ class TestLoops:
             stdout, stderr = core.shellCall([sys.executable, str(pyScriptFile)], stderr=True)
             if stdout:
                 logging.error(stdout)
+            if not datafile.is_file():
+                raise RuntimeError("Data file wasn't saved. PsychoPy StdErr below:\n" + stderr)
             # Load data file
             with open(datafile, "rb") as f:
                 data = np.recfromcsv(f, case_sensitive=True)

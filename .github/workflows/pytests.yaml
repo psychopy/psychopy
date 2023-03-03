@@ -169,10 +169,10 @@ jobs:
         sudo apt-get install -y -qq libgstreamer1.0-0 gstreamer1.0-plugins-base
         sudo apt-get install -y -qq libwebkit2gtk-4.0-dev
         sudo apt-get install -y -qq libpng-dev libjpeg-dev libtiff-dev libnotify-dev libsm-dev
-        sudo apt-get install -y -qq libsdl-dev libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0
+        sudo apt-get install -y -qq libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0
         sudo apt-get install -y -qq libportaudio2
         # virtual frame buffer
-        sudo apt install llvm-6.0-dev  # for xvfb
+        sudo apt install llvm-13-dev  # for xvfb
         sudo apt install xvfb xauth libgl1-mesa-dri
 
         # set up fake sound device?
