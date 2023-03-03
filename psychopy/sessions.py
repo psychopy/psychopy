@@ -81,6 +81,8 @@ class PsychopySession:
         elif inputs in self.experiments:
             # If inputs is the name of an experiment, setup from that experiment's method
             self.setupInputsFromExperiment(inputs)
+        # Attribute to store arbitrary variables in
+        self.variables = {}
 
     def addExperiment(self, file, folder=None):
         # Path-ise file
