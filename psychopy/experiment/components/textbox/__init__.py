@@ -268,7 +268,9 @@ class TextboxComponent(BaseVisualComponent):
                 "  text: %(text)s,\n"
                 "  placeholder: %(placeholder)s,\n"
                 "  font: %(font)s,\n" 
-                "  pos: %(pos)s, letterHeight: %(letterHeight)s,\n"
+                "  pos: %(pos)s, \n"
+                "  letterHeight: %(letterHeight)s,\n"
+                "  lineSpacing: %(lineSpacing)s,\n"
                 "  size: %(size)s," + unitsStr +
                 "  color: %(color)s, colorSpace: %(colorSpace)s,\n"
                 "  fillColor: %(fillColor)s, borderColor: %(borderColor)s,\n"
