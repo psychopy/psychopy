@@ -33,7 +33,7 @@ class TestPanorama:
             # Draw
             self.obj.draw()
             # Construct file path to check against
-            exemplar = self.path / "testPanorama_mvmt_{azimuth:.1f}_{altitude:.1f}.png".format(**case)
+            exemplar = self.path / "testPanorama_mvmt_{azimuth:.1f}_{elevation:.1f}.png".format(**case)
             # Compare
             #self.win.getMovieFrame(buffer='back').save(exemplar)
             utils.compareScreenshot(str(exemplar), self.win, crit=7)
