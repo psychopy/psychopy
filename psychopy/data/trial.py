@@ -1028,15 +1028,29 @@ class TrialHandler2(_BaseTrialHandler):
             Action to take with the aborted trial. Can be either of `'random'`,
             or `'append'`. The default action is `'random'`.
 
+        Notes
+        -----
+        * When using `action='random'`, the RNG state for the trial handler is
+          not used.
+
         """
+        # check if value for parameter `action` is valid
         if not isinstance(action, str):  # type checks for params
             raise TypeError(
                 "Parameter `action` specified incorrect type, must be `str`.")
+        
+        if action not in ('random', 'append'):
+            raise ValueError(
+                "Value for parameter `action` must be either 'random' or "
+                "'append'.")
 
-        if self.method in ('random', 'sequential'):
-            pass
-        elif self.method == 'fullRandom':
-            pass
+        # use the appropriate action for the current sampling method
+        if action == 'random':  # insert trial into random index
+            # use numpy RNG to sample a new index
+            newIndex = np.random.randint(0, len(self.remainingIndices))
+            self.remainingIndices.insert(newIndex, self.thisIndex)
+        elif action == 'append':  # insert at end of trial block
+            self.remainingIndices.append(self.thisIndex)
 
     def getFutureTrial(self, n=1):
         """Returns the condition for n trials into the future, without
