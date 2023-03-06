@@ -70,7 +70,10 @@ class Session:
             self.win = None
             self.setupWindowFromExperiment(win)
         # Store/create inputs dict
-        self.inputs = {}
+        self.inputs = {
+            'defaultKeyboard': None,
+            'eyetracker': None
+        }
         if isinstance(inputs, dict):
             self.inputs = inputs
         elif inputs in self.experiments:
@@ -164,11 +167,6 @@ class Session:
         params : dict
             Dict of parameters to create the window from, keys should be from the
             __init__ signature of psychopy.visual.Window
-
-        Returns
-        ==========
-        visual.Window
-            The window which has now been created/setup
         """
         if self.win is None:
             # If win is None, make a Window
@@ -197,6 +195,23 @@ class Session:
             expInfo = self.getExpInfoFromExperiment(stem)
         # Run the setupInputs method
         self.inputs = self.experiments[stem].setupInputs(expInfo=expInfo, win=self.win)
+
+    def addKeyboardFromParams(self, name, params):
+        """
+        Add a keyboard to this session's inputs dict from a dict of params.
+
+        Parameters
+        ==========
+        name : str
+            Name of this input, what to store it under in the inputs dict.
+
+        params : dict
+            Dict of parameters to create the keyboard from, keys should be from the
+            __init__ signature of psychopy.hardware.keyboard.Keyboard
+        """
+        # Create keyboard
+        from psychopy.hardware.keyboard import Keyboard
+        self.inputs[name] = Keyboard(**params)
 
     def runExperiment(self, stem, expInfo=None):
         """
