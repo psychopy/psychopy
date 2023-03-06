@@ -285,7 +285,7 @@ if __name__ == "__main__":
     except ModuleNotFoundError as err:
         raise ModuleNotFoundError("Package 'liaison' is needed to run psychopy.session as a script.")
     liaisonServer = liaison.WebSocketServer()
-    liaisonServer.start(host=args.host, port=args.port)
+    liaisonServer.run(host=args.host, port=args.port)
     # Create session
     session = Session(
         root=args.root,
