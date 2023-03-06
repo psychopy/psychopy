@@ -219,6 +219,17 @@ def getFromNames(names, namespace=None):
     return objs
 
 
+def setExecEnvironment(env):
+    # Get builtin exec function
+    import builtins
+    # Create new exec function in given environment
+    def exec(call_str):
+        builtins.exec(call_str, env)
+    exec.__doc__ = builtins.exec.__doc__
+    # Return function
+    return exec
+
+
 class ComponentPlaceholder:
     """
     When a component is not implemented, we need an object to represent it when running, which will accept any
