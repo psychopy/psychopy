@@ -14,6 +14,9 @@ class Session:
     root : str or pathlib.Path
         Root folder for this session - should contain all of the experiments to be run.
 
+    liaison : liaison.WebSocketServer
+        Liaison server from which to receive run commands, if running via a liaison setup.
+
     loggingLevel : str
     How much output do you want in the log files? Should be one of the following:
         - 'error'
@@ -43,6 +46,7 @@ class Session:
     """
     def __init__(self,
                  root,
+                 liaison=None,
                  loggingLevel="info",
                  inputs=None,
                  win=None,
@@ -79,6 +83,8 @@ class Session:
         elif inputs in self.experiments:
             # If inputs is the name of an experiment, setup from that experiment's method
             self.setupInputsFromExperiment(inputs)
+        # Store ref to liaison object
+        self.liaison = liaison
 
     def addExperiment(self, file, folder=None):
         # Path-ise file
@@ -263,3 +269,25 @@ class Session:
             ExperimentHandler object to save the data from.
         """
         self.experiments[stem].saveData(thisExp)
+
+
+if __name__ == "__main__":
+    # Parse args
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--root", dest="root")
+    parser.add_argument("--host", dest="host")
+    parser.add_argument("--port", dest="port")
+    args = parser.parse_args()
+    # Create websocket
+    try:
+        import liaison
+    except ModuleNotFoundError as err:
+        raise ModuleNotFoundError("Package 'liaison' is needed to run psychopy.session as a script.")
+    socket = liaison.WebSocketServer()
+    socket.start(host=args.host, port=args.port)
+    # Create session
+    session = Session(
+        root=args.root,
+        liaison=socket
+    )
