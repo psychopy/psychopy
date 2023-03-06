@@ -155,6 +155,33 @@ class Session:
         # Run the setupWindow method
         self.win = self.experiments[stem].setupWindow(expInfo=expInfo, win=self.win)
 
+    def setupWindowFromParams(self, params):
+        """
+        Create/setup a window from a dict of parameters
+
+        Parameters
+        ==========
+        params : dict
+            Dict of parameters to create the window from, keys should be from the
+            __init__ signature of psychopy.visual.Window
+
+        Returns
+        ==========
+        visual.Window
+            The window which has now been created/setup
+        """
+        if self.win is None:
+            # If win is None, make a Window
+            from psychopy.visual import Window
+            self.win = Window(**params)
+        else:
+            # otherwise, just set the attributes which are safe to set
+            self.win.color = params.get('color', self.win.color)
+            self.win.colorSpace = params.get('colorSpace', self.win.colorSpace)
+            self.win.backgroundImage = params.get('backgroundImage', self.win.backgroundImage)
+            self.win.backgroundFit = params.get('backgroundFit', self.win.backgroundFit)
+            self.win.units = params.get('units', self.win.units)
+
     def setupInputsFromExperiment(self, stem, expInfo=None):
         """
         Setup inputs for this Session via the 'setupInputs` method from one of this Session's experiments.
