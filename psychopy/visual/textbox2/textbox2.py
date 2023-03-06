@@ -80,6 +80,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  italic=False,
                  placeholder="Type here...",
                  lineSpacing=None,
+                 letterSpacing=None,
                  padding=None,  # gap between box and text
                  speechPoint=None,
                  anchor='center',
@@ -189,6 +190,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.font = font
         if lineSpacing is not None:
             self.lineSpacing = lineSpacing
+        self.letterSpacing = letterSpacing
         # If font not found, default to Open Sans Regular and raise alert
         if not self.glFont:
             alerts.alert(4325, self, {
@@ -611,6 +613,21 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.glFont.lineSpacing = value
         self._needVertexUpdate = True
 
+    @attributeSetter
+    def letterSpacing(self, value):
+        """
+        Distance between letters, relative to the current font's default. Set as None or 1
+        to use font default unchanged.
+        """
+        # Default is 1
+        if value is None:
+            value = 1
+        # Set
+        self.__dict__['letterSpacing'] = value
+        # If text has been set, layout
+        if hasattr(self, "_text"):
+            self._layout()
+
     @property
     def fontMGR(self):
         return allFonts
@@ -898,7 +915,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 else:
                     self._colors[i*4 : i*4+4, :4] = rgb # set default color
                 self._lineNs[i] = lineN
-                current[0] = current[0] + glyph.advance[0] + fakeBold / 2
+                current[0] = current[0] + (glyph.advance[0] + fakeBold / 2) * self.letterSpacing
                 current[1] = current[1] + glyph.advance[1]
 
                 # are we wrapping the line?
