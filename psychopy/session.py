@@ -277,17 +277,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", dest="root")
     parser.add_argument("--host", dest="host")
-    parser.add_argument("--port", dest="port")
     args = parser.parse_args()
-    # Create websocket
-    try:
-        import liaison
-    except ModuleNotFoundError as err:
-        raise ModuleNotFoundError("Package 'liaison' is needed to run psychopy.session as a script.")
-    liaisonServer = liaison.WebSocketServer()
-    liaisonServer.run(host=args.host, port=args.port)
+    if ":" in str(args.host):
+        host, port = str(args.host).split(":")
+        # Create liaison server
+        try:
+            import liaison
+        except ModuleNotFoundError as err:
+            raise ModuleNotFoundError("Package 'liaison' is needed to run psychopy.session with --host.")
+        liaisonServer = liaison.WebSocketServer()
+        liaisonServer.start(host=host, port=port)
+    else:
+        liaisonServer = None
     # Create session
     session = Session(
-        root=args.root,
-        liaison=liaisonServer
+        root=args.root
     )
