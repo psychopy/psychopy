@@ -98,7 +98,10 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 license-files = ["LICENSE", ]
-include-package-data = false
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["psychopy"]
 
 [tool.versioneer]
 vcs = "git"
@@ -112,3 +115,4 @@ universal = 1
 
 [tool.psychopy]
 src = ["psychopy"]
+
