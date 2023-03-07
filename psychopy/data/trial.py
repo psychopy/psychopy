@@ -866,6 +866,7 @@ class TrialHandler2(_BaseTrialHandler):
         self.extraInfo = extraInfo
         self.seed = seed
         self._rng = np.random.default_rng(seed=seed)
+        self._trialAborted = False
 
         # store a list of dicts, convert to pandas DataFrame on access
         self._data = []
@@ -1011,9 +1012,22 @@ class TrialHandler2(_BaseTrialHandler):
             msg = 'New trial (rep=%i, index=%i): %s'
             vals = (self.thisRepN, self.thisTrialN, self.thisTrial)
             logging.exp(msg % vals, obj=self.thisTrial)
+
+        # if the trial was aborted, reset the flag
+        self._trialAborted = False
+        
         return self.thisTrial
 
     next = __next__  # allows user to call without a loop `val = trials.next()`
+
+    @property
+    def trialAborted(self):
+        """`True` if the trial has been aborted an should end.
+        
+        This flag is reset to `False` on the next call to `next()`.
+        
+        """
+        return self._trialAborted 
 
     def abortCurrentTrial(self, action='random'):
         """Abort the current trial.
@@ -1051,6 +1065,9 @@ class TrialHandler2(_BaseTrialHandler):
             self.remainingIndices.insert(newIndex, self.thisIndex)
         elif action == 'append':  # insert at end of trial block
             self.remainingIndices.append(self.thisIndex)
+
+        # flag that the trial has been aborted, user can take approriate action
+        self._trialAborted = True  
 
     def getFutureTrial(self, n=1):
         """Returns the condition for n trials into the future, without
