@@ -34,6 +34,7 @@ class RoutineSettingsComponent(BaseComponent):
         # --- Params ---
 
         # Delete base params
+        del self.params['name']
         del self.params['startType']
         del self.params['stopType']
         del self.params['startVal']
@@ -42,6 +43,7 @@ class RoutineSettingsComponent(BaseComponent):
         del self.params['durationEstim']
         del self.params['saveStartStop']
         del self.params['syncScreenRefresh']
+        self.params['disabled'].label = _translate("Disable Routine")
 
         # Flow params
         self.params['endRoutineOn'] = Param(

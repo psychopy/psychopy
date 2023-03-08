@@ -14,6 +14,7 @@ from xml.etree.ElementTree import Element
 from pathlib import Path
 
 from psychopy.experiment.components.static import StaticComponent
+from psychopy.experiment.components.routineSettings import RoutineSettingsComponent
 from psychopy.localization import _translate
 from psychopy.experiment import Param
 
@@ -240,6 +241,8 @@ class Routine(list):
         self._clockName = None  # for scripts e.g. "t = trialClock.GetTime()"
         self.type = 'Routine'
         list.__init__(self, list(components))
+        self.settings = RoutineSettingsComponent(exp, self.name, name=self.name)
+        self.addComponent(self.settings)
 
     def __repr__(self):
         _rep = "psychopy.experiment.Routine(name='%s', exp=%s, components=%s)"
