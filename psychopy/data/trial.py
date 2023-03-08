@@ -866,6 +866,7 @@ class TrialHandler2(_BaseTrialHandler):
         self.extraInfo = extraInfo
         self.seed = seed
         self._rng = np.random.default_rng(seed=seed)
+        self._trialAborted = False
 
         # store a list of dicts, convert to pandas DataFrame on access
         self._data = []
@@ -1011,9 +1012,62 @@ class TrialHandler2(_BaseTrialHandler):
             msg = 'New trial (rep=%i, index=%i): %s'
             vals = (self.thisRepN, self.thisTrialN, self.thisTrial)
             logging.exp(msg % vals, obj=self.thisTrial)
+
+        # if the trial was aborted, reset the flag
+        self._trialAborted = False
+        
         return self.thisTrial
 
     next = __next__  # allows user to call without a loop `val = trials.next()`
+
+    @property
+    def trialAborted(self):
+        """`True` if the trial has been aborted an should end.
+        
+        This flag is reset to `False` on the next call to `next()`.
+        
+        """
+        return self._trialAborted 
+
+    def abortCurrentTrial(self, action='random'):
+        """Abort the current trial.
+
+        Calling this during an experiment replace this trial. The condition
+        related to the aborted trial will be replaced elsewhere in the session
+        depending on the `method` in use for sampling conditions.
+
+        Parameters
+        ----------
+        action : str
+            Action to take with the aborted trial. Can be either of `'random'`,
+            or `'append'`. The default action is `'random'`.
+
+        Notes
+        -----
+        * When using `action='random'`, the RNG state for the trial handler is
+          not used.
+
+        """
+        # check if value for parameter `action` is valid
+        if not isinstance(action, str):  # type checks for params
+            raise TypeError(
+                "Parameter `action` specified incorrect type, must be `str`.")
+        
+        if action not in ('random', 'append'):
+            raise ValueError(
+                "Value for parameter `action` must be either 'random' or "
+                "'append'.")
+
+        # use the appropriate action for the current sampling method
+        if action == 'random':  # insert trial into random index
+            # use numpy RNG to sample a new index
+            newIndex = np.random.randint(0, len(self.remainingIndices))
+            self.remainingIndices.insert(newIndex, self.thisIndex)
+        elif action == 'append':  # insert at end of trial block
+            self.remainingIndices.append(self.thisIndex)
+
+        # flag that the trial has been aborted, user can take approriate action
+        self._trialAborted = True  
 
     def getFutureTrial(self, n=1):
         """Returns the condition for n trials into the future, without
