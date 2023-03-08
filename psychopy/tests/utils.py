@@ -51,7 +51,7 @@ def getFailFilename(fileName, tag=""):
         tag = "_" + tag
     stem = fileName.stem + tag
     # Construct new filename
-    newFileName = pjoin(TESTS_FAILS_PATH, stem + "_local" + "." + fileName.suffix)
+    newFileName = pjoin(TESTS_FAILS_PATH, stem + "." + fileName.suffix)
 
     return newFileName
 
