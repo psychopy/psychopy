@@ -206,6 +206,17 @@ class SoundComponent(BaseComponent):
             buff.setIndentLevel(-1, relative=True)
             buff.writeIndented('}\n')
 
+            # Update status
+            code = (
+                "// update %(name)s status according to whether it's playing\n"
+                "if (%(name)s.isPlaying) {\n"
+                "  %(name)s.status = PsychoJS.Status.STARTED;\n"
+                "} else if (%(name)s.isFinished) {\n"
+                "  %(name)s.status = PsychoJS.Status.FINISHED;\n"
+                "}\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+
     def writeRoutineEndCode(self, buff):
         code = "%s.stop()  # ensure sound has stopped at end of routine\n"
         buff.writeIndented(code % self.params['name'])
