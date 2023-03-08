@@ -83,6 +83,8 @@ class Session:
         elif inputs in self.experiments:
             # If inputs is the name of an experiment, setup from that experiment's method
             self.setupInputsFromExperiment(inputs)
+        # List of ExperimentHandlers from previous runs
+        self.runs = []
         # Store ref to liaison object
         self.liaison = liaison
 
@@ -119,6 +121,8 @@ class Session:
         # Import python file
         self.experiments[file.stem] = importlib.import_module(importPath)
 
+        return True
+
     def getExpInfoFromExperiment(self, stem):
         """
         Get the global-level expInfo object from one of this Session's experiments. This will contain all of
@@ -146,6 +150,7 @@ class Session:
             expInfo = self.getExpInfoFromExperiment(stem)
         # Run the expInfo method
         expInfo = self.experiments[stem].showExpInfoDlg(expInfo=expInfo)
+
         return expInfo
 
     def setupWindowFromExperiment(self, stem, expInfo=None):
@@ -163,6 +168,8 @@ class Session:
             expInfo = self.getExpInfoFromExperiment(stem)
         # Run the setupWindow method
         self.win = self.experiments[stem].setupWindow(expInfo=expInfo, win=self.win)
+
+        return True
 
     def setupWindowFromParams(self, params):
         """
@@ -186,6 +193,8 @@ class Session:
             self.win.backgroundFit = params.get('backgroundFit', self.win.backgroundFit)
             self.win.units = params.get('units', self.win.units)
 
+        return True
+
     def setupInputsFromExperiment(self, stem, expInfo=None):
         """
         Setup inputs for this Session via the 'setupInputs` method from one of this Session's experiments.
@@ -201,6 +210,8 @@ class Session:
             expInfo = self.getExpInfoFromExperiment(stem)
         # Run the setupInputs method
         self.inputs = self.experiments[stem].setupInputs(expInfo=expInfo, win=self.win)
+
+        return True
 
     def addKeyboardFromParams(self, name, params):
         """
@@ -218,6 +229,8 @@ class Session:
         # Create keyboard
         from psychopy.hardware.keyboard import Keyboard
         self.inputs[name] = Keyboard(**params)
+
+        return True
 
     def runExperiment(self, stem, expInfo=None):
         """
@@ -254,8 +267,10 @@ class Session:
         self.win.retrieveAutoDraw()
         # Restore original chdir
         os.chdir(str(self.root))
+        # Store ExperimentHandler
+        self.runs.append(thisExp)
 
-        return thisExp
+        return True
 
     def saveDataToExperiment(self, stem, thisExp):
         """
@@ -269,6 +284,8 @@ class Session:
             ExperimentHandler object to save the data from.
         """
         self.experiments[stem].saveData(thisExp)
+
+        return True
 
 
 if __name__ == "__main__":
