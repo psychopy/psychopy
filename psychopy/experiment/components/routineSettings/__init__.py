@@ -64,23 +64,28 @@ class RoutineSettingsComponent(BaseComponent):
         pass
 
     def writeInitCode(self, buff):
-        code = (
-            "\n"
-            "# Unknown component ignored: %(name)s\n"
-            "\n"
-        )
-        buff.writeIndentedLines(code % self.params)
+        pass
 
     def writeInitCodeJS(self, buff):
-        code = (
-            "\n"
-            "// Unknown component ignored: %(name)s\n"
-            "\n"
-        )
-        buff.writeIndentedLines(code % self.params)
+        pass
 
     def writeFrameCode(self, buff):
-        pass
+        # Sanitize
+        params = self.params.copy()
+        if params['endRoutineOn'].val == "":
+            params['endRoutineOn'].val = "False"
+        if params['abortTrialOn'].val == "":
+            params['abortTrialOn'].val = "False"
+        # Write code
+        code = (
+            "# end Routine '%(name)s'?\n"
+            "if %(endRoutineOn)s:\n"
+            "    continueRoutine = False\n"
+            # "# abort trial?\n"
+            # "if %(abortTrialOn)s:\n"
+            # "    continueRoutine = False\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def writeRoutineEndCode(self, buff):
         pass
