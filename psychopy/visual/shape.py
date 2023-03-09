@@ -312,7 +312,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # If theta is below threshold, use threshold instead
         theta = min(theta, threshold / 2)
         # Angles in a shape add up to 360, so theta is 360/2n, solve for n
-        return int((360 / theta) / 2)
+        return int(360 / theta)
 
     def draw(self, win=None, keepMatrix=False):
         """Draw the stimulus in its relevant window.
