@@ -21,7 +21,7 @@ class PanoramicImageStim(ImageStim):
         File path of image to present as a panorama. Most modern phones have a
         "panoramic" camera mode,
         which will output an image with all the correct warping applied.
-    altitude : float (-1 to 1)
+    elevation : float (-1 to 1)
         Initial vertical look position.
     azimuth : float (-1 to 1)
         Initial horizontal look position.
@@ -29,7 +29,7 @@ class PanoramicImageStim(ImageStim):
     """
     def __init__(self, win,
                  image=None,
-                 altitude=None,
+                 elevation=None,
                  azimuth=None,
                  depth=0,
                  interpolate=True,
@@ -48,7 +48,7 @@ class PanoramicImageStim(ImageStim):
         self._thePose = stim3d.RigidBodyPose()
 
         # Set starting lat- and long-itude
-        self.altitude = altitude
+        self.elevation = elevation
         self.azimuth = azimuth
         # Set starting zoom
         self.zoom = 0
@@ -140,7 +140,7 @@ class PanoramicImageStim(ImageStim):
         setAttribute(self, "longitude", value, operation=operation, log=log)
 
     @attributeSetter
-    def altitude(self, value):
+    def elevation(self, value):
         """Vertical view point between -1 (directly downwards) and 1 (directly
         upwards). Values outside this range will be clipped to within range
         (e.g. -1.5 will be directly downwards).
@@ -149,7 +149,7 @@ class PanoramicImageStim(ImageStim):
             value = 0
         # Store value
         value = np.clip(value, -1, 1)
-        self.__dict__['altitude'] = self.__dict__['latitude'] = value
+        self.__dict__['elevation'] = self.__dict__['latitude'] = value
         # Force to positive as we only need 180 degrees of rotation, and flip
         value = -value
         value += 1
@@ -163,12 +163,12 @@ class PanoramicImageStim(ImageStim):
 
     @attributeSetter
     def latitude(self, value):
-        """Alias of `altitude`.
+        """Alias of `elevation`.
         """
-        self.altitude = value
+        self.elevation = value
 
     def setAltitude(self, value, operation='', log=False):
-        setAttribute(self, "altitude", value, operation=operation, log=log)
+        setAttribute(self, "elevation", value, operation=operation, log=log)
 
     def setLatitude(self, value, operation='', log=False):
         setAttribute(self, "latitude", value, operation=operation, log=log)

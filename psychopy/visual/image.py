@@ -430,6 +430,8 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
 
     @size.setter
     def size(self, value):
+        # store requested size
+        self._requestedSize = value
         isNone = numpy.asarray(value) == None
         if (self.aspectRatio is not None) and (isNone.any()) and (not isNone.all()):
             # If only one value is None, replace it with a value which maintains aspect ratio
