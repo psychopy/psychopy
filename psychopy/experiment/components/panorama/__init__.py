@@ -29,6 +29,7 @@ class PanoramaComponent(BaseVisualComponent):
                  startEstim='', durationEstim='',
                  saveStartStop=True, syncScreenRefresh=True,
                  image="",
+                 interpolate='linear',
                  posCtrl="mouse", smooth=True, posSensitivity=1,
                  altitude="", azimuth="",
                  zoomCtrl="wheel",
@@ -71,6 +72,15 @@ class PanoramaComponent(BaseVisualComponent):
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_translate("Image"))
+
+        msg = _translate(
+            "How should the image be interpolated if/when rescaled")
+        self.params['interpolate'] = Param(
+            interpolate, valType='str', inputType="choice",
+            allowedVals=['linear', 'nearest'], categ='Basic',
+            updates='constant', allowedUpdates=[],
+            hint=msg, direct=False,
+            label=_translate("interpolate"))
 
         # Position controls
         
@@ -280,7 +290,8 @@ class PanoramaComponent(BaseVisualComponent):
             "%(name)s = visual.PanoramicImageStim(\n"
             "    win,\n"
             "    image=%(image)s,\n"
-            "    altitude=%(altitude)s, azimuth=%(azimuth)s\n"
+            "    altitude=%(altitude)s, azimuth=%(azimuth)s,\n"
+            "    interpolate=%(interpolate)s\n"
             ")\n"
             "# add attribute to keep track of last movement\n"
             "%(name)s.momentum = np.asarray([0.0, 0.0])\n"
