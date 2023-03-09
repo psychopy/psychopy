@@ -2287,6 +2287,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         docID = self.findDocID(filename)
         readOnlyPref = 'readonly' in self.app.prefs.coder
         readonly = readOnlyPref and self.app.prefs.coder['readonly']
+        path, shortName = os.path.split(filename)
         if docID >= 0:
             self.currentDoc = self.notebook.GetPage(docID)
             self.notebook.SetSelection(docID)
@@ -2347,7 +2348,6 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
             self.currentDoc.EmptyUndoBuffer()
 
-            path, shortName = os.path.split(filename)
             self.notebook.AddPage(p, shortName)
             nbIndex = len(self.getOpenFilenames()) - 1
             if isinstance(self.notebook, wx.Notebook):
@@ -2377,6 +2377,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.setTitle(title=self.winTitle, document=fname)
         #if len(self.getOpenFilenames()) > 0:
         self.currentDoc.analyseScript()
+        self.fileBrowserWindow.gotoDir(path)
 
         if not keepHidden:
             self.Show()  # if the user had closed the frame it might be hidden
