@@ -1,4 +1,8 @@
 [tool.pdm]
+[tool.pdm.dev-dependencies]
+dev = [
+    "codecov>=2.1.12",
+]
 
 [project]
 name = "psychopy"

@@ -1,9 +1,0 @@
-urllib3[secure]
-wheel  # Allow us to install binary wheels e.g. for opencv-python
-codecov
-pytest
-pytest-cov
-pytest-xdist
-coveralls
-xmlschema  # used in test suite
-lxml
