@@ -9,6 +9,9 @@ import numpy as np
 from ..utils import TESTS_DATA_PATH
 from psychopy import experiment, core
 
+from psychopy import prefs, core
+prefs.hardware['audioLib'] = ['sounddevice']
+
 
 class TestLoops:
     @classmethod
