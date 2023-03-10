@@ -605,7 +605,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
         # Setup splitter
         self.mainSizer = wx.BoxSizer()
-        self.splitter = wx.SplitterWindow(self)
+        self.splitter = wx.SplitterWindow(self, style=wx.SP_NOBORDER)
         self.mainSizer.Add(self.splitter, proportion=1, border=0, flag=wx.EXPAND | wx.ALL)
 
         # Setup panel for top half (experiment control and toolbar)
