@@ -1327,30 +1327,31 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """Defines ability to rename routine in the routine panel
         """
         # get notebook details
-        currentRoutine = self.routinePanel.getCurrentPage()
-        currentRoutineIndex = self.routinePanel.GetPageIndex(currentRoutine)
         routine = self.routinePanel.GetPage(
             self.routinePanel.GetSelection()).routine
         oldName = routine.name
         msg = _translate("What is the new name for the Routine?")
         dlg = wx.TextEntryDialog(self, message=msg, value=oldName,
                                  caption=_translate('Rename'))
-        exp = self.exp
         if dlg.ShowModal() == wx.ID_OK:
             name = dlg.GetValue()
-            # silently auto-adjust the name to be valid, and register in the
-            # namespace:
-            name = exp.namespace.makeValid(
-                name, prefix='routine')
-            if oldName in self.exp.routines:
-                # Swap old with new names
-                self.exp.routines[oldName].name = name
-                self.exp.routines[name] = self.exp.routines.pop(oldName)
-                self.exp.namespace.rename(oldName, name)
-                self.routinePanel.renameRoutinePage(currentRoutineIndex, name)
-                self.addToUndoStack("`RENAME Routine `%s`" % oldName)
-                dlg.Destroy()
-                self.flowPanel.draw()
+            self._doRenameRoutine(oldName=oldName, newName=name)
+            dlg.Destroy()
+
+    def _doRenameRoutine(self, oldName, newName):
+        # silently auto-adjust the name to be valid, and register in the
+        # namespace:
+        name = self.exp.namespace.makeValid(newName, prefix='routine')
+        if oldName in self.exp.routines:
+            # Swap old with new names
+            self.exp.routines[oldName].name = name
+            self.exp.routines[name] = self.exp.routines.pop(oldName)
+            self.exp.namespace.rename(oldName, name)
+            currentRoutine = self.routinePanel.getCurrentPage()
+            currentRoutineIndex = self.routinePanel.GetPageIndex(currentRoutine)
+            self.routinePanel.renameRoutinePage(currentRoutineIndex, name)
+            self.addToUndoStack("`RENAME Routine `%s`" % oldName)
+            self.flowPanel.draw()
 
     def compileScript(self, event=None):
         """Defines compile script button behavior"""
@@ -2277,7 +2278,10 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                 self.Refresh()  # then redraw visible
                 self.frame.flowPanel.draw()
                 # self.frame.flowPanel.Refresh()
-            elif component.params['name'].val != old_name:
+            elif component.name != old_name:
+                if component == self.routine.settings:
+                    self.frame.flowPanel.draw()
+                    self.frame._doRenameRoutine(oldName=old_name, newName=component.name)
                 self.redrawRoutine()  # need to refresh name
             elif component.params['disabled'].val != old_disabled:
                 self.redrawRoutine()  # need to refresh color
