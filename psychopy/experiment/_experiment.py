@@ -726,7 +726,7 @@ class Experiment:
                                           componentNode=componentNode)
                     # sanitize name (unless this comp is settings)
                     compName = componentNode.get('name')
-                    if compName != "settings":
+                    if compName != routineNode.get('name'):
                         compGoodName = self.namespace.makeValid(compName)
                         if compGoodName != compName:
                             modifiedNames.append(compName)

@@ -28,7 +28,7 @@ class RoutineSettingsComponent(BaseComponent):
         self.parentName = parentName  # to access the routine too if needed
         self.params = {}
         self.depends = []
-        super(RoutineSettingsComponent, self).__init__(exp, parentName, name="settings")
+        super(RoutineSettingsComponent, self).__init__(exp, parentName, name=parentName)
         self.order += []
 
         # --- Params ---
