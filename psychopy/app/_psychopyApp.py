@@ -614,7 +614,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         # wx-windows on some platforms (Mac 10.9.4) with wx-3.0:
         v = parse_version
         if sys.platform == 'darwin':
-            if v('3.0') <= v(wx.version()) < v('4.0'):
+            if v('3.0') <= v(wx.__version__) < v('4.0'):
                 _Showgui_Hack()  # returns ~immediately, no display
                 # focus stays in never-land, so bring back to the app:
                 if prefs.app['defaultView'] in ['all', 'builder', 'coder', 'runner']:

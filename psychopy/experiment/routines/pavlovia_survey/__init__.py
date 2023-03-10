@@ -101,7 +101,6 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
             "\n"
             "//--- Prepare to start Routine '%(name)s' ---\n"
             "t = 0;\n"
-            "%(name)sClock.reset(); // clock\n"
             "frameN = -1;\n"
             "continueRoutine = true; // until we're told otherwise\n"
         )

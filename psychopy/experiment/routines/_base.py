@@ -61,7 +61,7 @@ class BaseStandaloneRoutine:
         self.params['disabled'] = Param(disabled,
             valType='bool', inputType="bool", categ="Testing",
             hint=msg, allowedTypes=[], direct=False,
-            label=_translate('Disable component'))
+            label=_translate('Disable routine'))
 
     def __repr__(self):
         _rep = "psychopy.experiment.routines.%s(name='%s', exp=%s)"
