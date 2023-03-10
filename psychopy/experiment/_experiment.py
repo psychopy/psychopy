@@ -685,7 +685,10 @@ class Experiment:
                     componentType = componentNode.tag
                     plugin = componentNode.get('plugin')
 
-                    if componentType in allCompons:
+                    if componentType == "RoutineSettingsComponent":
+                        # if settings, use existing component
+                        component = routine.settings
+                    elif componentType in allCompons:
                         # create an actual component of that type
                         component = allCompons[componentType](
                             name=componentNode.get('name'),
@@ -721,13 +724,17 @@ class Experiment:
                         self._getXMLparam(params=component.params,
                                           paramNode=paramNode,
                                           componentNode=componentNode)
-                    compGoodName = self.namespace.makeValid(
-                        componentNode.get('name'))
-                    if compGoodName != componentNode.get('name'):
-                        modifiedNames.append(componentNode.get('name'))
-                    self.namespace.add(compGoodName)
-                    component.params['name'].val = compGoodName
-                    routine.append(component)
+                    # sanitize name (unless this comp is settings)
+                    compName = componentNode.get('name')
+                    if compName != "settings":
+                        compGoodName = self.namespace.makeValid(compName)
+                        if compGoodName != compName:
+                            modifiedNames.append(compName)
+                        self.namespace.add(compGoodName)
+                        component.params['name'].val = compGoodName
+                    # Add to routine
+                    if component not in routine:
+                        routine.append(component)
             else:
                 if routineNode.tag in allRoutines:
                     # If not a routine, may be a standalone routine
