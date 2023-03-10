@@ -1270,9 +1270,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         Paste a copied Routine into the current Experiment. Returns a copy of that Routine
         """
         newRoutine.name = self.exp.namespace.makeValid(routineName, prefix="routine")
-        newRoutine.params['name'] = newRoutine.name
         newRoutine.exp = self.exp
-        self.exp.namespace.add(newRoutine.name)
         # add to the experiment
         self.exp.addRoutine(newRoutine.name, newRoutine)
         for newComp in newRoutine:  # routine == list of components
@@ -1563,6 +1561,7 @@ class RoutinesNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         routineName = None
         if dlg.ShowModal() == wx.ID_OK:
             routineName = dlg.nameCtrl.GetValue()
+            routineName = self.frame.exp.namespace.makeValid(routineName, prefix="routine")
             template = copy.deepcopy(dlg.selectedTemplate)
             self.frame.pasteRoutine(template, routineName)
             self.frame.addToUndoStack("NEW Routine `%s`" % routineName)
