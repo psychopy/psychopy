@@ -226,22 +226,13 @@ class Routine(list):
     targets = ["PsychoPy", "PsychoJS"]
 
     def __init__(self, name, exp, components=(), disabled=False):
+        self.settings = RoutineSettingsComponent(exp, name, disabled=disabled)
         super(Routine, self).__init__()
-        self.params = {'name': name}
 
-        # Testing
-        msg = _translate("Disable this component")
-        self.params['disabled'] = Param(disabled,
-            valType='bool', inputType="bool", categ="Testing",
-            hint=msg, allowedTypes=[], direct=False,
-            label=_translate('Disable component'))
-
-        self.name = name
         self.exp = exp
         self._clockName = None  # for scripts e.g. "t = trialClock.GetTime()"
         self.type = 'Routine'
         list.__init__(self, list(components))
-        self.settings = RoutineSettingsComponent(exp, self.name, name=self.name)
         self.addComponent(self.settings)
 
     def __repr__(self):
@@ -275,14 +266,18 @@ class Routine(list):
 
     @property
     def name(self):
-        return self.params['name']
+        return self.params['name'].val
 
     @name.setter
     def name(self, name):
-        self.params['name'] = name
+        self.params['name'].val = name
         # Update references in components
         for comp in self:
             comp.parentName = name
+
+    @property
+    def params(self):
+        return self.settings.params
 
     def integrityCheck(self):
         """Run tests on self and on all the Components inside"""

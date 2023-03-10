@@ -21,14 +21,15 @@ class RoutineSettingsComponent(BaseComponent):
 
     def __init__(
             self, exp, parentName, name='',
-            abortTrialOn="", endRoutineOn=""
+            abortTrialOn="", endRoutineOn="",
+            disabled=False
     ):
         self.type = 'RoutineSettings'
         self.exp = exp  # so we can access the experiment if necess
         self.parentName = parentName  # to access the routine too if needed
         self.params = {}
         self.depends = []
-        super(RoutineSettingsComponent, self).__init__(exp, parentName, name=parentName)
+        super(RoutineSettingsComponent, self).__init__(exp, parentName, name=parentName, disabled=disabled)
         self.order += []
 
         # --- Params ---
