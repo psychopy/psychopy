@@ -3,6 +3,7 @@
 
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
+from psychopy.experiment.utils import CodeGenerationException
 from psychopy import prefs
 
 # only use _localized values for label values, nothing functional:
@@ -21,7 +22,7 @@ class RoutineSettingsComponent(BaseComponent):
 
     def __init__(
             self, exp, parentName, name='',
-            abortTrialOn="", endRoutineOn="",
+            abortTrialOn="",
             disabled=False
     ):
         self.type = 'RoutineSettings'
@@ -34,30 +35,31 @@ class RoutineSettingsComponent(BaseComponent):
 
         # --- Params ---
 
-        # Delete/hide/modify base params
+        # Delete inapplicable params
         del self.params['startType']
-        del self.params['stopType']
         del self.params['startVal']
-        del self.params['stopVal']
         del self.params['startEstim']
-        del self.params['durationEstim']
         del self.params['saveStartStop']
         del self.params['syncScreenRefresh']
+
+        # Modify disabled label
         self.params['disabled'].label = _translate("Disable Routine")
+        # Modify stop type param
+        self.params['stopType'].allowedVals = ['duration (s)', 'frame N', 'condition']
+        self.params['stopVal'].label = _translate("Timeout")
+        self.params['stopVal'].hint = _translate(
+            "When should this Routine end, if not already ended by a Component? Leave blank for endless."
+        )
+        self.params['stopType'].hint = _translate(
+            "When should this Routine end, if not already ended by a Component?"
+        )
 
         # Flow params
-        self.params['endRoutineOn'] = Param(
-            endRoutineOn, valType='code', inputType="single", allowedTypes=[], categ='Basic',
-            updates='constant',
-            hint=_translate("When the statement entered here evaluates to True, the Routine will end."),
-            label=_translate("End Routine if..."))
-
         self.params['abortTrialOn'] = Param(
             abortTrialOn, valType='code', inputType="single", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=_translate("When the statement entered here evaluates to True, the trial will be aborted."),
             label=_translate("Abort trial if..."))
-
 
     def writeRoutineStartCode(self, buff):
         pass
@@ -74,20 +76,47 @@ class RoutineSettingsComponent(BaseComponent):
     def writeFrameCode(self, buff):
         # Sanitize
         params = self.params.copy()
-        if params['endRoutineOn'].val == "":
-            params['endRoutineOn'].val = "False"
-        if params['abortTrialOn'].val == "":
-            params['abortTrialOn'].val = "False"
-        # Write code
-        code = (
-            "# end Routine '%(name)s'?\n"
-            "if %(endRoutineOn)s:\n"
-            "    continueRoutine = False\n"
-            # "# abort trial?\n"
-            # "if %(abortTrialOn)s:\n"
-            # "    continueRoutine = False\n"
-        )
-        buff.writeIndentedLines(code % self.params)
+        # Get current loop
+        if len(self.exp.flow._loopList):
+            params['loop'] = self.exp.flow._loopList[-1]  # last (outer-most) loop
+        else:
+            params['loop'] = self.exp._expHandler
+        # Write stop test
+        if self.params['stopVal'].val not in ('', None, -1, 'None'):
+            if self.params['stopType'].val == 'duration (s)':
+                # Stop after given number of seconds
+                code = (
+                    f"# is it time to end the routine? (based on local clock)\n"
+                    f"if tThisFlip > %(stopVal)s-frameTolerance:\n"
+                )
+            elif self.params['stopType'].val == 'frame N':
+                # Stop at given frame num
+                code = (
+                    f"# is it time to end the routine? (based on frames since Routine start)\n"
+                    f"if frameN >= %(stopVal)s:\n"
+                )
+            elif self.params['stopType'].val == 'condition':
+                # Stop when condition is True
+                code = (
+                    f"# is it time to end the routine? (based on condition)\n"
+                    f"if bool(%(stopVal)s):\n"
+                )
+            else:
+                msg = "Didn't write any stop line for stopType=%(stopType)s"
+                raise CodeGenerationException(msg % params)
+            # Contents of if statement
+            code += (
+                "    continueRoutine = False\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+        # Write code to abort trial
+        if self.params['abortTrialOn'].val not in ('', None, -1, 'None'):
+            code = (
+                "# abort trial?\n"
+                "if %(abortTrialOn)s:\n"
+                "    %(loop)s.abortCurrentTrial()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
 
     def writeRoutineEndCode(self, buff):
         pass
