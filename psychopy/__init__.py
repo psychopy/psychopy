@@ -58,9 +58,3 @@ try:
     import readline
 except ImportError:
     pass  # all that will happen is the stderr/stdout might get redirected
-
-# check if we're running in some VM/testing environment
-_travisTesting = bool("{}".format(os.environ.get('TRAVIS')).lower() == 'true')
-_anacondaTesting = bool("{}".format(os.environ.get('CONDA')).lower() == 'true')
-_githubActions = str(os.environ.get('GITHUB_WORKFLOW')) != 'None'
-_vmTesting = _travisTesting or _githubActions

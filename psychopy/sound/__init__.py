@@ -39,7 +39,7 @@ import sys
 import os
 import traceback
 from psychopy import logging, prefs, constants
-import psychopy
+from psychopy.tests import _vmTesting
 from .exceptions import DependencyError, SoundFormatError
 from .audiodevice import *
 from .audioclip import *  # import objects related to AudioClip
@@ -72,7 +72,7 @@ _audioLibs = ['PTB', 'sounddevice', 'pyo', 'pysoundcard', 'pygame']
 failed = []
 
 # check if this is being imported on Travis/Github (has no audio card)
-if psychopy._vmTesting:
+if _vmTesting:
     # for sounddevice we built in some VM protection but not in pyo
     prefs.hardware['audioLib'] = ['ptb', 'sounddevice']
 
@@ -170,7 +170,7 @@ def setDevice(dev, kind=None):
     elif kind == 'output':
         backend.defaultOutput = dev
     else:
-        if psychopy._vmTesting:  # GitHub doesn't have any audio devices at all. Ignore
+        if _vmTesting:  # GitHub doesn't have any audio devices at all. Ignore
             return
         else:
             raise TypeError("`kind` should be one of [None, 'output', 'input']"

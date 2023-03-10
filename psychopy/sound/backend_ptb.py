@@ -11,10 +11,10 @@ import re
 import weakref
 from pathlib import Path
 
-import psychopy
 from psychopy import prefs, logging, exceptions
 from psychopy.constants import (STARTED, PAUSED, FINISHED, STOPPING,
                                 NOT_STARTED)
+from psychopy.tests import _vmTesting
 from psychopy.tools import filetools as ft
 from .exceptions import SoundFormatError, DependencyError
 from ._base import _SoundBase, HammingWindow
@@ -90,7 +90,7 @@ def getDevices(kind=None):
     else:
         deviceTypes = None
     devs = {}
-    if psychopy._vmTesting:  # GitHub actions VM does not have a sound device
+    if _vmTesting:  # GitHub actions VM does not have a sound device
         return devs
     else:
         allDevs = audio.get_devices(device_type=deviceTypes)
