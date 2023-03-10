@@ -1,13 +1,13 @@
 
 coverage:
   status:
-    patch: no
-  require_ci_to_pass: yes
-  fail_ci_if_error: no
-  notify:
-    after_n_builds: 2
-    wait_for_ci: yes
-  informational: yes
+    project:
+      default:
+        branches: 
+          - master
+        if_ci_failed: error #success, failure, error, ignore
+        informational: true
+        only_pulls: false
 
 ignore:
   - "psychopy/demos/coder"  # ignore folders and all its contents
