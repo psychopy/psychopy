@@ -161,6 +161,26 @@ class BaseComponent:
 
         return newCompon
 
+    def hideParam(self, name):
+        """
+        Set a param to always be hidden.
+
+        Parameters
+        ==========
+        name : str
+            Name of the param to hide
+        """
+        # Add to depends, but have it depend on itself and be hidden either way
+        self.depends.append(
+            {
+                "dependsOn": name,  # if...
+                "condition": "",  # meets...
+                "param": name,  # then...
+                "true": "hide",  # should...
+                "false": "hide",  # otherwise...
+            }
+        )
+
     def integrityCheck(self):
         """
         Run component integrity checks for non-visual components

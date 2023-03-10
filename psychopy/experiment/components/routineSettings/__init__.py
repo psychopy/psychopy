@@ -28,13 +28,12 @@ class RoutineSettingsComponent(BaseComponent):
         self.parentName = parentName  # to access the routine too if needed
         self.params = {}
         self.depends = []
-        super(RoutineSettingsComponent, self).__init__(exp, parentName, name=name)
+        super(RoutineSettingsComponent, self).__init__(exp, parentName, name="settings")
         self.order += []
 
         # --- Params ---
 
-        # Delete base params
-        del self.params['name']
+        # Delete/hide/modify base params
         del self.params['startType']
         del self.params['stopType']
         del self.params['startVal']
@@ -43,6 +42,7 @@ class RoutineSettingsComponent(BaseComponent):
         del self.params['durationEstim']
         del self.params['saveStartStop']
         del self.params['syncScreenRefresh']
+        self.hideParam("name")
         self.params['disabled'].label = _translate("Disable Routine")
 
         # Flow params
