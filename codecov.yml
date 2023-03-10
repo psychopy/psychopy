@@ -1,3 +1,14 @@
+
+coverage:
+  status:
+    patch: no
+  require_ci_to_pass: yes
+  fail_ci_if_error: no
+  notify:
+    after_n_builds: 2
+    wait_for_ci: yes
+  informational: yes
+
 ignore:
   - "psychopy/demos/coder"  # ignore folders and all its contents
   - "psychopy/tests"
