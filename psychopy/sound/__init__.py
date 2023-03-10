@@ -74,7 +74,7 @@ failed = []
 # check if this is being imported on Travis/Github (has no audio card)
 if psychopy._vmTesting:
     # for sounddevice we built in some VM protection but not in pyo
-    prefs.hardware['audioLib'] = ['sounddevice']
+    prefs.hardware['audioLib'] = ['ptb', 'sounddevice']
 
 if isinstance(prefs.hardware['audioLib'], str):
     prefs.hardware['audioLib'] = [prefs.hardware['audioLib']]

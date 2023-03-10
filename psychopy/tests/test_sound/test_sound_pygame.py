@@ -2,7 +2,7 @@
 """
 
 from psychopy import prefs, core, plugins
-prefs.hardware['audioLib'] = ['ptb']
+prefs.hardware['audioLib'] = ['ptb', 'sounddevice']
 
 import pytest
 import shutil
