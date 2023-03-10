@@ -406,6 +406,32 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
         # Reset initial params
         for param, value in initParams.items():
             setattr(self.textbox, param, value)
+
+    def test_speechpoint(self):
+        self.obj.size = (0.5, 0.5)
+        self.obj.fillColor = "red"
+
+        # Create list of points to test
+        cases = [
+            (-3/8, 0),
+            (3/8, 0),
+            (0, -3/8),
+            (0, 3/8)
+        ]
+
+        for x, y in cases:
+            # Prepare window
+            self.win.flip()
+            # Set from case
+            self.obj.speechPoint = (x, y)
+            # Draw
+            self.obj.draw()
+            # Compare screenshots
+            filename = f"{self.__class__.__name__}_testSpeechpoint_{int(x*8)}ovr8_{int(y*8)}ovr8.png"
+            # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+            utils.compareScreenshot(filename, self.win, crit=8)
+
+        self.obj.speechPoint = None
             
     def test_alerts(self):
         noFontTextbox = TextBox2(self.win, "", font="Raleway Dots", bold=True)
