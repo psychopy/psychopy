@@ -14,7 +14,7 @@ from pathlib import Path
 from psychopy import prefs, logging, exceptions
 from psychopy.constants import (STARTED, PAUSED, FINISHED, STOPPING,
                                 NOT_STARTED)
-from psychopy.tools import systemtools.isVM_CI
+from psychopy.tools import systemtools
 from psychopy.tools import filetools as ft
 from .exceptions import SoundFormatError, DependencyError
 from ._base import _SoundBase, HammingWindow
