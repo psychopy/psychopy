@@ -1776,7 +1776,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         """Show a context menu in the routine view.
         """
         menu = wx.Menu()
-        if component is not None:
+        if component not in (None, self.routine.settings):
             for item in self.contextMenuItems:
                 id = self.contextIDFromItem[item]
                 # don't show paste option unless something is copied
