@@ -43,7 +43,6 @@ class RoutineSettingsComponent(BaseComponent):
         del self.params['durationEstim']
         del self.params['saveStartStop']
         del self.params['syncScreenRefresh']
-        self.hideParam("name")
         self.params['disabled'].label = _translate("Disable Routine")
 
         # Flow params
