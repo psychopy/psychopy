@@ -1893,6 +1893,8 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         for n, component in enumerate(self.routine):
             if component.type == 'Static':
                 staticCompons.append(component)
+            elif component == self.routine.settings:
+                pass
             else:
                 rowComponents.append(component)
 
@@ -1908,6 +1910,8 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         for component in rowComponents:
             self.drawComponent(self.pdc, component, yPos)
             yPos += self.componentStep
+        # draw settings button
+        self.drawSettingsBtn(self.pdc, self.routine.settings)
 
         # the 50 allows space for labels below the time axis
         self.SetVirtualSize((int(self.maxWidth), yPos + 50))
@@ -2164,6 +2168,24 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                 # update bounds to include time bar
                 fullRect.Union(wx.Rect(xSt, int(y + yOffset), w, h))
         dc.SetIdBounds(id, fullRect)
+
+    def drawSettingsBtn(self, dc, component):
+        # Setup ID
+        id = None
+        for key in self.componentFromID:
+            if self.componentFromID[key] == component:
+                id = key
+        if not id:  # then create one and add to the dict
+            id = wx.NewIdRef()
+            self.componentFromID[id] = component
+        dc.SetId(id)
+        # Get settings icon
+        sz = self.iconSize/2
+        thisIcon = icons.ComponentIcon(component, size=sz).bitmap
+        # Draw button
+        dc.DrawBitmap(thisIcon, 12, 12, True)
+        # Bind to ID bounds
+        dc.SetIdBounds(id, wx.Rect(12, 12, sz, sz))
 
     def copyCompon(self, event=None, component=None):
         """This is easy - just take a copy of the component into memory
