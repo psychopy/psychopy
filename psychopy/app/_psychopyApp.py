@@ -272,8 +272,19 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
             if not loadPlugin(pluginName):
                 logging.error(
-                    "Failed to load plugin `{}`!".format(pluginName))
-
+                    ("Failed to load plugin `{}`! It might have been " 
+                     "uninstalled or is now unreachable.").format(pluginName))
+                
+                # remove plugin from list
+                pluginList = list(prefs.general['startUpPlugins'])
+                try:
+                    pluginList.remove(pluginName)
+                except ValueError:
+                    pass
+                else:
+                    prefs.general['startUpPlugins'] = pluginList
+                    prefs.saveUserPrefs()
+                
     def _doSingleInstanceCheck(self):
         """Set up the routines which check for and communicate with other
         PsychoPy GUI processes.
