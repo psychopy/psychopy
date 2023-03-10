@@ -8,7 +8,7 @@ try:
                                            reason="Cannot run that test under Travis")
     skip_under_ghActions = pytest.mark.skipif(systemtools.isVM_CI() == 'github',
                                               reason="Cannot run that test on GitHub Actions")
-    skip_under_vm = pytest.mark.skipif(systemtools.isVM_CI(),
+    skip_under_vm = pytest.mark.skipif(bool(systemtools.isVM_CI()),
                                        reason="Cannot run that test on a virtual machine")
 except ImportError:
     def no_op(fn, reason=None):
