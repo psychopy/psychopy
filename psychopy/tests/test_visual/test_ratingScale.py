@@ -2,7 +2,7 @@ from psychopy.colors import Color
 from psychopy.visual import RatingScale, Window, shape, TextStim
 from psychopy import event, core
 from psychopy.constants import (NOT_STARTED, FINISHED)
-from psychopy.tests import _vmTesting
+from psychopy.tools import systemtools
 import pytest, copy
 
 """define RatingScale configurations, test the logic
@@ -289,7 +289,7 @@ class Test_class_RatingScale:
         h = r.getHistory()
         assert h[0] == (None, 0)
         assert h[-1][0] == 1
-        if _vmTesting:
+        if systemtools.isVM_CI():
             assert 0.001 < h[-1][1] < 0.1  # virtual machines not usually great
         else:
             assert 0.001 < h[-1][1] < 0.03
