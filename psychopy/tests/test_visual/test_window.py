@@ -3,6 +3,7 @@ from pathlib import Path
 
 from psychopy import visual
 from psychopy.tests import utils
+from psychopy.tests.test_visual.test_basevisual import _TestColorMixin
 
 
 class TestWindow:
