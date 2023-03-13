@@ -3374,6 +3374,17 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
                     # right click but not on an icon
                     # might as well do something
                     self.Refresh()
+            elif event.Moving():
+                icons = self.pdc.FindObjectsByBBox(x, y)
+                for thisIcon in icons:
+                    # might intersect several and only one has a callback
+                    if thisIcon in self.componentFromID:
+                        comp = self.componentFromID[thisIcon]
+                        # indicate hover target in bottom bar
+                        if comp.getType() in handlerTypes:
+                            self.frame.SetStatusText(f"Loop ({comp.getType()}): {comp.name}")
+                        else:
+                            self.frame.SetStatusText(f"{comp.getType()}: {comp.name}")
         elif self.mode == 'routine':
             if event.LeftDown():
                 pt = self.entryPointPosList[0]
