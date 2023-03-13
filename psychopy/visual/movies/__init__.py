@@ -122,10 +122,10 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.ori = ori
         self.size = size
         self.depth = depth
-        self.opacity = opacity
         self.anchor = anchor
         self.colorSpace = colorSpace
         self.color = color
+        self.opacity = opacity
 
         # playback stuff
         self._filename = pathToString(filename)
