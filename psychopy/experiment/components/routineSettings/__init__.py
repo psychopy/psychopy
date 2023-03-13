@@ -22,7 +22,7 @@ class RoutineSettingsComponent(BaseComponent):
 
     def __init__(
             self, exp, parentName, name='',
-            abortTrialOn="",
+            skipIf="",
             disabled=False
     ):
         self.type = 'RoutineSettings'
@@ -55,14 +55,24 @@ class RoutineSettingsComponent(BaseComponent):
         )
 
         # Flow params
-        self.params['abortTrialOn'] = Param(
-            abortTrialOn, valType='code', inputType="single", allowedTypes=[], categ='Basic',
+        self.params['skipIf'] = Param(
+            skipIf, valType='code', inputType="single", allowedTypes=[], categ='Basic',
             updates='constant',
-            hint=_translate("When the statement entered here evaluates to True, the trial will be aborted."),
-            label=_translate("Abort trial if..."))
+            hint=_translate(
+                "Skip this Routine if the value in this contorl evaluates to True. Leave blank to not skip."
+            ),
+            label=_translate("Skip if..."))
 
     def writeRoutineStartCode(self, buff):
-        pass
+        # Sanitize
+        params = self.params.copy()
+        # Skip Routine if condition is met
+        if params['skipIf'].val not in ('', None, -1, 'None'):
+            code = (
+                "# skip this Routine if its 'Skip if' condition is True\n"
+                "continueRoutine = continueRoutine and not (%(skipIf)s)\n"
+            )
+            buff.writeIndentedLines(code % params)
 
     def writeStartCode(self, buff):
         pass
@@ -107,14 +117,6 @@ class RoutineSettingsComponent(BaseComponent):
             # Contents of if statement
             code += (
                 "    continueRoutine = False\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-        # Write code to abort trial
-        if self.params['abortTrialOn'].val not in ('', None, -1, 'None'):
-            code = (
-                "# abort trial?\n"
-                "if %(abortTrialOn)s:\n"
-                "    %(loop)s.abortCurrentTrial()\n"
             )
             buff.writeIndentedLines(code % self.params)
 
