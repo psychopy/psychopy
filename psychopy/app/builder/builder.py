@@ -1763,7 +1763,11 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                 x, y = self.ConvertEventCoords(event)
                 id = self.pdc.FindObjectsByBBox(x, y)[0]
                 component = self.componentFromID[id]
-                self.frame.SetStatusText("Component: "+component.params['name'].val)
+                # Indicate hover target in the bottom bar
+                if component == self.routine.settings:
+                    self.frame.SetStatusText("Routine settings: " + component.params['name'].val)
+                else:
+                    self.frame.SetStatusText("Component: "+component.params['name'].val)
             except IndexError:
                 self.frame.SetStatusText("")
 
