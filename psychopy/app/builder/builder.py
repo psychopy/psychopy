@@ -3376,6 +3376,8 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
                     self.Refresh()
             elif event.Moving():
                 icons = self.pdc.FindObjectsByBBox(x, y)
+                if not icons:
+                    self.frame.SetStatusText("")
                 for thisIcon in icons:
                     # might intersect several and only one has a callback
                     if thisIcon in self.componentFromID:
