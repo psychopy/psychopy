@@ -74,7 +74,7 @@ includes = ['_sitebuiltins',  # needed for help()
             'ntplib',  # for egi-pynetstation
             ]
 packages = ['pydoc',  # needed for help()
-            'setuptools', # for plugin installing
+            'setuptools', 'wheel', # for plugin installing
             'wx', 'psychopy',
             'PyQt5',
             'pyglet', 'pytz', 'OpenGL', 'glfw',
