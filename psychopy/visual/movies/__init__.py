@@ -199,12 +199,8 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
             Path to movie file. Must be a format that FFMPEG supports.
 
         """
-        # If given `default.mp4`, sub in full path
-        if isinstance(filename, str):
-            # alias default names (so it always points to default.png)
-            if filename in defaultStim:
-                filename = Path(prefs.paths['resources']) / defaultStim[filename]
-
+        if isinstance(filename, (str, Path)):
+            filename = pathToString(filename)
             # check if the file has can be loaded
             if not os.path.isfile(filename):
                 raise FileNotFoundError("Cannot open movie file `{}`".format(

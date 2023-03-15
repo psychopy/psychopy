@@ -375,8 +375,13 @@ def pathToString(filepath):
     filepath : str or same as input object
         file system path coerced into a string type
     """
+    # Substitute default stim
+    if isinstance(filepath, str) and filepath in defaultStim:
+        filepath = defaultStimRoot / defaultStim[filepath]
+    # Convert to string if needed
     if hasattr(filepath, "__fspath__"):
         return filepath.__fspath__()
+
     return filepath
 
 
