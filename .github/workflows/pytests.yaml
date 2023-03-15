@@ -33,14 +33,19 @@ jobs:
         pip install distro  # used by createInitFile
         python ./building/plat_custom_installs.py
 
-    - name: Install PsychoPy and dependencies
+    - name: Install PsychoPy using pdm (dependencies)
+      run: |
+        pdm install  # fetch dependendices in lock file
+        python -m build
+
+    - name: Install optional dependencies
       run: |
         # for pocketsphinx we need this adapted package:
         brew install swig vlc
-        # install optional components
+
+        # install optional plugins
         pip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator psychopy-visionscience
-        # then use the standard requirements:
-        pip install .
+
 
 #    - name: test docs to pdf
 #      run: |
