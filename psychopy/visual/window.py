@@ -598,6 +598,9 @@ class Window():
         self.monitorFramePeriod = 0.0
         if checkTiming:
             self._monitorFrameRate = self.getActualFrameRate()
+        else:
+            # if not checking timing, window still needs to do an initial flip to initialise viewport
+            self.resetViewport()
         if self._monitorFrameRate is not None:
             self.monitorFramePeriod = 1.0 / self._monitorFrameRate
         else:
