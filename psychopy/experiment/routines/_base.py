@@ -482,9 +482,7 @@ class Routine(list):
                 '\n'
                 '# check for quit (typically the Esc key)\n'
                 'if endExpNow or defaultKeyboard.getKeys(keyList=["escape"]):\n'
-                '    core.quit()\n'
-                '    if eyetracker:\n'
-                '        eyetracker.setConnectionState(False)\n'
+                '    endExperiment(thisExp, inputs=inputs, win=win)'
             )
             buff.writeIndentedLines(code)
 
