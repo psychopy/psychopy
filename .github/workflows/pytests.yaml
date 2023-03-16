@@ -1,6 +1,10 @@
 name: pytest
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ release, dev ]
+  pull_request:
+    branches: [ release, dev ]
 
 permissions:
   contents: read
@@ -17,10 +21,10 @@ jobs:
         python-version: [3.8]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@3
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@4
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -32,6 +36,7 @@ jobs:
         pip install six  # for configobj and wxpython
         pip install distro  # used by createInitFile
         python ./building/plat_custom_installs.py
+        pip install pdm
 
     - name: Install PsychoPy using pdm (dependencies)
       run: |
@@ -204,6 +209,12 @@ jobs:
         pip install wheel
         pip install six  # for configobj and wxpython
         pip install distro  # used by createInitFile
+        pip install pdm
+
+    - name: Install PsychoPy using pdm (dependencies)
+      run: |
+        pdm install  # fetch dependendices in lock file
+        python -m build
 
     - name: Install PsychoPy Dependencies
       run: |
