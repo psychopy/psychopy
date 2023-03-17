@@ -264,7 +264,10 @@ class ImageData(pil.Image):
             path = Path(source)
             # Only load if it looks like an image
             if path.suffix in pil.registered_extensions():
-                return pil.open(source)
+                try:
+                    return pil.open(source)
+                except PIL.UnidentifiedImageError:
+                    return cls.createPlaceholder(source)
         # If source is a url, load from server
         if st.is_url(source):
             # Only load if looks like an image
@@ -272,13 +275,18 @@ class ImageData(pil.Image):
             if ext in pil.registered_extensions():
                 content = requests.get(source).content
                 data = io.BytesIO(content)
-                return pil.open(data)
+                try:
+                    return pil.open(data)
+                except PIL.UnidentifiedImageError:
+                    return cls.createPlaceholder(source)
 
+    @staticmethod
+    def createPlaceholder(source):
         # If couldn't interpret, raise warning and return blank image
         logging.warning(_translate(
             "Could not get image from: {}, using blank image instead."
         ).format(source))
-        return pil.new('RGB', size=(16, 16))
+        return pil.new('RGBA', size=(16, 16))
 
 
 class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
