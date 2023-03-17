@@ -49,7 +49,7 @@ onlineTranscribers = {
 }
 localTranscribers = {
     "Google": "google",
-    "Built-in": "sphinx"
+    "Built-in": "whisper",
 }
 allTranscribers = {**localTranscribers, **onlineTranscribers}
 
@@ -187,6 +187,13 @@ class MicrophoneComponent(BaseComponent):
             label=_translate("Transcription Language")
         )
 
+        self.depends.append({
+            "dependsOn": "transcribeBackend",  # if...
+            "condition": "=='Google'",  # meets...
+            "param": "transcribeWords",  # then...
+            "true": "show",  # should...
+            "false": "hide",  # otherwise...
+        })
         self.params['transcribeWords'] = Param(
             transcribeWords, valType='list', inputType='single', categ='Transcription',
             hint=_translate("Set list of words to listen for - if blank will listen for all words in chosen language. \n\n"
