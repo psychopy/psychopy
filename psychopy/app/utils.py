@@ -1096,7 +1096,7 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
             # Otherwise, extract frames
             try:
                 img = pil.open(data)
-                for i in range(img.n_frames):
+                for i in range(getattr(img, "n_frames", 1)):
                     # Seek to frame
                     img.seek(i)
                     if 'duration' in img.info:
