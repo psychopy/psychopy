@@ -2,9 +2,8 @@ import importlib
 import os
 import sys
 from pathlib import Path
-import shutil
 
-from psychopy import experiment, logging
+from psychopy import experiment, logging, liaison
 
 
 class Session:
@@ -298,10 +297,6 @@ if __name__ == "__main__":
     if ":" in str(args.host):
         host, port = str(args.host).split(":")
         # Create liaison server
-        try:
-            import liaison
-        except ModuleNotFoundError as err:
-            raise ModuleNotFoundError("Package 'liaison' is needed to run psychopy.session with --host.")
         liaisonServer = liaison.WebSocketServer()
         liaisonServer.start(host=host, port=port)
     else:
