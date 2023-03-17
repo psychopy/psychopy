@@ -280,9 +280,12 @@ class ImageData(pil.Image):
                 except PIL.UnidentifiedImageError:
                     return cls.createPlaceholder(source)
 
+        # If couldn't interpret, raise warning and return blank image
+        return cls.createPlaceholder(source)
+
     @staticmethod
     def createPlaceholder(source):
-        # If couldn't interpret, raise warning and return blank image
+        # Raise warning and return blank image
         logging.warning(_translate(
             "Could not get image from: {}, using blank image instead."
         ).format(source))
