@@ -214,7 +214,7 @@ jobs:
     - name: Install PsychoPy using pdm (dependencies)
       run: |
         pdm install  # fetch dependendices in lock file
-        python -m build
+        pdm build  # test that we can build the sdist.tar.gz and whl files
 
     - name: Install PsychoPy Dependencies
       run: |
