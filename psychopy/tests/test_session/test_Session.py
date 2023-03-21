@@ -30,6 +30,8 @@ class TestSession:
         # Check that file is copied
         newExpFile = self.sess.root / "outside_root" / "externalExp.psyexp"
         assert newExpFile.is_file()
+        # Check that newly added experiment still runs
+        self.sess.runExperiment("externalExp")
 
     def test_run_exp(self):
         self.sess.runExperiment("exp2")
