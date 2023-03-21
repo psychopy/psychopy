@@ -38,12 +38,13 @@ jobs:
         python ./building/plat_custom_installs.py
         pip install pdm
 
-    - name: Install PsychoPy using pdm (dependencies)
+    - name: Install PsychoPy Dependencies (pdm and pip)
       run: |
         pdm install  # fetch dependendices in lock file
         pdm build
+        pip install .
 
-    - name: Install optional dependencies
+    - name: Install plugins
       run: |
         # for pocketsphinx we need this adapted package:
         brew install swig vlc
