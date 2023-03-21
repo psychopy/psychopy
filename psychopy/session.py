@@ -3,7 +3,7 @@ import os
 import sys
 from pathlib import Path
 
-from psychopy import experiment, logging, liaison
+from psychopy import experiment, logging
 
 
 class Session:
@@ -296,6 +296,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if ":" in str(args.host):
         host, port = str(args.host).split(":")
+        # Import liaison
+        from psychopy import liaison
         # Create liaison server
         liaisonServer = liaison.WebSocketServer()
         liaisonServer.start(host=host, port=port)
