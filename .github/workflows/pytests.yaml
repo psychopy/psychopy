@@ -48,12 +48,9 @@ jobs:
 
     - name: Install plugins
       run: |
-        # for pocketsphinx we need this adapted package:
-        brew install swig vlc
-
+        
         # install optional plugins
         pip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator psychopy-visionscience
-
 
 #    - name: test docs to pdf
 #      run: |

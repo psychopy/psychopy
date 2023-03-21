@@ -77,7 +77,8 @@ dependencies = [
     "pyobjc-core < 8.0; platform_system == \"Darwin\"",
     "pyobjc-framework-Quartz < 8.0; platform_system == \"Darwin\"",
     "pyobjc < 8.0; platform_system == \"Darwin\"",
-    "python-xlib; platform_system == \"Linux\""
+    "python-xlib; platform_system == \"Linux\"",
+    "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]  # This is optional dependencies
