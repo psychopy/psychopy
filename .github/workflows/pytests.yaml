@@ -41,7 +41,7 @@ jobs:
     - name: Install PsychoPy using pdm (dependencies)
       run: |
         pdm install  # fetch dependendices in lock file
-        python -m build
+        pdm build
 
     - name: Install optional dependencies
       run: |
