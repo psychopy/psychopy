@@ -1,9 +1,11 @@
 import importlib
 import os
 import sys
+import shutil
 from pathlib import Path
 
 from psychopy import experiment, logging
+from psychopy.localization import _translate
 
 
 class Session:
@@ -96,6 +98,28 @@ class Session:
         # Get project folder if not specified
         if folder is None:
             folder = file.parent
+        # If folder isn't within root, copy it to root and show a warning
+        if not str(folder).startswith(str(self.root)):
+            # Warn user that some files are going to be copied
+            logging.warning(_translate(
+                f"Experiment '{file.stem}' is located outside of the root folder for this Session. All files from its "
+                f"experiment folder ('{folder.stem}') will be copied to the root folder and the experiment will run "
+                f"from there."
+            ))
+            # Create new folder
+            newFolder = self.root / folder.stem
+            # Copy files to it
+            shutil.copytree(
+                src=str(folder),
+                dst=str(newFolder)
+            )
+            # Store new locations
+            file = newFolder / file.relative_to(folder)
+            folder = newFolder
+            # Notify user than files are copied
+            logging.info(_translate(
+                f"Experiment '{file.stem}' and its experiment folder ('{folder.stem}') have been copied to {newFolder}"
+            ))
         # Initialise as module
         moduleInitFile = (folder / "__init__.py")
         if not moduleInitFile.is_file():
