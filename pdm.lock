@@ -16,6 +16,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "beautifulsoup4"
+version = "4.12.0"
+requires_python = ">=3.6.0"
+summary = "Screen-scraping library"
+dependencies = [
+    "soupsieve>1.2",
+]
+
+[[package]]
 name = "blosc2"
 version = "2.0.0"
 requires_python = ">=3.8, <4"
@@ -155,6 +164,12 @@ summary = "GitPython is a Python library used to interact with Git repositories"
 dependencies = [
     "gitdb<5,>=4.0.1",
 ]
+
+[[package]]
+name = "html2text"
+version = "2020.1.16"
+requires_python = ">=3.5"
+summary = "Turn HTML into equivalent Markdown-structured text."
 
 [[package]]
 name = "idna"
@@ -1890,6 +1905,17 @@ requires_python = ">=3.6.8"
 summary = "pyparsing module - Classes and methods to define and execute parsing grammars"
 
 [[package]]
+name = "pypi-search"
+version = "1.2.1"
+requires_python = ">=3.6"
+summary = "Get Information on Python Packages From PyPI"
+dependencies = [
+    "beautifulsoup4>=4.9.2",
+    "html2text>=2020.1.16",
+    "requests>=2.22.0",
+]
+
+[[package]]
 name = "pypiwin32"
 version = "223"
 summary = "UNKNOWN"
@@ -2057,6 +2083,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "soupsieve"
+version = "2.4"
+requires_python = ">=3.7"
+summary = "A modern CSS selector implementation for Beautiful Soup."
+
+[[package]]
 name = "tables"
 version = "3.8.0"
 requires_python = ">=3.8"
@@ -2137,7 +2169,7 @@ summary = "Backport of pathlib-compatible object wrapper for zip files"
 
 [metadata]
 lock_version = "4.1"
-content_hash = "sha256:332267bff5e2cff5e558e891df5a09a1bcf5f53b27187a48480fb909083e2746"
+content_hash = "sha256:d7e68d94ac05360797064e9b9d77dda4bc560612892740149788a3721e319053"
 
 [metadata.files]
 "arabic-reshaper 3.0.0" = [
@@ -2147,6 +2179,10 @@ content_hash = "sha256:332267bff5e2cff5e558e891df5a09a1bcf5f53b27187a48480fb9090
 "astunparse 1.6.3" = [
     {url = "https://files.pythonhosted.org/packages/2b/03/13dde6512ad7b4557eb792fbcf0c653af6076b81e5941d36ec61f7ce6028/astunparse-1.6.3-py2.py3-none-any.whl", hash = "sha256:c2652417f2c8b5bb325c885ae329bdf3f86424075c4fd1a128674bc6fba4b8e8"},
     {url = "https://files.pythonhosted.org/packages/f3/af/4182184d3c338792894f34a62672919db7ca008c89abee9b564dd34d8029/astunparse-1.6.3.tar.gz", hash = "sha256:5ad93a8456f0d084c3456d059fd9a92cce667963232cbf763eac3bc5b7940872"},
+]
+"beautifulsoup4 4.12.0" = [
+    {url = "https://files.pythonhosted.org/packages/c5/4c/b5b7d6e1d4406973fb7f4e5df81c6f07890fa82548ac3b945deed1df9d48/beautifulsoup4-4.12.0.tar.gz", hash = "sha256:c5fceeaec29d09c84970e47c65f2f0efe57872f7cff494c9691a26ec0ff13234"},
+    {url = "https://files.pythonhosted.org/packages/ee/a7/06b189a2e280e351adcef25df532af3c59442123187e228b960ab3238687/beautifulsoup4-4.12.0-py3-none-any.whl", hash = "sha256:2130a5ad7f513200fae61a17abb5e338ca980fa28c439c0571014bc0217e9591"},
 ]
 "blosc2 2.0.0" = [
     {url = "https://files.pythonhosted.org/packages/03/d0/685258d475e09d8884d64c8a1eb90a3428fbba782e60b7926f9fdb82c297/blosc2-2.0.0-cp311-cp311-win_amd64.whl", hash = "sha256:54c5614b18f9f01473758fa64e3bc699adbe31b307a45eca0e07fa2204e4d4a1"},
@@ -2625,6 +2661,10 @@ content_hash = "sha256:332267bff5e2cff5e558e891df5a09a1bcf5f53b27187a48480fb9090
 "gitpython 3.1.31" = [
     {url = "https://files.pythonhosted.org/packages/5f/11/2b0f60686dbda49028cec8c66bd18a5e82c96d92eef4bc34961e35bb3762/GitPython-3.1.31.tar.gz", hash = "sha256:8ce3bcf69adfdf7c7d503e78fd3b1c492af782d58893b650adb2ac8912ddd573"},
     {url = "https://files.pythonhosted.org/packages/9e/8a/d1e02cc111d65b0346f70abb83c51f8593e7134bf694a4a56d1a470caaf7/GitPython-3.1.31-py3-none-any.whl", hash = "sha256:f04893614f6aa713a60cbbe1e6a97403ef633103cdd0ef5eb6efe0deb98dbe8d"},
+]
+"html2text 2020.1.16" = [
+    {url = "https://files.pythonhosted.org/packages/6c/f9/033a17d8ea8181aee41f20c74c3b20f1ccbefbbc3f7cd24e3692de99fb25/html2text-2020.1.16.tar.gz", hash = "sha256:e296318e16b059ddb97f7a8a1d6a5c1d7af4544049a01e261731d2d5cc277bbb"},
+    {url = "https://files.pythonhosted.org/packages/ae/88/14655f727f66b3e3199f4467bafcc88283e6c31b562686bf606264e09181/html2text-2020.1.16-py3-none-any.whl", hash = "sha256:c7c629882da0cf377d66f073329ccf34a12ed2adf0169b9285ae4e63ef54c82b"},
 ]
 "idna 3.4" = [
     {url = "https://files.pythonhosted.org/packages/8b/e1/43beb3d38dba6cb420cefa297822eac205a277ab43e5ba5d5c46faf96438/idna-3.4.tar.gz", hash = "sha256:814f528e8dead7d329833b91c5faa87d60bf71824cd12a7530b5526063d02cb4"},
@@ -3836,6 +3876,10 @@ content_hash = "sha256:332267bff5e2cff5e558e891df5a09a1bcf5f53b27187a48480fb9090
     {url = "https://files.pythonhosted.org/packages/6c/10/a7d0fa5baea8fe7b50f448ab742f26f52b80bfca85ac2be9d35cdd9a3246/pyparsing-3.0.9-py3-none-any.whl", hash = "sha256:5026bae9a10eeaefb61dab2f09052b9f4307d44aee4eda64b309723d8d206bbc"},
     {url = "https://files.pythonhosted.org/packages/71/22/207523d16464c40a0310d2d4d8926daffa00ac1f5b1576170a32db749636/pyparsing-3.0.9.tar.gz", hash = "sha256:2b020ecf7d21b687f219b71ecad3631f644a47f01403fa1d1036b0c6416d70fb"},
 ]
+"pypi-search 1.2.1" = [
+    {url = "https://files.pythonhosted.org/packages/2d/3b/2c76e16517cc201bb64c04c7515d6d531d92ad052b3f6db60dbff50a176b/pypi_search-1.2.1-py3-none-any.whl", hash = "sha256:233e29786552ecd97ff56858bee1b2a1f28e5ba91cd783fa1761c52e2f0396ac"},
+    {url = "https://files.pythonhosted.org/packages/bd/3b/7ecb5ba0ea4f2cfbd87d700e2880b3b21103eaf1d9448358f5ec94e3cf1f/pypi-search-1.2.1.tar.gz", hash = "sha256:d84c2334c56f2b32a58ef35b528f9f71c65b463b3cc0d79a377939464cae07fc"},
+]
 "pypiwin32 223" = [
     {url = "https://files.pythonhosted.org/packages/13/e8/4f38eb30c4dae36634a53c5b2cd73b517ea3607e10d00f61f2494449cec0/pypiwin32-223.tar.gz", hash = "sha256:71be40c1fbd28594214ecaecb58e7aa8b708eabfa0125c8a109ebd51edbd776a"},
     {url = "https://files.pythonhosted.org/packages/d0/1b/2f292bbd742e369a100c91faa0483172cd91a1a422a6692055ac920946c5/pypiwin32-223-py3-none-any.whl", hash = "sha256:67adf399debc1d5d14dffc1ab5acacb800da569754fafdc576b2a039485aa775"},
@@ -4095,6 +4139,10 @@ content_hash = "sha256:332267bff5e2cff5e558e891df5a09a1bcf5f53b27187a48480fb9090
     {url = "https://files.pythonhosted.org/packages/71/87/31d2b9ed58975cec081858c01afaa3c43718eb0f62b5698a876d94739ad0/soundfile-0.12.1-py2.py3-none-macosx_11_0_arm64.whl", hash = "sha256:bceaab5c4febb11ea0554566784bcf4bc2e3977b53946dda2b12804b4fe524a8"},
     {url = "https://files.pythonhosted.org/packages/c1/07/7591f4efd29e65071c3a61b53725036ea8f73366a4920a481ebddaf8d0ca/soundfile-0.12.1-py2.py3-none-manylinux_2_31_x86_64.whl", hash = "sha256:074247b771a181859d2bc1f98b5ebf6d5153d2c397b86ee9e29ba602a8dfe2a6"},
     {url = "https://files.pythonhosted.org/packages/c8/73/059c84343be6509b480013bf1eeb11b96c5f9eb48deff8f83638011f6b2c/soundfile-0.12.1-py2.py3-none-macosx_10_9_x86_64.whl", hash = "sha256:d922be1563ce17a69582a352a86f28ed8c9f6a8bc951df63476ffc310c064bfa"},
+]
+"soupsieve 2.4" = [
+    {url = "https://files.pythonhosted.org/packages/1b/cb/34933ebdd6bf6a77daaa0bd04318d61591452eb90ecca4def947e3cb2165/soupsieve-2.4.tar.gz", hash = "sha256:e28dba9ca6c7c00173e34e4ba57448f0688bb681b7c5e8bf4971daafc093d69a"},
+    {url = "https://files.pythonhosted.org/packages/d2/70/2c92d7bc961ba43b7b21032b7622144de5f97dec14b62226533f6940798e/soupsieve-2.4-py3-none-any.whl", hash = "sha256:49e5368c2cda80ee7e84da9dbe3e110b70a4575f196efb74e51b94549d921955"},
 ]
 "tables 3.8.0" = [
     {url = "https://files.pythonhosted.org/packages/05/49/e392c92132b950c3a8bdbb66c687a82e808edd89024e73358084bf96e044/tables-3.8.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c83a74cac3c0629a0e83570d465f88843ef3609ef56a8ef9a49ee85ab3b8f02f"},
