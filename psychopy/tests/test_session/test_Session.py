@@ -2,6 +2,7 @@ from psychopy import session, visual
 from psychopy.hardware import keyboard
 from psychopy.tests import utils
 from pathlib import Path
+import shutil
 
 
 class TestSession:
@@ -32,6 +33,9 @@ class TestSession:
         assert newExpFile.is_file()
         # Check that newly added experiment still runs
         self.sess.runExperiment("externalExp")
+        # Remove external experiment
+        shutil.rmtree(str(newExpFile.parent))
+        del self.sess.experiments['externalExp']
 
     def test_run_exp(self):
         self.sess.runExperiment("exp2")
