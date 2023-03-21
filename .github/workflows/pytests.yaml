@@ -21,6 +21,7 @@ jobs:
         python-version: [3.8]
 
     steps:
+
     - uses: actions/checkout@v3
 
     - name: Set up Python ${{ matrix.python-version }}
@@ -35,14 +36,15 @@ jobs:
         pip install wheel
         pip install six  # for configobj and wxpython
         pip install distro  # used by createInitFile
+        pip install attrdict3  # used by wxpython setup
         python ./building/plat_custom_installs.py
         pip install pdm
 
     - name: Install PsychoPy Dependencies (pdm and pip)
       run: |
         pdm install  # fetch dependendices in lock file
-        pdm build
-        pip install .
+        # pdm build
+        pip install . --prefer-binary  # install with pip
 
     - name: Install plugins
       run: |
@@ -197,12 +199,6 @@ jobs:
         export LIBGL_ALWAYS_INDIRECT=0
         export QT_DEBUG_PLUGINS=1 # let us know about missing dependencies?
 
-    - name: Install wxPython from source for linux
-      if: runner.os=='Linux'
-      run: |
-        # these are needed to build wxPython
-        pip install pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04/ wxPython
-
     - name: Install packaging and testing libs
       run: |
         python -m pip install --upgrade pip
@@ -212,19 +208,27 @@ jobs:
         pip install distro  # used by createInitFile
         pip install pdm
 
-    - name: Install PsychoPy using pdm (dependencies)
+    - name: Install wxPython from source for linux
+      if: runner.os=='Linux'
+      run: |
+        # these are needed to build wxPython
+        pip install attrdict3  # used by wxpython setup
+        pip install pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04/ wxPython
+        pdm remove wxpython  # no longer needed in the pdm
+
+    - name: Install main dependencies (pdm) and PsychoPy (pip)
       run: |
         pdm install  # fetch dependendices in lock file
         pdm build  # test that we can build the sdist.tar.gz and whl files
+        pip install .
 
-    - name: Install PsychoPy Dependencies
+    - name: Install PsychoPy plugins
       run: |
         # install optional components
         pip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator psychopy-visionscience
-        # to install all dependencies
-        pip install .
 
     - name: Set nice level
+      if: runner.os=='Linux'
       run: |
         # sudo setcap cap_sys_nice=eip ${{ env.pythonLocation }}/python
         export PYTHON_EXECUTABLE=`python -c "import os; import sys; print(os.path.realpath(sys.executable))"`
@@ -232,12 +236,13 @@ jobs:
         getcap ${PYTHON_EXECUTABLE}  # did it work?
 
     - name: Test gui toolkits Qt
+      if: runner.os=='Linux'
       run: |
         # quick test of the gui toolkits (without pytest swallowing errors)
         xvfb-run -a --server-args="-screen 0 1024x768x24" python psychopy/tests/test_gui/test_DlgFromDictQt.py
 
     - name: Test gui toolkits Wx
-      if: always()
+      if: runner.os=='Linux'
       run: |
         # quick test of the gui toolkits (without pytest swallowing errors)
         xvfb-run -a --server-args="-screen 0 1024x768x24" python psychopy/tests/test_gui/test_DlgFromDictWx.py
