@@ -131,6 +131,12 @@ version = "4.0.1"
 summary = "ECMAScript parsing infrastructure for multipurpose analysis in Python"
 
 [[package]]
+name = "et-xmlfile"
+version = "1.1.0"
+requires_python = ">=3.6"
+summary = "An implementation of lxml.xmlfile for the standard library"
+
+[[package]]
 name = "ffpyplayer"
 version = "4.4.0"
 summary = "A cython implementation of an ffmpeg based player."
@@ -317,6 +323,15 @@ dependencies = [
     "numpy>=1.21.0; python_version <= \"3.9\" and platform_system == \"Darwin\" and platform_machine == \"arm64\"",
     "numpy>=1.21.2; python_version >= \"3.10\"",
     "numpy>=1.21.4; python_version >= \"3.10\" and platform_system == \"Darwin\"",
+]
+
+[[package]]
+name = "openpyxl"
+version = "3.1.2"
+requires_python = ">=3.6"
+summary = "A Python library to read/write Excel 2010 xlsx/xlsm files"
+dependencies = [
+    "et-xmlfile",
 ]
 
 [[package]]
@@ -2169,7 +2184,7 @@ summary = "Backport of pathlib-compatible object wrapper for zip files"
 
 [metadata]
 lock_version = "4.1"
-content_hash = "sha256:d7e68d94ac05360797064e9b9d77dda4bc560612892740149788a3721e319053"
+content_hash = "sha256:e8174e7f98bc4870e3bb756200b2518c073e198d314b8008b8a1de0a9179ff6d"
 
 [metadata.files]
 "arabic-reshaper 3.0.0" = [
@@ -2615,6 +2630,10 @@ content_hash = "sha256:d7e68d94ac05360797064e9b9d77dda4bc560612892740149788a3721
 "esprima 4.0.1" = [
     {url = "https://files.pythonhosted.org/packages/cc/a1/50fccd68a12bcfc27adfc9969c090286670a9109a0259f3f70943390b721/esprima-4.0.1.tar.gz", hash = "sha256:08db1a876d3c2910db9cfaeb83108193af5411fc3a3a66ebefacd390d21323ee"},
 ]
+"et-xmlfile 1.1.0" = [
+    {url = "https://files.pythonhosted.org/packages/3d/5d/0413a31d184a20c763ad741cc7852a659bf15094c24840c5bdd1754765cd/et_xmlfile-1.1.0.tar.gz", hash = "sha256:8eb9e2bc2f8c97e37a2dc85a09ecdcdec9d8a396530a6d5a33b30b9a92da0c5c"},
+    {url = "https://files.pythonhosted.org/packages/96/c2/3dd434b0108730014f1b96fd286040dc3bcb70066346f7e01ec2ac95865f/et_xmlfile-1.1.0-py3-none-any.whl", hash = "sha256:a2ba85d1d6a74ef63837eed693bcb89c3f752169b0e3e7ae5b16ca5e1b3deada"},
+]
 "ffpyplayer 4.4.0" = [
     {url = "https://files.pythonhosted.org/packages/06/87/e947ca4dc1e3c3baec999b3f0111cb38b0ade83230de145f06e9b160a106/ffpyplayer-4.4.0-cp37-cp37m-win_amd64.whl", hash = "sha256:8622bd7c1530ce2432dd64b9a215ff9a8e2262c79b95ab266178d69aefc87cdd"},
     {url = "https://files.pythonhosted.org/packages/27/a7/16f93c39a10df07061d0d389d2199181e99fdbf3d0a563a3bc42dc41073b/ffpyplayer-4.4.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a8ef38105d912b8f532dacb9e72673a8dd29c8f045975d8c2b8eccc456844b64"},
@@ -2961,6 +2980,10 @@ content_hash = "sha256:d7e68d94ac05360797064e9b9d77dda4bc560612892740149788a3721
     {url = "https://files.pythonhosted.org/packages/36/98/fab8d982e2e2b57bdebcad64c7e5b5a14ac91c657cac509b9cf3fbea49d2/opencv_python-4.7.0.72-cp37-abi3-win_amd64.whl", hash = "sha256:812af57553ec1c6709060c63f6b7e9ad07ddc0f592f3ccc6d00c71e0fe0e6376"},
     {url = "https://files.pythonhosted.org/packages/40/93/655af887bafece2a655998f53b9bd21ad94b0627d81d44aef35c79f40de6/opencv-python-4.7.0.72.tar.gz", hash = "sha256:3424794a711f33284581f3c1e4b071cfc827d02b99d6fd9a35391f517c453306"},
     {url = "https://files.pythonhosted.org/packages/9e/b9/0d479c9ce987ba3c894c08785a4a3c38651e8cb14800fbe788d3ed8d3c11/opencv_python-4.7.0.72-cp37-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:cd08343654c6b88c5a8c25bf425f8025aed2e3189b4d7306b5861d32affaf737"},
+]
+"openpyxl 3.1.2" = [
+    {url = "https://files.pythonhosted.org/packages/42/e8/af028681d493814ca9c2ff8106fc62a4a32e4e0ae14602c2a98fc7b741c8/openpyxl-3.1.2.tar.gz", hash = "sha256:a6f5977418eff3b2d5500d54d9db50c8277a368436f4e4f8ddb1be3422870184"},
+    {url = "https://files.pythonhosted.org/packages/6a/94/a59521de836ef0da54aaf50da6c4da8fb4072fb3053fa71f052fd9399e7a/openpyxl-3.1.2-py2.py3-none-any.whl", hash = "sha256:f91456ead12ab3c6c2e9491cf33ba6d08357d802192379bb482f1033ade496f5"},
 ]
 "packaging 23.0" = [
     {url = "https://files.pythonhosted.org/packages/47/d5/aca8ff6f49aa5565df1c826e7bf5e85a6df852ee063600c1efa5b932968c/packaging-23.0.tar.gz", hash = "sha256:b6ad297f8907de0fa2fe1ccbd26fdaf387f5f47c7275fedf8cce89f99446cf97"},

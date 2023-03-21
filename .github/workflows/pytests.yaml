@@ -37,7 +37,9 @@ jobs:
         pip install six  # for configobj and wxpython
         pip install distro  # used by createInitFile
         pip install attrdict3  # used by wxpython setup
+        pip install lxml xmlschema 
         python ./building/plat_custom_installs.py
+
         pip install pdm
 
     - name: Install PsychoPy Dependencies (pdm and pip)
@@ -91,7 +93,7 @@ jobs:
 
     - name: upload failed app data
       if: always()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: prefs for ${{ matrix.os }}_${{ matrix.python-version }}
         path: |
@@ -101,7 +103,7 @@ jobs:
 
     - name: upload failed screenshots
       if: always()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: test artifacts
         path: |
@@ -111,7 +113,7 @@ jobs:
           !**/*.wav
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v3
       with:
         fail_ci_if_error: false
 
@@ -165,7 +167,7 @@ jobs:
 
     - name: cache wxPython for linux
       if: runner.os=='Linux'
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/.cache/pip
         key: ${{ matrix.os }}-py${{ matrix.python-version }}-${{ steps.get_month.outputs.month }}
@@ -250,7 +252,7 @@ jobs:
 
     - name: upload failed app data
       if: always()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: prefs for ${{ matrix.os }}_${{ matrix.python-version }}
         path: |
@@ -260,7 +262,7 @@ jobs:
 
     - name: upload failed screenshots
       if: always()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: test artifacts
         path: |
@@ -270,7 +272,7 @@ jobs:
           !**/*.wav
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v3
       with:
         fail_ci_if_error: false
 
