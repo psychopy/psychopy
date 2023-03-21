@@ -189,7 +189,7 @@ def _switchToVersion(requestedVersion):
         else:
             _clone(requestedVersion)
     except (CalledProcessError, OSError) as e:
-        if 'did not match any file(s) known to git' in e.output:
+        if 'did not match any file(s) known to git' in str(e):
             msg = _translate("'{}' is not a valid PsychoPy version.")
             logging.error(msg.format(requestedVersion))
             raise RuntimeError(msg)

@@ -29,8 +29,9 @@ class PanoramaComponent(BaseVisualComponent):
                  startEstim='', durationEstim='',
                  saveStartStop=True, syncScreenRefresh=True,
                  image="",
+                 interpolate='linear',
                  posCtrl="mouse", smooth=True, posSensitivity=1,
-                 altitude="", azimuth="",
+                 elevation="", azimuth="",
                  zoomCtrl="wheel",
                  zoom=1, zoomSensitivity=1,
                  inKey="up", outKey="down",
@@ -52,7 +53,7 @@ class PanoramaComponent(BaseVisualComponent):
         self.order += [
             "image",
             "posCtrl",
-            "azimuth", "altitude",
+            "azimuth", "elevation",
             "upKey", "leftKey", "downKey", "rightKey", "stopKey",
             "posSensitivity",
             "smooth",
@@ -71,6 +72,15 @@ class PanoramaComponent(BaseVisualComponent):
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_translate("Image"))
+
+        msg = _translate(
+            "How should the image be interpolated if/when rescaled")
+        self.params['interpolate'] = Param(
+            interpolate, valType='str', inputType="choice",
+            allowedVals=['linear', 'nearest'], categ='Basic',
+            updates='constant', allowedUpdates=[],
+            hint=msg, direct=False,
+            label=_translate("interpolate"))
 
         # Position controls
         
@@ -112,7 +122,7 @@ class PanoramaComponent(BaseVisualComponent):
             {
                 "dependsOn": "posCtrl",  # if...
                 "condition": "=='custom'",  # meets...
-                "param": "altitude",  # then...
+                "param": "elevation",  # then...
                 "true": "show",  # should...
                 "false": "hide",  # otherwise...
             }
@@ -120,12 +130,12 @@ class PanoramaComponent(BaseVisualComponent):
         msg = _translate(
             "Vertical look position, ranging from -1 (fully left) to 1 (fully right)"
         )
-        self.params['altitude'] = Param(
-            altitude, valType='code', inputType='single', categ='Basic',
+        self.params['elevation'] = Param(
+            elevation, valType='code', inputType='single', categ='Basic',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_translate("Altitude")
+            label=_translate("Elevation")
         )
         keys = {'upKey': upKey, 'leftKey': leftKey, 'downKey': downKey, 'rightKey': rightKey, 'stopKey': stopKey}
         labels = {'upKey': _translate("Up"), 'leftKey': _translate("Left"), 'downKey': _translate("Down"),
@@ -280,7 +290,8 @@ class PanoramaComponent(BaseVisualComponent):
             "%(name)s = visual.PanoramicImageStim(\n"
             "    win,\n"
             "    image=%(image)s,\n"
-            "    altitude=%(altitude)s, azimuth=%(azimuth)s\n"
+            "    elevation=%(elevation)s, azimuth=%(azimuth)s,\n"
+            "    interpolate=%(interpolate)s\n"
             ")\n"
             "# add attribute to keep track of last movement\n"
             "%(name)s.momentum = np.asarray([0.0, 0.0])\n"
@@ -319,10 +330,10 @@ class PanoramaComponent(BaseVisualComponent):
             buff.writeIndentedLines(code % inits)
 
     def writeFrameCode(self, buff):
-        # If control style isn't custom, make sure altitude, azimuth and zoom aren't updated each frame
+        # If control style isn't custom, make sure elevation, azimuth and zoom aren't updated each frame
         if self.params['posCtrl'].val != "custom":
             self.params['azimuth'].updates = "constant"
-            self.params['altitude'].updates = "constant"
+            self.params['elevation'].updates = "constant"
         if self.params['zoomCtrl'].val != "custom":
             self.params['zoom'].updates = "constant"
 
@@ -346,7 +357,7 @@ class PanoramaComponent(BaseVisualComponent):
                     "# update panorama view from mouse pos\n"
                     "pos = layout.Position(%(name)s.mouse.getPos(), win.units, win)\n"
                     "%(name)s.azimuth = -pos.norm[0] * %(posSensitivity)s\n"
-                    "%(name)s.altitude = -pos.norm[1] * %(posSensitivity)s\n"
+                    "%(name)s.elevation = -pos.norm[1] * %(posSensitivity)s\n"
                 )
                 buff.writeIndentedLines(code % self.params)
 
@@ -358,7 +369,7 @@ class PanoramaComponent(BaseVisualComponent):
                     "if %(name)s.mouse.getPressed()[0]:\n"
                     "    %(name)s.momentum = rel.norm * %(posSensitivity)s\n"
                     "    %(name)s.azimuth -= %(name)s.momentum[0]\n"
-                    "    %(name)s.altitude -= %(name)s.momentum[1]\n"
+                    "    %(name)s.elevation -= %(name)s.momentum[1]\n"
                 )
                 buff.writeIndentedLines(code % self.params)
                 if self.params['smooth']:
@@ -367,7 +378,7 @@ class PanoramaComponent(BaseVisualComponent):
                     "else:\n"
                     "    # after click, keep moving a little\n"
                     "    %(name)s.azimuth -= %(name)s.momentum[0]\n"
-                    "    %(name)s.altitude -= %(name)s.momentum[1]\n"
+                    "    %(name)s.elevation -= %(name)s.momentum[1]\n"
                     "    # decrease momentum every frame so that it approaches 0\n"
                     "    %(name)s.momentum = %(name)s.momentum * (1 - win.monitorFramePeriod * 2)\n"
                     )
@@ -385,7 +396,7 @@ class PanoramaComponent(BaseVisualComponent):
                     "        %(name)s.momentum += %(name)s.kb.deltas[key.name] * %(posSensitivity)s\n"
                     "    # apply momentum to panorama view\n"
                     "    %(name)s.azimuth += %(name)s.momentum[0]\n"
-                    "    %(name)s.altitude += %(name)s.momentum[1]\n"
+                    "    %(name)s.elevation += %(name)s.momentum[1]\n"
                     "    # get keys which have been released and clear them from the buffer before next frame\n"
                     "    %(name)s.kb.getKeys(list(%(name)s.kb.deltas), waitRelease=True, clear=True)\n"
                 )
@@ -396,7 +407,7 @@ class PanoramaComponent(BaseVisualComponent):
                     "else:\n"
                     "    # after pressing, keep moving a little\n"
                     "    %(name)s.azimuth += %(name)s.momentum[0]\n"
-                    "    %(name)s.altitude += %(name)s.momentum[1]\n"
+                    "    %(name)s.elevation += %(name)s.momentum[1]\n"
                     "    # decrease momentum every frame so that it approaches 0\n"
                     "    %(name)s.momentum = %(name)s.momentum * (1 - win.monitorFramePeriod * 4)\n"
                     )

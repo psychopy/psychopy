@@ -737,7 +737,15 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             # routinePanel.redrawRoutines(), called by self.updateAllViews()
             # update the views
             self.updateAllViews()  # if frozen effect will be visible on thaw
-        self.updateReadme()
+
+        # Show README
+        if self.prefs['alwaysShowReadme']:
+            # If prefs are to always show README, show if populated
+            self.updateReadme()
+        else:
+            # Otherwise update so we have the object, but don't show until asked
+            self.updateReadme(show=False)
+
         self.fileHistory.AddFileToHistory(filename)
         self.htmlPath = None  # so we won't accidentally save to other html exp
 
@@ -836,7 +844,6 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             dlg.ShowModal()
             return
         self.updateReadme()
-        self.showReadme()
         return
 
     def getShortFilename(self):
@@ -848,10 +855,17 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     #     """Show the plugin manager frame."""
     #     PluginManagerFrame(self).ShowModal()
 
-    def updateReadme(self):
+    def updateReadme(self, show=None):
         """Check whether there is a readme file in this folder and try to show
+
+        Parameters
+        ==========
+        show : bool or None
+            If True, always show Readme frame.
+            If False, never show Readme frame.
+            If None, show only when there is content.
         """
-        # look for a readme file
+        # Make sure we have a file
         if self.filename and self.filename != 'untitled.psyexp':
             dirname = Path(self.filename).parent
             possibles = list(dirname.glob('readme*'))
@@ -867,21 +881,20 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         else:
             self.readmeFilename = None
 
-        content = ''
-        if self.readmeFilename is not None:  # don't open viewer if no file
-            if Path(self.readmeFilename).is_file():
-                self.readmeFrame = ReadmeFrame(
-                    parent=self, filename=self.readmeFilename)
-                content = self.readmeFrame.ctrl.getValue()
+        # Make sure we have a frame
+        if self.readmeFrame is None:
+            self.readmeFrame = ReadmeFrame(
+                parent=self, filename=self.readmeFilename
+            )
 
-            if content and self.prefs['alwaysShowReadme']:  # make this or?
-                self.showReadme()
+        # Show/hide frame as appropriate
+        if show is None:
+            show = len(self.readmeFrame.ctrl.getValue()) > 0
+        self.readmeFrame.show(show)
 
     def showReadme(self, evt=None, value=True):
         """Shows Readme file
         """
-        if not self.readmeFrame:
-            self.updateReadme()
         if not self.readmeFrame.IsShown():
             self.readmeFrame.show(value)
 
@@ -2748,7 +2761,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
                 # Make category sizer
                 self.catSizers[cat] = wx.WrapSizer(orient=wx.HORIZONTAL)
                 # Make category button
-                self.catLabels[cat] = self.CategoryButton(self, name=cat, cat=cat)
+                self.catLabels[cat] = self.CategoryButton(self, name=_translate(cat), cat=cat)
                 # Store category reference
                 self.objectHandles[cat] = {}
             # Add to sizer
@@ -2910,8 +2923,9 @@ class ReadmeFrame(wx.Frame, handlers.ThemeMixin):
         self.sizer.Add(self.ctrl, border=6, proportion=1, flag=wx.ALL | wx.EXPAND)
 
     def show(self, value=True):
-        self.Show()
-        self._applyAppTheme()
+        self.Show(value)
+        if value:
+            self._applyAppTheme()
 
     def _applyAppTheme(self):
         from psychopy.app.themes import fonts
