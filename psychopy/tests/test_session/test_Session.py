@@ -7,9 +7,6 @@ from pathlib import Path
 class TestSession:
     def setup_class(cls):
         root = Path(utils.TESTS_DATA_PATH) / "test_session"
-        expInfo = {
-            'participant': "test",
-        }
         inputs = {
             'defaultKeyboard': keyboard.Keyboard(),
             'eyetracker': None
@@ -18,7 +15,6 @@ class TestSession:
         cls.sess = session.Session(
             root,
             loggingLevel="info",
-            expInfo=expInfo,
             inputs=inputs,
             win=win,
             experiments=[
