@@ -1,12 +1,12 @@
 from psychopy import session, visual
 from psychopy.hardware import keyboard
-from .. import utils
+from psychopy.tests import utils
 from pathlib import Path
 
 
 class TestSession:
     def setup_class(cls):
-        root = Path(utils.TESTS_DATA_PATH) / "test_session"
+        root = Path(utils.TESTS_DATA_PATH) / "test_session" / "root"
         inputs = {
             'defaultKeyboard': keyboard.Keyboard(),
             'eyetracker': None
@@ -22,6 +22,14 @@ class TestSession:
                 "exp2/exp2.psyexp",
             ]
         )
+
+    def test_outside_root(self):
+        # Add an experiment from outside of the Session root
+        expFile = Path(utils.TESTS_DATA_PATH) / "test_session" / "outside_root" / "externalExp.psyexp"
+        self.sess.addExperiment(expFile)
+        # Check that file is copied
+        newExpFile = self.sess.root / "outside_root" / "externalExp.psyexp"
+        assert newExpFile.is_file()
 
     def test_run_exp(self):
         self.sess.runExperiment("exp2")
