@@ -18,16 +18,16 @@ class TestSession:
             loggingLevel="info",
             inputs=inputs,
             win=win,
-            experiments=[
-                "exp1/exp1.psyexp",
-                "exp2/exp2.psyexp",
-            ]
+            experiments={
+                'exp1': "exp1/exp1.psyexp",
+                'exp2': "exp2/exp2.psyexp",
+            }
         )
 
     def test_outside_root(self):
         # Add an experiment from outside of the Session root
         expFile = Path(utils.TESTS_DATA_PATH) / "test_session" / "outside_root" / "externalExp.psyexp"
-        self.sess.addExperiment(expFile)
+        self.sess.addExperiment(expFile, key="externalExp")
         # Check that file is copied
         newExpFile = self.sess.root / "outside_root" / "externalExp.psyexp"
         assert newExpFile.is_file()
