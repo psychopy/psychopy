@@ -43,7 +43,9 @@ jobs:
         pdm install  # fetch dependendices in lock file
         pdm install -G tests
         pdm build
+        # install with pip both the main and [tests] group
         pip install . --prefer-binary  # install with pip
+        pip install '.[tests]' --prefer-binary  # optional dependency group
 
     - name: Install plugins
       run: |
