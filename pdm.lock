@@ -291,6 +291,15 @@ version = "1.0.5"
 summary = "MessagePack serializer"
 
 [[package]]
+name = "msgpack-numpy"
+version = "0.4.8"
+summary = "Numpy data serialization using msgpack"
+dependencies = [
+    "msgpack>=0.5.2",
+    "numpy>=1.9.0",
+]
+
+[[package]]
 name = "ntplib"
 version = "0.4.0"
 summary = "Python NTP library"
@@ -2184,7 +2193,7 @@ summary = "Backport of pathlib-compatible object wrapper for zip files"
 
 [metadata]
 lock_version = "4.1"
-content_hash = "sha256:e8174e7f98bc4870e3bb756200b2518c073e198d314b8008b8a1de0a9179ff6d"
+content_hash = "sha256:f428b157ba89eb36e1e7442a2d605f1948d024f347a51463628a09de5e54fe6b"
 
 [metadata.files]
 "arabic-reshaper 3.0.0" = [
@@ -2905,6 +2914,10 @@ content_hash = "sha256:e8174e7f98bc4870e3bb756200b2518c073e198d314b8008b8a1de0a9
     {url = "https://files.pythonhosted.org/packages/f1/1f/cc3e8274934c8323f6106dae22cba8bad413166f4efb3819573de58c215c/msgpack-1.0.5-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:332360ff25469c346a1c5e47cbe2a725517919892eda5cfaffe6046656f0b7bb"},
     {url = "https://files.pythonhosted.org/packages/f2/da/770118f8d48e11cc9a2c7cb60d7d3c8016266526bd42c6ff5bd21013d099/msgpack-1.0.5-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:4f8d8b3bf1ff2672567d6b5c725a1b347fe838b912772aa8ae2bf70338d5a198"},
     {url = "https://files.pythonhosted.org/packages/f5/80/ef9c31210ac580163c0de2db4fb3179c6a3f1228c18fd366280e01d9e5d2/msgpack-1.0.5-cp36-cp36m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4f837b93669ce4336e24d08286c38761132bc7ab29782727f8557e1eb21b2080"},
+]
+"msgpack-numpy 0.4.8" = [
+    {url = "https://files.pythonhosted.org/packages/08/94/61e8aee142733ebfdc400a05bdac6e1763c4514bba3b42743d223f388450/msgpack-numpy-0.4.8.tar.gz", hash = "sha256:c667d3180513422f9c7545be5eec5d296dcbb357e06f72ed39cc683797556e69"},
+    {url = "https://files.pythonhosted.org/packages/9b/5d/f25ac7d4fb77cbd53ddc6d05d833c6bf52b12770a44fa9a447eed470ca9a/msgpack_numpy-0.4.8-py2.py3-none-any.whl", hash = "sha256:773c19d4dfbae1b3c7b791083e2caf66983bb19b40901646f61d8731554ae3da"},
 ]
 "ntplib 0.4.0" = [
     {url = "https://files.pythonhosted.org/packages/58/8c/41da70f6feaca807357206a376b6de2001b439c7f78f53473a914a6dbd1e/ntplib-0.4.0-py2.py3-none-any.whl", hash = "sha256:8d27375329ed7ff38755f7b6d4658b28edc147cadf40338a63a0da8133469d60"},

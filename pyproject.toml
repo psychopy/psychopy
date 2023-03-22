@@ -46,6 +46,7 @@ dependencies = [
     "tables",
     "pyzmq",
     "ujson",
+    "msgpack-numpy>=0.4.8",
     # for text formatting
     "freetype-py",
     "python-bidi>=0.4.2",
