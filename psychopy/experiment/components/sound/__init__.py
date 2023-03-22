@@ -188,7 +188,7 @@ class SoundComponent(BaseComponent):
         else:
             # sounds with stop values
             self.writeStopTestCodeJS(buff)
-            code = ("if (%(stopVal)s > 0.5) {\n"
+            code = ("if (%(stopVal)s > 0.5 || t >=  %(name)s.getDuration() + %(name)s.tStart) {\n"
                     "  %(name)s.stop();  // stop the sound (if longer than duration)\n"
                     "}\n"
                     "%(name)s.status = PsychoJS.Status.FINISHED;\n")
