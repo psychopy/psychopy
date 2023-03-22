@@ -61,7 +61,7 @@ class BaseStandaloneRoutine:
         self.params['disabled'] = Param(disabled,
             valType='bool', inputType="bool", categ="Testing",
             hint=msg, allowedTypes=[], direct=False,
-            label=_translate('Disable component'))
+            label=_translate('Disable routine'))
 
     def __repr__(self):
         _rep = "psychopy.experiment.routines.%s(name='%s', exp=%s)"
@@ -478,9 +478,14 @@ class Routine(list):
 
         # allow subject to quit via Esc key?
         if self.exp.settings.params['Enable Escape'].val:
-            code = ('\n# check for quit (typically the Esc key)\n'
-                    'if endExpNow or defaultKeyboard.getKeys(keyList=["escape"]):\n'
-                    '    core.quit()\n')
+            code = (
+                '\n'
+                '# check for quit (typically the Esc key)\n'
+                'if endExpNow or defaultKeyboard.getKeys(keyList=["escape"]):\n'
+                '    core.quit()\n'
+                '    if eyetracker:\n'
+                '        eyetracker.setConnectionState(False)\n'
+            )
             buff.writeIndentedLines(code)
 
         # are we done yet?

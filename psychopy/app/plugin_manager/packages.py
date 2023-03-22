@@ -4,6 +4,7 @@ import wx
 import sys
 import subprocess as sp
 from pypi_search import search as pypi
+from packaging.version import parse as parseVersion
 
 from psychopy.app import utils
 from psychopy.app.themes import handlers, icons
@@ -378,6 +379,12 @@ class PackageDetailsPanel(wx.Panel):
                 'version': metadata.get('Version', None),
                 'releases': pypiData.get('Releases', pypiData.get('releases', []))
             }
+            # Sort versions in descending order
+            self.params['releases'] = sorted(
+                self.params['releases'],
+                key=lambda v: parseVersion(v),
+                reverse=True
+            )
 
         # Set values from params
         self.nameCtrl.SetLabelText(self.params['name'])
