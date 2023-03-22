@@ -88,6 +88,14 @@ dependencies = [
 tobii = ["tobii-research>=1.11.0"]
 egi = ["egi-pynetstation"]
 legacy = ["moviepy", "pygame"]
+tests = [
+    "future>=0.18.3",
+    "pytest>=7.2.2",
+    "codecov>=2.1.12",
+    "pytest-cov>=4.0.0",
+    "flake8>=5.0.4",
+    "xmlschema>=2.2.2",
+]
 
 [project.urls]
 Homepage = "https://www.psychopy.org/"

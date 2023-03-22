@@ -32,20 +32,16 @@ jobs:
     - name: Pre-Install
       run: |
         python -m pip install --upgrade pip
-        pip install pytest pytest-cov flake8 xmlschema
         pip install wheel
         pip install six  # for configobj and wxpython
         pip install distro  # used by createInitFile
         pip install attrdict3  # used by wxpython setup
-        pip install lxml xmlschema 
         python ./building/plat_custom_installs.py
 
         pip install pdm
-
-    - name: Install PsychoPy Dependencies (pdm and pip)
-      run: |
         pdm install  # fetch dependendices in lock file
-        # pdm build
+        pdm install -G tests
+        pdm build
         pip install . --prefer-binary  # install with pip
 
     - name: Install plugins
