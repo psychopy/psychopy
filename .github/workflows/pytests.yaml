@@ -52,6 +52,7 @@ jobs:
         
         # install optional plugins
         pip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator psychopy-visionscience
+        pip install moviepy
 
 #    - name: test docs to pdf
 #      run: |
@@ -224,6 +225,7 @@ jobs:
       run: |
         # install optional components
         pip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator psychopy-visionscience
+        pip install moviepy
 
     - name: Set nice level
       if: runner.os=='Linux'
