@@ -58,9 +58,9 @@ def getFailFilenames(fileName, tag=""):
         tag = "_" + tag
     stem = fileName.stem + tag
     # Construct new filename for local copy
-    localFileName = pjoin(TESTS_FAILS_PATH, stem + "." + fileName.suffix)
+    localFileName = pjoin(TESTS_FAILS_PATH, stem + "_local" + fileName.suffix)
     # Construct new filename for exemplar copy
-    exemplarFileName = pjoin(TESTS_FAILS_PATH, fileName.stem + "." + fileName.suffix)
+    exemplarFileName = pjoin(TESTS_FAILS_PATH, fileName.stem + fileName.suffix)
 
     return localFileName, exemplarFileName
 
