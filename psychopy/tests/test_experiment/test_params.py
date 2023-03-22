@@ -121,12 +121,12 @@ def test_param_str():
     for case in cases:
         # Test Python
         exputils.scriptTarget = "PsychoPy"
-        assert (re.fullmatch(case['py'], str(case['obj'])),
-                f"`{repr(case['obj'])}` should match the regex `{case['py']}`, but it was `{case['obj']}`")
+        assert re.fullmatch(case['py'], str(case['obj'])), \
+            f"`{repr(case['obj'])}` should match the regex `{case['py']}`, but it was `{case['obj']}`"
         # Test JS
         exputils.scriptTarget = "PsychoJS"
-        assert (re.fullmatch(case['js'], str(case['obj'])),
-                f"`{repr(case['obj'])}` should match the regex `{case['js']}`, but it was `{case['obj']}`")
+        assert re.fullmatch(case['js'], str(case['obj'])), \
+            f"`{repr(case['obj'])}` should match the regex `{case['js']}`, but it was `{case['obj']}`")
     # Set script target back to init
     exputils.scriptTarget = initTarget
 
