@@ -15,9 +15,17 @@ zeroRPC
 import inspect
 import logging
 import asyncio
-import websockets
 import signal
 import json
+from psychopy.localization import _translate
+
+try:
+	import websockets
+except ModuleNotFoundError as err:
+	err.msg = _translate(
+		"`psychopy.liaison` requires the package `websockets`, this can be installed via command line:\n"
+		"`pip install websockets`."
+	)
 
 
 class WebSocketServer:
