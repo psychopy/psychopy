@@ -186,7 +186,7 @@ class TrialHandler(_BaseLoopHandler):
             code = ("# abbreviate parameter names if possible (e.g. rgb = %(name)s.rgb)\n"
                     "if %(name)s != None:\n"
                     "    for paramName in %(name)s:\n"
-                    "        exec('{} = %(name)s[paramName]'.format(paramName))\n")
+                    "        globals()[paramName] = %(name)s[paramName]\n")
             buff.writeIndentedLines(code % {'name': self.thisName})
 
         # then run the trials loop
@@ -200,7 +200,7 @@ class TrialHandler(_BaseLoopHandler):
             code = ("# abbreviate parameter names if possible (e.g. rgb = %(name)s.rgb)\n"
                     "if %(name)s != None:\n"
                     "    for paramName in %(name)s:\n"
-                    "        exec('{} = %(name)s[paramName]'.format(paramName))\n")
+                    "        globals()[paramName] = %(name)s[paramName]\n")
             buff.writeIndentedLines(code % {'name': self.thisName})
 
     def writeLoopStartCodeJS(self, buff, modular):
@@ -278,7 +278,7 @@ class TrialHandler(_BaseLoopHandler):
         thisLoop = loopDict[self]  # dict containing lists of children
         code = ""
         for thisChild in thisLoop:
-            if isinstance(thisChild, LoopInitiator):
+            if isinstance(thisChild, (LoopInitiator, _BaseLoopHandler)):
                 # for a LoopInitiator
                 code += (
                     "  const {childName}LoopScheduler = new Scheduler(psychoJS);\n"
@@ -627,7 +627,7 @@ class MultiStairHandler(_BaseLoopHandler):
             code = ("# abbreviate parameter names if possible (e.g. "
                     "rgb=condition.rgb)\n"
                     "for paramName in condition:\n"
-                    "    exec(paramName + '= condition[paramName]')\n")
+                    "    globals()[paramName] = condition[paramName]\n")
             buff.writeIndentedLines(code)
 
     def writeLoopStartCodeJS(self, buff, modular):

@@ -9,6 +9,9 @@ import numpy as np
 from ..utils import TESTS_DATA_PATH
 from psychopy import experiment, core
 
+from psychopy import prefs, core
+prefs.hardware['audioLib'] = ['ptb', 'sounddevice']
+
 
 class TestLoops:
     @classmethod
@@ -51,6 +54,10 @@ class TestLoops:
 
             # Run Python script to generate data file
             stdout, stderr = core.shellCall([sys.executable, str(pyScriptFile)], stderr=True)
+            print(stdout)
+            print(stderr)
+            if not datafile.is_file():
+                raise RuntimeError("Data file wasn't saved. PsychoPy StdErr below:\n" + stderr)
             # Load data file
             with open(datafile, "rb") as f:
                 data = np.recfromcsv(f, case_sensitive=True)

@@ -37,7 +37,7 @@ from .params import _findParam, Param, legacyParams
 from psychopy.experiment.routines._base import Routine, BaseStandaloneRoutine
 from psychopy.experiment.routines import getAllStandaloneRoutines
 from . import utils, py2js
-from .components import getComponents, getAllComponents
+from .components import getComponents, getAllComponents, getInitVals
 
 from psychopy.localization import _translate
 import locale
@@ -255,8 +255,11 @@ class Experiment:
                             alert(alertCode, strFields={'comp': type(component).__name__})
 
         if target == "PsychoPy":
+            # Imports
             self_copy.settings.writeInitCode(script, self_copy.psychopyVersion,
                                              localDateTime)
+            # Global variables
+            self_copy.settings.writeGlobals(script, version=self_copy.psychopyVersion)
 
             # Write "run once" code sections
             for entry in self_copy.flow:
@@ -266,19 +269,46 @@ class Experiment:
                     entry.writeRunOnceInitCode(script)
                 if hasattr(entry, 'writePreCode'):
                     entry.writePreCode(script)
-            script.write("\n\n")
 
-            # present info, make logfile
-            self_copy.settings.writeStartCode(script, self_copy.psychopyVersion)
-            # writes any components with a writeStartCode()
-            self_copy.flow.writeStartCode(script)
+            # present info
+            self_copy.settings.writeExpInfoCode(script)
+            # setup data and saving
+            self_copy.settings.writeDataCode(script)
+            # make logfile
+            self_copy.settings.writeLoggingCode(script)
+            # setup window
             self_copy.settings.writeWindowCode(script)  # create our visual.Window()
+            # setup inputs
             self_copy.settings.writeIohubCode(script)
-            # for JS the routine begin/frame/end code are funcs so write here
-
-            # write the rest of the code for the components
+            # write the bulk of the experiment code
             self_copy.flow.writeBody(script)
-            self_copy.settings.writeEndCode(script)  # close log file
+            # save data
+            self_copy.settings.writeSaveDataCode(script)
+            # end experiment
+            self_copy.settings.writeEndCode(script)
+
+            # to do if running as main
+            code = (
+                "\n"
+                "# if running this experiment as a script...\n"
+                "if __name__ == '__main__':\n"
+                "    # call all functions in order\n"
+                "    expInfo = setupExpInfo()\n"
+                "    thisExp = setupData(expInfo=expInfo)\n"
+                "    logFile = setupLogging(filename=thisExp.dataFileName)\n"
+                "    win = setupWindow(expInfo=expInfo)\n"
+                "    inputs = setupInputs(expInfo=expInfo, win=win)\n"
+                "    run(\n"
+                "        expInfo=expInfo, \n"
+                "        thisExp=thisExp, \n"
+                "        win=win, \n"
+                "        inputs=inputs\n"
+                "    )\n"
+                "    saveData(thisExp)\n"
+                "    endExperiment(thisExp, win=win, inputs=inputs)\n"
+            )
+            script.writeIndentedLines(code)
+
             script = script.getvalue()
 
         elif target == "PsychoJS":
@@ -980,6 +1010,13 @@ class Experiment:
                         # then check if it's a valid path and not yet included
                         if thisFile and thisFile not in compResources:
                             compResources.append(thisFile)
+                        # if param updates on frame/repeat, check its init val too
+                        if hasattr(thisParam, "updates") and thisParam.updates != "constant":
+                            inits = getInitVals({paramName: thisParam})
+                            thisFile = getPaths(inits[paramName].val)
+                            # then check if it's a valid path and not yet included
+                            if thisFile and thisFile not in compResources:
+                                compResources.append(thisFile)
             elif isinstance(thisEntry, BaseStandaloneRoutine):
                 for paramName in thisEntry.params:
                     thisParam = thisEntry.params[paramName]
@@ -994,6 +1031,13 @@ class Experiment:
                     # then check if it's a valid path and not yet included
                     if thisFile and thisFile not in compResources:
                         compResources.append(thisFile)
+                    # if param updates on frame/repeat, check its init val too
+                    if hasattr(thisParam, "updates") and thisParam.updates != "constant":
+                        inits = getInitVals({paramName: thisParam})
+                        thisFile = getPaths(inits[paramName].val)
+                        # then check if it's a valid path and not yet included
+                        if thisFile and thisFile not in compResources:
+                            compResources.append(thisFile)
             elif thisEntry.getType() == 'LoopInitiator' and "Stair" in thisEntry.loop.type:
                 url = 'https://lib.pavlovia.org/vendors/jsQUEST.min.js'
                 compResources.append({
@@ -1001,7 +1045,12 @@ class Experiment:
                 })
         if handled:
             # If resources are handled, clear all component resources
+            handledResources = compResources
             compResources = []
+            # Still add default stim
+            for thisFile in handledResources:
+                if thisFile.get('name', False) in list(ft.defaultStim):
+                    compResources.append(thisFile)
 
         # Get resources for loops
         loopResources = []

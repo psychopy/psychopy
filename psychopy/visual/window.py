@@ -369,8 +369,6 @@ class Window():
             fullscr = prefs.general['fullscr']
         self._isFullScr = fullscr
 
-        if units is None:
-            units = prefs.general['units']
         self.units = units
 
         if allowGUI is None:
@@ -664,6 +662,8 @@ class Window():
         See :ref:`units` for explanation of options.
 
         """
+        if value is None:
+            value = prefs.general['units']
         self.__dict__['units'] = value
 
     def setUnits(self, value, log=True):

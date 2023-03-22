@@ -68,7 +68,7 @@ class AppSigner:
         # PyQt
         files.extend(self.appFile.glob('**/Versions/5/Qt*'))
         files.extend(self.appFile.glob('**/Contents/MacOS/QtWebEngineProcess'))
-        files.extend(self.appFile.glob('**/Resources/lib/python3.6/lib-dynload/*.so'))
+        files.extend(self.appFile.glob('**/Resources/lib/python3.8/lib-dynload/*.so'))
         files.extend(self.appFile.glob('**/Frameworks/Python.framework/Versions/3.6/Python'))
         files.extend(self.appFile.glob('**/Frameworks/Python.framework'))
         files.extend(self.appFile.glob('**/Contents/MacOS/python'))
