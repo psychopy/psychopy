@@ -1,8 +1,9 @@
 af_ZA AFK
 am_ET AMH
+ar_001 ARX العربية  (Standard Arabic)
 ar_SA ARA
 ar_LB ARB
-ar_EG ARE العربية  (Arabic)
+ar_EG ARE
 ar_DZ ARG
 ar_BH ARH
 ar_IQ ARI
