@@ -126,7 +126,7 @@ def test_param_str():
         # Test JS
         exputils.scriptTarget = "PsychoJS"
         assert re.fullmatch(case['js'], str(case['obj'])), \
-            f"`{repr(case['obj'])}` should match the regex `{case['js']}`, but it was `{case['obj']}`")
+            f"`{repr(case['obj'])}` should match the regex `{case['js']}`, but it was `{case['obj']}`"
     # Set script target back to init
     exputils.scriptTarget = initTarget
 
