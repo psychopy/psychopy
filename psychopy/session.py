@@ -39,10 +39,10 @@ class Session:
         Window in which to run experiments this session. Supply a dict of parameters to make a Window
         from them, or supply the name of an experiment to use the `setupWindow` method from that experiment.
 
-    experiments : list or None
-        List of experiments which this Session can run. Each should be the file path of a .psyexp
+    experiments : dict or None
+        Dict of name:experiment pairs which this Session can run. Each should be the file path of a .psyexp
         file, contained somewhere within the folder supplied for `root`. Paths can be absolute or
-        relative to the root folder. Leave as None for a blank list, experiments can be added
+        relative to the root folder. Leave as None for a blank dict, experiments can be added
         later on via `addExperiment()`.
     """
     def __init__(self,
@@ -63,8 +63,8 @@ class Session:
         # Add experiments
         self.experiments = {}
         if experiments is not None:
-            for exp in experiments:
-                self.addExperiment(exp)
+            for nm, exp in experiments.items():
+                self.addExperiment(exp, key=nm)
         # Store/create window object
         self.win = win
         if isinstance(win, dict):
