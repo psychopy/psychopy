@@ -1915,8 +1915,11 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             else:
                 rowComponents.append(component)
 
+        # draw settings button
+        settingsBtnExtent = self.drawSettingsBtn(self.pdc, self.routine.settings)
+
         # draw static, time grid, normal (row) comp:
-        yPos = self.yPosTop
+        yPos = self.yPosTop + settingsBtnExtent.Height
         yPosBottom = yPos + len(rowComponents) * self.componentStep
         # draw any Static Components first (below the grid)
         for component in staticCompons:
@@ -1927,8 +1930,6 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         for component in rowComponents:
             self.drawComponent(self.pdc, component, yPos)
             yPos += self.componentStep
-        # draw settings button
-        self.drawSettingsBtn(self.pdc, self.routine.settings)
 
         # the 50 allows space for labels below the time axis
         self.SetVirtualSize((int(self.maxWidth), yPos + 50))
@@ -2199,10 +2200,32 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         # Get settings icon
         sz = self.iconSize/2
         thisIcon = icons.ComponentIcon(component, size=sz).bitmap
+        # Some parameters
+        lbl = _translate("Routine settings")
+        padding = 12
+        # Calculate extent
+        extent = wx.Rect(
+            wx.Point(12, 12),
+            wx.Point(12 + self.GetTextExtent(lbl)[0] + sz + padding * 3, sz + padding * 2)
+        )
+        # Get content rect
+        rect = wx.Rect(extent.TopLeft, extent.BottomRight)
+        rect.Deflate(padding)
+        # Draw rect
+        dc.SetPen(wx.Pen(colors.app['frame_bg']))
+        dc.SetBrush(wx.Brush(colors.app['tab_bg']))
+        dc.DrawRoundedRectangle(extent, 6)
         # Draw button
-        dc.DrawBitmap(thisIcon, 12, 12, True)
+        dc.DrawLabel(
+            lbl,
+            image=thisIcon,
+            rect=rect,
+            alignment=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL
+        )
         # Bind to ID bounds
-        dc.SetIdBounds(id, wx.Rect(12, 12, sz, sz))
+        dc.SetIdBounds(id, extent)
+
+        return extent
 
     def copyCompon(self, event=None, component=None):
         """This is easy - just take a copy of the component into memory
