@@ -89,7 +89,7 @@ class Session:
         # Store ref to liaison object
         self.liaison = liaison
 
-    def addExperiment(self, file, folder=None):
+    def addExperiment(self, file, key=None, folder=None):
         # Path-ise file
         file = Path(file)
         if not file.is_absolute():
@@ -141,8 +141,11 @@ class Session:
             exp.loadFromXML(file)
             script = exp.writeScript(target="PsychoPy")
             pyFile.write_text(script, encoding="utf8")
+        # Handle if key is None
+        if key is None:
+            key = str(file.relative_to(self.root))
         # Import python file
-        self.experiments[file.stem] = importlib.import_module(importPath)
+        self.experiments[key] = importlib.import_module(importPath)
 
         return True
 
