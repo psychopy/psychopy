@@ -331,3 +331,5 @@ if __name__ == "__main__":
     session = Session(
         root=args.root
     )
+    # Add to liaison server
+    liaisonServer.registerMethods(session, "session")
