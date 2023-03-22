@@ -575,6 +575,7 @@ class Window():
         self._frameTimes = deque(maxlen=1000)  # 1000 keeps overhead low
 
         self._toDraw = []
+        self._heldDraw = []
         self._toDrawDepths = []
         self._eventDispatchers = []
 
@@ -1050,6 +1051,28 @@ class Window():
         psychopy kb event integration.
         """
         Window.backend.dispatchEvents()
+
+    def stashAutoDraw(self):
+        """
+        Put autoDraw components on 'hold', meaning they get autoDraw set to False but
+        are added to an internal list to be 'released' when .releaseAutoDraw is called.
+        """
+        for thisStim in self._toDraw.copy():
+            # set autoDraw to False
+            thisStim.autoDraw = False
+            # add stim to held list
+            self._heldDraw.append(thisStim)
+
+    def retrieveAutoDraw(self):
+        """
+        Add all stimuli which are on 'hold' back into the autoDraw list, and clear the
+        hold list.
+        """
+        for thisStim in self._heldDraw:
+            # set autoDraw to True
+            thisStim.autoDraw = True
+        # clear list
+        self._heldDraw = []
 
     def flip(self, clearBuffer=True):
         """Flip the front and back buffers after drawing everything for your
