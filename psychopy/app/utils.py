@@ -265,7 +265,12 @@ class ImageData(pil.Image):
             # Only load if it looks like an image
             if path.suffix in pil.registered_extensions():
                 try:
-                    return pil.open(source)
+                    img = pil.open(source)
+                    if "A" not in img.getbands():
+                        # Make sure there's an alpha channel to supply
+                        alpha = pil.new("L", img.size, 255)
+                        img.putalpha(alpha)
+                    return img
                 except PIL.UnidentifiedImageError:
                     return cls.createPlaceholder(source)
         # If source is a url, load from server
@@ -276,7 +281,12 @@ class ImageData(pil.Image):
                 content = requests.get(source).content
                 data = io.BytesIO(content)
                 try:
-                    return pil.open(data)
+                    img = pil.open(data)
+                    if "A" not in img.getbands():
+                        # Make sure there's an alpha channel to supply
+                        alpha = pil.new("L", img.size, 255)
+                        img.putalpha(alpha)
+                    return img
                 except PIL.UnidentifiedImageError:
                     return cls.createPlaceholder(source)
 
