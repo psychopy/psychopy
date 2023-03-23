@@ -242,10 +242,12 @@ class Flow(list):
         # unpack inputs
         code = (
             "# make sure variables created by exec are available globally\n"
-            "exec = core.setExecEnvironment(globals())\n"
+            "exec = environmenttools.setExecEnvironment(globals())\n"
             "# get device handles from dict of input devices\n"
             "defaultKeyboard = inputs['defaultKeyboard']\n"
             "eyetracker = inputs['eyetracker']\n"
+            "# make sure we're running in the directory for this experiment\n"
+            "os.chdir(_thisDir)\n"
         )
         script.writeIndentedLines(code)
         # unpack filename
@@ -286,6 +288,7 @@ class Flow(list):
             entry.writeExperimentEndCode(script)
 
         # Exit function def
+        script.writeIndentedLines("\n")
         script.setIndentLevel(-1, relative=True)
         script.writeIndentedLines("\n")
 

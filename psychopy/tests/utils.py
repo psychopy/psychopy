@@ -33,7 +33,7 @@ _d = r"\$"  # dollar (escaped for re)
 _sl = "\\"  # back slash
 
 
-def getFailFilename(fileName, tag=""):
+def getFailFilenames(fileName, tag=""):
     """
     Create variant of given filename for a failed test
 
@@ -43,6 +43,13 @@ def getFailFilename(fileName, tag=""):
         Path to original file
     tag : str
         Optional tag to append to the file stem
+
+    Returns
+    ==========
+    str
+        Path to the local copy
+    str
+        Path to the copy of the exemplar in the fails folder
     """
     # Path-ise filename
     fileName = Path(fileName)
@@ -50,10 +57,12 @@ def getFailFilename(fileName, tag=""):
     if tag:
         tag = "_" + tag
     stem = fileName.stem + tag
-    # Construct new filename
-    newFileName = pjoin(TESTS_FAILS_PATH, stem + "." + fileName.suffix)
+    # Construct new filename for local copy
+    localFileName = pjoin(TESTS_FAILS_PATH, stem + "_local" + fileName.suffix)
+    # Construct new filename for exemplar copy
+    exemplarFileName = pjoin(TESTS_FAILS_PATH, fileName.stem + fileName.suffix)
 
-    return newFileName
+    return localFileName, exemplarFileName
 
 
 def compareScreenshot(fileName, win, tag="", crit=5.0):
@@ -85,16 +94,18 @@ def compareScreenshot(fileName, win, tag="", crit=5.0):
             imgDat = np.array(frame.getdata())
             crit += 5  # be more relaxed because of the interpolation
         rms = np.std(imgDat-expDat)
-        filenameLocal = getFailFilename(fileName, tag=tag)
+        localFileName, exemplarFileName = getFailFilenames(fileName, tag=tag)
         if rms >= crit/2:
             #there was SOME discrepancy
             logging.warning('PsychoPyTests: RMS=%.3g at threshold=%3.g'
                   % (rms, crit))
         if not rms<crit: #don't do `if rms>=crit because that doesn't catch rms=nan
-            frame.save(filenameLocal, optimize=1)
-            logging.warning('PsychoPyTests: Saving local copy into %s' % filenameLocal)
+            # If test fails, save local copy and copy of exemplar to fails folder
+            frame.save(localFileName, optimize=1)
+            expected.save(exemplarFileName, optimize=1)
+            logging.warning('PsychoPyTests: Saving local copy into %s' % localFileName)
         assert rms<crit, \
-            "RMS=%.3g at threshold=%.3g. Local copy in %s" % (rms, crit, filenameLocal)
+            "RMS=%.3g at threshold=%.3g. Local copy in %s" % (rms, crit, localFileName)
 
 
 def compareTextFiles(pathToActual, pathToCorrect, delim=None,
@@ -181,7 +192,7 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None,
                             %(lineN, wordN, repr(wordActual), repr(wordCorrect))
 
     except AssertionError as err:
-        pathToLocal = getFailFilename(pathToCorrect)
+        pathToLocal, pathToExemplar = getFailFilenames(pathToCorrect)
 
         # Set assertion type
         if not nLinesMatch:  # Fail if number of lines not equal
@@ -190,7 +201,8 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None,
             msg = 'Number of differences in {failed} exceeds the {tol}% tolerance'.format(failed=pathToActual,
                                                                                           tol=tolerance or 0)
         else:
-            shutil.copyfile(pathToActual,pathToLocal)
+            shutil.copyfile(pathToActual, pathToLocal)
+            shutil.copyfile(pathToCorrect, pathToExemplar)
             msg = "txtActual != txtCorr: Saving local copy to {}".format(pathToLocal)
         logging.error(msg)
         raise AssertionError(err)
@@ -238,8 +250,9 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
                 error = "nf Cell %s: %s != %s" %(key, expVal, actVal)
                 break
     if error:
-        pathToLocal = getFailFilename(pathToCorrect)
+        pathToLocal, pathToExemplar = getFailFilenames(pathToCorrect)
         shutil.copyfile(pathToActual, pathToLocal)
+        shutil.copyfile(pathToCorrect, pathToExemplar)
         logging.warning("xlsxActual!=xlsxCorr: Saving local copy to %s" % pathToLocal)
         raise IOError(error)
 

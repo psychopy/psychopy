@@ -753,6 +753,7 @@ class SettingsComponent:
             )
         buff.write(
             "from psychopy import %s\n" % ', '.join(psychopyImports) +
+            "from psychopy.tools import environmenttools\n"
             "from psychopy.constants import (NOT_STARTED, STARTED, PLAYING,"
             " PAUSED,\n"
             "                                STOPPED, FINISHED, PRESSED, "
@@ -806,13 +807,27 @@ class SettingsComponent:
             "# --- Setup global variables (available in all functions) ---\n"
             "# Ensure that relative paths start from the same directory as this script\n"
             "_thisDir = os.path.dirname(os.path.abspath(__file__))\n"
-            "os.chdir(_thisDir)\n"
             "# Store info about the experiment session\n"
             "psychopyVersion = '%(version)s'\n"
             "expName = %(expName)s  # from the Builder filename that created this script\n"
-            "\n"
         )
         buff.writeIndentedLines(code % params)
+        # Construct exp info dict
+        code = (
+            "expInfo = {\n"
+        )
+        for key, value in self.getInfo().items():
+            code += (
+            f"    '{key}': {value},\n"
+            )
+        code += (
+            "    'date': data.getDateStr(),  # add a simple timestamp\n"
+            "    'expName': expName,\n"
+            "    'psychopyVersion': psychopyVersion,\n"
+            "}\n"
+            "\n"
+        )
+        buff.writeIndented(code)
 
     def prepareResourcesJS(self):
         """Sets up the resources folder and writes the info.php file for PsychoJS
@@ -1093,13 +1108,17 @@ class SettingsComponent:
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("\n")
 
-    def writeExpInfoCode(self, buff):
+    def writeExpInfoDlgCode(self, buff):
         # Enter function def
         code = (
             '\n'
-            'def setupExpInfo():\n'
+            'def showExpInfoDlg(expInfo):\n'
             '    """\n'
-            '    Construct the expInfo dict, and show participant info dialog (if requested).\n'
+            '    Show participant info dialog.\n'
+            '    Parameters\n'
+            '    ==========\n'
+            '    expInfo : dict\n'
+            '        Information about this experiment, created by the `setupExpInfo` function.\n'
             '    \n'
             '    Returns\n'
             '    ==========\n'
@@ -1110,46 +1129,26 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
 
-        # Construct exp info string
-        expInfoDict = self.getInfo()
-        code = (
-            "expInfo = {"
-        )
-        if len(expInfoDict):
-            # Only make the dict multiline if it actually has contents
-            code += "\n"
-        buff.writeIndented(code)
-        buff.setIndentLevel(1, relative=True)
-        for key, value in self.getInfo().items():
-            code = (
-                f"'{key}': {value},\n"
-            )
-            buff.writeIndented(code)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-            "}\n"
-        )
-        buff.writeIndented(code)
-
         sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
-        if self.params['Show info dlg'].val:
-            buff.writeIndentedLines(
-                f"# --- Show participant info dialog --\n"
-                f"dlg = gui.DlgFromDict(dictionary=expInfo, "
-                f"sortKeys={sorting}, title=expName)\n"
-                f"if dlg.OK == False:\n"
-                f"    core.quit()  # user pressed cancel\n"
-            )
-        buff.writeIndentedLines(
-            "expInfo['date'] = data.getDateStr()  # add a simple timestamp\n"
-            "expInfo['expName'] = expName\n"
-            "expInfo['psychopyVersion'] = psychopyVersion\n")
-
         code = (
-            "# return expInfo\n"
-            "return expInfo\n"
+            f"# temporarily remove keys which the dialog doesn't need to show\n"
+            f"poppedKeys = {{\n"
+            f"    'date': expInfo.pop('date', data.getDateStr()),\n"
+            f"    'expName': expInfo.pop('expName', expName),\n"
+            f"    'psychopyVersion': expInfo.pop('psychopyVersion', psychopyVersion),\n"
+            f"}}\n"
+            f"# show participant info dialog\n"
+            f"dlg = gui.DlgFromDict(dictionary=expInfo, "
+            f"sortKeys={sorting}, title=expName)\n"
+            f"if dlg.OK == False:\n"
+            f"    core.quit()  # user pressed cancel\n"
+            f"# restore hidden keys\n"
+            f"expInfo.update(poppedKeys)\n"
+            f"# return expInfo\n"
+            f"return expInfo\n"
         )
         buff.writeIndentedLines(code)
+
         # Exit function def
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("\n")
