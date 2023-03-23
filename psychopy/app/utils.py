@@ -1122,13 +1122,16 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
                     img.seek(i)
                     if 'duration' in img.info:
                         fr.append(img.info['duration'])
+
                     # Create wx.Bitmap from frame
-                    frame = img.resize(self.Size).convert("RGB")
-                    # Supply an alpha channel if there is one
-                    if "A" in frame.getbands():
-                        alpha = frame.tobytes("raw", "A")
-                    else:
-                        alpha = None
+                    frame = img.resize(self.Size).convert("RGBA")
+                    # Ensure an alpha channel
+                    if "A" not in frame.getbands():
+                        # Make sure there's an alpha channel to supply
+                        alpha = pil.new("L", frame.size, 255)
+                        frame.putalpha(alpha)
+                    alpha = frame.tobytes("raw", "A")
+
                     bmp = wx.Bitmap.FromBufferAndAlpha(
                         *frame.size,
                         data=frame.tobytes("raw", "RGB"),
