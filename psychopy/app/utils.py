@@ -275,10 +275,15 @@ class ImageData(pil.Image):
                 return pil.open(data)
 
         # If couldn't interpret, raise warning and return blank image
+        return cls.createPlaceholder(source)
+
+    @staticmethod
+    def createPlaceholder(source):
+        # Raise warning and return blank image
         logging.warning(_translate(
             "Could not get image from: {}, using blank image instead."
         ).format(source))
-        return pil.new('RGB', size=(16, 16))
+        return pil.new('RGBA', size=(16, 16))
 
 
 class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
@@ -1096,7 +1101,7 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
             # Otherwise, extract frames
             try:
                 img = pil.open(data)
-                for i in range(img.n_frames):
+                for i in range(getattr(img, "n_frames", 1)):
                     # Seek to frame
                     img.seek(i)
                     if 'duration' in img.info:
