@@ -255,8 +255,11 @@ class Experiment:
                             alert(alertCode, strFields={'comp': type(component).__name__})
 
         if target == "PsychoPy":
+            # Imports
             self_copy.settings.writeInitCode(script, self_copy.psychopyVersion,
                                              localDateTime)
+            # Global variables
+            self_copy.settings.writeGlobals(script, version=self_copy.psychopyVersion)
 
             # Write "run once" code sections
             for entry in self_copy.flow:
@@ -266,19 +269,52 @@ class Experiment:
                     entry.writeRunOnceInitCode(script)
                 if hasattr(entry, 'writePreCode'):
                     entry.writePreCode(script)
-            script.write("\n\n")
 
-            # present info, make logfile
-            self_copy.settings.writeStartCode(script, self_copy.psychopyVersion)
-            # writes any components with a writeStartCode()
-            self_copy.flow.writeStartCode(script)
+            # present info
+            self_copy.settings.writeExpInfoDlgCode(script)
+            # setup data and saving
+            self_copy.settings.writeDataCode(script)
+            # make logfile
+            self_copy.settings.writeLoggingCode(script)
+            # setup window
             self_copy.settings.writeWindowCode(script)  # create our visual.Window()
+            # setup inputs
             self_copy.settings.writeIohubCode(script)
-            # for JS the routine begin/frame/end code are funcs so write here
-
-            # write the rest of the code for the components
+            # write the bulk of the experiment code
             self_copy.flow.writeBody(script)
-            self_copy.settings.writeEndCode(script)  # close log file
+            # save data
+            self_copy.settings.writeSaveDataCode(script)
+            # end experiment
+            self_copy.settings.writeEndCode(script)
+
+            # to do if running as main
+            code = (
+                "\n"
+                "# if running this experiment as a script...\n"
+                "if __name__ == '__main__':\n"
+                "    # call all functions in order\n"
+            )
+            if self_copy.settings.params['Show info dlg'].val:
+                # Only show exp info dlg if indicated to by settings
+                code += (
+                "    expInfo = showExpInfoDlg(expInfo=expInfo)\n"
+                )
+            code += (
+                "    thisExp = setupData(expInfo=expInfo)\n"
+                "    logFile = setupLogging(filename=thisExp.dataFileName)\n"
+                "    win = setupWindow(expInfo=expInfo)\n"
+                "    inputs = setupInputs(expInfo=expInfo, win=win)\n"
+                "    run(\n"
+                "        expInfo=expInfo, \n"
+                "        thisExp=thisExp, \n"
+                "        win=win, \n"
+                "        inputs=inputs\n"
+                "    )\n"
+                "    saveData(thisExp)\n"
+                "    endExperiment(thisExp, win=win, inputs=inputs)\n"
+            )
+            script.writeIndentedLines(code)
+
             script = script.getvalue()
 
         elif target == "PsychoJS":

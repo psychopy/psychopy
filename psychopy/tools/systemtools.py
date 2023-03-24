@@ -65,6 +65,23 @@ SERIAL_MAX_ENUM_PORTS = 32  # can be as high as 256 on Win32, not used on Unix
 
 
 # ------------------------------------------------------------------------------
+# Detect VMs (for GitHub Actions, Travis...)
+#
+
+def isVM_CI():
+    """Attempts to detect TravisCI or GitHub actions virtual machines os.env
+
+    Returns the type of VM ('travis', 'github', 'conda') being run or None
+    """
+    import os
+    if (str(os.environ.get('GITHUB_WORKFLOW')) != 'None'):
+        return 'github'
+    elif ("{}".format(os.environ.get('TRAVIS')).lower() == 'true'):
+        return 'travis'
+    elif ("{}".format(os.environ.get('CONDA')).lower() == 'true'):
+        return 'conda'
+
+# ------------------------------------------------------------------------------
 # Audio playback and capture devices
 #
 
