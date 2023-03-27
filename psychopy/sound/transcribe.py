@@ -29,7 +29,6 @@ from psychopy.preferences import prefs
 from .audioclip import *
 from .exceptions import *
 import numpy as np
-from scipy import signal
 
 # ------------------------------------------------------------------------------
 # Initialize the speech recognition system
