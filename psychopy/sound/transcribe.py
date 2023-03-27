@@ -12,11 +12,15 @@ __all__ = [
     'TranscriptionResult',
     'transcribe',
     'TRANSCR_LANG_DEFAULT',
+    'BaseTranscriber',
     'recognizerEngineValues',
     'recognizeSphinx',
-    'recognizeGoogle'
+    'recognizeGoogle',
+    'recognizeWhisper',
+    'getAllTranscribers'
 ]
 
+import sys
 import os
 import psychopy.logging as logging
 from psychopy.alerts import alert
@@ -24,44 +28,46 @@ from pathlib import Path
 from psychopy.preferences import prefs
 from .audioclip import *
 from .exceptions import *
+import numpy as np
+from scipy import signal
 
 # ------------------------------------------------------------------------------
 # Initialize the speech recognition system
 #
 
-_hasSpeechRecognition = True
-try:
-    import speech_recognition as sr
-except (ImportError, ModuleNotFoundError):
-    logging.warning(
-        "Speech-to-text recognition module for PocketSphinx is not available "
-        "(use command `pip install SpeechRecognition` to get it). "
-        "Transcription will be unavailable using that service this session.")
-    _hasSpeechRecognition = False
+# _hasSpeechRecognition = True
+# try:
+#     import speech_recognition as sr
+# except (ImportError, ModuleNotFoundError):
+#     logging.warning(
+#         "Speech-to-text recognition module for PocketSphinx is not available "
+#         "(use command `pip install SpeechRecognition` to get it). "
+#         "Transcription will be unavailable using that service this session.")
+#     _hasSpeechRecognition = False
 
 # Google Cloud API
-_hasGoogleCloud = True
-_googleCloudClient = None  # client for Google Cloud, instanced on first use
-try:
-    import google.cloud.speech
-    import google.auth.exceptions
-except (ImportError, ModuleNotFoundError):
-    logging.warning(
-        "Speech-to-text recognition using Google online services is not "
-        "available (use command `pip install google-api-core google-auth "
-        "google-cloud google-cloud-speech googleapis-common-protos` to get "
-        "it). Transcription will be unavailable using that service this "
-        "session.")
-    _hasGoogleCloud = False
+# _hasGoogleCloud = True
+# _googleCloudClient = None  # client for Google Cloud, instanced on first use
+# try:
+#     import google.cloud.speech
+#     import google.auth.exceptions
+# except (ImportError, ModuleNotFoundError):
+#     logging.warning(
+#         "Speech-to-text recognition using Google online services is not "
+#         "available (use command `pip install google-api-core google-auth "
+#         "google-cloud google-cloud-speech googleapis-common-protos` to get "
+#         "it). Transcription will be unavailable using that service this "
+#         "session.")
+#     _hasGoogleCloud = False
 
-try:
-    import pocketsphinx
-    sphinxLangs = [folder.stem for folder
-                   in Path(pocketsphinx.get_model_path()).glob('??-??')]
-    haveSphinx = True
-except (ImportError, ModuleNotFoundError):
-    haveSphinx = False
-    sphinxLangs = None
+# try:
+#     import pocketsphinx
+#     sphinxLangs = [folder.stem for folder
+#                    in Path(pocketsphinx.get_model_path()).glob('??-??')]
+#     haveSphinx = True
+# except (ImportError, ModuleNotFoundError):
+#     haveSphinx = False
+#     sphinxLangs = None
 
 # Constants related to the transcription system.
 TRANSCR_LANG_DEFAULT = 'en-US'
@@ -72,11 +78,6 @@ recognizerEngineValues = {
     0: ('sphinx', "CMU Pocket Sphinx", "Offline, Built-in"),
     1: ('google', "Google Cloud Speech API", "Online, Key Required"),
 }
-
-# Get references to recognizers for various supported speech-to-text engines
-# available through the `SpeechRecognition` package.
-if _hasSpeechRecognition:
-    _recogBase = sr.Recognizer()
 
 
 # ------------------------------------------------------------------------------
@@ -111,7 +112,9 @@ class TranscriptionResult:
     """
     __slots__ = [
         '_words',
+        '_text',
         '_confidence',  # unused on Python for now
+        '_response',
         '_engine',
         '_language',
         '_expectedWords',
@@ -145,10 +148,29 @@ class TranscriptionResult:
         """Words extracted from the audio clip (`list` of `str`)."""
         return self._words
 
+    @property
+    def text(self):
+        """Text transcribed for the audio data (`str`).
+        """
+        return self._text
+
     @words.setter
     def words(self, value):
         self._words = list(value)
 
+    @property
+    def response(self):
+        """Raw API response from the transcription engine (`str`).
+        """
+        return self._response
+
+    @response.setter
+    def response(self, val):
+        self._response = val
+
+    def getWordData(self):
+        pass
+        
     @property
     def success(self):
         """`True` if the transcriber returned a result successfully (`bool`)."""
@@ -218,6 +240,562 @@ NULL_TRANSCRIPTION_RESULT = TranscriptionResult(
     engine='null',
     language=TRANSCR_LANG_DEFAULT
 )
+
+
+# ------------------------------------------------------------------------------
+# Transcription interfaces
+#
+
+class BaseTranscriber:
+    """Base class for text-to-speech transcribers.
+
+    This class defines the API for transcription, which is an interface to a 
+    speech-to-text engine. All transcribers must be sub-classes of this class
+    and implement all members of this class.
+
+    Parameters
+    ----------
+    initConfig : dict or None
+        Options to configure the speech-to-text engine during initialization. 
+
+    """
+    _isLocal = True
+    _engine = u'Null'
+    _longName = u"Null"
+    _lastResult = None
+    def __init__(self, initConfig=None):
+        self._initConf = initConfig
+
+    @property
+    def longName(self):
+        """Human-readable name of the transcriber (`str`).
+        """
+        return self._longName
+
+    @property
+    def engine(self):
+        """Identifier for the transcription engine which this object interfaces 
+        with (`str`).
+        """
+        return self._engine
+
+    @property
+    def isLocal(self):
+        """`True` if the transcription engine works locally without sending data
+        to a remote server.
+        """
+        return self._isLocal
+
+    @property
+    def isComplete(self):
+        """`True` if the transcriber has completed its transcription. The result 
+        can be accessed through `.lastResult`.
+        """
+        return True
+    
+    @property
+    def lastResult(self):
+        """Result of the last transcription.
+        """
+        return self._lastResult
+
+    @lastResult.setter
+    def lastResult(self, val):
+        self._lastResult = val
+
+    def transcribe(self, audioClip, modelConfig=None, decoderConfig=None):
+        """Perform speech-to-text conversion on the provided audio samples.
+
+        Parameters
+        ----------
+        audioClip : :class:`~psychopy.sound.AudioClip`
+            Audio clip containing speech to transcribe (e.g., recorded from a
+            microphone).
+        modelConfig : dict or None
+            Additional configuration options for the model used by the engine.
+        decoderConfig : dict or None
+            Additional configuration options for the decoder used by the engine.
+
+        Returns
+        -------
+        TranscriptionResult
+            Transcription result object.
+
+        """
+        return NULL_TRANSCRIPTION_RESULT
+
+
+class PocketSphinxTranscriber(BaseTranscriber):
+    """Class to perform speech-to-text conversion on the provided audio samples 
+    using CMU Pocket Sphinx.
+
+    Parameters
+    ----------
+    initConfig : dict or None
+        Options to configure the speech-to-text engine during initialization. 
+
+    """
+    _isLocal = True
+    _engine = u'sphinx'
+    _longName = u"CMU PocketSphinx"
+    def __init__(self, initConfig=None):
+        super(PocketSphinxTranscriber, self).__init__(initConfig)
+
+        # import the library and get language models
+        import speech_recognition as sr
+
+        # create a recognizer interface
+        self._recognizer = sr.Recognizer()
+
+    @staticmethod
+    def getAllModels():
+        """Get available language models for the PocketSphinx transcriber 
+        (`list`).
+
+        Returns
+        -------
+        list 
+            List of available models.
+
+        """
+        import pocketsphinx
+        modelPath = pocketsphinx.get_model_path()
+        toReturn = [folder.stem for folder in Path(modelPath).glob('??-??')]
+
+        return toReturn
+    
+    def transcribe(self, audioClip, modelConfig=None, decoderConfig=None):
+        """Perform speech-to-text conversion on the provided audio samples using
+        CMU Pocket Sphinx.
+
+        Parameters
+        ----------
+        audioClip : :class:`~psychopy.sound.AudioClip`
+            Audio clip containing speech to transcribe (e.g., recorded from a
+            microphone).
+        modelConfig : dict or None
+            Additional configuration options for the model used by the engine.
+        decoderConfig : dict or None
+            Additional configuration options for the decoder used by the engine.
+            Presently unused by this transcriber.
+
+        Returns
+        -------
+        TranscriptionResult
+            Transcription result object.
+
+        """
+        import speech_recognition as sr
+        try:
+            import pocketsphinx
+        except (ImportError, ModuleNotFoundError):
+            raise RecognizerEngineNotFoundError()
+        
+        # warmup the engine, not used here but needed for compatibility
+        if audioClip is None:
+            return NULL_TRANSCRIPTION_RESULT
+
+        if isinstance(audioClip, AudioClip):
+            pass
+        elif isinstance(audioClip, (tuple, list,)):
+            waveform, sampleRate = audioClip
+            audioClip = AudioClip(waveform, sampleRateHz=sampleRate)
+        else:
+            raise TypeError(
+                "Expected type for parameter `audioClip` to be either " 
+                "`AudioClip`, `list` or `tuple`")
+
+        # engine configuration
+        modelConfig = {} if modelConfig is None else modelConfig
+        if not isinstance(modelConfig, dict):
+            raise TypeError(
+                "Invalid type for parameter `config` specified, must be `dict` "
+                "or `None`.")
+
+        language = modelConfig.get('language', TRANSCR_LANG_DEFAULT)
+        if not isinstance(language, str):
+            raise TypeError(
+                "Invalid type for parameter `language`, must be type `str`.")
+
+        language = language.lower()
+        if language not in sphinxLangs:  # missing a language pack error
+            url = "https://sourceforge.net/projects/cmusphinx/files/" \
+                "Acoustic%20and%20Language%20Models/"
+            msg = (f"Language `{language}` is not installed for "
+                f"`pocketsphinx`. You can download languages here: {url}. "
+                f"Install them here: {pocketsphinx.get_model_path()}")
+            raise RecognizerLanguageNotSupportedError(msg)
+        
+        # configure the recognizer
+        modelConfig['language'] = language  # sphinx users en-us not en-US
+        modelConfig['show_all'] = False
+
+        expectedWords = modelConfig.get('keyword_entries', None)
+        if expectedWords is not None:
+            words, sens = _parseExpectedWords(expectedWords)
+            modelConfig['keyword_entries'] = tuple(zip(words, sens))
+
+        # convert audio to format for transcription
+        sampleWidth = 2  # two bytes per sample for  WAV
+        audioData = sr.AudioData(
+            audioClip.asMono().convertToWAV(),
+            sample_rate=audioClip.sampleRateHz,
+            sample_width=sampleWidth)
+
+        # submit audio samples to the API
+        respAPI = ''
+        unknownValueError = requestError = False
+        try:
+            respAPI = self._recognizer.recognize_sphinx(
+                audioData, **modelConfig)
+        except sr.UnknownValueError:
+            unknownValueError = True
+        except sr.RequestError:
+            requestError = True
+
+        # remove empty words
+        result = [word for word in respAPI.split(' ') if word != '']
+
+        # object to return containing transcription data
+        self.lastResult = toReturn = TranscriptionResult(
+            words=result,
+            unknownValue=unknownValueError,
+            requestFailed=requestError,
+            engine='sphinx',
+            language=language)
+
+        # split only if the user does not want the raw API data
+        return toReturn
+        
+
+class GoogleCloudTranscriber(BaseTranscriber):
+    """Class for speech-to-text transcription using Google Cloud API services.
+
+    Parameters
+    ----------
+    initConfig : dict or None
+        Options to configure the speech-to-text engine during initialization. 
+
+    """
+    _isLocal = False
+    _engine = u'googleCloud'
+    _longName = u'Google Cloud'
+    def __init__(self, initConfig=None):
+        super(GoogleCloudTranscriber, self).__init__(initConfig)
+
+        try:
+            import google.cloud.speech
+            import google.auth.exceptions
+        except (ImportError, ModuleNotFoundError):
+            pass
+
+        if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = \
+                prefs.general['appKeyGoogleCloud']
+            
+        # empty string indicates no key has been specified, raise error
+        if not os.environ["GOOGLE_APPLICATION_CREDENTIALS"]:
+            raise RecognizerAPICredentialsError(
+                'No application key specified for Google Cloud Services, '
+                'specify the path to the key file with either the system '
+                'environment variable `GOOGLE_APPLICATION_CREDENTIALS` or in '
+                'preferences (General -> appKeyGoogleCloud).')
+
+        # open new client, takes a while the first go
+        try:
+            client = google.cloud.speech.SpeechClient()
+        except google.auth.exceptions.DefaultCredentialsError:
+            raise RecognizerAPICredentialsError(
+                'Invalid key specified for Google Cloud Services, check if the '
+                'key file is valid and readable.')
+
+        self._googleCloudClient = client
+
+    def transcribe(self, audioClip, modelConfig=None, decoderConfig=None):
+        """Transcribe text using Google Cloud.
+
+        Parameters
+        ----------
+        audioClip : AudioClip, list or tuple
+            Audio clip containing speech to transcribe (e.g., recorded from a
+            microphone). Can be either an :class:`~psychopy.sound.AudioClip` 
+            object or tuple where the first value is as a Nx1 or Nx2 array of 
+            audio samples (`ndarray`) and the second the sample rate (`int`) in 
+            Hertz (e.g., ``(samples, 48000)``).
+
+        Returns
+        -------
+        TranscriptionResult
+            Result of the transcription.
+        
+        """
+        # if None, return a null transcription result and just open a client
+        if audioClip is None:
+            return NULL_TRANSCRIPTION_RESULT
+        
+        if isinstance(audioClip, (list, tuple,)):
+            waveform, sr = audioClip
+            audioClip = AudioClip(waveform, sampleRateHz=sr)
+
+
+        # check if we have a valid audio clip
+        if not isinstance(audioClip, AudioClip):
+            raise TypeError(
+                "Expected parameter `audioClip` to have type "
+                "`psychopy.sound.AudioClip`.")
+        
+        # import here the first time
+        import google.cloud.speech as speech
+        import google.auth.exceptions
+
+        # defaults
+        languageCode = modelConfig.get('language', 'language_code')
+        model = modelConfig.get('model', 'command_and_search')
+        expectedWords = modelConfig.get('expectedWords', None)
+
+        # configure the recognizer
+        params = {
+            'encoding': speech.RecognitionConfig.AudioEncoding.LINEAR16,
+            'sample_rate_hertz': audioClip.sampleRateHz,
+            'language_code': languageCode,
+            'model': model,
+            'audio_channel_count': audioClip.channels,
+            'max_alternatives': 1}
+
+        if isinstance(modelConfig, dict):  # overwrites defaults!
+            params.update(modelConfig)
+
+        # speech context (i.e. expected phrases)
+        if expectedWords is not None:
+            expectedWords, _ = _parseExpectedWords(expectedWords)
+            params['speech_contexts'] = \
+                [google.cloud.speech.SpeechContext(phrases=expectedWords)]
+
+        # Detects speech in the audio file
+        response = self._googleCloudClient.recognize(
+            config=google.cloud.speech.RecognitionConfig(**params),
+            audio=google.cloud.speech.RecognitionAudio(
+                content=audioClip.convertToWAV()))
+
+        # package up response
+        result = [
+            result.alternatives[0].transcript for result in response.results]
+        toReturn = TranscriptionResult(
+            words=result,
+            unknownValue=False,  # not handled yet
+            requestFailed=False,  # not handled yet
+            engine='google',
+            language=languageCode)
+        toReturn.response = response
+
+        self._lastResult = toReturn
+
+        return toReturn
+
+
+class WhisperTranscriber(BaseTranscriber):
+    """Class for speech-to-text transcription using OpenAI Whisper.
+
+    This class provides an interface for OpenAI Whisper for off-line (local) 
+    speech-to-text transcription in various languages. You must first download
+    the model used for transcription on the local machine.
+
+    Parameters
+    ----------
+    initConfig : dict or None
+        Options to configure the speech-to-text engine during initialization. 
+    
+    """
+    _isLocal = True
+    _engine = u'whisper'
+    _longName = u"OpenAI Whisper"
+    def __init__(self, initConfig=None):
+        super(WhisperTranscriber, self).__init__(initConfig)
+
+        # pull in imports
+        import whisper
+
+        initConfig = {} if initConfig is None else initConfig
+
+        self._device = initConfig.get('device', 'cpu')  # set the device
+        self._modelName = initConfig.get('model', 'base')  # set the model
+
+        # setup the model
+        self._model = whisper.load_model(self._modelName).to(self._device)
+
+    @staticmethod
+    def downloadModel(modelName):
+        """Download a model from the internet onto the local machine.
+        
+        Parameters
+        ----------
+        modelName : str
+            Name of the model to download. You can get available models by 
+            calling `getAllModels()`.
+
+        Notes
+        -----
+        * In order to download models, you need to have the correct certificates
+          installed on your system.
+        
+        """
+        import whisper
+        whisper.load_model(modelName)  # calling this downloads the model
+
+    @staticmethod
+    def getAllModels():
+        """Get available language models for the Whisper transcriber (`list`).
+
+        Parameters
+        ----------
+        language : str
+            Filter available models by specified language code.
+
+        Returns
+        -------
+        list 
+            List of available models.
+
+        """
+        import whisper
+
+        return whisper.available_models()
+    
+    def transcribe(self, audioClip, modelConfig=None, decoderConfig=None):
+        """Perform a speech-to-text transcription of a voice recording.
+
+        Parameters
+        ----------
+        audioClip : AudioClip, ArrayLike
+            Audio clip containing speech to transcribe (e.g., recorded from a
+            microphone). Can be either an :class:`~psychopy.sound.AudioClip` 
+            object or tuple where the first value is as a Nx1 or Nx2 array of 
+            audio samples (`ndarray`) and the second the sample rate (`int`) in 
+            Hertz (e.g., ``(samples, 48000)``).
+        modelConfig : dict or None
+            Configuration options for the model.
+        decoderConfig : dict or None
+            Configuration options for the decoder.
+
+        Returns
+        -------
+        TranscriptionResult
+            Transcription result instance.
+
+        Notes
+        -----
+        * Audio is down-sampled to 16Khz prior to conversion which may add some
+          overhead.
+
+        """
+        if isinstance(audioClip, AudioClip):  # use raw samples from mic
+            samples = audioClip.samples
+            sr = audioClip.sampleRateHz
+        elif isinstance(audioClip, (list, tuple,)):
+            samples, sr = audioClip
+
+        # whisper requires data to be a flat `float32` array
+        waveform = np.frombuffer(
+            samples, samples.dtype).flatten().astype(np.float32)
+        
+        # resample if needed
+        if sr != 16000:
+            import librosa
+            waveform = librosa.resample(
+                waveform, 
+                orig_sr=sr, 
+                target_sr=16000)
+        
+        # pad and trim the data as required
+        import whisper.audio as _audio
+        waveform = _audio.pad_or_trim(waveform)
+
+        modelConfig = {} if modelConfig is None else modelConfig
+        decoderConfig = {} if decoderConfig is None else decoderConfig
+
+        # our defaults
+        language = "en" if self._modelName.endswith(".en") else None
+        temperature = modelConfig.get('temperature', 0.0)
+        word_timestamps = modelConfig.get('word_timestamps', True)
+
+        # initiate the transcription
+        result = self._model.transcribe(
+            waveform, 
+            language=language, 
+            temperature=temperature, 
+            word_timestamps=word_timestamps,
+            **decoderConfig)
+        
+        transcribed = result.get('text', '')
+        transcribed = transcribed.split(' ')  # split words 
+        language = result.get('langauge', '')
+
+        # create the response value
+        toReturn = TranscriptionResult(
+            words=transcribed,
+            unknownValue=False,
+            requestFailed=False,
+            engine=self._engine,
+            language=language)
+        toReturn.response = str(result)  # provide raw JSON response
+
+        self.lastResult = toReturn
+        
+        return toReturn
+
+
+# ------------------------------------------------------------------------------
+# Functions
+#
+
+def getAllTranscribers(engineKeys=False):
+    """Get all available transcriber interfaces.
+
+    Transcriber interface can be implemented in plugins. When loaded, this 
+    function will return them. 
+
+    Parameters
+    ----------
+    engineKeys : bool
+        Have the returned mapping use engine names for keys instead of class 
+        names.
+
+    Returns
+    -------
+    dict
+        Mapping of transcriber class or engine names (`str`) and references to 
+        classes (subclasses of `BaseTranscriber`.)
+
+    Examples
+    --------
+    Getting a transcriber interface, initializing it, and doing a 
+    transcription::
+
+        whisperInterface = sound.getAllTranscribers()['WhisperTranscriber']
+        # create the instance which initialize the transcriber service
+        transcriber = whisperInterface({'device': 'cuda'})
+        # you can now begin transcribing audio
+        micRecording = mic.getRecording()
+        result = transcriber.transcribe(micRecording)
+
+    """
+    from psychopy.plugins import discoverModuleClasses
+
+    # build a dictionary with names
+    here = sys.modules[__name__]
+    foundTranscribers = discoverModuleClasses(here, BaseTranscriber)
+    del foundTranscribers['BaseTranscriber']  # remove base, not needed
+ 
+    if not engineKeys:
+        return foundTranscribers
+    
+    # remap using engine names, more useful for builder
+    toReturn = {}
+    for className, interface in foundTranscribers.items():
+        if hasattr(interface, '_engine'):  # has interface
+            toReturn[interface._engine] = interface
+
+    return toReturn
 
 
 def transcribe(audioClip, engine='sphinx', language='en-US', expectedWords=None,
@@ -355,10 +933,16 @@ def transcribe(audioClip, engine='sphinx', language='en-US', expectedWords=None,
             language=language,
             expectedWords=expectedWords,
             config=config)
+    elif engine == 'whisper':
+        return recognizeWhisper(
+            audioClip,
+            language=language,
+            expectedWords=expectedWords,
+            config=config)
     else:
         raise ValueError(
             f'Parameter `engine` for `transcribe()` should be one of '
-            f'"sphinx", "built-in" or "google" not "{engine}"')
+            f'"sphinx", "built-in", "whisper" or "google" not "{engine}"')
 
 
 def _parseExpectedWords(wordList, defaultSensitivity=80):
@@ -431,6 +1015,8 @@ def _parseExpectedWords(wordList, defaultSensitivity=80):
 # time critical parts of your program.
 #
 
+_pocketSphinxTranscriber = None
+
 def recognizeSphinx(audioClip=None, language='en-US', expectedWords=None,
                     config=None):
     """Perform speech-to-text conversion on the provided audio samples using
@@ -465,77 +1051,33 @@ def recognizeSphinx(audioClip=None, language='en-US', expectedWords=None,
         Transcription result object.
 
     """
-    if not haveSphinx:  # does not have Sphinx
-        raise RecognizerEngineNotFoundError()
+    if config is None:
+        config = {}  # empty dict if `None`
 
-    # warmup the engine, not used here but needed for compatibility
-    if audioClip is None:
+    onlyInitialize = audioClip is None
+    global _pocketSphinxTranscriber
+    if _pocketSphinxTranscriber is None:
+        allTranscribers = getAllTranscribers(engineKeys=True)
+        try:
+            interface = allTranscribers['sphinx']
+        except KeyError:
+            raise RecognizerEngineNotFoundError(
+                "Cannot load transcriber interface for 'sphinx'.")
+    
+        _pocketSphinxTranscriber = interface()  # create instance
+
+    if onlyInitialize:
         return NULL_TRANSCRIPTION_RESULT
+    
+    # extract parameters which we used to support
+    config['expectedWords'] = expectedWords
+    config['language'] = language
+    
+    # do transcription and return result
+    return _pocketSphinxTranscriber.transcribe(audioClip, modelConfig=config)
 
-    # check if we have a valid audio clip
-    if not isinstance(audioClip, AudioClip):
-        raise TypeError(
-            "Expected parameter `audioClip` to have type "
-            "`psychopy.sound.AudioClip`.")
 
-    # engine configuration
-    config = {} if config is None else config
-    if not isinstance(config, dict):
-        raise TypeError(
-            "Invalid type for parameter `config` specified, must be `dict` "
-            "or `None`.")
-
-    if not isinstance(language, str):
-        raise TypeError(
-            "Invalid type for parameter `language`, must be type `str`.")
-
-    language = language.lower()
-    if language not in sphinxLangs:  # missing a language pack error
-        url = "https://sourceforge.net/projects/cmusphinx/files/" \
-              "Acoustic%20and%20Language%20Models/"
-        msg = (f"Language `{language}` is not installed for "
-               f"`pocketsphinx`. You can download languages here: {url}. "
-               f"Install them here: {pocketsphinx.get_model_path()}")
-        raise RecognizerLanguageNotSupportedError(msg)
-
-    # configure the recognizer
-    config['language'] = language  # sphinx users en-us not en-US
-    config['show_all'] = False
-    if expectedWords is not None:
-        words, sens = _parseExpectedWords(expectedWords)
-        config['keyword_entries'] = tuple(zip(words, sens))
-
-    # convert audio to format for transcription
-    sampleWidth = 2  # two bytes per sample
-    audioData = sr.AudioData(
-        audioClip.asMono().convertToWAV(),
-        sample_rate=audioClip.sampleRateHz,
-        sample_width=sampleWidth)
-
-    # submit audio samples to the API
-    respAPI = ''
-    unknownValueError = requestError = False
-    try:
-        respAPI = _recogBase.recognize_sphinx(audioData, **config)
-    except sr.UnknownValueError:
-        unknownValueError = True
-    except sr.RequestError:
-        requestError = True
-
-    # remove empty words
-    result = [word for word in respAPI.split(' ') if word != '']
-
-    # object to return containing transcription data
-    toReturn = TranscriptionResult(
-        words=result,
-        unknownValue=unknownValueError,
-        requestFailed=requestError,
-        engine='sphinx',
-        language=language)
-
-    # split only if the user does not want the raw API data
-    return toReturn
-
+_googleCloudTranscriber = None  # keep instance for legacy functions
 
 def recognizeGoogle(audioClip=None, language='en-US', expectedWords=None,
                     config=None):
@@ -581,75 +1123,108 @@ def recognizeGoogle(audioClip=None, language='en-US', expectedWords=None,
         # you can now call the transcriber
         results = recognizeGoogle(myRecording, expectedWords=['left', 'right'])
         if results.success:
-            print("You said: {}".format(results.words[0]))
+            print("You said: {}".format(results.words[0]))  # first word
 
     """
-    global _googleCloudClient
-    if _googleCloudClient is None:
-        if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
-            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = \
-                prefs.general['appKeyGoogleCloud']
+    if config is None:
+        config = {}  # empty dict if `None`
 
-        # empty string indicates no key has been specified, raise error
-        if not os.environ["GOOGLE_APPLICATION_CREDENTIALS"]:
-            raise RecognizerAPICredentialsError(
-                'No application key specified for Google Cloud Services, '
-                'specify the path to the key file with either the system '
-                'environment variable `GOOGLE_APPLICATION_CREDENTIALS` or in '
-                'preferences (General -> appKeyGoogleCloud).')
-
-        # open new client, takes a while the first go
+    onlyInitialize = audioClip is None
+    global _googleCloudTranscriber
+    if _googleCloudTranscriber is None:
+        allTranscribers = getAllTranscribers(engineKeys=True)
         try:
-            _googleCloudClient = google.cloud.speech.SpeechClient()
-        except google.auth.exceptions.DefaultCredentialsError:
-            raise RecognizerAPICredentialsError(
-                'Invalid key specified for Google Cloud Services, check if the '
-                'key file is valid and readable.')
+            interface = allTranscribers['googleCloud']
+        except KeyError:
+            raise RecognizerEngineNotFoundError(
+                "Cannot load transcriber interface for 'googleCloud'.")
+    
+        _googleCloudTranscriber = interface()  # create instance
 
-    # if None, return a null transcription result and just open a client
-    if audioClip is None:
+    if onlyInitialize:
         return NULL_TRANSCRIPTION_RESULT
+    
+    # set parameters which we used to support
+    config['expectedWords'] = expectedWords
+    config['language'] = language
+    
+    # do transcription and return result
+    return _googleCloudTranscriber.transcribe(audioClip, modelConfig=config)
 
-    # check if we have a valid audio clip
-    if not isinstance(audioClip, AudioClip):
-        raise TypeError(
-            "Expected parameter `audioClip` to have type "
-            "`psychopy.sound.AudioClip`.")
 
-    # configure the recognizer
-    params = {
-        'encoding': google.cloud.speech.RecognitionConfig.AudioEncoding.LINEAR16,
-        'sample_rate_hertz': audioClip.sampleRateHz,
-        'language_code': language,
-        'model': 'command_and_search',
-        'audio_channel_count': audioClip.channels,
-        'max_alternatives': 1}
+_whisperTranscriber = None
 
-    if isinstance(config, dict):
-        params.update(config)
+def recognizeWhisper(audioClip=None, language='en-US', expectedWords=None,
+                     config=None):
+    """Perform speech-to-text conversion on the provided audio samples locally 
+    using OpenAI Whisper.
 
-    # speech context (i.e. expected phrases)
-    if expectedWords is not None:
-        expectedWords, _ = _parseExpectedWords(expectedWords)
-        params['speech_contexts'] = \
-            [google.cloud.speech.SpeechContext(phrases=expectedWords)]
+    This is a self-hosted (local) transcription engine. This means that the 
+    actual transcription is done on the host machine, without passing data over 
+    the network. 
 
-    # Detects speech in the audio file
-    response = _googleCloudClient.recognize(
-        config=google.cloud.speech.RecognitionConfig(**params),
-        audio=google.cloud.speech.RecognitionAudio(
-            content=audioClip.convertToWAV()))
+    Parameters
+    ----------
+    audioClip : :class:`~psychopy.sound.AudioClip` or None
+        Audio clip containing speech to transcribe (e.g., recorded from a
+        microphone). Specify `None` to initialize a client without performing a
+        transcription, this will reduce latency when the transcriber is invoked
+        in successive calls.
+    language : str
+        BCP-47 language code (eg., 'en-US'). Should match the language which the
+        speaker is using. For Whisper, only 'en' is valid since most models are 
+        multi-lingual. To chose the model to use, specify it with `config`.
+    expectedWords : list or None
+        List of strings representing expected words or phrases. This will
+        attempt bias the possible output words to the ones specified if the
+        engine is uncertain. Sensitivity can be specified for each expected
+        word. You can indicate the sensitivity level to use by putting a ``:``
+        after each word in the list (see the Example below). Sensitivity levels
+        range between 0 and 100. A higher number results in the engine being
+        more conservative, resulting in a higher likelihood of false rejections.
+        The default sensitivity is 80% for words/phrases without one specified.
+    config : dict or None
+        Additional configuration options for the specified engine. For Whisper,
+        the following configuration dictionary can be used 
+        `{'device': 'cpu', 'model': 'base'}`. Values for `'device'` can be 
+        either `'cpu'` or `'cuda'`, and `'model'` can be any value returned by
+        `.getAllModels()`. 
 
-    # package up response
-    result = [result.alternatives[0].transcript for result in response.results]
-    toReturn = TranscriptionResult(
-        words=result,
-        unknownValue=False,  # not handled yet
-        requestFailed=False,  # not handled yet
-        engine='google',
-        language=language)
+    Returns
+    -------
+    TranscriptionResult
+        Transcription result object.
 
-    return toReturn
+    """
+    if config is None:
+        config = {}  # empty dict if `None`
+
+    # initialization options
+    device = config.get('device', 'cpu')
+    modelName = config.get('model_name', 'base')
+    initConfig = {'device': device, 'model': modelName}
+
+    onlyInitialize = audioClip is None
+    global _whisperTranscriber
+    if _whisperTranscriber is None:
+        allTranscribers = getAllTranscribers(engineKeys=True)
+        try:
+            interface = allTranscribers['whisper']
+        except KeyError:
+            raise RecognizerEngineNotFoundError(
+                "Cannot load transcriber interface for 'whisper'.")
+    
+        _whisperTranscriber = interface(initConfig)  # create instance
+    
+    if onlyInitialize:
+        return NULL_TRANSCRIPTION_RESULT
+    
+    # set parameters which we used to support
+    config['expectedWords'] = expectedWords
+    config['language'] = language
+    
+    # do transcription and return result
+    return _whisperTranscriber.transcribe(audioClip, modelConfig=config)
 
 
 if __name__ == "__main__":
