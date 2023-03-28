@@ -44,6 +44,7 @@ from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
                                      setColor, findImageFile)
 from psychopy.tools.typetools import float_uint8
 from psychopy.tools.arraytools import makeRadialMatrix, createLumPattern
+from psychopy.event import Mouse
 from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb  # pylint: disable=W0611
 
 from . import globalVars
@@ -1647,17 +1648,70 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
     that for simplicity & clarity.
 
     """
-    def __init__(self, win, units=None, name='', autoLog=None):
+    def __init__(self, win, units=None, name='', draggable=False, autoLog=None):
         self.autoLog = False  # just to start off during init, set at end
         self.win = win
         self.units = units
         self._rotationMatrix = [[1., 0.], [0., 1.]]  # no rotation by default
+        self.mouse = None
+        self.draggable = draggable
+        self.isDragging = False
         # self.autoLog is set at end of MinimalStim.__init__
         super(BaseVisualStim, self).__init__(name=name, autoLog=autoLog)
         if self.autoLog:
             msg = ("%s is calling BaseVisualStim.__init__() with autolog=True"
                    ". Set autoLog to True only at the end of __init__())")
             logging.warning(msg % (self.__class__.__name__))
+
+    def onFlip(self):
+        """
+        Function to execute each flip of the window.
+        """
+        # --- Dragging ---
+        if self.draggable:
+            self._doDragging()
+
+        # --- Drawing ---
+        if self.autoDraw:
+            self.draw()
+
+    def _doDragging(self):
+        """
+        If this stimulus is draggable, do the necessary actions on a frame
+        flip to drag it.
+        """
+        # get relative mouse pos
+        rel = self.mouse.getRel()
+        # if clicked on, drag self
+        if self.mouse.isPressedIn(self, buttons=[0]):
+            # mark self as being dragged
+            self.isDragging = True
+            # get own pos in win units
+            pos = getattr(self._pos, self.win.units)
+            # add mouse movement to pos
+            setattr(
+                self._pos,
+                self.win.units,
+                pos + rel
+            )
+            # set pos
+            self.pos = getattr(self._pos, self.units)
+        else:
+            # mark self as being dragged
+            self.isDragging = False
+
+    @attributeSetter
+    def draggable(self, value):
+        """
+        Can this stimulus be dragged by a mouse click?
+        """
+        # if we don't have reference to a mouse, make one
+        if not isinstance(self.mouse, Mouse):
+            self.mouse = Mouse(win=self.win)
+            # make sure it has an initial pos for rel pos comparisons
+            self.mouse.lastPos = self.mouse.getPos()
+        # store value
+        self.__dict__['draggable'] = value
 
     @property
     def opacity(self):
