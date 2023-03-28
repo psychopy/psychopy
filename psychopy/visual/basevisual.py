@@ -1638,48 +1638,34 @@ class WindowMixin:
         self._updateListShaders()
 
 
-class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
-    """A template for a visual stimulus class.
-
-    Actual visual stim like GratingStim, TextStim etc... are based on this.
-    Not finished...?
-
-    Methods defined here will override Minimal & Legacy, but best to avoid
-    that for simplicity & clarity.
-
+class DraggingMixin:
     """
-    def __init__(self, win, units=None, name='', draggable=False, autoLog=None):
-        self.autoLog = False  # just to start off during init, set at end
-        self.win = win
-        self.units = units
-        self._rotationMatrix = [[1., 0.], [0., 1.]]  # no rotation by default
-        self.mouse = None
-        self.draggable = draggable
-        self.isDragging = False
-        # self.autoLog is set at end of MinimalStim.__init__
-        super(BaseVisualStim, self).__init__(name=name, autoLog=autoLog)
-        if self.autoLog:
-            msg = ("%s is calling BaseVisualStim.__init__() with autolog=True"
-                   ". Set autoLog to True only at the end of __init__())")
-            logging.warning(msg % (self.__class__.__name__))
+    Mixin to give an object innate dragging behaviour.
 
-    def onFlip(self):
-        """
-        Function to execute each flip of the window.
-        """
-        # --- Dragging ---
-        if self.draggable:
-            self._doDragging()
+    Attributes
+    ==========
+    draggable : bool
+        Can this object be dragged by a Mouse click?
+    isDragging : bool
+        Is this object currently being dragged? (read only)
 
-        # --- Drawing ---
-        if self.autoDraw:
-            self.draw()
+    Methods
+    ==========
+    doDragging :
+        Call this each frame to make sure dragging behaviour happens. If
+        `autoDraw` and `draggable` are both True, then this will be called
+        automatically by the Window object on flip.
+    """
+    isDragging = False
 
-    def _doDragging(self):
+    def doDragging(self):
         """
         If this stimulus is draggable, do the necessary actions on a frame
         flip to drag it.
         """
+        # If not draggable, do nothing
+        if not self.draggable:
+            return
         # get relative mouse pos
         rel = self.mouse.getRel()
         # if clicked on, drag self
@@ -1712,6 +1698,30 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
             self.mouse.lastPos = self.mouse.getPos()
         # store value
         self.__dict__['draggable'] = value
+
+
+class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
+    """A template for a visual stimulus class.
+
+    Actual visual stim like GratingStim, TextStim etc... are based on this.
+    Not finished...?
+
+    Methods defined here will override Minimal & Legacy, but best to avoid
+    that for simplicity & clarity.
+
+    """
+    def __init__(self, win, units=None, name='', autoLog=None):
+        self.autoLog = False  # just to start off during init, set at end
+        self.win = win
+        self.units = units
+        self._rotationMatrix = [[1., 0.], [0., 1.]]  # no rotation by default
+        self.mouse = None
+        # self.autoLog is set at end of MinimalStim.__init__
+        super(BaseVisualStim, self).__init__(name=name, autoLog=autoLog)
+        if self.autoLog:
+            msg = ("%s is calling BaseVisualStim.__init__() with autolog=True"
+                   ". Set autoLog to True only at the end of __init__())")
+            logging.warning(msg % (self.__class__.__name__))
 
     @property
     def opacity(self):
