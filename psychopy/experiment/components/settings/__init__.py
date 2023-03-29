@@ -1661,6 +1661,73 @@ class SettingsComponent:
                                  units=units)
         buff.writeIndentedLines(code)
 
+    def writePauseCode(self, buff):
+        # Open function def
+        code = (
+            'def pauseExperiment(thisExp, inputs=None, win=None, timers=[], playbackComponents=[]):\n'
+            '    """\n'
+            '    Pause this experiment, preventing the flow from advancing to the next routine until resumed.\n'
+            '    \n'
+            '    Parameters\n'
+            '    ==========\n'
+            '    thisExp : psychopy.data.ExperimentHandler\n'
+            '        Handler object for this experiment, contains the data to save and information about \n'
+            '        where to save it to.\n'
+            '    inputs : dict\n'
+            '        Dictionary of input devices by name.\n'
+            '    win : psychopy.visual.Window\n'
+            '        Window for this experiment.\n'
+            '    timers : list, tuple\n'
+            '        List of timers to reset once pausing is finished.\n'
+            '    playbackComponents : list, tuple\n'
+            '        List of any components with a `pause` method which need to be paused.\n'
+            '    """'
+        )
+        buff.writeIndentedLines(code)
+        buff.setIndentLevel(+1, relative=True)
+
+        # handle pausing
+        code = (
+            "# if we are not paused, do nothing\n"
+            "if thisExp.status != PAUSED:\n"
+            "    return\n"
+            "\n"
+            "# pause any playback components\n"
+            "for comp in playbackComponents:\n"
+            "    comp.pause()\n"
+            "# run a while loop while we wait to unpause\n"
+            "while thisExp.status == PAUSED:\n"
+            "    # sleep for a millisecond to free up the CPU\n"
+            "    core.wait(0.001)\n"
+        )
+        if self.params['Enable Escape'].val:
+            code += (
+            "    # make sure we have a keyboard\n"
+            "    if inputs is None:\n"
+            "        inputs = {\n"
+            "            'defaultKeyboard': keyboard.Keyboard(backend=%(keyboardBackend)s)\n"
+            "        }\n"
+            "    # check for quit (typically the Esc key)\n"
+            "    if inputs['defaultKeyboard'].getKeys(keyList=['escape']):\n"
+            "        thisExp.status = FINISHED\n"
+            )
+        code += (
+            "# if stop was requested while paused, quit\n"
+            "if thisExp.status == FINISHED:\n"
+            "    endExperiment(thisExp, inputs=inputs, win=win)\n"
+            "# resume any playback components\n"
+            "for comp in playbackComponents:\n"
+            "    comp.play()\n"
+            "# reset any timers\n"
+            "for timer in timers:\n"
+            "    timer.reset()\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        # Exit function def
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines("\n")
+
     def writeEndCode(self, buff):
         """Write code for end of experiment (e.g. close log file).
         """
@@ -1678,7 +1745,7 @@ class SettingsComponent:
             '        where to save it to.\n'
             '    inputs : dict\n'
             '        Dictionary of input devices by name.\n'
-            '    psychopy.visual.Window\n'
+            '    win : psychopy.visual.Window\n'
             '        Window to close.\n'
             '    """\n'
         )
