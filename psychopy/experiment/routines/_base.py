@@ -482,12 +482,12 @@ class Routine(list):
                 '\n'
                 '# check for quit (typically the Esc key)\n'
                 'if defaultKeyboard.getKeys(keyList=["escape"]):\n'
-                '    thisExp.status = FINISHED'
+                '    thisExp.status = FINISHED\n'
             )
             buff.writeIndentedLines(code)
         code = (
-            "if thisExp.status == FINISHED or endExpNow:"
-            "    endExperiment(thisExp, inputs=inputs, win=win)"
+            "if thisExp.status == FINISHED or endExpNow:\n"
+            "    endExperiment(thisExp, inputs=inputs, win=win)\n"
         )
         buff.writeIndentedLines(code)
 
