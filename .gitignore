@@ -80,6 +80,7 @@ psychopy/demos/*/*/html
 
 psychopy/tests/*Out.*
 psychopy/tests/data/*_local.png
+psychopy/tests/fails/*/*
 psychopy/tests/*htmlcov*
 
 # compile from psychopy/changelog.txt

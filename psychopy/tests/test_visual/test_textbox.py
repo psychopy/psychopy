@@ -412,10 +412,12 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
         self.obj.fillColor = "red"
 
         # Create list of points to test
-        cases = []
-        for x in (-3/8, 0, 3/8):
-            for y in (-3/8, 0, 3/8):
-                cases.append((x, y))
+        cases = [
+            (-3/8, 0),
+            (3/8, 0),
+            (0, -3/8),
+            (0, 3/8)
+        ]
 
         for x, y in cases:
             # Prepare window

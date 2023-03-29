@@ -37,7 +37,7 @@ from .params import _findParam, Param, legacyParams
 from psychopy.experiment.routines._base import Routine, BaseStandaloneRoutine
 from psychopy.experiment.routines import getAllStandaloneRoutines
 from . import utils, py2js
-from .components import getComponents, getAllComponents
+from .components import getComponents, getAllComponents, getInitVals
 
 from psychopy.localization import _translate
 import locale
@@ -271,7 +271,7 @@ class Experiment:
                     entry.writePreCode(script)
 
             # present info
-            self_copy.settings.writeExpInfoCode(script)
+            self_copy.settings.writeExpInfoDlgCode(script)
             # setup data and saving
             self_copy.settings.writeDataCode(script)
             # make logfile
@@ -293,7 +293,13 @@ class Experiment:
                 "# if running this experiment as a script...\n"
                 "if __name__ == '__main__':\n"
                 "    # call all functions in order\n"
-                "    expInfo = setupExpInfo()\n"
+            )
+            if self_copy.settings.params['Show info dlg'].val:
+                # Only show exp info dlg if indicated to by settings
+                code += (
+                "    expInfo = showExpInfoDlg(expInfo=expInfo)\n"
+                )
+            code += (
                 "    thisExp = setupData(expInfo=expInfo)\n"
                 "    logFile = setupLogging(filename=thisExp.dataFileName)\n"
                 "    win = setupWindow(expInfo=expInfo)\n"
@@ -1010,6 +1016,13 @@ class Experiment:
                         # then check if it's a valid path and not yet included
                         if thisFile and thisFile not in compResources:
                             compResources.append(thisFile)
+                        # if param updates on frame/repeat, check its init val too
+                        if hasattr(thisParam, "updates") and thisParam.updates != "constant":
+                            inits = getInitVals({paramName: thisParam})
+                            thisFile = getPaths(inits[paramName].val)
+                            # then check if it's a valid path and not yet included
+                            if thisFile and thisFile not in compResources:
+                                compResources.append(thisFile)
             elif isinstance(thisEntry, BaseStandaloneRoutine):
                 for paramName in thisEntry.params:
                     thisParam = thisEntry.params[paramName]
@@ -1024,6 +1037,13 @@ class Experiment:
                     # then check if it's a valid path and not yet included
                     if thisFile and thisFile not in compResources:
                         compResources.append(thisFile)
+                    # if param updates on frame/repeat, check its init val too
+                    if hasattr(thisParam, "updates") and thisParam.updates != "constant":
+                        inits = getInitVals({paramName: thisParam})
+                        thisFile = getPaths(inits[paramName].val)
+                        # then check if it's a valid path and not yet included
+                        if thisFile and thisFile not in compResources:
+                            compResources.append(thisFile)
             elif thisEntry.getType() == 'LoopInitiator' and "Stair" in thisEntry.loop.type:
                 url = 'https://lib.pavlovia.org/vendors/jsQUEST.min.js'
                 compResources.append({
@@ -1031,7 +1051,12 @@ class Experiment:
                 })
         if handled:
             # If resources are handled, clear all component resources
+            handledResources = compResources
             compResources = []
+            # Still add default stim
+            for thisFile in handledResources:
+                if thisFile.get('name', False) in list(ft.defaultStim):
+                    compResources.append(thisFile)
 
         # Get resources for loops
         loopResources = []

@@ -95,7 +95,7 @@ jobs:
       with:
         name: test artifacts
         path: |
-          psychopy/tests/data
+          psychopy/tests/fails
           !**/*.mp4
           !psychopy/tests/**/*.data
           !**/*.wav
@@ -238,6 +238,17 @@ jobs:
           ~/.psychopy3
           !~/.psychopy3/versions
           !~/.psychopy3/fonts
+
+    - name: upload failed screenshots
+      if: always()
+      uses: actions/upload-artifact@v2
+      with:
+        name: test artifacts
+        path: |
+          psychopy/tests/fails
+          !**/*.mp4
+          !psychopy/tests/**/*.data
+          !**/*.wav
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
