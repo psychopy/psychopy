@@ -1695,10 +1695,10 @@ class SettingsComponent:
             "# pause any playback components\n"
             "for comp in playbackComponents:\n"
             "    comp.pause()\n"
+            "# prevent components from auto-drawing\n"
+            "win.stashAutoDraw()\n"
             "# run a while loop while we wait to unpause\n"
             "while thisExp.status == PAUSED:\n"
-            "    # sleep for a millisecond to free up the CPU\n"
-            "    core.wait(0.001)\n"
         )
         if self.params['Enable Escape'].val:
             code += (
@@ -1712,12 +1712,16 @@ class SettingsComponent:
             "        thisExp.status = FINISHED\n"
             )
         code += (
+            "    # flip the screen\n"
+            "    win.flip()\n"
             "# if stop was requested while paused, quit\n"
             "if thisExp.status == FINISHED:\n"
             "    endExperiment(thisExp, inputs=inputs, win=win)\n"
             "# resume any playback components\n"
             "for comp in playbackComponents:\n"
             "    comp.play()\n"
+            "# restore auto-drawn components\n"
+            "win.retrieveAutoDraw()\n"
             "# reset any timers\n"
             "for timer in timers:\n"
             "    timer.reset()\n"
