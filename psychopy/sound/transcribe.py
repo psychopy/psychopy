@@ -13,6 +13,7 @@ __all__ = [
     'transcribe',
     'TRANSCR_LANG_DEFAULT',
     'BaseTranscriber',
+    'WhisperTranscriber',
     'recognizerEngineValues',
     'recognizeSphinx',
     'recognizeGoogle',
@@ -76,6 +77,7 @@ TRANSCR_LANG_DEFAULT = 'en-US'
 recognizerEngineValues = {
     0: ('sphinx', "CMU Pocket Sphinx", "Offline, Built-in"),
     1: ('google', "Google Cloud Speech API", "Online, Key Required"),
+    2: ('whisper', "OpenAI Whisper", "Offline")
 }
 
 
@@ -592,6 +594,57 @@ class GoogleCloudTranscriber(BaseTranscriber):
         return toReturn
 
 
+def _download(url, root, in_memory):
+    """Download a model for the OpenAI Whisper speech-to-text transcriber.
+
+    This function is monkey-patched to override the `_download()` function to 
+    use the `requests` library to get models from remote sources. This gets 
+    around the SSL certificate errors we see with `urllib`.
+
+    """
+    # derived from source code found here:
+    # https://github.com/openai/whisper/blob/main/whisper/__init__.py
+    import hashlib
+    import os
+    import requests
+    import warnings
+
+    os.makedirs(root, exist_ok=True)
+
+    expected_sha256 = url.split("/")[-2]
+    download_target = os.path.join(root, os.path.basename(url))
+
+    if os.path.exists(download_target) and not os.path.isfile(download_target):
+        raise RuntimeError(
+            f"{download_target} exists and is not a regular file")
+
+    if os.path.isfile(download_target):
+        with open(download_target, "rb") as f:
+            model_bytes = f.read()
+        if hashlib.sha256(model_bytes).hexdigest() == expected_sha256:
+            return model_bytes if in_memory else download_target
+        else:
+            warnings.warn(
+                f"{download_target} exists, but the SHA256 checksum does not "
+                f"match; re-downloading the file"
+            )
+    
+    # here is the change we make that uses `requests` instead of `urllib`
+    req = requests.get(url, allow_redirects=True)
+    with open(download_target, 'wb') as dt:
+        dt.write(req.content)
+
+    model_bytes = open(download_target, "rb").read()
+    if hashlib.sha256(model_bytes).hexdigest() != expected_sha256:
+        raise RuntimeError(
+            "Model has been downloaded but the SHA256 checksum does not not "
+            "match. Please retry loading the model."
+        )
+
+    return model_bytes if in_memory else download_target
+
+
+
 class WhisperTranscriber(BaseTranscriber):
     """Class for speech-to-text transcription using OpenAI Whisper.
 
@@ -613,14 +666,27 @@ class WhisperTranscriber(BaseTranscriber):
 
         # pull in imports
         import whisper
+        whisper._download = _download  # patch download func using `requests`
 
         initConfig = {} if initConfig is None else initConfig
 
         self._device = initConfig.get('device', 'cpu')  # set the device
-        self._modelName = initConfig.get('model', 'base')  # set the model
+        self._modelName = initConfig.get('model_name', 'base')  # set the model
 
         # setup the model
         self._model = whisper.load_model(self._modelName).to(self._device)
+
+    @property
+    def device(self):
+        """Device in use (`str`).
+        """
+        return self._device
+    
+    @property
+    def model(self):
+        """Model in use (`str`).
+        """
+        return self._modelName
 
     @staticmethod
     def downloadModel(modelName):
@@ -639,6 +705,7 @@ class WhisperTranscriber(BaseTranscriber):
         
         """
         import whisper
+        # todo - specify file name for the model
         whisper.load_model(modelName)  # calling this downloads the model
 
     @staticmethod
@@ -1153,7 +1220,7 @@ def recognizeGoogle(audioClip=None, language='en-US', expectedWords=None,
 
 _whisperTranscriber = None
 
-def recognizeWhisper(audioClip=None, language='en-US', expectedWords=None,
+def recognizeWhisper(audioClip=None, language=None, expectedWords=None,
                      config=None):
     """Perform speech-to-text conversion on the provided audio samples locally 
     using OpenAI Whisper.
@@ -1168,11 +1235,11 @@ def recognizeWhisper(audioClip=None, language='en-US', expectedWords=None,
         Audio clip containing speech to transcribe (e.g., recorded from a
         microphone). Specify `None` to initialize a client without performing a
         transcription, this will reduce latency when the transcriber is invoked
-        in successive calls.
-    language : str
-        BCP-47 language code (eg., 'en-US'). Should match the language which the
-        speaker is using. For Whisper, only 'en' is valid since most models are 
-        multi-lingual. To chose the model to use, specify it with `config`.
+        in successive calls. Any arguments passed to `config` will be sent to
+        the initialization function of the model if `None`.
+    language : str or None
+        Language code (eg., 'en'). Unused for Whisper since models are 
+        multi-lingual, but may be used in the future. 
     expectedWords : list or None
         List of strings representing expected words or phrases. This will
         attempt bias the possible output words to the ones specified if the
@@ -1185,9 +1252,9 @@ def recognizeWhisper(audioClip=None, language='en-US', expectedWords=None,
     config : dict or None
         Additional configuration options for the specified engine. For Whisper,
         the following configuration dictionary can be used 
-        `{'device': 'cpu', 'model': 'base'}`. Values for `'device'` can be 
-        either `'cpu'` or `'cuda'`, and `'model'` can be any value returned by
-        `.getAllModels()`. 
+        `{'device': "cpu", 'model_name': "base"}`. Values for `'device'` can be 
+        either `'cpu'` or `'cuda'`, and `'model_name'` can be any value returned 
+        by `.getAllModels()`. 
 
     Returns
     -------
@@ -1201,7 +1268,7 @@ def recognizeWhisper(audioClip=None, language='en-US', expectedWords=None,
     # initialization options
     device = config.get('device', 'cpu')
     modelName = config.get('model_name', 'base')
-    initConfig = {'device': device, 'model': modelName}
+    initConfig = {'device': device, 'model_name': modelName}
 
     onlyInitialize = audioClip is None
     global _whisperTranscriber
