@@ -36,7 +36,7 @@ jobs:
     - name: Install PsychoPy and dependencies
       run: |
         # for pocketsphinx we need this adapted package:
-        brew install swig vlc
+        brew install swig vlc portaudio portmidi liblo
         # install optional components
         pip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator psychopy-visionscience
         # then use the standard requirements:
