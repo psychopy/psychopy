@@ -439,9 +439,10 @@ class PavloviaSession:
     @property
     def user(self):
         if not hasattr(self, "_user") or self._user is None:
-            if not hasattr(self.gitlab, "user") or self.gitlab.user.username is None:
+            try:
+                self._user = User(self.gitlab.user.username)
+            except AttributeError:
                 return None
-            self._user = User(self.gitlab.user.username)
         return self._user
 
     @user.setter

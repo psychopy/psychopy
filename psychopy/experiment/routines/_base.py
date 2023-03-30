@@ -478,9 +478,14 @@ class Routine(list):
 
         # allow subject to quit via Esc key?
         if self.exp.settings.params['Enable Escape'].val:
-            code = ('\n# check for quit (typically the Esc key)\n'
-                    'if endExpNow or defaultKeyboard.getKeys(keyList=["escape"]):\n'
-                    '    core.quit()\n')
+            code = (
+                '\n'
+                '# check for quit (typically the Esc key)\n'
+                'if endExpNow or defaultKeyboard.getKeys(keyList=["escape"]):\n'
+                '    core.quit()\n'
+                '    if eyetracker:\n'
+                '        eyetracker.setConnectionState(False)\n'
+            )
             buff.writeIndentedLines(code)
 
         # are we done yet?
