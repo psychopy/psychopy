@@ -1111,7 +1111,11 @@ class Window():
         """
         if self._toDraw:
             for thisStim in self._toDraw:
+                # Draw
                 thisStim.draw()
+                # Handle dragging
+                if getattr(thisStim, "draggable", False):
+                    thisStim.doDragging()
         else:
             self.backend.setCurrent()
 

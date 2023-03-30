@@ -24,7 +24,9 @@ from bidi import algorithm as bidi
 import re
 
 from ..aperture import Aperture
-from ..basevisual import BaseVisualStim, ColorMixin, ContainerMixin, WindowMixin
+from ..basevisual import (
+    BaseVisualStim, ColorMixin, ContainerMixin, WindowMixin, DraggingMixin
+)
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools import mathtools as mt
 from psychopy.tools.arraytools import val2array
@@ -66,7 +68,7 @@ debug = False
 # If text is ". " we don't want to start next line with single space?
 
 
-class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
+class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
     def __init__(self, win, text,
                  font="Open Sans",
                  pos=(0, 0), units=None, letterHeight=None,
@@ -91,6 +93,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  editable=False,
                  overflow="visible",
                  lineBreaking='default',
+                 draggable=False,
                  name='',
                  autoLog=None,
                  autoDraw=False,
@@ -133,6 +136,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         lineBreaking: Specifying 'default', text will be broken at a set of
             characters defined in the module. Specifying 'uax14', text will be
             broken in accordance with UAX#14 (Unicode Line Breaking Algorithm).
+        draggable : bool
+            Can this stimulus be dragged by a mouse click?
         name
         autoLog
         """
@@ -143,6 +148,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.colorSpace = colorSpace
         ColorMixin.foreColor.fset(self, color)  # Have to call the superclass directly on init as text has not been set
         self.onTextCallback = onTextCallback
+        self.draggable = draggable
 
         # Box around the whole textbox - drawn
         self.box = Rect(
