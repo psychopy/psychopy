@@ -17,10 +17,10 @@ jobs:
         python-version: [3.8]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -81,7 +81,7 @@ jobs:
 
     - name: upload failed app data
       if: always()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: prefs for ${{ matrix.os }}_${{ matrix.python-version }}
         path: |
@@ -91,7 +91,7 @@ jobs:
 
     - name: upload failed screenshots
       if: always()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: test artifacts
         path: |
@@ -101,7 +101,7 @@ jobs:
           !**/*.wav
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v3
       with:
         fail_ci_if_error: false
 
@@ -141,10 +141,10 @@ jobs:
         python-version: [3.8]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -155,7 +155,7 @@ jobs:
 
     - name: cache wxPython for linux
       if: runner.os=='Linux'
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/.cache/pip
         key: ${{ matrix.os }}-py${{ matrix.python-version }}-${{ steps.get_month.outputs.month }}
@@ -231,7 +231,7 @@ jobs:
 
     - name: upload failed app data
       if: always()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: prefs for ${{ matrix.os }}_${{ matrix.python-version }}
         path: |
@@ -241,7 +241,7 @@ jobs:
 
     - name: upload failed screenshots
       if: always()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: test artifacts
         path: |
@@ -251,7 +251,7 @@ jobs:
           !**/*.wav
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v3
       with:
         fail_ci_if_error: false
 
