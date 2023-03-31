@@ -49,8 +49,9 @@ jobs:
 
     - name: Install plugins
       run: |
-        
-        # install optional plugins
+        # for pocketsphinx we need this adapted package:
+        brew install swig vlc portaudio portmidi liblo
+        # install optional components
         pip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator psychopy-visionscience
         pip install moviepy
 
