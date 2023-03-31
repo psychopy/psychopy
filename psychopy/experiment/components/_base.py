@@ -820,20 +820,7 @@ class BaseComponent:
 
         return False
 
-    def getStartAndDuration(self):
-        """Determine the start and duration of the stimulus
-        purely for Routine rendering purposes in the app (does not affect
-        actual drawing during the experiment)
-
-        start, duration, nonSlipSafe = component.getStartAndDuration()
-
-        nonSlipSafe indicates that the component's duration is a known fixed
-        value and can be used in non-slip global clock timing (e.g for fMRI)
-        """
-        if not 'startType' in self.params:
-            # this component does not have any start
-            return None, None, True
-
+    def getStart(self):
         # deduce a start time (s) if possible
         startType = self.params['startType'].val
         numericStart = canBeNumeric(self.params['startVal'].val)
@@ -845,10 +832,9 @@ class BaseComponent:
         else:
             startTime = None
 
-        if 'stopType' not in self.params:
-            # this component does not have any stop
-            return startTime, 0, numericStart
+        return startTime, numericStart
 
+    def getDuration(self, startTime=0):
         # deduce stop time (s) if possible
         stopType = self.params['stopType'].val
         numericStop = canBeNumeric(self.params['stopVal'].val)
@@ -867,7 +853,31 @@ class BaseComponent:
             else:
                 duration = None
 
-        nonSlipSafe = numericStop and (numericStart or stopType == 'time (s)')
+        return duration, numericStop
+
+    def getStartAndDuration(self):
+        """Determine the start and duration of the stimulus
+        purely for Routine rendering purposes in the app (does not affect
+        actual drawing during the experiment)
+
+        start, duration, nonSlipSafe = component.getStartAndDuration()
+
+        nonSlipSafe indicates that the component's duration is a known fixed
+        value and can be used in non-slip global clock timing (e.g for fMRI)
+        """
+        # If has a start, calculate it
+        if 'startType' in self.params:
+            startTime, numericStart = self.getStart()
+        else:
+            startTime, numericStart = None, False
+
+        # If has a stop, calculate it
+        if 'stopType' in self.params:
+            duration, numericStop = self.getDuration(startTime=startTime)
+        else:
+            duration, numericStop = 0, False
+
+        nonSlipSafe = numericStop and (numericStart or self.params['stopType'].val == 'time (s)')
         return startTime, duration, nonSlipSafe
 
     def getPosInRoutine(self):

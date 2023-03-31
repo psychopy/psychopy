@@ -1930,6 +1930,8 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         for component in rowComponents:
             self.drawComponent(self.pdc, component, yPos)
             yPos += self.componentStep
+        # draw end line (if there is one)
+        self.drawForceEndLine(self.pdc, self.yPosTop + settingsBtnExtent.Height, yPosBottom)
 
         # the 50 allows space for labels below the time axis
         self.SetVirtualSize((int(self.maxWidth), yPos + 50))
@@ -1943,7 +1945,11 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         if self.routine.hasOnlyStaticComp():
             maxTime = int(maxTime) + 1.0
 
-        return maxTime
+        # if max came from routine settings, mark as hard stop
+        rtMax, rtMaxIsNum = self.routine.settings.getDuration()
+        hardStop = rtMaxIsNum and rtMax == maxTime
+
+        return maxTime, hardStop
 
     def drawTimeGrid(self, dc, yPosTop, yPosBottom, labelAbove=True):
         """Draws the grid of lines and labels the time axes
@@ -1951,7 +1957,8 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         yPosTop = int(yPosTop)  # explicit type conversion to `int`
         yPosBottom = int(yPosBottom)
 
-        tMax = self.getMaxTime() * 1.1
+        tMax, hardStop = self.getMaxTime()
+        tMax *= 1.1
         xScale = self.getSecsPerPixel()
         xSt = self.timeXposStart
         xEnd = self.timeXposEnd
@@ -2013,6 +2020,27 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                         int(xEnd + 5),
                         yPosBottom - self.GetFullTextExtent('t')[1] // 2)
         dc.SetTextForeground(colors.app['text'])
+
+    def drawForceEndLine(self, dc, yPosTop, yPosBottom):
+        # get max time & check if we have a hard stop
+        tMax, hardStop = self.getMaxTime()
+        if hardStop:
+            # if hard stop, draw orange final line
+            dc.SetPen(
+                wx.Pen(colors.app['rt_comp_force'], width=4)
+            )
+            dc.SetTextForeground(
+                wx.Colour(colors.app['rt_comp_force'])
+            )
+            # vertical line:
+            dc.DrawLine(self.timeXposEnd,
+                        yPosTop - 4,
+                        self.timeXposEnd,
+                        yPosBottom + 4)
+            # label above:
+            dc.DrawText('%.2g' % tMax,
+                        int(self.timeXposEnd - 4),
+                        yPosTop - 30)
 
     def setFontSize(self, size, dc):
         font = self.GetFont()
@@ -2162,6 +2190,10 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             thisBrush = wx.Brush(thisColor, style=thisStyle)
             dc.SetPen(thisPen)
             dc.SetBrush(thisBrush)
+            # cap duration if routine has a max
+            maxDur, useMax = self.routine.settings.getDuration()
+            if useMax:
+                duration = min(maxDur, duration)
             # If there's a fixed end time and no start time, start 20px before 0
             if ('stopType' in component.params) and ('startType' in component.params) and (
                     component.params['stopType'].val in ('time (s)', 'duration (s)')
@@ -2337,7 +2369,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
 
     def getSecsPerPixel(self):
         pixels = float(self.timeXposEnd - self.timeXposStart)
-        return self.getMaxTime() / pixels
+        return self.getMaxTime()[0] / pixels
 
 
 class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel):

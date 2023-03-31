@@ -776,7 +776,12 @@ class Routine(list):
                 except Exception:
                     thisT = 0
                 maxTime = max(maxTime, thisT)
-        if maxTime == 0:  # if there are no components
+        # if max set by routine, override calculated max
+        rtDur, numericStop = self.settings.getDuration()
+        if numericStop and rtDur != FOREVER:
+            maxTime = rtDur
+        # if there are no components, default to 10s
+        if maxTime == 0:
             maxTime = 10
             nonSlipSafe = False
         return maxTime, nonSlipSafe
