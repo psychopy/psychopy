@@ -4,7 +4,8 @@ import sys
 import shutil
 from pathlib import Path
 
-from psychopy import experiment, logging
+from psychopy import experiment, logging, data
+import json
 from psychopy.localization import _translate
 
 
@@ -312,6 +313,29 @@ class Session:
         self.experiments[stem].saveData(thisExp)
 
         return True
+
+    def sendToLiaison(self, value):
+        """
+        Send data to this Session's `Liaison` object.
+
+        Parameters
+        ==========
+        value : str, dict, psychopy.data.ExperimentHandler
+            Data to send - this can either be a single string, a dict of strings, or an
+            ExperimentHandler (whose data will be sent)
+        """
+        if self.liaison is None:
+            logging.warn(_translate(
+                "Could not send data to liaison server as none is initialised for this Session."
+            ))
+            return
+        # If ExperimentHandler, get its data as a list of dicts
+        if isinstance(value, data.ExperimentHandler):
+            value = value.entries
+        # Convert to JSON
+        value = json.dumps(value)
+        # Send
+        self.liaison.broadcast(message=str(value))
 
     def close(self):
         sys.exit()
