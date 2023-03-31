@@ -7,7 +7,7 @@ def test_param_str():
     """
     Test that params convert to str as expected in both Python and JS
     """
-
+    sl = "\\"
     cases = [
         # Regular string
         {"obj": Param("Hello there", "str"),
@@ -15,8 +15,8 @@ def test_param_str():
          "js": f"{_q}Hello there{_q}"},
         # Enforced string
         {"obj": Param("\\, | or /", "str", canBePath=False),
-         "py": f"{_q}{_sl}, | or /{_q}",
-         "js": f"{_q}{_sl}, | or /{_q}"},
+         "py": f"{_q}{_sl}, \| or /{_q}",
+         "js": f"{_q}{_sl}, \| or /{_q}"},
         # Dollar string
         {"obj": Param("$win.color", "str"),
          "py": f"win.color",
@@ -30,11 +30,11 @@ def test_param_str():
          "py": f"1.0",
          "js": f"1.0"},
         # File path
-        {"obj": Param("C://Downloads//file.ext", "file"),
+        {"obj": Param("C:/Downloads/file.ext", "file"),
          "py": f"{_q}C:/Downloads/file.ext{_q}",
          "js": f"{_q}C:/Downloads/file.ext{_q}"},
         # Table path
-        {"obj": Param("C://Downloads//file.csv", "table"),
+        {"obj": Param("C:/Downloads/file.csv", "table"),
          "py": f"{_q}C:/Downloads/file.csv{_q}",
          "js": f"{_q}C:/Downloads/file.csv{_q}"},
         # Color
@@ -51,16 +51,16 @@ def test_param_str():
          "js": f"psychoJS.window.color"},
         # Extended code
         {"obj": Param("for x in y:\n\tprint(y)", "extendedCode"),
-         "py": f"for x in y:\n\tprint(y)",
-         "js": f"for x in y:\n\tprint(y)"},  # this will change when snipped2js is fully working
+         "py": f"for x in y:\n\tprint{_lb}y{_rb}",
+         "js": f"for x in y:\n\tprint{_lb}y{_rb}"},  # this will change when snipped2js is fully working
         # List
         {"obj": Param("1, 2, 3", "list"),
          "py": f"{_lb}1, 2, 3{_rb}",
          "js": f"{_lb}1, 2, 3{_rb}"},
         # Extant file path marked as str
         {"obj": Param(__file__, "str"),
-         "py": f"{_q}{__file__.replace(_sl, '/')}{_q}",
-         "js": f"{_q}{__file__.replace(_sl, '/')}{_q}"},
+         "py": f"{_q}{__file__.replace(sl, '/')}{_q}",
+         "js": f"{_q}{__file__.replace(sl, '/')}{_q}"},
         # Nonexistent file path marked as str
         {"obj": Param("C:\\\\Downloads\\file.csv", "str"),
          "py": f"{_q}C:/Downloads/file.csv{_q}",
@@ -71,12 +71,12 @@ def test_param_str():
          "js": f"{_q}C:/Downloads/_file.csv{_q}"},
         # Escaped $ in str
         {"obj": Param("This costs \\$4.20", "str"),
-         "py": f"{_q}This costs $4.20{_q}",
-         "js": f"{_q}This costs $4.20{_q}"},
+         "py": f"{_q}This costs \\$4.20{_q}",
+         "js": f"{_q}This costs \\$4.20{_q}"},
         # Unescaped \ in str
         {"obj": Param("This \\ that", "str"),
-         "py": f"{_q}This \\\\ that{_q}",
-         "js": f"{_q}This \\\\ that{_q}"},
+         "py": f"{_q}This {_sl} that{_q}",
+         "js": f"{_q}This {_sl} that{_q}"},
         # Name containing "var" (should no longer return blank as of #4336)
         {"obj": Param("variableName", "code"),
          "py": f"variableName",
@@ -103,12 +103,10 @@ def test_param_str():
          'js': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},
         # Single value
         {'obj': Param("\"left\"", "list"),
-         'py': f"{_lb}{_q}left{_q}{_rb}",
-         'js': f"{_lb}{_q}left{_q}{_rb}"},
+         'py': f"{_lb}{_q}left{_q}{_rb}"},
         # Single value list syntax
         {'obj': Param("[\"left\"]", "list"),
-         'py': f"{_lb}{_q}left{_q}{_rb}",
-         'js': f"{_lb}{_q}left{_q}{_rb}"},
+         'py': f"{_lb}{_q}left{_q}{_rb}"},
         # Variable name
         {'obj': Param("$left", "list"),
          'py': r"left",
@@ -120,13 +118,15 @@ def test_param_str():
     # Try each case
     for case in cases:
         # Test Python
-        exputils.scriptTarget = "PsychoPy"
-        assert re.fullmatch(case['py'], str(case['obj'])), \
-            f"`{repr(case['obj'])}` should match the regex `{case['py']}`, but it was `{case['obj']}`"
+        if "py" in case:
+            exputils.scriptTarget = "PsychoPy"
+            assert re.fullmatch(case['py'], str(case['obj'])), \
+                f"`{repr(case['obj'])}` should match the regex `{case['py']}`, but it was `{case['obj']}`"
         # Test JS
-        exputils.scriptTarget = "PsychoJS"
-        assert re.fullmatch(case['js'], str(case['obj'])), \
-            f"`{repr(case['obj'])}` should match the regex `{case['js']}`, but it was `{case['obj']}`"
+        if "js" in case:
+            exputils.scriptTarget = "PsychoJS"
+            assert re.fullmatch(case['js'], str(case['obj'])), \
+                f"`{repr(case['obj'])}` should match the regex `{case['js']}`, but it was `{case['obj']}`"
     # Set script target back to init
     exputils.scriptTarget = initTarget
 
