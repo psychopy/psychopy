@@ -153,7 +153,7 @@ class MouseComponent(BaseComponent):
         code = (
             "# check if the mouse was inside our 'clickable' objects\n"
             "gotValidClick = False\n"
-            "clickableList = core.getFromNames(%(clickable)s, namespace=locals())\n"
+            "clickableList = environmenttools.getFromNames(%(clickable)s, namespace=locals())\n"
             "for obj in clickableList:\n"
             "    # is this object clicked on?\n"
             "    if obj.contains(%(name)s):\n"
