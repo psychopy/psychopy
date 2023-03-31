@@ -2198,15 +2198,21 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             self.componentFromID[id] = component
         dc.SetId(id)
         # Get settings icon
-        sz = self.iconSize/2
+        sz = self.iconSize/3
         thisIcon = icons.ComponentIcon(component, size=sz).bitmap
         # Some parameters
         lbl = _translate("Routine settings")
         padding = 12
+        # Set font
+        font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+        dc.SetFont(font)
+        self.SetFont(font)
         # Calculate extent
         extent = wx.Rect(
             wx.Point(12, 12),
-            wx.Point(12 + self.GetTextExtent(lbl)[0] + sz + padding * 3, sz + padding * 2)
+            wx.Point(
+                12 + padding + sz + 6 + self.GetTextExtent(lbl)[0] + padding,
+                padding + sz + padding)
         )
         # Get content rect
         rect = wx.Rect(extent.TopLeft, extent.BottomRight)
