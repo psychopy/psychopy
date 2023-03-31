@@ -28,7 +28,7 @@ classifiers = [
     
 dependencies = [
     "scipy>=1.10.1",
-    "numpy>=1.24.2",
+    "numpy<1.24",
     "matplotlib>=3.7.1",
     "pyglet == 1.4.11; platform_system == \"Windows\"",
     "pyglet == 1.5.27; platform_system != \"Windows\"",
