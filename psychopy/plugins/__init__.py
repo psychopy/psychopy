@@ -9,6 +9,7 @@
 __all__ = [
     'loadPlugin',
     'listPlugins',
+    'installPlugin',
     'computeChecksum',
     'startUpPlugins',
     'pluginMetadata',
