@@ -71,8 +71,8 @@ def test_param_str():
          "js": f"{_q}C:/Downloads/_file.csv{_q}"},
         # Escaped $ in str
         {"obj": Param("This costs \\$4.20", "str"),
-         "py": f"{_q}This costs \\$4.20{_q}",
-         "js": f"{_q}This costs \\$4.20{_q}"},
+         "py": f"{_q}This costs {_d}4.20{_q}",
+         "js": f"{_q}This costs {_d}4.20{_q}"},
         # Unescaped \ in str
         {"obj": Param("This \\ that", "str"),
          "py": f"{_q}This {_sl} that{_q}",
@@ -139,40 +139,40 @@ def test_dollar_sign_syntax():
          'ans': f"hello {_d}there",
          'valid': False},
         # Valid dollar and scaped dollar
-        {'val': f"$hello \$there",
-         'ans': f"hello {_sl}{_sl}{_d}there",
+        {'val': "$hello \\$there",
+         'ans': r"hello \\\$there",
          'valid': False},
         # Just redundant dollar
-        {'val': f"hello $there",
+        {'val': "hello $there",
          'ans': f"hello {_d}there",
          'valid': False},
         # Just escaped dollar
-        {'val': f"\$hello there",
-         'ans': f"{_sl}{_sl}{_d}hello there",
+        {'val': "\\$hello there",
+         'ans': r"\\\$hello there",
          'valid': True},
         # Dollar in comment
-        {'val': f"#$hello there",
-         'ans': f"#{_d}hello there",
+        {'val': "#$hello there",
+         'ans': r"#\$hello there",
          'valid': False},
         # Comment after dollar
-        {'val': f"$#hello there",
-         'ans': f"#hello there",
+        {'val': "$#hello there",
+         'ans': r"#hello there",
          'valid': True},
         # Dollar and comment
-        {'val': f"$hello #there",
-         'ans': f"hello #there",
+        {'val': "$hello #there",
+         'ans': r"hello #there",
          'valid': True},
         # Valid dollar and redundtant dollar in comment
-        {'val': f"$hello #$there",
-         'ans': f"hello #{_d}there",
+        {'val': "$hello #$there",
+         'ans': r"hello #\$there",
          'valid': True},
         # Valid dollar and escaped dollar in escaped d quotes
-        {'val': f"$hello \"\$there\"",
-         'ans': f"hello {_q}{_sl}{_sl}{_d}there{_q}",
+        {'val': "$hello \"\\$there\"",
+         'ans': f"hello {_q}" + r"\\\$" + f"there{_q}",
          'valid': True},
         # Valid dollar and escaped dollar in escaped s quotes
-        {'val': f"$hello \'\$there\'",
-         'ans': f"hello {_q}{_sl}{_sl}{_d}there{_q}",
+        {'val': "$hello \'\\$there\'",
+         'ans': f"hello {_q}" + r"\\\$" + f"there{_q}",
          'valid': True},
     ]
     # Run dollar syntax on each case
