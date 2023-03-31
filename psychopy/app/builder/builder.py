@@ -1959,6 +1959,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         # dc.SetId(wx.NewIdRef())
         dc.SetPen(wx.Pen(colors.app['rt_timegrid']))
         dc.SetTextForeground(wx.Colour(colors.app['rt_timegrid']))
+        self.setFontSize(self.fontBaseSize // self.dpi, dc)
 
         # draw horizontal lines on top and bottom
         dc.DrawLine(
@@ -2204,9 +2205,8 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         lbl = _translate("Routine settings")
         padding = 12
         # Set font
-        font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
-        dc.SetFont(font)
-        self.SetFont(font)
+        fontSize = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT).GetPointSize()
+        self.setFontSize(fontSize, dc)
         # Calculate extent
         extent = wx.Rect(
             wx.Point(12, 12),
