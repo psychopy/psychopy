@@ -17,7 +17,7 @@ To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
 
-from psychopy.tests import _travisTesting, skip_under_vm
+from psychopy.tests import skip_under_vm
 from psychopy.tools import systemtools
 
 
@@ -796,7 +796,7 @@ class TestPygletHexColor(_baseVisualTest):
         self.contextName='normHexbackground'
         self.scaleFactor=1#applied to size/pos values
 
-if not _travisTesting:
+if not systemtools.isVM_CI():
     class TestPygletBlendAdd(_baseVisualTest):
         @classmethod
         def setup_class(self):
