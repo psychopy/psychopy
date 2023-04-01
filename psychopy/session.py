@@ -324,18 +324,19 @@ if __name__ == "__main__":
     parser.add_argument("--root", dest="root")
     parser.add_argument("--host", dest="host")
     args = parser.parse_args()
+    # Create session
+    session = Session(
+        root=args.root
+    )
     if ":" in str(args.host):
         host, port = str(args.host).split(":")
         # Import liaison
         from psychopy import liaison
         # Create liaison server
         liaisonServer = liaison.WebSocketServer()
+        liaisonServer._logger.info("Starting session")
+        # Add to liaison server
+        liaisonServer.registerMethods(session, "session")
         liaisonServer.start(host=host, port=port)
     else:
         liaisonServer = None
-    # Create session
-    session = Session(
-        root=args.root
-    )
-    # Add to liaison server
-    liaisonServer.registerMethods(session, "session")
