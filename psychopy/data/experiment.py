@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import os
 import sys
 import copy
 import pickle
@@ -342,7 +342,7 @@ class ExperimentHandler(_ComparisonMixin):
         if not matrixOnly:
             for heading in names:
                 f.write(u'%s%s' % (heading, delim))
-            f.write('\n')
+            f.write(os.linesep)
 
         # write the data for each entry
         for entry in self.getAllEntries():
@@ -356,7 +356,7 @@ class ExperimentHandler(_ComparisonMixin):
                     f.write(fmt % (entry[name], delim))
                 else:
                     f.write(delim)
-            f.write('\n')
+            f.write(os.linesep)
         if f != sys.stdout:
             f.close()
         logging.info('saved data to %r' % f.name)
