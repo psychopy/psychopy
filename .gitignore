@@ -9,6 +9,7 @@
 *.kdev4
 .project
 .pydevproject
+.pdm.toml
 /.ropeproject/config.py
 /.ropeproject/history
 /.ropeproject/objectdb
