@@ -1,5 +1,0 @@
-# these are only needed for for development/testing
-codecov
-pytest <4.1
-sphinx
-cython
