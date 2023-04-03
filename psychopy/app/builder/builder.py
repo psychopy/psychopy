@@ -843,7 +843,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 wx.OK | wx.ICON_WARNING | wx.CENTRE)
             dlg.ShowModal()
             return
-        self.updateReadme()
+        self.updateReadme(show=True)
         return
 
     def getShortFilename(self):
