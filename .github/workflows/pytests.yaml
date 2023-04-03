@@ -36,7 +36,7 @@ jobs:
     - name: Install PsychoPy and dependencies
       run: |
         # for pocketsphinx we need this adapted package:
-        brew install swig vlc
+        brew install swig vlc portaudio portmidi liblo
         # install optional components
         pip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator psychopy-visionscience
         # then use the standard requirements:
@@ -95,7 +95,7 @@ jobs:
       with:
         name: test artifacts
         path: |
-          psychopy/tests/data
+          psychopy/tests/fails
           !**/*.mp4
           !psychopy/tests/**/*.data
           !**/*.wav
@@ -169,10 +169,10 @@ jobs:
         sudo apt-get install -y -qq libgstreamer1.0-0 gstreamer1.0-plugins-base
         sudo apt-get install -y -qq libwebkit2gtk-4.0-dev
         sudo apt-get install -y -qq libpng-dev libjpeg-dev libtiff-dev libnotify-dev libsm-dev
-        sudo apt-get install -y -qq libsdl-dev libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0
+        sudo apt-get install -y -qq libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0
         sudo apt-get install -y -qq libportaudio2
         # virtual frame buffer
-        sudo apt install llvm-6.0-dev  # for xvfb
+        sudo apt install llvm-13-dev  # for xvfb
         sudo apt install xvfb xauth libgl1-mesa-dri
 
         # set up fake sound device?
@@ -227,7 +227,7 @@ jobs:
 
     - name: Test with pytest
       run: |
-         xvfb-run -a --server-args="-screen 0 1024x768x24" pytest -m "not needs_sound and not needs_wx and not needs_qt and not needs_pygame" --cov-config=.travis_coveragerc --cov=psychopy -v psychopy
+         xvfb-run -a --server-args="-screen 0 1024x768x24" pytest -m "not needs_sound and not needs_wx and not needs_qt and not needs_pygame and not emulator" --cov-config=.travis_coveragerc --cov=psychopy -v psychopy
 
     - name: upload failed app data
       if: always()
@@ -238,6 +238,17 @@ jobs:
           ~/.psychopy3
           !~/.psychopy3/versions
           !~/.psychopy3/fonts
+
+    - name: upload failed screenshots
+      if: always()
+      uses: actions/upload-artifact@v2
+      with:
+        name: test artifacts
+        path: |
+          psychopy/tests/fails
+          !**/*.mp4
+          !psychopy/tests/**/*.data
+          !**/*.wav
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
