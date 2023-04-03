@@ -241,6 +241,8 @@ class Flow(list):
 
         # unpack inputs
         code = (
+            "# mark experiment as started\n"
+            "thisExp.status = STARTED\n"
             "# make sure variables created by exec are available globally\n"
             "exec = environmenttools.setExecEnvironment(globals())\n"
             "# get device handles from dict of input devices\n"
@@ -287,8 +289,15 @@ class Flow(list):
             self._currentRoutine = entry
             entry.writeExperimentEndCode(script)
 
+        # Mark as finished
+        code = (
+            "\n"
+            "# mark experiment as finished\n"
+            "thisExp.status = FINISHED\n"
+        )
+        script.writeIndentedLines(code)
+
         # Exit function def
-        script.writeIndentedLines("\n")
         script.setIndentLevel(-1, relative=True)
         script.writeIndentedLines("\n")
 

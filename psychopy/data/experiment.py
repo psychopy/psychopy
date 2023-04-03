@@ -7,9 +7,11 @@ import pickle
 import atexit
 
 import psychopy.visual.window
+from psychopy import constants
 from psychopy import logging
 from psychopy.tools.filetools import (openOutputFile, genDelimiter,
                                       genFilenameFromDelimiter)
+from psychopy.localization import _translate
 from .utils import checkValidFilePath
 from .base import _ComparisonMixin
 
@@ -91,6 +93,7 @@ class ExperimentHandler(_ComparisonMixin):
         self.dataNames = []  # names of all the data (eg. resp.keys)
         self.autoLog = autoLog
         self.appendFiles = appendFiles
+        self.status = constants.NOT_STARTED
 
         if dataFileName in ['', None]:
             logging.warning('ExperimentHandler created with no dataFileName'
@@ -248,6 +251,45 @@ class ExperimentHandler(_ComparisonMixin):
             self.dataNames.append(name)
         #
         win.timeOnFlip(self.thisEntry, name)
+
+    def pause(self):
+        """
+        Set status to be PAUSED.
+        """
+        # warn if experiment is already paused
+        if self.status == constants.PAUSED:
+            logging.warn(_translate(
+                "Attempted to pause experiment '{}', but it is already paused. "
+                "Status will remain unchanged.".format(self.name)
+            ))
+        # set own status
+        self.status = constants.PAUSED
+
+    def resume(self):
+        """
+        Set status to be STARTED.
+        """
+        # warn if experiment is already running
+        if self.status == constants.STARTED:
+            logging.warn(_translate(
+                "Attempted to resume experiment '{}', but it is not paused. "
+                "Status will remain unchanged.".format(self.name)
+            ))
+        # set own status
+        self.status = constants.STARTED
+
+    def stop(self):
+        """
+        Set status to be FINISHED.
+        """
+        # warn if experiment is already paused
+        if self.status == constants.FINISHED:
+            logging.warn(_translate(
+                "Attempted to stop experiment '{}', but it is already stopping. "
+                "Status will remain unchanged.".format(self.name)
+            ))
+        # set own status
+        self.status = constants.STOPPED
 
     def nextEntry(self):
         """Calling nextEntry indicates to the ExperimentHandler that the
