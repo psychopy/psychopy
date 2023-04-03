@@ -2269,10 +2269,13 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         rect = wx.Rect(extent.TopLeft, extent.BottomRight)
         rect.Deflate(padding)
         # Draw rect
-        dc.SetPen(wx.Pen(colors.app['frame_bg']))
+        dc.SetPen(wx.Pen(colors.app['panel_bg']))
         dc.SetBrush(wx.Brush(colors.app['tab_bg']))
         dc.DrawRoundedRectangle(extent, 6)
         # Draw button
+        dc.SetTextForeground(
+            wx.Colour(colors.app['text'])
+        )
         dc.DrawLabel(
             lbl,
             image=thisIcon,
