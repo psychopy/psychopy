@@ -2185,6 +2185,9 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         startTime, duration, nonSlipSafe = component.getStartAndDuration()
         # draw entries on timeline (if they have some time definition)
         if duration is not None:
+            yOffset = (3.5, 3.5, 0.5)[self.drawSize]
+            h = self.componentStep // (4, 3.25, 2.5)[self.drawSize]
+            xScale = self.getSecsPerPixel()
             # then we can draw a sensible time bar!
             thisPen = wx.Pen(thisColor, style=wx.TRANSPARENT)
             thisBrush = wx.Brush(thisColor, style=thisStyle)
@@ -2192,7 +2195,9 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             dc.SetBrush(thisBrush)
             # cap duration if routine has a max
             maxDur, useMax = self.routine.settings.getDuration()
+            overspill = 0
             if useMax:
+                overspill = max(duration - maxDur, 0)
                 duration = min(maxDur, duration)
             # If there's a fixed end time and no start time, start 20px before 0
             if ('stopType' in component.params) and ('startType' in component.params) and (
@@ -2206,9 +2211,6 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                 # dc.SetBrush(thisBrush)
 
             if startTime is not None:
-                xScale = self.getSecsPerPixel()
-                yOffset = (3.5, 3.5, 0.5)[self.drawSize]
-                h = self.componentStep // (4, 3.25, 2.5)[self.drawSize]
                 xSt = self.timeXposStart + startTime // xScale
                 w = duration // xScale + 1
                 if w > 10000:
@@ -2218,6 +2220,23 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                 dc.DrawRectangle(xSt, int(y + yOffset), w, h)
                 # update bounds to include time bar
                 fullRect.Union(wx.Rect(xSt, int(y + yOffset), w, h))
+
+            # draw greyed out bar for any overspill (if routine has a max dur)
+            if useMax and overspill > 0:
+                # use disabled color
+                dc.SetBrush(
+                    wx.Brush(colors.app['rt_comp_disabled'], style=thisStyle)
+                )
+                dc.SetPen(
+                    wx.Pen(colors.app['rt_comp_disabled'], style=wx.TRANSPARENT)
+                )
+                # draw rest of bar
+                w = overspill // xScale + 1
+                if w > 10000:
+                    w = 10000  # limit width to 10000 pixels!
+                if w < 2:
+                    w = 2  # make sure at least one pixel shows
+                dc.DrawRectangle(self.timeXposEnd, int(y + yOffset), w, h)
         dc.SetIdBounds(id, fullRect)
 
     def drawSettingsBtn(self, dc, component):
