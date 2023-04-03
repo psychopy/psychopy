@@ -447,6 +447,9 @@ class Session:
 
         return True
 
+    def close(self):
+        sys.exit()
+
 
 if __name__ == "__main__":
     # Parse args

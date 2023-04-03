@@ -17,7 +17,9 @@ from pathlib import Path
 
 from psychopy import prefs
 from psychopy.tools.filetools import pathToString, defaultStim
-from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin, ColorMixin
+from psychopy.visual.basevisual import (
+    BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin
+)
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 
 from .players import getMoviePlayer
@@ -44,7 +46,7 @@ PREFERRED_VIDEO_LIB = 'ffpyplayer'
 #
 
 
-class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
+class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     """Class for presenting movie clips as stimuli.
 
     Parameters
@@ -64,6 +66,8 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
     size : ArrayLike or None
         Size of the video frame on the window in `units`. If `None`, the native
         size of the video will be used.
+    draggable : bool
+        Can this stimulus be dragged by a mouse click?
     flipVert : bool
         If `True` then the movie will be top-bottom flipped.
     flipHoriz : bool
@@ -87,6 +91,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  pos=(0.0, 0.0),
                  ori=0.0,
                  anchor="center",
+                 draggable=False,
                  flipVert=False,
                  flipHoriz=False,
                  color=(1.0, 1.0, 1.0),  # remove?
@@ -116,6 +121,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
             win, units=units, name=name, autoLog=False)
 
         # drawing stuff
+        self.draggable = draggable
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
         self.pos = pos

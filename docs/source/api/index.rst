@@ -11,6 +11,7 @@ Contents:
 
     core
     clock
+    session
     visual/index
     sound/index
     hardware/index
