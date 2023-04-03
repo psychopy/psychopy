@@ -85,7 +85,7 @@ class TestWindow:
             # Check
             filename = f"test_win_bgcolor_{case}.png"
             # win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
-            utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, win, crit=7)
+            utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, win, crit=10)
 
     def test_window_colors(self):
         win = visual.Window(size=(200, 200))

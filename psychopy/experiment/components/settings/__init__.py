@@ -753,6 +753,7 @@ class SettingsComponent:
             )
         buff.write(
             "from psychopy import %s\n" % ', '.join(psychopyImports) +
+            "from psychopy.tools import environmenttools\n"
             "from psychopy.constants import (NOT_STARTED, STARTED, PLAYING,"
             " PAUSED,\n"
             "                                STOPPED, FINISHED, PRESSED, "
@@ -806,13 +807,27 @@ class SettingsComponent:
             "# --- Setup global variables (available in all functions) ---\n"
             "# Ensure that relative paths start from the same directory as this script\n"
             "_thisDir = os.path.dirname(os.path.abspath(__file__))\n"
-            "os.chdir(_thisDir)\n"
             "# Store info about the experiment session\n"
             "psychopyVersion = '%(version)s'\n"
             "expName = %(expName)s  # from the Builder filename that created this script\n"
-            "\n"
         )
         buff.writeIndentedLines(code % params)
+        # Construct exp info dict
+        code = (
+            "expInfo = {\n"
+        )
+        for key, value in self.getInfo().items():
+            code += (
+            f"    '{key}': {value},\n"
+            )
+        code += (
+            "    'date': data.getDateStr(),  # add a simple timestamp\n"
+            "    'expName': expName,\n"
+            "    'psychopyVersion': psychopyVersion,\n"
+            "}\n"
+            "\n"
+        )
+        buff.writeIndented(code)
 
     def prepareResourcesJS(self):
         """Sets up the resources folder and writes the info.php file for PsychoJS
@@ -1093,13 +1108,17 @@ class SettingsComponent:
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("\n")
 
-    def writeExpInfoCode(self, buff):
+    def writeExpInfoDlgCode(self, buff):
         # Enter function def
         code = (
             '\n'
-            'def setupExpInfo():\n'
+            'def showExpInfoDlg(expInfo):\n'
             '    """\n'
-            '    Construct the expInfo dict, and show participant info dialog (if requested).\n'
+            '    Show participant info dialog.\n'
+            '    Parameters\n'
+            '    ==========\n'
+            '    expInfo : dict\n'
+            '        Information about this experiment, created by the `setupExpInfo` function.\n'
             '    \n'
             '    Returns\n'
             '    ==========\n'
@@ -1110,46 +1129,26 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
 
-        # Construct exp info string
-        expInfoDict = self.getInfo()
-        code = (
-            "expInfo = {"
-        )
-        if len(expInfoDict):
-            # Only make the dict multiline if it actually has contents
-            code += "\n"
-        buff.writeIndented(code)
-        buff.setIndentLevel(1, relative=True)
-        for key, value in self.getInfo().items():
-            code = (
-                f"'{key}': {value},\n"
-            )
-            buff.writeIndented(code)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-            "}\n"
-        )
-        buff.writeIndented(code)
-
         sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
-        if self.params['Show info dlg'].val:
-            buff.writeIndentedLines(
-                f"# --- Show participant info dialog --\n"
-                f"dlg = gui.DlgFromDict(dictionary=expInfo, "
-                f"sortKeys={sorting}, title=expName)\n"
-                f"if dlg.OK == False:\n"
-                f"    core.quit()  # user pressed cancel\n"
-            )
-        buff.writeIndentedLines(
-            "expInfo['date'] = data.getDateStr()  # add a simple timestamp\n"
-            "expInfo['expName'] = expName\n"
-            "expInfo['psychopyVersion'] = psychopyVersion\n")
-
         code = (
-            "# return expInfo\n"
-            "return expInfo\n"
+            f"# temporarily remove keys which the dialog doesn't need to show\n"
+            f"poppedKeys = {{\n"
+            f"    'date': expInfo.pop('date', data.getDateStr()),\n"
+            f"    'expName': expInfo.pop('expName', expName),\n"
+            f"    'psychopyVersion': expInfo.pop('psychopyVersion', psychopyVersion),\n"
+            f"}}\n"
+            f"# show participant info dialog\n"
+            f"dlg = gui.DlgFromDict(dictionary=expInfo, "
+            f"sortKeys={sorting}, title=expName)\n"
+            f"if dlg.OK == False:\n"
+            f"    core.quit()  # user pressed cancel\n"
+            f"# restore hidden keys\n"
+            f"expInfo.update(poppedKeys)\n"
+            f"# return expInfo\n"
+            f"return expInfo\n"
         )
         buff.writeIndentedLines(code)
+
         # Exit function def
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("\n")
@@ -1662,6 +1661,77 @@ class SettingsComponent:
                                  units=units)
         buff.writeIndentedLines(code)
 
+    def writePauseCode(self, buff):
+        # Open function def
+        code = (
+            'def pauseExperiment(thisExp, inputs=None, win=None, timers=[], playbackComponents=[]):\n'
+            '    """\n'
+            '    Pause this experiment, preventing the flow from advancing to the next routine until resumed.\n'
+            '    \n'
+            '    Parameters\n'
+            '    ==========\n'
+            '    thisExp : psychopy.data.ExperimentHandler\n'
+            '        Handler object for this experiment, contains the data to save and information about \n'
+            '        where to save it to.\n'
+            '    inputs : dict\n'
+            '        Dictionary of input devices by name.\n'
+            '    win : psychopy.visual.Window\n'
+            '        Window for this experiment.\n'
+            '    timers : list, tuple\n'
+            '        List of timers to reset once pausing is finished.\n'
+            '    playbackComponents : list, tuple\n'
+            '        List of any components with a `pause` method which need to be paused.\n'
+            '    """'
+        )
+        buff.writeIndentedLines(code)
+        buff.setIndentLevel(+1, relative=True)
+
+        # handle pausing
+        code = (
+            "# if we are not paused, do nothing\n"
+            "if thisExp.status != PAUSED:\n"
+            "    return\n"
+            "\n"
+            "# pause any playback components\n"
+            "for comp in playbackComponents:\n"
+            "    comp.pause()\n"
+            "# prevent components from auto-drawing\n"
+            "win.stashAutoDraw()\n"
+            "# run a while loop while we wait to unpause\n"
+            "while thisExp.status == PAUSED:\n"
+        )
+        if self.params['Enable Escape'].val:
+            code += (
+            "    # make sure we have a keyboard\n"
+            "    if inputs is None:\n"
+            "        inputs = {\n"
+            "            'defaultKeyboard': keyboard.Keyboard(backend=%(keyboardBackend)s)\n"
+            "        }\n"
+            "    # check for quit (typically the Esc key)\n"
+            "    if inputs['defaultKeyboard'].getKeys(keyList=['escape']):\n"
+            "        thisExp.status = FINISHED\n"
+            )
+        code += (
+            "    # flip the screen\n"
+            "    win.flip()\n"
+            "# if stop was requested while paused, quit\n"
+            "if thisExp.status == FINISHED:\n"
+            "    endExperiment(thisExp, inputs=inputs, win=win)\n"
+            "# resume any playback components\n"
+            "for comp in playbackComponents:\n"
+            "    comp.play()\n"
+            "# restore auto-drawn components\n"
+            "win.retrieveAutoDraw()\n"
+            "# reset any timers\n"
+            "for timer in timers:\n"
+            "    timer.reset()\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        # Exit function def
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines("\n")
+
     def writeEndCode(self, buff):
         """Write code for end of experiment (e.g. close log file).
         """
@@ -1679,7 +1749,7 @@ class SettingsComponent:
             '        where to save it to.\n'
             '    inputs : dict\n'
             '        Dictionary of input devices by name.\n'
-            '    psychopy.visual.Window\n'
+            '    win : psychopy.visual.Window\n'
             '        Window to close.\n'
             '    """\n'
         )

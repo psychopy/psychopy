@@ -14,6 +14,7 @@ from pathlib import Path
 from psychopy import prefs, logging, exceptions
 from psychopy.constants import (STARTED, PAUSED, FINISHED, STOPPING,
                                 NOT_STARTED)
+from psychopy.tools import systemtools
 from psychopy.tools import filetools as ft
 from .exceptions import SoundFormatError, DependencyError
 from ._base import _SoundBase, HammingWindow
@@ -58,8 +59,6 @@ else:
 defaultInput = None
 defaultOutput = audioDevice
 
-
-travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 logging.info("Loaded psychtoolbox audio version {}"
              .format(audio.get_version_info()['version']))
 
@@ -91,7 +90,7 @@ def getDevices(kind=None):
     else:
         deviceTypes = None
     devs = {}
-    if travisCI:  # travis-CI testing does not have a sound device
+    if systemtools.isVM_CI():  # GitHub actions VM does not have a sound device
         return devs
     else:
         allDevs = audio.get_devices(device_type=deviceTypes)
@@ -223,7 +222,7 @@ class _MasterStream(audio.Stream):
         self.takeTimeStamp = False
         self.frameN = 1
         # self.frameTimes = range(5)  # DEBUGGING: store the last 5 callbacks
-        if not travisCI:  # travis-CI testing does not have a sound device
+        if not systemtools.isVM_CI():  # Github Actions VM does not have a sound device
             try:
                 audio.Stream.__init__(self, device_id=deviceID, mode=mode+8,
                                     latency_class=audioLatencyClass,
