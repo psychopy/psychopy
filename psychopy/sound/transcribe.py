@@ -75,9 +75,9 @@ TRANSCR_LANG_DEFAULT = 'en-US'
 # Values for specifying recognizer engines. This dictionary is used by Builder
 # to populate the component property dropdown.
 recognizerEngineValues = {
-    0: ('sphinx', "CMU Pocket Sphinx", "Offline, Built-in"),
+    0: ('sphinx', "CMU Pocket Sphinx", "Offline"),
     1: ('google', "Google Cloud Speech API", "Online, Key Required"),
-    2: ('whisper', "OpenAI Whisper", "Offline")
+    2: ('whisper', "OpenAI Whisper", "Offline, Built-in")
 }
 
 
@@ -130,6 +130,15 @@ class TranscriptionResult:
         self.engine = engine
         self.language = language
 
+        # initialize other fields
+        self._wordData = []  
+        self._text = ""  
+        self._confidence = 0.0  
+        self._response = None
+        self._expectedWords = None
+        self._requestFailed = True
+        self._unknownValue = True
+
     def __repr__(self):
         return (f"TranscriptionResult(words={self._words}, "
                 f"unknownValue={self._unknownValue}, ",
@@ -172,7 +181,7 @@ class TranscriptionResult:
 
     @property
     def wordData(self):
-        """Additional data about each word (`list` of `dict`). 
+        """Additional data about each word (`Any`). 
 
         Not all engines provide this data in the same format or at all.
         """
