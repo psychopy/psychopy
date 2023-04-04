@@ -13,7 +13,7 @@ translation _translate():
 # Distributed under the terms of the GNU General Public License (GPL).
 
 try:
-    from ._localization import _translate, setLocaleWX, locname
+    from ._localization import _translate, _localized, setLocaleWX, locname
 except ModuleNotFoundError:
     # if wx doesn't exist we can't translate but most other parts
     # of the _localization lib will not be relevant
