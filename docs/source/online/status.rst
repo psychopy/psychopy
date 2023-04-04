@@ -25,7 +25,8 @@ The table below shows you the current state of play of PsychoJS. Per feature we 
     :ref:`Polygons <polygonComponent>`, :darkgreen:`Built-in`, If using circles online use a "regular" polygon with 100 vertices - rather than using the dropdown "circle" option
     :ref:`Text <textComponent>`, :darkgreen:`Built-in`, We recommend using "Text" rather than "TextBox" for static text online - since TextBox is still in beta
     :ref:`Textbox <textboxComponent>`, :darkgreen:`Built-in`, For versions preceding 2022.1 textbox needed a code component with `textbox.refresh()` in the "Begin Routine" to be used on several trials
-    , :darkred:`Not supported`, Apertures\, Envelope Gratings\, Gratings\, Noise
+    :ref:`Grating <grating>`, :darkgreen:`Built-in`, 
+    , :darkred:`Not supported`, Apertures\, Envelope Gratings\, Noise
   **Responses**,,
     :ref:`Form <formComponent>`, :darkgreen:`Built-in`,
     Gyroscope, :darkorange:`Prototype`, Measures the orientation of tablets and smartphones. `Try it out <https://pavlovia.org/tpronk/demo_gyroscope>`_
