@@ -280,6 +280,8 @@ class Experiment:
             self_copy.settings.writeWindowCode(script)  # create our visual.Window()
             # setup inputs
             self_copy.settings.writeIohubCode(script)
+            # pause experiment
+            self_copy.settings.writePauseCode(script)
             # write the bulk of the experiment code
             self_copy.flow.writeBody(script)
             # save data

@@ -195,6 +195,19 @@ class TrialHandler(_BaseLoopHandler):
         # fetch parameter info from conditions
         buff.setIndentLevel(1, relative=True)
         buff.writeIndented("currentLoop = %s\n" % self.params['name'])
+        # handle pausing
+        code = (
+            "# pause experiment here if requested\n"
+            "if thisExp.status == PAUSED:\n"
+            "    pauseExperiment(\n"
+            "        thisExp=thisExp, \n"
+            "        inputs=inputs, \n"
+            "        win=win, \n"
+            "        timers=[routineTimer], \n"
+            "        playbackComponents=[]\n"
+            ")\n"
+        )
+        buff.writeIndentedLines(code)
         # unclutter the namespace
         if not self.exp.prefsBuilder['unclutteredNamespace']:
             code = ("# abbreviate parameter names if possible (e.g. rgb = %(name)s.rgb)\n"

@@ -4,14 +4,15 @@ import sys
 import shutil
 from pathlib import Path
 
-from psychopy import experiment, logging
+from psychopy import experiment, logging, constants, data
+import json
 from psychopy.localization import _translate
 
 
 class Session:
     """
     Parameters
-    ==========
+    ----------
     root : str or pathlib.Path
         Root folder for this session - should contain all of the experiments to be run.
 
@@ -88,28 +89,31 @@ class Session:
         self.runs = []
         # Store ref to liaison object
         self.liaison = liaison
+        # Start off with no current experiment
+        self.currentExperiment = None
 
     def addExperiment(self, file, key=None, folder=None):
         """
-        Load an experiment as a module so its methods are accessible to this session.
+        Register an experiment with this Session object, to be referred to
+        later by a given key.
 
         Parameters
         ----------
-        file : Path, str
-            Path to either the .py file or .psyexp file for this experiment. If using a .psyexp,
-            the experiment will be compiled to a .py file before adding. Path can be either absolute
-            or relative to this session's root.
+        file : str, Path
+            Path to the experiment (psyexp) file or script (py) of a Python
+            experiment.
         key : str
-            Key to refer to this experiment by when calling e.g. `runExperiment`. Leave as None to use the
-            file path relative to this Session's root as a kay.
-        folder : folder
-            Folder containing full experiment resources, if necessary. Leave as None to use the parent
+            Key to refer to this experiment by once added. Leave as None to use
+            file path relative to session root.
+        folder : str, Path
+            Folder for this project, if adding from outside of the root folder
+            this entire folder will be moved. Leave as None to use the parent
             folder of `file`.
 
         Returns
         -------
-        bool
-            True if executed successfully.
+        bool or None
+            True if the operation completed successfully
         """
         # Path-ise file
         file = Path(file)
@@ -176,9 +180,14 @@ class Session:
         the keys needed for this experiment, alongside their default values.
 
         Parameters
-        ==========
+        ----------
         stem : str
             Stem of the experiment file - in other words, the name of the experiment.
+
+        Returns
+        -------
+        bool or None
+            True if the operation completed successfully
         """
         return self.experiments[stem].expInfo
 
@@ -187,11 +196,16 @@ class Session:
         Update expInfo for this Session via the 'showExpInfoDlg` method from one of this Session's experiments.
 
         Parameters
-        ==========
+        ----------
         stem : str
             Stem of the experiment file - in other words, the name of the experiment.
         expInfo : dict
             Information about the experiment, created by the `setupExpInfo` function.
+
+        Returns
+        -------
+        bool or None
+            True if the operation completed successfully
         """
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(stem)
@@ -205,11 +219,16 @@ class Session:
         Setup the window for this Session via the 'setupWindow` method from one of this Session's experiments.
 
         Parameters
-        ==========
+        ----------
         stem : str
             Stem of the experiment file - in other words, the name of the experiment.
         expInfo : dict
             Information about the experiment, created by the `setupExpInfo` function.
+
+        Returns
+        -------
+        bool or None
+            True if the operation completed successfully
         """
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(stem)
@@ -223,10 +242,15 @@ class Session:
         Create/setup a window from a dict of parameters
 
         Parameters
-        ==========
+        ----------
         params : dict
             Dict of parameters to create the window from, keys should be from the
             __init__ signature of psychopy.visual.Window
+
+        Returns
+        -------
+        bool or None
+            True if the operation completed successfully
         """
         if self.win is None:
             # If win is None, make a Window
@@ -247,11 +271,16 @@ class Session:
         Setup inputs for this Session via the 'setupInputs` method from one of this Session's experiments.
 
         Parameters
-        ==========
+        ----------
         stem : str
             Stem of the experiment file - in other words, the name of the experiment.
         expInfo : dict
             Information about the experiment, created by the `setupExpInfo` function.
+
+        Returns
+        -------
+        bool or None
+            True if the operation completed successfully
         """
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(stem)
@@ -265,13 +294,18 @@ class Session:
         Add a keyboard to this session's inputs dict from a dict of params.
 
         Parameters
-        ==========
+        ----------
         name : str
             Name of this input, what to store it under in the inputs dict.
 
         params : dict
             Dict of parameters to create the keyboard from, keys should be from the
             __init__ signature of psychopy.hardware.keyboard.Keyboard
+
+        Returns
+        -------
+        bool or None
+            True if the operation completed successfully
         """
         # Create keyboard
         from psychopy.hardware.keyboard import Keyboard
@@ -284,16 +318,23 @@ class Session:
         Run the `setupData` and `run` methods from one of this Session's experiments.
 
         Parameters
-        ==========
+        ----------
         stem : str
             Stem of the experiment file - in other words, the name of the experiment.
         expInfo : dict
             Information about the experiment, created by the `setupExpInfo` function.
+
+        Returns
+        -------
+        bool or None
+            True if the operation completed successfully
         """
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(stem)
         # Setup data for this experiment
         thisExp = self.experiments[stem].setupData(expInfo=expInfo)
+        # Mark ExperimentHandler as current
+        self.currentExperiment = thisExp
         # Setup window for this experiment
         self.setupWindowFromExperiment(stem=stem)
         self.win.flip()
@@ -316,23 +357,119 @@ class Session:
         os.chdir(str(self.root))
         # Store ExperimentHandler
         self.runs.append(thisExp)
+        # Mark ExperimentHandler as no longer current
+        self.currentExperiment = None
 
         return True
 
-    def saveDataToExperiment(self, stem, thisExp):
+    def pauseExperiment(self):
+        """
+        Pause the currently running experiment.
+
+        Returns
+        -------
+        bool or None
+            True if the operation completed successfully
+        """
+        # warn and return failed if no experiment is running
+        if self.currentExperiment is None:
+            logging.warn(
+                _translate("Could not pause experiment as there is none "
+                           "running.")
+            )
+            return False
+
+        # set ExperimentHandler status to PAUSED
+        self.currentExperiment.pause()
+
+        return True
+
+    def resumeExperiment(self):
+        """
+        Resume the currently paused experiment.
+
+        Returns
+        -------
+        bool or None
+            True if the operation completed successfully
+        """
+        # warn and return failed if no experiment is running
+        if self.currentExperiment is None:
+            logging.warn(
+                _translate("Could not resume experiment as there is none "
+                           "running or paused.")
+            )
+            return False
+        # set ExperimentHandler status to STARTED
+        self.currentExperiment.resume()
+
+        return True
+
+    def stopExperiment(self):
+        """
+        Stop the currently running experiment.
+
+        Returns
+        -------
+        bool or None
+            True if the operation completed successfully
+        """
+        # warn and return failed if no experiment is running
+        if self.currentExperiment is None:
+            logging.warn(
+                _translate("Could not pause experiment as there is none "
+                           "running.")
+            )
+            return False
+        self.currentExperiment.stop()
+
+        return True
+
+    # def recycleTrial(self, thisExp, trial):
+    #     pass
+
+    def saveExperimentData(self, stem, thisExp):
         """
         Run the `saveData` method from one of this Session's experiments, on a given ExperimentHandler.
 
         Parameters
-        ==========
+        ----------
         stem : str
             Stem of the experiment file - in other words, the name of the experiment.
         thisExp : psychopy.data.ExperimentHandler
             ExperimentHandler object to save the data from.
+
+        Returns
+        -------
+        bool or None
+            True if the operation completed successfully
         """
         self.experiments[stem].saveData(thisExp)
 
         return True
+
+    def sendToLiaison(self, value):
+        """
+        Send data to this Session's `Liaison` object.
+
+        Parameters
+        ==========
+        value : str, dict, psychopy.data.ExperimentHandler
+            Data to send - this can either be a single string, a dict of strings, or an
+            ExperimentHandler (whose data will be sent)
+        """
+        if self.liaison is None:
+            logging.warn(_translate(
+                "Could not send data to liaison server as none is initialised for this Session."
+            ))
+            return
+        # If ExperimentHandler, get its data as a list of dicts
+        if isinstance(value, data.ExperimentHandler):
+            value = value.entries
+        # Convert to JSON
+        value = json.dumps(value)
+        # Send
+        self.liaison.broadcast(message=value)
 
     def close(self):
         sys.exit()
