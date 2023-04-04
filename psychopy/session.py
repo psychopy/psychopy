@@ -469,7 +469,7 @@ class Session:
         # Convert to JSON
         value = json.dumps(value)
         # Send
-        self.liaison.broadcast(message=str(value))
+        self.liaison.broadcast(message=value)
 
     def close(self):
         sys.exit()
