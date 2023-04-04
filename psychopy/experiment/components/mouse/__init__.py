@@ -225,7 +225,8 @@ class MouseComponent(BaseComponent):
         code = (
             "// check if the mouse was inside our 'clickable' objects\n"
             "gotValidClick = false;\n"
-            "for (const obj of [{clickable}]) {{\n"
+            "clickableList = util.getFromNames(%(clickable)s)\n"
+            "for (const obj of clickableList) {{\n"
             "  if (obj.contains({name})) {{\n"
             "    gotValidClick = true;\n")
         buff.writeIndentedLines(code.format(name=self.params['name'],
