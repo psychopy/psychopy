@@ -90,6 +90,27 @@ class Session:
         self.liaison = liaison
 
     def addExperiment(self, file, key=None, folder=None):
+        """
+        Load an experiment as a module so its methods are accessible to this session.
+
+        Parameters
+        ----------
+        file : Path, str
+            Path to either the .py file or .psyexp file for this experiment. If using a .psyexp,
+            the experiment will be compiled to a .py file before adding. Path can be either absolute
+            or relative to this session's root.
+        key : str
+            Key to refer to this experiment by when calling e.g. `runExperiment`. Leave as None to use the
+            file path relative to this Session's root as a kay.
+        folder : folder
+            Folder containing full experiment resources, if necessary. Leave as None to use the parent
+            folder of `file`.
+
+        Returns
+        -------
+        bool
+            True if executed successfully.
+        """
         # Path-ise file
         file = Path(file)
         if not file.is_absolute():
