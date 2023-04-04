@@ -113,7 +113,8 @@ class TranscriptionResult:
     """
     __slots__ = [
         '_words',
-        '_text',
+        '_wordData',  # additional word data
+        '_text',  # unused for now, will be used in future
         '_confidence',  # unused on Python for now
         '_response',
         '_engine',
@@ -169,8 +170,17 @@ class TranscriptionResult:
     def response(self, val):
         self._response = val
 
-    def getWordData(self):
-        pass
+    @property
+    def wordData(self):
+        """Additional data about each word (`list` of `dict`). 
+
+        Not all engines provide this data in the same format or at all.
+        """
+        return self._wordData
+    
+    @wordData.setter
+    def wordData(self, val):
+        self._wordData = val
         
     @property
     def success(self):
