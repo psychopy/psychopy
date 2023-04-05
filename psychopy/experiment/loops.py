@@ -186,7 +186,7 @@ class TrialHandler(_BaseLoopHandler):
             code = ("# abbreviate parameter names if possible (e.g. rgb = %(name)s.rgb)\n"
                     "if %(name)s != None:\n"
                     "    for paramName in %(name)s:\n"
-                    "        exec('{} = %(name)s[paramName]'.format(paramName))\n")
+                    "        globals()[paramName] = %(name)s[paramName]\n")
             buff.writeIndentedLines(code % {'name': self.thisName})
 
         # then run the trials loop
@@ -195,12 +195,25 @@ class TrialHandler(_BaseLoopHandler):
         # fetch parameter info from conditions
         buff.setIndentLevel(1, relative=True)
         buff.writeIndented("currentLoop = %s\n" % self.params['name'])
+        # handle pausing
+        code = (
+            "# pause experiment here if requested\n"
+            "if thisExp.status == PAUSED:\n"
+            "    pauseExperiment(\n"
+            "        thisExp=thisExp, \n"
+            "        inputs=inputs, \n"
+            "        win=win, \n"
+            "        timers=[routineTimer], \n"
+            "        playbackComponents=[]\n"
+            ")\n"
+        )
+        buff.writeIndentedLines(code)
         # unclutter the namespace
         if not self.exp.prefsBuilder['unclutteredNamespace']:
             code = ("# abbreviate parameter names if possible (e.g. rgb = %(name)s.rgb)\n"
                     "if %(name)s != None:\n"
                     "    for paramName in %(name)s:\n"
-                    "        exec('{} = %(name)s[paramName]'.format(paramName))\n")
+                    "        globals()[paramName] = %(name)s[paramName]\n")
             buff.writeIndentedLines(code % {'name': self.thisName})
 
     def writeLoopStartCodeJS(self, buff, modular):
@@ -627,7 +640,7 @@ class MultiStairHandler(_BaseLoopHandler):
             code = ("# abbreviate parameter names if possible (e.g. "
                     "rgb=condition.rgb)\n"
                     "for paramName in condition:\n"
-                    "    exec(paramName + '= condition[paramName]')\n")
+                    "    globals()[paramName] = condition[paramName]\n")
             buff.writeIndentedLines(code)
 
     def writeLoopStartCodeJS(self, buff, modular):

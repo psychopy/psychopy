@@ -406,10 +406,51 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
         # Reset initial params
         for param, value in initParams.items():
             setattr(self.textbox, param, value)
+
+    def test_speechpoint(self):
+        self.obj.size = (0.5, 0.5)
+        self.obj.fillColor = "red"
+
+        # Create list of points to test
+        cases = [
+            (-3/8, 0),
+            (3/8, 0),
+            (0, -3/8),
+            (0, 3/8)
+        ]
+
+        for x, y in cases:
+            # Prepare window
+            self.win.flip()
+            # Set from case
+            self.obj.speechPoint = (x, y)
+            # Draw
+            self.obj.draw()
+            # Compare screenshots
+            filename = f"{self.__class__.__name__}_testSpeechpoint_{int(x*8)}ovr8_{int(y*8)}ovr8.png"
+            # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+            utils.compareScreenshot(filename, self.win, crit=8)
+
+        self.obj.speechPoint = None
             
     def test_alerts(self):
         noFontTextbox = TextBox2(self.win, "", font="Raleway Dots", bold=True)
         assert (self.error.alerts[0].code == 4325)
+
+    def test_letter_spacing(self):
+        cases = (0.6, 0.8, 1, None, 1.2, 1.4, 1.6, 1.8, 2.0)
+
+        for case in cases:
+            self.win.flip()
+            # Set letter spacing
+            self.obj.letterSpacing = case
+            # Draw
+            self.obj.draw()
+            # Compare
+            nameSafe = str(case).replace(".", "p")
+            filename = Path(utils.TESTS_DATA_PATH) / f"TestTextbox_testLetterSpacing_{nameSafe}.png"
+            self.win.getMovieFrame(buffer='back').save(filename)
+            utils.compareScreenshot(filename, self.win, crit=20)
 
 
 def test_font_manager():

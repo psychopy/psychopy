@@ -30,7 +30,39 @@ _q = r"[\"']"  # quotes
 _lb = r"[\[\(]"  # left bracket
 _rb = r"[\]\)]"  # right bracket
 _d = r"\$"  # dollar (escaped for re)
-_sl = "\\"  # back slash
+_sl = r"\\\\"  # back slash
+
+
+def getFailFilenames(fileName, tag=""):
+    """
+    Create variant of given filename for a failed test
+
+    Parameters
+    ==========
+    fileName : str or Path
+        Path to original file
+    tag : str
+        Optional tag to append to the file stem
+
+    Returns
+    ==========
+    str
+        Path to the local copy
+    str
+        Path to the copy of the exemplar in the fails folder
+    """
+    # Path-ise filename
+    fileName = Path(fileName)
+    # Create new stem
+    if tag:
+        tag = "_" + tag
+    stem = fileName.stem + tag
+    # Construct new filename for local copy
+    localFileName = pjoin(TESTS_FAILS_PATH, stem + "_local" + fileName.suffix)
+    # Construct new filename for exemplar copy
+    exemplarFileName = pjoin(TESTS_FAILS_PATH, fileName.stem + fileName.suffix)
+
+    return localFileName, exemplarFileName
 
 
 def getFailFilenames(fileName, tag=""):

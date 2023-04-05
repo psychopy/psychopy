@@ -1,21 +1,25 @@
 # Part of the PsychoPy library.
-# Copyright (C) 2015 Jonathan Peirce 
+# Copyright (C) 2015 Jonathan Peirce
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy v1.81.00\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
 "Last-Translator: Jeremy R. Gray <jrgray@gmail.com>\n"
 "Language-Team: psychopy-dev@google-groups.com\n"
+"Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.6.7\n"
-"X-Poedit-Basepath: ../../../../../\n"
-"X-Poedit-SearchPath-0: psychopy/\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.2.2\n"
+"X-Poedit-Basepath: ../../../../..\n"
 "X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: _translate\n"
+"X-Poedit-SearchPath-0: psychopy\n"
 
 #: __init__.py:48
 msgid "Welcome to PsychoPy2!"
 msgstr "Üdvözöljük a PsychoPy2!"
-
