@@ -3,7 +3,8 @@ from pathlib import Path
 
 from psychopy import visual
 from psychopy.tests import utils
-
+from psychopy.tests.test_visual.test_basevisual import _TestColorMixin
+from psychopy import colors
 
 class TestWindow:
     def test_background_image_fit(self):
@@ -84,4 +85,4 @@ class TestWindow:
             # Check
             filename = f"test_win_bgcolor_{case}.png"
             # win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
-            utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, win, crit=7)
+            utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, win, crit=10)

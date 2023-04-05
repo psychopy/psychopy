@@ -13,7 +13,7 @@ class TestCircle(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
     def setup_class(self):
 
         self.win = visual.Window([128,128], pos=[50,50], allowGUI=False, autoLog=False)
-        self.obj = visual.Circle(self.win, units="pix", pos=(0, 0), size=(128, 128), lineWidth=10)
+        self.obj = visual.Circle(self.win, units="pix", pos=(0, 0), size=(128, 128), lineWidth=3)
 
         # Pixel which is the border color
         self.borderPoint = (64, 0)

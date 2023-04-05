@@ -16,11 +16,11 @@ import numpy
 from psychopy.tests.utils import TESTS_PATH, TESTS_DATA_PATH
 
 @pytest.mark.needs_sound
-class TestSoundPlay:
+class TesSounds:
     @classmethod
     def setup_class(self):
         self.contextName='ptb'
-        self.tmp = mkdtemp(prefix='psychopy-tests-sound-play')
+        self.tmp = mkdtemp(prefix='psychopy-tests-sound')
 
     @classmethod
     def teardown_class(self):

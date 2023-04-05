@@ -651,6 +651,7 @@ class TrialHandler(_BaseTrialHandler):
         # repetitions:
 
         repsPerType = {}
+        entriesList = []
         for rep in range(self.nReps):
             for trialN in range(len(self.trialList)):
                 # find out what trial type was on this trial
@@ -691,7 +692,9 @@ class TrialHandler(_BaseTrialHandler):
 
                 # store this trial's data
                 dataOut.append(nextEntry)
-                df = df.append(nextEntry, ignore_index=True)
+                # df = df.append(nextEntry, ignore_index=True)
+                entriesList.append(nextEntry)
+        df = pd.concat([df, pd.DataFrame(entriesList)])
 
         if not matrixOnly:
             # write the header row:
