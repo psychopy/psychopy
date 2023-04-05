@@ -350,7 +350,7 @@ class Session:
             thisExp=thisExp,
             win=self.win,
             inputs=self.inputs,
-            session=self
+            thisSession=self
         )
         # Reinstate autodraw stimuli
         self.win.retrieveAutoDraw()

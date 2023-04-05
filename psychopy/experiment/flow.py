@@ -219,7 +219,7 @@ class Flow(list):
         # Open function def
         code = (
             '\n'
-            'def run(expInfo, thisExp, win, inputs, session=None):\n'
+            'def run(expInfo, thisExp, win, inputs, thisSession=None):\n'
             '    """\n'
             '    Run the experiment flow.\n'
             '    \n'
@@ -234,6 +234,8 @@ class Flow(list):
             '        Window in which to run this experiment.\n'
             '    inputs : dict\n'
             '        Dictionary of input devices by name.\n'
+            '    thisSession : psychopy.session.Session or None\n'
+            '        Handle of the Session object this experiment is being run from, if any.'
             '    """\n'
         )
         script.writeIndentedLines(code)
