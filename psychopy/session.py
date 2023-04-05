@@ -4,7 +4,8 @@ import sys
 import shutil
 from pathlib import Path
 
-from psychopy import experiment, logging, constants
+from psychopy import experiment, logging, constants, data
+import json
 from psychopy.localization import _translate
 
 
@@ -93,20 +94,20 @@ class Session:
 
     def addExperiment(self, file, key=None, folder=None):
         """
-        Register an experiment with this Session object, to be referred to 
+        Register an experiment with this Session object, to be referred to
         later by a given key.
-        
+
         Parameters
         ----------
         file : str, Path
-            Path to the experiment (psyexp) file or script (py) of a Python 
+            Path to the experiment (psyexp) file or script (py) of a Python
             experiment.
         key : str
-            Key to refer to this experiment by once added. Leave as None to use 
+            Key to refer to this experiment by once added. Leave as None to use
             file path relative to session root.
         folder : str, Path
-            Folder for this project, if adding from outside of the root folder 
-            this entire folder will be moved. Leave as None to use the parent 
+            Folder for this project, if adding from outside of the root folder
+            this entire folder will be moved. Leave as None to use the parent
             folder of `file`.
 
         Returns
@@ -182,7 +183,7 @@ class Session:
         ----------
         stem : str
             Stem of the experiment file - in other words, the name of the experiment.
-            
+
         Returns
         -------
         bool or None
@@ -200,7 +201,7 @@ class Session:
             Stem of the experiment file - in other words, the name of the experiment.
         expInfo : dict
             Information about the experiment, created by the `setupExpInfo` function.
-            
+
         Returns
         -------
         bool or None
@@ -223,7 +224,7 @@ class Session:
             Stem of the experiment file - in other words, the name of the experiment.
         expInfo : dict
             Information about the experiment, created by the `setupExpInfo` function.
-            
+
         Returns
         -------
         bool or None
@@ -245,7 +246,7 @@ class Session:
         params : dict
             Dict of parameters to create the window from, keys should be from the
             __init__ signature of psychopy.visual.Window
-            
+
         Returns
         -------
         bool or None
@@ -275,7 +276,7 @@ class Session:
             Stem of the experiment file - in other words, the name of the experiment.
         expInfo : dict
             Information about the experiment, created by the `setupExpInfo` function.
-            
+
         Returns
         -------
         bool or None
@@ -300,7 +301,7 @@ class Session:
         params : dict
             Dict of parameters to create the keyboard from, keys should be from the
             __init__ signature of psychopy.hardware.keyboard.Keyboard
-            
+
         Returns
         -------
         bool or None
@@ -322,7 +323,7 @@ class Session:
             Stem of the experiment file - in other words, the name of the experiment.
         expInfo : dict
             Information about the experiment, created by the `setupExpInfo` function.
-            
+
         Returns
         -------
         bool or None
@@ -360,7 +361,7 @@ class Session:
         self.currentExperiment = None
 
         return True
-    
+
     def pauseExperiment(self):
         """
         Pause the currently running experiment.
@@ -437,7 +438,7 @@ class Session:
             Stem of the experiment file - in other words, the name of the experiment.
         thisExp : psychopy.data.ExperimentHandler
             ExperimentHandler object to save the data from.
-            
+
         Returns
         -------
         bool or None
@@ -446,6 +447,29 @@ class Session:
         self.experiments[stem].saveData(thisExp)
 
         return True
+
+    def sendToLiaison(self, value):
+        """
+        Send data to this Session's `Liaison` object.
+
+        Parameters
+        ==========
+        value : str, dict, psychopy.data.ExperimentHandler
+            Data to send - this can either be a single string, a dict of strings, or an
+            ExperimentHandler (whose data will be sent)
+        """
+        if self.liaison is None:
+            logging.warn(_translate(
+                "Could not send data to liaison server as none is initialised for this Session."
+            ))
+            return
+        # If ExperimentHandler, get its data as a list of dicts
+        if isinstance(value, data.ExperimentHandler):
+            value = value.entries
+        # Convert to JSON
+        value = json.dumps(value)
+        # Send
+        self.liaison.broadcast(message=value)
 
     def close(self):
         sys.exit()
