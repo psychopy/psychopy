@@ -272,6 +272,8 @@ class Flow(list):
         for entry in self:
             # NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine = entry
+            if hasattr(entry, 'writeRunOnceInitCode'):
+                entry.writeRunOnceInitCode(script)
             entry.writeInitCode(script)
         # create clocks (after initialising stimuli)
         code = ("\n# Create some handy timers\n"
