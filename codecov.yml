@@ -1,3 +1,14 @@
+
+coverage:
+  status:
+    project:
+      default:
+        branches: 
+          - master
+        if_ci_failed: error #success, failure, error, ignore
+        informational: true
+        only_pulls: false
+
 ignore:
   - "psychopy/demos/coder"  # ignore folders and all its contents
   - "psychopy/tests"
