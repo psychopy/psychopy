@@ -29,10 +29,9 @@ except (ImportError, ModuleNotFoundError):
 _localized = __localized.copy()
 _localized.update({'stereo': _translate('Stereo'),
                    'channel': _translate('Channel')})
-from psychopy.tests import _vmTesting
 
 # Get list of devices
-if _hasPTB and not _vmTesting:
+if _hasPTB and not syst.isVM_CI():
     devices = syst.getAudioCaptureDevices()
     deviceIndices = [d['index'] for d in devices.values()]
     deviceNames = [d['name'] for d in devices.values()]
