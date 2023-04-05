@@ -334,6 +334,7 @@ class Session:
             expInfo = self.getExpInfoFromExperiment(key)
         # Setup data for this experiment
         thisExp = self.experiments[key].setupData(expInfo=expInfo)
+        thisExp.name = key
         # Mark ExperimentHandler as current
         self.currentExperiment = thisExp
         # Setup window for this experiment
@@ -429,22 +430,36 @@ class Session:
     # def recycleTrial(self, thisExp, trial):
     #     pass
 
-    def saveExperimentData(self, key, thisExp):
+    def saveExperimentData(self, key, thisExp=None):
         """
-        Run the `saveData` method from one of this Session's experiments, on a given ExperimentHandler.
+        Run the `saveData` method from one of this Session's experiments, on a
+        given ExperimentHandler.
 
         Parameters
         ----------
         key : str
             Key by which the experiment is stored (see `.addExperiment`).
         thisExp : psychopy.data.ExperimentHandler
-            ExperimentHandler object to save the data from.
+            ExperimentHandler object to save the data from. If None, save the
+            last run of the given experiment.
 
         Returns
         -------
         bool or None
             True if the operation completed successfully
         """
+        # get last run
+        if thisExp is None:
+            # copy list of runs in reverse
+            runs = self.runs.copy()
+            runs.reverse()
+            # iterate through runs, starting at the end
+            for run in runs:
+                # use the first run to match given exp
+                if run.name == key:
+                    thisExp = run
+                    break
+
         self.experiments[key].saveData(thisExp)
 
         return True
