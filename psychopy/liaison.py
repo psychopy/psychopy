@@ -249,6 +249,8 @@ class WebSocketServer:
 
 			# send the error back to the client:
 			response = {
+				"lineno": str(error.__traceback__.tb_lineno),
+				"traceback": str(traceback.format_tb(error.__traceback__)),
 				"error": str(error)
 			}
 
