@@ -21,8 +21,17 @@ class RoutineSettingsComponent(BaseComponent):
     tooltip = _translate('Settings for this Routine.')
 
     def __init__(
-            self, exp, parentName, name='',
+            self, exp, parentName,
+            # Basic
+            name='',
             skipIf="",
+            # Window
+            useWindowParams=False,
+            color="$[0,0,0]",
+            colorSpace="rgb",
+            backgroundImg="",
+            backgroundFit="none",
+            # Testing
             disabled=False
     ):
         self.type = 'RoutineSettings'
@@ -56,12 +65,64 @@ class RoutineSettingsComponent(BaseComponent):
 
         # Flow params
         self.params['skipIf'] = Param(
-            skipIf, valType='code', inputType="single", allowedTypes=[], categ='Basic',
+            skipIf, valType='code', inputType="single", categ='Basic',
             updates='constant',
             hint=_translate(
                 "Skip this Routine if the value in this contorl evaluates to True. Leave blank to not skip."
             ),
             label=_translate("Skip if..."))
+
+        # --- Window params ---
+        self.order += [
+            "useWindowParams",
+            "color",
+            "colorSpace",
+            "backgroundImg",
+            "backgroundFit"
+        ]
+
+        self.params['useWindowParams'] = Param(
+            useWindowParams, valType="bool", inputType="bool", categ="Window",
+            label=_translate("Different window settings?"),
+            hint=_translate(
+                "Should the appearance of the window change while this routine "
+                "is running?"
+            ))
+        self.params['color'] = Param(
+            color, valType='color', inputType="color", categ="Window",
+            label=_translate("Background color"),
+            hint=_translate(
+                "Color of the screen this routine (e.g. black, $[1.0,1.0,1.0],"
+                " $variable. Right-click to bring up a "
+                "color-picker.)"
+            ))
+        self.params['colorSpace'] = Param(
+            colorSpace, valType='str', inputType="choice", categ="Window",
+            hint=_translate("Needed if color is defined numerically (see "
+                            "PsychoPy documentation on color spaces)"),
+            allowedVals=['rgb', 'dkl', 'lms', 'hsv', 'hex'],
+            label=_translate("colorSpace"))
+        self.params['backgroundImg'] = Param(
+            backgroundImg, valType="str", inputType="file", categ="Window",
+            hint=_translate("Image file to use as a background (leave blank for no image)"),
+            label=_translate("Background image")
+        )
+        self.params['backgroundFit'] = Param(
+            backgroundFit, valType="str", inputType="choice", categ="Window",
+            allowedVals=("none", "cover", "contain", "fill", "scale-down"),
+            hint=_translate("How should the background image scale to fit the window size?"),
+            label=_translate("Background fit")
+        )
+        # useWindowParams should toggle all window params
+        for thisParam in (
+                "color", "colorSpace", "backgroundImg", "backgroundFit"):
+            self.depends += [{
+                "dependsOn": "useWindowParams",  # if...
+                "condition": "",  # is...
+                "param": thisParam,  # then...
+                "true": "show",  # should...
+                "false": "hide",  # otherwise...
+            }]
 
     def writeRoutineStartCode(self, buff):
         # Sanitize
@@ -71,6 +132,15 @@ class RoutineSettingsComponent(BaseComponent):
             code = (
                 "# skip this Routine if its 'Skip if' condition is True\n"
                 "continueRoutine = continueRoutine and not (%(skipIf)s)\n"
+            )
+            buff.writeIndentedLines(code % params)
+        # Change window appearance for this routine (if requested)
+        if params['useWindowParams']:
+            code = (
+                "win.color = %(color)s\n"
+                "win.colorSpace = %(colorSpace)s\n"
+                "win.backgroundImage = %(backgroundImg)s\n"
+                "win.backgroundFit = %(backgroundFit)s\n"
             )
             buff.writeIndentedLines(code % params)
 
@@ -121,7 +191,13 @@ class RoutineSettingsComponent(BaseComponent):
             buff.writeIndentedLines(code % self.params)
 
     def writeRoutineEndCode(self, buff):
-        pass
+        params = self.params.copy()
+        # Restore window appearance after this routine (if changed)
+        if params['useWindowParams']:
+            code = (
+                "setupWindow(win)\n"
+            )
+            buff.writeIndentedLines(code % params)
 
     def writeExperimentEndCode(self, buff):
         pass
