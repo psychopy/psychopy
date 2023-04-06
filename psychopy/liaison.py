@@ -17,6 +17,9 @@ import logging
 import asyncio
 import signal
 import json
+import sys
+import traceback
+
 from psychopy.localization import _translate
 
 try:
@@ -121,7 +124,8 @@ class WebSocketServer:
 		# set the loop future on SIGTERM or SIGINT for clean interruptions:
 		loop = asyncio.get_running_loop()
 		loopFuture = loop.create_future()
-		loop.add_signal_handler(signal.SIGINT, loopFuture.set_result, None)
+		if sys.platform in ("linux", "linux2"):
+			loop.add_signal_handler(signal.SIGINT, loopFuture.set_result, None)
 
 		async with websockets.serve(self._connectionHandler, host, port):
 			self._logger.info(f"Liaison Server started on: {host}:{port}")
