@@ -6,7 +6,6 @@ from copy import deepcopy
 from pathlib import Path
 from xml.etree.ElementTree import Element
 import re
-import wx.__version__
 from psychopy import logging, plugins
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
@@ -21,6 +20,12 @@ import shutil
 import hashlib
 from pkg_resources import parse_version
 import ast  # for doing literal eval to convert '["a","b"]' to a list
+
+try:
+    import wx.__version__
+    wx_version = wx.__version__
+except ModuleNotFoundError:
+    wx_version = "4.2"  # this won't matter if not in an app anyway!
 
 
 def readTextFile(relPath):
@@ -196,9 +201,9 @@ class SettingsComponent:
         self.params['Use version'] = Param(
             useVersion, valType='str', inputType="choice",
             # search for options locally only by default, otherwise sluggish
-            allowedVals=versions._versionFilter(versions.versionOptions(), wx.__version__)
+            allowedVals=versions._versionFilter(versions.versionOptions(), wx_version)
                         + ['']
-                        + versions._versionFilter(versions.availableVersions(), wx.__version__),
+                        + versions._versionFilter(versions.availableVersions(), wx_version),
             hint=_translate("The version of PsychoPy to use when running "
                             "the experiment."),
             label=_localized["Use version"], categ='Basic')
@@ -1518,7 +1523,7 @@ class SettingsComponent:
         requestedScreenNumber = int(self.params['Screen'].val)
         nScreens = 10
         # try:
-        #     nScreens = wx.Display.GetCount()
+        #     nScreens = wx.Display.GetCount()  # NO, don't rely on wx being present
         # except Exception:
         #     # will fail if application hasn't been created (e.g. in test
         #     # environments)
