@@ -3300,7 +3300,8 @@ class Window():
         screen = self.screen
         name = self.name
 
-        self.showMessage("Measuring FPS...")  # show a message to the user
+        self.showMessage(
+            "Attempting to measure frame rate of screen, please wait ...")
 
         # log that we're measuring the frame rate now
         if self.autoLog:
@@ -3340,7 +3341,7 @@ class Window():
 
                 return rate
 
-        self.showMessage(None)  # show a message to the user
+        self.showMessage(None)  # remove the message
 
         # if we get here we reached end of `maxFrames` with no consistent value
         msg = ("Couldn't measure a consistent frame rate!\n"
