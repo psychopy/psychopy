@@ -1117,6 +1117,10 @@ class Window():
             win.flip(clearBuffer=False)
 
         """
+        # draw message/splash if needed
+        if self._showSplash:
+            self._splashTextbox.draw()
+
         if self._toDraw:
             for thisStim in self._toDraw:
                 # Draw
@@ -1139,10 +1143,6 @@ class Window():
             GL.glOrtho(-1, 1, -1, 1, -1, 1)
             GL.glMatrixMode(GL.GL_MODELVIEW)
             GL.glLoadIdentity()
-
-        # draw splash if needed
-        if self._showSplash:
-            self._splashTextbox.draw()
 
         # disable lighting
         self.useLights = False
