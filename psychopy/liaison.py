@@ -226,16 +226,32 @@ class WebSocketServer:
 					method = getattr(self._methods[queryObject][0], queryMethod)
 					methodIsCoroutine = inspect.iscoroutinefunction(method)
 
+					# extract and unpack args
+					rawArgs = decodedMessage['args'] if 'args' in decodedMessage else []
+					args = []
+					for arg in rawArgs:
+						# try to parse json string
+						try:
+							args.append(json.loads(arg))
+						except json.decoder.JSONDecodeError:
+							args.append(arg)
+
 					# run the method, with arguments if need be:
-					args = decodedMessage['args'] if 'args' in decodedMessage else []
+
 					if methodIsCoroutine:
-						result = await method(*args)
+						rawResult = await method(*args)
 					else:
-						result = method(*args)
+						rawResult = method(*args)
+
+					# convert result to a string
+					try:
+						result = json.dumps(rawResult)
+					except TypeError:
+						result = str(result)
 
 					# send a response back to the client:
 					response = {
-						"result": str(result)
+						"result": result
 					}
 
 					# if there is a messageId in the message, add it to the response:
