@@ -17,6 +17,9 @@ import logging
 import asyncio
 import signal
 import json
+import sys
+import traceback
+
 from psychopy.localization import _translate
 
 try:
@@ -121,7 +124,8 @@ class WebSocketServer:
 		# set the loop future on SIGTERM or SIGINT for clean interruptions:
 		loop = asyncio.get_running_loop()
 		loopFuture = loop.create_future()
-		loop.add_signal_handler(signal.SIGINT, loopFuture.set_result, None)
+		if sys.platform in ("linux", "linux2"):
+			loop.add_signal_handler(signal.SIGINT, loopFuture.set_result, None)
 
 		async with websockets.serve(self._connectionHandler, host, port):
 			self._logger.info(f"Liaison Server started on: {host}:{port}")
@@ -222,16 +226,32 @@ class WebSocketServer:
 					method = getattr(self._methods[queryObject][0], queryMethod)
 					methodIsCoroutine = inspect.iscoroutinefunction(method)
 
+					# extract and unpack args
+					rawArgs = decodedMessage['args'] if 'args' in decodedMessage else []
+					args = []
+					for arg in rawArgs:
+						# try to parse json string
+						try:
+							args.append(json.loads(arg))
+						except json.decoder.JSONDecodeError:
+							args.append(arg)
+
 					# run the method, with arguments if need be:
-					args = decodedMessage['args'] if 'args' in decodedMessage else []
+
 					if methodIsCoroutine:
-						result = await method(*args)
+						rawResult = await method(*args)
 					else:
-						result = method(*args)
+						rawResult = method(*args)
+
+					# convert result to a string
+					try:
+						result = json.dumps(rawResult)
+					except TypeError:
+						result = str(result)
 
 					# send a response back to the client:
 					response = {
-						"result": str(result)
+						"result": result
 					}
 
 					# if there is a messageId in the message, add it to the response:
@@ -245,6 +265,8 @@ class WebSocketServer:
 
 			# send the error back to the client:
 			response = {
+				"lineno": str(error.__traceback__.tb_lineno),
+				"traceback": str(traceback.format_tb(error.__traceback__)),
 				"error": str(error)
 			}
 
