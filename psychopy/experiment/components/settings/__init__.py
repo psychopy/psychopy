@@ -1477,7 +1477,7 @@ class SettingsComponent:
             '    ==========\n'
             '    expInfo : dict\n'
             '        Information about this experiment, created by the `setupExpInfo` function.\n'
-            '    psychopy.visual.Window\n'
+            '    win : psychopy.visual.Window\n'
             '        Window to setup - leave as None to create a new window.\n'
             '    \n'
             '    Returns\n'
@@ -1537,39 +1537,27 @@ class SettingsComponent:
         # Do we need to make a new window?
         code = (
             "if win is None:\n"
-            "    # if not given a window to setup, make one"
-        )
-        buff.writeIndentedLines(code)
-        buff.setIndentLevel(+1, relative=True)
-        code = (
-            "win = visual.Window(\n"
-            "    size=%(size)s, fullscr=%(fullScr)s, screen=%(screenNumber)s,\n"
-            "    winType=%(winType)s, allowStencil=%(allowStencil)s,\n"
-            "    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n"
-            "    backgroundImage=%(backgroundImg)s, backgroundFit=%(backgroundFit)s,\n"
-            "    blendMode=%(blendMode)s, useFBO=%(useFBO)s,\n"
-            "    units=%(Units)s\n"
-            ")\n"
-        )
-        buff.writeIndentedLines(code % params)
-        buff.setIndentLevel(-1, relative=True)
-
-        # If we have a window already, set its attributes
-        code = (
+            "    # if not given a window to setup, make one\n"
+            "    win = visual.Window(\n"
+            "        size=%(size)s, fullscr=%(fullScr)s, screen=%(screenNumber)s,\n"
+            "        winType=%(winType)s, allowStencil=%(allowStencil)s,\n"
+            "        monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n"
+            "        backgroundImage=%(backgroundImg)s, backgroundFit=%(backgroundFit)s,\n"
+            "        blendMode=%(blendMode)s, useFBO=%(useFBO)s,\n"
+            "        units=%(Units)s\n"
+            "    )\n"
+            "    if expInfo is not None:\n"
+            "        # store frame rate of monitor if we can measure it\n"
+            "        expInfo['frameRate'] = win.getActualFrameRate()\n"
             "else:\n"
             "    # if we have a window, just set the attributes which are safe to set\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(+1, relative=True)
-        code = (
-            "win.color = %(color)s\n"
-            "win.colorSpace = %(colorSpace)s\n"
-            "win.backgroundImage = %(backgroundImg)s\n"
-            "win.backgroundFit = %(backgroundFit)s\n"
-            "win.units = %(Units)s\n"
+            "    win.color = %(color)s\n"
+            "    win.colorSpace = %(colorSpace)s\n"
+            "    win.backgroundImage = %(backgroundImg)s\n"
+            "    win.backgroundFit = %(backgroundFit)s\n"
+            "    win.units = %(Units)s\n"
         )
         buff.writeIndentedLines(code % params)
-        buff.setIndentLevel(-1, relative=True)
 
         # Show/hide mouse according to param
         code = (
@@ -1585,16 +1573,6 @@ class SettingsComponent:
         if microphoneImport in self.exp.requiredImports:  # need a pyo Server
             buff.writeIndentedLines("\n# Enable sound input/output:\n"
                                     "microphone.switchOn()\n")
-
-        code = ("if expInfo is not None:\n"
-                "    # store frame rate of monitor if we can measure it\n"
-                "    expInfo['frameRate'] = win.getActualFrameRate()\n"
-                "    if expInfo['frameRate'] != None:\n"
-                "        frameDur = 1.0 / round(expInfo['frameRate'])\n"
-                "    else:\n"
-                "        frameDur = 1.0 / 60.0  # could not measure, so guess\n")
-        buff.writeIndentedLines(code)
-
         # Exit function def
         code = (
             "return win\n"

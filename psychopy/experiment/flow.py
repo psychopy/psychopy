@@ -265,6 +265,15 @@ class Flow(list):
             "endExpNow = False  # flag for 'escape' or other condition => quit the exp\n"
             )
         script.writeIndentedLines(code)
+        # get frame dur from frame rate
+        code = (
+            "# get frame duration from frame rate in expInfo\n"
+            "if expInfo['frameRate'] != None:\n"
+            "    frameDur = 1.0 / round(expInfo['frameRate'])\n"
+            "else:\n"
+            "    frameDur = 1.0 / 60.0  # could not measure, so guess\n"
+        )
+        script.writeIndentedLines(code)
 
         # writes any components with a writeStartCode()
         self.writeStartCode(script)
