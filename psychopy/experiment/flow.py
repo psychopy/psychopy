@@ -268,7 +268,7 @@ class Flow(list):
         # get frame dur from frame rate
         code = (
             "# get frame duration from frame rate in expInfo\n"
-            "if expInfo['frameRate'] != None:\n"
+            "if 'frameRate' in expInfo and expInfo['frameRate'] is not None:\n"
             "    frameDur = 1.0 / round(expInfo['frameRate'])\n"
             "else:\n"
             "    frameDur = 1.0 / 60.0  # could not measure, so guess\n"
