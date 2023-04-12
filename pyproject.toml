@@ -82,7 +82,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]  # This is optional dependencies
-tobii = ["tobii-research"]
 egi = ["egi-pynetstation"]
 legacy = ["moviepy", "pygame"]
 tests = [
