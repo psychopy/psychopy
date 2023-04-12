@@ -15,7 +15,7 @@ The code that writes out a *_lastrun.py experiment file is (in order):
         which will call the .writeBody() methods from each component
     settings.SettingsComponent.writeEndCode()
 """
-
+import collections
 import os
 import codecs
 import xml.etree.ElementTree as xml
@@ -110,7 +110,7 @@ class Experiment:
         self.name = ''
         self.filename = ''  # update during load/save xml
         self.flow = Flow(exp=self)  # every exp has exactly one flow
-        self.routines = {}
+        self.routines = collections.OrderedDict()
         # get prefs (from app if poss or from cfg files)
         if prefs is None:
             prefs = psychopy.prefs
