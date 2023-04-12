@@ -345,6 +345,8 @@ class Session:
         self.win.stashAutoDraw()
         # Setup logging
         self.experiments[key].run.__globals__['logFile'] = self.logFile
+        # Setup inputs
+        self.setupWindowFromExperiment(key, expInfo=expInfo)
         # Run this experiment
         self.experiments[key].run(
             expInfo=expInfo,
