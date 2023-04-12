@@ -25,6 +25,8 @@ class RoutineSettingsComponent(BaseComponent):
             # Basic
             name='',
             skipIf="",
+            # Description
+            desc="",
             # Window
             useWindowParams=False,
             color="$[0,0,0]",
@@ -54,23 +56,41 @@ class RoutineSettingsComponent(BaseComponent):
         # Modify disabled label
         self.params['disabled'].label = _translate("Disable Routine")
         # Modify stop type param
+        self.params['stopType'].categ = "Flow"
         self.params['stopType'].allowedVals = ['duration (s)', 'frame N', 'condition']
+        self.params['stopType'].hint = _translate(
+            "When should this Routine end, if not already ended by a Component?"
+        )
+        # Mofidy stop val param
+        self.params['stopVal'].categ = "Flow"
         self.params['stopVal'].label = _translate("Timeout")
         self.params['stopVal'].hint = _translate(
             "When should this Routine end, if not already ended by a Component? Leave blank for endless."
         )
-        self.params['stopType'].hint = _translate(
-            "When should this Routine end, if not already ended by a Component?"
-        )
+        # Modify stop estim param
+        self.params['durationEstim'].categ = "Flow"
 
-        # Flow params
+        # --- Flow params ---
         self.params['skipIf'] = Param(
-            skipIf, valType='code', inputType="single", categ='Basic',
+            skipIf, valType='code', inputType="single", categ='Flow',
             updates='constant',
             hint=_translate(
                 "Skip this Routine if the value in this contorl evaluates to True. Leave blank to not skip."
             ),
             label=_translate("Skip if..."))
+
+        # --- Documentation params ---
+        self.params['desc'] = Param(
+            desc, valType="str", inputType="multi", categ="Basic",
+            updates="constant",
+            hint=_translate(
+                "Some descriptive text to give information about this Routine. "
+                "This won't affect how it runs, it's purely for your own "
+                "reference!"
+            ),
+            label=_translate("Description"),
+            direct=False
+        )
 
         # --- Window params ---
         self.order += [
