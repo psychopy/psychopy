@@ -2231,11 +2231,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tobii-research"
-version = "1.11.0"
-summary = "The Tobii Pro SDK is a tool for letting you interact easily with your eye tracker and write your own          research applications for collecting and analyzing eye tracking data.         Full support for usb and network eye trackers from Tobii."
-
-[[package]]
 name = "tomli"
 version = "2.0.1"
 requires_python = ">=3.7"
