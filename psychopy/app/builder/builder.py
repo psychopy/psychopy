@@ -710,6 +710,20 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 return 0
             filename = dlg.GetPath()
 
+        # warn about non-ascii characters in file path
+        if not str(filename).isascii():
+            msg = _translate(
+                "Non-ASCII characters in file path:\n"
+                "{}\n"
+                "This may cause errors when attempting to run the experiment."
+            ).format(filename)
+            dlg = wx.MessageDialog(
+                self, msg,
+                caption=_translate("Non-ASCII Warning"),
+                style=wx.ICON_WARNING
+            )
+            dlg.ShowModal()
+
         # did user try to open a script in Builder?
         if filename.endswith('.py'):
             self.app.showCoder()  # ensures that a coder window exists
