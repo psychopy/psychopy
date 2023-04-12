@@ -346,7 +346,7 @@ class Session:
         # Setup logging
         self.experiments[key].run.__globals__['logFile'] = self.logFile
         # Setup inputs
-        self.setupWindowFromExperiment(key, expInfo=expInfo)
+        self.setupInputsFromExperiment(key, expInfo=expInfo)
         # Run this experiment
         self.experiments[key].run(
             expInfo=expInfo,
