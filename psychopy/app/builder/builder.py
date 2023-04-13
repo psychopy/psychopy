@@ -2062,12 +2062,13 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         x = xSt + w // 2
         staticLabelTop = (0, 50, 60)[self.drawSize]
         y = staticLabelTop - nameH * 3
-        fullRect = wx.Rect(x - 20, y, nameW, nameH)
+        fullRect = wx.Rect(int(x - 20), int(y), int(nameW), int(nameH))
         # draw the rectangle, draw text on top:
-        dc.DrawRectangle(xSt, yPosTop - nameH * 4, w, h + nameH * 5)
+        dc.DrawRectangle(
+            int(xSt), int(yPosTop - nameH * 4), int(w), int(h + nameH * 5))
         dc.DrawText(name, x - nameW // 2, y)
         # update bounds to include time bar
-        fullRect.Union(wx.Rect(xSt, yPosTop, w, h))
+        fullRect.Union(wx.Rect(int(xSt), int(yPosTop), int(w), int(h)))
         dc.SetIdBounds(id, fullRect)
 
     def drawComponent(self, dc, component, yPos):
@@ -2173,9 +2174,9 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                     w = 10000  # limit width to 10000 pixels!
                 if w < 2:
                     w = 2  # make sure at least one pixel shows
-                dc.DrawRectangle(xSt, int(y + yOffset), w, h)
+                dc.DrawRectangle(int(xSt), int(y + yOffset), int(w), int(h))
                 # update bounds to include time bar
-                fullRect.Union(wx.Rect(xSt, int(y + yOffset), w, h))
+                fullRect.Union(wx.Rect(int(xSt), int(y + yOffset), int(w), int(h)))
         dc.SetIdBounds(id, fullRect)
 
     def copyCompon(self, event=None, component=None):
@@ -3704,7 +3705,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
                 dx = pos - self.entryPointPosList[n]
                 dy = 0
                 r = self.pdc.GetIdBounds(self.entryPointIDlist[n])
-                self.pdc.TranslateId(self.entryPointIDlist[n], dx, dy)
+                self.pdc.TranslateId(self.entryPointIDlist[n], int(dx), int(dy))
                 r2 = self.pdc.GetIdBounds(self.entryPointIDlist[n])
                 # combine old and new locations to get redraw area
                 rectToRedraw = r.Union(r2)
@@ -3765,7 +3766,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         #   pos[0], pos[1]-3*size)  # points up
 
         posX, posY = pos
-        doubleSize = 2 * size
+        doubleSize = int(2 * size)
         dc.SetIdBounds(tmpId, wx.Rect(
             int(posX) - size, int(posY) - size,
             doubleSize,
@@ -3793,7 +3794,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
                 posX,
                 posY - 4 * size)  # points down
 
-        doubleSize = 2 * size
+        doubleSize = int(2 * size)
         dc.SetIdBounds(tmpId, wx.Rect(
             posX - size,
             posY - size,
@@ -3948,7 +3949,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         y = (height - h // 2)
 
         # draw box
-        rect = wx.Rect(x, y, w + pad, h + pad)
+        rect = wx.Rect(int(x), int(y), int(w + pad), int(h + pad))
         # the edge should match the text
         dc.SetPen(wx.Pen(colors.app['fl_flowline_bg']))
         # try to make the loop fill brighter than the background canvas:
