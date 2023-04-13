@@ -1,8 +1,4 @@
 [tool.pdm]
-[tool.pdm.dev-dependencies]
-dev = [
-    "codecov>=2.1.12",
-]
 
 [project]
 name = "psychopy"
@@ -35,7 +31,7 @@ dependencies = [
     "pillow>=9.4.0",
     "pyqt5",
     "pandas>=1.5.3",
-    "questplus>=2019.4",
+    "questplus>=2023.1",
     # for core stimuli
     "soundfile>=0.12.1",
     "imageio >= 2.5",
@@ -86,15 +82,14 @@ dependencies = [
 ]
 
 [project.optional-dependencies]  # This is optional dependencies
-tobii = ["tobii-research>=1.11.0"]
 egi = ["egi-pynetstation"]
 legacy = ["moviepy", "pygame"]
 tests = [
-    "pytest>=7.2.2",
-    "codecov>=2.1.12",
-    "pytest-cov>=4.0.0",
-    "flake8>=5.0.4",
-    "xmlschema>=2.2.2",
+    "pytest",
+    "pytest-codecov",
+    "pytest-cov",
+    "flake8",
+    "xmlschema",
 ]
 
 [project.urls]
