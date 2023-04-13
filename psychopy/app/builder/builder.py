@@ -2109,7 +2109,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             thisIcon = thisIcon.ConvertToDisabled()
             thisColor = colors.app['rt_comp_disabled']
 
-        dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
+        dc.DrawBitmap(thisIcon, int(self.iconXpos), int(yPos + iconYOffset), True)
         fullRect = wx.Rect(
             int(self.iconXpos),
             yPos,
@@ -2141,7 +2141,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         y = yPos + thisIcon.GetHeight() // 2 - h // 2 + _adjust
         dc.DrawText(name, int(x), y)
         fullRect.Union(
-            wx.Rect(int(x - 20), y, w, h))
+            wx.Rect(int(x - 20), int(y), int(w), int(h)))
 
         # deduce start and stop times if possible
         startTime, duration, nonSlipSafe = component.getStartAndDuration()
