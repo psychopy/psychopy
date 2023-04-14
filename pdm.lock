@@ -60,16 +60,6 @@ requires_python = ">=3.7.0"
 summary = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
 
 [[package]]
-name = "codecov"
-version = "2.1.12"
-requires_python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-summary = "Hosted coverage reports for GitHub, Bitbucket and Gitlab"
-dependencies = [
-    "coverage",
-    "requests>=2.7.9",
-]
-
-[[package]]
 name = "colorama"
 version = "0.4.6"
 requires_python = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
@@ -2066,6 +2056,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "pytest-codecov"
+version = "0.5.1"
+requires_python = ">=3.5"
+summary = "Pytest plugin for uploading pytest-cov results to codecov.io"
+dependencies = [
+    "coverage[toml]>=5.2.1",
+    "pytest-cov>=2.11.0",
+    "pytest>=4.6.0",
+    "requests>=2.25.1",
+]
+
+[[package]]
 name = "pytest-cov"
 version = "4.0.0"
 requires_python = ">=3.6"
@@ -2094,7 +2096,7 @@ dependencies = [
 
 [[package]]
 name = "python-gitlab"
-version = "3.13.0"
+version = "3.14.0"
 requires_python = ">=3.7.0"
 summary = "Interact with GitLab API"
 dependencies = [
@@ -2142,8 +2144,8 @@ dependencies = [
 
 [[package]]
 name = "questplus"
-version = "2019.4"
-requires_python = ">=3.6"
+version = "2023.1"
+requires_python = ">=3.8"
 summary = "A QUEST+ implementation in Python."
 dependencies = [
     "json-tricks",
@@ -2229,11 +2231,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tobii-research"
-version = "1.11.0"
-summary = "The Tobii Pro SDK is a tool for letting you interact easily with your eye tracker and write your own          research applications for collecting and analyzing eye tracking data.         Full support for usb and network eye trackers from Tobii."
-
-[[package]]
 name = "tomli"
 version = "2.0.1"
 requires_python = ">=3.7"
@@ -2316,7 +2313,7 @@ summary = "Backport of pathlib-compatible object wrapper for zip files"
 
 [metadata]
 lock_version = "4.1"
-content_hash = "sha256:f6d729748f991a632651f5832d0436eeed0b96beb7399c6fbf40f5de1a5b59c4"
+content_hash = "sha256:eeae384bf95aca4f6fb950bfb442d1234f962fc60e2d35f80c9ee39d1b5eaf1f"
 
 [metadata.files]
 "arabic-reshaper 3.0.0" = [
@@ -2504,10 +2501,6 @@ content_hash = "sha256:f6d729748f991a632651f5832d0436eeed0b96beb7399c6fbf40f5de1
     {url = "https://files.pythonhosted.org/packages/f8/ed/500609cb2457b002242b090c814549997424d72690ef3058cfdfca91f68b/charset_normalizer-3.1.0-cp38-cp38-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:78cacd03e79d009d95635e7d6ff12c21eb89b894c354bd2b2ed0b4763373693b"},
     {url = "https://files.pythonhosted.org/packages/fa/8e/2e5c742c3082bce3eea2ddd5b331d08050cda458bc362d71c48e07a44719/charset_normalizer-3.1.0-cp37-cp37m-musllinux_1_1_ppc64le.whl", hash = "sha256:04afa6387e2b282cf78ff3dbce20f0cc071c12dc8f685bd40960cc68644cfea6"},
     {url = "https://files.pythonhosted.org/packages/ff/d7/8d757f8bd45be079d76309248845a04f09619a7b17d6dfc8c9ff6433cac2/charset-normalizer-3.1.0.tar.gz", hash = "sha256:34e0a2f9c370eb95597aae63bf85eb5e96826d81e3dcf88b8886012906f509b5"},
-]
-"codecov 2.1.12" = [
-    {url = "https://files.pythonhosted.org/packages/59/fa/91b6184b1f15fe9db9c7172eb61a191dbdb4cdf89177e34f1f29a255ca70/codecov-2.1.12.tar.gz", hash = "sha256:a0da46bb5025426da895af90938def8ee12d37fcbcbbbc15b6dc64cf7ebc51c1"},
-    {url = "https://files.pythonhosted.org/packages/dc/e2/964d0881eff5a67bf5ddaea79a13c7b34a74bc4efe917b368830b475a0b9/codecov-2.1.12-py2.py3-none-any.whl", hash = "sha256:585dc217dc3d8185198ceb402f85d5cb5dbfa0c5f350a5abcdf9e347776a5b47"},
 ]
 "colorama 0.4.6" = [
     {url = "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
@@ -4092,6 +4085,10 @@ content_hash = "sha256:f6d729748f991a632651f5832d0436eeed0b96beb7399c6fbf40f5de1
     {url = "https://files.pythonhosted.org/packages/b2/68/5321b5793bd506961bd40bdbdd0674e7de4fb873ee7cab33dd27283ad513/pytest-7.2.2-py3-none-any.whl", hash = "sha256:130328f552dcfac0b1cec75c12e3f005619dc5f874f0a06e8ff7263f0ee6225e"},
     {url = "https://files.pythonhosted.org/packages/b9/29/311895d9cd3f003dd58e8fdea36dd895ba2da5c0c90601836f7de79f76fe/pytest-7.2.2.tar.gz", hash = "sha256:c99ab0c73aceb050f68929bc93af19ab6db0558791c6a0715723abe9d0ade9d4"},
 ]
+"pytest-codecov 0.5.1" = [
+    {url = "https://files.pythonhosted.org/packages/6b/97/8b9165f99b2ce8206f2238c45dfc221c3af8c0ea69791419ee8d63dffe49/pytest-codecov-0.5.1.tar.gz", hash = "sha256:6850bec3bd5313b574f0710b75527652297b90ae316229b44f6446b896f74140"},
+    {url = "https://files.pythonhosted.org/packages/bd/62/5f0a6d9f0e98c97e4312ccee1d91e22d44b550127fe58747a2614b717926/pytest_codecov-0.5.1-py3-none-any.whl", hash = "sha256:a50aaf5d2f5e157b02b83e3630ca61b5684e6b620f29ffa84c994db78252967d"},
+]
 "pytest-cov 4.0.0" = [
     {url = "https://files.pythonhosted.org/packages/ea/70/da97fd5f6270c7d2ce07559a19e5bf36a76f0af21500256f005a69d9beba/pytest-cov-4.0.0.tar.gz", hash = "sha256:996b79efde6433cdbd0088872dbc5fb3ed7fe1578b68cdbba634f14bb8dd0470"},
     {url = "https://files.pythonhosted.org/packages/fe/1f/9ec0ddd33bd2b37d6ec50bb39155bca4fe7085fa78b3b434c05459a860e3/pytest_cov-4.0.0-py3-none-any.whl", hash = "sha256:2feb1b751d66a8bd934e5edfa2e961d11309dc37b73b0eabe73b5945fee20f6b"},
@@ -4104,9 +4101,9 @@ content_hash = "sha256:f6d729748f991a632651f5832d0436eeed0b96beb7399c6fbf40f5de1
     {url = "https://files.pythonhosted.org/packages/36/7a/87837f39d0296e723bb9b62bbb257d0355c7f6128853c78955f57342a56d/python_dateutil-2.8.2-py2.py3-none-any.whl", hash = "sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9"},
     {url = "https://files.pythonhosted.org/packages/4c/c4/13b4776ea2d76c115c1d1b84579f3764ee6d57204f6be27119f13a61d0a9/python-dateutil-2.8.2.tar.gz", hash = "sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86"},
 ]
-"python-gitlab 3.13.0" = [
-    {url = "https://files.pythonhosted.org/packages/2d/ff/54476a038762dfcf68ee633cdbeabcf681f4597ccf3e034ec671b3d33c4c/python_gitlab-3.13.0-py3-none-any.whl", hash = "sha256:85ae778d8953aba87ad4b78aef7fbb5dae053980d2c20ff200bea29799685743"},
-    {url = "https://files.pythonhosted.org/packages/43/61/20f35ff4566edb3d7e87f4b915de1cc820caa07ba5787ea3466f1efec7ab/python-gitlab-3.13.0.tar.gz", hash = "sha256:ad502b72b5d1137f4af37d4a68ae20fe7d6c9778f67cbe2aec566f7995053c7d"},
+"python-gitlab 3.14.0" = [
+    {url = "https://files.pythonhosted.org/packages/30/a6/92e69b41f01ee582176fca50fadfa499b747c44f08545a29988fb03bdaac/python-gitlab-3.14.0.tar.gz", hash = "sha256:ef3b8960faeee9880f82b0872d807e3fab94ace12b0d2a8418a97875c8812d3c"},
+    {url = "https://files.pythonhosted.org/packages/c9/69/71cc09a564aef5d76be4e88687c45aec082dca7705e83601df299c40ee1a/python_gitlab-3.14.0-py3-none-any.whl", hash = "sha256:da614c014c6860147783dde8c216218d8fc6bd83a8bd2e3929dcdf11b211aa58"},
 ]
 "python-vlc 3.0.18121" = [
     {url = "https://files.pythonhosted.org/packages/16/0f/6cd43f827e13646655da41babc9f56c171dc21e3aec3e7c7afc04f506768/python-vlc-3.0.18121.tar.gz", hash = "sha256:24550314a3e6ed55fd347b009491c98b865f9dfa05a92e889d7b0a2210e7485b"},
@@ -4257,8 +4254,9 @@ content_hash = "sha256:f6d729748f991a632651f5832d0436eeed0b96beb7399c6fbf40f5de1
     {url = "https://files.pythonhosted.org/packages/f8/ee/4138bfa745cf62ee1d5229bcafca102f15b3e5867cf18645c5bacfb4d7cb/pyzmq-25.0.2-cp37-cp37m-musllinux_1_1_x86_64.whl", hash = "sha256:28fdb9224a258134784a9cf009b59265a9dde79582fb750d4e88a6bcbc6fa3dc"},
     {url = "https://files.pythonhosted.org/packages/fe/95/35cab273bd36529dafe7484713be28f1a22a775dc36fa4be7fc1d23eeeb8/pyzmq-25.0.2-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:65c19a63b4a83ae45d62178b70223adeee5f12f3032726b897431b6553aa25af"},
 ]
-"questplus 2019.4" = [
-    {url = "https://files.pythonhosted.org/packages/ab/79/52620b42990384f817bb27f6c700f4c11ad9cdbb3364b72a2307f2b35c01/questplus-2019.4.tar.gz", hash = "sha256:5b8428280679cb43b48326a691b2b38fc99cb41f14bb733167701b02c1ae2978"},
+"questplus 2023.1" = [
+    {url = "https://files.pythonhosted.org/packages/5b/6e/d52c605aaf7b455be01fd2769c285d57beb4a45dcc7c8179699e81b2e1be/questplus-2023.1-py3-none-any.whl", hash = "sha256:cf0902d9dd3a804ced24a515eaace82edce5ee1db8b7738bc509a3b761ae4ba6"},
+    {url = "https://files.pythonhosted.org/packages/a8/2c/5b2a389da04f444d9ee503dfeae0f38b2a5ab4ae764d7f94ab5ae6882d75/questplus-2023.1.tar.gz", hash = "sha256:89337d613834fa365dc4a1b25496ccf17debb0d6d5a56c6b12a647da8195ca8e"},
 ]
 "requests 2.28.2" = [
     {url = "https://files.pythonhosted.org/packages/9d/ee/391076f5937f0a8cdf5e53b701ffc91753e87b07d66bae4a09aa671897bf/requests-2.28.2.tar.gz", hash = "sha256:98b1b2782e3c6c4904938b84c0eb932721069dfdb9134313beff7c83c2df24bf"},
