@@ -174,31 +174,31 @@ class Session:
 
         return True
 
-    def getExpInfoFromExperiment(self, stem):
+    def getExpInfoFromExperiment(self, key):
         """
         Get the global-level expInfo object from one of this Session's experiments. This will contain all of
         the keys needed for this experiment, alongside their default values.
 
         Parameters
         ----------
-        stem : str
-            Stem of the experiment file - in other words, the name of the experiment.
+        key : str
+            Key by which the experiment is stored (see `.addExperiment`).
 
         Returns
         -------
         bool or None
             True if the operation completed successfully
         """
-        return self.experiments[stem].expInfo
+        return self.experiments[key].expInfo
 
-    def showExpInfoDlgFromExperiment(self, stem, expInfo=None):
+    def showExpInfoDlgFromExperiment(self, key, expInfo=None):
         """
         Update expInfo for this Session via the 'showExpInfoDlg` method from one of this Session's experiments.
 
         Parameters
         ----------
-        stem : str
-            Stem of the experiment file - in other words, the name of the experiment.
+        key : str
+            Key by which the experiment is stored (see `.addExperiment`).
         expInfo : dict
             Information about the experiment, created by the `setupExpInfo` function.
 
@@ -208,20 +208,21 @@ class Session:
             True if the operation completed successfully
         """
         if expInfo is None:
-            expInfo = self.getExpInfoFromExperiment(stem)
+            expInfo = self.getExpInfoFromExperiment(key)
         # Run the expInfo method
-        expInfo = self.experiments[stem].showExpInfoDlg(expInfo=expInfo)
+        expInfo = self.experiments[key].showExpInfoDlg(expInfo=expInfo)
 
         return expInfo
 
-    def setupWindowFromExperiment(self, stem, expInfo=None):
+    def setupWindowFromExperiment(self, key, expInfo=None):
         """
-        Setup the window for this Session via the 'setupWindow` method from one of this Session's experiments.
+        Setup the window for this Session via the 'setupWindow` method from one of this
+        Session's experiments.
 
         Parameters
         ----------
-        stem : str
-            Stem of the experiment file - in other words, the name of the experiment.
+        key : str
+            Key by which the experiment is stored (see `.addExperiment`).
         expInfo : dict
             Information about the experiment, created by the `setupExpInfo` function.
 
@@ -231,9 +232,9 @@ class Session:
             True if the operation completed successfully
         """
         if expInfo is None:
-            expInfo = self.getExpInfoFromExperiment(stem)
+            expInfo = self.getExpInfoFromExperiment(key)
         # Run the setupWindow method
-        self.win = self.experiments[stem].setupWindow(expInfo=expInfo, win=self.win)
+        self.win = self.experiments[key].setupWindow(expInfo=expInfo, win=self.win)
 
         return True
 
@@ -266,14 +267,14 @@ class Session:
 
         return True
 
-    def setupInputsFromExperiment(self, stem, expInfo=None):
+    def setupInputsFromExperiment(self, key, expInfo=None):
         """
         Setup inputs for this Session via the 'setupInputs` method from one of this Session's experiments.
 
         Parameters
         ----------
-        stem : str
-            Stem of the experiment file - in other words, the name of the experiment.
+        key : str
+            Key by which the experiment is stored (see `.addExperiment`).
         expInfo : dict
             Information about the experiment, created by the `setupExpInfo` function.
 
@@ -283,9 +284,9 @@ class Session:
             True if the operation completed successfully
         """
         if expInfo is None:
-            expInfo = self.getExpInfoFromExperiment(stem)
+            expInfo = self.getExpInfoFromExperiment(key)
         # Run the setupInputs method
-        self.inputs = self.experiments[stem].setupInputs(expInfo=expInfo, win=self.win)
+        self.inputs = self.experiments[key].setupInputs(expInfo=expInfo, win=self.win)
 
         return True
 
@@ -313,14 +314,14 @@ class Session:
 
         return True
 
-    def runExperiment(self, stem, expInfo=None):
+    def runExperiment(self, key, expInfo=None):
         """
         Run the `setupData` and `run` methods from one of this Session's experiments.
 
         Parameters
         ----------
-        stem : str
-            Stem of the experiment file - in other words, the name of the experiment.
+        key : str
+            Key by which the experiment is stored (see `.addExperiment`).
         expInfo : dict
             Information about the experiment, created by the `setupExpInfo` function.
 
@@ -330,26 +331,29 @@ class Session:
             True if the operation completed successfully
         """
         if expInfo is None:
-            expInfo = self.getExpInfoFromExperiment(stem)
+            expInfo = self.getExpInfoFromExperiment(key)
         # Setup data for this experiment
-        thisExp = self.experiments[stem].setupData(expInfo=expInfo)
+        thisExp = self.experiments[key].setupData(expInfo=expInfo)
+        thisExp.name = key
         # Mark ExperimentHandler as current
         self.currentExperiment = thisExp
         # Setup window for this experiment
-        self.setupWindowFromExperiment(stem=stem)
+        self.setupWindowFromExperiment(key=key)
         self.win.flip()
         self.win.flip()
         # Hold all autodraw stimuli
         self.win.stashAutoDraw()
         # Setup logging
-        self.experiments[stem].run.__globals__['logFile'] = self.logFile
+        self.experiments[key].run.__globals__['logFile'] = self.logFile
+        # Setup inputs
+        self.setupWindowFromExperiment(key, expInfo=expInfo)
         # Run this experiment
-        self.experiments[stem].run(
+        self.experiments[key].run(
             expInfo=expInfo,
             thisExp=thisExp,
             win=self.win,
             inputs=self.inputs,
-            session=self
+            thisSession=self
         )
         # Reinstate autodraw stimuli
         self.win.retrieveAutoDraw()
@@ -428,23 +432,37 @@ class Session:
     # def recycleTrial(self, thisExp, trial):
     #     pass
 
-    def saveExperimentData(self, stem, thisExp):
+    def saveExperimentData(self, key, thisExp=None):
         """
-        Run the `saveData` method from one of this Session's experiments, on a given ExperimentHandler.
+        Run the `saveData` method from one of this Session's experiments, on a
+        given ExperimentHandler.
 
         Parameters
         ----------
-        stem : str
-            Stem of the experiment file - in other words, the name of the experiment.
+        key : str
+            Key by which the experiment is stored (see `.addExperiment`).
         thisExp : psychopy.data.ExperimentHandler
-            ExperimentHandler object to save the data from.
+            ExperimentHandler object to save the data from. If None, save the
+            last run of the given experiment.
 
         Returns
         -------
         bool or None
             True if the operation completed successfully
         """
-        self.experiments[stem].saveData(thisExp)
+        # get last run
+        if thisExp is None:
+            # copy list of runs in reverse
+            runs = self.runs.copy()
+            runs.reverse()
+            # iterate through runs, starting at the end
+            for run in runs:
+                # use the first run to match given exp
+                if run.name == key:
+                    thisExp = run
+                    break
+
+        self.experiments[key].saveData(thisExp)
 
         return True
 
@@ -453,10 +471,15 @@ class Session:
         Send data to this Session's `Liaison` object.
 
         Parameters
-        ==========
+        ----------
         value : str, dict, psychopy.data.ExperimentHandler
             Data to send - this can either be a single string, a dict of strings, or an
             ExperimentHandler (whose data will be sent)
+
+        Returns
+        -------
+        bool or None
+            True if the operation completed successfully
         """
         if self.liaison is None:
             logging.warn(_translate(
@@ -472,6 +495,9 @@ class Session:
         self.liaison.broadcast(message=value)
 
     def close(self):
+        """
+        Safely close the current session. This will end the Python instance.
+        """
         sys.exit()
 
 

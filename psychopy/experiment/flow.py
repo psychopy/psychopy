@@ -219,7 +219,7 @@ class Flow(list):
         # Open function def
         code = (
             '\n'
-            'def run(expInfo, thisExp, win, inputs, session=None):\n'
+            'def run(expInfo, thisExp, win, inputs, thisSession=None):\n'
             '    """\n'
             '    Run the experiment flow.\n'
             '    \n'
@@ -234,6 +234,8 @@ class Flow(list):
             '        Window in which to run this experiment.\n'
             '    inputs : dict\n'
             '        Dictionary of input devices by name.\n'
+            '    thisSession : psychopy.session.Session or None\n'
+            '        Handle of the Session object this experiment is being run from, if any.'
             '    """\n'
         )
         script.writeIndentedLines(code)
@@ -263,6 +265,15 @@ class Flow(list):
             "endExpNow = False  # flag for 'escape' or other condition => quit the exp\n"
             )
         script.writeIndentedLines(code)
+        # get frame dur from frame rate
+        code = (
+            "# get frame duration from frame rate in expInfo\n"
+            "if 'frameRate' in expInfo and expInfo['frameRate'] is not None:\n"
+            "    frameDur = 1.0 / round(expInfo['frameRate'])\n"
+            "else:\n"
+            "    frameDur = 1.0 / 60.0  # could not measure, so guess\n"
+        )
+        script.writeIndentedLines(code)
 
         # writes any components with a writeStartCode()
         self.writeStartCode(script)
@@ -270,6 +281,8 @@ class Flow(list):
         for entry in self:
             # NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine = entry
+            if hasattr(entry, 'writeRunOnceInitCode'):
+                entry.writeRunOnceInitCode(script)
             entry.writeInitCode(script)
         # create clocks (after initialising stimuli)
         code = ("\n# Create some handy timers\n"
