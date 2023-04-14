@@ -484,7 +484,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
 
         # Make switch
         self.editBtn = ToggleLabelButton(self, label=_translate("Edit"), style=_btnStyle)
-        self.editBtn.SetLabelPressed(_translate("View"))
+        self.editBtn.SetLabelPressed(_translate("Preview"))
         self.editBtn.Bind(wx.EVT_TOGGLEBUTTON, self.toggleView)
         self.btnSizer.Add(self.editBtn, border=3, flag=wx.ALL | wx.EXPAND)
 
