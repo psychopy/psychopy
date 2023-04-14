@@ -15,10 +15,57 @@ to run on the same PsychoPy version even where a different version is installed 
 That setting often even allows PsychoPy to run experiments from versions that have not yet
 been installed! If the dependencies haven't changed it will run.
 
+
+PsychoPy 2023.1
+---------------
+
+# Release series 2023.1. Highlights
+
+- **Pavlovia Surveys:** can now be integrated into PsychoPy online studies. You still create your 
+  survey in the Pavlovia Survey Creator (on you Pavlovia Dashboard) but you can then incorporate 
+  them as either a link or an embedded json file into your PsychoJS study. This only works for 
+  online studies at present
+- **Panorama Stimuli:** now supported in PsychoPy (lab-based) studies. You can add a photo-sphere 
+  as a stimulus (e.g. create them in Street View app on Android phones) and then insert them into 
+  Builder and explore
+- **Plugins and Packages:** You can now add packages to your PsychoPy installation with a GUI that 
+  installs new packages to your user folder (without needing admin rights). Some of PsychoPy's 
+  existing functionality has also moved out to "Plugins"
+
+    - For users, plugins mean more control over what functionality you want PsychoPy to support
+    - For developers, plugins mean keeping more independence over your code and ownership
+
+- **Speech Point:** on TextBox allows a tail to be added giving the impression of a cartoon speech 
+  bubble (lab-based only, currently)
+- **MovieStim:** further improvements to performance and fixes
+
+PsychoPy 2023.1.1
+~~~~~~~~~~~~~~~~~
+
+Fixed:
+
+- Better plugin handling:
+
+  - Better handling of plugin dependencies (moved to sub-folders) #5398
+  - More responsive plugins dialog (not waiting for all plugin info to populate) #5410
+  - Live info updates as the plugin installs #5399
+  - Sort package versions newest first #a4987c95f
+
+- Panorama stimulus no longer needs FBO=False on Window
+- MovieStim locally opacity was not being honored #094731084
+- MovieStim online crashed if using setEveryRepeat #ed484ba17
+- Close eyetracker connection if experiment ends early #f9b6f98e4
+- README dialog was created twice #5383
+- Online Experiments with image sitmuli crashing with unknown resource "default.png"
+- Nested loops were crashing
+- Fixed various failures to translate #804bfcde2 #b1b611ec1
+- Console gave encoding errors when opening MacOS csv files on Windows machines #5396
+- Failure to log in to Pavlovia #5382 #5450
+
 PsychoPy 2022.3
 ---------------
 
-*Highilghts:*
+*Highlights:*
 - Online: Interface in Pavlovia for building and running online questionnaires! As this is built on top of the
   open-source [SurveyJS](https://surveyjs.io/) package it offers a rich feature list right off the bat. The new
   Pavlovia Survey component you can insert a survey into your experiment just like you would a Form component.

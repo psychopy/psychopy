@@ -17,9 +17,15 @@ import random
 
 class Test_Slider(_TestColorMixin, _TestBoilerplateMixin):
     def setup_class(self):
+
+        # Make a Window
         self.win = Window([128,128], pos=[50,50], monitor="testMonitor", allowGUI=False,
                           autoLog=False)
+        
+        # Create a Slider
         self.obj = Slider(self.win, units="height", size=(1, 0.1), pos=(0, 0.5), style='radio')
+
+        # Set the Marker position to 0 
         self.obj.markerPos = 0
 
         # Pixel which is the border color
@@ -33,6 +39,7 @@ class Test_Slider(_TestColorMixin, _TestBoilerplateMixin):
         self.foreUsed = False
 
     def teardown_class(self):
+        # Delete created object
         self.win.close()
 
     def test_horiz(self):
@@ -60,18 +67,28 @@ class Test_Slider(_TestColorMixin, _TestBoilerplateMixin):
             assert obj.horiz == case['horiz']
             # Make sure slider looks as intended
             obj.draw()
+
+            # Filename to a png file with the tag for this case
             filename = f"test_slider_horiz_{case['tag']}.png"
+
             # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+
+            # Compare the created slider to a screenshot of what we expect to see tests/data folder for screenshots
             utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=10)
             self.win.flip()
 
     def test_reset(self):
+        # Test reset function of the slider
         s = Slider(self.win, size=(1, 0.1))
+
+        # Set up the slider with some default vals
         s.markerPos = 1
         s.history = [1]
         s.rating = 1
         s.rt = 1
         s.status = constants.STARTED
+
+        # Call the reset function
         s.reset()
         assert s.markerPos == None
         assert s.history == []
@@ -80,20 +97,33 @@ class Test_Slider(_TestColorMixin, _TestBoilerplateMixin):
         assert s.status == constants.NOT_STARTED
 
     def test_elements(self):
+        # Test slider elements
+
+        # Create the slider (s)
         s = Slider(self.win, size=(1, 0.1))
-        assert type(s.line) == type(Rect(self.win))
-        assert type(s.tickLines) == type(ElementArrayStim(self.win))
-        assert type(s.marker) == type(ShapeStim(self.win))
+
+        assert type(s.line) == type(Rect(self.win)) # Check the line is a rectangle
+        assert type(s.tickLines) == type(ElementArrayStim(self.win)) # Check the ticklines are element array stim
+        assert type(s.marker) == type(ShapeStim(self.win)) # Check marker is ShapeStim 
         assert type(s.validArea) == type(Rect(self.win))
         
     def test_pos(self):
+        # Test slider position 
+
+        # Create the slider (s)
         s = Slider(self.win, size=(1, 0.1))
+
+        # List of positions to test
         positions = [(.05, .05),(0.2, .2)]
+
+        # For each position in list
         for newPos in positions:
             s.pos = newPos
-            assert array_equal(s.pos, newPos)
+            assert array_equal(s.pos, newPos) # Check that the position updates
 
     def test_triangle_marker(self):
+        # Test with triangular marker 
+
         # Test all combinations of horiz and flip
         cases = [
             {"horiz": True, "flip": True},
@@ -117,22 +147,34 @@ class Test_Slider(_TestColorMixin, _TestBoilerplateMixin):
             s.draw()
             filename = "test_slider_triangle_horiz_%(horiz)s_flip_%(flip)s.png" % case
             #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+
+            # Compare the created slider to a screenshot of what we expect to see tests/data folder for screenshots
             utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win)
             self.win.flip()
         
     def test_ratingToPos(self):
+        # Test translationg between rating and marker positions
+
+        # Create the slider (s)
         s = Slider(self.win, size=(1, 0.1), )
-        assert s._ratingToPos(3)[0] == 0
-        assert s._ratingToPos(1)[0] == -.5
-        assert s._ratingToPos(5)[0] == .5
+
+        assert s._ratingToPos(3)[0] == 0 # check a rating of 3 is central position
+        assert s._ratingToPos(1)[0] == -.5 # check a rating of 1 is furthest left
+        assert s._ratingToPos(5)[0] == .5 # check a rating of 5 is furthest right
 
     def test_posToRatingToPos(self):
+        # Test translationg between marker position and ratings
+
+        # Create the slider (s)
         s = Slider(self.win, size=(1, 0.1), )
-        assert s._posToRating((0, 0)) == 3
-        assert s._posToRating((-.5, 0)) == 1
-        assert s._posToRating((.5, 0)) == 5
+
+        assert s._posToRating((0, 0)) == 3 # check central position is a rating of 3
+        assert s._posToRating((-.5, 0)) == 1 # check furthest left is a rating of 1
+        assert s._posToRating((.5, 0)) == 5 # check furthest right is a rating of 5
 
     def test_tick_and_label_locs(self):
+        # Test ticks an label locations
+
         exemplars = [
             {'ticks': [1, 2, 3, 4, 5], 'labels': ["a", "b", "c", "d", "e"], 'tag': "simple"},
             {'ticks': [1, 2, 3, 9, 10], 'labels': ["a", "b", "c", "d", "e"], 'tag': "clustered"},
@@ -146,98 +188,141 @@ class Test_Slider(_TestColorMixin, _TestBoilerplateMixin):
             {'ticks': [1, 9, 10], 'labels': ["a", "b", "c", "d", "e"], 'tag': "morelabelsclustered"},
             {'ticks': [1, 7, 8, 9, 10], 'labels': ["a", "b", "c", "d"], 'tag': "moreticksclustered"},
         ]
+
         # Test all cases
         self.win.flip()
+
         for case in exemplars + tykes:
+
             # Make vertical slider
             vert = Slider(self.win, size=(0.1, 0.5), pos=(-0.25, 0), units="height",
                           labels=case['labels'], ticks=case['ticks'])
             vert.draw()
+
             # Make horizontal slider
             horiz = Slider(self.win, size=(0.5, 0.1), pos=(0.2, 0), units="height",
                            labels=case['labels'], ticks=case['ticks'])
             horiz.draw()
+
             # Compare screenshot
             filename = "test_slider_ticklabelloc_%(tag)s.png" % case
             #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+
+            # Compare the created slider to a screenshot of what we expect to see tests/data folder for screenshots
             utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win)
             self.win.flip()
 
     def test_granularity(self):
+        # Test granularity of Slider works as expected
+
+        # Create the slider (s)
         s = Slider(self.win, size=(1, 0.1), granularity=1)
+
+        # Set minimum and maximum ratings
         minRating, maxRating = 1, 5
 
-        assert s.granularity == 1
+        assert s.granularity == 1 # Check granulariy is 1
         assert s._granularRating(1) == minRating
         assert s._granularRating(5) == maxRating
         assert s._granularRating(0) == minRating
         assert s._granularRating(6) == maxRating
 
     def test_rating(self):
+        # Test rating sets and updates as expected 
+
+        # Create the slider (s)
         s = Slider(self.win, size=(1, 0.1))
+
+        # Set minimum and maximum ratings
         minRating, maxRating = 1, 5
 
-        s.rating = 1
-        assert s.rating == minRating
-        s.rating = 5
-        assert s.rating == maxRating
-        s.rating = 0
-        assert s.rating == minRating
-        s.rating = 6
-        assert s.rating == maxRating
+        s.rating = 1 # Set to minimum rating
+        assert s.rating == minRating # Check it is minimum rating
+        s.rating = 5 # Set to maximum rating
+        assert s.rating == maxRating # Check it is maximum rating
+        s.rating = 0 # Set below minimum rating
+        assert s.rating == minRating # Check it is minimum rating
+        s.rating = 6 # Set above maximum rating
+        assert s.rating == maxRating # Check it is maximum rating
 
     def test_markerPos(self):
+        # Test marker value sets and updates as expected 
+
+        # Create the slider (s)
         s = Slider(self.win, size=(1, 0.1))
+
         s._updateMarkerPos = False
+
+        # Set minimum and maximum positions
         minPos, maxPos = 1, 5
 
         assert s._updateMarkerPos != True
-        s.markerPos = 1
-        assert s.markerPos == minPos
-        s.markerPos = 5
-        assert s.markerPos == maxPos
-        s.markerPos = 0
-        assert s.markerPos == minPos
-        s.markerPos = 6
-        assert s.markerPos == maxPos
+        s.markerPos = 1 # Set to minimum position
+        assert s.markerPos == minPos # Check it is minimum position
+        s.markerPos = 5 # Set to maximum position
+        assert s.markerPos == maxPos # Check it is maximum position
+        s.markerPos = 0 # Set below minimum position
+        assert s.markerPos == minPos# Check it is minimum position
+        s.markerPos = 6 # Set above maximum position
+        assert s.markerPos == maxPos # Check it is maximum position
         assert s._updateMarkerPos == True
 
     def test_recordRating(self):
+        # Test recording of rating values 
+
+        # Create the slider (s)
         s = Slider(self.win, size=(1, 0.1))
+
+        # Provide a minRating and a maxRating 
         minRating, maxRating = 1, 5
 
+        
         counter = 0
         for rates in range(0,7):
-            s.recordRating(rates, random.random())
+            s.recordRating(rates, random.random()) # "rates" will be rating random.random() generates random response time val
             counter +=1
 
+        # Get a list of ratings and response times for all ratings made
         ratings = [rating[0] for rating in s.history]
         RT = [rt[1] for rt in s.history]
 
-        assert len(s.history) == counter
-        assert len(ratings) == counter
-        assert min(ratings) == minRating
-        assert max(ratings) == maxRating
-        assert len(RT) == counter
-        assert max(RT) <= 1
-        assert min(RT) >= 0
+        assert len(s.history) == counter 
+        assert len(ratings) == counter # Check the number of ratings is equal to expected
+        assert min(ratings) == minRating # Check ratings never go below minimum cap
+        assert max(ratings) == maxRating # Check ratings never go above maximum cap
+        assert len(RT) == counter # Check the number of rts is equal to expected
+        assert max(RT) <= 1 # check the max RT is less than or equal to 1
+        assert min(RT) >= 0 # check the min RT is greater than or equal to 1
 
     def test_getRating(self):
+        # Test fetching of the rating data e.g. that minRating and maxRating caps the ratings as expected
+
+        # Create the slider (s)
         s = Slider(self.win, size=(1, 0.1))
+
+        # Provide a minRating and a maxRating 
         minRating, maxRating = 1, 5
-        s.rating = 1
-        assert s.getRating() == minRating
-        s.rating = 5
-        assert s.getRating() == maxRating
-        s.rating = 0
-        assert s.getRating() == minRating
-        s.rating = 6
-        assert s.getRating() == maxRating
+
+        s.rating = 1 # Set a rating value that is the minimum rating
+        assert s.getRating() == minRating # Check getRating() is the minRating - expect return True
+        s.rating = 5 # Set a rating value that is the maximum rating
+        assert s.getRating() == maxRating # Check getRating() is the maxRating - expect return True
+        s.rating = 0 # Set a rating value that is below the minimum rating
+        assert s.getRating() == minRating # Check getRating() is the minRating - expect return True
+        s.rating = 6 # Set a rating value that is above the maximum rating
+        assert s.getRating() == maxRating # Check getRating() is the maxRating - expect return True
 
     def test_getRT(self):
+        # Test fetching of the response time data 
+
+        # Create the slider (s)
         s = Slider(self.win, size=(1, 0.1))
+
+        # Provide example response time
         testRT = .89
+
+        # Give the response time to the Slider
         s.recordRating(2, testRT)
         assert s.history[-1][1] == s.getRT()
-        assert type(s.getRT()) == float
-        assert s.getRT() == testRT
+        assert type(s.getRT()) == float # Check thet getRT() returns a float (as expected)
+        assert s.getRT() == testRT # Check that getRT() returns the provided testRT
