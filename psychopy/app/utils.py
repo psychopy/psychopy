@@ -264,7 +264,15 @@ class ImageData(pil.Image):
             path = Path(source)
             # Only load if it looks like an image
             if path.suffix in pil.registered_extensions():
-                return pil.open(source)
+                try:
+                    img = pil.open(source)
+                    if "A" not in img.getbands():
+                        # Make sure there's an alpha channel to supply
+                        alpha = pil.new("L", img.size, 255)
+                        img.putalpha(alpha)
+                    return img
+                except PIL.UnidentifiedImageError:
+                    return cls.createPlaceholder(source)
         # If source is a url, load from server
         if st.is_url(source):
             # Only load if looks like an image
@@ -272,13 +280,26 @@ class ImageData(pil.Image):
             if ext in pil.registered_extensions():
                 content = requests.get(source).content
                 data = io.BytesIO(content)
-                return pil.open(data)
+                try:
+                    img = pil.open(data)
+                    if "A" not in img.getbands():
+                        # Make sure there's an alpha channel to supply
+                        alpha = pil.new("L", img.size, 255)
+                        img.putalpha(alpha)
+                    return img
+                except PIL.UnidentifiedImageError:
+                    return cls.createPlaceholder(source)
 
         # If couldn't interpret, raise warning and return blank image
+        return cls.createPlaceholder(source)
+
+    @staticmethod
+    def createPlaceholder(source):
+        # Raise warning and return blank image
         logging.warning(_translate(
             "Could not get image from: {}, using blank image instead."
         ).format(source))
-        return pil.new('RGB', size=(16, 16))
+        return pil.new('RGBA', size=(16, 16))
 
 
 class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
@@ -462,15 +483,18 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         if md:
             renderedText = md.MarkdownIt().render(self.rawTextCtrl.Value)
             # Remove images (wx doesn't like rendering them)
-            imgBuffer = renderedText.split("<img")
+            imgBuffer = renderedText.split("<img ")
             output = []
-            for line in imgBuffer:
-                if "/>" in line:
-                    lineBuffer = line.split("/>")
-                    output.append("".join(lineBuffer[1:]))
+            for cell in imgBuffer:
+                if "/>" in cell:
+                    output.extend(cell.split("/>")[1:])
+                elif "</img>" in cell:
+                    output.extend(cell.split("</img>")[1:])
                 else:
-                    output.append("<img" + line)
-            renderedText = "".join(output)
+                    output.append(cell)
+            renderedText = "".join(imgBuffer)
+            # This could also be done by regex, we're avoiding regex for
+            # renderedText = re.sub(r"<img[\s>].*(?:\/>|<\/img>)", "", renderedText)
         else:
             renderedText = self.rawTextCtrl.Value.replace("\n", "<br>")
         # Apply to preview ctrl
@@ -480,6 +504,12 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
 
     def load(self, evt=None):
         if self.file is None:
+            return
+        if not Path(self.file).is_file():
+            # If given a path to no file, enable save and load nothing
+            self.rawTextCtrl.SetValue("")
+            self.render()
+            self.saveBtn.Enable()
             return
         # Set value from file
         with open(self.file, "r") as f:
@@ -1087,18 +1117,21 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
             # Otherwise, extract frames
             try:
                 img = pil.open(data)
-                for i in range(img.n_frames):
+                for i in range(getattr(img, "n_frames", 1)):
                     # Seek to frame
                     img.seek(i)
                     if 'duration' in img.info:
                         fr.append(img.info['duration'])
+
                     # Create wx.Bitmap from frame
-                    frame = img.resize(self.Size).convert("RGB")
-                    # Supply an alpha channel if there is one
-                    if "A" in frame.getbands():
-                        alpha = frame.tobytes("raw", "A")
-                    else:
-                        alpha = None
+                    frame = img.resize(self.Size).convert("RGBA")
+                    # Ensure an alpha channel
+                    if "A" not in frame.getbands():
+                        # Make sure there's an alpha channel to supply
+                        alpha = pil.new("L", frame.size, 255)
+                        frame.putalpha(alpha)
+                    alpha = frame.tobytes("raw", "A")
+
                     bmp = wx.Bitmap.FromBufferAndAlpha(
                         *frame.size,
                         data=frame.tobytes("raw", "RGB"),

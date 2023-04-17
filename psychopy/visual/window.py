@@ -369,8 +369,6 @@ class Window():
             fullscr = prefs.general['fullscr']
         self._isFullScr = fullscr
 
-        if units is None:
-            units = prefs.general['units']
         self.units = units
 
         if allowGUI is None:
@@ -577,6 +575,7 @@ class Window():
         self._frameTimes = deque(maxlen=1000)  # 1000 keeps overhead low
 
         self._toDraw = []
+        self._heldDraw = []
         self._toDrawDepths = []
         self._eventDispatchers = []
 
@@ -598,6 +597,9 @@ class Window():
         self.monitorFramePeriod = 0.0
         if checkTiming:
             self._monitorFrameRate = self.getActualFrameRate()
+        else:
+            # if not checking timing, window still needs to initialise viewport
+            self.resetViewport()
         if self._monitorFrameRate is not None:
             self.monitorFramePeriod = 1.0 / self._monitorFrameRate
         else:
@@ -664,6 +666,8 @@ class Window():
         See :ref:`units` for explanation of options.
 
         """
+        if value is None:
+            value = prefs.general['units']
         self.__dict__['units'] = value
 
     def setUnits(self, value, log=True):
@@ -1051,6 +1055,28 @@ class Window():
         """
         Window.backend.dispatchEvents()
 
+    def stashAutoDraw(self):
+        """
+        Put autoDraw components on 'hold', meaning they get autoDraw set to False but
+        are added to an internal list to be 'released' when .releaseAutoDraw is called.
+        """
+        for thisStim in self._toDraw.copy():
+            # set autoDraw to False
+            thisStim.autoDraw = False
+            # add stim to held list
+            self._heldDraw.append(thisStim)
+
+    def retrieveAutoDraw(self):
+        """
+        Add all stimuli which are on 'hold' back into the autoDraw list, and clear the
+        hold list.
+        """
+        for thisStim in self._heldDraw:
+            # set autoDraw to True
+            thisStim.autoDraw = True
+        # clear list
+        self._heldDraw = []
+
     def flip(self, clearBuffer=True):
         """Flip the front and back buffers after drawing everything for your
         frame. (This replaces the :py:attr:`~Window.update()` method, better
@@ -1088,7 +1114,11 @@ class Window():
         """
         if self._toDraw:
             for thisStim in self._toDraw:
+                # Draw
                 thisStim.draw()
+                # Handle dragging
+                if getattr(thisStim, "draggable", False):
+                    thisStim.doDragging()
         else:
             self.backend.setCurrent()
 

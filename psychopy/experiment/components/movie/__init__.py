@@ -269,11 +269,8 @@ class MovieComponent(BaseVisualComponent):
         buff.writeIndentedLines(code % params)
 
     def writeInitCodeJS(self, buff):
-        # If needed then use _writeCreationCodeJS()
-        # Movie could be created here or in writeRoutineStart()
-        if self.params['movie'].updates == 'constant':
-            # create the code using init vals
-            self._writeCreationCodeJS(buff, useInits=True)
+        # create the code using init vals
+        self._writeCreationCodeJS(buff, useInits=True)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame

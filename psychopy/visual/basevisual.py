@@ -44,6 +44,7 @@ from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
                                      setColor, findImageFile)
 from psychopy.tools.typetools import float_uint8
 from psychopy.tools.arraytools import makeRadialMatrix, createLumPattern
+from psychopy.event import Mouse
 from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb  # pylint: disable=W0611
 
 from . import globalVars
@@ -1637,6 +1638,71 @@ class WindowMixin:
         self._updateListShaders()
 
 
+class DraggingMixin:
+    """
+    Mixin to give an object innate dragging behaviour.
+
+    Attributes
+    ==========
+    draggable : bool
+        Can this object be dragged by a Mouse click?
+    isDragging : bool
+        Is this object currently being dragged? (read only)
+
+    Methods
+    ==========
+    doDragging :
+        Call this each frame to make sure dragging behaviour happens. If
+        `autoDraw` and `draggable` are both True, then this will be called
+        automatically by the Window object on flip.
+    """
+    isDragging = False
+
+    def doDragging(self):
+        """
+        If this stimulus is draggable, do the necessary actions on a frame
+        flip to drag it.
+        """
+        # if not draggable, do nothing
+        if not self.draggable:
+            return
+        # if just clicked on, start dragging
+        self.isDragging = self.isDragging or self.mouse.isPressedIn(self, buttons=[0])
+        # if click is released, stop dragging
+        self.isDragging = self.isDragging and self.mouse.getPressed()[0]
+        # get relative mouse pos
+        rel = self.mouse.getRel()
+
+        # if dragging, do necessary updates
+        if self.isDragging:
+            # get own pos in win units
+            pos = getattr(self._pos, self.win.units)
+            # add mouse movement to pos
+            setattr(
+                self._pos,
+                self.win.units,
+                pos + rel
+            )
+            # set pos
+            self.pos = getattr(self._pos, self.units)
+        else:
+            # mark self as being dragged
+            self.isDragging = False
+
+    @attributeSetter
+    def draggable(self, value):
+        """
+        Can this stimulus be dragged by a mouse click?
+        """
+        # if we don't have reference to a mouse, make one
+        if not isinstance(self.mouse, Mouse):
+            self.mouse = Mouse(win=self.win)
+            # make sure it has an initial pos for rel pos comparisons
+            self.mouse.lastPos = self.mouse.getPos()
+        # store value
+        self.__dict__['draggable'] = value
+
+
 class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
     """A template for a visual stimulus class.
 
@@ -1652,6 +1718,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         self.win = win
         self.units = units
         self._rotationMatrix = [[1., 0.], [0., 1.]]  # no rotation by default
+        self.mouse = None
         # self.autoLog is set at end of MinimalStim.__init__
         super(BaseVisualStim, self).__init__(name=name, autoLog=autoLog)
         if self.autoLog:

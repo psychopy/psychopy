@@ -3,14 +3,11 @@ from wx.lib import scrolledpanel
 import webbrowser
 from PIL import Image as pil
 
-from .utils import uninstallPackage, installPackage
 from psychopy.tools import pkgtools
 from psychopy.app.themes import theme, handlers, colors, icons
 from psychopy.app import utils
 from psychopy.localization import _translate
 from psychopy import plugins
-from psychopy.preferences import prefs
-from psychopy.experiment import getAllElements
 import requests
 
 
@@ -98,6 +95,11 @@ class PluginInfo:
         self.description = description
         self.keywords = keywords or []
 
+        self.parent = None   # set after
+
+        # icon graphic
+        self._icon = None
+
     def __repr__(self):
         return (f"<psychopy.plugins.PluginInfo: {self.name} "
                 f"[{self.pipname}] by {self.author}>")
@@ -108,15 +110,32 @@ class PluginInfo:
         else:
             return self.pipname == str(other)
 
+    def setParent(self, parent):
+        """Set the parent window or panel.
+
+        Need a parent to invoke methods on the top-level window. Might not
+        be set.
+
+        Parameters
+        ----------
+        parent : wx.Window or wx.Panel
+            Parent window or panel.
+
+        """
+        self.parent = parent
+
     @property
     def icon(self):
+        # memoize on first access
+        if self._requestedIcon is not None:
+            self._icon = utils.ImageData(self._requestedIcon)
+
         if hasattr(self, "_icon"):
             return self._icon
 
     @icon.setter
     def icon(self, value):
         self._requestedIcon = value
-        self._icon = utils.ImageData(value)
 
     @property
     def active(self):
@@ -138,46 +157,18 @@ class PluginInfo:
         plugins.startUpPlugins(current, add=False, verify=False)
 
     def install(self):
-        dlg = installPackage(self.pipname)
-        # Refresh and enable
-        plugins.scanPlugins()
-        try:
-            self.activate()
-            plugins.loadPlugin(self.pipname)
-        except RuntimeError:
-            prefs.general['startUpPlugins'].append(self.pipname)
-            dlg.writeStdErr(_translate(
-                "[Warning] Could not activate plugin. PsychoPy may need to restart for plugin to take effect."
-            ))
-        # Show list of components/routines now available
-        emts = []
-        for name, emt in getAllElements().items():
-            if hasattr(emt, "plugin") and emt.plugin == self.pipname:
-                cats = ", ".join(emt.categories)
-                emts.append(f"{name} ({cats})")
-        if len(emts):
-            msg = _translate(
-                "The following components/routines should now be visible in the Components panel:\n"
-            )
-            for emt in emts:
-                msg += (
-                    f"    - {emt}\n"
-                )
-            dlg.write(msg)
-        # Show info link
-        if self.docs:
-            msg = _translate(
-                "\n"
-                "\n"
-                "For more information about the %s plugin, read the documentation at:\n"
-            ) % self.name
-            dlg.write(msg)
-            dlg.writeLink(self.docs, link=self.docs)
+        if self.parent is None:
+            return
+
+        wx.CallAfter(
+            self.parent.GetTopLevelParent().installPlugin, self)
 
     def uninstall(self):
-        uninstallPackage(self.pipname)
-        pkgtools.refreshPackages()
-        plugins.scanPlugins()
+        if self.parent is None:
+            return
+
+        wx.CallAfter(
+            self.parent.GetTopLevelParent().uninstallPackage, self.pipname)
 
     @property
     def installed(self):
@@ -202,8 +193,9 @@ class PluginInfo:
 
 
 class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
-    def __init__(self, parent):
+    def __init__(self, parent, dlg):
         wx.Panel.__init__(self, parent, style=wx.NO_BORDER)
+        self.dlg = dlg
         # Setup sizer
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -213,9 +205,9 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
         self.splitter = wx.SplitterWindow(self, style=wx.NO_BORDER)
         self.sizer.Add(self.splitter, proportion=1, border=0, flag=wx.EXPAND | wx.ALL)
         # Make list
-        self.pluginList = PluginBrowserList(self.splitter)
+        self.pluginList = PluginBrowserList(self.splitter, stream=dlg.output)
         # Make viewer
-        self.pluginViewer = PluginDetailsPanel(self.splitter)
+        self.pluginViewer = PluginDetailsPanel(self.splitter, stream=self.dlg.output)
         # Cross-reference viewer & list
         self.pluginViewer.list = self.pluginList
         self.pluginList.viewer = self.pluginViewer
@@ -413,10 +405,11 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.markActive(self.info.active)
 
 
-    def __init__(self, parent, viewer=None):
+    def __init__(self, parent, stream, viewer=None):
         scrolledpanel.ScrolledPanel.__init__(self, parent=parent, style=wx.VSCROLL)
         self.parent = parent
         self.viewer = viewer
+        self.stream = stream
         # Setup sizer
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -449,7 +442,9 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         # Put installed packages at top of list
         items.sort(key=lambda obj: obj.installed, reverse=True)
         for item in items:
+            item.setParent(self)
             self.appendItem(item)
+
         # Layout
         self.Layout()
         self.SetupScrolling()
@@ -567,10 +562,12 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
 class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
     iconSize = (128, 128)
 
-    def __init__(self, parent, info=None, list=None):
+    def __init__(self, parent, stream, info=None, list=None):
         wx.Panel.__init__(self, parent)
+        self.SetMinSize((480, 620))
         self.parent = parent
         self.list = list
+        self.stream = stream
         # Setup sizers
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -719,7 +716,8 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         Parameters
         ----------
         state : bool
-            Active state to set, True for active or False for inactive. Default is `True`.
+            Active state to set, True for active or False for inactive. Default
+            is `True`.
 
         """
         # Mark as pending
@@ -780,6 +778,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
                 "psychopy-...",
                 name="..."
             )
+
         self._info = value
         # Set icon
         icon = value.icon
@@ -788,11 +787,8 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         if isinstance(icon, pil.Image):
             # Resize to fit ctrl
             icon = icon.resize(size=self.iconSize)
-            # Supply an alpha channel if there is one
-            if "A" in icon.getbands():
-                alpha = icon.tobytes("raw", "A")
-            else:
-                alpha = None
+            # Supply an alpha channel
+            alpha = icon.tobytes("raw", "A")
             icon = wx.Bitmap.FromBufferAndAlpha(
                 width=icon.size[0],
                 height=icon.size[1],
@@ -899,10 +895,6 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
             # Resize to fit ctrl
             icon = icon.resize(size=self.avatarSize)
             # Supply an alpha channel
-            if "A" not in icon.getbands():
-                # Make sure there's an alpha channel to supply
-                alpha = pil.new("L", icon.size, 255)
-                icon.putalpha(alpha)
             alpha = icon.tobytes("raw", "A")
 
             icon = wx.Bitmap.FromBufferAndAlpha(
