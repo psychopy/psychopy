@@ -582,6 +582,37 @@ class AudioClip:
         self._sampleRateHz = int(value)
         # recompute duration after updating sample rate
         self._duration = len(self._samples) / float(self._sampleRateHz)
+    
+    def resample(self, targetSampleRateHz, resampleType='soxr_hq', 
+                 equalEnergy=False):
+        """Resample audio to another sample rate.
+
+        Parameters
+        ----------
+        targetSampleRateHz : int
+            New sample rate.
+        resampleType : str or None
+            Method to use for resampling. 
+        equalEnergy : bool
+            Make the output have similar energy to the input.
+
+        Notes
+        -----
+        * Resampling audio clip may result in distortion which is exaserbated by 
+          successive resamplings.
+
+        """
+        import librosa
+
+        self.samples = librosa.resample(
+            self.samples, 
+            self._sampleRateHz, 
+            targetSampleRateHz,
+            res_type=resampleType,
+            scale=equalEnergy, 
+            axis=0)
+
+        self.sampleRateHz = targetSampleRateHz  # update
 
     @property
     def duration(self):
