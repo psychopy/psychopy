@@ -15,7 +15,7 @@ The code that writes out a *_lastrun.py experiment file is (in order):
         which will call the .writeBody() methods from each component
     settings.SettingsComponent.writeEndCode()
 """
-
+import collections
 import os
 import codecs
 import xml.etree.ElementTree as xml
@@ -110,7 +110,7 @@ class Experiment:
         self.name = ''
         self.filename = ''  # update during load/save xml
         self.flow = Flow(exp=self)  # every exp has exactly one flow
-        self.routines = {}
+        self.routines = collections.OrderedDict()
         # get prefs (from app if poss or from cfg files)
         if prefs is None:
             prefs = psychopy.prefs
@@ -265,13 +265,11 @@ class Experiment:
             for entry in self_copy.flow:
                 # NB each entry is a routine or LoopInitiator/Terminator
                 self_copy._currentRoutine = entry
-                if hasattr(entry, 'writeRunOnceInitCode'):
-                    entry.writeRunOnceInitCode(script)
                 if hasattr(entry, 'writePreCode'):
                     entry.writePreCode(script)
 
             # present info
-            self_copy.settings.writeExpInfoCode(script)
+            self_copy.settings.writeExpInfoDlgCode(script)
             # setup data and saving
             self_copy.settings.writeDataCode(script)
             # make logfile
@@ -280,6 +278,8 @@ class Experiment:
             self_copy.settings.writeWindowCode(script)  # create our visual.Window()
             # setup inputs
             self_copy.settings.writeIohubCode(script)
+            # pause experiment
+            self_copy.settings.writePauseCode(script)
             # write the bulk of the experiment code
             self_copy.flow.writeBody(script)
             # save data
@@ -293,7 +293,13 @@ class Experiment:
                 "# if running this experiment as a script...\n"
                 "if __name__ == '__main__':\n"
                 "    # call all functions in order\n"
-                "    expInfo = setupExpInfo()\n"
+            )
+            if self_copy.settings.params['Show info dlg'].val:
+                # Only show exp info dlg if indicated to by settings
+                code += (
+                "    expInfo = showExpInfoDlg(expInfo=expInfo)\n"
+                )
+            code += (
                 "    thisExp = setupData(expInfo=expInfo)\n"
                 "    logFile = setupLogging(filename=thisExp.dataFileName)\n"
                 "    win = setupWindow(expInfo=expInfo)\n"
