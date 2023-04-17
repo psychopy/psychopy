@@ -1663,15 +1663,18 @@ class DraggingMixin:
         If this stimulus is draggable, do the necessary actions on a frame
         flip to drag it.
         """
-        # If not draggable, do nothing
+        # if not draggable, do nothing
         if not self.draggable:
             return
+        # if just clicked on, start dragging
+        self.isDragging = self.isDragging or self.mouse.isPressedIn(self, buttons=[0])
+        # if click is released, stop dragging
+        self.isDragging = self.isDragging and self.mouse.getPressed()[0]
         # get relative mouse pos
         rel = self.mouse.getRel()
-        # if clicked on, drag self
-        if self.mouse.isPressedIn(self, buttons=[0]):
-            # mark self as being dragged
-            self.isDragging = True
+
+        # if dragging, do necessary updates
+        if self.isDragging:
             # get own pos in win units
             pos = getattr(self._pos, self.win.units)
             # add mouse movement to pos
