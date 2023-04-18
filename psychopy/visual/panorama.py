@@ -167,7 +167,7 @@ class PanoramicImageStim(ImageStim):
         """
         self.elevation = value
 
-    def setAltitude(self, value, operation='', log=False):
+    def setElevation(self, value, operation='', log=False):
         setAttribute(self, "elevation", value, operation=operation, log=log)
 
     def setLatitude(self, value, operation='', log=False):

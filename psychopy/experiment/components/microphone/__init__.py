@@ -49,6 +49,7 @@ onlineTranscribers = {
 }
 localTranscribers = {
     "Google": "google",
+    "Whisper": "whisper", 
     "Built-in": "sphinx"
 }
 allTranscribers = {**localTranscribers, **onlineTranscribers}
@@ -69,7 +70,7 @@ class MicrophoneComponent(BaseComponent):
                  channels='auto', device=None,
                  sampleRate='DVD Audio (48kHz)', maxSize=24000,
                  outputType='default', speakTimes=True, trimSilent=False,
-                 transcribe=False, transcribeBackend="Google", transcribeLang="en-US", transcribeWords="",
+                 transcribe=False, transcribeBackend="Whisper", transcribeLang="en-US", transcribeWords="",
                  #legacy
                  stereo=None, channel=None):
         super(MicrophoneComponent, self).__init__(
