@@ -2186,7 +2186,7 @@ dependencies = [
 
 [[package]]
 name = "setuptools"
-version = "67.6.1"
+version = "66.1.1"
 requires_python = ">=3.7"
 summary = "Easily download, build, install, upgrade, and uninstall Python packages"
 
@@ -2312,8 +2312,9 @@ requires_python = ">=3.7"
 summary = "Backport of pathlib-compatible object wrapper for zip files"
 
 [metadata]
-lock_version = "4.1"
-content_hash = "sha256:eeae384bf95aca4f6fb950bfb442d1234f962fc60e2d35f80c9ee39d1b5eaf1f"
+lock_version = "4.2"
+groups = ["default", "egi", "legacy", "tests"]
+content_hash = "sha256:044608f5fd4010daadd369552f66d9d3a746a5f95ab893afc6d579c2c2a51705"
 
 [metadata.files]
 "arabic-reshaper 3.0.0" = [
@@ -4289,9 +4290,9 @@ content_hash = "sha256:eeae384bf95aca4f6fb950bfb442d1234f962fc60e2d35f80c9ee39d1
     {url = "https://files.pythonhosted.org/packages/ea/e5/452086ebed676ce4000ceb5eeeb0ee4f8c6f67c7e70fb9323a370ff95c1f/scipy-1.10.1-cp310-cp310-macosx_12_0_arm64.whl", hash = "sha256:4b3f429188c66603a1a5c549fb414e4d3bdc2a24792e061ffbd607d3d75fd84e"},
     {url = "https://files.pythonhosted.org/packages/ec/e3/b06ac3738bf365e89710205a471abe7dceec672a51c244b469bc5d1291c7/scipy-1.10.1-cp310-cp310-win_amd64.whl", hash = "sha256:fae8a7b898c42dffe3f7361c40d5952b6bf32d10c4569098d276b4c547905ee1"},
 ]
-"setuptools 67.6.1" = [
-    {url = "https://files.pythonhosted.org/packages/0b/fc/8781442def77b0aa22f63f266d4dadd486ebc0c5371d6290caf4320da4b7/setuptools-67.6.1-py3-none-any.whl", hash = "sha256:e728ca814a823bf7bf60162daf9db95b93d532948c4c0bea762ce62f60189078"},
-    {url = "https://files.pythonhosted.org/packages/cb/46/22ec35f286a77e6b94adf81b4f0d59f402ed981d4251df0ba7b992299146/setuptools-67.6.1.tar.gz", hash = "sha256:257de92a9d50a60b8e22abfcbb771571fde0dbf3ec234463212027a4eeecbe9a"},
+"setuptools 66.1.1" = [
+    {url = "https://files.pythonhosted.org/packages/3c/7b/00030a938499c8f8345be02ab5b7d748d359ea59c2f020b7b0a21b82f832/setuptools-66.1.1.tar.gz", hash = "sha256:ac4008d396bc9cd983ea483cb7139c0240a07bbc74ffb6232fceffedc6cf03a8"},
+    {url = "https://files.pythonhosted.org/packages/c2/8b/abb577ca6ab2c71814d535b1ed1464c5f4aaefe1a31bbeb85013eb9b2401/setuptools-66.1.1-py3-none-any.whl", hash = "sha256:6f590d76b713d5de4e49fe4fbca24474469f53c83632d5d0fd056f7ff7e8112b"},
 ]
 "six 1.16.0" = [
     {url = "https://files.pythonhosted.org/packages/71/39/171f1c67cd00715f190ba0b100d606d440a28c93c7714febeca8b79af85e/six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
@@ -4333,11 +4334,6 @@ content_hash = "sha256:eeae384bf95aca4f6fb950bfb442d1234f962fc60e2d35f80c9ee39d1
     {url = "https://files.pythonhosted.org/packages/bc/42/07b37c0c64a13f005bfe95c8eec5f454fc8dd2caf85fa28add5b2a35b7ab/tables-3.8.0.tar.gz", hash = "sha256:34f3fa2366ce20b18f1df573a77c1d27306ce1f2a41d9f9eff621b5192ea8788"},
     {url = "https://files.pythonhosted.org/packages/c0/f3/9c5364f75647994ed735cda631e16ca4192fc0793ea5c7f4b4a67b9d0841/tables-3.8.0-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:e19686fad4e8f5a91c3dc1eb4b7ea928838e86fefa474c63c5787a125ea79fc7"},
     {url = "https://files.pythonhosted.org/packages/d7/30/eeae6e666fc70bf8a4d5a71472f6687c1e7346d23e75f5358028fe1db916/tables-3.8.0-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:239f15fa9881c257b5c0d9fb4cb8832778af1c5c8c1db6f6722466f8f26541e2"},
-]
-"tobii-research 1.11.0" = [
-    {url = "https://files.pythonhosted.org/packages/68/f4/c3b835276aee32cff4834a46cf30225c743ca9783d57d49e82d1ae6142f4/tobii_research-1.11.0-cp310-cp310-macosx_10_15_x86_64.whl", hash = "sha256:a6021453dfb914a2c429db33cd5b2d2642451236f2497b86e7d04c83dddc73da"},
-    {url = "https://files.pythonhosted.org/packages/87/a8/40ed29ad8dec5767fcd82bd64f8d395a64def0a0a855ad6f55c1a2f1399b/tobii_research-1.11.0-cp310-cp310-manylinux2014_x86_64.whl", hash = "sha256:0ab6fc0856b176db063351f55bc3ca1e03ac2b328028470917291584666fcc76"},
-    {url = "https://files.pythonhosted.org/packages/cd/8f/eca647c6642a3696de5dc30ed9940f9fdca8f7e6f91cfbf574f14317516e/tobii_research-1.11.0-cp310-cp310-win_amd64.whl", hash = "sha256:7dab9e2c55196c4a0fcce778d53b424776c181a9c8d659fb8e77e8eae3cfbf64"},
 ]
 "tomli 2.0.1" = [
     {url = "https://files.pythonhosted.org/packages/97/75/10a9ebee3fd790d20926a90a2547f0bf78f371b2f13aa822c759680ca7b9/tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
