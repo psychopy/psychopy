@@ -38,6 +38,7 @@ dependencies = [
     "imageio-ffmpeg",
     "psychtoolbox",
     # for iohub
+    "pywinhook; platform_system == \"Windows\"",
     "psutil",
     "tables",
     "pyzmq",
