@@ -79,6 +79,7 @@ dependencies = [
     "pyyaml>=6.0",
     "pypi-search>=1.2.1",
     "openpyxl>=3.1.2",
+    "setuptools<=66.1.1",
 ]
 
 [project.optional-dependencies]  # This is optional dependencies
