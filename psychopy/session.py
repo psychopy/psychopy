@@ -91,6 +91,8 @@ class Session:
         self.liaison = liaison
         # Start off with no current experiment
         self.currentExperiment = None
+        # Start off idle
+        self._idle = True
 
     def addExperiment(self, file, key=None, folder=None):
         """
@@ -314,6 +316,26 @@ class Session:
 
         return True
 
+    def startIdle(self):
+        """
+        While nothing is happening, continuously execute a loop for basic housekeeping
+        actions until something actually happens.
+
+        This should only be called from a liaison client - otherwise it will block
+        execution.
+        """
+        # Run a loop until told not to
+        while self._idle:
+            # Flip the window if there is one
+            if self.win is not None:
+                self.win.flip()
+
+    def endIdle(self):
+        """
+        Mark self as no longer idle - ending any idle loops.
+        """
+        self._idle = False
+
     def runExperiment(self, key, expInfo=None):
         """
         Run the `setupData` and `run` methods from one of this Session's experiments.
@@ -347,6 +369,8 @@ class Session:
         self.experiments[key].run.__globals__['logFile'] = self.logFile
         # Setup inputs
         self.setupInputsFromExperiment(key, expInfo=expInfo)
+        # We're about to do something, so mark as no longer idle
+        self.endIdle()
         # Run this experiment
         self.experiments[key].run(
             expInfo=expInfo,
