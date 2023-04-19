@@ -34,6 +34,10 @@ namesJS = {
     'core.Clock': 'util.Clock',
 }
 
+attrsJS = {
+    ('colors', 'Color'): ("util", "Color"),
+    ('os', 'sep'): "/",
+}
 
 class psychoJSTransformer(ast.NodeTransformer):
     """PsychoJS-specific AST transformer
@@ -95,12 +99,22 @@ class psychoJSTransformer(ast.NodeTransformer):
         node.value = psychoJSTransformer().visit(node.value)
 
         if isinstance(node.value, ast.Name):
-            # os.sep --> '/'
-            if node.value.id == 'os' and node.attr == 'sep':
-                return ast.Constant(
-                    value='/',
-                    kind=None
-                )
+            # If node value is in attrsJS, substitute it
+            if (node.value.id, node.attr) in attrsJS:
+                value = attrsJS[(node.value.id, node.attr)]
+                # If value is a tuple, use values to make new ast.Attribute
+                if isinstance(value, tuple):
+                    return ast.Attribute(
+                        value=ast.Name(id=value[0], ctx=node.value.ctx),
+                        attr=value[1],
+                        ctx=node.ctx
+                    )
+                # If value is a string, use to make an ast.Constant
+                if isinstance(value, str):
+                    return ast.Constant(
+                        value='/',
+                        kind=None
+                    )
 
         # return the node by default:
         return node

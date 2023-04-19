@@ -762,13 +762,13 @@ class BaseComponent:
         elif target == 'PsychoJS':
             # write the line
             if paramName == 'color':
-                buff.writeIndented(f"{compName}.setColor(new util.Color({params['color']})")
+                buff.writeIndented(f"{compName}.setColor({params['color']}")
                 buff.write(f"{loggingStr}){endStr}\n")
             elif paramName == 'fillColor':
-                buff.writeIndented(f"{compName}.setFillColor(new util.Color({params['fillColor']})")
+                buff.writeIndented(f"{compName}.setFillColor({params['fillColor']}")
                 buff.write(f"{loggingStr}){endStr}\n")
             elif paramName == 'lineColor':
-                buff.writeIndented(f"{compName}.setLineColor(new util.Color({params['lineColor']})")
+                buff.writeIndented(f"{compName}.setLineColor({params['lineColor']}")
                 buff.write(f"{loggingStr}){endStr}\n")
             elif paramName == 'sound':
                 stopVal = params['stopVal']

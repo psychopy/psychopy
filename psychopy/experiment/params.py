@@ -246,6 +246,8 @@ class Param():
             _, val = self.dollarSyntax()
             if self.codeWanted:
                 # Handle code
+                if utils.scriptTarget == "PsychoJS":
+                    val = py2js.expression2js(val)
                 return val
             elif "," in val:
                 # Handle lists (e.g. RGB, HSV, etc.)
