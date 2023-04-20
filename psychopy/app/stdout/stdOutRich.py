@@ -215,7 +215,7 @@ class ScriptOutputPanel(wx.Panel, handlers.ThemeMixin):
             self.borderBox = wx.BoxSizer(wx.VERTICAL)
             self.SetSizer(self.borderBox)
             self.sizer = wx.BoxSizer(wx.VERTICAL)
-            self.borderBox.Add(self.sizer, border=3, flag=wx.ALL)
+            self.borderBox.Add(self.sizer, border=6, flag=wx.ALL)
 
             # Clear button
             self.clrBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
@@ -225,7 +225,7 @@ class ScriptOutputPanel(wx.Panel, handlers.ThemeMixin):
             self.clrBtn.SetBitmap(
                 icons.ButtonIcon(stem="clear", size=16).bitmap
             )
-            self.sizer.Add(self.clrBtn, border=3, flag=wx.ALL)
+            self.sizer.Add(self.clrBtn, border=6, flag=wx.BOTTOM)
             self.clrBtn.Bind(wx.EVT_BUTTON, self.parent.ctrl.clear)
 
             self.Layout()
@@ -260,13 +260,21 @@ class ScriptOutputPanel(wx.Panel, handlers.ThemeMixin):
                                      fontSize=fontSize)
         self.sizer.Add(self.ctrl, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
 
+        # Sep
+        self.sep = wx.Window(self, size=(1, -1))
+        self.sizer.Prepend(self.sep, border=12, flag=wx.EXPAND | wx.TOP | wx.BOTTOM)
+
         # Toolbar
         self.toolbar = self.OutputToolbar(self)
-        self.sizer.Prepend(self.toolbar, flag=wx.EXPAND)
+        self.sizer.Prepend(self.toolbar, border=6, flag=wx.EXPAND | wx.TOP | wx.BOTTOM)
 
     def _applyAppTheme(self):
         # Set background
         self.SetBackgroundColour(colors.app['tab_bg'])
+        self.Refresh()
+        self.Update()
+        # Match line
+        self.sep.SetBackgroundColour(colors.app['panel_bg'])
         self.Refresh()
         self.Update()
 
