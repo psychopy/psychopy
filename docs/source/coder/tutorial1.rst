@@ -24,6 +24,7 @@ Building stimuli is extremely easy. All you need to do is create a
     :linenos:
 
     from psychopy import visual, core  # import some libraries from PsychoPy
+    from psychopy.hardware import keyboard
 
     #create a window
     mywin = visual.Window([800,600], monitor="testMonitor", units="deg")
@@ -31,6 +32,9 @@ Building stimuli is extremely easy. All you need to do is create a
     #create some stimuli
     grating = visual.GratingStim(win=mywin, mask="circle", size=3, pos=[-4,0], sf=3)
     fixation = visual.GratingStim(win=mywin, size=0.5, pos=[0,0], sf=0, rgb=-1)
+
+    #create a keyboard component
+    kb = keyboard.Keyboard()
 
     #draw the stimuli and update the window
     grating.draw()
@@ -63,12 +67,12 @@ That ran for 200 frames (and then waited 5 seconds as well). Maybe it would be n
 with the line:
 
 .. literalinclude:: tutorial1.py
-   :lines: 11
+   :lines: 15
 
 Then, within the loop (make sure it has the same indentation as the other lines) add the lines:
 
 .. literalinclude:: tutorial1.py
-   :lines: 17-19
+   :lines: 21-23
 
 the first line counts how many keys have been pressed since the last frame. If more than zero are found then we break out of the never-ending loop. The second line clears the event buffer and should always be called after you've collected the events you want (otherwise it gets full of events that we don't care about like the mouse moving around etc...).
 

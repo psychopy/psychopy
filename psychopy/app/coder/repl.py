@@ -173,7 +173,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         #     self.txtTerm.OSXDisableAllSmartSubstitutions()
         #     self.txtTerm.MacCheckSpelling(False)
 
-        self.txtTerm.WriteText("Hit [Return] to start a Python session.")
+        self.txtTerm.WriteText(_translate("Hit [Return] to start a Python session."))
         self._lastTextPos = self.txtTerm.GetLastPosition()
 
         # Setup fonts and margins
@@ -193,7 +193,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         self._stdin_buffer = []
 
         self.txtTerm.Clear()
-        self.txtTerm.WriteText("Hit [Return] to start a Python shell.")
+        self.txtTerm.WriteText(_translate("Hit [Return] to start a Python shell."))
         self._lastTextPos = self.txtTerm.GetLastPosition()
         self.setFonts()
         self.toolbar.update()

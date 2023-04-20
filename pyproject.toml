@@ -1,0 +1,125 @@
+[tool.pdm]
+
+[project]
+name = "psychopy"
+version = "2023.1.1"
+requires-python = ">=3.8, <3.11"
+description = "PsychoPy provides easy, precise, flexible experiments in behavioural sciences"
+readme ={file = "README.md", content-type = "text/markdown"}
+authors = [
+    {name = "Open Science Tools Ltd", email = "support@opensciencetools.org"},
+]
+maintainers = [
+    {name = "Open Science Tools Ltd", email = "support@opensciencetools.org"},
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10", ]
+    
+dependencies = [
+    "scipy>=1.10.1",
+    "numpy<1.24",
+    "matplotlib>=3.7.1",
+    "pyglet == 1.4.11; platform_system == \"Windows\"",
+    "pyglet == 1.5.27; platform_system != \"Windows\"",
+    "pillow>=9.4.0",
+    "pyqt5",
+    "pandas>=1.5.3",
+    "questplus>=2023.1",
+    # for core stimuli
+    "soundfile>=0.12.1",
+    "imageio >= 2.5",
+    "imageio-ffmpeg",
+    "psychtoolbox",
+    # for iohub
+    "pywinhook; platform_system == \"Windows\"",
+    "psutil",
+    "tables",
+    "pyzmq",
+    "ujson",
+    "msgpack-numpy>=0.4.8",
+    # for text formatting
+    "freetype-py",
+    "python-bidi>=0.4.2",
+    "arabic-reshaper>=3.0.0",
+    "javascripthon>=0.12",
+    "websocket_client",  # new in 2023.2 for session.py
+    # for the app
+    "wxPython >= 4.1.1",
+    "markdown-it-py",
+    "requests>=2.28.2",
+    "future>=0.18.3",  # to support legacy versions in useVersion
+    # pavlovia connections
+    "python-gitlab",
+    "gitpython",
+    "cryptography>=39.0.2",  # for sshkeys
+    # psychoJS conversions
+    "astunparse",
+    "esprima",
+    "jedi >= 0.16",
+    # hardware
+    "pyserial",
+    "pyparallel; platform_system != \"Darwin\"",
+    # movie backends
+    "ffpyplayer",
+    "opencv-python",
+    # platform specific
+    "python-vlc == 3.0.11115; platform_system == \"Windows\"",
+    "python-vlc >= 3.0.12118; platform_system != \"Windows\"",
+    "pypiwin32; platform_system == \"Windows\"",
+    "pyobjc-core < 8.0; platform_system == \"Darwin\"",
+    "pyobjc-framework-Quartz < 8.0; platform_system == \"Darwin\"",
+    "pyobjc < 8.0; platform_system == \"Darwin\"",
+    "python-xlib; platform_system == \"Linux\"",
+    "pyyaml>=6.0",
+    "pypi-search>=1.2.1",
+    "openpyxl>=3.1.2",
+    "setuptools<=66.1.1",
+]
+
+[project.optional-dependencies]  # This is optional dependencies
+egi = ["egi-pynetstation"]
+legacy = ["moviepy", "pygame"]
+tests = [
+    "pytest",
+    "pytest-codecov",
+    "pytest-cov",
+    "flake8",
+    "xmlschema",
+]
+
+[project.urls]
+Homepage = "https://www.psychopy.org/"
+Download = "https://github.com/psychopy/psychopy/releases/"
+
+[project.gui-scripts]
+psychopy = "psychopy.app.psychopyApp:main"
+
+[build-system]
+requires = [
+    "pdm-backend",
+    "distro; platform_system == \"Linux\"",
+    ]
+build-backend = "pdm.backend"
+
+[tool.pdm.build]
+includes = []
+excludes = ["building/"]
+#source-includes = ["tests/"]
+
+[[tool.pdm.source]]
+url = "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04/"
+name = "wxpython_wheels"
+type = "find_links"
+
+[tool.distutils.bdist_wheel]
+universal = 1
+
+[tool.psychopy]
+src = ["psychopy"]

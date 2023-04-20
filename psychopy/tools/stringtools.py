@@ -50,7 +50,11 @@ def is_file(source):
     except ValueError:
         return False
     # If creates successfully, return True if is_file
-    return path.is_file()
+    try:
+        isFile = path.is_file()
+    except OSError:
+        isFile = False
+    return isFile
 
 
 def makeValidVarName(name, case="camel"):
