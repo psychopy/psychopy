@@ -10,7 +10,7 @@
 import sys
 import wx
 import wx.richtext
-from psychopy.app.themes import handlers, colors, icons
+from psychopy.app.themes import handlers, colors, icons, fonts
 from psychopy.localization import _translate
 import os
 
@@ -102,10 +102,10 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
 
         def _applyAppTheme(self):
             # Set background
-            self.SetBackgroundColour(colors.app['tab_bg'])
+            self.SetBackgroundColour(fonts.coderTheme.base.backColor)
             # Style buttons
             for btn in (self.startBtn, self.stopBtn, self.clrBtn, self.restartBtn):
-                btn.SetBackgroundColour(colors.app['tab_bg'])
+                btn.SetBackgroundColour(fonts.coderTheme.base.backColor)
             self.Refresh()
             self.Update()
 
@@ -488,11 +488,11 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
 
     def _applyAppTheme(self):
         # Set background
-        self.SetBackgroundColour(colors.app['tab_bg'])
+        self.SetBackgroundColour(fonts.coderTheme.base.backColor)
         self.Refresh()
         self.Update()
         # Match line
-        self.sep.SetBackgroundColour(colors.app['panel_bg'])
+        self.sep.SetBackgroundColour(fonts.coderTheme.margin.backColor)
         self.Refresh()
         self.Update()
 

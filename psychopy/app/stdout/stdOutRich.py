@@ -25,7 +25,7 @@ import wx
 import wx.richtext
 import webbrowser
 from psychopy.localization import _translate
-from psychopy.app.themes import handlers, icons, colors
+from psychopy.app.themes import handlers, icons, colors, fonts
 
 _prefEncoding = locale.getpreferredencoding()
 
@@ -233,10 +233,10 @@ class ScriptOutputPanel(wx.Panel, handlers.ThemeMixin):
 
         def _applyAppTheme(self):
             # Set background
-            self.SetBackgroundColour(colors.app['tab_bg'])
+            self.SetBackgroundColour(fonts.coderTheme.base.backColor)
             # Style buttons
             for btn in (self.clrBtn,):
-                btn.SetBackgroundColour(colors.app['tab_bg'])
+                btn.SetBackgroundColour(fonts.coderTheme.base.backColor)
             self.Refresh()
             self.Update()
 
@@ -270,11 +270,11 @@ class ScriptOutputPanel(wx.Panel, handlers.ThemeMixin):
 
     def _applyAppTheme(self):
         # Set background
-        self.SetBackgroundColour(colors.app['tab_bg'])
+        self.SetBackgroundColour(fonts.coderTheme.base.backColor)
         self.Refresh()
         self.Update()
         # Match line
-        self.sep.SetBackgroundColour(colors.app['panel_bg'])
+        self.sep.SetBackgroundColour(fonts.coderTheme.margin.backColor)
         self.Refresh()
         self.Update()
 
