@@ -85,6 +85,10 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
                 self.addTask(fileName=filePath)
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
+        # hide alerts to begin with, more room for std while also making alerts more noticeable
+        self.panel.alertsToggleBtn.ToggleMenu(False)
+        self.Layout()
+
         self.theme = app.theme
 
     @property
@@ -691,10 +695,11 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.alertsToggleBtn.SetBitmapMargins(x=6, y=0)
         # Apply app theme on objects in non-theme-mixin panels
         for obj in (
-                self.alertsCtrl, self.alertsToggleBtn,
-                self.stdoutCtrl, self.stdoutToggleBtn,
+                self.alertsPnl, self.alertsToggleBtn,
+                self.stdoutPnl, self.stdoutToggleBtn,
                 self.expCtrl, self.toolbar
         ):
+            obj.theme = self.theme
             if hasattr(obj, "_applyAppTheme"):
                 obj._applyAppTheme()
             else:
