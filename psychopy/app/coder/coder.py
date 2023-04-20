@@ -31,7 +31,8 @@ import time
 import textwrap
 import codecs
 
-from .. import stdOutRich, dialogs
+from .. import dialogs
+from ..stdout import stdOutRich
 from .. import pavlovia_ui
 from psychopy import logging, prefs
 from psychopy.alerts._alerts import alert
@@ -41,14 +42,13 @@ from ..ui import BaseAuiFrame
 from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
 import psychopy.app.plugin_manager.dialog
-from psychopy.app.console import StdStreamDispatcher
 from psychopy.app.errorDlg import exceptionCallback
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 from psychopy.app.coder.fileBrowser import FileBrowserPanel
 from psychopy.app.coder.sourceTree import SourceTreePanel
 from psychopy.app.themes import handlers, colors
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
-from psychopy.app.coder.scriptOutput import ScriptOutputPanel
+from psychopy.app.stdout.stdOutRich import ScriptOutputPanel
 from psychopy.app.coder.repl import PythonREPLCtrl
 # from ..plugin_manager import PluginManagerFrame
 

@@ -8,12 +8,11 @@ import glob
 import json
 import errno
 
+from ..stdout.stdOutRich import ScriptOutputPanel
 from ..themes import handlers, colors, icons
 from ..themes.ui import ThemeSwitcher
 
 import wx
-from wx.lib import platebtn
-import wx.lib.agw.aui as aui  # some versions of phoenix
 import os
 import sys
 import time
@@ -23,10 +22,9 @@ import webbrowser
 from pathlib import Path
 from subprocess import Popen, PIPE
 
-from psychopy import experiment, prefs
-from psychopy.app.utils import BasePsychopyToolbar, FrameSwitcher, FileDropTarget
+from psychopy import experiment
+from psychopy.app.utils import FrameSwitcher, FileDropTarget
 from psychopy.localization import _translate
-from psychopy.app.stdOutRich import StdOutRich
 from psychopy.projects.pavlovia import getProject
 from psychopy.scripts.psyexpCompile import generateScript
 from psychopy.app.runner.scriptProcess import ScriptProcess
@@ -640,24 +638,24 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
         # Alerts
         self._selectedHiddenAlerts = False  # has user manually hidden alerts?
-        self.alertsCtrl = StdOutText(parent=self.bottomPanel,
-                                     app=self.app,
-                                     style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE)
-        self.alertsCtrl.SetMinSize((-1, 150))
-        self.alertsToggleBtn = self.SizerButton(self.bottomPanel, _translate("Alerts"), self.alertsCtrl)
-        self.setAlertsVisible(True)
+        self.alertsPnl = ScriptOutputPanel(parent=self.bottomPanel,
+                                           style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE)
+        self.alertsPnl.SetMinSize((-1, 150))
+        self.alertsToggleBtn = self.SizerButton(self.bottomPanel, _translate("Alerts"), self.alertsPnl)
         self.bottomPanel.sizer.Add(self.alertsToggleBtn, 0, wx.TOP | wx.EXPAND, 10)
-        self.bottomPanel.sizer.Add(self.alertsCtrl, proportion=1, border=10, flag=wx.EXPAND | wx.ALL)
+        self.bottomPanel.sizer.Add(self.alertsPnl, proportion=1, border=10, flag=wx.EXPAND | wx.ALL)
+        self.alertsCtrl = self.alertsPnl.ctrl
+        self.setAlertsVisible(True)
 
         # StdOut
-        self.stdoutCtrl = StdOutText(parent=self.bottomPanel,
-                                     app=self.app,
+        self.stdoutPnl = ScriptOutputPanel(parent=self.bottomPanel,
                                      style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE)
-        self.stdoutCtrl.SetMinSize((-1, 150))
-        self.stdoutToggleBtn = self.SizerButton(self.bottomPanel, _translate("Stdout"), self.stdoutCtrl)
-        self.setStdoutVisible(True)
+        self.stdoutPnl.SetMinSize((-1, 150))
+        self.stdoutToggleBtn = self.SizerButton(self.bottomPanel, _translate("Stdout"), self.stdoutPnl)
         self.bottomPanel.sizer.Add(self.stdoutToggleBtn, proportion=0, border=10, flag=wx.TOP | wx.EXPAND)
-        self.bottomPanel.sizer.Add(self.stdoutCtrl, proportion=1, border=10, flag=wx.EXPAND | wx.ALL)
+        self.bottomPanel.sizer.Add(self.stdoutPnl, proportion=1, border=10, flag=wx.EXPAND | wx.ALL)
+        self.stdoutCtrl = self.stdoutPnl.ctrl
+        self.setStdoutVisible(True)
 
         # Assign to splitter
         self.splitter.SplitHorizontally(
@@ -1053,32 +1051,3 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
     @currentProject.setter
     def currentProject(self, project):
         self._currentProject = None
-
-
-class StdOutText(StdOutRich, handlers.ThemeMixin):
-    """StdOutRich subclass which also handles Git messages from Pavlovia projects."""
-
-    def __init__(self, parent=None, app=None, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE, size=wx.DefaultSize):
-        StdOutRich.__init__(self, parent=parent, app=app, style=style, size=size)
-        self.prefs = prefs
-        self.paths = prefs.paths
-        self._applyAppTheme()
-
-    def getText(self):
-        """Get and return the text of the current buffer."""
-        return self.GetValue()
-
-    def setStatus(self, status):
-        self.SetValue(status)
-        self.Refresh()
-        self.Layout()
-        wx.Yield()
-
-    def statusAppend(self, newText):
-        text = self.GetValue() + newText
-        self.setStatus(text)
-
-    def write(self, inStr, evt=False):
-        # Override default write behaviour to also update theme on each write
-        StdOutRich.write(self, inStr, evt)
-        self._applyAppTheme()
