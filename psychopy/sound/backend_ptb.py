@@ -332,12 +332,18 @@ class SoundPTB(_SoundBase):
         self.setSound(value, secs=self.secs, octave=self.octave,
                       hamming=self.hamming)
         self._isPlaying = False  # set `True` after `play()` is called
+        self._isFinished = False
         self.status = NOT_STARTED
 
     @property
     def isPlaying(self):
         """`True` if the audio playback is ongoing."""
         return self._isPlaying
+
+    @property
+    def isFinsihed(self):
+        """`True` if the audio playback has completed."""
+        return self._isFinished
 
     def _getDefaultSampleRate(self):
         """Check what streams are open and use one of these"""
@@ -585,10 +591,11 @@ class SoundPTB(_SoundBase):
         self._loopsFinished += 1
         if self.loops == 0:
             self.stop(reset=reset, log=False)
+            self._isFinished = True
         elif 0 < self.loops <= self._loopsFinished:
             self.stop(reset=reset, log=False)
+            # looping so we don't want to set as finished yet
 
-        self._isPlaying = False
         if log and self.autoLog:
             logging.exp(u"Sound %s reached end of file" % self.name, obj=self)
 
