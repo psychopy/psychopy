@@ -654,6 +654,19 @@ class Window():
         return s
 
     @attributeSetter
+    def title(self, value):
+        self.__dict__['title'] = value
+        if hasattr(self.winHandle, "set_caption"):
+            # Pyglet backend
+            self.winHandle.set_caption(value)
+        elif hasattr(self.winHandle, "SetWindowTitle"):
+            # GLFW backend
+            self.winHandle.SetWindowTitle(value)
+        else:
+            # Unknown backend
+            logging.warning(f"Cannot set Window title in backend {self.winType}")
+
+    @attributeSetter
     def units(self, value):
         """*None*, 'height' (of the window), 'norm', 'deg', 'cm', 'pix'
         Defines the default units of stimuli initialized in the window.
