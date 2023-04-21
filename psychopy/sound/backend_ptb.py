@@ -548,6 +548,7 @@ class SoundPTB(_SoundBase):
             logTime = None
         self.track.start(repetitions=loops, when=when)
         self._isPlaying = True
+        self._isFinished = False
         # time.sleep(0.)
         if log and self.autoLog:
             logging.exp(u"Sound %s started" % (self.name), obj=self, t=logTime)
@@ -594,7 +595,7 @@ class SoundPTB(_SoundBase):
             self._isFinished = True
         elif 0 < self.loops <= self._loopsFinished:
             self.stop(reset=reset, log=False)
-            # looping so we don't want to set as finished yet
+            self._isFinished = True
 
         if log and self.autoLog:
             logging.exp(u"Sound %s reached end of file" % self.name, obj=self)
