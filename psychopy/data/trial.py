@@ -763,7 +763,11 @@ class TrialHandler2(_BaseTrialHandler):
                  seed=None,
                  originPath=None,
                  name='',
-                 autoLog=True):
+                 autoLog=True,
+                 addThisN=True,
+                 addThisTrialN=True,
+                 addThisRepN=True,
+                 ):
         """
 
         :Parameters:
@@ -870,6 +874,9 @@ class TrialHandler2(_BaseTrialHandler):
         self.seed = seed
         self._rng = np.random.default_rng(seed=seed)
         self._trialAborted = False
+        self.addThisN = addThisN
+        self.addThisTrialN = addThisTrialN
+        self.addThisRepN = addThisRepN
 
         # store a list of dicts, convert to pandas DataFrame on access
         self._data = []
@@ -1008,9 +1015,12 @@ class TrialHandler2(_BaseTrialHandler):
 
         # update data structure with new info
         self._data.append(self.thisTrial)  # update the data list of dicts
-        self.addData('thisN', self.thisN)
-        self.addData('thisTrialN', self.thisTrialN)
-        self.addData('thisRepN', self.thisRepN)
+        if self.addThisN:
+            self.addData('thisN', self.thisN)
+        if self.addThisTrialN:
+            self.addData('thisTrialN', self.thisTrialN)
+        if self.addThisRepN:
+            self.addData('thisRepN', self.thisRepN)
         if self.autoLog:
             msg = 'New trial (rep=%i, index=%i): %s'
             vals = (self.thisRepN, self.thisTrialN, self.thisTrial)
