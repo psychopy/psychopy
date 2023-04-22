@@ -26,7 +26,7 @@ elif haveQt == 'PyQt5':
     from PyQt5 import QtGui
     from PyQt5.QtCore import Qt
 else:
-    from PyQt4 import QtGui  
+    from PyQt4 import QtGui
     QtWidgets = QtGui  # in qt4 these were all in one package
     from PyQt4.QtCore import Qt
 
@@ -430,6 +430,9 @@ class DlgFromDict(Dlg):
 
         # We allowed for snake_case parameters in previous releases. This needs
         # to end soon.
+
+
+ 
         if sort_keys:
             sortKeys = sort_keys
             logging.warning("Parameter 'sort_keys' is deprecated. "
@@ -496,6 +499,24 @@ class DlgFromDict(Dlg):
                     self.dictionary[thisKey] = self.inputFieldTypes[labelKey](self.data[n])
                 except ValueError:
                     self.dictionary[thisKey] = self.data[n]
+
+        def validate(self):
+            #required fields must not be empty
+            #iterate through dictionary which is expInfo to check that keys with * have input
+            counter = -1
+            for key in self.dictionary:
+                counter += 1 #starts at 0
+                if (key[-1] == '*'):
+                    inputString = self.inputField[counter].text() # get text from qleInput
+                if inputString == '':
+                    self.okbutton.setEnabled(False)
+                    textstring = "Fields marked with an asterisk (*) are required."
+                    msgBox = QMessageBox()
+                    msgBox.setText(textString)
+                    msgBox.exec_()
+                #all required fields are not empty so allow box to close
+                self.okbutton.setEnabled(True)
+        
 
 
 def fileSaveDlg(initFilePath="", initFileName="",
@@ -689,7 +710,7 @@ if __name__ == '__main__':
 
     # Test Dict Dialog
 
-    info = {'Observer': 'jwp', 'GratingOri': 45,
+    info = {'Observer*': 'jwp', 'GratingOri': 45,
             'ExpVersion': 1.1, 'Group': ['Test', 'Control']}
     dictDlg = DlgFromDict(dictionary=info, title='TestExperiment',
                           labels={'Group': 'Participant Group'},
@@ -728,3 +749,4 @@ if __name__ == '__main__':
     # win.flip()
     # from psychopy import event
     # event.waitKeys()
+
