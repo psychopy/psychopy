@@ -77,6 +77,46 @@ class TestExperimentHandler():
                 exp.addData('id', id)
                 exp.nextEntry()
 
+    def test_hideDuplicates(self):
+        exp = data.ExperimentHandler(
+            name='testExp',
+            version='0.1',
+            extraInfo={'participant': 'jwp', 'ori': 45},
+            runtimeInfo=None,
+            originPath=None,
+            savePickle=True,
+            saveWideText=True,
+            dataFileName=self.tmpDir + 'hideDups',
+            hideDuplicates=True
+        )
+
+        conds = data.createFactorialTrialList(
+            {'faceExpression': ['happy', 'sad'], 'presTime': [0.2, 0.3]}
+        )
+        training = data.TrialHandler(
+            trialList=conds, nReps=1, name='train',
+            method='random',
+            seed=self.random_seed)
+        exp.addLoop(training)
+
+        rng = np.random.RandomState(seed=self.random_seed)
+
+        for trial in training:
+            training.addData('training.rt', rng.rand() * 0.5 + 0.5)
+            if rng.rand() > 0.5:
+                training.addData('training.key', 'left')
+            else:
+                training.addData('training.key', 'right')
+            exp.nextEntry()
+
+        exp.saveAsWideText(exp.dataFileName)
+
+        with open(exp.dataFileName + '.tsv', encoding='utf-8-sig') as f:
+            header = f.readline().strip('\n')
+        headers = [name.strip() for name in header.split()]
+
+        assert 'train.thisTrialN' not in headers
+
     def test_addData_with_mutable_values(self):
         # add mutable objects to data, check that the value *at that time* is saved
         exp = data.ExperimentHandler(

@@ -38,7 +38,8 @@ class ExperimentHandler(_ComparisonMixin):
                  saveWideText=True,
                  dataFileName='',
                  autoLog=True,
-                 appendFiles=False):
+                 appendFiles=False,
+                 hideDuplicates=False):
         """
         :parameters:
 
@@ -73,6 +74,13 @@ class ExperimentHandler(_ComparisonMixin):
             saveWideText : True (default) or False
 
             autoLog : True (default) or False
+
+            hideDuplicates : True or False (default)
+                When saveWideText is called, will not output columns that 
+                contain duplicate information.
+                (e.g. if columns 'trials.thisN', 'trials.thisIndex', and 
+                'trials.thisRepN' all contain the same information, only
+                'trials.thisN' will be included in the output file)
         """
         self.loops = []
         self.loopsUnfinished = []
@@ -93,6 +101,7 @@ class ExperimentHandler(_ComparisonMixin):
         self.dataNames = []  # names of all the data (eg. resp.keys)
         self.autoLog = autoLog
         self.appendFiles = appendFiles
+        self.hideDuplicates = hideDuplicates
         self.status = constants.NOT_STARTED
 
         if dataFileName in ['', None]:
@@ -402,24 +411,60 @@ class ExperimentHandler(_ComparisonMixin):
         # sort names if requested
         if sortColumns:
             names.sort()
+        
+        data = self.getAllEntries()
+
+        # find which columns have duplicates and should not be output
+        ignoreCols = []
+        if self.hideDuplicates:
+            # divide by potential categories 
+            # (e.g. train.thisN, train.thisTrialN and stair.thisN, stair.thisTrialN)
+            categories = [name.split('.')[0] for name in names if name.endswith('.thisN')]
+            for category in categories:
+                # get the relevant columns of data
+                # (e.g. {'train.thisN': [0, 1, 2, 3]}, {'train.thisTrialN': [0, 1, 2, 3]})
+                categoryHeaders = [col for col in names if col.startswith(category+'.')]
+                categoryData = [d for d in data if all(key in d for key in categoryHeaders)]
+                categoryCols = [{col: [d[col] for d in categoryData]} for col in categoryHeaders]
+                # find the columns with identical values
+                values_dict = {}
+                for d in categoryCols:
+                    for k, v in d.items():
+                        if isinstance(v, list):
+                            values_dict.setdefault(str(v), []).append(k)
+                allIdenticalCols = []
+                for k, v in values_dict.items():
+                    if len(v) > 1:
+                        allIdenticalCols.append(v)
+                # ignore the ones who match the .thisN column
+                for identicalCols in allIdenticalCols:
+                    if any(name.endswith('.thisN') for name in identicalCols):
+                        ignoreCols.extend([name for name in identicalCols 
+                                           if not name.endswith('.thisN')])
+                    elif any(name.endswith('.thisIndex') for name in identicalCols):
+                        ignoreCols.extend([name for name in identicalCols 
+                                           if not name.endswith('.thisIndex')])
+
         # write a header line
         if not matrixOnly:
             for heading in names:
-                f.write(u'%s%s' % (heading, delim))
+                if heading not in ignoreCols:
+                    f.write(u'%s%s' % (heading, delim))
             f.write('\n')
 
         # write the data for each entry
-        for entry in self.getAllEntries():
+        for entry in data:
             for name in names:
-                if name in entry:
-                    ename = str(entry[name])
-                    if ',' in ename or '\n' in ename:
-                        fmt = u'"%s"%s'
+                if name not in ignoreCols:
+                    if name in entry:
+                        ename = str(entry[name])
+                        if ',' in ename or '\n' in ename:
+                            fmt = u'"%s"%s'
+                        else:
+                            fmt = u'%s%s'
+                        f.write(fmt % (entry[name], delim))
                     else:
-                        fmt = u'%s%s'
-                    f.write(fmt % (entry[name], delim))
-                else:
-                    f.write(delim)
+                        f.write(delim)
             f.write('\n')
         if f != sys.stdout:
             f.close()
