@@ -1,6 +1,7 @@
 from psychopy import session, visual
 from psychopy.hardware import keyboard
 from psychopy.tests import utils
+from psychopy.constants import STARTED, PAUSED, STOPPED
 from pathlib import Path
 import shutil
 
@@ -21,6 +22,7 @@ class TestSession:
             experiments={
                 'exp1': "exp1/exp1.psyexp",
                 'exp2': "exp2/exp2.psyexp",
+                'testCtrls': "testCtrls/testCtrls.psyexp"
             }
         )
 
@@ -40,3 +42,41 @@ class TestSession:
     def test_run_exp(self):
         self.sess.runExperiment("exp2")
         self.sess.runExperiment("exp1")
+
+    def test_ctrls(self):
+        """
+        Check that experiments check Session often enough for pause/resume commands sent asynchronously will still work.
+        """
+        # Create a dummy liaison server which simply toggles pause/resume every 3 calls
+        class DummyLiaison:
+            n = 0
+            session = None
+            log = []
+
+            def pingPong(self):
+                # Note that we've queried
+                self.n += 1
+                # Store experiment status in log
+                self.log.append(self.session.currentExperiment.status)
+                if self.n % 3 == 0 and self.n % 6 != 0:
+                    # After 3 queries, pause
+                    self.session.pauseExperiment()
+                elif self.n % 6 == 0:
+                    # After 3 queries paused, resume
+                    self.session.resumeExperiment()
+
+        # Assign to session
+        self.sess.liaison = DummyLiaison()
+        self.sess.liaison.session = self.sess
+        # Run experiment
+        self.sess.runExperiment("testCtrls")
+        assert self.sess.liaison.log == [
+            STARTED, STARTED, STARTED,
+            PAUSED, PAUSED, PAUSED,
+            STARTED, STARTED, STARTED,
+            PAUSED, PAUSED, PAUSED,
+            STARTED, STARTED, STARTED,
+            PAUSED, PAUSED, PAUSED,
+            STARTED, STARTED, STARTED,
+            PAUSED, PAUSED, PAUSED,
+        ], "Could not verify that experiment testCtrls was able to receive pause/resume commands while running."
