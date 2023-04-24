@@ -30,8 +30,8 @@ and then insert the following into the `Begin Routine` section (this will get ru
     
     if not key_resp.keys :
         msg="Failed to respond"
-    elif resp.corr:#stored on last run routine
-        msg="Correct! RT=%.3f" %(resp.rt)
+    elif key_resp.corr:#stored on last run routine
+        msg="Correct! RT=%.3f" %(key_resp.rt)
     else:
         msg="Oops! That was wrong"
   
@@ -47,7 +47,7 @@ In this case, to get all the keys pressed in a `numpy <http://www.numpy.org>`_ a
 If you used the 'Store Correct' feature of the Keyboard Component (and told psychopy what the correct answer was) you will also have a variable::
 
     #numpy array storing whether each response was correct (1) or not (0)
-    trials.data['resp.corr'] 
+    trials.data['key_resp.corr'] 
     
 So, to create your `msg`, insert the following into the 'start experiment` section of the :ref:`code`::
 
