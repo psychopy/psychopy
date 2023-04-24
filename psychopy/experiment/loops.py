@@ -198,14 +198,17 @@ class TrialHandler(_BaseLoopHandler):
         # handle pausing
         code = (
             "# pause experiment here if requested\n"
+            "if thisSession is not None:\n"
+            "    thisSession.poll()\n"
             "if thisExp.status == PAUSED:\n"
             "    pauseExperiment(\n"
             "        thisExp=thisExp, \n"
             "        inputs=inputs, \n"
             "        win=win, \n"
             "        timers=[routineTimer], \n"
-            "        playbackComponents=[]\n"
-            ")\n"
+            "        playbackComponents=[],\n"
+            "        thisSession=thisSession\n"
+            "    )\n"
         )
         buff.writeIndentedLines(code)
         # unclutter the namespace

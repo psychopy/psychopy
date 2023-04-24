@@ -366,6 +366,21 @@ class Session:
 
         return True
 
+    def poll(self):
+        """
+        Check liaison for any updates (such as pause/play/stop commands).
+
+        Returns
+        -------
+        bool or None
+            True if connected successfully, False if failed to connect, None if there is no liaison attached.
+        """
+        # Return None if there is no Liaison
+        if self.liaison is None:
+            return None
+        # Attempt to poll liaison for updates
+        self.liaison.pingPong()
+
     def pauseExperiment(self):
         """
         Pause the currently running experiment.

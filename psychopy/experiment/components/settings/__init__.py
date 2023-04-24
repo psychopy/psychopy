@@ -1647,7 +1647,7 @@ class SettingsComponent:
     def writePauseCode(self, buff):
         # Open function def
         code = (
-            'def pauseExperiment(thisExp, inputs=None, win=None, timers=[], playbackComponents=[]):\n'
+            'def pauseExperiment(thisExp, inputs=None, win=None, timers=[], playbackComponents=[], thisSession=None):\n'
             '    """\n'
             '    Pause this experiment, preventing the flow from advancing to the next routine until resumed.\n'
             '    \n'
@@ -1664,6 +1664,8 @@ class SettingsComponent:
             '        List of timers to reset once pausing is finished.\n'
             '    playbackComponents : list, tuple\n'
             '        List of any components with a `pause` method which need to be paused.\n'
+            '    thisSession : psychopy.session.Session or None\n'
+            '       Handle of the Session object this experiment is being run from, if any.\n'
             '    """'
         )
         buff.writeIndentedLines(code)
@@ -1695,6 +1697,9 @@ class SettingsComponent:
             "        thisExp.status = FINISHED\n"
             )
         code += (
+            "    # if running from a session, check for unpause commands from liaison\n"
+            "    if thisSession is not None:\n"
+            "        thisSession.poll()\n"
             "    # flip the screen\n"
             "    win.flip()\n"
             "# if stop was requested while paused, quit\n"
