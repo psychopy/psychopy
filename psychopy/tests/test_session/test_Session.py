@@ -1,8 +1,40 @@
-from psychopy import session, visual
+import numpy as np
+
+from psychopy import session, visual, logging
 from psychopy.hardware import keyboard
 from psychopy.tests import utils
+from psychopy.constants import STARTED, PAUSED, STOPPED
 from pathlib import Path
 import shutil
+import inspect
+import threading
+import time
+
+
+class DummyLiaison:
+    """
+    Simulates Liaison without actually doing any server-y stuff
+    """
+    methods = {}
+    log = []
+
+    def registerMethods(self, obj):
+        for attr in dir(obj):
+            method = getattr(obj, attr)
+            if inspect.ismethod(method):
+                self.methods[attr] = method
+
+    def start(self):
+        # Set experiment going
+        self.sess.runExperiment("testCtrls")
+        # Wait 0.1s then pause
+        time.sleep(.2)
+        self.sess.pauseExperiment()
+        # Wait 0.1s then resume
+        time.sleep(.2)
+        self.sess.resumeExperiment()
+        # Stop session
+        self.sess.stop()
 
 
 class TestSession:
@@ -21,6 +53,7 @@ class TestSession:
             experiments={
                 'exp1': "exp1/exp1.psyexp",
                 'exp2': "exp2/exp2.psyexp",
+                'testCtrls': "testCtrls/testCtrls.psyexp"
             }
         )
 
@@ -40,3 +73,19 @@ class TestSession:
     def test_run_exp(self):
         self.sess.runExperiment("exp2")
         self.sess.runExperiment("exp1")
+
+    def test_ctrls(self):
+        """
+        Check that experiments check Session often enough for pause/resume commands sent asynchronously will still work.
+        """
+        # Create dummy liaison with current session
+        liaison = DummyLiaison()
+        liaison.sess = self.sess
+        self.sess.liaison = liaison
+        # Start in new thread
+        thread = threading.Thread(
+            target=liaison.start
+        )
+        thread.start()
+        # Start session
+        self.sess.start()
