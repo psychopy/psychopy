@@ -3,8 +3,10 @@
 Sending triggers via EGI NetStation
 =================================================
 
-Communicating via EGI NetStation is very similar to communicating via a serial port, in that you'll need to add some code components into your experiment. You'll also need to install the EGI NetStation Python library if you don't already have it installed.
+Communicating via EGI NetStation is very similar to communicating via a serial port, in that you'll need to add some code components into your experiment. 
 
+The egi-pynetstation package allows communication using an NTP protocol. It is important to first verify your hardware setup. The code is compatible with EGI (also known as Philips EGI and most recently MagStimEGI) amplifiers 300 and 400 series. If you are using a 300-series amplifier you must be using macOS 10.12, where EGI has configured its own NTP server; 400 series amplifiers
+serve as their own NTP server so are able to work with newer macOS versions (10.14.x as of April 2023).  
 
 Step one: Install EGI NetStation Python Library
 -------------------------------------------------------------
@@ -38,13 +40,13 @@ To communicate with your NetStation EEG hardware, you'll need to add in some Pyt
     from egi_pynetstation.NetStation import NetStation
 
     #IP address of NetStation - CHANGE THIS TO MATCH THE IP ADDRESS OF YOUR NETSTATION
-    IP_ns = '10.0.0.42'
+    IP_ns = '10.10.10.42'
 
     #IP address of amplifier (if using 300
     #series, this is the same as the IP address of
     #NetStation. If using newer series, the amplifier
     #has its own IP address)
-    IP_amp = '10.0.0.42'
+    IP_amp = '10.10.10.51'
 
     #Port configured for ECI in NetStation - CHANGE THIS IF NEEDED
     port_ns = 55513
@@ -66,7 +68,7 @@ To communicate with your NetStation EEG hardware, you'll need to add in some Pyt
     #also set the trigger in a conditions file.
 
     if stimulus.status == STARTED and not triggerSent: #If the stimulus component has started and the trigger has not yet been sent. Change 'stimulus' to match the name of the component you want the trigger to be sent at the same time as
-        win.callOnFlip(eci_client.send_event, event_type = 'stim') #Send the trigger, synced to the screen refresh
+        win.callOnFlip(eci_client.send_event, event_type = 'stim', label='stim') #Send the trigger, synced to the screen refresh
         triggerSent = True #The trigger has now been sent, so we set this to true to avoid a trigger being sent on each frame
 
 * Finally, in a routine at the end of your experiment (the `Thanks for participating` screen for example) copy and paste the following::
@@ -93,5 +95,8 @@ Step three: Test your triggers
 If there is a problem - We want to know!
 -------------------------------------------------------------
 If you have followed the steps above and are having an issue with triggers, please post details of this on the `PsychoPy Forum <https://discourse.psychopy.org/>`_.
+
+Further documentation can be found on the `egi-pynetstation RTD <https://egi-pynetstation.readthedocs.io/en/latest/>` as well as their
+`project github <https://github.com/nimh-sfim/egi-pynetstation>`
 
 We are constantly looking to update our documentation so that it's easy for you to use PsychoPy in the way that you want to. Posting in our forum allows us to see what issues users are having, offer solutions, and to update our documentation to hopefully prevent those issues from occurring again!
