@@ -2,11 +2,35 @@ import importlib
 import os
 import sys
 import shutil
+import threading
+import time
 from pathlib import Path
 
 from psychopy import experiment, logging, constants, data
 import json
 from psychopy.localization import _translate
+
+
+_queue = []
+
+
+def mainThread(func):
+    """
+    Decorator to force Session method to run in main thread, regardless of the
+    thread it's called from.
+    """
+    def callInMain(self, *args, **kwargs):
+        global _queue
+        if threading.current_thread() == threading.main_thread():
+            # If running in main thread, proceed as normal
+            return func(*args, **kwargs)
+        else:
+            # If running from another thread, add to queue so it's called in main
+            _queue.append(
+                (func, args, kwargs)
+            )
+
+    return callInMain
 
 
 class Session:
@@ -91,6 +115,37 @@ class Session:
         self.liaison = liaison
         # Start off with no current experiment
         self.currentExperiment = None
+
+    def start(self):
+        """
+        Start this Session running its queue. Not recommended unless running
+        across multiple threads.
+
+        Returns
+        -------
+        bool
+            True if this Session was stopped safely.
+        """
+        global _queue
+        # Create attribute to keep self running
+        self._alive = True
+        # Process any calls
+        while self._alive:
+            # Empty the queue of any tasks
+            while len(_queue):
+                method, args, kwargs = _queue.pop(0)
+                method(self, *args, **kwargs)
+            # Flip the screen and give a little time to sleep
+            if self.win is not None:
+                self.win.flip()
+                time.sleep(0.1)
+
+    def stop(self):
+        """
+        Stop this Session running its queue. Not recommended unless running
+        across multiple threads.
+        """
+        self._alive = False
 
     def addExperiment(self, file, key=None, folder=None):
         """
@@ -314,6 +369,7 @@ class Session:
 
         return True
 
+    @mainThread
     def runExperiment(self, key, expInfo=None):
         """
         Run the `setupData` and `run` methods from one of this Session's experiments.
@@ -520,7 +576,17 @@ if __name__ == "__main__":
         liaisonServer = liaison.WebSocketServer()
         # Add session to liaison server
         liaisonServer.registerMethods(session, "session")
+        # Create thread to run liaison server in
+        liaisonThread = threading.Thread(
+            target=liaisonServer.start,
+            kwargs={
+                'host': host,
+                'port': port,
+            }
+        )
         # Start liaison server
-        liaisonServer.start(host=host, port=port)
+        liaisonThread.start()
+        # Start Session
+        session.start()
     else:
         liaisonServer = None
