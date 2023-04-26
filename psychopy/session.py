@@ -390,7 +390,7 @@ class Session:
 
         return True
 
-    def pauseExperiment(self):
+    async def pauseExperiment(self):
         """
         Pause the currently running experiment.
 
@@ -412,7 +412,7 @@ class Session:
 
         return True
 
-    def resumeExperiment(self):
+    async def resumeExperiment(self):
         """
         Resume the currently paused experiment.
 
@@ -433,7 +433,7 @@ class Session:
 
         return True
 
-    def stopExperiment(self):
+    async def stopExperiment(self):
         """
         Stop the currently running experiment.
 
@@ -445,7 +445,7 @@ class Session:
         # warn and return failed if no experiment is running
         if self.currentExperiment is None:
             logging.warn(
-                _translate("Could not pause experiment as there is none "
+                _translate("Could not stop experiment as there is none "
                            "running.")
             )
             return False
