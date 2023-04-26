@@ -137,10 +137,6 @@ class Session:
                 method(self, *args, **kwargs)
             # Flip the screen and give a little time to sleep
             if self.win is not None:
-                self.win.showMessage(_translate(
-                    "Waiting to start experiment..."
-                ))
-                self.win.color = "grey"
                 self.win.flip()
                 time.sleep(0.1)
 
@@ -429,6 +425,11 @@ class Session:
         self.runs.append(thisExp)
         # Mark ExperimentHandler as no longer current
         self.currentExperiment = None
+        # Display waiting text
+        self.win.showMessage(_translate(
+            "Waiting to start experiment..."
+        ))
+        self.win.color = "grey"
 
         return True
 
