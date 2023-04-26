@@ -8,19 +8,18 @@ Communicating via EGI NetStation is very similar to communicating via a serial p
 The egi-pynetstation package allows communication using an NTP protocol. It is important to first verify your hardware setup. The code is compatible with EGI (also known as Philips EGI and most recently MagStimEGI) amplifiers 300 and 400 series. If you are using a 300-series amplifier you must be using macOS 10.12, where EGI has configured its own NTP server; 400 series amplifiers
 serve as their own NTP server so are able to work with newer macOS versions (10.14.x as of April 2023).  
 
-Step zero: Verify your Amplifier and NTP server are active
+Step one: Verify your Amplifier and NTP server are active
 -------------------------------------------------------------
 
-Users of 300 series amplifiers should open a terminal and run the following command
-    sntp -d localhost
-    
+Users of 300 series amplifiers should open a terminal and run the following command:  ``sntp -d localhost``
+
 Users of 400 series amplifiers may input the IP of your amplifier (usually 10.10.10.51) in the command above or open the webpage associated with the amplifier on the EGI laptop/desktop. 
 
 .. figure:: /images/egi-netstation.png
 
 Notice that this page gives information about your amplifier address (10.10.10.51) and the Net Station computer (10.10.10.42).
 
-Step one: Install EGI NetStation Python Library
+Step two: Install EGI NetStation Python Library
 -------------------------------------------------------------
 
 If you're using PsychoPy version 2022.1.3 or older, you'll need to install the EGI NetStation library using the Command Prompt in Windows. You will only need to do this once.
@@ -36,7 +35,7 @@ If you're using PsychoPy version 2022.1.3 or older, you'll need to install the E
 
 You're now ready to go!
 
-Step two: Add code components into your Builder experiment
+Step three: Add code components into your Builder experiment
 -------------------------------------------------------------
 To communicate with your NetStation EEG hardware, you'll need to add in some Python code components to your experiment.
 
@@ -90,7 +89,7 @@ To communicate with your NetStation EEG hardware, you'll need to add in some Pyt
     eci_client.disconnect()
 
 
-Step three: Test your triggers
+Step four: Test your triggers
 -------------------------------------------------------------
 
 * To check that everything works, we recommend that you set up a very basic experiment that looks similar to this:
