@@ -11,7 +11,6 @@ __all__ = [
     'MovieFileWriter'
 ]
 
-import time
 import threading
 import queue
 import numpy as np
@@ -20,10 +19,11 @@ import numpy as np
 class MovieFileWriter:
     """Create movies from a sequence of images.
 
-    This class allows you to create movies from a sequence of images. Writing 
-    movies to disk is a slow process, so this class uses a separate thread to
-    write the movie in the background. This means that you can continue to
-    add images to the movie while it is being written to disk.
+    This class allows for the creation of movies from a sequence of images.
+    Writing movies to disk is a slow process, so this class uses a separate 
+    thread to write the movie in the background. This means that you can 
+    continue to add images to the movie while frames are still being written to 
+    disk.
 
     This does not support audio tracks. If you need to add audio to your movie,
     create the movie first, then add the audio track to the file.
@@ -41,15 +41,25 @@ class MovieFileWriter:
         The codec to use for encoding the movie. The default codec is
         'mpeg4' for .mp4 files and 'libx264' for .avi files. If `None`, the 
         codec will be automatically selected based on the file extension.
+    pixelFormat : str
+        Pixel format for frames being added to the movie. This should be 
+        either 'rgb24' or 'rgba32'. The default is 'rgb24'. When passing frames
+        to `addFrame()` as a numpy array, the array should be in the format
+        specified here.
     
     """
-    def __init__(self, filename, size, fps, codec=None):
+    # supported pixel formats as constants
+    PIXEL_FORMAT_RGB24 = 'rgb24'
+    PIXEL_FORMAT_RGBA32 = 'rgba32'
+
+    def __init__(self, filename, size, fps, codec=None, pixelFormat='rgb24'):
         # video file options
         self._filename = filename
         self._size = size
         self._fps = fps
         self._codec = codec
         self._pts = 0.0  # most recent presentation timestamp
+        self._pixelFormat = pixelFormat
 
         # objects needed to build up the asynchronous movie writer interface
         self._writer = None  # handle for the movie writer
@@ -89,7 +99,7 @@ class MovieFileWriter:
                 Pushing `None` to the queue will cause the thread to exit.
 
             """
-            from ffpyplayer.tools import SWScale
+            from ffpyplayer.pic import SWScale
 
             while True:
                 frame = frameQueue.get()  # waited on until a frame is added
@@ -124,12 +134,12 @@ class MovieFileWriter:
             'width_in': frameWidth,
             'height_in': frameHeight,
             'codec': self._codec,
-            'frame_rate': self._frameRate
+            'frame_rate': (self._fps, 1)
         }
 
         # create the movie writer, don't manipulate this object while the 
         # movie is being written to disk
-        self._writer = MediaWriter(self._filename, writerOptions)
+        self._writer = MediaWriter(self._filename, [writerOptions])
 
         # initialize the thread, the thread will wait on frames to be added to 
         # the queue
@@ -137,6 +147,7 @@ class MovieFileWriter:
             target=writeFramesAsync,
             args=(self._writer, self._frameQueue))
         
+        print('thread started')
         self._writerThread.start()
         
     @property
@@ -166,6 +177,12 @@ class MovieFileWriter:
         return self._codec
     
     @property
+    def pixelFormat(self):
+        """Pixel format for frames being added to the movie (`str`).
+        """
+        return self._pixelFormat
+    
+    @property
     def isOpen(self):
         """Whether the movie file is open (`bool`).
         """
@@ -193,12 +210,12 @@ class MovieFileWriter:
         """
         return self._frameQueue.qsize()
 
-    def addFrame(self, image, pts):
+    def addFrame(self, image, pts=None):
         """Add a frame to the movie.
 
         Parameters
         ----------
-        image : numpy.ndarray or ffpyplayer.tools.Image
+        image : numpy.ndarray or ffpyplayer.pic.Image
             The image to add to the movie. The image must be in RGB format
             and have the same size as the movie. If the image is an `Image` 
             instance, it must have the same size as the movie.
@@ -207,24 +224,34 @@ class MovieFileWriter:
             which the frame should be displayed. The presentation timestamp
             is in seconds and should be monotonically increasing. If `None`,
             the presentation timestamp will be automatically generated based
-            on the frame rate.
+            on the chosen frame rate for the output video. 
+
+        Returns
+        -------
+        float
+            Presentation timestamp assigned to the frame. Should match the value 
+            passed in as `pts` if provided.
 
         """
         if self._writerThread is None:
             raise RuntimeError('Movie file is not open.')
         
-        if not self._writerThread.is_alive():
+        if not self._writerThread.is_alive():  # no thread running yet
             return
         
         # convert the image to a format that `ffpyplayer` can use if needed
+        from ffpyplayer.pic import Image
         if isinstance(image, np.ndarray):
-            from ffpyplayer.tools import Image
+            # make sure we are the correct format
+            image = np.ascontiguousarray(image, dtype=np.uint8).tobytes()
             colorData = Image(
-                plane_buffers=[image.tobytes()], 
-                pix_fmt='rgb24', 
-                size=self._size
-            )
+                plane_buffers=[image], 
+                pix_fmt=self._pixelFormat, 
+                size=self._size)
         elif isinstance(image, Image):
+            # check if the format is valid
+            if image.get_pixel_format() != self._pixelFormat:
+                raise ValueError('Invalid pixel format for image.')
             colorData = image
         else:
             raise TypeError('Unsupported image type.')
@@ -237,6 +264,8 @@ class MovieFileWriter:
 
         # update the presentation timestamp after adding the frame
         self._pts += self._frameInterval
+
+        return pts
 
     def __del__(self):
         pass
