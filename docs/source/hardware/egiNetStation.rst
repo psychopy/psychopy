@@ -8,6 +8,18 @@ Communicating via EGI NetStation is very similar to communicating via a serial p
 The egi-pynetstation package allows communication using an NTP protocol. It is important to first verify your hardware setup. The code is compatible with EGI (also known as Philips EGI and most recently MagStimEGI) amplifiers 300 and 400 series. If you are using a 300-series amplifier you must be using macOS 10.12, where EGI has configured its own NTP server; 400 series amplifiers
 serve as their own NTP server so are able to work with newer macOS versions (10.14.x as of April 2023).  
 
+Step zero: Verify your Amplifier and NTP server are active
+-------------------------------------------------------------
+
+Users of 300 series amplifiers should open a terminal and run the following command::
+    sntp -d localhost
+    
+Users of 400 series amplifiers may input the IP of your amplifier (usually 10.10.10.51) in the command above or open the webpage associated with the amplifier on the EGI laptop/desktop. 
+
+.. figure:: /images/egi-netstation.png
+
+Notice that this page gives information about your amplifier address (10.10.10.51) and the Net Station computer (10.10.10.42).
+
 Step one: Install EGI NetStation Python Library
 -------------------------------------------------------------
 
@@ -97,6 +109,6 @@ If there is a problem - We want to know!
 If you have followed the steps above and are having an issue with triggers, please post details of this on the `PsychoPy Forum <https://discourse.psychopy.org/>`_.
 
 Further documentation can be found on the `egi-pynetstation RTD <https://egi-pynetstation.readthedocs.io/en/latest/>`_ as well as their
-`project github <https://github.com/nimh-sfim/egi-pynetstation>`_
+`github project <https://github.com/nimh-sfim/egi-pynetstation>`_ .
 
 We are constantly looking to update our documentation so that it's easy for you to use PsychoPy in the way that you want to. Posting in our forum allows us to see what issues users are having, offer solutions, and to update our documentation to hopefully prevent those issues from occurring again!
