@@ -96,7 +96,7 @@ If there is a problem - We want to know!
 -------------------------------------------------------------
 If you have followed the steps above and are having an issue with triggers, please post details of this on the `PsychoPy Forum <https://discourse.psychopy.org/>`_.
 
-Further documentation can be found on the `egi-pynetstation RTD <https://egi-pynetstation.readthedocs.io/en/latest/>` as well as their
-`project github <https://github.com/nimh-sfim/egi-pynetstation>`
+Further documentation can be found on the `egi-pynetstation RTD <https://egi-pynetstation.readthedocs.io/en/latest/>`_ as well as their
+`project github <https://github.com/nimh-sfim/egi-pynetstation>`_
 
 We are constantly looking to update our documentation so that it's easy for you to use PsychoPy in the way that you want to. Posting in our forum allows us to see what issues users are having, offer solutions, and to update our documentation to hopefully prevent those issues from occurring again!
