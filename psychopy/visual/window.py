@@ -26,6 +26,8 @@ import math
 # try to find avbin (we'll overload pyglet's load_library tool and then
 # add some paths)
 from ..colors import Color, colorSpaces
+from .textbox2 import TextBox2
+
 
 haveAvbin = False
 
@@ -591,15 +593,18 @@ class Window():
         self._editableChildren = []
         self._currentEditableRef = None
 
+        # splash screen
+        self._splashTextbox = None  # created on first use
+        self._showSplash = False
+        self.resetViewport()  # set viewport to full window size
+
         # over several frames with no drawing
         self._monitorFrameRate = None
         # for testing when to stop drawing a stim:
         self.monitorFramePeriod = 0.0
         if checkTiming:
             self._monitorFrameRate = self.getActualFrameRate()
-        else:
-            # if not checking timing, window still needs to initialise viewport
-            self.resetViewport()
+
         if self._monitorFrameRate is not None:
             self.monitorFramePeriod = 1.0 / self._monitorFrameRate
         else:
@@ -1112,6 +1117,10 @@ class Window():
             win.flip(clearBuffer=False)
 
         """
+        # draw message/splash if needed
+        if self._showSplash:
+            self._splashTextbox.draw()
+
         if self._toDraw:
             for thisStim in self._toDraw:
                 # Draw
@@ -3223,6 +3232,35 @@ class Window():
         if hasattr(self.backend, "setMouseType"):
             self.backend.setMouseType(name)
 
+    def showMessage(self, msg):
+        """Show a message in the window. This can be used to show information
+        to the participant.
+
+        This creates a TextBox2 object that is displayed in the window. The 
+        text can be updated by calling this method again with a new message. 
+        The updated text will appear the next time `draw()` is called.
+
+        Parameters
+        ----------
+        msg : str or None   
+            Message text to display. If None, then any existing message is 
+            removed.
+
+        """
+        if msg is None:
+            self.hideMessage()
+        else:
+            self._showSplash = True
+        
+        if self._splashTextbox is None:  # create the textbox
+            self._splashTextbox = TextBox2(self, text=msg)
+        else:
+            self._splashTextbox.text = str(msg)  # update the text
+
+    def hideMessage(self):
+        """Remove any message that is currently being displayed."""
+        self._showSplash = False
+
     def getActualFrameRate(self, nIdentical=10, nMaxFrames=100,
                            nWarmUpFrames=10, threshold=1):
         """Measures the actual frames-per-second (FPS) for the screen.
@@ -3262,6 +3300,9 @@ class Window():
         screen = self.screen
         name = self.name
 
+        self.showMessage(
+            "Attempting to measure frame rate of screen, please wait ...")
+
         # log that we're measuring the frame rate now
         if self.autoLog:
             msg = "{}: Attempting to measure frame rate of screen ({:d}) ..."
@@ -3299,6 +3340,8 @@ class Window():
                 self.frameIntervals = []
 
                 return rate
+
+        self.showMessage(None)  # remove the message
 
         # if we get here we reached end of `maxFrames` with no consistent value
         msg = ("Couldn't measure a consistent frame rate!\n"
