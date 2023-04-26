@@ -18,6 +18,7 @@ import asyncio
 import signal
 import json
 import sys
+import threading
 import traceback
 
 from psychopy.localization import _translate
@@ -176,6 +177,9 @@ class WebSocketServer:
 				self._connections.remove(websocket)
 				break
 
+	def executeMethod(self, method, args):
+		return method(*args)
+
 	async def _processMessage(self, websocket, message):
 		"""
 		Process a message received from a client.
@@ -241,8 +245,8 @@ class WebSocketServer:
 					if methodIsCoroutine:
 						rawResult = await method(*args)
 					else:
-						rawResult = method(*args)
-
+						thread = threading.Thread(target=self.executeMethod, args=(method, args))
+						rawResult = thread.start()
 					# convert result to a string
 					try:
 						result = json.dumps(rawResult)
