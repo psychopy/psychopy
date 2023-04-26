@@ -23,7 +23,7 @@ def mainThread(func):
         global _queue
         if threading.current_thread() == threading.main_thread():
             # If running in main thread, proceed as normal
-            return func(*args, **kwargs)
+            return func(self, *args, **kwargs)
         else:
             # If running from another thread, add to queue so it's called in main
             _queue.append(
@@ -269,6 +269,7 @@ class Session:
 
         return expInfo
 
+    @mainThread
     def setupWindowFromExperiment(self, key, expInfo=None):
         """
         Setup the window for this Session via the 'setupWindow` method from one of this
@@ -293,6 +294,7 @@ class Session:
 
         return True
 
+    @mainThread
     def setupWindowFromParams(self, params):
         """
         Create/setup a window from a dict of parameters
@@ -322,6 +324,7 @@ class Session:
 
         return True
 
+    @mainThread
     def setupInputsFromExperiment(self, key, expInfo=None):
         """
         Setup inputs for this Session via the 'setupInputs` method from one of this Session's experiments.
@@ -345,6 +348,7 @@ class Session:
 
         return True
 
+    @mainThread
     def addKeyboardFromParams(self, name, params):
         """
         Add a keyboard to this session's inputs dict from a dict of params.
@@ -488,6 +492,7 @@ class Session:
     # def recycleTrial(self, thisExp, trial):
     #     pass
 
+    @mainThread
     def saveExperimentData(self, key, thisExp=None):
         """
         Run the `saveData` method from one of this Session's experiments, on a
