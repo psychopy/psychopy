@@ -8,25 +8,32 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
-    'MovieFileWriter'
+    'MovieFileWriter',
+    'closeAllMovieWriters'
 ]
 
+import time
 import threading
 import queue
 import numpy as np
+import psychopy.logging as logging
+
+
+# keep track of open movie writers
+_openMovieWriters = set()
 
 
 class MovieFileWriter:
     """Create movies from a sequence of images.
 
-    This class allows for the creation of movies from a sequence of images.
-    Writing movies to disk is a slow process, so this class uses a separate 
-    thread to write the movie in the background. This means that you can 
-    continue to add images to the movie while frames are still being written to 
-    disk.
+    This class allows for the creation of movies from a sequence of images using
+    FFMPEG (via the `ffpyplayer` library). Writing movies to disk is a slow 
+    process, so this class uses a separate thread to write the movie in the 
+    background. This means that you can continue to add images to the movie 
+    while frames are still being written to disk.
 
-    This does not support audio tracks. If you need to add audio to your movie,
-    create the movie first, then add the audio track to the file.
+    This does not support writing audio tracks. If you need to add audio to your 
+    movie, create the movie first, then add the audio track to the file.
 
     Parameters
     ----------
@@ -50,7 +57,7 @@ class MovieFileWriter:
     """
     # supported pixel formats as constants
     PIXEL_FORMAT_RGB24 = 'rgb24'
-    PIXEL_FORMAT_RGBA32 = 'rgba32'
+    PIXEL_FORMAT_RGBA32 = 'rgb32'
 
     def __init__(self, filename, size, fps, codec=None, pixelFormat='rgb24'):
         # video file options
@@ -62,13 +69,18 @@ class MovieFileWriter:
         self._pixelFormat = pixelFormat
 
         # objects needed to build up the asynchronous movie writer interface
-        self._writer = None  # handle for the movie writer
         self._writerThread = None  # thread for writing the movie file
         self._frameQueue = queue.Queue()  # queue for frames to be written
 
         # frame interval in seconds
         self._frameInterval = 1.0 / self._fps
 
+    def __hash__(self):
+        """Use the filename as the hash value since we only allow one instance
+        per file.
+        """
+        return hash(self._filename)
+        
     def open(self):
         """Open the movie file for writing.
 
@@ -83,7 +95,15 @@ class MovieFileWriter:
         # import in the class too avoid hard dependency on ffpyplayer
         from ffpyplayer.writer import MediaWriter
 
-        def writeFramesAsync(writer, frameQueue):
+        # register ourselves as an open movie writer
+        global _openMovieWriters
+        # check if we already have a movie writer for this file
+        if self in _openMovieWriters:
+            raise ValueError(
+                'A movie writer is already open for file {}'.format(
+                    self._filename))
+
+        def writeFramesAsync(filename, writerOptions, frameQueue):
             """Local function used to write frames to the movie file.
 
             This is executed in a thread to allow the main thread to continue
@@ -92,14 +112,20 @@ class MovieFileWriter:
 
             Parameters
             ----------
-            writer : MediaWriter
-                The movie writer.
+            filename : str
+                Path of the movie file to write.
+            writerOptions : dict
+                Options to configure the movie writer.
             frameQueue : queue.Queue
                 A queue containing the frames to write to the movie file.
                 Pushing `None` to the queue will cause the thread to exit.
 
             """
             from ffpyplayer.pic import SWScale
+
+            # create the movie writer, don't manipulate this object while the 
+            # movie is being written to disk
+            writer = MediaWriter(filename, [writerOptions])
 
             while True:
                 frame = frameQueue.get()  # waited on until a frame is added
@@ -118,7 +144,7 @@ class MovieFileWriter:
                 )
 
                 # write the frame to the file
-                recordingBytes = writer.write_frame(
+                _ = writer.write_frame(
                     img=sws.scale(colorData),
                     pts=pts,
                     stream=0
@@ -137,17 +163,16 @@ class MovieFileWriter:
             'frame_rate': (self._fps, 1)
         }
 
-        # create the movie writer, don't manipulate this object while the 
-        # movie is being written to disk
-        self._writer = MediaWriter(self._filename, [writerOptions])
-
         # initialize the thread, the thread will wait on frames to be added to 
         # the queue
         self._writerThread = threading.Thread(
             target=writeFramesAsync,
-            args=(self._writer, self._frameQueue))
+            args=(self._filename, writerOptions, self._frameQueue))
         
         self._writerThread.start()
+        
+        # add to the list of open movie writers
+        _openMovieWriters.add(self)
         
     @property
     def filename(self):
@@ -185,21 +210,73 @@ class MovieFileWriter:
     def isOpen(self):
         """Whether the movie file is open (`bool`).
         """
-        return self._writer is not None
+        if self._writerThread is None:
+            return False
+        
+        return self._writerThread.is_alive()
+    
+    def flush(self):
+        """Flush the movie file.
+
+        This will cause all frames waiting in the queue to be written to disk
+        before continuing the program. This is useful for ensuring that all
+        frames are written to disk before the program exits. However, it will
+        block the program until all frames are written.
+
+        """
+        # check if the writer thread present and is alive
+        if self._writerThread is None:
+            return
+        elif not self._writerThread.is_alive():
+            return
+
+        # block until the queue is empty
+        nWaiting = self.framesWaiting
+        while not self._frameQueue.empty():
+            # simple check to see if the queue size is decreasing monotonically
+            nWaitingNew = self.framesWaiting
+            if nWaitingNew > nWaiting:
+                logging.warn(
+                    "Queue length not decreasing monotonically during "
+                    "`flush()`. This may indicate that frames are still being "
+                    "added ({} -> {}).".format(
+                        nWaiting, nWaitingNew)
+                )
+            nWaiting = nWaitingNew
+            time.sleep(0.001)  # sleep for 1 ms
 
     def close(self):
         """Close the movie file.
 
-        This shuts down the background thread and finalizes the movie file.
+        This shuts down the background thread and finalizes the movie file. Any
+        frames still waiting in the queue will be written to disk before the
+        movie file is closed. This will block the program until all frames are
+        written, therefore, it is recommended for `close()` to be called outside
+        any time-critical code.
 
         """
         if self._writerThread is None:
             return
 
-        # if the writer thread is alive still, signal it to exit
+        # if the writer thread is alive still, then we need to shut it down
         if self._writerThread.is_alive():
-            self._frameQueue.put(None)
-            self._writerThread.join()   # waits until the thread exits
+            self._frameQueue.put(None)  # signal the thread to exit
+            # flush remaining frames, if any
+            msg = ("File '{}' still has {} frame(s) queued to be written to "
+                   "disk, waiting to complete.")
+            nWaiting = self.framesWaiting
+            if nWaiting > 0:
+                logging.warning(msg.format(self.filename, nWaiting))
+                self.flush()
+
+            self._writerThread.join()  # waits until the thread exits
+
+        # unregister ourselves as an open movie writer
+        try:
+            global _openMovieWriters
+            _openMovieWriters.remove(self)
+        except AttributeError:
+            pass
         
         self._writerThread = self._writer = None
 
@@ -267,7 +344,32 @@ class MovieFileWriter:
         return pts
 
     def __del__(self):
-        pass
+        """Close the movie file when the object is deleted.
+        """
+        self.close()
+
+
+def closeAllMovieWriters():
+    """Signal all movie writers to close.
+
+    This function should only be called once at the end of the program. This can 
+    be registered `atexit` to ensure that all movie writers are closed when the 
+    program exits. If there are open file writers with frames still queued, this 
+    function will block until all frames remaining are written to disk. 
+
+    Use caution when calling this function when file writers are being used in a
+    multi-threaded environment. Threads that are writing movie frames must be
+    stopped prior to calling this function. If not, the thread may continue to
+    write frames to the queue during the flush operation and never exit.
+
+    """
+    global _openMovieWriters
+
+    for movieWriter in _openMovieWriters.copy():
+        # flush the movie writer, this will block until all frames are written
+        movieWriter.close()
+        
+    _openMovieWriters.clear()  # clear the set to free references
 
 
 if __name__ == "__main__":
