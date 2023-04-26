@@ -147,7 +147,6 @@ class MovieFileWriter:
             target=writeFramesAsync,
             args=(self._writer, self._frameQueue))
         
-        print('thread started')
         self._writerThread.start()
         
     @property
