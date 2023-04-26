@@ -265,7 +265,12 @@ class ImageData(pil.Image):
             # Only load if it looks like an image
             if path.suffix in pil.registered_extensions():
                 try:
-                    return pil.open(source)
+                    img = pil.open(source)
+                    if "A" not in img.getbands():
+                        # Make sure there's an alpha channel to supply
+                        alpha = pil.new("L", img.size, 255)
+                        img.putalpha(alpha)
+                    return img
                 except PIL.UnidentifiedImageError:
                     return cls.createPlaceholder(source)
         # If source is a url, load from server
@@ -276,7 +281,12 @@ class ImageData(pil.Image):
                 content = requests.get(source).content
                 data = io.BytesIO(content)
                 try:
-                    return pil.open(data)
+                    img = pil.open(data)
+                    if "A" not in img.getbands():
+                        # Make sure there's an alpha channel to supply
+                        alpha = pil.new("L", img.size, 255)
+                        img.putalpha(alpha)
+                    return img
                 except PIL.UnidentifiedImageError:
                     return cls.createPlaceholder(source)
 
@@ -1112,13 +1122,16 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
                     img.seek(i)
                     if 'duration' in img.info:
                         fr.append(img.info['duration'])
+
                     # Create wx.Bitmap from frame
-                    frame = img.resize(self.Size).convert("RGB")
-                    # Supply an alpha channel if there is one
-                    if "A" in frame.getbands():
-                        alpha = frame.tobytes("raw", "A")
-                    else:
-                        alpha = None
+                    frame = img.resize(self.Size).convert("RGBA")
+                    # Ensure an alpha channel
+                    if "A" not in frame.getbands():
+                        # Make sure there's an alpha channel to supply
+                        alpha = pil.new("L", frame.size, 255)
+                        frame.putalpha(alpha)
+                    alpha = frame.tobytes("raw", "A")
+
                     bmp = wx.Bitmap.FromBufferAndAlpha(
                         *frame.size,
                         data=frame.tobytes("raw", "RGB"),
