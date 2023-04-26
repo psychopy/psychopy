@@ -11,7 +11,7 @@ serve as their own NTP server so are able to work with newer macOS versions (10.
 Step zero: Verify your Amplifier and NTP server are active
 -------------------------------------------------------------
 
-Users of 300 series amplifiers should open a terminal and run the following command::
+Users of 300 series amplifiers should open a terminal and run the following command
     sntp -d localhost
     
 Users of 400 series amplifiers may input the IP of your amplifier (usually 10.10.10.51) in the command above or open the webpage associated with the amplifier on the EGI laptop/desktop. 
