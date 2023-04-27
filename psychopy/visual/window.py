@@ -3256,6 +3256,7 @@ class Window():
             self._splashTextbox = TextBox2(
                 self, text=msg,
                 units="norm", size=(2, 2), alignment="center",  # full screen and centred
+                letterHeight=0.1,  # font size relative to window
                 autoDraw=False
             )
         else:
