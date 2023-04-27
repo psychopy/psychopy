@@ -8,7 +8,7 @@ Communicating via EGI NetStation is very similar to communicating via a serial p
 The egi-pynetstation package allows communication using an NTP protocol. It is important to first verify your hardware setup. The code is compatible with EGI (also known as Philips EGI and most recently MagStimEGI) amplifiers 300 and 400 series. 
 While 400 series amplifiers serve as their own NTP server so are able to work with newer macOS versions (10.14.x as of April 2023).  If you are using a 300-series amplifier you must be using macOS 10.12. 
 This is because EGI has configured its own NTP server for use with 300-series amps; users who wish to alter this configuration with a 300-series amp should continue to use PsychoPy2's EGI package or
-investigate ports of the old package to Python3
+investigate ports of the old package to Python3.
 
 The old EGI ("pynetstation") package uses a "polling" method of asking the EGI system what time it is before sending events. While generally accurate, delays in drawing to the screen can cause (usually minor) inconsistencies in timing. 
 This pakcage's implementation of NTP timing should be superior to the older method.
