@@ -10,7 +10,7 @@ While 400 series amplifiers serve as their own NTP server so are able to work wi
 This is because EGI has configured its own NTP server for use with 300-series amps; users who wish to alter this configuration with a 300-series amp should continue to use PsychoPy2's EGI package or
 investigate ports of the old package to Python3.
 
-The old EGI ("pynetstation") package uses a "polling" method of asking the EGI system what time it is before sending events. While generally accurate, delays in drawing to the screen can cause (usually minor) inconsistencies in timing. 
+The old EGI "pynetstation" package uses a "polling" method of asking the EGI system what time it is before sending events. While generally accurate, delays in drawing to the screen can cause (usually minor) inconsistencies in timing. 
 This pakcage's implementation of NTP timing should be superior to the older method.
 
 Step one: Verify your Amplifier and NTP server are active
