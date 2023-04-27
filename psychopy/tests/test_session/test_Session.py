@@ -11,32 +11,6 @@ import threading
 import time
 
 
-class DummyLiaison:
-    """
-    Simulates Liaison without actually doing any server-y stuff
-    """
-    methods = {}
-    log = []
-
-    def registerMethods(self, obj):
-        for attr in dir(obj):
-            method = getattr(obj, attr)
-            if inspect.ismethod(method):
-                self.methods[attr] = method
-
-    def start(self):
-        # Set experiment going
-        self.sess.runExperiment("testCtrls")
-        # Wait 0.1s then pause
-        time.sleep(.2)
-        self.sess.pauseExperiment()
-        # Wait 0.1s then resume
-        time.sleep(.2)
-        self.sess.resumeExperiment()
-        # Stop session
-        self.sess.stop()
-
-
 class TestSession:
     def setup_class(cls):
         root = Path(utils.TESTS_DATA_PATH) / "test_session" / "root"
@@ -78,13 +52,26 @@ class TestSession:
         """
         Check that experiments check Session often enough for pause/resume commands sent asynchronously will still work.
         """
-        # Create dummy liaison with current session
-        liaison = DummyLiaison()
-        liaison.sess = self.sess
-        self.sess.liaison = liaison
-        # Start in new thread
+        def send_dummy_commands(sess):
+            """
+            Call certain functions of the Session class with time inbetween
+            """
+            # Set experiment going
+            sess.runExperiment("testCtrls", blocking=False)
+            # Wait 0.1s then pause
+            time.sleep(.2)
+            sess.pauseExperiment()
+            # Wait 0.1s then resume
+            time.sleep(.2)
+            sess.resumeExperiment()
+            # Wait then close
+            time.sleep(.2)
+            sess.stop()
+
+        # Send dummy commands from a new thread
         thread = threading.Thread(
-            target=liaison.start
+            target=send_dummy_commands,
+            args=(self.sess,)
         )
         thread.start()
         # Start session
