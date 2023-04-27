@@ -9,9 +9,11 @@
 
 __all__ = [
     'MovieFileWriter',
-    'closeAllMovieWriters'
+    'closeAllMovieWriters',
+    'addAudioToMovie'
 ]
 
+import os
 import time
 import threading
 import queue
@@ -278,7 +280,7 @@ class MovieFileWriter:
         except AttributeError:
             pass
         
-        self._writerThread = self._writer = None
+        self._writerThread = None
 
     @property
     def framesWaiting(self):
@@ -292,15 +294,15 @@ class MovieFileWriter:
         Parameters
         ----------
         image : numpy.ndarray or ffpyplayer.pic.Image
-            The image to add to the movie. The image must be in RGB format
-            and have the same size as the movie. If the image is an `Image` 
+            The image to add to the movie. The image must be in RGB format and 
+            have the same size as the movie. If the image is an `Image` 
             instance, it must have the same size as the movie.
         pts : float or None
-            The presentation timestamp for the frame. This is the time at
-            which the frame should be displayed. The presentation timestamp
-            is in seconds and should be monotonically increasing. If `None`,
-            the presentation timestamp will be automatically generated based
-            on the chosen frame rate for the output video. 
+            The presentation timestamp for the frame. This is the time at which 
+            the frame should be displayed. The presentation timestamp is in 
+            seconds and should be monotonically increasing. If `None`, the 
+            presentation timestamp will be automatically generated based on the 
+            chosen frame rate for the output video. 
 
         Returns
         -------
@@ -346,7 +348,10 @@ class MovieFileWriter:
     def __del__(self):
         """Close the movie file when the object is deleted.
         """
-        self.close()
+        try:
+            self.close()
+        except AttributeError:
+            pass
 
 
 def closeAllMovieWriters():
@@ -370,6 +375,69 @@ def closeAllMovieWriters():
         movieWriter.close()
         
     _openMovieWriters.clear()  # clear the set to free references
+
+
+def addAudioToMovie(outputFile, videoFile, audioFile, useThreads=True):
+    """Add an audio track to a video file.
+
+    This function will add an audio track to a video file. If the video file
+    already has an audio track, it will be replaced with the audio file
+    provided. If no audio file is provided, the audio track will be removed
+    from the video file.
+
+    Parameters
+    ----------
+    outputFile : str
+        Path to the output video file where audio and video will be merged.
+    videoFile : str
+        Path to the input video file.
+    audioFile : str
+        Path to the audio file to add to the video file.
+    useThreads : bool
+        If `True`, the audio will be added in a separate thread. This allows the
+        audio to be added in the background while the program continues to run.
+        If `False`, the audio will be added in the main thread and the program
+        will block until the audio is added.
+
+    Examples
+    --------
+    Combine a video file and an audio file into a single video file::
+
+        from psychopy.tools.movietools import addAudioToMovie
+        addAudioToMovie('output.mp4', 'video.mp4', 'audio.mp3')
+
+    """
+    from moviepy.video.io.VideoFileClip import VideoFileClip
+    from moviepy.audio.io.AudioFileClip import AudioFileClip
+    from moviepy.audio.AudioClip import CompositeAudioClip
+
+    def _renderVideo(outputFile, videoFile, audioFile):
+        """Render the video file with the audio track.
+        """
+        # merge audio and video tracks, we use MoviePy for this
+        videoClip = VideoFileClip(videoFile)
+
+        # if we have a microphone, merge the audio track in
+        if audioFile is not None:
+            audioClip = AudioFileClip(audioFile)
+            # add audio track to the video
+            videoClip.audio = CompositeAudioClip([audioClip])
+
+        # transcode with the format the user wants
+        videoClip.write_videofile(outputFile, verbose=False, logger=None)
+
+    logging.info('Adding audio to video file: {}'.format(outputFile))
+    
+    # run the audio/video merge in the main thread
+    if not useThreads:
+        _renderVideo(outputFile, videoFile, audioFile)
+        return
+
+    # run the audio/video merge in a separate thread
+    thread = threading.Thread(
+        target=_renderVideo, 
+        args=(outputFile, videoFile, audioFile))
+    thread.start()
 
 
 if __name__ == "__main__":
