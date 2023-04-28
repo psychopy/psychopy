@@ -108,65 +108,6 @@ def fromPickle(filename):
     return contents
 
 
-class PsychopyPyShell(wx.py.shell.Shell, handlers.ThemeMixin):
-    """Simple class wrapper for Pyshell which uses the Psychopy ThemeMixin."""
-    def __init__(self, coder):
-        msg = _translate('PyShell in PsychoPy - type some commands!')
-        wx.py.shell.Shell.__init__(
-            self, coder.shelf, -1, introText=msg + '\n\n', style=wx.BORDER_NONE)
-        self.prefs = coder.prefs
-        self.paths = coder.paths
-        self.app = coder.app
-
-        self.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
-        self.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
-
-        # Set theme to match code editor
-        self._applyAppTheme()
-
-    def OnSetFocus(self, evt=None):
-        """Called when the shell gets focus."""
-        # Switch to the default callback when in console, prevents the PsychoPy
-        # error dialog from opening.
-        sys.excepthook = sys.__excepthook__
-
-        if evt:
-            evt.Skip()
-
-    def OnKillFocus(self, evt=None):
-        """Called when the shell loses focus."""
-        # Set the callback to use the dialog when errors occur outside the
-        # shell.
-        if not self.app.testMode:
-            sys.excepthook = exceptionCallback
-
-        if evt:
-            evt.Skip()
-
-    def GetContextMenu(self):
-        """Override original method (wx.py.shell.Shell.GetContextMenu)
-        to localize context menu.  Simply added _translate() to
-        original code.
-        """
-        menu = wx.Menu()
-        menu.Append(self.ID_UNDO, _translate("Undo"))
-        menu.Append(self.ID_REDO, _translate("Redo"))
-
-        menu.AppendSeparator()
-
-        menu.Append(self.ID_CUT, _translate("Cut"))
-        menu.Append(self.ID_COPY, _translate("Copy"))
-        menu.Append(wx.py.frame.ID_COPY_PLUS, _translate("Copy With Prompts"))
-        menu.Append(self.ID_PASTE, _translate("Paste"))
-        menu.Append(wx.py.frame.ID_PASTE_PLUS, _translate("Paste And Run"))
-        menu.Append(self.ID_CLEAR, _translate("Clear"))
-
-        menu.AppendSeparator()
-
-        menu.Append(self.ID_SELECTALL, _translate("Select All"))
-        return menu
-
-
 class Printer(HtmlEasyPrinting):
     """bare-bones printing, no control over anything
 

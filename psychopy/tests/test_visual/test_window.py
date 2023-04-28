@@ -4,7 +4,7 @@ from pathlib import Path
 from psychopy import visual, colors
 from psychopy.tests import utils
 from psychopy.tests.test_visual.test_basevisual import _TestColorMixin
-
+from psychopy import colors
 
 class TestWindow:
     def test_background_image_fit(self):

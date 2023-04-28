@@ -270,10 +270,14 @@ class PolygonComponent(BaseVisualComponent):
             code = ("{name} = new visual.ShapeStim ({{\n"
                     "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
                     "  vertices: 'arrow', size:{size},\n")
-        else:
+        elif self.params['shape'] == 'regular polygon...':
             code = ("{name} = new visual.Polygon ({{\n"
                     "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
                     "  edges: {nVertices}, size:{size},\n")
+        else:
+            code = ("{name} = visual.ShapeStim({{\n" +
+                    "  win: psychoJS.window, name: '{name}', {unitsStr}, \n"
+                    "  vertices={vertices}, size={size},\n")
 
         depth = -self.getPosInRoutine()
 
@@ -303,5 +307,6 @@ class PolygonComponent(BaseVisualComponent):
                                             opacity=inits['opacity'],
                                             depth=depth,
                                             interpolate=interpolate,
-                                            nVertices=inits['nVertices']
+                                            nVertices=inits['nVertices'],
+                                            vertices=inits['vertices']
                                             ))
