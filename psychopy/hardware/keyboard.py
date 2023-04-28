@@ -396,7 +396,7 @@ class Keyboard:
         return None
 
     def clearEvents(self, eventType=None):
-        """"""
+        """Clear the events from the Keyboard such as previous key presses"""
         if Keyboard._backend == 'ptb':
             for buffer in self._buffers.values():
                 buffer.flush()  # flush the device events to the soft buffer
