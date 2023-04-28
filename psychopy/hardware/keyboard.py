@@ -408,6 +408,7 @@ class Keyboard:
         else:
             global event
             event.clearEvents(eventType)
+        logging.info("Keyboard events cleared", obj=self)
 
 
 class KeyPress(object):
