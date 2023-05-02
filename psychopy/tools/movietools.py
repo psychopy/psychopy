@@ -13,10 +13,10 @@ __all__ = [
     'addAudioToMovie'
 ]
 
-import os
 import time
 import threading
 import queue
+import atexit
 import numpy as np
 import psychopy.logging as logging
 
@@ -32,7 +32,9 @@ class MovieFileWriter:
     FFMPEG (via the `ffpyplayer` library). Writing movies to disk is a slow 
     process, so this class uses a separate thread to write the movie in the 
     background. This means that you can continue to add images to the movie 
-    while frames are still being written to disk.
+    while frames are still being written to disk. Movie writers are closed 
+    automatically when the main thread exits. Any remaining frames are flushed 
+    to the file before the file is finalized.
 
     This does not support writing audio tracks. If you need to add audio to your 
     movie, create the movie first, then add the audio track to the file.
@@ -142,15 +144,13 @@ class MovieFileWriter:
                 sws = SWScale(
                     frameWidth, frameHeight,
                     colorData.get_pixel_format(),
-                    ofmt='yuv420p'
-                )
+                    ofmt='yuv420p')
 
                 # write the frame to the file
                 _ = writer.write_frame(
                     img=sws.scale(colorData),
                     pts=pts,
-                    stream=0
-                )
+                    stream=0)
 
             writer.close()
 
@@ -370,11 +370,21 @@ def closeAllMovieWriters():
     """
     global _openMovieWriters
 
+    if not _openMovieWriters:  # do nothing if no movie writers are open
+        return
+
+    logging.info('Closing all open ({}) movie writers now'.format(
+        len(_openMovieWriters)))
+
     for movieWriter in _openMovieWriters.copy():
         # flush the movie writer, this will block until all frames are written
         movieWriter.close()
         
     _openMovieWriters.clear()  # clear the set to free references
+
+
+# register the cleanup function to run when the program exits
+atexit.register(closeAllMovieWriters)
 
 
 def addAudioToMovie(outputFile, videoFile, audioFile, useThreads=True):
@@ -384,6 +394,8 @@ def addAudioToMovie(outputFile, videoFile, audioFile, useThreads=True):
     already has an audio track, it will be replaced with the audio file
     provided. If no audio file is provided, the audio track will be removed
     from the video file.
+
+    The audio track should be exactly the same length as the video track.
 
     Parameters
     ----------
@@ -397,7 +409,7 @@ def addAudioToMovie(outputFile, videoFile, audioFile, useThreads=True):
         If `True`, the audio will be added in a separate thread. This allows the
         audio to be added in the background while the program continues to run.
         If `False`, the audio will be added in the main thread and the program
-        will block until the audio is added.
+        will block until the audio is added. Defaults to `True`.
 
     Examples
     --------
