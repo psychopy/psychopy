@@ -1213,6 +1213,398 @@ class MovieCompositorBGThread(threading.Thread):
         self._inputQueue.join()  # wait to finish
 
 
+class CameraInterface:
+    """Base class providing an interface with a camera attached to the system.
+
+    This interface handles the opening, closing, and reading of camera streams.
+    Subclasses provide a specific implementation for a camera interface. 
+    
+    Calls to any instance methods should be asynchronous and non-blocking, 
+    returning immediately with the same data as before if no new frame data is
+    available. This is to ensure that the main thread is not blocked by the
+    camera interface and can continue to process other events.
+
+    Parameters
+    ----------
+    device : Any
+        Camera device to open a stream with. The type of this value is platform
+        dependent. Calling `start()` will open a stream with this device. 
+        Afterwards, `getRecentFrame()` can be called to get the most recent
+        frame from the camera.
+
+    """
+    # default values for class variables, these are read-only and should not be
+    # changed at runtime
+    _cameraLib = u'Null'
+    _frameIndex = 0
+    _lastPTS = 0.0  # presentation timestamp of the last frame
+    _supportedPlatforms = ['linux', 'windows', 'darwin']
+    _device = None
+    _lastFrame = None
+    _isReady = False  # `True` if the camera is 'hot' and yielding frames
+
+    def __init__(self, device):
+        self._device = device
+
+    @staticmethod
+    def getCameras():
+        """Get a list of devices this interface can open.
+
+        Returns
+        -------
+        list 
+            List of objects which represent cameras that can be opened by this
+            interface. Pass any of these values to `device` to open a stream.
+
+        """
+        return []
+
+    @property
+    def device(self):
+        """Camera device this interface is using (`Any`).
+        """
+        return self._device
+    
+    @property
+    def frameCount(self):
+        """Number of new frames read from the camera since initialization 
+        (`int`).
+        """
+        return self._frameCount
+
+    @property
+    def streamTime(self):
+        """Current stream time in seconds (`float`). This time increases
+        monotonically from startup.
+        """
+        return self._streamTime
+
+    def lastFrame(self):
+        """The last frame read from the camera. If `None`, no frames have been
+        read yet.
+        """
+        return self._lastFrame
+    
+    def _assertMediaPlayer(self):
+        """Assert that the media player is available.
+        
+        Returns
+        -------
+        bool
+            `True` if the media player is available.
+
+        """
+        return False
+    
+    def open(self):
+        """Open the camera stream.
+        """
+        pass
+    
+    def start(self):
+        """Start the camera stream.
+        """
+        pass
+
+    def stop(self):
+        """Stop the camera stream.
+        """
+        pass
+
+    def isOpen(self):
+        """Check if the camera stream is open.
+
+        Returns
+        -------
+        bool
+            `True` if the camera stream is open.
+
+        """
+        return False
+
+    def getMetadata(self):
+        """Get metadata about the camera stream.
+
+        Returns
+        -------
+        dict
+            Dictionary containing metadata about the camera stream. Returns an
+            empty dictionary if no metadata is available.
+
+        """
+        return {}
+    
+    def _enqueueFrame(self):
+        """Enqueue a frame from the camera stream.
+        """
+        pass
+
+    def update(self):
+        """Update the camera stream.
+        """
+        pass
+
+    def getRecentFrame(self):
+        """Get the most recent frame from the camera stream.
+
+        Returns
+        -------
+        numpy.ndarray
+            Most recent frame from the camera stream. Returns `None` if no
+            frames are available.
+
+        """
+        return NULL_MOVIE_FRAME_INFO
+
+
+class CameraInterfaceFFmpeg(CameraInterface):
+    """Camera interface using FFmpeg (ffpyplayer) to open and read camera 
+    streams.
+
+    Parameters
+    ----------
+    device : str
+        Camera device to open a stream with. This value is platform dependent.
+        On Windows, this value is a DirectShow URI or camera name. On MacOS,
+        this value is a camera name/index.
+
+    """
+    _cameraLib = u'ffpyplayer'
+
+    def __init__(self, device):
+        super().__init__(device=device)
+
+        self._bufferSecs = 0.5  # number of seconds to buffer
+        self._cameraInfo = getCameras()[device][0]
+        self._frameQueue = queue.Queue()
+        self._exitEvent = threading.Event()
+        self._playerThread = None
+
+    def _assertMediaPlayer(self):
+        return self._playerThread is not None
+    
+    def _getCameraInfo(self):
+        """Get camera information in the format expected by FFmpeg.
+        """
+        pass
+    
+    def open(self):
+        """Open the camera stream and begin decoding frames (if available).
+
+        The value of `lastFrame` will be updated as new frames from the camera
+        arrive.
+
+        """
+        if self._playerThread is not None:
+            raise RuntimeError('Cannot open `MediaPlayer`, already opened.')
+        
+        self._exitEvent.clear()  # signal the thread to stop
+        
+        def _frameGetterAsync(source, ffOpts, libOpts, frameQueue, ctrlEvent):
+            """Get frames from the camera stream asynchronously.
+
+            Parameters
+            ----------
+            source : str
+                Camera source to open a stream with. This value is platform
+                dependent. On Windows, this value is a DirectShow URI or camera
+                name. On MacOS, this value is a camera name/index.
+            ffOpts : dict
+                FFmpeg options.
+            libOpts : dict
+                FFmpeg player options.
+            frameQueue : queue.Queue
+                Queue to put frames into.
+            ctrlEvent : threading.Event
+                Event used to signal the thread to stop.
+
+            """
+            player = MediaPlayer(source, ff_opts=ffOpts, lib_opts=libOpts)
+            lastAbsTime = 0.0  # presentation timestamp of the last frame
+            while True:
+                if ctrlEvent.is_set():  # quit if signaled
+                    break 
+
+                # if we have metadata, we can now start passing frames
+                frame, val = player.get_frame()
+                
+                if val == 'eof':
+                    break
+                elif val == 'paused':
+                    time.sleep(0.001)
+                    continue
+                elif frame is None:
+                    time.sleep(0.001)
+                    continue
+                else:
+                    # don't queue frames unless they are new
+                    thisFrameAbsTime = float(val)
+                    if lastAbsTime < thisFrameAbsTime:
+                        frameQueue.put((frame, val, player.get_metadata()))
+                        lastAbsTime = thisFrameAbsTime
+                
+                time.sleep(0.001)
+
+            player.close_player()
+
+        # configure the camera stream reader
+        ff_opts = {}  # ffmpeg options
+        lib_opts = {}  # ffpyplayer options
+        _camera = CAMERA_NULL_VALUE
+        _frameRate = CAMERA_NULL_VALUE
+        _cameraInfo = self._cameraInfo
+
+        # setup commands for FFMPEG
+        if _cameraInfo.cameraAPI == CAMERA_API_DIRECTSHOW:  # windows
+            ff_opts['f'] = 'dshow'
+            _camera = 'video={}'.format(_cameraInfo.name)
+            _frameRate = _cameraInfo.frameRate
+            if _cameraInfo.pixelFormat:
+                ff_opts['pixel_format'] = _cameraInfo.pixelFormat
+            if _cameraInfo.codecFormat:
+                ff_opts['vcodec'] = _cameraInfo.codecFormat
+        elif _cameraInfo.cameraAPI == CAMERA_API_AVFOUNDATION:  # darwin
+            ff_opts['f'] = 'avfoundation'
+            ff_opts['i'] = _camera = self._cameraInfo.name
+
+            # handle pixel formats using FourCC
+            global pixelFormatTbl
+            ffmpegPixFmt = pixelFormatTbl.get(_cameraInfo.pixelFormat, None)
+
+            if ffmpegPixFmt is None:
+                raise FormatNotFoundError(
+                    "Cannot find suitable FFMPEG pixel format for '{}'. Try a "
+                    "different format or camera.".format(
+                        _cameraInfo.pixelFormat))
+
+            _cameraInfo.pixelFormat = ffmpegPixFmt
+
+            # this needs to be exactly specified if using NTSC
+            if math.isclose(CAMERA_FRAMERATE_NTSC, _cameraInfo.frameRate):
+                _frameRate = CAMERA_FRAMERATE_NOMINAL_NTSC
+            else:
+                _frameRate = str(_cameraInfo.frameRate)
+
+            # need these since hardware acceleration is not possible on Mac yet
+            lib_opts['fflags'] = 'nobuffer'
+            lib_opts['flags'] = 'low_delay'
+            lib_opts['pixel_format'] = _cameraInfo.pixelFormat
+            ff_opts['framedrop'] = True
+            ff_opts['fast'] = True
+        # elif _cameraInfo.cameraAPI == CAMERA_API_VIDEO4LINUX:
+        #     raise OSError(
+        #         "Sorry, camera does not support Linux at this time. However, "
+        #         "it will in future versions.")
+        #
+        else:
+            raise RuntimeError("Unsupported camera API specified.")
+
+        # set library options
+        camWidth = _cameraInfo.frameSize[0]
+        camHeight = _cameraInfo.frameSize[1]
+
+        # configure the real-time buffer size
+        _bufferSize = camWidth * camHeight * 3 * self._bufferSecs
+
+        # common settings across libraries
+        lib_opts['rtbufsize'] = str(int(_bufferSize))
+        lib_opts['video_size'] = _cameraInfo.frameSizeAsFormattedString()
+        lib_opts['framerate'] = str(_frameRate)
+
+        # open a stream and pause it until ready
+        self._playerThread = threading.Thread(
+            target=_frameGetterAsync,
+            args=(_camera, ff_opts, lib_opts, self._frameQueue, self._exitEvent))
+        self._playerThread.start()
+
+        # pass off the player to the thread which will process the stream
+        self._enqueueFrame()  # pull metadata from first frame
+
+    def _enqueueFrame(self):
+        """Grab the latest frame from the stream.
+
+        Returns
+        -------
+        bool
+            `True` if a frame has been enqueued. Returns `False` if the camera
+            is not ready or if the stream was closed.
+
+        """
+        self._assertMediaPlayer()
+
+        try:
+            frameData = self._frameQueue.get_nowait()
+        except queue.Empty:
+            return
+
+        frame, val, metadata = frameData  # update the frame
+
+        if val == 'eof':  # handle end of stream
+            return self._lastFrame
+        elif val == 'paused':  # handle when paused
+            return self._lastFrame
+        elif frame is None:  # handle when no frame is available
+            return self._lastFrame
+        
+        frameImage, pts = frame  # otherwise, unpack the frame
+
+        # self._isReady = streamStatus.status >= STARTED
+
+        # if we have a new frame, update the frame information
+        videoBuffer = frameImage.to_bytearray()[0]
+        videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
+
+        # provide the last frame
+        self._lastFrame = MovieFrame(
+            frameIndex=self._frameIndex,
+            absTime=pts,
+            # displayTime=self._recentMetadata['frame_size'],
+            size=frameImage.get_size(),
+            colorData=videoFrameArray,
+            audioChannels=0,
+            audioSamples=None,
+            metadata=metadata,
+            movieLib=u'ffpyplayer',
+            userData=None)
+
+        return True
+
+    def close(self):
+        """Close the camera.
+        """
+        if self._playerThread is None:
+            raise RuntimeError('Cannot close `MediaPlayer`, already closed.')
+        
+        self._exitEvent.set()  # signal the thread to stop
+        self._playerThread.join()
+
+    def getRecentFrame(self):
+        self._enqueueFrame()
+
+        return self._lastFrame
+
+
+class CameraInterfaceOpenCV(CameraInterface):
+    """Camera interface using OpenCV to open and read camera streams.
+
+    Parameters
+    ----------
+    device : int
+        Camera device to open a stream with. This value is platform dependent.
+
+    """
+    def __init__(self, device):
+        super().__init__(device)
+
+        import cv2
+
+        self._player = None
+
+    def _assertMediaPlayer(self):
+        return self._player is not None
+
+
+
 class Camera:
     """Class of displaying and recording video from a USB/PCI connected camera.
 
@@ -2351,6 +2743,28 @@ def getCameraDescriptions(collapse=False):
         collapsedList.extend(formatDescs)
 
     return collapsedList
+
+
+def getAllCameraInterfaces():
+    """Get a list of all camera interfaces supported by the system.
+
+    Returns
+    -------
+    dict
+        Mapping of camera interface class names and references to the class.
+
+    """
+    # get all classes in this module
+    classes = inspect.getmembers(sys.modules[__name__], inspect.isclass)
+
+    # filter for classes that are camera interfaces
+    cameraInterfaces = {}
+    for name, cls in classes:
+        if issubclass(cls, CameraInterface):
+            cameraInterfaces[name] = cls
+
+    return cameraInterfaces
+    
 
 
 def renderVideo(outputFile, videoFile, audioFile=None):
