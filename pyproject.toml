@@ -39,6 +39,7 @@ dependencies = [
     "psychtoolbox",
     # for iohub
     "pywinhook; platform_system == \"Windows\"",
+    "gevent",
     "psutil",
     "tables",
     "pyzmq",
