@@ -11,6 +11,7 @@ from psychopy.visual import TextBox2
 from psychopy.visual.textbox2.fontmanager import FontManager
 import pytest
 from psychopy.tests import utils
+import time
 
 # cd psychopy/psychopy
 # py.test -k textbox --cov-report term-missing --cov visual/textbox
@@ -451,6 +452,41 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
             filename = Path(utils.TESTS_DATA_PATH) / f"TestTextbox_testLetterSpacing_{nameSafe}.png"
             self.win.getMovieFrame(buffer='back').save(filename)
             utils.compareScreenshot(filename, self.win, crit=20)
+
+    def test_layout_speed(self):
+        """
+        Test that characters can be laid out at an acceptable speed
+        """
+        # Map number of characters to acceptable frame rates
+        cases = [
+            {'chars': 100, 'fr': 60},
+            {'chars': 1000, 'fr': 30},
+            {'chars': 4000, 'fr': 16},
+        ]
+        # Pangram to duplicate to create strings
+        pangram = "A PsychoPy zealot knows a smidge of wx but JavaScript is the question."
+        # Number of frames to run
+        nFrames = 16
+        for case in cases:
+            # sreate string with correct number of chars out of pangram
+            caseStr = pangram * int(np.floor(case['chars']/70)) + pangram[:case['chars'] % 70]
+            # set text
+            self.obj.text = caseStr
+            # start timer
+            start = time.time()
+            for frame in range(nFrames):
+                # update object pos so it lays out, then draw and flip
+                self.obj.pos = (np.sin(frame / nFrames), np.cos(frame / nFrames))
+                self.obj.draw()
+                self.win.flip()
+            # record total time taken
+            dur = time.time() - start
+            # is frame rate acceptable?
+
+            assert dur / nFrames < 1 / case['fr'], (
+                f"TextBox2 was unacceptably slow at laying out {case['chars']} characters "
+                f"({dur / nFrames} > {1 / case['fr']})"
+            )
 
 
 def test_font_manager():
