@@ -38,6 +38,7 @@ dependencies = [
     "imageio-ffmpeg",
     "psychtoolbox",
     # for iohub
+    "gevent",
     "psutil",
     "tables",
     "pyzmq",
