@@ -90,6 +90,7 @@ tests = [
     "pytest",
     "pytest-codecov",
     "pytest-cov",
+    "pytest-asyncio",
     "flake8",
     "xmlschema",
 ]
