@@ -38,6 +38,7 @@ dependencies = [
     "imageio-ffmpeg",
     "psychtoolbox",
     # for iohub
+    "pywinhook; platform_system == \"Windows\"",
     "gevent",
     "psutil",
     "tables",
@@ -90,6 +91,7 @@ tests = [
     "pytest",
     "pytest-codecov",
     "pytest-cov",
+    "pytest-asyncio",
     "flake8",
     "xmlschema",
 ]
