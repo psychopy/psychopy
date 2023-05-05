@@ -2367,7 +2367,7 @@ dependencies = [
 [metadata]
 lock_version = "4.2"
 groups = ["default", "egi", "legacy", "tests"]
-content_hash = "sha256:7db8949fb01fcb99ade140188b8c3c5458d45418ddd2fe811d164e504c26c0d6"
+content_hash = "sha256:e599dd23c1b366ee1f8a11a9662a0420393fadf7f3bfbdbe18b43257fa1bb374"
 
 [metadata.files]
 "arabic-reshaper 3.0.0" = [
