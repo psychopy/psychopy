@@ -38,6 +38,8 @@ jobs:
         pip install attrdict3  # used by wxpython setup
         python ./building/plat_custom_installs.py
 
+        pip install requests==2.30.0
+        pip install urllib3==1.26.15
         pip install pdm
         pdm config python.use_venv false  # don't need/want venv in a vm!
         pdm install  # fetch dependendices in lock file
