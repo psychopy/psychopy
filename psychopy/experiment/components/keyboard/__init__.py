@@ -257,15 +257,18 @@ class KeyboardComponent(BaseComponent):
         dedentAtEnd += 1
         if store == 'first key':  # then see if a key has already been pressed
             code = ("{name}.keys = _{name}_allKeys[0].name  # just the first key pressed\n"
-                    "{name}.rt = _{name}_allKeys[0].rt\n")
+                    "{name}.rt = _{name}_allKeys[0].rt\n"
+                    "{name}.duration = _{name}_allKeys[0].duration\n")
             buff.writeIndentedLines(code.format(name=self.params['name']))
         elif store == 'last key' or store == "nothing":  # If store nothing, save last key for correct answer test
             code = ("{name}.keys = _{name}_allKeys[-1].name  # just the last key pressed\n"
-                    "{name}.rt = _{name}_allKeys[-1].rt\n")
+                    "{name}.rt = _{name}_allKeys[-1].rt\n"
+                    "{name}.duration = _{name}_allKeys[-1].duration\n")
             buff.writeIndentedLines(code.format(name=self.params['name']))
         elif store == 'all keys':
             code = ("{name}.keys = [key.name for key in _{name}_allKeys]  # storing all keys\n"
-                    "{name}.rt = [key.rt for key in _{name}_allKeys]\n")
+                    "{name}.rt = [key.rt for key in _{name}_allKeys]\n"
+                    "{name}.duration = [key.duration for key in _{name}_allKeys]\n")
             buff.writeIndentedLines(code.format(name=self.params['name']))
 
         if storeCorr:
@@ -399,15 +402,18 @@ class KeyboardComponent(BaseComponent):
         # how do we store it?
         if store == 'first key':  # then see if a key has already been pressed
             code = ("{name}.keys = _{name}_allKeys[0].name;  // just the first key pressed\n"
-                    "{name}.rt = _{name}_allKeys[0].rt;\n")
+                    "{name}.rt = _{name}_allKeys[0].rt;\n"
+                    "{name}.duration = _{name}_allKeys[0].duration;\n")
             buff.writeIndentedLines(code.format(name=self.params['name']))
         elif store == 'last key' or store =='nothing':
             code = ("{name}.keys = _{name}_allKeys[_{name}_allKeys.length - 1].name;  // just the last key pressed\n"
-                    "{name}.rt = _{name}_allKeys[_{name}_allKeys.length - 1].rt;\n")
+                    "{name}.rt = _{name}_allKeys[_{name}_allKeys.length - 1].rt;\n"
+                    "{name}.duration = _{name}_allKeys[_{name}_allKeys.length - 1].duration;\n")
             buff.writeIndentedLines(code.format(name=self.params['name']))
         elif store == 'all keys':
             code = ("{name}.keys = _{name}_allKeys.map((key) => key.name);  // storing all keys\n"
-                    "{name}.rt = _{name}_allKeys.map((key) => key.rt);\n")
+                    "{name}.rt = _{name}_allKeys.map((key) => key.rt);\n" \
+                    "{name}.duration = _{name}_allKeys.map((key) => key.duration);\n")
             buff.writeIndentedLines(code.format(name=self.params['name']))
 
         if storeCorr:
@@ -482,10 +488,11 @@ class KeyboardComponent(BaseComponent):
                                    (currLoop.params['name'], name, name))
 
             # only add an RT if we had a response
-            code = ("if %(name)s.keys != None:  # we had a response\n" %
-                    self.params +
-                    "    %s.addData('%s.rt', %s.rt)\n" %
-                    (currLoop.params['name'], name, name))
+            code = (
+                    "if %(name)s.keys != None:  # we had a response\n" % self.params +
+                    "    %s.addData('%s.rt', %s.rt)\n" % (currLoop.params['name'], name, name) +
+                    "    %s.addData('%s.duration', %s.duration)\n" % (currLoop.params['name'], name, name)
+            )
             buff.writeIndentedLines(code)
 
         # get parent to write code too (e.g. store onset/offset times)
@@ -549,7 +556,8 @@ class KeyboardComponent(BaseComponent):
 
         # only add an RT if we had a response
         code = ("if (typeof {name}.keys !== 'undefined') {{  // we had a response\n"
-                "    psychoJS.experiment.addData('{name}.rt', {name}.rt);\n")
+                "    psychoJS.experiment.addData('{name}.rt', {name}.rt);\n"
+                "    psychoJS.experiment.addData('{name}.duration', {name}.duration);\n")
         if forceEnd:
             code += ("    routineTimer.reset();\n"
                      "    }}\n\n")
