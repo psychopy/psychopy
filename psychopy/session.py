@@ -168,7 +168,7 @@ class Session:
         # Show waiting message
         if self.win is not None:
             self.win.showMessage(_translate(
-                "Waiting to start experiment..."
+                "Waiting to start..."
             ))
             self.win.color = "grey"
         # Process any calls
@@ -576,7 +576,7 @@ class Session:
         self.currentExperiment = None
         # Display waiting text
         self.win.showMessage(_translate(
-            "Waiting to start experiment..."
+            "Waiting to start..."
         ))
         self.win.color = "grey"
 
