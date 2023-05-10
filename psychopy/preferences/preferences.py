@@ -251,7 +251,7 @@ class Preferences:
         """Fetch app data config (unless this is a lib-only installation)
         """
         appDir = Path(self.paths['appDir'])
-        if not appDir:
+        if not appDir.is_dir():  # if no app dir this may be just lib install
             return {}
         # fetch appData too against a config spec
         appDataSpec = ConfigObj(join(self.paths['appDir'], 'appData.spec'),
