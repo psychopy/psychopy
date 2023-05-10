@@ -4,6 +4,7 @@ import sys
 import shutil
 import threading
 import time
+import traceback
 from pathlib import Path
 
 from psychopy import experiment, logging, constants, data
@@ -171,6 +172,11 @@ class Session:
                 "Waiting to start..."
             ))
             self.win.color = "grey"
+        # Make own liaison server globally accessible
+        global liaisonServer
+        liaisonServer = self.liaison
+        # Rebind errors
+        sys.excepthook = handleException
         # Process any calls
         while self._alive:
             # Empty the queue of any tasks
@@ -399,7 +405,7 @@ class Session:
             from psychopy.visual import Window
             self.win = Window(**params)
             self.win.showMessage(_translate(
-                "Waiting to start experiment..."
+                "Waiting to start..."
             ))
         else:
             # otherwise, just set the attributes which are safe to set
@@ -737,6 +743,18 @@ class Session:
         Safely close the current session. This will end the Python instance.
         """
         sys.exit()
+
+
+def handleException(exc_type, exc_value, exc_traceback):
+    global liaisonServer
+    # format exception
+    msg = "".join(
+        traceback.format_exception(exc_type, exc_value, exc_traceback)
+    )
+    # send
+    liaisonServer.broadcast(msg)
+
+    return
 
 
 if __name__ == "__main__":
