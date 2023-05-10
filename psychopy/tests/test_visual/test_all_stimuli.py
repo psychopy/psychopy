@@ -796,7 +796,7 @@ class TestPygletHexColor(_baseVisualTest):
         self.contextName='normHexbackground'
         self.scaleFactor=1#applied to size/pos values
 
-if systemtools.isVM_CI() != 'travis':
+if not systemtools.isVM_CI():
     class TestPygletBlendAdd(_baseVisualTest):
         @classmethod
         def setup_class(self):
