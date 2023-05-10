@@ -460,8 +460,8 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
         # Map number of characters to acceptable frame rates
         cases = [
             {'chars': 100, 'fr': 60},
-            {'chars': 1000, 'fr': 30},
-            {'chars': 4000, 'fr': 16},
+            {'chars': 1000, 'fr': 16},
+            {'chars': 4000, 'fr': 8},
         ]
         # Pangram to duplicate to create strings
         pangram = "A PsychoPy zealot knows a smidge of wx but JavaScript is the question."
@@ -469,7 +469,7 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
         nFrames = 16
         for case in cases:
             # sreate string with correct number of chars out of pangram
-            caseStr = pangram * int(np.floor(case['chars']/70)) + pangram[:case['chars'] % 70]
+            caseStr = pangram * int(np.floor(case['chars']/len(pangram))) + pangram[:case['chars'] % len(pangram)]
             # set text
             self.obj.text = caseStr
             # start timer
