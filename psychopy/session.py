@@ -167,10 +167,11 @@ class Session:
         # Create attribute to keep self running
         self._alive = True
         # Show waiting message
-        self.win.showMessage(_translate(
-            "Waiting to start experiment..."
-        ))
-        self.win.color = "grey"
+        if self.win is not None:
+            self.win.showMessage(_translate(
+                "Waiting to start..."
+            ))
+            self.win.color = "grey"
         # Make own liaison server globally accessible
         global liaisonServer
         liaisonServer = self.liaison
@@ -403,6 +404,9 @@ class Session:
             # If win is None, make a Window
             from psychopy.visual import Window
             self.win = Window(**params)
+            self.win.showMessage(_translate(
+                "Waiting to start..."
+            ))
         else:
             # otherwise, just set the attributes which are safe to set
             self.win.color = params.get('color', self.win.color)
@@ -578,7 +582,7 @@ class Session:
         self.currentExperiment = None
         # Display waiting text
         self.win.showMessage(_translate(
-            "Waiting to start experiment..."
+            "Waiting to start..."
         ))
         self.win.color = "grey"
 

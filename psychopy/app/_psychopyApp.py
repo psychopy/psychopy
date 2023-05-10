@@ -1006,10 +1006,10 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         for frame in self.getAllFrames():
             try:
                 frame.closeFrame(event=event, checkSave=False)
-                # must do this before destroying the frame?
-                self.prefs.saveAppData()
             except Exception:
                 pass  # we don't care if this fails - we're quitting anyway
+        # must do this before destroying the frame?
+        self.prefs.saveAppData()
         #self.Destroy()
 
         # Reset streams back to default
