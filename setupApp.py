@@ -74,6 +74,7 @@ includes = ['_sitebuiltins',  # needed for help()
             'ntplib',  # for egi-pynetstation
             ]
 packages = ['pydoc',  # needed for help()
+            'setuptools', 'wheel', # for plugin installing
             'wx', 'psychopy',
             'PyQt5',
             'pyglet', 'pytz', 'OpenGL', 'glfw',
@@ -88,7 +89,6 @@ packages = ['pydoc',  # needed for help()
             'objc', 'Quartz', 'AppKit', 'QTKit', 'Cocoa',
             'Foundation', 'CoreFoundation',
             'pkg_resources',  # needed for objc
-            'pyo',
             'requests', 'certifi', 'cryptography',
             'json_tricks',  # allows saving arrays/dates in json
             'git', 'gitlab',

@@ -8,6 +8,7 @@
 import os
 import subprocess
 import sys
+import webbrowser
 
 import wx
 import wx.stc
@@ -732,7 +733,7 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
             # Update button
             self.updateBtn = wx.Button(self.extraCtrls, size=(24, 24))
             self.updateBtn.SetBitmap(icons.ButtonIcon(stem="view-refresh", size=16).bitmap)
-            self.updateBtn.SetToolTipString(_translate(
+            self.updateBtn.SetToolTip(_translate(
                 "Refresh survey list"
             ))
             self.updateBtn.Bind(wx.EVT_BUTTON, self.populate)
@@ -791,18 +792,42 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         wx.TextCtrl.__init__(self)
         self.Create(parent, -1, val, name=fieldName, size=size)
         self.valType = valType
+        # Add CTRL + click behaviour
+        self.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
+        # Add placeholder
+        self.SetHint("e.g. e89cd6eb-296e-4960-af14-103026a59c14")
         # Add sizer
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         self._szr.Add(self, border=5, proportion=1, flag=wx.EXPAND | wx.RIGHT)
         # Add button to browse for survey
-        icn = icons.ButtonIcon(stem="search", size=16).bitmap
-        self.findBtn = wx.BitmapButton(parent, -1, size=wx.Size(24, 24), bitmap=icn)
-        self.findBtn.SetToolTip(_translate("Specify survey ..."))
+        self.findBtn = wx.Button(
+            parent, -1,
+            label=_translate("Find online..."),
+            size=wx.Size(-1, 24)
+        )
+        self.findBtn.SetBitmap(
+            icons.ButtonIcon(stem="search", size=16).bitmap
+        )
+        self.findBtn.SetToolTip(_translate(
+            "Get survey ID from a list of your surveys on Pavlovia"
+        ))
         self.findBtn.Bind(wx.EVT_BUTTON, self.findSurvey)
         self._szr.Add(self.findBtn)
         # Configure validation
         self.Bind(wx.EVT_TEXT, self.validate)
         self.validate()
+
+    def onRightClick(self, evt=None):
+        menu = wx.Menu()
+        thisId = menu.Append(wx.ID_ANY, item=f"https://pavlovia.org/surveys/{self.getValue()}")
+        menu.Bind(wx.EVT_MENU, self.openSurvey, source=thisId)
+        self.PopupMenu(menu)
+
+    def openSurvey(self, evt=None):
+        """
+        Open current survey in web browser
+        """
+        webbrowser.open(f"https://pavlovia.org/surveys/{self.getValue()}")
 
     def findSurvey(self, evt=None):
         # Import Pavlovia modules locally to avoid Pavlovia bugs affecting other param ctrls
@@ -825,6 +850,30 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
                 evt = wx.ListEvent(wx.EVT_KEY_UP.typeId)
                 evt.SetEventObject(self)
                 wx.PostEvent(self, evt)
+
+    def getValue(self, evt=None):
+        """
+        Get the value of the text control, but sanitize such that if the user pastes a full survey URL
+        we only take the survey ID
+        """
+        # Get value by usual wx method
+        value = self.GetValue()
+        # Strip pavlovia run url
+        if "run.pavlovia.org/pavlovia/survey/?surveyId=" in value:
+            # Keep only the values after the URL
+            value = value.split("run.pavlovia.org/pavlovia/survey/?surveyId=")[-1]
+            if "&" in value:
+                # If there are multiple URL parameters, only keep the Id
+                value = value.split("&")[0]
+        # Strip regular pavlovia url
+        elif "pavlovia.org/surveys/" in value:
+            # Keep only the values after the URL
+            value = value.split(".pavlovia.org/pavlovia/survey/")[-1]
+            if "&" in value:
+                # If there are URL parameters, only keep the Id
+                value = value.split("?")[0]
+
+        return value
 
 
 class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
@@ -857,8 +906,9 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
             'Form': Path(cmpRoot) / "form" / "formItems.xltx",
             'TrialHandler': Path(expRoot) / "loopTemplate.xltx",
             'StairHandler': Path(expRoot) / "loopTemplate.xltx",
-            'MultiStairHandler': Path(expRoot) / "loopTemplate.xltx",
-            'QuestHandler': Path(expRoot) / "loopTemplate.xltx",
+            'MultiStairHandler:simple': Path(expRoot) / "staircaseTemplate.xltx",
+            'MultiStairHandler:QUEST': Path(expRoot) / "questTemplate.xltx",
+            'MultiStairHandler:QUESTPLUS': Path() / "questPlugTemplate.xltx",
             'None': Path(expRoot) / 'blankTemplate.xltx',
         }
         # Specify valid extensions

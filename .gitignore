@@ -9,6 +9,7 @@
 *.kdev4
 .project
 .pydevproject
+.pdm-python
 /.ropeproject/config.py
 /.ropeproject/history
 /.ropeproject/objectdb
@@ -80,6 +81,7 @@ psychopy/demos/*/*/html
 
 psychopy/tests/*Out.*
 psychopy/tests/data/*_local.png
+psychopy/tests/fails/*/*
 psychopy/tests/*htmlcov*
 
 # compile from psychopy/changelog.txt

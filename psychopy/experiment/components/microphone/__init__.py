@@ -29,10 +29,9 @@ except (ImportError, ModuleNotFoundError):
 _localized = __localized.copy()
 _localized.update({'stereo': _translate('Stereo'),
                    'channel': _translate('Channel')})
-from psychopy.tests import _vmTesting
 
 # Get list of devices
-if _hasPTB and not _vmTesting:
+if _hasPTB and not syst.isVM_CI():
     devices = syst.getAudioCaptureDevices()
     deviceIndices = [d['index'] for d in devices.values()]
     deviceNames = [d['name'] for d in devices.values()]
@@ -50,6 +49,7 @@ onlineTranscribers = {
 }
 localTranscribers = {
     "Google": "google",
+    "Whisper": "whisper", 
     "Built-in": "sphinx"
 }
 allTranscribers = {**localTranscribers, **onlineTranscribers}
@@ -70,7 +70,7 @@ class MicrophoneComponent(BaseComponent):
                  channels='auto', device=None,
                  sampleRate='DVD Audio (48kHz)', maxSize=24000,
                  outputType='default', speakTimes=True, trimSilent=False,
-                 transcribe=False, transcribeBackend="Google", transcribeLang="en-US", transcribeWords="",
+                 transcribe=False, transcribeBackend="Whisper", transcribeLang="en-US", transcribeWords="",
                  #legacy
                  stereo=None, channel=None):
         super(MicrophoneComponent, self).__init__(
@@ -286,6 +286,15 @@ class MicrophoneComponent(BaseComponent):
         """Write the code that will be called every frame"""
         inits = getInitVals(self.params)
         inits['routine'] = self.parentName
+
+        # If stop time is blank, substitute max stop
+        if self.params['stopVal'] in ('', None, -1, 'None'):
+            self.params['stopVal'].val = at.audioMaxDuration(
+                bufferSize=float(self.params['maxSize'].val) * 1000,
+                freq=float(sampleRates[self.params['sampleRate'].val])
+            )
+            # Show alert
+            alert(4125, strFields={'name': self.params['name'].val, 'stopVal': self.params['stopVal'].val})
 
         # Start the recording
         indented = self.writeStartTestCode(buff)

@@ -14,6 +14,7 @@ from pathlib import Path
 from psychopy import prefs, logging, exceptions
 from psychopy.constants import (STARTED, PAUSED, FINISHED, STOPPING,
                                 NOT_STARTED)
+from psychopy.tools import systemtools
 from psychopy.tools import filetools as ft
 from .exceptions import SoundFormatError, DependencyError
 from ._base import _SoundBase, HammingWindow
@@ -58,8 +59,6 @@ else:
 defaultInput = None
 defaultOutput = audioDevice
 
-
-travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 logging.info("Loaded psychtoolbox audio version {}"
              .format(audio.get_version_info()['version']))
 
@@ -91,7 +90,7 @@ def getDevices(kind=None):
     else:
         deviceTypes = None
     devs = {}
-    if travisCI:  # travis-CI testing does not have a sound device
+    if systemtools.isVM_CI():  # GitHub actions VM does not have a sound device
         return devs
     else:
         allDevs = audio.get_devices(device_type=deviceTypes)
@@ -223,7 +222,7 @@ class _MasterStream(audio.Stream):
         self.takeTimeStamp = False
         self.frameN = 1
         # self.frameTimes = range(5)  # DEBUGGING: store the last 5 callbacks
-        if not travisCI:  # travis-CI testing does not have a sound device
+        if not systemtools.isVM_CI():  # Github Actions VM does not have a sound device
             try:
                 audio.Stream.__init__(self, device_id=deviceID, mode=mode+8,
                                     latency_class=audioLatencyClass,
@@ -333,12 +332,18 @@ class SoundPTB(_SoundBase):
         self.setSound(value, secs=self.secs, octave=self.octave,
                       hamming=self.hamming)
         self._isPlaying = False  # set `True` after `play()` is called
+        self._isFinished = False
         self.status = NOT_STARTED
 
     @property
     def isPlaying(self):
         """`True` if the audio playback is ongoing."""
         return self._isPlaying
+
+    @property
+    def isFinsihed(self):
+        """`True` if the audio playback has completed."""
+        return self._isFinished
 
     def _getDefaultSampleRate(self):
         """Check what streams are open and use one of these"""
@@ -543,6 +548,7 @@ class SoundPTB(_SoundBase):
             logTime = None
         self.track.start(repetitions=loops, when=when)
         self._isPlaying = True
+        self._isFinished = False
         # time.sleep(0.)
         if log and self.autoLog:
             logging.exp(u"Sound %s started" % (self.name), obj=self, t=logTime)
@@ -583,10 +589,11 @@ class SoundPTB(_SoundBase):
         self._loopsFinished += 1
         if self.loops == 0:
             self.stop(reset=reset, log=False)
+            self._isFinished = True
         elif 0 < self.loops <= self._loopsFinished:
             self.stop(reset=reset, log=False)
+            self._isFinished = True
 
-        self._isPlaying = False
         if log and self.autoLog:
             logging.exp(u"Sound %s reached end of file" % self.name, obj=self)
 

@@ -193,6 +193,8 @@ def setColor(obj, color, colorSpace=None, operation='',
         subtract it.
     colorAttrib : str
         Name of the color attribute you are setting, e.g. 'color', 'fillColor', 'borderColor'
+    log : bool
+        Whether to write an update to the log about this change
 
     Legacy
     ---
@@ -202,8 +204,6 @@ def setColor(obj, color, colorSpace=None, operation='',
     rgbAttrib : str
         PsychoPy used to handle color by converting to RGB and storing in an rgb attribute, now this conversion is done
         within Color objects so this input is no longer used.
-    log : bool
-        log argument is deprecated - has no effect now. Logging should be done when setColor() is called.
 
     """
 
@@ -220,13 +220,13 @@ def setColor(obj, color, colorSpace=None, operation='',
     # Apply new value
     if operation in ('=', '', None):
         # If no operation, just set color from object
-        setattr(obj, colorAttrib, color)
+        setAttribute(obj, colorAttrib, color, log=log)
     elif operation == '+':
         # If +, add to old color
-        setattr(obj, colorAttrib, getattr(obj, "_" + colorAttrib) + color)
+        setAttribute(obj, colorAttrib, getattr(obj, "_" + colorAttrib) + color, log=log)
     elif operation == '-':
         # If -, subtract from old color
-        setattr(obj, colorAttrib, getattr(obj, "_" + colorAttrib) - color)
+        setAttribute(obj, colorAttrib, getattr(obj, "_" + colorAttrib) - color, log=log)
     else:
         # Any other operation is not supported
         msg = ('Unsupported value "%s" for operation when '

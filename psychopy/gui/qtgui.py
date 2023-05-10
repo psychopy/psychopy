@@ -48,6 +48,7 @@ def ensureQtApp():
     # dialog
     if qtapp is None:
         qtapp = QtWidgets.QApplication(sys.argv)
+        qtapp.setStyle('Fusion')  # use this to avoid annoying PyQt bug with OK being greyed-out
 
 
 wasMouseVisible = True
@@ -334,6 +335,8 @@ class Dlg(QtWidgets.QDialog):
         QtWidgets.QDialog.show(self)
         self.raise_()
         self.activateWindow()
+        if self.inputFields:
+            self.inputFields[0].setFocus()
 
         self.OK = False
         if QtWidgets.QDialog.exec_(self) == QtWidgets.QDialog.Accepted:

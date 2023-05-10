@@ -68,7 +68,7 @@ class AppSigner:
         # PyQt
         files.extend(self.appFile.glob('**/Versions/5/Qt*'))
         files.extend(self.appFile.glob('**/Contents/MacOS/QtWebEngineProcess'))
-        files.extend(self.appFile.glob('**/Resources/lib/python3.6/lib-dynload/*.so'))
+        files.extend(self.appFile.glob('**/Resources/lib/python3.8/lib-dynload/*.so'))
         files.extend(self.appFile.glob('**/Frameworks/Python.framework/Versions/3.6/Python'))
         files.extend(self.appFile.glob('**/Frameworks/Python.framework'))
         files.extend(self.appFile.glob('**/Contents/MacOS/python'))
@@ -297,7 +297,7 @@ class AppSigner:
                     if "PsychoPy" in part.name:
                         print("Ejecting - ", part.name, part.mount_point)
                         try:
-                            sh.diskutil("unmount", "force", f"/dev/{disk.device_id}")
+                            sh.diskutil("unmountDisk", "force", f"/dev/{disk.device_id}")
                             sh.diskutil("eject", f"/dev/{disk.device_id}")
                         except sh.ErrorReturnCode_1:
                             print("still can't eject that disk")

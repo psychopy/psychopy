@@ -42,16 +42,16 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
                  'body': _translate(
                      "Linking to a survey ID from Pavlovia Surveys means that the content will automatically update "
                      "if that survey changes (better for dynamic use)"),
-                 'linkText': _translate("Take me to Pavlovia..."),
-                 'link': "https://pavlovia.org/dashboard?tab=4",
+                 'linkText': _translate("How do I get my survey ID?"),
+                 'link': "https://psychopy.org/builder/components/advanced_survey.html#get-id",
                  'startShown': 'always'},
 
                 {'label': _translate("Survey Model File"),
                  'body': _translate(
                     "Inserting a JSON file (exported from Pavlovia Surveys) means that the survey is embedded within "
                     "this project and will not change unless you import it again (better for archiving)"),
-                 'linkText': _translate("Take me to Pavlovia..."),
-                 'link': "https://pavlovia.org/dashboard?tab=4",
+                 'linkText': _translate("How do I get my survey model file?"),
+                 'link': "https://psychopy.org/builder/components/advanced_survey.html#get-json",
                  'startShown': 'always'},
             ],
             label=_translate("Survey type"))
@@ -67,9 +67,9 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
         self.params['surveyId'] = Param(
             surveyId, valType='str', inputType="survey", categ='Basic',
             hint=_translate(
-                "ID of the survey on Pavlovia"
+                "The ID for your survey on Pavlovia. Tip: Right click to open the survey in your browser!"
             ),
-            label=_translate("Survey"))
+            label=_translate("Survey ID"))
 
         self.depends += [{
             "dependsOn": "surveyType",  # must be param name
@@ -84,32 +84,7 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
             hint=_translate(
                 "File path of the JSON file used to construct the survey"
             ),
-            label=_translate("Survey"))
-
-    def writeInitCodeJS(self, buff):
-        inits = getInitVals(self.params, target="PsychoJS")
-        # Create Survey object
-        code = (
-            "%(name)s = new visual.Survey({\n"
-            "    win: psychoJS.window,\n"
-            "    name: '%(name)s',\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        # Write either survey ID or model
-        if self.params['surveyType'] == "id":
-            code = (
-            "    surveyId: %(surveyId)s,\n"
-            )
-        else:
-            code = (
-            "    model: %(surveyJson)s,\n"
-            )
-        buff.writeIndentedLines(code % inits)
-        code = (
-            "});\n"
-            "%(name)sClock = new util.Clock();\n"
-        )
-        buff.writeIndentedLines(code % inits)
+            label=_translate("Survey JSON"))
 
     def writeRoutineBeginCodeJS(self, buff, modular):
         code = (
@@ -126,16 +101,35 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
             "\n"
             "//--- Prepare to start Routine '%(name)s' ---\n"
             "t = 0;\n"
-            "%(name)sClock.reset(); // clock\n"
             "frameN = -1;\n"
             "continueRoutine = true; // until we're told otherwise\n"
         )
         buff.writeIndentedLines(code % self.params)
 
-        # Set survey to draw
+        # Create Survey object
         code = (
             "//--- Starting Routine '%(name)s' ---\n"
+            "%(name)s = new visual.Survey({\n"
+            "    win: psychoJS.window,\n"
+            "    name: '%(name)s',\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        # Write either survey ID or model
+        if self.params['surveyType'] == "id":
+            code = (
+            "    surveyId: %(surveyId)s,\n"
+            )
+        else:
+            code = (
+            "    model: %(surveyJson)s,\n"
+            )
+        buff.writeIndentedLines(code % self.params)
+        code = (
+            "});\n"
+            "%(name)sClock = new util.Clock();\n"
             "%(name)s.setAutoDraw(true);\n"
+            "%(name)s.status = PsychoJS.Status.STARTED;\n"
+            "%(name)s.isFinished = false;\n"
             "%(name)s.tStart = t;  // (not accounting for frame time here)\n"
             "%(name)s.frameNStart = frameN;  // exact frame index\n"
             "return Scheduler.Event.NEXT;\n"
@@ -165,6 +159,9 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
             "// if %(name)s is completed, move on\n"
             "if (%(name)s.isFinished) {\n"
             "  %(name)s.setAutoDraw(false);\n"
+            "  %(name)s.status = PsychoJS.Status.FINISHED;\n"
+            "  // survey routines are not non-slip safe, so reset the non-slip timer\n"
+            "  routineTimer.reset();\n"
             "  return Scheduler.Event.NEXT;\n"
             "}\n"
         )
@@ -205,7 +202,14 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
             "for (const question in %(name)sResponse) {\n"
             "  psychoJS.experiment.addData(`%(name)s.${question}`, %(name)sResponse[question]);\n"
             "}\n"
-            "await %(name)s.save();\n"
+        )
+        if self.params['surveyType'] == "id":
+            # Only call save if using an ID, otherwise saving is just to exp file
+            code += (
+                "await %(name)s.save();\n"
+            )
+        buff.writeIndentedLines(code % self.params)
+        code = (
             "// Routines running outside a loop should always advance the datafile row\n"
             "if (currentLoop === psychoJS.experiment) {\n"
             "  psychoJS.experiment.nextEntry(snapshot);\n"

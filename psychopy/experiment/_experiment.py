@@ -15,7 +15,7 @@ The code that writes out a *_lastrun.py experiment file is (in order):
         which will call the .writeBody() methods from each component
     settings.SettingsComponent.writeEndCode()
 """
-
+import collections
 import os
 import codecs
 import xml.etree.ElementTree as xml
@@ -37,7 +37,7 @@ from .params import _findParam, Param, legacyParams
 from psychopy.experiment.routines._base import Routine, BaseStandaloneRoutine
 from psychopy.experiment.routines import getAllStandaloneRoutines
 from . import utils, py2js
-from .components import getComponents, getAllComponents
+from .components import getComponents, getAllComponents, getInitVals
 
 from psychopy.localization import _translate
 import locale
@@ -110,7 +110,7 @@ class Experiment:
         self.name = ''
         self.filename = ''  # update during load/save xml
         self.flow = Flow(exp=self)  # every exp has exactly one flow
-        self.routines = {}
+        self.routines = collections.OrderedDict()
         # get prefs (from app if poss or from cfg files)
         if prefs is None:
             prefs = psychopy.prefs
@@ -255,30 +255,66 @@ class Experiment:
                             alert(alertCode, strFields={'comp': type(component).__name__})
 
         if target == "PsychoPy":
+            # Imports
             self_copy.settings.writeInitCode(script, self_copy.psychopyVersion,
                                              localDateTime)
+            # Global variables
+            self_copy.settings.writeGlobals(script, version=self_copy.psychopyVersion)
 
             # Write "run once" code sections
             for entry in self_copy.flow:
                 # NB each entry is a routine or LoopInitiator/Terminator
                 self_copy._currentRoutine = entry
-                if hasattr(entry, 'writeRunOnceInitCode'):
-                    entry.writeRunOnceInitCode(script)
                 if hasattr(entry, 'writePreCode'):
                     entry.writePreCode(script)
-            script.write("\n\n")
 
-            # present info, make logfile
-            self_copy.settings.writeStartCode(script, self_copy.psychopyVersion)
-            # writes any components with a writeStartCode()
-            self_copy.flow.writeStartCode(script)
+            # present info
+            self_copy.settings.writeExpInfoDlgCode(script)
+            # setup data and saving
+            self_copy.settings.writeDataCode(script)
+            # make logfile
+            self_copy.settings.writeLoggingCode(script)
+            # setup window
             self_copy.settings.writeWindowCode(script)  # create our visual.Window()
+            # setup inputs
             self_copy.settings.writeIohubCode(script)
-            # for JS the routine begin/frame/end code are funcs so write here
-
-            # write the rest of the code for the components
+            # pause experiment
+            self_copy.settings.writePauseCode(script)
+            # write the bulk of the experiment code
             self_copy.flow.writeBody(script)
-            self_copy.settings.writeEndCode(script)  # close log file
+            # save data
+            self_copy.settings.writeSaveDataCode(script)
+            # end experiment
+            self_copy.settings.writeEndCode(script)
+
+            # to do if running as main
+            code = (
+                "\n"
+                "# if running this experiment as a script...\n"
+                "if __name__ == '__main__':\n"
+                "    # call all functions in order\n"
+            )
+            if self_copy.settings.params['Show info dlg'].val:
+                # Only show exp info dlg if indicated to by settings
+                code += (
+                "    expInfo = showExpInfoDlg(expInfo=expInfo)\n"
+                )
+            code += (
+                "    thisExp = setupData(expInfo=expInfo)\n"
+                "    logFile = setupLogging(filename=thisExp.dataFileName)\n"
+                "    win = setupWindow(expInfo=expInfo)\n"
+                "    inputs = setupInputs(expInfo=expInfo, win=win)\n"
+                "    run(\n"
+                "        expInfo=expInfo, \n"
+                "        thisExp=thisExp, \n"
+                "        win=win, \n"
+                "        inputs=inputs\n"
+                "    )\n"
+                "    saveData(thisExp)\n"
+                "    endExperiment(thisExp, win=win, inputs=inputs)\n"
+            )
+            script.writeIndentedLines(code)
+
             script = script.getvalue()
 
         elif target == "PsychoJS":
@@ -655,7 +691,10 @@ class Experiment:
                     componentType = componentNode.tag
                     plugin = componentNode.get('plugin')
 
-                    if componentType in allCompons:
+                    if componentType == "RoutineSettingsComponent":
+                        # if settings, use existing component
+                        component = routine.settings
+                    elif componentType in allCompons:
                         # create an actual component of that type
                         component = allCompons[componentType](
                             name=componentNode.get('name'),
@@ -691,13 +730,17 @@ class Experiment:
                         self._getXMLparam(params=component.params,
                                           paramNode=paramNode,
                                           componentNode=componentNode)
-                    compGoodName = self.namespace.makeValid(
-                        componentNode.get('name'))
-                    if compGoodName != componentNode.get('name'):
-                        modifiedNames.append(componentNode.get('name'))
-                    self.namespace.add(compGoodName)
-                    component.params['name'].val = compGoodName
-                    routine.append(component)
+                    # sanitize name (unless this comp is settings)
+                    compName = componentNode.get('name')
+                    if compName != routineNode.get('name'):
+                        compGoodName = self.namespace.makeValid(compName)
+                        if compGoodName != compName:
+                            modifiedNames.append(compName)
+                        self.namespace.add(compGoodName)
+                        component.params['name'].val = compGoodName
+                    # Add to routine
+                    if component not in routine:
+                        routine.append(component)
             else:
                 if routineNode.tag in allRoutines:
                     # If not a routine, may be a standalone routine
@@ -884,7 +927,7 @@ class Experiment:
             #    Path('/folder/file.xlsx').relative_to('/Applications') gives error
             #    but os.path.relpath('/folder/file.xlsx', '/Applications') correctly uses ../
             if filePath in list(ft.defaultStim):
-                # Default stim are a special case as the file doesn't exist in the usual path
+                # Default/asset stim are a special case as the file doesn't exist in the usual path
                 thisFile['rel'] = thisFile['abs'] = "https://pavlovia.org/assets/default/" + ft.defaultStim[filePath]
                 thisFile['name'] = filePath
                 return thisFile
@@ -974,12 +1017,19 @@ class Experiment:
                             thisFile = getPaths(thisParam)
                         elif isinstance(thisParam.val, str):
                             thisFile = getPaths(thisParam.val)
-                        if paramName == "surveyId":
+                        if paramName == "surveyId" and thisComp.params.get('surveyType', "") == "id":
                             # Survey IDs are a special case, they need adding verbatim, no path sanitizing
-                            thisFile = {'name': 'surveyId', 'surveyId': thisParam.val}
+                            thisFile = {'surveyId': thisParam.val}
                         # then check if it's a valid path and not yet included
                         if thisFile and thisFile not in compResources:
                             compResources.append(thisFile)
+                        # if param updates on frame/repeat, check its init val too
+                        if hasattr(thisParam, "updates") and thisParam.updates != "constant":
+                            inits = getInitVals({paramName: thisParam})
+                            thisFile = getPaths(inits[paramName].val)
+                            # then check if it's a valid path and not yet included
+                            if thisFile and thisFile not in compResources:
+                                compResources.append(thisFile)
             elif isinstance(thisEntry, BaseStandaloneRoutine):
                 for paramName in thisEntry.params:
                     thisParam = thisEntry.params[paramName]
@@ -988,12 +1038,19 @@ class Experiment:
                         thisFile = getPaths(thisParam)
                     elif isinstance(thisParam.val, str):
                         thisFile = getPaths(thisParam.val)
-                    if paramName == "surveyId":
+                    if paramName == "surveyId" and thisEntry.params.get('surveyType', "") == "id":
                         # Survey IDs are a special case, they need adding verbatim, no path sanitizing
-                        thisFile = {'name': 'surveyId', 'surveyId': thisParam.val}
+                        thisFile = {'surveyId': thisParam.val}
                     # then check if it's a valid path and not yet included
                     if thisFile and thisFile not in compResources:
                         compResources.append(thisFile)
+                    # if param updates on frame/repeat, check its init val too
+                    if hasattr(thisParam, "updates") and thisParam.updates != "constant":
+                        inits = getInitVals({paramName: thisParam})
+                        thisFile = getPaths(inits[paramName].val)
+                        # then check if it's a valid path and not yet included
+                        if thisFile and thisFile not in compResources:
+                            compResources.append(thisFile)
             elif thisEntry.getType() == 'LoopInitiator' and "Stair" in thisEntry.loop.type:
                 url = 'https://lib.pavlovia.org/vendors/jsQUEST.min.js'
                 compResources.append({
@@ -1001,7 +1058,12 @@ class Experiment:
                 })
         if handled:
             # If resources are handled, clear all component resources
+            handledResources = compResources
             compResources = []
+            # Still add default stim
+            for thisFile in handledResources:
+                if thisFile.get('name', False) in list(ft.defaultStim):
+                    compResources.append(thisFile)
 
         # Get resources for loops
         loopResources = []

@@ -150,10 +150,6 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
         ]
 
         viewMenuItems = [
-            {'id': wx.ID_ANY, 'label': _translate("Open &Builder view"),
-             'status': _translate("Opening Builder"), 'func': self.viewBuilder},
-            {'id': wx.ID_ANY, 'label': _translate("Open &Coder view"),
-             'status': _translate('Opening Coder'), 'func': self.viewCoder},
         ]
 
         runMenuItems = [
@@ -196,18 +192,24 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
                 self.Bind(wx.EVT_MENU, item['func'], fileItem)
                 if item['label'].lower() in eachMenu['separators']:
                     eachMenu['menu'].AppendSeparator()
-        # Add Theme Switcher
+
+        # Theme switcher
         self.themesMenu = ThemeSwitcher(app=self.app)
-        viewMenu.AppendSubMenu(self.themesMenu,
-                           _translate("&Themes"))
-        # Add frame switcher
-        self.windowMenu = FrameSwitcher(self)
+        viewMenu.AppendSubMenu(self.themesMenu, _translate("&Themes"))
+
+        # Frame switcher
+        framesMenu = wx.Menu()
+        FrameSwitcher.makeViewSwitcherButtons(framesMenu, frame=self, app=self.app)
+        viewMenu.AppendSubMenu(framesMenu, _translate("&Frames"))
 
         # Create menus
         self.runnerMenu.Append(fileMenu, _translate('&File'))
         self.runnerMenu.Append(viewMenu, _translate('&View'))
         self.runnerMenu.Append(runMenu, _translate('&Run'))
         self.runnerMenu.Append(demosMenu, _translate('&Demos'))
+
+        # Add frame switcher
+        self.windowMenu = FrameSwitcher(self)
         self.runnerMenu.Append(self.windowMenu, _translate('&Window'))
 
     def saveTaskList(self, evt=None):
@@ -603,7 +605,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
         # Setup splitter
         self.mainSizer = wx.BoxSizer()
-        self.splitter = wx.SplitterWindow(self)
+        self.splitter = wx.SplitterWindow(self, style=wx.SP_NOBORDER)
         self.mainSizer.Add(self.splitter, proportion=1, border=0, flag=wx.EXPAND | wx.ALL)
 
         # Setup panel for top half (experiment control and toolbar)
@@ -678,6 +680,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
     def _applyAppTheme(self):
         # Srt own background
         self.SetBackgroundColour(colors.app['panel_bg'])
+        self.topPanel.SetBackgroundColour(colors.app['panel_bg'])
+        self.bottomPanel.SetBackgroundColour(colors.app['panel_bg'])
         # Theme buttons
         self.toolbar.theme = self.theme
         # Add icons to buttons

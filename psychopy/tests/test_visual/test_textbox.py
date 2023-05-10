@@ -18,12 +18,13 @@ from psychopy.tests import utils
 
 @pytest.mark.textbox
 class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
-    def setup(self):
+    def setup_method(self):
         self.win = Window((128, 128), pos=(50, 50), monitor="testMonitor", allowGUI=False, autoLog=False)
         self.error = _BaseErrorHandler()
         self.textbox = TextBox2(self.win,
                                 "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question.",
-                                "Noto Sans", alignment="top left", lineSpacing=1, padding=0.05,
+                                placeholder="Placeholder text",
+                                font="Noto Sans", alignment="top left", lineSpacing=1, padding=0.05,
                                 pos=(0, 0), size=(1, 1), units='height',
                                 letterHeight=0.1, colorSpace="rgb")
         self.obj = self.textbox  # point to textbox for mixin tests
@@ -262,8 +263,17 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
         self.textbox.color = "white"
         self.textbox.fillColor = None
         self.textbox.borderColor = None
+        # Make textbox editable
+        wasEditable = self.textbox.editable
+        self.textbox.editable = True
         # Define some cases
         exemplars = [
+            {"text": "",
+             "font": "Noto Sans",
+             "screenshot": "textbox_typing_blank.png"},  # No text
+            {"text": "test←←←←",
+             "font": "Noto Sans",
+             "screenshot": "textbox_typing_blank.png"},  # Make some text then delete it
             {"text": "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question.",
              "font": "Noto Sans",
              "screenshot": "textbox_typing_pangram.png"},  # Pangram
@@ -310,8 +320,13 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
             if case['screenshot']:
                 self.win.flip()
                 self.textbox.draw()
+                # Force caret to draw for consistency
+                self.textbox.caret.draw(override=True)
                 #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / case['screenshot'])
                 utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / case['screenshot'], self.win, crit=20)
+
+        # Set editable back to start value
+        self.textbox.editable = wasEditable
 
     def test_basic(self):
         pass
@@ -391,10 +406,51 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
         # Reset initial params
         for param, value in initParams.items():
             setattr(self.textbox, param, value)
+
+    def test_speechpoint(self):
+        self.obj.size = (0.5, 0.5)
+        self.obj.fillColor = "red"
+
+        # Create list of points to test
+        cases = [
+            (-3/8, 0),
+            (3/8, 0),
+            (0, -3/8),
+            (0, 3/8)
+        ]
+
+        for x, y in cases:
+            # Prepare window
+            self.win.flip()
+            # Set from case
+            self.obj.speechPoint = (x, y)
+            # Draw
+            self.obj.draw()
+            # Compare screenshots
+            filename = f"{self.__class__.__name__}_testSpeechpoint_{int(x*8)}ovr8_{int(y*8)}ovr8.png"
+            # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+            utils.compareScreenshot(filename, self.win, crit=8)
+
+        self.obj.speechPoint = None
             
     def test_alerts(self):
         noFontTextbox = TextBox2(self.win, "", font="Raleway Dots", bold=True)
         assert (self.error.alerts[0].code == 4325)
+
+    def test_letter_spacing(self):
+        cases = (0.6, 0.8, 1, None, 1.2, 1.4, 1.6, 1.8, 2.0)
+
+        for case in cases:
+            self.win.flip()
+            # Set letter spacing
+            self.obj.letterSpacing = case
+            # Draw
+            self.obj.draw()
+            # Compare
+            nameSafe = str(case).replace(".", "p")
+            filename = Path(utils.TESTS_DATA_PATH) / f"TestTextbox_testLetterSpacing_{nameSafe}.png"
+            self.win.getMovieFrame(buffer='back').save(filename)
+            utils.compareScreenshot(filename, self.win, crit=20)
 
 
 def test_font_manager():
@@ -413,6 +469,6 @@ def test_font_manager():
 @pytest.mark.uax14
 class Test_uax14_textbox(Test_textbox):
     """Runs the same tests as for Test_textbox, but with the textbox set to uax14 line breaking"""
-    def setup(self):
-        Test_textbox.setup(self)
+    def setup_method(self):
+        Test_textbox.setup_method(self)
         self.textbox._lineBreaking = 'uax14'

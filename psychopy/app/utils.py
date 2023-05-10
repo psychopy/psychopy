@@ -264,7 +264,15 @@ class ImageData(pil.Image):
             path = Path(source)
             # Only load if it looks like an image
             if path.suffix in pil.registered_extensions():
-                return pil.open(source)
+                try:
+                    img = pil.open(source)
+                    if "A" not in img.getbands():
+                        # Make sure there's an alpha channel to supply
+                        alpha = pil.new("L", img.size, 255)
+                        img.putalpha(alpha)
+                    return img
+                except PIL.UnidentifiedImageError:
+                    return cls.createPlaceholder(source)
         # If source is a url, load from server
         if st.is_url(source):
             # Only load if looks like an image
@@ -272,13 +280,26 @@ class ImageData(pil.Image):
             if ext in pil.registered_extensions():
                 content = requests.get(source).content
                 data = io.BytesIO(content)
-                return pil.open(data)
+                try:
+                    img = pil.open(data)
+                    if "A" not in img.getbands():
+                        # Make sure there's an alpha channel to supply
+                        alpha = pil.new("L", img.size, 255)
+                        img.putalpha(alpha)
+                    return img
+                except PIL.UnidentifiedImageError:
+                    return cls.createPlaceholder(source)
 
         # If couldn't interpret, raise warning and return blank image
+        return cls.createPlaceholder(source)
+
+    @staticmethod
+    def createPlaceholder(source):
+        # Raise warning and return blank image
         logging.warning(_translate(
             "Could not get image from: {}, using blank image instead."
         ).format(source))
-        return pil.new('RGB', size=(16, 16))
+        return pil.new('RGBA', size=(16, 16))
 
 
 class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
@@ -370,6 +391,8 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         # Initialise superclass
         self.parent = parent
         wx.Panel.__init__(self, parent, size=size)
+        # Manage readonly
+        self.readonly = style | wx.TE_READONLY == style
         # Setup sizers
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self.sizer)
@@ -381,10 +404,9 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         # Make text control
         self.rawTextCtrl = wx.stc.StyledTextCtrl(self, size=size, style=wx.TE_MULTILINE | style)
         self.rawTextCtrl.SetLexer(wx.stc.STC_LEX_MARKDOWN)
-        self.rawTextCtrl.Bind(wx.EVT_TEXT, self.onEdit)
+        self.rawTextCtrl.Bind(wx.stc.EVT_STC_MODIFIED, self.onEdit)
         self.contentSizer.Add(self.rawTextCtrl, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
-        # Manage readonly
-        self.rawTextCtrl.SetReadOnly(style | wx.TE_READONLY == style)
+        self.rawTextCtrl.SetReadOnly(self.readonly)
 
         # Make HTML preview
         self.htmlPreview = HtmlWindow(self, wx.ID_ANY)
@@ -395,11 +417,16 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.editBtn = wx.ToggleButton(self, style=wx.BU_EXACTFIT)
         self.editBtn.Bind(wx.EVT_TOGGLEBUTTON, self.toggleView)
         self.btnSizer.Add(self.editBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        self.editBtn.Show(not self.readonly)
 
         # Make save button
         self.saveBtn = wx.Button(self, style=wx.BU_EXACTFIT)
         self.saveBtn.Bind(wx.EVT_BUTTON, self.save)
         self.btnSizer.Add(self.saveBtn, border=3, flag=wx.ALL | wx.EXPAND)
+
+        # Bind rightclick
+        self.htmlPreview.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
+        self.rawTextCtrl.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
 
         # Get starting value
         self.file = file
@@ -430,6 +457,12 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         # Render
         self.toggleView(self.editBtn.Value)
 
+    def showCode(self, evt=None):
+        self.toggleView(True)
+
+    def showHTML(self, evt=None):
+        self.toggleView(False)
+
     def toggleView(self, evt=True):
         if isinstance(evt, bool):
             edit = evt
@@ -450,15 +483,18 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         if md:
             renderedText = md.MarkdownIt().render(self.rawTextCtrl.Value)
             # Remove images (wx doesn't like rendering them)
-            imgBuffer = renderedText.split("<img")
+            imgBuffer = renderedText.split("<img ")
             output = []
-            for line in imgBuffer:
-                if "/>" in line:
-                    lineBuffer = line.split("/>")
-                    output.append("".join(lineBuffer[1:]))
+            for cell in imgBuffer:
+                if "/>" in cell:
+                    output.extend(cell.split("/>")[1:])
+                elif "</img>" in cell:
+                    output.extend(cell.split("</img>")[1:])
                 else:
-                    output.append("<img" + line)
-            renderedText = "".join(output)
+                    output.append(cell)
+            renderedText = "".join(imgBuffer)
+            # This could also be done by regex, we're avoiding regex for
+            # renderedText = re.sub(r"<img[\s>].*(?:\/>|<\/img>)", "", renderedText)
         else:
             renderedText = self.rawTextCtrl.Value.replace("\n", "<br>")
         # Apply to preview ctrl
@@ -468,6 +504,12 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
 
     def load(self, evt=None):
         if self.file is None:
+            return
+        if not Path(self.file).is_file():
+            # If given a path to no file, enable save and load nothing
+            self.rawTextCtrl.SetValue("")
+            self.render()
+            self.saveBtn.Enable()
             return
         # Set value from file
         with open(self.file, "r") as f:
@@ -495,6 +537,19 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
     @staticmethod
     def onUrl(evt=None):
         webbrowser.open(evt.LinkInfo.Href)
+
+    def onRightClick(self, evt=None):
+        menu = wx.Menu()
+        # Show raw code button if in HTML view
+        if not self.rawTextCtrl.IsShown():
+            thisId = menu.Append(wx.ID_ANY, _translate("View raw code"))
+            menu.Bind(wx.EVT_MENU, self.showCode, source=thisId)
+        # Show HTML button if in code view
+        if not self.htmlPreview.IsShown():
+            thisId = menu.Append(wx.ID_ANY, _translate("View styled HTML"))
+            menu.Bind(wx.EVT_MENU, self.showHTML, source=thisId)
+
+        self.PopupMenu(menu)
 
     def _applyAppTheme(self):
         from psychopy.app.themes import fonts
@@ -691,6 +746,8 @@ class ButtonArray(wx.Window):
             # Create button
             self.button = wx.Button(self, label=label, style=wx.BORDER_NONE)
             self.sizer.Add(self.button, border=4, flag=wx.LEFT | wx.EXPAND)
+            self.label = wx.StaticText(self, label=label)
+            self.sizer.Add(self.label, border=6, flag=wx.LEFT | wx.EXPAND)
             # Create remove btn
             self.removeBtn = wx.Button(self, label="×", size=(24, -1))
             self.sizer.Add(self.removeBtn, border=4, flag=wx.RIGHT | wx.EXPAND)
@@ -707,10 +764,10 @@ class ButtonArray(wx.Window):
             self.parent.removeItem(self)
 
         def onClick(self, evt=None):
-            if not self.readonly:
-                evt = wx.CommandEvent(wx.EVT_BUTTON.typeId)
-                evt.SetEventObject(self)
-                wx.PostEvent(self.parent, evt)
+            evt = wx.CommandEvent(wx.EVT_BUTTON.typeId)
+            evt.SetString(self.button.GetLabel())
+            evt.SetEventObject(self)
+            wx.PostEvent(self.parent, evt)
 
         @property
         def readonly(self):
@@ -722,6 +779,9 @@ class ButtonArray(wx.Window):
             self._readonly = value
             # Show/hide controls
             self.removeBtn.Show(not value)
+            # Show/hide button and label
+            self.button.Show(not value)
+            self.label.Show(value)
             # Layout
             self.Layout()
 
@@ -1057,14 +1117,25 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
             # Otherwise, extract frames
             try:
                 img = pil.open(data)
-                for i in range(img.n_frames):
+                for i in range(getattr(img, "n_frames", 1)):
                     # Seek to frame
                     img.seek(i)
                     if 'duration' in img.info:
                         fr.append(img.info['duration'])
+
                     # Create wx.Bitmap from frame
-                    frame = img.resize(self.Size).convert("RGB")
-                    bmp = wx.BitmapFromBuffer(*frame.size, frame.tobytes())
+                    frame = img.resize(self.Size).convert("RGBA")
+                    # Ensure an alpha channel
+                    if "A" not in frame.getbands():
+                        # Make sure there's an alpha channel to supply
+                        alpha = pil.new("L", frame.size, 255)
+                        frame.putalpha(alpha)
+                    alpha = frame.tobytes("raw", "A")
+
+                    bmp = wx.Bitmap.FromBufferAndAlpha(
+                        *frame.size,
+                        data=frame.tobytes("raw", "RGB"),
+                        alpha=alpha)
                     # Store bitmap
                     self._frames.append(bmp)
             except PIL.UnidentifiedImageError as err:
@@ -1290,26 +1361,53 @@ class FrameSwitcher(wx.Menu):
         self.parent = parent
         self.app = parent.app
         self.itemFrames = {}
-        # Listen for window switch
-        self.next = self.Append(wx.ID_MDI_WINDOW_NEXT,
-                                _translate("&Next Window\t%s") % self.app.keys['cycleWindows'],
-                                _translate("&Next Window\t%s") % self.app.keys['cycleWindows'])
+        self.next = self.Append(
+            wx.ID_MDI_WINDOW_NEXT, _translate("&Next window\t%s") % self.app.keys['cycleWindows'],
+            _translate("&Next window\t%s") % self.app.keys['cycleWindows'])
         self.Bind(wx.EVT_MENU, self.nextWindow, self.next)
         self.AppendSeparator()
-        # Add creator options
-        self.minItemSpec = [
-            {'label': "&Builder", 'class': psychopy.app.builder.BuilderFrame, 'method': self.app.showBuilder},
-            {'label': "&Coder", 'class': psychopy.app.coder.CoderFrame, 'method': self.app.showCoder},
-            {'label': "&Runner", 'class': psychopy.app.runner.RunnerFrame, 'method': self.app.showRunner},
-        ]
-        for spec in self.minItemSpec:
-            if not isinstance(self.Window, spec['class']):
-                item = self.Append(
-                    wx.ID_ANY, spec['label'], spec['label']
-                )
-                self.Bind(wx.EVT_MENU, spec['method'], item)
+        self.makeViewSwitcherButtons(self, frame=self.Window, app=self.app)
         self.AppendSeparator()
         self.updateFrames()
+
+    @staticmethod
+    def makeViewSwitcherButtons(parent, frame, app):
+        """
+        Make buttons to show Builder, Coder & Runner
+
+        Parameters
+        ==========
+        parent : wx.Menu
+            Menu to append these buttons to
+        frame : wx.Frame
+            Frame for the menu to be attached to - used to check whether we need to skip one option
+        app : wx.App
+            Current PsychoPy app instance, from which to get showBuilder/showCoder/showRunner methods
+        """
+        items = {}
+
+        # Builder
+        if not isinstance(frame, psychopy.app.builder.BuilderFrame):
+            items['builder'] = parent.Append(
+                wx.ID_ANY, _translate("Show &builder"), _translate("Show Builder")
+            )
+            parent.Bind(wx.EVT_MENU, app.showBuilder, items['builder'])
+
+        # Coder
+        if not isinstance(frame, psychopy.app.coder.CoderFrame):
+            items['coder'] = parent.Append(
+                wx.ID_ANY, _translate("Show &coder"), _translate("Show Coder")
+            )
+            parent.Bind(wx.EVT_MENU, app.showCoder, items['coder'])
+
+        # Runner
+        if not isinstance(frame, psychopy.app.runner.RunnerFrame):
+            items['runner'] = parent.Append(
+                wx.ID_ANY, _translate("Show &runner"), _translate("Show Runner")
+            )
+            parent.Bind(wx.EVT_MENU, app.showRunner, items['runner'])
+
+        return items
 
     @property
     def frames(self):

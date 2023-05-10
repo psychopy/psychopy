@@ -1,3 +1,23 @@
+
+coverage:
+  status:
+    project:
+      default:
+        branches:
+          - dev
+          - release
+        if_ci_failed: error #success, failure, error, ignore
+        informational: false
+        only_pulls: false
+    patch:
+      default:
+        branches:
+          - release
+        if_ci_failed: failure #success, failure, error, ignore
+        informational: true
+        only_pulls: false
+
+
 ignore:
   - "psychopy/demos/coder"  # ignore folders and all its contents
   - "psychopy/tests"

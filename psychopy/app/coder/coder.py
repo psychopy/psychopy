@@ -16,6 +16,7 @@ from ..pavlovia_ui.search import SearchFrame
 from ..pavlovia_ui.user import UserFrame
 from ..themes.ui import ThemeSwitcher
 from wx.html import HtmlEasyPrinting
+from wx._core import wxAssertionError
 
 import wx.lib.agw.aui as aui  # some versions of phoenix
 
@@ -39,6 +40,7 @@ from ..utils import FileDropTarget, BasePsychopyToolbar, FrameSwitcher, updateDe
 from ..ui import BaseAuiFrame
 from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
+import psychopy.app.plugin_manager.dialog
 from psychopy.app.console import StdStreamDispatcher
 from psychopy.app.errorDlg import exceptionCallback
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
@@ -104,65 +106,6 @@ def fromPickle(filename):
         contents = pickle.load(f)
 
     return contents
-
-
-class PsychopyPyShell(wx.py.shell.Shell, handlers.ThemeMixin):
-    """Simple class wrapper for Pyshell which uses the Psychopy ThemeMixin."""
-    def __init__(self, coder):
-        msg = _translate('PyShell in PsychoPy - type some commands!')
-        wx.py.shell.Shell.__init__(
-            self, coder.shelf, -1, introText=msg + '\n\n', style=wx.BORDER_NONE)
-        self.prefs = coder.prefs
-        self.paths = coder.paths
-        self.app = coder.app
-
-        self.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
-        self.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
-
-        # Set theme to match code editor
-        self._applyAppTheme()
-
-    def OnSetFocus(self, evt=None):
-        """Called when the shell gets focus."""
-        # Switch to the default callback when in console, prevents the PsychoPy
-        # error dialog from opening.
-        sys.excepthook = sys.__excepthook__
-
-        if evt:
-            evt.Skip()
-
-    def OnKillFocus(self, evt=None):
-        """Called when the shell loses focus."""
-        # Set the callback to use the dialog when errors occur outside the
-        # shell.
-        if not self.app.testMode:
-            sys.excepthook = exceptionCallback
-
-        if evt:
-            evt.Skip()
-
-    def GetContextMenu(self):
-        """Override original method (wx.py.shell.Shell.GetContextMenu)
-        to localize context menu.  Simply added _translate() to
-        original code.
-        """
-        menu = wx.Menu()
-        menu.Append(self.ID_UNDO, _translate("Undo"))
-        menu.Append(self.ID_REDO, _translate("Redo"))
-
-        menu.AppendSeparator()
-
-        menu.Append(self.ID_CUT, _translate("Cut"))
-        menu.Append(self.ID_COPY, _translate("Copy"))
-        menu.Append(wx.py.frame.ID_COPY_PLUS, _translate("Copy With Prompts"))
-        menu.Append(self.ID_PASTE, _translate("Paste"))
-        menu.Append(wx.py.frame.ID_PASTE_PLUS, _translate("Paste And Run"))
-        menu.Append(self.ID_CLEAR, _translate("Clear"))
-
-        menu.AppendSeparator()
-
-        menu.Append(self.ID_SELECTALL, _translate("Select All"))
-        return menu
 
 
 class Printer(HtmlEasyPrinting):
@@ -1621,17 +1564,6 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         menu = self.viewMenu
         menuBar.Append(self.viewMenu, _translate('&View'))
 
-        # Frame switcher (legacy
-        # item = menu.Append(wx.ID_ANY,
-        #                    _translate("Go to Builder view"),
-        #                    _translate("Go to the Builder view"))
-        # self.Bind(wx.EVT_MENU, self.app.showBuilder, id=item.GetId())
-        #
-        # item = menu.Append(wx.ID_ANY,
-        #                    _translate("Open Runner view"),
-        #                    _translate("Open the Runner view"))
-        # self.Bind(wx.EVT_MENU, self.app.showRunner, item)
-        # menu.AppendSeparator()
         # Panel switcher
         self.panelsMenu = wx.Menu()
         menu.AppendSubMenu(self.panelsMenu,
@@ -1693,6 +1625,11 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         menu.AppendSubMenu(self.themesMenu,
                            _translate("&Themes"))
 
+        # Frame switcher
+        framesMenu = wx.Menu()
+        FrameSwitcher.makeViewSwitcherButtons(framesMenu, frame=self, app=self.app)
+        menu.AppendSubMenu(framesMenu, _translate("&Frames"))
+
         # ---_view---#000000#FFFFFF-------------------------------------------
         # self.shellMenu = wx.Menu()
         # menuBar.Append(self.shellMenu, _translate('&Shell'))
@@ -1749,6 +1686,10 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate("Update PsychoPy to the latest, or a specific, version"))
         self.Bind(wx.EVT_MENU, self.app.openUpdater, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
+                           _translate("Plugin/packages manager..."),
+                           _translate("Manage Python packages and optional plugins for PsychoPy"))
+        self.Bind(wx.EVT_MENU, self.openPluginManager, item)
+        item = menu.Append(wx.ID_ANY,
                            _translate("Benchmark wizard"),
                            _translate("Check software & hardware, generate report"))
         self.Bind(wx.EVT_MENU, self.app.benchmarkWizard, id=item.GetId())
@@ -1798,7 +1739,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # ---_window---#000000#FFFFFF-----------------------------------------
         self.windowMenu = FrameSwitcher(self)
         menuBar.Append(self.windowMenu,
-                    _translate("&Window"))
+                           _translate("&Window"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()
@@ -2343,7 +2284,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                     n += 1
 
                 # create modification time for in memory document
-                self.currentDoc.fileModTime = time.ctime()
+                self.currentDoc.fileModTime = time.time()
 
             self.currentDoc.EmptyUndoBuffer()
 
@@ -2742,8 +2683,11 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
             # hide the pane
             self.prefs['showOutput'] = False
             self.paneManager.GetPane('Shelf').Hide()
-        self.app.prefs.saveUserPrefs()  # includes a validation
-        self.paneManager.Update()
+        self.app.prefs.saveUserPrefs()
+        try:  # includes a validation
+            self.paneManager.Update()
+        except wxAssertionError as err:
+            logging.warn("Exception caught: " + str(err))
 
     def setShowIndentGuides(self, event):
         # show/hide the source assistant (from the view menu control)
@@ -2859,6 +2803,12 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         else:
             self.unitTestFrame = UnitTestFrame(app=self.app)
         # UnitTestFrame.Show()
+
+    def openPluginManager(self, evt=None):
+        dlg = psychopy.app.plugin_manager.dialog.EnvironmentManagerDlg(self)
+        dlg.Show()
+        # Do post-close checks
+        dlg.onClose()
 
     def onPavloviaSync(self, evt=None):
         """Push changes to project repo, or create new proj if proj is None"""

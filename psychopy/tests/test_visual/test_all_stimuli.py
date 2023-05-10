@@ -17,7 +17,8 @@ To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
 
-from psychopy.tests import _travisTesting, skip_under_vm, _vmTesting
+from psychopy.tests import skip_under_vm
+from psychopy.tools import systemtools
 
 
 class Test_Window():
@@ -95,7 +96,7 @@ class _baseVisualTest():
     def teardown_class(self):#run once for each test class (window)
         self.win.close()#shutil.rmtree(self.temp_dir)
 
-    def setup(self):#this is run for each test individually
+    def setup_method(self):#this is run for each test individually
         #make sure we start with a clean window
         self.win.flip()
 
@@ -501,7 +502,7 @@ class _baseVisualTest():
         text.draw()
         grat1.draw()
         grat2.draw()
-        if _vmTesting:
+        if systemtools.isVM_CI():
             pytest.skip("Blendmode='add' doesn't work under a virtual machine for some reason")
         if self.win.winType != 'pygame':
             utils.compareScreenshot('blend_add_%s.png' %self.contextName,
@@ -727,7 +728,7 @@ class _baseVisualTest():
         grating.draw()
         utils.compareScreenshot('aperture1_%s.png' %(self.contextName), win)
         #aperture should automatically disable on exit
-        for shape, nVert, pos in [(None, 120, (0,0)), ('circle', 17, (.2, -.7)),
+        for shape, nVert, pos in [(None, 4, (0,0)), ('circle', 72, (.2, -.7)),
                                   ('square', 4, (-.5,-.5)), ('triangle', 3, (1,1))]:
             aperture = visual.Aperture(win, pos=pos, shape=shape, nVert=nVert)
             assert len(aperture.vertices) == nVert  # true for BaseShapeStim; expect (nVert-2)*3 if tesselated
@@ -795,7 +796,7 @@ class TestPygletHexColor(_baseVisualTest):
         self.contextName='normHexbackground'
         self.scaleFactor=1#applied to size/pos values
 
-if not _travisTesting:
+if not systemtools.isVM_CI():
     class TestPygletBlendAdd(_baseVisualTest):
         @classmethod
         def setup_class(self):

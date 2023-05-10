@@ -164,19 +164,19 @@ class FileBrowserPanel(wx.Panel, handlers.ThemeMixin):
         self.browseBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
         self.browseBtn.Bind(wx.EVT_BUTTON, self.OnBrowse)
         self.navBar.Add(self.browseBtn, border=3, flag=wx.ALL | wx.EXPAND)
-        self.browseBtn.SetToolTipString(_translate(
+        self.browseBtn.SetToolTip(_translate(
             "Browse for a folder to open."
         ))
         # library root button
         self.libRootBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
-        self.libRootBtn.SetToolTipString(_translate(
+        self.libRootBtn.SetToolTip(_translate(
             "Navigate to PsychoPy library root."
         ))
         self.libRootBtn.Bind(wx.EVT_BUTTON, self.OnGotoCWD)
         self.navBar.Add(self.libRootBtn, border=3, flag=wx.ALL | wx.EXPAND)
         # current file button
         self.currentFileBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
-        self.currentFileBtn.SetToolTipString(_translate(
+        self.currentFileBtn.SetToolTip(_translate(
             "Navigate to current open file."
         ))
         self.currentFileBtn.Bind(wx.EVT_BUTTON, self.OnGotoFileLocation)

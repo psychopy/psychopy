@@ -376,9 +376,9 @@ class MainFrame(wx.Frame):
         self.comPortLabel = wx.StaticText(parent, -1, " ", size=(150, 20))
         # photometer button
         # photom type choices should not need localization:
-        _choices = list([p.longName for p in hardware.getAllPhotometers()])
+        self._photomTypeItems = list([p.longName for p in hardware.getAllPhotometers()] + ["Get more..."])
         self.ctrlPhotomType = wx.Choice(parent, -1, name="Type:",
-                                        choices=_choices)
+                                        choices=self._photomTypeItems)
 
         _ports = list(hardware.getSerialPorts())
         self._photomChoices = [_translate("Scan all ports")] + _ports
@@ -388,7 +388,7 @@ class MainFrame(wx.Frame):
                                           choices=self._photomChoices,
                                           size=_size)
 
-        # self.Bind(wx.EVT_CHOICE, self.onChangePhotomType, self.ctrlPhotomType)
+        self.ctrlPhotomType.Bind(wx.EVT_CHOICE, self.onChangePhotomType)
         self.btnFindPhotometer = wx.Button(parent, -1,
                                            _translate("Get Photometer"))
         self.Bind(wx.EVT_BUTTON,
@@ -945,6 +945,18 @@ class MainFrame(wx.Frame):
     def onCtrlPhotomType(self, event):
         pass
 
+    def onChangePhotomType(self, evt=None):
+        if evt.GetSelection() == len(self._photomTypeItems) - 1:
+            # if they chose "Get more...", clear selection and open plugin dlg
+            self.ctrlPhotomType.SetSelection(-1)
+            from ..app.plugin_manager.dialog import EnvironmentManagerDlg
+            dlg = EnvironmentManagerDlg(self)
+            dlg.pluginMgr.pluginList.searchCtrl.SetValue("photometer")
+            dlg.pluginMgr.pluginList.search()
+            dlg.Show()
+        else:
+            evt.Skip()
+
     def onBtnFindPhotometer(self, event):
 
         # safer to get by index, but GetStringSelection will work for
@@ -1110,8 +1122,9 @@ class GammaLumValsDlg(wx.Dialog):
         btnOK.SetDefault()
         btnCANC = wx.Button(panel, wx.ID_CANCEL, _translate(" Cancel "))
 
-        butBox.Add(btnOK, 1, wx.BOTTOM | wx.ALIGN_RIGHT, pad)
-        butBox.Add(btnCANC, 1, wx.BOTTOM | wx.RIGHT | wx.ALIGN_RIGHT, pad)
+        butBox.AddStretchSpacer(1)
+        butBox.Add(btnOK, 1, wx.BOTTOM, pad)
+        butBox.Add(btnCANC, 1, wx.BOTTOM | wx.RIGHT, pad)
         mainSizer.Add(butBox, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM,
                       border=10)
 
