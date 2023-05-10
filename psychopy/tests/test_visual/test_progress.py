@@ -31,9 +31,15 @@ class TestProgress(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
         # Set direction to horizontal
         self.obj.direction = "horizontal"
         # Set colors
+        self.obj.colorSpace = "rgb"
         self.obj.foreColor = "red"
         self.obj.backColor = "green"
         self.obj.lineColor = "blue"
+        self.obj.opacity = 1
+        # Set position
+        self.obj.units = "pix"
+        self.obj.pos = (0, 0)
+        self.obj.size = (128, 64)
 
     def test_value(self):
         """
