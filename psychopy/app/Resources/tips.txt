@@ -21,7 +21,7 @@ Coder: you can click the color-picker icon on the toolbar. The R,G,B color tripl
 If you have a tip that you'd like to added here, email it to the users list.
 To flip an image stimulus, give it a negative 'size', in x, y or both
 PsychoPy is free. Please cite the most recent paper (Peirce et al 2019) if you use PsychoPy in published work
-Builder: To set stimulus position to your variables X and Y, you can use either $[X,Y] or [$X,$Y]. (A $ anywhere indicates that the entire entry box is Python code)
+Builder: To set stimulus position to your variables X and Y, you can use either $[X,Y] or [$X,Y]. (A $ anywhere indicates that the entire entry box is Python code)
 You should wear sunscreen. (Where does it say these tips have to be original?!)
 In Python, the values True and False must have capitals and really just stand for 1 and 0.
 Builder: The contents of the dialog box at the start of your experiment are controlled from the Experiment Settings button. You can use these values in your study by referring to the value in expInfo e.g. expInfo['participant']
