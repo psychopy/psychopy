@@ -138,9 +138,7 @@ class SoundComponent(BaseComponent):
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
         """
-        # the sound object is unusual, because it is
-        buff.writeIndented("# start/stop %(name)s\n" % (self.params))
-        # do this EVERY frame, even before/after playing?
+        # Write start code
         self.writeParamUpdates(buff, 'set every frame')
         indented = self.writeStartTestCode(buff)
         if indented:
@@ -149,14 +147,25 @@ class SoundComponent(BaseComponent):
             else:
                 code = "%(name)s.play()  # start the sound (it finishes automatically)\n" % self.params
             buff.writeIndented(code)
-        # because of the 'if' statement of the time test
         buff.setIndentLevel(-indented, relative=True)
+
+        # Write stop code
         indented = self.writeStopTestCode(buff)
         if indented:
             code = ("%(name)s.stop()\n")
             buff.writeIndentedLines(code % self.params)
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-indented, relative=True)
+
+        # Update status
+        code = (
+            "# update %(name)s status according to whether it's playing\n"
+            "if %(name)s.isPlaying:\n"
+            "    %(name)s.status = STARTED\n"
+            "elif %(name)s.isFinished:\n"
+            "    %(name)s.status = FINISHED\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def writeFrameCodeJS(self, buff):
         """Write the code that will be called every frame
@@ -188,14 +197,25 @@ class SoundComponent(BaseComponent):
         else:
             # sounds with stop values
             self.writeStopTestCodeJS(buff)
-            code = ("if (%(stopVal)s > 0.5) {\n"
+            code = ("if (t >= %(name)s.tStart + 0.5) {\n"
                     "  %(name)s.stop();  // stop the sound (if longer than duration)\n"
-                    "}\n"
-                    "%(name)s.status = PsychoJS.Status.FINISHED;\n")
+                    "  %(name)s.status = PsychoJS.Status.FINISHED;\n"
+                    "}\n")
             buff.writeIndentedLines(code % self.params)
             # because of the 'if' statement of the time test
             buff.setIndentLevel(-1, relative=True)
             buff.writeIndented('}\n')
+
+            # # Update status
+            # code = (
+            #     "// update %(name)s status according to whether it's playing\n"
+            #     "if (%(name)s.isPlaying) {\n"
+            #     "  %(name)s.status = PsychoJS.Status.STARTED;\n"
+            #     "} else if (%(name)s.isFinished) {\n"
+            #     "  %(name)s.status = PsychoJS.Status.FINISHED;\n"
+            #     "}\n"
+            # )
+            # buff.writeIndentedLines(code % self.params)
 
     def writeRoutineEndCode(self, buff):
         code = "%s.stop()  # ensure sound has stopped at end of routine\n"

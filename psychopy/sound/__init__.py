@@ -257,7 +257,7 @@ if hasattr(backend, 'defaultOutput'):
         # a single option
         dev = prefs.hardware['audioDevice']
     # is it simply "default" (do nothing)
-    if dev=='default' or isVM_CI():
+    if dev=='default' or systemtools.isVM_CI():
         pass  # do nothing
     elif dev not in backend.getDevices(kind='output'):
         deviceNames = sorted(backend.getDevices(kind='output').keys())
