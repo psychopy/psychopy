@@ -4007,7 +4007,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
             dc.SetTextForeground(rtText)
             dc.DrawLabel(name, rect, alignment=wx.ALIGN_CENTRE)
             if nonSlip and self.appData['flowSize'] != 0:
-                font.SetPointSize(font.GetPointSize() * 0.6)
+                font.SetPointSize(int(font.GetPointSize() * 0.6))
                 dc.SetFont(font)
                 _align = wx.ALIGN_CENTRE | wx.ALIGN_BOTTOM
                 dc.DrawLabel("(%.2fs)" % maxTime, rect, alignment=_align)
