@@ -224,7 +224,7 @@ class RoutineSettingsComponent(BaseComponent):
         # Restore window appearance after this routine (if changed)
         if params['useWindowParams']:
             code = (
-                "setupWindow(win)\n"
+                "setupWindow(expInfo=expInfo, win=win)\n"
             )
             buff.writeIndentedLines(code % params)
 

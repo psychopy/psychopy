@@ -659,6 +659,19 @@ class Window():
         return s
 
     @attributeSetter
+    def title(self, value):
+        self.__dict__['title'] = value
+        if hasattr(self.winHandle, "set_caption"):
+            # Pyglet backend
+            self.winHandle.set_caption(value)
+        elif hasattr(self.winHandle, "SetWindowTitle"):
+            # GLFW backend
+            self.winHandle.SetWindowTitle(value)
+        else:
+            # Unknown backend
+            logging.warning(f"Cannot set Window title in backend {self.winType}")
+
+    @attributeSetter
     def units(self, value):
         """*None*, 'height' (of the window), 'norm', 'deg', 'cm', 'pix'
         Defines the default units of stimuli initialized in the window.
@@ -3253,9 +3266,16 @@ class Window():
             self._showSplash = True
         
         if self._splashTextbox is None:  # create the textbox
-            self._splashTextbox = TextBox2(self, text=msg)
+            self._splashTextbox = TextBox2(
+                self, text=msg,
+                units="norm", size=(2, 2), alignment="center",  # full screen and centred
+                letterHeight=0.1,  # font size relative to window
+                autoDraw=False
+            )
         else:
             self._splashTextbox.text = str(msg)  # update the text
+        # set text color to contrast with background
+        self._splashTextbox.color = self._color.getReadable(contrast=1)
 
     def hideMessage(self):
         """Remove any message that is currently being displayed."""
@@ -3338,10 +3358,10 @@ class Window():
 
                 self.recordFrameIntervals = recordFrmIntsOrig
                 self.frameIntervals = []
-
+                self.hideMessage()  # remove the message
                 return rate
 
-        self.showMessage(None)  # remove the message
+        self.hideMessage()  # remove the message
 
         # if we get here we reached end of `maxFrames` with no consistent value
         msg = ("Couldn't measure a consistent frame rate!\n"

@@ -18,7 +18,7 @@ import os
 import numpy as np
 
 import psychopy
-from psychopy import core
+from psychopy import core, prefs
 from psychopy.hardware import mouse
 from psychopy import logging, event, platform_specific
 from psychopy.tools.attributetools import attributeSetter
@@ -248,6 +248,14 @@ class PygletBackend(BaseBackend):
                 "only an issue for you if you need multiple "
                 "stimulus windows, in which case update your "
                 "graphics card and/or graphics drivers.")
+        try:
+            icns = [
+                pyglet.image.load(prefs.paths['resources'] + os.sep + "Psychopy Window Favicon@16w.png"),
+                pyglet.image.load(prefs.paths['resources'] + os.sep + "Psychopy Window Favicon@32w.png"),
+            ]
+            self.winHandle.set_icon(*icns)
+        except BaseException:
+            pass
 
         if sys.platform == 'win32':
             # pyHook window hwnd maps to:

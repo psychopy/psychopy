@@ -4,6 +4,7 @@ import sys
 import shutil
 import threading
 import time
+import traceback
 from pathlib import Path
 
 from psychopy import experiment, logging, constants, data
@@ -166,10 +167,16 @@ class Session:
         # Create attribute to keep self running
         self._alive = True
         # Show waiting message
-        self.win.showMessage(_translate(
-            "Waiting to start experiment..."
-        ))
-        self.win.color = "grey"
+        if self.win is not None:
+            self.win.showMessage(_translate(
+                "Waiting to start..."
+            ))
+            self.win.color = "grey"
+        # Make own liaison server globally accessible
+        global liaisonServer
+        liaisonServer = self.liaison
+        # Rebind errors
+        sys.excepthook = handleException
         # Process any calls
         while self._alive:
             # Empty the queue of any tasks
@@ -353,6 +360,8 @@ class Session:
             expInfo = self.getExpInfoFromExperiment(key)
         # Run the setupWindow method
         self.win = self.experiments[key].setupWindow(expInfo=expInfo, win=self.win)
+        # Set window title to signify that we're in a Session
+        self.win.title = "PsychoPy Session"
 
         return True
 
@@ -397,6 +406,9 @@ class Session:
             # If win is None, make a Window
             from psychopy.visual import Window
             self.win = Window(**params)
+            self.win.showMessage(_translate(
+                "Waiting to start..."
+            ))
         else:
             # otherwise, just set the attributes which are safe to set
             self.win.color = params.get('color', self.win.color)
@@ -404,6 +416,8 @@ class Session:
             self.win.backgroundImage = params.get('backgroundImage', self.win.backgroundImage)
             self.win.backgroundFit = params.get('backgroundFit', self.win.backgroundFit)
             self.win.units = params.get('units', self.win.units)
+        # Set window title to signify that we're in a Session
+        self.win.title = "PsychoPy Session"
 
         return True
 
@@ -572,7 +586,7 @@ class Session:
         self.currentExperiment = None
         # Display waiting text
         self.win.showMessage(_translate(
-            "Waiting to start experiment..."
+            "Waiting to start..."
         ))
         self.win.color = "grey"
 
@@ -733,6 +747,18 @@ class Session:
         Safely close the current session. This will end the Python instance.
         """
         sys.exit()
+
+
+def handleException(exc_type, exc_value, exc_traceback):
+    global liaisonServer
+    # format exception
+    msg = "".join(
+        traceback.format_exception(exc_type, exc_value, exc_traceback)
+    )
+    # send
+    liaisonServer.broadcast(msg)
+
+    return
 
 
 if __name__ == "__main__":
