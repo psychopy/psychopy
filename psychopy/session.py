@@ -582,6 +582,8 @@ class Session:
         os.chdir(str(self.root))
         # Store ExperimentHandler
         self.runs.append(thisExp)
+        # Save data
+        self.saveCurrentExperimentData()
         # Mark ExperimentHandler as no longer current
         self.currentExperiment = None
         # Display waiting text

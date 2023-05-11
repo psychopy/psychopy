@@ -1692,7 +1692,7 @@ class SettingsComponent:
             "        }\n"
             "    # check for quit (typically the Esc key)\n"
             "    if inputs['defaultKeyboard'].getKeys(keyList=['escape']):\n"
-            "        thisExp.status = FINISHED\n"
+            "        endExperiment(thisExp, win=win, inputs=inputs)\n"
             )
         code += (
             "    # flip the screen\n"
@@ -1723,7 +1723,9 @@ class SettingsComponent:
             '\n'
             'def endExperiment(thisExp, inputs=None, win=None):\n'
             '    """\n'
-            '    End this experiment, closing any window given.\n'
+            '    End this experiment, performing final shut down operations.\n'
+            '    \n'
+            '    This function does NOT close the window or end the Python process - use `quit` for this.\n'
             '    \n'
             '    Parameters\n'
             '    ==========\n'
@@ -1733,33 +1735,76 @@ class SettingsComponent:
             '    inputs : dict\n'
             '        Dictionary of input devices by name.\n'
             '    win : psychopy.visual.Window\n'
-            '        Window to close.\n'
+            '        Window for this experiment.\n'
             '    """\n'
         )
         buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
-        code = ('\n'
-                '# --- End experiment ---'
-                '\n'
-                'if win is not None:\n'
-                '    # Flip one final time so any remaining win.callOnFlip() \n'
-                '    # and win.timeOnFlip() tasks get executed before quitting\n'
-                '    win.flip()\n'
-                '\n')
-        buff.writeIndentedLines(code)
-
+        # Write code to end experiment
+        code = (
+            "if win is not None:\n"
+            "    # Flip one final time so any remaining win.callOnFlip() \n"
+            "    # and win.timeOnFlip() tasks get executed\n"
+            "    win.flip()\n"
+            "# mark experiment handler as finished\n"
+            "thisExp.status = FINISHED\n"
+            "# shut down eyetracker, if there is one\n"
+            "if inputs is not None:\n"
+            "    if 'eyetracker' in inputs and inputs['eyetracker'] is not None:\n"
+            "        eyetracker.setConnectionState(False)\n"
+        )
         if self.params['Save log file'].val:
-            buff.writeIndented("logging.flush()\n")
-
-        code = ("# make sure everything is closed down\n"
-                "if win is not None:\n"
-                "    win.close()\n"
-                "if 'eyetracker' in inputs and inputs['eyetracker'] is not None:\n"
-                "    eyetracker.setConnectionState(False)\n"
-                "thisExp.abort()  # or data files will save again on exit\n"
-                "core.quit()\n")
+            code += (
+            "logging.flush()\n"
+            )
         buff.writeIndentedLines(code)
+        # Exit function def
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines("\n")
 
+        # Open function def
+        code = (
+            '\n'
+            'def quit(thisExp, win=None, inputs=None, thisSession=None):\n'
+            '    """\n'
+            '    Fully quit, closing the window and ending the Python process.\n'
+            '    \n'
+            '    Parameters\n'
+            '    ==========\n'
+            '    win : psychopy.visual.Window\n'
+            '        Window to close.\n'
+            '    inputs : dict\n'
+            '        Dictionary of input devices by name.\n'
+            '    thisSession : psychopy.session.Session or None\n'
+            '        Handle of the Session object this experiment is being run from, if any.\n'
+            '    """\n'
+        )
+        buff.writeIndentedLines(code)
+        buff.setIndentLevel(+1, relative=True)
+        # Write code to end session
+        code = (
+            "thisExp.abort()  # or data files will save again on exit\n"
+            "# make sure everything is closed down\n"
+            "if win is not None:\n"
+            "    # Flip one final time so any remaining win.callOnFlip() \n"
+            "    # and win.timeOnFlip() tasks get executed before quitting\n"
+            "    win.flip()\n"
+            "    win.close()\n"
+            "if inputs is not None:\n"
+            "    if 'eyetracker' in inputs and inputs['eyetracker'] is not None:\n"
+            "        eyetracker.setConnectionState(False)\n"
+        )
+        if self.params['Save log file'].val:
+            code += (
+            "logging.flush()\n"
+            )
+        code += (
+            "if thisSession is not None:\n"
+            "    thisSession.stop()\n"
+            "# terminate Python process\n"
+            "core.quit()\n"
+        )
+        buff.writeIndentedLines(code)
         # Exit function def
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("\n")

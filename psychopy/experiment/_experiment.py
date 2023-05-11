@@ -310,8 +310,8 @@ class Experiment:
                 "        win=win, \n"
                 "        inputs=inputs\n"
                 "    )\n"
-                "    saveData(thisExp)\n"
-                "    endExperiment(thisExp, win=win, inputs=inputs)\n"
+                "    saveData(thisExp=thisExp)\n"
+                "    quit(thisExp=thisExp, win=win, inputs=inputs)\n"
             )
             script.writeIndentedLines(code)
 
