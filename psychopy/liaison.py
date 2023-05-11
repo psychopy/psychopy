@@ -121,6 +121,10 @@ class WebSocketServer:
 		port : int
 			the port number, e.g. 8001
 		"""
+		global _currentServer
+		_currentServer = self
+		# rebind errors so they're sent to the server
+		sys.excepthook = handleException
 		# set the loop future on SIGTERM or SIGINT for clean interruptions:
 		loop = asyncio.get_running_loop()
 		loopFuture = loop.create_future()
@@ -133,6 +137,7 @@ class WebSocketServer:
 			# await asyncio.Future()  # run forever
 
 		self._logger.info('Liaison Server terminated.')
+		_currentServer = None
 
 	async def broadcast(self, message):
 		"""
@@ -275,4 +280,16 @@ class WebSocketServer:
 				response['messageId'] = decodedMessage['messageId']
 
 			await websocket.send(json.dumps(response))
+
+
+def handleException(exc_type, exc_value, exc_traceback):
+	# format exception
+	msg = "".join(
+		traceback.format_exception(exc_type, exc_value, exc_traceback)
+	)
+	# send
+	if _currentServer is not None:
+		_currentServer.broadcast(msg)
+	else:
+		raise Exception(exc_value)
 			

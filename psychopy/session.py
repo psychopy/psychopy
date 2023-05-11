@@ -172,11 +172,6 @@ class Session:
                 "Waiting to start..."
             ))
             self.win.color = "grey"
-        # Make own liaison server globally accessible
-        global liaisonServer
-        liaisonServer = self.liaison
-        # Rebind errors
-        sys.excepthook = handleException
         # Process any calls
         while self._alive:
             # Empty the queue of any tasks
@@ -800,18 +795,6 @@ class Session:
         Safely close the current session. This will end the Python instance.
         """
         sys.exit()
-
-
-def handleException(exc_type, exc_value, exc_traceback):
-    global liaisonServer
-    # format exception
-    msg = "".join(
-        traceback.format_exception(exc_type, exc_value, exc_traceback)
-    )
-    # send
-    liaisonServer.broadcast(msg)
-
-    return
 
 
 if __name__ == "__main__":
