@@ -56,6 +56,14 @@ class PIPTerminalPanel(wx.Panel):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.border.Add(self.sizer, proportion=1, border=12, flag=wx.ALL | wx.EXPAND)
 
+        # Sanitize system executable
+        executable = sys.executable
+        if not (
+                executable[0] in ("'", '"') and executable[-1] in ("'", '"')
+        ):
+            executable = f'"{executable}"'
+        # Construct preface
+        self.preface = " ".join([executable, "-m"])
         # Add output
         self.output = wx.richtext.RichTextCtrl(
             self,
@@ -63,7 +71,10 @@ class PIPTerminalPanel(wx.Panel):
                 "Type a PIP command below and press Enter to execute it in the installed PsychoPy environment, any "
                 "returned text will appear below.\n"
                 "\n"
-            ),
+                "All commands will be automatically prefaced with:\n"
+                "{}\n"
+                "\n"
+            ).format(self.preface),
             size=(480, -1),
             style=wx.TE_READONLY)
         self.sizer.Add(self.output, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
@@ -91,7 +102,7 @@ class PIPTerminalPanel(wx.Panel):
 
     def runCommand(self, cmd):
         """Run the command."""
-        emts = [sys.executable, "-m", cmd]
+        emts = [self.preface, cmd]
         output = sp.Popen(' '.join(emts),
                           stdout=sp.PIPE,
                           stderr=sp.PIPE,
