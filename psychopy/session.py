@@ -172,11 +172,6 @@ class Session:
                 "Waiting to start..."
             ))
             self.win.color = "grey"
-        # Make own liaison server globally accessible
-        global liaisonServer
-        liaisonServer = self.liaison
-        # Rebind errors
-        sys.excepthook = handleException
         # Process any calls
         while self._alive:
             # Empty the queue of any tasks
@@ -539,6 +534,9 @@ class Session:
         bool or None
             True if the operation completed/queued successfully
         """
+        # Start off assuming everything is fine
+        success = True
+
         # If not in main thread and not requested blocking, use queue and return now
         if threading.current_thread() != threading.main_thread() and not blocking:
             # The queue is emptied each iteration of the while loop in `Session.start`
@@ -547,7 +545,7 @@ class Session:
                 (key,),
                 {'expInfo': expInfo}
             ))
-            return True
+            return success
 
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(key)
@@ -569,13 +567,29 @@ class Session:
         # Setup inputs
         self.setupInputsFromExperiment(key, expInfo=expInfo)
         # Run this experiment
-        self.experiments[key].run(
-            expInfo=expInfo,
-            thisExp=thisExp,
-            win=self.win,
-            inputs=self.inputs,
-            thisSession=self
-        )
+        try:
+            self.experiments[key].run(
+                expInfo=expInfo,
+                thisExp=thisExp,
+                win=self.win,
+                inputs=self.inputs,
+                thisSession=self
+            )
+        except Exception as err:
+            # Don't raise errors from experiment as this will terminate Python
+            # process, instead note that run failed and print error to log
+            success = False
+            # Get traceback
+            tb = traceback.format_exception(type(err), err, err.__traceback__)
+            msg = "".join(tb)
+            # Print traceback in log
+            logging.critical(
+                _translate("Experiment failed. \n") +
+                msg
+            )
+            # If we have a liaison, send traceback to it
+            if self.liaison is not None:
+                self.sendToLiaison(msg)
         # Reinstate autodraw stimuli
         self.win.retrieveAutoDraw()
         # Restore original chdir
@@ -592,7 +606,7 @@ class Session:
         ))
         self.win.color = "grey"
 
-        return True
+        return success
 
     def pauseExperiment(self):
         """
@@ -784,18 +798,6 @@ class Session:
         Safely close the current session. This will end the Python instance.
         """
         sys.exit()
-
-
-def handleException(exc_type, exc_value, exc_traceback):
-    global liaisonServer
-    # format exception
-    msg = "".join(
-        traceback.format_exception(exc_type, exc_value, exc_traceback)
-    )
-    # send
-    liaisonServer.broadcast(msg)
-
-    return
 
 
 if __name__ == "__main__":
