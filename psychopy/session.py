@@ -714,6 +714,41 @@ class Session:
 
         return True
 
+    def saveCurrentExperimentData(self, blocking=True):
+        """
+        Call `.saveExperimentData` on the currently running experiment - if
+        there is one.
+
+        Parameters
+        ----------
+        blocking : bool
+            Should calling this method block the current thread?
+
+            If True (default), the method runs as normal and won't return until
+            completed.
+            If False, the method is added to a `queue` and will be run by the
+            while loop within `Session.start`. This will block the main thread,
+            but won't block the thread this method was called from.
+
+            If not using multithreading, this value is ignored. If you don't
+            know what multithreading is, you probably aren't using it - it's
+            difficult to do by accident!
+
+        Returns
+        -------
+        bool or None
+            True if the operation completed/queued successfully, False if there
+            was no current experiment running
+        """
+        if self.currentExperiment is None:
+            return False
+
+        return self.saveExperimentData(
+            key=self.currentExperiment.name,
+            thisExp=self.currentExperiment,
+            blocking=blocking
+        )
+
     def sendToLiaison(self, value):
         """
         Send data to this Session's `Liaison` object.
