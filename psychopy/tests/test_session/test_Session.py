@@ -27,7 +27,8 @@ class TestSession:
             experiments={
                 'exp1': "exp1/exp1.psyexp",
                 'exp2': "exp2/exp2.psyexp",
-                'testCtrls': "testCtrls/testCtrls.psyexp"
+                'testCtrls': "testCtrls/testCtrls.psyexp",
+                'error': "error/error.psyexp",
             }
         )
 
@@ -76,3 +77,21 @@ class TestSession:
         thread.start()
         # Start session
         self.sess.start()
+
+    def test_error(self, capsys):
+        """
+        Check that an error in an experiment doesn't interrupt the session.
+        """
+        # run experiment which has an error in it
+        success = self.sess.runExperiment("error")
+        # check that it returned False after failing
+        assert not success
+        # flush the log
+        logging.flush()
+        # get stdout and stderr
+        stdout, stderr = capsys.readouterr()
+        # check that a CRITICAL error has been logged
+        assert "CRITICAL" in stdout + stderr
+        # check that another experiment still runs after this
+        success = self.sess.runExperiment("exp1")
+        assert success
