@@ -288,7 +288,7 @@ class PackageListCtrl(wx.Panel):
         # Create dialog to get package file location
         dlg = wx.FileDialog(
             self,
-            wildcard="Wheel files (.whl)|.whl|Source distribution files (.sdist)|.sdist",
+            wildcard="Wheel files (*.whl)|*.whl|Source distribution files (*.sdist)|*.sdist|All files (*.*)|*.*",
             style=wx.FD_OPEN | wx.FD_SHOW_HIDDEN)
         if dlg.ShowModal() == wx.ID_OK:
             # Install
