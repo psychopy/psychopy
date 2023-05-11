@@ -580,15 +580,16 @@ class Session:
             # process, instead note that run failed and print error to log
             success = False
             # Get traceback
-            tb = traceback.format_tb(err.__traceback__)
+            tb = traceback.format_exception(type(err), err, err.__traceback__)
+            msg = "".join(tb)
             # Print traceback in log
             logging.critical(
                 _translate("Experiment failed. \n") +
-                "".join(tb)
+                msg
             )
             # If we have a liaison, send traceback to it
             if self.liaison is not None:
-                self.sendToLiaison("".join(tb))
+                self.sendToLiaison(msg)
         # Reinstate autodraw stimuli
         self.win.retrieveAutoDraw()
         # Restore original chdir
