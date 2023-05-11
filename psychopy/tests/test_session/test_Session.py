@@ -90,8 +90,9 @@ class TestSession:
         logging.flush()
         # get stdout and stderr
         stdout, stderr = capsys.readouterr()
-        # check that a CRITICAL error has been logged
+        # check that our error has been logged as CRITICAL
         assert "CRITICAL" in stdout + stderr
+        assert "ValueError:" in stdout + stderr
         # check that another experiment still runs after this
         success = self.sess.runExperiment("exp1")
         assert success
