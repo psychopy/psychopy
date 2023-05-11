@@ -539,6 +539,9 @@ class Session:
         bool or None
             True if the operation completed/queued successfully
         """
+        # Start off assuming everything is fine
+        success = True
+
         # If not in main thread and not requested blocking, use queue and return now
         if threading.current_thread() != threading.main_thread() and not blocking:
             # The queue is emptied each iteration of the while loop in `Session.start`
@@ -547,7 +550,7 @@ class Session:
                 (key,),
                 {'expInfo': expInfo}
             ))
-            return True
+            return success
 
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(key)
@@ -569,13 +572,28 @@ class Session:
         # Setup inputs
         self.setupInputsFromExperiment(key, expInfo=expInfo)
         # Run this experiment
-        self.experiments[key].run(
-            expInfo=expInfo,
-            thisExp=thisExp,
-            win=self.win,
-            inputs=self.inputs,
-            thisSession=self
-        )
+        try:
+            self.experiments[key].run(
+                expInfo=expInfo,
+                thisExp=thisExp,
+                win=self.win,
+                inputs=self.inputs,
+                thisSession=self
+            )
+        except Exception as err:
+            # Don't raise errors from experiment as this will terminate Python
+            # process, instead note that run failed and print error to log
+            success = False
+            # Get traceback
+            tb = traceback.format_tb(err.__traceback__)
+            # Print traceback in log
+            logging.critical(
+                _translate("Experiment failed. \n") +
+                "".join(tb)
+            )
+            # If we have a liaison, send traceback to it
+            if self.liaison is not None:
+                self.sendToLiaison("".join(tb))
         # Reinstate autodraw stimuli
         self.win.retrieveAutoDraw()
         # Restore original chdir
@@ -590,7 +608,7 @@ class Session:
         ))
         self.win.color = "grey"
 
-        return True
+        return success
 
     def pauseExperiment(self):
         """
