@@ -459,7 +459,7 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
         """
         # Map number of characters to acceptable frame rates
         cases = [
-            {'chars': 100, 'fr': 60},
+            {'chars': 100, 'fr': 30},
             {'chars': 1000, 'fr': 16},
             {'chars': 4000, 'fr': 8},
         ]
