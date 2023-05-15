@@ -1537,6 +1537,7 @@ class RoutinesNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         for ii in range(self.GetPageCount()):
             if routine is self.GetPage(ii).routine:
                 self.SetSelection(ii)
+        self.frame.flowPanel.draw()
 
     def SetSelection(self, index, force=False):
         aui.AuiNotebook.SetSelection(self, index, force=force)
@@ -3985,6 +3986,9 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
             rtEdge = colors.app['fl_routine_bg_slip']
             rtText = colors.app['fl_routine_fg']
 
+        if routine == self.frame.routinePanel.getCurrentRoutine():
+            # if selected, the edge is highlighted
+            rtEdge = colors.app['fl_flowline_bg']
         # get size based on text
         self.SetFont(font)
         if draw:
@@ -3996,7 +4000,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         rect = wx.Rect(pos[0], pos[1] + 2 - self.appData['flowSize'],
                        w + pad, h + pad)
         endX = pos[0] + w + pad
-        # the edge should match the text
+        # the edge should match the text, unless selected
         if draw:
             dc.SetPen(wx.Pen(wx.Colour(rtEdge[0], rtEdge[1],
                                        rtEdge[2], wx.ALPHA_OPAQUE)))
@@ -4010,7 +4014,8 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
                 font.SetPointSize(int(font.GetPointSize() * 0.6))
                 dc.SetFont(font)
                 _align = wx.ALIGN_CENTRE | wx.ALIGN_BOTTOM
-                dc.DrawLabel("(%.2fs)" % maxTime, rect, alignment=_align)
+                timeRect = wx.Rect(rect.Left, rect.Top, rect.Width, rect.Height-2)
+                dc.DrawLabel("(%.2fs)" % maxTime, timeRect, alignment=_align)
 
             self.componentFromID[id] = routine
             # set the area for this component
