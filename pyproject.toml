@@ -39,6 +39,7 @@ dependencies = [
     "psychtoolbox",
     # for iohub
     "pywinhook; platform_system == \"Windows\"",
+    "gevent",
     "psutil",
     "tables",
     "pyzmq",
@@ -90,6 +91,7 @@ tests = [
     "pytest",
     "pytest-codecov",
     "pytest-cov",
+    "pytest-asyncio",
     "flake8",
     "xmlschema",
 ]

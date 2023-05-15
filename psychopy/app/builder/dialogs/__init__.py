@@ -929,7 +929,8 @@ class _BaseParamsDlg(wx.Dialog):
             # Progress bar
             progBar = visual.Rect(
                 win, anchor="bottom left",
-                pos=(-1, -1), size=(0, 0.1)
+                pos=(-1, -1), size=(0, 0.1), 
+                fillColor='white'
             )
 
             # Frame loop

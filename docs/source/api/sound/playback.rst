@@ -132,7 +132,8 @@ PTB Audio Latency Modes
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 When using the PTB backend you get the option to choose the Latency Mode,
-referred to in PsychToolBox as the `reqlatencyclass`.
+referred to in PsychToolBox as the `reqlatencyclass`, and can be set in
+PsychoPy using :ref:`prefs.hardware['audioLatencyMode'] <hardwareSettings>`.
 
 |PsychoPy| uses Mode 3 in as a default, assuming that you want low latency and you
 don't care if other applications can't play sound at the same time (don't listen
@@ -166,6 +167,18 @@ The modes are as follows:
     As Mode 3 except that, if we fail to be totally dominant, then raise an
     error rather than just accepting our slightly less dominant status.
 
+.. _PTB_devices:
+
+PTB Devices
+~~~~~~~~~~~
+
+To set the output audio device to use, you can set the
+:ref:`prefs.hardware['audioDevice'] <hardwareSettings>` setting. To determine
+the set of available devices, you can do for example::
+
+        from pprint import pprint
+        import psychtoolbox.audio
+        pprint(psychtoolbox.audio.get_devices())
 
 .. _soundClasses:
 
