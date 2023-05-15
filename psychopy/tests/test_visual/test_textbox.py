@@ -9,6 +9,7 @@ from psychopy.tests.test_experiment.test_component_compile_python import _TestBo
 from psychopy.visual import Window
 from psychopy.visual import TextBox2
 from psychopy.visual.textbox2.fontmanager import FontManager
+from psychopy.preferences import prefs
 import pytest
 from psychopy.tests import utils
 
@@ -437,18 +438,57 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
         noFontTextbox = TextBox2(self.win, "", font="Raleway Dots", bold=True)
         assert (self.error.alerts[0].code == 4325)
 
+    def test_letter_spacing(self):
+        cases = (0.6, 0.8, 1, None, 1.2, 1.4, 1.6, 1.8, 2.0)
 
-def test_font_manager():
-        # Create a font manager
-        mgr = FontManager()
+        for case in cases:
+            self.win.flip()
+            # Set letter spacing
+            self.obj.letterSpacing = case
+            # Draw
+            self.obj.draw()
+            # Compare
+            nameSafe = str(case).replace(".", "p")
+            filename = Path(utils.TESTS_DATA_PATH) / f"TestTextbox_testLetterSpacing_{nameSafe}.png"
+            self.win.getMovieFrame(buffer='back').save(filename)
+            utils.compareScreenshot(filename, self.win, crit=20)
+
+
+class TestFontManager():
+    def setup_method(self):
+        # create a font manager object to use in tests
+        self.obj = FontManager()
+
+    def test_get_font(self):
+        cases = [
+            {'value': "Open Sans", 'found': True},
+            {'value': Path(prefs.paths['resources']) / "fonts" / "Arvo-Bold.ttf", 'found': True},
+            {'value': str(Path(prefs.paths['resources']) / "fonts" / "Arvo-Bold.ttf"), 'found': True},
+            {'value': "Madeup Font", 'found': False},
+        ]
+
+        for case in cases:
+            # get font info from case value
+            fontInfo = self.obj.getFont(case['value'])
+            # check that it is/isn't found as expected
+            if case['found']:
+                assert str(fontInfo) != "Verdana_Regular_32", (
+                    f"Could not find font {case['value']}."
+                )
+            else:
+                assert str(fontInfo) == "Verdana_Regular_32", (
+                    f"Found nonexistant font {case['value']} as {fontInfo}."
+                )
+
+    def test_font_manager(self):
         # Check that it finds fonts which should be pre-packaged with PsychoPy in the resources folder
-        assert bool(mgr.getFontNamesSimilar("Open Sans"))
+        assert bool(self.obj.getFontNamesSimilar("Open Sans"))
         # Check that it doesn't find fonts which aren't installed as default
-        assert not bool(mgr.getFontNamesSimilar("Dancing Script"))
+        assert not bool(self.obj.getFontNamesSimilar("Dancing Script"))
         # Check that it can install fonts from Google
-        mgr.addGoogleFont("Hanalei")
+        self.obj.addGoogleFont("Hanalei")
         # Check that these fonts are found once installed
-        assert bool(mgr.getFontNamesSimilar("Hanalei"))
+        assert bool(self.obj.getFontNamesSimilar("Hanalei"))
 
 
 @pytest.mark.uax14
