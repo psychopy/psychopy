@@ -2010,11 +2010,13 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         grid.Top += timeLbls.Height
 
         # --- Component names ---
-        # get width of longest name
-        compNameWidths = [100]
-        for comp in self.routine:
-            w = self.GetFullTextExtent(comp.name)[0] + 12
-            compNameWidths.append(w)
+        # get width of component names column
+        compNameWidths = [120]
+        if not prefs.builder['abbreviateLongCompNames']:
+            # get width of longest name if we're not elipsizing
+            for comp in self.routine:
+                w = self.GetFullTextExtent(comp.name)[0] + 12
+                compNameWidths.append(w)
         componentLabelWidth = max(compNameWidths)
         # create rect
         compLbls = self.rects['compLbls'] = wx.Rect(
@@ -2280,17 +2282,10 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         self.setFontSize(self.fontBaseSize // self.dpi, dc)
 
         name = component.params['name'].val
-        # # get size based on text
-        # w, h = self.GetFullTextExtent(name)[0:2]
-        # if w > self.iconXpos - self.dpi // 5:
-        #     # If width is greater than space available, split word at point calculated by average letter width
-        #     maxLen = int(
-        #         (self.iconXpos - self.GetFullTextExtent("...")[0] - self.dpi / 5)
-        #         / (w / len(name))
-        #     )
-        #     splitAt = maxLen // 2
-        #     name = name[:splitAt] + "..." + name[-splitAt:]
-        #     w = self.iconXpos - self.dpi // 5
+        # elipsize name if it's too long
+        if self.GetFullTextExtent(name)[0] > self.rects['compLbls'].Width:
+            name = name[:6] + "..." + name[-6:]
+        # get size based on text
         w = self.rects['compLbls'].Width
         h = self.GetFullTextExtent(name)[1]
 
