@@ -486,6 +486,7 @@ class Routine(list):
         code = (
             "if thisExp.status == FINISHED or endExpNow:\n"
             "    endExperiment(thisExp, inputs=inputs, win=win)\n"
+            "    return\n"
         )
         buff.writeIndentedLines(code)
 
