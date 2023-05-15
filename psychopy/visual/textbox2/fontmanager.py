@@ -934,6 +934,10 @@ class FontManager():
         then the existing FontAtlas is returned. Otherwise, a new FontAtlas is
         created , added to the cache, and returned.
         """
+        # If given a path to a font file that exists, use it
+        if Path(name).is_file():
+            return GLFont(name, size, lineSpacing=lineSpacing)
+
         fontInfos = self.getFontsMatching(name, bold, italic, fallback=False)
         if not fontInfos:
             # If font not found, try to retrieve it from Google
