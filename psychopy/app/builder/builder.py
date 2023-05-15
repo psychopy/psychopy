@@ -3971,6 +3971,11 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         else:
             fontSizeDelta = (8, 4, 0)[self.appData['flowSize']]
             font.SetPointSize(1000 // self.dpi - fontSizeDelta)
+        # if selected, bold text
+        if routine == self.frame.routinePanel.getCurrentRoutine():
+            font.SetWeight(wx.FONTWEIGHT_BOLD)
+        else:
+            font.SetWeight(wx.FONTWEIGHT_NORMAL)
 
         maxTime, nonSlip = routine.getMaxTime()
         if hasattr(routine, "disabled") and routine.disabled:
@@ -3986,9 +3991,6 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
             rtEdge = colors.app['fl_routine_bg_slip']
             rtText = colors.app['fl_routine_fg']
 
-        if routine == self.frame.routinePanel.getCurrentRoutine():
-            # if selected, the edge is highlighted
-            rtEdge = colors.app['fl_flowline_bg']
         # get size based on text
         self.SetFont(font)
         if draw:
