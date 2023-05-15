@@ -1920,10 +1920,10 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
 
         # update rects with which to layout
         self.updateLayoutRects()
-        # if debugging, draw all the rects
-        self.pdc.SetPen(wx.Pen("Red"))
-        for rect in self.rects.values():
-            self.pdc.DrawRectangle(rect)
+        # # if debugging, draw all the rects
+        # self.pdc.SetPen(wx.Pen("Red"))
+        # for rect in self.rects.values():
+        #     self.pdc.DrawRectangle(rect)
 
         self.SetBackgroundColour(colors.app['tab_bg'])
 
