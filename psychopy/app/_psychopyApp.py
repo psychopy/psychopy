@@ -586,7 +586,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             for exp in [file for file in args if file.endswith('.psyexp') or file.endswith('.py')]:
                 self.runner.panel.runFile(exp)
 
-        # send anonymous info to www.psychopy.org/usage.php
+        # send anonymous info to https://usage.psychopy.org
         # please don't disable this, it's important for PsychoPy's development
         self._latestAvailableVersion = None
         self.updater = None
@@ -1006,10 +1006,10 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         for frame in self.getAllFrames():
             try:
                 frame.closeFrame(event=event, checkSave=False)
-                # must do this before destroying the frame?
-                self.prefs.saveAppData()
             except Exception:
                 pass  # we don't care if this fails - we're quitting anyway
+        # must do this before destroying the frame?
+        self.prefs.saveAppData()
         #self.Destroy()
 
         # Reset streams back to default

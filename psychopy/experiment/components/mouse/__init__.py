@@ -173,7 +173,7 @@ class MouseComponent(BaseComponent):
             "# check whether click was in correct object\n"
             "if gotValidClick:\n"
             "    corr = 0\n"
-            "    corrAns = core.getFromNames(%(correctAns)s, namespace=locals())\n"
+            "    corrAns = environmenttools.getFromNames(%(correctAns)s, namespace=locals())\n"
             "    for obj in corrAns:\n"
             "        # is this object clicked on?\n"
             "        if obj.contains(%(name)s):\n"
