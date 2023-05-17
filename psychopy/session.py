@@ -179,19 +179,14 @@ class Session:
                 method, args, kwargs = self._queue.pop(0)
                 retval = method(*args, **kwargs)
                 # When task completes, broadcast confirmation
-                argstr = (
-                        ", ".join(args) +
-                        ", ".join([f"{key}={val}" for key, val in kwargs.items()])
-                )
-                logstr = (
-                        f"Completed queued method {method.__name__}.\n"
-                        f"    Arguments: {argstr}\n"
-                        f"    Returned: {retval}\n"
-                )
-                if self.liaison is None:
-                    logging.log(logstr, level=logging.INFO)
-                else:
-                    self.sendToLiaison(logstr)
+                if self.liaison is not None:
+                    msg = {
+                        'method': method.__name__,
+                        'args': args,
+                        'kwargs': kwargs,
+                        'returned': retval
+                    }
+                    self.sendToLiaison(msg)
             # Flip the screen and give a little time to sleep
             if self.win is not None:
                 self.win.flip()
