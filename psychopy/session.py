@@ -177,7 +177,21 @@ class Session:
             # Empty the queue of any tasks
             while len(self._queue):
                 method, args, kwargs = self._queue.pop(0)
-                method(*args, **kwargs)
+                retval = method(*args, **kwargs)
+                # When task completes, broadcast confirmation
+                argstr = (
+                        ", ".join(args) +
+                        ", ".join([f"{key}={val}" for key, val in kwargs.items()])
+                )
+                logstr = (
+                        f"Completed queued method {method.__name__}.\n"
+                        f"    Arguments: {argstr}\n"
+                        f"    Returned: {retval}\n"
+                )
+                if self.liaison is None:
+                    logging.log(logstr, level=logging.INFO)
+                else:
+                    self.sendToLiaison(logstr)
             # Flip the screen and give a little time to sleep
             if self.win is not None:
                 self.win.flip()
