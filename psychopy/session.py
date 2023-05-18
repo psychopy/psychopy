@@ -107,6 +107,7 @@ class Session:
     """
 
     _queue = []
+    _results = []
 
     def __init__(self,
                  root,
@@ -176,17 +177,16 @@ class Session:
         while self._alive:
             # Empty the queue of any tasks
             while len(self._queue):
+                # Run the task
                 method, args, kwargs = self._queue.pop(0)
                 retval = method(*args, **kwargs)
-                # When task completes, broadcast confirmation
-                if self.liaison is not None:
-                    msg = {
-                        'method': method.__name__,
-                        'args': args,
-                        'kwargs': kwargs,
-                        'returned': retval
-                    }
-                    self.sendToLiaison(msg)
+                # Store its output
+                self._results.append({
+                    'method': method.__name__,
+                    'args': args,
+                    'kwargs': kwargs,
+                    'returned': retval
+                })
             # Flip the screen and give a little time to sleep
             if self.win is not None:
                 self.win.flip()
@@ -543,9 +543,7 @@ class Session:
         bool or None
             True if the operation completed/queued successfully
         """
-        # Start off assuming everything is fine
-        success = True
-
+        err = None
         # If not in main thread and not requested blocking, use queue and return now
         if threading.current_thread() != threading.main_thread() and not blocking:
             # The queue is emptied each iteration of the while loop in `Session.start`
@@ -554,7 +552,7 @@ class Session:
                 (key,),
                 {'expInfo': expInfo}
             ))
-            return success
+            return True
 
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(key)
@@ -584,21 +582,8 @@ class Session:
                 inputs=self.inputs,
                 thisSession=self
             )
-        except Exception as err:
-            # Don't raise errors from experiment as this will terminate Python
-            # process, instead note that run failed and print error to log
-            success = False
-            # Get traceback
-            tb = traceback.format_exception(type(err), err, err.__traceback__)
-            msg = "".join(tb)
-            # Print traceback in log
-            logging.critical(
-                _translate("Experiment failed. \n") +
-                msg
-            )
-            # If we have a liaison, send traceback to it
-            if self.liaison is not None:
-                self.sendToLiaison(msg)
+        except Exception as _err:
+            err = _err
         # Reinstate autodraw stimuli
         self.win.retrieveAutoDraw()
         # Restore original chdir
@@ -614,8 +599,11 @@ class Session:
             "Waiting to start..."
         ))
         self.win.color = "grey"
+        # Raise any errors now
+        if err is not None:
+            raise err
 
-        return success
+        return True
 
     def pauseExperiment(self):
         """
