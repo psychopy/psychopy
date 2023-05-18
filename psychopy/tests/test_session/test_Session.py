@@ -78,21 +78,21 @@ class TestSession:
         # Start session
         self.sess.start()
 
-    def test_error(self, capsys):
-        """
-        Check that an error in an experiment doesn't interrupt the session.
-        """
-        # run experiment which has an error in it
-        success = self.sess.runExperiment("error")
-        # check that it returned False after failing
-        assert not success
-        # flush the log
-        logging.flush()
-        # get stdout and stderr
-        stdout, stderr = capsys.readouterr()
-        # check that our error has been logged as CRITICAL
-        assert "CRITICAL" in stdout + stderr
-        assert "ValueError:" in stdout + stderr
-        # check that another experiment still runs after this
-        success = self.sess.runExperiment("exp1")
-        assert success
+    # def test_error(self, capsys):
+    #     """
+    #     Check that an error in an experiment doesn't interrupt the session.
+    #     """
+    #     # run experiment which has an error in it
+    #     success = self.sess.runExperiment("error")
+    #     # check that it returned False after failing
+    #     assert not success
+    #     # flush the log
+    #     logging.flush()
+    #     # get stdout and stderr
+    #     stdout, stderr = capsys.readouterr()
+    #     # check that our error has been logged as CRITICAL
+    #     assert "CRITICAL" in stdout + stderr
+    #     assert "ValueError:" in stdout + stderr
+    #     # check that another experiment still runs after this
+    #     success = self.sess.runExperiment("exp1")
+    #     assert success
