@@ -177,7 +177,16 @@ class Session:
             # Empty the queue of any tasks
             while len(self._queue):
                 method, args, kwargs = self._queue.pop(0)
-                method(*args, **kwargs)
+                retval = method(*args, **kwargs)
+                # When task completes, broadcast confirmation
+                if self.liaison is not None:
+                    msg = {
+                        'method': method.__name__,
+                        'args': args,
+                        'kwargs': kwargs,
+                        'returned': retval
+                    }
+                    self.sendToLiaison(msg)
             # Flip the screen and give a little time to sleep
             if self.win is not None:
                 self.win.flip()
