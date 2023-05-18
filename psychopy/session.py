@@ -826,6 +826,7 @@ if __name__ == "__main__":
         from psychopy import liaison
         # Create liaison server
         liaisonServer = liaison.WebSocketServer()
+        session.liaison = liaisonServer
         # Add session to liaison server
         liaisonServer.registerMethods(session, "session")
         # Create thread to run liaison server in
