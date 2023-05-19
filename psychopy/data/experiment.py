@@ -252,6 +252,35 @@ class ExperimentHandler(_ComparisonMixin):
         #
         win.timeOnFlip(self.thisEntry, name)
 
+    @property
+    def status(self):
+        return self._status
+
+    @status.setter
+    def status(self, value):
+        """
+        Status of this experiment, from psychopy.constants.
+
+        Parameters
+        ----------
+        value : int
+            One of the values from psychopy.constants.
+        """
+        # log change
+        valStr = {
+            constants.NOT_STARTED: "NOT_STARTED",
+            constants.STARTED: "STARTED",
+            constants.PAUSED: "PAUSED",
+            constants.RECORDING: "RECORDING",
+            constants.STOPPED: "STOPPED",
+            constants.SEEKING: "SEEKING",
+            constants.STOPPING: "STOPPING",
+            constants.INVALID: "INVALID"
+        }[value]
+        logging.exp(f"{self.name}: status = {valStr}", obj=self)
+        # make change
+        self._status = value
+
     def pause(self):
         """
         Set status to be PAUSED.

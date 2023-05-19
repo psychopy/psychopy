@@ -593,6 +593,10 @@ class Session:
         self.experiments[key].run.__globals__['logFile'] = self.logFile
         # Setup inputs
         self.setupInputsFromExperiment(key, expInfo=expInfo)
+        # Log start
+        logging.info(_translate(
+            "Running experiment via Session: name={key}, expInfo={expInfo}"
+        ).format(key=key, expInfo=expInfo))
         # Run this experiment
         try:
             self.experiments[key].run(
@@ -622,6 +626,11 @@ class Session:
         # Raise any errors now
         if err is not None:
             raise err
+        # Log finished and flush logs
+        logging.info(_translate(
+            "Finished running experiment via Session: name={key}, expInfo={expInfo}"
+        ).format(key=key, expInfo=expInfo))
+        logging.flush()
 
         return True
 
@@ -680,7 +689,7 @@ class Session:
         # warn and return failed if no experiment is running
         if self.currentExperiment is None:
             logging.warn(
-                _translate("Could not pause experiment as there is none "
+                _translate("Could not stop experiment as there is none "
                            "running.")
             )
             return False
