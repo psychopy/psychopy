@@ -281,6 +281,26 @@ class Session:
 
         return True
 
+    def getStatus(self):
+        """
+        Get an overall status flag for this Session. Will be one of either:
+
+        Returns
+        -------
+        int
+            A value `psychopy.constants`, either:
+            - NOT_STARTED: If no experiment is running
+            - STARTED: If an experiment is running
+            - PAUSED: If an experiment is paused
+            - FINISHED: If an experiment is in the process of terminating
+        """
+        if self.currentExperiment is None:
+            # If no current experiment, return NOT_STARTED
+            return constants.NOT_STARTED
+        else:
+            # Otherwise, return status of experiment handler
+            return self.currentExperiment.status
+
     def getExpInfoFromExperiment(self, key):
         """
         Get the global-level expInfo object from one of this Session's experiments. This will contain all of
@@ -573,6 +593,10 @@ class Session:
         self.experiments[key].run.__globals__['logFile'] = self.logFile
         # Setup inputs
         self.setupInputsFromExperiment(key, expInfo=expInfo)
+        # Log start
+        logging.info(_translate(
+            "Running experiment via Session: name={key}, expInfo={expInfo}"
+        ).format(key=key, expInfo=expInfo))
         # Run this experiment
         try:
             self.experiments[key].run(
@@ -602,6 +626,11 @@ class Session:
         # Raise any errors now
         if err is not None:
             raise err
+        # Log finished and flush logs
+        logging.info(_translate(
+            "Finished running experiment via Session: name={key}, expInfo={expInfo}"
+        ).format(key=key, expInfo=expInfo))
+        logging.flush()
 
         return True
 
@@ -660,7 +689,7 @@ class Session:
         # warn and return failed if no experiment is running
         if self.currentExperiment is None:
             logging.warn(
-                _translate("Could not pause experiment as there is none "
+                _translate("Could not stop experiment as there is none "
                            "running.")
             )
             return False
