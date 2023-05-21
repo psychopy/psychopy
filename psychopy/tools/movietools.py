@@ -57,13 +57,17 @@ class MovieFileWriter:
         either 'rgb24' or 'rgba32'. The default is 'rgb24'. When passing frames
         to `addFrame()` as a numpy array, the array should be in the format
         specified here.
+    syncBarrier : threading.Barrier or None
+        A `threading.Barrier` object used to synchronize the movie writer with
+        other threads.
     
     """
     # supported pixel formats as constants
     PIXEL_FORMAT_RGB24 = 'rgb24'
     PIXEL_FORMAT_RGBA32 = 'rgb32'
 
-    def __init__(self, filename, size, fps, codec=None, pixelFormat='rgb24'):
+    def __init__(self, filename, size, fps, codec=None, pixelFormat='rgb24',
+                 syncBarrier=None):
         # video file options
         self._filename = filename
         self._size = size
@@ -71,6 +75,7 @@ class MovieFileWriter:
         self._codec = codec
         self._pts = 0.0  # most recent presentation timestamp
         self._pixelFormat = pixelFormat
+        self._syncBarrier = syncBarrier
 
         # objects needed to build up the asynchronous movie writer interface
         self._writerThread = None  # thread for writing the movie file
@@ -107,7 +112,7 @@ class MovieFileWriter:
                 'A movie writer is already open for file {}'.format(
                     self._filename))
 
-        def writeFramesAsync(filename, writerOptions, frameQueue):
+        def writeFramesAsync(filename, writerOptions, frameQueue, readyBarrier):
             """Local function used to write frames to the movie file.
 
             This is executed in a thread to allow the main thread to continue
@@ -123,6 +128,11 @@ class MovieFileWriter:
             frameQueue : queue.Queue
                 A queue containing the frames to write to the movie file.
                 Pushing `None` to the queue will cause the thread to exit.
+            readyBarrier : threading.Barrier or None
+                A `threading.Barrier` object used to synchronize the movie
+                writer with other threads. This guarantees that the movie writer
+                is ready before frames are passed te the queue. If `None`, 
+                no synchronization is performed.
 
             """
             from ffpyplayer.pic import SWScale
@@ -130,6 +140,10 @@ class MovieFileWriter:
             # create the movie writer, don't manipulate this object while the 
             # movie is being written to disk
             writer = MediaWriter(filename, [writerOptions])
+
+            # wait on a barrier
+            if readyBarrier is not None:
+                readyBarrier.wait()
 
             while True:
                 frame = frameQueue.get()  # waited on until a frame is added
@@ -169,7 +183,10 @@ class MovieFileWriter:
         # the queue
         self._writerThread = threading.Thread(
             target=writeFramesAsync,
-            args=(self._filename, writerOptions, self._frameQueue))
+            args=(self._filename, 
+                  writerOptions, 
+                  self._frameQueue,
+                  self._syncBarrier))
         
         self._writerThread.start()
         
@@ -318,15 +335,15 @@ class MovieFileWriter:
             return
         
         # convert the image to a format that `ffpyplayer` can use if needed
-        from ffpyplayer.pic import Image
+        import ffpyplayer.pic as pic
         if isinstance(image, np.ndarray):
             # make sure we are the correct format
             image = np.ascontiguousarray(image, dtype=np.uint8).tobytes()
-            colorData = Image(
+            colorData = pic.Image(
                 plane_buffers=[image], 
                 pix_fmt=self._pixelFormat, 
                 size=self._size)
-        elif isinstance(image, Image):
+        elif isinstance(image, pic.Image):
             # check if the format is valid
             if image.get_pixel_format() != self._pixelFormat:
                 raise ValueError('Invalid pixel format for image.')
