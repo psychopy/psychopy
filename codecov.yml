@@ -58,3 +58,4 @@ ignore:
   - "psychopy/scripts"
   - "psychopy/iohub"
   - "psychopy/contrib"
+  - "psychopy/visual/textbox"
