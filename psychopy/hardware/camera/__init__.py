@@ -32,9 +32,10 @@ __all__ = [
     'CameraFormatNotSupportedError',
     'FormatNotFoundError',
     'PlayerNotAvailableError',
+    'CameraInterfaceFFmpeg',
+    'CameraInterfaceOpenCV',
     'Camera',
     'CameraInfo',
-    'StreamData',
     'getCameras',
     'getCameraDescriptions',
     'renderVideo'
@@ -1155,10 +1156,10 @@ class Camera:
         metadata needs to be obtained from the stream. Returns `None` if not
         valid.
         """
-        if self._recentMetadata is None:
+        if self._cameraInfo is None:
             return None
 
-        return self._recentMetadata.size
+        return self._cameraInfo.size
 
     def _assertCameraReady(self):
         """Assert that the camera is ready. Raises a `CameraNotReadyError` if
@@ -1337,6 +1338,23 @@ class Camera:
         self._mic = value
 
     @property
+    def _hasAudio(self):
+        """`True` if we have an active audio stream.
+        """
+        return self._mic is not None
+    
+    @property
+    def win(self):
+        """Window frames are being presented (`psychopy.visual.Window` or 
+        `None`).
+        """
+        return self._win
+    
+    @win.setter
+    def win(self, value):
+        self._win = value
+
+    @property
     def _hasPlayer(self):
         """`True` if we have an active media player instance.
         """
@@ -1344,12 +1362,6 @@ class Camera:
             return False
         
         return self._player.isOpen()
-
-    @property
-    def _hasWriter(self):
-        """`True` if we have an active file writer instance.
-        """
-        return True
 
     @property
     def streamTime(self):
@@ -1508,8 +1520,6 @@ class Camera:
         
         self._captureThread.open()
         
-        # create a writer object if we are recording to disk, this will just 
-        
         # start the thread which handles the camera interface and recording
         # self._captureThread = threading.Thread(
         #     target=_asyncStreamRecorder,
@@ -1540,20 +1550,6 @@ class Camera:
             raise RuntimeError("Cannot start recording, stream is not open.")
 
         self._captureFrames.clear()
-
-        warmUpBarrier = threading.Barrier(2)
-        
-        # contain video and not audio
-        self._movieWriter = movietools.MovieFileWriter(
-            'test.mp4',
-            self._cameraInfo.frameSize,  # match camera params
-            self._cameraInfo.frameRate,
-            None,
-            'rgb24',  # only one supported for now
-            warmUpBarrier)
-        self._movieWriter.open()
-        
-        warmUpBarrier.wait()  # wait on the movie writer to start
 
         self._isRecording = True
         self._enqueueFrame()
@@ -1601,7 +1597,7 @@ class Camera:
         self._captureThread.close()
         self._captureThread = None
 
-        self._status = NOT_STARTED
+        # self._status = NOT_STARTED
 
         # cleanup temp files to prevent clogging up the user's hard disk
         # self._cleanUpTempDirs()
@@ -1626,9 +1622,30 @@ class Camera:
         #     raise RuntimeError(
         #         "Attempted to call `save()` a file before calling `stop()`.")
 
+        # check if a file exists at the given path, if so, delete it
+        if os.path.exists(filename):
+            msg = (
+                "Video file '{}' already exists, overwriting.".format(filename))
+            logging.warning(msg)
+            os.remove(filename)
+
         # get outstanding frames from the camera queue
         newFrames = self._captureThread.getFrames()
         self._captureFrames.extend(newFrames)
+
+        warmUpBarrier = threading.Barrier(2)  # wait on writer thread
+
+        # contain video and not audio
+        self._movieWriter = movietools.MovieFileWriter(
+            filename,
+            self._cameraInfo.frameSize,  # match camera params
+            self._cameraInfo.frameRate,
+            None,
+            'rgb24',  # only one supported for now
+            warmUpBarrier)
+        self._movieWriter.open()
+
+        warmUpBarrier.wait()
 
         # flush remaining frames to the writer thread, this is really fast since
         # frames are not copied and don't require much conversion
@@ -1638,6 +1655,7 @@ class Camera:
         # push all frames to the queue for the movie recorder, we don't need to
         # wait until the thread is done to return
         self._movieWriter.close()
+        self._movieWriter = None
 
         self._lastVideoFile = filename  # remember the last video we saved
 
