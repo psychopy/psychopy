@@ -866,7 +866,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             If None, show only when there is content.
         """
         # Make sure we have a file
-        if self.filename and self.filename != 'untitled.psyexp':
+        if self.filename:
             dirname = Path(self.filename).parent
             possibles = list(dirname.glob('readme*'))
             if len(possibles) == 0:
@@ -886,6 +886,10 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self.readmeFrame = ReadmeFrame(
                 parent=self, filename=self.readmeFilename
             )
+
+        # Set file
+        self.readmeFrame.file = self.readmeFilename
+        self.readmeFrame.load()
 
         # Show/hide frame as appropriate
         if show is None:
