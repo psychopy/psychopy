@@ -76,6 +76,7 @@ class MovieFileWriter:
         self._pts = 0.0  # most recent presentation timestamp
         self._pixelFormat = pixelFormat
         self._syncBarrier = syncBarrier
+        self._dataLock = threading.Lock()  # lock for accessing shared data
 
         # objects needed to build up the asynchronous movie writer interface
         self._writerThread = None  # thread for writing the movie file
@@ -84,11 +85,21 @@ class MovieFileWriter:
         # frame interval in seconds
         self._frameInterval = 1.0 / self._fps
 
+        # keep track of the number of bytes we saved to the movie file
+        self._bytesOut = 0
+
     def __hash__(self):
         """Use the filename as the hash value since we only allow one instance
         per file.
         """
         return hash(self._filename)
+    
+    @property
+    def bytesOut(self):
+        """Total number of bytes saved to the movie file (`int`).
+        """
+        with self._dataLock:
+            return self._bytesOut
         
     def open(self):
         """Open the movie file for writing.
@@ -112,7 +123,8 @@ class MovieFileWriter:
                 'A movie writer is already open for file {}'.format(
                     self._filename))
 
-        def writeFramesAsync(filename, writerOptions, frameQueue, readyBarrier):
+        def writeFramesAsync(filename, writerOptions, frameQueue, readyBarrier,
+                             dataLock):
             """Local function used to write frames to the movie file.
 
             This is executed in a thread to allow the main thread to continue
@@ -133,6 +145,9 @@ class MovieFileWriter:
                 writer with other threads. This guarantees that the movie writer
                 is ready before frames are passed te the queue. If `None`, 
                 no synchronization is performed.
+            dataLock : threading.Lock
+                A lock used to synchronize access to the movie writer object for
+                accessing variables.
 
             """
             from ffpyplayer.pic import SWScale
@@ -161,10 +176,14 @@ class MovieFileWriter:
                     ofmt='yuv420p')
 
                 # write the frame to the file
-                _ = writer.write_frame(
+                bytesOut = writer.write_frame(
                     img=sws.scale(colorData),
                     pts=pts,
                     stream=0)
+                
+                # update the number of bytes saved
+                with dataLock:
+                    self._bytesOut += bytesOut
 
             writer.close()
 
@@ -179,6 +198,9 @@ class MovieFileWriter:
             'frame_rate': (self._fps, 1)
         }
 
+        # reset the number of bytes saved
+        self._bytesOut = 0
+
         # initialize the thread, the thread will wait on frames to be added to 
         # the queue
         self._writerThread = threading.Thread(
@@ -186,7 +208,8 @@ class MovieFileWriter:
             args=(self._filename, 
                   writerOptions, 
                   self._frameQueue,
-                  self._syncBarrier))
+                  self._syncBarrier,
+                  self._dataLock))
         
         self._writerThread.start()
         
