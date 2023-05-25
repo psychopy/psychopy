@@ -86,8 +86,16 @@ class BuilderFindDlg(wx.Dialog):
         for result in self.results:
             # unpack result
             rt, comp, paramName, param = result
+            # sanitize val for display
+            val = str(param.val)
+            if "\n" in val:
+                # if multiline, show first line with match
+                for line in val.split("\n"):
+                    if self.termCtrl.GetValue() in line:
+                        val = line
+                        break
             # construct entry
-            entry = [comp.name, paramName, str(param.val)]
+            entry = [comp.name, paramName, val]
             # add entry
             self.resultsCtrl.Append(entry)
             # set image for comp
