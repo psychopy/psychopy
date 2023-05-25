@@ -66,7 +66,7 @@ class MovieFileWriter:
     PIXEL_FORMAT_RGB24 = 'rgb24'
     PIXEL_FORMAT_RGBA32 = 'rgb32'
 
-    def __init__(self, filename, size, fps, codec='libx264', pixelFormat='rgb24',
+    def __init__(self, filename, size, fps, codec=None, pixelFormat='rgb24',
                  syncBarrier=None):
         # video file options
         self._filename = filename
