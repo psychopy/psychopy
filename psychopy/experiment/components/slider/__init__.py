@@ -104,7 +104,7 @@ class SliderComponent(BaseVisualComponent):
                 updates='constant',
                 hint=_translate("Tick positions (numerical) on the scale, "
                                 "separated by commas"),
-                label=_localized['ticks'])
+                label=_translate("Ticks"))
         self.depends.append(
             {
                 # if...
@@ -124,7 +124,7 @@ class SliderComponent(BaseVisualComponent):
                 updates='constant',
                 hint=_translate("Labels for the tick marks on the scale, "
                                 "separated by commas"),
-                label=_localized['labels'])
+                label=_translate("Labels"))
         self.params['initVal'] = Param(
             initVal, valType='code', inputType="single", categ='Basic',
             hint=_translate("Value of the slider befre any response, leave blank to hide the marker until clicked on"),
@@ -156,12 +156,12 @@ class SliderComponent(BaseVisualComponent):
                 updates='constant', allowedUpdates=[],
                 hint=_translate("Should setting a rating (releasing the mouse) "
                                 "cause the end of the routine (e.g. trial)?"),
-                label=_localized['forceEndRoutine'])
+                label=_translate("Force end of Routine"))
         self.params['readOnly'] = Param(
             readOnly, valType='bool', allowedTypes=[], categ='Data',
             updates='constant', allowedUpdates=[],
             hint=_translate("Should participant be able to change the rating on the Slider?"),
-            label=_localized['readOnly'])
+            label=_translate("readOnly"))
 
         # advanced params:
         self.params['flip'] = Param(
@@ -214,18 +214,18 @@ class SliderComponent(BaseVisualComponent):
                 storeRating, valType='bool', inputType="bool", allowedTypes=[], categ='Data',
                 updates='constant', allowedUpdates=[],
                 hint=_translate("store the rating"),
-                label=_localized['storeRating'])
+                label=_translate("Store rating"))
         self.params['storeRatingTime'] = Param(
                 storeRatingTime, valType='bool', inputType="bool", allowedTypes=[], categ='Data',
                 updates='constant', allowedUpdates=[],
                 hint=_translate("Store the time taken to make the choice (in "
                                 "seconds)"),
-                label=_localized['storeRatingTime'])
+                label=_translate("Store rating time"))
         self.params['storeHistory'] = Param(
                 storeHistory, valType='bool', inputType="bool", allowedTypes=[], categ='Data',
                 updates='constant', allowedUpdates=[],
                 hint=_translate("store the history of (selection, time)"),
-                label=_localized['storeHistory'])
+                label=_translate("Store history"))
 
     def writeInitCode(self, buff):
 

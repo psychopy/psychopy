@@ -52,49 +52,49 @@ class VariableComponent(BaseComponent):
         self.params['startExpValue'] = Param(
             startExpValue, valType='code', inputType="single", allowedTypes=[], updates='constant', categ='Basic',
             hint=hnt,
-            label=_localized['startExpValue'])
+            label=_translate("Experiment start value"))
         hnt = _translate("Set the value for the beginning of each routine.")
         self.params['startRoutineValue'] = Param(
             startRoutineValue, valType='code', inputType="single", allowedTypes=[], updates='constant', categ='Basic',
             hint=hnt,
-            label=_localized['startRoutineValue'])
+            label=_translate("Routine start value"))
         hnt = _translate("Set the value for the beginning of every screen refresh.")
         self.params['startFrameValue'] = Param(
             startFrameValue, valType='code', inputType="single", allowedTypes=[], categ='Basic',
             hint=hnt,
-            label=_localized['startFrameValue'])
+            label=_translate("Frame start value"))
         # Save options
         hnt = _translate('Save the experiment start value in data file.')
         self.params['saveStartExp'] = Param(
             False, valType='bool', inputType="bool", categ='Data',
             updates='constant',
             hint=hnt,
-            label=_localized['saveStartExp'])
+            label=_translate("Save exp start value"))
         hnt = _translate('Save the experiment end value in data file.')
         self.params['saveEndExp'] = Param(
             False, valType='bool', inputType="bool", categ='Data',
             updates='constant',
             hint=hnt,
-            label=_localized['saveEndExp'])
+            label=_translate("Save exp end value"))
         hnt = _translate('Save the routine start value in data file.')
         self.params['saveStartRoutine'] = Param(
             False, valType='bool', inputType="bool", categ='Data',
             updates='constant',
             hint=hnt,
-            label=_localized['saveStartRoutine'])
+            label=_translate("Save routine start value"))
         hnt = _translate('Save the routine end value in data file.')
         self.params['saveEndRoutine'] = Param(
             True, valType='bool', inputType="bool", categ='Data',
             updates='constant',
             hint=hnt,
-            label=_localized['saveEndRoutine'])
+            label=_translate("Save routine end value"))
         hnt = _translate('Save choice of frame value in data file.')
         self.params['saveFrameValue'] = Param(
             'never', valType='str', inputType="choice", categ='Data',
             allowedVals=['first', 'last', 'all', 'never'],
             updates='constant', direct=False,
             hint=hnt,
-            label=_localized['saveFrameValue'])
+            label=_translate("Save frame value"))
 
     def writeInitCode(self, buff):
         """Write variable initialisation code."""

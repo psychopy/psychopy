@@ -57,13 +57,13 @@ class SoundComponent(BaseComponent):
             sound, valType='str', inputType="file", allowedTypes=[], updates='constant', categ='Basic',
             allowedUpdates=['constant', 'set every repeat'],
             hint=hnt,
-            label=_localized['sound'])
+            label=_translate("Sound"))
         _allowed = ['constant', 'set every repeat', 'set every frame']
         self.params['volume'] = Param(
             volume, valType='num', inputType="single", allowedTypes=[], updates='constant', categ='Playback',
             allowedUpdates=_allowed[:],  # use a copy
             hint=_translate("The volume (in range 0 to 1)"),
-            label=_localized["volume"])
+            label=_translate("Volume"))
         msg = _translate(
             "A reaction time to a sound stimulus should be based on when "
             "the screen flipped")
@@ -71,7 +71,7 @@ class SoundComponent(BaseComponent):
             syncScreenRefresh, valType='bool', inputType="bool", categ='Basic',
             updates='constant',
             hint=msg,
-            label=_localized['syncScreenRefresh'])
+            label=_translate("Sync Start With Screen"))
         self.params['hamming'] = Param(
             True, valType='bool', inputType="bool", updates='constant', categ='Playback',
             hint=_translate(

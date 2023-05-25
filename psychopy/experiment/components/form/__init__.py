@@ -84,13 +84,13 @@ class FormComponent(BaseVisualComponent):
             items, valType='file', inputType="table", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=_translate("The csv filename containing the items for your survey."),
-            label=_localized['Items'])
+            label=_translate("Items"))
 
         self.params['Text Height'] = Param(
             textHeight, valType='num', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant',
             hint=_translate("The size of the item text for Form"),
-            label=_localized['Text Height'])
+            label=_translate("Text Height"))
 
         self.params['Font'] = Param(
             font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',
@@ -102,20 +102,20 @@ class FormComponent(BaseVisualComponent):
             randomize, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=_translate("Do you want to randomize the order of your questions?"),
-            label=_localized['Randomize'])
+            label=_translate("Randomize"))
 
         self.params['Item Padding'] = Param(
             itemPadding, valType='num', inputType="single", allowedTypes=[], categ='Layout',
             updates='constant',
             hint=_translate("The padding or space between items."),
-            label=_localized['Item Padding'])
+            label=_translate("Item Padding"))
 
         self.params['Data Format'] = Param(
             'rows', valType='str', inputType="choice", allowedTypes=[], categ='Basic',
             allowedVals=['columns', 'rows'],
             updates='constant',
             hint=_translate("Store item data by columns, or rows"),
-            label=_localized['Data Format'])
+            label=_translate("Data Format"))
 
         # Appearance
         for param in ['fillColor', 'borderColor', 'itemColor', 'responseColor', 'markerColor', 'Style']:
@@ -131,7 +131,7 @@ class FormComponent(BaseVisualComponent):
             updates='constant', allowedVals=knownStyles + ["custom..."],
             hint=_translate(
                     "Styles determine the appearance of the form"),
-            label=_localized['Style'])
+            label=_translate("Styles"))
 
         for param in ['fillColor', 'borderColor', 'itemColor', 'responseColor', 'markerColor']:
             self.depends += [{

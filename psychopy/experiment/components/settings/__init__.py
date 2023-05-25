@@ -174,7 +174,7 @@ class SettingsComponent:
             expName, valType='str',  inputType="single", allowedTypes=[],
             hint=_translate("Name of the entire experiment (taken by default"
                             " from the filename on save)"),
-            label=_localized["expName"])
+            label=_translate("Experiment name"))
         self.depends.append(
             {"dependsOn": "Show info dlg",  # must be param name
              "condition": "==True",  # val to check for
@@ -187,17 +187,17 @@ class SettingsComponent:
             showExpInfo, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Start the experiment with a dialog to set info"
                             " (e.g.participant or condition)"),
-            label=_localized["Show info dlg"], categ='Basic')
+            label=_translate("Show info dialog"), categ='Basic')
         self.params['Enable Escape'] = Param(
             enableEscape, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Enable the <esc> key, to allow subjects to quit"
                             " / break out of the experiment"),
-            label=_localized["Enable Escape"])
+            label=_translate("Enable Escape key"))
         self.params['Experiment info'] = Param(
             expInfo, valType='code', inputType="dict", allowedTypes=[],
             hint=_translate("The info to present in a dialog box. Right-click"
                             " to check syntax and preview the dialog box."),
-            label=_localized["Experiment info"], categ='Basic')
+            label=_translate("Experiment info"), categ='Basic')
         self.params['Use version'] = Param(
             useVersion, valType='str', inputType="choice",
             # search for options locally only by default, otherwise sluggish
@@ -206,13 +206,13 @@ class SettingsComponent:
                         + versions._versionFilter(versions.availableVersions(), wx_version),
             hint=_translate("The version of PsychoPy to use when running "
                             "the experiment."),
-            label=_localized["Use version"], categ='Basic')
+            label=_translate("Use PsychoPy version"), categ='Basic')
 
         # screen params
         self.params['Full-screen window'] = Param(
             fullScr, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Run the experiment full-screen (recommended)"),
-            label=_localized["Full-screen window"], categ='Screen')
+            label=_translate("Full-screen window"), categ='Screen')
         self.params['winBackend'] = Param(
             winBackend, valType='str', inputType="choice", categ="Screen",
             allowedVals=plugins.getWindowBackends(),
@@ -222,29 +222,29 @@ class SettingsComponent:
         self.params['Window size (pixels)'] = Param(
             winSize, valType='list', inputType="single", allowedTypes=[],
             hint=_translate("Size of window (if not fullscreen)"),
-            label=_localized["Window size (pixels)"], categ='Screen')
+            label=_translate("Window size (pixels)"), categ='Screen')
         self.params['Screen'] = Param(
             screen, valType='num', inputType="spin", allowedTypes=[],
             hint=_translate("Which physical screen to run on (1 or 2)"),
-            label=_localized["Screen"], categ='Screen')
+            label=_translate("Screen"), categ='Screen')
         self.params['Monitor'] = Param(
             monitor, valType='str', inputType="single", allowedTypes=[],
             hint=_translate("Name of the monitor (from Monitor Center). Right"
                             "-click to go there, then copy & paste a monitor "
                             "name here."),
-            label=_localized["Monitor"], categ="Screen")
+            label=_translate("Monitor"), categ="Screen")
         self.params['color'] = Param(
             color, valType='color', inputType="color", allowedTypes=[],
             hint=_translate("Color of the screen (e.g. black, $[1.0,1.0,1.0],"
                             " $variable. Right-click to bring up a "
                             "color-picker.)"),
-            label=_localized["color"], categ='Screen')
+            label=_translate("Color"), categ='Screen')
         self.params['colorSpace'] = Param(
             colorSpace, valType='str', inputType="choice",
             hint=_translate("Needed if color is defined numerically (see "
                             "PsychoPy documentation on color spaces)"),
             allowedVals=['rgb', 'dkl', 'lms', 'hsv', 'hex'],
-            label=_localized["colorSpace"], categ="Screen")
+            label=_translate("Color space"), categ="Screen")
         self.params['backgroundImg'] = Param(
             backgroundImg, valType="str", inputType="file", categ="Screen",
             hint=_translate("Image file to use as a background (leave blank for no image)"),
@@ -262,18 +262,18 @@ class SettingsComponent:
                          'degFlatPos', 'degFlat'],
             hint=_translate("Units to use for window/stimulus coordinates "
                             "(e.g. cm, pix, deg)"),
-            label=_localized["Units"], categ='Screen')
+            label=_translate("Units"), categ='Screen')
         self.params['blendMode'] = Param(
             blendMode, valType='str', inputType="choice",
             allowedVals=['add', 'avg', 'nofbo'],
             allowedLabels=['add', 'average', 'average (no FBO)'],
             hint=_translate("Should new stimuli be added or averaged with "
                             "the stimuli that have been drawn already"),
-            label=_localized["blendMode"], categ='Screen')
+            label=_translate("Blend mode"), categ='Screen')
         self.params['Show mouse'] = Param(
             showMouse, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Should the mouse be visible on screen? Only applicable for fullscreen experiments."),
-            label=_localized["Show mouse"], categ='Screen')
+            label=_translate("Show mouse"), categ='Screen')
         # self.depends.append(
         #     {"dependsOn": 'Full-screen window',  # must be param name
         #      "condition": "==True",  # val to check for
@@ -287,7 +287,7 @@ class SettingsComponent:
         self.params['Force stereo'] = Param(
             enableEscape, valType='bool', inputType="bool", allowedTypes=[], categ="Audio",
             hint=_translate("Force audio to stereo (2-channel) output"),
-            label=_localized["Force stereo"])
+            label=_translate("Force stereo"))
         self.params['Audio lib'] = Param(
             'ptb', valType='str', inputType="choice",
             allowedVals=['ptb', 'pyo', 'sounddevice', 'pygame'],
@@ -313,7 +313,7 @@ class SettingsComponent:
             filename, valType='code', inputType="single", allowedTypes=[],
             hint=_translate("Code to create your custom file name base. Don"
                             "'t give a file extension - this will be added."),
-            label=_localized["Data filename"], categ='Data')
+            label=_translate("Data filename"), categ='Data')
         self.params['Data file delimiter'] = Param(
             savedDataDelim, valType='str', inputType="choice",
             allowedVals=['auto', 'comma', 'semicolon', 'tab'],
@@ -324,27 +324,27 @@ class SettingsComponent:
             saveLogFile, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Save a detailed log (more detailed than the "
                             "excel/csv files) of the entire experiment"),
-            label=_localized["Save log file"], categ='Data')
+            label=_translate("Save log file"), categ='Data')
         self.params['Save wide csv file'] = Param(
             saveWideCSVFile, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Save data from loops in comma-separated-value "
                             "(.csv) format for maximum portability"),
-            label=_localized["Save wide csv file"], categ='Data')
+            label=_translate("Save csv file (trial-by-trial)"), categ='Data')
         self.params['Save csv file'] = Param(
             saveCSVFile, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Save data from loops in comma-separated-value "
                             "(.csv) format for maximum portability"),
-            label=_localized["Save csv file"], categ='Data')
+            label=_translate("Save csv file (summaries)"), categ='Data')
         self.params['Save excel file'] = Param(
             saveXLSXFile, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Save data from loops in Excel (.xlsx) format"),
-            label=_localized["Save excel file"], categ='Data')
+            label=_translate("Save excel file"), categ='Data')
         self.params['Save psydat file'] = Param(
             savePsydatFile, valType='bool', inputType="bool", allowedVals=[True],
             hint=_translate("Save data from loops in psydat format. This is "
                             "useful for python programmers to generate "
                             "analysis scripts."),
-            label=_localized["Save psydat file"], categ='Data')
+            label=_translate("Save psydat file"), categ='Data')
         self.params['Save hdf5 file'] = Param(
             saveHDF5File, valType='bool', inputType="bool",
             hint=_translate("Save data from eyetrackers in hdf5 format. This is "
@@ -355,7 +355,7 @@ class SettingsComponent:
             allowedVals=['error', 'warning', 'data', 'exp', 'info', 'debug'],
             hint=_translate("How much output do you want in the log files? "
                             "('error' is fewest messages, 'debug' is most)"),
-            label=_localized["logging level"], categ='Data')
+            label=_translate("Logging level"), categ='Data')
 
         # HTML output params
         # self.params['OSF Project ID'] = ProjIDParam(
@@ -388,7 +388,7 @@ class SettingsComponent:
             exportHTML, valType='str', inputType="choice",
             allowedVals=['on Save', 'on Sync', 'manually'],
             hint=_translate("When to export experiment to the HTML folder."),
-            label=_localized["Export HTML"], categ='Online')
+            label=_translate("Export HTML"), categ='Online')
 
         # Eyetracking params
         self.order += ["eyetracker",
