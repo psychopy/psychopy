@@ -1,6 +1,163 @@
 import re
+import inspect
+from pathlib import Path
 from ..utils import _q, _lb, _rb, _d, _sl
+from psychopy import experiment
 from psychopy.experiment import Param, utils as exputils
+
+
+class TestStyle:
+    """
+    Tests for grammar, spelling, case conventions & PsychoPy-isms in user-facing
+    strings
+    """
+
+    keywords = {
+        # PsychoPy keywords
+        'routine': "Routine",
+        'component': "Component",
+        'param': "Param",
+        'parameter': "Parameter",
+        'standalone routine': "Standalone Routine",
+        'Standalone routine': "Standalone Routine",
+        # our brand names
+        'psychopy': "PsychoPy",
+        'psychojs': "PsychoJS",
+        'pavlovia': "Pavlovia",
+        'surveyjs': "SurveyJS",
+        # other brand names
+        'python': "Python",
+        'excel': "Excel",
+        'gazepoint': "GazePoint",
+        'eyelink': "EyeLink",
+        'opengl': "OpenGL",
+        # initialisms
+        'json': "JSON",
+        'rtl': "RTL",
+        'ltr': "LTR",
+        'url': "URL",
+        'html': "HTML",
+        'js': "JS",
+        'ip': "IP",
+        'rt': "RT",
+    }
+    # add sentence start versions
+    for kw in keywords.copy():
+        keywords[kw.capitalize()] = keywords[kw]
+
+    def setup_class(self):
+        # dummy experiment to dump class instances in
+        exp = experiment.Experiment()
+        # list of dicts:
+        # - 'name': element name
+        # - 'instance': element instance
+        # - 'class': element class
+        # - 'file': def file
+        self.cases = []
+        # populate cases list
+        for name, cls in experiment.getAllElements().items():
+            # create basic instance of class
+            try:
+                emt = cls(exp=exp)
+            except TypeError:
+                emt = cls(exp=exp, parentName="")
+            # get file in which class was defined
+            file = Path(inspect.getfile(cls))
+            # append to cases
+            self.cases.append({
+                'name': name,
+                'instance': emt,
+                'class': cls,
+                'file': file
+            })
+
+    @staticmethod
+    def capitalizeKeywords(phrase):
+        """
+        Appropriately capitalize any uses of keywords (e.g. PsychoPy rather
+        than psychopy) in a given phrase
+
+        Parameters
+        ----------
+        phrase : str, re.Match
+            Phrase to process. If called from `re.sub`, will extract first match.
+        """
+        # if being called from re.sub, use the first match
+        if isinstance(phrase, re.Match):
+            phrase = phrase[1]
+
+        for pattern, repl in TestStyle.keywords.items():
+            # replace any keywords which are an entire word
+            phrase = re.sub(pattern=(
+                f"(?<= )({pattern})(?= )"  # space before and after
+                f"|(?<= )({pattern})$"  # space before and line end after
+                f"|^({pattern})(?= )"  # line start before and space after
+                f"|^({pattern})$"  # line start before and line end after
+            ), string=phrase, repl=repl)
+
+        return phrase
+
+    def test_case(self):
+        """
+        Labels should all be in `Sentence case` - first word (and first word after
+        full stop) capitalized, the rest lower. Apart from keywords.
+        """
+        def _validate(compName, paramName, value, sanitized):
+            # # uncomment this and comment the assertion to make substitutions now
+            # content = case['file'].read_text()
+            # content = re.sub(
+            #     pattern=(
+            #         r"(?<=_translate\()[\"']"
+            #         + re.escape(value) +
+            #         r"[\"'](?=\))"
+            #     ),
+            #     string=content,
+            #     repl='"' + sanitized + '"'
+            # )
+            # case['file'].write_text(content)
+            # check value
+            assert value == sanitized, (
+                f"Found incorrect case in label/hint for param {paramName} "
+                f"of {compName}: wanted '{sanitized}', got '{value}'."
+            )
+        for case in self.cases:
+            # iterate through params from instance
+            for paramName, param in case['instance'].params.items():
+                # check that hint has keywords capitalized
+                sanitizedHint = self.capitalizeKeywords(param.hint)
+                _validate(
+                    compName=case['name'],
+                    paramName=paramName,
+                    value=param.hint,
+                    sanitized=sanitizedHint,
+                )
+                # check that label is in sentence case with keywords capitalized
+                sanitizedLabel = self.capitalizeKeywords(param.label.capitalize())
+                _validate(
+                    compName=case['name'],
+                    paramName=paramName,
+                    value=param.label,
+                    sanitized=sanitizedLabel,
+                )
+
+    def test_localized_deprecation(self):
+        """
+        Make sure that new components are using _translate rather than _localized
+        """
+        for case in self.cases:
+            # get file contents
+            content = case['file'].read_text()
+            # look for _localized
+            isLocalized = re.compile(
+                r"(_localized\[)"
+                r"([^\]]*)"
+                r"(\])"
+            )
+            # make sure we don't use _localize
+            assert not re.findall(
+                pattern=isLocalized,
+                string=content
+            ), "Use of _localized found in %(file)s." % case
 
 
 def test_param_str():
