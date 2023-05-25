@@ -46,34 +46,22 @@ __all__ = [
 
 import platform
 import numpy as np
-import tempfile
 import inspect
 import os
 import os.path
-import shutil
 import math
 from psychopy.constants import STOPPED, NOT_STARTED, RECORDING, STARTED, \
     STOPPING, PAUSED, FINISHED, INVALID
-from psychopy.visual.movies.metadata import MovieMetadata, NULL_MOVIE_METADATA
 from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
 from psychopy.sound.microphone import Microphone
 import psychopy.tools.movietools as movietools
 import psychopy.logging as logging
 from ffpyplayer.player import MediaPlayer
-from ffpyplayer.tools import list_dshow_devices, get_format_codec
-# Something in moviepy.editor's initialisation breaks Mouse, so import these
-# from the source instead
-# from moviepy.editor import VideoFileClip, AudioFileClip, CompositeAudioClip
-# from moviepy.video.io.VideoFileClip import VideoFileClip
-# from moviepy.audio.io.AudioFileClip import AudioFileClip
-# from moviepy.audio.AudioClip import CompositeAudioClip
+from ffpyplayer.tools import list_dshow_devices
 import uuid
-import random
-import string
 import threading
 import queue
 import time
-# import cv2  # used to get camera information
 
 
 # ------------------------------------------------------------------------------
@@ -515,10 +503,6 @@ class CameraInterfaceFFmpeg(CameraInterface):
         Camera device to open a stream with. This value is platform dependent.
         On Windows, this value is a DirectShow URI or camera name. On MacOS,
         this value is a camera name/index.
-    syncBarrier : threading.Barrier or None
-        Barrier to synchronize with before starting the camera stream. This is
-        used to ensure that the camera stream is started and ready before the 
-        main thread starts reading frames. If `None`, no barrier is used.
     mic : MicrophoneInterface or None
         Microphone interface to use for audio recording. If `None`, no audio
         recording is performed.
@@ -526,7 +510,7 @@ class CameraInterfaceFFmpeg(CameraInterface):
     """
     _cameraLib = u'ffpyplayer'
 
-    def __init__(self, device, syncBarrier, mic=None):
+    def __init__(self, device, mic=None):
         super().__init__(device=device)
 
         self._bufferSecs = 0.5  # number of seconds to buffer
@@ -537,7 +521,7 @@ class CameraInterfaceFFmpeg(CameraInterface):
         self._enableEvent.clear()
         self._exitEvent = threading.Event()
         self._exitEvent.clear()
-        self._syncBarrier = syncBarrier
+        self._syncBarrier = None
         self._recordBarrier = None  # created in `open()`
         self._playerThread = None
 
@@ -607,47 +591,65 @@ class CameraInterfaceFFmpeg(CameraInterface):
             warmUpBarrier : threading.Barrier
                 Barrier which is used hold until camera capture is ready.
             recordingBarrier : threading.Barrier
-                Recording barrier which is waited on for actions to complete 
-                prior to recording. This is used to synchronize the camera and
-                microphone.
-            audioCapture : psychopy.sound.Microphone
-                Microphone used for audio recording.
+                Barrier which is used to synchronize audio and video recording.
+                This ensures that the audio device is ready before buffering 
+                frames captured by the camera. 
+            audioCapture : psychopy.sound.Microphone or None
+                Microphone object to use for audio capture. This will be used to
+                synchronize the audio and video streams. If `None`, no audio
+                will be captured.
 
             """
-            player = MediaPlayer(source, ff_opts=ffOpts, lib_opts=libOpts)
+            # open the camera stream
+            cap = MediaPlayer(source, ff_opts=ffOpts, lib_opts=libOpts)
             
             # warmup the stream, wait for metadata
             ptsStart = 0.0
             while True:
-                frame, val = player.get_frame()
+                frame, val = cap.get_frame()
                 # print('warmup', frame, val)
                 if frame is not None:
-                    ptsStart = player.get_pts()
+                    ptsStart = cap.get_pts()
                     break
                 
                 time.sleep(0.001)
 
-            warmUpBarrier.wait()
-
             # if we have a valid frame, determine the polling rate
-            metadata = player.get_metadata()
+            metadata = cap.get_metadata()
             numer, divisor = metadata['frame_rate']
 
             # poll interval is half the frame period, this makes sure we don't
             # miss frames while not wasting CPU cycles
-            pollInterval = (1.0 / float(numer / divisor)) / 4.0
+            pollInterval = (1.0 / float(numer / divisor)) * 0.5
 
             # holds main-thread execution until its ready for frames
-            frameQueue.put((frame, val, metadata))  # put the first frame
+            # frameQueue.put((frame, val, metadata))  # put the first frame
+
+            warmUpBarrier.wait()  # wait for main thread to be ready
 
             # start capturing frames in background thread
             isRecording = False
             lastAbsTime = -1.0  # presentation timestamp of the last frame
             while not exitEvent.is_set():  # quit if signaled
-                # hold getting frames until we are ready to record
-                # timedOut = not recordEvent.wait(pollInterval)
-                # if timedOut:
-                #     continue
+                # pull a frame from the stream, we keep this running 'hot' so
+                # that we don't miss frames, we just discard them if we don't
+                # need them
+                frame, val = cap.get_frame(force_refresh=False)
+
+                if val == 'eof':  # thread should exit if stream is done
+                    break
+                elif val == 'paused':
+                    continue
+                elif frame is None:
+                    continue
+                else:
+                    # don't queue frames unless they are newer than the last
+                    if isRecording:
+                        thisFrameAbsTime = cap.get_pts()
+                        if lastAbsTime < thisFrameAbsTime:
+                            frameQueue.put((frame, val, metadata))
+                            lastAbsTime = thisFrameAbsTime
+
                 if recordEvent.is_set() and not isRecording:
                     if audioCapture is not None:
                         audioCapture.start(waitForStart=1)
@@ -663,32 +665,18 @@ class CameraInterfaceFFmpeg(CameraInterface):
                     time.sleep(pollInterval)
                     continue
 
-                # if we have metadata, we can now start passing frames
-                frame, val = player.get_frame(force_refresh=False)
-
-                if val == 'eof':  # thread should exit if stream is done
-                    break
-                elif val == 'paused':
-                    continue
-                elif frame is None:
-                    continue
-                else:
-                    # don't queue frames unless they are newer than the last
-                    thisFrameAbsTime = player.get_pts()
-                    if lastAbsTime < thisFrameAbsTime:
-                        frameQueue.put((frame, val, metadata))
-                        lastAbsTime = thisFrameAbsTime
-
                 if audioCapture is not None:
                     if audioCapture.isRecording:
                         audioCapture.poll()
 
                 time.sleep(pollInterval)
             
-            player.close_player()
+            cap.close_player()
 
             if audioCapture is not None:
                 audioCapture.stop(blockUntilStopped=1)
+
+            # thread is dead when we get here
 
         # configure the camera stream reader
         ff_opts = {}  # ffmpeg options
@@ -754,6 +742,7 @@ class CameraInterfaceFFmpeg(CameraInterface):
         lib_opts['video_size'] = _cameraInfo.frameSizeAsFormattedString()
         lib_opts['framerate'] = str(_frameRate)
 
+        self._warmupBarrier = threading.Barrier(2)
         self._recordBarrier = threading.Barrier(2)
 
         # open a stream and pause it until ready
@@ -765,10 +754,12 @@ class CameraInterfaceFFmpeg(CameraInterface):
                   self._frameQueue, 
                   self._exitEvent,
                   self._enableEvent,
-                  self._syncBarrier,
+                  self._warmupBarrier,
                   self._recordBarrier,
                   self._mic))
         self._playerThread.start()
+
+        self._warmupBarrier.wait()
 
         # pass off the player to the thread which will process the stream
         self._enqueueFrame()  # pull metadata from first frame
@@ -800,8 +791,6 @@ class CameraInterfaceFFmpeg(CameraInterface):
             return False
         
         frameImage, pts = frame  # otherwise, unpack the frame
-
-        # self._isReady = streamStatus.status >= STARTED
 
         # if we have a new frame, update the frame information
         videoBuffer = frameImage.to_bytearray()[0]
@@ -844,6 +833,16 @@ class CameraInterfaceFFmpeg(CameraInterface):
 
     def enable(self, state=True):
         """Start passing frames to the frame queue.
+
+        This method returns when the video and audio stream are both starting to
+        record or stop recording.
+
+        Parameters
+        ----------
+        state : bool
+            `True` to enable recording frames to the queue, `False` to disable.
+            On state change, the audio interface will be started or stopped.
+
         """
         if state:
             self._enableEvent.set()
@@ -851,9 +850,13 @@ class CameraInterfaceFFmpeg(CameraInterface):
             self._enableEvent.clear()
         
         self._recordBarrier.wait()
+        self._enqueueFrame()
     
     def disable(self):
         """Stop passing frames to the frame queue.
+        
+        Calling this is equivalent to calling `enable(False)`.
+
         """
         self.enable(False)
 
@@ -899,10 +902,6 @@ class CameraInterfaceOpenCV(CameraInterface):
     ----------
     device : int
         Camera device to open a stream with. This value is platform dependent.
-    syncBarrier : threading.Barrier or None
-        Barrier to synchronize with before starting the camera stream. This is
-        used to ensure that the camera stream is started and ready before the 
-        main thread starts reading frames. If `None`, no barrier is used.
     mic : MicrophoneInterface or None
         Microphone interface to use for audio recording. If `None`, no audio
         recording is performed.
@@ -910,7 +909,7 @@ class CameraInterfaceOpenCV(CameraInterface):
     """
     _cameraLib = u'opencv'
 
-    def __init__(self, device, syncBarrier=None, mic=None):
+    def __init__(self, device, mic=None):
         super().__init__(device)
         try:
             import cv2   # just import to check if it's available
@@ -924,11 +923,47 @@ class CameraInterfaceOpenCV(CameraInterface):
         self._frameQueue = queue.Queue()
         self._enableEvent = threading.Event()
         self._exitEvent = threading.Event()
-        self._syncBarrier = syncBarrier
+        self._syncBarrier = None
         self._playerThread = None
 
     def _assertMediaPlayer(self):
         return self._playerThread is not None
+    
+    @staticmethod
+    def getCameras():
+        """Get a list of available cameras.
+
+        Returns
+        -------
+        list
+            List of available cameras.
+
+        """
+        import cv2
+
+        # check if we're running windows
+        useDirectShow = os.name == 'nt'
+
+        cameras = []
+        for cameraIndex in range(16):
+            if not useDirectShow:
+                camera = cv2.VideoCapture(cameraIndex)
+            else:
+                camera = cv2.VideoCapture(cameraIndex, cv2.CAP_DSHOW)
+
+            # if the camera is not opened, we're done
+            if not camera.isOpened():
+                break
+            
+            # get information about camera capabilities
+            frameRate = (int(camera.get(cv2.CAP_PROP_FPS)), 1)
+            frameSize = (
+                int(camera.get(cv2.CAP_PROP_FRAME_WIDTH)),
+                int(camera.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+            cameras.append((cameraIndex, frameSize, frameRate))
+            camera.release()
+        
+        return cameras
     
     def open(self):
         """Open the camera stream and start reading frames using OpenCV2.
@@ -936,7 +971,7 @@ class CameraInterfaceOpenCV(CameraInterface):
         import cv2
         
         def _frameGetterAsync(device, frameQueue, exitEvent, recordEvent, 
-                              syncBarrier, mic):
+                              warmUpBarrier, recordingBarrier, audioCapture):
             """Get frames asynchronously from the camera stream.
 
             Parameters
@@ -950,10 +985,13 @@ class CameraInterfaceOpenCV(CameraInterface):
             recordEvent : threading.Event
                 Event used to signal the thread to pass frames along to the main 
                 thread.
-            syncBarrier : threading.Barrier
-                Barrier to synchronize the thread with the main thread to
-                prevent actions from being taken before the camera is ready.
-            microphone : psychopy.sound.Microphone
+            warmUpBarrier : threading.Barrier
+                Barrier which is used hold until camera capture is ready.
+            recordingBarrier : threading.Barrier
+                Barrier which is used to synchronize audio and video recording.
+                This ensures that the audio device is ready before buffering 
+                frames captured by the camera. 
+            audioCapture : psychopy.sound.Microphone or None
                 Microphone object to use for audio capture. This will be used to
                 synchronize the audio and video streams. If `None`, no audio
                 will be captured.
@@ -966,15 +1004,20 @@ class CameraInterfaceOpenCV(CameraInterface):
             if not cap.isOpened():
                 raise RuntimeError("Cannot open camera using `cv2`")
             
-            # determine the polling interval based on the frame rate
+            # get the frame rate to determine the polling interval
             fps = cap.get(cv2.CAP_PROP_FPS)
+
+            # poll interval is half the frame period, this makes sure we don't
+            # miss frames while not wasting CPU cycles
             pollInterval = (1.0 / fps) * 0.5
             
             # if the camera is opened, wait until the main thread is ready to
             # take frames
-            syncBarrier.wait()
+            warmUpBarrier.wait()
 
             # start capturing frames
+            isRecording = False
+            lastAbsTime = -1.0  # presentation timestamp of the last frame
             while not exitEvent.is_set():
                 # Capture frame-by-frame
                 ret, frame = cap.read()
@@ -984,26 +1027,49 @@ class CameraInterfaceOpenCV(CameraInterface):
                     val = 'eof'
                     break
                 else:
-                    val = 0.0
+                    # don't queue frames unless they are newer than the last
+                    if isRecording:
+                        thisFrameAbsTime = cap.get(cv2.CAP_PROP_POS_MSEC)
+                        if lastAbsTime < thisFrameAbsTime:
+                            # color conversion is done in the thread here
+                            colorData = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                            frameQueue.put((colorData, val, None))
+                            lastAbsTime = thisFrameAbsTime
 
-                if not recordEvent.is_set():
+                # check if we should start or stop recording
+                if recordEvent.is_set() and not isRecording:
+                    if audioCapture is not None:
+                        audioCapture.start(waitForStart=1)
+                    recordingBarrier.wait()
+                    isRecording = True
+                elif not recordEvent.is_set() and isRecording:
+                    if audioCapture is not None:
+                        audioCapture.stop(blockUntilStopped=1)
+                    recordingBarrier.wait()
+                    isRecording = False
+
+                if not isRecording:
                     time.sleep(pollInterval)
                     continue
 
-                # convert the frame to the proper format for display
-                colorData = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
-                # todo - need to sort out metadata handling in OpenCV
-                frameQueue.put((colorData, val, None))
-
-                if mic is not None:
-                    if mic.isStarted:
-                        mic.poll()
+                if audioCapture is not None:
+                    if audioCapture.isRecording:
+                        audioCapture.poll()
 
                 time.sleep(pollInterval)
 
             # when everything done, release the capture device
             cap.release()
+
+            if audioCapture is not None:  # stop audio capture
+                audioCapture.stop(blockUntilStopped=1)
+
+            # thread is dead if we get here
+
+        # barriers used for synchronizing
+        parties = 2  # main + recording threads
+        self._warmupBarrier = threading.Barrier(parties)  # camera is ready
+        self._recordBarrier = threading.Barrier(parties)  # audio/video is ready
 
         # open a stream and pause it until ready
         self._playerThread = threading.Thread(
@@ -1013,6 +1079,7 @@ class CameraInterfaceOpenCV(CameraInterface):
                   self._exitEvent,
                   self._enableEvent,
                   self._syncBarrier,
+                  self._recordingBarrier,
                   self._mic))
         self._playerThread.start()
 
@@ -1046,8 +1113,6 @@ class CameraInterfaceOpenCV(CameraInterface):
             return False
         
         frameImage, pts = frame  # otherwise, unpack the frame
-
-        # self._isReady = streamStatus.status >= STARTED
 
         # if we have a new frame, update the frame information
         videoBuffer = frameImage.to_bytearray()[0]
@@ -1086,14 +1151,30 @@ class CameraInterfaceOpenCV(CameraInterface):
 
     def enable(self, state=True):
         """Start passing frames to the frame queue.
+
+        This method returns when the video and audio stream are both starting to
+        record or stop recording.
+
+        Parameters
+        ----------
+        state : bool
+            `True` to enable recording frames to the queue, `False` to disable.
+            On state change, the audio interface will be started or stopped.
+
         """
         if state:
             self._enableEvent.set()
         else:
             self._enableEvent.clear()
+        
+        self._recordBarrier.wait()
+        self._enqueueFrame()
     
     def disable(self):
         """Stop passing frames to the frame queue.
+        
+        Calling this is equivalent to calling `enable(False)`.
+
         """
         self.enable(False)
 
@@ -1131,7 +1212,6 @@ class CameraInterfaceOpenCV(CameraInterface):
 
         return self._lastFrame
 
-
     def __del__(self):
         self.close()
 
@@ -1144,9 +1224,13 @@ class Camera:
     """Class of displaying and recording video from a USB/PCI connected camera.
 
     This class is capable of opening, recording, and saving camera video streams
-    to disk. Camera stream reading/writing is done in a separate thread. Output
-    video and audio tracks are written to a temp directory and composited into
-    the final video when `save()` is called.
+    to disk. Camera stream reading/writing is done in a separate thread, 
+    allowing capture to occur in the background while the main thread is free to 
+    perform other tasks. This allows for capture to occur at higher frame rates
+    than the display refresh rate. Audio recording is also supported if a 
+    microphone interface is provided, where recording will be synchronized with 
+    the video stream (as best as possible). Video and audio can be saved to disk 
+    either as a single file or as separate files.
 
     GNU/Linux is presently unsupported at this time, however support is likely
     to arrive in a later release.
@@ -1424,7 +1508,7 @@ class Camera:
         # self documenting and prevent the user from touching the status flag
         # attribute directly.
         #
-        return self.status == RECORDING
+        return self._isRecording
 
     @property
     def isNotStarted(self):
@@ -1440,7 +1524,7 @@ class Camera:
         the stream has stopped, `getVideoFrame()` will still yield frames until
         `close()` is called.
         """
-        return self.status == STOPPED
+        return not self._isRecording
 
     @property
     def metadata(self):
@@ -1514,31 +1598,6 @@ class Camera:
 
         """
         return getCameraDescriptions(collapse=collapse)
-
-    def _renderVideo(self, outFile, useThreads=True):
-        """Combine video and audio tracks of temporary video and audio files.
-        Outputs a new file at `outFile` with merged video and audio tracks.
-
-        Parameters
-        ----------
-        outFile : str
-            Output file path for the composited video.
-        useThreads : bool
-            Render videos in the background within a separate thread.
-
-        """
-        # this can only happen when stopped
-        if self._status != STOPPED:
-            raise RuntimeError(
-                "Cannot render video, `stop` has not been called yet.")
-
-        videoFile = self._tempVideoFileName
-        audioFile = None if self._mic is None else self._tempAudioFileName
-
-        if useThreads:
-            self._tRender.submitToRender(outFile, videoFile, audioFile)
-        else:
-            renderVideo(outFile, videoFile, audioFile)
 
     @property
     def status(self):
@@ -1692,8 +1751,7 @@ class Camera:
         # to select number of threads to wait on based on whether we have a 
         # microphone or not.
         # self._syncBarrier = threading.Barrier(3 if self._mic is not None else 2)  
-        self._syncBarrier = threading.Barrier(2) 
-                                              
+          
         # Camera interface to use, these are hard coded but support for each is
         # provided by an extension.
         desc = self._cameraInfo.description()
@@ -1702,14 +1760,12 @@ class Camera:
                 "Opening camera stream using FFmpeg. (device={})".format(desc))
             self._captureThread = CameraInterfaceFFmpeg(
                 device=self._cameraInfo, 
-                syncBarrier=self._syncBarrier,
                 mic=self._mic)
         elif self._cameraLib == u'opencv':
             logging.debug(
                 "Opening camera stream using OpenCV. (device={})".format(desc))
             self._captureThread = CameraInterfaceOpenCV(
                 device=self._cameraInfo, 
-                syncBarrier=self._syncBarrier,
                 mic=self._mic)
         else:
             raise ValueError(
@@ -1721,7 +1777,7 @@ class Camera:
         # this will return when the camera has been warmed up and is beginning
         # to pass frames, this prevents a race condition where we try to get
         # frames before the camera is ready
-        self._syncBarrier.wait()
+        # self._syncBarrier.wait()
 
     def record(self):
         """Start recording frames.
@@ -1734,12 +1790,11 @@ class Camera:
         """
         if not self._captureThread.isOpen():
             raise RuntimeError("Cannot start recording, stream is not open.")
-
-        self._captureFrames.clear()
-
+        
         self._recordingTime = 0.0
         self._recordingBytes = 0
         self._audioTrack = None
+        self._lastFrame = None
 
         # start recording audio if available
         if self._mic is not None:
@@ -1750,11 +1805,10 @@ class Camera:
                 "No microphone interface provided, not recording audio.")
 
         self._captureThread.enable()  # start passing frames to queue
-        # self._recordingStartedLock.acquire()  # wait until audio and video are recording
+        self._enqueueFrame()
 
         self._isRecording = True
-        # self._enqueueFrame()
-
+        
     # def snapshot(self):
     #     """Take a photo with the camera. The camera must be in `'photo'` mode
     #     to use this method.
@@ -1883,24 +1937,6 @@ class Camera:
                 os.remove(audioFileName)
 
         self._lastVideoFile = filename  # remember the last video we saved
-
-    def _cleanUpTempDirs(self):
-        """Cleanup temporary directories used by the video recorder.
-        """
-        if not hasattr(self, '_tempDirs'):  # crashed before declaration
-            return  # nop
-
-        logging.info("Cleaning up temporary video files ...")
-        # total cleanup of all temp dirs
-        for tempDir in self._tempDirs:
-            absPathToTempDir = os.path.abspath(tempDir)
-            if os.path.exists(absPathToTempDir):
-                logging.info("Deleting temporary directory `{}` ...".format(
-                    absPathToTempDir))
-                shutil.rmtree(absPathToTempDir)
-
-        self._tempDirs.clear()
-        logging.info("Done cleaning up temporary video files.")
 
     def _upload(self):
         """Upload video file to an online repository. Not implemented locally,
