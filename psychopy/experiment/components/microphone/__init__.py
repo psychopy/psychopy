@@ -70,7 +70,9 @@ class MicrophoneComponent(BaseComponent):
                  channels='auto', device=None,
                  sampleRate='DVD Audio (48kHz)', maxSize=24000,
                  outputType='default', speakTimes=True, trimSilent=False,
-                 transcribe=False, transcribeBackend="Whisper", transcribeLang="en-US", transcribeWords="",
+                 transcribe=False, transcribeBackend="Whisper",
+                 transcribeLang="en-US", transcribeWords="",
+                 transcribeWhisperModel="base",
                  #legacy
                  stereo=None, channel=None):
         super(MicrophoneComponent, self).__init__(
@@ -166,7 +168,7 @@ class MicrophoneComponent(BaseComponent):
             label=_translate("Transcribe Audio")
         )
 
-        for depParam in ['transcribeBackend', 'transcribeLang', 'transcribeWords']:
+        for depParam in ['transcribeBackend', 'transcribeLang', 'transcribeWords', 'transcribeWhisperModel']:
             self.depends.append({
                 "dependsOn": "transcribe",
                 "condition": "==True",
@@ -187,6 +189,13 @@ class MicrophoneComponent(BaseComponent):
             hint=_translate("What language you expect the recording to be spoken in, e.g. en-US for English"),
             label=_translate("Transcription Language")
         )
+        self.depends.append({
+            "dependsOn": "transcribeBackend",
+            "condition": "=='Google'",
+            "param": "transcribeLang",
+            "true": "show",  # what to do with param if condition is True
+            "false": "hide",  # permitted: hide, show, enable, disable
+        })
 
         self.params['transcribeWords'] = Param(
             transcribeWords, valType='list', inputType='single', categ='Transcription',
@@ -195,6 +204,28 @@ class MicrophoneComponent(BaseComponent):
                             "after the word, e.g. 'red:100', 'green:80'. Otherwise, default confidence level is 80%."),
             label=_translate("Expected Words")
         )
+        self.depends.append({
+            "dependsOn": "transcribeBackend",
+            "condition": "=='Google'",
+            "param": "transcribeWords",
+            "true": "show",  # what to do with param if condition is True
+            "false": "hide",  # permitted: hide, show, enable, disable
+        })
+
+        self.params['transcribeWhisperModel'] = Param(
+            transcribeWhisperModel, valType='code', inputType='choice', categ='Transcription',
+            allowedVals=["tiny", "base", "small", "medium", "large"],
+            hint=_translate(
+                "Which model of Whisper AI should be used for transcription? Details of each model are available here at github.com/openai/whisper"),
+            label=_translate("Whisper model")
+        )
+        self.depends.append({
+            "dependsOn": "transcribeBackend",
+            "condition": "=='Whisper'",
+            "param": transcribeLang,
+            "true": "show",  # what to do with param if condition is True
+            "false": "hide",  # permitted: hide, show, enable, disable
+        })
 
     def writeStartCode(self, buff):
         inits = getInitVals(self.params)
