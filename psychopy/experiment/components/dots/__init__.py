@@ -176,11 +176,11 @@ class DotsComponent(BaseVisualComponent):
                          ],
             updates='constant',
             hint=_translate("Which point on the field should be anchored to its exact position?"),
-            label=_translate('Field Anchor'))
+            label=_translate("Field anchor"))
 
         # Reword colour parameters
-        self.params['color'].label = _translate("Dot Color")
-        self.params['colorSpace'].label = _translate("Dot Color Space")
+        self.params['color'].label = _translate("Dot color")
+        self.params['colorSpace'].label = _translate("Dot color space")
 
         del self.params['size']  # should be fieldSize
         del self.params['pos']  # should be fieldPos

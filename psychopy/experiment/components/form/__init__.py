@@ -90,13 +90,13 @@ class FormComponent(BaseVisualComponent):
             textHeight, valType='num', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant',
             hint=_translate("The size of the item text for Form"),
-            label=_translate("Text Height"))
+            label=_translate("Text height"))
 
         self.params['Font'] = Param(
             font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=["constant"],
             hint=_translate("The font name (e.g. Comic Sans)"),
-            label=_translate('Font'))
+            label=_translate("Font"))
 
         self.params['Randomize'] = Param(
             randomize, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
@@ -108,14 +108,14 @@ class FormComponent(BaseVisualComponent):
             itemPadding, valType='num', inputType="single", allowedTypes=[], categ='Layout',
             updates='constant',
             hint=_translate("The padding or space between items."),
-            label=_translate("Item Padding"))
+            label=_translate("Item padding"))
 
         self.params['Data Format'] = Param(
             'rows', valType='str', inputType="choice", allowedTypes=[], categ='Basic',
             allowedVals=['columns', 'rows'],
             updates='constant',
             hint=_translate("Store item data by columns, or rows"),
-            label=_translate("Data Format"))
+            label=_translate("Data format"))
 
         # Appearance
         for param in ['fillColor', 'borderColor', 'itemColor', 'responseColor', 'markerColor', 'Style']:
@@ -151,21 +151,21 @@ class FormComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=_translate("Base text color for questions"),
-            label=_translate("Item Color"))
+            label=_translate("Item color"))
 
         self.params['responseColor'] = Param(responseColor,
             valType='color', inputType="color", categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=_translate("Base text color for responses, also sets color of lines in sliders and borders of textboxes"),
-            label=_translate("Response Color"))
+            label=_translate("Response color"))
 
         self.params['markerColor'] = Param(markerColor,
             valType='color', inputType="color", categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=_translate("Color of markers and the scrollbar"),
-            label=_translate("Marker Color"))
+            label=_translate("Marker color"))
 
         self.params['pos'].allowedUpdates = []
         self.params['size'].allowedUpdates = []

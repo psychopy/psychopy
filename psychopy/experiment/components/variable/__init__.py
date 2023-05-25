@@ -64,31 +64,31 @@ class VariableComponent(BaseComponent):
             hint=hnt,
             label=_translate("Frame start value"))
         # Save options
-        hnt = _translate('Save the experiment start value in data file.')
+        hnt = _translate("Save the experiment start value in data file.")
         self.params['saveStartExp'] = Param(
             False, valType='bool', inputType="bool", categ='Data',
             updates='constant',
             hint=hnt,
             label=_translate("Save exp start value"))
-        hnt = _translate('Save the experiment end value in data file.')
+        hnt = _translate("Save the experiment end value in data file.")
         self.params['saveEndExp'] = Param(
             False, valType='bool', inputType="bool", categ='Data',
             updates='constant',
             hint=hnt,
             label=_translate("Save exp end value"))
-        hnt = _translate('Save the routine start value in data file.')
+        hnt = _translate("Save the Routine start value in data file.")
         self.params['saveStartRoutine'] = Param(
             False, valType='bool', inputType="bool", categ='Data',
             updates='constant',
             hint=hnt,
-            label=_translate("Save routine start value"))
-        hnt = _translate('Save the routine end value in data file.')
+            label=_translate("Save Routine start value"))
+        hnt = _translate("Save the Routine end value in data file.")
         self.params['saveEndRoutine'] = Param(
             True, valType='bool', inputType="bool", categ='Data',
             updates='constant',
             hint=hnt,
-            label=_translate("Save routine end value"))
-        hnt = _translate('Save choice of frame value in data file.')
+            label=_translate("Save Routine end value"))
+        hnt = _translate("Save choice of frame value in data file.")
         self.params['saveFrameValue'] = Param(
             'never', valType='str', inputType="choice", categ='Data',
             allowedVals=['first', 'last', 'all', 'never'],

@@ -64,7 +64,7 @@ class JoystickComponent(BaseComponent):
             hint=msg, direct=False,
             label=_translate("Save joystick state"))
 
-        msg = _translate("Should a button press force the end of the routine"
+        msg = _translate("Should a button press force the end of the Routine"
                          " (e.g end the trial)?")
         if forceEndRoutineOnPress is True:
             forceEndRoutineOnPress = 'any click'
@@ -123,7 +123,7 @@ class JoystickComponent(BaseComponent):
             allowedButtons, valType='list', inputType="single", allowedTypes=[], categ='Data',
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_translate("Allowed Buttons"))
+            label=_translate("Allowed buttons"))
 
     @property
     def _clickableParamsList(self):

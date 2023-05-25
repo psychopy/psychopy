@@ -44,13 +44,13 @@ class ResourceManagerComponent(BaseComponent):
         self.params['checkAll'] = Param(resources,
             valType='bool', inputType="bool", categ='Basic',
             hint=_translate("When checking these resources, also check for all currently downloading?"),
-            label=_translate("Check All"))
+            label=_translate("Check all"))
 
         self.params['actionType'] = Param(actionType,
             valType='str', inputType='choice', categ='Basic',
             allowedVals=["Start and Check", "Start Only", "Check Only"],
-            hint=_translate("Should this component start an / or check resource preloading?"),
-            label=_translate("Preload Actions")
+            hint=_translate("Should this Component start an / or check resource preloading?"),
+            label=_translate("Preload actions")
         )
 
         msg = _translate("Should we end the Routine when the resource download is complete?")
@@ -58,7 +58,7 @@ class ResourceManagerComponent(BaseComponent):
             forceEndRoutine, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=msg,
-            label=_translate('forceEndRoutine'))
+            label=_translate("Force end Routine"))
 
         self.params['stopVal'].label = _translate("Check")
 

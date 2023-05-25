@@ -51,7 +51,7 @@ class MovieComponent(BaseVisualComponent):
 
         # params
         self.params['stopVal'].hint = _translate(
-            "When does the component end? (blank to use the duration of "
+            "When does the Component end? (blank to use the duration of "
             "the media)")
 
         msg = _translate("A filename for the movie (including path)")
@@ -91,7 +91,7 @@ class MovieComponent(BaseVisualComponent):
             label=_translate("Volume"))
 
         msg = _translate("Should the end of the movie cause the end of "
-                         "the routine (e.g. trial)?")
+                         "the Routine (e.g. trial)?")
         self.params['forceEndRoutine'] = Param(
             forceEndRoutine, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=[],
@@ -103,7 +103,7 @@ class MovieComponent(BaseVisualComponent):
         self.params['loop'] = Param(
             loop, valType='bool', inputType="bool", categ='Playback',
             hint=msg,
-            label=_translate('Loop playback'))
+            label=_translate("Loop playback"))
         self.params['anchor'] = Param(
             anchor, valType='str', inputType="choice", categ='Layout',
             allowedVals=['center',
@@ -118,7 +118,7 @@ class MovieComponent(BaseVisualComponent):
                          ],
             updates='constant',
             hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
-            label=_translate('Anchor'))
+            label=_translate("Anchor"))
 
         # these are normally added but we don't want them for a movie
         del self.params['color']

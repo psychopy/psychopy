@@ -74,7 +74,7 @@ class ButtonComponent(BaseVisualComponent):
         ]
         # params
         _allow3 = ['constant', 'set every repeat', 'set every frame']  # list
-        self.params['color'].label = _translate("Text Color")
+        self.params['color'].label = _translate("Text color")
 
         self.params['forceEndRoutine'] = Param(
             forceEndRoutine, valType='bool', inputType="bool", categ='Basic',
@@ -104,7 +104,7 @@ class ButtonComponent(BaseVisualComponent):
             callback, valType='extendedCode', inputType="multi", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=_translate("Code to run when button is clicked"),
-            label=_translate("Callback Function"))
+            label=_translate("Callback function"))
         self.params['text'] = Param(
             text, valType='str', inputType="single", allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
@@ -155,7 +155,7 @@ class ButtonComponent(BaseVisualComponent):
             borderWidth, valType='num', inputType="single", allowedTypes=[], categ='Appearance',
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Textbox border width"),
-            label=_translate("Border Width"))
+            label=_translate("Border width"))
         self.params['save'] = Param(
             save, valType='str', inputType="choice", categ='Data',
             allowedVals=['first click', 'last click', 'every click', 'none'],

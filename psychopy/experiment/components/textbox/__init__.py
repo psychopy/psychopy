@@ -82,7 +82,7 @@ class TextboxComponent(BaseVisualComponent):
         self.order.insert(self.order.index("units"), "padding") # Add "padding" just before spatial units
         # params
         _allow3 = ['constant', 'set every repeat', 'set every frame']  # list
-        self.params['color'].label = _translate("Text Color")
+        self.params['color'].label = _translate("Text color")
 
         self.params['text'] = Param(
             text, valType='str', inputType="multi", allowedTypes=[], categ='Basic',
@@ -103,7 +103,7 @@ class TextboxComponent(BaseVisualComponent):
             placeholder, valType='str', inputType="single", categ='Basic',
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Placeholder text to show when there is no text contents."),
-            label=_translate("Placeholder Text"))
+            label=_translate("Placeholder text"))
         self.params['font'] = Param(
             font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
@@ -146,7 +146,7 @@ class TextboxComponent(BaseVisualComponent):
             lineSpacing, valType='num', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant',
             hint=_translate("Defines the space between lines"),
-            label=_translate("Line Spacing"))
+            label=_translate("Line spacing"))
         self.params['padding'] = Param(
             padding, valType='num', inputType="single", allowedTypes=[], categ='Layout',
             updates='constant', allowedUpdates=_allow3[:],
@@ -166,7 +166,7 @@ class TextboxComponent(BaseVisualComponent):
                          ],
             updates='constant',
             hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
-            label=_translate('Anchor'))
+            label=_translate("Anchor"))
         self.params['alignment'] = Param(
             alignment, valType='str', inputType="choice", categ='Formatting',
             allowedVals=['center',
@@ -190,7 +190,7 @@ class TextboxComponent(BaseVisualComponent):
                          ],
             updates='constant',
             hint=_translate("If the text is bigger than the textbox, how should it behave?"),
-            label=_translate('Overflow'))
+            label=_translate("Overflow"))
         self.params['speechPoint'] = Param(
             speechPoint, valType='list', inputType="single", categ='Appearance',
             updates='constant', allowedUpdates=_allow3[:], direct=False,
@@ -201,7 +201,7 @@ class TextboxComponent(BaseVisualComponent):
             borderWidth, valType='num', inputType="single", allowedTypes=[], categ='Appearance',
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Textbox border width"),
-            label=_translate("Border Width"))
+            label=_translate("Border width"))
         self.params['editable'] = Param(
             editable, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
             updates='constant',
@@ -212,7 +212,7 @@ class TextboxComponent(BaseVisualComponent):
             updates='constant',
             hint=_translate(
                     'Automatically record all changes to this in the log file'),
-            label=_translate("Auto Log"))
+            label=_translate("Auto log"))
 
     def writeInitCode(self, buff):
         # do we need units code?

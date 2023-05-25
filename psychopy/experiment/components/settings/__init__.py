@@ -192,7 +192,7 @@ class SettingsComponent:
             enableEscape, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Enable the <esc> key, to allow subjects to quit"
                             " / break out of the experiment"),
-            label=_translate("Enable Escape key"))
+            label=_translate("Enable escape key"))
         self.params['Experiment info'] = Param(
             expInfo, valType='code', inputType="dict", allowedTypes=[],
             hint=_translate("The info to present in a dialog box. Right-click"
@@ -338,11 +338,11 @@ class SettingsComponent:
         self.params['Save excel file'] = Param(
             saveXLSXFile, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Save data from loops in Excel (.xlsx) format"),
-            label=_translate("Save excel file"), categ='Data')
+            label=_translate("Save Excel file"), categ='Data')
         self.params['Save psydat file'] = Param(
             savePsydatFile, valType='bool', inputType="bool", allowedVals=[True],
             hint=_translate("Save data from loops in psydat format. This is "
-                            "useful for python programmers to generate "
+                            "useful for Python programmers to generate "
                             "analysis scripts."),
             label=_translate("Save psydat file"), categ='Data')
         self.params['Save hdf5 file'] = Param(
@@ -365,25 +365,25 @@ class SettingsComponent:
         self.params['HTML path'] = Param(
             '', valType='str', inputType="single", allowedTypes=[],
             hint=_translate("Place the HTML files will be saved locally "),
-            label="Output path", categ='Online')
+            label=_translate("Output path"), categ='Online')
         self.params['Resources'] = Param(
             [], valType='list', inputType="fileList", allowedTypes=[],
             hint=_translate("Any additional resources needed"),
-            label="Additional Resources", categ='Online')
+            label=_translate("Additional resources"), categ='Online')
         self.params['End Message'] = Param(
             endMessage, valType='str', inputType='single',
             hint=_translate("Message to display to participants upon completing the experiment"),
-            label="End Message", categ='Online')
+            label=_translate("End message"), categ='Online')
         self.params['Completed URL'] = Param(
             '', valType='str', inputType="single",
             hint=_translate("Where should participants be redirected after the experiment on completion, e.g.\n"
                             "https://pavlovia.org/surveys/XXXXXX-XXXX-XXXXXXX?tab=0"),
-            label="Completed URL", categ='Online')
+            label=_translate("Completed URL"), categ='Online')
         self.params['Incomplete URL'] = Param(
             '', valType='str', inputType="single",
             hint=_translate("Where participants are redirected if they do not complete the task, e.g.\n"
                             "https://pavlovia.org/surveys/XXXXXX-XXXX-XXXXXXX?tab=0"),
-            label="Incomplete URL", categ='Online')
+            label=_translate("Incomplete URL"), categ='Online')
         self.params['exportHTML'] = Param(
             exportHTML, valType='str', inputType="choice",
             allowedVals=['on Save', 'on Sync', 'manually'],
@@ -431,7 +431,7 @@ class SettingsComponent:
             allowedVals=list(ioDeviceMap),
             hint=_translate("What kind of eye tracker should PsychoPy use? Select 'MouseGaze' to use "
                             "the mouse to simulate eye movement (for debugging without a tracker connected)"),
-            label=_translate("Eyetracker Device"), categ="Eyetracking"
+            label=_translate("Eyetracker device"), categ="Eyetracking"
         )
 
         #mousegaze
@@ -439,33 +439,33 @@ class SettingsComponent:
             mgMove, valType='str', inputType="choice",
             allowedVals=['CONTINUOUS', 'LEFT_BUTTON', 'MIDDLE_BUTTON', 'RIGHT_BUTTON'],
             hint=_translate("Mouse button to press for eye movement."),
-            label=_translate("Move Button"), categ="Eyetracking"
+            label=_translate("Move button"), categ="Eyetracking"
         )
 
         self.params['mgBlink'] = Param(
             mgBlink, valType='list', inputType="multiChoice",
             allowedVals=['LEFT_BUTTON', 'MIDDLE_BUTTON', 'RIGHT_BUTTON'],
             hint=_translate("Mouse button to press for a blink."),
-            label=_translate("Blink Button"), categ="Eyetracking"
+            label=_translate("Blink button"), categ="Eyetracking"
         )
 
         self.params['mgSaccade'] = Param(
             mgSaccade, valType='num', inputType="single",
             hint=_translate("Visual degree threshold for Saccade event creation."),
-            label=_translate("Saccade Threshold"), categ="Eyetracking"
+            label=_translate("Saccade threshold"), categ="Eyetracking"
         )
 
         # gazepoint
         self.params['gpAddress'] = Param(
             gpAddress, valType='str', inputType="single",
             hint=_translate("IP Address of the computer running GazePoint Control."),
-            label=_translate("GazePoint IP Address"), categ="Eyetracking"
+            label=_translate("GazePoint IP address"), categ="Eyetracking"
         )
 
         self.params['gpPort'] = Param(
             gpPort, valType='num', inputType="single",
             hint=_translate("Port of the GazePoint Control server. Usually 4242."),
-            label=_translate("GazePoint Port"), categ="Eyetracking"
+            label=_translate("GazePoint port"), categ="Eyetracking"
         )
         # eyelink
         self.params['elModel'] = Param(
@@ -473,27 +473,27 @@ class SettingsComponent:
             allowedVals=['EYELINK 1000 DESKTOP', 'EYELINK 1000 TOWER', 'EYELINK 1000 REMOTE',
                          'EYELINK 1000 LONG RANGE'],
             hint=_translate("Eye tracker model."),
-            label=_translate("Model Name"), categ="Eyetracking"
+            label=_translate("Model name"), categ="Eyetracking"
         )
 
         self.params['elSimMode'] = Param(
             elSimMode, valType='bool', inputType="bool",
             hint=_translate("Set the EyeLink to run in mouse simulation mode."),
-            label=_translate("Mouse Simulation Mode"), categ="Eyetracking"
+            label=_translate("Mouse simulation mode"), categ="Eyetracking"
         )
 
         self.params['elSampleRate'] = Param(
             elSampleRate, valType='num', inputType="choice",
             allowedVals=['250', '500', '1000', '2000'],
             hint=_translate("Eye tracker sampling rate."),
-            label=_translate("Sampling Rate"), categ="Eyetracking"
+            label=_translate("Sampling rate"), categ="Eyetracking"
         )
 
         self.params['elTrackEyes'] = Param(
             elTrackEyes, valType='str', inputType="choice",
             allowedVals=['LEFT_EYE', 'RIGHT_EYE', 'BOTH'],
             hint=_translate("Select with eye(s) to track."),
-            label=_translate("Track Eyes"), categ="Eyetracking"
+            label=_translate("Track eyes"), categ="Eyetracking"
         )
 
         self.params['elLiveFiltering'] = Param(
@@ -501,7 +501,7 @@ class SettingsComponent:
             allowedVals=['FILTER_LEVEL_OFF', 'FILTER_LEVEL_1', 'FILTER_LEVEL_2'],
             hint=_translate("Filter eye sample data live, as it is streamed to the driving device. "
                             "This may reduce the sampling speed."),
-            label=_translate("Live Sample Filtering"), categ="Eyetracking"
+            label=_translate("Live sample filtering"), categ="Eyetracking"
         )
 
         self.params['elDataFiltering'] = Param(
@@ -509,102 +509,102 @@ class SettingsComponent:
             allowedVals=['FILTER_LEVEL_OFF', 'FILTER_LEVEL_1', 'FILTER_LEVEL_2'],
             hint=_translate("Filter eye sample data when it is saved to the output file. This will "
                             "not affect the sampling speed."),
-            label=_translate("Saved Sample Filtering"), categ="Eyetracking"
+            label=_translate("Saved sample filtering"), categ="Eyetracking"
         )
 
         self.params['elTrackingMode'] = Param(
             elTrackingMode, valType='str', inputType="choice",
             allowedVals=['PUPIL_CR_TRACKING', 'PUPIL_ONLY_TRACKING'],
             hint=_translate("Track Pupil-CR or Pupil only."),
-            label=_translate("Pupil Tracking Mode"), categ="Eyetracking"
+            label=_translate("Pupil tracking mode"), categ="Eyetracking"
         )
 
         self.params['elPupilAlgorithm'] = Param(
             elPupilAlgorithm, valType='str', inputType="choice",
             allowedVals=['ELLIPSE_FIT', 'CENTROID_FIT'],
             hint=_translate("Algorithm used to detect the pupil center."),
-            label=_translate("Pupil Center Algorithm"), categ="Eyetracking"
+            label=_translate("Pupil center algorithm"), categ="Eyetracking"
         )
 
         self.params['elPupilMeasure'] = Param(
             elPupilMeasure, valType='str', inputType="choice",
             allowedVals=['PUPIL_AREA', 'PUPIL_DIAMETER', 'NEITHER'],
             hint=_translate("Type of pupil data to record."),
-            label=_translate("Pupil Data Type"), categ="Eyetracking"
+            label=_translate("Pupil data type"), categ="Eyetracking"
         )
 
         self.params['elAddress'] = Param(
             elAddress, valType='str', inputType="single",
             hint=_translate("IP Address of the EyeLink *Host* computer."),
-            label=_translate("EyeLink IP Address"), categ="Eyetracking"
+            label=_translate("EyeLink IP address"), categ="Eyetracking"
         )
 
         # tobii
         self.params['tbModel'] = Param(
             tbModel, valType='str', inputType="single",
             hint=_translate("Eye tracker model."),
-            label=_translate("Model Name"), categ="Eyetracking"
+            label=_translate("Model name"), categ="Eyetracking"
         )
 
         self.params['tbLicenseFile'] = Param(
             tbLicenseFile, valType='str', inputType="file",
             hint=_translate("Eye tracker license file (optional)."),
-            label=_translate("License File"), categ="Eyetracking"
+            label=_translate("License file"), categ="Eyetracking"
         )
 
         self.params['tbSerialNo'] = Param(
             tbSerialNo, valType='str', inputType="single",
             hint=_translate("Eye tracker serial number (optional)."),
-            label=_translate("Serial Number"), categ="Eyetracking"
+            label=_translate("Serial number"), categ="Eyetracking"
         )
 
         self.params['tbSampleRate'] = Param(
             tbSampleRate, valType='num', inputType="single",
             hint=_translate("Eye tracker sampling rate."),
-            label=_translate("Sampling Rate"), categ="Eyetracking"
+            label=_translate("Sampling rate"), categ="Eyetracking"
         )
 
         # pupil labs
         self.params['plPupillometryOnly'] = Param(
             plPupillometryOnly, valType='bool', inputType="bool",
             hint=_translate("Subscribe to pupil data only, does not require calibration or surface setup"),
-            label=_translate("Pupillometry Only"),
+            label=_translate("Pupillometry only"),
             categ="Eyetracking"
         )
         self.params['plSurfaceName'] = Param(
             plSurfaceName, valType='str', inputType="single",
             hint=_translate("Name of the Pupil Capture surface"),
-            label=_translate("Surface Name"), categ="Eyetracking"
+            label=_translate("Surface name"), categ="Eyetracking"
         )
         self.params['plConfidenceThreshold'] = Param(
             plConfidenceThreshold, valType='num', inputType="single",
-            hint=_translate("Gaze Confidence Threshold"),
-            label=_translate("Gaze Confidence Threshold"), categ="Eyetracking"
+            hint=_translate("Gaze confidence threshold"),
+            label=_translate("Gaze confidence threshold"), categ="Eyetracking"
         )
         self.params['plPupilRemoteAddress'] = Param(
             plPupilRemoteAddress, valType='str', inputType="single",
-            hint=_translate("Pupil Remote Address"),
-            label=_translate("Pupil Remote Address"), categ="Eyetracking"
+            hint=_translate("Pupil remote address"),
+            label=_translate("Pupil remote address"), categ="Eyetracking"
         )
         self.params['plPupilRemotePort'] = Param(
             plPupilRemotePort, valType='num', inputType="single",
-            hint=_translate("Pupil Remote Port"),
-            label=_translate("Pupil Remote Port"), categ="Eyetracking"
+            hint=_translate("Pupil remote port"),
+            label=_translate("Pupil remote port"), categ="Eyetracking"
         )
         self.params['plPupilRemoteTimeoutMs'] = Param(
             plPupilRemoteTimeoutMs, valType='num', inputType="single",
-            hint=_translate("Pupil Remote Timeout (ms)"),
-            label=_translate("Pupil Remote Timeout (ms)"), categ="Eyetracking"
+            hint=_translate("Pupil remote timeout (ms)"),
+            label=_translate("Pupil remote timeout (ms)"), categ="Eyetracking"
         )
         self.params['plPupilCaptureRecordingEnabled'] = Param(
             plPupilCaptureRecordingEnabled, valType='bool', inputType="bool",
-            hint=_translate("Pupil Capture Recording Enabled"),
-            label=_translate("Pupil Capture Recording Enabled"), categ="Eyetracking"
+            hint=_translate("Pupil capture recording enabled"),
+            label=_translate("Pupil capture recording enabled"), categ="Eyetracking"
         )
         self.params['plPupilCaptureRecordingLocation'] = Param(
             plPupilCaptureRecordingLocation, valType='str', inputType="single",
-            hint=_translate("Pupil Capture Recording Location"),
-            label=_translate("Pupil Capture Recording Location"), categ="Eyetracking"
+            hint=_translate("Pupil capture recording location"),
+            label=_translate("Pupil capture recording location"), categ="Eyetracking"
         )
 
         # Input
@@ -612,7 +612,7 @@ class SettingsComponent:
             keyboardBackend, valType='str', inputType="choice",
             allowedVals=list(keyboardBackendMap),
             hint=_translate("What Python package should PsychoPy use to get keyboard input?"),
-            label=_translate("Keyboard Backend"), categ="Input"
+            label=_translate("Keyboard backend"), categ="Input"
         )
 
     @property

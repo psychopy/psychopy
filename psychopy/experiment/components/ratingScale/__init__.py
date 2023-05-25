@@ -170,7 +170,7 @@ class RatingScaleComponent(BaseComponent):
             forceEndRoutine, valType='bool',  inputType="bool", allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Basic",
             hint=_translate("Should accepting a rating cause the end of the "
-                            "routine (e.g. trial)?"),
+                            "Routine (e.g. trial)?"),
             label=_translate("Force end of Routine"))
         self.params['tickHeight'] = Param(
             tickHeight, valType='num', inputType="single", allowedTypes=[],

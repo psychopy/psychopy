@@ -115,7 +115,7 @@ class JoyButtonsComponent(BaseComponent):
             syncScreenRefresh, valType='bool', inputType="bool", categ='Data',
             updates='constant',
             hint=msg,
-            label=_translate("sync RT with screen"))
+            label=_translate("Sync RT with screen"))
 
         msg = _translate(
             "Device number, if you have multiple devices which"

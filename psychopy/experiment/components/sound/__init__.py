@@ -47,7 +47,7 @@ class SoundComponent(BaseComponent):
         self.params['stopType'].allowedVals = ['duration (s)']
         self.params['stopType'].hint = _translate('The maximum duration of a'
                                                   ' sound in seconds')
-        hnt = _translate("When does the component end? (blank to use the "
+        hnt = _translate("When does the Component end? (blank to use the "
                          "duration of the media)")
         self.params['stopVal'].hint = hnt
 
@@ -71,13 +71,13 @@ class SoundComponent(BaseComponent):
             syncScreenRefresh, valType='bool', inputType="bool", categ='Basic',
             updates='constant',
             hint=msg,
-            label=_translate("Sync Start With Screen"))
+            label=_translate("Sync start with screen"))
         self.params['hamming'] = Param(
             True, valType='bool', inputType="bool", updates='constant', categ='Playback',
             hint=_translate(
-                  "For tones we can apply a Hamming window to prevent 'clicks' that "
+                  "For tones we can apply a hamming window to prevent 'clicks' that "
                   "are caused by a sudden onset. This delays onset by roughly 1ms."),
-            label=_translate('Hamming window'))
+            label=_translate("Hamming window"))
 
     def writeInitCode(self, buff):
         # replaces variable params with sensible defaults

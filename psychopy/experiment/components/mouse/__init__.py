@@ -62,7 +62,7 @@ class MouseComponent(BaseComponent):
             hint=msg, direct=False,
             label=_translate("Save mouse state"))
 
-        msg = _translate("Should a button press force the end of the routine"
+        msg = _translate("Should a button press force the end of the Routine"
                          " (e.g end the trial)?")
         if forceEndRoutineOnPress is True:
             forceEndRoutineOnPress = 'any click'
@@ -121,7 +121,7 @@ class MouseComponent(BaseComponent):
             storeCorrect, valType='bool', inputType="bool", allowedTypes=[], categ='Data',
             updates='constant',
             hint=msg,
-            label=_translate('storeCorrect'))
+            label=_translate("Store correct"))
 
         self.depends += [  # allows params to turn each other off/on
             {"dependsOn": "storeCorrect",  # must be param name
@@ -133,13 +133,13 @@ class MouseComponent(BaseComponent):
         ]
 
         msg = _translate(
-            "What is the 'correct' object? To specify an area, remember that you can create a Shape component with 0 "
+            "What is the 'correct' object? To specify an area, remember that you can create a shape Component with 0 "
             "opacity.")
         self.params['correctAns'] = Param(
             correctAns, valType='list', inputType="single", allowedTypes=[], categ='Data',
             updates='constant',
             hint=msg, direct=False,
-            label=_translate('correctAns'))
+            label=_translate("Correct answer"))
 
     @property
     def _clickableParamsList(self):

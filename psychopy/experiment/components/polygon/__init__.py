@@ -77,7 +77,7 @@ class PolygonComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_translate('Num. vertices'))
+            label=_translate("Num. vertices"))
 
         msg = _translate("What are the vertices of your polygon? Should be an nx2 array or a list of [x, y] lists")
         self.params['vertices'] = Param(
@@ -123,7 +123,7 @@ class PolygonComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_translate('Line width'))
+            label=_translate("Line width"))
 
         msg = _translate(
             "How should the image be interpolated if/when rescaled")
@@ -131,7 +131,7 @@ class PolygonComponent(BaseVisualComponent):
             interpolate, valType='str', inputType="choice", allowedVals=['linear', 'nearest'], categ='Texture',
             updates='constant', allowedUpdates=[], direct=False,
             hint=msg,
-            label=_translate('Interpolate'))
+            label=_translate("Interpolate"))
 
 
         self.params['size'].hint = _translate(

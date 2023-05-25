@@ -38,7 +38,7 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
         self.params['surveyType'] = Param(
             surveyType, valType='code', inputType="richChoice", categ='Basic',
             allowedVals=["id", "json"], allowedLabels=[
-                {'label': _translate("Survey ID"),
+                {'label': _translate("Survey id"),
                  'body': _translate(
                      "Linking to a survey ID from Pavlovia Surveys means that the content will automatically update "
                      "if that survey changes (better for dynamic use)"),
@@ -69,7 +69,7 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
             hint=_translate(
                 "The ID for your survey on Pavlovia. Tip: Right click to open the survey in your browser!"
             ),
-            label=_translate("Survey ID"))
+            label=_translate("Survey id"))
 
         self.depends += [{
             "dependsOn": "surveyType",  # must be param name

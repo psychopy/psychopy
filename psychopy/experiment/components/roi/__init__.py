@@ -60,7 +60,7 @@ class RegionOfInterestComponent(PolygonComponent):
             valType='str', inputType='choice', categ='Basic',
             allowedVals=["look at", "look away", "none"],
             hint=_translate("Under what condition should this ROI end the routine?"),
-            label=_translate("End Routine On...")
+            label=_translate("End Routine on...")
         )
 
         self.depends.append(
@@ -75,14 +75,14 @@ class RegionOfInterestComponent(PolygonComponent):
         self.params['lookDur'] = Param(lookDur,
             valType='num', inputType='single', categ='Basic',
             hint=_translate("Minimum dwell time within roi (look at) or outside roi (look away)."),
-            label=_translate("Min. Look Time")
+            label=_translate("Min. look time")
         )
 
         self.params['debug'] = Param(
             debug, valType='bool', inputType='bool', categ='Testing',
             hint=_translate("In debug mode, the ROI is drawn in red. Use this to see what area of the "
                             "screen is in the ROI."),
-            label=_translate("Debug Mode")
+            label=_translate("Debug mode")
         )
 
         self.params['save'] = Param(
@@ -91,7 +91,7 @@ class RegionOfInterestComponent(PolygonComponent):
             direct=False,
             hint=_translate(
                 "What looks on this ROI should be saved to the data output?"),
-            label=_translate('Save...'))
+            label=_translate("Save..."))
 
         self.params['timeRelativeTo'] = Param(
             timeRelativeTo, valType='str', inputType="choice", categ='Data',
@@ -100,7 +100,7 @@ class RegionOfInterestComponent(PolygonComponent):
             hint=_translate(
                 "What should the values of roi.time should be "
                 "relative to?"),
-            label=_translate('Time Relative To...'))
+            label=_translate("Time relative to..."))
 
     def writePreWindowCode(self, buff):
         pass
