@@ -1743,6 +1743,8 @@ class SettingsComponent:
         # Write code to end experiment
         code = (
             "if win is not None:\n"
+            "    # remove autodraw from all current components\n"
+            "    win.clearAutoDraw()\n"
             "    # Flip one final time so any remaining win.callOnFlip() \n"
             "    # and win.timeOnFlip() tasks get executed\n"
             "    win.flip()\n"
