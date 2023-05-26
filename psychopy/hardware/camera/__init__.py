@@ -1745,6 +1745,8 @@ class Camera:
     def recordingTime(self):
         """Current recording timestamp (`float`).
 
+        This returns the timestamp of the last frame captured in the recording.
+
         This value increases monotonically from the last `record()` call. It
         will reset once `stop()` is called. This value is invalid outside
         `record()` and `stop()` calls.
@@ -1753,7 +1755,7 @@ class Camera:
         if not self._isRecording:
             return 0.0
 
-        frameInterval = 1.0 / float(self._frameRate)
+        frameInterval = 1.0 / float(self._captureThread.frameRate)
 
         return self.frameCount * frameInterval
 
@@ -1960,26 +1962,18 @@ class Camera:
 
         # flush outstanding frames from the camera queue
         self._enqueueFrame()
-
-        warmUpBarrier = threading.Barrier(2)  # wait on writer thread
-
-        print("writer frame rate", self._cameraInfo.frameRate)
-
+        
         # contain video and not audio
         self._movieWriter = movietools.MovieFileWriter(
             videoFileName,
             self._cameraInfo.frameSize,  # match camera params
             int(self._cameraInfo.frameRate),
             None,
-            'rgb24',  # only one supported for now
-            warmUpBarrier)
-        self._movieWriter.open()
-
-        warmUpBarrier.wait()
+            'rgb24')
+        self._movieWriter.open()  # blocks main thread until opened and ready
 
         # flush remaining frames to the writer thread, this is really fast since
         # frames are not copied and don't require much conversion
-        print(len(self._captureFrames))
         for frame in self._captureFrames:
             self._movieWriter.addFrame(frame.colorData)
         
