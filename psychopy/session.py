@@ -107,6 +107,7 @@ class Session:
     """
 
     _queue = []
+    _results = []
 
     def __init__(self,
                  root,
@@ -176,8 +177,16 @@ class Session:
         while self._alive:
             # Empty the queue of any tasks
             while len(self._queue):
+                # Run the task
                 method, args, kwargs = self._queue.pop(0)
-                method(*args, **kwargs)
+                retval = method(*args, **kwargs)
+                # Store its output
+                self._results.append({
+                    'method': method.__name__,
+                    'args': args,
+                    'kwargs': kwargs,
+                    'returned': retval
+                })
             # Flip the screen and give a little time to sleep
             if self.win is not None:
                 self.win.flip()
@@ -271,6 +280,26 @@ class Session:
         self.experiments[key] = importlib.import_module(importPath)
 
         return True
+
+    def getStatus(self):
+        """
+        Get an overall status flag for this Session. Will be one of either:
+
+        Returns
+        -------
+        int
+            A value `psychopy.constants`, either:
+            - NOT_STARTED: If no experiment is running
+            - STARTED: If an experiment is running
+            - PAUSED: If an experiment is paused
+            - FINISHED: If an experiment is in the process of terminating
+        """
+        if self.currentExperiment is None:
+            # If no current experiment, return NOT_STARTED
+            return constants.NOT_STARTED
+        else:
+            # Otherwise, return status of experiment handler
+            return self.currentExperiment.status
 
     def getExpInfoFromExperiment(self, key):
         """
@@ -534,9 +563,7 @@ class Session:
         bool or None
             True if the operation completed/queued successfully
         """
-        # Start off assuming everything is fine
-        success = True
-
+        err = None
         # If not in main thread and not requested blocking, use queue and return now
         if threading.current_thread() != threading.main_thread() and not blocking:
             # The queue is emptied each iteration of the while loop in `Session.start`
@@ -545,7 +572,7 @@ class Session:
                 (key,),
                 {'expInfo': expInfo}
             ))
-            return success
+            return True
 
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(key)
@@ -566,6 +593,10 @@ class Session:
         self.experiments[key].run.__globals__['logFile'] = self.logFile
         # Setup inputs
         self.setupInputsFromExperiment(key, expInfo=expInfo)
+        # Log start
+        logging.info(_translate(
+            "Running experiment via Session: name={key}, expInfo={expInfo}"
+        ).format(key=key, expInfo=expInfo))
         # Run this experiment
         try:
             self.experiments[key].run(
@@ -575,21 +606,8 @@ class Session:
                 inputs=self.inputs,
                 thisSession=self
             )
-        except Exception as err:
-            # Don't raise errors from experiment as this will terminate Python
-            # process, instead note that run failed and print error to log
-            success = False
-            # Get traceback
-            tb = traceback.format_exception(type(err), err, err.__traceback__)
-            msg = "".join(tb)
-            # Print traceback in log
-            logging.critical(
-                _translate("Experiment failed. \n") +
-                msg
-            )
-            # If we have a liaison, send traceback to it
-            if self.liaison is not None:
-                self.sendToLiaison(msg)
+        except Exception as _err:
+            err = _err
         # Reinstate autodraw stimuli
         self.win.retrieveAutoDraw()
         # Restore original chdir
@@ -605,8 +623,16 @@ class Session:
             "Waiting to start..."
         ))
         self.win.color = "grey"
+        # Raise any errors now
+        if err is not None:
+            raise err
+        # Log finished and flush logs
+        logging.info(_translate(
+            "Finished running experiment via Session: name={key}, expInfo={expInfo}"
+        ).format(key=key, expInfo=expInfo))
+        logging.flush()
 
-        return success
+        return True
 
     def pauseExperiment(self):
         """
@@ -663,7 +689,7 @@ class Session:
         # warn and return failed if no experiment is running
         if self.currentExperiment is None:
             logging.warn(
-                _translate("Could not pause experiment as there is none "
+                _translate("Could not stop experiment as there is none "
                            "running.")
             )
             return False
@@ -817,6 +843,7 @@ if __name__ == "__main__":
         from psychopy import liaison
         # Create liaison server
         liaisonServer = liaison.WebSocketServer()
+        session.liaison = liaisonServer
         # Add session to liaison server
         liaisonServer.registerMethods(session, "session")
         # Create thread to run liaison server in
