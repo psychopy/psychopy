@@ -2321,6 +2321,36 @@ def getCameraDescriptions(collapse=False):
     return collapsedList
 
 
+def getFormatsForDevice(device):
+    """
+    Get a list of formats available for the given device.
+
+    Parameters
+    ----------
+    device : str or int
+        Name or index of the device
+
+    Returns
+    -------
+    list
+        List of formats, specified as strings in the format `{width}x{height}@{frame rate}fps`
+    """
+    # get all devices
+    connectedCameras = getCameras()
+    # get formats for this device
+    formats = connectedCameras.get(device, [])
+    # sanitize
+    formats = [f"{_format.frameSize[0]}x{_format.frameSize[1]}@{_format.frameRate}fps" for _format in formats]
+
+    return formats
+
+
+
+
+
+
+
+
 def getAllCameraInterfaces():
     """Get a list of all camera interfaces supported by the system.
 

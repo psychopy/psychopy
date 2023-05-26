@@ -7,6 +7,7 @@
 
 """Dialog classes for the Builder, including ParamCtrls
 """
+import functools
 import sys
 
 import os
@@ -255,7 +256,7 @@ class ParamCtrls():
         #         parent, val, order=['Field', 'Default'])
         if hasattr(self.valueCtrl, 'SetToolTip'):
             self.valueCtrl.SetToolTip(wx.ToolTip(_translate(param.hint)))
-        if len(param.allowedVals) == 1 or param.readOnly:
+        if not isinstance(param.allowedVals, functools.partial) and len(param.allowedVals) == 1 or param.readOnly:
             self.valueCtrl.Disable()  # visible but can't be changed
 
         # add a Validator to the valueCtrl
@@ -671,6 +672,12 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
                     if not dependentCtrls.getVisible():
                         isChanged = True
                     dependentCtrls.setVisible(True)
+                elif action == "populate":
+                    # only repopulate if dependency ctrl has changed
+                    dependencyParam = self.parent.element.params[thisDep['dependsOn']]
+                    if dependencyParam.val != dependencyCtrls.getValue():
+                        if hasattr(dependentCtrls.valueCtrl, "populate"):
+                            dependentCtrls.valueCtrl.populate()
                 else:
                     # if action is "enable" then do ctrl.Enable() etc
                     for ctrlName in ['valueCtrl', 'nameCtrl', 'updatesCtrl']:
