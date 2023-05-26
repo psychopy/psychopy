@@ -109,7 +109,17 @@ pixelFormatTbl = {
 # support an insane number of formats, this will help narrow them down. 
 standardResolutions = {
     'vga': (640, 480),
-    '720p': (1280, 720),
+    'svga': (800, 600),
+    'xga': (1024, 768),
+    'wxga': (1280, 768),
+    'wxga+': (1440, 900),
+    'sxga': (1280, 1024),
+    'wsxga+': (1680, 1050),
+    'uxga': (1600, 1200),
+    'wuxga': (1920, 1200),
+    'wqxga': (2560, 1600),
+    'wquxga': (3840, 2400),
+    '720p': (1280, 720),    # also known as HD
     '1080p': (1920, 1080),
     '2160p': (3840, 2160),
     'uhd': (3840, 2160),
@@ -499,10 +509,10 @@ class CameraInterfaceFFmpeg(CameraInterface):
 
     Parameters
     ----------
-    device : str
-        Camera device to open a stream with. This value is platform dependent.
-        On Windows, this value is a DirectShow URI or camera name. On MacOS,
-        this value is a camera name/index.
+    device : CameraInfo
+        Camera device to open a stream with. Calling `start()` will open a
+        stream with this device. Afterwards, `getRecentFrame()` can be called
+        to get the most recent frame from the camera.
     mic : MicrophoneInterface or None
         Microphone interface to use for audio recording. If `None`, no audio
         recording is performed.
@@ -532,6 +542,18 @@ class CameraInterfaceFFmpeg(CameraInterface):
         """Get camera information in the format expected by FFmpeg.
         """
         pass
+
+    @property
+    def frameRate(self):
+        """Frame rate of the camera stream (`float`).
+        """
+        return self._cameraInfo.frameRate
+    
+    @property
+    def frameSize(self):
+        """Frame size of the camera stream (`tuple`).
+        """
+        return self._cameraInfo.frameSize
 
     @property
     def framesWaiting(self):
@@ -923,29 +945,39 @@ class CameraInterfaceOpenCV(CameraInterface):
         self._frameQueue = queue.Queue()
         self._enableEvent = threading.Event()
         self._exitEvent = threading.Event()
-        self._syncBarrier = None
-        self._playerThread = None
+        self._warmUpBarrier = None
+        self._recordBarrier = None
 
     def _assertMediaPlayer(self):
+        """Assert that the media player thread is running.
+        """
         return self._playerThread is not None
     
     @staticmethod
     def getCameras():
-        """Get a list of available cameras.
+        """Get information about available cameras.
+
+        OpenCV is not capable of enumerating cameras and getting information
+        about them. Therefore, we must open a stream with each camera index
+        and query the information from the stream. This process is quite slow
+        on systems with many cameras. It's best to run this function once and
+        save the results for later use if the camera configuration is not
+        expected to change.
 
         Returns
         -------
-        list
-            List of available cameras.
+        dict
+            Mapping containing information about each camera. The keys are the
+            camera index, and the values are `CameraInfo` objects.
 
         """
         import cv2
 
-        # check if we're running windows
-        useDirectShow = os.name == 'nt'
+        useDirectShow = os.name == 'nt'  # check if we're running windows
+        maxCameraEnum = 16  # maximum number of cameras to check
 
-        cameras = []
-        for cameraIndex in range(16):
+        cameras = {}
+        for cameraIndex in range(maxCameraEnum):
             if not useDirectShow:
                 camera = cv2.VideoCapture(cameraIndex)
             else:
@@ -960,10 +992,38 @@ class CameraInterfaceOpenCV(CameraInterface):
             frameSize = (
                 int(camera.get(cv2.CAP_PROP_FRAME_WIDTH)),
                 int(camera.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-            cameras.append((cameraIndex, frameSize, frameRate))
+            
+            cameraInfo = CameraInfo(
+                index=cameraIndex,
+                name='Camera {}'.format(cameraIndex),
+                frameSize=frameSize,
+                frameRate=frameRate,
+                cameraLib=CameraInterfaceOpenCV._cameraLib
+            )
+
+            cameras.update({cameraIndex: [cameraInfo]})
             camera.release()
         
         return cameras
+
+    @property
+    def framesWaiting(self):
+        """Get the number of frames currently buffered (`int`).
+
+        Returns the number of frames which have been pulled from the stream and
+        are waiting to be processed. This value is decremented by calls to 
+        `_enqueueFrame()`.
+
+        """
+        return self._frameQueue.qsize()
+
+    def isOpen(self):
+        """Check if the camera stream is open (`bool`).
+        """
+        if self._playerThread is not None:
+            return self._playerThread.is_alive()
+        
+        return False
     
     def open(self):
         """Open the camera stream and start reading frames using OpenCV2.
@@ -1017,24 +1077,21 @@ class CameraInterfaceOpenCV(CameraInterface):
 
             # start capturing frames
             isRecording = False
-            lastAbsTime = -1.0  # presentation timestamp of the last frame
             while not exitEvent.is_set():
                 # Capture frame-by-frame
                 ret, frame = cap.read()
 
                 # if frame is read correctly ret is True
                 if not ret:  # eol or something else
-                    val = 'eof'
+                    # val = 'eof'
                     break
                 else:
                     # don't queue frames unless they are newer than the last
                     if isRecording:
-                        thisFrameAbsTime = cap.get(cv2.CAP_PROP_POS_MSEC)
-                        if lastAbsTime < thisFrameAbsTime:
-                            # color conversion is done in the thread here
-                            colorData = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                            frameQueue.put((colorData, val, None))
-                            lastAbsTime = thisFrameAbsTime
+                        # color conversion is done in the thread here
+                        colorData = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                        # colorData = frame
+                        frameQueue.put((colorData, 0.0, None))
 
                 # check if we should start or stop recording
                 if recordEvent.is_set() and not isRecording:
@@ -1056,8 +1113,6 @@ class CameraInterfaceOpenCV(CameraInterface):
                     if audioCapture.isRecording:
                         audioCapture.poll()
 
-                time.sleep(pollInterval)
-
             # when everything done, release the capture device
             cap.release()
 
@@ -1068,7 +1123,7 @@ class CameraInterfaceOpenCV(CameraInterface):
 
         # barriers used for synchronizing
         parties = 2  # main + recording threads
-        self._warmupBarrier = threading.Barrier(parties)  # camera is ready
+        self._warmUpBarrier = threading.Barrier(parties)  # camera is ready
         self._recordBarrier = threading.Barrier(parties)  # audio/video is ready
 
         # open a stream and pause it until ready
@@ -1078,10 +1133,12 @@ class CameraInterfaceOpenCV(CameraInterface):
                   self._frameQueue, 
                   self._exitEvent,
                   self._enableEvent,
-                  self._syncBarrier,
-                  self._recordingBarrier,
+                  self._warmUpBarrier,
+                  self._recordBarrier,
                   self._mic))
         self._playerThread.start()
+
+        self._warmUpBarrier.wait()  # wait until the camera is ready
 
         # pass off the player to the thread which will process the stream
         self._enqueueFrame()  # pull metadata from first frame
@@ -1112,22 +1169,23 @@ class CameraInterfaceOpenCV(CameraInterface):
         elif frame is None:  # handle when no frame is available
             return False
         
-        frameImage, pts = frame  # otherwise, unpack the frame
+        frameImage = frame  # otherwise, unpack the frame
 
         # if we have a new frame, update the frame information
-        videoBuffer = frameImage.to_bytearray()[0]
-        videoFrameArray = np.frombuffer(videoBuffer, dtype=np.uint8)
+        # videoBuffer = frameImage.to_bytearray()[0]
+        videoFrameArray = np.ascontiguousarray(
+            frameImage.flatten(), dtype=np.uint8)
 
         # provide the last frame
         self._lastFrame = MovieFrame(
             frameIndex=self._frameIndex,
-            absTime=pts,
+            absTime=0.0,
             # displayTime=self._recentMetadata['frame_size'],
-            size=frameImage.get_size(),
+            size=self._cameraInfo.frameSize,
             colorData=videoFrameArray,
             audioChannels=0,
             audioSamples=None,
-            metadata=metadata,
+            metadata=None,
             movieLib=self._cameraLib,
             userData=None)
 
@@ -1140,8 +1198,6 @@ class CameraInterfaceOpenCV(CameraInterface):
         self._playerThread.join()
 
         self._playerThread = None
-
-        self.flush()
 
     @property
     def isEnabled(self):
@@ -1211,9 +1267,6 @@ class CameraInterfaceOpenCV(CameraInterface):
             pass
 
         return self._lastFrame
-
-    def __del__(self):
-        self.close()
 
 
 # keep track of camera devices that are opened
@@ -1380,8 +1433,7 @@ class Camera:
         else:
             # raise error if couldn't find matching camera info
             raise CameraFormatNotSupportedError(
-                'Specified camera format is not supported.'
-            )
+                'Specified camera format is not supported.')
 
         # Check if the cameraAPI is suitable for the operating system. This is
         # a sanity check to ensure people aren't using formats obtained from
@@ -1411,19 +1463,18 @@ class Camera:
         # current camera frame since the start of recording
         self._player = None  # media player instance
         self._status = NOT_STARTED
-        self._frameIndex = -1
         self._isRecording = False
-        self._isReady = False
         self._bufferSecs = float(bufferSecs)
 
+        # microphone instance, this is controlled by the camera interface and
+        # is not meant to be used by the user
         self.mic = mic
 
         # other information
         self.name = name
 
         # timestamp data
-        self._recordingTime = self._streamTime = 0.0
-        self._recordingBytes = 0
+        self._streamTime = 0.0
 
         # store win (unused but needs to be set/got safely for parity with JS)
         self.win = win
@@ -1433,28 +1484,11 @@ class Camera:
         # if we begin receiving frames, change this flag to `True`
         self._captureThread = None
         # self._audioThread = None
-        self._captureStarted = False  
         self._captureFrames = []  # array for storing frames
-
         # thread for polling the microphone
-        self._micPollingThread = None
         self._audioTrack = None  # audio track from the recent recording
-
-        # thread-safe events to control the movie writer and camera interface
-        self._recordEnable = threading.Event()
-        self._ctrlClose = threading.Event()
-        self._cameraReadyLock = threading.Lock()
-        self._recordingStartedLock = threading.Lock()
-        self._recordingEndedLock = threading.Lock()
-
         # used to sync threads spawned by this class, created on `open()`
         self._syncBarrier = None
-
-        # Keep track of temp dirs to clean up on error to prevent accumulating
-        # files on the user's disk. On error during recordings we will clear
-        # these files out.
-        self._tempDirs = []
-
         # keep track of the last video file saved
         self._lastVideoFile = None
 
@@ -1478,7 +1512,10 @@ class Camera:
         # received metadata about the stream. At this point we can assume that
         # the camera is 'hot' and the stream is being read.
         #
-        return self._isReady
+        if self._captureThread is None:
+            return False
+
+        return self._captureThread.isOpen()
 
     @property
     def frameSize(self):
@@ -1492,7 +1529,21 @@ class Camera:
         if self._cameraInfo is None:
             return None
 
-        return self._cameraInfo.size
+        return self._cameraInfo.frameSize
+
+    @property
+    def frameRate(self):
+        """Frame rate of the video stream (`float` or `None`).
+
+        Only valid after an `open()` and successive `_enqueueFrame()` call as
+        metadata needs to be obtained from the stream. Returns `None` if not
+        valid.
+
+        """
+        if self._cameraInfo is None:
+            return None
+
+        return self._cameraInfo.frameRate
 
     def _assertCameraReady(self):
         """Assert that the camera is ready. Raises a `CameraNotReadyError` if
@@ -1516,7 +1567,7 @@ class Camera:
         is given before `open()` or after `close()` has been called on this
         object.
         """
-        return self.status == NOT_STARTED
+        return self._captureThread is None
 
     @property
     def isStopped(self):
@@ -1672,6 +1723,18 @@ class Camera:
         return self._player.isOpen()
 
     @property
+    def frameCount(self):
+        """Number of frames captured in the present recording (`int`).
+        """
+        if not self._isRecording:
+            return 0
+
+        totalFramesBuffered = (
+            len(self._captureFrames) + self._captureThread.framesWaiting)
+        
+        return totalFramesBuffered
+
+    @property
     def streamTime(self):
         """Current stream time in seconds (`float`). This time increases
         monotonically from startup.
@@ -1687,7 +1750,12 @@ class Camera:
         `record()` and `stop()` calls.
 
         """
-        return self._recordingTime
+        if not self._isRecording:
+            return 0.0
+
+        frameInterval = 1.0 / float(self._frameRate)
+
+        return self.frameCount * frameInterval
 
     @property
     def recordingBytes(self):
@@ -1774,13 +1842,17 @@ class Camera:
         
         self._captureThread.open()
 
-        # this will return when the camera has been warmed up and is beginning
-        # to pass frames, this prevents a race condition where we try to get
-        # frames before the camera is ready
-        # self._syncBarrier.wait()
+    # def snapshot(self):
+    #     """Take a photo with the camera. The camera must be in `'photo'` mode
+    #     to use this method.
+    #     """
+    #     pass
 
     def record(self):
         """Start recording frames.
+
+        This function will start recording frames and audio (if available). The
+        value of `lastFrame` will be updated as new frames from the camera
 
         Warnings
         --------
@@ -1791,8 +1863,6 @@ class Camera:
         if not self._captureThread.isOpen():
             raise RuntimeError("Cannot start recording, stream is not open.")
         
-        self._recordingTime = 0.0
-        self._recordingBytes = 0
         self._audioTrack = None
         self._lastFrame = None
 
@@ -1808,12 +1878,6 @@ class Camera:
         self._enqueueFrame()
 
         self._isRecording = True
-        
-    # def snapshot(self):
-    #     """Take a photo with the camera. The camera must be in `'photo'` mode
-    #     to use this method.
-    #     """
-    #     pass
 
     def stop(self):
         """Stop recording frames and audio (if available).
@@ -1899,11 +1963,13 @@ class Camera:
 
         warmUpBarrier = threading.Barrier(2)  # wait on writer thread
 
+        print("writer frame rate", self._cameraInfo.frameRate)
+
         # contain video and not audio
         self._movieWriter = movietools.MovieFileWriter(
             videoFileName,
             self._cameraInfo.frameSize,  # match camera params
-            self._cameraInfo.frameRate,
+            int(self._cameraInfo.frameRate),
             None,
             'rgb24',  # only one supported for now
             warmUpBarrier)
@@ -1913,6 +1979,7 @@ class Camera:
 
         # flush remaining frames to the writer thread, this is really fast since
         # frames are not copied and don't require much conversion
+        print(len(self._captureFrames))
         for frame in self._captureFrames:
             self._movieWriter.addFrame(frame.colorData)
         
