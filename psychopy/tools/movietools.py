@@ -16,6 +16,7 @@ __all__ = [
     'MOVIE_WRITER_NULL'
 ]
 
+import os
 import time
 import threading
 import queue
@@ -30,7 +31,10 @@ MOVIE_WRITER_OPENCV = u'opencv'
 MOVIE_WRITER_NULL = u'null'   # use prefs for default
 
 
-# keep track of open movie writers
+# Keep track of open movie writers here. This is used to close all movie writers
+# when the main thread exits. Any waiting frames are flushed to the file before 
+# the file is finalized. We identify movie writers by hashing the filename they 
+# are presently writing to. 
 _openMovieWriters = set()
 
 
@@ -45,7 +49,7 @@ class MovieFileWriter:
     automatically when the main thread exits. Any remaining frames are flushed 
     to the file before the file is finalized.
 
-    This does not support writing audio tracks. If you need to add audio to your 
+    Writing audio tracks is not supported. If you need to add audio to your 
     movie, create the movie first, then add the audio track to the file. The
     :func:`addAudioToMovie` function can be used to do this after the video and
     audio files have been saved to disk.
@@ -80,12 +84,14 @@ class MovieFileWriter:
 
     def __init__(self, filename, size, fps, codec=None, pixelFormat='rgb24',
                  encoderLib='ffpyplayer'):
+        
         # video file options
+        self._encoderLib = encoderLib
         self._filename = filename
+        self._absPath = os.path.abspath(filename)
         self._size = size
         self._fps = fps
         self._codec = codec
-        self._encoderLib = encoderLib
         self._pts = 0.0  # most recent presentation timestamp
         self._pixelFormat = pixelFormat
         self._dataLock = threading.Lock()  # lock for accessing shared data
@@ -103,10 +109,10 @@ class MovieFileWriter:
         self._framesOut = 0
 
     def __hash__(self):
-        """Use the filename as the hash value since we only allow one instance
-        per file.
+        """Use the absolute file path as the hash value since we only allow one 
+        instance per file.
         """
-        return hash(self._filename)
+        return hash(self._absPath)
 
     @property
     def filename(self):
@@ -124,6 +130,7 @@ class MovieFileWriter:
                 'Cannot change `filename` after the writer has been opened.')
 
         self._filename = value
+        self._absPath = os.path.abspath(value)
     
     @property
     def size(self):
@@ -494,8 +501,9 @@ class MovieFileWriter:
 
         Returns
         -------
-        ffpyplayer.pic.Image
-            The converted image.
+        ffpyplayer.pic.Image or numpy.ndarray
+            The converted image in a format required by the encoder library 
+            being used.
 
         """
         # convert the image to a format that `ffpyplayer` can use if needed
@@ -538,7 +546,8 @@ class MovieFileWriter:
         -------
         float
             Presentation timestamp assigned to the frame. Should match the value 
-            passed in as `pts` if provided.
+            passed in as `pts` if provided, otherwise it will be the computed
+            presentation timestamp.
 
         """
         if self._writerThread is None:
