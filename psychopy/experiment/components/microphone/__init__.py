@@ -214,7 +214,7 @@ class MicrophoneComponent(BaseComponent):
 
         self.params['transcribeWhisperModel'] = Param(
             transcribeWhisperModel, valType='code', inputType='choice', categ='Transcription',
-            allowedVals=["tiny", "base", "small", "medium", "large"],
+            allowedVals=["tiny", "base", "small", "medium", "large", "tiny.en", "base.en", "small.en", "medium.en"],
             hint=_translate(
                 "Which model of Whisper AI should be used for transcription? Details of each model are available here at github.com/openai/whisper"),
             label=_translate("Whisper model")
@@ -222,7 +222,7 @@ class MicrophoneComponent(BaseComponent):
         self.depends.append({
             "dependsOn": "transcribeBackend",
             "condition": "=='Whisper'",
-            "param": transcribeLang,
+            "param": "transcribeWhisperModel",
             "true": "show",  # what to do with param if condition is True
             "false": "hide",  # permitted: hide, show, enable, disable
         })
