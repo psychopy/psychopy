@@ -13,7 +13,8 @@ __all__ = [
     'addAudioToMovie',
     'MOVIE_WRITER_FFPYPLAYER',
     'MOVIE_WRITER_OPENCV',
-    'MOVIE_WRITER_NULL'
+    'MOVIE_WRITER_NULL',
+    'VIDEO_RESOLUTIONS'
 ]
 
 import os
@@ -24,12 +25,33 @@ import atexit
 import numpy as np
 import psychopy.logging as logging
 
-
-# constants
+# constants for specifying encoders for the movie writer
 MOVIE_WRITER_FFPYPLAYER = u'ffpyplayer'
 MOVIE_WRITER_OPENCV = u'opencv'
 MOVIE_WRITER_NULL = u'null'   # use prefs for default
 
+# Common video resolutions in pixels (width, height). Users should be able to
+# pass any of these strings to fields that require a video resolution. Setters
+# should uppercase the string before comparing it to the keys in this dict.
+VIDEO_RESOLUTIONS = {
+    'VGA': (640, 480),
+    'SVGA': (800, 600),
+    'XGA': (1024, 768),
+    'SXGA': (1280, 1024),
+    'UXGA': (1600, 1200),
+    'QXGA': (2048, 1536),
+    'WVGA': (852, 480),
+    'WXGA': (1280, 720),
+    'WXGA+': (1440, 900),
+    'WSXGA+': (1680, 1050),
+    'WUXGA': (1920, 1200),
+    'WQXGA': (2560, 1600),
+    'WQHD': (2560, 1440),
+    'WQXGA+': (3200, 1800),
+    'UHD': (3840, 2160),
+    '4K': (4096, 2160),
+    '8K': (7680, 4320)
+}
 
 # Keep track of open movie writers here. This is used to close all movie writers
 # when the main thread exits. Any waiting frames are flushed to the file before 
@@ -59,15 +81,16 @@ class MovieFileWriter:
     filename : str
         The name (or path) of the file to write the movie to. The file extension
         determines the movie format.
-    size : tuple
-        The size of the movie in pixels (width, height).
+    size : tuple or str
+        The size of the movie in pixels (width, height). If a string is passed,
+        it should be one of the keys in the `VIDEO_RESOLUTIONS` dictionary.
     fps : float
         The number of frames per second.
     codec : str or None
         The codec to use for encoding the movie. This may be a codec identifier
-        (e.g., 'h264'), a codec name (e.g., 'libx264'), or a FourCC code. The 
-         value depends of the `encoderLib` in use. If `None`, the a codec 
-         determined by the file extension will be used.
+        (e.g., 'libx264') or a FourCC code. The value depends of the 
+        `encoderLib` in use. If `None`, the a codec determined by the file 
+        extension will be used.
     pixelFormat : str
         Pixel format for frames being added to the movie. This should be 
         either 'rgb24' or 'rgba32'. The default is 'rgb24'. When passing frames
@@ -87,24 +110,26 @@ class MovieFileWriter:
         
         # video file options
         self._encoderLib = encoderLib
-        self._filename = filename
-        self._absPath = os.path.abspath(filename)
-        self._size = size
-        self._fps = fps
+        self._filename = None
+        self.filename = filename  # use setter to init self._filename
+        self._size = None
+        self.size = size  # use setter to init self._size
+        self._fps = None
+        self.fps = fps  # use setter to init self._fps
         self._codec = codec
-        self._pts = 0.0  # most recent presentation timestamp
         self._pixelFormat = pixelFormat
-        self._dataLock = threading.Lock()  # lock for accessing shared data
-
+        
         # objects needed to build up the asynchronous movie writer interface
         self._writerThread = None  # thread for writing the movie file
         self._frameQueue = queue.Queue()  # queue for frames to be written
+        self._dataLock = threading.Lock()  # lock for accessing shared data
         self._lastVideoFile = None  # last video file we wrote to
 
         # frame interval in seconds
         self._frameInterval = 1.0 / self._fps
 
         # keep track of the number of bytes we saved to the movie file
+        self._pts = 0.0  # most recent presentation timestamp
         self._bytesOut = 0
         self._framesOut = 0
 
@@ -134,8 +159,10 @@ class MovieFileWriter:
     
     @property
     def size(self):
-        """The size of the movie in pixels (`tuple`). This is a tuple of the
-        form (width, height).
+        """The size `(w, h)` of the movie in pixels (`tuple` or `str`).
+        
+        If a string is passed, it should be one of the keys in the 
+        `VIDEO_RESOLUTIONS` dictionary.
 
         This can not be changed after the writer has been opened.
 
@@ -148,7 +175,19 @@ class MovieFileWriter:
             raise RuntimeError(
                 'Cannot change `size` after the writer has been opened.')
 
-        self._size = value
+        # if a string is passed, try to look up the size in the dictionary
+        if isinstance(size, str):
+            try:
+                size = VIDEO_RESOLUTIONS[size.upper()]
+            except KeyError:
+                raise ValueError(
+                    f'Unknown video resolution: {size}. Must be one of: '
+                    f'{", ".join(VIDEO_RESOLUTIONS.keys())}.')
+        
+        if len(value) != 2:
+            raise ValueError('`size` must be a collection of two integers.')
+
+        self._size = tuple(value)
     
     @property
     def fps(self):
@@ -165,6 +204,9 @@ class MovieFileWriter:
         if not self.isOpen:
             raise RuntimeError(
                 'Cannot change `fps` after the writer has been opened.')
+        
+        if value <= 0:
+            raise ValueError('`fps` must be greater than 0.')
 
         self._fps = value
         self._frameInterval = 1.0 / self._fps
@@ -491,19 +533,23 @@ class MovieFileWriter:
         self._writerThread = None
     
     def _convertImage(self, image):
-        """Convert an image to the pixel format used by the movie.
+        """Convert an image to a pixel format appropriate for the encoder. 
+
+        This is used internally to convert an image (i.e. frame) to the native 
+        frame format which the encoder library can work with. At the very least, 
+        this function should accept a `numpy.array` as a valid type for `image` 
+        no matter what encoder library is being used.
 
         Parameters
         ----------
-        image : numpy.ndarray or ffpyplayer.pic.Image
-            The image to convert. If the image is an `Image` instance, it must 
-            have the same size as the movie.
+        image : Any
+            The image to convert.
 
         Returns
         -------
-        ffpyplayer.pic.Image or numpy.ndarray
-            The converted image in a format required by the encoder library 
-            being used.
+        Any
+            The converted image. Resulting object type depends on the encoder
+            library being used.
 
         """
         # convert the image to a format that `ffpyplayer` can use if needed
