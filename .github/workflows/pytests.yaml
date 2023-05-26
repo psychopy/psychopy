@@ -274,6 +274,7 @@ jobs:
           !**/*.wav
 
     - name: Upload coverage to Codecov
+      if: always()
       uses: codecov/codecov-action@v3
       with:
         fail_ci_if_error: false
