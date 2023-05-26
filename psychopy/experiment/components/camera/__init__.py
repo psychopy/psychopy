@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import functools
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate, getInitVals
+from psychopy.experiment import params
 from psychopy import prefs
 
 mics = ["default"]
@@ -25,8 +26,8 @@ class CameraComponent(BaseComponent):
             startType='time (s)', startVal='0', startEstim='',
             stopType='duration (s)', stopVal='', durationEstim='',
             device="default", mic="default",
-            # Hardware
-            resolution="", frameRate="",
+            # Recording
+            cameraLib="ffpyplayer", resolution="default", frameRate="default",
             # Data
             saveFile=True,
             outputFileType="mp4", codec="h263",
@@ -54,20 +55,105 @@ class CameraComponent(BaseComponent):
         self.exp.requireImport(importName="camera", importFrom="psychopy.hardware")
         self.exp.requireImport(importName="microphone", importFrom="psychopy.sound")
 
-        # Get list of camera specs
+        # Define some functions for live populating listCtrls
+        def fallbackPopulator(*args, **kwargs):
+            """
+            Fallback in case Camera functions can't be imported. Will return a list with
+            a blank string in.
+            """
+            return ["default"]
+
         try:
-            from psychopy.hardware.camera import getCameraDescriptions
-            cams = getCameraDescriptions(collapse=True)
+            from psychopy.hardware.camera import getCameras
+
+            def getCameraNames():
+                """
+                Similar to getCameraDescriptions, only returns camera names
+                as a list of strings.
+
+                Returns
+                -------
+                list
+                    Array of camera device names, preceeded by "default"
+                """
+                descriptions = getCameras()
+
+                return ["default"] + list(descriptions)
+
+            def getResolutionsForDevice(device):
+                """
+                    Get a list of resolutions available for the given device.
+
+                    Parameters
+                    ----------
+                    device : Param
+                        Param object containing device name/index
+
+                    Returns
+                    -------
+                    list
+                        List of resolutions, specified as strings in the format `(width, height)`
+                    """
+                # get all devices
+                connectedCameras = getCameras()
+                # get first device if default
+                if device in (None, "", "default") and len(connectedCameras):
+                    device = list(connectedCameras)[0]
+                # get formats for this device
+                formats = connectedCameras.get(device.val, [])
+                # extract resolutions
+                formats = [f"({_format.frameSize[0]}, {_format.frameSize[1]})" for _format in formats]
+                # remove duplicates
+                formats = list(set(formats))
+
+                return ["default"] + formats
+
+            def getFrameRatesForDevice(device):
+                """
+                    Get a list of frame rates available for the given device.
+
+                    Parameters
+                    ----------
+                    device : Param
+                        Param object containing device name/index
+
+                    Returns
+                    -------
+                    list
+                        List of frame rates
+                    """
+                # get all devices
+                connectedCameras = getCameras()
+                # get first device if default
+                if device in (None, "", "default") and len(connectedCameras):
+                    device = list(connectedCameras)[0]
+                # get formats for this device
+                formats = connectedCameras.get(device.val, [])
+                # extract resolutions
+                formats = [_format.frameRate for _format in formats]
+                # remove duplicates
+                formats = list(set(formats))
+
+                return ["default"] + formats
         except:
-            cams = []
+            getCameraNames = fallbackPopulator
+            getResolutionsForDevice = fallbackPopulator
+            getFrameRatesForDevice = fallbackPopulator
 
         # Basic
+        self.order += [
+            'device',
+            'resolution',
+            'frameRate',
+            'mic'
+        ]
+
         msg = _translate("What device would you like to use to record video? This will only affect local "
                          "experiments - online experiments ask the participant which device to use.")
+        conf = functools.partial(getCameraNames)
         self.params['device'] = Param(
             device, valType='str', inputType="choice", categ="Basic",
-            allowedVals=["default"] + cams,
-            allowedLabels=["default"] + cams,
+            allowedVals=conf, allowedLabels=conf,
             hint=msg,
             label=_translate("Video Device")
         )
@@ -81,23 +167,49 @@ class CameraComponent(BaseComponent):
             hint=msg,
             label=_translate("Audio Device")
         )
+        msg = _translate("Resolution (w x h) to record to, leave blank to use device default.")
+        conf = functools.partial(getResolutionsForDevice, self.params['device'])
+        self.params['resolution'] = Param(
+            resolution, valType='list', inputType="choice", categ="Basic",
+            allowedVals=conf, allowedLabels=conf,
+            hint=msg,
+            label=_translate("Resolution")
+        )
+        self.depends.append({
+            "dependsOn": 'device',  # if...
+            "condition": "",  # meets...
+            "param": 'resolution',  # then...
+            "true": "populate",  # should...
+            "false": "populate",  # otherwise...
+        })
 
+        msg = _translate("Frame rate (frames per second) to record at, leave blank to use device default.")
+        conf = functools.partial(getFrameRatesForDevice, self.params['device'])
+        self.params['frameRate'] = Param(
+            frameRate, valType='int', inputType="choice", categ="Basic",
+            allowedVals=conf, allowedLabels=conf,
+            hint=msg,
+            label=_translate("Frame Rate")
+        )
+        self.depends.append({
+            "dependsOn": 'device',  # if...
+            "condition": "",  # meets...
+            "param": 'frameRate',  # then...
+            "true": "populate",  # should...
+            "false": "populate",  # otherwise...
+        })
 
-        # Not implemented (yet!)
-        # # Hardware
-        # msg = _translate("Resolution (w x h) to record to, leave blank to use device default.")
-        # self.params['resolution'] = Param(
-        #     resolution, valType='list', inputType="single", categ="Hardware",
-        #     hint=msg,
-        #     label=_translate("Resolution")
-        # )
-        #
-        # msg = _translate("Frame rate (frames per second) to record at, leave blank to use device default.")
-        # self.params['frameRate'] = Param(
-        #     frameRate, valType='int', inputType="num", categ="Hardware",
-        #     hint=msg,
-        #     label=_translate("Frame Rate")
-        # )
+        # Recording
+        self.order += [
+            'cameraLib',
+        ]
+        msg = _translate("Python package to use behind the scenes.")
+        self.params['cameraLib'] = Param(
+            cameraLib, valType='str', inputType="choice", categ="Recording",
+            allowedVals=["ffpyplayer", "opencv"], allowedLabels=["FFPyPlayer", "OpenCV"],
+            hint=msg,
+            label=_translate("Backend")
+        )
 
         # Data
         msg = _translate("Save webcam output to a file?")
@@ -158,7 +270,10 @@ class CameraComponent(BaseComponent):
 
         code = (
             "%(name)s = camera.Camera(\n"
-            "    device=%(device)s, name='%(name)s', mic=microphone.Microphone(device=%(mic)s),\n"
+            "    name='%(name)s', \n"
+            "    cameraLib=%(cameraLib)s, \n"
+            "    device=%(device)s,  mic=microphone.Microphone(device=%(mic)s), \n"
+            "    frameRate=%(frameRate)s, frameSize=%(resolution)s\n"
             ")\n"
             "# Switch on %(name)s\n"
             "%(name)s.open()\n"
