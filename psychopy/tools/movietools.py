@@ -108,6 +108,12 @@ class MovieFileWriter:
     def __init__(self, filename, size, fps, codec=None, pixelFormat='rgb24',
                  encoderLib='ffpyplayer'):
         
+        # objects needed to build up the asynchronous movie writer interface
+        self._writerThread = None  # thread for writing the movie file
+        self._frameQueue = queue.Queue()  # queue for frames to be written
+        self._dataLock = threading.Lock()  # lock for accessing shared data
+        self._lastVideoFile = None  # last video file we wrote to
+
         # video file options
         self._encoderLib = encoderLib
         self._filename = None
@@ -119,12 +125,6 @@ class MovieFileWriter:
         self._codec = codec
         self._pixelFormat = pixelFormat
         
-        # objects needed to build up the asynchronous movie writer interface
-        self._writerThread = None  # thread for writing the movie file
-        self._frameQueue = queue.Queue()  # queue for frames to be written
-        self._dataLock = threading.Lock()  # lock for accessing shared data
-        self._lastVideoFile = None  # last video file we wrote to
-
         # frame interval in seconds
         self._frameInterval = 1.0 / self._fps
 
@@ -150,7 +150,7 @@ class MovieFileWriter:
 
     @filename.setter
     def filename(self, value):
-        if not self.isOpen:
+        if self.isOpen:
             raise RuntimeError(
                 'Cannot change `filename` after the writer has been opened.')
 
@@ -171,17 +171,17 @@ class MovieFileWriter:
 
     @size.setter
     def size(self, value):
-        if not self.isOpen:
+        if self.isOpen:
             raise RuntimeError(
                 'Cannot change `size` after the writer has been opened.')
 
         # if a string is passed, try to look up the size in the dictionary
-        if isinstance(size, str):
+        if isinstance(value, str):
             try:
-                size = VIDEO_RESOLUTIONS[size.upper()]
+                value = VIDEO_RESOLUTIONS[value.upper()]
             except KeyError:
                 raise ValueError(
-                    f'Unknown video resolution: {size}. Must be one of: '
+                    f'Unknown video resolution: {value}. Must be one of: '
                     f'{", ".join(VIDEO_RESOLUTIONS.keys())}.')
         
         if len(value) != 2:
@@ -201,7 +201,7 @@ class MovieFileWriter:
     
     @fps.setter
     def fps(self, value):
-        if not self.isOpen:
+        if self.isOpen:
             raise RuntimeError(
                 'Cannot change `fps` after the writer has been opened.')
         
@@ -224,7 +224,7 @@ class MovieFileWriter:
     
     @codec.setter
     def codec(self, value):
-        if not self.isOpen:
+        if self.isOpen:
             raise RuntimeError(
                 'Cannot change `codec` after the writer has been opened.')
 
@@ -243,7 +243,7 @@ class MovieFileWriter:
 
     @pixelFormat.setter
     def pixelFormat(self, value):
-        if not self.isOpen:
+        if self.isOpen:
             raise RuntimeError(
                 'Cannot change `pixelFormat` after the writer has been opened.')
 
@@ -446,8 +446,9 @@ class MovieFileWriter:
         # create a barrier to synchronize the movie writer with other threads
         self._syncBarrier = threading.Barrier(2)
 
-        # reset the number of bytes and frames saved
+        # reset counters
         self._bytesOut = self._framesOut = 0
+        self._pts = 0.0
 
         # initialize the thread, the thread will wait on frames to be added to 
         # the queue
