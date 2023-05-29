@@ -1016,6 +1016,18 @@ class CameraInterfaceOpenCV(CameraInterface):
 
         """
         return self._frameQueue.qsize()
+    
+    @property
+    def frameRate(self):
+        """Get the frame rate of the camera stream (`float`).
+        """
+        return self._cameraInfo.frameRate
+    
+    @property
+    def frameSize(self):
+        """Get the frame size of the camera stream (`tuple`).
+        """
+        return self._cameraInfo.frameSize
 
     def isOpen(self):
         """Check if the camera stream is open (`bool`).
