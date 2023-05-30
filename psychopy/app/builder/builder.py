@@ -515,7 +515,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         menu.AppendSeparator()
 
         item = menu.Append(wx.ID_ANY,
-                           _translate("Find in experiment..."),
+                           _translate("&Find in experiment...\t%s") % keys['builderFind'],
                            _translate("Search the whole experiment for a specific term"))
         self.Bind(wx.EVT_MENU, self.onFindInExperiment, item)
 

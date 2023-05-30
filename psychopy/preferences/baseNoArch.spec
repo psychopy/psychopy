@@ -230,6 +230,8 @@
     pasteRoutine = string(default='Ctrl+Shift+V')
     # Builder: paste the copied component
     pasteCompon = string(default='Ctrl+Alt+V')
+    # Builder: find
+    builderFind = string(default='Ctrl+F')
     # Coder: show / hide the output panel
     toggleOutputPanel = string(default='Ctrl+Shift+O')
     #Builder: rename an existing routine
