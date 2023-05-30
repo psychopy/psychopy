@@ -22,10 +22,14 @@ __all__ = [
     'CAMERA_TEMP_FILE_AUDIO',
     'CAMERA_API_AVFOUNDATION',
     'CAMERA_API_DIRECTSHOW',
-    # 'CAMERA_API_VIDEO4LINUX',
-    # 'CAMERA_API_OPENCV',
+    'CAMERA_API_VIDEO4LINUX2',
+    'CAMERA_API_ANY',
     'CAMERA_API_UNKNOWN',
     'CAMERA_API_NULL',
+    'CAMERA_LIB_FFPYPLAYER',
+    'CAMERA_LIB_OPENCV',
+    'CAMERA_LIB_UNKNOWN',
+    'CAMERA_LIB_NULL',
     'CameraError',
     'CameraNotReadyError',
     'CameraNotFoundError',
@@ -56,8 +60,7 @@ from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
 from psychopy.sound.microphone import Microphone
 import psychopy.tools.movietools as movietools
 import psychopy.logging as logging
-from ffpyplayer.player import MediaPlayer
-from ffpyplayer.tools import list_dshow_devices
+
 import uuid
 import threading
 import queue
@@ -75,25 +78,23 @@ CAMERA_NULL_VALUE = u'Null'  # fields where we couldn't get a value
 # CAMERA_MODE_VIDEO = u'video'
 # CAMERA_MODE_CV = u'cv'
 # CAMERA_MODE_PHOTO = u'photo'
-# default names for video and audio tracks in the temp directory
-CAMERA_TEMP_FILE_VIDEO = u'video.mp4'
-CAMERA_TEMP_FILE_AUDIO = u'audio.wav'
 
 # camera status 
 CAMERA_STATUS_OK = 'ok'
-CAMREA_STATUS_PAUSED = 'paused'
+CAMERA_STATUS_PAUSED = 'paused'
 CAMERA_STATUS_EOF = 'eof'
 
 # camera API flags, these specify which API camera settings were queried with
 CAMERA_API_AVFOUNDATION = u'AVFoundation'  # mac
 CAMERA_API_DIRECTSHOW = u'DirectShow'      # windows
-# CAMERA_API_VIDEO4LINUX = u'Video4Linux'    # linux
-CAMERA_API_OPENCV = u'OpenCV'              # opencv, cross-platform API
+CAMERA_API_VIDEO4LINUX2 = u'Video4Linux2'  # linux
+CAMERA_API_ANY = u'Any'                    # any API (OpenCV only)
 CAMERA_API_UNKNOWN = u'Unknown'            # unknown API
 CAMERA_API_NULL = u'Null'                  # empty field
 
 # camera libraries for playback nad recording
 CAMERA_LIB_FFPYPLAYER = u'FFPyPlayer'
+CAMERA_LIB_OPENCV = u'OpenCV'
 CAMERA_LIB_UNKNOWN = u'Unknown'
 CAMERA_LIB_NULL = u'Null'
 
@@ -170,10 +171,15 @@ class CameraInfo:
 
     Parameters
     ----------
+    index : int
+        Index of the camera. This is the enumeration for the camera which is
+        used to identify and select it by the `cameraLib`. This value may differ
+        between operating systems and the `cameraLib` being used.
     name : str
         Camera name retrieved by the OS. This may be a human-readable name
         (i.e. DirectShow on Windows), an index on MacOS or a path (e.g.,
-        `/dev/video0` on Linux).
+        `/dev/video0` on Linux). If the `cameraLib` does not support this 
+        feature, then this value will be generated.
     frameSize : ArrayLike
         Resolution of the frame `(w, h)` in pixels.
     frameRate : ArrayLike
@@ -598,21 +604,15 @@ class CameraInterfaceFFmpeg(CameraInterface):
         
         self._exitEvent.clear()  # signal the thread to stop
         
-        def _frameGetterAsync(source, ffOpts, libOpts, frameQueue, exitEvent, 
-                              recordEvent, warmUpBarrier, recordingBarrier, 
-                              audioCapture):
+        def _frameGetterAsync(videoCapture, frameQueue, exitEvent, recordEvent, 
+                              warmUpBarrier, recordingBarrier, audioCapture):
             """Get frames from the camera stream asynchronously.
 
             Parameters
             ----------
-            source : str
-                Camera source to open a stream with. This value is platform
-                dependent. On Windows, this value is a DirectShow URI or camera
-                name. On MacOS, this value is a camera name/index.
-            ffOpts : dict
-                FFmpeg options.
-            libOpts : dict
-                FFmpeg player options.
+            videoCapture : ffpyplayer.player.MediaPlayer
+                FFmpeg media player object. This object will be under direct 
+                control of this function.
             frameQueue : queue.Queue
                 Queue to put frames into. The queue has an unlimited size, so 
                 be careful with memory use. This queue should be flushed when
@@ -633,23 +633,20 @@ class CameraInterfaceFFmpeg(CameraInterface):
                 synchronize the audio and video streams. If `None`, no audio
                 will be captured.
 
-            """
-            # open the camera stream
-            cap = MediaPlayer(source, ff_opts=ffOpts, lib_opts=libOpts)
-            
+            """           
             # warmup the stream, wait for metadata
-            ptsStart = 0.0
+            ptsStart = 0.0  # may be used in the future
             while True:
-                frame, val = cap.get_frame()
+                frame, val = videoCapture.get_frame()
                 # print('warmup', frame, val)
                 if frame is not None:
-                    ptsStart = cap.get_pts()
+                    ptsStart = videoCapture.get_pts()
                     break
                 
                 time.sleep(0.001)
 
             # if we have a valid frame, determine the polling rate
-            metadata = cap.get_metadata()
+            metadata = videoCapture.get_metadata()
             numer, divisor = metadata['frame_rate']
 
             # poll interval is half the frame period, this makes sure we don't
@@ -668,7 +665,7 @@ class CameraInterfaceFFmpeg(CameraInterface):
                 # pull a frame from the stream, we keep this running 'hot' so
                 # that we don't miss frames, we just discard them if we don't
                 # need them
-                frame, val = cap.get_frame(force_refresh=False)
+                frame, val = videoCapture.get_frame(force_refresh=False)
 
                 if val == 'eof':  # thread should exit if stream is done
                     break
@@ -679,7 +676,7 @@ class CameraInterfaceFFmpeg(CameraInterface):
                 else:
                     # don't queue frames unless they are newer than the last
                     if isRecording:
-                        thisFrameAbsTime = cap.get_pts()
+                        thisFrameAbsTime = videoCapture.get_pts()
                         if lastAbsTime < thisFrameAbsTime:
                             frameQueue.put((frame, val, metadata))
                             lastAbsTime = thisFrameAbsTime
@@ -705,7 +702,7 @@ class CameraInterfaceFFmpeg(CameraInterface):
 
                 time.sleep(pollInterval)
             
-            cap.close_player()
+            videoCapture.close_player()
 
             if audioCapture is not None:
                 audioCapture.stop(blockUntilStopped=1)
@@ -779,12 +776,14 @@ class CameraInterfaceFFmpeg(CameraInterface):
         self._warmupBarrier = threading.Barrier(2)
         self._recordBarrier = threading.Barrier(2)
 
-        # open a stream and pause it until ready
+        # open the media player
+        from ffpyplayer.player import MediaPlayer
+        cap = MediaPlayer(_camera, ff_opts=ff_opts, lib_opts=lib_opts)
+
+        # open a stream thread and pause wait until ready
         self._playerThread = threading.Thread(
             target=_frameGetterAsync,
-            args=(_camera, 
-                  ff_opts, 
-                  lib_opts, 
+            args=(cap, 
                   self._frameQueue, 
                   self._exitEvent,
                   self._enableEvent,
@@ -817,9 +816,9 @@ class CameraInterfaceFFmpeg(CameraInterface):
 
         frame, val, metadata = frameData  # update the frame
 
-        if val == 'eof':  # handle end of stream
+        if val == CAMERA_STATUS_EOF:  # handle end of stream
             return False
-        elif val == 'paused':  # handle when paused
+        elif val == CAMERA_STATUS_PAUSED:  # handle when paused
             return False
         elif frame is None:  # handle when no frame is available
             return False
@@ -966,7 +965,7 @@ class CameraInterfaceOpenCV(CameraInterface):
         return self._playerThread is not None
     
     @staticmethod
-    def getCameras():
+    def getCameras(maxCameraEnum=16):
         """Get information about available cameras.
 
         OpenCV is not capable of enumerating cameras and getting information
@@ -975,6 +974,13 @@ class CameraInterfaceOpenCV(CameraInterface):
         on systems with many cameras. It's best to run this function once and
         save the results for later use if the camera configuration is not
         expected to change.
+
+        Parameters
+        ----------
+        maxCameraEnum : int
+            Maximum number of cameras to check. This is the maximum camera index
+            to check. For example, if `maxCameraEnum` is 16, then cameras 0-15
+            will be checked.
 
         Returns
         -------
@@ -985,36 +991,49 @@ class CameraInterfaceOpenCV(CameraInterface):
         """
         import cv2
 
-        useDirectShow = os.name == 'nt'  # check if we're running windows
-        maxCameraEnum = 16  # maximum number of cameras to check
+        # recommended camera drivers for each platform
+        cameraPlatformDrivers = {
+            'Linux': (cv2.CAP_V4L2, CAMERA_API_VIDEO4LINUX2),
+            'Windows': (cv2.CAP_DSHOW, CAMERA_API_DIRECTSHOW),
+            'Darwin': (cv2.CAP_AVFOUNDATION, CAMERA_API_AVFOUNDATION)
+        }
 
+        # select the camera interface for the platform
+        cameraDriver, cameraAPI = cameraPlatformDrivers.get(
+            platform.system(), (cv2.CAP_ANY, CAMERA_API_ANY))
+
+        logging.info(
+            'Searching for connected cameras, this may take a while...')
+        
         cameras = {}
         for cameraIndex in range(maxCameraEnum):
-            if not useDirectShow:
-                camera = cv2.VideoCapture(cameraIndex)
-            else:
-                camera = cv2.VideoCapture(cameraIndex, cv2.CAP_DSHOW)
+            # open a camera
+            thisCamera = cv2.VideoCapture(cameraIndex, cameraDriver)
 
             # if the camera is not opened, we're done
-            if not camera.isOpened():
+            if not thisCamera.isOpened():
                 break
             
             # get information about camera capabilities
-            frameRate = (int(camera.get(cv2.CAP_PROP_FPS)), 1)
+            frameRate = (int(thisCamera.get(cv2.CAP_PROP_FPS)), 1)
             frameSize = (
-                int(camera.get(cv2.CAP_PROP_FRAME_WIDTH)),
-                int(camera.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+                int(thisCamera.get(cv2.CAP_PROP_FRAME_WIDTH)),
+                int(thisCamera.get(cv2.CAP_PROP_FRAME_HEIGHT)))
             
             cameraInfo = CameraInfo(
                 index=cameraIndex,
-                name='Camera {}'.format(cameraIndex),
+                name='camera:{}'.format(cameraIndex),
                 frameSize=frameSize,
                 frameRate=frameRate,
-                cameraLib=CameraInterfaceOpenCV._cameraLib
+                pixelFormat='bgr24',  # always BGR with 8 bpc for OpenCV
+                cameraLib=CameraInterfaceOpenCV._cameraLib,
+                cameraAPI=cameraAPI
             )
 
             cameras.update({cameraIndex: [cameraInfo]})
-            camera.release()
+            thisCamera.release()
+
+        logging.info('Found {} cameras.'.format(len(cameras)))
         
         return cameras
 
@@ -1147,44 +1166,69 @@ class CameraInterfaceOpenCV(CameraInterface):
         self._warmUpBarrier = threading.Barrier(parties)  # camera is ready
         self._recordBarrier = threading.Barrier(parties)  # audio/video is ready
 
+        # drivers for the given camera API
+        cameraDrivers = {
+            CAMERA_API_ANY: cv2.CAP_ANY,
+            CAMERA_API_VIDEO4LINUX2: cv2.CAP_V4L2,
+            CAMERA_API_DIRECTSHOW: cv2.CAP_DSHOW,
+            CAMERA_API_AVFOUNDATION: cv2.CAP_AVFOUNDATION
+        }
+
         # create the camera capture object, we keep this internal to the thread
         # so that we can control when it is released
-        cap = cv2.VideoCapture(self.device.index)
+        cap = cv2.VideoCapture(
+            self.device.index,
+            cameraDrivers[self.device.cameraAPI])
 
         # the user can override the default camera settings if they want, so we
         # check for that here
         defaultFrameRate = cap.get(cv2.CAP_PROP_FPS)
-        userFrameRate = self.device.frameRate
-
-        # override the default settings if the user has specified a different
-        # frame rate
-        if defaultFrameRate != userFrameRate:
-            cap.set(cv2.CAP_PROP_FPS, userFrameRate)
-            # check if the change was successful
-            if cap.get(cv2.CAP_PROP_FPS) != userFrameRate:
-                raise RuntimeError(
-                    "Cannot set camera frame rate to {} Hz".format(
-                    userFrameRate))
-
-        # override the default settings if the user has specified a different
-        # frame size
         defaultFrameWidth = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         defaultFrameHeight = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        userFrameWidth, userFrameHeight = self.device.frameSize
-        widthMismatch = defaultFrameWidth != userFrameWidth
-        heightMismatch = defaultFrameHeight != userFrameHeight
-        if widthMismatch or heightMismatch:
-            cap.set(cv2.CAP_PROP_FRAME_WIDTH, userFrameWidth)
-            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, userFrameHeight)
-            # check if the change was successful
-            newFrameWidth = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-            newFrameHeight = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-            if newFrameWidth != userFrameWidth or \
-                newFrameHeight != userFrameHeight:
-                 raise RuntimeError(
-                      "Cannot set camera frame size to {}x{}".format(
-                      userFrameWidth, userFrameHeight))
-            
+
+        # check for a mismatch in the frame rate and size settings
+        _cameraInfo = self._cameraInfo
+        checkSettings = [
+            defaultFrameRate != _cameraInfo.frameRate,
+            defaultFrameWidth != _cameraInfo.frameSize[0],
+            defaultFrameHeight != _cameraInfo.frameSize[1]
+        ]
+
+        if any(checkSettings):
+            logging.debug("Overriding default camera settings.")
+            logging.debug("Requested: {}x{} @ {} fps.".format(
+                _cameraInfo.frameSize[0],
+                _cameraInfo.frameSize[1],
+                _cameraInfo.frameRate
+            ))
+            # set the frame rate
+            cap.set(cv2.CAP_PROP_FPS, _cameraInfo.frameRate)
+            # set the frame size
+            cap.set(cv2.CAP_PROP_FRAME_WIDTH, _cameraInfo.frameSize[0])
+            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, _cameraInfo.frameSize[1])
+
+            # check if the changes were successful
+            checkSettings = [
+                cap.get(cv2.CAP_PROP_FPS) != _cameraInfo.frameRate,
+                cap.get(cv2.CAP_PROP_FRAME_WIDTH) != _cameraInfo.frameSize[0],
+                cap.get(cv2.CAP_PROP_FRAME_HEIGHT) != _cameraInfo.frameSize[1]
+            ]
+
+            if any(checkSettings):
+                logging.error(
+                    "Camera settings do not match requested settings. "
+                    "Requested: {}x{} @ {} fps. "
+                    "Actual: {}x{} @ {} fps.".format(
+                        self._cameraInfo.frameSize[0],
+                        self._cameraInfo.frameSize[1],
+                        self._cameraInfo.frameRate,
+                        defaultFrameWidth,
+                        defaultFrameHeight,
+                        defaultFrameRate
+                    )
+                )
+
+        # check if the camera is opened
         if not cap.isOpened():
             raise RuntimeError("Cannot open camera using `cv2`")
             
@@ -1222,7 +1266,7 @@ class CameraInterfaceOpenCV(CameraInterface):
         except queue.Empty:
             return False
 
-        frame, val, metadata = frameData  # update the frame
+        frame, val, _ = frameData  # update the frame
 
         if val == 'eof':  # handle end of stream
             return False
@@ -1244,6 +1288,7 @@ class CameraInterfaceOpenCV(CameraInterface):
             absTime=0.0,
             # displayTime=self._recentMetadata['frame_size'],
             size=self._cameraInfo.frameSize,
+            colorFormat='rgb24',  # converted in thread
             colorData=videoFrameArray,
             audioChannels=0,
             audioSamples=None,
@@ -2289,6 +2334,7 @@ def _getCameraInfoWindows():
             "Cannot query cameras with this function, platform not 'Windows'.")
 
     # FFPyPlayer can query the OS via DirectShow for Windows cameras
+    from ffpyplayer.tools import list_dshow_devices
     videoDevs, _, names = list_dshow_devices()
 
     # get all the supported modes for the camera
