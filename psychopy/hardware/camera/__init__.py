@@ -2004,17 +2004,19 @@ class Camera:
         `record()` and subsequent `stop()`. If `record()` is called again before 
         `save()`, the previous recording will be deleted and lost.
 
-        This is a slow operation and will block until the video is saved. If
-        `useThreads` is `True`, the video will be saved and composited in a 
-        separate thread and this function will return quickly.
+        This is a slow operation and will block for some time depending on the 
+        length of the video. This can be sped up by setting `useThreads=True`.
 
         Parameters
         ----------
         filename : str
             File to save the resulting video to, should include the extension.
         useThreads : bool
-            Render videos in the background within a separate thread. Default is
-            `True`.
+            Use threading where possible to speed up the saving process. If
+            `True`, the video will be saved and composited in a separate thread
+            and this function will return quickly. If `False`, the video will
+            be saved and composited in the main thread and this function will
+            block until the video is saved. Default is `True`.
         mergeAudio : bool
             Merge the audio track from the microphone with the video. If `True`,
             the audio track will be merged with the video. If `False`, the
@@ -2082,7 +2084,7 @@ class Camera:
                     filename,  # file after merging
                     videoFileName, 
                     audioFileName, 
-                    useThreads=True,
+                    useThreads=useThreads,
                     removeFiles=True)  # disable threading for now
 
         self._lastVideoFile = filename  # remember the last video we saved
