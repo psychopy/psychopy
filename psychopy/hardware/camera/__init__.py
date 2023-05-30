@@ -279,7 +279,11 @@ class CameraInfo:
 
     @property
     def frameRate(self):
-        """Resolution (min, max) in pixels (`ArrayLike`).
+        """Frame rate (`float`) or range (`ArrayLike`). 
+        
+        Depends on the backend being used. If a range is provided, then the 
+        first value is the maximum and the second value is the minimum frame 
+        rate.
         """
         return self._frameRate
 
@@ -660,7 +664,6 @@ class CameraInterfaceFFmpeg(CameraInterface):
             ptsStart = 0.0  # may be used in the future
             while True:
                 frame, val = videoCapture.get_frame()
-                # print('warmup', frame, val)
                 if frame is not None:
                     ptsStart = videoCapture.get_pts()
                     break
@@ -775,11 +778,11 @@ class CameraInterfaceFFmpeg(CameraInterface):
             lib_opts['pixel_format'] = _cameraInfo.pixelFormat
             ff_opts['framedrop'] = True
             ff_opts['fast'] = True
-        # elif _cameraInfo.cameraAPI == CAMERA_API_VIDEO4LINUX:
-        #     raise OSError(
-        #         "Sorry, camera does not support Linux at this time. However, "
-        #         "it will in future versions.")
-        #
+        elif _cameraInfo.cameraAPI == CAMERA_API_VIDEO4LINUX:
+            raise OSError(
+                "Sorry, camera does not support Linux at this time. However, "
+                "it will in future versions.")
+        
         else:
             raise RuntimeError("Unsupported camera API specified.")
 
@@ -1037,22 +1040,23 @@ class CameraInterfaceOpenCV(CameraInterface):
                 break
             
             # get information about camera capabilities
-            frameRate = (int(thisCamera.get(cv2.CAP_PROP_FPS)), 1)
+            frameRate = thisCamera.get(cv2.CAP_PROP_FPS)
             frameSize = (
                 int(thisCamera.get(cv2.CAP_PROP_FRAME_WIDTH)),
                 int(thisCamera.get(cv2.CAP_PROP_FRAME_HEIGHT)))
             
+            genName = 'camera:{}'.format(cameraIndex)
             cameraInfo = CameraInfo(
                 index=cameraIndex,
-                name='camera:{}'.format(cameraIndex),
-                frameSize=frameSize,
-                frameRate=frameRate,
+                name=genName,
+                frameSize=frameSize or (-1, -1),
+                frameRate=frameRate or -1.0,
                 pixelFormat='bgr24',  # always BGR with 8 bpc for OpenCV
                 cameraLib=CameraInterfaceOpenCV._cameraLib,
                 cameraAPI=cameraAPI
             )
 
-            cameras.update({cameraIndex: [cameraInfo]})
+            cameras.update({genName: [cameraInfo]})
             thisCamera.release()
 
         logging.info('Found {} cameras.'.format(len(cameras)))
@@ -1200,67 +1204,42 @@ class CameraInterfaceOpenCV(CameraInterface):
         # create the camera capture object, we keep this internal to the thread
         # so that we can control when it is released
         cap = cv2.VideoCapture(
-            self._cameraInfo.index,
-            cameraDrivers[self._cameraInfo.cameraAPI])
-
+            _cameraInfo.index,
+            cameraDrivers[_cameraInfo.cameraAPI])
+        
         # check if the camera is opened
         if not cap.isOpened():
             raise RuntimeError("Cannot open camera using `cv2`")
 
-        # the user can override the default camera settings if they want, so we
-        # check for that here
-        defaultFrameRate = cap.get(cv2.CAP_PROP_FPS)
-        defaultFrameWidth = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        defaultFrameHeight = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        
-        # print("Default camera settings:")
-        # print("  Frame rate: {} fps".format(defaultFrameRate))
-        # print("  Frame size: {}x{}".format(
-        #     defaultFrameWidth,
-        #     defaultFrameHeight
-        # ))
+        # if the user didn't specify a frame rate or size, use the defaults
+        # pulled from the camera
+        usingDefaults = False
+        if _cameraInfo.frameRate is None or _cameraInfo.frameRate < 0.0:
+            _cameraInfo.frameRate = cap.get(cv2.CAP_PROP_FPS)
+            usingDefaults = True
 
-        # check for a mismatch in the frame rate and size settings
-        checkSettings = [
-            not math.isclose(defaultFrameRate, _cameraInfo.frameRate),
-            defaultFrameWidth != _cameraInfo.frameSize[0],
-            defaultFrameHeight != _cameraInfo.frameSize[1]
-        ]
-        if any(checkSettings):
-            logging.debug("Overriding default camera settings.")
-            logging.debug("Requested: {}x{} @ {} fps.".format(
-                _cameraInfo.frameSize[0],
-                _cameraInfo.frameSize[1],
-                _cameraInfo.frameRate
-            ))
-            # set the frame rate
+        if _cameraInfo.frameSize is None or _cameraInfo.frameSize == (-1, -1):
+            _cameraInfo.frameSize = (
+                int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), 
+                int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+            usingDefaults = True
+        
+        if not usingDefaults:
+            # set frame rate and size and check if they were set correctly
             cap.set(cv2.CAP_PROP_FPS, _cameraInfo.frameRate)
-            # set the frame size
             cap.set(cv2.CAP_PROP_FRAME_WIDTH, _cameraInfo.frameSize[0])
             cap.set(cv2.CAP_PROP_FRAME_HEIGHT, _cameraInfo.frameSize[1])
-
-            # check if the changes were successful
-            checkSettings = [
-                not math.isclose(defaultFrameRate, _cameraInfo.frameRate),
-                cap.get(cv2.CAP_PROP_FRAME_WIDTH) != _cameraInfo.frameSize[0],
-                cap.get(cv2.CAP_PROP_FRAME_HEIGHT) != _cameraInfo.frameSize[1]
-            ]
-            # check the settings again to see if the changes persisted, if not
-            # then we have a problem
-            if any(checkSettings):
-                logging.error(
-                    "Camera settings do not match requested settings. "
-                    "Requested: {}x{} @ {} fps. "
-                    "Actual: {}x{} @ {} fps.".format(
-                        self._cameraInfo.frameSize[0],
-                        self._cameraInfo.frameSize[1],
-                        self._cameraInfo.frameRate,
-                        defaultFrameWidth,
-                        defaultFrameHeight,
-                        defaultFrameRate
-                    )
-                )
-                raise CameraFormatNotSupportedError()
+            
+            if cap.get(cv2.CAP_PROP_FPS) != _cameraInfo.frameRate:
+                raise CameraFormatNotSupportedError(
+                    "Unsupported frame rate: %d" % _cameraInfo.frameRate)
+            
+            frameSizeMismatch = (
+                cap.get(cv2.CAP_PROP_FRAME_WIDTH) != _cameraInfo.frameSize[0] or
+                cap.get(cv2.CAP_PROP_FRAME_HEIGHT) != _cameraInfo.frameSize[1])
+            if frameSizeMismatch:
+                raise CameraFormatNotSupportedError(
+                    "Unsupported frame size: %s" % str(_cameraInfo.frameSize))
             
         # open a stream and pause it until ready
         self._playerThread = threading.Thread(
@@ -1524,83 +1503,124 @@ class Camera:
 
         # camera library in use
         self._cameraLib = cameraLib
-        # get all the cameras attached to the system
-        supportedCameraSettings = getCameras()
-
-        # create a mapping of supported camera formats
-        _formatMapping = dict()
-        for _, formats in supportedCameraSettings.items():
-            for _format in formats:
-                desc = _format.description()
-                _formatMapping[desc] = _format
-        # sort formats by resolution then frame rate
-        orderedFormats = list(_formatMapping.values())
-        orderedFormats.sort(key=lambda obj: obj.frameRate, reverse=True)
-        orderedFormats.sort(key=lambda obj: np.prod(obj.frameSize), reverse=True)
-
-        # list of devices
-        devList = list(_formatMapping)
-
-        if not devList:  # no cameras found if list is empty
-            raise CameraNotFoundError('No cameras found of the system!')
-
-        # Get best device
-        bestDevice = _formatMapping[devList[-1]]
-        for mode in orderedFormats:
-            sameFrameRate = mode.frameRate == frameRate or frameRate is None
-            sameFrameSize = mode.frameSize == frameSize or frameSize is None
-            if sameFrameRate and sameFrameSize:
-                bestDevice = mode
-                break
-
-        self._origDevSpecifier = device  # what the user provided
-        self._device = None  # device identifier
-
-        # alias device None or Default as being device 0
-        if device in (None, "None", "none", "Default", "default"):
-            self._device = bestDevice.description()
-        elif isinstance(device, CameraInfo):
-            self._device = device.description()
-        else:
-            # resolve getting the camera identifier
-            if isinstance(device, int):  # get camera if integer
-                try:
-                    self._device = devList[device]
-                except IndexError:
-                    raise CameraNotFoundError(
-                        'Cannot find camera at index={}'.format(device))
-            elif isinstance(device, str):
-                self._device = device
-            else:
-                raise TypeError(
-                    "Incorrect type for `camera`, expected `int` or `str`.")
-
-        # get the camera information
-        if self._device in _formatMapping:
-            self._cameraInfo = _formatMapping[self._device]
-        else:
-            # raise error if couldn't find matching camera info
-            raise CameraFormatNotSupportedError(
-                'Specified camera format is not supported.')
         
-        # allow for overriding the camera default settings if OpenCV is used
-        if frameRate is not None:
-            if self._cameraLib != u'opencv':
-                logging.error(
-                    'Overriding camera frame rate only works with OpenCV.')
+        if self._cameraLib == u'opencv':
+            if device in (None, "None", "none", "Default", "default"):
+                device = 0  # use the first enumerated camera
+
+            # handle all possible input for `frameRate` and `frameSize`
+            if frameRate is None:
+                pass   # no change
+            elif isinstance(frameRate, str):
+                if frameRate in ("None", "none", "Default", "default"):
+                    frameRate = None
+            elif isinstance(frameRate, (int, float)):
+                if frameRate <= 0:
+                    raise ValueError("`frameRate` must be a positive number")
+                elif frameRate.lower() == 'ntsc':
+                    frameRate = CAMERA_FRAMERATE_NTSC
             else:
-                logging.info(
-                    'User overriding camera frame rate to {}'.format(frameRate))
-                self._cameraInfo.frameRate = frameRate
+                raise ValueError("`frameRate` must be a number, string or None")
             
-        if frameSize is not None:
-            if self._cameraLib != u'opencv':
-                logging.error(
-                    'Overriding camera frame size only works with OpenCV.')
+            if frameSize is None:
+                pass  # use the camera default
+            elif isinstance(frameSize, str):
+                if frameSize in ("None", "none", "Default", "default"):
+                    frameSize = None
+                elif len(frameSize.split('x')) == 2:
+                    frameSize = tuple(map(int, frameSize.split('x')))
+                elif frameSize.upper() in movietools.VIDEO_RESOLUTIONS.keys():
+                    frameSize = movietools.VIDEO_RESOLUTIONS[frameSize.upper()]
+                else:
+                    raise ValueError("Invalid `frameSize` string")
+            elif isinstance(frameSize, (tuple, list)):
+                if len(frameSize) != 2:
+                    raise ValueError("`frameSize` must be a 2-tuple or 2-list")
+                frameSize = tuple(map(int, frameSize))
             else:
-                logging.info(
-                    'User overriding camera frame size to {}'.format(frameSize))
-                self._cameraInfo.frameSize = frameSize
+                raise ValueError("`frameSize` specified incorrectly")
+                
+            # recommended camera drivers for each platform
+            cameraPlatformDrivers = {
+                'Linux': CAMERA_API_VIDEO4LINUX2,
+                'Windows': CAMERA_API_DIRECTSHOW,
+                'Darwin': CAMERA_API_AVFOUNDATION
+            }
+            # get the recommended camera driver for the current platform
+            cameraAPI = cameraPlatformDrivers[platform.system()]
+
+            self._cameraInfo = CameraInfo(
+                index=device, 
+                frameRate=frameRate or -1.0,   # dummy value
+                frameSize=frameSize or (-1, -1),  # dummy value
+                pixelFormat='bgr24', 
+                cameraLib=cameraLib, 
+                cameraAPI=cameraAPI)
+            
+            self._device = self._cameraInfo.description()
+
+        elif self._cameraLib == u'ffpyplayer':
+            supportedCameraSettings = CameraInterfaceFFmpeg.getCameras()
+
+            # create a mapping of supported camera formats
+            _formatMapping = dict()
+            for _, formats in supportedCameraSettings.items():
+                for _format in formats:
+                    desc = _format.description()
+                    _formatMapping[desc] = _format
+            # sort formats by resolution then frame rate
+            orderedFormats = list(_formatMapping.values())
+            orderedFormats.sort(key=lambda obj: obj.frameRate, reverse=True)
+            orderedFormats.sort(key=lambda obj: np.prod(obj.frameSize), 
+                                reverse=True)
+
+            # list of devices
+            devList = list(_formatMapping)
+
+            if not devList:  # no cameras found if list is empty
+                raise CameraNotFoundError('No cameras found of the system!')
+
+            # Get best device
+            bestDevice = _formatMapping[devList[-1]]
+            for mode in orderedFormats:
+                sameFrameRate = mode.frameRate == frameRate or frameRate is None
+                sameFrameSize = mode.frameSize == frameSize or frameSize is None
+                if sameFrameRate and sameFrameSize:
+                    bestDevice = mode
+                    break
+
+            # self._origDevSpecifier = device  # what the user provided
+            self._device = None  # device identifier
+
+            # alias device None or Default as being device 0
+            if device in (None, "None", "none", "Default", "default"):
+                self._device = bestDevice.description()
+            elif isinstance(device, CameraInfo):
+                if self._cameraLib != device.cameraLib:
+                    raise CameraFormatNotSupportedError(
+                        'Wrong configuration for camera library!')
+                self._device = device.description()
+            else:
+                # resolve getting the camera identifier
+                if isinstance(device, int):  # get camera if integer
+                    try:
+                        self._device = devList[device]
+                    except IndexError:
+                        raise CameraNotFoundError(
+                            'Cannot find camera at index={}'.format(device))
+                elif isinstance(device, str):
+                    self._device = device
+                else:
+                    raise TypeError(
+                        "Incorrect type for `camera`, expected `int` or `str`.")
+
+            # get the camera information
+            if self._device in _formatMapping:
+                self._cameraInfo = _formatMapping[self._device]
+            else:
+                # raise error if couldn't find matching camera info
+                raise CameraFormatNotSupportedError(
+                    'Specified camera format is not supported.')
 
         # # operating mode
         # if mode not in (CAMERA_MODE_VIDEO, CAMERA_MODE_CV, CAMERA_MODE_PHOTO):
@@ -2141,7 +2161,7 @@ class Camera:
         self._movieWriter = movietools.MovieFileWriter(
             videoFileName,
             self._cameraInfo.frameSize,  # match camera params
-            int(self._cameraInfo.frameRate),
+            self._cameraInfo.frameRate,
             None,
             'rgb24')
         self._movieWriter.open()  # blocks main thread until opened and ready
