@@ -561,6 +561,28 @@ class CameraInterfaceFFmpeg(CameraInterface):
         """
         pass
 
+    def getCameras():
+        """Get a list of devices this interface can open.
+
+        Returns
+        -------
+        list 
+            List of objects which represent cameras that can be opened by this
+            interface. Pass any of these values to `device` to open a stream.
+
+        """
+        global _cameraGetterFuncTbl
+        systemName = platform.system()  # get the system name
+
+        # lookup the function for the given platform
+        getCamerasFunc = _cameraGetterFuncTbl.get(systemName, None)
+        if getCamerasFunc is None:  # if unsupported
+            raise OSError(
+                "Cannot get cameras, unsupported platform '{}'.".format(
+                    systemName))
+
+        return getCamerasFunc()
+
     @property
     def frameRate(self):
         """Frame rate of the camera stream (`float`).
@@ -1079,13 +1101,13 @@ class CameraInterfaceOpenCV(CameraInterface):
         """
         import cv2
         
-        def _frameGetterAsync(cap, frameQueue, exitEvent, recordEvent, 
+        def _frameGetterAsync(videoCapture, frameQueue, exitEvent, recordEvent, 
                               warmUpBarrier, recordingBarrier, audioCapture):
             """Get frames asynchronously from the camera stream.
 
             Parameters
             ----------
-            cap : cv2.VideoCapture
+            videoCapture : cv2.VideoCapture
                 Handle for the video capture object. This is opened outside the
                 thread and passed in.
             frameQueue : queue.Queue
@@ -1119,7 +1141,7 @@ class CameraInterfaceOpenCV(CameraInterface):
             isRecording = False
             while not exitEvent.is_set():
                 # Capture frame-by-frame
-                ret, frame = cap.read()
+                ret, frame = videoCapture.read()
 
                 # if frame is read correctly ret is True
                 if not ret:  # eol or something else
@@ -1154,7 +1176,7 @@ class CameraInterfaceOpenCV(CameraInterface):
                         audioCapture.poll()
 
             # when everything done, release the capture device
-            cap.release()
+            videoCapture.release()
 
             if audioCapture is not None:  # stop audio capture
                 audioCapture.stop(blockUntilStopped=1)
@@ -1173,27 +1195,37 @@ class CameraInterfaceOpenCV(CameraInterface):
             CAMERA_API_DIRECTSHOW: cv2.CAP_DSHOW,
             CAMERA_API_AVFOUNDATION: cv2.CAP_AVFOUNDATION
         }
+        _cameraInfo = self._cameraInfo
 
         # create the camera capture object, we keep this internal to the thread
         # so that we can control when it is released
         cap = cv2.VideoCapture(
-            self.device.index,
-            cameraDrivers[self.device.cameraAPI])
+            self._cameraInfo.index,
+            cameraDrivers[self._cameraInfo.cameraAPI])
+
+        # check if the camera is opened
+        if not cap.isOpened():
+            raise RuntimeError("Cannot open camera using `cv2`")
 
         # the user can override the default camera settings if they want, so we
         # check for that here
         defaultFrameRate = cap.get(cv2.CAP_PROP_FPS)
         defaultFrameWidth = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         defaultFrameHeight = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        
+        # print("Default camera settings:")
+        # print("  Frame rate: {} fps".format(defaultFrameRate))
+        # print("  Frame size: {}x{}".format(
+        #     defaultFrameWidth,
+        #     defaultFrameHeight
+        # ))
 
         # check for a mismatch in the frame rate and size settings
-        _cameraInfo = self._cameraInfo
         checkSettings = [
-            defaultFrameRate != _cameraInfo.frameRate,
+            not math.isclose(defaultFrameRate, _cameraInfo.frameRate),
             defaultFrameWidth != _cameraInfo.frameSize[0],
             defaultFrameHeight != _cameraInfo.frameSize[1]
         ]
-
         if any(checkSettings):
             logging.debug("Overriding default camera settings.")
             logging.debug("Requested: {}x{} @ {} fps.".format(
@@ -1209,11 +1241,12 @@ class CameraInterfaceOpenCV(CameraInterface):
 
             # check if the changes were successful
             checkSettings = [
-                cap.get(cv2.CAP_PROP_FPS) != _cameraInfo.frameRate,
+                not math.isclose(defaultFrameRate, _cameraInfo.frameRate),
                 cap.get(cv2.CAP_PROP_FRAME_WIDTH) != _cameraInfo.frameSize[0],
                 cap.get(cv2.CAP_PROP_FRAME_HEIGHT) != _cameraInfo.frameSize[1]
             ]
-
+            # check the settings again to see if the changes persisted, if not
+            # then we have a problem
             if any(checkSettings):
                 logging.error(
                     "Camera settings do not match requested settings. "
@@ -1227,10 +1260,7 @@ class CameraInterfaceOpenCV(CameraInterface):
                         defaultFrameRate
                     )
                 )
-
-        # check if the camera is opened
-        if not cap.isOpened():
-            raise RuntimeError("Cannot open camera using `cv2`")
+                raise CameraFormatNotSupportedError()
             
         # open a stream and pause it until ready
         self._playerThread = threading.Thread(
@@ -1382,7 +1412,7 @@ _openCameras = {}
 
 
 class Camera:
-    """Class of displaying and recording video from a USB/PCI connected camera.
+    """Class for displaying and recording video from a USB/PCI connected camera.
 
     This class is capable of opening, recording, and saving camera video streams
     to disk. Camera stream reading/writing is done in a separate thread, 
@@ -1393,8 +1423,7 @@ class Camera:
     the video stream (as best as possible). Video and audio can be saved to disk 
     either as a single file or as separate files.
 
-    GNU/Linux is presently unsupported at this time, however support is likely
-    to arrive in a later release.
+    GNU/Linux is supported only by the OpenCV backend (`cameraLib='opencv'`).
 
     Parameters
     ----------
@@ -1412,8 +1441,10 @@ class Camera:
         Microphone to record audio samples from during recording. The microphone
         input device must not be in use when `record()` is called. The audio
         track will be merged with the video upon calling `save()`. Make sure 
-        that `maxRecordingSize` is specified to a reasonable value to prevent
-        the audio track from being truncated.
+        that `Microphone.maxRecordingSize` is specified to a reasonable value to 
+        prevent the audio track from being truncated. Specifying a microphone
+        adds some latency to starting and stopping camera recording due to the 
+        added overhead involved with synchronizing the audio and video streams.
     frameRate : int or None
         Frame rate to record the camera stream at. If `None`, the camera's
         default frame rate will be used.
@@ -1423,8 +1454,9 @@ class Camera:
     cameraLib : str
         Interface library (backend) to use for accessing the camera. May either
         be `ffpyplayer` or `opencv`. If `None`, the default library for the
-        current platform will be used. Switching camera libraries could help
-        resolve issues with camera compatibility.
+        recommended by the PsychoPy developers will be used. Switching camera 
+        libraries could help resolve issues with camera compatibility. More 
+        camera libraries may be installed via extension packages.
     bufferSecs : float
         Size of the real-time camera stream buffer specified in seconds (only
         valid on Windows and MacOS). This is not the same as the recording
@@ -1432,7 +1464,9 @@ class Camera:
         libraries.
     win : :class:`~psychopy.visual.Window` or None
         Optional window associated with this camera. Some functionality may
-        require an OpenGL context for presenting frames to the screen.
+        require an OpenGL context for presenting frames to the screen. If you 
+        are not planning to display the camera stream, this parameter can be
+        safely ignored.
     name : str
         Label for the camera for logging purposes.
 
@@ -1442,28 +1476,31 @@ class Camera:
 
         camera = Camera(device=0)
         camera.open()  # exception here on invalid camera
-        # camera.status == NOT_STARTED
-        camera.record()
-        # camera.status == STARTED
-        camera.stop()
-        # camera.status == STOPPED
         camera.close()
-        # camera.status == NOT_STARTED
 
     Recording 5 seconds of video and saving it to disk::
 
         cam = Camera(0)
         cam.open()
-        cam.record()
+        cam.record()  # starts recording
 
         while cam.recordingTime < 5.0:  # record for 5 seconds
-            cam.update()
             if event.getKeys('q'):
                 break
+            cam.update()
 
-        cam.stop()
-        cam.save('myVideo.mp4', useThreads=False)
+        cam.stop()  # stops recording
+        cam.save('myVideo.mp4')
         cam.close()
+    
+    Providing a microphone as follows enables audio recording::
+
+        mic = Microphone(0)
+        cam = Camera(0, mic=mic)
+    
+    Overriding the default frame rate and size (if `cameraLib` supports it)::
+
+        cam = Camera(0, frameRate=30, frameSize=(640, 480), cameraLib=u'opencv')
 
     """
     def __init__(self, device=0, mic=None, cameraLib=u'ffpyplayer',
@@ -1485,6 +1522,8 @@ class Camera:
         # Process camera settings
         #
 
+        # camera library in use
+        self._cameraLib = cameraLib
         # get all the cameras attached to the system
         supportedCameraSettings = getCameras()
 
@@ -1530,12 +1569,12 @@ class Camera:
                 except IndexError:
                     raise CameraNotFoundError(
                         'Cannot find camera at index={}'.format(device))
-            elif isinstance(device, str):  # get camera if integer
+            elif isinstance(device, str):
                 self._device = device
             else:
                 raise TypeError(
                     "Incorrect type for `camera`, expected `int` or `str`.")
-            
+
         # get the camera information
         if self._device in _formatMapping:
             self._cameraInfo = _formatMapping[self._device]
@@ -1543,20 +1582,25 @@ class Camera:
             # raise error if couldn't find matching camera info
             raise CameraFormatNotSupportedError(
                 'Specified camera format is not supported.')
-
-        # Check if the cameraAPI is suitable for the operating system. This is
-        # a sanity check to ensure people aren't using formats obtained from
-        # other platforms.
-        api = self._cameraInfo.cameraAPI
-        thisSystem = platform.system()
-        if ((api == CAMERA_API_AVFOUNDATION and thisSystem != 'Darwin') or
-                (api == CAMERA_API_DIRECTSHOW and thisSystem != 'Windows')):
-            raise RuntimeError(
-                "Unsupported camera interface '{}' for platform '{}'".format(
-                    api, thisSystem))
-
-        # camera library in use
-        self._cameraLib = cameraLib
+        
+        # allow for overriding the camera default settings if OpenCV is used
+        if frameRate is not None:
+            if self._cameraLib != u'opencv':
+                logging.error(
+                    'Overriding camera frame rate only works with OpenCV.')
+            else:
+                logging.info(
+                    'User overriding camera frame rate to {}'.format(frameRate))
+                self._cameraInfo.frameRate = frameRate
+            
+        if frameSize is not None:
+            if self._cameraLib != u'opencv':
+                logging.error(
+                    'Overriding camera frame size only works with OpenCV.')
+            else:
+                logging.info(
+                    'User overriding camera frame size to {}'.format(frameSize))
+                self._cameraInfo.frameSize = frameSize
 
         # # operating mode
         # if mode not in (CAMERA_MODE_VIDEO, CAMERA_MODE_CV, CAMERA_MODE_PHOTO):
@@ -1945,11 +1989,6 @@ class Camera:
         if self._hasPlayer:
             raise RuntimeError('Cannot open `MediaPlayer`, already opened.')
 
-        # Barrier for waiting on camera to warmup and start getting frames. Need 
-        # to select number of threads to wait on based on whether we have a 
-        # microphone or not.
-        # self._syncBarrier = threading.Barrier(3 if self._mic is not None else 2)  
-          
         # Camera interface to use, these are hard coded but support for each is
         # provided by an extension.
         desc = self._cameraInfo.description()
@@ -2172,7 +2211,7 @@ class Camera:
         if self._captureThread is None:
             return None
 
-        return self._lastVideoFile  # todo - make this get tha last clip from record
+        return self._lastVideoFile 
 
     @property
     def lastFrame(self):
