@@ -283,7 +283,7 @@ class MovieFileWriter:
 
         If `True`, the movie file is open and frames can be added to it. If
         `False`, the movie file is closed and no more frames can be added to it.
-
+        
         """
         if self._writerThread is None:
             return False
@@ -298,6 +298,8 @@ class MovieFileWriter:
         is updated asynchronously, so it may not be accurate if you are adding
         frames to the movie file very quickly.
 
+        This value is retained after the movie file is closed.
+
         """
         with self._dataLock:
             return self._framesOut
@@ -310,6 +312,8 @@ class MovieFileWriter:
         have been written so far. This value is updated asynchronously, so it 
         may not be accurate if you are adding frames to the movie file very 
         quickly.
+
+        This value is retained after the movie file is closed.
 
         """
         with self._dataLock:
@@ -357,6 +361,11 @@ class MovieFileWriter:
         finalize the movie file.
 
         """
+        if self.isOpen:
+            raise RuntimeError('Movie file is already open.')
+        
+        logging.debug('Creating movie file for writing %s', self._filename)
+
         # import in the class too avoid hard dependency on ffpyplayer
         from ffpyplayer.writer import MediaWriter
         from ffpyplayer.pic import SWScale
@@ -462,7 +471,11 @@ class MovieFileWriter:
         
         self._writerThread.start()
         _openMovieWriters.add(self)   # add to the list of open movie writers
+
+        logging.debug("Waiting for movie writer thread to start...")
         self._syncBarrier.wait()  # wait for the thread to start
+        logging.debug("Movie writer thread started.")
+        logging.info("Movie file '%s' opened for writing.", self._filename)
     
     def flush(self):
         """Flush the movie file.
@@ -506,6 +519,8 @@ class MovieFileWriter:
         """
         if self._writerThread is None:
             return
+        
+        logging.debug("Closing movie file '{}'.".format(self.filename))
 
         # if the writer thread is alive still, then we need to shut it down
         if self._writerThread.is_alive():
@@ -532,6 +547,8 @@ class MovieFileWriter:
         self._lastVideoFile = self._filename
 
         self._writerThread = None
+
+        logging.info("Movie file '{}' closed.".format(self.filename))
     
     def _convertImage(self, image):
         """Convert an image to a pixel format appropriate for the encoder. 
@@ -656,7 +673,8 @@ def closeAllMovieWriters():
 atexit.register(closeAllMovieWriters)
 
 
-def addAudioToMovie(outputFile, videoFile, audioFile, useThreads=True):
+def addAudioToMovie(outputFile, videoFile, audioFile, useThreads=True, 
+                    removeFiles=False, writerOpts=None):
     """Add an audio track to a video file.
 
     This function will add an audio track to a video file. If the video file
@@ -672,13 +690,27 @@ def addAudioToMovie(outputFile, videoFile, audioFile, useThreads=True):
         Path to the output video file where audio and video will be merged.
     videoFile : str
         Path to the input video file.
-    audioFile : str
+    audioFile : str or None
         Path to the audio file to add to the video file.
+    codec : str
+        The name of the audio codec to use. This should be a valid codec name
+        for the encoder library being used. If `None`, the default codec for
+        the encoder library will be used.
     useThreads : bool
         If `True`, the audio will be added in a separate thread. This allows the
         audio to be added in the background while the program continues to run.
         If `False`, the audio will be added in the main thread and the program
         will block until the audio is added. Defaults to `True`.
+    removeFiles : bool
+        If `True`, the input video (`videoFile`) and audio (`audioFile`) files 
+        will be removed (i.e. deleted from disk) after the audio has been added 
+        to the video. Defaults to `False`.
+    writerOpts : dict or None
+        Options to pass to the movie writer. This should be a dictionary of
+        keyword arguments to pass to the movie writer. If `None`, the default
+        options for the movie writer will be used. Defaults to `None`. See
+        documentation for `moviepy.video.io.VideoFileClip.write_videofile` for 
+        possible values.
 
     Examples
     --------
@@ -692,33 +724,54 @@ def addAudioToMovie(outputFile, videoFile, audioFile, useThreads=True):
     from moviepy.audio.io.AudioFileClip import AudioFileClip
     from moviepy.audio.AudioClip import CompositeAudioClip
 
-    def _renderVideo(outputFile, videoFile, audioFile):
+    # default options for the writer
+    moviePyOpts = {
+        'verbose': False, 
+        'logger': None
+    }
+
+    if writerOpts is not None:  # make empty dict if not provided
+        moviePyOpts.update(writerOpts)
+
+    def _renderVideo(outputFile, videoFile, audioFile, removeFiles, writerOpts):
         """Render the video file with the audio track.
         """
         # merge audio and video tracks, we use MoviePy for this
         videoClip = VideoFileClip(videoFile)
-
-        # if we have a microphone, merge the audio track in
-        if audioFile is not None:
-            audioClip = AudioFileClip(audioFile)
-            # add audio track to the video
-            videoClip.audio = CompositeAudioClip([audioClip])
+        audioClip = AudioFileClip(audioFile)
+        videoClip.audio = CompositeAudioClip([audioClip])
 
         # transcode with the format the user wants
-        videoClip.write_videofile(outputFile, verbose=False, logger=None)
+        videoClip.write_videofile(
+            outputFile, 
+            **writerOpts)  # expand out options
 
-    logging.info('Adding audio to video file: {}'.format(outputFile))
-    
+        if removeFiles:
+            # remove the input files
+            os.remove(videoFile)
+            os.remove(audioFile)
+
     # run the audio/video merge in the main thread
     if not useThreads:
-        _renderVideo(outputFile, videoFile, audioFile)
+        logging.debug('Adding audio to video file in main thread')
+        _renderVideo(
+            outputFile, 
+            videoFile, 
+            audioFile, 
+            removeFiles, 
+            moviePyOpts)
         return
 
     # run the audio/video merge in a separate thread
-    thread = threading.Thread(
+    logging.debug('Adding audio to video file in separate thread')
+    compositorThread = threading.Thread(
         target=_renderVideo, 
-        args=(outputFile, videoFile, audioFile))
-    thread.start()
+        args=(outputFile, 
+              videoFile, 
+              audioFile, 
+              removeFiles,
+              moviePyOpts))
+    compositorThread.start()
 
 
 if __name__ == "__main__":
