@@ -79,11 +79,16 @@ CAMERA_NULL_VALUE = u'Null'  # fields where we couldn't get a value
 CAMERA_TEMP_FILE_VIDEO = u'video.mp4'
 CAMERA_TEMP_FILE_AUDIO = u'audio.wav'
 
+# camera status 
+CAMERA_STATUS_OK = 'ok'
+CAMREA_STATUS_PAUSED = 'paused'
+CAMERA_STATUS_EOF = 'eof'
+
 # camera API flags, these specify which API camera settings were queried with
 CAMERA_API_AVFOUNDATION = u'AVFoundation'  # mac
 CAMERA_API_DIRECTSHOW = u'DirectShow'      # windows
 # CAMERA_API_VIDEO4LINUX = u'Video4Linux'    # linux
-# CAMERA_API_OPENCV = u'OpenCV'              # opencv, cross-platform API
+CAMERA_API_OPENCV = u'OpenCV'              # opencv, cross-platform API
 CAMERA_API_UNKNOWN = u'Unknown'            # unknown API
 CAMERA_API_NULL = u'Null'                  # empty field
 
@@ -180,6 +185,13 @@ class CameraInfo:
         Codec format for the stream.  If `u'Null'`, then `pixelFormat` is being
         used to configure the camera. Usually this value is used for high-def
         stream formats.
+    cameraLib : str
+        Library used to access the camera. This can be either, 'ffpyplayer',
+        'opencv'.
+    cameraAPI : str
+        API used to access the camera. This relates to the external interface
+        being used by `cameraLib` to access the camera. This value can be: 
+        'AVFoundation', 'DirectShow', 'Video4Linux', 'OpenCV'.
 
     """
     __slots__ = [
@@ -1021,12 +1033,18 @@ class CameraInterfaceOpenCV(CameraInterface):
     def frameRate(self):
         """Get the frame rate of the camera stream (`float`).
         """
+        if self._cameraInfo is None:
+            return -1.0
+        
         return self._cameraInfo.frameRate
     
     @property
     def frameSize(self):
         """Get the frame size of the camera stream (`tuple`).
         """
+        if self._cameraInfo is None:
+            return (-1, -1)
+        
         return self._cameraInfo.frameSize
 
     def isOpen(self):
@@ -1042,14 +1060,15 @@ class CameraInterfaceOpenCV(CameraInterface):
         """
         import cv2
         
-        def _frameGetterAsync(device, frameQueue, exitEvent, recordEvent, 
+        def _frameGetterAsync(cap, frameQueue, exitEvent, recordEvent, 
                               warmUpBarrier, recordingBarrier, audioCapture):
             """Get frames asynchronously from the camera stream.
 
             Parameters
             ----------
-            device : cv2.VideoCapture
-                Device identifier to open the camera stream with.
+            cap : cv2.VideoCapture
+                Handle for the video capture object. This is opened outside the
+                thread and passed in.
             frameQueue : queue.Queue
                 Queue to store frames in.
             exitEvent : threading.Event
@@ -1069,19 +1088,9 @@ class CameraInterfaceOpenCV(CameraInterface):
                 will be captured.
 
             """
-            # open the camera stream
-            deviceIdx = device.index
-            cap = cv2.VideoCapture(deviceIdx)
-            
-            if not cap.isOpened():
-                raise RuntimeError("Cannot open camera using `cv2`")
-            
-            # get the frame rate to determine the polling interval
-            fps = cap.get(cv2.CAP_PROP_FPS)
-
             # poll interval is half the frame period, this makes sure we don't
             # miss frames while not wasting CPU cycles
-            pollInterval = (1.0 / fps) * 0.5
+            pollInterval = (1.0 / cap.get(cv2.CAP_PROP_FPS)) * 0.5
             
             # if the camera is opened, wait until the main thread is ready to
             # take frames
@@ -1138,10 +1147,51 @@ class CameraInterfaceOpenCV(CameraInterface):
         self._warmUpBarrier = threading.Barrier(parties)  # camera is ready
         self._recordBarrier = threading.Barrier(parties)  # audio/video is ready
 
+        # create the camera capture object, we keep this internal to the thread
+        # so that we can control when it is released
+        cap = cv2.VideoCapture(self.device.index)
+
+        # the user can override the default camera settings if they want, so we
+        # check for that here
+        defaultFrameRate = cap.get(cv2.CAP_PROP_FPS)
+        userFrameRate = self.device.frameRate
+
+        # override the default settings if the user has specified a different
+        # frame rate
+        if defaultFrameRate != userFrameRate:
+            cap.set(cv2.CAP_PROP_FPS, userFrameRate)
+            # check if the change was successful
+            if cap.get(cv2.CAP_PROP_FPS) != userFrameRate:
+                raise RuntimeError(
+                    "Cannot set camera frame rate to {} Hz".format(
+                    userFrameRate))
+
+        # override the default settings if the user has specified a different
+        # frame size
+        defaultFrameWidth = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        defaultFrameHeight = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        userFrameWidth, userFrameHeight = self.device.frameSize
+        widthMismatch = defaultFrameWidth != userFrameWidth
+        heightMismatch = defaultFrameHeight != userFrameHeight
+        if widthMismatch or heightMismatch:
+            cap.set(cv2.CAP_PROP_FRAME_WIDTH, userFrameWidth)
+            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, userFrameHeight)
+            # check if the change was successful
+            newFrameWidth = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            newFrameHeight = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            if newFrameWidth != userFrameWidth or \
+                newFrameHeight != userFrameHeight:
+                 raise RuntimeError(
+                      "Cannot set camera frame size to {}x{}".format(
+                      userFrameWidth, userFrameHeight))
+            
+        if not cap.isOpened():
+            raise RuntimeError("Cannot open camera using `cv2`")
+            
         # open a stream and pause it until ready
         self._playerThread = threading.Thread(
             target=_frameGetterAsync,
-            args=(self.device, 
+            args=(cap, 
                   self._frameQueue, 
                   self._exitEvent,
                   self._enableEvent,
@@ -1176,7 +1226,7 @@ class CameraInterfaceOpenCV(CameraInterface):
 
         if val == 'eof':  # handle end of stream
             return False
-        elif val == 'paused':  # handle when paused
+        elif val == 'paused':  # handle when paused, not used for OpenCV yet
             return False
         elif frame is None:  # handle when no frame is available
             return False
@@ -1207,7 +1257,7 @@ class CameraInterfaceOpenCV(CameraInterface):
         """Close the camera stream and release resources.
         """
         self._exitEvent.set()  # signal the thread to stop
-        self._playerThread.join()
+        self._playerThread.join()  # hold the thread until it stops
 
         self._playerThread = None
 
@@ -1221,7 +1271,8 @@ class CameraInterfaceOpenCV(CameraInterface):
         """Start passing frames to the frame queue.
 
         This method returns when the video and audio stream are both starting to
-        record or stop recording.
+        record or stop recording. If no audio stream is being recorded, this
+        method returns quicker.
 
         Parameters
         ----------
@@ -1376,6 +1427,7 @@ class Camera:
         # add attributes for setters
         self.__dict__.update(
             {'_device': None,
+             '_captureThread': None,
              '_mic': None,
              '_outFile': None,
              '_mode': u'video',
@@ -1481,13 +1533,10 @@ class Camera:
         # microphone instance, this is controlled by the camera interface and
         # is not meant to be used by the user
         self.mic = mic
-
         # other information
         self.name = name
-
         # timestamp data
         self._streamTime = 0.0
-
         # store win (unused but needs to be set/got safely for parity with JS)
         self.win = win
         
@@ -1518,16 +1567,11 @@ class Camera:
         metadata about the stream. At this point we can assume that the camera
         is 'hot' and the stream is being read.
 
-        """
-        # The camera is ready when the following conditions are met. First,
-        # we've created a player interface and opened it. Second, we have
-        # received metadata about the stream. At this point we can assume that
-        # the camera is 'hot' and the stream is being read.
-        #
-        if self._captureThread is None:
-            return False
+        This is a legacy property used to support older versions of PsychoPy. 
+        The `isOpened` property should be used instead.
 
-        return self._captureThread.isOpen()
+        """
+        return self.isStarted
 
     @property
     def frameSize(self):
@@ -1572,6 +1616,16 @@ class Camera:
         # attribute directly.
         #
         return self._isRecording
+    
+    @property
+    def isStarted(self):
+        """`True` if the stream has started (`bool`). This status is given after
+        `open()` has been called on this object.
+        """
+        if self._captureThread is None:
+            return False
+
+        return self._captureThread.is_alive()
 
     @property
     def isNotStarted(self):
@@ -1579,7 +1633,7 @@ class Camera:
         is given before `open()` or after `close()` has been called on this
         object.
         """
-        return self._captureThread is None
+        return not self.isStarted
 
     @property
     def isStopped(self):
@@ -1615,16 +1669,22 @@ class Camera:
     #     return self._mode
 
     @staticmethod
-    def getCameras():
+    def getCameras(cameraLib=None):
         """Get information about installed cameras on this system.
 
         Returns
         -------
-        list
-            Camera identifiers.
+        dict
+            Mapping of camera information objects.
 
         """
-        return getCameras()
+        # not pluggable yet, needs to be made available via extensions
+        if cameraLib == 'opencv':
+            return CameraInterfaceOpenCV.getCameras()
+        elif cameraLib == 'ffpyplayer':
+            return CameraInterfaceFFmpeg.getCameras()
+        else:
+            raise ValueError("Invalid value for parameter `cameraLib`")
 
     @staticmethod
     def getCameraDescriptions(collapse=False):
@@ -1666,7 +1726,8 @@ class Camera:
     def status(self):
         """Status flag for the camera (`int`).
 
-        Can be either `RECORDING`, `STOPPED`, `STOPPING`, or `NOT_STARTED`.
+        Can be either `RECORDING`, `STOPPED`, `STOPPING`, or `NOT_STARTED`. This 
+        property used in Builder output scripts and does not update on its own.
 
         """
         return self._status
@@ -1694,29 +1755,38 @@ class Camera:
         self._device = value
 
     @property
+    def _hasPlayer(self):
+        """`True` if we have an active media player instance.
+        """
+        # deprecated - remove in future versions and use `isStarted` instead
+        return self.isStarted
+
+    @property
     def mic(self):
         """Microphone to record audio samples from during recording
-        (:class:`~psychopy.sound.microphone.Microphone` or `None`). If `None`,
-        no audio will be recorded. Cannot be set after opening a camera stream.
+        (:class:`~psychopy.sound.microphone.Microphone` or `None`). 
+        
+        If `None`, no audio will be recorded. Cannot be set after opening a 
+        camera stream.
         """
         return self._mic
 
     @mic.setter
     def mic(self, value):
-        if self._hasPlayer:
-            raise RuntimeError("Cannot set microphone after opening stream.")
+        if self.isStarted:
+            raise CameraError("Cannot set microphone after starting camera.")
         
         self._mic = value
 
     @property
     def _hasAudio(self):
-        """`True` if we have an active audio stream.
+        """`True` if we have a microphone object for audio recording.
         """
         return self._mic is not None
     
     @property
     def win(self):
-        """Window frames are being presented (`psychopy.visual.Window` or 
+        """Window which frames are being presented (`psychopy.visual.Window` or 
         `None`).
         """
         return self._win
@@ -1724,15 +1794,6 @@ class Camera:
     @win.setter
     def win(self, value):
         self._win = value
-
-    @property
-    def _hasPlayer(self):
-        """`True` if we have an active media player instance.
-        """
-        if self._player is None:
-            return False
-        
-        return self._player.isOpen()
 
     @property
     def frameCount(self):
@@ -1749,9 +1810,16 @@ class Camera:
     @property
     def streamTime(self):
         """Current stream time in seconds (`float`). This time increases
-        monotonically from startup.
+        monotonically from startup. 
+        
+        This is `-1.0` if there is no active stream running or if the backend 
+        does not support this feature.
+
         """
-        return self._streamTime
+        if self.isStarted and hasattr(self._captureThread, "streamTime"):
+            return self._captureThread.streamTime
+        
+        return -1.0
 
     @property
     def recordingTime(self):
@@ -1775,6 +1843,9 @@ class Camera:
     def recordingBytes(self):
         """Current size of the recording in bytes (`int`).
         """
+        if not self._isRecording:
+            return 0
+
         return self._captureThread.recordingBytes
 
     def _assertMediaPlayer(self):
@@ -1933,6 +2004,10 @@ class Camera:
         `record()` and subsequent `stop()`. If `record()` is called again before 
         `save()`, the previous recording will be deleted and lost.
 
+        This is a slow operation and will block until the video is saved. If
+        `useThreads` is `True`, the video will be saved and composited in a 
+        separate thread and this function will return quickly.
+
         Parameters
         ----------
         filename : str
@@ -1974,8 +2049,9 @@ class Camera:
 
         # flush outstanding frames from the camera queue
         self._enqueueFrame()
-        
+
         # contain video and not audio
+        logging.debug("Saving video to file: {}".format(videoFileName))
         self._movieWriter = movietools.MovieFileWriter(
             videoFileName,
             self._cameraInfo.frameSize,  # match camera params
@@ -1995,19 +2071,19 @@ class Camera:
 
         # save audio track if available
         if hasAudio:
+            logging.debug(
+                "Saving audio track to file: {}".format(audioFileName))
             self._audioTrack.save(audioFileName, 'wav')
         
             # merge audio and video tracks
             if mergeAudio:
+                logging.debug("Merging audio and video tracks.")
                 movietools.addAudioToMovie(
                     filename,  # file after merging
                     videoFileName, 
                     audioFileName, 
-                    useThreads=False)  # disable threading for now
-
-                # clean up temporary audio file
-                os.remove(videoFileName)
-                os.remove(audioFileName)
+                    useThreads=True,
+                    removeFiles=True)  # disable threading for now
 
         self._lastVideoFile = filename  # remember the last video we saved
 
@@ -2098,9 +2174,6 @@ class Camera:
                     self._mic.close()
                 except AttributeError:
                     pass
-
-        if hasattr(self, '_cleanUpTempDirs'):
-            self._cleanUpTempDirs()
 
 
 # ------------------------------------------------------------------------------
@@ -2328,8 +2401,7 @@ def getCameraDescriptions(collapse=False):
 
 
 def getFormatsForDevice(device):
-    """
-    Get a list of formats available for the given device.
+    """Get a list of formats available for the given device.
 
     Parameters
     ----------
@@ -2339,7 +2411,8 @@ def getFormatsForDevice(device):
     Returns
     -------
     list
-        List of formats, specified as strings in the format `{width}x{height}@{frame rate}fps`
+        List of formats, specified as strings in the format 
+        `{width}x{height}@{frame rate}fps`
     """
     # get all devices
     connectedCameras = getCameras()
@@ -2349,12 +2422,6 @@ def getFormatsForDevice(device):
     formats = [f"{_format.frameSize[0]}x{_format.frameSize[1]}@{_format.frameRate}fps" for _format in formats]
 
     return formats
-
-
-
-
-
-
 
 
 def getAllCameraInterfaces():
@@ -2420,12 +2487,17 @@ def closeAllOpenCameras():
     return numCameras
 
 
-def renderVideo(outputFile, videoFile, audioFile=None):
+def renderVideo(outputFile, videoFile, audioFile=None, removeFiles=False):
     """Render a video.
 
     Combine visual and audio streams into a single movie file. This is used
     mainly for compositing video and audio data for the camera. Video and audio
     should have roughly the same duration.
+
+    This is a legacy function used originally for compositing video and audio
+    data from the camera. It is not used anymore internally, but is kept here 
+    for reference and may be removed in the future. If you need to composite
+    video and audio data, use `movietools.addAudioToMovie` instead.
 
     Parameters
     ----------
@@ -2437,6 +2509,9 @@ def renderVideo(outputFile, videoFile, audioFile=None):
     audioFile : str or None
         Audio file path. If not provided the movie file will simply be copied
         to `outFile`.
+    removeFiles : bool
+        If `True`, the video (`videoFile`) and audio (`audioFile`) files will be 
+        deleted after the movie is rendered.
 
     Returns
     -------
@@ -2444,17 +2519,21 @@ def renderVideo(outputFile, videoFile, audioFile=None):
         Size of the resulting file in bytes.
 
     """
-    # merge audio and video tracks, we use MoviePy for this
-    videoClip = VideoFileClip(videoFile)
-
-    # if we have a microphone, merge the audio track in
-    if audioFile is not None:
-        audioClip = AudioFileClip(audioFile)
-        # add audio track to the video
-        videoClip.audio = CompositeAudioClip([audioClip])
-
-    # transcode with the format the user wants
-    videoClip.write_videofile(outputFile, verbose=False, logger=None)
+    # if no audio file, just copy the video file
+    if audioFile is None:
+        import shutil
+        shutil.copyfile(videoFile, outputFile)
+        if removeFiles:
+            os.remove(videoFile)  # delete the old movie file
+        return os.path.getsize(outputFile)
+    
+    # merge video and audio, now using the new `movietools` module
+    movietools.addAudioToMovie(
+        videoFile, 
+        audioFile, 
+        outputFile, 
+        useThreads=False,  # didn't use this before
+        removeFiles=removeFiles)
 
     return os.path.getsize(outputFile)
 
