@@ -25,9 +25,10 @@ class CameraComponent(BaseComponent):
             name='cam',
             startType='time (s)', startVal='0', startEstim='',
             stopType='duration (s)', stopVal='', durationEstim='',
-            device="default", mic="default",
-            # Recording
-            cameraLib="ffpyplayer", resolution="default", frameRate="default",
+            # Basic
+            cameraLib="ffpyplayer", device="default", mic="default",
+            resolution="default", frameRate="default",
+            deviceManual="", resolutionManual="", frameRateManual="",
             # Data
             saveFile=True,
             outputFileType="mp4", codec="h263",
@@ -66,27 +67,38 @@ class CameraComponent(BaseComponent):
         try:
             from psychopy.hardware.camera import getCameras
 
-            def getCameraNames():
+            def getCameraNames(cameraLib):
                 """
                 Similar to getCameraDescriptions, only returns camera names
                 as a list of strings.
+
+                Parameters
+                ----------
+                cameraLib : Param
+                    Param object containing name of backend library
 
                 Returns
                 -------
                 list
                     Array of camera device names, preceeded by "default"
                 """
-                descriptions = getCameras()
+                from psychopy.hardware.camera import Camera
+                # get all devices
+                if isinstance(cameraLib, Param):
+                    cameraLib = cameraLib.val
+                connectedCameras = Camera.getCameras(cameraLib=cameraLib)
 
-                return ["default"] + list(descriptions)
+                return ["default"] + list(connectedCameras)
 
-            def getResolutionsForDevice(device):
+            def getResolutionsForDevice(cameraLib, deviceName):
                 """
                     Get a list of resolutions available for the given device.
 
                     Parameters
                     ----------
-                    device : Param
+                    cameraLib : Param
+                        Param object containing name of backend library
+                    deviceName : Param
                         Param object containing device name/index
 
                     Returns
@@ -94,27 +106,36 @@ class CameraComponent(BaseComponent):
                     list
                         List of resolutions, specified as strings in the format `(width, height)`
                     """
+                from psychopy.hardware.camera import Camera
                 # get all devices
-                connectedCameras = getCameras()
+                if isinstance(cameraLib, Param):
+                    cameraLib = cameraLib.val
+                connectedCameras = Camera.getCameras(cameraLib=cameraLib)
+                # if device is a param, get its val
+                if isinstance(deviceName, Param):
+                    deviceName = deviceName.val
                 # get first device if default
-                if device in (None, "", "default") and len(connectedCameras):
-                    device = list(connectedCameras)[0]
+                if deviceName in (None, "", "default") and len(connectedCameras):
+                    deviceName = list(connectedCameras)[0]
                 # get formats for this device
-                formats = connectedCameras.get(device.val, [])
+                formats = connectedCameras.get(deviceName, [])
                 # extract resolutions
-                formats = [f"({_format.frameSize[0]}, {_format.frameSize[1]})" for _format in formats]
-                # remove duplicates
+                formats = [_format.frameSize for _format in formats]
+                # remove duplicates and sort
                 formats = list(set(formats))
+                formats.sort(key=lambda res: res[0], reverse=True)
 
                 return ["default"] + formats
 
-            def getFrameRatesForDevice(device):
+            def getFrameRatesForDevice(cameraLib, deviceName, resolution=None):
                 """
                     Get a list of frame rates available for the given device.
 
                     Parameters
                     ----------
-                    device : Param
+                    cameraLib : Param
+                        Param object containing name of backend library
+                    deviceName : Param
                         Param object containing device name/index
 
                     Returns
@@ -122,17 +143,30 @@ class CameraComponent(BaseComponent):
                     list
                         List of frame rates
                     """
+                from psychopy.hardware.camera import Camera
                 # get all devices
-                connectedCameras = getCameras()
+                if isinstance(cameraLib, Param):
+                    cameraLib = cameraLib.val
+                connectedCameras = Camera.getCameras(cameraLib=cameraLib)
+                # if device is a param, get its val
+                if isinstance(deviceName, Param):
+                    deviceName = deviceName.val
                 # get first device if default
-                if device in (None, "", "default") and len(connectedCameras):
-                    device = list(connectedCameras)[0]
+                if deviceName in (None, "", "default") and len(connectedCameras):
+                    deviceName = list(connectedCameras)[0]
                 # get formats for this device
-                formats = connectedCameras.get(device.val, [])
+                formats = connectedCameras.get(deviceName, [])
+                # if frameRate is a param, get its val
+                if isinstance(resolution, Param):
+                    resolution = resolution.val
+                # filter for current frame rate
+                if resolution not in (None, "", "default"):
+                    formats = [f for f in formats if f.frameSize == resolution]
                 # extract resolutions
                 formats = [_format.frameRate for _format in formats]
-                # remove duplicates
+                # remove duplicates and sort
                 formats = list(set(formats))
+                formats.sort(reverse=True)
 
                 return ["default"] + formats
         except:
@@ -142,21 +176,59 @@ class CameraComponent(BaseComponent):
 
         # Basic
         self.order += [
+            'cameraLib',
             'device',
+            'deviceManual',
             'resolution',
+            'resolutionManual',
             'frameRate',
+            'frameRateManual',
             'mic'
         ]
 
+        msg = _translate("Python package to use behind the scenes.")
+        self.params['cameraLib'] = Param(
+            cameraLib, valType='str', inputType="choice", categ="Basic",
+            allowedVals=["ffpyplayer", "opencv"], allowedLabels=["FFPyPlayer", "OpenCV"],
+            hint=msg,
+            label=_translate("Backend")
+        )
+
         msg = _translate("What device would you like to use to record video? This will only affect local "
                          "experiments - online experiments ask the participant which device to use.")
-        conf = functools.partial(getCameraNames)
+        conf = functools.partial(getCameraNames, self.params['cameraLib'])
         self.params['device'] = Param(
             device, valType='str', inputType="choice", categ="Basic",
             allowedVals=conf, allowedLabels=conf,
             hint=msg,
             label=_translate("Video Device")
         )
+        self.depends.append({
+            "dependsOn": 'cameraLib',  # if...
+            "condition": "",  # meets...
+            "param": 'device',  # then...
+            "true": "populate",  # should...
+            "false": "populate",  # otherwise...
+        })
+        self.params['deviceManual'] = Param(
+            deviceManual, valType='code', inputType="single", categ="Basic",
+            hint=msg,
+            label=_translate("Video Device")
+        )
+        self.depends.append({
+            "dependsOn": 'cameraLib',  # if...
+            "condition": "=='opencv'",  # meets...
+            "param": 'deviceManual',  # then...
+            "true": "show",  # should...
+            "false": "hide",  # otherwise...
+        })
+        self.depends.append({
+            "dependsOn": 'cameraLib',  # if...
+            "condition": "=='opencv'",  # meets...
+            "param": 'device',  # then...
+            "true": "hide",  # should...
+            "false": "show",  # otherwise...
+        })
 
         msg = _translate("What device would you like to use to record audio? This will only affect local "
                          "experiments - online experiments ask the participant which device to use.")
@@ -167,8 +239,9 @@ class CameraComponent(BaseComponent):
             hint=msg,
             label=_translate("Audio Device")
         )
+
         msg = _translate("Resolution (w x h) to record to, leave blank to use device default.")
-        conf = functools.partial(getResolutionsForDevice, self.params['device'])
+        conf = functools.partial(getResolutionsForDevice, self.params['cameraLib'], self.params['device'])
         self.params['resolution'] = Param(
             resolution, valType='list', inputType="choice", categ="Basic",
             allowedVals=conf, allowedLabels=conf,
@@ -182,9 +255,28 @@ class CameraComponent(BaseComponent):
             "true": "populate",  # should...
             "false": "populate",  # otherwise...
         })
+        self.params['resolutionManual'] = Param(
+            resolutionManual, valType='list', inputType="single", categ="Basic",
+            hint=msg,
+            label=_translate("Resolution")
+        )
+        self.depends.append({
+            "dependsOn": 'cameraLib',  # if...
+            "condition": "=='opencv'",  # meets...
+            "param": 'resolutionManual',  # then...
+            "true": "show",  # should...
+            "false": "hide",  # otherwise...
+        })
+        self.depends.append({
+            "dependsOn": 'cameraLib',  # if...
+            "condition": "=='opencv'",  # meets...
+            "param": 'resolution',  # then...
+            "true": "hide",  # should...
+            "false": "show",  # otherwise...
+        })
 
         msg = _translate("Frame rate (frames per second) to record at, leave blank to use device default.")
-        conf = functools.partial(getFrameRatesForDevice, self.params['device'])
+        conf = functools.partial(getFrameRatesForDevice, self.params['cameraLib'], self.params['device'], self.params['resolution'])
         self.params['frameRate'] = Param(
             frameRate, valType='int', inputType="choice", categ="Basic",
             allowedVals=conf, allowedLabels=conf,
@@ -198,18 +290,32 @@ class CameraComponent(BaseComponent):
             "true": "populate",  # should...
             "false": "populate",  # otherwise...
         })
-
-        # Recording
-        self.order += [
-            'cameraLib',
-        ]
-        msg = _translate("Python package to use behind the scenes.")
-        self.params['cameraLib'] = Param(
-            cameraLib, valType='str', inputType="choice", categ="Recording",
-            allowedVals=["ffpyplayer", "opencv"], allowedLabels=["FFPyPlayer", "OpenCV"],
+        self.depends.append({
+            "dependsOn": 'resolution',  # if...
+            "condition": "",  # meets...
+            "param": 'frameRate',  # then...
+            "true": "populate",  # should...
+            "false": "populate",  # otherwise...
+        })
+        self.params['frameRateManual'] = Param(
+            frameRateManual, valType='int', inputType="single", categ="Basic",
             hint=msg,
-            label=_translate("Backend")
+            label=_translate("Frame Rate")
         )
+        self.depends.append({
+            "dependsOn": 'cameraLib',  # if...
+            "condition": "=='opencv'",  # meets...
+            "param": 'frameRateManual',  # then...
+            "true": "show",  # should...
+            "false": "hide",  # otherwise...
+        })
+        self.depends.append({
+            "dependsOn": 'cameraLib',  # if...
+            "condition": "=='opencv'",  # meets...
+            "param": 'frameRate',  # then...
+            "true": "hide",  # should...
+            "false": "show",  # otherwise...
+        })
 
         # Data
         msg = _translate("Save webcam output to a file?")
@@ -267,12 +373,17 @@ class CameraComponent(BaseComponent):
 
     def writeInitCode(self, buff):
         inits = getInitVals(self.params, "PsychoPy")
+        # subtitute manual values if backend is opencv
+        if self.params['cameraLib'] == "opencv":
+            inits['device'] = inits['deviceManual']
+            inits['resolution'] = inits['resolutionManual']
+            inits['frameRate'] = inits['frameRateManual']
 
         code = (
             "%(name)s = camera.Camera(\n"
             "    name='%(name)s', \n"
             "    cameraLib=%(cameraLib)s, \n"
-            "    device=%(device)s,  mic=microphone.Microphone(device=%(mic)s), \n"
+            "    device=%(device)s, mic=microphone.Microphone(device=%(mic)s), \n"
             "    frameRate=%(frameRate)s, frameSize=%(resolution)s\n"
             ")\n"
             "# Switch on %(name)s\n"
