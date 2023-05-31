@@ -824,10 +824,7 @@ class Session:
         # Convert to JSON
         value = json.dumps(value)
         # Send
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(
-            self.liaison.broadcast(message=value)
-        )
+        asyncio.run(self.liaison.broadcast(message=value))
 
     def close(self):
         """
