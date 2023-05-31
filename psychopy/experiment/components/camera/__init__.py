@@ -127,7 +127,7 @@ class CameraComponent(BaseComponent):
 
                 return ["default"] + formats
 
-            def getFrameRatesForDevice(cameraLib, deviceName):
+            def getFrameRatesForDevice(cameraLib, deviceName, resolution=None):
                 """
                     Get a list of frame rates available for the given device.
 
@@ -156,6 +156,12 @@ class CameraComponent(BaseComponent):
                     deviceName = list(connectedCameras)[0]
                 # get formats for this device
                 formats = connectedCameras.get(deviceName, [])
+                # if frameRate is a param, get its val
+                if isinstance(resolution, Param):
+                    resolution = resolution.val
+                # filter for current frame rate
+                if resolution not in (None, "", "default"):
+                    formats = [f for f in formats if f.frameSize == resolution]
                 # extract resolutions
                 formats = [_format.frameRate for _format in formats]
                 # remove duplicates and sort
@@ -270,7 +276,7 @@ class CameraComponent(BaseComponent):
         })
 
         msg = _translate("Frame rate (frames per second) to record at, leave blank to use device default.")
-        conf = functools.partial(getFrameRatesForDevice, self.params['cameraLib'], self.params['device'])
+        conf = functools.partial(getFrameRatesForDevice, self.params['cameraLib'], self.params['device'], self.params['resolution'])
         self.params['frameRate'] = Param(
             frameRate, valType='int', inputType="choice", categ="Basic",
             allowedVals=conf, allowedLabels=conf,
@@ -279,6 +285,13 @@ class CameraComponent(BaseComponent):
         )
         self.depends.append({
             "dependsOn": 'device',  # if...
+            "condition": "",  # meets...
+            "param": 'frameRate',  # then...
+            "true": "populate",  # should...
+            "false": "populate",  # otherwise...
+        })
+        self.depends.append({
+            "dependsOn": 'resolution',  # if...
             "condition": "",  # meets...
             "param": 'frameRate',  # then...
             "true": "populate",  # should...
