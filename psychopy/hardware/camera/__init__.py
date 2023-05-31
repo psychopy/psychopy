@@ -206,7 +206,7 @@ class CameraInfo:
     cameraAPI : str
         API used to access the camera. This relates to the external interface
         being used by `cameraLib` to access the camera. This value can be: 
-        'AVFoundation', 'DirectShow', 'Video4Linux2', 'OpenCV'.
+        'AVFoundation', 'DirectShow' or 'Video4Linux2'.
 
     """
     __slots__ = [
@@ -224,7 +224,7 @@ class CameraInfo:
                  index=-1,
                  name=CAMERA_NULL_VALUE,
                  frameSize=(-1, -1),
-                 frameRate=(-1, -1),
+                 frameRate=-1.0,
                  pixelFormat=CAMERA_UNKNOWN_VALUE,
                  codecFormat=CAMERA_UNKNOWN_VALUE,
                  cameraLib=CAMERA_NULL_VALUE,
