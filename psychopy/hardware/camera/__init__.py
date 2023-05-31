@@ -1777,6 +1777,8 @@ class Camera:
     #     """
     #     return self._mode
 
+    _getCamerasCache = {}
+
     @staticmethod
     def getCameras(cameraLib=None):
         """Get information about installed cameras on this system.
@@ -1789,9 +1791,13 @@ class Camera:
         """
         # not pluggable yet, needs to be made available via extensions
         if cameraLib == 'opencv':
-            return CameraInterfaceOpenCV.getCameras()
+            if 'opencv' not in Camera._getCamerasCache:
+                Camera._getCamerasCache['opencv'] = CameraInterfaceOpenCV.getCameras()
+            return Camera._getCamerasCache['opencv']
         elif cameraLib == 'ffpyplayer':
-            return CameraInterfaceFFmpeg.getCameras()
+            if 'ffpyplayer' not in Camera._getCamerasCache:
+                Camera._getCamerasCache['ffpyplayer'] = CameraInterfaceFFmpeg.getCameras()
+            return Camera._getCamerasCache['ffpyplayer']
         else:
             raise ValueError("Invalid value for parameter `cameraLib`")
 

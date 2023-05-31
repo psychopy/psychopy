@@ -395,7 +395,7 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
         # Don't use wx.Choice.SetStringSelection here because label string is localized.
         wx.Choice.SetSelection(self, self.choices.index(string))
 
-    def GetValue(self):
+    def getValue(self):
         # Don't use wx.Choice.GetStringSelection here because label string is localized.
         return self.choices[self.GetSelection()]
 

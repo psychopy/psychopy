@@ -676,6 +676,7 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
                     # only repopulate if dependency ctrl has changed
                     dependencyParam = self.parent.element.params[thisDep['dependsOn']]
                     if dependencyParam.val != dependencyCtrls.getValue():
+                        dependencyParam.val = dependencyCtrls.getValue()
                         if hasattr(dependentCtrls.valueCtrl, "populate"):
                             dependentCtrls.valueCtrl.populate()
                 else:
