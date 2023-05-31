@@ -368,8 +368,9 @@ class CameraInfo:
     def description(self):
         """Get a description as a string.
 
-        This is only valid if the camera has been initialized i.e. after 
-        `open()` on the camera interface has been called.
+        For all backends, this value is guaranteed to be valid after the camera
+        has been opened. Some backends may be able to provide this information
+        before the camera is opened.
 
         Returns
         -------
