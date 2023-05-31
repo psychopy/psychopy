@@ -60,6 +60,7 @@ from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
 from psychopy.sound.microphone import Microphone
 import psychopy.tools.movietools as movietools
 import psychopy.logging as logging
+from psychopy.localization import _translate
 
 import uuid
 import threading
@@ -1517,7 +1518,7 @@ class Camera:
             elif isinstance(frameRate, (int, float)):
                 if frameRate <= 0:
                     raise ValueError("`frameRate` must be a positive number")
-                elif frameRate.lower() == 'ntsc':
+                elif str(frameRate).lower() == 'ntsc':
                     frameRate = CAMERA_FRAMERATE_NTSC
             else:
                 raise ValueError("`frameRate` must be a number, string or None")
@@ -1588,6 +1589,44 @@ class Camera:
                 if sameFrameRate and sameFrameSize:
                     bestDevice = mode
                     break
+
+            # if given just device name, use frameRate and frameSize to match it to a mode
+            if device in supportedCameraSettings:
+                match = None
+                for mode in supportedCameraSettings[device]:
+                    sameFrameRate = mode.frameRate == frameRate or frameRate is None
+                    sameFrameSize = mode.frameSize == frameSize or frameSize is None
+                    if sameFrameRate and sameFrameSize:
+                        match = mode
+                if match is not None:
+                    device = match
+                else:
+                    # if no match found, find closest
+                    byWidth = sorted(
+                        supportedCameraSettings[device],
+                        key=lambda mode: abs(frameSize[0] - mode.frameSize[0])
+                    )
+                    byHeight = sorted(
+                        supportedCameraSettings[device],
+                        key=lambda mode: abs(frameSize[1] - mode.frameSize[1])
+                    )
+                    byFrameRate = sorted(
+                        supportedCameraSettings[device],
+                        key=lambda mode: abs(mode.frameRate)
+                    )
+                    deltas = [
+                        byWidth.index(mode) + byHeight.index(mode) + byFrameRate.index(mode)
+                        for mode in supportedCameraSettings[device]
+                    ]
+                    i = deltas.index(min(deltas))
+                    closest = supportedCameraSettings[device][i]
+                    # log warning that settings won't match requested
+                    logging.warn(_translate(
+                        "Device {device} does not support frame rate of {frameRate} and frame size of {frameSize}, "
+                        "using closest supported format: {desc}"
+                    ).format(device=device, frameRate=frameRate, frameSize=frameSize, desc=closest.description()))
+                    # use closest
+                    device = closest
 
             # self._origDevSpecifier = device  # what the user provided
             self._device = None  # device identifier
@@ -2368,7 +2407,8 @@ def _getCameraInfoMacOS():
                 codecFormat=CAMERA_NULL_VALUE,
                 frameSize=(int(frameWidth), int(frameHeight)),
                 frameRate=frameRateMax,
-                cameraAPI=CAMERA_API_AVFOUNDATION
+                cameraAPI=CAMERA_API_AVFOUNDATION,
+                cameraLib="ffpyplayer",
             )
 
             supportedFormats.append(thisCamInfo)
@@ -2420,7 +2460,8 @@ def _getCameraInfoWindows():
                 codecFormat=codecFormat,
                 frameSize=frameSize,
                 frameRate=frameRateMax,
-                cameraAPI=CAMERA_API_DIRECTSHOW
+                cameraAPI=CAMERA_API_DIRECTSHOW,
+                cameraLib="ffpyplayer",
             )
             supportedFormats.append(temp)
             devIndex += 1
