@@ -34,6 +34,8 @@ __all__ = [
     'CameraNotReadyError',
     'CameraNotFoundError',
     'CameraFormatNotSupportedError',
+    'CameraFrameRateNotSupportedError',
+    'CameraFrameSizeNotSupportedError',
     'FormatNotFoundError',
     'PlayerNotAvailableError',
     'CameraInterfaceFFmpeg',
@@ -53,7 +55,6 @@ import os
 import os.path
 import sys
 import math
-
 import uuid
 import threading
 import queue
@@ -153,6 +154,13 @@ class CameraNotFoundError(CameraError):
 class CameraFormatNotSupportedError(CameraError):
     """Raised when a camera cannot use the settings requested by the user."""
 
+class CameraFrameRateNotSupportedError(CameraFormatNotSupportedError):
+    """Raised when a camera cannot use the frame rate settings requested by the 
+    user."""
+
+class CameraFrameSizeNotSupportedError(CameraFormatNotSupportedError):
+    """Raised when a camera cannot use the frame size settings requested by the 
+    user."""
 
 class FormatNotFoundError(CameraError):
     """Cannot find a suitable pixel format for the camera."""
@@ -198,7 +206,7 @@ class CameraInfo:
     cameraAPI : str
         API used to access the camera. This relates to the external interface
         being used by `cameraLib` to access the camera. This value can be: 
-        'AVFoundation', 'DirectShow', 'Video4Linux', 'OpenCV'.
+        'AVFoundation', 'DirectShow', 'Video4Linux2', 'OpenCV'.
 
     """
     __slots__ = [
@@ -266,12 +274,16 @@ class CameraInfo:
 
     @property
     def frameSize(self):
-        """Resolution (w, h) in pixels (`ArrayLike`).
+        """Resolution (w, h) in pixels (`ArrayLike` or `None`).
         """
         return self._frameSize
 
     @frameSize.setter
     def frameSize(self, value):
+        if value is None:
+            self._frameSize = None
+            return
+        
         assert len(value) == 2, "Value for `frameSize` must have length 2."
         assert all([isinstance(i, int) for i in value]), (
             "Values for `frameSize` must be integers.")
@@ -356,6 +368,9 @@ class CameraInfo:
     def description(self):
         """Get a description as a string.
 
+        This is only valid if the camera has been initialized i.e. after 
+        `open()` on the camera interface has been called.
+
         Returns
         -------
         str
@@ -366,11 +381,16 @@ class CameraInfo:
         pixelFormat = self._pixelFormat
         codec = codecFormat if not pixelFormat else pixelFormat
 
+        if self.frameSize is None:
+            frameSize = (-1, -1)
+        else:
+            frameSize = self.frameSize
+
         return "[{name}] {width}x{height}@{frameRate}fps, {codec}".format(
             #index=self.index,
             name=self.name,
-            width=str(self.frameSize[0]),
-            height=str(self.frameSize[1]),
+            width=str(frameSize[0]),
+            height=str(frameSize[1]),
             frameRate=str(self.frameRate),
             codec=codec
         )
@@ -779,7 +799,7 @@ class CameraInterfaceFFmpeg(CameraInterface):
             lib_opts['pixel_format'] = _cameraInfo.pixelFormat
             ff_opts['framedrop'] = True
             ff_opts['fast'] = True
-        elif _cameraInfo.cameraAPI == CAMERA_API_VIDEO4LINUX:
+        elif _cameraInfo.cameraAPI == CAMERA_API_VIDEO4LINUX2:
             raise OSError(
                 "Sorry, camera does not support Linux at this time. However, "
                 "it will in future versions.")
@@ -1215,16 +1235,16 @@ class CameraInterfaceOpenCV(CameraInterface):
         # if the user didn't specify a frame rate or size, use the defaults
         # pulled from the camera
         usingDefaults = False
-        if _cameraInfo.frameRate is None or _cameraInfo.frameRate < 0.0:
+        if _cameraInfo.frameRate is None:
             _cameraInfo.frameRate = cap.get(cv2.CAP_PROP_FPS)
             usingDefaults = True
 
-        if _cameraInfo.frameSize is None or _cameraInfo.frameSize == (-1, -1):
+        if _cameraInfo.frameSize is None:
             _cameraInfo.frameSize = (
                 int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), 
                 int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
             usingDefaults = True
-        
+
         if not usingDefaults:
             # set frame rate and size and check if they were set correctly
             cap.set(cv2.CAP_PROP_FPS, _cameraInfo.frameRate)
@@ -1515,13 +1535,19 @@ class Camera:
             elif isinstance(frameRate, str):
                 if frameRate in ("None", "none", "Default", "default"):
                     frameRate = None
-            elif isinstance(frameRate, (int, float)):
+                elif frameRate.lower() == 'ntsc':
+                    frameRate = CAMERA_FRAMERATE_NTSC
+                else:
+                    try:  # try and convert to float
+                        frameRate = float(frameRate)
+                    except ValueError:
+                        raise ValueError(
+                            "`frameRate` must be a number, string or None")
+            
+            # catch the value converted to float and process it
+            if isinstance(frameRate, (int, float)):
                 if frameRate <= 0:
                     raise ValueError("`frameRate` must be a positive number")
-                elif str(frameRate).lower() == 'ntsc':
-                    frameRate = CAMERA_FRAMERATE_NTSC
-            else:
-                raise ValueError("`frameRate` must be a number, string or None")
             
             if frameSize is None:
                 pass  # use the camera default
@@ -1533,7 +1559,7 @@ class Camera:
                 elif frameSize.upper() in movietools.VIDEO_RESOLUTIONS.keys():
                     frameSize = movietools.VIDEO_RESOLUTIONS[frameSize.upper()]
                 else:
-                    raise ValueError("Invalid `frameSize` string")
+                    raise ValueError("`frameSize` specified incorrectly")
             elif isinstance(frameSize, (tuple, list)):
                 if len(frameSize) != 2:
                     raise ValueError("`frameSize` must be a 2-tuple or 2-list")
@@ -1552,8 +1578,8 @@ class Camera:
 
             self._cameraInfo = CameraInfo(
                 index=device, 
-                frameRate=frameRate or -1.0,   # dummy value
-                frameSize=frameSize or (-1, -1),  # dummy value
+                frameRate=frameRate,   # dummy value
+                frameSize=frameSize,  # dummy value
                 pixelFormat='bgr24', 
                 cameraLib=cameraLib, 
                 cameraAPI=cameraAPI)
