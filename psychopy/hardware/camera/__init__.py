@@ -47,24 +47,23 @@ __all__ = [
     'renderVideo'
 ]
 
-
 import platform
-import numpy as np
 import inspect
 import os
 import os.path
+import sys
 import math
-from psychopy.constants import STOPPED, NOT_STARTED, RECORDING, STARTED, \
-    STOPPING, PAUSED, FINISHED, INVALID
-from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
-from psychopy.sound.microphone import Microphone
-import psychopy.tools.movietools as movietools
-import psychopy.logging as logging
-
 import uuid
 import threading
 import queue
 import time
+import numpy as np
+
+from psychopy.constants import NOT_STARTED
+from psychopy.visual.movies.frame import MovieFrame, NULL_MOVIE_FRAME_INFO
+from psychopy.sound.microphone import Microphone
+import psychopy.tools.movietools as movietools
+import psychopy.logging as logging
 
 
 # ------------------------------------------------------------------------------
