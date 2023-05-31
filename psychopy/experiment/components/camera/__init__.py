@@ -96,15 +96,19 @@ class CameraComponent(BaseComponent):
                     """
                 # get all devices
                 connectedCameras = getCameras()
+                # if device is a param, get its val
+                if isinstance(device, Param):
+                    device = device.val
                 # get first device if default
                 if device in (None, "", "default") and len(connectedCameras):
                     device = list(connectedCameras)[0]
                 # get formats for this device
-                formats = connectedCameras.get(device.val, [])
+                formats = connectedCameras.get(device, [])
                 # extract resolutions
-                formats = [f"({_format.frameSize[0]}, {_format.frameSize[1]})" for _format in formats]
-                # remove duplicates
+                formats = [_format.frameSize for _format in formats]
+                # remove duplicates and sort
                 formats = list(set(formats))
+                formats.sort(key=lambda res: res[0], reverse=True)
 
                 return ["default"] + formats
 
@@ -124,15 +128,19 @@ class CameraComponent(BaseComponent):
                     """
                 # get all devices
                 connectedCameras = getCameras()
+                # if device is a param, get its val
+                if isinstance(device, Param):
+                    device = device.val
                 # get first device if default
                 if device in (None, "", "default") and len(connectedCameras):
                     device = list(connectedCameras)[0]
                 # get formats for this device
-                formats = connectedCameras.get(device.val, [])
+                formats = connectedCameras.get(device, [])
                 # extract resolutions
                 formats = [_format.frameRate for _format in formats]
-                # remove duplicates
+                # remove duplicates and sort
                 formats = list(set(formats))
+                formats.sort(reverse=True)
 
                 return ["default"] + formats
         except:

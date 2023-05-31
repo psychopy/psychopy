@@ -341,7 +341,6 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
         self.SetStringSelection(val)
 
     def populate(self):
-        print("Populating CTRL")
         if isinstance(self._choices, functools.partial):
             # if choices are given as a partial, execute it now to get values
             choices = self._choices()
