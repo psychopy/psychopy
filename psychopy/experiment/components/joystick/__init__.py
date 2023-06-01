@@ -439,7 +439,7 @@ class JoystickComponent(BaseComponent):
                     #"print({name}.pressedButtons)\n"
                     #"print({name}.newPressedButtons)\n"
                     "[logging.data(\"joystick_{{}}_button: {{}}, pos=({{:1.4f}},{{:1.4f}})\".format("
-                    "{name}.device_number, i, {name}.getX(), {name}.getY()) for i in {name}.pressedButtons]\n"
+                    "{name}.device_number, i, {name}.getX(), {name}.getY())) for i in {name}.pressedButtons]\n"
             )
             buff.writeIndentedLines(code.format(**self.params))
 
