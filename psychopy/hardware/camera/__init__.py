@@ -1704,6 +1704,7 @@ class Camera:
         self._status = NOT_STARTED
         self._isRecording = False
         self._bufferSecs = float(bufferSecs)
+        self._lastFrame = None  # use None to avoid imports for ImageStim
 
         # microphone instance, this is controlled by the camera interface and
         # is not meant to be used by the user
@@ -1858,11 +1859,13 @@ class Camera:
         # not pluggable yet, needs to be made available via extensions
         if cameraLib == 'opencv':
             if 'opencv' not in Camera._getCamerasCache:
-                Camera._getCamerasCache['opencv'] = CameraInterfaceOpenCV.getCameras()
+                Camera._getCamerasCache['opencv'] = \
+                    CameraInterfaceOpenCV.getCameras()
             return Camera._getCamerasCache['opencv']
         elif cameraLib == 'ffpyplayer':
             if 'ffpyplayer' not in Camera._getCamerasCache:
-                Camera._getCamerasCache['ffpyplayer'] = CameraInterfaceFFmpeg.getCameras()
+                Camera._getCamerasCache['ffpyplayer'] = \
+                    CameraInterfaceFFmpeg.getCameras()
             return Camera._getCamerasCache['ffpyplayer']
         else:
             raise ValueError("Invalid value for parameter `cameraLib`")
@@ -2215,15 +2218,20 @@ class Camera:
         # create a temporary file names for the video and audio
         if hasAudio:
             if mergeAudio:
-                tempPrefix = uuid.uuid4().hex
-                videoFileName = "{}_video_{}.mp4".format(tempPrefix, filename)
-                audioFileName = "{}_audio_{}.wav".format(tempPrefix, filename)
+                tempPrefix = (uuid.uuid4().hex)[:16]   # 16 char prefix
+                videoFileName = "{}_video.mp4".format(tempPrefix)
+                audioFileName = "{}_audio.wav".format(tempPrefix)
             else:
-                videoFileName = filename
-                audioFileName = filename + '.wav'
+                videoFileName = audioFileName = filename 
+                audioFileName += '.wav'
         else:
             videoFileName = filename
             audioFileName = None
+
+        # make sure filenames are absolute paths
+        videoFileName = os.path.abspath(videoFileName)
+        if audioFileName is not None:
+            audioFileName = os.path.abspath(audioFileName)
 
         # flush outstanding frames from the camera queue
         self._enqueueFrame()
@@ -2300,9 +2308,6 @@ class Camera:
             `None` if no file is ready.
 
         """
-        if self._captureThread is None:
-            return None
-
         return self._lastVideoFile 
 
     @property
