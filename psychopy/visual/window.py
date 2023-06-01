@@ -1073,6 +1073,15 @@ class Window():
         """
         Window.backend.dispatchEvents()
 
+    def clearAutoDraw(self):
+        """
+        Remove all autoDraw components, meaning they get autoDraw set to False and are not
+        added to any list (as in .stashAutoDraw)
+        """
+        for thisStim in self._toDraw.copy():
+            # set autoDraw to False
+            thisStim.autoDraw = False
+
     def stashAutoDraw(self):
         """
         Put autoDraw components on 'hold', meaning they get autoDraw set to False but
