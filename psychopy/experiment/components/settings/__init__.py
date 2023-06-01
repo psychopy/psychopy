@@ -14,6 +14,7 @@ from psychopy.experiment import utils as exputils
 from psychopy.monitors import Monitor
 from psychopy.iohub import util as ioUtil
 from psychopy.alerts import alert
+from psychopy.tools.filetools import genDelimiter
 
 # for creating html output folders:
 import shutil
@@ -1049,6 +1050,17 @@ class SettingsComponent:
         else:
             buff.writeIndented("filename = _thisDir + os.sep + %s\n" %
                                self.params['Data filename'])
+
+        # Add the delimiter to expInfo (to be picked up by psychoJS)
+        buff.writeIndentedLines("\n# Add the data file delimiter to the experiment code (for psychoJS)")
+        delim = self.params['Data file delimiter'].val
+        delimOptions = {
+            'comma': ",",
+            'semicolon': ";",
+            'tab': r"\t"
+        }
+        delim = delimOptions.get(delim, genDelimiter(filename))
+        buff.writeIndentedLines(f"expInfo['field_separator'] = '{delim}'")
 
         # set up the ExperimentHandler
         code = ("\n# An ExperimentHandler isn't essential but helps with "
