@@ -243,7 +243,7 @@ class KeyboardComponent(BaseComponent):
 
         # check for keypresses
         expEscape = "None"
-        if self.exp.settings.params['enableEscape']:
+        if self.exp.settings.params['Enable Escape']:
             expEscape = '["escape"]'
         code = ("theseKeys = {name}.getKeys(keyList={keyStr}, ignoreKeys={expEscape}, waitRelease={waitRelease})\n"
                 "_{name}_allKeys.extend(theseKeys)\n"
