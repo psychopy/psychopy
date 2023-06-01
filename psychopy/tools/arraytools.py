@@ -457,5 +457,58 @@ def createLumPattern(patternType, res, texParams=None, maskParams=None):
     return intensity
 
 
+class AliasDict(dict):
+    """
+    Similar to a dict, but with the option to alias certain keys such that they always have the same value.
+    """
+    def __getitem__(self, k):
+        # if key is aliased, use its alias
+        if k in self.aliases:
+            k = self.aliases[k]
+        # get as normal
+        return dict.__getitem__(self, k)
+
+    def __setitem__(self, k, v):
+        # if key is aliased, set its alias
+        if k in self.aliases:
+            k = self.aliases[k]
+        # set as normal
+        return dict.__setitem__(self, k, v)
+    set = __setitem__
+
+    def __contains__(self, item):
+        # return True to "in" queries if item is in aliases
+        return dict.__contains__(self, item) or item in self.aliases
+
+    @property
+    def aliases(self):
+        """
+        Dict mapping name aliases to the key they are an alias for
+        """
+        # if not set yet, set as blank dict
+        if not hasattr(self, "_aliases"):
+            self._aliases = {}
+
+        return self._aliases
+
+    @aliases.setter
+    def aliases(self, value: dict):
+        self._aliases = value
+
+    def alias(self, key, alias):
+        """
+        Add an alias for a key in this dict. Setting/getting one key will set/get the other.
+
+        Parameters
+        ----------
+        key : str
+            Key to alias
+        alias : str
+            Name to alias key with
+        """
+        # assign alias
+        self.aliases[alias] = key
+
+
 if __name__ == "__main__":
     pass
