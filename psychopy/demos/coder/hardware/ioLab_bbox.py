@@ -5,11 +5,15 @@
 Demo to illustrate using ioLabs button box.
 """
 
-__author__ = 'Jonathan Roberts (orig demo); Jeremy Gray (rewrite 2013)'
 
 from psychopy.hardware import iolab
 import random
-from psychopy import core, visual, event
+from psychopy import core, visual, event, authors
+
+__author__ = [
+    authors.JRoberts,  # original
+    authors.jeremygray,  # 2013 rewrite
+]
 
 # set up the button box
 bbox = iolab.ButtonBox()

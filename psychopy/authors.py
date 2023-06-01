@@ -1,7 +1,9 @@
+"""
+Author objects for everyone who has contributed to PsychoPy. Add yourself here and then you can credit
+your contributions importing `psychopy.authors` and pointing __author__ to your Author object.
+"""
+
 from psychopy.tools.authortools import Author
-
-
-# --- Define Author objects here ---
 
 # OST staff
 peircej = Author(
@@ -49,7 +51,7 @@ lightest = Author(
     email="nikita@opensciencetools.org", github="lightest"
 )
 
-# Former OST staff
+# former OST staff
 dvbridges = Author(
     forenames=["David"], surname="Bridges",
     email="david-bridges@hotmail.co.uk", github="dvbridges"
@@ -63,7 +65,7 @@ thewhodidthis = Author(
     github="thewhodidthis"
 )
 
-# Stakeholders
+# stakeholders
 mmacaskill = Author(
     forenames=["Michael"], surname="MacAskill",
     github="m-macaskill",
@@ -83,7 +85,7 @@ AHaffey = Author(
     forenames=["Anthony"], surname="Haffey"
 )
 
-# Other contributors
+# other contributors
 VHaenel = Author(
     forenames=["Valentin"], surname="Haenel"
 )
@@ -93,3 +95,6 @@ RSharman = Author(
 JRoberts = Author(
     forenames=["John"], surname="Roberts"
 )
+
+# gotta credit myself for this attribution system...
+__author__ = TEParsons

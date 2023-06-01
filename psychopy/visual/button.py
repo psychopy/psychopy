@@ -8,13 +8,13 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 import numpy as np
 
-from psychopy import event, core, layout
+from psychopy import event, core, layout, authors
 from psychopy.tools.attributetools import attributeSetter
 from psychopy.visual import TextBox2
 from psychopy.visual.shape import ShapeStim
 from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED, STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)
 
-__author__ = 'Anthony Haffey & Todd Parsons'
+__author__ = [authors.AHaffey, authors.TEParsons]
 
 
 class ButtonStim(TextBox2):

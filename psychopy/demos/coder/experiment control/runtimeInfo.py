@@ -6,14 +6,14 @@ Demo of some ways to use class psychopy.info.RunTimeInfo()
 to obtain current system and other data at run-time.
 """
 
-from psychopy import visual, logging, core
+from psychopy import visual, logging, core, authors
 import psychopy.info
 
 # author and version are used in the demo, in the way you might in your experiment.
 # They are expected to be at the top of the script that calls RunTimeInfo()),
 # with a string literal assigned to them (no variables).
 # double-quotes will be silently removed, single quotes will be left, eg, O'Connor
-__author__ = """Jeremy "R." Gray"""
+__author__ = authors.jeremygray
 __version__ = "v1.0.a"
 
 # When creating an experiment, first define your window (& monitor):

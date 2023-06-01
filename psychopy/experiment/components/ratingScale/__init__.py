@@ -6,12 +6,13 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
+from psychopy import authors
 from psychopy.tools.stringtools import getArgs
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 
-__author__ = 'Jeremy Gray'
+__author__ = authors.jeremygray
 
 # only use _localized values for label values, nothing functional:
 _localized.update({'visualAnalogScale': _translate('Visual analog scale'),

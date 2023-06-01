@@ -9,11 +9,11 @@ Inspired by rockNroll87q - https://github.com/rockNroll87q/pyDrawing
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy import event, logging
+from psychopy import event, logging, authors
 from .shape import ShapeStim
 from .basevisual import MinimalStim
 
-__author__ = 'David Bridges'
+__author__ = authors.dvbridges
 
 from ..tools.attributetools import attributeSetter
 

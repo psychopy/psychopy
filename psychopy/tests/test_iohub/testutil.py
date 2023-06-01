@@ -1,13 +1,13 @@
 import pytest
-
-__author__ = 'Sol'
-
 import psutil, sys
+from psychopy import authors
 from psychopy.iohub import launchHubServer, Computer
 
 getTime = Computer.getTime
 
 from psychopy.tests import skip_under_vm
+
+__author__ = authors.isolver
 
 
 @skip_under_vm

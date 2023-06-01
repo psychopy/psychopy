@@ -9,11 +9,12 @@ Distributed under the terms of the GNU General Public License (GPL).
 
 from os import path
 from pathlib import Path
+from psychopy import authors
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 
-__author__ = 'Jon Peirce'
+__author__ = authors.peircej
 
 # the absolute path to the folder containing this path
 _localized.update({'Custom code': _translate('Custom code')})

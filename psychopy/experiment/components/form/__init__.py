@@ -6,12 +6,13 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
+from psychopy import authors
 from psychopy.experiment.components import Param, getInitVals, _translate, BaseVisualComponent
 from psychopy.visual import form
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 
-__author__ = 'Jon Peirce, David Bridges, Anthony Haffey'
+__author__ = [authors.peircej, authors.dvbridges, authors.AHaffey]
 
 # only use _localized values for label values, nothing functional:
 _localized.update({'Items': _translate('Items'),

@@ -22,11 +22,12 @@ for line in fileinput.input(file, inplace = 1):
   print line.replace(...).strip() #--> loses initial whitespace
   line.replace(....) #--> adds quote marks around line
 """
-__author__ = 'Jeremy Gray'
 
 import os, sys, time, glob
 
-from psychopy import core
+from psychopy import core, authors
+
+__author__ = authors.jeremygray
 
 assert (sys.platform == 'darwin' or sys.platform.startswith('linux')), "This script must be run on a unix-based platform"
 perlVersion = core.shellCall('perl -V').splitlines()[0]

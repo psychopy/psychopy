@@ -13,13 +13,12 @@ from psychopy.data.utils import importConditions, listFromString
 from psychopy.visual.basevisual import (BaseVisualStim,
                                         ContainerMixin,
                                         ColorMixin)
-from psychopy import logging, layout
+from psychopy import logging, layout, authors
+from ..colors import Color
 from random import shuffle
 from pathlib import Path
 
-__author__ = 'Jon Peirce, David Bridges, Anthony Haffey'
-
-from ..colors import Color
+__author__ = [authors.peircej, authors.TEParsons, authors.dvbridges, authors.AHaffey]
 
 _REQUIRED = -12349872349873  # an unlikely int
 

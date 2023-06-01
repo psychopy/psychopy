@@ -1,1 +1,3 @@
-__author__ = 'Sol'
+from psychopy import authors
+
+__author__ = authors.isolver

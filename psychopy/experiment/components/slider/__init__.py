@@ -10,13 +10,13 @@ from psychopy.experiment.components import BaseVisualComponent, Param, \
     getInitVals, _translate
 from psychopy.visual import slider
 from psychopy.experiment import py2js
-from psychopy import logging
+from psychopy import logging, authors
 from psychopy.data import utils
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 import copy
 
-__author__ = 'Jon Peirce'
+__author__ = authors.peircej
 
 # only use _localized values for label values, nothing functional:
 _localized.update({'categoryChoices': _translate('Category choices'),
