@@ -152,6 +152,8 @@ class Session:
             # If inputs is the name of an experiment, setup from that experiment's method
             self.setupInputsFromExperiment(inputs)
         # Store params as an aliased dict
+        if params is None:
+            params = {}
         self.params = AliasDict(params)
         # List of ExperimentHandlers from previous runs
         self.runs = []
