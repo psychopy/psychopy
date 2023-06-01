@@ -1056,13 +1056,19 @@ class TextureMixin:
                     raise IOError(msg % (tex, os.path.abspath(tex)))
             elif hasattr(tex, 'getVideoFrame'):  # camera or movie textures
                 # get an image to configure the initial texture store
-                frame = tex.getVideoFrame()
-                if frame is not None:
-                    self._origSize = frameSize = frame.size
+                if hasattr(tex, 'frameSize'):
+                    if tex.frameSize is None:
+                        raise RuntimeError(
+                            "`Camera.frameSize` is not yet specified, cannot "
+                            "initialize texture!")
+                    self._origSize = frameSize = tex.frameSize
+                    # empty texture for initialization
+                    blankTexture = numpy.zeros(
+                        (frameSize[0] * frameSize[1] * 3), dtype=numpy.uint8)
                     im = Image.frombuffer(
                         'RGB',
                         frameSize,
-                        frame.colorData
+                        blankTexture
                     ).transpose(Image.FLIP_TOP_BOTTOM)
                 else:
                     msg = "Failed to initialize texture from camera stream."
