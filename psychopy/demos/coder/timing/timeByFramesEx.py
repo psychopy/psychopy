@@ -31,7 +31,7 @@ if disable_gc:
     gc.disable()
 
 import matplotlib
-matplotlib.use('Qt4Agg')  # change this to control the plotting 'back end'
+matplotlib.use('QtAgg')  # change this to control the plotting 'back end'
 import pylab
 
 win = visual.Window([1280, 1024], fullscr=True, allowGUI=False, waitBlanking=True)

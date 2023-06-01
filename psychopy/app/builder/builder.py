@@ -7,7 +7,7 @@ Part of the PsychoPy library
 Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
-
+import collections
 import os, sys
 import subprocess
 import webbrowser
@@ -96,7 +96,7 @@ _localized = {
 
 # Components which are always hidden
 alwaysHidden = [
-    'SettingsComponent', 'UnknownComponent', 'UnknownRoutine', 'UnknownStandaloneRoutine', 'UnknownPluginComponent'
+    'SettingsComponent', 'RoutineSettingsComponent', 'UnknownComponent', 'UnknownRoutine', 'UnknownStandaloneRoutine', 'UnknownPluginComponent'
 ]
 
 
@@ -737,7 +737,15 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             # routinePanel.redrawRoutines(), called by self.updateAllViews()
             # update the views
             self.updateAllViews()  # if frozen effect will be visible on thaw
-        self.updateReadme()
+
+        # Show README
+        if self.prefs['alwaysShowReadme']:
+            # If prefs are to always show README, show if populated
+            self.updateReadme()
+        else:
+            # Otherwise update so we have the object, but don't show until asked
+            self.updateReadme(show=False)
+
         self.fileHistory.AddFileToHistory(filename)
         self.htmlPath = None  # so we won't accidentally save to other html exp
 
@@ -835,8 +843,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                 wx.OK | wx.ICON_WARNING | wx.CENTRE)
             dlg.ShowModal()
             return
-        self.updateReadme()
-        self.showReadme()
+        self.updateReadme(show=True)
         return
 
     def getShortFilename(self):
@@ -848,10 +855,17 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     #     """Show the plugin manager frame."""
     #     PluginManagerFrame(self).ShowModal()
 
-    def updateReadme(self):
+    def updateReadme(self, show=None):
         """Check whether there is a readme file in this folder and try to show
+
+        Parameters
+        ==========
+        show : bool or None
+            If True, always show Readme frame.
+            If False, never show Readme frame.
+            If None, show only when there is content.
         """
-        # look for a readme file
+        # Make sure we have a file
         if self.filename and self.filename != 'untitled.psyexp':
             dirname = Path(self.filename).parent
             possibles = list(dirname.glob('readme*'))
@@ -867,21 +881,20 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         else:
             self.readmeFilename = None
 
-        content = ''
-        if self.readmeFilename is not None:  # don't open viewer if no file
-            if Path(self.readmeFilename).is_file():
-                self.readmeFrame = ReadmeFrame(
-                    parent=self, filename=self.readmeFilename)
-                content = self.readmeFrame.ctrl.getValue()
+        # Make sure we have a frame
+        if self.readmeFrame is None:
+            self.readmeFrame = ReadmeFrame(
+                parent=self, filename=self.readmeFilename
+            )
 
-            if content and self.prefs['alwaysShowReadme']:  # make this or?
-                self.showReadme()
+        # Show/hide frame as appropriate
+        if show is None:
+            show = len(self.readmeFrame.ctrl.getValue()) > 0
+        self.readmeFrame.show(show)
 
     def showReadme(self, evt=None, value=True):
         """Shows Readme file
         """
-        if not self.readmeFrame:
-            self.updateReadme()
         if not self.readmeFrame.IsShown():
             self.readmeFrame.show(value)
 
@@ -1270,9 +1283,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         Paste a copied Routine into the current Experiment. Returns a copy of that Routine
         """
         newRoutine.name = self.exp.namespace.makeValid(routineName, prefix="routine")
-        newRoutine.params['name'] = newRoutine.name
         newRoutine.exp = self.exp
-        self.exp.namespace.add(newRoutine.name)
         # add to the experiment
         self.exp.addRoutine(newRoutine.name, newRoutine)
         for newComp in newRoutine:  # routine == list of components
@@ -1327,30 +1338,31 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """Defines ability to rename routine in the routine panel
         """
         # get notebook details
-        currentRoutine = self.routinePanel.getCurrentPage()
-        currentRoutineIndex = self.routinePanel.GetPageIndex(currentRoutine)
         routine = self.routinePanel.GetPage(
             self.routinePanel.GetSelection()).routine
         oldName = routine.name
         msg = _translate("What is the new name for the Routine?")
         dlg = wx.TextEntryDialog(self, message=msg, value=oldName,
                                  caption=_translate('Rename'))
-        exp = self.exp
         if dlg.ShowModal() == wx.ID_OK:
             name = dlg.GetValue()
-            # silently auto-adjust the name to be valid, and register in the
-            # namespace:
-            name = exp.namespace.makeValid(
-                name, prefix='routine')
-            if oldName in self.exp.routines:
-                # Swap old with new names
-                self.exp.routines[oldName].name = name
-                self.exp.routines[name] = self.exp.routines.pop(oldName)
-                self.exp.namespace.rename(oldName, name)
-                self.routinePanel.renameRoutinePage(currentRoutineIndex, name)
-                self.addToUndoStack("`RENAME Routine `%s`" % oldName)
-                dlg.Destroy()
-                self.flowPanel.draw()
+            self._doRenameRoutine(oldName=oldName, newName=name)
+            dlg.Destroy()
+
+    def _doRenameRoutine(self, oldName, newName):
+        # silently auto-adjust the name to be valid, and register in the
+        # namespace:
+        name = self.exp.namespace.makeValid(newName, prefix='routine')
+        if oldName in self.exp.routines:
+            # Swap old with new names
+            self.exp.routines[oldName].name = name
+            self.exp.routines[name] = self.exp.routines.pop(oldName)
+            self.exp.namespace.rename(oldName, name)
+            currentRoutine = self.routinePanel.getCurrentPage()
+            currentRoutineIndex = self.routinePanel.GetPageIndex(currentRoutine)
+            self.routinePanel.renameRoutinePage(currentRoutineIndex, name)
+            self.addToUndoStack("`RENAME Routine `%s`" % oldName)
+            self.flowPanel.draw()
 
     def compileScript(self, event=None):
         """Defines compile script button behavior"""
@@ -1503,6 +1515,7 @@ class RoutinesNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         aui.AuiNotebook.__init__(self, frame, id,
             agwStyle=aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB)
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
+        self.Bind(aui.EVT_AUINOTEBOOK_END_DRAG, self.onMoveTab)
 
         # double buffered better rendering except if retina
 
@@ -1562,6 +1575,7 @@ class RoutinesNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         routineName = None
         if dlg.ShowModal() == wx.ID_OK:
             routineName = dlg.nameCtrl.GetValue()
+            routineName = self.frame.exp.namespace.makeValid(routineName, prefix="routine")
             template = copy.deepcopy(dlg.selectedTemplate)
             self.frame.pasteRoutine(template, routineName)
             self.frame.addToUndoStack("NEW Routine `%s`" % routineName)
@@ -1614,6 +1628,29 @@ class RoutinesNotebook(aui.AuiNotebook, handlers.ThemeMixin):
             self.frame.flowPanel.draw()
         self.frame.addToUndoStack("REMOVE Routine `%s`" % (name))
 
+    def onMoveTab(self, evt=None):
+        """
+        After moving tabs around, sorts Routines in the Experiment accordingly
+        and marks experiment as changed.
+
+        Parameters
+        ----------
+        evt : wx.aui.AUI_NB_TAB_MOVE
+            Event generated by moving the tab (not used)
+        """
+
+        # Get tab names in order
+        names = []
+        for i in range(self.GetPageCount()):
+            names.append(self.GetPageText(i))
+        # Reorder routines in experiment to match tab order
+        routines = collections.OrderedDict()
+        for name in names:
+            routines[name] = self.frame.exp.routines[name]
+        self.frame.exp.routines = routines
+        # Set modified
+        self.frame.setIsModified(True)
+
     def increaseSize(self, event=None):
         self.appData['routineSize'] = min(
             self.routineMaxSize, self.appData['routineSize'] + 1)
@@ -1631,8 +1668,7 @@ class RoutinesNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         """
         currPage = self.GetSelection()
         self.removePages()
-        displayOrder = sorted(self.frame.exp.routines.keys())  # alphabetical
-        for routineName in displayOrder:
+        for routineName in self.frame.exp.routines:
             if isinstance(self.frame.exp.routines[routineName], (Routine, BaseStandaloneRoutine)):
                 self.addRoutinePage(
                     routineName, self.frame.exp.routines[routineName])
@@ -1763,7 +1799,11 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                 x, y = self.ConvertEventCoords(event)
                 id = self.pdc.FindObjectsByBBox(x, y)[0]
                 component = self.componentFromID[id]
-                self.frame.SetStatusText("Component: "+component.params['name'].val)
+                # Indicate hover target in the bottom bar
+                if component == self.routine.settings:
+                    self.frame.SetStatusText("Routine settings: " + component.params['name'].val)
+                else:
+                    self.frame.SetStatusText("Component: "+component.params['name'].val)
             except IndexError:
                 self.frame.SetStatusText("")
 
@@ -1776,7 +1816,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         """Show a context menu in the routine view.
         """
         menu = wx.Menu()
-        if component is not None:
+        if component not in (None, self.routine.settings):
             for item in self.contextMenuItems:
                 id = self.contextIDFromItem[item]
                 # don't show paste option unless something is copied
@@ -1893,11 +1933,16 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         for n, component in enumerate(self.routine):
             if component.type == 'Static':
                 staticCompons.append(component)
+            elif component == self.routine.settings:
+                pass
             else:
                 rowComponents.append(component)
 
+        # draw settings button
+        settingsBtnExtent = self.drawSettingsBtn(self.pdc, self.routine.settings)
+
         # draw static, time grid, normal (row) comp:
-        yPos = self.yPosTop
+        yPos = self.yPosTop + settingsBtnExtent.Height
         yPosBottom = yPos + len(rowComponents) * self.componentStep
         # draw any Static Components first (below the grid)
         for component in staticCompons:
@@ -1908,6 +1953,8 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         for component in rowComponents:
             self.drawComponent(self.pdc, component, yPos)
             yPos += self.componentStep
+        # draw end line (if there is one)
+        self.drawForceEndLine(self.pdc, self.yPosTop + settingsBtnExtent.Height, yPosBottom)
 
         # the 50 allows space for labels below the time axis
         self.SetVirtualSize((int(self.maxWidth), yPos + 50))
@@ -1921,7 +1968,11 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         if self.routine.hasOnlyStaticComp():
             maxTime = int(maxTime) + 1.0
 
-        return maxTime
+        # if max came from routine settings, mark as hard stop
+        rtMax, rtMaxIsNum = self.routine.settings.getDuration()
+        hardStop = rtMaxIsNum and rtMax == maxTime
+
+        return maxTime, hardStop
 
     def drawTimeGrid(self, dc, yPosTop, yPosBottom, labelAbove=True):
         """Draws the grid of lines and labels the time axes
@@ -1929,7 +1980,8 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         yPosTop = int(yPosTop)  # explicit type conversion to `int`
         yPosBottom = int(yPosBottom)
 
-        tMax = self.getMaxTime() * 1.1
+        tMax, hardStop = self.getMaxTime()
+        tMax *= 1.1
         xScale = self.getSecsPerPixel()
         xSt = self.timeXposStart
         xEnd = self.timeXposEnd
@@ -1937,6 +1989,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         # dc.SetId(wx.NewIdRef())
         dc.SetPen(wx.Pen(colors.app['rt_timegrid']))
         dc.SetTextForeground(wx.Colour(colors.app['rt_timegrid']))
+        self.setFontSize(self.fontBaseSize // self.dpi, dc)
 
         # draw horizontal lines on top and bottom
         dc.DrawLine(
@@ -1990,6 +2043,27 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                         int(xEnd + 5),
                         yPosBottom - self.GetFullTextExtent('t')[1] // 2)
         dc.SetTextForeground(colors.app['text'])
+
+    def drawForceEndLine(self, dc, yPosTop, yPosBottom):
+        # get max time & check if we have a hard stop
+        tMax, hardStop = self.getMaxTime()
+        if hardStop:
+            # if hard stop, draw orange final line
+            dc.SetPen(
+                wx.Pen(colors.app['rt_comp_force'], width=4)
+            )
+            dc.SetTextForeground(
+                wx.Colour(colors.app['rt_comp_force'])
+            )
+            # vertical line:
+            dc.DrawLine(self.timeXposEnd,
+                        yPosTop - 4,
+                        self.timeXposEnd,
+                        yPosBottom + 4)
+            # label above:
+            dc.DrawText('%.2g' % tMax,
+                        int(self.timeXposEnd - 4),
+                        yPosTop - 30)
 
     def setFontSize(self, size, dc):
         font = self.GetFont()
@@ -2049,12 +2123,13 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         x = xSt + w // 2
         staticLabelTop = (0, 50, 60)[self.drawSize]
         y = staticLabelTop - nameH * 3
-        fullRect = wx.Rect(x - 20, y, nameW, nameH)
+        fullRect = wx.Rect(int(x - 20), int(y), int(nameW), int(nameH))
         # draw the rectangle, draw text on top:
-        dc.DrawRectangle(xSt, yPosTop - nameH * 4, w, h + nameH * 5)
+        dc.DrawRectangle(
+            int(xSt), int(yPosTop - nameH * 4), int(w), int(h + nameH * 5))
         dc.DrawText(name, x - nameW // 2, y)
         # update bounds to include time bar
-        fullRect.Union(wx.Rect(xSt, yPosTop, w, h))
+        fullRect.Union(wx.Rect(int(xSt), int(yPosTop), int(w), int(h)))
         dc.SetIdBounds(id, fullRect)
 
     def drawComponent(self, dc, component, yPos):
@@ -2096,7 +2171,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             thisIcon = thisIcon.ConvertToDisabled()
             thisColor = colors.app['rt_comp_disabled']
 
-        dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
+        dc.DrawBitmap(thisIcon, int(self.iconXpos), int(yPos + iconYOffset), True)
         fullRect = wx.Rect(
             int(self.iconXpos),
             yPos,
@@ -2128,17 +2203,26 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         y = yPos + thisIcon.GetHeight() // 2 - h // 2 + _adjust
         dc.DrawText(name, int(x), y)
         fullRect.Union(
-            wx.Rect(int(x - 20), y, w, h))
+            wx.Rect(int(x - 20), int(y), int(w), int(h)))
 
         # deduce start and stop times if possible
         startTime, duration, nonSlipSafe = component.getStartAndDuration()
         # draw entries on timeline (if they have some time definition)
         if duration is not None:
+            yOffset = (3.5, 3.5, 0.5)[self.drawSize]
+            h = self.componentStep // (4, 3.25, 2.5)[self.drawSize]
+            xScale = self.getSecsPerPixel()
             # then we can draw a sensible time bar!
             thisPen = wx.Pen(thisColor, style=wx.TRANSPARENT)
             thisBrush = wx.Brush(thisColor, style=thisStyle)
             dc.SetPen(thisPen)
             dc.SetBrush(thisBrush)
+            # cap duration if routine has a max
+            maxDur, useMax = self.routine.settings.getDuration()
+            overspill = 0
+            if useMax:
+                overspill = max(duration - maxDur, 0)
+                duration = min(maxDur, duration)
             # If there's a fixed end time and no start time, start 20px before 0
             if ('stopType' in component.params) and ('startType' in component.params) and (
                     component.params['stopType'].val in ('time (s)', 'duration (s)')
@@ -2151,19 +2235,80 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                 # dc.SetBrush(thisBrush)
 
             if startTime is not None:
-                xScale = self.getSecsPerPixel()
-                yOffset = (3.5, 3.5, 0.5)[self.drawSize]
-                h = self.componentStep // (4, 3.25, 2.5)[self.drawSize]
                 xSt = self.timeXposStart + startTime // xScale
                 w = duration // xScale + 1
                 if w > 10000:
                     w = 10000  # limit width to 10000 pixels!
                 if w < 2:
                     w = 2  # make sure at least one pixel shows
-                dc.DrawRectangle(xSt, int(y + yOffset), w, h)
+                dc.DrawRectangle(int(xSt), int(y + yOffset), int(w), int(h))
                 # update bounds to include time bar
-                fullRect.Union(wx.Rect(xSt, int(y + yOffset), w, h))
+                fullRect.Union(wx.Rect(int(xSt), int(y + yOffset), int(w), int(h)))
+            # draw greyed out bar for any overspill (if routine has a max dur)
+            if useMax and overspill > 0:
+                # use disabled color
+                dc.SetBrush(
+                    wx.Brush(colors.app['rt_comp_disabled'], style=thisStyle)
+                )
+                dc.SetPen(
+                    wx.Pen(colors.app['rt_comp_disabled'], style=wx.TRANSPARENT)
+                )
+                # draw rest of bar
+                w = overspill // xScale + 1
+                if w > 10000:
+                    w = 10000  # limit width to 10000 pixels!
+                if w < 2:
+                    w = 2  # make sure at least one pixel shows
+                dc.DrawRectangle(self.timeXposEnd, int(y + yOffset), w, h)
         dc.SetIdBounds(id, fullRect)
+
+    def drawSettingsBtn(self, dc, component):
+        # Setup ID
+        id = None
+        for key in self.componentFromID:
+            if self.componentFromID[key] == component:
+                id = key
+        if not id:  # then create one and add to the dict
+            id = wx.NewIdRef()
+            self.componentFromID[id] = component
+        dc.SetId(id)
+        # Get settings icon
+        sz = int(self.iconSize/3)
+        thisIcon = icons.ComponentIcon(component, size=sz).bitmap
+        # Some parameters
+        lbl = _translate("Routine settings")
+        padding = 12
+        # Set font
+        fontSize = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT).GetPointSize()
+        self.setFontSize(fontSize, dc)
+        # Calculate extent
+        extent = wx.Rect(
+            wx.Point(12, 12),
+            wx.Point(
+                12 + padding + sz + 6 + self.GetTextExtent(lbl)[0] + padding,
+                padding + sz + padding)
+        )
+        # Get content rect
+        rect = wx.Rect(extent.TopLeft, extent.BottomRight)
+        rect.Deflate(padding)
+        # Draw rect
+        dc.SetPen(wx.Pen(colors.app['panel_bg']))
+        dc.SetBrush(wx.Brush(colors.app['tab_bg']))
+        dc.DrawRoundedRectangle(extent, 6)
+        # Draw button
+        dc.SetTextForeground(
+            wx.Colour(colors.app['text'])
+        )
+        dc.DrawLabel(
+            lbl,
+            image=thisIcon,
+            rect=rect,
+            alignment=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL
+        )
+        # Bind to ID bounds
+        dc.SetIdBounds(id, extent)
+
+        return extent
 
     def copyCompon(self, event=None, component=None):
         """This is easy - just take a copy of the component into memory
@@ -2255,7 +2400,10 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                 self.Refresh()  # then redraw visible
                 self.frame.flowPanel.draw()
                 # self.frame.flowPanel.Refresh()
-            elif component.params['name'].val != old_name:
+            elif component.name != old_name:
+                if component == self.routine.settings:
+                    self.frame.flowPanel.draw()
+                    self.frame._doRenameRoutine(oldName=old_name, newName=component.name)
                 self.redrawRoutine()  # need to refresh name
             elif component.params['disabled'].val != old_disabled:
                 self.redrawRoutine()  # need to refresh color
@@ -2266,7 +2414,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
 
     def getSecsPerPixel(self):
         pixels = float(self.timeXposEnd - self.timeXposStart)
-        return self.getMaxTime() / pixels
+        return self.getMaxTime()[0] / pixels
 
 
 class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel):
@@ -2748,7 +2896,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
                 # Make category sizer
                 self.catSizers[cat] = wx.WrapSizer(orient=wx.HORIZONTAL)
                 # Make category button
-                self.catLabels[cat] = self.CategoryButton(self, name=cat, cat=cat)
+                self.catLabels[cat] = self.CategoryButton(self, name=_translate(cat), cat=cat)
                 # Store category reference
                 self.objectHandles[cat] = {}
             # Add to sizer
@@ -2910,8 +3058,9 @@ class ReadmeFrame(wx.Frame, handlers.ThemeMixin):
         self.sizer.Add(self.ctrl, border=6, proportion=1, flag=wx.ALL | wx.EXPAND)
 
     def show(self, value=True):
-        self.Show()
-        self._applyAppTheme()
+        self.Show(value)
+        if value:
+            self._applyAppTheme()
 
     def _applyAppTheme(self):
         from psychopy.app.themes import fonts
@@ -3374,6 +3523,19 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
                     # right click but not on an icon
                     # might as well do something
                     self.Refresh()
+            elif event.Moving():
+                icons = self.pdc.FindObjectsByBBox(x, y)
+                if not icons:
+                    self.frame.SetStatusText("")
+                for thisIcon in icons:
+                    # might intersect several and only one has a callback
+                    if thisIcon in self.componentFromID:
+                        comp = self.componentFromID[thisIcon]
+                        # indicate hover target in bottom bar
+                        if comp.getType() in handlerTypes:
+                            self.frame.SetStatusText(f"Loop ({comp.getType()}): {comp.name}")
+                        else:
+                            self.frame.SetStatusText(f"{comp.getType()}: {comp.name}")
         elif self.mode == 'routine':
             if event.LeftDown():
                 pt = self.entryPointPosList[0]
@@ -3690,7 +3852,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
                 dx = pos - self.entryPointPosList[n]
                 dy = 0
                 r = self.pdc.GetIdBounds(self.entryPointIDlist[n])
-                self.pdc.TranslateId(self.entryPointIDlist[n], dx, dy)
+                self.pdc.TranslateId(self.entryPointIDlist[n], int(dx), int(dy))
                 r2 = self.pdc.GetIdBounds(self.entryPointIDlist[n])
                 # combine old and new locations to get redraw area
                 rectToRedraw = r.Union(r2)
@@ -3751,7 +3913,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         #   pos[0], pos[1]-3*size)  # points up
 
         posX, posY = pos
-        doubleSize = 2 * size
+        doubleSize = int(2 * size)
         dc.SetIdBounds(tmpId, wx.Rect(
             int(posX) - size, int(posY) - size,
             doubleSize,
@@ -3779,7 +3941,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
                 posX,
                 posY - 4 * size)  # points down
 
-        doubleSize = 2 * size
+        doubleSize = int(2 * size)
         dc.SetIdBounds(tmpId, wx.Rect(
             posX - size,
             posY - size,
@@ -3845,7 +4007,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
             dc.SetTextForeground(rtText)
             dc.DrawLabel(name, rect, alignment=wx.ALIGN_CENTRE)
             if nonSlip and self.appData['flowSize'] != 0:
-                font.SetPointSize(font.GetPointSize() * 0.6)
+                font.SetPointSize(int(font.GetPointSize() * 0.6))
                 dc.SetFont(font)
                 _align = wx.ALIGN_CENTRE | wx.ALIGN_BOTTOM
                 dc.DrawLabel("(%.2fs)" % maxTime, rect, alignment=_align)
@@ -3934,7 +4096,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         y = (height - h // 2)
 
         # draw box
-        rect = wx.Rect(x, y, w + pad, h + pad)
+        rect = wx.Rect(int(x), int(y), int(w + pad), int(h + pad))
         # the edge should match the text
         dc.SetPen(wx.Pen(colors.app['fl_flowline_bg']))
         # try to make the loop fill brighter than the background canvas:

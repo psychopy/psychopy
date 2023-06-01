@@ -46,14 +46,16 @@ class IndentingBuffer(io.StringIO):
             self.getvalue()[-1]=='\n'
 
         """
-        self.write(self.oneIndent * self.indentLevel + text)
+        for line in text.splitlines(keepends=True):
+            self.write(self.oneIndent * self.indentLevel + line)
 
     def writeIndentedLines(self, text):
         """As writeIndented(text) except that each line in text gets
         the indent level rather than the first line only.
         """
-        for line in text.splitlines():
-            self.write(self.oneIndent * self.indentLevel + line + '\n')
+        if not text.endswith("\n"):
+            text += "\n"
+        self.writeIndented(text)
 
     def writeOnceIndentedLines(self, text):
         """Add code to the experiment that is only run exactly once,

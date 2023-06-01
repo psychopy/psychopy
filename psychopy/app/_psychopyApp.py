@@ -272,8 +272,19 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
             if not loadPlugin(pluginName):
                 logging.error(
-                    "Failed to load plugin `{}`!".format(pluginName))
-
+                    ("Failed to load plugin `{}`! It might have been " 
+                     "uninstalled or is now unreachable.").format(pluginName))
+                
+                # remove plugin from list
+                pluginList = list(prefs.general['startUpPlugins'])
+                try:
+                    pluginList.remove(pluginName)
+                except ValueError:
+                    pass
+                else:
+                    prefs.general['startUpPlugins'] = pluginList
+                    prefs.saveUserPrefs()
+                
     def _doSingleInstanceCheck(self):
         """Set up the routines which check for and communicate with other
         PsychoPy GUI processes.
@@ -614,7 +625,7 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         # wx-windows on some platforms (Mac 10.9.4) with wx-3.0:
         v = parse_version
         if sys.platform == 'darwin':
-            if v('3.0') <= v(wx.version()) < v('4.0'):
+            if v('3.0') <= v(wx.__version__) < v('4.0'):
                 _Showgui_Hack()  # returns ~immediately, no display
                 # focus stays in never-land, so bring back to the app:
                 if prefs.app['defaultView'] in ['all', 'builder', 'coder', 'runner']:
@@ -995,10 +1006,10 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         for frame in self.getAllFrames():
             try:
                 frame.closeFrame(event=event, checkSave=False)
-                # must do this before destroying the frame?
-                self.prefs.saveAppData()
             except Exception:
                 pass  # we don't care if this fails - we're quitting anyway
+        # must do this before destroying the frame?
+        self.prefs.saveAppData()
         #self.Destroy()
 
         # Reset streams back to default
