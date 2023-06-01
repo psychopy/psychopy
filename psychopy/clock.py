@@ -223,7 +223,7 @@ class CountdownTimer(Clock):
         super(CountdownTimer, self).__init__()
         self._countdown_duration = start
         if start:
-            self.add(start)
+            self.reset()
 
     def getTime(self):
         """Returns the current time left on this timer in seconds with sub-ms
@@ -255,11 +255,9 @@ class CountdownTimer(Clock):
             received, this will be the new time on the clock.
 
         """
-        if t is None:
-            Clock.reset(self, self._countdown_duration)
-        else:
+        if t is not None:
             self._countdown_duration = t
-            Clock.reset(self, t)
+        Clock.reset(self, self._countdown_duration)
 
 
 class StaticPeriod:
