@@ -386,20 +386,83 @@ class HoverButton(wx.Button, HoverMixin, handlers.ThemeMixin):
         self.OnHover(evt=None)
 
 
+class ToggleLabelButton(wx.ToggleButton):
+    def __init__(
+            self,
+            parent,
+            id=wx.ID_ANY,
+            label="",
+            pos=wx.DefaultPosition,
+            size=wx.DefaultSize,
+            style=wx.DEFAULT,
+            val=wx.DefaultValidator,
+            name=wx.CheckBoxNameStr
+    ):
+        # Init ToggleButton as normal
+        wx.ToggleButton.__init__(
+            self, parent, id=id, label=label, pos=pos, size=size, style=style, val=val, name=name
+        )
+        # Starting values for pressed/unpressed label
+        self._pressedLabel = self._unPressedLabel = label
+        # Bind label update to Toggle
+        self.Bind(wx.EVT_TOGGLEBUTTON, self.UpdateLabel)
+
+    def SetLabelUnpressed(self, label):
+        self._unPressedLabel = label
+
+    def SetLabelPressed(self, label):
+        self._pressedLabel = label
+
+    def UpdateLabel(self, evt=None):
+        # Set label according to toggle state
+        if self.GetValue():
+            self.SetLabel(self._pressedLabel)
+        else:
+            self.SetLabel(self._unPressedLabel)
+        # Do usual stuff
+        evt.Skip()
+
+
 class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
-    def __init__(self, parent, size=(-1, -1), value=None, file=None, style=wx.DEFAULT):
+    def __init__(self, parent, size=(-1, -1), value=None, file=None, style=wx.VERTICAL | wx.BU_NOTEXT):
+        """
+        Multiline rich text editor for editing markdown. Includes (optional) buttons to:
+        - If style is not wx.READONLY, toggle between editing markdown and viewing HTML
+        - If file is not None, save the markdown file
+
+        Parameters
+        ----------
+        parent : wx.Window
+            Window containing this control.
+        size : wx.Size
+            Size of this control (if not overridden by sizer)
+        value : str
+            Markdown content of this control (if not overridden by file)
+        file : Path, str
+            Path to markdown file to edit via this control.
+        style : wx.Style
+            Style tags for this control. Accepts the following:
+            - wx.READONLY: Hides all button controls and shows only the rendered HTML
+            - wx.RIGHT: Arranges buttons vertically along the right hand side
+            - wx.BOTTOM: Arranges buttons horizontally along the bottom
+            - wx.BU_NOTEXT: Don't show any label on the buttons
+        """
         # Initialise superclass
         self.parent = parent
         wx.Panel.__init__(self, parent, size=size)
         # Manage readonly
         self.readonly = style | wx.TE_READONLY == style
         # Setup sizers
-        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.SetSizer(self.sizer)
+        if style | wx.BOTTOM == style:
+            self.sizer = wx.BoxSizer(wx.VERTICAL)
+            self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
+        else:
+            self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+            self.btnSizer = wx.BoxSizer(wx.VERTICAL)
         self.contentSizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.contentSizer, proportion=1, flag=wx.EXPAND)
-        self.btnSizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.btnSizer, border=0, flag=wx.ALL)
+        self.SetSizer(self.sizer)
 
         # Make text control
         self.rawTextCtrl = wx.stc.StyledTextCtrl(self, size=size, style=wx.TE_MULTILINE | style)
@@ -413,14 +476,20 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.htmlPreview.Bind(wx.html.EVT_HTML_LINK_CLICKED, self.onUrl)
         self.contentSizer.Add(self.htmlPreview, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
 
+        # Choose button style
+        if style | wx.BU_NOTEXT == style:
+            _btnStyle = wx.BU_EXACTFIT | wx.BU_NOTEXT
+        else:
+            _btnStyle = wx.BU_EXACTFIT
+
         # Make switch
-        self.editBtn = wx.ToggleButton(self, style=wx.BU_EXACTFIT)
+        self.editBtn = ToggleLabelButton(self, label=_translate("Edit"), style=_btnStyle)
+        self.editBtn.SetLabelPressed(_translate("Preview"))
         self.editBtn.Bind(wx.EVT_TOGGLEBUTTON, self.toggleView)
         self.btnSizer.Add(self.editBtn, border=3, flag=wx.ALL | wx.EXPAND)
-        self.editBtn.Show(not self.readonly)
 
         # Make save button
-        self.saveBtn = wx.Button(self, style=wx.BU_EXACTFIT)
+        self.saveBtn = wx.Button(self, label=_translate("Save"), style=_btnStyle)
         self.saveBtn.Bind(wx.EVT_BUTTON, self.save)
         self.btnSizer.Add(self.saveBtn, border=3, flag=wx.ALL | wx.EXPAND)
 
@@ -437,6 +506,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
 
         # Set initial view
         self.editBtn.SetValue(False)
+        self.editBtn.Show(not self.readonly)
         self.toggleView(False)
         self.saveBtn.Disable()
         self.saveBtn.Show(self.file is not None)
@@ -477,6 +547,8 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
 
         self._applyAppTheme()
         self.Layout()
+        if hasattr(evt, "Skip"):
+            evt.Skip()
 
     def render(self, evt=None):
         # Render HTML

@@ -3054,7 +3054,7 @@ class ReadmeFrame(wx.Frame, handlers.ThemeMixin):
             iconFile = os.path.join(parent.paths['resources'], 'coder.ico')
             if os.path.isfile(iconFile):
                 self.SetIcon(wx.Icon(iconFile, wx.BITMAP_TYPE_ICO))
-        self.ctrl = utils.MarkdownCtrl(self, file=filename)
+        self.ctrl = utils.MarkdownCtrl(self, file=filename, style=wx.BOTTOM)
         self.sizer.Add(self.ctrl, border=6, proportion=1, flag=wx.ALL | wx.EXPAND)
 
     def show(self, value=True):
