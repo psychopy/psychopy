@@ -1537,6 +1537,7 @@ class RoutinesNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         for ii in range(self.GetPageCount()):
             if routine is self.GetPage(ii).routine:
                 self.SetSelection(ii)
+        self.frame.flowPanel.draw()
 
     def SetSelection(self, index, force=False):
         aui.AuiNotebook.SetSelection(self, index, force=force)
@@ -4067,6 +4068,11 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         else:
             fontSizeDelta = (8, 4, 0)[self.appData['flowSize']]
             font.SetPointSize(1000 // self.dpi - fontSizeDelta)
+        # if selected, bold text
+        if routine == self.frame.routinePanel.getCurrentRoutine():
+            font.SetWeight(wx.FONTWEIGHT_BOLD)
+        else:
+            font.SetWeight(wx.FONTWEIGHT_NORMAL)
 
         maxTime, nonSlip = routine.getMaxTime()
         if hasattr(routine, "disabled") and routine.disabled:
@@ -4093,7 +4099,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         rect = wx.Rect(pos[0], pos[1] + 2 - self.appData['flowSize'],
                        w + pad, h + pad)
         endX = pos[0] + w + pad
-        # the edge should match the text
+        # the edge should match the text, unless selected
         if draw:
             dc.SetPen(wx.Pen(wx.Colour(rtEdge[0], rtEdge[1],
                                        rtEdge[2], wx.ALPHA_OPAQUE)))
@@ -4107,7 +4113,8 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
                 font.SetPointSize(int(font.GetPointSize() * 0.6))
                 dc.SetFont(font)
                 _align = wx.ALIGN_CENTRE | wx.ALIGN_BOTTOM
-                dc.DrawLabel("(%.2fs)" % maxTime, rect, alignment=_align)
+                timeRect = wx.Rect(rect.Left, rect.Top, rect.Width, rect.Height-2)
+                dc.DrawLabel("(%.2fs)" % maxTime, timeRect, alignment=_align)
 
             self.componentFromID[id] = routine
             # set the area for this component
