@@ -95,7 +95,7 @@ class BuilderFindDlg(wx.Dialog):
                         val = line
                         break
             # construct entry
-            entry = [comp.name, paramName, val]
+            entry = [comp.name, param.label, val]
             # add entry
             self.resultsCtrl.Append(entry)
             # set image for comp
