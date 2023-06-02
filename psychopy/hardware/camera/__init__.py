@@ -1254,7 +1254,8 @@ class CameraInterfaceOpenCV(CameraInterface):
             
             if cap.get(cv2.CAP_PROP_FPS) != _cameraInfo.frameRate:
                 raise CameraFormatNotSupportedError(
-                    "Unsupported frame rate (%s), try %s instead." % (_cameraInfo.frameRate, cap.get(cv2.CAP_PROP_FPS)))
+                    "Unsupported frame rate (%s), try %s instead." % (
+                    _cameraInfo.frameRate, cap.get(cv2.CAP_PROP_FPS)))
             
             frameSizeMismatch = (
                 cap.get(cv2.CAP_PROP_FRAME_WIDTH) != _cameraInfo.frameSize[0] or
@@ -1617,12 +1618,15 @@ class Camera:
                     bestDevice = mode
                     break
 
-            # if given just device name, use frameRate and frameSize to match it to a mode
+            # if given just device name, use frameRate and frameSize to match it 
+            # to a mode
             if device in supportedCameraSettings:
                 match = None
                 for mode in supportedCameraSettings[device]:
-                    sameFrameRate = mode.frameRate == frameRate or frameRate is None
-                    sameFrameSize = mode.frameSize == frameSize or frameSize is None
+                    sameFrameRate = \
+                        mode.frameRate == frameRate or frameRate is None
+                    sameFrameSize = \
+                        mode.frameSize == frameSize or frameSize is None
                     if sameFrameRate and sameFrameSize:
                         match = mode
                 if match is not None:
@@ -1649,9 +1653,13 @@ class Camera:
                     closest = supportedCameraSettings[device][i]
                     # log warning that settings won't match requested
                     logging.warn(_translate(
-                        "Device {device} does not support frame rate of {frameRate} and frame size of {frameSize}, "
-                        "using closest supported format: {desc}"
-                    ).format(device=device, frameRate=frameRate, frameSize=frameSize, desc=closest.description()))
+                        "Device {device} does not support frame rate of "
+                        "{frameRate} and frame size of {frameSize}, using "
+                        "closest supported format: {desc}"
+                    ).format(device=device, 
+                             frameRate=frameRate, 
+                             frameSize=frameSize, 
+                             desc=closest.description()))
                     # use closest
                     device = closest
 
@@ -2076,9 +2084,11 @@ class Camera:
     def open(self):
         """Open the camera stream and begin decoding frames (if available).
 
-        The value of `lastFrame` will be updated as new frames from the camera
-        arrive. This function returns when the camera is ready to start getting
+        This function returns when the camera is ready to start getting
         frames.
+
+        Call `record()` to start recording frames to memory. Captured frames
+        came be saved to disk using `save()`.
 
         """
         if self._hasPlayer:
@@ -2116,7 +2126,13 @@ class Camera:
         """Start recording frames.
 
         This function will start recording frames and audio (if available). The
-        value of `lastFrame` will be updated as new frames from the camera
+        value of `lastFrame` will be updated as new frames arrive and the
+        `frameCount` will increase. You can access image data for the most 
+        recent frame to be captured using `lastFrame`.
+
+        If this is called before `open()` the camera stream will be opened
+        automatically. This is not recommended as it may incur a longer than
+        expected delay in the recording start time.
 
         Warnings
         --------
@@ -2124,8 +2140,13 @@ class Camera:
         be discarded if `record()` is called again.
 
         """
-        if not self._captureThread.isOpen():
-            raise RuntimeError("Cannot start recording, stream is not open.")
+        if self.isNotStarted:
+            self.open()   # open the camera stream if we call record() first
+            logging.warning(
+                "Called `Camera.record()` before opening the camera stream, "
+                "opening now. This is not recommended as it may incur a longer "
+                "than expected delay in the recording start time."
+            )
         
         self._audioTrack = None
         self._lastFrame = None
@@ -2171,6 +2192,9 @@ class Camera:
             raise RuntimeError("Cannot close stream, stream is not open.")
         
         if self._isRecording:
+            logging.warning(
+                "Closing camera stream while recording, stopping recording "
+                "first.")
             self.stop()
 
         self._captureThread.close()
