@@ -1695,6 +1695,8 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         self.curLine = []
         self.drawing = False
         self.drawSize = self.app.prefs.appData['routineSize']
+        # dict in which to store rectangles to aid layout (populated in updateLayoutRects)
+        self.rects = {}
         # auto-rescale based on number of components and window size is jumpy
         # when switch between routines of diff drawing sizes
         self.iconSize = (24, 24, 48)[self.drawSize]  # only 24, 48 so far
@@ -1910,21 +1912,20 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         self.pdc.DrawToDCClipped(dc, r)
 
     def redrawRoutine(self):
-        self.pdc.Clear()  # clear the screen
-        self.pdc.RemoveAll()  # clear all objects (icon buttons)
+        # clear everything
+        self.pdc.Clear()
+        self.pdc.RemoveAll()
+        # set font size
+        self.setFontSize(self.fontBaseSize // self.dpi, self.pdc)
+
+        # update rects with which to layout
+        self.updateLayoutRects()
+        # # if debugging, draw all the rects
+        # self.pdc.SetPen(wx.Pen("Red"))
+        # for rect in self.rects.values():
+        #     self.pdc.DrawRectangle(rect)
 
         self.SetBackgroundColour(colors.app['tab_bg'])
-        # work out where the component names and icons should be from name
-        # lengths
-        self.setFontSize(self.fontBaseSize // self.dpi, self.pdc)
-        longest = 0
-        w = 50
-        for comp in self.routine:
-            name = comp.params['name'].val
-            if len(name) > longest:
-                longest = len(name)
-                w = self.GetFullTextExtent(name)[0]
-        self.timeXpos = w + (50, 50, 90)[self.drawSize]
 
         # separate components according to whether they are drawn in separate
         # row
@@ -1942,8 +1943,8 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         settingsBtnExtent = self.drawSettingsBtn(self.pdc, self.routine.settings)
 
         # draw static, time grid, normal (row) comp:
-        yPos = self.yPosTop + settingsBtnExtent.Height
-        yPosBottom = yPos + len(rowComponents) * self.componentStep
+        yPos = self.rects['grid'].Top
+        yPosBottom = self.rects['grid'].Bottom
         # draw any Static Components first (below the grid)
         for component in staticCompons:
             bottom = max(yPosBottom, self.GetSize()[1])
@@ -1960,6 +1961,106 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         self.SetVirtualSize((int(self.maxWidth), yPos + 50))
         self.Refresh()  # refresh the visible window after drawing (OnPaint)
         #self.scroller.Resize()
+
+    def updateLayoutRects(self):
+        """
+        Recalculate the positions and sizes of the wx.Rect objects which determine
+        how the canvas is laid out.
+        """
+        self.rects = {}
+        self.setFontSize(self.fontBaseSize // self.dpi, self.pdc)
+
+        # --- Whole area ---
+        canvas = self.rects['canvas'] = wx.Rect(
+            x=15,
+            y=15,
+            width=self.sizePix[0] - 30,
+            height=self.sizePix[1] - 30
+        )
+
+        # --- Time grid ---
+        # note: will be modified as things are added around it
+        grid = self.rects['grid'] = wx.Rect(
+            x=canvas.Left,
+            y=canvas.Top,
+            width=canvas.Width,
+            height=self.componentStep * (len(self.routine) - 1)
+        )
+
+        # --- Top bar ---
+        # this is where the Settings button lives
+        topBar = self.rects['topBar'] = wx.Rect(
+            x=canvas.Left,
+            y=canvas.Top,
+            width=canvas.Width,
+            height=int(self.iconSize/3) + 24
+        )
+        # shift grid down
+        grid.Top += topBar.Height
+
+        # --- Time labels ---
+        # note: will be modified as things are added around it
+        timeLbls = self.rects['timeLbls'] = wx.Rect(
+            x=grid.Left,
+            y=topBar.Bottom,
+            width=grid.Width,
+            height=int(self.componentStep/2)
+        )
+        # shift grid down
+        grid.Top += timeLbls.Height
+
+        # --- Component names ---
+        # get width of component names column
+        compNameWidths = [120]
+        if not prefs.builder['abbreviateLongCompNames']:
+            # get width of longest name if we're not elipsizing
+            for comp in self.routine:
+                w = self.GetFullTextExtent(comp.name)[0] + 12
+                compNameWidths.append(w)
+        componentLabelWidth = max(compNameWidths)
+        # create rect
+        compLbls = self.rects['compLbls'] = wx.Rect(
+            x=canvas.Left,
+            y=grid.Top,
+            width=componentLabelWidth,
+            height=grid.Height
+        )
+        # shift grid and time labels right (and cut to size)
+        grid.Left += compLbls.Width
+        grid.Width -= compLbls.Width
+        timeLbls.Left += compLbls.Width
+        timeLbls.Width -= compLbls.Width
+
+        # --- Component icons ---
+        icons = self.rects['icons'] = wx.Rect(
+            x=compLbls.Right,
+            y=grid.Top,
+            width=self.iconSize + 12,
+            height=grid.Height
+        )
+        # shift grid and time labels right (and cut to size)
+        grid.Left += icons.Width + 12
+        grid.Width -= icons.Width + 12
+        timeLbls.Left += icons.Width + 12
+        timeLbls.Width -= icons.Width + 12
+
+        # --- Time units label ---
+        timeUnitsLbl = self.rects['timeUnitsLbl'] = wx.Rect(
+            x=grid.Right,
+            y=grid.Top,
+            width=self.GetFullTextExtent("t (sec)")[0] + 12,
+            height=int(self.componentStep/2)
+        )
+        # align self by right edge
+        timeUnitsLbl.Left -= timeUnitsLbl.Width
+        # shift grid and time labels left (and cut to size)
+        grid.Width -= timeUnitsLbl.Width
+        timeLbls.Width -= timeUnitsLbl.Width
+
+        # update references from rects
+        self.timeXposStart = grid.Left
+        self.timeXposEnd = grid.Right
+        self.iconXpos = self.rects['icons'].Left
 
     def getMaxTime(self):
         """Return the max time to be drawn in the window
@@ -2032,8 +2133,8 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         self.setFontSize(self.fontBaseSize // self.dpi, dc)
         # y is y-half height of text
         dc.DrawText('t (sec)',
-                    int(xEnd + 5),
-                    yPosTop - self.GetFullTextExtent('t')[1] // 2)
+                    self.rects['timeUnitsLbl'].Left + 6,
+                    self.rects['timeUnitsLbl'].Top)
         # or draw bottom labels only if scrolling is turned on, virtual size >
         # available size?
         if yPosBottom > 300:
@@ -2171,7 +2272,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             thisIcon = thisIcon.ConvertToDisabled()
             thisColor = colors.app['rt_comp_disabled']
 
-        dc.DrawBitmap(thisIcon, int(self.iconXpos), int(yPos + iconYOffset), True)
+        dc.DrawBitmap(thisIcon, int(self.iconXpos) + 6, int(yPos + iconYOffset), True)
         fullRect = wx.Rect(
             int(self.iconXpos),
             yPos,
@@ -2181,24 +2282,19 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         self.setFontSize(self.fontBaseSize // self.dpi, dc)
 
         name = component.params['name'].val
+        # elipsize name if it's too long
+        if self.GetFullTextExtent(name)[0] > self.rects['compLbls'].Width:
+            name = name[:6] + "..." + name[-6:]
         # get size based on text
-        w, h = self.GetFullTextExtent(name)[0:2]
-        if w > self.iconXpos - self.dpi // 5:
-            # If width is greater than space available, split word at point calculated by average letter width
-            maxLen = int(
-                (self.iconXpos - self.GetFullTextExtent("...")[0] - self.dpi / 5)
-                / (w / len(name))
-            )
-            splitAt = maxLen // 2
-            name = name[:splitAt] + "..." + name[-splitAt:]
-            w = self.iconXpos - self.dpi // 5
+        w = self.rects['compLbls'].Width
+        h = self.GetFullTextExtent(name)[1]
 
         # draw text
         # + x position of icon (left side)
         # - half width of icon (including whitespace around it)
         # - FULL width of text
         # + slight adjustment for whitespace
-        x = self.iconXpos - thisIcon.GetWidth() / 2 - w + thisIcon.GetWidth() / 3
+        x = self.rects['compLbls'].Right - 6 - self.GetFullTextExtent(name)[0]
         _adjust = (5, 5, -2)[self.drawSize]
         y = yPos + thisIcon.GetHeight() // 2 - h // 2 + _adjust
         dc.DrawText(name, int(x), y)
@@ -2283,11 +2379,12 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         self.setFontSize(fontSize, dc)
         # Calculate extent
         extent = wx.Rect(
-            wx.Point(12, 12),
-            wx.Point(
-                12 + padding + sz + 6 + self.GetTextExtent(lbl)[0] + padding,
-                padding + sz + padding)
+            x=self.rects['topBar'].Left,
+            y=self.rects['topBar'].Top,
+            width=padding + sz + 6 + self.GetTextExtent(lbl)[0] + padding,
+            height=padding + sz + padding
         )
+        extent = extent.CenterIn(self.rects['topBar'], dir=wx.VERTICAL)
         # Get content rect
         rect = wx.Rect(extent.TopLeft, extent.BottomRight)
         rect.Deflate(padding)
