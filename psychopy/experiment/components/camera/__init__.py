@@ -303,6 +303,7 @@ class CameraComponent(BaseComponent):
             "true": "populate",  # should...
             "false": "populate",  # otherwise...
         })
+        msg += _translate(" For some cameras, you may need to use `camera.CAMERA_FRAMERATE_NTSC` or `camera.CAMERA_FRAMERATE_NTSC / 2`.")
         self.params['frameRateManual'] = Param(
             frameRateManual, valType='int', inputType="single", categ="Basic",
             hint=msg,
