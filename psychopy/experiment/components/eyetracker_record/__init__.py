@@ -42,8 +42,8 @@ class EyetrackerRecordComponent(BaseComponent):
         self.params['actionType'] = Param(actionType,
             valType='str', inputType='choice', categ='Basic',
             allowedVals=["Start and Stop", "Start Only", "Stop Only"],
-            hint=_translate("Should this component start and / or stop eye tracker recording?"),
-            label=_translate("Record Actions")
+            hint=_translate("Should this Component start and / or stop eye tracker recording?"),
+            label=_translate("Record actions")
         )
 
         self.depends.append(

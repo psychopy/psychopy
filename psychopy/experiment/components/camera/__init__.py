@@ -207,7 +207,7 @@ class CameraComponent(BaseComponent):
             device, valType='str', inputType="choice", categ="Basic",
             allowedVals=conf, allowedLabels=conf,
             hint=msg,
-            label=_translate("Video Device")
+            label=_translate("Video device")
         )
         self.depends.append({
             "dependsOn": 'cameraLib',  # if...
@@ -243,7 +243,7 @@ class CameraComponent(BaseComponent):
             allowedVals=list(range(len(mics))),
             allowedLabels=[d.title() for d in list(mics)],
             hint=msg,
-            label=_translate("Audio Device")
+            label=_translate("Audio device")
         )
 
         msg = _translate("Resolution (w x h) to record to, leave blank to use device default.")
@@ -329,7 +329,7 @@ class CameraComponent(BaseComponent):
         self.params['saveFile'] = Param(
             saveFile, valType='bool', inputType="bool", categ="Data",
             hint=msg,
-            label=_translate("Save File?")
+            label=_translate("Save file?")
         )
 
         # msg = _translate("What kind of video codec should the output file be encoded as?")

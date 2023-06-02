@@ -38,16 +38,16 @@ class BaseStandaloneRoutine:
         self.order = ['stopVal', 'stopType', 'name']
 
         msg = _translate(
-            "Name of this routine (alphanumeric or _, no spaces)")
+            "Name of this Routine (alphanumeric or _, no spaces)")
         self.params['name'] = Param(name,
                                     valType='code', inputType="single", categ='Basic',
                                     hint=msg,
-                                    label=_translate('name'))
+                                    label=_translate('Name'))
 
         self.params['stopVal'] = Param(stopVal,
             valType='num', inputType="single", categ='Basic',
             updates='constant', allowedUpdates=[], allowedTypes=[],
-            hint=_translate("When does the routine end? (blank is endless)"),
+            hint=_translate("When does the Routine end? (blank is endless)"),
             label=_translate('Stop'))
 
         msg = _translate("How do you want to define your end point?")
@@ -55,14 +55,14 @@ class BaseStandaloneRoutine:
             valType='str', inputType="choice", categ='Basic',
             allowedVals=['duration (s)', 'duration (frames)', 'condition'],
             hint=msg, direct=False,
-            label=_translate('Stop Type...'))
+            label=_translate('Stop type...'))
 
         # Testing
-        msg = _translate("Disable this routine")
+        msg = _translate("Disable this Routine")
         self.params['disabled'] = Param(disabled,
             valType='bool', inputType="bool", categ="Testing",
             hint=msg, allowedTypes=[], direct=False,
-            label=_translate('Disable routine'))
+            label=_translate('Disable Routine'))
 
     def __repr__(self):
         _rep = "psychopy.experiment.routines.%s(name='%s', exp=%s)"
