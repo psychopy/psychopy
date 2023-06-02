@@ -69,7 +69,7 @@ class CameraComponent(BaseComponent):
             allowedVals=["default"] + cams,
             allowedLabels=["default"] + cams,
             hint=msg,
-            label=_translate("Video Device")
+            label=_translate("Video device")
         )
 
         msg = _translate("What device would you like to use to record audio? This will only affect local "
@@ -79,7 +79,7 @@ class CameraComponent(BaseComponent):
             allowedVals=list(range(len(mics))),
             allowedLabels=[d.title() for d in list(mics)],
             hint=msg,
-            label=_translate("Audio Device")
+            label=_translate("Audio device")
         )
 
 
@@ -104,7 +104,7 @@ class CameraComponent(BaseComponent):
         self.params['saveFile'] = Param(
             saveFile, valType='bool', inputType="bool", categ="Data",
             hint=msg,
-            label=_translate("Save File?")
+            label=_translate("Save file?")
         )
 
         # msg = _translate("What kind of video codec should the output file be encoded as?")

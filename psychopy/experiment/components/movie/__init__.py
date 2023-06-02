@@ -18,9 +18,6 @@ _localized.update({'movie': _translate('Movie file'),
                    'backend': _translate('backend'),
                    'No audio': _translate('No audio')})
 
-if _localized['backend'] == 'backend': # this is the only non-capitals label
-    _localized['backend'] = 'Backend'
-
 class MovieComponent(BaseVisualComponent):
     """An event class for presenting movie-based stimuli"""
 
@@ -54,7 +51,7 @@ class MovieComponent(BaseVisualComponent):
 
         # params
         self.params['stopVal'].hint = _translate(
-            "When does the component end? (blank to use the duration of "
+            "When does the Component end? (blank to use the duration of "
             "the media)")
 
         msg = _translate("A filename for the movie (including path)")
@@ -62,21 +59,21 @@ class MovieComponent(BaseVisualComponent):
             movie, valType='file', inputType="file", allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=['constant', 'set every repeat'],
             hint=msg,
-            label=_localized['movie'])
+            label=_translate("Movie file"))
 
         msg = _translate("What underlying lib to use for loading movies")
         self.params['backend'] = Param(
             backend, valType='str', inputType="choice", categ='Playback',
             allowedVals=['ffpyplayer', 'moviepy', 'opencv', 'vlc'],
             hint=msg, direct=False,
-            label=_localized['backend'])
+            label=_translate("Backend"))
 
         msg = _translate("Prevent the audio stream from being loaded/processed "
                "(moviepy and opencv only)")
         self.params["No audio"] = Param(
             noAudio, valType='bool', inputType="bool", categ='Playback',
             hint=msg,
-            label=_localized['No audio'])
+            label=_translate("No audio"))
 
         self.depends.append(
             {"dependsOn": "No audio",  # must be param name
@@ -94,19 +91,19 @@ class MovieComponent(BaseVisualComponent):
             label=_translate("Volume"))
 
         msg = _translate("Should the end of the movie cause the end of "
-                         "the routine (e.g. trial)?")
+                         "the Routine (e.g. trial)?")
         self.params['forceEndRoutine'] = Param(
             forceEndRoutine, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['forceEndRoutine'])
+            label=_translate("Force end of Routine"))
 
         msg = _translate("Whether the movie should loop back to the beginning "
                          "on completion.")
         self.params['loop'] = Param(
             loop, valType='bool', inputType="bool", categ='Playback',
             hint=msg,
-            label=_translate('Loop playback'))
+            label=_translate("Loop playback"))
         self.params['anchor'] = Param(
             anchor, valType='str', inputType="choice", categ='Layout',
             allowedVals=['center',
@@ -121,7 +118,7 @@ class MovieComponent(BaseVisualComponent):
                          ],
             updates='constant',
             hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
-            label=_translate('Anchor'))
+            label=_translate("Anchor"))
 
         # these are normally added but we don't want them for a movie
         del self.params['color']
