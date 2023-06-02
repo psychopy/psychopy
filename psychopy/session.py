@@ -1,3 +1,4 @@
+import asyncio
 import importlib
 import os
 import sys
@@ -631,6 +632,12 @@ class Session:
             "Finished running experiment via Session: name={key}, expInfo={expInfo}"
         ).format(key=key, expInfo=expInfo))
         logging.flush()
+        # Send finished data to liaison
+        if self.liaison is not None:
+            self.sendToLiaison({
+                    'name': thisExp.name,
+                    'status': thisExp.status
+                })
 
         return True
 
@@ -817,7 +824,7 @@ class Session:
         # Convert to JSON
         value = json.dumps(value)
         # Send
-        self.liaison.broadcast(message=value)
+        asyncio.run(self.liaison.broadcast(message=value))
 
     def close(self):
         """
