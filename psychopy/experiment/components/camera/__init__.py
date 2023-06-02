@@ -62,7 +62,7 @@ class CameraComponent(BaseComponent):
             Fallback in case Camera functions can't be imported. Will return a list with
             a blank string in.
             """
-            return ["default"]
+            return [""]
 
         try:
             from psychopy.hardware.camera import getCameras
@@ -82,6 +82,8 @@ class CameraComponent(BaseComponent):
                 list
                     Array of camera device names, preceeded by "default"
                 """
+                if cameraLib == "opencv":
+                    return ["default"]
                 from psychopy.hardware.camera import Camera
                 # get all devices
                 if isinstance(cameraLib, Param):
@@ -106,6 +108,8 @@ class CameraComponent(BaseComponent):
                     list
                         List of resolutions, specified as strings in the format `(width, height)`
                     """
+                if cameraLib == "opencv":
+                    return [""]
                 from psychopy.hardware.camera import Camera
                 # get all devices
                 if isinstance(cameraLib, Param):
@@ -143,6 +147,8 @@ class CameraComponent(BaseComponent):
                     list
                         List of frame rates
                     """
+                if cameraLib == "opencv":
+                    return [""]
                 from psychopy.hardware.camera import Camera
                 # get all devices
                 if isinstance(cameraLib, Param):
