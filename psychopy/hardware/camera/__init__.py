@@ -1254,7 +1254,7 @@ class CameraInterfaceOpenCV(CameraInterface):
             
             if cap.get(cv2.CAP_PROP_FPS) != _cameraInfo.frameRate:
                 raise CameraFormatNotSupportedError(
-                    "Unsupported frame rate: %d" % _cameraInfo.frameRate)
+                    "Unsupported frame rate (%d), try setting frame rate to 'ntfs' (with quotes)" % _cameraInfo.frameRate)
             
             frameSizeMismatch = (
                 cap.get(cv2.CAP_PROP_FRAME_WIDTH) != _cameraInfo.frameSize[0] or

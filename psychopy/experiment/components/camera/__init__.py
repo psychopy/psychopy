@@ -28,7 +28,7 @@ class CameraComponent(BaseComponent):
             # Basic
             cameraLib="ffpyplayer", device="default", mic="default",
             resolution="", frameRate="",
-            deviceManual="", resolutionManual="", frameRateManual="ntsc",
+            deviceManual="", resolutionManual="", frameRateManual="",
             # Data
             saveFile=True,
             outputFileType="mp4", codec="h263",
@@ -298,8 +298,7 @@ class CameraComponent(BaseComponent):
             "false": "populate",  # otherwise...
         })
         self.params['frameRateManual'] = Param(
-            frameRateManual, valType='str', inputType="choice", categ="Basic",
-            allowedVals=["ntsc"],
+            frameRateManual, valType='int', inputType="single", categ="Basic",
             hint=msg,
             label=_translate("Frame Rate")
         )
