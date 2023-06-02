@@ -219,7 +219,7 @@ class CameraComponent(BaseComponent):
         self.params['deviceManual'] = Param(
             deviceManual, valType='code', inputType="single", categ="Basic",
             hint=msg,
-            label=_translate("Video Device")
+            label=_translate("Video device")
         )
         self.depends.append({
             "dependsOn": 'cameraLib',  # if...
@@ -287,7 +287,7 @@ class CameraComponent(BaseComponent):
             frameRate, valType='int', inputType="choice", categ="Basic",
             allowedVals=conf, allowedLabels=conf,
             hint=msg,
-            label=_translate("Frame Rate")
+            label=_translate("Frame rate")
         )
         self.depends.append({
             "dependsOn": 'device',  # if...
@@ -307,7 +307,7 @@ class CameraComponent(BaseComponent):
         self.params['frameRateManual'] = Param(
             frameRateManual, valType='int', inputType="single", categ="Basic",
             hint=msg,
-            label=_translate("Frame Rate")
+            label=_translate("Frame rate")
         )
         self.depends.append({
             "dependsOn": 'cameraLib',  # if...
