@@ -27,8 +27,8 @@ class CameraComponent(BaseComponent):
             stopType='duration (s)', stopVal='', durationEstim='',
             # Basic
             cameraLib="ffpyplayer", device="default", mic="default",
-            resolution="default", frameRate="default",
-            deviceManual="", resolutionManual="", frameRateManual="",
+            resolution="", frameRate="",
+            deviceManual="", resolutionManual="", frameRateManual="ntsc",
             # Data
             saveFile=True,
             outputFileType="mp4", codec="h263",
@@ -125,7 +125,7 @@ class CameraComponent(BaseComponent):
                 formats = list(set(formats))
                 formats.sort(key=lambda res: res[0], reverse=True)
 
-                return ["default"] + formats
+                return [""] + formats
 
             def getFrameRatesForDevice(cameraLib, deviceName, resolution=None):
                 """
@@ -168,7 +168,7 @@ class CameraComponent(BaseComponent):
                 formats = list(set(formats))
                 formats.sort(reverse=True)
 
-                return ["default"] + formats
+                return [""] + formats
         except:
             getCameraNames = fallbackPopulator
             getResolutionsForDevice = fallbackPopulator
@@ -298,7 +298,8 @@ class CameraComponent(BaseComponent):
             "false": "populate",  # otherwise...
         })
         self.params['frameRateManual'] = Param(
-            frameRateManual, valType='int', inputType="single", categ="Basic",
+            frameRateManual, valType='str', inputType="choice", categ="Basic",
+            allowedVals=["ntsc"],
             hint=msg,
             label=_translate("Frame Rate")
         )
