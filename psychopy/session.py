@@ -5,11 +5,12 @@ import sys
 import shutil
 import threading
 import time
-import traceback
+import json
 from pathlib import Path
 
 from psychopy import experiment, logging, constants, data
-import json
+from psychopy.tools.arraytools import AliasDict
+
 from psychopy.localization import _translate
 
 
@@ -116,7 +117,8 @@ class Session:
                  loggingLevel="info",
                  inputs=None,
                  win=None,
-                 experiments=None):
+                 experiments=None,
+                 params=None):
         # Store root and add to Python path
         self.root = Path(root)
         sys.path.insert(1, str(self.root))
@@ -149,6 +151,10 @@ class Session:
         elif inputs in self.experiments:
             # If inputs is the name of an experiment, setup from that experiment's method
             self.setupInputsFromExperiment(inputs)
+        # Store params as an aliased dict
+        if params is None:
+            params = {}
+        self.params = AliasDict(params)
         # List of ExperimentHandlers from previous runs
         self.runs = []
         # Store ref to liaison object
@@ -302,7 +308,7 @@ class Session:
             # Otherwise, return status of experiment handler
             return self.currentExperiment.status
 
-    def getExpInfoFromExperiment(self, key):
+    def getExpInfoFromExperiment(self, key, sessionParams=True):
         """
         Get the global-level expInfo object from one of this Session's experiments. This will contain all of
         the keys needed for this experiment, alongside their default values.
@@ -311,13 +317,27 @@ class Session:
         ----------
         key : str
             Key by which the experiment is stored (see `.addExperiment`).
+        sessionParams : bool
+            Should expInfo be extended with params from the Session, overriding experiment params
+            where relevant (True, default)? Or return expInfo as it is in the experiment (False)?
 
         Returns
         -------
-        bool or None
-            True if the operation completed successfully
+        dict
+            Experiment info dict
         """
-        return self.experiments[key].expInfo
+        # Get params from experiment
+        expInfo = self.experiments[key].expInfo
+        if sessionParams:
+            # If alias of a key in params exists in expInfo, delete it
+            for key in self.params.aliases:
+                if key in expInfo:
+                    del expInfo[key]
+            # Replace with Session params
+            for key in self.params:
+                expInfo[key] = self.params[key]
+
+        return expInfo
 
     def showExpInfoDlgFromExperiment(self, key, expInfo=None):
         """
@@ -853,6 +873,7 @@ if __name__ == "__main__":
         session.liaison = liaisonServer
         # Add session to liaison server
         liaisonServer.registerMethods(session, "session")
+        liaisonServer.registerMethods(session.params, "params")
         # Create thread to run liaison server in
         liaisonThread = threading.Thread(
             target=liaisonServer.start,
