@@ -72,15 +72,16 @@ class MovieFileWriter:
     to the file before the file is finalized.
 
     Writing audio tracks is not supported. If you need to add audio to your 
-    movie, create the movie first, then add the audio track to the file. The
-    :func:`addAudioToMovie` function can be used to do this after the video and
-    audio files have been saved to disk.
+    movie, create the file with the video content first, then add the audio 
+    track to the file. The :func:`addAudioToMovie` function can be used to do 
+    this after the video and audio files have been saved to disk.
 
     Parameters
     ----------
     filename : str
         The name (or path) of the file to write the movie to. The file extension
-        determines the movie format.
+        determines the movie format if `codec` is `None` for some backends.
+        Otherwise it must be explicitly specified.
     size : tuple or str
         The size of the movie in pixels (width, height). If a string is passed,
         it should be one of the keys in the `VIDEO_RESOLUTIONS` dictionary.
@@ -99,7 +100,34 @@ class MovieFileWriter:
     encoderLib : str
         The library to use to handle encoding and writing the movie to disk. The 
         default is 'ffpyplayer'.
-    
+
+    Examples
+    --------
+    Create a movie from a sequence of generated noise images::
+
+        import psychopy.tools.movietools as movietools
+        import numpy as np
+
+        # create a movie writer
+        writer = movietools.MovieFileWriter(
+            filename='myMovie.mp4', 
+            size=(640, 480), 
+            fps=30)
+        
+        # open the movie for writing
+        writer.open()
+            
+        # add some frames to the movie
+        for i in range(100):
+            # create a frame, just some random noise
+            frame = np.random.randint(
+                0, 255, size=(480 * 640 * 3), dtype=np.uint8)
+            # add the frame to the movie
+            writer.addFrame(frame)
+
+        # close the movie, this completes the writing process
+        writer.close()
+        
     """
     # supported pixel formats as constants
     PIXEL_FORMAT_RGB24 = 'rgb24'
@@ -114,10 +142,22 @@ class MovieFileWriter:
         self._dataLock = threading.Lock()  # lock for accessing shared data
         self._lastVideoFile = None  # last video file we wrote to
 
-        # video file options
-        self._encoderLib = encoderLib
+        # set the file name
         self._filename = None
+        self._absPath = None  # use for generating a hash of the filename
         self.filename = filename  # use setter to init self._filename
+
+        # Select the default codec based on the encoder library, we want to use
+        # H264 for OpenCV and libx264 for ffpyplayer. If the user specifies a
+        # codec, we use that instead.
+        if encoderLib == 'ffpyplayer':
+            self._codec = codec or 'libx264'  # default codec
+        elif encoderLib == 'opencv':
+            self._codec = codec or 'H264'
+        else:
+            raise ValueError('Unknown encoder library: {}'.format(encoderLib))
+        self._encoderLib = encoderLib
+
         self._size = None
         self.size = size  # use setter to init self._size
         self._fps = None
@@ -155,7 +195,7 @@ class MovieFileWriter:
                 'Cannot change `filename` after the writer has been opened.')
 
         self._filename = value
-        self._absPath = os.path.abspath(value)
+        self._absPath = os.path.abspath(self._filename)
     
     @property
     def size(self):
@@ -188,6 +228,20 @@ class MovieFileWriter:
             raise ValueError('`size` must be a collection of two integers.')
 
         self._size = tuple(value)
+
+    @property
+    def frameSize(self):
+        """The size `(w, h)` of the movie in pixels (`tuple`).
+
+        This is an alias for `size` to synchronize naming with other video
+        classes around PsychoPy.
+
+        """
+        return self._size
+    
+    @frameSize.setter
+    def frameSize(self, value):
+        self.size = value
     
     @property
     def fps(self):
@@ -210,6 +264,20 @@ class MovieFileWriter:
 
         self._fps = value
         self._frameInterval = 1.0 / self._fps
+
+    @property
+    def frameRate(self):
+        """Output frames per second (`float`).
+
+        This is an alias for `fps` to synchronize naming with other video
+        classes around PsychoPy.
+
+        """
+        return self._fps
+    
+    @frameRate.setter
+    def frameRate(self, value):
+        self.fps = value
     
     @property
     def codec(self):
@@ -272,7 +340,7 @@ class MovieFileWriter:
         """The name of the last video file written to disk (`str` or `None`).
 
         This is `None` if no video file has been written to disk yet. Only valid
-        after the movie file has been closed (i.e. after calling `close()`).
+        after the movie file has been closed (i.e. after calling `close()`.)
 
         """
         return self._lastVideoFile
@@ -298,7 +366,8 @@ class MovieFileWriter:
         is updated asynchronously, so it may not be accurate if you are adding
         frames to the movie file very quickly.
 
-        This value is retained after the movie file is closed.
+        This value is retained after the movie file is closed. It is cleared
+        when a new movie file is opened.
 
         """
         with self._dataLock:
@@ -313,7 +382,8 @@ class MovieFileWriter:
         may not be accurate if you are adding frames to the movie file very 
         quickly.
 
-        This value is retained after the movie file is closed.
+        This value is retained after the movie file is closed. It is cleared
+        when a new movie file is opened.
 
         """
         with self._dataLock:
@@ -324,7 +394,8 @@ class MovieFileWriter:
         """The number of frames waiting to be written to disk (`int`).
 
         This value increases when you call `addFrame()` and decreases when the
-        frame is written to disk.
+        frame is written to disk. This number can be reduced to zero by calling
+        `flush()`.
 
         """
         return self._frameQueue.qsize()
@@ -349,34 +420,18 @@ class MovieFileWriter:
 
         """
         return self._frameInterval
-        
-    def open(self):
-        """Open the movie file for writing.
+    
+    def _openFFPyPlayer(self):
+        """Open a movie writer using FFPyPlayer.
 
-        This creates a new thread that will write the movie file to disk in
-        the background.
-
-        After calling this method, you can add frames to the movie using
-        `addFrame()`. When you are done adding frames, call `close()` to
-        finalize the movie file.
+        This is called by `open()` if `encoderLib` is 'ffpyplayer'. It will 
+        create a background thread to write the movie file. This method is not
+        intended to be called directly.
 
         """
-        if self.isOpen:
-            raise RuntimeError('Movie file is already open.')
-        
-        logging.debug('Creating movie file for writing %s', self._filename)
-
         # import in the class too avoid hard dependency on ffpyplayer
         from ffpyplayer.writer import MediaWriter
         from ffpyplayer.pic import SWScale
-
-        # register ourselves as an open movie writer
-        global _openMovieWriters
-        # check if we already have a movie writer for this file
-        if self in _openMovieWriters:
-            raise ValueError(
-                'A movie writer is already open for file {}'.format(
-                    self._filename))
 
         def _writeFramesAsync(filename, writerOptions, frameQueue, readyBarrier,
                              dataLock):
@@ -407,7 +462,10 @@ class MovieFileWriter:
             """
             # create the movie writer, don't manipulate this object while the 
             # movie is being written to disk
-            writer = MediaWriter(filename, [writerOptions])
+            try:
+                writer = MediaWriter(filename, [writerOptions])
+            except Exception:  # catch all exceptions
+                raise RuntimeError("Failed to open movie file.")
 
             # wait on a barrier
             if readyBarrier is not None:
@@ -445,19 +503,13 @@ class MovieFileWriter:
         frameWidth, frameHeight = self.size
         writerOptions = {
             'pix_fmt_in': 'yuv420p',  # default for now using mp4
-            # 'preset': 'medium',
             'width_in': frameWidth,
             'height_in': frameHeight,
             'codec': self._codec,
-            'frame_rate': (self._fps, 1)
-        }
+            'frame_rate': (self._fps, 1)}
 
         # create a barrier to synchronize the movie writer with other threads
         self._syncBarrier = threading.Barrier(2)
-
-        # reset counters
-        self._bytesOut = self._framesOut = 0
-        self._pts = 0.0
 
         # initialize the thread, the thread will wait on frames to be added to 
         # the queue
@@ -470,41 +522,176 @@ class MovieFileWriter:
                   self._dataLock))
         
         self._writerThread.start()
+
+        logging.debug("Waiting for movie writer thread to start...")
+        self._syncBarrier.wait()  # wait for the thread to start
+        logging.debug("Movie writer thread started.")
+
+    def _openOpenCV(self):
+        """Open a movie writer using OpenCV.
+        
+        This is called by `open()` if `encoderLib` is 'opencv'. It will create
+        a background thread to write the movie file. This method is not
+        intended to be called directly.
+
+        """
+        import cv2
+
+        def _writeFramesAsync(filename, frameSize, frameRate, codec, frameQueue, 
+                              readyBarrier, dataLock):
+            """Local function used to write frames to the movie file.
+
+            This is executed in a thread to allow the main thread to continue
+            adding frames to the movie while the movie is being written to
+            disk.
+
+            Parameters
+            ----------
+            filename : str
+                Path of the movie file to write.
+            frameSize : tuple
+                The size of the frames in pixels.
+            frameRate : float
+                The frame rate in frames per second.
+            codec : str
+                The four character code of the codec to use.
+            frameQueue : queue.Queue
+                A queue containing the frames to write to the movie file.
+                Pushing `None` to the queue will cause the thread to exit.
+            readyBarrier : threading.Barrier or None
+                A `threading.Barrier` object used to synchronize the movie
+                writer with other threads. This guarantees that the movie writer
+                is ready before frames are passed te the queue. If `None`, 
+                no synchronization is performed.
+            dataLock : threading.Lock
+                A lock used to synchronize access to the movie writer object for
+                accessing variables.
+
+            """
+            # open the movie file
+            frameWidth, frameHeight = frameSize
+            writer = cv2.VideoWriter(
+                filename, 
+                cv2.VideoWriter_fourcc(*codec),
+                frameRate, 
+                (frameWidth, frameHeight))
+            
+            if not writer.isOpened():
+                raise RuntimeError("Failed to open movie file.")
+            
+            # wait on a barrier
+            if readyBarrier is not None:
+                readyBarrier.wait()
+
+            # we can accept frames for writing now
+            while True:
+                frame, _ = frameQueue.get()   # discard presentation time stamp
+                if frame is None:   # exit if we get `None`
+                    break
+                
+                # convert frame to BGR, this needs to be done more efficiently!
+                frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+                writer.write(frame)  # write the frame to the file
+
+                # number of bytes the last frame took
+                bytesOut = writer.get(cv2.VIDEOWRITER_PROP_FRAMEBYTES)
+
+                # update values in a thread safe manner
+                with dataLock:
+                    self._bytesOut += bytesOut
+                    self._framesOut += 1
+
+            writer.release()
+
+        # create a barrier to synchronize the movie writer with other threads
+        self._syncBarrier = threading.Barrier(2)
+
+        # initialize the thread, the thread will wait on frames to be added to 
+        # the queue
+        self._writerThread = threading.Thread(
+            target=_writeFramesAsync,
+            args=(self._filename, 
+                  self._size,
+                  self._fps,
+                  self._codec,
+                  self._frameQueue,
+                  self._syncBarrier,
+                  self._dataLock))
+        
+        self._writerThread.start()
         _openMovieWriters.add(self)   # add to the list of open movie writers
 
         logging.debug("Waiting for movie writer thread to start...")
         self._syncBarrier.wait()  # wait for the thread to start
         logging.debug("Movie writer thread started.")
+        
+    def open(self):
+        """Open the movie file for writing.
+
+        This creates a new thread that will write the movie file to disk in
+        the background.
+
+        After calling this method, you can add frames to the movie using
+        `addFrame()`. When you are done adding frames, call `close()` to
+        finalize the movie file.
+
+        """
+        if self.isOpen:
+            raise RuntimeError('Movie writer is already open.')
+        
+        # register ourselves as an open movie writer
+        global _openMovieWriters
+        # check if we already have a movie writer for this file
+        if self in _openMovieWriters:
+            raise ValueError(
+                'A movie writer is already open for file {}'.format(
+                    self._filename))
+        
+        logging.debug('Creating movie file for writing %s', self._filename)
+
+        # reset counters
+        self._bytesOut = self._framesOut = 0
+        self._pts = 0.0
+
+        # eventually we'll want to support other encoder libraries, for now
+        # we're just going to hardcode the encoder libraries we support
+        if self._encoderLib == 'ffpyplayer':
+            self._openFFPyPlayer()
+        elif self._encoderLib == 'opencv':
+            self._openOpenCV()
+        else:
+            raise ValueError(
+                "Unknown encoder library '{}'.".format(self._encoderLib))
+        
+        _openMovieWriters.add(self)   # add to the list of open movie writers
         logging.info("Movie file '%s' opened for writing.", self._filename)
-    
+        
     def flush(self):
-        """Flush the movie file.
+        """Flush waiting frames to the movie file.
 
         This will cause all frames waiting in the queue to be written to disk
-        before continuing the program. This is useful for ensuring that all
-        frames are written to disk before the program exits. However, it will
-        block the program until all frames are written.
+        before continuing the program i.e. the thread that called this method. 
+        This is useful for ensuring that all frames are written to disk before 
+        the program exits.
 
         """
         # check if the writer thread present and is alive
-        if self._writerThread is None:
-            return
-        elif not self._writerThread.is_alive():
-            return
+        if not self.isOpen:
+            raise RuntimeError('Movie writer is not open.')
 
         # block until the queue is empty
-        nWaiting = self.framesWaiting
+        nWaitingAtStart = self.framesWaiting
         while not self._frameQueue.empty():
             # simple check to see if the queue size is decreasing monotonically
-            nWaitingNew = self.framesWaiting
-            if nWaitingNew > nWaiting:
+            nWaitingNow = self.framesWaiting
+            if nWaitingNow > nWaitingAtStart:
                 logging.warn(
                     "Queue length not decreasing monotonically during "
                     "`flush()`. This may indicate that frames are still being "
                     "added ({} -> {}).".format(
-                        nWaiting, nWaitingNew)
+                        nWaitingAtStart, nWaitingNow)
                 )
-            nWaiting = nWaitingNew
+            nWaitingAtStart = nWaitingNow
             time.sleep(0.001)  # sleep for 1 ms
 
     def close(self):
@@ -570,10 +757,11 @@ class MovieFileWriter:
             library being used.
 
         """
-        # convert the image to a format that `ffpyplayer` can use if needed
-        if self._encoderLib == 'ffpyplayer':
+        # convert the image to a format that the selected encoder library can
+        # work with
+        if self._encoderLib == 'ffpyplayer':  # FFPyPlayer `MediaWriter`
             import ffpyplayer.pic as pic
-            if isinstance(image, np.ndarray):
+            if isinstance(image, np.ndarray): 
                 # make sure we are the correct format
                 image = np.ascontiguousarray(image, dtype=np.uint8).tobytes()
                 return pic.Image(
@@ -583,15 +771,30 @@ class MovieFileWriter:
             elif isinstance(image, pic.Image):
                 # check if the format is valid
                 if image.get_pixel_format() != self._pixelFormat:
-                    raise ValueError('Invalid pixel format for image.')
+                    raise ValueError('Invalid pixel format for `image`.')
                 return image
             else:
-                raise TypeError('Unsupported image type for.')
+                raise TypeError(
+                    'Unsupported `image` type for OpenCV '
+                    '`MediaWriter.write_frame().')
+        elif self._encoderLib == 'opencv':  # OpenCV `VideoWriter`
+            if isinstance(image, np.ndarray):
+                return np.ascontiguousarray(image, dtype=np.uint8)
+            else:
+                raise TypeError(
+                    'Unsupported `image` type for OpenCV `VideoWriter.write().')
         else:
-            raise RuntimeError('Unsupported writer library.')
+            raise RuntimeError('Unsupported encoder library specified.')
 
     def addFrame(self, image, pts=None):
         """Add a frame to the movie.
+
+        This adds a frame to the movie. The frame will be added to a queue and
+        written to disk by a background thread. This method will block until the
+        frame is added to the queue. 
+        
+        Any color space conversion or resizing will be performed in the caller's 
+        thread. This may be threaded too in the future.
 
         Parameters
         ----------
@@ -604,7 +807,8 @@ class MovieFileWriter:
             the frame should be displayed. The presentation timestamp is in 
             seconds and should be monotonically increasing. If `None`, the 
             presentation timestamp will be automatically generated based on the 
-            chosen frame rate for the output video. 
+            chosen frame rate for the output video. Not all encoder libraries
+            support presentation timestamps, so this parameter may be ignored.
 
         Returns
         -------
@@ -614,18 +818,21 @@ class MovieFileWriter:
             presentation timestamp.
 
         """
-        if self._writerThread is None:
-            raise RuntimeError('Movie file is not open.')
-        
-        if not self._writerThread.is_alive():  # no thread running yet
-            return
+        if not self._isOpen:
+            # nb - eventually we can allow frames to be added to a closed movie
+            # object and have them queued until the movie is opened which will
+            # commence writing
+            raise RuntimeError('Movie file not open for writing.')
         
         # convert to a format for the selected writer library
         colorData = self._convertImage(image)
+
         # get computed presentation timestamp if not provided
         pts = self._pts if pts is None else pts
+
         # pass the image data to the writer thread
         self._frameQueue.put((colorData, pts))
+
         # update the presentation timestamp after adding the frame
         self._pts += self._frameInterval
 
