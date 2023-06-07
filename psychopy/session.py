@@ -818,6 +818,29 @@ class Session:
             blocking=blocking
         )
 
+    def makeAnnotation(self, value):
+        """
+        Add an annotation in the data file at the current point in the
+        experiment.
+
+        Parameters
+        ----------
+        value : str
+            Value of the annotation
+
+        Returns
+        -------
+        bool
+            True if completed successfully, False if there was no experiment running
+        """
+        # if no experiment, return False
+        if not hasattr(self.currentExperiment, "addAnnotation"):
+            return False
+        # annotate
+        self.currentExperiment.addAnnotation(value)
+
+        return True
+
     def sendToLiaison(self, value):
         """
         Send data to this Session's `Liaison` object.

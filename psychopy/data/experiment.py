@@ -90,7 +90,7 @@ class ExperimentHandler(_ComparisonMixin):
         self.thisEntry = {}
         self.entries = []  # chronological list of entries
         self._paramNamesSoFar = []
-        self.dataNames = []  # names of all the data (eg. resp.keys)
+        self.dataNames = ["notes"]  # names of all the data (eg. resp.keys)
         self.autoLog = autoLog
         self.appendFiles = appendFiles
         self.status = constants.NOT_STARTED
@@ -230,6 +230,17 @@ class ExperimentHandler(_ComparisonMixin):
             # unhashable type (list, dict, ...) == mutable, so need a copy()
             value = copy.deepcopy(value)
         self.thisEntry[name] = value
+
+    def addAnnotation(self, value):
+        """
+        Add an annotation at the current point in the experiment
+
+        Parameters
+        ----------
+        value : str
+            Value of the annotation
+        """
+        self.addData("notes", value)
 
     def timestampOnFlip(self, win, name):
         """Add a timestamp (in the future) to the current row
