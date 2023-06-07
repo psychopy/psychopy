@@ -835,13 +835,39 @@ class Session:
 
         Returns
         -------
-        True if emulated successfully.
+        bool
+            True if emulated successfully.
         """
         from psychopy.hardware.keyboard import Keyboard
         if press:
             Keyboard.makePress(key)
         if release:
             Keyboard.makeRelease(key)
+
+        return True
+
+    def makeAnnotation(self, value):
+        """
+        Add an annotation in the data file at the current point in the
+        experiment.
+
+        Parameters
+        ----------
+        value : str
+            Value of the annotation
+
+        Returns
+        -------
+        bool
+            True if completed successfully, False if there was no experiment running
+        """
+        # if no experiment, return False
+        if not hasattr(self.currentExperiment, "addAnnotation"):
+            return False
+        # annotate
+        self.currentExperiment.addAnnotation(value)
+
+        return True
 
     def sendToLiaison(self, value):
         """
