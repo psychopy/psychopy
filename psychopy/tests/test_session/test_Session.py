@@ -29,7 +29,8 @@ class TestSession:
                 'exp2': "exp2/exp2.psyexp",
                 'testCtrls': "testCtrls/testCtrls.psyexp",
                 'error': "error/error.psyexp",
-                'keyboard': "keyboard/keyboard.py",
+                'keyboard': "keyboard/keyboard.psyexp",
+                'annotation': "annotation/annotation.psyexp"
             }
         )
 
@@ -105,6 +106,65 @@ class TestSession:
         # check that we got press and release
         assert expInfo['gotPress']
         assert expInfo['gotRelease']
+
+    def testAnnotation(self):
+        def _doAnnotation(self):
+            # wait for experiment to have started
+            while self.sess.currentExperiment is None:
+                time.sleep(0.01)
+            # run a while loop for 1s
+            start = time.time()
+            t = 0
+            loopStart = None
+            writeTimed = True
+            writeLoop = True
+            while time.time() - start < 2:
+                # sleep so other stuff still happens
+                time.sleep(0.01)
+                # once loop starts, start timing
+                loop = getattr(self.sess.currentExperiment, "currentLoop", None)
+                if hasattr(loop, "thisN"):
+                    if loopStart is None:
+                        loopStart = time.time()
+                    else:
+                        t = time.time() - loopStart
+                else:
+                    continue
+                # at 0.2s, write an annotation
+                if t >= 0.2 and writeTimed:
+                    self.sess.makeAnnotation("t")
+                    writeTimed = False
+                # at 3rd rep of trials, write an annotation
+                if loop.thisN == 3 and writeLoop:
+                    self.sess.makeAnnotation("n")
+                    writeLoop = False
+
+        # run test in second thread
+        threading.Thread(
+            target=_doAnnotation,
+            args=[self]
+        ).start()
+        # run experiment and get entries
+        self.sess.runExperiment("annotation")
+        entries = self.sess.runs[-1].getAllEntries()
+        # store time at which timer would have started
+        start = entries[0]['text.started']
+        # iterate through entries
+        foundNotes = []
+        for entry in entries:
+            # if noted 0.2s, make sure it was after 0.2s
+            if entry.get('notes', "") == "t":
+                foundNotes.append("t")
+                assert abs(entry['text.started'] - start - 0.2) < 0.1, f"Annotation at 0.2s was at wrong time {entries}"
+            # if noted 3 reps, make sure it was at 3 reps
+            if entry.get('notes', "") == "n":
+                foundNotes.append("n")
+                assert entry['trials.thisN'] in (3, "3"), f"Annotation at 3 reps was on wrong line: {entries}"
+            # look for note from experiment
+            if entry.get('notes', "") == "e":
+                foundNotes.append("e")
+        # make sure all notes were found (and in correct order
+        assert foundNotes == ["t", "n", "e"], f"Some annotations were not found, or were found in the wrong order: {entries}"
 
     # def test_error(self, capsys):
     #     """
