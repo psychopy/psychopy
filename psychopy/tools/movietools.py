@@ -419,6 +419,18 @@ class MovieFileWriter:
         """
         return self._frameInterval
     
+    @property
+    def duration(self):
+        """The duration of the movie in seconds (`float`).
+
+        This is the total duration of the movie in seconds based on the number 
+        of frames that have been added to the movie and the frame rate. This 
+        does not represent the actual duration of the movie file on disk, which
+        may be longer if frames are still being written to disk.
+
+        """
+        return self.totalFrames * self._frameInterval
+    
     def _openFFPyPlayer(self):
         """Open a movie writer using FFPyPlayer.
 
@@ -600,11 +612,12 @@ class MovieFileWriter:
                 writer.write(colorData)
 
                 # number of bytes the last frame took
-                bytesOut = writer.get(cv2.VIDEOWRITER_PROP_FRAMEBYTES)
+                # bytesOut = writer.get(cv2.VIDEOWRITER_PROP_FRAMEBYTES)
+                bytesOut = os.stat(filename).st_size
 
                 # update values in a thread safe manner
                 with dataLock:
-                    self._bytesOut += bytesOut
+                    self._bytesOut = bytesOut
                     self._framesOut += 1
 
             writer.release()
