@@ -100,6 +100,11 @@ class MovieFileWriter:
     encoderLib : str
         The library to use to handle encoding and writing the movie to disk. The 
         default is 'ffpyplayer'.
+    encoderOpts : dict or None
+        A dictionary of options to pass to the encoder. These option can be used
+        to control the quality of the movie, for example. The options depend on
+        the `encoderLib` in use. If `None`, the writer will use the default
+        options for the backend.
 
     Examples
     --------
@@ -126,6 +131,31 @@ class MovieFileWriter:
 
         # close the movie, this completes the writing process
         writer.close()
+    
+    Setting additional options for the movie encoder requires passing a
+    dictionary of options to the `encoderOpts` parameter. The options depend on
+    the encoder library in use. For example, to set the quality of the movie
+    when using the `ffpyplayer` library, you can do the following::
+
+        ffmpegOpts = {'preset': 'medium', 'crf': 16}  # medium quality, crf=16
+        writer = movietools.MovieFileWriter(
+            filename='myMovie.mp4', 
+            size='720p', 
+            fps=30,
+            encoderLib='ffpyplayer',
+            encoderOpts=ffmpegOpts)
+        
+    The OpenCV backend specifies options differently. To set the quality of the
+    movie when using the OpenCV library with a codec that support variable 
+    quality, you can do the following::
+
+        cvOpts = {'quality': 80}  # set the quality to 80 (0-100)
+        writer = movietools.MovieFileWriter(
+            filename='myMovie.mp4', 
+            size='720p',
+            fps=30,
+            encoderLib='opencv',
+            encoderOpts=cvOpts)
         
     """
     # supported pixel formats as constants
@@ -133,7 +163,7 @@ class MovieFileWriter:
     PIXEL_FORMAT_RGBA32 = 'rgb32'
 
     def __init__(self, filename, size, fps, codec=None, pixelFormat='rgb24',
-                 encoderLib='ffpyplayer'):
+                 encoderLib='ffpyplayer', encoderOpts=None):
         
         # objects needed to build up the asynchronous movie writer interface
         self._writerThread = None  # thread for writing the movie file
@@ -153,9 +183,12 @@ class MovieFileWriter:
             self._codec = codec or 'libx264'  # default codec
         elif encoderLib == 'opencv':
             self._codec = codec or 'mp4v'
+            if len(self._codec) != 4:
+                raise ValueError('OpenCV codecs must be FourCC codes')
         else:
             raise ValueError('Unknown encoder library: {}'.format(encoderLib))
         self._encoderLib = encoderLib
+        self._encoderOpts = {} if encoderOpts is None else encoderOpts
 
         self._size = None
         self.size = size  # use setter to init self._size
@@ -334,6 +367,24 @@ class MovieFileWriter:
         self._encoderLib = value
 
     @property
+    def encoderOpts(self):
+        """Encoder options (`dict`).
+
+        These are passed directly to the encoder library. The default is an
+        empty dictionary.
+
+        """
+        return self._encoderOpts
+    
+    @encoderOpts.setter
+    def encoderOpts(self, value):
+        if not self.isOpen:
+            raise RuntimeError(
+                'Cannot change `encoderOpts` after the writer has been opened.')
+
+        self._encoderOpts = value
+
+    @property
     def lastVideoFile(self):
         """The name of the last video file written to disk (`str` or `None`).
 
@@ -443,7 +494,7 @@ class MovieFileWriter:
         from ffpyplayer.writer import MediaWriter
         from ffpyplayer.pic import SWScale
 
-        def _writeFramesAsync(filename, writerOptions, frameQueue, readyBarrier,
+        def _writeFramesAsync(filename, writerOpts, libOpts, frameQueue, readyBarrier,
                              dataLock):
             """Local function used to write frames to the movie file.
 
@@ -455,8 +506,11 @@ class MovieFileWriter:
             ----------
             filename : str
                 Path of the movie file to write.
-            writerOptions : dict
-                Options to configure the movie writer.
+            writerOpts : dict
+                Options to configure the movie writer. These are FFPyPlayer
+                settings and are passed directly to the `MediaWriter` object.
+            libOpts : dict
+                Option to configure FFMPEG with.
             frameQueue : queue.Queue
                 A queue containing the frames to write to the movie file.
                 Pushing `None` to the queue will cause the thread to exit.
@@ -473,7 +527,7 @@ class MovieFileWriter:
             # create the movie writer, don't manipulate this object while the 
             # movie is being written to disk
             try:
-                writer = MediaWriter(filename, [writerOptions])
+                writer = MediaWriter(filename, [writerOpts], libOpts=libOpts)
             except Exception:  # catch all exceptions
                 raise RuntimeError("Failed to open movie file.")
 
@@ -517,7 +571,7 @@ class MovieFileWriter:
             'height_in': frameHeight,
             'codec': self._codec,
             'frame_rate': (int(self._fps), 1)}
-
+        
         # create a barrier to synchronize the movie writer with other threads
         self._syncBarrier = threading.Barrier(2)
 
@@ -527,6 +581,7 @@ class MovieFileWriter:
             target=_writeFramesAsync,
             args=(self._filename, 
                   writerOptions, 
+                  self._encoderOpts,
                   self._frameQueue,
                   self._syncBarrier,
                   self._dataLock))
@@ -547,7 +602,7 @@ class MovieFileWriter:
         """
         import cv2
 
-        def _writeFramesAsync(filename, frameSize, frameRate, codec, frameQueue, 
+        def _writeFramesAsync(writer, filename, frameSize, frameQueue, 
                               readyBarrier, dataLock):
             """Local function used to write frames to the movie file.
 
@@ -557,14 +612,12 @@ class MovieFileWriter:
 
             Parameters
             ----------
+            writer : cv2.VideoWriter
+                A `cv2.VideoWriter` object used to write the movie file.
             filename : str
                 Path of the movie file to write.
             frameSize : tuple
-                The size of the frames in pixels.
-            frameRate : float
-                The frame rate in frames per second.
-            codec : str
-                The four character code of the codec to use.
+                The size of the frames in pixels as a `(width, height)` tuple.
             frameQueue : queue.Queue
                 A queue containing the frames to write to the movie file.
                 Pushing `None` to the queue will cause the thread to exit.
@@ -577,20 +630,8 @@ class MovieFileWriter:
                 A lock used to synchronize access to the movie writer object for
                 accessing variables.
 
-            """
-            # open the movie file
+            """                        
             frameWidth, frameHeight = frameSize
-            writer = cv2.VideoWriter(
-                filename, 
-                cv2.CAP_FFMPEG,
-                cv2.VideoWriter_fourcc(*codec),
-                frameRate, 
-                (frameWidth, frameHeight), 
-                1)  # is color image?
-            
-            if not writer.isOpened():
-                raise RuntimeError("Failed to open movie file.")
-            
             # wait on a barrier
             if readyBarrier is not None:
                 readyBarrier.wait()
@@ -605,7 +646,7 @@ class MovieFileWriter:
                 
                 # Resize and color conversion, this puts the data in the correct 
                 # format for OpenCV's frame writer
-                colorData = cv2.resize(colorData, frameSize)
+                colorData = cv2.resize(colorData, (frameWidth, frameHeight))
                 colorData = cv2.cvtColor(colorData, cv2.COLOR_RGB2BGR)
 
                 # write the actual frame out to the file
@@ -622,6 +663,32 @@ class MovieFileWriter:
 
             writer.release()
 
+        # Open the writer outside of the thread so exception opening it can be
+        # caught beforehand.
+        writer = cv2.VideoWriter(
+            self._filename, 
+            cv2.CAP_FFMPEG,  # use ffmpeg
+            cv2.VideoWriter_fourcc(*self._codec),
+            float(self._fps),
+            self._size, 
+            1)  # is color image?
+        
+        if self._encoderOpts:
+            # only supported option for now is `quality`, this doesn't really
+            # work for teh default OpenCV codec for some reason :(
+            quality = self._encoderOpts.get('VIDEOWRITER_PROP_QUALITY', None) \
+                or self._encoderOpts.get('quality', None)
+            if quality is None:
+                quality = writer.get(cv2.VIDEOWRITER_PROP_QUALITY)
+                logging.debug("Quality not specified, using default value of "
+                                f"{quality}.")
+                
+            writer.set(cv2.VIDEOWRITER_PROP_QUALITY, float(quality))
+            logging.info(f"Setting movie writer quality to {quality}.")
+    
+        if not writer.isOpened():
+            raise RuntimeError("Failed to open movie file.")
+
         # create a barrier to synchronize the movie writer with other threads
         self._syncBarrier = threading.Barrier(2)
 
@@ -629,10 +696,9 @@ class MovieFileWriter:
         # the queue
         self._writerThread = threading.Thread(
             target=_writeFramesAsync,
-            args=(self._filename, 
+            args=(writer,
+                  self._filename,
                   self._size,
-                  self._fps,
-                  self._codec,
                   self._frameQueue,
                   self._syncBarrier,
                   self._dataLock))
