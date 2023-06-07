@@ -16,6 +16,8 @@ Overview
     MovieFileWriter.pixelFormat
     MovieFileWriter.encoderLib
     MovieFileWriter.encoderOpts
+    MovieFileWriter.frameRate
+    MovieFileWriter.frameSize
     MovieFileWriter.lastVideoFile
     MovieFileWriter.isOpen
     MovieFileWriter.framesOut
