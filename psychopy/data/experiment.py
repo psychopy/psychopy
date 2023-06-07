@@ -91,6 +91,7 @@ class ExperimentHandler(_ComparisonMixin):
         self.entries = []  # chronological list of entries
         self._paramNamesSoFar = []
         self.dataNames = []  # names of all the data (eg. resp.keys)
+        self.columnSalience = {}
         self.autoLog = autoLog
         self.appendFiles = appendFiles
         self.status = constants.NOT_STARTED
@@ -230,6 +231,92 @@ class ExperimentHandler(_ComparisonMixin):
             # unhashable type (list, dict, ...) == mutable, so need a copy()
             value = copy.deepcopy(value)
         self.thisEntry[name] = value
+
+    def getSalience(self, name):
+        """
+        Get the salience value for a given column.
+
+        Parameters
+        ----------
+        name : str
+            Column name
+
+        Returns
+        -------
+        int
+            One of:
+            - psychopy.constants.SALIENCE_REFUSED (-1): You have specifically asked to not have this column
+            - psychopy.constants.SALIENCE_NONE (0): It is unknown whether you want this column
+            - psychopy.constants.SALIENCE_LIKELY (1): It is likely that you want this column
+            - psychopy.constants.SALIENCE_REQUESTED (2): You have specifically asked for this column
+            - psychopy.constants.SALIENCE_REQUIRED (3): This column is vital, it is inadvisible to ignore it
+        """
+        return self.columnSalience.get(name, self._guessSalience(name))
+
+    def _guessSalience(self, name):
+        """
+        Get a best guess at the salience of a column based on its name
+
+        Parameters
+        ----------
+        name : str
+            Name of the column
+
+        Returns
+        -------
+        int
+            One of the following:
+            - constants.SALIENCE_REQUIRED: If the column is considered essential
+            - constants.SALIENCE_LIKELY: If the column is likely to be important but not confirmed
+            - constants.SALIENCE_NONE: Otherwise
+        """
+        # start off assuming not salient
+        salience = constants.SALIENCE_NONE
+
+        if "." in name:
+            # if there's a dot, get attribute name
+            name = name.split(".")[-1]
+        # define names likely to be salient
+        likely = [
+            "keys", "rt", "x", "y", "leftButton", "numClicks", "numLooks", "clip", "response", "value",
+            "frameRate", "participant"
+        ]
+        # if name is in expInfo, mark as likely
+        if name in self.extraInfo:
+            salience = constants.SALIENCE_LIKELY
+        # if name is in list, mark as likely
+        if name in likely:
+            salience = constants.SALIENCE_LIKELY
+        # define names which are required
+        required = [
+            "date", "expName", "psychopyVersion"
+        ]
+        # if name is required, mark as required
+        if name in required:
+            salience = constants.SALIENCE_REQUIRED
+
+        return salience
+
+    def setSalience(self, name, value=constants.SALIENCE_REQUESTED):
+        """
+        Set the salience of a column in the data file.
+
+        Parameters
+        ----------
+        name : str
+            Name of the column, e.g. `text.started`
+        value : int
+            Salience value to set the column to - the higher, the more salient, so the higher
+            salience level it will be included at. Salience levels are:
+            - psychopy.constants.SALIENCE_REFUSED (-1): You have specifically asked to not have this column
+            - psychopy.constants.SALIENCE_NONE (0): It is unknown whether you want this column
+            - psychopy.constants.SALIENCE_LIKELY (1): It is likely that you want this column
+            - psychopy.constants.SALIENCE_REQUESTED (2): You have specifically asked for this column
+            - psychopy.constants.SALIENCE_REQUIRED (3): This column is vital, it is inadvisible to ignore it
+
+            By default, any salience level >= 0 is included.
+        """
+        self.columnSalience[name] = value
 
     def timestampOnFlip(self, win, name):
         """Add a timestamp (in the future) to the current row

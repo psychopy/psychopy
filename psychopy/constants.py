@@ -7,6 +7,7 @@
 
 import sys, os, copy
 from os.path import abspath, join
+from types import SimpleNamespace
 
 NOT_STARTED = 0
 PLAYING = 1
@@ -18,6 +19,14 @@ FINISHED = STOPPED
 SKIP = SEEKING = -2
 STOPPING = -3
 INVALID = -9999
+
+# salience values for column headers
+salience = SimpleNamespace()
+salience.REFUSED = SALIENCE_REFUSED = -1
+salience.NONE = SALIENCE_NONE = 0
+salience.LIKELY = SALIENCE_LIKELY = 1
+salience.REQUESTED = SALIENCE_REQUESTED = 2
+salience.REQUIRED = SALIENCE_REQUIRED = 3
 
 # for button box:
 PRESSED = 1
