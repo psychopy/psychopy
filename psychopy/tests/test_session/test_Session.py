@@ -86,7 +86,8 @@ class TestSession:
         """
         def _doResp(self):
             # wait for experiment to have started
-            time.sleep(0.1)
+            while self.sess.currentExperiment is None:
+                time.sleep(0.01)
             # send keypress
             self.sess.makeKeyboardResponse("a", press=True, release=False)
             # wait a (at least) a frame
@@ -100,7 +101,7 @@ class TestSession:
         threading.Thread(
             target=_doResp,
             args=[self]
-        ).run()
+        ).start()
         # run experiment
         self.sess.runExperiment("keyboard", expInfo=expInfo)
         # check that we got press and release
