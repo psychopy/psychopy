@@ -90,8 +90,8 @@ class MovieFileWriter:
     codec : str or None
         The codec to use for encoding the movie. This may be a codec identifier
         (e.g., 'libx264') or a FourCC code. The value depends of the 
-        `encoderLib` in use. If `None`, the a codec determined by the file 
-        extension will be used.
+        `encoderLib` in use. If `None`, the writer will select the codec based
+        on the file extension of `filename` (if supported by the backend).
     pixelFormat : str
         Pixel format for frames being added to the movie. This should be 
         either 'rgb24' or 'rgba32'. The default is 'rgb24'. When passing frames
@@ -118,10 +118,9 @@ class MovieFileWriter:
         writer.open()
             
         # add some frames to the movie
-        for i in range(100):
+        for i in range(5 * writer.fps):  # 5 seconds of video
             # create a frame, just some random noise
-            frame = np.random.randint(
-                0, 255, size=(480 * 640 * 3), dtype=np.uint8)
+            frame = np.random.randint(0, 255, (640, 480, 3), dtype=np.uint8)
             # add the frame to the movie
             writer.addFrame(frame)
 
@@ -153,7 +152,7 @@ class MovieFileWriter:
         if encoderLib == 'ffpyplayer':
             self._codec = codec or 'libx264'  # default codec
         elif encoderLib == 'opencv':
-            self._codec = codec or 'H264'
+            self._codec = codec or 'mp4v'
         else:
             raise ValueError('Unknown encoder library: {}'.format(encoderLib))
         self._encoderLib = encoderLib
@@ -162,7 +161,6 @@ class MovieFileWriter:
         self.size = size  # use setter to init self._size
         self._fps = None
         self.fps = fps  # use setter to init self._fps
-        self._codec = codec
         self._pixelFormat = pixelFormat
         
         # frame interval in seconds
@@ -506,7 +504,7 @@ class MovieFileWriter:
             'width_in': frameWidth,
             'height_in': frameHeight,
             'codec': self._codec,
-            'frame_rate': (self._fps, 1)}
+            'frame_rate': (int(self._fps), 1)}
 
         # create a barrier to synchronize the movie writer with other threads
         self._syncBarrier = threading.Barrier(2)
@@ -572,9 +570,11 @@ class MovieFileWriter:
             frameWidth, frameHeight = frameSize
             writer = cv2.VideoWriter(
                 filename, 
+                cv2.CAP_FFMPEG,
                 cv2.VideoWriter_fourcc(*codec),
                 frameRate, 
-                (frameWidth, frameHeight))
+                (frameWidth, frameHeight), 
+                1)  # is color image?
             
             if not writer.isOpened():
                 raise RuntimeError("Failed to open movie file.")
@@ -585,13 +585,19 @@ class MovieFileWriter:
 
             # we can accept frames for writing now
             while True:
-                frame, _ = frameQueue.get()   # discard presentation time stamp
+                frame = frameQueue.get()
                 if frame is None:   # exit if we get `None`
                     break
+
+                colorData, _ = frame  # get the frame data
                 
-                # convert frame to BGR, this needs to be done more efficiently!
-                frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-                writer.write(frame)  # write the frame to the file
+                # Resize and color conversion, this puts the data in the correct 
+                # format for OpenCV's frame writer
+                colorData = cv2.resize(colorData, frameSize)
+                colorData = cv2.cvtColor(colorData, cv2.COLOR_RGB2BGR)
+
+                # write the actual frame out to the file
+                writer.write(colorData)
 
                 # number of bytes the last frame took
                 bytesOut = writer.get(cv2.VIDEOWRITER_PROP_FRAMEBYTES)
@@ -779,6 +785,7 @@ class MovieFileWriter:
                     '`MediaWriter.write_frame().')
         elif self._encoderLib == 'opencv':  # OpenCV `VideoWriter`
             if isinstance(image, np.ndarray):
+                image = image.reshape(self._size[0], self._size[1], 3)
                 return np.ascontiguousarray(image, dtype=np.uint8)
             else:
                 raise TypeError(
@@ -818,7 +825,7 @@ class MovieFileWriter:
             presentation timestamp.
 
         """
-        if not self._isOpen:
+        if not self.isOpen:
             # nb - eventually we can allow frames to be added to a closed movie
             # object and have them queued until the movie is opened which will
             # commence writing
