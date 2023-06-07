@@ -29,6 +29,7 @@ class TestSession:
                 'exp2': "exp2/exp2.psyexp",
                 'testCtrls': "testCtrls/testCtrls.psyexp",
                 'error': "error/error.psyexp",
+                'keyboard': "keyboard/keyboard.py",
             }
         )
 
@@ -77,6 +78,33 @@ class TestSession:
         thread.start()
         # Start session
         self.sess.start()
+
+    def test_keyboard(self):
+        """
+        Test that sendKeyboardResponse send a keypress as intended.
+        """
+        def _doResp(self):
+            # wait for experiment to have started
+            time.sleep(0.1)
+            # send keypress
+            self.sess.makeKeyboardResponse("a", press=True, release=False)
+            # wait a (at least) a frame
+            time.sleep(0.1)
+            # send key release
+            self.sess.makeKeyboardResponse("a", press=False, release=True)
+
+        # dict to store output in
+        expInfo = self.sess.getExpInfoFromExperiment("keyboard")
+        # run test in second thread
+        threading.Thread(
+            target=_doResp,
+            args=[self]
+        ).run()
+        # run experiment
+        self.sess.runExperiment("keyboard", expInfo=expInfo)
+        # check that we got press and release
+        assert expInfo['gotPress']
+        assert expInfo['gotRelease']
 
     # def test_error(self, capsys):
     #     """
