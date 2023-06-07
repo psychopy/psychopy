@@ -130,6 +130,9 @@ class Keyboard:
     _iohubKeyboard = None
     _iohubOffset = 0.0
     _ptbOffset = 0.0
+    # lists of keycodes and wall clock times for simulated presses / releases
+    _simulatedPresses = []
+    _simulatedReleases = []
 
     def __init__(self, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None):
         """Create the device (default keyboard or select one)
@@ -268,6 +271,40 @@ class Keyboard:
             for buffer in self._buffers.values():
                 buffer.stop()
 
+    @staticmethod
+    def makePress(key):
+        """
+        Simulate a key press.
+
+        Parameters
+        ----------
+        key : str
+            Key to press.
+        """
+        # get wall clock time
+        t = time.time()
+        # append to simulated presses
+        Keyboard._simulatedPresses.append(
+            (t, key)
+        )
+
+    @staticmethod
+    def makeRelease(key):
+        """
+        Simulate a key release.
+
+        Parameters
+        ----------
+        key : str
+            Key to release.
+        """
+        # get wall clock time
+        t = time.time()
+        # append to simulated presses
+        Keyboard._simulatedReleases.append(
+            (t, key)
+        )
+
     def getKeys(self, keyList=None, waitRelease=True, clear=True):
         """
 
@@ -351,6 +388,42 @@ class Keyboard:
             if len(name):
                 thisKey = KeyPress(code=None, tDown=rt, name=name[0])
                 keys.append(thisKey)
+        # include simulated presses
+        simKeys = []
+        i = 0
+        for t, thisKey in Keyboard._simulatedPresses.copy():
+            # convert t to clock time
+            t = t - self.clock.getLastResetTime()
+            # make KeyPress objects
+            if thisKey in keyList:
+                simKeys.append(
+                    KeyPress(code=thisKey, tDown=t)
+                )
+                # if clear, remove press now we've got it
+                if clear:
+                    del Keyboard._simulatedPresses[i]
+            # iterate index
+            i += 1
+        # include simulated releases
+        i = 0
+        for t, thisRelease in Keyboard._simulatedReleases.copy():
+            # convert t to clock time
+            t = t - self.clock.getLastResetTime()
+            # apply release to any open KeyPress objects
+            for thisPressObj in keys + simKeys:
+                if thisPressObj.duration is None and thisPressObj.tDown < t:
+                    thisPressObj.release(t)
+                    # if clear, remove release now we've got it
+                    if clear:
+                        del Keyboard._simulatedReleases[i]
+            # iterate index
+            i += 1
+        # if waitRelease, filter incomplete presses
+        if waitRelease:
+            simKeys = [thisKey for thisKey in simKeys if thisKey.duration is not None]
+        # append simulted keys
+        keys.extend(simKeys)
+
         return keys
 
     def waitKeys(self, maxWait=float('inf'), keyList=None, waitRelease=True,
@@ -408,6 +481,9 @@ class Keyboard:
         else:
             global event
             event.clearEvents(eventType)
+        # clear any simulated presses
+        Keyboard._simulatedPresses = []
+        Keyboard._simulatedReleases = []
 
 
 class KeyPress(object):
@@ -462,6 +538,18 @@ class KeyPress(object):
 
     def __ne__(self, other):
         return self.name != other
+
+    def release(self, tUp):
+        """
+        Release this key.
+
+        Parameters
+        ----------
+        tUp : float
+            Time of key release, in same format & frame of reference as tDown.
+        """
+        # calculate duration
+        self.duration = tUp - self.tDown
 
 
 class _KeyBuffers(dict):
