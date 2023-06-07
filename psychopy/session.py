@@ -818,6 +818,31 @@ class Session:
             blocking=blocking
         )
 
+    @staticmethod
+    def makeKeyboardResponse(key, press=True, release=True):
+        """
+        Emulate a Keyboard response - if an experiment is running, this will be detected.
+
+        Parameters
+        ----------
+        key : str
+            Key value to emulate.
+        press : bool
+            If True, then key press is sent.
+        release : bool
+            If True, then key release is sent.
+                    blocking : bool
+
+        Returns
+        -------
+        True if emulated successfully.
+        """
+        from psychopy.hardware.keyboard import Keyboard
+        if press:
+            Keyboard.makePress(key)
+        if release:
+            Keyboard.makeRelease(key)
+
     def sendToLiaison(self, value):
         """
         Send data to this Session's `Liaison` object.
