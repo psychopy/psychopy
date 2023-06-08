@@ -3308,6 +3308,7 @@ class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         """A panel that shows how the routines will fit together
         """
         self.frame = frame
+        self.parent = parent
         self.app = frame.app
         self.dpi = self.app.dpi
         wx.ScrolledWindow.__init__(self, parent, id,
@@ -3634,8 +3635,8 @@ class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                 self.frame.routinePanel.setCurrentRoutine(comp)
                 try:
                     self._menuComponentID = icon
-                    xy = wx.Point(event.X + self.GetPosition()[0],
-                                  event.Y + self.GetPosition()[1])
+                    xy = wx.Point(event.X + self.parent.GetPosition()[0],
+                                  event.Y + self.parent.GetPosition()[1])
                     self.showContextMenu(self._menuComponentID, xy=xy)
                 except UnboundLocalError:
                     # right click but not on an icon
