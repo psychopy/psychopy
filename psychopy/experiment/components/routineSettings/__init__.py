@@ -153,7 +153,7 @@ class RoutineSettingsComponent(BaseComponent):
         # Store Routine start time (UTC)
         if self.params['saveStartStop']:
             code = (
-                "thisExp.addData('%(name)s.started', globalClock.getTime())\n"
+                "thisExp.addData('%(name)s.started', globalClock.getTime(), salience=salience.CRITICAL)\n"
             )
             buff.writeIndentedLines(code % params)
         # Skip Routine if condition is met

@@ -202,8 +202,9 @@ class ExperimentHandler(_ComparisonMixin):
 
         return names, vals
 
-    def addData(self, name, value):
-        """Add the data with a given name to the current experiment.
+    def addData(self, name, value, salience=None):
+        """
+        Add the data with a given name to the current experiment.
 
         Typically the user does not need to use this function; if you added
         your data to the loop and had already added the loop to the
@@ -221,6 +222,22 @@ class ExperimentHandler(_ComparisonMixin):
             exp.addData('resp.key', 'k')
             # end of trial - move to next line in data output
             exp.nextEntry()
+
+        Parameters
+        ----------
+        name : str
+            Name of the column to add data as.
+        value : any
+            Value to add
+        salience : int
+            Salience value to set the column to - more salient columns appear nearer to the start of
+            the data file. Use values from `constants.salience` as landmark values:
+            - CRITICAL: Always at the start of the data file, generally reserved for Routine start times
+            - HIGH: Important columns which are near the front of the data file
+            - MEDIUM: Possibly important columns which are around the middle of the data file
+            - LOW: Columns unlikely to be important which are at the end of the data file
+            - EXCLUDE: Always at the end of the data file, actively marked as unimportant
+
         """
         if name not in self.dataNames:
             self.dataNames.append(name)
@@ -232,9 +249,14 @@ class ExperimentHandler(_ComparisonMixin):
             value = copy.deepcopy(value)
         self.thisEntry[name] = value
 
+        # set salience if given
+        if salience is not None:
+            self.setSalience(name, salience)
+
     def getSalience(self, name):
         """
-        Get the salience value for a given column.
+        Get the salience value for a given column. If no salience value is
+        stored, returns best guess based on column name.
 
         Parameters
         ----------
@@ -244,12 +266,12 @@ class ExperimentHandler(_ComparisonMixin):
         Returns
         -------
         int
-            One of:
-            - psychopy.constants.SALIENCE_REFUSED (-1): You have specifically asked to not have this column
-            - psychopy.constants.SALIENCE_NONE (0): It is unknown whether you want this column
-            - psychopy.constants.SALIENCE_LIKELY (1): It is likely that you want this column
-            - psychopy.constants.SALIENCE_REQUESTED (2): You have specifically asked for this column
-            - psychopy.constants.SALIENCE_REQUIRED (3): This column is vital, it is inadvisible to ignore it
+            The salience value stored/guessed for this column, most likely a value from `constants.salience`, one of:
+            - CRITICAL (30): Always at the start of the data file, generally reserved for Routine start times
+            - HIGH (20): Important columns which are near the front of the data file
+            - MEDIUM (10): Possibly important columns which are around the middle of the data file
+            - LOW (0): Columns unlikely to be important which are at the end of the data file
+            - EXCLUDE (-10): Always at the end of the data file, actively marked as unimportant
         """
         return self.columnSalience.get(name, self._guessSalience(name))
 
@@ -266,38 +288,31 @@ class ExperimentHandler(_ComparisonMixin):
         -------
         int
             One of the following:
-            - constants.SALIENCE_REQUIRED: If the column is considered essential
-            - constants.SALIENCE_LIKELY: If the column is likely to be important but not confirmed
-            - constants.SALIENCE_NONE: Otherwise
+            - CRITICAL (30): Always at the start of the data file, generally reserved for Routine start times
+            - HIGH (20): Important columns which are near the front of the data file
+            - MEDIUM (10): Possibly important columns which are around the middle of the data file
+            - LOW (0): Columns unlikely to be important which are at the end of the data file
+            - EXCLUDE (-10): Always at the end of the data file, actively marked as unimportant
         """
-        # start off assuming not salient
-        salience = constants.SALIENCE_NONE
-
+        # if there's a dot, get attribute name
         if "." in name:
-            # if there's a dot, get attribute name
             name = name.split(".")[-1]
-        # define names likely to be salient
-        likely = [
+
+        # start off assuming not salient
+        salience = constants.SALIENCE_LOW
+        # if name is in extraInfo, it's highly salient
+        if name in self.extraInfo:
+            salience = constants.SALIENCE_HIGH
+        # if name is one of identified likely salient columns, it's medium salience
+        if name in [
             "keys", "rt", "x", "y", "leftButton", "numClicks", "numLooks", "clip", "response", "value",
             "frameRate", "participant"
-        ]
-        # if name is in expInfo, mark as likely
-        if name in self.extraInfo:
-            salience = constants.SALIENCE_LIKELY
-        # if name is in list, mark as likely
-        if name in likely:
-            salience = constants.SALIENCE_LIKELY
-        # define names which are required
-        required = [
-            "date", "expName", "psychopyVersion"
-        ]
-        # if name is required, mark as required
-        if name in required:
-            salience = constants.SALIENCE_REQUIRED
+        ]:
+            salience = constants.SALIENCE_MEDIUM
 
         return salience
 
-    def setSalience(self, name, value=constants.SALIENCE_REQUESTED):
+    def setSalience(self, name, value=constants.SALIENCE_HIGH):
         """
         Set the salience of a column in the data file.
 
@@ -306,15 +321,13 @@ class ExperimentHandler(_ComparisonMixin):
         name : str
             Name of the column, e.g. `text.started`
         value : int
-            Salience value to set the column to - the higher, the more salient, so the higher
-            salience level it will be included at. Salience levels are:
-            - psychopy.constants.SALIENCE_REFUSED (-1): You have specifically asked to not have this column
-            - psychopy.constants.SALIENCE_NONE (0): It is unknown whether you want this column
-            - psychopy.constants.SALIENCE_LIKELY (1): It is likely that you want this column
-            - psychopy.constants.SALIENCE_REQUESTED (2): You have specifically asked for this column
-            - psychopy.constants.SALIENCE_REQUIRED (3): This column is vital, it is inadvisible to ignore it
-
-            By default, any salience level >= 0 is included.
+            Salience value to set the column to - more salient columns appear nearer to the start of
+            the data file. Use values from `constants.salience` as landmark values:
+            - CRITICAL (30): Always at the start of the data file, generally reserved for Routine start times
+            - HIGH (20): Important columns which are near the front of the data file
+            - MEDIUM (10): Possibly important columns which are around the middle of the data file
+            - LOW (0): Columns unlikely to be important which are at the end of the data file
+            - EXCLUDE (-10): Always at the end of the data file, actively marked as unimportant
         """
         self.columnSalience[name] = value
 

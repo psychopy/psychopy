@@ -20,13 +20,20 @@ SKIP = SEEKING = -2
 STOPPING = -3
 INVALID = -9999
 
-# salience values for column headers
+
 salience = SimpleNamespace()
-salience.REFUSED = SALIENCE_REFUSED = -1
-salience.NONE = SALIENCE_NONE = 0
-salience.LIKELY = SALIENCE_LIKELY = 1
-salience.REQUESTED = SALIENCE_REQUESTED = 2
-salience.REQUIRED = SALIENCE_REQUIRED = 3
+salience.__doc__ = (
+    "- CRITICAL (30): Always at the start of the data file, generally reserved for Routine start times\n "
+    "- HIGH (20): Important columns which are near the front of the data file\n"
+    "- MEDIUM (10): Possibly important columns which are around the middle of the data file\n"
+    "- LOW (0): Columns unlikely to be important which are at the end of the data file\n"
+    "- EXCLUDE (-10): Always at the end of the data file, actively marked as unimportant\n"
+)
+salience.CRITICAL = SALIENCE_CRITICAL = 30
+salience.HIGH = SALIENCE_HIGH = 20
+salience.MEDIUM = SALIENCE_MEDIUM = 10
+salience.LOW = SALIENCE_LOW = 0
+salience.EXCLUDE = SALIENCE_EXCLUDE = -10
 
 # for button box:
 PRESSED = 1
