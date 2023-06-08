@@ -242,14 +242,18 @@ class KeyboardComponent(BaseComponent):
             keyListStr = self.params['allowedKeys']
 
         # check for keypresses
-        code = ("theseKeys = {name}.getKeys(keyList={keyStr}, waitRelease={waitRelease})\n"
+        expEscape = "None"
+        if self.exp.settings.params['Enable Escape']:
+            expEscape = '["escape"]'
+        code = ("theseKeys = {name}.getKeys(keyList={keyStr}, ignoreKeys={expEscape}, waitRelease={waitRelease})\n"
                 "_{name}_allKeys.extend(theseKeys)\n"
                 "if len(_{name}_allKeys):\n")
         buff.writeIndentedLines(
             code.format(
                 name=self.params['name'],
                 waitRelease=self.params['registerOn'] == "release",
-                keyStr=(keyListStr or None)
+                keyStr=(keyListStr or None),
+                expEscape=expEscape
             )
         )
 
