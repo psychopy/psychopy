@@ -1956,7 +1956,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             self.drawComponent(self.pdc, component, yPos)
             yPos += self.componentStep
         # draw end line (if there is one)
-        self.drawForceEndLine(self.pdc, self.yPosTop + settingsBtnExtent.Height, yPosBottom)
+        self.drawForceEndLine(self.pdc, yPosBottom)
 
         # the 50 allows space for labels below the time axis
         self.SetVirtualSize((int(self.maxWidth), yPos + 50))
@@ -2146,7 +2146,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                         yPosBottom - self.GetFullTextExtent('t')[1] // 2)
         dc.SetTextForeground(colors.app['text'])
 
-    def drawForceEndLine(self, dc, yPosTop, yPosBottom):
+    def drawForceEndLine(self, dc, yPosBottom):
         # get max time & check if we have a hard stop
         tMax, hardStop = self.getMaxTime()
         if hardStop:
@@ -2159,13 +2159,13 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             )
             # vertical line:
             dc.DrawLine(self.timeXposEnd,
-                        yPosTop - 4,
+                        self.rects['grid'].Top - 4,
                         self.timeXposEnd,
                         yPosBottom + 4)
             # label above:
             dc.DrawText('%.2g' % tMax,
                         int(self.timeXposEnd - 4),
-                        yPosTop - 30)
+                        self.rects['grid'].Top - 30)
 
     def setFontSize(self, size, dc):
         font = self.GetFont()
