@@ -50,7 +50,6 @@ class RoutineSettingsComponent(BaseComponent):
         del self.params['startType']
         del self.params['startVal']
         del self.params['startEstim']
-        del self.params['saveStartStop']
         del self.params['syncScreenRefresh']
 
         # Modify disabled label
@@ -144,9 +143,19 @@ class RoutineSettingsComponent(BaseComponent):
                 "false": "hide",  # otherwise...
             }]
 
+        # --- Data params ---
+        self.params['saveStartStop'].label = _translate("Save onset time")
+        self.params['saveStartStop'].hint = _translate("Save the start time (UTC) of this Routine to the data file.")
+
     def writeRoutineStartCode(self, buff):
         # Sanitize
         params = self.params.copy()
+        # Store Routine start time (UTC)
+        if self.params['saveStartStop']:
+            code = (
+                "thisExp.addData('%(name)s.started', globalClock.getTime())\n"
+            )
+            buff.writeIndentedLines(code % params)
         # Skip Routine if condition is met
         if params['skipIf'].val not in ('', None, -1, 'None'):
             code = (

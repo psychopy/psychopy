@@ -79,7 +79,7 @@ class TestLoops:
         # Define desired length for each case
         answers = {
             'testLoopsBlocks': 8,  # because 4 'blocks' with 2 trials each (3 stims per trial)
-            'testStaircase': 5,  # 5 reps
+            'testStaircase': 6,  # 5 reps + row for start time of final run
         }
         # Test each case
         for filename, case in self.cases.items():
