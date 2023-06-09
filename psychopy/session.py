@@ -821,7 +821,7 @@ class Session:
     def makeAnnotation(self, value):
         """
         Add an annotation in the data file at the current point in the
-        experiment.
+        experiment and to the log.
 
         Parameters
         ----------
@@ -831,13 +831,14 @@ class Session:
         Returns
         -------
         bool
-            True if completed successfully, False if there was no experiment running
+            True if completed successfully
         """
-        # if no experiment, return False
-        if not hasattr(self.currentExperiment, "addAnnotation"):
-            return False
-        # annotate
-        self.currentExperiment.addAnnotation(value)
+        # add to experiment data if there's one running
+        if hasattr(self.currentExperiment, "addAnnotation"):
+            # annotate
+            self.currentExperiment.addAnnotation(value)
+        # log regardless
+        logging.info(value)
 
         return True
 
