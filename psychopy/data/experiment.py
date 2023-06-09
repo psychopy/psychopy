@@ -90,8 +90,8 @@ class ExperimentHandler(_ComparisonMixin):
         self.thisEntry = {}
         self.entries = []  # chronological list of entries
         self._paramNamesSoFar = []
-        self.dataNames = []  # names of all the data (eg. resp.keys)
-        self.columnSalience = {}
+        self.dataNames = ['thisRow.t']  # names of all the data (eg. resp.keys)
+        self.columnSalience = {'thisRow.t': constants.SALIENCE_CRITICAL - 1}
         self.autoLog = autoLog
         self.appendFiles = appendFiles
         self.status = constants.NOT_STARTED
@@ -422,7 +422,7 @@ class ExperimentHandler(_ComparisonMixin):
         # set own status
         self.status = constants.STOPPED
 
-    def nextEntry(self):
+    def nextEntry(self, t=""):
         """Calling nextEntry indicates to the ExperimentHandler that the
         current trial has ended and so further addData() calls correspond
         to the next trial.
@@ -437,7 +437,8 @@ class ExperimentHandler(_ComparisonMixin):
         if type(self.extraInfo) == dict:
             this.update(self.extraInfo)
         self.entries.append(this)
-        self.thisEntry = {}
+        # add new entry with its
+        self.thisEntry = {'thisRow.t': t}
 
     def getAllEntries(self):
         """Fetches a copy of all the entries including a final (orphan) entry
