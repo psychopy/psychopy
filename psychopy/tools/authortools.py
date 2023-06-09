@@ -4,20 +4,18 @@ class Author:
 
     Parameters
     ----------
-    github : str
-        Author's GitHub username, e.g. peircej for Jon Peirce
     surname : str
         Author's surname, e.g. Peirce for Jon Peirce
     forenames : str, list
         Author's forename, e.g. "Jon" for Jon Peirce or ["Todd", "Ethan"] for Todd Ethan Parsons
     prefices : list
         Any prefices before the surname, e.g. ["of"] for Joan of Arc
+        github : str
+        Author's GitHub username, if they have one. e.g. peircej for Jon Peirce
     email : str
         Author's email address, if they have one. e.g. jon@opensciencetools.org for Jon Peirce
-    orcid : str or int
-        Author's ORCiD, if they have one. e.g. 0000000261928414 for Todd Parsons
     other : dict
-        Any other links or details the author may want included, such as a website link or Twitter username.
+        Any other links or details the author may want included, such as a website link, ORCiD or Twitter username.
     """
     def __init__(
             self,

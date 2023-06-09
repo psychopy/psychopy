@@ -1,6 +1,6 @@
 """
 Author objects for everyone who has contributed to PsychoPy. Add yourself here and then you can credit
-your contributions importing `psychopy.authors` and pointing __author__ to your Author object.
+your contributions by importing `psychopy.authors` and pointing __author__ to your Author object.
 """
 
 from psychopy.tools.authortools import Author
