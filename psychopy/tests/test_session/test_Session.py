@@ -28,8 +28,8 @@ class TestSession:
                 'exp1': "exp1/exp1.psyexp",
                 'exp2': "exp2/exp2.psyexp",
                 'testCtrls': "testCtrls/testCtrls.psyexp",
-                'error': "error/error.psyexp",
-                'keyboard': "keyboard/keyboard.py",
+                'error': "testError/error.psyexp",
+                'keyboard': "testKeyboard/keyboard.psyexp",
             }
         )
 
