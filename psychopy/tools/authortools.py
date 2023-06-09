@@ -51,9 +51,8 @@ class Author:
             if self.github and other.github:
                 return self.github == other.github
             # if both have an orcid id, use that
-            if self.orcid and other.orcid:
-                print(self.orcid, other.orcid)
-                return self.orcid == other.orcid
+            if 'orcid' in self.other:
+                return self.other['orcid'] == other.other['orcid']
             # if both have an email, use that
             if self.email and other.email:
                 return self.email == other.email
@@ -69,7 +68,7 @@ class Author:
             other = other.lower().replace(".", "").replace(",", "")
             parts = other.split(" ")
             # if string is this Author's orcid, github or email, return True
-            if self.orcid in parts:
+            if 'orcid' in self.other and self.other['orcid'] in parts:
                 return True
             if self.github.lower() in parts:
                 return True
