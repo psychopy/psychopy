@@ -19,7 +19,7 @@ class Author:
     """
     def __init__(
             self,
-            forenames, surname, prefices=None,
+            forenames, surname, prefices=None, titles=None,
             github=None, email=None, other=None
     ):
         # store surname
@@ -34,6 +34,11 @@ class Author:
         if prefices and isinstance(prefices, str):
             prefices = [prefices]
         self.prefices = [prefix.lower().strip() for prefix in prefices]
+        # sanitize and store titles
+        titles = titles or []
+        if titles and isinstance(titles, str):
+            titles = [titles]
+        self.titles = [title.lower().strip() for title in titles]
 
         # store basic details
         github = github or ""
@@ -86,6 +91,9 @@ class Author:
     @property
     def name(self):
         content = ""
+        # full title case titles
+        if len(self.titles):
+            content += " ".join([title.capitalize() + "." for title in self.titles])
         # full capitalized firstname
         content += self.forenames[0].capitalize()
         # initialized middlenames

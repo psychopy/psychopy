@@ -7,7 +7,7 @@ from psychopy.tools.authortools import Author
 
 # OST staff
 peircej = Author(
-    forenames=["Jon"], surname="Peirce",
+    forenames=["Jon"], surname="Peirce", titles=["Prof"],
     email="jon@opensciencetools.org", github="peircej",
     other={'ORCiD': "0000-0002-9504-4342"}
 )
@@ -26,15 +26,15 @@ isolver = Author(
     email="sol@opensciencetools.org", github="isolver"
 )
 RHirst = Author(
-    forenames=["Rebecca"], surname="Hirst",
+    forenames=["Rebecca"], surname="Hirst", titles=["Dr"],
     email="becca@opensciencetools.org", github="RHirst"
 )
 kimDundas = Author(
-    forenames=["Kimberley"], surname="Dundas",
+    forenames=["Kimberley"], surname="Dundas", titles=["Dr"],
     email="kim@opensciencetools.org", github="kimDundas"
 )
 suelynnmah = Author(
-    forenames=["Sue", "Lynn"], surname="Mah",
+    forenames=["Sue", "Lynn"], surname="Mah", titles=["Dr"],
     email="suelynn@opensciencetools.org", github="suelynnmah"
 )
 wakecarter = Author(
@@ -57,7 +57,7 @@ dvbridges = Author(
     email="david-bridges@hotmail.co.uk", github="dvbridges"
 )
 tpronk = Author(
-    forenames=["Thomas"], surname="Pronk",
+    forenames=["Thomas"], surname="Pronk", titles=["Dr"],
     github="tpronk"
 )
 thewhodidthis = Author(
@@ -67,33 +67,33 @@ thewhodidthis = Author(
 
 # stakeholders
 mmacaskill = Author(
-    forenames=["Michael"], surname="MacAskill",
+    forenames=["Michael"], surname="MacAskill", titles=["Dr"],
     github="m-macaskill",
     other={'Website': "http://www.nzbri.org/people/macaskill"}
 )
 jeremygray = Author(
-    forenames=["Jeremy", "R"], surname="Gray",
+    forenames=["Jeremy", "R"], surname="Gray", titles=["Dr"],
     email="jrgray@gmail.com", github="jeremygray"
 )
 hoechenberger = Author(
-    forenames=["Richard"], surname="Höchenberger",
+    forenames=["Richard"], surname="Höchenberger", titles=["Dr"],
     email="richard.hoechenberger@gmail.com", github="hoechenberger",
     other={'Website': "https://hoechenberger.net/",
            'Mastodon': "@hoechenberger@mastodon.social"}
 )
 AHaffey = Author(
-    forenames=["Anthony"], surname="Haffey"
+    forenames=["Anthony"], surname="Haffey", titles=["Dr"],
 )
 
 # other contributors
 VHaenel = Author(
-    forenames=["Valentin"], surname="Haenel"
+    forenames=["Valentin"], surname="Haenel",
 )
 RSharman = Author(
-    forenames=["Rebecca"], surname="Sharman"
+    forenames=["Rebecca"], surname="Sharman", titles=["Dr"],
 )
 JRoberts = Author(
-    forenames=["John"], surname="Roberts"
+    forenames=["John"], surname="Roberts",
 )
 
 # gotta credit myself for this attribution system...
