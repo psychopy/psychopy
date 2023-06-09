@@ -144,8 +144,7 @@ class RoutineSettingsComponent(BaseComponent):
             }]
 
         # --- Data params ---
-        self.params['saveStartStop'].label = _translate("Save onset time")
-        self.params['saveStartStop'].hint = _translate("Save the start time (UTC) of this Routine to the data file.")
+        self.params['saveStartStop'].hint = _translate("Save the start and stop times of this Routine (according to the global clock) to the data file.")
 
     def writeRoutineStartCode(self, buff):
         # Sanitize
@@ -153,7 +152,7 @@ class RoutineSettingsComponent(BaseComponent):
         # Store Routine start time (UTC)
         if self.params['saveStartStop']:
             code = (
-                "thisExp.addData('%(name)s.started', globalClock.getTime(), salience=salience.CRITICAL)\n"
+                "thisExp.addData('%(name)s.started', globalClock.getTime())\n"
             )
             buff.writeIndentedLines(code % params)
         # Skip Routine if condition is met
@@ -221,6 +220,12 @@ class RoutineSettingsComponent(BaseComponent):
 
     def writeRoutineEndCode(self, buff):
         params = self.params.copy()
+        # Store Routine start time (UTC)
+        if self.params['saveStartStop']:
+            code = (
+                "thisExp.addData('%(name)s.stopped', globalClock.getTime())\n"
+            )
+            buff.writeIndentedLines(code % params)
         # Restore window appearance after this Routine (if changed)
         if params['useWindowParams']:
             code = (
