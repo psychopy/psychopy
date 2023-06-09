@@ -1513,7 +1513,7 @@ class RoutinesNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         self.routineMaxSize = 2
         self.appData = self.app.prefs.appData
         aui.AuiNotebook.__init__(self, frame, id,
-            agwStyle=aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB)
+            agwStyle=aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB | aui.AUI_NB_WINDOWLIST_BUTTON)
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
         self.Bind(aui.EVT_AUINOTEBOOK_END_DRAG, self.onMoveTab)
 
@@ -3345,6 +3345,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
 
         # bind events
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
+        self.Bind(wx.EVT_MOUSEWHEEL, self.OnScroll)
         self.Bind(wx.EVT_BUTTON, self.onInsertRoutine, self.btnInsertRoutine)
         self.Bind(wx.EVT_BUTTON, self.setLoopPoint1, self.btnInsertLoop)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -3654,6 +3655,16 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
                 point = self.getNearestGapPoint(mouseX=x,
                                                 exclude=self.gapsExcluded)
                 self.drawEntryPoints([self.entryPointPosList[0], point])
+
+    def OnScroll(self, evt):
+        xy = self.GetViewStart()
+        delta = int(evt.WheelRotation * self.dpi / 1600)
+        if evt.GetWheelAxis() == wx.MOUSE_WHEEL_VERTICAL:
+            # scroll vertically
+            self.Scroll(xy[0], xy[1] - delta)
+        if evt.GetWheelAxis() == wx.MOUSE_WHEEL_HORIZONTAL:
+            # scroll horizontally
+            self.Scroll(xy[0] + delta, xy[1])
 
     def getNearestGapPoint(self, mouseX, exclude=()):
         """Get gap that is nearest to a particular mouse location
