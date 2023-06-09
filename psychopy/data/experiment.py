@@ -288,11 +288,13 @@ class ExperimentHandler(_ComparisonMixin):
         -------
         int
             One of the following:
-            - CRITICAL (30): Always at the start of the data file, generally reserved for Routine start times
-            - HIGH (20): Important columns which are near the front of the data file
-            - MEDIUM (10): Possibly important columns which are around the middle of the data file
-            - LOW (0): Columns unlikely to be important which are at the end of the data file
-            - EXCLUDE (-10): Always at the end of the data file, actively marked as unimportant
+            - HIGH (19): Important columns which are near the front of the data file
+            - MEDIUM (9): Possibly important columns which are around the middle of the data file
+            - LOW (-1): Columns unlikely to be important which are at the end of the data file
+
+            NOTE: Values returned from this function are 1 less than values in `constants.salience`,
+            columns whose salience was guessed are behind equivalently salient columns whose salience
+            was specified.
         """
         # if there's a dot, get attribute name
         if "." in name:
@@ -310,7 +312,7 @@ class ExperimentHandler(_ComparisonMixin):
         ]:
             salience = constants.SALIENCE_MEDIUM
 
-        return salience
+        return salience - 1
 
     def setSalience(self, name, value=constants.SALIENCE_HIGH):
         """
