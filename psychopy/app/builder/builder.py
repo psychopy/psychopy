@@ -1514,7 +1514,7 @@ class RoutinesNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         self.routineMaxSize = 2
         self.appData = self.app.prefs.appData
         aui.AuiNotebook.__init__(self, frame, id,
-            agwStyle=aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB)
+            agwStyle=aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB | aui.AUI_NB_WINDOWLIST_BUTTON)
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
         self.Bind(aui.EVT_AUINOTEBOOK_END_DRAG, self.onMoveTab)
 
@@ -1957,7 +1957,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             self.drawComponent(self.pdc, component, yPos)
             yPos += self.componentStep
         # draw end line (if there is one)
-        self.drawForceEndLine(self.pdc, self.yPosTop + settingsBtnExtent.Height, yPosBottom)
+        self.drawForceEndLine(self.pdc, yPosBottom)
 
         # the 50 allows space for labels below the time axis
         self.SetVirtualSize((int(self.maxWidth), yPos + 50))
@@ -2147,7 +2147,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                         yPosBottom - self.GetFullTextExtent('t')[1] // 2)
         dc.SetTextForeground(colors.app['text'])
 
-    def drawForceEndLine(self, dc, yPosTop, yPosBottom):
+    def drawForceEndLine(self, dc, yPosBottom):
         # get max time & check if we have a hard stop
         tMax, hardStop = self.getMaxTime()
         if hardStop:
@@ -2160,13 +2160,13 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             )
             # vertical line:
             dc.DrawLine(self.timeXposEnd,
-                        yPosTop - 4,
+                        self.rects['grid'].Top - 4,
                         self.timeXposEnd,
                         yPosBottom + 4)
             # label above:
             dc.DrawText('%.2g' % tMax,
                         int(self.timeXposEnd - 4),
-                        yPosTop - 30)
+                        self.rects['grid'].Top - 30)
 
     def setFontSize(self, size, dc):
         font = self.GetFont()
@@ -3368,6 +3368,7 @@ class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
 
         # bind events
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
+        self.Bind(wx.EVT_MOUSEWHEEL, self.OnScroll)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
         idClear = wx.NewIdRef()
@@ -3675,6 +3676,16 @@ class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                 point = self.getNearestGapPoint(mouseX=x,
                                                 exclude=self.gapsExcluded)
                 self.drawEntryPoints([self.entryPointPosList[0], point])
+
+    def OnScroll(self, evt):
+        xy = self.GetViewStart()
+        delta = int(evt.WheelRotation * self.dpi / 1600)
+        if evt.GetWheelAxis() == wx.MOUSE_WHEEL_VERTICAL:
+            # scroll vertically
+            self.Scroll(xy[0], xy[1] - delta)
+        if evt.GetWheelAxis() == wx.MOUSE_WHEEL_HORIZONTAL:
+            # scroll horizontally
+            self.Scroll(xy[0] + delta, xy[1])
 
     def getNearestGapPoint(self, mouseX, exclude=()):
         """Get gap that is nearest to a particular mouse location
