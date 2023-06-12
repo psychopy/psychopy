@@ -553,20 +553,21 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
     def render(self, evt=None):
         # Render HTML
         if md:
-            renderedText = md.MarkdownIt().render(self.rawTextCtrl.Value)
-            # Remove images (wx doesn't like rendering them)
-            imgBuffer = renderedText.split("<img ")
+            # get raw text
+            rawText = self.rawTextCtrl.Value
+            # remove images (wx doesn't like rendering them)
+            imgBuffer = rawText.split("![")
             output = []
             for cell in imgBuffer:
-                if "/>" in cell:
-                    output.extend(cell.split("/>")[1:])
-                elif "</img>" in cell:
-                    output.extend(cell.split("</img>")[1:])
+                if ")" in cell:
+                    output.extend(cell.split(")")[1:])
                 else:
                     output.append(cell)
-            renderedText = "".join(imgBuffer)
-            # This could also be done by regex, we're avoiding regex for
-            # renderedText = re.sub(r"<img[\s>].*(?:\/>|<\/img>)", "", renderedText)
+            rawText = "".join(output)
+            # This could also be done by regex, we're avoiding regex for readability
+            # rawText = re.sub(r"\!\[.*\]\(.*\)", "", rawText)
+            # render markdown
+            renderedText = md.MarkdownIt("default-js").render(rawText)
         else:
             renderedText = self.rawTextCtrl.Value.replace("\n", "<br>")
         # Apply to preview ctrl

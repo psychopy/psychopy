@@ -2,7 +2,7 @@
 Testimonials - what do people think of |PsychoPy|?
 =====================================================
 
-OK, so we know that `PsychoPy has quite a lot of users <https://www.psychopy.org/usage.php>`_
+OK, so we know that `PsychoPy has quite a lot of users <https://usage.psychopy.org>`_
 
 We also know that quite a few people have written `manuscripts that cited |PsychoPy|
 <http://scholar.google.co.uk/scholar?cites=18194791051729814045&as_sdt=2005&sciodt=0,5&hl=en>`_ 

@@ -182,6 +182,7 @@ class SourceTreePanel(wx.Panel, handlers.ThemeMixin):
             # work out which keyword the line starts with
             kwrd = None
             for i in kwrds:
+                i += " "  # add a space to avoid e.g. `defaultKeyboard` being read as a keyword
                 if lineText.startswith(i):
                     kwrd = i
             # skip if it starts with no keywords

@@ -294,7 +294,7 @@ class Keyboard(ioHubDeviceView):
         return self._clearEventsRPC(event_type=event_type,
                                       filter_id=filter_id)
 
-    def getKeys(self, keys=None, chars=None, mods=None, duration=None,
+    def getKeys(self, keys=None, chars=None, ignoreKeys=None, mods=None, duration=None,
                 etype=None, clear=True):
         """
         Return a list of any KeyboardPress or KeyboardRelease events that have
@@ -315,6 +315,7 @@ class Keyboard(ioHubDeviceView):
 
         :param keys: Include events where .key in keys.
         :param chars: Include events where .char in chars.
+        :param ignoreKeys: Ignore events where .key in ignoreKeys.
         :param mods: Include events where .modifiers include >=1 mods element.
         :param duration: Include KeyboardRelease events where
                          .duration > duration or .duration < -(duration).
@@ -333,7 +334,7 @@ class Keyboard(ioHubDeviceView):
             return []
 
         def filterEvent(e):
-            r1 = (keys is None or e.key in keys)
+            r1 = (keys is None or e.key in keys) and (ignoreKeys is None or e.key not in ignoreKeys)
             r2 = (chars is None or e.char in chars)
             r3 = True
             if duration is not None:
@@ -359,15 +360,23 @@ class Keyboard(ioHubDeviceView):
                 self._events[e._type].remove(e)
         return return_events
 
-    def getPresses(self, keys=None, chars=None, mods=None, clear=True):
+    def getPresses(self, keys=None, chars=None, ignoreKeys=None, mods=None, clear=True):
         """See the getKeys() method documentation.
 
         This method is identical, but only returns KeyboardPress events.
 
         """
-        return self.getKeys(keys, chars, mods, None, self.KEY_PRESS, clear)
+        return self.getKeys(
+            keys=keys,
+            chars=chars,
+            ignoreKeys=ignoreKeys,
+            mods=mods,
+            duration=None,
+            etype=self.KEY_PRESS,
+            clear=clear
+        )
 
-    def getReleases(self, keys=None, chars=None, mods=None, duration=None,
+    def getReleases(self, keys=None, chars=None, ignoreKeys=None, mods=None, duration=None,
                     clear=True):
         """See the getKeys() method documentation.
 
@@ -375,8 +384,15 @@ class Keyboard(ioHubDeviceView):
         events.
 
         """
-        return self.getKeys(keys, chars, mods, duration, self.KEY_RELEASE,
-                            clear)
+        return self.getKeys(
+            keys=keys,
+            chars=chars,
+            ignoreKeys=ignoreKeys,
+            mods=mods,
+            duration=duration,
+            etype=self.KEY_RELEASE,
+            clear=clear
+        )
 
     def waitForKeys(self, maxWait=None, keys=None, chars=None, mods=None,
                     duration=None, etype=None, clear=True,
