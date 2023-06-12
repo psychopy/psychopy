@@ -58,7 +58,7 @@ from psychopy import logging, data
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties,
-                      ParamNotebook, DlgNewRoutine)
+                      ParamNotebook, DlgNewRoutine, BuilderFindDlg)
 from ..utils import (BasePsychopyToolbar, HoverButton, WindowFrozen,
                      FileDropTarget, FrameSwitcher, updateDemosMenu,
                      ToggleButtonArray, HoverMixin)
@@ -515,6 +515,11 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         menu.AppendSeparator()
 
         item = menu.Append(wx.ID_ANY,
+                           _translate("&Find in experiment...\t%s") % keys['builderFind'],
+                           _translate("Search the whole experiment for a specific term"))
+        self.Bind(wx.EVT_MENU, self.onFindInExperiment, item)
+
+        item = menu.Append(wx.ID_ANY,
                            _translate("README..."),
                            _translate("Add or edit the text shown when your experiment is opened"))
         self.Bind(wx.EVT_MENU, self.editREADME, item)
@@ -854,6 +859,10 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     # def pluginManager(self, evt=None, value=True):
     #     """Show the plugin manager frame."""
     #     PluginManagerFrame(self).ShowModal()
+
+    def onFindInExperiment(self, evt=None):
+        dlg = BuilderFindDlg(frame=self, exp=self.exp)
+        dlg.Show()
 
     def updateReadme(self, show=None):
         """Check whether there is a readme file in this folder and try to show
@@ -2451,7 +2460,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             self.frame.addToUndoStack("PASTE Component `%s`" % newName)
         dlg.Destroy()
 
-    def editComponentProperties(self, event=None, component=None):
+    def editComponentProperties(self, event=None, component=None, openToPage=None):
         # we got here from a wx.button press (rather than our own drawn icons)
         if event:
             componentName = event.EventObject.GetName()
@@ -2481,7 +2490,8 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             _Dlg = DlgComponentProperties
         dlg = _Dlg(frame=self.frame,
                    element=component,
-                   experiment=self.frame.exp, editing=True)
+                   experiment=self.frame.exp, editing=True,
+                   openToPage=openToPage)
         if dlg.OK:
             # Redraw if force end routine has changed
             if any(key in component.params for key in ['forceEndRoutine', 'forceEndRoutineOnPress', 'endRoutineOn']):
