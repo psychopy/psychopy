@@ -96,7 +96,7 @@ class BrushComponent(BaseVisualComponent):
             "   lineColor={lineColor},\n"
             "   lineColorSpace={lineColorSpace},\n"
             "   opacity={opacity},\n"
-            "   buttonRequired={buttonRequired}\n"
+            "   buttonRequired={buttonRequired},\n"
             "   depth={depth}\n"
             ")"
         ).format(**inits)
