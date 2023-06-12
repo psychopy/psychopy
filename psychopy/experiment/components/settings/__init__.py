@@ -1571,6 +1571,12 @@ class SettingsComponent:
         )
         buff.writeIndentedLines(code % allowGUI)
 
+        # Reset splash message
+        code = (
+            "win.hideMessage()\n"
+        )
+        buff.writeIndentedLines(code)
+
         # Import here to avoid circular dependency!
         from psychopy.experiment._experiment import RequiredImport
         microphoneImport = RequiredImport(importName='microphone',
