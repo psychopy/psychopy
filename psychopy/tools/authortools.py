@@ -94,6 +94,7 @@ class Author:
         # full title case titles
         if len(self.titles):
             content += " ".join([title.capitalize() + "." for title in self.titles])
+            content += " "
         # full capitalized firstname
         content += self.forenames[0].capitalize()
         # initialized middlenames
