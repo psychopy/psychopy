@@ -59,7 +59,7 @@ class GratingComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['tex'])
+            label=_translate("Texture"))
 
         msg = _translate("An image to define the alpha mask (ie shape)- "
                          "gauss, circle... or a filename (including path)")
@@ -68,7 +68,7 @@ class GratingComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['mask'])
+            label=_translate("Mask"))
 
         msg = _translate("Spatial frequency of image repeats across the "
                          "grating in 1 or 2 dimensions, e.g. 4 or [2,3]")
@@ -77,7 +77,7 @@ class GratingComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['sf'])
+            label=_translate("Spatial frequency"))
 
         self.params['anchor'] = Param(
             anchor, valType='str', inputType="choice", categ='Layout',
@@ -93,7 +93,7 @@ class GratingComponent(BaseVisualComponent):
                          ],
             updates='constant',
             hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
-            label=_translate('Anchor'))
+            label=_translate("Anchor"))
 
         msg = _translate("Spatial positioning of the image on the grating "
                          "(wraps in range 0-1.0)")
@@ -102,7 +102,7 @@ class GratingComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['phase'])
+            label=_translate("Phase (in cycles)"))
 
         msg = _translate(
             "Resolution of the texture for standard ones such as sin, sqr "
@@ -112,7 +112,7 @@ class GratingComponent(BaseVisualComponent):
             valType='num', inputType="choice", allowedVals=['32', '64', '128', '256', '512'], categ='Texture',
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['texture resolution'])
+            label=_translate("Texture resolution"))
 
         msg = _translate("How should the image be interpolated if/when "
                          "rescaled")
@@ -120,7 +120,7 @@ class GratingComponent(BaseVisualComponent):
             interpolate, valType='str', inputType="choice", allowedVals=['linear', 'nearest'], categ='Texture',
             updates='constant', allowedUpdates=[],
             hint=msg, direct=False,
-            label=_localized['interpolate'])
+            label=_translate("Interpolate"))
 
         msg = _translate("OpenGL Blendmode: avg gives traditional transparency,"
                          " add is important to combine gratings)]")
@@ -129,7 +129,7 @@ class GratingComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['blendmode'])
+            label=_translate("OpenGL blend mode"))
 
         del self.params['fillColor']
         del self.params['borderColor']

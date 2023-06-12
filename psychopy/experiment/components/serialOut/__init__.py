@@ -78,18 +78,18 @@ class SerialOutComponent(BaseComponent):
         self.params['timeout'] = Param(
             timeout, valType='int', inputType="single", allowedTypes=[], categ='Hardware',
             hint=_translate("Time at which to give up listening for a response (leave blank for no limit)"),
-            label=_translate('Timeout'))
+            label=_translate("Timeout"))
 
         self.params['startdata'] = Param(
             startdata, valType='str', inputType="single", allowedTypes=[], categ='Basic',
             hint=_translate("Data to be sent at start of pulse. Data will be converted to bytes, so to specify a"
                             "numeric value directly use $chr(...)."),
-            label=_translate('Start data'))
+            label=_translate("Start data"))
         self.params['stopdata'] = Param(
             stopdata, valType='str', inputType="single", allowedTypes=[], categ='Basic',
             hint=_translate("String data to be sent at end of pulse. Data will be converted to bytes, so to specify a"
                             "numeric value directly use $chr(...)."),
-            label=_translate('Stop data'))
+            label=_translate("Stop data"))
         self.params['getResponse'] = Param(
             getResponse, valType='bool', inputType='bool', categ="Data",
             hint=_translate("After sending a signal, should PsychoPy read and record a response from the port?"),

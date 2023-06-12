@@ -48,7 +48,7 @@ class SoundComponent(BaseComponent):
         self.params['stopType'].allowedVals = ['duration (s)']
         self.params['stopType'].hint = _translate('The maximum duration of a'
                                                   ' sound in seconds')
-        hnt = _translate("When does the component end? (blank to use the "
+        hnt = _translate("When does the Component end? (blank to use the "
                          "duration of the media)")
         self.params['stopVal'].hint = hnt
 
@@ -58,13 +58,13 @@ class SoundComponent(BaseComponent):
             sound, valType='str', inputType="file", allowedTypes=[], updates='constant', categ='Basic',
             allowedUpdates=['constant', 'set every repeat'],
             hint=hnt,
-            label=_localized['sound'])
+            label=_translate("Sound"))
         _allowed = ['constant', 'set every repeat', 'set every frame']
         self.params['volume'] = Param(
             volume, valType='num', inputType="single", allowedTypes=[], updates='constant', categ='Playback',
             allowedUpdates=_allowed[:],  # use a copy
             hint=_translate("The volume (in range 0 to 1)"),
-            label=_localized["volume"])
+            label=_translate("Volume"))
         msg = _translate(
             "A reaction time to a sound stimulus should be based on when "
             "the screen flipped")
@@ -72,13 +72,13 @@ class SoundComponent(BaseComponent):
             syncScreenRefresh, valType='bool', inputType="bool", categ='Basic',
             updates='constant',
             hint=msg,
-            label=_localized['syncScreenRefresh'])
+            label=_translate("Sync start with screen"))
         self.params['hamming'] = Param(
             True, valType='bool', inputType="bool", updates='constant', categ='Playback',
             hint=_translate(
-                  "For tones we can apply a Hamming window to prevent 'clicks' that "
+                  "For tones we can apply a hamming window to prevent 'clicks' that "
                   "are caused by a sudden onset. This delays onset by roughly 1ms."),
-            label=_translate('Hamming window'))
+            label=_translate("Hamming window"))
         self.params['stopWithRoutine'] = Param(
             stopWithRoutine, valType='bool', inputType="bool", updates='constant', categ='Playback',
             hint=_translate(

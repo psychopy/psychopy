@@ -62,7 +62,7 @@ class JoyButtonsComponent(BaseComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=(msg),
-            label=_localized['allowedKeys'])
+            label=_translate("Allowed buttons"))
 
         msg = _translate("Choose which (if any) responses to store at the "
                          "end of a trial")
@@ -71,7 +71,7 @@ class JoyButtonsComponent(BaseComponent):
             allowedVals=['last key', 'first key', 'all keys', 'nothing'],
             updates='constant', direct=False,
             hint=msg,
-            label=_localized['store'])
+            label=_translate("Store"))
 
         msg = _translate("Should a response force the end of the Routine "
                          "(e.g end the trial)?")
@@ -79,7 +79,7 @@ class JoyButtonsComponent(BaseComponent):
             forceEndRoutine, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=msg,
-            label=_localized['forceEndRoutine'])
+            label=_translate("Force end of Routine"))
 
         msg = _translate("Do you want to save the response as "
                          "correct/incorrect?")
@@ -87,7 +87,7 @@ class JoyButtonsComponent(BaseComponent):
             storeCorrect, valType='bool', inputType="bool", allowedTypes=[], categ='Data',
             updates='constant',
             hint=msg,
-            label=_localized['storeCorrect'])
+            label=_translate("Store correct"))
 
         self.depends += [  # allows params to turn each other off/on
             {"dependsOn": "storeCorrect",  # must be param name
@@ -106,7 +106,7 @@ class JoyButtonsComponent(BaseComponent):
             correctAns, valType='list', inputType="single", allowedTypes=[], categ='Data',
             updates='constant',
             hint=msg,
-            label=_localized['correctAns'])
+            label=_translate("Correct answer"))
 
         msg = _translate(
             "A reaction time to a visual stimulus should be based on when "
@@ -115,7 +115,7 @@ class JoyButtonsComponent(BaseComponent):
             syncScreenRefresh, valType='bool', inputType="bool", categ='Data',
             updates='constant',
             hint=msg,
-            label=_localized['syncScreenRefresh'])
+            label=_translate("Sync RT with screen"))
 
         msg = _translate(
             "Device number, if you have multiple devices which"
@@ -124,7 +124,7 @@ class JoyButtonsComponent(BaseComponent):
             deviceNumber, valType='int', inputType="int", allowedTypes=[], categ='Hardware',
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['deviceNumber'])
+            label=_translate("Device number"))
 
     def writeStartCode(self, buff):
         code = ("from psychopy.hardware import joystick as joysticklib  "

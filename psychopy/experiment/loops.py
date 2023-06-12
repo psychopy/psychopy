@@ -324,7 +324,7 @@ class TrialHandler(_BaseLoopHandler):
     def writeLoopEndCode(self, buff):
         # Just within the loop advance data line if loop is whole trials
         if self.params['isTrials'].val == True:
-            buff.writeIndentedLines("thisExp.nextEntry()\n\n")
+            buff.writeIndentedLines("thisExp.nextEntry(t=globalClock.getTime())\n\n")
         # end of the loop. dedent
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("# completed %s repeats of '%s'\n"

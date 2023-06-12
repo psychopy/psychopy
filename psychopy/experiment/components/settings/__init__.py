@@ -174,7 +174,7 @@ class SettingsComponent:
             expName, valType='str',  inputType="single", allowedTypes=[],
             hint=_translate("Name of the entire experiment (taken by default"
                             " from the filename on save)"),
-            label=_localized["expName"])
+            label=_translate("Experiment name"))
         self.depends.append(
             {"dependsOn": "Show info dlg",  # must be param name
              "condition": "==True",  # val to check for
@@ -187,17 +187,17 @@ class SettingsComponent:
             showExpInfo, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Start the experiment with a dialog to set info"
                             " (e.g.participant or condition)"),
-            label=_localized["Show info dlg"], categ='Basic')
+            label=_translate("Show info dialog"), categ='Basic')
         self.params['Enable Escape'] = Param(
             enableEscape, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Enable the <esc> key, to allow subjects to quit"
                             " / break out of the experiment"),
-            label=_localized["Enable Escape"])
+            label=_translate("Enable escape key"))
         self.params['Experiment info'] = Param(
             expInfo, valType='code', inputType="dict", allowedTypes=[],
             hint=_translate("The info to present in a dialog box. Right-click"
                             " to check syntax and preview the dialog box."),
-            label=_localized["Experiment info"], categ='Basic')
+            label=_translate("Experiment info"), categ='Basic')
         self.params['Use version'] = Param(
             useVersion, valType='str', inputType="choice",
             # search for options locally only by default, otherwise sluggish
@@ -206,13 +206,13 @@ class SettingsComponent:
                         + versions._versionFilter(versions.availableVersions(), wx_version),
             hint=_translate("The version of PsychoPy to use when running "
                             "the experiment."),
-            label=_localized["Use version"], categ='Basic')
+            label=_translate("Use PsychoPy version"), categ='Basic')
 
         # screen params
         self.params['Full-screen window'] = Param(
             fullScr, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Run the experiment full-screen (recommended)"),
-            label=_localized["Full-screen window"], categ='Screen')
+            label=_translate("Full-screen window"), categ='Screen')
         self.params['winBackend'] = Param(
             winBackend, valType='str', inputType="choice", categ="Screen",
             allowedVals=plugins.getWindowBackends(),
@@ -222,29 +222,29 @@ class SettingsComponent:
         self.params['Window size (pixels)'] = Param(
             winSize, valType='list', inputType="single", allowedTypes=[],
             hint=_translate("Size of window (if not fullscreen)"),
-            label=_localized["Window size (pixels)"], categ='Screen')
+            label=_translate("Window size (pixels)"), categ='Screen')
         self.params['Screen'] = Param(
             screen, valType='num', inputType="spin", allowedTypes=[],
             hint=_translate("Which physical screen to run on (1 or 2)"),
-            label=_localized["Screen"], categ='Screen')
+            label=_translate("Screen"), categ='Screen')
         self.params['Monitor'] = Param(
             monitor, valType='str', inputType="single", allowedTypes=[],
             hint=_translate("Name of the monitor (from Monitor Center). Right"
                             "-click to go there, then copy & paste a monitor "
                             "name here."),
-            label=_localized["Monitor"], categ="Screen")
+            label=_translate("Monitor"), categ="Screen")
         self.params['color'] = Param(
             color, valType='color', inputType="color", allowedTypes=[],
             hint=_translate("Color of the screen (e.g. black, $[1.0,1.0,1.0],"
                             " $variable. Right-click to bring up a "
                             "color-picker.)"),
-            label=_localized["color"], categ='Screen')
+            label=_translate("Color"), categ='Screen')
         self.params['colorSpace'] = Param(
             colorSpace, valType='str', inputType="choice",
             hint=_translate("Needed if color is defined numerically (see "
                             "PsychoPy documentation on color spaces)"),
             allowedVals=['rgb', 'dkl', 'lms', 'hsv', 'hex'],
-            label=_localized["colorSpace"], categ="Screen")
+            label=_translate("Color space"), categ="Screen")
         self.params['backgroundImg'] = Param(
             backgroundImg, valType="str", inputType="file", categ="Screen",
             hint=_translate("Image file to use as a background (leave blank for no image)"),
@@ -262,18 +262,18 @@ class SettingsComponent:
                          'degFlatPos', 'degFlat'],
             hint=_translate("Units to use for window/stimulus coordinates "
                             "(e.g. cm, pix, deg)"),
-            label=_localized["Units"], categ='Screen')
+            label=_translate("Units"), categ='Screen')
         self.params['blendMode'] = Param(
             blendMode, valType='str', inputType="choice",
             allowedVals=['add', 'avg', 'nofbo'],
             allowedLabels=['add', 'average', 'average (no FBO)'],
             hint=_translate("Should new stimuli be added or averaged with "
                             "the stimuli that have been drawn already"),
-            label=_localized["blendMode"], categ='Screen')
+            label=_translate("Blend mode"), categ='Screen')
         self.params['Show mouse'] = Param(
             showMouse, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Should the mouse be visible on screen? Only applicable for fullscreen experiments."),
-            label=_localized["Show mouse"], categ='Screen')
+            label=_translate("Show mouse"), categ='Screen')
         # self.depends.append(
         #     {"dependsOn": 'Full-screen window',  # must be param name
         #      "condition": "==True",  # val to check for
@@ -287,7 +287,7 @@ class SettingsComponent:
         self.params['Force stereo'] = Param(
             enableEscape, valType='bool', inputType="bool", allowedTypes=[], categ="Audio",
             hint=_translate("Force audio to stereo (2-channel) output"),
-            label=_localized["Force stereo"])
+            label=_translate("Force stereo"))
         self.params['Audio lib'] = Param(
             'ptb', valType='str', inputType="choice",
             allowedVals=['ptb', 'pyo', 'sounddevice', 'pygame'],
@@ -313,7 +313,7 @@ class SettingsComponent:
             filename, valType='code', inputType="single", allowedTypes=[],
             hint=_translate("Code to create your custom file name base. Don"
                             "'t give a file extension - this will be added."),
-            label=_localized["Data filename"], categ='Data')
+            label=_translate("Data filename"), categ='Data')
         self.params['Data file delimiter'] = Param(
             savedDataDelim, valType='str', inputType="choice",
             allowedVals=['auto', 'comma', 'semicolon', 'tab'],
@@ -324,27 +324,27 @@ class SettingsComponent:
             saveLogFile, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Save a detailed log (more detailed than the "
                             "excel/csv files) of the entire experiment"),
-            label=_localized["Save log file"], categ='Data')
+            label=_translate("Save log file"), categ='Data')
         self.params['Save wide csv file'] = Param(
             saveWideCSVFile, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Save data from loops in comma-separated-value "
                             "(.csv) format for maximum portability"),
-            label=_localized["Save wide csv file"], categ='Data')
+            label=_translate("Save csv file (trial-by-trial)"), categ='Data')
         self.params['Save csv file'] = Param(
             saveCSVFile, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Save data from loops in comma-separated-value "
                             "(.csv) format for maximum portability"),
-            label=_localized["Save csv file"], categ='Data')
+            label=_translate("Save csv file (summaries)"), categ='Data')
         self.params['Save excel file'] = Param(
             saveXLSXFile, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Save data from loops in Excel (.xlsx) format"),
-            label=_localized["Save excel file"], categ='Data')
+            label=_translate("Save Excel file"), categ='Data')
         self.params['Save psydat file'] = Param(
             savePsydatFile, valType='bool', inputType="bool", allowedVals=[True],
             hint=_translate("Save data from loops in psydat format. This is "
-                            "useful for python programmers to generate "
+                            "useful for Python programmers to generate "
                             "analysis scripts."),
-            label=_localized["Save psydat file"], categ='Data')
+            label=_translate("Save psydat file"), categ='Data')
         self.params['Save hdf5 file'] = Param(
             saveHDF5File, valType='bool', inputType="bool",
             hint=_translate("Save data from eyetrackers in hdf5 format. This is "
@@ -355,7 +355,7 @@ class SettingsComponent:
             allowedVals=['error', 'warning', 'data', 'exp', 'info', 'debug'],
             hint=_translate("How much output do you want in the log files? "
                             "('error' is fewest messages, 'debug' is most)"),
-            label=_localized["logging level"], categ='Data')
+            label=_translate("Logging level"), categ='Data')
 
         # HTML output params
         # self.params['OSF Project ID'] = ProjIDParam(
@@ -365,30 +365,30 @@ class SettingsComponent:
         self.params['HTML path'] = Param(
             '', valType='str', inputType="single", allowedTypes=[],
             hint=_translate("Place the HTML files will be saved locally "),
-            label="Output path", categ='Online')
+            label=_translate("Output path"), categ='Online')
         self.params['Resources'] = Param(
             [], valType='list', inputType="fileList", allowedTypes=[],
             hint=_translate("Any additional resources needed"),
-            label="Additional Resources", categ='Online')
+            label=_translate("Additional resources"), categ='Online')
         self.params['End Message'] = Param(
             endMessage, valType='str', inputType='single',
             hint=_translate("Message to display to participants upon completing the experiment"),
-            label="End Message", categ='Online')
+            label=_translate("End message"), categ='Online')
         self.params['Completed URL'] = Param(
             '', valType='str', inputType="single",
             hint=_translate("Where should participants be redirected after the experiment on completion, e.g.\n"
                             "https://pavlovia.org/surveys/XXXXXX-XXXX-XXXXXXX?tab=0"),
-            label="Completed URL", categ='Online')
+            label=_translate("Completed URL"), categ='Online')
         self.params['Incomplete URL'] = Param(
             '', valType='str', inputType="single",
             hint=_translate("Where participants are redirected if they do not complete the task, e.g.\n"
                             "https://pavlovia.org/surveys/XXXXXX-XXXX-XXXXXXX?tab=0"),
-            label="Incomplete URL", categ='Online')
+            label=_translate("Incomplete URL"), categ='Online')
         self.params['exportHTML'] = Param(
             exportHTML, valType='str', inputType="choice",
             allowedVals=['on Save', 'on Sync', 'manually'],
             hint=_translate("When to export experiment to the HTML folder."),
-            label=_localized["Export HTML"], categ='Online')
+            label=_translate("Export HTML"), categ='Online')
 
         # Eyetracking params
         self.order += ["eyetracker",
@@ -431,7 +431,7 @@ class SettingsComponent:
             allowedVals=list(ioDeviceMap),
             hint=_translate("What kind of eye tracker should PsychoPy use? Select 'MouseGaze' to use "
                             "the mouse to simulate eye movement (for debugging without a tracker connected)"),
-            label=_translate("Eyetracker Device"), categ="Eyetracking"
+            label=_translate("Eyetracker device"), categ="Eyetracking"
         )
 
         #mousegaze
@@ -439,33 +439,33 @@ class SettingsComponent:
             mgMove, valType='str', inputType="choice",
             allowedVals=['CONTINUOUS', 'LEFT_BUTTON', 'MIDDLE_BUTTON', 'RIGHT_BUTTON'],
             hint=_translate("Mouse button to press for eye movement."),
-            label=_translate("Move Button"), categ="Eyetracking"
+            label=_translate("Move button"), categ="Eyetracking"
         )
 
         self.params['mgBlink'] = Param(
             mgBlink, valType='list', inputType="multiChoice",
             allowedVals=['LEFT_BUTTON', 'MIDDLE_BUTTON', 'RIGHT_BUTTON'],
             hint=_translate("Mouse button to press for a blink."),
-            label=_translate("Blink Button"), categ="Eyetracking"
+            label=_translate("Blink button"), categ="Eyetracking"
         )
 
         self.params['mgSaccade'] = Param(
             mgSaccade, valType='num', inputType="single",
             hint=_translate("Visual degree threshold for Saccade event creation."),
-            label=_translate("Saccade Threshold"), categ="Eyetracking"
+            label=_translate("Saccade threshold"), categ="Eyetracking"
         )
 
         # gazepoint
         self.params['gpAddress'] = Param(
             gpAddress, valType='str', inputType="single",
             hint=_translate("IP Address of the computer running GazePoint Control."),
-            label=_translate("GazePoint IP Address"), categ="Eyetracking"
+            label=_translate("GazePoint IP address"), categ="Eyetracking"
         )
 
         self.params['gpPort'] = Param(
             gpPort, valType='num', inputType="single",
             hint=_translate("Port of the GazePoint Control server. Usually 4242."),
-            label=_translate("GazePoint Port"), categ="Eyetracking"
+            label=_translate("GazePoint port"), categ="Eyetracking"
         )
         # eyelink
         self.params['elModel'] = Param(
@@ -473,27 +473,27 @@ class SettingsComponent:
             allowedVals=['EYELINK 1000 DESKTOP', 'EYELINK 1000 TOWER', 'EYELINK 1000 REMOTE',
                          'EYELINK 1000 LONG RANGE'],
             hint=_translate("Eye tracker model."),
-            label=_translate("Model Name"), categ="Eyetracking"
+            label=_translate("Model name"), categ="Eyetracking"
         )
 
         self.params['elSimMode'] = Param(
             elSimMode, valType='bool', inputType="bool",
             hint=_translate("Set the EyeLink to run in mouse simulation mode."),
-            label=_translate("Mouse Simulation Mode"), categ="Eyetracking"
+            label=_translate("Mouse simulation mode"), categ="Eyetracking"
         )
 
         self.params['elSampleRate'] = Param(
             elSampleRate, valType='num', inputType="choice",
             allowedVals=['250', '500', '1000', '2000'],
             hint=_translate("Eye tracker sampling rate."),
-            label=_translate("Sampling Rate"), categ="Eyetracking"
+            label=_translate("Sampling rate"), categ="Eyetracking"
         )
 
         self.params['elTrackEyes'] = Param(
             elTrackEyes, valType='str', inputType="choice",
             allowedVals=['LEFT_EYE', 'RIGHT_EYE', 'BOTH'],
             hint=_translate("Select with eye(s) to track."),
-            label=_translate("Track Eyes"), categ="Eyetracking"
+            label=_translate("Track eyes"), categ="Eyetracking"
         )
 
         self.params['elLiveFiltering'] = Param(
@@ -501,7 +501,7 @@ class SettingsComponent:
             allowedVals=['FILTER_LEVEL_OFF', 'FILTER_LEVEL_1', 'FILTER_LEVEL_2'],
             hint=_translate("Filter eye sample data live, as it is streamed to the driving device. "
                             "This may reduce the sampling speed."),
-            label=_translate("Live Sample Filtering"), categ="Eyetracking"
+            label=_translate("Live sample filtering"), categ="Eyetracking"
         )
 
         self.params['elDataFiltering'] = Param(
@@ -509,102 +509,102 @@ class SettingsComponent:
             allowedVals=['FILTER_LEVEL_OFF', 'FILTER_LEVEL_1', 'FILTER_LEVEL_2'],
             hint=_translate("Filter eye sample data when it is saved to the output file. This will "
                             "not affect the sampling speed."),
-            label=_translate("Saved Sample Filtering"), categ="Eyetracking"
+            label=_translate("Saved sample filtering"), categ="Eyetracking"
         )
 
         self.params['elTrackingMode'] = Param(
             elTrackingMode, valType='str', inputType="choice",
             allowedVals=['PUPIL_CR_TRACKING', 'PUPIL_ONLY_TRACKING'],
             hint=_translate("Track Pupil-CR or Pupil only."),
-            label=_translate("Pupil Tracking Mode"), categ="Eyetracking"
+            label=_translate("Pupil tracking mode"), categ="Eyetracking"
         )
 
         self.params['elPupilAlgorithm'] = Param(
             elPupilAlgorithm, valType='str', inputType="choice",
             allowedVals=['ELLIPSE_FIT', 'CENTROID_FIT'],
             hint=_translate("Algorithm used to detect the pupil center."),
-            label=_translate("Pupil Center Algorithm"), categ="Eyetracking"
+            label=_translate("Pupil center algorithm"), categ="Eyetracking"
         )
 
         self.params['elPupilMeasure'] = Param(
             elPupilMeasure, valType='str', inputType="choice",
             allowedVals=['PUPIL_AREA', 'PUPIL_DIAMETER', 'NEITHER'],
             hint=_translate("Type of pupil data to record."),
-            label=_translate("Pupil Data Type"), categ="Eyetracking"
+            label=_translate("Pupil data type"), categ="Eyetracking"
         )
 
         self.params['elAddress'] = Param(
             elAddress, valType='str', inputType="single",
             hint=_translate("IP Address of the EyeLink *Host* computer."),
-            label=_translate("EyeLink IP Address"), categ="Eyetracking"
+            label=_translate("EyeLink IP address"), categ="Eyetracking"
         )
 
         # tobii
         self.params['tbModel'] = Param(
             tbModel, valType='str', inputType="single",
             hint=_translate("Eye tracker model."),
-            label=_translate("Model Name"), categ="Eyetracking"
+            label=_translate("Model name"), categ="Eyetracking"
         )
 
         self.params['tbLicenseFile'] = Param(
             tbLicenseFile, valType='str', inputType="file",
             hint=_translate("Eye tracker license file (optional)."),
-            label=_translate("License File"), categ="Eyetracking"
+            label=_translate("License file"), categ="Eyetracking"
         )
 
         self.params['tbSerialNo'] = Param(
             tbSerialNo, valType='str', inputType="single",
             hint=_translate("Eye tracker serial number (optional)."),
-            label=_translate("Serial Number"), categ="Eyetracking"
+            label=_translate("Serial number"), categ="Eyetracking"
         )
 
         self.params['tbSampleRate'] = Param(
             tbSampleRate, valType='num', inputType="single",
             hint=_translate("Eye tracker sampling rate."),
-            label=_translate("Sampling Rate"), categ="Eyetracking"
+            label=_translate("Sampling rate"), categ="Eyetracking"
         )
 
         # pupil labs
         self.params['plPupillometryOnly'] = Param(
             plPupillometryOnly, valType='bool', inputType="bool",
             hint=_translate("Subscribe to pupil data only, does not require calibration or surface setup"),
-            label=_translate("Pupillometry Only"),
+            label=_translate("Pupillometry only"),
             categ="Eyetracking"
         )
         self.params['plSurfaceName'] = Param(
             plSurfaceName, valType='str', inputType="single",
             hint=_translate("Name of the Pupil Capture surface"),
-            label=_translate("Surface Name"), categ="Eyetracking"
+            label=_translate("Surface name"), categ="Eyetracking"
         )
         self.params['plConfidenceThreshold'] = Param(
             plConfidenceThreshold, valType='num', inputType="single",
-            hint=_translate("Gaze Confidence Threshold"),
-            label=_translate("Gaze Confidence Threshold"), categ="Eyetracking"
+            hint=_translate("Gaze confidence threshold"),
+            label=_translate("Gaze confidence threshold"), categ="Eyetracking"
         )
         self.params['plPupilRemoteAddress'] = Param(
             plPupilRemoteAddress, valType='str', inputType="single",
-            hint=_translate("Pupil Remote Address"),
-            label=_translate("Pupil Remote Address"), categ="Eyetracking"
+            hint=_translate("Pupil remote address"),
+            label=_translate("Pupil remote address"), categ="Eyetracking"
         )
         self.params['plPupilRemotePort'] = Param(
             plPupilRemotePort, valType='num', inputType="single",
-            hint=_translate("Pupil Remote Port"),
-            label=_translate("Pupil Remote Port"), categ="Eyetracking"
+            hint=_translate("Pupil remote port"),
+            label=_translate("Pupil remote port"), categ="Eyetracking"
         )
         self.params['plPupilRemoteTimeoutMs'] = Param(
             plPupilRemoteTimeoutMs, valType='num', inputType="single",
-            hint=_translate("Pupil Remote Timeout (ms)"),
-            label=_translate("Pupil Remote Timeout (ms)"), categ="Eyetracking"
+            hint=_translate("Pupil remote timeout (ms)"),
+            label=_translate("Pupil remote timeout (ms)"), categ="Eyetracking"
         )
         self.params['plPupilCaptureRecordingEnabled'] = Param(
             plPupilCaptureRecordingEnabled, valType='bool', inputType="bool",
-            hint=_translate("Pupil Capture Recording Enabled"),
-            label=_translate("Pupil Capture Recording Enabled"), categ="Eyetracking"
+            hint=_translate("Pupil capture recording enabled"),
+            label=_translate("Pupil capture recording enabled"), categ="Eyetracking"
         )
         self.params['plPupilCaptureRecordingLocation'] = Param(
             plPupilCaptureRecordingLocation, valType='str', inputType="single",
-            hint=_translate("Pupil Capture Recording Location"),
-            label=_translate("Pupil Capture Recording Location"), categ="Eyetracking"
+            hint=_translate("Pupil capture recording location"),
+            label=_translate("Pupil capture recording location"), categ="Eyetracking"
         )
 
         # Input
@@ -612,7 +612,7 @@ class SettingsComponent:
             keyboardBackend, valType='str', inputType="choice",
             allowedVals=list(keyboardBackendMap),
             hint=_translate("What Python package should PsychoPy use to get keyboard input?"),
-            label=_translate("Keyboard Backend"), categ="Input"
+            label=_translate("Keyboard backend"), categ="Input"
         )
 
     @property
@@ -762,7 +762,7 @@ class SettingsComponent:
             "from psychopy.constants import (NOT_STARTED, STARTED, PLAYING,"
             " PAUSED,\n"
             "                                STOPPED, FINISHED, PRESSED, "
-            "RELEASED, FOREVER)\n\n"
+            "RELEASED, FOREVER, salience)\n\n"
             "import numpy as np  # whole numpy lib is available, "
             "prepend 'np.'\n"
             "from numpy import (%s,\n" % ', '.join(_numpyImports[:7]) +
@@ -1569,6 +1569,12 @@ class SettingsComponent:
             "win.mouseVisible = %s\n"
         )
         buff.writeIndentedLines(code % allowGUI)
+
+        # Reset splash message
+        code = (
+            "win.hideMessage()\n"
+        )
+        buff.writeIndentedLines(code)
 
         # Import here to avoid circular dependency!
         from psychopy.experiment._experiment import RequiredImport

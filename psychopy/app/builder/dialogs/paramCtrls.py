@@ -4,7 +4,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-
+import functools
 import os
 import subprocess
 import sys
@@ -331,49 +331,73 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
     def __init__(self, parent, valType,
                  val="", choices=[], labels=[], fieldName="",
                  size=wx.Size(-1, 24)):
-        self._choices = list(choices)
-        # If not given any labels, alias values
-        if not labels:
-            labels = self._choices
-        # Map labels to values
-        self._labels = {}
-        for i, value in enumerate(self._choices):
-            if i < len(labels):
-                self._labels[value] = labels[i]
-            else:
-                self._labels[value] = value
-        # Translate labels
-        for v, l in self._labels.items():
-            if l in _localized:
-                self._labels[v] = _localized[l]
+        self._choices = choices
+        self._labels = labels
         # Create choice ctrl from labels
         wx.Choice.__init__(self)
-        self.Create(parent, -1, size=size, choices=[self._labels[c] for c in self._choices], name=fieldName)
+        self.Create(parent, -1, size=size, name=fieldName)
+        self.populate()
         self.valType = valType
         self.SetStringSelection(val)
 
+    def populate(self):
+        if isinstance(self._choices, functools.partial):
+            # if choices are given as a partial, execute it now to get values
+            choices = self._choices()
+        else:
+            # otherwise, treat it as a list
+            choices = list(self._choices)
+
+        if isinstance(self._labels, functools.partial):
+            # if labels are given as a partial, execute it now to get values
+            labels = self._labels()
+        elif self._labels:
+            # otherwise, treat it as a list
+            labels = list(self._labels)
+        else:
+            # if not given any labels, alias values
+            labels = choices
+        # Map labels to values
+        _labels = {}
+        for i, value in enumerate(choices):
+            if i < len(labels):
+                _labels[value] = labels[i]
+            else:
+                _labels[value] = value
+        labels = _labels
+        # Translate labels
+        for v, l in labels.items():
+            if l in _localized:
+                labels[v] = _localized[l]
+        # store labels and choices
+        self.labels = labels
+        self.choices = choices
+
+        # apply to ctrl
+        self.SetItems([str(self.labels[c]) for c in self.choices])
+
     def SetStringSelection(self, string):
-        strChoices = [str(choice) for choice in self._choices]
-        if string not in self._choices:
+        strChoices = [str(choice) for choice in self.choices]
+        if string not in self.choices:
             if string in strChoices:
                 # If string is a stringified version of a value in choices, stringify the value in choices
                 i = strChoices.index(string)
-                self._labels[string] = self._labels.pop(self._choices[i])
-                self._choices[i] = string
+                self.labels[string] = self.labels.pop(self.choices[i])
+                self.choices[i] = string
             else:
                 # Otherwise it is a genuinely new value, so add it to options
-                self._choices.append(string)
-                self._labels[string] = string
+                self.choices.append(string)
+                self.labels[string] = string
             # Refresh items
             self.SetItems(
-                [self._labels[c] for c in self._choices]
+                [str(self.labels[c]) for c in self.choices]
             )
         # Don't use wx.Choice.SetStringSelection here because label string is localized.
-        wx.Choice.SetSelection(self, self._choices.index(string))
+        wx.Choice.SetSelection(self, self.choices.index(string))
 
-    def GetValue(self):
+    def getValue(self):
         # Don't use wx.Choice.GetStringSelection here because label string is localized.
-        return self._choices[self.GetSelection()]
+        return self.choices[self.GetSelection()]
 
 
 class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin, _HideMixin):

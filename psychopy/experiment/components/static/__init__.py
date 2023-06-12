@@ -49,7 +49,7 @@ class StaticComponent(BaseComponent):
             "Custom code to be run during the static period (after updates)")
         self.params['code'] = Param("", valType='code', inputType="multi", categ='Custom',
                                     hint=hnt,
-                                    label=_localized['Custom code'])
+                                    label=_translate("Custom code"))
 
     def addComponentUpdate(self, routine, compName, fieldName):
         self.updatesList.append({'compName': compName,
