@@ -341,7 +341,7 @@ class SoundPTB(_SoundBase):
         return self._isPlaying
 
     @property
-    def isFinsihed(self):
+    def isFinished(self):
         """`True` if the audio playback has completed."""
         return self._isFinished
 
