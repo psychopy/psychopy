@@ -15,6 +15,9 @@ Overview
     MovieFileWriter.codec
     MovieFileWriter.pixelFormat
     MovieFileWriter.encoderLib
+    MovieFileWriter.encoderOpts
+    MovieFileWriter.frameRate
+    MovieFileWriter.frameSize
     MovieFileWriter.lastVideoFile
     MovieFileWriter.isOpen
     MovieFileWriter.framesOut
@@ -22,6 +25,7 @@ Overview
     MovieFileWriter.framesWaiting
     MovieFileWriter.totalFrames
     MovieFileWriter.frameInterval
+    MovieFileWriter.duration
     MovieFileWriter.open
     MovieFileWriter.flush
     MovieFileWriter.close

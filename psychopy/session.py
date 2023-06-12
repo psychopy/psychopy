@@ -280,7 +280,7 @@ class Session:
         importPath = ".".join(relPath)
         # Write experiment as Python script
         pyFile = file.parent / (file.stem + ".py")
-        if not pyFile.is_file():
+        if "psyexp" in file.suffix and not pyFile.is_file():
             exp = experiment.Experiment()
             exp.loadFromXML(file)
             script = exp.writeScript(target="PsychoPy")
@@ -288,6 +288,18 @@ class Session:
         # Handle if key is None
         if key is None:
             key = str(file.relative_to(self.root))
+        # Check that first part of import path isn't the name of an already existing module
+        try:
+            isPackage = importlib.import_module(relPath[0])
+            # If we imported successfully, check that the module imported is in the root dir
+            if not hasattr(isPackage, "__file__") or not isPackage.__file__.startswith(str(self.root)):
+                raise NameError(_translate(
+                    "Experiment could not be loaded as name of folder {} is also the name of an installed Python "
+                    "package. Please rename."
+                ).format(self.root / relPath[0]))
+        except ImportError:
+            # If we can't import, it's not a package and so we're good!
+            pass
         # Import python file
         self.experiments[key] = importlib.import_module(importPath)
 

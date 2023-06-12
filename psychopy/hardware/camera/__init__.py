@@ -2200,7 +2200,8 @@ class Camera:
         self._captureThread.close()
         self._captureThread = None
 
-    def save(self, filename, useThreads=True, mergeAudio=True):
+    def save(self, filename, useThreads=True, mergeAudio=True, 
+             encoderLib=None, encoderOpts=None):
         """Save the last recording to file.
 
         This will write frames to `filename` acquired since the last call of 
@@ -2224,6 +2225,14 @@ class Camera:
             Merge the audio track from the microphone with the video. If `True`,
             the audio track will be merged with the video. If `False`, the
             audio track will be saved to a separate file. Default is `True`.
+        encoderLib : str or None
+            Encoder library to use for saving the video. This can be either
+            `'ffpyplayer'` or `'opencv'`. If `None`, the same library that was
+            used to open the camera stream. Default is `None`.
+        encoderOpts : dict
+            Options to pass to the encoder. This is a dictionary of options
+            specific to the encoder library being used. See the documentation
+            for `~psychopy.tools.movietools.MovieFileWriter` for more details.
 
         """
         if self._isRecording:
@@ -2237,6 +2246,20 @@ class Camera:
             logging.warning(msg)
             os.remove(filename)
 
+        # determine if the `encoderLib` to use
+        if encoderLib is None:
+            encoderLib = self._cameraLib
+            
+        logging.debug(
+            "Using encoder library '{}' to save video.".format(encoderLib))
+
+        # check if the encoder library name string is valid
+        if encoderLib not in ('ffpyplayer', 'opencv'):
+            raise ValueError(
+                "Invalid value for parameter `encoderLib`, expected one of "
+                "`'ffpyplayer'` or `'opencv'`.")
+
+        # check if we have an audio track to save
         hasAudio = self._audioTrack is not None
 
         # create a temporary file names for the video and audio
@@ -2263,11 +2286,13 @@ class Camera:
         # contain video and not audio
         logging.debug("Saving video to file: {}".format(videoFileName))
         self._movieWriter = movietools.MovieFileWriter(
-            videoFileName,
-            self._cameraInfo.frameSize,  # match camera params
-            self._cameraInfo.frameRate,
-            None,
-            'rgb24')
+            filename=videoFileName,
+            size=self._cameraInfo.frameSize,  # match camera params
+            fps=self._cameraInfo.frameRate,
+            codec=None,  # mp4
+            pixelFormat='rgb24',
+            encoderLib=encoderLib,
+            encoderOpts=encoderOpts)
         self._movieWriter.open()  # blocks main thread until opened and ready
 
         # flush remaining frames to the writer thread, this is really fast since
