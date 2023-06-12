@@ -2365,7 +2365,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                     w = 10000  # limit width to 10000 pixels!
                 if w < 2:
                     w = 2  # make sure at least one pixel shows
-                dc.DrawRectangle(self.timeXposEnd, int(y + yOffset), w, h)
+                dc.DrawRectangle(self.timeXposEnd, int(y + yOffset), int(w), int(h))
         dc.SetIdBounds(id, fullRect)
 
     def drawSettingsBtn(self, dc, component):
