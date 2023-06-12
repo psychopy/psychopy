@@ -12,7 +12,7 @@ from psychopy.visual import form
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 
-__author__ = [authors.peircej, authors.dvbridges, authors.AHaffey]
+__authors__ = [authors.peircej, authors.dvbridges, authors.AHaffey]
 
 # only use _localized values for label values, nothing functional:
 _localized.update({'Items': _translate('Items'),

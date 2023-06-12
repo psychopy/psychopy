@@ -18,7 +18,7 @@ from ..colors import Color
 from random import shuffle
 from pathlib import Path
 
-__author__ = [authors.peircej, authors.TEParsons, authors.dvbridges, authors.AHaffey]
+__authors__ = [authors.peircej, authors.TEParsons, authors.dvbridges, authors.AHaffey]
 
 _REQUIRED = -12349872349873  # an unlikely int
 

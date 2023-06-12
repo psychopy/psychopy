@@ -14,7 +14,7 @@ from psychopy.visual import TextBox2
 from psychopy.visual.shape import ShapeStim
 from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED, STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)
 
-__author__ = [authors.AHaffey, authors.TEParsons]
+__authors__ = [authors.AHaffey, authors.TEParsons]
 
 
 class ButtonStim(TextBox2):

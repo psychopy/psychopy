@@ -10,7 +10,7 @@ from psychopy.hardware import iolab
 import random
 from psychopy import core, visual, event, authors
 
-__author__ = [
+__authors__ = [
     authors.JRoberts,  # original
     authors.jeremygray,  # 2013 rewrite
 ]

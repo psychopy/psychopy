@@ -14,7 +14,7 @@ from psychopy.experiment.components.polygon import PolygonComponent
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 
-__author__ = [authors.jeremygray, authors.peircej]
+__authors__ = [authors.jeremygray, authors.peircej]
 # March 2011; builder-component for Yuri Spitsyn's visual.Aperture class
 # July 2011: jwp added the code for it to be enabled only when needed
 
