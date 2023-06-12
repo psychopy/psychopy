@@ -1459,6 +1459,7 @@ class SettingsComponent:
         code = (
             "# return inputs dict\n"
             "return {\n"
+            "    'ioServer': ioServer,\n"
             "    'defaultKeyboard': defaultKeyboard,\n"
             "    'eyetracker': eyetracker,\n"
             "}\n"
