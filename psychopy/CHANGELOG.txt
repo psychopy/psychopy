@@ -21,21 +21,21 @@ PsychoPy 2023.1
 
 # Release series 2023.1. Highlights
 
-- **Pavlovia Surveys:** can now be integrated into PsychoPy online studies. You still create your 
-  survey in the Pavlovia Survey Creator (on you Pavlovia Dashboard) but you can then incorporate 
-  them as either a link or an embedded json file into your PsychoJS study. This only works for 
+- **Pavlovia Surveys:** can now be integrated into PsychoPy online studies. You still create your
+  survey in the Pavlovia Survey Creator (on you Pavlovia Dashboard) but you can then incorporate
+  them as either a link or an embedded json file into your PsychoJS study. This only works for
   online studies at present
 - **Panorama Stimuli:** now supported in PsychoPy (lab-based) studies. You can add a photo-sphere 
   as a stimulus (e.g. create them in Street View app on Android phones) and then insert them into 
   Builder and explore
-- **Plugins and Packages:** You can now add packages to your PsychoPy installation with a GUI that 
-  installs new packages to your user folder (without needing admin rights). Some of PsychoPy's 
+- **Plugins and Packages:** You can now add packages to your PsychoPy installation with a GUI that
+  installs new packages to your user folder (without needing admin rights). Some of PsychoPy's
   existing functionality has also moved out to "Plugins"
 
     - For users, plugins mean more control over what functionality you want PsychoPy to support
     - For developers, plugins mean keeping more independence over your code and ownership
 
-- **Speech Point:** on TextBox allows a tail to be added giving the impression of a cartoon speech 
+- **Speech Point:** on TextBox allows a tail to be added giving the impression of a cartoon speech
   bubble (lab-based only, currently)
 - **MovieStim:** further improvements to performance and fixes
 

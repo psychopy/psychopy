@@ -457,11 +457,9 @@ class KeyPress(object):
             self.name = name
             self.rt = tDown
         elif Keyboard._backend == 'ptb':
-            if code not in keyNames:
-                self.name = 'n/a'
-                logging.warning("Got keycode {} but that code isn't yet known")
-            else:
-                self.name = keyNames[code]
+            if code not in keyNames and code in keyNames.values():
+                i = list(keyNames.values()).index(code)
+                code = list(keyNames.keys())[i]
             if code not in keyNames:
                 logging.warning('Keypress was given unknown key code ({})'.format(code))
                 self.name = 'unknown'
