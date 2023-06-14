@@ -419,6 +419,7 @@ class ToggleLabelButton(wx.ToggleButton):
             self.SetLabel(self._pressedLabel)
         else:
             self.SetLabel(self._unPressedLabel)
+        self.GetParent().Layout()
         # Do usual stuff
         evt.Skip()
 
