@@ -58,7 +58,7 @@ from psychopy import logging, data
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties,
-                      ParamNotebook, DlgNewRoutine)
+                      ParamNotebook, DlgNewRoutine, BuilderFindDlg)
 from ..utils import (BasePsychopyToolbar, HoverButton, WindowFrozen,
                      FileDropTarget, FrameSwitcher, updateDemosMenu,
                      ToggleButtonArray, HoverMixin)
@@ -195,6 +195,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         # create our panels
         self.flowPanel = FlowPanel(frame=self)
+        self.flowCanvas = self.flowPanel.canvas
         self.routinePanel = RoutinesNotebook(self)
         self.componentButtons = ComponentsPanel(self)
         # menus and toolbars
@@ -399,12 +400,12 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate("&Flow Larger\t%s") % self.app.keys[
                                'largerFlow'],
                            _translate("Larger flow items"))
-        self.Bind(wx.EVT_MENU, self.flowPanel.increaseSize, item)
+        self.Bind(wx.EVT_MENU, self.flowPanel.canvas.increaseSize, item)
         item = menu.Append(wx.ID_ANY,
                            _translate("&Flow Smaller\t%s") % self.app.keys[
                                'smallerFlow'],
                            _translate("Smaller flow items"))
-        self.Bind(wx.EVT_MENU, self.flowPanel.decreaseSize, item)
+        self.Bind(wx.EVT_MENU, self.flowPanel.canvas.decreaseSize, item)
         item = menu.Append(wx.ID_ANY,
                            _translate("&Routine Larger\t%s") % keys[
                                'largerRoutine'],
@@ -507,12 +508,17 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                            _translate(
                                "Select one of your routines to be inserted"
                                " into the experiment flow"))
-        self.Bind(wx.EVT_MENU, self.flowPanel.onInsertRoutine, item)
+        self.Bind(wx.EVT_MENU, self.flowPanel.canvas.onInsertRoutine, item)
         item = menu.Append(wx.ID_ANY,
                            _translate("Insert Loop in Flow"),
                            _translate("Create a new loop in your flow window"))
-        self.Bind(wx.EVT_MENU, self.flowPanel.insertLoop, item)
+        self.Bind(wx.EVT_MENU, self.flowPanel.canvas.insertLoop, item)
         menu.AppendSeparator()
+
+        item = menu.Append(wx.ID_ANY,
+                           _translate("&Find in experiment...\t%s") % keys['builderFind'],
+                           _translate("Search the whole experiment for a specific term"))
+        self.Bind(wx.EVT_MENU, self.onFindInExperiment, item)
 
         item = menu.Append(wx.ID_ANY,
                            _translate("README..."),
@@ -630,7 +636,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def onResize(self, event):
         """Called when the frame is resized."""
         self.componentButtons.Refresh()
-        self.flowPanel.Refresh()
+        self.flowPanel.canvas.Refresh()
         event.Skip()
 
     @property
@@ -855,6 +861,10 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     #     """Show the plugin manager frame."""
     #     PluginManagerFrame(self).ShowModal()
 
+    def onFindInExperiment(self, evt=None):
+        dlg = BuilderFindDlg(frame=self, exp=self.exp)
+        dlg.Show()
+
     def updateReadme(self, show=None):
         """Check whether there is a readme file in this folder and try to show
 
@@ -866,7 +876,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             If None, show only when there is content.
         """
         # Make sure we have a file
-        if self.filename and self.filename != 'untitled.psyexp':
+        if self.filename:
             dirname = Path(self.filename).parent
             possibles = list(dirname.glob('readme*'))
             if len(possibles) == 0:
@@ -886,6 +896,10 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self.readmeFrame = ReadmeFrame(
                 parent=self, filename=self.readmeFilename
             )
+
+        # Set file
+        self.readmeFrame.file = self.readmeFilename
+        self.readmeFrame.ctrl.load()
 
         # Show/hide frame as appropriate
         if show is None:
@@ -997,7 +1011,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def updateAllViews(self):
         """Updates Flow Panel, Routine Panel, and Window Title simultaneously
         """
-        self.flowPanel.draw()
+        self.flowPanel.canvas.draw()
         self.routinePanel.redrawRoutines()
         self.componentButtons.Refresh()
         self.updateWindowTitle()
@@ -1362,7 +1376,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             currentRoutineIndex = self.routinePanel.GetPageIndex(currentRoutine)
             self.routinePanel.renameRoutinePage(currentRoutineIndex, name)
             self.addToUndoStack("`RENAME Routine `%s`" % oldName)
-            self.flowPanel.draw()
+            self.flowPanel.canvas.draw()
 
     def compileScript(self, event=None):
         """Defines compile script button behavior"""
@@ -1513,7 +1527,7 @@ class RoutinesNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         self.routineMaxSize = 2
         self.appData = self.app.prefs.appData
         aui.AuiNotebook.__init__(self, frame, id,
-            agwStyle=aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB)
+            agwStyle=aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB | aui.AUI_NB_WINDOWLIST_BUTTON)
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
         self.Bind(aui.EVT_AUINOTEBOOK_END_DRAG, self.onMoveTab)
 
@@ -1537,7 +1551,7 @@ class RoutinesNotebook(aui.AuiNotebook, handlers.ThemeMixin):
         for ii in range(self.GetPageCount()):
             if routine is self.GetPage(ii).routine:
                 self.SetSelection(ii)
-        self.frame.flowPanel.draw()
+        self.frame.flowPanel.canvas.draw()
 
     def SetSelection(self, index, force=False):
         aui.AuiNotebook.SetSelection(self, index, force=force)
@@ -1626,7 +1640,7 @@ class RoutinesNotebook(aui.AuiNotebook, handlers.ThemeMixin):
 
         if routine in self.frame.exp.flow:
             self.frame.exp.flow.removeComponent(routine)
-            self.frame.flowPanel.draw()
+            self.frame.flowPanel.canvas.draw()
         self.frame.addToUndoStack("REMOVE Routine `%s`" % (name))
 
     def onMoveTab(self, evt=None):
@@ -1785,7 +1799,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                 # width of components panel
                 menuPos[0] += self.frame.componentButtons.GetSize()[0]
                 # height of flow panel
-                menuPos[1] += self.frame.flowPanel.GetSize()[1]
+                menuPos[1] += self.frame.flowPanel.canvas.GetSize()[1]
             if len(icons):
                 self._menuComponent = self.componentFromID[icons[0]]
                 self.showContextMenu(self._menuComponent, xy=menuPos)
@@ -1956,7 +1970,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             self.drawComponent(self.pdc, component, yPos)
             yPos += self.componentStep
         # draw end line (if there is one)
-        self.drawForceEndLine(self.pdc, self.yPosTop + settingsBtnExtent.Height, yPosBottom)
+        self.drawForceEndLine(self.pdc, yPosBottom)
 
         # the 50 allows space for labels below the time axis
         self.SetVirtualSize((int(self.maxWidth), yPos + 50))
@@ -2146,7 +2160,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                         yPosBottom - self.GetFullTextExtent('t')[1] // 2)
         dc.SetTextForeground(colors.app['text'])
 
-    def drawForceEndLine(self, dc, yPosTop, yPosBottom):
+    def drawForceEndLine(self, dc, yPosBottom):
         # get max time & check if we have a hard stop
         tMax, hardStop = self.getMaxTime()
         if hardStop:
@@ -2159,13 +2173,13 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             )
             # vertical line:
             dc.DrawLine(self.timeXposEnd,
-                        yPosTop - 4,
+                        self.rects['grid'].Top - 4,
                         self.timeXposEnd,
                         yPosBottom + 4)
             # label above:
             dc.DrawText('%.2g' % tMax,
                         int(self.timeXposEnd - 4),
-                        yPosTop - 30)
+                        self.rects['grid'].Top - 30)
 
     def setFontSize(self, size, dc):
         font = self.GetFont()
@@ -2356,7 +2370,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                     w = 10000  # limit width to 10000 pixels!
                 if w < 2:
                     w = 2  # make sure at least one pixel shows
-                dc.DrawRectangle(self.timeXposEnd, int(y + yOffset), w, h)
+                dc.DrawRectangle(self.timeXposEnd, int(y + yOffset), int(w), int(h))
         dc.SetIdBounds(id, fullRect)
 
     def drawSettingsBtn(self, dc, component):
@@ -2451,7 +2465,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             self.frame.addToUndoStack("PASTE Component `%s`" % newName)
         dlg.Destroy()
 
-    def editComponentProperties(self, event=None, component=None):
+    def editComponentProperties(self, event=None, component=None, openToPage=None):
         # we got here from a wx.button press (rather than our own drawn icons)
         if event:
             componentName = event.EventObject.GetName()
@@ -2481,7 +2495,8 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
             _Dlg = DlgComponentProperties
         dlg = _Dlg(frame=self.frame,
                    element=component,
-                   experiment=self.frame.exp, editing=True)
+                   experiment=self.frame.exp, editing=True,
+                   openToPage=openToPage)
         if dlg.OK:
             # Redraw if force end routine has changed
             if any(key in component.params for key in ['forceEndRoutine', 'forceEndRoutineOnPress', 'endRoutineOn']):
@@ -2491,16 +2506,16 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                 if initialForce != newForce:
                     self.redrawRoutine()  # need to refresh timings section
                     self.Refresh()  # then redraw visible
-                    self.frame.flowPanel.draw()
+                    self.frame.flowPanel.canvas.draw()
             # Redraw if timings have changed
             if component.getStartAndDuration() != initialTimings:
                 self.redrawRoutine()  # need to refresh timings section
                 self.Refresh()  # then redraw visible
-                self.frame.flowPanel.draw()
+                self.frame.flowPanel.canvas.draw()
                 # self.frame.flowPanel.Refresh()
             elif component.name != old_name:
                 if component == self.routine.settings:
-                    self.frame.flowPanel.draw()
+                    self.frame.flowPanel.canvas.draw()
                     self.frame._doRenameRoutine(oldName=old_name, newName=component.name)
                 self.redrawRoutine()  # need to refresh name
             elif component.params['disabled'].val != old_disabled:
@@ -2566,7 +2581,7 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel):
                 # Update the routine dict keys to use the current name for this routine
                 self.frame.exp.routines[self.routine.params['name'].val] = self.frame.exp.routines.pop(name)
         # Redraw the flow panel
-        self.frame.flowPanel.draw()
+        self.frame.flowPanel.canvas.draw()
         # Rename this page
         page = self.frame.routinePanel.GetPageIndex(self)
         self.frame.routinePanel.SetPageText(page, self.routine.params['name'].val)
@@ -3265,16 +3280,52 @@ class ReadmeFrame(wx.Frame, handlers.ThemeMixin):
             self.Show()
 
 
-class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
-
+class FlowPanel(wx.Panel, handlers.ThemeMixin):
     def __init__(self, frame, id=-1):
+        wx.Panel.__init__(self, parent=frame)
+        # setup sizer
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.SetSizer(self.sizer)
+        # buttons panel
+        self.btnPanel = wx.Panel(self)
+        self.btnPanel.SetBackgroundColour("red")
+        self.btnPanel.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.btnPanel.SetSizer(self.btnPanel.sizer)
+        self.sizer.Add(self.btnPanel, border=6, flag=wx.EXPAND | wx.ALL)
+        # canvas
+        self.canvas = FlowCanvas(parent=self, frame=frame)
+        self.canvas.SetBackgroundColour("red")
+        self.sizer.Add(self.canvas, border=0, proportion=1, flag=wx.EXPAND | wx.ALL)
+        # add routine button
+        self.btnInsertRoutine = self.canvas.btnInsertRoutine = HoverButton(
+            self.btnPanel, -1, _translate('Insert Routine'), size=(120, 50),
+            style=wx.BORDER_NONE
+        )
+        self.btnInsertRoutine.Bind(wx.EVT_BUTTON, self.canvas.onInsertRoutine)
+        self.btnPanel.sizer.Add(self.btnInsertRoutine, border=6, flag=wx.EXPAND | wx.ALL)
+        # add loop button
+        self.btnInsertLoop = self.canvas.btnInsertLoop = HoverButton(
+            self.btnPanel, -1, _translate('Insert Loop'), size=(120, 50),
+            style=wx.BORDER_NONE
+        )
+        self.btnInsertLoop.Bind(wx.EVT_BUTTON, self.canvas.setLoopPoint1)
+        self.btnPanel.sizer.Add(self.btnInsertLoop, border=6, flag=wx.EXPAND | wx.ALL)
+        # align buttons to top
+        self.btnPanel.sizer.AddStretchSpacer(1)
+
+        self.Layout()
+
+
+class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
+
+    def __init__(self, parent, frame, id=-1):
         """A panel that shows how the routines will fit together
         """
         self.frame = frame
+        self.parent = parent
         self.app = frame.app
         self.dpi = self.app.dpi
-        wx.ScrolledWindow.__init__(self, frame, id, (0, 0),
-                                   size=wx.Size(8 * self.dpi, 3 * self.dpi),
+        wx.ScrolledWindow.__init__(self, parent, id,
                                    style=wx.HSCROLL | wx.VSCROLL | wx.BORDER_NONE)
         self.needUpdate = True
         self.maxWidth = 50 * self.dpi
@@ -3324,20 +3375,6 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         # self.btnInsertRoutine = wx.Button(self,-1,
         #                                  'Insert Routine', pos=(10,10))
         # self.btnInsertLoop = wx.Button(self,-1,'Insert Loop', pos=(10,30))
-        labelRoutine = _translate('Insert Routine')
-        labelLoop = _translate('Insert Loop')
-        btnHeight = 50
-        # Create add routine button
-        self.btnInsertRoutine = HoverButton(
-            self, -1, labelRoutine, pos=(10, 10), size=(120, btnHeight),
-            style=wx.BORDER_NONE
-        )
-        # Create add loop button
-        self.btnInsertLoop = HoverButton(
-            self, -1, labelLoop, pos=(10, btnHeight+20),
-            size=(120, btnHeight),
-            style=wx.BORDER_NONE
-        )  # spaces give size for CANCEL
 
         # use self.appData['flowSize'] to index a tuple to get a specific
         # value, eg: (4,6,8)[self.appData['flowSize']]
@@ -3345,8 +3382,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
 
         # bind events
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
-        self.Bind(wx.EVT_BUTTON, self.onInsertRoutine, self.btnInsertRoutine)
-        self.Bind(wx.EVT_BUTTON, self.setLoopPoint1, self.btnInsertLoop)
+        self.Bind(wx.EVT_MOUSEWHEEL, self.OnScroll)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
         idClear = wx.NewIdRef()
@@ -3614,8 +3650,8 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
                 self.frame.routinePanel.setCurrentRoutine(comp)
                 try:
                     self._menuComponentID = icon
-                    xy = wx.Point(event.X + self.GetPosition()[0],
-                                  event.Y + self.GetPosition()[1])
+                    xy = wx.Point(event.X + self.parent.GetPosition()[0],
+                                  event.Y + self.parent.GetPosition()[1])
                     self.showContextMenu(self._menuComponentID, xy=xy)
                 except UnboundLocalError:
                     # right click but not on an icon
@@ -3654,6 +3690,16 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
                 point = self.getNearestGapPoint(mouseX=x,
                                                 exclude=self.gapsExcluded)
                 self.drawEntryPoints([self.entryPointPosList[0], point])
+
+    def OnScroll(self, evt):
+        xy = self.GetViewStart()
+        delta = int(evt.WheelRotation * self.dpi / 1600)
+        if evt.GetWheelAxis() == wx.MOUSE_WHEEL_VERTICAL:
+            # scroll vertically
+            self.Scroll(xy[0], xy[1] - delta)
+        if evt.GetWheelAxis() == wx.MOUSE_WHEEL_HORIZONTAL:
+            # scroll horizontally
+            self.Scroll(xy[0] + delta, xy[1])
 
     def getNearestGapPoint(self, mouseX, exclude=()):
         """Get gap that is nearest to a particular mouse location
@@ -3821,7 +3867,7 @@ class FlowPanel(wx.ScrolledWindow, handlers.ThemeMixin):
         font = self.GetFont()
 
         # draw the main time line
-        self.linePos = (2.5 * self.dpi, 0.5 * self.dpi)  # x,y of start
+        self.linePos = (1 * self.dpi, 0.5 * self.dpi)  # x,y of start
         gap = self.dpi // (6, 4, 2)[self.appData['flowSize']]
         dLoopToBaseLine = (15, 25, 43)[self.appData['flowSize']]
         dBetweenLoops = (20, 24, 30)[self.appData['flowSize']]

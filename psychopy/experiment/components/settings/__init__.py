@@ -762,7 +762,7 @@ class SettingsComponent:
             "from psychopy.constants import (NOT_STARTED, STARTED, PLAYING,"
             " PAUSED,\n"
             "                                STOPPED, FINISHED, PRESSED, "
-            "RELEASED, FOREVER)\n\n"
+            "RELEASED, FOREVER, salience)\n\n"
             "import numpy as np  # whole numpy lib is available, "
             "prepend 'np.'\n"
             "from numpy import (%s,\n" % ', '.join(_numpyImports[:7]) +
@@ -1569,6 +1569,12 @@ class SettingsComponent:
             "win.mouseVisible = %s\n"
         )
         buff.writeIndentedLines(code % allowGUI)
+
+        # Reset splash message
+        code = (
+            "win.hideMessage()\n"
+        )
+        buff.writeIndentedLines(code)
 
         # Import here to avoid circular dependency!
         from psychopy.experiment._experiment import RequiredImport
