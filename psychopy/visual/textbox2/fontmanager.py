@@ -27,6 +27,7 @@ import requests
 from psychopy import logging
 from psychopy import prefs
 from psychopy.exceptions import MissingFontError
+from psychopy.localization import _translate
 
 #  OS Font paths
 _X11FontDirectories = [
@@ -832,7 +833,13 @@ class FontManager():
 
         # Construct and send Google Font url from name
         repoURL = f"https://fonts.googleapis.com/css2?family={ fontName.replace(' ', '+') }&display=swap"
-        repoResp = requests.get(repoURL)
+        try:
+            repoResp = requests.get(repoURL)
+        except (ConnectionError, TimeoutError, requests.ConnectionError):
+            raise MissingFontError(_translate(
+                "Tried to connect to the internet to get font `{}` but could not connect. Please use a locally "
+                "installed font."
+            ).format(fontName))
         if not repoResp.ok:
             # If font name is not found, raise error
             raise MissingFontError("Font `{}` could not be retrieved from the Google Font library.".format(fontName))
