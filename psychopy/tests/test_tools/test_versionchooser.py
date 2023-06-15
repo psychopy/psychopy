@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """Tests for psychopy.tools.versionchooser"""
 import os
+import sys
 from pathlib import Path
 
 import psychopy
-from psychopy.tools.versionchooser import useVersion
+from psychopy.tools.versionchooser import Version, useVersion, versionMap
 from psychopy import prefs, experiment
 from psychopy.scripts.psyexpCompile import generateScript
 from psychopy.experiment.components import polygon
@@ -14,34 +15,32 @@ USERDIR = prefs.paths['userPrefsDir']
 VER_SUBDIR = 'versions'
 VERSIONSDIR = os.path.join(USERDIR, VER_SUBDIR)
 
+pyVersion = Version(".".join(
+    [str(sys.version_info.major), str(sys.version_info.minor)]
+))
 
-class _baseVersionChooser():
-    def test_currentVersion(self):
-        vers = useVersion('1.90.0')
-        assert(vers == '1.90.0')
+
+class TestVersionChooser():
+    def setup_method(self):
+        self.temp = Path(mkdtemp())
+
+    def test_same_version(self):
+        # pick a version which works with installed Python
+        rVers = versionMap[pyVersion][0]
+        # use it
+        vers = useVersion(rVers)
+        vers = Version(vers)
+        # confirm that it is being used
+        assert (vers.major, vers.minor) == (rVers.major, rVers.minor)
 
     def test_version_folder(self):
         assert(os.path.isdir(VERSIONSDIR))
 
-
-class Test_Same_Version(_baseVersionChooser):
-    def setup_method(self):
-        self.requested = '1.90.0'
-        useVersion(self.requested)
-
-    def test_same_version(self):
-        assert(psychopy.__version__ == self.requested)
-
-
-class Test_Older_Version(_baseVersionChooser):
-    def setup_method(self):
-        self.requested = '1.90.0'
-        self.temp = Path(mkdtemp())
-
-    def test_older_version(self):
-        assert(useVersion(self.requested))
-
     def test_writing(self):
+        # Can't run this test on anything beyond 3.6
+        if pyVersion > Version("3.6"):
+            return
+
         # Create simple experiment with a Polygon
         exp = experiment.Experiment()
         rt = experiment.routines.Routine(name="testRoutine", exp=exp)

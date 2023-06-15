@@ -110,6 +110,8 @@ def useVersion(requestedVersion):
     See also:
         ensureMinimal()
     """
+    requestedVersion = str(requestedVersion)
+
     # Sanity Checks
     imported = _psychopyComponentsImported()
     if imported:
