@@ -41,7 +41,7 @@ jobs:
           arch="x86_64-unknown-linux"
         elif [ "${{ runner.os }}" == "macOS" ]
         then
-          arch="apple-darwin"
+          arch="x86_64-apple-darwin"
         else
           echo "unknown OS ${{ runner.os }}"
         fi
