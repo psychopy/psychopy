@@ -4,6 +4,8 @@ on:
   workflow_dispatch:  # manual
   schedule:
     - cron: '0 0 * * 5'
+  pull_request:
+    branches: [ release, dev ]
 
 permissions:
   contents: read
@@ -76,24 +78,31 @@ jobs:
         pip install git+https://github.com/psychopy/psychopy.git@dev --no-warn-script-location
 
     - name: Install plugins
-      run: |
-        # for pocketsphinx we need this adapted package:
-        brew install swig vlc portaudio portmidi liblo sdl2
+      run:
         # install optional components
         pip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator psychopy-visionscience
         pip install moviepy
 
-
-    - name: Upload builds with googleapi
-      env:
-          gdrive_key: ${{ secrets.MINDTRACE_KEY }}
-      if: ${{ env.gdrive_key != '' }}
-      run: |
-        cd app
-        # NB this is using python but after we build so won't include?
-        python3 -m pip install googleapi
-        python3 .github/workflows/gdrive.py ${{ secrets.NIGHTLY_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.msi' --suffix='date'
-        python3 .github/workflows/gdrive.py ${{ secrets.NIGHTLY_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.exe' --suffix='date'
-        python3 .github/workflows/gdrive.py ${{ secrets.NIGHTLY_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.nupkg' --suffix='date'
-        # python3 .github/workflows/gdrive.py ${{ secrets.NIGHTLY_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.zip' --suffix='date'
-        python3 .github/workflows/gdrive.py ${{ secrets.NIGHTLY_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.dmg' --suffix='date'
+#    - name: Make binary build
+#      run:
+#        if [ "${{ runner.os }}" == "Windows" ]
+#        then
+#          alias pip='py/python -m pip'
+#        else
+#          alias pip='py/bin/python3 -m pip'
+#        fi
+#
+#
+#    - name: Upload builds with googleapi
+#      env:
+#          gdrive_key: ${{ secrets.MINDTRACE_KEY }}
+#      if: ${{ env.gdrive_key != '' }}
+#      run: |
+#        cd app
+#        # NB this is using python but after we build so won't include?
+#        python3 -m pip install googleapi
+#        python3 .github/workflows/gdrive.py ${{ secrets.NIGHTLY_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.msi' --suffix='date'
+#        python3 .github/workflows/gdrive.py ${{ secrets.NIGHTLY_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.exe' --suffix='date'
+#        python3 .github/workflows/gdrive.py ${{ secrets.NIGHTLY_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.nupkg' --suffix='date'
+#        # python3 .github/workflows/gdrive.py ${{ secrets.NIGHTLY_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.zip' --suffix='date'
+#        python3 .github/workflows/gdrive.py ${{ secrets.NIGHTLY_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.dmg' --suffix='date'
