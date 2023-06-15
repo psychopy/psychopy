@@ -81,9 +81,15 @@ jobs:
         pip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator psychopy-visionscience
         pip install moviepy
 
-    - name: BUild binary (windows)
+    - name: Build binary (windows)
       if: runner.os == 'Windows'
       run:
+        echo "...build binary on Windows here"
+
+    - name: Build binary (MacOS)
+      if: runner.os == 'Windows'
+      run:
+        echo "...build binary on MacOS here"
 
 #    - name: Make binary build
 #      run:

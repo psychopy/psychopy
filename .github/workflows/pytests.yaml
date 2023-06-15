@@ -1,10 +1,10 @@
 name: pytest
 
-on:
-  push:
-    branches: [ release, dev ]
-  pull_request:
-    branches: [ release, dev ]
+#on:
+#  push:
+#    branches: [ release, dev ]
+#  pull_request:
+#    branches: [ release, dev ]
 
 permissions:
   contents: read
