@@ -1,7 +1,7 @@
 name: pytest
 
-#on:
-#  push:
+on:
+  workflow_dispatch:  # manual
 #    branches: [ release, dev ]
 #  pull_request:
 #    branches: [ release, dev ]

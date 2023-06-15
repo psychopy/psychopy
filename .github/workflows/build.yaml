@@ -19,7 +19,7 @@ jobs:
       run:
         shell: bash
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         os: [macos-latest, windows-latest]
         indygreg-release: ["20230507"]  # see https://github.com/indygreg/python-build-standalone/releases
@@ -54,7 +54,7 @@ jobs:
         curl --location "$url.sha256" -o shafile
         ls -al
         # check checksum first
-        python3 app/.github/workflows/checksum.py python.tar.gz shafile sha256
+        python3 .github/workflows/checksum.py python.tar.gz shafile sha256
         # then unzip and move
         tar -xf python.tar.gz
         # move to our preferred path
@@ -106,7 +106,6 @@ jobs:
 #          gdrive_key: ${{ secrets.MINDTRACE_KEY }}
 #      if: ${{ env.gdrive_key != '' }}
 #      run: |
-#        cd app
 #        # NB this is using python but after we build so won't include?
 #        python3 -m pip install googleapi
 #        python3 .github/workflows/gdrive.py ${{ secrets.NIGHTLY_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.msi' --suffix='date'
