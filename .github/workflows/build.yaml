@@ -27,8 +27,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@master
-      with:
-        path: psychopy
 
     - name: Unpack portable Python distro
       run: |
@@ -47,8 +45,8 @@ jobs:
         else
           echo "unknown OS ${{ runner.os }}"
         fi
-        fname="cpython-${{ matrix.python-version }}+{{ matrix.indygreg-release }}-$arch-install_only.tar.gz"
-        indygreg="https://github.com/indygreg/python-build-standalone/releases/download/{{ matrix.indygreg-release }}"
+        fname="cpython-${{ matrix.python-version }}+${{ matrix.indygreg-release }}-$arch-install_only.tar.gz"
+        indygreg="https://github.com/indygreg/python-build-standalone/releases/download/${{ matrix.indygreg-release }}"
         url="$indygreg/$fname"
         echo $url
         # fetch the files
@@ -82,6 +80,10 @@ jobs:
         # install optional components
         pip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator psychopy-visionscience
         pip install moviepy
+
+    - name: BUild binary (windows)
+      if: runner.os == 'Windows'
+      run:
 
 #    - name: Make binary build
 #      run:
