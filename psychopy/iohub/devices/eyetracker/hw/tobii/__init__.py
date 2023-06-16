@@ -12,3 +12,6 @@ except (ModuleNotFoundError, ImportError, NameError):
         "The Tobii eyetracker requires package 'psychopy-eyetracker-tobii' to "
         "be installed. Please install this package and restart the session to "
         "enable support.")
+
+if __name__ == "__main__":
+    pass
