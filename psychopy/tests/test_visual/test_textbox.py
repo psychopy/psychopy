@@ -68,8 +68,11 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
             # A noticeably non-standard font
             {"text": "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question.",
              "font": "Indie Flower", "size": 16,
-             "screenshot": "exemplar_4.png",
-            }
+             "screenshot": "exemplar_4.png"},
+            # A nonexistant font (should appear as Arial)
+            {"text": "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question.",
+             "font": "Font Which Definitely Does Not Exist And If Someone Makes A Font Called This I'll Be Jolly Cross", "size": 16,
+             "screenshot": "exemplar_5.png"},
         ]
         # Some text which is likely to cause problems if something isn't working
         tykes = [
@@ -449,6 +452,11 @@ def test_font_manager():
         mgr.addGoogleFont("Hanalei")
         # Check that these fonts are found once installed
         assert bool(mgr.getFontNamesSimilar("Hanalei"))
+        # Check that it behaves correctly when given a nonexistant font
+        found = mgr.addGoogleFont(
+            "Font Which Definitely Does Not Exist And If Someone Makes A Font Called This I'll Be Jolly Cross"
+        )
+        assert not found
 
 
 @pytest.mark.uax14
