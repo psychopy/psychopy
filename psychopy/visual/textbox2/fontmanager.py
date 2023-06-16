@@ -836,25 +836,39 @@ class FontManager():
         try:
             repoResp = requests.get(repoURL)
         except (ConnectionError, TimeoutError, requests.ConnectionError):
-            raise MissingFontError(_translate(
-                "Tried to connect to the internet to get font `{}` but could not connect. Please use a locally "
-                "installed font."
+            # If no internet, default to fallback
+            logging.error(_translate(
+                "Tried to connect to the internet to get font `{}` but could not connect. Defaulting to {}."
             ).format(fontName))
+            return False
         if not repoResp.ok:
-            # If font name is not found, raise error
-            raise MissingFontError("Font `{}` could not be retrieved from the Google Font library.".format(fontName))
+            # If font name is not found, default to fallback
+            logging.error(_translate(
+                "Font `{}` could not be retrieved from the Google Font library. Defaulting to Arial."
+            ).format(fontName,))
+            return False
         # Get and send file url from returned CSS data
         fileURL = re.findall(r"(?<=src: url\().*(?=\) format)", repoResp.content.decode())[0]
         fileFormat = re.findall(r"(?<=format\(\').*(?=\'\)\;)", repoResp.content.decode())[0]
         fileResp = requests.get(fileURL)
         if not fileResp.ok:
-            # If font file is not available, raise error
-            raise MissingFontError("OST file for Google font `{}` could not be accessed".format(fontName))
+            # If font file is not available, default to fallback
+            logging.error(_translate(
+                "OST file for Google font `{}` could not be accessed. Defaulting to Arial."
+            ).format(fontName))
+            return False
         # Save retrieved font as an OST file
         fileName = Path(prefs.paths['fonts']) / f"{fontName}.{fileFormat}"
         logging.info("Font \"{}\" was successfully installed at: {}".format(fontName, prefs.paths['fonts']))
-        with open(fileName, "wb") as fileObj:
-            fileObj.write(fileResp.content)
+        try:
+            with open(fileName, "wb") as fileObj:
+                fileObj.write(fileResp.content)
+        except OSError:
+            # If failed to write, default to fallback
+            logging.error(_translate(
+                "Failed to access file `{}`. Defaulting to Arial."
+            ).format(fileName))
+            return False
         # Add font and return
         return self.addFontFile(fileName)
 
