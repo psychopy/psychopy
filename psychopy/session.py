@@ -848,6 +848,10 @@ class Session:
         bool
             True if data was sent, otherwise False
         """
+        # Skip if there's no liaison
+        if self.liaison is None:
+            return
+
         # Sub None for current
         if key is None:
             key = self.currentExperiment.name
