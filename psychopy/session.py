@@ -887,7 +887,7 @@ class Session:
             return
         # If ExperimentHandler, get its data as a list of dicts
         if isinstance(value, data.ExperimentHandler):
-            value = value.getJSON()
+            value = value.getJSON(salienceThreshold=self.salienceThreshold)
         # Convert to JSON
         value = json.dumps(value)
         # Send
