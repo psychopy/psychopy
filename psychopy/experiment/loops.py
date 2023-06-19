@@ -328,7 +328,7 @@ class TrialHandler(_BaseLoopHandler):
                 "thisExp.nextEntry(t=globalClock.getTime())\n"
                 "if thisSession is not None:\n"
                 "    # if running in a Session with a Liaison client, send data up to now\n"
-                "    thisSession.sendData()\n"
+                "    thisSession.sendExperimentData()\n"
                 "\n"
             )
         # end of the loop. dedent
@@ -529,7 +529,7 @@ class StairHandler(_BaseLoopHandler):
                 "thisExp.nextEntry(t=globalClock.getTime())\n"
                 "if thisSession is not None:\n"
                 "    # if running in a Session with a Liaison client, send data up to now\n"
-                "    thisSession.sendData()\n"
+                "    thisSession.sendExperimentData()\n"
                 "\n"
             )
         # end of the loop. dedent
@@ -761,7 +761,7 @@ class MultiStairHandler(_BaseLoopHandler):
                 "thisExp.nextEntry(t=globalClock.getTime())\n"
                 "if thisSession is not None:\n"
                 "    # if running in a Session with a Liaison client, send data up to now\n"
-                "    thisSession.sendData()\n"
+                "    thisSession.sendExperimentData()\n"
                 "\n"
             )
         # end of the loop. dedent
