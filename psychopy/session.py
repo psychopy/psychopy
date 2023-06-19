@@ -8,7 +8,7 @@ import time
 import json
 from pathlib import Path
 
-from psychopy import experiment, logging, constants, data, core
+from psychopy import experiment, logging, constants, data, core, __version__
 from psychopy.tools.arraytools import AliasDict
 
 from psychopy.localization import _translate
@@ -327,6 +327,9 @@ class Session:
         else:
             # Otherwise, return status of experiment handler
             return self.currentExperiment.status
+
+    def getPsychoPyVersion(self):
+        return __version__
 
     def getExpInfoFromExperiment(self, key, sessionParams=True):
         """
