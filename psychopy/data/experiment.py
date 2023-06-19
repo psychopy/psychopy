@@ -94,7 +94,7 @@ class ExperimentHandler(_ComparisonMixin):
         self.dataNames = ['notes', 'thisRow.t']  # names of all the data (eg. resp.keys)
         self.columnSalience = {
             'thisRow.t': constants.SALIENCE_CRITICAL - 1,
-            'notes': constants.SALIENCE_NONE - 1,
+            'notes': constants.SALIENCE_MEDIUM - 1,
         }
         self.autoLog = autoLog
         self.appendFiles = appendFiles
