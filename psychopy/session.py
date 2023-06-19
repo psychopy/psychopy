@@ -130,6 +130,8 @@ class Session:
             dataDir = self.root / "data"
         if not dataDir.is_dir():
             os.mkdir(str(dataDir))
+        # Store data folder
+        self.dataDir = dataDir
         # Create log file
         wallTime = core.Clock.getTime(None, style=str)
         self.logFile = logging.LogFile(
@@ -809,8 +811,10 @@ class Session:
                 if run.name == key:
                     thisExp = run
                     break
-
+        # save to usual folder
         self.experiments[key].saveData(thisExp)
+        # save to Session folder
+        self.experiments[key].saveData(thisExp, folder=str(self.dataDir))
 
         return True
 

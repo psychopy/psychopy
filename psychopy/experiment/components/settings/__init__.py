@@ -1047,7 +1047,7 @@ class SettingsComponent:
             buff.writeIndented("filename = %s\n" %
                                self.params['Data filename'])
         else:
-            buff.writeIndented("filename = _thisDir + os.sep + %s\n" %
+            buff.writeIndented("filename = %s\n" %
                                self.params['Data filename'])
 
         # set up the ExperimentHandler
@@ -1597,7 +1597,7 @@ class SettingsComponent:
         # Open function def
         code = (
             '\n'
-            'def saveData(thisExp):\n'
+            'def saveData(thisExp, folder=None):\n'
             '    """\n'
             '    Save data from this experiment\n'
             '    \n'
@@ -1606,6 +1606,8 @@ class SettingsComponent:
             '    thisExp : psychopy.data.ExperimentHandler\n'
             '        Handler object for this experiment, contains the data to save and information about \n'
             '        where to save it to.\n'
+            '    folder : str or None\n'
+            '       Folder in which to save data, use None to save in current folder.\n'
             '    """\n'
         )
         buff.writeIndentedLines(code)
@@ -1613,16 +1615,23 @@ class SettingsComponent:
         # Get filename from thisExp
         code = (
             "filename = thisExp.dataFileName\n"
+            "if folder is None:\n"
+            "    folder = _thisDir\n"
         )
         buff.writeIndentedLines(code)
 
-        buff.writeIndented("# these shouldn't be strictly necessary "
-                           "(should auto-save)\n")
+        code = (
+            "# these shouldn't be strictly necessary (should auto-save)\n"
+        )
         if self.params['Save wide csv file'].val:
-            buff.writeIndented("thisExp.saveAsWideText(filename+'.csv', "
-                               "delim={})\n".format(self.params['Data file delimiter']))
+            code += (
+                "thisExp.saveAsWideText(folder + os.sep + filename + '.csv', delim=%(Data file delimiter)s\n"
+            )
         if self.params['Save psydat file'].val:
-            buff.writeIndented("thisExp.saveAsPickle(filename)\n")
+            code += (
+                "thisExp.saveAsPickle(filename)\n"
+            )
+        buff.writeIndentedLines(code % self.params)
 
         # Exit function def
         buff.setIndentLevel(-1, relative=True)
