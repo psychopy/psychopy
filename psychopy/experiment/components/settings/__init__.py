@@ -1625,7 +1625,7 @@ class SettingsComponent:
         )
         if self.params['Save wide csv file'].val:
             code += (
-                "thisExp.saveAsWideText(folder + os.sep + filename + '.csv', delim=%(Data file delimiter)s\n"
+                "thisExp.saveAsWideText(folder + os.sep + filename + '.csv', delim=%(Data file delimiter)s)\n"
             )
         if self.params['Save psydat file'].val:
             code += (
