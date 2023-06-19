@@ -113,6 +113,7 @@ class Session:
 
     def __init__(self,
                  root,
+                 dataDir=None,
                  liaison=None,
                  loggingLevel="info",
                  salienceThreshold=constants.SALIENCE_EXCLUDE+1,
@@ -124,9 +125,15 @@ class Session:
         # Store root and add to Python path
         self.root = Path(root)
         sys.path.insert(1, str(self.root))
+        # Create data folder
+        if dataDir is None:
+            dataDir = self.root / "data"
+        if not dataDir.is_dir():
+            os.mkdir(str(dataDir))
         # Create log file
+        wallTime = core.Clock.getTime(None, style=str)
         self.logFile = logging.LogFile(
-            self.root / (self.root.stem + '.log'),
+            dataDir / f"session_{self.root.stem}_{wallTime}.log",
             level=getattr(logging, loggingLevel.upper())
         )
         # Store salience threshold
@@ -931,6 +938,7 @@ if __name__ == "__main__":
     parser.add_argument("--root", dest="root")
     parser.add_argument("--host", dest="host")
     parser.add_argument("--timing", dest="timing", default="iso")
+    parser.add_argument("--datadir", dest="datadir")
     args = parser.parse_args()
     # Setup timing
     if args.timing == "float":
@@ -942,7 +950,8 @@ if __name__ == "__main__":
     # Create session
     session = Session(
         root=args.root,
-        clock=sessionClock
+        clock=sessionClock,
+        dataDir=args.datadir
     )
     if ":" in str(args.host):
         host, port = str(args.host).split(":")
