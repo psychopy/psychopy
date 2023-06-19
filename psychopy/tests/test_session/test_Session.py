@@ -78,6 +78,37 @@ class TestSession:
         # Start session
         self.sess.start()
 
+    def test_sync_clocks(self):
+        """
+        Test that experiment clock is applied to ioHub
+        """
+        from psychopy import iohub
+
+        def _sameTimes():
+            times = [
+                # ioHub process time
+                self.sess.inputs['ioServer'].getTime(),
+                # ioHub time in current process
+                iohub.Computer.global_clock.getTime(),
+                # experiment time
+                self.sess.sessionClock.getTime(),
+            ]
+            # confirm that all values are within 0.001 of eachother
+            avg = sum(times) / len(times)
+            deltas = [abs(t - avg) for t in times]
+            same = [d < 0.001 for d in deltas]
+
+            return all(same)
+        # setup experiment inputs
+        self.sess.setupInputsFromExperiment("exp1")
+        # knock ioHub timer out of sync
+        time.sleep(0.1)
+        assert not _sameTimes()
+        # run experiment
+        self.sess.runExperiment("exp1")
+        # confirm that ioHub timer was brought back into sync
+        assert _sameTimes()
+
     # def test_error(self, capsys):
     #     """
     #     Check that an error in an experiment doesn't interrupt the session.

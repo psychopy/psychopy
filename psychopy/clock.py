@@ -21,6 +21,8 @@ Clock logic.
 import logging
 import time
 import sys
+from datetime import datetime
+
 from pkg_resources import parse_version
 
 try:
@@ -124,28 +126,58 @@ class MonotonicClock:
     Version Notes: This class was added in PsychoPy 1.77.00
 
     """
-    def __init__(self, start_time=None):
+    def __init__(self, start_time=None, style=float):
         super(MonotonicClock, self).__init__()
         if start_time is None:
             # this is sub-millisecond timer in python
             self._timeAtLastReset = getTime()
         else:
             self._timeAtLastReset = start_time
+        # store default style
+        self.style = style
 
-    def getTime(self, applyZero=True):
-        """Returns the current time on this clock in secs (sub-ms precision).
-
-        If applying zero then this will be the time since the clock was created
-        (typically the beginning of the script).
-
-        If not applying zero then it is whatever the underlying clock uses as
-        its base time but that is system dependent. e.g. can be time since
-        reboot, time since Unix Epoch etc
+    def getTime(self, applyZero=True, style=None):
         """
-        if applyZero:
-            return getTime() - self._timeAtLastReset
-        else:
-            return getTime()
+        Returns the current time on this clock in secs (sub-ms precision).
+
+        Parameters
+        ----------
+        applyZero : bool
+            If applying zero then this will be the time since the clock was created (typically the beginning of the
+            script). If not applying zero then it is whatever the underlying clock uses as its base time but that is
+            system dependent. e.g. can be time since reboot, time since Unix Epoch etc.
+
+            Only applies when style is `float`.
+        style : type, str or None
+            Can be either:
+            - `float`: Time will return as a float as number of seconds
+            - time format codes: Time will return as a string in that format, as in time.strftime
+            - `str`: Time will return as a string in ISO 8601 (YYYY-MM-DD_HH:MM:SS.mmmmmmZZZZ)
+            - `None`: Will use this object's `defaultStyle` attribute
+
+        Returns
+        -------
+        str or float
+            Time in format requested.
+        """
+
+        # substitute no style for default
+        if style is None:
+            style = self.style
+        # substitute nonspecified str style for ISO 8601
+        if style is str:
+            style = "%Y-%m-%d_%H:%M:%S.%f%z"
+
+        # transform according to style
+        if style is float:
+            # get time as float (pre-2023.2 behaviour)
+            t = getTime()
+            if applyZero:
+                t -= self._timeAtLastReset
+            return t
+        elif isinstance(style, str):
+            # if given a style string, format according to it
+            return datetime.now().strftime(style)
 
     def getLastResetTime(self):
         """
@@ -167,8 +199,8 @@ class Clock(MonotonicClock):
     except that it can also be reset to 0 or another value at any point.
 
     """
-    def __init__(self):
-        super(Clock, self).__init__()
+    def __init__(self, style=float):
+        super(Clock, self).__init__(style=style)
 
     def reset(self, newT=0.0):
         """Reset the time on the clock. With no args time will be

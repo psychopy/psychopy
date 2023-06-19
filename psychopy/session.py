@@ -8,7 +8,7 @@ import time
 import json
 from pathlib import Path
 
-from psychopy import experiment, logging, constants, data
+from psychopy import experiment, logging, constants, data, core
 from psychopy.tools.arraytools import AliasDict
 
 from psychopy.localization import _translate
@@ -119,7 +119,8 @@ class Session:
                  inputs=None,
                  win=None,
                  experiments=None,
-                 params=None):
+                 params=None,
+                 clock=None):
         # Store root and add to Python path
         self.root = Path(root)
         sys.path.insert(1, str(self.root))
@@ -154,6 +155,10 @@ class Session:
         elif inputs in self.experiments:
             # If inputs is the name of an experiment, setup from that experiment's method
             self.setupInputsFromExperiment(inputs)
+        # Setup Session clock
+        if clock is None:
+            clock = core.Clock()
+        self.sessionClock = clock
         # Store params as an aliased dict
         if params is None:
             params = {}
@@ -640,6 +645,7 @@ class Session:
                 thisExp=thisExp,
                 win=self.win,
                 inputs=self.inputs,
+                globalClock=self.sessionClock,
                 thisSession=self
             )
         except Exception as _err:
@@ -901,15 +907,39 @@ class Session:
 
 
 if __name__ == "__main__":
+    """
+    Create a Session with parameters passed by command line.
+    
+    Parameters
+    ----------
+    --root
+        Root directory for the Session
+    --host
+        Port address of host server (if any)
+    --timing
+        How to handle timing, can be either:
+        - "float": Start a timer when Session is created and do timing relative to that (default)
+        - "iso": Do timing via wall clock in ISO 8601 format 
+        - any valid strftime string: Do timing via wall clock in the given format
+    """
     # Parse args
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", dest="root")
     parser.add_argument("--host", dest="host")
+    parser.add_argument("--timing", dest="timing", default="iso")
     args = parser.parse_args()
+    # Setup timing
+    if args.timing == "float":
+        sessionClock = core.Clock()
+    elif args.timing == "iso":
+        sessionClock = core.Clock(style=str)
+    else:
+        sessionClock = core.Clock(style=args.timing)
     # Create session
     session = Session(
-        root=args.root
+        root=args.root,
+        clock=sessionClock
     )
     if ":" in str(args.host):
         host, port = str(args.host).split(":")
