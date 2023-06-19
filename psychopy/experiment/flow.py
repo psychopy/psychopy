@@ -293,6 +293,7 @@ class Flow(list):
                 "if globalClock is None:\n"
                 "    globalClock = core.Clock()  # to track the time since experiment started\n"
                 "ioServer.syncClock(globalClock)\n"
+                "logging.setDefaultClock(globalClock)\n"
                 "routineTimer = core.Clock()  # to track time remaining of each (possibly non-slip) routine\n"
                 "# store the exact time the global clock started\n"
                 "expInfo['expStart'] = data.getDateStr(format='%Y-%m-%d %Hh%M.%S.%f %z', fractionalSecondDigits=6)\n"
