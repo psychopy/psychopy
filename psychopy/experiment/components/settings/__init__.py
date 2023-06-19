@@ -1617,6 +1617,8 @@ class SettingsComponent:
             "filename = thisExp.dataFileName\n"
             "if folder is None:\n"
             "    folder = _thisDir\n"
+            "# make sure folder exists\n"
+            "data.checkValidFilePath(folder + os.sep + filename)"
         )
         buff.writeIndentedLines(code)
 
