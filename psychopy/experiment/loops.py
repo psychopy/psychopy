@@ -328,6 +328,9 @@ class TrialHandler(_BaseLoopHandler):
                 "thisExp.nextEntry()\n"
                 "thisExp.timestampOnFlip(win, 'thisRow.t')\n"
                 "\n"
+                "if thisSession is not None:\n"
+                "    # if running in a Session with a Liaison client, send data up to now\n"
+                "    thisSession.sendExperimentData()\n"
             )
         # end of the loop. dedent
         buff.setIndentLevel(-1, relative=True)
@@ -527,6 +530,9 @@ class StairHandler(_BaseLoopHandler):
                 "thisExp.nextEntry()\n"
                 "thisExp.timestampOnFlip(win, 'thisRow.t')\n"
                 "\n"
+                "if thisSession is not None:\n"
+                "    # if running in a Session with a Liaison client, send data up to now\n"
+                "    thisSession.sendExperimentData()\n"
             )
         # end of the loop. dedent
         buff.setIndentLevel(-1, relative=True)
@@ -756,6 +762,9 @@ class MultiStairHandler(_BaseLoopHandler):
                 "thisExp.nextEntry()\n"
                 "thisExp.timestampOnFlip(win, 'thisRow.t')\n"
                 "\n"
+                "if thisSession is not None:\n"
+                "    # if running in a Session with a Liaison client, send data up to now\n"
+                "    thisSession.sendExperimentData()\n"
             )
         # end of the loop. dedent
         buff.setIndentLevel(-1, relative=True)
