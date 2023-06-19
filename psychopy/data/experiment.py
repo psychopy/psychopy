@@ -91,7 +91,7 @@ class ExperimentHandler(_ComparisonMixin):
         self.thisEntry = {}
         self.entries = []  # chronological list of entries
         self._paramNamesSoFar = []
-        self.dataNames = ['notes', 'thisRow.t']  # names of all the data (eg. resp.keys)
+        self.dataNames = ['thisRow.t', 'notes']  # names of all the data (eg. resp.keys)
         self.columnSalience = {
             'thisRow.t': constants.SALIENCE_CRITICAL - 1,
             'notes': constants.SALIENCE_MEDIUM - 1,
