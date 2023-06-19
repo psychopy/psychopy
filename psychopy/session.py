@@ -115,6 +115,7 @@ class Session:
                  root,
                  liaison=None,
                  loggingLevel="info",
+                 salienceThreshold=constants.SALIENCE_EXCLUDE+1,
                  inputs=None,
                  win=None,
                  experiments=None,
@@ -127,6 +128,8 @@ class Session:
             self.root / (self.root.stem + '.log'),
             level=getattr(logging, loggingLevel.upper())
         )
+        # Store salience threshold
+        self.salienceThreshold = salienceThreshold
         # Add experiments
         self.experiments = {}
         if experiments is not None:
@@ -275,7 +278,7 @@ class Session:
         importPath = ".".join(relPath)
         # Write experiment as Python script
         pyFile = file.parent / (file.stem + ".py")
-        if not pyFile.is_file():
+        if "psyexp" in file.suffix and not pyFile.is_file():
             exp = experiment.Experiment()
             exp.loadFromXML(file)
             script = exp.writeScript(target="PsychoPy")
@@ -283,6 +286,18 @@ class Session:
         # Handle if key is None
         if key is None:
             key = str(file.relative_to(self.root))
+        # Check that first part of import path isn't the name of an already existing module
+        try:
+            isPackage = importlib.import_module(relPath[0])
+            # If we imported successfully, check that the module imported is in the root dir
+            if not hasattr(isPackage, "__file__") or not isPackage.__file__.startswith(str(self.root)):
+                raise NameError(_translate(
+                    "Experiment could not be loaded as name of folder {} is also the name of an installed Python "
+                    "package. Please rename."
+                ).format(self.root / relPath[0]))
+        except ImportError:
+            # If we can't import, it's not a package and so we're good!
+            pass
         # Import python file
         self.experiments[key] = importlib.import_module(importPath)
 
@@ -842,6 +857,38 @@ class Session:
 
         return True
 
+    def sendExperimentData(self, key=None):
+        """
+        Send last ExperimentHandler for an experiment to liaison. If no experiment is given, sends the currently
+        running experiment.
+
+        Parameters
+        ----------
+        key : str or None
+            Name of the experiment whose data to send, or None to send the current experiment's data.
+
+        Returns
+        -------
+        bool
+            True if data was sent, otherwise False
+        """
+        # Skip if there's no liaison
+        if self.liaison is None:
+            return
+
+        # Sub None for current
+        if key is None:
+            key = self.currentExperiment.name
+        # Get last experiment data
+        for run in reversed(self.runs):
+            if run.name == key:
+                # Send experiment data
+                self.sendToLiaison(run)
+                return True
+
+        # Return False if nothing sent
+        return False
+
     def sendToLiaison(self, value):
         """
         Send data to this Session's `Liaison` object.
@@ -864,7 +911,7 @@ class Session:
             return
         # If ExperimentHandler, get its data as a list of dicts
         if isinstance(value, data.ExperimentHandler):
-            value = value.entries
+            value = value.getJSON(salienceThreshold=self.salienceThreshold)
         # Convert to JSON
         value = json.dumps(value)
         # Send

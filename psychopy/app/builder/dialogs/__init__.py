@@ -27,6 +27,7 @@ from .. import experiment
 from .. validators import NameValidator, CodeSnippetValidator, WarningManager
 from .dlgsConditions import DlgConditions
 from .dlgsCode import DlgCodeComponentProperties, CodeBox
+from .findDlg import BuilderFindDlg
 from . import paramCtrls
 from psychopy import data, logging, exceptions
 from psychopy.localization import _translate
@@ -544,12 +545,13 @@ class StartStopCtrls(wx.GridBagSizer):
 
 class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
     class CategoryPage(wx.Panel, handlers.ThemeMixin):
-        def __init__(self, parent, dlg, params):
+        def __init__(self, parent, dlg, params, categ=None):
             wx.Panel.__init__(self, parent, size=(600, -1))
             self.parent = parent
             self.parent = parent
             self.dlg = dlg
             self.app = self.dlg.app
+            self.categ = categ
             # Setup sizer
             self.border = wx.BoxSizer()
             self.SetSizer(self.border)
@@ -732,7 +734,7 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
         # Setup pages
         self.paramCtrls = {}
         for categ, params in paramsByCateg.items():
-            page = self.CategoryPage(self, self.parent, params)
+            page = self.CategoryPage(self, self.parent, params, categ=categ)
             self.paramCtrls.update(page.ctrls)
             # Add page to notebook
             self.AddPage(page, _translate(categ))
@@ -796,6 +798,16 @@ class ParamNotebook(wx.Notebook, handlers.ThemeMixin):
             del self.params[fieldName]
         return self.params
 
+    def getCategoryIndex(self, categ):
+        """
+        Get page index for a given category
+        """
+        # iterate through pages by index
+        for i in range(self.GetPageCount()):
+            # if this page is the correct category, return current index
+            if self.GetPage(i).categ == categ:
+                return i
+
     def _updateStaticUpdates(self, fieldName, updates, newUpdates):
         """If the old/new updates ctrl is using a Static component then we
         need to remove/add the component name to the appropriate static
@@ -825,7 +837,7 @@ class _BaseParamsDlg(wx.Dialog):
                  showAdvanced=False,
                  size=wx.DefaultSize,
                  style=_style, editing=False,
-                 timeout=None):
+                 timeout=None, openToPage=None):
 
         # translate title
         if "name" in element.params:
@@ -883,6 +895,10 @@ class _BaseParamsDlg(wx.Dialog):
 
         self.ctrls = ParamNotebook(self, element, experiment)
         self.paramCtrls = self.ctrls.paramCtrls
+        # open to page
+        if openToPage is not None:
+            i = self.ctrls.getCategoryIndex(openToPage)
+            self.ctrls.ChangeSelection(i)
 
         self.mainSizer.Add(self.ctrls,  # ctrls is the notebook of params
                            proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
@@ -1839,13 +1855,14 @@ class DlgComponentProperties(_BaseParamsDlg):
                  suppressTitles=True, size=wx.DefaultSize,
                  style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT,
                  editing=False,
-                 timeout=None, testing=False, type=None):
+                 timeout=None, testing=False, type=None,
+                 openToPage=None):
         style = style | wx.RESIZE_BORDER
         self.type = type or element.type
         _BaseParamsDlg.__init__(self, frame=frame, element=element, experiment=experiment,
                                 size=size,
                                 style=style, editing=editing,
-                                timeout=timeout)
+                                timeout=timeout, openToPage=openToPage)
         self.frame = frame
         self.app = frame.app
         self.dpi = self.app.dpi

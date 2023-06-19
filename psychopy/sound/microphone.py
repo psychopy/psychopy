@@ -45,7 +45,7 @@ class RecordingBuffer:
     ----------
     sampleRateHz : int
         Sampling rate for audio recording in Hertz (Hz). By default, 48kHz
-        (``sampleRateHz=480000``) is used which is adequate for most consumer
+        (``sampleRateHz=48000``) is used which is adequate for most consumer
         grade microphones (headsets and built-in).
     channels : int
         Number of channels to record samples to `1=Mono` and `2=Stereo`.
@@ -323,7 +323,7 @@ class Microphone:
         (`int`) or descriptor (`AudioDevice`).
     sampleRateHz : int
         Sampling rate for audio recording in Hertz (Hz). By default, 48kHz
-        (``sampleRateHz=480000``) is used which is adequate for most consumer
+        (``sampleRateHz=48000``) is used which is adequate for most consumer
         grade microphones (headsets and built-in).
     channels : int
         Number of channels to record samples to `1=Mono` and `2=Stereo`.
