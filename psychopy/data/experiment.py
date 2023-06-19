@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import json
 import sys
 import copy
 import pickle
 import atexit
+import pandas as pd
 
 import psychopy.visual.window
 from psychopy import constants
@@ -273,7 +274,11 @@ class ExperimentHandler(_ComparisonMixin):
             - LOW (0): Columns unlikely to be important which are at the end of the data file
             - EXCLUDE (-10): Always at the end of the data file, actively marked as unimportant
         """
-        return self.columnSalience.get(name, self._guessSalience(name))
+        if name not in self.columnSalience:
+            # store salience if not specified already
+            self.columnSalience[name] = self._guessSalience(name)
+        # return stored salience
+        return self.columnSalience[name]
 
     def _guessSalience(self, name):
         """
@@ -601,6 +606,39 @@ class ExperimentHandler(_ComparisonMixin):
         self.entries = origEntries  # revert list of completed entries post-save
         self.savePickle = savePickle
         self.saveWideText = saveWideText
+
+    def getJSON(self, salienceThreshold=constants.SALIENCE_EXCLUDE+1):
+        """
+        Get the experiment data as a JSON string.
+
+        Parameters
+        ----------
+        salienceThreshold : int
+            Output will only include columns whose salience is greater than or equal to this value. Use values in
+            psychopy.constants.salience as a guideline for salience levels. Default is -9 (constants.SALIENCE_EXCLUDE +
+            1)
+
+        Returns
+        -------
+        str
+            JSON string with the following fields:
+            - 'type': Indicates that this is data from an ExperimentHandler (will always be "trials_data")
+            - 'trials': `list` of `dict`s representing requested trials data
+            - 'salience': `dict` of column names
+        """
+        # get columns which meet threshold
+        cols = [col for col in self.dataNames if self.getSalience(col) >= salienceThreshold]
+        # convert just relevant entries to a DataFrame
+        trials = pd.DataFrame(self.entries, columns=cols)
+        # put in context
+        context = {
+            'type': "trials_data",
+            'trials': trials.to_dict(orient="records"),
+            'salience': self.columnSalience,
+            'threshold': salienceThreshold,
+        }
+
+        return json.dumps(context, indent=True)
         
     def close(self):
         if self.dataFileName not in ['', None]:

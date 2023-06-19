@@ -324,7 +324,13 @@ class TrialHandler(_BaseLoopHandler):
     def writeLoopEndCode(self, buff):
         # Just within the loop advance data line if loop is whole trials
         if self.params['isTrials'].val == True:
-            buff.writeIndentedLines("thisExp.nextEntry(t=globalClock.getTime())\n\n")
+            buff.writeIndentedLines(
+                "thisExp.nextEntry(t=globalClock.getTime())\n"
+                "if thisSession is not None:\n"
+                "    # if running in a Session with a Liaison client, send data up to now\n"
+                "    thisSession.sendExperimentData()\n"
+                "\n"
+            )
         # end of the loop. dedent
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("# completed %s repeats of '%s'\n"
@@ -519,7 +525,13 @@ class StairHandler(_BaseLoopHandler):
     def writeLoopEndCode(self, buff):
         # Just within the loop advance data line if loop is whole trials
         if self.params['isTrials'].val:
-            buff.writeIndentedLines("thisExp.nextEntry()\n\n")
+            buff.writeIndentedLines(
+                "thisExp.nextEntry(t=globalClock.getTime())\n"
+                "if thisSession is not None:\n"
+                "    # if running in a Session with a Liaison client, send data up to now\n"
+                "    thisSession.sendExperimentData()\n"
+                "\n"
+            )
         # end of the loop. dedent
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("# staircase completed\n")
@@ -745,7 +757,13 @@ class MultiStairHandler(_BaseLoopHandler):
     def writeLoopEndCode(self, buff):
         # Just within the loop advance data line if loop is whole trials
         if self.params['isTrials'].val:
-            buff.writeIndentedLines("thisExp.nextEntry()\n\n")
+            buff.writeIndentedLines(
+                "thisExp.nextEntry(t=globalClock.getTime())\n"
+                "if thisSession is not None:\n"
+                "    # if running in a Session with a Liaison client, send data up to now\n"
+                "    thisSession.sendExperimentData()\n"
+                "\n"
+            )
         # end of the loop. dedent
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("# all staircases completed\n")

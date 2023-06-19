@@ -115,6 +115,7 @@ class Session:
                  root,
                  liaison=None,
                  loggingLevel="info",
+                 salienceThreshold=constants.SALIENCE_EXCLUDE+1,
                  inputs=None,
                  win=None,
                  experiments=None,
@@ -127,6 +128,8 @@ class Session:
             self.root / (self.root.stem + '.log'),
             level=getattr(logging, loggingLevel.upper())
         )
+        # Store salience threshold
+        self.salienceThreshold = salienceThreshold
         # Add experiments
         self.experiments = {}
         if experiments is not None:
@@ -830,6 +833,38 @@ class Session:
             blocking=blocking
         )
 
+    def sendExperimentData(self, key=None):
+        """
+        Send last ExperimentHandler for an experiment to liaison. If no experiment is given, sends the currently
+        running experiment.
+
+        Parameters
+        ----------
+        key : str or None
+            Name of the experiment whose data to send, or None to send the current experiment's data.
+
+        Returns
+        -------
+        bool
+            True if data was sent, otherwise False
+        """
+        # Skip if there's no liaison
+        if self.liaison is None:
+            return
+
+        # Sub None for current
+        if key is None:
+            key = self.currentExperiment.name
+        # Get last experiment data
+        for run in reversed(self.runs):
+            if run.name == key:
+                # Send experiment data
+                self.sendToLiaison(run)
+                return True
+
+        # Return False if nothing sent
+        return False
+
     def sendToLiaison(self, value):
         """
         Send data to this Session's `Liaison` object.
@@ -852,7 +887,7 @@ class Session:
             return
         # If ExperimentHandler, get its data as a list of dicts
         if isinstance(value, data.ExperimentHandler):
-            value = value.entries
+            value = value.getJSON(salienceThreshold=self.salienceThreshold)
         # Convert to JSON
         value = json.dumps(value)
         # Send
