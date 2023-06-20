@@ -29,6 +29,7 @@ class TestSession:
                 'exp2': "exp2/exp2.psyexp",
                 'testCtrls': "testCtrls/testCtrls.psyexp",
                 'error': "error/error.psyexp",
+                'annotation': "annotation/annotation.psyexp"
             }
         )
 
