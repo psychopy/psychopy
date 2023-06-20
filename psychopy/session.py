@@ -670,6 +670,7 @@ class Session:
         # Send finished data to liaison
         if self.liaison is not None:
             self.sendToLiaison({
+                    'type': "experiment_status",
                     'name': thisExp.name,
                     'status': thisExp.status
                 })
