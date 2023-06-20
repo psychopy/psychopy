@@ -2,7 +2,7 @@
 
 [project]
 name = "psychopy"
-version = "2023.1.1"
+version = "2023.2.0dev3"
 requires-python = ">=3.8, <3.11"
 description = "PsychoPy provides easy, precise, flexible experiments in behavioural sciences"
 readme ={file = "README.md", content-type = "text/markdown"}
@@ -33,8 +33,8 @@ dependencies = [
     "pandas>=1.5.3",
     "questplus>=2023.1",
     # for core stimuli
-    "soundfile>=0.12.1",
-    "imageio >= 2.5",
+    "soundfile",
+    "imageio",
     "imageio-ffmpeg",
     "psychtoolbox",
     # for iohub
@@ -44,22 +44,22 @@ dependencies = [
     "tables",
     "pyzmq",
     "ujson",
-    "msgpack-numpy>=0.4.8",
+    "msgpack-numpy",
     # for text formatting
     "freetype-py",
-    "python-bidi>=0.4.2",
-    "arabic-reshaper>=3.0.0",
-    "javascripthon>=0.12",
+    "python-bidi",
+    "arabic-reshaper",
+    "javascripthon",
     "websocket_client",  # new in 2023.2 for session.py
     # for the app
     "wxPython >= 4.1.1",
     "markdown-it-py",
-    "requests>=2.28.2",
-    "future>=0.18.3",  # to support legacy versions in useVersion
+    "requests",
+    "future",  # to support legacy versions in useVersion
     # pavlovia connections
     "python-gitlab",
     "gitpython",
-    "cryptography>=39.0.2",  # for sshkeys
+    "cryptography",  # for sshkeys
     # psychoJS conversions
     "astunparse",
     "esprima",
@@ -78,9 +78,9 @@ dependencies = [
     "pyobjc-framework-Quartz < 8.0; platform_system == \"Darwin\"",
     "pyobjc < 8.0; platform_system == \"Darwin\"",
     "python-xlib; platform_system == \"Linux\"",
-    "pyyaml>=6.0",
+    "pyyaml",
     "pypi-search>=1.2.1",
-    "openpyxl>=3.1.2",
+    "openpyxl",
     "setuptools<=66.1.1",
 ]
 
@@ -107,6 +107,7 @@ psychopy = "psychopy.app.psychopyApp:main"
 requires = [
     "pdm-backend",
     "distro; platform_system == \"Linux\"",
+    "tomlkit",
     ]
 build-backend = "pdm.backend"
 
