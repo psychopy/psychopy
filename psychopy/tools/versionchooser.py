@@ -81,7 +81,7 @@ class VersionRange:
 
     def __lt__(self, other):
         # if no first version, nothing is less than
-        if self.first is None:
+        if self.last is None:
             return False
         # enforce Version type
         if isinstance(other, str):
@@ -94,7 +94,7 @@ class VersionRange:
 
     def __gt__(self, other):
         # if no last version, nothing is greater than
-        if self.last is None:
+        if self.first is None:
             return False
         # enforce Version type
         if isinstance(other, str):

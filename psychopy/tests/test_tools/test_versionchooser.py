@@ -120,11 +120,11 @@ class TestVersionRange:
              'lt': False, 'eq': True, 'gt': False},
             # value > range.last with no first
             {'range': (None, "2023.2.0"), 'value': "2024.1.0",
-             'lt': False, 'eq': False, 'gt': True},
+             'lt': True, 'eq': False, 'gt': False},
 
             # value < range.first with no last
             {'range': ("2023.1.0", None), 'value': "2022.2.0",
-             'lt': True, 'eq': False, 'gt': False},
+             'lt': False, 'eq': False, 'gt': True},
             # value == range.first with no last
             {'range': ("2023.1.0", None), 'value': "2023.1.0",
              'lt': False, 'eq': True, 'gt': False},
