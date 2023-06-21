@@ -30,7 +30,8 @@ class AuthorInfo:
                  name="",
                  email="",
                  github="",
-                 avatar=None):
+                 avatar=None,
+                 **kwargs):
         self.name = name
         self.email = email
         self.github = github
@@ -84,7 +85,7 @@ class PluginInfo:
                  pipname, name="",
                  author=None, homepage="", docs="", repo="",
                  keywords=None,
-                 icon=None, description=""):
+                 icon=None, description="", **kwargs):
         self.pipname = pipname
         self.name = name
         self.author = author
