@@ -133,6 +133,7 @@ class MonotonicClock:
             self._timeAtLastReset = getTime()
         else:
             self._timeAtLastReset = start_time
+        self._epochTimeAtLastReset = time.time()
         # store default style
         self.style = style
 
@@ -176,8 +177,12 @@ class MonotonicClock:
                 t -= self._timeAtLastReset
             return t
         elif isinstance(style, str):
-            # if given a style string, format according to it
-            return datetime.now().strftime(style)
+            # get epoch time as float
+            t = self._epochTimeAtLastReset + (getTime() - self._timeAtLastReset)
+            # convert to datetime
+            now = datetime.fromtimestamp(t)
+            # format
+            return now.strftime(style)
 
     def getLastResetTime(self):
         """
@@ -208,6 +213,7 @@ class Clock(MonotonicClock):
         time on the clock
         """
         self._timeAtLastReset = getTime() + newT
+        self._epochTimeAtLastReset = time.time()
 
     def addTime(self, t):
         """Add more time to the Clock/Timer
@@ -220,6 +226,7 @@ class Clock(MonotonicClock):
                 # do something
         """
         self._timeAtLastReset -= t
+        self._epochTimeAtLastReset -= t
 
     def add(self, t):
         """DEPRECATED: use .addTime() instead
@@ -231,6 +238,7 @@ class Clock(MonotonicClock):
                         "the counterintuitive design (it added time to the baseline, which "
                         "reduced the values returned from getTime()")
         self._timeAtLastReset += t
+        self._epochTimeAtLastReset += t
 
 
 class CountdownTimer(Clock):
@@ -275,6 +283,7 @@ class CountdownTimer(Clock):
         """
 
         self._timeAtLastReset += t
+        self._epochTimeAtLastReset += t
 
     def reset(self, t=None):
         """Reset the time on the clock.
