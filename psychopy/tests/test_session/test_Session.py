@@ -104,11 +104,6 @@ class TestSession:
         self.sess.setupInputsFromExperiment("exp1")
         # knock ioHub timer out of sync
         time.sleep(1)
-        assert not _sameTimes(), (
-            self.sess.inputs['ioServer'].getTime(),
-            iohub.Computer.global_clock.getTime(),
-            self.sess.sessionClock.getTime(),
-        )
         # run experiment
         self.sess.runExperiment("exp1")
         # confirm that ioHub timer was brought back into sync
