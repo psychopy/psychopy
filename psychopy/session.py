@@ -834,6 +834,63 @@ class Session:
             blocking=blocking
         )
 
+    def addAnnotation(self, value):
+        """
+        Add an annotation in the data file at the current point in the
+        experiment and to the log.
+
+        Parameters
+        ----------
+        value : str
+            Value of the annotation
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # add to experiment data if there's one running
+        if hasattr(self.currentExperiment, "addAnnotation"):
+            # annotate
+            self.currentExperiment.addAnnotation(value)
+        # log regardless
+        logging.info(value)
+
+        return True
+
+    def addData(self, name, value, salience=None):
+        """
+        Add data in the data file at the current point in the experiment, and to the log.
+
+        Parameters
+        ----------
+        name : str
+            Name of the column to add data as.
+        value : any
+            Value to add
+        salience : int
+            Salience value to set the column to - more salient columns appear nearer to the start of
+            the data file. Use values from `constants.salience` as landmark values:
+            - CRITICAL: Always at the start of the data file, generally reserved for Routine start times
+            - HIGH: Important columns which are near the front of the data file
+            - MEDIUM: Possibly important columns which are around the middle of the data file
+            - LOW: Columns unlikely to be important which are at the end of the data file
+            - EXCLUDE: Always at the end of the data file, actively marked as unimportant
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # add to experiment data if there's one running
+        if hasattr(self.currentExperiment, "addData"):
+            # add
+            self.currentExperiment.addData(name, value, salience=salience)
+        # log regardless
+        logging.data(f"NAME={name}, SALIENCE={salience}, VALUE={value}")
+
+        return True
+
     def sendExperimentData(self, key=None):
         """
         Send last ExperimentHandler for an experiment to liaison. If no experiment is given, sends the currently
