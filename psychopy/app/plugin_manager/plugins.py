@@ -602,9 +602,13 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Pip name
         self.pipName = wx.StaticText(self, label="psychopy-...")
         self.titleSizer.Add(self.pipName, flag=wx.EXPAND)
+        # Space
+        self.titleSizer.AddStretchSpacer()
+        # Versions
+        self.versionCtrl = wx.StaticText(self, label=_translate("Version:"))
+        self.titleSizer.Add(self.versionCtrl, border=6, flag=wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND)
         # Buttons
         self.buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.titleSizer.AddStretchSpacer()
         self.titleSizer.Add(self.buttonSizer, flag=wx.EXPAND)
         # Install btn
         self.installBtn = wx.Button(self)
@@ -665,6 +669,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Set background
         self.SetBackgroundColour("white")
         self.keywordsCtrl.SetBackgroundColour("white")
+        self.versionCtrl.SetForegroundColour("grey")
         # Set fonts
         from psychopy.app.themes import fonts
         self.title.SetFont(fonts.appTheme['h1'].obj)
@@ -825,6 +830,10 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # self.markActive(value.active)
         # Set description
         self.description.setValue(value.description)
+        # Set version text
+        self.versionCtrl.SetLabelText(_translate(
+            "Works with versions {}."
+        ).format(value.version))
         # Set keywords
         self.keywordsCtrl.items = value.keywords
 

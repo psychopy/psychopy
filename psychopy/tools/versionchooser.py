@@ -105,7 +105,15 @@ class VersionRange:
     def __ge__(self, other):
         return self > other or other in self
 
+    def __str__(self):
+        first = self.first
+        if first is None:
+            first = "up"
+        last = self.last
+        if last is None:
+            last = "latest"
 
+        return _translate("{} to {}").format(first, last)
 
 
 # ideally want localization for error messages
