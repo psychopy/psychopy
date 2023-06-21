@@ -103,7 +103,7 @@ class TestSession:
         # setup experiment inputs
         self.sess.setupInputsFromExperiment("exp1")
         # knock ioHub timer out of sync
-        time.sleep(0.1)
+        time.sleep(1)
         assert not _sameTimes(), (
             self.sess.inputs['ioServer'].getTime(),
             iohub.Computer.global_clock.getTime(),
