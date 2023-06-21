@@ -91,8 +91,11 @@ class ExperimentHandler(_ComparisonMixin):
         self.thisEntry = {}
         self.entries = []  # chronological list of entries
         self._paramNamesSoFar = []
-        self.dataNames = ['thisRow.t']  # names of all the data (eg. resp.keys)
-        self.columnSalience = {'thisRow.t': constants.SALIENCE_CRITICAL - 1}
+        self.dataNames = ['thisRow.t', 'notes']  # names of all the data (eg. resp.keys)
+        self.columnSalience = {
+            'thisRow.t': constants.SALIENCE_CRITICAL - 1,
+            'notes': constants.SALIENCE_MEDIUM - 1,
+        }
         self.autoLog = autoLog
         self.appendFiles = appendFiles
         self.status = constants.NOT_STARTED
@@ -337,6 +340,17 @@ class ExperimentHandler(_ComparisonMixin):
             - EXCLUDE (-10): Always at the end of the data file, actively marked as unimportant
         """
         self.columnSalience[name] = value
+
+    def addAnnotation(self, value):
+        """
+        Add an annotation at the current point in the experiment
+
+        Parameters
+        ----------
+        value : str
+            Value of the annotation
+        """
+        self.addData("notes", value)
 
     def timestampOnFlip(self, win, name):
         """Add a timestamp (in the future) to the current row
@@ -639,7 +653,7 @@ class ExperimentHandler(_ComparisonMixin):
         }
 
         return json.dumps(context, indent=True)
-        
+
     def close(self):
         if self.dataFileName not in ['', None]:
             if self.autoLog:
