@@ -11,6 +11,7 @@ from distutils.core import setup
 from pkg_resources import parse_version
 import bdist_mpkg  # noqa: needed to build bdist, even though not explicitly used here
 import py2app  # noqa: needed to build app bundle, even though not explicitly used here
+from ctypes.util import find_library
 
 import psychopy
 version = psychopy.__version__
@@ -33,10 +34,11 @@ if platform != 'darwin':
 
 resources = glob.glob('psychopy/app/Resources/*')
 frameworks = [ # these installed using homebrew
-              "/usr/local/opt/libevent/lib/libevent.dylib", 
-              "/usr/local/opt/lame/lib/libmp3lame.0.dylib",
+              find_library("libevent"),
+              find_library("libmp3lame"),
+              find_library("libglfw"),
+              # libffi comes in the system
               "/usr/local/opt/libffi/lib/libffi.dylib",
-              "/usr/local/opt/libglfw/lib/libglfw.3.2.dylib",
               ]
 opencvLibs = glob.glob(os.path.join(sys.exec_prefix, 'lib', 'libopencv*.2.4.dylib'))
 frameworks.extend(opencvLibs)

@@ -25,6 +25,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@master
+    - name: Install MacOS depends (Homebrew)
+      run: |
+        brew update --preinstall
+        brew install glfw lame libevent
 
     - name: Unpack portable Python distro
       run: |
