@@ -858,7 +858,7 @@ class Session:
 
         return True
 
-    def addData(self, name, value, salience=None):
+    def addData(self, name, value, row=None, salience=None):
         """
         Add data in the data file at the current point in the experiment, and to the log.
 
@@ -868,6 +868,8 @@ class Session:
             Name of the column to add data as.
         value : any
             Value to add
+        row : int or None
+            Row in which to add this data. Leave as None to add to the current entry.
         salience : int
             Salience value to set the column to - more salient columns appear nearer to the start of
             the data file. Use values from `constants.salience` as landmark values:
@@ -885,7 +887,7 @@ class Session:
         # add to experiment data if there's one running
         if hasattr(self.currentExperiment, "addData"):
             # add
-            self.currentExperiment.addData(name, value, salience=salience)
+            self.currentExperiment.addData(name, value, row=row, salience=salience)
         # log regardless
         logging.data(f"NAME={name}, SALIENCE={salience}, VALUE={value}")
 
