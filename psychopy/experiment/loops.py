@@ -327,6 +327,7 @@ class TrialHandler(_BaseLoopHandler):
             buff.writeIndentedLines(
                 "thisExp.nextEntry()\n"
                 "thisExp.timestampOnFlip(win, 'thisRow.t')\n"
+                "\n"
                 "if thisSession is not None:\n"
                 "    # if running in a Session with a Liaison client, send data up to now\n"
                 "    thisSession.sendExperimentData()\n"
@@ -528,6 +529,7 @@ class StairHandler(_BaseLoopHandler):
             buff.writeIndentedLines(
                 "thisExp.nextEntry()\n"
                 "thisExp.timestampOnFlip(win, 'thisRow.t')\n"
+                "\n"
                 "if thisSession is not None:\n"
                 "    # if running in a Session with a Liaison client, send data up to now\n"
                 "    thisSession.sendExperimentData()\n"
@@ -759,6 +761,7 @@ class MultiStairHandler(_BaseLoopHandler):
             buff.writeIndentedLines(
                 "thisExp.nextEntry()\n"
                 "thisExp.timestampOnFlip(win, 'thisRow.t')\n"
+                "\n"
                 "if thisSession is not None:\n"
                 "    # if running in a Session with a Liaison client, send data up to now\n"
                 "    thisSession.sendExperimentData()\n"

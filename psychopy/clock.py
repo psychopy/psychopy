@@ -126,17 +126,18 @@ class MonotonicClock:
     Version Notes: This class was added in PsychoPy 1.77.00
 
     """
-    def __init__(self, start_time=None, style=float):
+    def __init__(self, start_time=None, format=float):
         super(MonotonicClock, self).__init__()
         if start_time is None:
             # this is sub-millisecond timer in python
             self._timeAtLastReset = getTime()
         else:
             self._timeAtLastReset = start_time
-        # store default style
-        self.style = style
+        self._epochTimeAtLastReset = time.time()
+        # store default format
+        self.format = format
 
-    def getTime(self, applyZero=True, style=None):
+    def getTime(self, applyZero=True, format=None):
         """
         Returns the current time on this clock in secs (sub-ms precision).
 
@@ -147,8 +148,8 @@ class MonotonicClock:
             script). If not applying zero then it is whatever the underlying clock uses as its base time but that is
             system dependent. e.g. can be time since reboot, time since Unix Epoch etc.
 
-            Only applies when style is `float`.
-        style : type, str or None
+            Only applies when format is `float`.
+        format : type, str or None
             Can be either:
             - `float`: Time will return as a float as number of seconds
             - time format codes: Time will return as a string in that format, as in time.strftime
@@ -161,23 +162,27 @@ class MonotonicClock:
             Time in format requested.
         """
 
-        # substitute no style for default
-        if style is None:
-            style = self.style
-        # substitute nonspecified str style for ISO 8601
-        if style is str:
-            style = "%Y-%m-%d_%H:%M:%S.%f%z"
+        # substitute no format for default
+        if format is None:
+            format = self.format
+        # substitute nonspecified str format for ISO 8601
+        if format is str:
+            format = "%Y-%m-%d_%H:%M:%S.%f%z"
 
-        # transform according to style
-        if style is float:
+        # transform according to format
+        if format is float:
             # get time as float (pre-2023.2 behaviour)
             t = getTime()
             if applyZero:
                 t -= self._timeAtLastReset
             return t
-        elif isinstance(style, str):
-            # if given a style string, format according to it
-            return datetime.now().strftime(style)
+        elif isinstance(format, str):
+            # get epoch time as float
+            t = self._epochTimeAtLastReset + (getTime() - self._timeAtLastReset)
+            # convert to datetime
+            now = datetime.fromtimestamp(t)
+            # format
+            return now.strftime(format)
 
     def getLastResetTime(self):
         """
@@ -199,8 +204,8 @@ class Clock(MonotonicClock):
     except that it can also be reset to 0 or another value at any point.
 
     """
-    def __init__(self, style=float):
-        super(Clock, self).__init__(style=style)
+    def __init__(self, format=float):
+        super(Clock, self).__init__(format=format)
 
     def reset(self, newT=0.0):
         """Reset the time on the clock. With no args time will be
@@ -208,6 +213,7 @@ class Clock(MonotonicClock):
         time on the clock
         """
         self._timeAtLastReset = getTime() + newT
+        self._epochTimeAtLastReset = time.time()
 
     def addTime(self, t):
         """Add more time to the Clock/Timer
@@ -220,6 +226,7 @@ class Clock(MonotonicClock):
                 # do something
         """
         self._timeAtLastReset -= t
+        self._epochTimeAtLastReset -= t
 
     def add(self, t):
         """DEPRECATED: use .addTime() instead
@@ -231,6 +238,7 @@ class Clock(MonotonicClock):
                         "the counterintuitive design (it added time to the baseline, which "
                         "reduced the values returned from getTime()")
         self._timeAtLastReset += t
+        self._epochTimeAtLastReset += t
 
 
 class CountdownTimer(Clock):
@@ -275,6 +283,7 @@ class CountdownTimer(Clock):
         """
 
         self._timeAtLastReset += t
+        self._epochTimeAtLastReset += t
 
     def reset(self, t=None):
         """Reset the time on the clock.
