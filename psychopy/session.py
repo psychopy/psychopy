@@ -990,9 +990,9 @@ if __name__ == "__main__":
     if args.timing == "float":
         sessionClock = core.Clock()
     elif args.timing == "iso":
-        sessionClock = core.Clock(style=str)
+        sessionClock = core.Clock(format=str)
     else:
-        sessionClock = core.Clock(style=args.timing)
+        sessionClock = core.Clock(format=args.timing)
     # Create session
     session = Session(
         root=args.root,
