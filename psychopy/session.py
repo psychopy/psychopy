@@ -127,7 +127,7 @@ class Session:
         sys.path.insert(1, str(self.root))
         # Create data folder
         if dataDir is None:
-            dataDir = self.root / "data"
+            dataDir = self.root / "data" / core.Clock().getTime(format=str)
         if not dataDir.is_dir():
             os.mkdir(str(dataDir))
         # Store data folder
@@ -992,6 +992,8 @@ if __name__ == "__main__":
         - "float": Start a timer when Session is created and do timing relative to that (default)
         - "iso": Do timing via wall clock in ISO 8601 format 
         - any valid strftime string: Do timing via wall clock in the given format
+    --session-data-dir
+        Folder to store all data from this Session in, including the log file.
     """
     # Parse args
     import argparse
@@ -999,7 +1001,7 @@ if __name__ == "__main__":
     parser.add_argument("--root", dest="root")
     parser.add_argument("--host", dest="host")
     parser.add_argument("--timing", dest="timing", default="iso")
-    parser.add_argument("--datadir", dest="datadir")
+    parser.add_argument("--session-data-dir", dest="dataDir")
     args = parser.parse_args()
     # Setup timing
     if args.timing == "float":
@@ -1012,7 +1014,7 @@ if __name__ == "__main__":
     session = Session(
         root=args.root,
         clock=sessionClock,
-        dataDir=args.datadir
+        dataDir=args.dataDir
     )
     if ":" in str(args.host):
         host, port = str(args.host).split(":")
