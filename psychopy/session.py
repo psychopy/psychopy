@@ -340,6 +340,26 @@ class Session:
     def getPsychoPyVersion(self):
         return __version__
 
+    def getTime(self, format=str):
+        """
+        Get time from this Session's clock object.
+
+        Parameters
+        ----------
+        format : type, str or None
+            Can be either:
+            - `float`: Time will return as a float as number of seconds
+            - time format codes: Time will return as a string in that format, as in time.strftime
+            - `str`: Time will return as a string in ISO 8601 (YYYY-MM-DD_HH:MM:SS.mmmmmmZZZZ)
+            - `None`: Will use the Session clock object's `defaultStyle` attribute
+
+        Returns
+        -------
+        str or float
+            Time in format requested.
+        """
+        return self.sessionClock.getTime(format=format)
+
     def getExpInfoFromExperiment(self, key, sessionParams=True):
         """
         Get the global-level expInfo object from one of this Session's experiments. This will contain all of
