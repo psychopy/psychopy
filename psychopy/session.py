@@ -1,16 +1,80 @@
+import asyncio
 import importlib
 import os
 import sys
 import shutil
+import threading
+import time
+import json
 from pathlib import Path
 
 from psychopy import experiment, logging, constants, data
-import json
+from psychopy.tools.arraytools import AliasDict
+
 from psychopy.localization import _translate
 
 
 class Session:
     """
+    A Session is from which you can run multiple PsychoPy experiments, so long
+    as they are stored within the same folder. Session uses a persistent Window
+    and inputs across experiments, meaning that you don't have to keep closing
+    and reopening windows to run multiple experiments.
+
+    Through the use of multithreading, an experiment running via a Session can
+    be sent commands and have variables changed while running. Methods of
+    Session can be called from a second thread, meaning they don't have to wait
+    for `runExperiment` to return on the main thread. For example, you could
+    pause an experiment after 10s like so:
+
+    ```
+    # define a function to run in a second thread
+    def stopAfter10s(thisSession):
+        # wait 10s
+        time.sleep(10)
+        # pause
+        thisSession.pauseExperiment()
+    # create a second thread
+    thread = threading.Thread(
+        target=stopAfter10s,
+        args=(thisSession,)
+    )
+    # start the second thread
+    thread.start()
+    # run the experiment (in main thread)
+    thisSession.runExperiment("testExperiment")
+    ```
+
+    When calling methods of Session which have the parameter `blocking` from
+    outside of the main thread, you can use `blocking=False` to force them to
+    return immediately and, instead of executing, add themselves to a queue to
+    be executed in the main thread by a while loop within the `start` function.
+    This is important for methods like `runExperiment` or
+    `setupWindowFromParams` which use OpenGL and so need to be run in the
+    main thread. For example, you could alternatively run the code above like
+    this:
+
+    ```
+    # define a function to run in a second thread
+    def stopAfter10s(thisSession):
+        # start the experiment in the main thread
+        thisSession.runExperiment("testExperiment", blocking=False)
+        # wait 10s
+        time.sleep(10)
+        # pause
+        thisSession.pauseExperiment()
+    # create a second thread
+    thread = threading.Thread(
+        target=stopAfter10s,
+        args=(thisSession,)
+    )
+    # start the second thread
+    thread.start()
+    # start the Session so that non-blocking methods are executed
+    thisSession.start()
+    ```
+
+
     Parameters
     ----------
     root : str or pathlib.Path
@@ -20,17 +84,14 @@ class Session:
         Liaison server from which to receive run commands, if running via a liaison setup.
 
     loggingLevel : str
-    How much output do you want in the log files? Should be one of the following:
-        - 'error'
-        - 'warning'
-        - 'data'
-        - 'exp'
-        - 'info'
-        - 'debug'
-    ('error' is fewest messages, 'debug' is most)
-
-    expInfo : dict, str or None
-        Dictionary in which to store information for this session. Leave as None for a blank dict.
+        How much output do you want in the log files? Should be one of the following:
+            - 'error'
+            - 'warning'
+            - 'data'
+            - 'exp'
+            - 'info'
+            - 'debug'
+        ('error' is fewest messages, 'debug' is most)
 
     inputs: dict, str or None
         Dictionary of input objects for this session. Leave as None for a blank dict, or supply the
@@ -46,13 +107,19 @@ class Session:
         relative to the root folder. Leave as None for a blank dict, experiments can be added
         later on via `addExperiment()`.
     """
+
+    _queue = []
+    _results = []
+
     def __init__(self,
                  root,
                  liaison=None,
                  loggingLevel="info",
+                 salienceThreshold=constants.SALIENCE_EXCLUDE+1,
                  inputs=None,
                  win=None,
-                 experiments=None):
+                 experiments=None,
+                 params=None):
         # Store root and add to Python path
         self.root = Path(root)
         sys.path.insert(1, str(self.root))
@@ -61,6 +128,8 @@ class Session:
             self.root / (self.root.stem + '.log'),
             level=getattr(logging, loggingLevel.upper())
         )
+        # Store salience threshold
+        self.salienceThreshold = salienceThreshold
         # Add experiments
         self.experiments = {}
         if experiments is not None:
@@ -85,12 +154,60 @@ class Session:
         elif inputs in self.experiments:
             # If inputs is the name of an experiment, setup from that experiment's method
             self.setupInputsFromExperiment(inputs)
+        # Store params as an aliased dict
+        if params is None:
+            params = {}
+        self.params = AliasDict(params)
         # List of ExperimentHandlers from previous runs
         self.runs = []
         # Store ref to liaison object
         self.liaison = liaison
         # Start off with no current experiment
         self.currentExperiment = None
+
+    def start(self):
+        """
+        Start this Session running its queue. Not recommended unless running
+        across multiple threads.
+
+        Returns
+        -------
+        bool
+            True if this Session was stopped safely.
+        """
+        # Create attribute to keep self running
+        self._alive = True
+        # Show waiting message
+        if self.win is not None:
+            self.win.showMessage(_translate(
+                "Waiting to start..."
+            ))
+            self.win.color = "grey"
+        # Process any calls
+        while self._alive:
+            # Empty the queue of any tasks
+            while len(self._queue):
+                # Run the task
+                method, args, kwargs = self._queue.pop(0)
+                retval = method(*args, **kwargs)
+                # Store its output
+                self._results.append({
+                    'method': method.__name__,
+                    'args': args,
+                    'kwargs': kwargs,
+                    'returned': retval
+                })
+            # Flip the screen and give a little time to sleep
+            if self.win is not None:
+                self.win.flip()
+                time.sleep(0.1)
+
+    def stop(self):
+        """
+        Stop this Session running its queue. Not recommended unless running
+        across multiple threads.
+        """
+        self._alive = False
 
     def addExperiment(self, file, key=None, folder=None):
         """
@@ -161,7 +278,7 @@ class Session:
         importPath = ".".join(relPath)
         # Write experiment as Python script
         pyFile = file.parent / (file.stem + ".py")
-        if not pyFile.is_file():
+        if "psyexp" in file.suffix and not pyFile.is_file():
             exp = experiment.Experiment()
             exp.loadFromXML(file)
             script = exp.writeScript(target="PsychoPy")
@@ -169,12 +286,44 @@ class Session:
         # Handle if key is None
         if key is None:
             key = str(file.relative_to(self.root))
+        # Check that first part of import path isn't the name of an already existing module
+        try:
+            isPackage = importlib.import_module(relPath[0])
+            # If we imported successfully, check that the module imported is in the root dir
+            if not hasattr(isPackage, "__file__") or not isPackage.__file__.startswith(str(self.root)):
+                raise NameError(_translate(
+                    "Experiment could not be loaded as name of folder {} is also the name of an installed Python "
+                    "package. Please rename."
+                ).format(self.root / relPath[0]))
+        except ImportError:
+            # If we can't import, it's not a package and so we're good!
+            pass
         # Import python file
         self.experiments[key] = importlib.import_module(importPath)
 
         return True
 
-    def getExpInfoFromExperiment(self, key):
+    def getStatus(self):
+        """
+        Get an overall status flag for this Session. Will be one of either:
+
+        Returns
+        -------
+        int
+            A value `psychopy.constants`, either:
+            - NOT_STARTED: If no experiment is running
+            - STARTED: If an experiment is running
+            - PAUSED: If an experiment is paused
+            - FINISHED: If an experiment is in the process of terminating
+        """
+        if self.currentExperiment is None:
+            # If no current experiment, return NOT_STARTED
+            return constants.NOT_STARTED
+        else:
+            # Otherwise, return status of experiment handler
+            return self.currentExperiment.status
+
+    def getExpInfoFromExperiment(self, key, sessionParams=True):
         """
         Get the global-level expInfo object from one of this Session's experiments. This will contain all of
         the keys needed for this experiment, alongside their default values.
@@ -183,13 +332,27 @@ class Session:
         ----------
         key : str
             Key by which the experiment is stored (see `.addExperiment`).
+        sessionParams : bool
+            Should expInfo be extended with params from the Session, overriding experiment params
+            where relevant (True, default)? Or return expInfo as it is in the experiment (False)?
 
         Returns
         -------
-        bool or None
-            True if the operation completed successfully
+        dict
+            Experiment info dict
         """
-        return self.experiments[key].expInfo
+        # Get params from experiment
+        expInfo = self.experiments[key].expInfo
+        if sessionParams:
+            # If alias of a key in params exists in expInfo, delete it
+            for key in self.params.aliases:
+                if key in expInfo:
+                    del expInfo[key]
+            # Replace with Session params
+            for key in self.params:
+                expInfo[key] = self.params[key]
+
+        return expInfo
 
     def showExpInfoDlgFromExperiment(self, key, expInfo=None):
         """
@@ -214,7 +377,7 @@ class Session:
 
         return expInfo
 
-    def setupWindowFromExperiment(self, key, expInfo=None):
+    def setupWindowFromExperiment(self, key, expInfo=None, blocking=True):
         """
         Setup the window for this Session via the 'setupWindow` method from one of this
         Session's experiments.
@@ -225,20 +388,44 @@ class Session:
             Key by which the experiment is stored (see `.addExperiment`).
         expInfo : dict
             Information about the experiment, created by the `setupExpInfo` function.
+        blocking : bool
+            Should calling this method block the current thread?
+
+            If True (default), the method runs as normal and won't return until
+            completed.
+            If False, the method is added to a `queue` and will be run by the
+            while loop within `Session.start`. This will block the main thread,
+            but won't block the thread this method was called from.
+
+            If not using multithreading, this value is ignored. If you don't
+            know what multithreading is, you probably aren't using it - it's
+            difficult to do by accident!
 
         Returns
         -------
         bool or None
-            True if the operation completed successfully
+            True if the operation completed/queued successfully
         """
+        # If not in main thread and not requested blocking, use queue and return now
+        if threading.current_thread() != threading.main_thread() and not blocking:
+            # The queue is emptied each iteration of the while loop in `Session.start`
+            self._queue.append((
+                self.setupWindowFromExperiment,
+                (key,),
+                {'expInfo': expInfo}
+            ))
+            return True
+
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(key)
         # Run the setupWindow method
         self.win = self.experiments[key].setupWindow(expInfo=expInfo, win=self.win)
+        # Set window title to signify that we're in a Session
+        self.win.title = "PsychoPy Session"
 
         return True
 
-    def setupWindowFromParams(self, params):
+    def setupWindowFromParams(self, params, blocking=True):
         """
         Create/setup a window from a dict of parameters
 
@@ -247,16 +434,41 @@ class Session:
         params : dict
             Dict of parameters to create the window from, keys should be from the
             __init__ signature of psychopy.visual.Window
+        blocking : bool
+            Should calling this method block the current thread?
+
+            If True (default), the method runs as normal and won't return until
+            completed.
+            If False, the method is added to a `queue` and will be run by the
+            while loop within `Session.start`. This will block the main thread,
+            but won't block the thread this method was called from.
+
+            If not using multithreading, this value is ignored. If you don't
+            know what multithreading is, you probably aren't using it - it's
+            difficult to do by accident!
 
         Returns
         -------
         bool or None
-            True if the operation completed successfully
+            True if the operation completed/queued successfully
         """
+        # If not in main thread and not requested blocking, use queue and return now
+        if threading.current_thread() != threading.main_thread() and not blocking:
+            # The queue is emptied each iteration of the while loop in `Session.start`
+            self._queue.append((
+                self.setupWindowFromParams,
+                (params,),
+                {}
+            ))
+            return True
+
         if self.win is None:
             # If win is None, make a Window
             from psychopy.visual import Window
             self.win = Window(**params)
+            self.win.showMessage(_translate(
+                "Waiting to start..."
+            ))
         else:
             # otherwise, just set the attributes which are safe to set
             self.win.color = params.get('color', self.win.color)
@@ -264,10 +476,12 @@ class Session:
             self.win.backgroundImage = params.get('backgroundImage', self.win.backgroundImage)
             self.win.backgroundFit = params.get('backgroundFit', self.win.backgroundFit)
             self.win.units = params.get('units', self.win.units)
+        # Set window title to signify that we're in a Session
+        self.win.title = "PsychoPy Session"
 
         return True
 
-    def setupInputsFromExperiment(self, key, expInfo=None):
+    def setupInputsFromExperiment(self, key, expInfo=None, blocking=True):
         """
         Setup inputs for this Session via the 'setupInputs` method from one of this Session's experiments.
 
@@ -277,12 +491,34 @@ class Session:
             Key by which the experiment is stored (see `.addExperiment`).
         expInfo : dict
             Information about the experiment, created by the `setupExpInfo` function.
+        blocking : bool
+            Should calling this method block the current thread?
+
+            If True (default), the method runs as normal and won't return until
+            completed.
+            If False, the method is added to a `queue` and will be run by the
+            while loop within `Session.start`. This will block the main thread,
+            but won't block the thread this method was called from.
+
+            If not using multithreading, this value is ignored. If you don't
+            know what multithreading is, you probably aren't using it - it's
+            difficult to do by accident!
 
         Returns
         -------
         bool or None
-            True if the operation completed successfully
+            True if the operation completed/queued successfully
         """
+        # If not in main thread and not requested blocking, use queue and return now
+        if threading.current_thread() != threading.main_thread() and not blocking:
+            # The queue is emptied each iteration of the while loop in `Session.start`
+            self._queue.append((
+                self.setupInputsFromExperiment,
+                (key,),
+                {'expInfo': expInfo}
+            ))
+            return True
+
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(key)
         # Run the setupInputs method
@@ -290,7 +526,7 @@ class Session:
 
         return True
 
-    def addKeyboardFromParams(self, name, params):
+    def addKeyboardFromParams(self, name, params, blocking=True):
         """
         Add a keyboard to this session's inputs dict from a dict of params.
 
@@ -298,23 +534,44 @@ class Session:
         ----------
         name : str
             Name of this input, what to store it under in the inputs dict.
-
         params : dict
             Dict of parameters to create the keyboard from, keys should be from the
             __init__ signature of psychopy.hardware.keyboard.Keyboard
+        blocking : bool
+            Should calling this method block the current thread?
+
+            If True (default), the method runs as normal and won't return until
+            completed.
+            If False, the method is added to a `queue` and will be run by the
+            while loop within `Session.start`. This will block the main thread,
+            but won't block the thread this method was called from.
+
+            If not using multithreading, this value is ignored. If you don't
+            know what multithreading is, you probably aren't using it - it's
+            difficult to do by accident!
 
         Returns
         -------
         bool or None
-            True if the operation completed successfully
+            True if the operation completed/queued successfully
         """
+        # If not in main thread and not requested blocking, use queue and return now
+        if threading.current_thread() != threading.main_thread() and not blocking:
+            # The queue is emptied each iteration of the while loop in `Session.start`
+            self._queue.append((
+                self.addKeyboardFromParams,
+                (name, params),
+                {}
+            ))
+            return True
+
         # Create keyboard
         from psychopy.hardware.keyboard import Keyboard
         self.inputs[name] = Keyboard(**params)
 
         return True
 
-    def runExperiment(self, key, expInfo=None):
+    def runExperiment(self, key, expInfo=None, blocking=True):
         """
         Run the `setupData` and `run` methods from one of this Session's experiments.
 
@@ -324,12 +581,35 @@ class Session:
             Key by which the experiment is stored (see `.addExperiment`).
         expInfo : dict
             Information about the experiment, created by the `setupExpInfo` function.
+        blocking : bool
+            Should calling this method block the current thread?
+
+            If True (default), the method runs as normal and won't return until
+            completed.
+            If False, the method is added to a `queue` and will be run by the
+            while loop within `Session.start`. This will block the main thread,
+            but won't block the thread this method was called from.
+
+            If not using multithreading, this value is ignored. If you don't
+            know what multithreading is, you probably aren't using it - it's
+            difficult to do by accident!
 
         Returns
         -------
         bool or None
-            True if the operation completed successfully
+            True if the operation completed/queued successfully
         """
+        err = None
+        # If not in main thread and not requested blocking, use queue and return now
+        if threading.current_thread() != threading.main_thread() and not blocking:
+            # The queue is emptied each iteration of the while loop in `Session.start`
+            self._queue.append((
+                self.runExperiment,
+                (key,),
+                {'expInfo': expInfo}
+            ))
+            return True
+
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(key)
         # Setup data for this experiment
@@ -337,6 +617,8 @@ class Session:
         thisExp.name = key
         # Mark ExperimentHandler as current
         self.currentExperiment = thisExp
+        # Hide Window message
+        self.win.hideMessage()
         # Setup window for this experiment
         self.setupWindowFromExperiment(key=key)
         self.win.flip()
@@ -346,23 +628,52 @@ class Session:
         # Setup logging
         self.experiments[key].run.__globals__['logFile'] = self.logFile
         # Setup inputs
-        self.setupWindowFromExperiment(key, expInfo=expInfo)
+        self.setupInputsFromExperiment(key, expInfo=expInfo)
+        # Log start
+        logging.info(_translate(
+            "Running experiment via Session: name={key}, expInfo={expInfo}"
+        ).format(key=key, expInfo=expInfo))
         # Run this experiment
-        self.experiments[key].run(
-            expInfo=expInfo,
-            thisExp=thisExp,
-            win=self.win,
-            inputs=self.inputs,
-            thisSession=self
-        )
+        try:
+            self.experiments[key].run(
+                expInfo=expInfo,
+                thisExp=thisExp,
+                win=self.win,
+                inputs=self.inputs,
+                thisSession=self
+            )
+        except Exception as _err:
+            err = _err
         # Reinstate autodraw stimuli
         self.win.retrieveAutoDraw()
         # Restore original chdir
         os.chdir(str(self.root))
         # Store ExperimentHandler
         self.runs.append(thisExp)
+        # Save data
+        self.saveCurrentExperimentData()
         # Mark ExperimentHandler as no longer current
         self.currentExperiment = None
+        # Display waiting text
+        self.win.showMessage(_translate(
+            "Waiting to start..."
+        ))
+        self.win.color = "grey"
+        # Raise any errors now
+        if err is not None:
+            raise err
+        # Log finished and flush logs
+        logging.info(_translate(
+            "Finished running experiment via Session: name={key}, expInfo={expInfo}"
+        ).format(key=key, expInfo=expInfo))
+        logging.flush()
+        # Send finished data to liaison
+        if self.liaison is not None:
+            self.sendToLiaison({
+                    'type': "experiment_status",
+                    'name': thisExp.name,
+                    'status': thisExp.status
+                })
 
         return True
 
@@ -421,7 +732,7 @@ class Session:
         # warn and return failed if no experiment is running
         if self.currentExperiment is None:
             logging.warn(
-                _translate("Could not pause experiment as there is none "
+                _translate("Could not stop experiment as there is none "
                            "running.")
             )
             return False
@@ -432,7 +743,7 @@ class Session:
     # def recycleTrial(self, thisExp, trial):
     #     pass
 
-    def saveExperimentData(self, key, thisExp=None):
+    def saveExperimentData(self, key, thisExp=None, blocking=True):
         """
         Run the `saveData` method from one of this Session's experiments, on a
         given ExperimentHandler.
@@ -444,12 +755,34 @@ class Session:
         thisExp : psychopy.data.ExperimentHandler
             ExperimentHandler object to save the data from. If None, save the
             last run of the given experiment.
+        blocking : bool
+            Should calling this method block the current thread?
+
+            If True (default), the method runs as normal and won't return until
+            completed.
+            If False, the method is added to a `queue` and will be run by the
+            while loop within `Session.start`. This will block the main thread,
+            but won't block the thread this method was called from.
+
+            If not using multithreading, this value is ignored. If you don't
+            know what multithreading is, you probably aren't using it - it's
+            difficult to do by accident!
 
         Returns
         -------
         bool or None
-            True if the operation completed successfully
+            True if the operation completed/queued successfully
         """
+        # If not in main thread and not requested blocking, use queue and return now
+        if threading.current_thread() != threading.main_thread() and not blocking:
+            # The queue is emptied each iteration of the while loop in `Session.start`
+            self._queue.append((
+                self.saveExperimentData,
+                (key,),
+                {'thisExp': thisExp}
+            ))
+            return True
+
         # get last run
         if thisExp is None:
             # copy list of runs in reverse
@@ -465,6 +798,130 @@ class Session:
         self.experiments[key].saveData(thisExp)
 
         return True
+
+    def saveCurrentExperimentData(self, blocking=True):
+        """
+        Call `.saveExperimentData` on the currently running experiment - if
+        there is one.
+
+        Parameters
+        ----------
+        blocking : bool
+            Should calling this method block the current thread?
+
+            If True (default), the method runs as normal and won't return until
+            completed.
+            If False, the method is added to a `queue` and will be run by the
+            while loop within `Session.start`. This will block the main thread,
+            but won't block the thread this method was called from.
+
+            If not using multithreading, this value is ignored. If you don't
+            know what multithreading is, you probably aren't using it - it's
+            difficult to do by accident!
+
+        Returns
+        -------
+        bool or None
+            True if the operation completed/queued successfully, False if there
+            was no current experiment running
+        """
+        if self.currentExperiment is None:
+            return False
+
+        return self.saveExperimentData(
+            key=self.currentExperiment.name,
+            thisExp=self.currentExperiment,
+            blocking=blocking
+        )
+
+    def addAnnotation(self, value):
+        """
+        Add an annotation in the data file at the current point in the
+        experiment and to the log.
+
+        Parameters
+        ----------
+        value : str
+            Value of the annotation
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # add to experiment data if there's one running
+        if hasattr(self.currentExperiment, "addAnnotation"):
+            # annotate
+            self.currentExperiment.addAnnotation(value)
+        # log regardless
+        logging.info(value)
+
+        return True
+
+    def addData(self, name, value, salience=None):
+        """
+        Add data in the data file at the current point in the experiment, and to the log.
+
+        Parameters
+        ----------
+        name : str
+            Name of the column to add data as.
+        value : any
+            Value to add
+        salience : int
+            Salience value to set the column to - more salient columns appear nearer to the start of
+            the data file. Use values from `constants.salience` as landmark values:
+            - CRITICAL: Always at the start of the data file, generally reserved for Routine start times
+            - HIGH: Important columns which are near the front of the data file
+            - MEDIUM: Possibly important columns which are around the middle of the data file
+            - LOW: Columns unlikely to be important which are at the end of the data file
+            - EXCLUDE: Always at the end of the data file, actively marked as unimportant
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # add to experiment data if there's one running
+        if hasattr(self.currentExperiment, "addData"):
+            # add
+            self.currentExperiment.addData(name, value, salience=salience)
+        # log regardless
+        logging.data(f"NAME={name}, SALIENCE={salience}, VALUE={value}")
+
+        return True
+
+    def sendExperimentData(self, key=None):
+        """
+        Send last ExperimentHandler for an experiment to liaison. If no experiment is given, sends the currently
+        running experiment.
+
+        Parameters
+        ----------
+        key : str or None
+            Name of the experiment whose data to send, or None to send the current experiment's data.
+
+        Returns
+        -------
+        bool
+            True if data was sent, otherwise False
+        """
+        # Skip if there's no liaison
+        if self.liaison is None:
+            return
+
+        # Sub None for current
+        if key is None:
+            key = self.currentExperiment.name
+        # Get last experiment data
+        for run in reversed(self.runs):
+            if run.name == key:
+                # Send experiment data
+                self.sendToLiaison(run)
+                return True
+
+        # Return False if nothing sent
+        return False
 
     def sendToLiaison(self, value):
         """
@@ -488,11 +945,12 @@ class Session:
             return
         # If ExperimentHandler, get its data as a list of dicts
         if isinstance(value, data.ExperimentHandler):
-            value = value.entries
+            value = value.getJSON(salienceThreshold=self.salienceThreshold)
         # Convert to JSON
-        value = json.dumps(value)
+        if not isinstance(value, str):
+            value = json.dumps(value)
         # Send
-        self.liaison.broadcast(message=value)
+        asyncio.run(self.liaison.broadcast(message=value))
 
     def close(self):
         """
@@ -518,9 +976,21 @@ if __name__ == "__main__":
         from psychopy import liaison
         # Create liaison server
         liaisonServer = liaison.WebSocketServer()
+        session.liaison = liaisonServer
         # Add session to liaison server
         liaisonServer.registerMethods(session, "session")
+        liaisonServer.registerMethods(session.params, "params")
+        # Create thread to run liaison server in
+        liaisonThread = threading.Thread(
+            target=liaisonServer.start,
+            kwargs={
+                'host': host,
+                'port': port,
+            }
+        )
         # Start liaison server
-        liaisonServer.start(host=host, port=port)
+        liaisonThread.start()
+        # Start Session
+        session.start()
     else:
         liaisonServer = None

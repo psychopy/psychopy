@@ -70,7 +70,9 @@ class MicrophoneComponent(BaseComponent):
                  channels='auto', device=None,
                  sampleRate='DVD Audio (48kHz)', maxSize=24000,
                  outputType='default', speakTimes=True, trimSilent=False,
-                 transcribe=False, transcribeBackend="Whisper", transcribeLang="en-US", transcribeWords="",
+                 transcribe=False, transcribeBackend="Whisper",
+                 transcribeLang="en-US", transcribeWords="",
+                 transcribeWhisperModel="base",
                  #legacy
                  stereo=None, channel=None):
         super(MicrophoneComponent, self).__init__(
@@ -111,7 +113,7 @@ class MicrophoneComponent(BaseComponent):
             channels, valType='str', inputType="choice", categ='Hardware',
             allowedVals=['auto', 'mono', 'stereo'],
             hint=msg,
-            label=_translate('Channels'))
+            label=_translate("Channels"))
 
         msg = _translate(
             "How many samples per second (Hz) to record at")
@@ -119,14 +121,14 @@ class MicrophoneComponent(BaseComponent):
             sampleRate, valType='num', inputType="choice", categ='Hardware',
             allowedVals=list(sampleRates),
             hint=msg, direct=False,
-            label=_translate('Sample Rate (Hz)'))
+            label=_translate("Sample rate (hz)"))
 
         msg = _translate(
             "To avoid excessively large output files, what is the biggest file size you are likely to expect?")
         self.params['maxSize'] = Param(
             maxSize, valType='num', inputType="single", categ='Hardware',
             hint=msg,
-            label=_translate('Max Recording Size (kb)'))
+            label=_translate("Max recording size (kb)"))
 
         msg = _translate(
             "What file type should output audio files be saved as?")
@@ -134,7 +136,7 @@ class MicrophoneComponent(BaseComponent):
             outputType, valType='code', inputType='choice', categ='Data',
             allowedVals=["default"] + at.AUDIO_SUPPORTED_CODECS,
             hint=msg,
-            label=_translate("Output File Type")
+            label=_translate("Output file type")
         )
 
         msg = _translate(
@@ -142,7 +144,7 @@ class MicrophoneComponent(BaseComponent):
         self.params['speakTimes'] = Param(
             speakTimes, valType='bool', inputType='bool', categ='Data',
             hint=msg,
-            label=_translate("Speaking Start / Stop Times")
+            label=_translate("Speaking start / stop times")
         )
 
         msg = _translate(
@@ -150,7 +152,7 @@ class MicrophoneComponent(BaseComponent):
         self.params['trimSilent'] = Param(
             trimSilent, valType='bool', inputType='bool', categ='Data',
             hint=msg,
-            label=_translate("Trim Silent")
+            label=_translate("Trim silent")
         )
 
         # Transcription params
@@ -163,10 +165,10 @@ class MicrophoneComponent(BaseComponent):
         self.params['transcribe'] = Param(
             transcribe, valType='bool', inputType='bool', categ='Transcription',
             hint=_translate("Whether to transcribe the audio recording and store the transcription"),
-            label=_translate("Transcribe Audio")
+            label=_translate("Transcribe audio")
         )
 
-        for depParam in ['transcribeBackend', 'transcribeLang', 'transcribeWords']:
+        for depParam in ['transcribeBackend', 'transcribeLang', 'transcribeWords', 'transcribeWhisperModel']:
             self.depends.append({
                 "dependsOn": "transcribe",
                 "condition": "==True",
@@ -179,22 +181,51 @@ class MicrophoneComponent(BaseComponent):
             transcribeBackend, valType='code', inputType='choice', categ='Transcription',
             allowedVals=list(allTranscribers), direct=False,
             hint=_translate("What transcription service to use to transcribe audio?"),
-            label=_translate("Transcription Backend")
+            label=_translate("Transcription backend")
         )
 
         self.params['transcribeLang'] = Param(
             transcribeLang, valType='str', inputType='single', categ='Transcription',
             hint=_translate("What language you expect the recording to be spoken in, e.g. en-US for English"),
-            label=_translate("Transcription Language")
+            label=_translate("Transcription language")
         )
+        self.depends.append({
+            "dependsOn": "transcribeBackend",
+            "condition": "=='Google'",
+            "param": "transcribeLang",
+            "true": "show",  # what to do with param if condition is True
+            "false": "hide",  # permitted: hide, show, enable, disable
+        })
 
         self.params['transcribeWords'] = Param(
             transcribeWords, valType='list', inputType='single', categ='Transcription',
             hint=_translate("Set list of words to listen for - if blank will listen for all words in chosen language. \n\n"
                             "If using the built-in transcriber, you can set a minimum % confidence level using a colon "
                             "after the word, e.g. 'red:100', 'green:80'. Otherwise, default confidence level is 80%."),
-            label=_translate("Expected Words")
+            label=_translate("Expected words")
         )
+        self.depends.append({
+            "dependsOn": "transcribeBackend",
+            "condition": "=='Google'",
+            "param": "transcribeWords",
+            "true": "show",  # what to do with param if condition is True
+            "false": "hide",  # permitted: hide, show, enable, disable
+        })
+
+        self.params['transcribeWhisperModel'] = Param(
+            transcribeWhisperModel, valType='code', inputType='choice', categ='Transcription',
+            allowedVals=["tiny", "base", "small", "medium", "large", "tiny.en", "base.en", "small.en", "medium.en"],
+            hint=_translate(
+                "Which model of Whisper AI should be used for transcription? Details of each model are available here at github.com/openai/whisper"),
+            label=_translate("Whisper model")
+        )
+        self.depends.append({
+            "dependsOn": "transcribeBackend",
+            "condition": "=='Whisper'",
+            "param": "transcribeWhisperModel",
+            "true": "show",  # what to do with param if condition is True
+            "false": "hide",  # permitted: hide, show, enable, disable
+        })
 
     def writeStartCode(self, buff):
         inits = getInitVals(self.params)

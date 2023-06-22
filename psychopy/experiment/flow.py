@@ -235,7 +235,7 @@ class Flow(list):
             '    inputs : dict\n'
             '        Dictionary of input devices by name.\n'
             '    thisSession : psychopy.session.Session or None\n'
-            '        Handle of the Session object this experiment is being run from, if any.'
+            '        Handle of the Session object this experiment is being run from, if any.\n'
             '    """\n'
         )
         script.writeIndentedLines(code)
@@ -306,7 +306,7 @@ class Flow(list):
         code = (
             "\n"
             "# mark experiment as finished\n"
-            "thisExp.status = FINISHED\n"
+            "endExperiment(thisExp, win=win, inputs=inputs)\n"
         )
         script.writeIndentedLines(code)
 

@@ -61,37 +61,37 @@ class TextComponent(BaseVisualComponent):
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The text to be displayed"),
             canBePath=False,
-            label=_localized['text'])
+            label=_translate("Text"))
         self.params['font'] = Param(
             font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The font name (e.g. Comic Sans)"),
-            label=_localized['font'])
+            label=_translate("Font"))
         del self.params['size']  # because you can't specify width for text
         self.params['letterHeight'] = Param(
             letterHeight, valType='num', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("Specifies the height of the letter (the width"
                             " is then determined by the font)"),
-            label=_localized['letterHeight'])
+            label=_translate("Letter height"))
 
         self.params['wrapWidth'] = Param(
             wrapWidth, valType='num', inputType="single", allowedTypes=[], categ='Layout',
             updates='constant', allowedUpdates=['constant'],
             hint=_translate("How wide should the text get when it wraps? (in"
                             " the specified units)"),
-            label=_localized['wrapWidth'])
+            label=_translate("Wrap width"))
         self.params['flip'] = Param(
             flip, valType='str', inputType="single", allowedTypes=[], categ='Layout',
             allowedVals=["horiz", "vert", "None"], updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("horiz = left-right reversed; vert = up-down"
                             " reversed; $var = variable"),
-            label=_localized['flip'])
+            label=_translate("Flip (mirror)"))
         self.params['languageStyle'] = Param(
             languageStyle, valType='str', inputType="choice", categ='Formatting',
             allowedVals=['LTR', 'RTL', 'Arabic'],
             hint=_translate("Handle right-to-left (RTL) languages and Arabic reshaping"),
-            label=_localized['languageStyle'])
+            label=_translate("Language style"))
 
         del self.params['fillColor']
         del self.params['borderColor']

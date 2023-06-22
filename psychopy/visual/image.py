@@ -218,7 +218,9 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         # If our image is a movie stim object, pull pixel data from the most
         # recent frame and write it to the memory
         if hasattr(self.image, 'getVideoFrame'):
-            self._movieFrameToTexture(self.image.getVideoFrame())
+            videoFrame = self.image.getVideoFrame()
+            if videoFrame is not None:
+                self._movieFrameToTexture(videoFrame)
 
         GL.glPushMatrix()  # push before the list, pop after
         win.setScale('pix')

@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import json
 import sys
 import copy
 import pickle
 import atexit
+import pandas as pd
 
 import psychopy.visual.window
 from psychopy import constants
@@ -90,7 +91,11 @@ class ExperimentHandler(_ComparisonMixin):
         self.thisEntry = {}
         self.entries = []  # chronological list of entries
         self._paramNamesSoFar = []
-        self.dataNames = []  # names of all the data (eg. resp.keys)
+        self.dataNames = ['thisRow.t', 'notes']  # names of all the data (eg. resp.keys)
+        self.columnSalience = {
+            'thisRow.t': constants.SALIENCE_CRITICAL - 1,
+            'notes': constants.SALIENCE_MEDIUM - 1,
+        }
         self.autoLog = autoLog
         self.appendFiles = appendFiles
         self.status = constants.NOT_STARTED
@@ -201,8 +206,9 @@ class ExperimentHandler(_ComparisonMixin):
 
         return names, vals
 
-    def addData(self, name, value):
-        """Add the data with a given name to the current experiment.
+    def addData(self, name, value, salience=None):
+        """
+        Add the data with a given name to the current experiment.
 
         Typically the user does not need to use this function; if you added
         your data to the loop and had already added the loop to the
@@ -220,6 +226,22 @@ class ExperimentHandler(_ComparisonMixin):
             exp.addData('resp.key', 'k')
             # end of trial - move to next line in data output
             exp.nextEntry()
+
+        Parameters
+        ----------
+        name : str
+            Name of the column to add data as.
+        value : any
+            Value to add
+        salience : int
+            Salience value to set the column to - more salient columns appear nearer to the start of
+            the data file. Use values from `constants.salience` as landmark values:
+            - CRITICAL: Always at the start of the data file, generally reserved for Routine start times
+            - HIGH: Important columns which are near the front of the data file
+            - MEDIUM: Possibly important columns which are around the middle of the data file
+            - LOW: Columns unlikely to be important which are at the end of the data file
+            - EXCLUDE: Always at the end of the data file, actively marked as unimportant
+
         """
         if name not in self.dataNames:
             self.dataNames.append(name)
@@ -230,6 +252,105 @@ class ExperimentHandler(_ComparisonMixin):
             # unhashable type (list, dict, ...) == mutable, so need a copy()
             value = copy.deepcopy(value)
         self.thisEntry[name] = value
+
+        # set salience if given
+        if salience is not None:
+            self.setSalience(name, salience)
+
+    def getSalience(self, name):
+        """
+        Get the salience value for a given column. If no salience value is
+        stored, returns best guess based on column name.
+
+        Parameters
+        ----------
+        name : str
+            Column name
+
+        Returns
+        -------
+        int
+            The salience value stored/guessed for this column, most likely a value from `constants.salience`, one of:
+            - CRITICAL (30): Always at the start of the data file, generally reserved for Routine start times
+            - HIGH (20): Important columns which are near the front of the data file
+            - MEDIUM (10): Possibly important columns which are around the middle of the data file
+            - LOW (0): Columns unlikely to be important which are at the end of the data file
+            - EXCLUDE (-10): Always at the end of the data file, actively marked as unimportant
+        """
+        if name not in self.columnSalience:
+            # store salience if not specified already
+            self.columnSalience[name] = self._guessSalience(name)
+        # return stored salience
+        return self.columnSalience[name]
+
+    def _guessSalience(self, name):
+        """
+        Get a best guess at the salience of a column based on its name
+
+        Parameters
+        ----------
+        name : str
+            Name of the column
+
+        Returns
+        -------
+        int
+            One of the following:
+            - HIGH (19): Important columns which are near the front of the data file
+            - MEDIUM (9): Possibly important columns which are around the middle of the data file
+            - LOW (-1): Columns unlikely to be important which are at the end of the data file
+
+            NOTE: Values returned from this function are 1 less than values in `constants.salience`,
+            columns whose salience was guessed are behind equivalently salient columns whose salience
+            was specified.
+        """
+        # if there's a dot, get attribute name
+        if "." in name:
+            name = name.split(".")[-1]
+
+        # start off assuming not salient
+        salience = constants.SALIENCE_LOW
+        # if name is in extraInfo, it's highly salient
+        if name in self.extraInfo:
+            salience = constants.SALIENCE_HIGH
+        # if name is one of identified likely salient columns, it's medium salience
+        if name in [
+            "keys", "rt", "x", "y", "leftButton", "numClicks", "numLooks", "clip", "response", "value",
+            "frameRate", "participant"
+        ]:
+            salience = constants.SALIENCE_MEDIUM
+
+        return salience - 1
+
+    def setSalience(self, name, value=constants.SALIENCE_HIGH):
+        """
+        Set the salience of a column in the data file.
+
+        Parameters
+        ----------
+        name : str
+            Name of the column, e.g. `text.started`
+        value : int
+            Salience value to set the column to - more salient columns appear nearer to the start of
+            the data file. Use values from `constants.salience` as landmark values:
+            - CRITICAL (30): Always at the start of the data file, generally reserved for Routine start times
+            - HIGH (20): Important columns which are near the front of the data file
+            - MEDIUM (10): Possibly important columns which are around the middle of the data file
+            - LOW (0): Columns unlikely to be important which are at the end of the data file
+            - EXCLUDE (-10): Always at the end of the data file, actively marked as unimportant
+        """
+        self.columnSalience[name] = value
+
+    def addAnnotation(self, value):
+        """
+        Add an annotation at the current point in the experiment
+
+        Parameters
+        ----------
+        value : str
+            Value of the annotation
+        """
+        self.addData("notes", value)
 
     def timestampOnFlip(self, win, name):
         """Add a timestamp (in the future) to the current row
@@ -251,6 +372,35 @@ class ExperimentHandler(_ComparisonMixin):
             self.dataNames.append(name)
         #
         win.timeOnFlip(self.thisEntry, name)
+
+    @property
+    def status(self):
+        return self._status
+
+    @status.setter
+    def status(self, value):
+        """
+        Status of this experiment, from psychopy.constants.
+
+        Parameters
+        ----------
+        value : int
+            One of the values from psychopy.constants.
+        """
+        # log change
+        valStr = {
+            constants.NOT_STARTED: "NOT_STARTED",
+            constants.STARTED: "STARTED",
+            constants.PAUSED: "PAUSED",
+            constants.RECORDING: "RECORDING",
+            constants.STOPPED: "STOPPED",
+            constants.SEEKING: "SEEKING",
+            constants.STOPPING: "STOPPING",
+            constants.INVALID: "INVALID"
+        }[value]
+        logging.exp(f"{self.name}: status = {valStr}", obj=self)
+        # make change
+        self._status = value
 
     def pause(self):
         """
@@ -291,7 +441,7 @@ class ExperimentHandler(_ComparisonMixin):
         # set own status
         self.status = constants.STOPPED
 
-    def nextEntry(self):
+    def nextEntry(self, t=""):
         """Calling nextEntry indicates to the ExperimentHandler that the
         current trial has ended and so further addData() calls correspond
         to the next trial.
@@ -306,7 +456,8 @@ class ExperimentHandler(_ComparisonMixin):
         if type(self.extraInfo) == dict:
             this.update(self.extraInfo)
         self.entries.append(this)
-        self.thisEntry = {}
+        # add new entry with its
+        self.thisEntry = {'thisRow.t': t}
 
     def getAllEntries(self):
         """Fetches a copy of all the entries including a final (orphan) entry
@@ -469,6 +620,39 @@ class ExperimentHandler(_ComparisonMixin):
         self.entries = origEntries  # revert list of completed entries post-save
         self.savePickle = savePickle
         self.saveWideText = saveWideText
+
+    def getJSON(self, salienceThreshold=constants.SALIENCE_EXCLUDE+1):
+        """
+        Get the experiment data as a JSON string.
+
+        Parameters
+        ----------
+        salienceThreshold : int
+            Output will only include columns whose salience is greater than or equal to this value. Use values in
+            psychopy.constants.salience as a guideline for salience levels. Default is -9 (constants.SALIENCE_EXCLUDE +
+            1)
+
+        Returns
+        -------
+        str
+            JSON string with the following fields:
+            - 'type': Indicates that this is data from an ExperimentHandler (will always be "trials_data")
+            - 'trials': `list` of `dict`s representing requested trials data
+            - 'salience': `dict` of column names
+        """
+        # get columns which meet threshold
+        cols = [col for col in self.dataNames if self.getSalience(col) >= salienceThreshold]
+        # convert just relevant entries to a DataFrame
+        trials = pd.DataFrame(self.entries, columns=cols).fillna(value="")
+        # put in context
+        context = {
+            'type': "trials_data",
+            'trials': trials.to_dict(orient="records"),
+            'salience': self.columnSalience,
+            'threshold': salienceThreshold,
+        }
+
+        return json.dumps(context, indent=True, allow_nan=False)
         
     def close(self):
         if self.dataFileName not in ['', None]:
