@@ -913,8 +913,10 @@ class Session:
             return
 
         # Sub None for current
-        if key is None:
+        if key is None and self.currentExperiment is not None:
             key = self.currentExperiment.name
+        elif key is None:
+            key = self.runs[-1].name
         # Get list of runs (including current)
         runs = self.runs.copy()
         if self.currentExperiment is not None:
