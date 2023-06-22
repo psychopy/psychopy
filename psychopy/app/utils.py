@@ -495,7 +495,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
             # This could also be done by regex, we're avoiding regex for readability
             # rawText = re.sub(r"\!\[.*\]\(.*\)", "", rawText)
             # render markdown
-            renderedText = md.MarkdownIt("default-js").render(rawText)
+            renderedText = md.MarkdownIt("default").render(rawText)
         else:
             renderedText = self.rawTextCtrl.Value.replace("\n", "<br>")
         # Apply to preview ctrl
