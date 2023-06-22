@@ -32,7 +32,7 @@ status.SKIP = SKIP = SEEKING = -2
 status.STOPPING = STOPPING = -3
 status.INVALID = INVALID = -9999
 
-# spertaining to the salience of columns in the data file
+# pertaining to the salience of columns in the data file
 salience = SimpleNamespace()
 salience.__doc__ = (
     "- CRITICAL (30): Always at the start of the data file, generally reserved for Routine start times\n "
