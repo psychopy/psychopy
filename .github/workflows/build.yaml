@@ -4,8 +4,6 @@ on:
   workflow_dispatch:  # manual
   schedule:
     - cron: '0 0 * * 5'
-  pull_request:
-    branches: [ release, dev ]
 
 permissions:
   contents: read
@@ -67,13 +65,13 @@ jobs:
       run: |
         if [ "${{ runner.os }}" == "Windows" ]
         then
-          alias pip='py/python -m pip'
+          alias mypip='py/python -m pip'
         else
-          alias pip='py/bin/python3 -m pip'
+          alias mypip='py/bin/python3 -m pip'
         fi
-        pip install -U pip
-        pip install -U wheel
-        pip install git+https://github.com/psychopy/psychopy.git@dev --no-warn-script-location
+        mypip install -U pip
+        mypip install -U wheel
+        mypip install git+https://github.com/psychopy/psychopy.git@dev --no-warn-script-location
 
     - name: Install plugins
       run:
