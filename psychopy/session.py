@@ -965,7 +965,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", dest="root")
     parser.add_argument("--host", dest="host")
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
     # Create session
     session = Session(
         root=args.root
