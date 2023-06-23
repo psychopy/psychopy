@@ -483,11 +483,15 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         else:
             _btnStyle = wx.BU_EXACTFIT
 
-        # Make switch
-        self.editBtn = ToggleLabelButton(self, label=_translate("Edit"), style=_btnStyle)
-        self.editBtn.SetLabelPressed(_translate("Preview"))
-        self.editBtn.Bind(wx.EVT_TOGGLEBUTTON, self.toggleView)
+        # Make edit button
+        self.editBtn = wx.Button(self, label=_translate("Edit"), style=_btnStyle)
+        self.editBtn.Bind(wx.EVT_BUTTON, self.showCode)
         self.btnSizer.Add(self.editBtn, border=3, flag=wx.ALL | wx.EXPAND)
+
+        # Make view button
+        self.previewBtn = wx.Button(self, label=_translate("Preview"), style=_btnStyle)
+        self.previewBtn.Bind(wx.EVT_BUTTON, self.showHTML)
+        self.btnSizer.Add(self.previewBtn, border=3, flag=wx.ALL | wx.EXPAND)
 
         # Make save button
         self.saveBtn = wx.Button(self, label=_translate("Save"), style=_btnStyle)
@@ -506,9 +510,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
             self.rawTextCtrl.SetValue(value)
 
         # Set initial view
-        self.editBtn.SetValue(False)
-        self.editBtn.Show(not self.readonly)
-        self.toggleView(False)
+        self.showHTML()
         self.saveBtn.Disable()
         self.saveBtn.Show(self.file is not None)
         self._applyAppTheme()
@@ -526,27 +528,28 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         # Restore readonly state
         self.rawTextCtrl.SetReadOnly(og)
         # Render
-        self.toggleView(self.editBtn.Value)
-
-    def showCode(self, evt=None):
-        self.toggleView(True)
-
-    def showHTML(self, evt=None):
-        self.toggleView(False)
-
-    def toggleView(self, evt=True):
-        if isinstance(evt, bool):
-            edit = evt
-        else:
-            edit = evt.EventObject.Value
-        # Render html
         self.render()
 
-        # Show opposite control
-        self.rawTextCtrl.Show(edit)
-        self.htmlPreview.Show(not edit)
+    def showCode(self, evt=None):
+        # Show edit control and view button
+        self.rawTextCtrl.Show(not self.readonly)
+        self.previewBtn.Show(not self.readonly)
+        # Hide preview control and edit button
+        self.htmlPreview.Hide()
+        self.editBtn.Hide()
+        # Refresh
+        self.Layout()
 
-        self._applyAppTheme()
+    def showHTML(self, evt=None):
+        # Hide edit control
+        self.rawTextCtrl.Hide()
+        self.previewBtn.Hide()
+        # Render html
+        self.render()
+        # Show html control
+        self.htmlPreview.Show(not self.readonly)
+        self.editBtn.Show(not self.readonly)
+        # Refresh
         self.Layout()
         if hasattr(evt, "Skip"):
             evt.Skip()
@@ -644,7 +647,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.editBtn.SetBitmap(
             icons.ButtonIcon(stem="editbtn", size=(16, 16)).bitmap
         )
-        self.editBtn.SetBitmapPressed(
+        self.previewBtn.SetBitmap(
             icons.ButtonIcon(stem="viewbtn", size=(16, 16)).bitmap
         )
 
