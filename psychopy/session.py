@@ -858,7 +858,7 @@ class Session:
 
         return True
 
-    def addData(self, name, value, salience=None):
+    def addData(self, name, value, row=None, salience=None):
         """
         Add data in the data file at the current point in the experiment, and to the log.
 
@@ -868,6 +868,8 @@ class Session:
             Name of the column to add data as.
         value : any
             Value to add
+        row : int or None
+            Row in which to add this data. Leave as None to add to the current entry.
         salience : int
             Salience value to set the column to - more salient columns appear nearer to the start of
             the data file. Use values from `constants.salience` as landmark values:
@@ -885,7 +887,7 @@ class Session:
         # add to experiment data if there's one running
         if hasattr(self.currentExperiment, "addData"):
             # add
-            self.currentExperiment.addData(name, value, salience=salience)
+            self.currentExperiment.addData(name, value, row=row, salience=salience)
         # log regardless
         logging.data(f"NAME={name}, SALIENCE={salience}, VALUE={value}")
 
@@ -911,10 +913,16 @@ class Session:
             return
 
         # Sub None for current
-        if key is None:
+        if key is None and self.currentExperiment is not None:
             key = self.currentExperiment.name
+        elif key is None:
+            key = self.runs[-1].name
+        # Get list of runs (including current)
+        runs = self.runs.copy()
+        if self.currentExperiment is not None:
+            runs.append(self.currentExperiment)
         # Get last experiment data
-        for run in reversed(self.runs):
+        for run in reversed(runs):
             if run.name == key:
                 # Send experiment data
                 self.sendToLiaison(run)
