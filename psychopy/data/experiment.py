@@ -643,7 +643,7 @@ class ExperimentHandler(_ComparisonMixin):
         # get columns which meet threshold
         cols = [col for col in self.dataNames if self.getSalience(col) >= salienceThreshold]
         # convert just relevant entries to a DataFrame
-        trials = pd.DataFrame(self.entries, columns=cols)
+        trials = pd.DataFrame(self.entries, columns=cols).fillna(value="")
         # put in context
         context = {
             'type': "trials_data",
@@ -652,8 +652,8 @@ class ExperimentHandler(_ComparisonMixin):
             'threshold': salienceThreshold,
         }
 
-        return json.dumps(context, indent=True)
-
+        return json.dumps(context, indent=True, allow_nan=False)
+        
     def close(self):
         if self.dataFileName not in ['', None]:
             if self.autoLog:

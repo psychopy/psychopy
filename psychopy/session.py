@@ -696,6 +696,7 @@ class Session:
         # Send finished data to liaison
         if self.liaison is not None:
             self.sendToLiaison({
+                    'type': "experiment_status",
                     'name': thisExp.name,
                     'status': thisExp.status
                 })
@@ -972,7 +973,8 @@ class Session:
         if isinstance(value, data.ExperimentHandler):
             value = value.getJSON(salienceThreshold=self.salienceThreshold)
         # Convert to JSON
-        value = json.dumps(value)
+        if not isinstance(value, str):
+            value = json.dumps(value)
         # Send
         asyncio.run(self.liaison.broadcast(message=value))
 
