@@ -1809,7 +1809,7 @@ class Camera:
         if self._captureThread is None:
             return False
 
-        return self._captureThread.is_alive()
+        return self._captureThread.isOpen()
 
     @property
     def isNotStarted(self):
