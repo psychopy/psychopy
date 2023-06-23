@@ -745,7 +745,7 @@ class FontManager():
 
     def getDefaultSansFont(self):
         """Load and return the FontInfo for the first found default font"""
-        for name in ['Verdana', 'DejaVu Sans', 'Bitstream Vera Sans', 'Tahoma']:
+        for name in ['Verdana', 'DejaVu Sans', 'Bitstream Vera Sans', 'Tahoma', 'Open Sans']:
             these = self.getFontsMatching(name, fallback=False)
             if not these:
                 continue
