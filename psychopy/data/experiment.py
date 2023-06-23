@@ -448,7 +448,7 @@ class ExperimentHandler(_ComparisonMixin):
         # set own status
         self.status = constants.STOPPED
 
-    def nextEntry(self, t=""):
+    def nextEntry(self):
         """Calling nextEntry indicates to the ExperimentHandler that the
         current trial has ended and so further addData() calls correspond
         to the next trial.
@@ -464,7 +464,7 @@ class ExperimentHandler(_ComparisonMixin):
             this.update(self.extraInfo)
         self.entries.append(this)
         # add new entry with its
-        self.thisEntry = {'thisRow.t': t}
+        self.thisEntry = {}
 
     def getAllEntries(self):
         """Fetches a copy of all the entries including a final (orphan) entry

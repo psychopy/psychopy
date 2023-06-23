@@ -325,11 +325,12 @@ class TrialHandler(_BaseLoopHandler):
         # Just within the loop advance data line if loop is whole trials
         if self.params['isTrials'].val == True:
             buff.writeIndentedLines(
-                "thisExp.nextEntry(t=globalClock.getTime())\n"
+                "thisExp.nextEntry()\n"
+                "thisExp.timestampOnFlip(win, 'thisRow.t')\n"
+                "\n"
                 "if thisSession is not None:\n"
                 "    # if running in a Session with a Liaison client, send data up to now\n"
                 "    thisSession.sendExperimentData()\n"
-                "\n"
             )
         # end of the loop. dedent
         buff.setIndentLevel(-1, relative=True)
@@ -526,11 +527,12 @@ class StairHandler(_BaseLoopHandler):
         # Just within the loop advance data line if loop is whole trials
         if self.params['isTrials'].val:
             buff.writeIndentedLines(
-                "thisExp.nextEntry(t=globalClock.getTime())\n"
+                "thisExp.nextEntry()\n"
+                "thisExp.timestampOnFlip(win, 'thisRow.t')\n"
+                "\n"
                 "if thisSession is not None:\n"
                 "    # if running in a Session with a Liaison client, send data up to now\n"
                 "    thisSession.sendExperimentData()\n"
-                "\n"
             )
         # end of the loop. dedent
         buff.setIndentLevel(-1, relative=True)
@@ -753,16 +755,16 @@ class MultiStairHandler(_BaseLoopHandler):
         )
         buff.writeIndentedLines(code % inits)
 
-
     def writeLoopEndCode(self, buff):
         # Just within the loop advance data line if loop is whole trials
         if self.params['isTrials'].val:
             buff.writeIndentedLines(
-                "thisExp.nextEntry(t=globalClock.getTime())\n"
+                "thisExp.nextEntry()\n"
+                "thisExp.timestampOnFlip(win, 'thisRow.t')\n"
+                "\n"
                 "if thisSession is not None:\n"
                 "    # if running in a Session with a Liaison client, send data up to now\n"
                 "    thisSession.sendExperimentData()\n"
-                "\n"
             )
         # end of the loop. dedent
         buff.setIndentLevel(-1, relative=True)
@@ -803,7 +805,7 @@ class MultiStairHandler(_BaseLoopHandler):
                 "if (psychoJS.experiment._unfinishedLoops.length>0)\n"
                 "  currentLoop = psychoJS.experiment._unfinishedLoops.at(-1);\n"
                 "else\n"
-                "  currentLoop = psychoJS.experiment;  // so we use addData from the experiment\n"
+                "  currentLoop = psychoJS.experiment;  // so we use addData from the experiment\n"\
                 "return Scheduler.Event.NEXT;\n"
         )
         buff.writeIndentedLines(code % self.params)
