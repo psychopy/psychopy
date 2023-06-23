@@ -128,6 +128,7 @@ class Session:
         # Create data folder
         if dataDir is None:
             dataDir = self.root / "data" / core.Clock().getTime(format="%Y-%m-%d_%H-%M-%S-%f")
+        dataDir = Path(dataDir)
         if not dataDir.is_dir():
             os.makedirs(str(dataDir), exist_ok=True)
         # Store data folder
