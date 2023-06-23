@@ -465,7 +465,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.rawTextCtrl.Show(not self.readonly)
         self.previewBtn.Show(not self.readonly)
         # Hide preview control and edit button
-        self.htmlPreview.Hide()
+        self.htmlPreview.Show(self.readonly)
         self.editBtn.Hide()
         # Refresh
         self.Layout()
@@ -477,7 +477,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         # Render html
         self.render()
         # Show html control
-        self.htmlPreview.Show(not self.readonly)
+        self.htmlPreview.Show()
         self.editBtn.Show(not self.readonly)
         # Refresh
         self.Layout()
