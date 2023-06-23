@@ -1022,7 +1022,7 @@ class SettingsComponent:
         # handle specified folder
         code = (
             f"if dataDir is None:\n"
-            f"    dataDir = {saveToDir}\n"
+            f"    dataDir = {repr(saveToDir)}\n"
         )
         buff.writeIndentedLines(code)
         # deprecated code: before v1.80.00 we had 'Saved data folder' param
