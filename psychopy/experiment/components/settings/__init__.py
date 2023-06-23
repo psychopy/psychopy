@@ -995,7 +995,7 @@ class SettingsComponent:
         # Enter function def
         code = (
             '\n'
-            'def setupData(expInfo):\n'
+            'def setupData(expInfo, dataDir=None):\n'
             '    """\n'
             '    Make an ExperimentHandler to handle trials and saving.\n'
             '    \n'
@@ -1003,6 +1003,8 @@ class SettingsComponent:
             '    ==========\n'
             '    expInfo : dict\n'
             '        Information about this experiment, created by the `setupExpInfo` function.\n'
+            '    dataDir : Path, str or None\n'
+            '        Folder to save the data to, leave as None to create a folder in the current directory.'
             '    \n'
             '    Returns\n'
             '    ==========\n'
@@ -1017,6 +1019,12 @@ class SettingsComponent:
         saveToDir = self.getSaveDataDir()
         buff.writeIndentedLines("\n# Data file name stem = absolute path +"
                                 " name; later add .psyexp, .csv, .log, etc\n")
+        # handle specified folder
+        code = (
+            f"if dataDir is None:\n"
+            f"    dataDir = {saveToDir}\n"
+        )
+        buff.writeIndentedLines(code)
         # deprecated code: before v1.80.00 we had 'Saved data folder' param
         # fairly fixed filename
         if 'Saved data folder' in self.params:
@@ -1025,13 +1033,12 @@ class SettingsComponent:
                 if field in self.getInfo():
                     participantField = field
                     self.params['Data filename'].val = (
-                        repr(saveToDir) + " + os.sep + '%s_%s' % (expInfo['" +
+                        "dataDir + os.sep + '%s_%s' % (expInfo['" +
                         field + "'], expInfo['date'])")
                     break
             if not participantField:
                 # no participant-type field, so skip that part of filename
-                self.params['Data filename'].val = repr(
-                    saveToDir) + " + os.path.sep + expInfo['date']"
+                self.params['Data filename'].val = "dataDir + os.path.sep + expInfo['date']"
             # so that we don't overwrite users changes doing this again
             del self.params['Saved data folder']
 
@@ -1597,7 +1604,7 @@ class SettingsComponent:
         # Open function def
         code = (
             '\n'
-            'def saveData(thisExp, folder=None):\n'
+            'def saveData(thisExp):\n'
             '    """\n'
             '    Save data from this experiment\n'
             '    \n'
@@ -1606,8 +1613,6 @@ class SettingsComponent:
             '    thisExp : psychopy.data.ExperimentHandler\n'
             '        Handler object for this experiment, contains the data to save and information about \n'
             '        where to save it to.\n'
-            '    folder : str or None\n'
-            '       Folder in which to save data, use None to save in current folder.\n'
             '    """\n'
         )
         buff.writeIndentedLines(code)
@@ -1615,14 +1620,6 @@ class SettingsComponent:
         # Get filename from thisExp
         code = (
             "filename = thisExp.dataFileName\n"
-            "if folder is None:\n"
-            "    folder = _thisDir\n"
-            "# make sure folder exists\n"
-            "data.checkValidFilePath(folder + os.sep + filename)"
-        )
-        buff.writeIndentedLines(code)
-
-        code = (
             "# these shouldn't be strictly necessary (should auto-save)\n"
         )
         if self.params['Save wide csv file'].val:
