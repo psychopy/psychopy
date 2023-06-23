@@ -708,6 +708,7 @@ class Session:
         # Send finished data to liaison
         if self.liaison is not None:
             self.sendToLiaison({
+                    'type': "experiment_status",
                     'name': thisExp.name,
                     'status': thisExp.status
                 })
@@ -897,7 +898,7 @@ class Session:
 
         return True
 
-    def addData(self, name, value, salience=None):
+    def addData(self, name, value, row=None, salience=None):
         """
         Add data in the data file at the current point in the experiment, and to the log.
 
@@ -907,6 +908,8 @@ class Session:
             Name of the column to add data as.
         value : any
             Value to add
+        row : int or None
+            Row in which to add this data. Leave as None to add to the current entry.
         salience : int
             Salience value to set the column to - more salient columns appear nearer to the start of
             the data file. Use values from `constants.salience` as landmark values:
@@ -924,7 +927,7 @@ class Session:
         # add to experiment data if there's one running
         if hasattr(self.currentExperiment, "addData"):
             # add
-            self.currentExperiment.addData(name, value, salience=salience)
+            self.currentExperiment.addData(name, value, row=row, salience=salience)
         # log regardless
         logging.data(f"NAME={name}, SALIENCE={salience}, VALUE={value}")
 
@@ -950,10 +953,16 @@ class Session:
             return
 
         # Sub None for current
-        if key is None:
+        if key is None and self.currentExperiment is not None:
             key = self.currentExperiment.name
+        elif key is None:
+            key = self.runs[-1].name
+        # Get list of runs (including current)
+        runs = self.runs.copy()
+        if self.currentExperiment is not None:
+            runs.append(self.currentExperiment)
         # Get last experiment data
-        for run in reversed(self.runs):
+        for run in reversed(runs):
             if run.name == key:
                 # Send experiment data
                 self.sendToLiaison(run)
@@ -986,7 +995,8 @@ class Session:
         if isinstance(value, data.ExperimentHandler):
             value = value.getJSON(salienceThreshold=self.salienceThreshold)
         # Convert to JSON
-        value = json.dumps(value)
+        if not isinstance(value, str):
+            value = json.dumps(value)
         # Send
         asyncio.run(self.liaison.broadcast(message=value))
 
@@ -1022,7 +1032,7 @@ if __name__ == "__main__":
     parser.add_argument("--host", dest="host")
     parser.add_argument("--timing", dest="timing", default="iso")
     parser.add_argument("--session-data-dir", dest="dataDir")
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
     # Setup timing
     if args.timing == "float":
         sessionClock = core.Clock()

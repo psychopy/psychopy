@@ -42,6 +42,80 @@ for n in range(13):
     versionMap[v] = versionMap[av]
 
 
+class VersionRange:
+    def __init__(self, first=None, last=None):
+        self.first = first
+        self.last = last
+
+    @property
+    def first(self):
+        return self._first
+
+    @first.setter
+    def first(self, value):
+        self._first = value
+        if self._first is not None:
+            self._first = Version(self._first)
+
+    @property
+    def last(self):
+        return self._last
+
+    @last.setter
+    def last(self, value):
+        self._last = value
+        if self._last is not None:
+            self._last = Version(self._last)
+
+    def __contains__(self, item):
+        # enforce Version type
+        if isinstance(item, str):
+            item = Version(item)
+        # if not less than or greater than, assume contains
+        lt = self > item
+        gt = self < item
+        return not any((lt, gt))
+
+    def __eq__(self, other):
+        return other in self
+
+    def __lt__(self, other):
+        # if no first version, nothing is less than
+        if self.last is None:
+            return False
+        # enforce Version type
+        if isinstance(other, str):
+            other = Version(other)
+        # otherwise compare to first version
+        return self.last < other
+
+    def __le__(self, other):
+        return self < other or other == self
+
+    def __gt__(self, other):
+        # if no last version, nothing is greater than
+        if self.first is None:
+            return False
+        # enforce Version type
+        if isinstance(other, str):
+            other = Version(other)
+        # otherwise compare to first version
+        return self.first > other
+
+    def __ge__(self, other):
+        return self > other or other in self
+
+    def __str__(self):
+        first = self.first
+        if first is None:
+            first = "up"
+        last = self.last
+        if last is None:
+            last = "latest"
+
+        return _translate("{} to {}").format(first, last)
+
+
 # ideally want localization for error messages
 # but don't want to have the lib/ depend on app/, drat
 # from psychopy.localization import _translate  # ideal
