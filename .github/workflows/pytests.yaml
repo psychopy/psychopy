@@ -74,15 +74,12 @@ jobs:
 #      run: |
 #        # quick test of the gui toolkits (without pytest swallowing errors)
 #        pythonw psychopy/tests/test_gui/test_DlgFromDictWx.py
-    - name: Ensure default fonts
-      runs-on: ubuntu-latest
-      steps:
-        - name: Install fallback font
-          run: |
-            wget -O Open_Sans.zip https://fonts.google.com/download?family=Open%20Sans
-            unzip -d open_sans/ Open_Sans.zip
-            mv open_sans /usr/share/fonts/
-            fc-cache -fv
+    - name: Install fallback font
+      run: |
+        wget -O Open_Sans.zip https://fonts.google.com/download?family=Open%20Sans
+        unzip -d open_sans/ Open_Sans.zip
+        mv open_sans /usr/share/fonts/
+        fc-cache -fv
 
     - name: Test with pytest
       run: |
