@@ -1007,7 +1007,7 @@ if __name__ == "__main__":
     parser.add_argument("--root", dest="root")
     parser.add_argument("--host", dest="host")
     parser.add_argument("--timing", dest="timing", default="iso")
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
     # Setup timing
     if args.timing == "float":
         sessionClock = core.Clock()
