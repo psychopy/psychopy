@@ -127,9 +127,9 @@ class Session:
         sys.path.insert(1, str(self.root))
         # Create data folder
         if dataDir is None:
-            dataDir = self.root / "data" / core.Clock().getTime(format=str)
+            dataDir = self.root / "data" / core.Clock().getTime(format="%Y-%m-%d_%H-%M-%S-%f")
         if not dataDir.is_dir():
-            os.mkdir(str(dataDir))
+            os.makedirs(str(dataDir), exist_ok=True)
         # Store data folder
         self.dataDir = dataDir
         # Create log file
