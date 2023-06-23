@@ -833,10 +833,8 @@ class Session:
                 if run.name == key:
                     thisExp = run
                     break
-        # save to usual folder
-        self.experiments[key].saveData(thisExp)
         # save to Session folder
-        self.experiments[key].saveData(thisExp, folder=str(self.dataDir))
+        self.experiments[key].saveData(thisExp)
 
         return True
 
