@@ -268,7 +268,8 @@ class Session:
             # Copy files to it
             shutil.copytree(
                 src=str(folder),
-                dst=str(newFolder)
+                dst=str(newFolder),
+                dirs_exist_ok=True
             )
             # Store new locations
             file = newFolder / file.relative_to(folder)
