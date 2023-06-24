@@ -14,6 +14,7 @@ from psychopy.experiment import utils as exputils
 from psychopy.monitors import Monitor
 from psychopy.iohub import util as ioUtil
 from psychopy.alerts import alert
+from psychopy.tools.filetools import genDelimiter
 
 # for creating html output folders:
 import shutil
@@ -963,9 +964,20 @@ class SettingsComponent:
 
     def writeExpSetupCodeJS(self, buff, version):
 
+        
         # write the code to set up experiment
         buff.setIndentLevel(0, relative=False)
         template = readTextFile("JS_setupExp.tmpl")
+
+        # Get file delimiter character
+        delim_options = {
+            'comma': ",",
+            'semicolon': ";",
+            'tab': r"\t"
+            }
+        delim = delim_options.get(self.params['Data file delimiter'], 
+                                 genDelimiter(self.params['Data filename']))
+
         setRedirectURL = ''
         if len(self.params['Completed URL'].val) or len(self.params['Incomplete URL'].val):
             setRedirectURL = ("psychoJS.setRedirectUrls({completedURL}, {incompleteURL});\n"
@@ -978,13 +990,15 @@ class SettingsComponent:
         # else:
         #     saveType = "EXPERIMENT_SERVER"
         #     projID = 'undefined'
+
         code = template.format(
             params=self.params,
             filename=str(self.params['Data filename']),
             name=self.params['expName'].val,
             loggingLevel=self.params['logging level'].val.upper(),
             setRedirectURL=setRedirectURL,
-            version=version,
+            version=version, 
+            field_separator=delim
         )
         buff.writeIndentedLines(code)
 
