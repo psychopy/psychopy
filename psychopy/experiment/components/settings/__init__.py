@@ -1028,7 +1028,7 @@ class SettingsComponent:
             if params['Saved data folder'].val.strip():
                 params['dataDir'] = params['Saved data folder']
             else:
-                params['dataDir'] = self.exp.prefsBuilder['savedDataFolder'].strip()
+                params['dataDir'] = repr(self.exp.prefsBuilder['savedDataFolder'].strip())
 
         code = (
             "\n"
