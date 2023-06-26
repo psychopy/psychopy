@@ -8,7 +8,7 @@ import time
 import json
 from pathlib import Path
 
-from psychopy import experiment, logging, constants, data, core
+from psychopy import experiment, logging, constants, data, core, __version__
 from psychopy.tools.arraytools import AliasDict
 
 from psychopy.localization import _translate
@@ -113,6 +113,7 @@ class Session:
 
     def __init__(self,
                  root,
+                 dataDir=None,
                  liaison=None,
                  loggingLevel="info",
                  salienceThreshold=constants.SALIENCE_EXCLUDE+1,
@@ -124,9 +125,18 @@ class Session:
         # Store root and add to Python path
         self.root = Path(root)
         sys.path.insert(1, str(self.root))
+        # Create data folder
+        if dataDir is None:
+            dataDir = self.root / "data" / core.Clock().getTime(format="%Y-%m-%d_%H-%M-%S-%f")
+        dataDir = Path(dataDir)
+        if not dataDir.is_dir():
+            os.makedirs(str(dataDir), exist_ok=True)
+        # Store data folder
+        self.dataDir = dataDir
         # Create log file
+        wallTime = data.getDateStr(fractionalSecondDigits=6)
         self.logFile = logging.LogFile(
-            self.root / (self.root.stem + '.log'),
+            dataDir / f"session_{self.root.stem}_{wallTime}.log",
             level=getattr(logging, loggingLevel.upper())
         )
         # Store salience threshold
@@ -258,7 +268,8 @@ class Session:
             # Copy files to it
             shutil.copytree(
                 src=str(folder),
-                dst=str(newFolder)
+                dst=str(newFolder),
+                dirs_exist_ok=True
             )
             # Store new locations
             file = newFolder / file.relative_to(folder)
@@ -327,6 +338,9 @@ class Session:
         else:
             # Otherwise, return status of experiment handler
             return self.currentExperiment.status
+
+    def getPsychoPyVersion(self):
+        return __version__
 
     def getTime(self, format=str):
         """
@@ -638,7 +652,7 @@ class Session:
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(key)
         # Setup data for this experiment
-        thisExp = self.experiments[key].setupData(expInfo=expInfo)
+        thisExp = self.experiments[key].setupData(expInfo=expInfo, dataDir=str(self.dataDir))
         thisExp.name = key
         # Mark ExperimentHandler as current
         self.currentExperiment = thisExp
@@ -820,7 +834,7 @@ class Session:
                 if run.name == key:
                     thisExp = run
                     break
-
+        # save to Session folder
         self.experiments[key].saveData(thisExp)
 
         return True
@@ -1008,6 +1022,8 @@ if __name__ == "__main__":
         - "float": Start a timer when Session is created and do timing relative to that (default)
         - "iso": Do timing via wall clock in ISO 8601 format 
         - any valid strftime string: Do timing via wall clock in the given format
+    --session-data-dir
+        Folder to store all data from this Session in, including the log file.
     """
     # Parse args
     import argparse
@@ -1015,6 +1031,7 @@ if __name__ == "__main__":
     parser.add_argument("--root", dest="root")
     parser.add_argument("--host", dest="host")
     parser.add_argument("--timing", dest="timing", default="iso")
+    parser.add_argument("--session-data-dir", dest="dataDir")
     args, _ = parser.parse_known_args()
     # Setup timing
     if args.timing == "float":
@@ -1026,7 +1043,8 @@ if __name__ == "__main__":
     # Create session
     session = Session(
         root=args.root,
-        clock=sessionClock
+        clock=sessionClock,
+        dataDir=args.dataDir
     )
     if ":" in str(args.host):
         host, port = str(args.host).split(":")
