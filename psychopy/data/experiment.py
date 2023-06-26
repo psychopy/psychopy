@@ -326,9 +326,6 @@ class ExperimentHandler(_ComparisonMixin):
 
         # start off assuming not salient
         salience = constants.SALIENCE_LOW
-        # if name is in extraInfo, it's highly salient
-        if name in self.extraInfo:
-            salience = constants.SALIENCE_HIGH
         # if name is one of identified likely salient columns, it's medium salience
         if name in [
             "keys", "rt", "x", "y", "leftButton", "numClicks", "numLooks", "clip", "response", "value",
