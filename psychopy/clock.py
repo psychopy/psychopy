@@ -194,7 +194,7 @@ class MonotonicClock:
         # store default format
         self.format = format
 
-    def getTime(self, applyZero=True, format=None):
+    def getTime(self, applyZero=True, format="%Y-%m-%d_%H:%M:%S.%f%z"):
         """
         Returns the current time on this clock in secs (sub-ms precision).
 
