@@ -652,7 +652,7 @@ class Session:
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(key)
         # Setup data for this experiment
-        thisExp = self.experiments[key].setupData(expInfo=expInfo, dataDir=self.dataDir)
+        thisExp = self.experiments[key].setupData(expInfo=expInfo, dataDir=str(self.dataDir))
         thisExp.name = key
         # Mark ExperimentHandler as current
         self.currentExperiment = thisExp
