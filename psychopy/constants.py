@@ -9,18 +9,30 @@ import sys, os, copy
 from os.path import abspath, join
 from types import SimpleNamespace
 
-NOT_STARTED = 0
-PLAYING = 1
-STARTED = PLAYING
-PAUSED = 2
-RECORDING = 3
-STOPPED = -1
-FINISHED = STOPPED
-SKIP = SEEKING = -2
-STOPPING = -3
-INVALID = -9999
+# pertaining to the status of components/routines/experiments
+status = SimpleNamespace()
+status.__doc__ = (
+    "- NOT_STARTED (0): The component has not yet started.\n"
+    "- PLAYING / STARTED (1): The component has started.\n"
+    "- PAUSED (2): The component has started but has been paused.\n"
+    "- RECORDING (3): Component is not only started, but also actively recording some input.\n"
+    "- STOPPED / FINISHED (-1): Component has finished.\n"
+    "- SKIP / SEEKING (-2): Component is in the process of changing state.\n"
+    "- STOPPING (-3): Component is in the process of stopping.\n"
+    "- INVALID (-9999): Something has gone wrong and status is not available.\n"
+)
+status.NOT_STARTED = NOT_STARTED = 0
+status.PLAYING = PLAYING = 1
+status.STARTED = STARTED = PLAYING
+status.PAUSED = PAUSED = 2
+status.RECORDING = RECORDING = 3
+status.STOPPED = STOPPED = -1
+status.FINISHED = FINISHED = STOPPED
+status.SKIP = SKIP = SEEKING = -2
+status.STOPPING = STOPPING = -3
+status.INVALID = INVALID = -9999
 
-
+# pertaining to the salience of columns in the data file
 salience = SimpleNamespace()
 salience.__doc__ = (
     "- CRITICAL (30): Always at the start of the data file, generally reserved for Routine start times\n "
