@@ -119,6 +119,7 @@ class SettingsComponent:
                  color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
                  backgroundImg="", backgroundFit="none",
                  blendMode='avg',
+                 sortColumns="time",
                  saveXLSXFile=False, saveCSVFile=False, saveHDF5File=False,
                  saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder='', savedDataDelim='auto',
@@ -161,8 +162,6 @@ class SettingsComponent:
         self.params = {}
         self.depends = []
         self.order = ['expName', 'Use version', 'Enable Escape',  'Show info dlg', 'Experiment info',  # Basic tab
-                      'Data filename', 'Data file delimiter', 'Save excel file', 'Save csv file', 'Save wide csv file',
-                      'Save psydat file', 'Save hdf5 file', 'Save log file', 'logging level',  # Data tab
                       'Audio lib', 'Audio latency priority', "Force stereo",  # Audio tab
                       'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'End Message', 'Resources',  # Online tab
                       'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Show mouse', 'Units', 'color',
@@ -308,7 +307,19 @@ class SettingsComponent:
             hint=_translate("How important is audio latency for you? If essential then you may need to get all your sounds in correct formats."),
             label=_translate("Audio latency priority"), categ='Audio')
 
-        # data params
+        # --- Data params ---
+        self.order += [
+            "Data filename",
+            "Data file delimiter",
+            "sortColumns",
+            "Save Excel file",
+            "Save log file",
+            "Save csv file",
+            "Save wide csv file",
+            "Save psydat file",
+            "Save hdf5 file",
+            "logging level"
+        ]
         self.params['Data filename'] = Param(
             filename, valType='code', inputType="single", allowedTypes=[],
             hint=_translate("Code to create your custom file name base. Don"
@@ -319,6 +330,16 @@ class SettingsComponent:
             allowedVals=['auto', 'comma', 'semicolon', 'tab'],
             hint=_translate("What symbol should the data file use to separate columns? ""Auto"" will select a delimiter automatically from the filename."),
             label=_translate("Data file delimiter"), categ='Data'
+        )
+        self.params['sortColumns'] = Param(
+            sortColumns, valType="str", inputType="choice", categ="Data",
+            allowedLabels=[_translate("Alphabetical"), _translate("Salience"), _translate("First added")],
+            allowedVals=["alphabetical", "salience", "time"],
+            label=_translate("Sort columns by..."),
+            hint=_translate(
+                "How should data file columns be sorted? Alphabetically, by salience, or simply in the order they were "
+                "added?"
+            )
         )
         self.params['Save log file'] = Param(
             saveLogFile, valType='bool', inputType="bool", allowedTypes=[],
@@ -1050,7 +1071,7 @@ class SettingsComponent:
                 "    extraInfo=expInfo, runtimeInfo=None,\n"
                 "    originPath=%(originPath)s,\n"
                 "    savePickle=%(Save psydat file)s, saveWideText=%(Save wide csv file)s,\n"
-                "    dataFileName=dataDir + os.sep + filename\n"
+                "    dataFileName=dataDir + os.sep + filename, sortColumns=%(sortColumns)s\n"
                 ")\n")
         buff.writeIndentedLines(code % params)
 
