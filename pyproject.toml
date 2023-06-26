@@ -2,7 +2,7 @@
 
 [project]
 name = "psychopy"
-version = "2023.2.0dev6"
+version = "2023.2.0rc1"
 requires-python = ">=3.8, <3.11"
 description = "PsychoPy provides easy, precise, flexible experiments in behavioural sciences"
 readme ={file = "README.md", content-type = "text/markdown"}
