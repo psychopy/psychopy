@@ -122,15 +122,16 @@ class Timestamp(float):
         - float : Seconds since epoch (for an absolute time)
         - str : Time string in the format specified by the parameter `format`
 
-    format : str
+    format : str or class
         Time format string (as in time.strftime) indicated how to convert this timestamp to a string, and how to
-        interpret its value if given as a string. Default format is ISO 8601 (YYYY-MM-DD_HH:MM:SS.mmmmmmZZZZ).
+        interpret its value if given as a string. Use `float` (default) to always print timestamp as a float, or `str`
+        as
 
     """
-    def __new__(cls, value, format="%Y-%m-%d_%H:%M:%S.%f%z"):
+    def __new__(cls, value, format=float):
         return float.__new__(cls, value)
 
-    def __init__(self, value, format="%Y-%m-%d_%H:%M:%S.%f%z"):
+    def __init__(self, value, format=float):
         # if given a string, attempt to parse it using the given format
         if isinstance(value, str):
             value = time.strptime(value, format)
@@ -149,9 +150,9 @@ class Timestamp(float):
 
         Parameters
         ----------
-        format : str
-            Time format string, as in time.strftime. Defaults to None, i.e. use the format given when this timestamp
-            was initialised.
+        format : str, class or None
+            Time format string, as in time.strftime, or `float` to print as a float. Defaults (None) to using the
+            format given when this timestamp was initialised.
 
         Returns
         -------
@@ -161,6 +162,9 @@ class Timestamp(float):
         # if format is unspecified, use own default
         if format is None:
             format = self.format
+        # if format is float, print using base method
+        if format == float:
+            return float.__str__(self)
         # convert to datetime
         now = datetime.fromtimestamp(self)
         # format
@@ -194,7 +198,7 @@ class MonotonicClock:
         # store default format
         self.format = format
 
-    def getTime(self, applyZero=True, format="%Y-%m-%d_%H:%M:%S.%f%z"):
+    def getTime(self, applyZero=True, format=float):
         """
         Returns the current time on this clock in secs (sub-ms precision).
 
