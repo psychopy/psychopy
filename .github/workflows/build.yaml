@@ -28,7 +28,8 @@ jobs:
     - name: Install MacOS depends (Homebrew)
       run: |
         brew update --preinstall
-        brew install glfw lame libevent
+        brew install glfw lame libevent 
+        brew install labstreaminglayer/tap/lsl
 
     - name: Unpack portable Python distro
       run: |
@@ -67,6 +68,8 @@ jobs:
     - name: Install dependencies
       working-directory: py
       run: |
+        # NB pip comes in indygreg but not in python.org
+        # for python.org do .venv/bin/python get-pip.py
         if [ "${{ runner.os }}" == "Windows" ]
         then
           alias mypip='py/python -m pip'
