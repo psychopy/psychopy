@@ -57,6 +57,7 @@ dependencies = [
     "freetype-py",
     "python-bidi",
     "arabic-reshaper",
+    "javascripthon",
     "websockets",  # new in 2023.2 for session.py
     # for the app
     "wxPython >= 4.1.1",
