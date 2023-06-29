@@ -91,8 +91,11 @@ class ExperimentHandler(_ComparisonMixin):
         self.thisEntry = {}
         self.entries = []  # chronological list of entries
         self._paramNamesSoFar = []
-        self.dataNames = ['thisRow.t']  # names of all the data (eg. resp.keys)
-        self.columnSalience = {'thisRow.t': constants.SALIENCE_CRITICAL - 1}
+        self.dataNames = ['thisRow.t', 'notes']  # names of all the data (eg. resp.keys)
+        self.columnSalience = {
+            'thisRow.t': constants.SALIENCE_CRITICAL - 1,
+            'notes': constants.SALIENCE_MEDIUM - 1,
+        }
         self.autoLog = autoLog
         self.appendFiles = appendFiles
         self.status = constants.NOT_STARTED
@@ -203,7 +206,7 @@ class ExperimentHandler(_ComparisonMixin):
 
         return names, vals
 
-    def addData(self, name, value, salience=None):
+    def addData(self, name, value, row=None, salience=None):
         """
         Add the data with a given name to the current experiment.
 
@@ -230,6 +233,8 @@ class ExperimentHandler(_ComparisonMixin):
             Name of the column to add data as.
         value : any
             Value to add
+        row : int or None
+            Row in which to add this data. Leave as None to add to the current entry.
         salience : int
             Salience value to set the column to - more salient columns appear nearer to the start of
             the data file. Use values from `constants.salience` as landmark values:
@@ -248,7 +253,12 @@ class ExperimentHandler(_ComparisonMixin):
         except TypeError:
             # unhashable type (list, dict, ...) == mutable, so need a copy()
             value = copy.deepcopy(value)
-        self.thisEntry[name] = value
+
+        # get entry from row number
+        entry = self.thisEntry
+        if row is not None:
+            entry = self.entries[row]
+        entry[name] = value
 
         # set salience if given
         if salience is not None:
@@ -337,6 +347,17 @@ class ExperimentHandler(_ComparisonMixin):
             - EXCLUDE (-10): Always at the end of the data file, actively marked as unimportant
         """
         self.columnSalience[name] = value
+
+    def addAnnotation(self, value):
+        """
+        Add an annotation at the current point in the experiment
+
+        Parameters
+        ----------
+        value : str
+            Value of the annotation
+        """
+        self.addData("notes", value)
 
     def timestampOnFlip(self, win, name):
         """Add a timestamp (in the future) to the current row
@@ -427,7 +448,7 @@ class ExperimentHandler(_ComparisonMixin):
         # set own status
         self.status = constants.STOPPED
 
-    def nextEntry(self, t=""):
+    def nextEntry(self):
         """Calling nextEntry indicates to the ExperimentHandler that the
         current trial has ended and so further addData() calls correspond
         to the next trial.
@@ -443,7 +464,7 @@ class ExperimentHandler(_ComparisonMixin):
             this.update(self.extraInfo)
         self.entries.append(this)
         # add new entry with its
-        self.thisEntry = {'thisRow.t': t}
+        self.thisEntry = {}
 
     def getAllEntries(self):
         """Fetches a copy of all the entries including a final (orphan) entry
@@ -629,7 +650,7 @@ class ExperimentHandler(_ComparisonMixin):
         # get columns which meet threshold
         cols = [col for col in self.dataNames if self.getSalience(col) >= salienceThreshold]
         # convert just relevant entries to a DataFrame
-        trials = pd.DataFrame(self.entries, columns=cols)
+        trials = pd.DataFrame(self.entries, columns=cols).fillna(value="")
         # put in context
         context = {
             'type': "trials_data",
@@ -638,7 +659,7 @@ class ExperimentHandler(_ComparisonMixin):
             'threshold': salienceThreshold,
         }
 
-        return json.dumps(context, indent=True)
+        return json.dumps(context, indent=True, allow_nan=False)
         
     def close(self):
         if self.dataFileName not in ['', None]:
