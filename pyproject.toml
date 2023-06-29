@@ -50,7 +50,7 @@ dependencies = [
     "python-bidi",
     "arabic-reshaper",
     "javascripthon",
-    "websocket_client",  # new in 2023.2 for session.py
+    "websockets",  # new in 2023.2 for session.py
     # for the app
     "wxPython >= 4.1.1",
     "markdown-it-py",
