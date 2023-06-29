@@ -76,7 +76,7 @@ includes = ['_sitebuiltins',  # needed for help()
 packages = ['pydoc',  # needed for help()
             'setuptools', 'wheel', # for plugin installing
             'wx', 'psychopy',
-            'PyQt5',
+            'PyQt6',
             'pyglet', 'pytz',
             'scipy', 'matplotlib', 'openpyxl', 'pandas',
             'xml', 'xmlschema',
@@ -96,7 +96,7 @@ packages = ['pydoc',  # needed for help()
             'astunparse', 'esprima',  # for translating/adapting py/JS
             'metapensiero.pj', 'dukpy', 
             'jedi', 'parso',
-            'bidi', 'arabic_reshaper',  # for right-left language conversions
+            'bidi', 'arabic_reshaper', 'charset_normalizer', # for (natural) language conversions
             'ujson',  # faster than built-in json
             'six',  # needed by configobj
             # hardware
@@ -129,6 +129,7 @@ if sys.version_info < (3, 9):
             'macropy',
         ]
     )
+    packages.replace('PyQt6', 'PyQt5')  # PyQt6 is not compatible with earlier PsychoPy versions
 
 # check the includes and packages are all available
 for pkg in includes+packages:
