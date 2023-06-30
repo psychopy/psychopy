@@ -496,7 +496,7 @@ def _checkout(requestedVersion):
             'Error: process exited with code {}, check log for '
             'output.'.format(out.returncode))
 
-    logging.exp('Success:  ' + ' '.join(cmd))
+    logging.exp('Success:  ' + ' '.join(f"git checkout {requestedVersion}"))
 
     return requestedVersion
 
