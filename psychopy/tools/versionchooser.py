@@ -531,7 +531,7 @@ def _gitPresent():
 def _psychopyComponentsImported():
     return [name for name in globals() if name in psychopy.__all__]
 
-def call_process(cmd, logging=True):
+def call_process(cmd, log=True):
     """Convenience call to open subprocess, and pipe stdout to debug"""
     if type(cmd) in [str, bytes]:
         cmd = cmd.split()
@@ -542,7 +542,7 @@ def call_process(cmd, logging=True):
         cwd=VERSIONSDIR,
         env=constants.ENVIRON)
     stdout, stderr = out.communicate()
-    if logging:
+    if log:
         logging.debug(stdout)
 
     return out, stdout, stderr
