@@ -470,7 +470,7 @@ def _checkout(requestedVersion):
         msg = _translate("Couldn't find version {} locally. Trying github...")
         logging.info(msg.format(requestedVersion))
 
-        out, stdout, stderr = call_process(f"git fetch github --tags")
+        out, stdout, stderr = _call_process(f"git fetch github --tags")
 
         # check error code
         if out.returncode != 0:
@@ -486,8 +486,8 @@ def _checkout(requestedVersion):
             return ''
 
     # Checkout the requested tag
-    out, stdout, stderr = call_process(f"git reset --hard") # in case of any accidental local changes
-    out, stdout, stderr = call_process(f"git checkout {requestedVersion}") #
+    out, stdout, stderr = _call_process(f"git reset --hard") # in case of any accidental local changes
+    out, stdout, stderr = _call_process(f"git checkout {requestedVersion}") #
 
     # check error code
     if out.returncode != 0:
@@ -531,7 +531,7 @@ def _gitPresent():
 def _psychopyComponentsImported():
     return [name for name in globals() if name in psychopy.__all__]
 
-def call_process(cmd, log=True):
+def _call_process(cmd, log=True):
     """Convenience call to open subprocess, and pipe stdout to debug"""
     if type(cmd) in [str, bytes]:
         cmd = cmd.split()
