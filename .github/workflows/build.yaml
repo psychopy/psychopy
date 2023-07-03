@@ -100,9 +100,9 @@ jobs:
 
     - name: Build binary (Windows)
       if: runner.os == 'Windows'
+      shell: powershell
       run:
-        echo "...build binary on Windows here"
-        
+        building/buildWinDistributions.ps1
 
     - name: Build binary (MacOS)
       if: runner.os == 'macOS'
@@ -110,7 +110,6 @@ jobs:
         CODESIGN_PASSWORD: ${{ secrets.OST_APPLE_PWORD }}
         CODESIGN_ID: ${{ secrets.OST_APPLE_ID }}
       run:
-        echo "build binary on MacOS here"
         .github/workflows/buildAppMacOS.sh $CODESIGN_ID $CODESIGN_PASSWORD
 
     - name: Upload builds with googleapi
