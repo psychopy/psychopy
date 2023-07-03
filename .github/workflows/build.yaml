@@ -97,10 +97,9 @@ jobs:
         
     - name: Build binary (Windows)
       if: runner.os == 'Windows'
-      shell: bash
       run:
         ls -al
-        bash building/buildWinDistributions.sh
+        ./building/buildWinDistributions.sh
         echo "\n** done building **"
 
     - name: Build binary (MacOS)
@@ -109,7 +108,7 @@ jobs:
         CODESIGN_PASSWORD: ${{ secrets.OST_APPLE_PWORD }}
         CODESIGN_ID: ${{ secrets.OST_APPLE_ID }}
       run:
-        .github/workflows/buildAppMacOS.sh $CODESIGN_ID $CODESIGN_PASSWORD
+        sh .github/workflows/buildAppMacOS.sh $CODESIGN_ID $CODESIGN_PASSWORD
 
     - name: Upload builds with googleapi
       env:
