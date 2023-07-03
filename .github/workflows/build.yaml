@@ -62,7 +62,6 @@ jobs:
         # fetch the files
         curl --location "$url" -o python.tar.gz
         curl --location "$url.sha256" -o shafile
-        ls -al
         # check checksum first
         python3 .github/workflows/checksum.py python.tar.gz shafile sha256
         # then unzip and move
@@ -75,6 +74,8 @@ jobs:
     - name: Install dependencies
       working-directory: py
       run: |
+        ls -al
+        ls -al py
         # NB pip comes in indygreg but not in python.org
         # for python.org do .venv/bin/python get-pip.py
         shopt -s expand_aliases  # allow aliases in bash
@@ -89,8 +90,8 @@ jobs:
         mypip install git+https://github.com/psychopy/psychopy.git@dev --no-warn-script-location
 
         # install optional components
-        pip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator psychopy-visionscience
-        pip install moviepy
+        mypip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator psychopy-visionscience
+        mypip install moviepy
 
     - name: Build binary (Windows)
       if: runner.os == 'Windows'
@@ -104,7 +105,7 @@ jobs:
         CODESIGN_PASSWORD: ${{ secrets.OST_APPLE_PWORD }}
         CODESIGN_ID: ${{ secrets.OST_APPLE_ID }}
       run:
-        pip install dmgbuild
+        mypip install dmgbuild
         echo "build binary on MacOS here"
         .github/workflows/buildAppMacOS.sh $CODESIGN_ID $CODESIGN_PASSWORD $DOGFOOD_KEY
 
