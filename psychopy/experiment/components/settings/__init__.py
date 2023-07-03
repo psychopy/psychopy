@@ -975,8 +975,10 @@ class SettingsComponent:
             'semicolon': ";",
             'tab': r"\t"
             }
-        delim = delim_options.get(self.params['Data file delimiter'], 
-                                 genDelimiter(self.params['Data filename']))
+        delim = delim_options.get(
+            self.params['Data file delimiter'].val,
+            genDelimiter(self.params['Data filename'].val)
+        )
 
         setRedirectURL = ''
         if len(self.params['Completed URL'].val) or len(self.params['Incomplete URL'].val):
