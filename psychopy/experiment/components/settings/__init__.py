@@ -668,7 +668,7 @@ class SettingsComponent:
         :return: expInfo as a dict
         """
         
-        infoStr = self.params['Experiment info'].val.strip()
+        infoStr = str(self.params['Experiment info'].val).strip()
         if len(infoStr) == 0:
             return {}
         try:
