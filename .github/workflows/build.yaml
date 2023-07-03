@@ -2,6 +2,9 @@ name: build
 
 on:
   workflow_dispatch:  # manual
+   branches: [ release, dev, build-standalone ]
+  pull_request:
+   branches: [ build-standalone ]
   schedule:
     - cron: '0 0 * * 5'
 
@@ -26,8 +29,7 @@ jobs:
     steps:
     - uses: actions/checkout@master
       with:
-        repository: 'peircej/psychopy'
-        ref: 'pkg-build-auto'
+        - ref: build-standalone
 
     - name: Install MacOS depends (Homebrew)
       if: runner.os == 'Darwin' 
