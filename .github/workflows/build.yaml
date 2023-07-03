@@ -26,6 +26,7 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: Install MacOS depends (Homebrew)
+      if: runner.os == 'Darwin' 
       run: |
         brew update --preinstall
         brew install glfw lame libevent 
@@ -70,6 +71,7 @@ jobs:
       run: |
         # NB pip comes in indygreg but not in python.org
         # for python.org do .venv/bin/python get-pip.py
+        shopt -s expand_aliases  # allow aliases in bash
         if [ "${{ runner.os }}" == "Windows" ]
         then
           alias mypip='py/python -m pip'
