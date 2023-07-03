@@ -80,8 +80,6 @@ jobs:
         mypip install -U wheel
         mypip install git+https://github.com/psychopy/psychopy.git@dev --no-warn-script-location
 
-    - name: Install plugins
-      run:
         # install optional components
         pip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator psychopy-visionscience
         pip install moviepy
@@ -89,32 +87,33 @@ jobs:
     - name: Build binary (Windows)
       if: runner.os == 'Windows'
       run:
+        which makensis
         echo "...build binary on Windows here"
 
     - name: Build binary (MacOS)
       if: runner.os == 'macOS'
+      env:
+        CODESIGN_PASSWORD: ${{ secrets.OST_APPLE_PWORD }}
+        CODESIGN_ID: ${{ secrets.OST_APPLE_ID }}
       run:
-        echo "...build binary on MacOS here"
+        pip install dmgbuild
+        echo "build binary on MacOS here"
+        .github/workflows/buildAppMacOS.sh $CODESIGN_ID $CODESIGN_PASSWORD $DOGFOOD_KEY
 
-#    - name: Make binary build
-#      run:
-#        if [ "${{ runner.os }}" == "Windows" ]
-#        then
-#          alias pip='py/python -m pip'
-#        else
-#          alias pip='py/bin/python3 -m pip'
-#        fi
-#
-#
-#    - name: Upload builds with googleapi
-#      env:
-#          gdrive_key: ${{ secrets.MINDTRACE_KEY }}
-#      if: ${{ env.gdrive_key != '' }}
-#      run: |
-#        # NB this is using python but after we build so won't include?
-#        python3 -m pip install googleapi
-#        python3 .github/workflows/gdrive.py ${{ secrets.NIGHTLY_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.msi' --suffix='date'
-#        python3 .github/workflows/gdrive.py ${{ secrets.NIGHTLY_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.exe' --suffix='date'
-#        python3 .github/workflows/gdrive.py ${{ secrets.NIGHTLY_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.nupkg' --suffix='date'
-#        # python3 .github/workflows/gdrive.py ${{ secrets.NIGHTLY_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.zip' --suffix='date'
-#        python3 .github/workflows/gdrive.py ${{ secrets.NIGHTLY_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.dmg' --suffix='date'
+    - name: Upload builds with googleapi
+      env:
+        DOGFOOD_KEY: ${{ secrets.PSYCHOPY_BUILD_KEY }}
+        NIGHTLY_FOLDER: ${{ secrets.NIGHTLY_FOLDER }}
+      if: ${{ env.gdrive_key != '' }}
+      run: |
+          # NB this is using python but after we build so won't include?
+          python3 -m pip install googleapi
+          if [ "${{ runner.os }}" == "Windows" ]
+          then
+            echo "uploading windows build"
+            python3 .github/workflows/gdrive.py $DOGFOOD_KEY --folder_id=$NIGHTLY_FOLDER --filepath=dist --glob_pattern='**/*.exe' --suffix='date'
+          else
+            echo "uploading macos build"
+            # python3 .github/workflows/gdrive.py $DOGFOOD_KEY --folder_id=$NIGHTLY_FOLDER --filepath=dist --glob_pattern='**/*.zip' --suffix='date'
+            python3 .github/workflows/gdrive.py $DOGFOOD_KEY --folder_id=NIGHTLY_FOLDER --filepath=dist --glob_pattern='**/*.dmg' --suffix='date'
+          fi
