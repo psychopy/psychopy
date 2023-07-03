@@ -2,9 +2,9 @@ name: pytest
 
 on:
   workflow_dispatch:  # manual
-#    branches: [ release, dev ]
-#  pull_request:
-#    branches: [ release, dev ]
+   branches: [ release, dev ]
+  pull_request:
+   branches: [ release, dev ]
 
 permissions:
   contents: read
