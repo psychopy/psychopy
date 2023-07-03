@@ -100,9 +100,11 @@ jobs:
 
     - name: Build binary (Windows)
       if: runner.os == 'Windows'
-      shell: powershell
+      shell: bash
       run:
-        building/buildWinDistributions.ps1
+        building/buildWinDistributions.sh
+        echo "\n** done building **"
+        ls -al
 
     - name: Build binary (MacOS)
       if: runner.os == 'macOS'
