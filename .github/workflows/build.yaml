@@ -29,7 +29,7 @@ jobs:
     steps:
     - uses: actions/checkout@master
       with:
-        - ref: build-standalone
+        ref: build-standalone
 
     - name: Install MacOS depends (Homebrew)
       if: runner.os == 'Darwin' 
