@@ -193,10 +193,11 @@ class SettingsComponent:
                             " / break out of the experiment"),
             label=_translate("Enable escape key"))
         self.params['Experiment info'] = Param(
-            expInfo, valType='code', inputType="dict", allowedTypes=[],
+            expInfo, valType='code', inputType="dict", categ='Basic',
+            allowedLabels=(_translate("Field"), _translate("Default")),
             hint=_translate("The info to present in a dialog box. Right-click"
                             " to check syntax and preview the dialog box."),
-            label=_translate("Experiment info"), categ='Basic')
+            label=_translate("Experiment info"))
         self.params['Use version'] = Param(
             useVersion, valType='str', inputType="choice",
             # search for options locally only by default, otherwise sluggish
@@ -344,6 +345,7 @@ class SettingsComponent:
         )
         self.params['colPriority'] = Param(
             colPriority, valType="dict", inputType="dict", categ="Data",
+            allowedLabels=(_translate("Column"), _translate("Priority")),
             label=_translate("Column priority"),
             hint=_translate(
                 "Assign priority values to certain columns. To use predefined values, you can do $priority.HIGH, "
