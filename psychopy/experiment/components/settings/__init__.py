@@ -119,7 +119,7 @@ class SettingsComponent:
                  color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
                  backgroundImg="", backgroundFit="none",
                  blendMode='avg',
-                 sortColumns="time", colPriority={},
+                 sortColumns="time", colPriority={'thisRow.t': "priority.CRITICAL", 'expName': "priority.LOW"},
                  saveXLSXFile=False, saveCSVFile=False, saveHDF5File=False,
                  saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder='', savedDataDelim='auto',
@@ -1085,6 +1085,22 @@ class SettingsComponent:
                 "    dataFileName=dataDir + os.sep + filename, sortColumns=%(sortColumns)s\n"
                 ")\n")
         buff.writeIndentedLines(code % params)
+
+        # enforce dict on column priority param
+        colPriority = params['colPriority'].val
+        if isinstance(colPriority, str):
+            try:
+                colPriority = ast.literal_eval(colPriority)
+            except:
+                raise ValueError(_translate(
+                    "Could not interpret value as dict: {}"
+                ).format(colPriority))
+        # setup column priority
+        for key, val in colPriority.items():
+            code = (
+                f"thisExp.setPriority('{key}', {val})\n"
+            )
+            buff.writeIndentedLines(code)
 
         code = (
             "# return experiment handler\n"
