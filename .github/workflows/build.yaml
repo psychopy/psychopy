@@ -73,8 +73,6 @@ jobs:
 
     - name: Install dependencies
       run: |
-        ls -al
-        ls -al py
         # NB pip comes in indygreg but not in python.org
         # for python.org do .venv/bin/python get-pip.py
         shopt -s expand_aliases  # allow aliases in bash
@@ -97,14 +95,13 @@ jobs:
           mypip install dmgbuild
         fi
         
-
     - name: Build binary (Windows)
       if: runner.os == 'Windows'
       shell: bash
       run:
-        building/buildWinDistributions.sh
-        echo "\n** done building **"
         ls -al
+        bash building/buildWinDistributions.sh
+        echo "\n** done building **"
 
     - name: Build binary (MacOS)
       if: runner.os == 'macOS'
