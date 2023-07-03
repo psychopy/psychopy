@@ -91,12 +91,18 @@ jobs:
         # install optional components
         mypip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator psychopy-visionscience
         mypip install moviepy
+        
+        if [ "${{ runner.os }}" == "Darwin" ]
+        then
+          mypip install dmgbuild
+        fi
+        
 
     - name: Build binary (Windows)
       if: runner.os == 'Windows'
       run:
-        which makensis
         echo "...build binary on Windows here"
+        
 
     - name: Build binary (MacOS)
       if: runner.os == 'macOS'
@@ -104,9 +110,8 @@ jobs:
         CODESIGN_PASSWORD: ${{ secrets.OST_APPLE_PWORD }}
         CODESIGN_ID: ${{ secrets.OST_APPLE_ID }}
       run:
-        mypip install dmgbuild
         echo "build binary on MacOS here"
-        .github/workflows/buildAppMacOS.sh $CODESIGN_ID $CODESIGN_PASSWORD $DOGFOOD_KEY
+        .github/workflows/buildAppMacOS.sh $CODESIGN_ID $CODESIGN_PASSWORD
 
     - name: Upload builds with googleapi
       env:

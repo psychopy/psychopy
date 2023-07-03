@@ -23,7 +23,7 @@ for i in todo; do
     # remove old pyc files
     find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf
 
-    echo $i "BUILDING:" ${pythons[$i]} "__" ${names[$i]}
+    echo $i "BUILDING: ${pythons[$i]} __ ${names[$i]} in ${ pwd }"
     dmgName="../dist/Standalone${names[$i]}-$version-MacOS.dmg"
 
     ${pythons[$i]} setupApp.py py2app || { echo 'setupApp.py failed' ; exit 1; }
