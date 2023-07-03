@@ -72,7 +72,6 @@ jobs:
         rm python.tar.gz shafile
 
     - name: Install dependencies
-      working-directory: py
       run: |
         ls -al
         ls -al py
