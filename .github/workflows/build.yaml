@@ -25,6 +25,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@master
+      with:
+        repository: 'peircej/psychopy'
+        ref: 'pkg-build-auto'
+
     - name: Install MacOS depends (Homebrew)
       if: runner.os == 'Darwin' 
       run: |
