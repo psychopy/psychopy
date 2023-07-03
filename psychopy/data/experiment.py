@@ -37,6 +37,7 @@ class ExperimentHandler(_ComparisonMixin):
                  originPath=None,
                  savePickle=True,
                  saveWideText=True,
+                 sortColumns=False,
                  dataFileName='',
                  autoLog=True,
                  appendFiles=False):
@@ -73,6 +74,13 @@ class ExperimentHandler(_ComparisonMixin):
 
             saveWideText : True (default) or False
 
+            sortColumns : str or bool
+                How (if at all) to sort columns in the data file, if none is given to saveAsWideText. Can be:
+                - "alphabetical", "alpha", "a" or True: Sort alphabetically by header name
+                - "salience", "sal" or "s": Sort according to salience
+                - other: Do not sort, columns remain in order they were added
+
+
             autoLog : True (default) or False
         """
         self.loops = []
@@ -88,6 +96,7 @@ class ExperimentHandler(_ComparisonMixin):
         self.savePickle = savePickle
         self.saveWideText = saveWideText
         self.dataFileName = dataFileName
+        self.sortColumns = sortColumns
         self.thisEntry = {}
         self.entries = []  # chronological list of entries
         self._paramNamesSoFar = []
@@ -317,9 +326,6 @@ class ExperimentHandler(_ComparisonMixin):
 
         # start off assuming not salient
         salience = constants.SALIENCE_LOW
-        # if name is in extraInfo, it's highly salient
-        if name in self.extraInfo:
-            salience = constants.SALIENCE_HIGH
         # if name is one of identified likely salient columns, it's medium salience
         if name in [
             "keys", "rt", "x", "y", "leftButton", "numClicks", "numLooks", "clip", "response", "value",
@@ -486,7 +492,7 @@ class ExperimentHandler(_ComparisonMixin):
                        appendFile=None,
                        encoding='utf-8-sig',
                        fileCollisionMethod='rename',
-                       sortColumns=False):
+                       sortColumns=None):
         """Saves a long, wide-format text file, with one line representing
         the attributes and data for a single trial. Suitable for analysis
         in R and SPSS.
@@ -527,8 +533,11 @@ class ExperimentHandler(_ComparisonMixin):
                 Collision method passed to
                 :func:`~psychopy.tools.fileerrortools.handleFileCollision`
 
-            sortColumns:
-                will sort columns alphabetically by header name if True
+            sortColumns : str or bool
+                How (if at all) to sort columns in the data file. Can be:
+                - "alphabetical", "alpha", "a" or True: Sort alphabetically by header name
+                - "salience", "sal" or "s": Sort according to salience
+                - other: Do not sort, columns remain in order they were added
 
         """
         # set default delimiter if none given
@@ -557,9 +566,20 @@ class ExperimentHandler(_ComparisonMixin):
         names.extend(self._getExtraInfo()[0])
         if len(names) < 1:
             logging.error("No data was found, so data file may not look as expected.")
-        # sort names if requested
-        if sortColumns:
+        # if sort columns not specified, use default from self
+        if sortColumns is None:
+            sortColumns = self.sortColumns
+        # sort names as requested
+        if sortColumns in ("alphabetical", "alpha", "a", True):
+            # sort alphabetically
             names.sort()
+        elif sortColumns in ("salience", "sal" or "s"):
+            # map names to their salience
+            salienceMap = []
+            for name in names:
+                salience = self.columnSalience.get(name, self._guessSalience(name))
+                salienceMap.append((salience, name))
+            names = [name for salience, name in sorted(salienceMap, reverse=True)]
         # write a header line
         if not matrixOnly:
             for heading in names:
