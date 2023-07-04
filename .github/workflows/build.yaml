@@ -84,23 +84,14 @@ jobs:
         fi
         mypip install -U pip
         mypip install -U wheel
-        mypip install git+https://github.com/psychopy/psychopy.git@dev --no-warn-script-location
-
-        # install optional components
-        mypip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator psychopy-visionscience
-        mypip install moviepy
-        
-        if [ "${{ runner.os }}" == "Darwin" ]
-        then
-          mypip install dmgbuild
-        fi
+        mypip install .[building]  # install self with building extras
+        mypip install .[tests]  # install self with tests extras
         
     - name: Build binary (Windows)
       if: runner.os == 'Windows'
       run:
-        ls -al
-        ./building/buildWinDistributions.sh
-        echo "\n** done building **"
+        ls -al;
+        bash building/buildWinDistributions.sh
 
     - name: Build binary (MacOS)
       if: runner.os == 'macOS'

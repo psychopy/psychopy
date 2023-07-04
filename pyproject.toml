@@ -102,8 +102,9 @@ tests = [
     "xmlschema",
 ]
 building = [
-    "bdist-mpkg>=0.5.0",
+    "bdist-mpkg>=0.5.0", == \"Darwin\"",
     "py2app; platform_system == \"Darwin\"",
+    "dmgbuild; platform_system == \"Darwin\"",
 ]
 suggested = [
     "pylsl>=1.16.1", # lab streaming layer for general connectivity
