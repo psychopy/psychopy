@@ -102,7 +102,7 @@ tests = [
     "xmlschema",
 ]
 building = [
-    "bdist-mpkg>=0.5.0", == \"Darwin\"",
+    "bdist-mpkg>=0.5.0" == \"Darwin\"",
     "py2app; platform_system == \"Darwin\"",
     "dmgbuild; platform_system == \"Darwin\"",
 ]
