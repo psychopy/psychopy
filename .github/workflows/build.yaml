@@ -2,7 +2,6 @@ name: build
 
 on:
   workflow_dispatch:  # manual
-   branches: [ release, dev, build-standalone ]
   pull_request:
    branches: [ build-standalone ]
   schedule:
@@ -28,8 +27,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@master
-      with:
-        ref: build-standalone
 
     - name: Install MacOS depends (Homebrew)
       if: runner.os == 'Darwin' 

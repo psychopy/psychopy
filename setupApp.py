@@ -68,7 +68,6 @@ includes = ['_sitebuiltins',  # needed for help()
             'tobii_research',  # need tobii_research file and tobiiresearch pkg
             'soundfile', 'sounddevice', 'readline',
             'xlwt',  # writes excel files for pandas
-            'vlc',  # install with pip install python-vlc
             'msgpack_numpy',
             'configparser',
             'ntplib',  # for egi-pynetstation
