@@ -90,7 +90,7 @@ jobs:
     - name: Build binary (Windows)
       if: runner.os == 'Windows'
       run:
-        ls -al;
+        ls -al building;
         bash building/buildWinDistributions.sh
 
     - name: Build binary (MacOS)
