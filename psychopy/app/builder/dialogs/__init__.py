@@ -230,7 +230,8 @@ class ParamCtrls():
         elif param.inputType == 'dict':
             self.valueCtrl = paramCtrls.DictCtrl(
                 parent,
-                val=self.exp.settings.getInfo(), 
+                val=param.val,
+                labels=param.allowedLabels,
                 valType=param.valType,
                 fieldName=fieldName)
         elif param.inputType == 'inv':

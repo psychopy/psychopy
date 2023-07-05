@@ -119,7 +119,7 @@ class SettingsComponent:
                  color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
                  backgroundImg="", backgroundFit="none",
                  blendMode='avg',
-                 sortColumns="time",
+                 sortColumns="time", colPriority={'thisRow.t': "priority.CRITICAL", 'expName': "priority.LOW"},
                  saveXLSXFile=False, saveCSVFile=False, saveHDF5File=False,
                  saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder='', savedDataDelim='auto',
@@ -193,10 +193,11 @@ class SettingsComponent:
                             " / break out of the experiment"),
             label=_translate("Enable escape key"))
         self.params['Experiment info'] = Param(
-            expInfo, valType='code', inputType="dict", allowedTypes=[],
+            expInfo, valType='code', inputType="dict", categ='Basic',
+            allowedLabels=(_translate("Field"), _translate("Default")),
             hint=_translate("The info to present in a dialog box. Right-click"
                             " to check syntax and preview the dialog box."),
-            label=_translate("Experiment info"), categ='Basic')
+            label=_translate("Experiment info"))
         self.params['Use version'] = Param(
             useVersion, valType='str', inputType="choice",
             # search for options locally only by default, otherwise sluggish
@@ -312,7 +313,8 @@ class SettingsComponent:
             "Data filename",
             "Data file delimiter",
             "sortColumns",
-            "Save Excel file",
+            "colPriority",
+            "Save excel file",
             "Save log file",
             "Save csv file",
             "Save wide csv file",
@@ -339,6 +341,15 @@ class SettingsComponent:
             hint=_translate(
                 "How should data file columns be sorted? Alphabetically, by priority, or simply in the order they were "
                 "added?"
+            )
+        )
+        self.params['colPriority'] = Param(
+            colPriority, valType="dict", inputType="dict", categ="Data",
+            allowedLabels=(_translate("Column"), _translate("Priority")),
+            label=_translate("Column priority"),
+            hint=_translate(
+                "Assign priority values to certain columns. To use predefined values, you can do $priority.HIGH, "
+                "$priority.MEDIUM, etc."
             )
         )
         self.params['Save log file'] = Param(
@@ -657,7 +668,7 @@ class SettingsComponent:
         :return: expInfo as a dict
         """
         
-        infoStr = self.params['Experiment info'].val.strip()
+        infoStr = str(self.params['Experiment info'].val).strip()
         if len(infoStr) == 0:
             return {}
         try:
@@ -1074,6 +1085,22 @@ class SettingsComponent:
                 "    dataFileName=dataDir + os.sep + filename, sortColumns=%(sortColumns)s\n"
                 ")\n")
         buff.writeIndentedLines(code % params)
+
+        # enforce dict on column priority param
+        colPriority = params['colPriority'].val
+        if isinstance(colPriority, str):
+            try:
+                colPriority = ast.literal_eval(colPriority)
+            except:
+                raise ValueError(_translate(
+                    "Could not interpret value as dict: {}"
+                ).format(colPriority))
+        # setup column priority
+        for key, val in colPriority.items():
+            code = (
+                f"thisExp.setPriority('{key}', {val})\n"
+            )
+            buff.writeIndentedLines(code)
 
         code = (
             "# return experiment handler\n"
