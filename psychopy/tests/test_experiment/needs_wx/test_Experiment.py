@@ -237,6 +237,11 @@ class TestExpt():
             f.write(text)
 
         self.exp.loadFromXML(expfile)  # reload the edited file
+
+        # supply temp dir to experiment
+        self.exp.settings.params['Saved data folder'].val = os.path.abspath(self.tmp_dir)
+        self.exp.settings.params['Saved data folder'].valType = "str"
+
         script = self.exp.writeScript()
 
         # reposition its window out from under splashscreen (can't do easily from .psyexp):

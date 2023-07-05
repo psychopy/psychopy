@@ -6,29 +6,31 @@
 #  Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
+import importlib
 
 haveQt = False  # until we confirm otherwise
-importOrder = ['PyQt5', 'PyQt4']
+importOrder = ['PyQt6', 'PyQt5']
 
 for libname in importOrder:
     try:
-        exec("import {}".format(libname))
+        importlib.import_module(f"{libname}.QtCore")
         haveQt = libname
+        print(f"using {haveQt}")
         break
-    except ImportError:
+    except ModuleNotFoundError:
         pass
 
 if not haveQt:
     # do the main import again not in a try...except to recreate error
-    exec("import {}".format(importOrder[0]))
+    import PyQt6
+elif haveQt == 'PyQt6':
+    from PyQt6 import QtWidgets
+    from PyQt6 import QtGui
+    from PyQt6.QtCore import Qt
 elif haveQt == 'PyQt5':
     from PyQt5 import QtWidgets
     from PyQt5 import QtGui
     from PyQt5.QtCore import Qt
-else:
-    from PyQt4 import QtGui  
-    QtWidgets = QtGui  # in qt4 these were all in one package
-    from PyQt4.QtCore import Qt
 
 from psychopy import logging
 import numpy as np
@@ -37,7 +39,6 @@ import sys
 import json
 from psychopy.localization import _translate
 
-OK = QtWidgets.QDialogButtonBox.Ok
 
 qtapp = QtWidgets.QApplication.instance()
 
@@ -88,7 +89,7 @@ class Dlg(QtWidgets.QDialog):
                  screen=-1):
 
         ensureQtApp()
-        QtWidgets.QDialog.__init__(self, None, Qt.WindowTitleHint)
+        QtWidgets.QDialog.__init__(self, None)
 
         self.inputFields = []
         self.inputFieldTypes = {}
@@ -99,25 +100,17 @@ class Dlg(QtWidgets.QDialog):
         # QtWidgets.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
 
         # add buttons for OK and Cancel
-        self.buttonBox = QtWidgets.QDialogButtonBox(Qt.Horizontal,
-                                                    parent=self)
-        self.okbutton = QtWidgets.QPushButton(labelButtonOK,
-                                              parent=self)
-        self.cancelbutton = QtWidgets.QPushButton(labelButtonCancel,
-                                                  parent=self)
-        self.buttonBox.addButton(self.okbutton,
-                                 QtWidgets.QDialogButtonBox.ActionRole)
-        self.buttonBox.addButton(self.cancelbutton,
-                                 QtWidgets.QDialogButtonBox.ActionRole)
-        self.okbutton.clicked.connect(self.accept)
-        self.cancelbutton.clicked.connect(self.reject)
+        buttons = QtWidgets.QDialogButtonBox.StandardButton.Ok | QtWidgets.QDialogButtonBox.StandardButton.Cancel
+        self.buttonBox = QtWidgets.QDialogButtonBox(buttons, parent=self)
+        self.buttonBox.clicked.connect(self.accept)
+        self.buttonBox.clicked.connect(self.reject)
 
         if style:
             raise RuntimeWarning("Dlg does not currently support the "
                                  "style kwarg.")
         self.size = size
 
-        if haveQt == 'PyQt5':
+        if haveQt in ['PyQt5', 'PyQt6']:
             nScreens = len(qtapp.screens())
         else:
             nScreens = QtWidgets.QDesktopWidget().screenCount()
@@ -139,10 +132,8 @@ class Dlg(QtWidgets.QDialog):
         textLabel = QtWidgets.QLabel(text, parent=self)
 
         if len(color):
-            palette = QtGui.QPalette()
-            palette.setColor(QtGui.QPalette.Foreground, QtGui.QColor(color))
-            textLabel.setPalette(palette)
-
+            textLabel.setStyleSheet("color: {0};".format(color))
+            
         if isFieldLabel is True:
             self.layout.addWidget(textLabel, self.irow, 0, 1, 1)
         else:
@@ -323,11 +314,11 @@ class Dlg(QtWidgets.QDialog):
         if self.pos is None:
             # Center Dialog on appropriate screen
             frameGm = self.frameGeometry()
-            desktop = QtWidgets.QApplication.desktop()
-            qtscreen = self.screen
             if self.screen <= 0:
-                qtscreen = desktop.primaryScreen()
-            centerPoint = desktop.screenGeometry(qtscreen).center()
+                qtscreen = QtGui.QGuiApplication.primaryScreen()
+            else:
+                qtscreen = self.screen
+            centerPoint = qtscreen.availableGeometry().center()
             frameGm.moveCenter(centerPoint)
             self.move(frameGm.topLeft())
         else:
@@ -339,7 +330,7 @@ class Dlg(QtWidgets.QDialog):
             self.inputFields[0].setFocus()
 
         self.OK = False
-        if QtWidgets.QDialog.exec_(self) == QtWidgets.QDialog.Accepted:
+        if QtWidgets.QDialog.exec(self) == QtWidgets.QDialog.accepted:
             self.OK = True
             return self.data
 

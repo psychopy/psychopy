@@ -3288,13 +3288,11 @@ class FlowPanel(wx.Panel, handlers.ThemeMixin):
         self.SetSizer(self.sizer)
         # buttons panel
         self.btnPanel = wx.Panel(self)
-        self.btnPanel.SetBackgroundColour("red")
         self.btnPanel.sizer = wx.BoxSizer(wx.VERTICAL)
         self.btnPanel.SetSizer(self.btnPanel.sizer)
         self.sizer.Add(self.btnPanel, border=6, flag=wx.EXPAND | wx.ALL)
         # canvas
         self.canvas = FlowCanvas(parent=self, frame=frame)
-        self.canvas.SetBackgroundColour("red")
         self.sizer.Add(self.canvas, border=0, proportion=1, flag=wx.EXPAND | wx.ALL)
         # add routine button
         self.btnInsertRoutine = self.canvas.btnInsertRoutine = HoverButton(
@@ -3314,6 +3312,12 @@ class FlowPanel(wx.Panel, handlers.ThemeMixin):
         self.btnPanel.sizer.AddStretchSpacer(1)
 
         self.Layout()
+
+    def _applyAppTheme(self):
+        self.SetBackgroundColour(colors.app['panel_bg'])
+        self.btnPanel.SetBackgroundColour(colors.app['panel_bg'])
+
+        self.Refresh()
 
 
 class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):

@@ -203,8 +203,8 @@ class SourceTreePanel(wx.Panel, handlers.ThemeMixin):
             # take value before keyword end as def type, value after as def name
             kwrdEnd = len(re.findall(r' |\(|\)', kwrd))
             try:
-                defType = lineTokens[kwrdEnd]
-                defName = lineTokens[kwrdEnd+1]
+                defType = lineTokens[kwrdEnd-1]
+                defName = lineTokens[kwrdEnd]
             except ValueError:
                 # if for some reason the line is valid but cannot be parsed, ignore it
                 continue

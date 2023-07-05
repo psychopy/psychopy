@@ -8,7 +8,7 @@ import time
 import json
 from pathlib import Path
 
-from psychopy import experiment, logging, constants, data, core
+from psychopy import experiment, logging, constants, data, core, __version__
 from psychopy.tools.arraytools import AliasDict
 
 from psychopy.localization import _translate
@@ -113,9 +113,10 @@ class Session:
 
     def __init__(self,
                  root,
+                 dataDir=None,
                  liaison=None,
                  loggingLevel="info",
-                 salienceThreshold=constants.SALIENCE_EXCLUDE+1,
+                 priorityThreshold=constants.priority.EXCLUDE+1,
                  inputs=None,
                  win=None,
                  experiments=None,
@@ -124,13 +125,22 @@ class Session:
         # Store root and add to Python path
         self.root = Path(root)
         sys.path.insert(1, str(self.root))
+        # Create data folder
+        if dataDir is None:
+            dataDir = self.root / "data" / str(core.Clock().getTime(format="%Y-%m-%d_%H-%M-%S-%f"))
+        dataDir = Path(dataDir)
+        if not dataDir.is_dir():
+            os.makedirs(str(dataDir), exist_ok=True)
+        # Store data folder
+        self.dataDir = dataDir
         # Create log file
+        wallTime = data.getDateStr(fractionalSecondDigits=6)
         self.logFile = logging.LogFile(
-            self.root / (self.root.stem + '.log'),
+            dataDir / f"session_{self.root.stem}_{wallTime}.log",
             level=getattr(logging, loggingLevel.upper())
         )
-        # Store salience threshold
-        self.salienceThreshold = salienceThreshold
+        # Store priority threshold
+        self.priorityThreshold = priorityThreshold
         # Add experiments
         self.experiments = {}
         if experiments is not None:
@@ -258,7 +268,8 @@ class Session:
             # Copy files to it
             shutil.copytree(
                 src=str(folder),
-                dst=str(newFolder)
+                dst=str(newFolder),
+                dirs_exist_ok=True
             )
             # Store new locations
             file = newFolder / file.relative_to(folder)
@@ -283,7 +294,7 @@ class Session:
         importPath = ".".join(relPath)
         # Write experiment as Python script
         pyFile = file.parent / (file.stem + ".py")
-        if "psyexp" in file.suffix and not pyFile.is_file():
+        if "psyexp" in file.suffix:
             exp = experiment.Experiment()
             exp.loadFromXML(file)
             script = exp.writeScript(target="PsychoPy")
@@ -327,6 +338,9 @@ class Session:
         else:
             # Otherwise, return status of experiment handler
             return self.currentExperiment.status
+
+    def getPsychoPyVersion(self):
+        return __version__
 
     def getTime(self, format=str):
         """
@@ -638,7 +652,7 @@ class Session:
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(key)
         # Setup data for this experiment
-        thisExp = self.experiments[key].setupData(expInfo=expInfo)
+        thisExp = self.experiments[key].setupData(expInfo=expInfo, dataDir=str(self.dataDir))
         thisExp.name = key
         # Mark ExperimentHandler as current
         self.currentExperiment = thisExp
@@ -820,7 +834,7 @@ class Session:
                 if run.name == key:
                     thisExp = run
                     break
-
+        # save to Session folder
         self.experiments[key].saveData(thisExp)
 
         return True
@@ -884,7 +898,7 @@ class Session:
 
         return True
 
-    def addData(self, name, value, row=None, salience=None):
+    def addData(self, name, value, row=None, priority=None):
         """
         Add data in the data file at the current point in the experiment, and to the log.
 
@@ -896,9 +910,9 @@ class Session:
             Value to add
         row : int or None
             Row in which to add this data. Leave as None to add to the current entry.
-        salience : int
-            Salience value to set the column to - more salient columns appear nearer to the start of
-            the data file. Use values from `constants.salience` as landmark values:
+        priority : int
+            Priority value to set the column to - higher priority columns appear nearer to the start of
+            the data file. Use values from `constants.priority` as landmark values:
             - CRITICAL: Always at the start of the data file, generally reserved for Routine start times
             - HIGH: Important columns which are near the front of the data file
             - MEDIUM: Possibly important columns which are around the middle of the data file
@@ -913,9 +927,9 @@ class Session:
         # add to experiment data if there's one running
         if hasattr(self.currentExperiment, "addData"):
             # add
-            self.currentExperiment.addData(name, value, row=row, salience=salience)
+            self.currentExperiment.addData(name, value, row=row, priority=priority)
         # log regardless
-        logging.data(f"NAME={name}, SALIENCE={salience}, VALUE={value}")
+        logging.data(f"NAME={name}, PRIORITY={priority}, VALUE={value}")
 
         return True
 
@@ -979,7 +993,7 @@ class Session:
             return
         # If ExperimentHandler, get its data as a list of dicts
         if isinstance(value, data.ExperimentHandler):
-            value = value.getJSON(salienceThreshold=self.salienceThreshold)
+            value = value.getJSON(priorityThreshold=self.priorityThreshold)
         # Convert to JSON
         if not isinstance(value, str):
             value = json.dumps(value)
@@ -1008,6 +1022,8 @@ if __name__ == "__main__":
         - "float": Start a timer when Session is created and do timing relative to that (default)
         - "iso": Do timing via wall clock in ISO 8601 format 
         - any valid strftime string: Do timing via wall clock in the given format
+    --session-data-dir
+        Folder to store all data from this Session in, including the log file.
     """
     # Parse args
     import argparse
@@ -1015,6 +1031,7 @@ if __name__ == "__main__":
     parser.add_argument("--root", dest="root")
     parser.add_argument("--host", dest="host")
     parser.add_argument("--timing", dest="timing", default="iso")
+    parser.add_argument("--session-data-dir", dest="dataDir")
     args, _ = parser.parse_known_args()
     # Setup timing
     if args.timing == "float":
@@ -1026,7 +1043,8 @@ if __name__ == "__main__":
     # Create session
     session = Session(
         root=args.root,
-        clock=sessionClock
+        clock=sessionClock,
+        dataDir=args.dataDir
     )
     if ":" in str(args.host):
         host, port = str(args.host).split(":")
