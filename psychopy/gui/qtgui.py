@@ -15,6 +15,7 @@ for libname in importOrder:
     try:
         importlib.import_module(f"{libname}.QtCore")
         haveQt = libname
+        print(f"using {haveQt}")
         break
     except ModuleNotFoundError:
         pass
@@ -130,11 +131,9 @@ class Dlg(QtWidgets.QDialog):
     def addText(self, text, color='', isFieldLabel=False):
         textLabel = QtWidgets.QLabel(text, parent=self)
 
-        # if len(color):
-        #     palette = QtGui.QPalette()
-        #     palette.setColor(QtGui.QPalette.Foreground, QtGui.QColor(color))
-        #     textLabel.setPalette(palette)
-
+        if len(color):
+            textLabel.setStyleSheet("color: {0};".format(color))
+            
         if isFieldLabel is True:
             self.layout.addWidget(textLabel, self.irow, 0, 1, 1)
         else:
