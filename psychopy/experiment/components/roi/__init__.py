@@ -111,13 +111,16 @@ class RegionOfInterestComponent(PolygonComponent):
             unitsStr = ""
         else:
             unitsStr = "units=%(units)s, " % self.params
+        # handle dependent params
+        params = self.params.copy()
+
+        if params['shape'] == 'regular polygon...':
+            params['shape'] = params['nVertices']
+        elif params['shape'] == 'custom polygon...':
+            params['shape'] = params['vertices']
         # do writing of init
-        inits = getInitVals(self.params, 'PsychoPy')
+        inits = getInitVals(params, 'PsychoPy')
         inits['depth'] = -self.getPosInRoutine()
-        if self.params['shape'] == 'regular polygon...':
-            inits['shape'] = self.params['nVertices']
-        elif self.params['shape'] == 'custom polygon...':
-            inits['shape'] = self.params['vertices']
 
         code = (
             "%(name)s = visual.ROI(win, name='%(name)s', device=eyetracker,\n"
