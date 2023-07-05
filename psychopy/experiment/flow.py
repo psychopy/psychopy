@@ -299,7 +299,7 @@ class Flow(list):
                 "win.flip()  # flip window to reset last flip timer\n"
                 "# store the exact time the global clock started\n"
                 "expInfo['expStart'] = data.getDateStr(format='%Y-%m-%d %Hh%M.%S.%f %z', fractionalSecondDigits=6)\n"
-                "thisExp.setSalience('expStart', salience.CRITICAL + 1)\n"
+                "thisExp.setPriority('expStart', priority.CRITICAL + 1)\n"
         )
         script.writeIndentedLines(code)
         # run-time code

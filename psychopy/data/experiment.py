@@ -77,7 +77,7 @@ class ExperimentHandler(_ComparisonMixin):
             sortColumns : str or bool
                 How (if at all) to sort columns in the data file, if none is given to saveAsWideText. Can be:
                 - "alphabetical", "alpha", "a" or True: Sort alphabetically by header name
-                - "salience", "sal" or "s": Sort according to salience
+                - "priority", "pr" or "p": Sort according to priority
                 - other: Do not sort, columns remain in order they were added
 
 
@@ -101,9 +101,9 @@ class ExperimentHandler(_ComparisonMixin):
         self.entries = []  # chronological list of entries
         self._paramNamesSoFar = []
         self.dataNames = ['thisRow.t', 'notes']  # names of all the data (eg. resp.keys)
-        self.columnSalience = {
-            'thisRow.t': constants.SALIENCE_CRITICAL - 1,
-            'notes': constants.SALIENCE_MEDIUM - 1,
+        self.columnPriority = {
+            'thisRow.t': constants.priority.CRITICAL - 1,
+            'notes': constants.priority.MEDIUM - 1,
         }
         self.autoLog = autoLog
         self.appendFiles = appendFiles
@@ -215,7 +215,7 @@ class ExperimentHandler(_ComparisonMixin):
 
         return names, vals
 
-    def addData(self, name, value, row=None, salience=None):
+    def addData(self, name, value, row=None, priority=None):
         """
         Add the data with a given name to the current experiment.
 
@@ -244,9 +244,9 @@ class ExperimentHandler(_ComparisonMixin):
             Value to add
         row : int or None
             Row in which to add this data. Leave as None to add to the current entry.
-        salience : int
-            Salience value to set the column to - more salient columns appear nearer to the start of
-            the data file. Use values from `constants.salience` as landmark values:
+        priority : int
+            Priority value to set the column to - higher priority columns appear nearer to the start of
+            the data file. Use values from `constants.priority` as landmark values:
             - CRITICAL: Always at the start of the data file, generally reserved for Routine start times
             - HIGH: Important columns which are near the front of the data file
             - MEDIUM: Possibly important columns which are around the middle of the data file
@@ -269,13 +269,13 @@ class ExperimentHandler(_ComparisonMixin):
             entry = self.entries[row]
         entry[name] = value
 
-        # set salience if given
-        if salience is not None:
-            self.setSalience(name, salience)
+        # set priority if given
+        if priority is not None:
+            self.setPriority(name, priority)
 
-    def getSalience(self, name):
+    def getPriority(self, name):
         """
-        Get the salience value for a given column. If no salience value is
+        Get the priority value for a given column. If no priority value is
         stored, returns best guess based on column name.
 
         Parameters
@@ -286,22 +286,22 @@ class ExperimentHandler(_ComparisonMixin):
         Returns
         -------
         int
-            The salience value stored/guessed for this column, most likely a value from `constants.salience`, one of:
+            The priority value stored/guessed for this column, most likely a value from `constants.priority`, one of:
             - CRITICAL (30): Always at the start of the data file, generally reserved for Routine start times
             - HIGH (20): Important columns which are near the front of the data file
             - MEDIUM (10): Possibly important columns which are around the middle of the data file
             - LOW (0): Columns unlikely to be important which are at the end of the data file
             - EXCLUDE (-10): Always at the end of the data file, actively marked as unimportant
         """
-        if name not in self.columnSalience:
-            # store salience if not specified already
-            self.columnSalience[name] = self._guessSalience(name)
-        # return stored salience
-        return self.columnSalience[name]
+        if name not in self.columnPriority:
+            # store priority if not specified already
+            self.columnPriority[name] = self._guessPriority(name)
+        # return stored priority
+        return self.columnPriority[name]
 
-    def _guessSalience(self, name):
+    def _guessPriority(self, name):
         """
-        Get a best guess at the salience of a column based on its name
+        Get a best guess at the priority of a column based on its name
 
         Parameters
         ----------
@@ -316,43 +316,43 @@ class ExperimentHandler(_ComparisonMixin):
             - MEDIUM (9): Possibly important columns which are around the middle of the data file
             - LOW (-1): Columns unlikely to be important which are at the end of the data file
 
-            NOTE: Values returned from this function are 1 less than values in `constants.salience`,
-            columns whose salience was guessed are behind equivalently salient columns whose salience
+            NOTE: Values returned from this function are 1 less than values in `constants.priority`,
+            columns whose priority was guessed are behind equivalently prioritised columns whose priority
             was specified.
         """
         # if there's a dot, get attribute name
         if "." in name:
             name = name.split(".")[-1]
 
-        # start off assuming not salient
-        salience = constants.SALIENCE_LOW
-        # if name is one of identified likely salient columns, it's medium salience
+        # start off assuming low priority
+        priority = constants.priority.LOW
+        # if name is one of identified likely high priority columns, it's medium priority
         if name in [
             "keys", "rt", "x", "y", "leftButton", "numClicks", "numLooks", "clip", "response", "value",
             "frameRate", "participant"
         ]:
-            salience = constants.SALIENCE_MEDIUM
+            priority = constants.priority.MEDIUM
 
-        return salience - 1
+        return priority - 1
 
-    def setSalience(self, name, value=constants.SALIENCE_HIGH):
+    def setPriority(self, name, value=constants.priority.HIGH):
         """
-        Set the salience of a column in the data file.
+        Set the priority of a column in the data file.
 
         Parameters
         ----------
         name : str
             Name of the column, e.g. `text.started`
         value : int
-            Salience value to set the column to - more salient columns appear nearer to the start of
-            the data file. Use values from `constants.salience` as landmark values:
+            Priority value to set the column to - higher priority columns appear nearer to the start of
+            the data file. Use values from `constants.priority` as landmark values:
             - CRITICAL (30): Always at the start of the data file, generally reserved for Routine start times
             - HIGH (20): Important columns which are near the front of the data file
             - MEDIUM (10): Possibly important columns which are around the middle of the data file
             - LOW (0): Columns unlikely to be important which are at the end of the data file
             - EXCLUDE (-10): Always at the end of the data file, actively marked as unimportant
         """
-        self.columnSalience[name] = value
+        self.columnPriority[name] = value
 
     def addAnnotation(self, value):
         """
@@ -536,7 +536,7 @@ class ExperimentHandler(_ComparisonMixin):
             sortColumns : str or bool
                 How (if at all) to sort columns in the data file. Can be:
                 - "alphabetical", "alpha", "a" or True: Sort alphabetically by header name
-                - "salience", "sal" or "s": Sort according to salience
+                - "priority", "pr" or "p": Sort according to priority
                 - other: Do not sort, columns remain in order they were added
 
         """
@@ -573,13 +573,13 @@ class ExperimentHandler(_ComparisonMixin):
         if sortColumns in ("alphabetical", "alpha", "a", True):
             # sort alphabetically
             names.sort()
-        elif sortColumns in ("salience", "sal" or "s"):
-            # map names to their salience
-            salienceMap = []
+        elif sortColumns in ("priority", "pr" or "p"):
+            # map names to their priority
+            priorityMap = []
             for name in names:
-                salience = self.columnSalience.get(name, self._guessSalience(name))
-                salienceMap.append((salience, name))
-            names = [name for salience, name in sorted(salienceMap, reverse=True)]
+                priority = self.columnPriority.get(name, self._guessPriority(name))
+                priorityMap.append((priority, name))
+            names = [name for priority, name in sorted(priorityMap, reverse=True)]
         # write a header line
         if not matrixOnly:
             for heading in names:
@@ -648,15 +648,15 @@ class ExperimentHandler(_ComparisonMixin):
         self.savePickle = savePickle
         self.saveWideText = saveWideText
 
-    def getJSON(self, salienceThreshold=constants.SALIENCE_EXCLUDE+1):
+    def getJSON(self, priorityThreshold=constants.priority.EXCLUDE+1):
         """
         Get the experiment data as a JSON string.
 
         Parameters
         ----------
-        salienceThreshold : int
-            Output will only include columns whose salience is greater than or equal to this value. Use values in
-            psychopy.constants.salience as a guideline for salience levels. Default is -9 (constants.SALIENCE_EXCLUDE +
+        priorityThreshold : int
+            Output will only include columns whose priority is greater than or equal to this value. Use values in
+            psychopy.constants.priority as a guideline for priority levels. Default is -9 (constants.priority.EXCLUDE +
             1)
 
         Returns
@@ -665,18 +665,18 @@ class ExperimentHandler(_ComparisonMixin):
             JSON string with the following fields:
             - 'type': Indicates that this is data from an ExperimentHandler (will always be "trials_data")
             - 'trials': `list` of `dict`s representing requested trials data
-            - 'salience': `dict` of column names
+            - 'priority': `dict` of column names
         """
         # get columns which meet threshold
-        cols = [col for col in self.dataNames if self.getSalience(col) >= salienceThreshold]
+        cols = [col for col in self.dataNames if self.getPriority(col) >= priorityThreshold]
         # convert just relevant entries to a DataFrame
         trials = pd.DataFrame(self.entries, columns=cols).fillna(value="")
         # put in context
         context = {
             'type': "trials_data",
             'trials': trials.to_dict(orient="records"),
-            'salience': self.columnSalience,
-            'threshold': salienceThreshold,
+            'priority': self.columnPriority,
+            'threshold': priorityThreshold,
         }
 
         return json.dumps(context, indent=True, allow_nan=False)

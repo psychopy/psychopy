@@ -333,11 +333,11 @@ class SettingsComponent:
         )
         self.params['sortColumns'] = Param(
             sortColumns, valType="str", inputType="choice", categ="Data",
-            allowedLabels=[_translate("Alphabetical"), _translate("Salience"), _translate("First added")],
-            allowedVals=["alphabetical", "salience", "time"],
+            allowedLabels=[_translate("Alphabetical"), _translate("Priority"), _translate("First added")],
+            allowedVals=["alphabetical", "priority", "time"],
             label=_translate("Sort columns by..."),
             hint=_translate(
-                "How should data file columns be sorted? Alphabetically, by salience, or simply in the order they were "
+                "How should data file columns be sorted? Alphabetically, by priority, or simply in the order they were "
                 "added?"
             )
         )
@@ -773,7 +773,7 @@ class SettingsComponent:
             "from psychopy.constants import (NOT_STARTED, STARTED, PLAYING,"
             " PAUSED,\n"
             "                                STOPPED, FINISHED, PRESSED, "
-            "RELEASED, FOREVER, salience)\n\n"
+            "RELEASED, FOREVER, priority)\n\n"
             "import numpy as np  # whole numpy lib is available, "
             "prepend 'np.'\n"
             "from numpy import (%s,\n" % ', '.join(_numpyImports[:7]) +
