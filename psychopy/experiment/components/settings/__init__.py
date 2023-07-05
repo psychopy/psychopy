@@ -949,7 +949,7 @@ class SettingsComponent:
         # Write header comment
         starLen = "*"*(len(jsFilename) + 9)
         code = ("/%s \n"
-               " * %s Test *\n" 
+               " * %s *\n" 
                " %s/\n\n")
         buff.writeIndentedLines(code % (starLen, jsFilename.title(), starLen))
 
