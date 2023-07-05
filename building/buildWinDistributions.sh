@@ -20,7 +20,6 @@ v=$(cat version | tr -d '\n')
 # try to uninstall psychopy from site-packages
 # re-install the current version as editable/developer
 ${thisPath}python.exe -m pip install . --no-deps --force
-echo ("Installed current PsychoPy")
 cp psychopy\*.txt $thisPath
 
 # build the installer
