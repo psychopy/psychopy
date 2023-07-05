@@ -119,6 +119,7 @@ class SettingsComponent:
                  color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
                  backgroundImg="", backgroundFit="none",
                  blendMode='avg',
+                 sortColumns="time",
                  saveXLSXFile=False, saveCSVFile=False, saveHDF5File=False,
                  saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder='', savedDataDelim='auto',
@@ -161,8 +162,6 @@ class SettingsComponent:
         self.params = {}
         self.depends = []
         self.order = ['expName', 'Use version', 'Enable Escape',  'Show info dlg', 'Experiment info',  # Basic tab
-                      'Data filename', 'Data file delimiter', 'Save excel file', 'Save csv file', 'Save wide csv file',
-                      'Save psydat file', 'Save hdf5 file', 'Save log file', 'logging level',  # Data tab
                       'Audio lib', 'Audio latency priority', "Force stereo",  # Audio tab
                       'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'End Message', 'Resources',  # Online tab
                       'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Show mouse', 'Units', 'color',
@@ -308,7 +307,19 @@ class SettingsComponent:
             hint=_translate("How important is audio latency for you? If essential then you may need to get all your sounds in correct formats."),
             label=_translate("Audio latency priority"), categ='Audio')
 
-        # data params
+        # --- Data params ---
+        self.order += [
+            "Data filename",
+            "Data file delimiter",
+            "sortColumns",
+            "Save Excel file",
+            "Save log file",
+            "Save csv file",
+            "Save wide csv file",
+            "Save psydat file",
+            "Save hdf5 file",
+            "logging level"
+        ]
         self.params['Data filename'] = Param(
             filename, valType='code', inputType="single", allowedTypes=[],
             hint=_translate("Code to create your custom file name base. Don"
@@ -319,6 +330,16 @@ class SettingsComponent:
             allowedVals=['auto', 'comma', 'semicolon', 'tab'],
             hint=_translate("What symbol should the data file use to separate columns? ""Auto"" will select a delimiter automatically from the filename."),
             label=_translate("Data file delimiter"), categ='Data'
+        )
+        self.params['sortColumns'] = Param(
+            sortColumns, valType="str", inputType="choice", categ="Data",
+            allowedLabels=[_translate("Alphabetical"), _translate("Salience"), _translate("First added")],
+            allowedVals=["alphabetical", "salience", "time"],
+            label=_translate("Sort columns by..."),
+            hint=_translate(
+                "How should data file columns be sorted? Alphabetically, by salience, or simply in the order they were "
+                "added?"
+            )
         )
         self.params['Save log file'] = Param(
             saveLogFile, valType='bool', inputType="bool", allowedTypes=[],
@@ -695,16 +716,6 @@ class SettingsComponent:
     def getShortType(self):
         return self.getType().replace('Component', '')
 
-    def getSaveDataDir(self):
-        if 'Saved data folder' in self.params:
-            # we have a param for the folder (deprecated since 1.80)
-            saveToDir = self.params['Saved data folder'].val.strip()
-            if not saveToDir:  # it was blank so try preferences
-                saveToDir = self.exp.prefsBuilder['savedDataFolder'].strip()
-        else:
-            saveToDir = os.path.dirname(self.params['Data filename'].val)
-        return saveToDir or u'data'
-
     def writeUseVersion(self, buff):
         if self.params['Use version'].val:
             code = ('\nimport psychopy\n'
@@ -992,10 +1003,12 @@ class SettingsComponent:
         """
         Write code to handle data and saving (create ExperimentHandler, pick filename, etc.)
         """
+        params = self.params.copy()
+
         # Enter function def
         code = (
             '\n'
-            'def setupData(expInfo):\n'
+            'def setupData(expInfo, dataDir=None):\n'
             '    """\n'
             '    Make an ExperimentHandler to handle trials and saving.\n'
             '    \n'
@@ -1003,6 +1016,8 @@ class SettingsComponent:
             '    ==========\n'
             '    expInfo : dict\n'
             '        Information about this experiment, created by the `setupExpInfo` function.\n'
+            '    dataDir : Path, str or None\n'
+            '        Folder to save the data to, leave as None to create a folder in the current directory.'
             '    \n'
             '    Returns\n'
             '    ==========\n'
@@ -1014,53 +1029,51 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
 
-        saveToDir = self.getSaveDataDir()
-        buff.writeIndentedLines("\n# Data file name stem = absolute path +"
-                                " name; later add .psyexp, .csv, .log, etc\n")
+        # figure out participant id field (if any)
+        participantVal = ''
+        for field in ('participant', 'Participant', 'Subject', 'Observer'):
+            if field in self.getInfo():
+                participantVal = " + expInfo['%s']" % field
+                break
+        # make sure we have a filename
+        if not params['Data filename'].val:  # i.e., the user deleted it
+            params['Data filename'].val = (
+                "'data' + os.sep%s + data.getDateStr()"
+            ) % participantVal
+        # get origin path
+        params['originPath'] = repr(self.exp.expPath)
+        # get fallback data dir value
+        params['dataDir'] = "_thisDir"
         # deprecated code: before v1.80.00 we had 'Saved data folder' param
-        # fairly fixed filename
-        if 'Saved data folder' in self.params:
-            participantField = ''
-            for field in ('participant', 'Participant', 'Subject', 'Observer'):
-                if field in self.getInfo():
-                    participantField = field
-                    self.params['Data filename'].val = (
-                        repr(saveToDir) + " + os.sep + '%s_%s' % (expInfo['" +
-                        field + "'], expInfo['date'])")
-                    break
-            if not participantField:
-                # no participant-type field, so skip that part of filename
-                self.params['Data filename'].val = repr(
-                    saveToDir) + " + os.path.sep + expInfo['date']"
-            # so that we don't overwrite users changes doing this again
-            del self.params['Saved data folder']
+        if 'Saved data folder' in params:
+            if params['Saved data folder'].val.strip():
+                params['dataDir'] = params['Saved data folder']
+            else:
+                params['dataDir'] = repr(self.exp.prefsBuilder['savedDataFolder'].strip())
 
-        # now write that data file name to the script
-        if not self.params['Data filename'].val:  # i.e., the user deleted it
-            self.params['Data filename'].val = (
-                repr(saveToDir) +
-                " + os.sep + u'psychopy_data_' + data.getDateStr()")
-        # detect if user wanted an absolute path -- else make absolute:
-        filename = self.params['Data filename'].val.lstrip('"\'')
-        # (filename.startswith('/') or filename[1] == ':'):
-        if filename == os.path.abspath(filename):
-            buff.writeIndented("filename = %s\n" %
-                               self.params['Data filename'])
-        else:
-            buff.writeIndented("filename = _thisDir + os.sep + %s\n" %
-                               self.params['Data filename'])
+        code = (
+            "\n"
+            "# data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc\n"
+            f"if dataDir is None:\n"
+            f"    dataDir = %(dataDir)s\n"
+            f"filename = %(Data filename)s\n"
+            f"# make sure filename is relative to dataDir\n"
+            f"if os.path.isabs(filename):\n"
+            f"    dataDir = os.path.commonprefix([dataDir, filename])\n"
+            f"    filename = os.path.relpath(filename, dataDir)\n"
+        )
+        buff.writeIndentedLines(code % params)
 
         # set up the ExperimentHandler
-        code = ("\n# An ExperimentHandler isn't essential but helps with "
-                "data saving\n"
-                "thisExp = data.ExperimentHandler(name=expName, version='',\n"
+        code = ("\n# an ExperimentHandler isn't essential but helps with data saving\n"
+                "thisExp = data.ExperimentHandler(\n"
+                "    name=expName, version='',\n"
                 "    extraInfo=expInfo, runtimeInfo=None,\n"
-                "    originPath=%s,\n")
-        buff.writeIndentedLines(code % repr(self.exp.expPath))
-
-        code = ("    savePickle=%(Save psydat file)s, saveWideText=%(Save "
-                "wide csv file)s,\n    dataFileName=filename)\n")
-        buff.writeIndentedLines(code % self.params)
+                "    originPath=%(originPath)s,\n"
+                "    savePickle=%(Save psydat file)s, saveWideText=%(Save wide csv file)s,\n"
+                "    dataFileName=dataDir + os.sep + filename, sortColumns=%(sortColumns)s\n"
+                ")\n")
+        buff.writeIndentedLines(code % params)
 
         code = (
             "# return experiment handler\n"
@@ -1459,6 +1472,7 @@ class SettingsComponent:
         code = (
             "# return inputs dict\n"
             "return {\n"
+            "    'ioServer': ioServer,\n"
             "    'defaultKeyboard': defaultKeyboard,\n"
             "    'eyetracker': eyetracker,\n"
             "}\n"
@@ -1612,16 +1626,17 @@ class SettingsComponent:
         # Get filename from thisExp
         code = (
             "filename = thisExp.dataFileName\n"
+            "# these shouldn't be strictly necessary (should auto-save)\n"
         )
-        buff.writeIndentedLines(code)
-
-        buff.writeIndented("# these shouldn't be strictly necessary "
-                           "(should auto-save)\n")
         if self.params['Save wide csv file'].val:
-            buff.writeIndented("thisExp.saveAsWideText(filename+'.csv', "
-                               "delim={})\n".format(self.params['Data file delimiter']))
+            code += (
+                "thisExp.saveAsWideText(filename + '.csv', delim=%(Data file delimiter)s)\n"
+            )
         if self.params['Save psydat file'].val:
-            buff.writeIndented("thisExp.saveAsPickle(filename)\n")
+            code += (
+                "thisExp.saveAsPickle(filename)\n"
+            )
+        buff.writeIndentedLines(code % self.params)
 
         # Exit function def
         buff.setIndentLevel(-1, relative=True)

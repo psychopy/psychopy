@@ -8,7 +8,7 @@ import time
 import json
 from pathlib import Path
 
-from psychopy import experiment, logging, constants, data
+from psychopy import experiment, logging, constants, data, core, __version__
 from psychopy.tools.arraytools import AliasDict
 
 from psychopy.localization import _translate
@@ -113,20 +113,34 @@ class Session:
 
     def __init__(self,
                  root,
+                 dataDir=None,
                  liaison=None,
                  loggingLevel="info",
+                 salienceThreshold=constants.SALIENCE_EXCLUDE+1,
                  inputs=None,
                  win=None,
                  experiments=None,
-                 params=None):
+                 params=None,
+                 clock=None):
         # Store root and add to Python path
         self.root = Path(root)
         sys.path.insert(1, str(self.root))
+        # Create data folder
+        if dataDir is None:
+            dataDir = self.root / "data" / str(core.Clock().getTime(format="%Y-%m-%d_%H-%M-%S-%f"))
+        dataDir = Path(dataDir)
+        if not dataDir.is_dir():
+            os.makedirs(str(dataDir), exist_ok=True)
+        # Store data folder
+        self.dataDir = dataDir
         # Create log file
+        wallTime = data.getDateStr(fractionalSecondDigits=6)
         self.logFile = logging.LogFile(
-            self.root / (self.root.stem + '.log'),
+            dataDir / f"session_{self.root.stem}_{wallTime}.log",
             level=getattr(logging, loggingLevel.upper())
         )
+        # Store salience threshold
+        self.salienceThreshold = salienceThreshold
         # Add experiments
         self.experiments = {}
         if experiments is not None:
@@ -151,6 +165,10 @@ class Session:
         elif inputs in self.experiments:
             # If inputs is the name of an experiment, setup from that experiment's method
             self.setupInputsFromExperiment(inputs)
+        # Setup Session clock
+        if clock is None:
+            clock = core.Clock()
+        self.sessionClock = clock
         # Store params as an aliased dict
         if params is None:
             params = {}
@@ -250,7 +268,8 @@ class Session:
             # Copy files to it
             shutil.copytree(
                 src=str(folder),
-                dst=str(newFolder)
+                dst=str(newFolder),
+                dirs_exist_ok=True
             )
             # Store new locations
             file = newFolder / file.relative_to(folder)
@@ -319,6 +338,29 @@ class Session:
         else:
             # Otherwise, return status of experiment handler
             return self.currentExperiment.status
+
+    def getPsychoPyVersion(self):
+        return __version__
+
+    def getTime(self, format=str):
+        """
+        Get time from this Session's clock object.
+
+        Parameters
+        ----------
+        format : type, str or None
+            Can be either:
+            - `float`: Time will return as a float as number of seconds
+            - time format codes: Time will return as a string in that format, as in time.strftime
+            - `str`: Time will return as a string in ISO 8601 (YYYY-MM-DD_HH:MM:SS.mmmmmmZZZZ)
+            - `None`: Will use the Session clock object's `defaultStyle` attribute
+
+        Returns
+        -------
+        str or float
+            Time in format requested.
+        """
+        return self.sessionClock.getTime(format=format)
 
     def getExpInfoFromExperiment(self, key, sessionParams=True):
         """
@@ -610,7 +652,7 @@ class Session:
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(key)
         # Setup data for this experiment
-        thisExp = self.experiments[key].setupData(expInfo=expInfo)
+        thisExp = self.experiments[key].setupData(expInfo=expInfo, dataDir=str(self.dataDir))
         thisExp.name = key
         # Mark ExperimentHandler as current
         self.currentExperiment = thisExp
@@ -637,6 +679,7 @@ class Session:
                 thisExp=thisExp,
                 win=self.win,
                 inputs=self.inputs,
+                globalClock=self.sessionClock,
                 thisSession=self
             )
         except Exception as _err:
@@ -667,6 +710,7 @@ class Session:
         # Send finished data to liaison
         if self.liaison is not None:
             self.sendToLiaison({
+                    'type': "experiment_status",
                     'name': thisExp.name,
                     'status': thisExp.status
                 })
@@ -790,7 +834,7 @@ class Session:
                 if run.name == key:
                     thisExp = run
                     break
-
+        # save to Session folder
         self.experiments[key].saveData(thisExp)
 
         return True
@@ -830,6 +874,103 @@ class Session:
             blocking=blocking
         )
 
+    def addAnnotation(self, value):
+        """
+        Add an annotation in the data file at the current point in the
+        experiment and to the log.
+
+        Parameters
+        ----------
+        value : str
+            Value of the annotation
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # add to experiment data if there's one running
+        if hasattr(self.currentExperiment, "addAnnotation"):
+            # annotate
+            self.currentExperiment.addAnnotation(value)
+        # log regardless
+        logging.info(value)
+
+        return True
+
+    def addData(self, name, value, row=None, salience=None):
+        """
+        Add data in the data file at the current point in the experiment, and to the log.
+
+        Parameters
+        ----------
+        name : str
+            Name of the column to add data as.
+        value : any
+            Value to add
+        row : int or None
+            Row in which to add this data. Leave as None to add to the current entry.
+        salience : int
+            Salience value to set the column to - more salient columns appear nearer to the start of
+            the data file. Use values from `constants.salience` as landmark values:
+            - CRITICAL: Always at the start of the data file, generally reserved for Routine start times
+            - HIGH: Important columns which are near the front of the data file
+            - MEDIUM: Possibly important columns which are around the middle of the data file
+            - LOW: Columns unlikely to be important which are at the end of the data file
+            - EXCLUDE: Always at the end of the data file, actively marked as unimportant
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # add to experiment data if there's one running
+        if hasattr(self.currentExperiment, "addData"):
+            # add
+            self.currentExperiment.addData(name, value, row=row, salience=salience)
+        # log regardless
+        logging.data(f"NAME={name}, SALIENCE={salience}, VALUE={value}")
+
+        return True
+
+    def sendExperimentData(self, key=None):
+        """
+        Send last ExperimentHandler for an experiment to liaison. If no experiment is given, sends the currently
+        running experiment.
+
+        Parameters
+        ----------
+        key : str or None
+            Name of the experiment whose data to send, or None to send the current experiment's data.
+
+        Returns
+        -------
+        bool
+            True if data was sent, otherwise False
+        """
+        # Skip if there's no liaison
+        if self.liaison is None:
+            return
+
+        # Sub None for current
+        if key is None and self.currentExperiment is not None:
+            key = self.currentExperiment.name
+        elif key is None:
+            key = self.runs[-1].name
+        # Get list of runs (including current)
+        runs = self.runs.copy()
+        if self.currentExperiment is not None:
+            runs.append(self.currentExperiment)
+        # Get last experiment data
+        for run in reversed(runs):
+            if run.name == key:
+                # Send experiment data
+                self.sendToLiaison(run)
+                return True
+
+        # Return False if nothing sent
+        return False
+
     def sendToLiaison(self, value):
         """
         Send data to this Session's `Liaison` object.
@@ -852,9 +993,10 @@ class Session:
             return
         # If ExperimentHandler, get its data as a list of dicts
         if isinstance(value, data.ExperimentHandler):
-            value = value.entries
+            value = value.getJSON(salienceThreshold=self.salienceThreshold)
         # Convert to JSON
-        value = json.dumps(value)
+        if not isinstance(value, str):
+            value = json.dumps(value)
         # Send
         asyncio.run(self.liaison.broadcast(message=value))
 
@@ -866,15 +1008,43 @@ class Session:
 
 
 if __name__ == "__main__":
+    """
+    Create a Session with parameters passed by command line.
+    
+    Parameters
+    ----------
+    --root
+        Root directory for the Session
+    --host
+        Port address of host server (if any)
+    --timing
+        How to handle timing, can be either:
+        - "float": Start a timer when Session is created and do timing relative to that (default)
+        - "iso": Do timing via wall clock in ISO 8601 format 
+        - any valid strftime string: Do timing via wall clock in the given format
+    --session-data-dir
+        Folder to store all data from this Session in, including the log file.
+    """
     # Parse args
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", dest="root")
     parser.add_argument("--host", dest="host")
-    args = parser.parse_args()
+    parser.add_argument("--timing", dest="timing", default="iso")
+    parser.add_argument("--session-data-dir", dest="dataDir")
+    args, _ = parser.parse_known_args()
+    # Setup timing
+    if args.timing == "float":
+        sessionClock = core.Clock()
+    elif args.timing == "iso":
+        sessionClock = core.Clock(format=str)
+    else:
+        sessionClock = core.Clock(format=args.timing)
     # Create session
     session = Session(
-        root=args.root
+        root=args.root,
+        clock=sessionClock,
+        dataDir=args.dataDir
     )
     if ":" in str(args.host):
         host, port = str(args.host).split(":")
