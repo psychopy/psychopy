@@ -1,10 +1,10 @@
 name: pytest
 
 on:
-  push:
-    branches: [ release, dev ]
+  workflow_dispatch:  # manual
+   branches: [ release, dev ]
   pull_request:
-    branches: [ release, dev ]
+   branches: [ release, dev ]
 
 permissions:
   contents: read
