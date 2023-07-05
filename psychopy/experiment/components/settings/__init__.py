@@ -344,7 +344,7 @@ class SettingsComponent:
         self.params['Save log file'] = Param(
             saveLogFile, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Save a detailed log (more detailed than the "
-                            "excel/csv files) of the entire experiment"),
+                            "Excel/csv files) of the entire experiment"),
             label=_translate("Save log file"), categ='Data')
         self.params['Save wide csv file'] = Param(
             saveWideCSVFile, valType='bool', inputType="bool", allowedTypes=[],
