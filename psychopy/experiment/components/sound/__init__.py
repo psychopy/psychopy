@@ -83,7 +83,7 @@ class SoundComponent(BaseComponent):
             stopWithRoutine, valType='bool', inputType="bool", updates='constant', categ='Playback',
             hint=_translate(
                 "Should playback cease when the Routine ends? Untick to continue playing "
-                "after the routine has finished."),
+                "after the Routine has finished."),
             label=_translate('Stop with Routine?'))
 
     def writeInitCode(self, buff):
@@ -226,9 +226,9 @@ class SoundComponent(BaseComponent):
 
     def writeRoutineEndCode(self, buff):
         if self.params['stopWithRoutine']:
-            # stop at the end of the routine, if requested
+            # stop at the end of the Routine, if requested
             code = (
-                "%(name)s.stop()  # ensure sound has stopped at end of routine\n"
+                "%(name)s.stop()  # ensure sound has stopped at end of Routine\n"
             )
             buff.writeIndentedLines(code % self.params)
         # get parent to write code too (e.g. store onset/offset times)
@@ -236,8 +236,8 @@ class SoundComponent(BaseComponent):
 
     def writeRoutineEndCodeJS(self, buff):
         if self.params['stopWithRoutine']:
-            # stop at the end of the routine, if requested
+            # stop at the end of the Routine, if requested
             code = (
-                "%(name)s.stop();  // ensure sound has stopped at end of routine\n"
+                "%(name)s.stop();  // ensure sound has stopped at end of Routine\n"
             )
             buff.writeIndentedLines(code % self.params)
