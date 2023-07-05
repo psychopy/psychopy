@@ -294,7 +294,7 @@ class Session:
         importPath = ".".join(relPath)
         # Write experiment as Python script
         pyFile = file.parent / (file.stem + ".py")
-        if "psyexp" in file.suffix and not pyFile.is_file():
+        if "psyexp" in file.suffix:
             exp = experiment.Experiment()
             exp.loadFromXML(file)
             script = exp.writeScript(target="PsychoPy")
