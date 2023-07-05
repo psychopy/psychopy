@@ -29,8 +29,6 @@ def testGetFromNames():
     assert et.getFromNames(['nonexistantLocal1', 'nonexistantLocal2'], locals()) == ['nonexistantLocal1', 'nonexistantLocal2']
     # nonexistant globals
     assert et.getFromNames(['nonexistantGlobal1', 'nonexistantGlobal2'], globals()) == ['nonexistantGlobal1', 'nonexistantGlobal2']
-    # no namespace set (defaults to globals)
-    assert et.getFromNames(['globalVal1', 'globalVal2']) == [1, 2]
 
     # listlike strings
     assert et.getFromNames("localVal1, localVal2", locals()) == [1, 2]

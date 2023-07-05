@@ -1,4 +1,4 @@
-def getFromNames(names, namespace=None):
+def getFromNames(names, namespace):
     """
     Get a component, or any other object handle, from a string containing its variable name.
 
@@ -7,7 +7,7 @@ def getFromNames(names, namespace=None):
     names : str, list or tuple
         String representing the name of a variable, or a list/tuple (or listlike string) of names.
     namespace : dict or None
-        dict mapping names to values, if None will use `globals()`
+        dict mapping names to values, if unsure just use `globals()`
     """
     # If listlike string, split into list
     if isinstance(names, str) and "," in names:
@@ -40,9 +40,6 @@ def getFromNames(names, namespace=None):
     # Get objects
     objs = []
     for nm in names:
-        # Get from globals if no namespace
-        if namespace is None:
-            namespace = globals()
         # Get (use original value if not present)
         obj = namespace.get(nm, nm)
         # Append
