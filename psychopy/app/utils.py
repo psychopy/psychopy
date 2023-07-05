@@ -365,6 +365,13 @@ class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
         pass
 
 
+class ThemedPanel(wx.Panel, handlers.ThemeMixin):
+    """
+    A wx.Panel object with themeing methods from ThemeMixin.
+    """
+    pass
+
+
 class HoverButton(wx.Button, HoverMixin, handlers.ThemeMixin):
     def __init__(self, parent, id=wx.ID_ANY, label='', bmp=None,
                  pos=wx.DefaultPosition, size=wx.DefaultSize,

@@ -28,6 +28,8 @@ def stylePanel(target):
     # Set text color
     target.SetForegroundColour(colors.app['text'])
 
+    target.Refresh()
+
 
 def styleToolbar(target):
     # Set background color
