@@ -3,12 +3,10 @@
 import functools
 from pathlib import Path
 from psychopy.alerts import alert
-from psychopy.logging import logging
+from psychopy import logging
 from psychopy.experiment.components import BaseComponent, Param, _translate, getInitVals
 from psychopy.sound.audiodevice import sampleRateQualityLevels
 from psychopy.tools import stringtools as st, systemtools as syst, audiotools as at
-from psychopy.experiment import params
-from psychopy import prefs
 
 
 _hasPTB = True
