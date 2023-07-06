@@ -3468,9 +3468,7 @@ class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                 item.Enable(limitProgress < routine.limit or routine in flow)
             self.routinesFromID[id] = name
             menu.Bind(wx.EVT_MENU, self.onInsertRoutineSelect, id=id)
-        btnPos = self.btnInsertRoutine.GetRect()
-        menuPos = (btnPos[0], btnPos[1] + btnPos[3])
-        self.PopupMenu(menu, menuPos)
+        self.PopupMenu(menu)
         menu.Bind(wx.EVT_MENU_CLOSE, self.clearMode)
         menu.Destroy()  # destroy to avoid mem leak
 
