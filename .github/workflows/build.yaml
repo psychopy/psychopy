@@ -83,6 +83,7 @@ jobs:
         mypip install -U wheel
         mypip install ".[building]"  # install self with building extras
         mypip install ".[tests]"  # install self with tests extras
+        mypip install ".[suggested]"  # install self with tests extras
         
     - name: Build binary (Windows)
       if: runner.os == 'Windows'
@@ -95,7 +96,7 @@ jobs:
         CODESIGN_PASSWORD: ${{ secrets.OST_APPLE_PWORD }}
         CODESIGN_ID: ${{ secrets.OST_APPLE_ID }}
       run:
-        touch py/lib/python3.10/site-packages/metapensiero/__init__.py  # create missing file
+        touch py/lib/python3.10/site-packages/metapensiero/__init__.py
         sh ./building/buildAppMacOS.sh $CODESIGN_ID $CODESIGN_PASSWORD
 
     - name: Upload builds with googleapi
