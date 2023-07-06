@@ -29,7 +29,7 @@ jobs:
     - uses: actions/checkout@master
 
     - name: Install MacOS depends (Homebrew)
-      if: runner.os == 'Darwin' 
+      if: runner.os == 'macOS'
       run: |
         brew update --preinstall
         brew install glfw lame libevent 
