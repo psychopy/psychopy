@@ -87,17 +87,15 @@ jobs:
         
     - name: Build binary (Windows)
       if: runner.os == 'Windows'
+      shell: powershell
       run:
-        bash ./building/buildWinDistributions.sh
+        ./building/buildWinDistributions.ps1
 
     - name: Build binary (MacOS)
       if: runner.os == 'macOS'
-      env:
-        CODESIGN_PASSWORD: ${{ secrets.OST_APPLE_PWORD }}
-        CODESIGN_ID: ${{ secrets.OST_APPLE_ID }}
       run:
-        touch py/lib/python3.10/site-packages/metapensiero/__init__.py
-        sh ./building/buildAppMacOS.sh $CODESIGN_ID $CODESIGN_PASSWORD
+        touch py/lib/python3.10/site-packages/metapensiero/__init__.py;
+        sh ./building/buildAppMacOS.sh ${{ secrets.OST_APPLE_ID }} ${{ secrets.OST_APPLE_PWORD }};
 
     - name: Upload builds with googleapi
       env:
