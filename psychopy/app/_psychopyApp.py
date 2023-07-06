@@ -576,15 +576,42 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
         # Create windows
         if view.runner:
-            self.showRunner(fileList=runlist)
+            # open Runner is requested
+            try:
+                self.showRunner(fileList=runlist)
+            except:
+                # if Runner failed with file, try without
+                logging.error(_translate(
+                    "Failed to open Runner with requested file list, opening without file list. Requested: {}"
+                ).format(runlist))
+                self.showRunner()
         if view.coder:
-            self.showCoder(fileList=scripts)
+            # open Coder if requested
+            try:
+                self.showCoder(fileList=scripts)
+            except:
+                # if Coder failed with file, try without
+                logging.error(_translate(
+                    "Failed to open Coder with requested scripts,opening with no scripts open. Requested: {}"
+                ).format(scripts))
+                self.showCoder()
         if view.builder:
-            self.showBuilder(fileList=exps)
+            # open Builder if requested
+            try:
+                self.showBuilder(fileList=exps)
+            except:
+                # if Builder failed with file, try without
+                logging.error(_translate(
+                    "Failed to open Builder with requested experiments, opening with no experiments open. Requested: {}"
+                ).format(exps))
+                self.showBuilder()
         if view.direct:
             self.showRunner()
             for exp in [file for file in args if file.endswith('.psyexp') or file.endswith('.py')]:
                 self.runner.panel.runFile(exp)
+        # if we started a busy cursor which never finished, finish it now
+        if wx.IsBusy():
+            wx.EndBusyCursor()
 
         # send anonymous info to https://usage.psychopy.org
         # please don't disable this, it's important for PsychoPy's development
