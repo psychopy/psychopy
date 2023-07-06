@@ -2107,6 +2107,9 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         dc.SetTextForeground(wx.Colour(colors.app['rt_timegrid']))
         self.setFontSize(self.fontBaseSize // self.dpi, dc)
 
+        id = wx.NewIdRef()
+        dc.SetId(id)
+
         # draw horizontal lines on top and bottom
         dc.DrawLine(
             x1=int(xSt),
