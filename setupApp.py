@@ -80,7 +80,7 @@ packages = ['pydoc',  # needed for help()
             'scipy', 'matplotlib', 'openpyxl', 'pandas',
             'xml', 'xmlschema',
             'ffpyplayer', 'cython', 'AVFoundation',
-            'moviepy', 'imageio', 'imageio_ffmpeg',
+            'imageio', 'imageio_ffmpeg',
             '_sounddevice_data', '_soundfile_data',
             'cffi', 'pycparser',
             'PIL',  # 'Image',
@@ -117,6 +117,7 @@ packages = ['pydoc',  # needed for help()
 if sys.version_info < (3, 9):
     packages.extend(
         [
+            'moviepy', 
             'OpenGL', 'glfw',
             'speech_recognition', 'googleapiclient', 'pocketsphinx',
             'badapted', #'darc_toolbox',  # adaptive methods from Ben Vincent
