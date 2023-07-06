@@ -23,7 +23,7 @@ ${thisPath}python.exe -m pip install . --no-deps --force
 cp psychopy\*.txt $thisPath
 
 # build the installer
-cmdStr="makensis.exe /v3 /DPRODUCT_VERSION={0} /DPRODUCT_NAME={1} /DARCH={2} /DPYPATH={3} buildCompleteInstaller.nsi" -f $v, $thisName, $thisArch, $thisPath
+cmdStr="makensis.exe /v3 /DPRODUCT_VERSION=${v} /DPRODUCT_NAME=${thisName} /DARCH=${thisArch} /DPYPATH=${thisPath} buildCompleteInstaller.nsi"
 echo $cmdStr
 $cmdStr
 # "C:\Program Files\Caphyon\Advanced Installer 13.1\bin\x86\AdvancedInstaller.com" /rebuild PsychoPy_AdvancedInstallerProj.aip
