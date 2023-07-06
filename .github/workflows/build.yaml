@@ -89,7 +89,7 @@ jobs:
       if: runner.os == 'Windows'
       shell: powershell
       run:
-        url=https://nsis.sourceforge.io/mediawiki/images/7/7f/EnVar_plugin.zip
+        $url="https://nsis.sourceforge.io/mediawiki/images/7/7f/EnVar_plugin.zip"
         curl --location "$url" -o EnVar_plugin.zip
         7z x -o "C:\Program Files (x86)\NSIS\Plugins\x86-unicode" "EnVar_plugin.zip"
         ./building/buildWinDistributions.ps1
@@ -106,6 +106,7 @@ jobs:
         NIGHTLY_FOLDER: ${{ secrets.NIGHTLY_FOLDER }}
       if: ${{ env.gdrive_key != '' }}
       run: |
+          ls -al
           # NB this is using python but after we build so won't include?
           python3 -m pip install googleapi
           if [ "${{ runner.os }}" == "Windows" ]

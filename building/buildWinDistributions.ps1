@@ -19,14 +19,6 @@ $versionfile = Join-Path $pwd "version"
 $v = [Io.File]::ReadAllText($versionfile).Trim()
 
 for ($i=0; $i -lt $pyPaths.Length; $i++) {
-    [console]::beep(440,300); [console]::beep(880,300)
-    # try to uninstall psychopy from site-packages
-    # re-install the current version as editable/developer
-    if ($install_pp -eq 1) {
-        Invoke-Expression ("& '{0}python.exe' -m pip install . --no-deps --force" -f $pyPaths[$i])
-        echo ("Installed current PsychoPy")
-        xcopy /I /Y psychopy\*.txt $pyPaths[$i]
-    }
 
     # build the installer
     $thisPath = $pyPaths[$i]
@@ -37,17 +29,4 @@ for ($i=0; $i -lt $pyPaths.Length; $i++) {
     Invoke-Expression $cmdStr
     # "C:\Program Files\Caphyon\Advanced Installer 13.1\bin\x86\AdvancedInstaller.com" /rebuild PsychoPy_AdvancedInstallerProj.aip
 
-    if ($install_pp -eq 1) {
-        Invoke-Expression ("& '{0}python.exe' setup.py clean --all" -f $pyPaths[$i])  # clean up our build dir
-        # try to uninstall psychopy from site-packages
-        Invoke-Expression ("& '{0}python.exe' -m pip uninstall -y psychopy" -f $pyPaths[$i])
-        # re-install the current version as editable/developer
-        Invoke-Expression ("& '{0}python.exe' -m pip install -e . --no-deps" -f $pyPaths[$i])
-    }
 }
-
-echo 'moving files to ..\dist'
-Move-Item -Force "StandalonePsychoPy*.exe" "..\dist"
-Move-Item -Force dist\* "..\dist"
-
-[console]::beep(880,300); [console]::beep(440,300)
