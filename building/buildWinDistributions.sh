@@ -25,5 +25,5 @@ cp psychopy\*.txt $thisPath
 # build the installer
 cmdStr="makensis.exe /v3 /DPRODUCT_VERSION=${v} /DPRODUCT_NAME=${thisName} /DARCH=${thisArch} /DPYPATH=${thisPath} buildCompleteInstaller.nsi"
 echo $cmdStr
-$cmdStr
+cmd.exe $cmdStr
 # "C:\Program Files\Caphyon\Advanced Installer 13.1\bin\x86\AdvancedInstaller.com" /rebuild PsychoPy_AdvancedInstallerProj.aip
