@@ -1,6 +1,6 @@
 #!/bin/sh
-$CODESIGN_ID=$1
-$CODESIGN_PASSWORD=$2
+CODESIGN_ID=$1
+CODESIGN_PASSWORD=$2
 
 TEST_ONLY=0   # 0=full build, 1=dmg_but_not_notarized, 2=sign_app_dont_bundle
 

@@ -1,6 +1,6 @@
 #! bash
 
-$install_pp=$1
+install_pp=$1
 # build simple distributions
 # python setup.py bdist_egg
 # python setup.py sdist --formats=zip

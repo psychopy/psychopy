@@ -87,8 +87,8 @@ jobs:
     - name: Build binary (Windows)
       if: runner.os == 'Windows'
       run:
-        ls -al building;
-        bash building/buildWinDistributions.sh
+        ls -al ./building;
+        bash ./building/buildWinDistributions.sh
 
     - name: Build binary (MacOS)
       if: runner.os == 'macOS'
@@ -96,7 +96,8 @@ jobs:
         CODESIGN_PASSWORD: ${{ secrets.OST_APPLE_PWORD }}
         CODESIGN_ID: ${{ secrets.OST_APPLE_ID }}
       run:
-        sh .github/workflows/buildAppMacOS.sh $CODESIGN_ID $CODESIGN_PASSWORD
+        ls -al ./building;
+        sh ./building/buildAppMacOS.sh $CODESIGN_ID $CODESIGN_PASSWORD
 
     - name: Upload builds with googleapi
       env:
