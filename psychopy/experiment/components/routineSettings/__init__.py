@@ -178,7 +178,7 @@ class RoutineSettingsComponent(BaseComponent):
         # Store Routine start time (UTC)
         if self.params['saveStartStop']:
             code = (
-                "thisExp.addData('%(name)s.started', globalClock.getTime());\n"
+                "psychoJS.experiment.addData('%(name)s.started', globalClock.getTime());\n"
             )
             buff.writeIndentedLines(code % params)
         # Skip Routine if condition is met
@@ -189,18 +189,18 @@ class RoutineSettingsComponent(BaseComponent):
             )
             buff.writeIndentedLines(code % params)
         # Change window appearance for this Routine (if requested)
-        # if params['useWindowParams']:
+        if params['useWindowParams']:
             code = (
                 "%(name)sStartWinParams = {\n"
-                "    'color': win.color,\n"
-                "    'colorSpace': win.colorSpace,\n"
-                "    'backgroundImage': win.backgroundImage,\n"
-                "    'backgroundFit': win.backgroundFit,\n"
-                "}\n"
-                "win.color = %(color)s\n"
-                "win.colorSpace = %(colorSpace)s\n"
-                "win.backgroundImage = %(backgroundImg)s\n"
-                "win.backgroundFit = %(backgroundFit)s\n"
+                "    'color': psychoJS.window.color,\n"
+                "    'colorSpace': psychoJS.window.colorSpace,\n"
+                "    'backgroundImage': psychoJS.window.backgroundImage,\n"
+                "    'backgroundFit': psychoJS.window.backgroundFit,\n"
+                "};\n"
+                "psychoJS.window.color = %(color)s;\n"
+                "psychoJS.window.colorSpace = %(colorSpace)s;\n"
+                "psychoJS.window.backgroundImage = %(backgroundImg)s;\n"
+                "psychoJS.window.backgroundFit = %(backgroundFit)s;\n"
             )
             buff.writeIndentedLines(code % params)
 
@@ -307,16 +307,16 @@ class RoutineSettingsComponent(BaseComponent):
         # Store Routine start time (UTC)
         if self.params['saveStartStop']:
             code = (
-                "thisExp.addData('%(name)s.stopped', globalClock.getTime())\n"
+                "psychoJS.experiment.addData('%(name)s.stopped', globalClock.getTime());\n"
             )
             buff.writeIndentedLines(code % params)
         # Restore window appearance after this Routine (if changed)
         if params['useWindowParams']:
             code = (
-                "win.color = %(name)sStartWinParams['color']\n"
-                "win.colorSpace = %(name)sStartWinParams['colorSpace']\n"
-                "win.backgroundImage = %(name)sStartWinParams['backgroundImage']\n"
-                "win.backgroundFit = %(name)sStartWinParams['backgroundFit']\n"
+                "psychoJS.window.color = %(name)sStartWinParams['color'];\n"
+                "psychoJS.window.colorSpace = %(name)sStartWinParams['colorSpace'];\n"
+                "psychoJS.window.backgroundImage = %(name)sStartWinParams['backgroundImage'];\n"
+                "psychoJS.window.backgroundFit = %(name)sStartWinParams['backgroundFit'];\n"
             )
             buff.writeIndentedLines(code % params)
 
