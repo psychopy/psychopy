@@ -88,10 +88,10 @@ jobs:
     - name: Install NSIS plugins (Windows)
       if: runner.os == 'Windows'
       run:
-        mkdir nsis_plugins
-        url="https://nsis.sourceforge.io/mediawiki/images/7/7f/EnVar_plugin.zip" 
-        curl --location "$url" -o EnVar_plugin.zip 
-        unzip EnVar_plugin.zip -d nsis_plugins
+        mkdir nsis_plugins;
+        url="https://nsis.sourceforge.io/mediawiki/images/7/7f/EnVar_plugin.zip";
+        curl --location "$url" -o EnVar_plugin.zip;
+        unzip EnVar_plugin.zip -d nsis_plugins;
 
     - name: Build binary (Windows)
       if: runner.os == 'Windows'
