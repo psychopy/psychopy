@@ -517,7 +517,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
             self.saveBtn.Enable()
             return
         # Set value from file
-        with open(self.file, "r") as f:
+        with open(self.file, "r", encoding="utf-8") as f:
             self.rawTextCtrl.SetValue(f.read())
         # Disable save button
         self.saveBtn.Disable()
