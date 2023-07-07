@@ -84,14 +84,19 @@ jobs:
         mypip install ".[building]"  # install self with building extras
         mypip install ".[tests]"  # install self with tests extras
         mypip install ".[suggested]"  # install self with tests extras
-        
+     
+    - name: Install NSIS plugins (Windows)
+      if: runner.os == 'Windows'
+      run:
+        mkdir nsis_plugins
+        url="https://nsis.sourceforge.io/mediawiki/images/7/7f/EnVar_plugin.zip" 
+        curl --location "$url" -o EnVar_plugin.zip 
+        unzip EnVar_plugin.zip -d nsis_plugins
+
     - name: Build binary (Windows)
       if: runner.os == 'Windows'
       shell: powershell
       run:
-        $url="https://nsis.sourceforge.io/mediawiki/images/7/7f/EnVar_plugin.zip";
-        curl --location "$url" -o EnVar_plugin.zip;
-        7z x -o "C:\Program Files (x86)\NSIS\Plugins\x86-unicode" "EnVar_plugin.zip";
         ./building/buildWinDistributions.ps1
 
     - name: Build binary (MacOS)

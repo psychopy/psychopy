@@ -9,6 +9,7 @@
 !define PRODUCT_UNINST_ROOT_KEY "SHELL_CONTEXT"
 !define PRODUCT_STARTMENU_REGVAL "NSIS:StartMenuDir"
 
+!addplugindir ".\nsis_plugins\Plugins\x86-unicode"
 !include "building\fileassoc.nsh"
 ; !include "Library.nsh"  ; for installing avbin
 !include LogicLib.nsh
