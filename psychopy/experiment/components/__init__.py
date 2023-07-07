@@ -378,6 +378,9 @@ def getInitVals(params, target="PsychoPy"):
         elif name == 'vertices':
             inits[name].val = "[[-0.5,-0.5], [-0.5, 0.5], [0.5, 0.5], [0.5, -0.5]]"
             inits[name].valType = 'code'
+        elif name == 'shape':
+            inits[name].val = 'triangle'
+            inits[name].valType = 'str'
         elif name in ('movie', 'latitude', 'longitude', 'elevation', 'azimuth', 'speechPoint'):
             inits[name].val = 'None'
             inits[name].valType = 'code'
