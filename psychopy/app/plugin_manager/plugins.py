@@ -86,7 +86,7 @@ class PluginInfo:
                  pipname, name="",
                  author=None, homepage="", docs="", repo="",
                  keywords=None, version=(None, None),
-                 icon=None, description=""**kwargs):
+                 icon=None, description="", **kwargs):
         self.pipname = pipname
         self.name = name
         self.author = author
