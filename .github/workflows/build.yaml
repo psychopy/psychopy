@@ -28,6 +28,12 @@ jobs:
     steps:
     - uses: actions/checkout@master
 
+    - name: Set up Python ${{ matrix.python-version }} on MacOS
+      uses: actions/setup-python@v4
+      if: runner.os == 'macOS'
+      with:
+        python-version: ${{ matrix.python-version }}
+
     - name: Install MacOS depends (Homebrew)
       if: runner.os == 'macOS'
       run: |
@@ -35,7 +41,8 @@ jobs:
         brew install glfw lame libevent 
         brew install labstreaminglayer/tap/lsl
 
-    - name: Unpack portable Python distro
+    - name: Unpack portable Python distro (Windows)
+      if: runner.os == 'Windows'
       run: |
         # e.g. https://github.com/indygreg/python-build-standalone/releases/download/20230507/cpython-3.10.11+20230507-aarch64-apple-darwin-pgo-full.tar.zst
         echo "Building on ${{ runner.os }}"
@@ -77,7 +84,7 @@ jobs:
         then
           alias mypip='py/python -m pip'
         else
-          alias mypip='py/bin/python3 -m pip'
+          alias mypip='python -m pip'
         fi
         mypip install -U pip
         mypip install -U wheel

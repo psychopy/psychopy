@@ -7,7 +7,7 @@ TEST_ONLY=0   # 0=full build, 1=dmg_but_not_notarized, 2=sign_app_dont_bundle
 # defVersion=$(python -c 'import psychopy; print(psychopy.__version__)')
 version=$(<version)  # reads from the version file
 
-declare -a pythons=("py/bin/python3")
+declare -a pythons=("python3.10")
 declare -a names=("PsychoPy_py310")
 declare -a todo=(0) # or  (1 0) to do both
 
