@@ -105,8 +105,8 @@ class Dlg(QtWidgets.QDialog):
         self.buttonBox.clicked.connect(self.accept)
         self.buttonBox.clicked.connect(self.reject)
         # store references to OK and CANCEL buttons
-        self.okBtn = self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
-        self.cancelBtn = self.buttonBox.button(QtWidgets.QDialogButtonBox.Cancel)
+        self.okBtn = self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Ok)
+        self.cancelBtn = self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Cancel)
 
         if style:
             raise RuntimeWarning("Dlg does not currently support the "
