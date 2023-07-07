@@ -91,7 +91,9 @@ class TestStyle:
             phrase = re.sub(pattern=(
                 f"(?<= )({pattern})(?= )"  # space before and after
                 f"|(?<= )({pattern})$"  # space before and line end after
+                f"|(?<= )({pattern})(?=[^\w\s]+)"  # space before and punctuation after
                 f"|^({pattern})(?= )"  # line start before and space after
+                f"|^({pattern})(?=[^\w\s]+)"  # line start before and punctuation after
                 f"|^({pattern})$"  # line start before and line end after
             ), string=phrase, repl=repl)
 
