@@ -122,10 +122,11 @@ class _LogEntry():
 
     def __init__(self, level, message, t=None, obj=None):
         super(_LogEntry, self).__init__()
-        try:
-            "%0.4f" % (t)
-        except (ValueError, TypeError):
-            raise ValueError("Value \"%s\" of log message \"%s\" could not be coerced to string from numeric" % (t, message))
+        if not isinstance(t, str):
+            try:
+                "%0.4f" % (t)
+            except (ValueError, TypeError):
+                raise ValueError("Value \"%s\" of log message \"%s\" could not be coerced to string from numeric" % (t, message))
         self.t = t
         self.t_ms = t * 1000
         self.level = level

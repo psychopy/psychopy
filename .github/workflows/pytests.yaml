@@ -1,10 +1,10 @@
 name: pytest
 
 on:
-  push:
-    branches: [ release, dev ]
+  workflow_dispatch:  # manual
+   branches: [ release, dev ]
   pull_request:
-    branches: [ release, dev ]
+   branches: [ release, dev ]
 
 permissions:
   contents: read
@@ -40,6 +40,7 @@ jobs:
         pip install pdm
         pdm config python.use_venv false  # don't need/want venv in a vm!
         pdm install  # fetch dependendices in lock file
+        pdm add -G tests
         pdm install -G tests
         pdm build
         # install with pip both the main and [tests] group

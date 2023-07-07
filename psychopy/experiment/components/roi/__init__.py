@@ -59,7 +59,7 @@ class RegionOfInterestComponent(PolygonComponent):
         self.params['endRoutineOn'] = Param(endRoutineOn,
             valType='str', inputType='choice', categ='Basic',
             allowedVals=["look at", "look away", "none"],
-            hint=_translate("Under what condition should this ROI end the routine?"),
+            hint=_translate("Under what condition should this ROI end the Routine?"),
             label=_translate("End Routine on...")
         )
 
@@ -203,7 +203,7 @@ class RegionOfInterestComponent(PolygonComponent):
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
             code = (
-                    "continueRoutine = False # end routine on sufficiently long look\n"
+                    "continueRoutine = False # end Routine on sufficiently long look\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(-1, relative=True)
@@ -236,7 +236,7 @@ class RegionOfInterestComponent(PolygonComponent):
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
             code = (
-                    f"continueRoutine = False # end routine after sufficiently long look outside roi\n"
+                    f"continueRoutine = False # end Routine after sufficiently long look outside roi\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(-1, relative=True)
@@ -247,7 +247,7 @@ class RegionOfInterestComponent(PolygonComponent):
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
             code = (
-                    f"continueRoutine = False # end routine after sufficiently long look outside roi\n"
+                    f"continueRoutine = False # end Routine after sufficiently long look outside roi\n"
             )
             buff.writeIndentedLines(code % inits)
 
