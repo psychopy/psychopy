@@ -15,7 +15,7 @@ The code that writes out a *_lastrun.py experiment file is (in order):
         which will call the .writeBody() methods from each component
     settings.SettingsComponent.writeEndCode()
 """
-
+import collections
 import os
 import codecs
 import xml.etree.ElementTree as xml
@@ -110,7 +110,7 @@ class Experiment:
         self.name = ''
         self.filename = ''  # update during load/save xml
         self.flow = Flow(exp=self)  # every exp has exactly one flow
-        self.routines = {}
+        self.routines = collections.OrderedDict()
         # get prefs (from app if poss or from cfg files)
         if prefs is None:
             prefs = psychopy.prefs
@@ -265,8 +265,6 @@ class Experiment:
             for entry in self_copy.flow:
                 # NB each entry is a routine or LoopInitiator/Terminator
                 self_copy._currentRoutine = entry
-                if hasattr(entry, 'writeRunOnceInitCode'):
-                    entry.writeRunOnceInitCode(script)
                 if hasattr(entry, 'writePreCode'):
                     entry.writePreCode(script)
 
@@ -312,8 +310,8 @@ class Experiment:
                 "        win=win, \n"
                 "        inputs=inputs\n"
                 "    )\n"
-                "    saveData(thisExp)\n"
-                "    endExperiment(thisExp, win=win, inputs=inputs)\n"
+                "    saveData(thisExp=thisExp)\n"
+                "    quit(thisExp=thisExp, win=win, inputs=inputs)\n"
             )
             script.writeIndentedLines(code)
 
@@ -693,7 +691,10 @@ class Experiment:
                     componentType = componentNode.tag
                     plugin = componentNode.get('plugin')
 
-                    if componentType in allCompons:
+                    if componentType == "RoutineSettingsComponent":
+                        # if settings, use existing component
+                        component = routine.settings
+                    elif componentType in allCompons:
                         # create an actual component of that type
                         component = allCompons[componentType](
                             name=componentNode.get('name'),
@@ -729,13 +730,17 @@ class Experiment:
                         self._getXMLparam(params=component.params,
                                           paramNode=paramNode,
                                           componentNode=componentNode)
-                    compGoodName = self.namespace.makeValid(
-                        componentNode.get('name'))
-                    if compGoodName != componentNode.get('name'):
-                        modifiedNames.append(componentNode.get('name'))
-                    self.namespace.add(compGoodName)
-                    component.params['name'].val = compGoodName
-                    routine.append(component)
+                    # sanitize name (unless this comp is settings)
+                    compName = componentNode.get('name')
+                    if compName != routineNode.get('name'):
+                        compGoodName = self.namespace.makeValid(compName)
+                        if compGoodName != compName:
+                            modifiedNames.append(compName)
+                        self.namespace.add(compGoodName)
+                        component.params['name'].val = compGoodName
+                    # Add to routine
+                    if component not in routine:
+                        routine.append(component)
             else:
                 if routineNode.tag in allRoutines:
                     # If not a routine, may be a standalone routine

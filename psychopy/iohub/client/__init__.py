@@ -713,6 +713,15 @@ class ioHubConnection():
         """
         return self._sendToHubServer(('RPC', 'getTime'))[2]
 
+    def syncClock(self, clock):
+        """
+        Synchronise ioHub's internal clock with a given instance of MonotonicClock.
+        """
+        # sync clock in this process
+        Computer.global_clock._timeAtLastReset = clock._timeAtLastReset
+        # sync clock in server process
+        return self._sendToHubServer(('RPC', 'syncClock', (clock._timeAtLastReset,)))
+
     def setPriority(self, level='normal', disable_gc=False):
         """See Computer.setPriority documentation, where current process will
         be the iohub process."""

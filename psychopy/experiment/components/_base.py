@@ -55,18 +55,18 @@ class BaseComponent:
         self.order = ['name', 'startVal', 'startEstim', 'startType', 'stopVal', 'durationEstim', 'stopType']  # name first, then timing, then others
 
         msg = _translate(
-            "Name of this component (alphanumeric or _, no spaces)")
+            "Name of this Component (alphanumeric or _, no spaces)")
         self.params['name'] = Param(name,
             valType='code', inputType="single", categ='Basic',
             hint=msg,
-            label=_localized['name'])
+            label=_translate("Name"))
 
         msg = _translate("How do you want to define your start point?")
         self.params['startType'] = Param(startType,
             valType='str', inputType="choice", categ='Basic',
             allowedVals=['time (s)', 'frame N', 'condition'],
             hint=msg, direct=False,
-            label=_localized['startType'])
+            label=_translate("Start type"))
 
         msg = _translate("How do you want to define your end point?")
         self.params['stopType'] = Param(stopType,
@@ -74,32 +74,32 @@ class BaseComponent:
             allowedVals=['duration (s)', 'duration (frames)', 'time (s)',
                          'frame N', 'condition'],
             hint=msg, direct=False,
-            label=_localized['stopType'])
+            label=_translate("Stop type"))
 
         self.params['startVal'] = Param(startVal,
             valType='code', inputType="single", categ='Basic',
-            hint=_translate("When does the component start?"), allowedTypes=[],
-            label=_localized['startVal'])
+            hint=_translate("When does the Component start?"), allowedTypes=[],
+            label=_translate("Start"))
 
         self.params['stopVal'] = Param(stopVal,
             valType='code', inputType="single", categ='Basic',
             updates='constant', allowedUpdates=[], allowedTypes=[],
-            hint=_translate("When does the component end? (blank is endless)"),
-            label=_localized['stopVal'])
+            hint=_translate("When does the Component end? (blank is endless)"),
+            label=_translate("Stop"))
 
         msg = _translate("(Optional) expected start (s), purely for "
                          "representing in the timeline")
         self.params['startEstim'] = Param(startEstim,
             valType='code', inputType="single", categ='Basic',
             hint=msg, allowedTypes=[], direct=False,
-            label=_localized['startEstim'])
+            label=_translate("Expected start (s)"))
 
         msg = _translate("(Optional) expected duration (s), purely for "
                          "representing in the timeline")
         self.params['durationEstim'] = Param(durationEstim,
             valType='code', inputType="single", categ='Basic',
             hint=msg, allowedTypes=[], direct=False,
-            label=_localized['durationEstim'])
+            label=_translate("Expected duration (s)"))
 
         msg = _translate("Store the onset/offset times in the data file "
                          "(as well as in the log file).")
@@ -115,11 +115,11 @@ class BaseComponent:
             hint=msg, allowedTypes=[],
             label=_translate('Sync timing with screen refresh'))
 
-        msg = _translate("Disable this component")
+        msg = _translate("Disable this Component")
         self.params['disabled'] = Param(disabled,
             valType='bool', inputType="bool", categ="Testing",
             hint=msg, allowedTypes=[], direct=False,
-            label=_translate('Disable component'))
+            label=_translate('Disable Component'))
 
     @property
     def _xml(self):
@@ -160,6 +160,26 @@ class BaseComponent:
             newCompon.params[name] = copy.deepcopy(param)
 
         return newCompon
+
+    def hideParam(self, name):
+        """
+        Set a param to always be hidden.
+
+        Parameters
+        ==========
+        name : str
+            Name of the param to hide
+        """
+        # Add to depends, but have it depend on itself and be hidden either way
+        self.depends.append(
+            {
+                "dependsOn": name,  # if...
+                "condition": "",  # meets...
+                "param": name,  # then...
+                "true": "hide",  # should...
+                "false": "hide",  # otherwise...
+            }
+        )
 
     def integrityCheck(self):
         """
@@ -800,20 +820,7 @@ class BaseComponent:
 
         return False
 
-    def getStartAndDuration(self):
-        """Determine the start and duration of the stimulus
-        purely for Routine rendering purposes in the app (does not affect
-        actual drawing during the experiment)
-
-        start, duration, nonSlipSafe = component.getStartAndDuration()
-
-        nonSlipSafe indicates that the component's duration is a known fixed
-        value and can be used in non-slip global clock timing (e.g for fMRI)
-        """
-        if not 'startType' in self.params:
-            # this component does not have any start
-            return None, None, True
-
+    def getStart(self):
         # deduce a start time (s) if possible
         startType = self.params['startType'].val
         numericStart = canBeNumeric(self.params['startVal'].val)
@@ -825,10 +832,9 @@ class BaseComponent:
         else:
             startTime = None
 
-        if 'stopType' not in self.params:
-            # this component does not have any stop
-            return startTime, 0, numericStart
+        return startTime, numericStart
 
+    def getDuration(self, startTime=0):
         # deduce stop time (s) if possible
         stopType = self.params['stopType'].val
         numericStop = canBeNumeric(self.params['stopVal'].val)
@@ -847,7 +853,31 @@ class BaseComponent:
             else:
                 duration = None
 
-        nonSlipSafe = numericStop and (numericStart or stopType == 'time (s)')
+        return duration, numericStop
+
+    def getStartAndDuration(self):
+        """Determine the start and duration of the stimulus
+        purely for Routine rendering purposes in the app (does not affect
+        actual drawing during the experiment)
+
+        start, duration, nonSlipSafe = component.getStartAndDuration()
+
+        nonSlipSafe indicates that the component's duration is a known fixed
+        value and can be used in non-slip global clock timing (e.g for fMRI)
+        """
+        # If has a start, calculate it
+        if 'startType' in self.params:
+            startTime, numericStart = self.getStart()
+        else:
+            startTime, numericStart = None, False
+
+        # If has a stop, calculate it
+        if 'stopType' in self.params:
+            duration, numericStop = self.getDuration(startTime=startTime)
+        else:
+            duration, numericStop = 0, False
+
+        nonSlipSafe = numericStop and (numericStart or self.params['stopType'].val == 'time (s)')
         return startTime, duration, nonSlipSafe
 
     def getPosInRoutine(self):
@@ -941,7 +971,7 @@ class BaseVisualComponent(BaseComponent):
             allowedVals=['from exp settings', 'deg', 'cm', 'pix', 'norm',
                          'height', 'degFlatPos', 'degFlat'],
             hint=msg,
-            label=_localized['units'])
+            label=_translate("Spatial units"))
 
         msg = _translate("Foreground color of this stimulus (e.g. $[1,1,0], red )")
         self.params['color'] = Param(color,
@@ -950,7 +980,7 @@ class BaseVisualComponent(BaseComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['color'])
+            label=_translate("Foreground color"))
 
         msg = _translate("In what format (color space) have you specified "
                          "the colors? (rgb, dkl, lms, hsv)")
@@ -959,7 +989,7 @@ class BaseVisualComponent(BaseComponent):
             allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
             updates='constant',
             hint=msg,
-            label=_localized['colorSpace'])
+            label=_translate("Color space"))
 
         msg = _translate("Fill color of this stimulus (e.g. $[1,1,0], red )")
         self.params['fillColor'] = Param(fillColor,
@@ -967,15 +997,15 @@ class BaseVisualComponent(BaseComponent):
             updates='constant', allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['fillColor'])
+            label=_translate("Fill color"))
 
-        msg = _translate("Color of this stimulus (e.g. $[1,1,0], red )")
+        msg = _translate("Border color of this stimulus (e.g. $[1,1,0], red )")
         self.params['borderColor'] = Param(borderColor,
             valType='color', inputType="color", categ='Appearance',
             updates='constant',allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['borderColor'])
+            label=_translate("Border color"))
 
         msg = _translate("Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent). "
                          "Leave blank for each color to have its own opacity (recommended if any color is None).")
@@ -984,7 +1014,7 @@ class BaseVisualComponent(BaseComponent):
             updates='constant', allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['opacity'])
+            label=_translate("Opacity"))
 
         msg = _translate("Contrast of the stimulus (1.0=unchanged contrast, "
                          "0.5=decrease contrast, 0.0=uniform/no contrast, "
@@ -994,7 +1024,7 @@ class BaseVisualComponent(BaseComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['contrast'])
+            label=_translate("Contrast"))
 
         msg = _translate("Position of this stimulus (e.g. [1,2] )")
         self.params['pos'] = Param(pos,
@@ -1002,7 +1032,7 @@ class BaseVisualComponent(BaseComponent):
             updates='constant', allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['pos'])
+            label=_translate("Position [x,y]"))
 
         msg = _translate("Size of this stimulus (either a single value or "
                          "x,y pair, e.g. 2.5, [1,2] ")
@@ -1011,14 +1041,14 @@ class BaseVisualComponent(BaseComponent):
             updates='constant', allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['size'])
+            label=_translate("Size [w,h]"))
 
         self.params['ori'] = Param(ori,
             valType='num', inputType="spin", categ='Layout',
             updates='constant', allowedTypes=[], allowedVals=[-360,360],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=_translate("Orientation of this stimulus (in deg)"),
-            label=_localized['ori'])
+            label=_translate("Orientation"))
 
         self.params['syncScreenRefresh'].readOnly = True
 

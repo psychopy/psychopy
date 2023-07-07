@@ -221,7 +221,7 @@ class WebSocketServer:
 						raise Exception(f"{queryObject}.{queryMethod} has not been registered with the server")
 
 					self._logger.debug(f"running the registered method: {queryObject}.{queryMethod}")
-					
+
 					# get the method and determine whether it needs to be awaited:
 					method = getattr(self._methods[queryObject][0], queryMethod)
 					methodIsCoroutine = inspect.iscoroutinefunction(method)
@@ -237,7 +237,6 @@ class WebSocketServer:
 							args.append(arg)
 
 					# run the method, with arguments if need be:
-
 					if methodIsCoroutine:
 						rawResult = await method(*args)
 					else:
@@ -260,19 +259,13 @@ class WebSocketServer:
 
 					await websocket.send(json.dumps(response))
 
-		except Exception as error:
-			self._logger.error(error)
-
-			# send the error back to the client:
-			response = {
-				"lineno": str(error.__traceback__.tb_lineno),
-				"traceback": str(traceback.format_tb(error.__traceback__)),
-				"error": str(error)
-			}
-
-			# if there is a messageId in the message, add it to the response:
-			if 'messageId' in decodedMessage:
-				response['messageId'] = decodedMessage['messageId']
-
-			await websocket.send(json.dumps(response))
+		except Exception as err:
+			# send any errors to server
+			tb = traceback.format_exception(type(err), err, err.__traceback__)
+			msg = "".join(tb)
+			err = json.dumps({
+				'type': "error",
+				'msg': msg
+			})
+			await websocket.send(err)
 			

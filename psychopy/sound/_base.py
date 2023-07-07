@@ -206,8 +206,8 @@ class _SoundBase():
             self._setSndFromArray(numpy.array(value))
         elif isinstance(value, AudioClip):
             # from an audio clip object
-            self._setSndFromArray(value.samples)
             self.sampleRate = value.sampleRateHz
+            self._setSndFromArray(value.samples)
         # did we succeed?
         if self._snd is None:
             pass  # raise ValueError, "Could not make a "+value+" sound"

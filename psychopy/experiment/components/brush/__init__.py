@@ -54,7 +54,7 @@ class BrushComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=msg,
-            label=_localized['lineColor'])
+            label= _translate("Brush color"))
 
         msg = _translate("Width of the brush's line (always in pixels and limited to 10px max width)")
         self.params['lineWidth'] = Param(
@@ -62,7 +62,7 @@ class BrushComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=msg,
-            label=_localized['lineWidth'])
+            label= _translate("Brush size"))
 
         self.params['lineColorSpace'] = self.params['colorSpace']
         del self.params['colorSpace']
@@ -76,7 +76,7 @@ class BrushComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=msg,
-            label=_localized['buttonRequired'])
+            label= _translate("Press button"))
 
         # Remove BaseVisual params which are not needed
         del self.params['color']  # because color is defined by lineColor
@@ -96,7 +96,7 @@ class BrushComponent(BaseVisualComponent):
             "   lineColor={lineColor},\n"
             "   lineColorSpace={lineColorSpace},\n"
             "   opacity={opacity},\n"
-            "   buttonRequired={buttonRequired}\n"
+            "   buttonRequired={buttonRequired},\n"
             "   depth={depth}\n"
             ")"
         ).format(**inits)

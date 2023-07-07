@@ -524,6 +524,18 @@ class Computer():
         return Computer.global_clock.getTime()
 
     @staticmethod
+    def syncClock(lastResetTime):
+        """
+        Sync times of last reset between Computer.global_clock with given last reset time.
+
+        Parameters
+        ----------
+        lastResetTime : float
+            Last reset time of clock to sync with
+        """
+        Computer.global_clock._timeAtLastReset = lastResetTime
+
+    @staticmethod
     def getPhysicalSystemMemoryInfo():
         """Return a class containing information about current memory usage.
 

@@ -1,10 +1,10 @@
 name: pytest
 
 on:
-  push:
-    branches: [ release, dev ]
+  workflow_dispatch:  # manual
+   branches: [ release, dev ]
   pull_request:
-    branches: [ release, dev ]
+   branches: [ release, dev ]
 
 permissions:
   contents: read
@@ -21,7 +21,6 @@ jobs:
         python-version: [3.8]
 
     steps:
-
     - uses: actions/checkout@v3
 
     - name: Set up Python ${{ matrix.python-version }}
@@ -41,6 +40,7 @@ jobs:
         pip install pdm
         pdm config python.use_venv false  # don't need/want venv in a vm!
         pdm install  # fetch dependendices in lock file
+        pdm add -G tests
         pdm install -G tests
         pdm build
         # install with pip both the main and [tests] group
@@ -90,7 +90,7 @@ jobs:
 
     - name: Test with pytest
       run: |
-        pytest --ignore="psychopy/tests/test_app" --ignore="psychopy/tests/test_preferences" --ignore="psychopy/tests/test_experiment/needs_wx" -m "not needs_sound and not needs_wx and not emulator"  --cov-config=.travis_coveragerc --cov=psychopy -v psychopy
+        pytest --ignore="psychopy/tests/test_app" --ignore="psychopy/tests/test_preferences" --ignore="psychopy/tests/test_experiment/needs_wx" -m "not needs_sound and not needs_wx and not emulator"  --cov=psychopy -v psychopy
 
     - name: upload failed app data
       if: always()
@@ -114,6 +114,7 @@ jobs:
           !**/*.wav
 
     - name: Upload coverage to Codecov
+      if: always()
       uses: codecov/codecov-action@v3
       with:
         fail_ci_if_error: false
@@ -250,7 +251,7 @@ jobs:
 
     - name: Test with pytest
       run: |
-         xvfb-run -a --server-args="-screen 0 1024x768x24" pytest -m "not needs_sound and not needs_wx and not needs_qt and not needs_pygame and not emulator" --cov-config=.travis_coveragerc --cov=psychopy -v psychopy
+         xvfb-run -a --server-args="-screen 0 1024x768x24" pytest -m "not needs_sound and not needs_wx and not needs_qt and not needs_pygame and not emulator" --cov=psychopy -v psychopy
 
     - name: upload failed app data
       if: always()
@@ -274,6 +275,7 @@ jobs:
           !**/*.wav
 
     - name: Upload coverage to Codecov
+      if: always()
       uses: codecov/codecov-action@v3
       with:
         fail_ci_if_error: false
