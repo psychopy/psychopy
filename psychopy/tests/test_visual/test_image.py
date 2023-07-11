@@ -107,6 +107,11 @@ class TestImage(_TestUnitsMixin, _TestBoilerplateMixin):
             utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=7)
             self.win.flip()
 
+    def test_img_data(self):
+        """Test the accessibility of image array values"""
+        img_ar = self.getImageData()
+        assert isinstance(img_ar, np.ndarray)
+
 
 class TestImageAnimation:
     """
