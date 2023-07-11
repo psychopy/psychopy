@@ -413,6 +413,9 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         """
         setAttribute(self, 'image', value, log)
 
+    def getImageData(self):
+        return self._img_data
+
     @property
     def aspectRatio(self):
         """
