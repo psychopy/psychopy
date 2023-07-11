@@ -27,7 +27,9 @@ class TestSession:
             experiments={
                 'exp1': "exp1/exp1.psyexp",
                 'exp2': "exp2/exp2.psyexp",
-                'testCtrls': "testCtrls/testCtrls.psyexp"
+                'testCtrls': "testCtrls/testCtrls.psyexp",
+                'error': "error/error.psyexp",
+                'annotation': "annotation/annotation.psyexp"
             }
         )
 
@@ -76,3 +78,56 @@ class TestSession:
         thread.start()
         # Start session
         self.sess.start()
+
+    def test_sync_clocks(self):
+        """
+        Test that experiment clock is applied to ioHub
+        """
+        from psychopy import iohub
+
+        def _sameTimes():
+            times = [
+                # ioHub process time
+                self.sess.inputs['ioServer'].getTime(),
+                # ioHub time in current process
+                iohub.Computer.global_clock.getTime(),
+                # experiment time
+                self.sess.sessionClock.getTime(),
+            ]
+            # confirm that all values are within 0.001 of eachother
+            avg = sum(times) / len(times)
+            deltas = [abs(t - avg) for t in times]
+            same = [d < 0.001 for d in deltas]
+
+            return all(same)
+        # setup experiment inputs
+        self.sess.setupInputsFromExperiment("exp1")
+        # knock ioHub timer out of sync
+        time.sleep(1)
+        # run experiment
+        self.sess.runExperiment("exp1")
+        # confirm that ioHub timer was brought back into sync
+        assert _sameTimes(), (
+            self.sess.inputs['ioServer'].getTime(),
+            iohub.Computer.global_clock.getTime(),
+            self.sess.sessionClock.getTime(),
+        )
+
+    # def test_error(self, capsys):
+    #     """
+    #     Check that an error in an experiment doesn't interrupt the session.
+    #     """
+    #     # run experiment which has an error in it
+    #     success = self.sess.runExperiment("error")
+    #     # check that it returned False after failing
+    #     assert not success
+    #     # flush the log
+    #     logging.flush()
+    #     # get stdout and stderr
+    #     stdout, stderr = capsys.readouterr()
+    #     # check that our error has been logged as CRITICAL
+    #     assert "CRITICAL" in stdout + stderr
+    #     assert "ValueError:" in stdout + stderr
+    #     # check that another experiment still runs after this
+    #     success = self.sess.runExperiment("exp1")
+    #     assert success

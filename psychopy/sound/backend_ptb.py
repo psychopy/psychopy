@@ -341,7 +341,7 @@ class SoundPTB(_SoundBase):
         return self._isPlaying
 
     @property
-    def isFinsihed(self):
+    def isFinished(self):
         """`True` if the audio playback has completed."""
         return self._isFinished
 
@@ -553,14 +553,17 @@ class SoundPTB(_SoundBase):
         if log and self.autoLog:
             logging.exp(u"Sound %s started" % (self.name), obj=self, t=logTime)
 
-    def pause(self):
-        """Stop the sound but play will continue from here if needed
+    def pause(self, log=True):
+        """Toggles the pause state the sound but play will continue from here if needed
         """
         if self.isPlaying:
-            self.track.stop(reset=False)
-            self._isPlaying = False
+            self.stop(reset=False)
+            if log and self.autoLog:
+                logging.exp(u"Sound %s paused" % (self.name), obj=self)
         else:
             self.play()
+            if log and self.autoLog:
+                logging.exp(u"Sound %s unpaused" % (self.name), obj=self)
 
     def stop(self, reset=True, log=True):
         """Stop the sound and return to beginning

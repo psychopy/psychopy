@@ -1,13 +1,16 @@
+import asyncio
 import importlib
 import os
 import sys
 import shutil
 import threading
 import time
+import json
 from pathlib import Path
 
-from psychopy import experiment, logging, constants, data
-import json
+from psychopy import experiment, logging, constants, data, core, __version__
+from psychopy.tools.arraytools import AliasDict
+
 from psychopy.localization import _translate
 
 
@@ -106,22 +109,38 @@ class Session:
     """
 
     _queue = []
+    _results = []
 
     def __init__(self,
                  root,
+                 dataDir=None,
                  liaison=None,
                  loggingLevel="info",
+                 priorityThreshold=constants.priority.EXCLUDE+1,
                  inputs=None,
                  win=None,
-                 experiments=None):
+                 experiments=None,
+                 params=None,
+                 clock=None):
         # Store root and add to Python path
         self.root = Path(root)
         sys.path.insert(1, str(self.root))
+        # Create data folder
+        if dataDir is None:
+            dataDir = self.root / "data" / str(core.Clock().getTime(format="%Y-%m-%d_%H-%M-%S-%f"))
+        dataDir = Path(dataDir)
+        if not dataDir.is_dir():
+            os.makedirs(str(dataDir), exist_ok=True)
+        # Store data folder
+        self.dataDir = dataDir
         # Create log file
+        wallTime = data.getDateStr(fractionalSecondDigits=6)
         self.logFile = logging.LogFile(
-            self.root / (self.root.stem + '.log'),
+            dataDir / f"session_{wallTime}.log",
             level=getattr(logging, loggingLevel.upper())
         )
+        # Store priority threshold
+        self.priorityThreshold = priorityThreshold
         # Add experiments
         self.experiments = {}
         if experiments is not None:
@@ -146,6 +165,14 @@ class Session:
         elif inputs in self.experiments:
             # If inputs is the name of an experiment, setup from that experiment's method
             self.setupInputsFromExperiment(inputs)
+        # Setup Session clock
+        if clock is None:
+            clock = core.Clock()
+        self.sessionClock = clock
+        # Store params as an aliased dict
+        if params is None:
+            params = {}
+        self.params = AliasDict(params)
         # List of ExperimentHandlers from previous runs
         self.runs = []
         # Store ref to liaison object
@@ -175,8 +202,16 @@ class Session:
         while self._alive:
             # Empty the queue of any tasks
             while len(self._queue):
+                # Run the task
                 method, args, kwargs = self._queue.pop(0)
-                method(*args, **kwargs)
+                retval = method(*args, **kwargs)
+                # Store its output
+                self._results.append({
+                    'method': method.__name__,
+                    'args': args,
+                    'kwargs': kwargs,
+                    'returned': retval
+                })
             # Flip the screen and give a little time to sleep
             if self.win is not None:
                 self.win.flip()
@@ -233,7 +268,8 @@ class Session:
             # Copy files to it
             shutil.copytree(
                 src=str(folder),
-                dst=str(newFolder)
+                dst=str(newFolder),
+                dirs_exist_ok=True
             )
             # Store new locations
             file = newFolder / file.relative_to(folder)
@@ -258,7 +294,7 @@ class Session:
         importPath = ".".join(relPath)
         # Write experiment as Python script
         pyFile = file.parent / (file.stem + ".py")
-        if not pyFile.is_file():
+        if "psyexp" in file.suffix:
             exp = experiment.Experiment()
             exp.loadFromXML(file)
             script = exp.writeScript(target="PsychoPy")
@@ -266,12 +302,67 @@ class Session:
         # Handle if key is None
         if key is None:
             key = str(file.relative_to(self.root))
+        # Check that first part of import path isn't the name of an already existing module
+        try:
+            isPackage = importlib.import_module(relPath[0])
+            # If we imported successfully, check that the module imported is in the root dir
+            if not hasattr(isPackage, "__file__") or not isPackage.__file__.startswith(str(self.root)):
+                raise NameError(_translate(
+                    "Experiment could not be loaded as name of folder {} is also the name of an installed Python "
+                    "package. Please rename."
+                ).format(self.root / relPath[0]))
+        except ImportError:
+            # If we can't import, it's not a package and so we're good!
+            pass
         # Import python file
         self.experiments[key] = importlib.import_module(importPath)
 
         return True
 
-    def getExpInfoFromExperiment(self, key):
+    def getStatus(self):
+        """
+        Get an overall status flag for this Session. Will be one of either:
+
+        Returns
+        -------
+        int
+            A value `psychopy.constants`, either:
+            - NOT_STARTED: If no experiment is running
+            - STARTED: If an experiment is running
+            - PAUSED: If an experiment is paused
+            - FINISHED: If an experiment is in the process of terminating
+        """
+        if self.currentExperiment is None:
+            # If no current experiment, return NOT_STARTED
+            return constants.NOT_STARTED
+        else:
+            # Otherwise, return status of experiment handler
+            return self.currentExperiment.status
+
+    def getPsychoPyVersion(self):
+        return __version__
+
+    def getTime(self, format=str):
+        """
+        Get time from this Session's clock object.
+
+        Parameters
+        ----------
+        format : type, str or None
+            Can be either:
+            - `float`: Time will return as a float as number of seconds
+            - time format codes: Time will return as a string in that format, as in time.strftime
+            - `str`: Time will return as a string in ISO 8601 (YYYY-MM-DD_HH:MM:SS.mmmmmmZZZZ)
+            - `None`: Will use the Session clock object's `defaultStyle` attribute
+
+        Returns
+        -------
+        str or float
+            Time in format requested.
+        """
+        return self.sessionClock.getTime(format=format)
+
+    def getExpInfoFromExperiment(self, key, sessionParams=True):
         """
         Get the global-level expInfo object from one of this Session's experiments. This will contain all of
         the keys needed for this experiment, alongside their default values.
@@ -280,13 +371,27 @@ class Session:
         ----------
         key : str
             Key by which the experiment is stored (see `.addExperiment`).
+        sessionParams : bool
+            Should expInfo be extended with params from the Session, overriding experiment params
+            where relevant (True, default)? Or return expInfo as it is in the experiment (False)?
 
         Returns
         -------
-        bool or None
-            True if the operation completed successfully
+        dict
+            Experiment info dict
         """
-        return self.experiments[key].expInfo
+        # Get params from experiment
+        expInfo = self.experiments[key].expInfo
+        if sessionParams:
+            # If alias of a key in params exists in expInfo, delete it
+            for key in self.params.aliases:
+                if key in expInfo:
+                    del expInfo[key]
+            # Replace with Session params
+            for key in self.params:
+                expInfo[key] = self.params[key]
+
+        return expInfo
 
     def showExpInfoDlgFromExperiment(self, key, expInfo=None):
         """
@@ -354,6 +459,8 @@ class Session:
             expInfo = self.getExpInfoFromExperiment(key)
         # Run the setupWindow method
         self.win = self.experiments[key].setupWindow(expInfo=expInfo, win=self.win)
+        # Set window title to signify that we're in a Session
+        self.win.title = "PsychoPy Session"
 
         return True
 
@@ -399,7 +506,7 @@ class Session:
             from psychopy.visual import Window
             self.win = Window(**params)
             self.win.showMessage(_translate(
-                "Waiting to start experiment..."
+                "Waiting to start..."
             ))
         else:
             # otherwise, just set the attributes which are safe to set
@@ -408,6 +515,8 @@ class Session:
             self.win.backgroundImage = params.get('backgroundImage', self.win.backgroundImage)
             self.win.backgroundFit = params.get('backgroundFit', self.win.backgroundFit)
             self.win.units = params.get('units', self.win.units)
+        # Set window title to signify that we're in a Session
+        self.win.title = "PsychoPy Session"
 
         return True
 
@@ -529,6 +638,7 @@ class Session:
         bool or None
             True if the operation completed/queued successfully
         """
+        err = None
         # If not in main thread and not requested blocking, use queue and return now
         if threading.current_thread() != threading.main_thread() and not blocking:
             # The queue is emptied each iteration of the while loop in `Session.start`
@@ -542,7 +652,7 @@ class Session:
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(key)
         # Setup data for this experiment
-        thisExp = self.experiments[key].setupData(expInfo=expInfo)
+        thisExp = self.experiments[key].setupData(expInfo=expInfo, dataDir=str(self.dataDir))
         thisExp.name = key
         # Mark ExperimentHandler as current
         self.currentExperiment = thisExp
@@ -558,20 +668,30 @@ class Session:
         self.experiments[key].run.__globals__['logFile'] = self.logFile
         # Setup inputs
         self.setupInputsFromExperiment(key, expInfo=expInfo)
+        # Log start
+        logging.info(_translate(
+            "Running experiment via Session: name={key}, expInfo={expInfo}"
+        ).format(key=key, expInfo=expInfo))
         # Run this experiment
-        self.experiments[key].run(
-            expInfo=expInfo,
-            thisExp=thisExp,
-            win=self.win,
-            inputs=self.inputs,
-            thisSession=self
-        )
+        try:
+            self.experiments[key].run(
+                expInfo=expInfo,
+                thisExp=thisExp,
+                win=self.win,
+                inputs=self.inputs,
+                globalClock=self.sessionClock,
+                thisSession=self
+            )
+        except Exception as _err:
+            err = _err
         # Reinstate autodraw stimuli
         self.win.retrieveAutoDraw()
         # Restore original chdir
         os.chdir(str(self.root))
         # Store ExperimentHandler
         self.runs.append(thisExp)
+        # Save data
+        self.saveCurrentExperimentData()
         # Mark ExperimentHandler as no longer current
         self.currentExperiment = None
         # Display waiting text
@@ -579,6 +699,21 @@ class Session:
             "Waiting to start..."
         ))
         self.win.color = "grey"
+        # Raise any errors now
+        if err is not None:
+            raise err
+        # Log finished and flush logs
+        logging.info(_translate(
+            "Finished running experiment via Session: name={key}, expInfo={expInfo}"
+        ).format(key=key, expInfo=expInfo))
+        logging.flush()
+        # Send finished data to liaison
+        if self.liaison is not None:
+            self.sendToLiaison({
+                    'type': "experiment_status",
+                    'name': thisExp.name,
+                    'status': thisExp.status
+                })
 
         return True
 
@@ -637,7 +772,7 @@ class Session:
         # warn and return failed if no experiment is running
         if self.currentExperiment is None:
             logging.warn(
-                _translate("Could not pause experiment as there is none "
+                _translate("Could not stop experiment as there is none "
                            "running.")
             )
             return False
@@ -699,10 +834,142 @@ class Session:
                 if run.name == key:
                     thisExp = run
                     break
-
+        # save to Session folder
         self.experiments[key].saveData(thisExp)
 
         return True
+
+    def saveCurrentExperimentData(self, blocking=True):
+        """
+        Call `.saveExperimentData` on the currently running experiment - if
+        there is one.
+
+        Parameters
+        ----------
+        blocking : bool
+            Should calling this method block the current thread?
+
+            If True (default), the method runs as normal and won't return until
+            completed.
+            If False, the method is added to a `queue` and will be run by the
+            while loop within `Session.start`. This will block the main thread,
+            but won't block the thread this method was called from.
+
+            If not using multithreading, this value is ignored. If you don't
+            know what multithreading is, you probably aren't using it - it's
+            difficult to do by accident!
+
+        Returns
+        -------
+        bool or None
+            True if the operation completed/queued successfully, False if there
+            was no current experiment running
+        """
+        if self.currentExperiment is None:
+            return False
+
+        return self.saveExperimentData(
+            key=self.currentExperiment.name,
+            thisExp=self.currentExperiment,
+            blocking=blocking
+        )
+
+    def addAnnotation(self, value):
+        """
+        Add an annotation in the data file at the current point in the
+        experiment and to the log.
+
+        Parameters
+        ----------
+        value : str
+            Value of the annotation
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # add to experiment data if there's one running
+        if hasattr(self.currentExperiment, "addAnnotation"):
+            # annotate
+            self.currentExperiment.addAnnotation(value)
+        # log regardless
+        logging.info(value)
+
+        return True
+
+    def addData(self, name, value, row=None, priority=None):
+        """
+        Add data in the data file at the current point in the experiment, and to the log.
+
+        Parameters
+        ----------
+        name : str
+            Name of the column to add data as.
+        value : any
+            Value to add
+        row : int or None
+            Row in which to add this data. Leave as None to add to the current entry.
+        priority : int
+            Priority value to set the column to - higher priority columns appear nearer to the start of
+            the data file. Use values from `constants.priority` as landmark values:
+            - CRITICAL: Always at the start of the data file, generally reserved for Routine start times
+            - HIGH: Important columns which are near the front of the data file
+            - MEDIUM: Possibly important columns which are around the middle of the data file
+            - LOW: Columns unlikely to be important which are at the end of the data file
+            - EXCLUDE: Always at the end of the data file, actively marked as unimportant
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        # add to experiment data if there's one running
+        if hasattr(self.currentExperiment, "addData"):
+            # add
+            self.currentExperiment.addData(name, value, row=row, priority=priority)
+        # log regardless
+        logging.data(f"NAME={name}, PRIORITY={priority}, VALUE={value}")
+
+        return True
+
+    def sendExperimentData(self, key=None):
+        """
+        Send last ExperimentHandler for an experiment to liaison. If no experiment is given, sends the currently
+        running experiment.
+
+        Parameters
+        ----------
+        key : str or None
+            Name of the experiment whose data to send, or None to send the current experiment's data.
+
+        Returns
+        -------
+        bool
+            True if data was sent, otherwise False
+        """
+        # Skip if there's no liaison
+        if self.liaison is None:
+            return
+
+        # Sub None for current
+        if key is None and self.currentExperiment is not None:
+            key = self.currentExperiment.name
+        elif key is None:
+            key = self.runs[-1].name
+        # Get list of runs (including current)
+        runs = self.runs.copy()
+        if self.currentExperiment is not None:
+            runs.append(self.currentExperiment)
+        # Get last experiment data
+        for run in reversed(runs):
+            if run.name == key:
+                # Send experiment data
+                self.sendToLiaison(run)
+                return True
+
+        # Return False if nothing sent
+        return False
 
     def sendToLiaison(self, value):
         """
@@ -726,11 +993,12 @@ class Session:
             return
         # If ExperimentHandler, get its data as a list of dicts
         if isinstance(value, data.ExperimentHandler):
-            value = value.entries
+            value = value.getJSON(priorityThreshold=self.priorityThreshold)
         # Convert to JSON
-        value = json.dumps(value)
+        if not isinstance(value, str):
+            value = json.dumps(value)
         # Send
-        self.liaison.broadcast(message=value)
+        asyncio.run(self.liaison.broadcast(message=value))
 
     def close(self):
         """
@@ -740,15 +1008,43 @@ class Session:
 
 
 if __name__ == "__main__":
+    """
+    Create a Session with parameters passed by command line.
+    
+    Parameters
+    ----------
+    --root
+        Root directory for the Session
+    --host
+        Port address of host server (if any)
+    --timing
+        How to handle timing, can be either:
+        - "float": Start a timer when Session is created and do timing relative to that (default)
+        - "iso": Do timing via wall clock in ISO 8601 format 
+        - any valid strftime string: Do timing via wall clock in the given format
+    --session-data-dir
+        Folder to store all data from this Session in, including the log file.
+    """
     # Parse args
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", dest="root")
     parser.add_argument("--host", dest="host")
-    args = parser.parse_args()
+    parser.add_argument("--timing", dest="timing", default="iso")
+    parser.add_argument("--session-data-dir", dest="dataDir")
+    args, _ = parser.parse_known_args()
+    # Setup timing
+    if args.timing == "float":
+        sessionClock = core.Clock()
+    elif args.timing == "iso":
+        sessionClock = core.Clock(format=str)
+    else:
+        sessionClock = core.Clock(format=args.timing)
     # Create session
     session = Session(
-        root=args.root
+        root=args.root,
+        clock=sessionClock,
+        dataDir=args.dataDir
     )
     if ":" in str(args.host):
         host, port = str(args.host).split(":")
@@ -756,8 +1052,10 @@ if __name__ == "__main__":
         from psychopy import liaison
         # Create liaison server
         liaisonServer = liaison.WebSocketServer()
+        session.liaison = liaisonServer
         # Add session to liaison server
         liaisonServer.registerMethods(session, "session")
+        liaisonServer.registerMethods(session.params, "params")
         # Create thread to run liaison server in
         liaisonThread = threading.Thread(
             target=liaisonServer.start,

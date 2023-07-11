@@ -289,3 +289,30 @@ def comparePixelColor(screen, color, coord=(0, 0), context="color_comparison"):
     if not cond:
         frame.save(Path(TESTS_FAILS_PATH) / (context + ".png"))
         raise AssertionError(f"Pixel color {pixCol} at {ogCoord} (x{screen.getContentScaleFactor()}) not equal to target color {color}")
+
+
+def forceBool(value, handler=any):
+    """
+    Force a value to a boolean, accounting for the possibility that it is an
+    array of booleans.
+
+    Parameters
+    ----------
+    value
+        Value to force
+    mode : str
+        Method to apply to values which fail builtin `bool` function, e.g. `any`
+        or `all` for boolean arrays.
+
+    Returns
+    -------
+    bool
+    """
+    try:
+        # attempt to make bool
+        value = bool(value)
+    except ValueError:
+        # if this fails,
+        value = handler(value)
+
+    return value

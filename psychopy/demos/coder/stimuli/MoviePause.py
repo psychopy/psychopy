@@ -10,10 +10,10 @@ To create a movie that will play on all systems I would recommend using the form
     video: H.264 compressed,
     audio: Linear PCM
 """
-from psychopy import visual, core
+from psychopy import visual, core, constants
 
 win = visual.Window((800, 600))
-mov = visual.MovieStim3(win, 'jwpIntro.mp4', size=(320, 240),
+mov = visual.MovieStim3(win, 'default.mp4', size=(320, 240),
     flipVert=False, flipHoriz=False)
 
 print('orig movie size=' + str(mov.size))

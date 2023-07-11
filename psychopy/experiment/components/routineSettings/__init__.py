@@ -7,7 +7,7 @@ from psychopy.experiment.utils import CodeGenerationException
 from psychopy import prefs
 
 # only use _localized values for label values, nothing functional:
-_localized = {'name': _translate('Name')}
+_localized = {'name': _translate("Name")}
 
 
 class RoutineSettingsComponent(BaseComponent):
@@ -50,7 +50,6 @@ class RoutineSettingsComponent(BaseComponent):
         del self.params['startType']
         del self.params['startVal']
         del self.params['startEstim']
-        del self.params['saveStartStop']
         del self.params['syncScreenRefresh']
 
         # Modify disabled label
@@ -105,14 +104,14 @@ class RoutineSettingsComponent(BaseComponent):
             useWindowParams, valType="bool", inputType="bool", categ="Window",
             label=_translate("Different window settings?"),
             hint=_translate(
-                "Should the appearance of the window change while this routine "
+                "Should the appearance of the window change while this Routine "
                 "is running?"
             ))
         self.params['color'] = Param(
             color, valType='color', inputType="color", categ="Window",
             label=_translate("Background color"),
             hint=_translate(
-                "Color of the screen this routine (e.g. black, $[1.0,1.0,1.0],"
+                "Color of the screen this Routine (e.g. black, $[1.0,1.0,1.0],"
                 " $variable. Right-click to bring up a "
                 "color-picker.)"
             ))
@@ -121,7 +120,7 @@ class RoutineSettingsComponent(BaseComponent):
             hint=_translate("Needed if color is defined numerically (see "
                             "PsychoPy documentation on color spaces)"),
             allowedVals=['rgb', 'dkl', 'lms', 'hsv', 'hex'],
-            label=_translate("colorSpace"))
+            label=_translate("Color space"))
         self.params['backgroundImg'] = Param(
             backgroundImg, valType="str", inputType="file", categ="Window",
             hint=_translate("Image file to use as a background (leave blank for no image)"),
@@ -144,9 +143,18 @@ class RoutineSettingsComponent(BaseComponent):
                 "false": "hide",  # otherwise...
             }]
 
+        # --- Data params ---
+        self.params['saveStartStop'].hint = _translate("Save the start and stop times of this Routine (according to the global clock) to the data file.")
+
     def writeRoutineStartCode(self, buff):
         # Sanitize
         params = self.params.copy()
+        # Store Routine start time (UTC)
+        if self.params['saveStartStop']:
+            code = (
+                "thisExp.addData('%(name)s.started', globalClock.getTime())\n"
+            )
+            buff.writeIndentedLines(code % params)
         # Skip Routine if condition is met
         if params['skipIf'].val not in ('', None, -1, 'None'):
             code = (
@@ -154,7 +162,7 @@ class RoutineSettingsComponent(BaseComponent):
                 "continueRoutine = continueRoutine and not (%(skipIf)s)\n"
             )
             buff.writeIndentedLines(code % params)
-        # Change window appearance for this routine (if requested)
+        # Change window appearance for this Routine (if requested)
         if params['useWindowParams']:
             code = (
                 "win.color = %(color)s\n"
@@ -186,19 +194,19 @@ class RoutineSettingsComponent(BaseComponent):
             if self.params['stopType'].val == 'duration (s)':
                 # Stop after given number of seconds
                 code = (
-                    f"# is it time to end the routine? (based on local clock)\n"
+                    f"# is it time to end the Routine? (based on local clock)\n"
                     f"if tThisFlip > %(stopVal)s-frameTolerance:\n"
                 )
             elif self.params['stopType'].val == 'frame N':
                 # Stop at given frame num
                 code = (
-                    f"# is it time to end the routine? (based on frames since Routine start)\n"
+                    f"# is it time to end the Routine? (based on frames since Routine start)\n"
                     f"if frameN >= %(stopVal)s:\n"
                 )
             elif self.params['stopType'].val == 'condition':
                 # Stop when condition is True
                 code = (
-                    f"# is it time to end the routine? (based on condition)\n"
+                    f"# is it time to end the Routine? (based on condition)\n"
                     f"if bool(%(stopVal)s):\n"
                 )
             else:
@@ -212,10 +220,16 @@ class RoutineSettingsComponent(BaseComponent):
 
     def writeRoutineEndCode(self, buff):
         params = self.params.copy()
-        # Restore window appearance after this routine (if changed)
+        # Store Routine start time (UTC)
+        if self.params['saveStartStop']:
+            code = (
+                "thisExp.addData('%(name)s.stopped', globalClock.getTime())\n"
+            )
+            buff.writeIndentedLines(code % params)
+        # Restore window appearance after this Routine (if changed)
         if params['useWindowParams']:
             code = (
-                "setupWindow(win)\n"
+                "setupWindow(expInfo=expInfo, win=win)\n"
             )
             buff.writeIndentedLines(code % params)
 
