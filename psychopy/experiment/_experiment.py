@@ -303,7 +303,7 @@ class Experiment:
                 "    thisExp = setupData(expInfo=expInfo)\n"
                 "    logFile = setupLogging(filename=thisExp.dataFileName)\n"
                 "    win = setupWindow(expInfo=expInfo)\n"
-                "    inputs = setupInputs(expInfo=expInfo, win=win)\n"
+                "    inputs = setupInputs(expInfo=expInfo, thisExp=thisExp, win=win)\n"
                 "    run(\n"
                 "        expInfo=expInfo, \n"
                 "        thisExp=thisExp, \n"
