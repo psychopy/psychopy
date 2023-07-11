@@ -372,9 +372,13 @@ class Dlg(QtWidgets.QDialog):
             self.inputFields[0].setFocus()
 
         self.OK = False
-        if QtWidgets.QDialog.exec(self) == QtWidgets.QDialog.accepted:
-            self.OK = True
-            return self.data
+        # connect OK button event to method setting OK value
+        QtWidgets.QDialog.accepted.connect(self.onOK)
+        # show dialog
+        QtWidgets.QDialog.exec(self)
+
+    def onOK(self, evt=None):
+        self.OK = True
 
 
 class DlgFromDict(Dlg):
