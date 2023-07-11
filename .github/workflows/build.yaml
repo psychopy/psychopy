@@ -77,6 +77,7 @@ jobs:
 
     - name: Install dependencies
       run: |
+        ls py/*
         # NB pip comes in indygreg but not in python.org
         # for python.org do .venv/bin/python get-pip.py
         shopt -s expand_aliases  # allow aliases in bash
@@ -109,7 +110,8 @@ jobs:
     - name: Build binary (MacOS)
       if: runner.os == 'macOS'
       run:
-        touch py/lib/python3.10/site-packages/metapensiero/__init__.py;
+        sitepackages=$(python3 -c "import site; print(site.getsitepackages()[0])");
+        sudo touch $sitepackages/metapensiero/__init__.py;
         sh ./building/buildAppMacOS.sh ${{ secrets.OST_APPLE_ID }} ${{ secrets.OST_APPLE_PWORD }};
 
     - name: Upload builds with googleapi
