@@ -34,6 +34,10 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Check PsychoPy version name
+      run: |
+        PSYCHOPY_VER=$(cat version | tr -d '\n')
+
     - name: Install MacOS depends (Homebrew)
       if: runner.os == 'macOS'
       run: |
@@ -95,6 +99,7 @@ jobs:
         mypip install ".[tests]"  # install self with tests extras
         mypip install ".[suggested]"  # install self with tests extras
      
+
     - name: Install NSIS plugins (Windows)
       if: runner.os == 'Windows'
       run:
@@ -102,14 +107,14 @@ jobs:
         url="https://nsis.sourceforge.io/mediawiki/images/7/7f/EnVar_plugin.zip";
         curl --location "$url" -o EnVar_plugin.zip;
         unzip EnVar_plugin.zip -d nsis_plugins;
-        cp -r nsis_plugins/Plugins "$PROGRAMFILES/NSIS"; 
-        ls -al;
+        # cp -r nsis_plugins/Plugins "$PROGRAMFILES/NSIS"; 
+        # ls -al $PROGRAMFILES/NSIS/Plugins/x86-unicode;
 
-    - name: Build binary (Windows)
-      if: runner.os == 'Windows'
-      shell: powershell
-      run:
-        ./building/buildWinDistributions.ps1
+    - name: Create nsis installer
+      uses: joncloud/makensis-action
+      with:
+        additional-plugin-paths: ${{ github.workspace }}/NSIS_Plugins/Plugins
+        arguments: "/V3 /DPRODUCT_VERSION='${{ env.PSYCHOPY_VER }}' /DPRODUCT_NAME='PsychoPy' /DARCH='win64' /DPYPATH='py\\'"
 
     - name: Build binary (MacOS)
       if: runner.os == 'macOS'
