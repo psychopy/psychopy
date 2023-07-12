@@ -114,7 +114,7 @@ jobs:
       with:
         script-file: buildCompleteInstaller.nsi
         additional-plugin-paths: ${{ github.workspace }}/NSIS_Plugins/Plugins
-        arguments: "/V3 /DPRODUCT_VERSION='${{ env.PSYCHOPY_VER }}' /DPRODUCT_NAME='PsychoPy' /DARCH='win64' /DPYPATH='py\\'"
+        arguments: "/V3 /DPRODUCT_VERSION=${{ env.PSYCHOPY_VER }} /DPRODUCT_NAME=PsychoPy /DARCH=win64 /DPYPATH=py\\"
 
     - name: Build binary (MacOS)
       if: runner.os == 'macOS'
