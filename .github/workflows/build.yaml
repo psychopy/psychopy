@@ -36,7 +36,8 @@ jobs:
 
     - name: Check PsychoPy version name
       run: |
-        PSYCHOPY_VER=$(cat version | tr -d '\n')
+        echo PSYCHOPY_VER=$(cat version | tr -d '\n') >> $GITHUB_ENV
+        echo "Building version ${{ env.PSYCHOPY_VER }}"
 
     - name: Install MacOS depends (Homebrew)
       if: runner.os == 'macOS'
