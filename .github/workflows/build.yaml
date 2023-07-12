@@ -77,12 +77,12 @@ jobs:
 
     - name: Install dependencies
       run: |
-        ls py/*
         # NB pip comes in indygreg but not in python.org
         # for python.org do .venv/bin/python get-pip.py
         shopt -s expand_aliases  # allow aliases in bash
         if [ "${{ runner.os }}" == "Windows" ]
         then
+          ls py/*
           alias mypip='py/python -m pip'
         else
           alias mypip='python -m pip'
@@ -100,6 +100,7 @@ jobs:
         url="https://nsis.sourceforge.io/mediawiki/images/7/7f/EnVar_plugin.zip";
         curl --location "$url" -o EnVar_plugin.zip;
         unzip EnVar_plugin.zip -d nsis_plugins;
+        ls -al;
 
     - name: Build binary (Windows)
       if: runner.os == 'Windows'
