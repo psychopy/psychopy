@@ -332,12 +332,18 @@ class SoundPTB(_SoundBase):
         self.setSound(value, secs=self.secs, octave=self.octave,
                       hamming=self.hamming)
         self._isPlaying = False  # set `True` after `play()` is called
+        self._isFinished = False
         self.status = NOT_STARTED
 
     @property
     def isPlaying(self):
         """`True` if the audio playback is ongoing."""
         return self._isPlaying
+
+    @property
+    def isFinished(self):
+        """`True` if the audio playback has completed."""
+        return self._isFinished
 
     def _getDefaultSampleRate(self):
         """Check what streams are open and use one of these"""
@@ -542,18 +548,22 @@ class SoundPTB(_SoundBase):
             logTime = None
         self.track.start(repetitions=loops, when=when)
         self._isPlaying = True
+        self._isFinished = False
         # time.sleep(0.)
         if log and self.autoLog:
             logging.exp(u"Sound %s started" % (self.name), obj=self, t=logTime)
 
-    def pause(self):
-        """Stop the sound but play will continue from here if needed
+    def pause(self, log=True):
+        """Toggles the pause state the sound but play will continue from here if needed
         """
         if self.isPlaying:
-            self.track.stop(reset=False)
-            self._isPlaying = False
+            self.stop(reset=False)
+            if log and self.autoLog:
+                logging.exp(u"Sound %s paused" % (self.name), obj=self)
         else:
             self.play()
+            if log and self.autoLog:
+                logging.exp(u"Sound %s unpaused" % (self.name), obj=self)
 
     def stop(self, reset=True, log=True):
         """Stop the sound and return to beginning
@@ -582,10 +592,11 @@ class SoundPTB(_SoundBase):
         self._loopsFinished += 1
         if self.loops == 0:
             self.stop(reset=reset, log=False)
+            self._isFinished = True
         elif 0 < self.loops <= self._loopsFinished:
             self.stop(reset=reset, log=False)
+            self._isFinished = True
 
-        self._isPlaying = False
         if log and self.autoLog:
             logging.exp(u"Sound %s reached end of file" % self.name, obj=self)
 
