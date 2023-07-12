@@ -109,7 +109,7 @@ jobs:
         # ls -al $PROGRAMFILES/NSIS/Plugins/x86-unicode;
 
     - name: Create nsis installer
-      if: runner.os == 'macOS'
+      if: runner.os == 'Windows'
       uses: joncloud/makensis-action@publish
       with:
         script-file: buildCompleteInstaller.nsi
