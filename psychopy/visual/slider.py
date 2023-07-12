@@ -180,7 +180,6 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         self.ori = ori
         self.flip = flip
 
-        self.startValue = self.markerPos = startValue
         self.rt = None
         self.history = []
         self.marker = None
@@ -203,6 +202,8 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         self._layout()
         # some things must wait until elements created
         self.contrast = 1.0
+
+        self.startValue = self.markerPos = startValue
 
         # set autoLog (now that params have been initialised)
         self.autoLog = autoLog

@@ -136,7 +136,7 @@ class Session:
         # Create log file
         wallTime = data.getDateStr(fractionalSecondDigits=6)
         self.logFile = logging.LogFile(
-            dataDir / f"session_{self.root.stem}_{wallTime}.log",
+            dataDir / f"session_{wallTime}.log",
             level=getattr(logging, loggingLevel.upper())
         )
         # Store priority threshold

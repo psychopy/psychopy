@@ -803,12 +803,18 @@ class Experiment:
                         # e.g. param.val=[{'ori':0},{'ori':3}]
                         try:
                             param.val = eval('%s' % (param.val))
-                        except SyntaxError:
-                            # This can occur if Python2.7 conditions string
-                            # contained long ints (e.g. 8L) and these can't be
-                            # parsed by Py3. But allow the file to carry on
-                            # loading and the conditions will still be loaded
-                            # from the xlsx file
+                        except (NameError, SyntaxError):
+                            """
+                            Catches
+                            -------
+                            SyntaxError
+                                This can occur if Python2.7 conditions string contained long ints (e.g. 8L) and these 
+                                can't be parsed by Py3. But allow the file to carry on loading and the conditions will 
+                                still be loaded from the xlsx file
+                            NameError
+                                Happens when a cell in the conditions file contains a reserved JSON keyword which isn't 
+                                a reserved Python keyword (e.g. nan), as it's read in as literal but can't be evaluated.
+                            """
                             pass
                 # get condition names from within conditionsFile, if any:
                 try:
