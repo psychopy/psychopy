@@ -100,6 +100,7 @@ jobs:
         url="https://nsis.sourceforge.io/mediawiki/images/7/7f/EnVar_plugin.zip";
         curl --location "$url" -o EnVar_plugin.zip;
         unzip EnVar_plugin.zip -d nsis_plugins;
+        cp -r nsis_plugins/Plugins "$PROGRAMFILES/NSIS"; 
         ls -al;
 
     - name: Build binary (Windows)
