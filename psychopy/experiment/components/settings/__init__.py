@@ -119,6 +119,7 @@ class SettingsComponent:
                  color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
                  backgroundImg="", backgroundFit="none",
                  blendMode='avg',
+                 sortColumns="time", colPriority={'thisRow.t': "priority.CRITICAL", 'expName': "priority.LOW"},
                  saveXLSXFile=False, saveCSVFile=False, saveHDF5File=False,
                  saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder='', savedDataDelim='auto',
@@ -161,8 +162,6 @@ class SettingsComponent:
         self.params = {}
         self.depends = []
         self.order = ['expName', 'Use version', 'Enable Escape',  'Show info dlg', 'Experiment info',  # Basic tab
-                      'Data filename', 'Data file delimiter', 'Save excel file', 'Save csv file', 'Save wide csv file',
-                      'Save psydat file', 'Save hdf5 file', 'Save log file', 'logging level',  # Data tab
                       'Audio lib', 'Audio latency priority', "Force stereo",  # Audio tab
                       'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'End Message', 'Resources',  # Online tab
                       'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Show mouse', 'Units', 'color',
@@ -194,10 +193,11 @@ class SettingsComponent:
                             " / break out of the experiment"),
             label=_translate("Enable escape key"))
         self.params['Experiment info'] = Param(
-            expInfo, valType='code', inputType="dict", allowedTypes=[],
+            expInfo, valType='code', inputType="dict", categ='Basic',
+            allowedLabels=(_translate("Field"), _translate("Default")),
             hint=_translate("The info to present in a dialog box. Right-click"
                             " to check syntax and preview the dialog box."),
-            label=_translate("Experiment info"), categ='Basic')
+            label=_translate("Experiment info"))
         self.params['Use version'] = Param(
             useVersion, valType='str', inputType="choice",
             # search for options locally only by default, otherwise sluggish
@@ -308,7 +308,20 @@ class SettingsComponent:
             hint=_translate("How important is audio latency for you? If essential then you may need to get all your sounds in correct formats."),
             label=_translate("Audio latency priority"), categ='Audio')
 
-        # data params
+        # --- Data params ---
+        self.order += [
+            "Data filename",
+            "Data file delimiter",
+            "sortColumns",
+            "colPriority",
+            "Save excel file",
+            "Save log file",
+            "Save csv file",
+            "Save wide csv file",
+            "Save psydat file",
+            "Save hdf5 file",
+            "logging level"
+        ]
         self.params['Data filename'] = Param(
             filename, valType='code', inputType="single", allowedTypes=[],
             hint=_translate("Code to create your custom file name base. Don"
@@ -320,10 +333,29 @@ class SettingsComponent:
             hint=_translate("What symbol should the data file use to separate columns? ""Auto"" will select a delimiter automatically from the filename."),
             label=_translate("Data file delimiter"), categ='Data'
         )
+        self.params['sortColumns'] = Param(
+            sortColumns, valType="str", inputType="choice", categ="Data",
+            allowedLabels=[_translate("Alphabetical"), _translate("Priority"), _translate("First added")],
+            allowedVals=["alphabetical", "priority", "time"],
+            label=_translate("Sort columns by..."),
+            hint=_translate(
+                "How should data file columns be sorted? Alphabetically, by priority, or simply in the order they were "
+                "added?"
+            )
+        )
+        self.params['colPriority'] = Param(
+            colPriority, valType="dict", inputType="dict", categ="Data",
+            allowedLabels=(_translate("Column"), _translate("Priority")),
+            label=_translate("Column priority"),
+            hint=_translate(
+                "Assign priority values to certain columns. To use predefined values, you can do $priority.HIGH, "
+                "$priority.MEDIUM, etc."
+            )
+        )
         self.params['Save log file'] = Param(
             saveLogFile, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Save a detailed log (more detailed than the "
-                            "excel/csv files) of the entire experiment"),
+                            "Excel/csv files) of the entire experiment"),
             label=_translate("Save log file"), categ='Data')
         self.params['Save wide csv file'] = Param(
             saveWideCSVFile, valType='bool', inputType="bool", allowedTypes=[],
@@ -636,7 +668,7 @@ class SettingsComponent:
         :return: expInfo as a dict
         """
         
-        infoStr = self.params['Experiment info'].val.strip()
+        infoStr = str(self.params['Experiment info'].val).strip()
         if len(infoStr) == 0:
             return {}
         try:
@@ -752,7 +784,7 @@ class SettingsComponent:
             "from psychopy.constants import (NOT_STARTED, STARTED, PLAYING,"
             " PAUSED,\n"
             "                                STOPPED, FINISHED, PRESSED, "
-            "RELEASED, FOREVER, salience)\n\n"
+            "RELEASED, FOREVER, priority)\n\n"
             "import numpy as np  # whole numpy lib is available, "
             "prepend 'np.'\n"
             "from numpy import (%s,\n" % ', '.join(_numpyImports[:7]) +
@@ -917,7 +949,7 @@ class SettingsComponent:
         # Write header comment
         starLen = "*"*(len(jsFilename) + 9)
         code = ("/%s \n"
-               " * %s Test *\n" 
+               " * %s *\n" 
                " %s/\n\n")
         buff.writeIndentedLines(code % (starLen, jsFilename.title(), starLen))
 
@@ -1050,9 +1082,25 @@ class SettingsComponent:
                 "    extraInfo=expInfo, runtimeInfo=None,\n"
                 "    originPath=%(originPath)s,\n"
                 "    savePickle=%(Save psydat file)s, saveWideText=%(Save wide csv file)s,\n"
-                "    dataFileName=dataDir + os.sep + filename\n"
+                "    dataFileName=dataDir + os.sep + filename, sortColumns=%(sortColumns)s\n"
                 ")\n")
         buff.writeIndentedLines(code % params)
+
+        # enforce dict on column priority param
+        colPriority = params['colPriority'].val
+        if isinstance(colPriority, str):
+            try:
+                colPriority = ast.literal_eval(colPriority)
+            except:
+                raise ValueError(_translate(
+                    "Could not interpret value as dict: {}"
+                ).format(colPriority))
+        # setup column priority
+        for key, val in colPriority.items():
+            code = (
+                f"thisExp.setPriority('{key}', {val})\n"
+            )
+            buff.writeIndentedLines(code)
 
         code = (
             "# return experiment handler\n"
@@ -1753,7 +1801,7 @@ class SettingsComponent:
             "# shut down eyetracker, if there is one\n"
             "if inputs is not None:\n"
             "    if 'eyetracker' in inputs and inputs['eyetracker'] is not None:\n"
-            "        eyetracker.setConnectionState(False)\n"
+            "        inputs['eyetracker'].setConnectionState(False)\n"
         )
         if self.params['Save log file'].val:
             code += (

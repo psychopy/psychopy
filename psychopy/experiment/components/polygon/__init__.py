@@ -150,17 +150,18 @@ class PolygonComponent(BaseVisualComponent):
         else:
             unitsStr = "units=%(units)s, " % self.params
 
+        # handle dependent params
+        params = self.params.copy()
+        if params['shape'] == 'regular polygon...':
+            params['shape'] = params['nVertices']
+        elif params['shape'] == 'custom polygon...':
+            params['shape'] = params['vertices']
+
         # replace variable params with defaults
-        inits = getInitVals(self.params)
+        inits = getInitVals(params)
         if inits['size'].val in ['1.0', '1']:
             inits['size'].val = '[1.0, 1.0]'
-
-        if self.params['shape'] == 'regular polygon...':
-            vertices = inits['nVertices']
-        elif self.params['shape'] == 'custom polygon...':
-            vertices = inits['vertices']
-        else:
-            vertices = inits['shape']
+        vertices = inits['shape']
         if vertices in ['line', '2']:
             code = ("%s = visual.Line(\n" % inits['name'] +
                     "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
