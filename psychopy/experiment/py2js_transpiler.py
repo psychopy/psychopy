@@ -234,7 +234,7 @@ class pythonTransformer(ast.NodeTransformer):
 
         # substitutable transformation, e.g. Vector.append(5) --> Vector.push(5):
         if isinstance(node.func, ast.Attribute):  # and isinstance(node.func.value, ast.Name):
-            substitutedNode = self.substitutionTransform(node.func, node.args)
+            substitutedNode = self.substitutionTransform(node.func, node.args, node.keywords)
             if substitutedNode:
                 return substitutedNode
 
@@ -274,7 +274,7 @@ class pythonTransformer(ast.NodeTransformer):
         # return the node by default:
         return node
 
-    def substitutionTransform(self, func, args):
+    def substitutionTransform(self, func, args, keywords):
         # Substitutions where only the function name changes (see below)
         functionSubsJS = {
             'lower': 'toLowerCase',
@@ -372,7 +372,29 @@ class pythonTransformer(ast.NodeTransformer):
                 keywords=[]
             )
 
-        # Substitutions where the value on which the function is performed (not the function itself) changes
+        # a = "This is a test"
+        # a.split() -> a.split(" ")
+        # Note that this function translates correctly if there's an input arg; only the default requires modification.
+        elif func.attr == 'split' and not args:
+            args = [ast.Constant(" ")]
+            return ast.Call(
+                func=func,
+                args=args,
+                keywords=[]
+            )
+
+        # a = [3, 7, 9, 0, 1, 5]
+        # a.sort(reverse=True) -> a.reverse()
+        # This one only needs adjustment if the reverse=True keyword argument is included.
+        elif func.attr == 'sort' and keywords and keywords[0].arg == 'reverse' and keywords[0].value.value:
+            func.attr = 'reverse'
+            return ast.Call(
+                func=func,
+                args=[],
+                keywords=[]
+            )
+
+    # Substitutions where the value on which the function is performed (not the function itself) changes
         elif isinstance(func.value, ast.Name):
             # webbrowser.open('https://pavlovia.org') --> window.open('https://pavlovia.org')
             if func.value.id == 'webbrowser':

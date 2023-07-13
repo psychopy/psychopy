@@ -54,6 +54,10 @@ class TestTranspiler:
         # Define some cases which should be handled
         cases = [
             {'py': "a.append(4)", 'js': "a.push(4);\n"},
+            {'py': "a.split()", 'js': 'a.split(" ");\n'},
+            {'py': "a.split('.')", 'js': 'a.split(".");\n'},
+            {'py': "a.sort(reverse=True)", 'js': "a.reverse();\n"},
+            {'py': "a.sort()", 'js': "a.sort();\n"},
             {'py': "a.insert(0, 5)", 'js': "a.splice(0, 0, 5);\n"},
             {'py': "a.insert(-1, x)", 'js': "a.splice((- 1), 0, x);\n"},
             {'py': "' '.join(a)", 'js': 'a.join(" ");\n'},
