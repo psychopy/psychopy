@@ -18,6 +18,8 @@ import copy
 import traceback
 import codecs
 import numpy
+import requests
+import io
 
 from pkg_resources import parse_version
 import wx.stc
@@ -31,6 +33,7 @@ from ..pavlovia_ui import sync
 from ..pavlovia_ui.project import ProjectFrame
 from ..pavlovia_ui.search import SearchFrame
 from ..pavlovia_ui.user import UserFrame
+from ..pavlovia_ui.functions import logInPavlovia
 from ...experiment import getAllElements, getAllCategories
 from ...experiment.routines import Routine, BaseStandaloneRoutine
 from ...tools.stringtools import prettyname
@@ -4408,13 +4411,58 @@ class BuilderToolbar(BasePsychopyToolbar):
 
         # add button for Pavlovia menu
         from ..pavlovia_ui.menu import PavloviaUserMenu
-        self.pavButton = PavloviaUserMenu(self)
-        self.buttons['pavlovia'] = self.AddControl(self.pavButton)
+        self.pavButton = self.AddTool(
+            wx.ID_ANY, label="User", bitmap=icons.ButtonIcon("pavlovia", size=32).bitmap, kind=wx.ITEM_DROPDOWN
+        )
+        self.Bind(wx.EVT_TOOL_DROPDOWN, self.onPavloviaMenu, self.pavButton)
+        self.Bind(wx.EVT_TOOL, self.onPavloviaDashboard, self.pavButton)
         # Disable compile buttons until an experiment is present
         self.EnableTool(self.buttons['compile_py'].GetId(), Path(str(self.frame.filename)).is_file())
         self.EnableTool(self.buttons['compile_js'].GetId(), Path(str(self.frame.filename)).is_file())
 
         self.frame.btnHandles = self.buttons
+
+    def updateUser(self, evt=None):
+        user = pavlovia.getCurrentSession().user
+        if user is None:
+            self.pavButton.SetToolLabel(_translate("Logged out"))
+            self.pavButton.SetNormalBitmap(icons.ButtonIcon("pavlovia", size=32).bitmap)
+        else:
+            try:
+                content = requests.get(user['avatar_url']).content
+                buffer = wx.Image(io.BytesIO(content))
+                buffer = buffer.Scale(32, 32, quality=wx.IMAGE_QUALITY_HIGH)
+                icon = wx.Bitmap(buffer)
+            except requests.exceptions.MissingSchema:
+                icon = icons.ButtonIcon("pavlovia", size=32).bitmap
+
+            self.pavButton.SetLabel(user['username'])
+            self.pavButton.SetNormalBitmap(icon)
+
+    def onPavloviaMenu(self, evt=None):
+        # get user
+        user = pavlovia.getCurrentSession().user
+        # make menu
+        menu = wx.Menu()
+
+        # switch user
+        switchTo = wx.Menu()
+        menu.AppendSubMenu(switchTo, "Switch user")
+        for name in pavlovia.knownUsers:
+            if user is None or name != user['username']:
+                btn = switchTo.Append(wx.ID_ANY, name)
+        # log in to new user
+        btn = switchTo.Append(wx.ID_ANY, _translate("New user..."))
+        menu.Bind(wx.EVT_MENU, self.onPavloviaLogin, btn)
+        # log in/out
+        if user is not None:
+            btn = menu.Append(wx.ID_ANY, "Log out")
+            menu.Bind(wx.EVT_MENU, self.onPavloviaLogout, btn)
+        else:
+            btn = menu.Append(wx.ID_ANY, "Log in")
+            menu.Bind(wx.EVT_MENU, self.onPavloviaLogin, btn)
+
+        self.PopupMenu(menu)
 
     def onPavloviaDebug(self, evt=None):
         # Open runner
@@ -4430,9 +4478,6 @@ class BuilderToolbar(BasePsychopyToolbar):
         # Run debug function from runner
         self.frame.app.runner.panel.runOnlineDebug(evt=evt)
 
-    def onGotoPavlovia(self, evt=None):
-        webbrowser.open("https://pavlovia.org")
-
     def onPavloviaSearch(self, evt=None):
         searchDlg = SearchFrame(
                 app=self.frame.app, parent=self.frame,
@@ -4442,6 +4487,21 @@ class BuilderToolbar(BasePsychopyToolbar):
     def onPavloviaUser(self, evt=None):
         userDlg = UserFrame(self.frame)
         userDlg.ShowModal()
+
+    def onPavloviaDashboard(self, evt=None):
+        # get user
+        user = pavlovia.getCurrentSession().user
+        # if we have a user, go to profile
+        if user is None:
+            webbrowser.open("https://pavlovia.org")
+        else:
+            webbrowser.open("https://pavlovia.org/%(username)s" % user)
+
+    def onPavloviaLogin(self, evt=None):
+        logInPavlovia(self, evt)
+
+    def onPavloviaLogout(self, evt=None):
+        pavlovia.logout()
 
     def onPavloviaProject(self, evt=None):
         # Search again for project if needed (user may have logged in since last looked)

@@ -116,7 +116,7 @@ def login(tokenOrUsername, rememberMe=True):
     if not isinstance(builders, (list, tuple)):
         builders = [builders]
     for builder in builders:
-        builder.toolbar.pavButton.updateUser()
+        builder.toolbar.updateUser()
 
 
 def logout():
