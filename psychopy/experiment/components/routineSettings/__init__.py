@@ -13,12 +13,11 @@ _localized = {'name': _translate("Name")}
 class RoutineSettingsComponent(BaseComponent):
     """
     """
-    targets = ['PsychoPy']
-
     categories = ['Other']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'routineSettings.png'
     tooltip = _translate('Settings for this Routine.')
+    version = "2023.2.0"
 
     def __init__(
             self, exp, parentName,

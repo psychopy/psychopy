@@ -296,6 +296,15 @@ def genFilenameFromDelimiter(filename, delim):
     return filename
 
 
+def constructLegacyFilename(filename):
+    # make path object from filename
+    filename = Path(filename)
+    # construct legacy variant name
+    legacyName = filename.parent / (filename.stem + "_legacy" + filename.suffix)
+
+    return legacyName
+
+
 class DictStorage(dict):
     """Helper class based on dictionary with storage to json
     """

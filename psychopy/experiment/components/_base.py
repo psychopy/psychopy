@@ -32,6 +32,8 @@ class BaseComponent:
     plugin = None
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
     tooltip = ""
+    # what version was this Component added in?
+    version = "0.0.0"
 
     def __init__(self, exp, parentName, name='',
                  startType='time (s)', startVal='',

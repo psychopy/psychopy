@@ -25,6 +25,8 @@ class BaseStandaloneRoutine:
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
     tooltip = ""
     limit = float('inf')
+    # what version was this Routine added in?
+    version = "0.0.0"
 
     def __init__(self, exp, name='',
                  stopType='duration (s)', stopVal='',
@@ -224,6 +226,7 @@ class Routine(list):
     """
 
     targets = ["PsychoPy", "PsychoJS"]
+    version = "0.0.0"
 
     def __init__(self, name, exp, components=(), disabled=False):
         self.settings = RoutineSettingsComponent(exp, name, disabled=disabled)
