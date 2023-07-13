@@ -123,6 +123,7 @@ jobs:
       run:
         sitepackages=$(python3 -c "import site; print(site.getsitepackages()[0])");
         sudo touch $sitepackages/metapensiero/__init__.py;
+        rm $sitepackages/PIL/.dylibs/libwebp.7.dylib
         sh ./building/buildAppMacOS.sh ${{ secrets.OST_APPLE_ID }} ${{ secrets.OST_APPLE_PWORD }};
 
     - name: Check available files
