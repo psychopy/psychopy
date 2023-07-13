@@ -45,6 +45,8 @@ jobs:
         brew update --preinstall
         brew install glfw lame libevent 
         brew install labstreaminglayer/tap/lsl
+        brew install libffi
+        sudo ln -s /usr/local/opt/libffi/lib/libffi.dylib /usr/local/lib/libffi.dylib
 
     - name: Unpack portable Python distro (Windows)
       if: runner.os == 'Windows'
