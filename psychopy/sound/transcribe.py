@@ -667,7 +667,7 @@ def getAllTranscribers(engineKeys=False):
     return toReturn
 
 
-def transcribe(audioClip, engine='sphinx', language='en-US', expectedWords=None,
+def transcribe(audioClip, engine='whisper', language='en-US', expectedWords=None,
                config=None):
     """Convert speech in audio to text.
 
