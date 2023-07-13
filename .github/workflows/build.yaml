@@ -130,7 +130,7 @@ jobs:
       run:
         echo "********************* ls -al dist";
         ls -al dist;
-        echo ""********************* ls -al";
+        echo "********************* ls -al";
         ls -al;
 
     - name: Upload builds with googleapi
