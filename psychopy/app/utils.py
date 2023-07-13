@@ -311,7 +311,7 @@ class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
         self.frame = frame
         self.app = self.frame.app
         # Configure toolbar appearance
-        self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER)
+        self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER | wx.TB_HORZ_TEXT)
         # Set icon size
         self.iconSize = 32
         self.SetToolBitmapSize((self.iconSize, self.iconSize))
@@ -340,15 +340,13 @@ class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
         # Make button
         if 'phoenix' in wx.PlatformInfo:
             btn = self.AddTool(
-                wx.ID_ANY, label=label,
-                bitmap=icn.bitmap, shortHelp=tooltip,
+                wx.ID_ANY, label="",
+                bitmap=icn.bitmap, shortHelp=label,
                 kind=wx.ITEM_NORMAL
             )
         else:
             btn = self.AddSimpleTool(
-                wx.ID_ANY, label=label,
-                bitmap=icn.bitmap, shortHelp=tooltip,
-                kind=wx.ITEM_NORMAL
+                wx.ID_ANY, bitmap=icn.bitmap
             )
         # Bind tool to function
         if func is None:

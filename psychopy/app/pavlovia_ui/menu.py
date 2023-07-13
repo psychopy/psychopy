@@ -4,12 +4,14 @@
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
+import io
 
 import wx
 import requests
 
 from psychopy import logging
 from .. import dialogs
+from ..themes import icons
 from .functions import logInPavlovia
 from psychopy.app.pavlovia_ui.project import syncProject
 from .search import SearchFrame
@@ -98,7 +100,7 @@ class PavloviaMenu(wx.Menu):
         if user in pavlovia.knownUsers:
             token = pavlovia.knownUsers[user]['token']
             try:
-                pavlovia.getCurrentSession().setToken(token)
+                pavlovia.login(token)
             except requests.exceptions.ConnectionError:
                 logging.warning("Tried to log in to Pavlovia but no network "
                                 "connection")
@@ -136,3 +138,50 @@ class PavloviaMenu(wx.Menu):
                                                     "You need to log in"
                                                     " to create a project"))
             infoDlg.Show()
+
+
+class PavloviaUserMenu(wx.Button):
+
+    def __init__(self, parent):
+        wx.Button.__init__(self, parent)
+
+        self.Bind(wx.EVT_BUTTON, self.onClick)
+
+    def onClick(self, evt=None):
+        # get user
+        user = pavlovia.getCurrentSession().user
+        # make menu
+        menu = wx.Menu()
+
+        # switch user
+        switchTo = wx.Menu()
+        menu.AppendSubMenu(switchTo, "Switch user")
+        for name in pavlovia.knownUsers:
+            if name != user['username']:
+                btn = switchTo.Append(wx.ID_ANY, name)
+        # view online
+        btn = menu.Append(wx.ID_ANY, "Dashboard")
+        # log in/out
+        if user is not None:
+            btn = menu.Append(wx.ID_ANY, "Log out")
+        else:
+            btn = menu.Append(wx.ID_ANY, "Log in")
+
+        self.PopupMenu(menu)
+
+    def updateUser(self, evt=None):
+        user = pavlovia.getCurrentSession().user
+        if user is None:
+            self.SetLabel(_translate("Logged out"))
+            self.SetBitmap(icons.ButtonIcon("pavlovia", size=32).bitmap)
+        else:
+            try:
+                content = requests.get(user['avatar_url']).content
+                buffer = wx.Image(io.BytesIO(content))
+                buffer = buffer.Scale(32, 32, quality=wx.IMAGE_QUALITY_HIGH)
+                icon = wx.Bitmap(buffer)
+            except requests.exceptions.MissingSchema:
+                icon = wx.Bitmap()
+
+            self.SetLabel(user['username'])
+            self.SetBitmap(icon)

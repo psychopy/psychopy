@@ -4372,18 +4372,13 @@ class BuilderToolbar(BasePsychopyToolbar):
 
         self.AddSeparator()
 
-        # Pavlovia run
-        self.buttons['pavloviaRun'] = self.makeTool(
-            name='globe_run',
-            label=_translate("Run online"),
-            tooltip=_translate("Run the study online (with pavlovia.org)"),
-            func=self.frame.onPavloviaRun)
         # Pavlovia debug
         self.buttons['pavloviaDebug'] = self.makeTool(
             name='globe_bug',
             label=_translate("Run in local browser"),
             tooltip=_translate("Run the study in PsychoJS on a local browser, not through pavlovia.org"),
             func=self.onPavloviaDebug)
+
         # Pavlovia sync
         self.buttons['pavloviaSync'] = self.makeTool(
             name='globe_greensync',
@@ -4402,13 +4397,19 @@ class BuilderToolbar(BasePsychopyToolbar):
             label=_translate("Current Pavlovia user"),
             tooltip=_translate("Log in/out of Pavlovia.org, view your user profile."),
             func=self.onPavloviaUser)
-        # Pavlovia user
+        # Pavlovia project
         self.buttons['pavloviaProject'] = self.makeTool(
             name='globe_info',
             label=_translate("View project"),
             tooltip=_translate("View details of this project"),
             func=self.onPavloviaProject)
 
+        self.AddStretchableSpace()
+
+        # add button for Pavlovia menu
+        from ..pavlovia_ui.menu import PavloviaUserMenu
+        self.pavButton = PavloviaUserMenu(self)
+        self.buttons['pavlovia'] = self.AddControl(self.pavButton)
         # Disable compile buttons until an experiment is present
         self.EnableTool(self.buttons['compile_py'].GetId(), Path(str(self.frame.filename)).is_file())
         self.EnableTool(self.buttons['compile_js'].GetId(), Path(str(self.frame.filename)).is_file())
@@ -4428,6 +4429,9 @@ class BuilderToolbar(BasePsychopyToolbar):
         runner.addTask(fileName=self.frame.filename)
         # Run debug function from runner
         self.frame.app.runner.panel.runOnlineDebug(evt=evt)
+
+    def onGotoPavlovia(self, evt=None):
+        webbrowser.open("https://pavlovia.org")
 
     def onPavloviaSearch(self, evt=None):
         searchDlg = SearchFrame(

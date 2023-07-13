@@ -112,6 +112,12 @@ def login(tokenOrUsername, rememberMe=True):
         user = currentSession.user
         prefs.appData['projects']['pavloviaUser'] = user['username']
 
+    builders = app.getAppInstance().builder
+    if not isinstance(builders, (list, tuple)):
+        builders = [builders]
+    for builder in builders:
+        builder.toolbar.pavButton.updateUser()
+
 
 def logout():
     """Log the current user out of pavlovia.
