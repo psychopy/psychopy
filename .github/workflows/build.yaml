@@ -126,11 +126,18 @@ jobs:
         sudo touch $sitepackages/metapensiero/__init__.py;
         sh ./building/buildAppMacOS.sh ${{ secrets.OST_APPLE_ID }} ${{ secrets.OST_APPLE_PWORD }};
 
+    - name: Check available files
+      run:
+        echo "********************* ls -al dist"
+        ls -al dist
+        echo ""********************* ls -al"
+        ls -al
+
     - name: Upload builds with googleapi
       env:
         DOGFOOD_KEY: ${{ secrets.PSYCHOPY_BUILD_KEY }}
         NIGHTLY_FOLDER: ${{ secrets.NIGHTLY_FOLDER }}
-      if: ${{ env.gdrive_key != '' }}
+      if: ${{ secrets.PSYCHOPY_BUILD_KEY != '' }}
       run: |
           ls -al
           # NB this is using python but after we build so won't include?
