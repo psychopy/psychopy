@@ -1672,6 +1672,9 @@ class DraggingMixin:
         # if not draggable, do nothing
         if not self.draggable:
             return
+        # if something else is already dragging, do nothing
+        if self.win.currentDraggable is not None and self.win.currentDraggable != self:
+            return
         # if just clicked on, start dragging
         self.isDragging = self.isDragging or self.mouse.isPressedIn(self, buttons=[0])
         # if click is released, stop dragging
@@ -1681,6 +1684,8 @@ class DraggingMixin:
 
         # if dragging, do necessary updates
         if self.isDragging:
+            # set as current draggable
+            self.win.currentDraggable = self
             # get own pos in win units
             pos = getattr(self._pos, self.win.units)
             # add mouse movement to pos
@@ -1692,8 +1697,8 @@ class DraggingMixin:
             # set pos
             self.pos = getattr(self._pos, self.units)
         else:
-            # mark self as being dragged
-            self.isDragging = False
+            # remove as current draggable
+            self.win.currentDraggable = None
 
     @attributeSetter
     def draggable(self, value):
