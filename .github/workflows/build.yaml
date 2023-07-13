@@ -137,7 +137,7 @@ jobs:
       env:
         DOGFOOD_KEY: ${{ secrets.PSYCHOPY_BUILD_KEY }}
         NIGHTLY_FOLDER: ${{ secrets.NIGHTLY_FOLDER }}
-      if: ${{ secrets.PSYCHOPY_BUILD_KEY != '' }}
+      if: ${{ env.DOGFOOD_KEY != '' }}
       run: |
           ls -al
           # NB this is using python but after we build so won't include?
