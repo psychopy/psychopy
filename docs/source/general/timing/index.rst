@@ -22,7 +22,7 @@ Understand and measuring your timing
 
 There are certain steps that we strongly advise you to take before running an experiment that needs to be temporally precise in PsychoPy, or indeed any other software:
 
-* Read `this timing megastudy <https://peerj.com/articles/9414/>`_ by Bridges et al (2020) which compares several pieces of behavioural software in terms of their temporal precision.
+* Read `this timing megastudy <https://peerj.com/articles/9414/>`_ by Bridges et al (2020) which compares several pieces of behavioural software in terms of their temporal precision. You can find a summary of the results here: :ref:`timing2020`
 * Check that your stimulus presentation monitor is not dropping frames. You can do this by running the timeByFrames.py demo. Find this demo in the `Coder` window > demos > timing. The timeByFrames demo examines the precision of your frame flips, and shows the results in a plot similar to the one below:
 
 .. figure:: /images/timeByFrameRes.png
