@@ -403,6 +403,11 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         # Set callbacks since we have the resources to write to.
         thisInstance = ctypes.cast(
             ctypes.pointer(ctypes.py_object(self)), ctypes.c_void_p)
+        
+        # we need to increment the ref count
+        ctypes.pythonapi.Py_IncRef(ctypes.py_object(thisInstance))
+        
+
         self._player.video_set_callbacks(
             vlcLockCallback, vlcUnlockCallback, vlcDisplayCallback,
             thisInstance)
