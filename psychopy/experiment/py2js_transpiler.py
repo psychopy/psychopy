@@ -346,6 +346,19 @@ class pythonTransformer(ast.NodeTransformer):
                 keywords=[]
             )
 
+        # a = [1, 2, 3, 4]
+        # a.insert(0, 5) -> a.splice(0, 0, 5);
+        # Note that .insert only inserts a single element, so there should always be exactly two input args).
+        elif func.attr == 'insert':
+            func.attr = 'splice'
+            args = [args[0], [ast.Constant(0)], args[1]]
+
+            return ast.Call(
+                func=func,
+                args=args,
+                keywords=[]
+            )
+
         # a = ['This', 'is', 'a', 'test']
         # ' '.join(a) -> a.join(" ");
         # In this case func.value and args need to be switched.
