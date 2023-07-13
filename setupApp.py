@@ -154,6 +154,7 @@ setup(
                       'functools32',
                       'sympy',
                       '/usr/lib/libffi.dylib',
+                      'libwebp.7.dylib'
                       ],  # anything we need to forcibly exclude?
             resources=resources,
             argv_emulation=False,  # must be False or app bundle pauses (py2app 0.21 and 0.24 tested)

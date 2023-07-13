@@ -100,7 +100,6 @@ jobs:
         mypip install ".[tests]"  # install self with tests extras
         mypip install ".[suggested]"  # install self with tests extras
      
-
     - name: Install NSIS plugins (Windows)
       if: runner.os == 'Windows'
       run:
@@ -128,16 +127,16 @@ jobs:
 
     - name: Check available files
       run:
-        echo "********************* ls -al dist"
-        ls -al dist
-        echo ""********************* ls -al"
-        ls -al
+        echo "********************* ls -al dist";
+        ls -al dist;
+        echo ""********************* ls -al";
+        ls -al;
 
     - name: Upload builds with googleapi
       env:
         DOGFOOD_KEY: ${{ secrets.PSYCHOPY_BUILD_KEY }}
         NIGHTLY_FOLDER: ${{ secrets.NIGHTLY_FOLDER }}
-      if: ${{ env.DOGFOOD_KEY != '' }}
+      if: github.repository_owner == 'psychopy'
       run: |
           ls -al
           # NB this is using python but after we build so won't include?
