@@ -329,7 +329,7 @@ class pythonTransformer(ast.NodeTransformer):
                 keywords=[]
             )
 
-        # Substitutions where the function and arguments both change
+        # Substitutions where more than one of the function, value, and arguments change
         # a = [1,2,3]
         # a.pop(2) -> a.splice(2, 1);
         # a.pop() -> a.splice(-1, 1);
@@ -343,6 +343,19 @@ class pythonTransformer(ast.NodeTransformer):
             return ast.Call(
                 func=func,
                 args=args,
+                keywords=[]
+            )
+
+        # a = ['This', 'is', 'a', 'test']
+        # ' '.join(a) -> a.join(" ");
+        # In this case func.value and args need to be switched.
+        elif func.attr == 'join':
+            new_args = [ast.Constant(func.value.value)]
+            func.value = args[0]
+            
+            return ast.Call(
+                func=func,
+                args=new_args,
                 keywords=[]
             )
 

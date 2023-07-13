@@ -54,6 +54,7 @@ class TestTranspiler:
         # Define some cases which should be handled
         cases = [
             {'py': "a.append(4)", 'js': "a.push(4);\n"},
+            {'py': "' '.join(a)", 'js': 'a.join(" ");\n'},
             {'py': "a.index(2)", 'js': "util.index(a, 2);\n"},
             {'py': "a.count(2)", 'js': "util.count(a, 2);\n"},
             {'py': "a.lower()", 'js': "a.toLowerCase();\n"},
