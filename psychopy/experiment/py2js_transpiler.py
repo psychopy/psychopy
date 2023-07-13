@@ -26,12 +26,13 @@ namesJS = {
     'random': 'Math.random',
     'sqrt': 'Math.sqrt',
     'abs': 'Math.abs',
+    'floor': 'Math.floor',
+    'ceil': 'Math.ceil',
     'randint': 'util.randint',
     'range': 'util.range',
     'randchoice': 'util.randchoice',
     'round': 'util.round',  # better than Math.round, supports n DPs arg
     'sum': 'util.sum',
-    'core.Clock': 'util.Clock',
 }
 
 
@@ -117,7 +118,7 @@ class pythonTransformer(ast.NodeTransformer):
 
     # operation from the math python module or builtin operations that are available
     # in util/Util.js:
-    utilOperations = ['sum', 'average', 'randint', 'range', 'sort', 'shuffle', 'randchoice', 'pad']
+    utilOperations = ['sum', 'average', 'randint', 'range', 'sort', 'shuffle', 'randchoice', 'pad', 'Clock']
 
     def visit_BinOp(self, node):
 
@@ -246,6 +247,10 @@ class pythonTransformer(ast.NodeTransformer):
                 mathNode = self.mathTransform(attribute, node.args)
                 if mathNode:
                     return mathNode
+            elif prefix == 'core':
+                utilNode = self.utilTransform(attribute, node.args)
+                if utilNode:
+                    return utilNode
 
         # operations without prefix:
         if isinstance(node.func, ast.Name):
@@ -269,70 +274,52 @@ class pythonTransformer(ast.NodeTransformer):
         # return the node by default:
         return node
 
-
     def substitutionTransform(self, func, args):
+        # Substitutions where only the function name changes (see below)
+        functionSubsJS = {
+            'lower': 'toLowerCase',
+            'append': 'push',
+            'upper': 'toUpperCase',
+            'extend': 'concat',
+        }
+        # Substitions that become util functions
+        utilSubsJS = [
+            'index',
+            'count'
+        ]
 
-        # a = 'HELLO'
-        # a.lower() --> a.toLowerCase()
-        if func.attr == 'lower':
-            func.attr = 'toLowerCase'
-            return ast.Call(
-                func=func,
-                args=args,
-                keywords=[]
-            )
-
-        # a = [1,2,3]
-        # a.append(4) --> a.push(4)
-        # value=Call(func=Attribute(value=Name(id='a', ctx=Load()), attr='append', ctx=Load()), args=[Num(n=4)], keywords=[])
-        if func.attr == 'append':
-            func.attr = 'push'
-            return ast.Call(
-                func=func,
-                args=args,
-                keywords=[]
-            )
-
-        # a = 'hello
-        # a.upper() --> a.toUpperCase()
-        # value=Call(func=Attribute(value=Name(id='a', ctx=Load()), attr='append', ctx=Load()), args=[Num(n=4)], keywords=[])
-        if func.attr == 'upper':
-            func.attr = 'toUpperCase'
-            return ast.Call(
-                func=func,
-                args=args,
-                keywords=[]
-            )
-
+        # Substitutions where only the function name changes
+        # Examples:
+        #   a = 'HELLO'
+        #   a.lower() --> a.toLowerCase()
+        #
+        #   a = [1,2,3]
+        #   a.append(4) --> a.push(4)
+        #
+        #   a = 'hello
+        #   a.upper() --> a.toUpperCase()
+        #
         # a = [1,2,3]
         # a.extend([4, 5, 6]) --> a.concat([4, 5, 6])
-        if func.attr == 'extend':
-            func.attr = 'concat'
+        if func.attr in functionSubsJS:
+            func.attr = functionSubsJS[func.attr]
             return ast.Call(
                 func=func,
                 args=args,
                 keywords=[]
             )
 
+        # Substitutions where the function is changed to a util.function and the original value becomes an argument
         # a = [1,2,3]
         # a.index(2) --> util.index(a,2)
         # value=Call(func=Attribute(value=Name(id='a', ctx=Load()), attr='index', ctx=Load()), args=[Num(n=2)], keywords=[])
         # value=Call(func=Attribute(value=Name(id='util', ctx=Load()), attr='index', ctx=Load()), args=[Name(id='a', ctx=Load()), Num(n=2)], keywords=[])
-        elif func.attr == 'index':
-            value = func.value
-            func.value = ast.Name(id='util', ctx=ast.Load())
-            args = [value, args]
-            return ast.Call(
-                func=func,
-                args=args,
-                keywords=[]
-            )
-
+        #
         # a = [1,2,3]
         # a.count(2) --> util.count(a,2)
         # value=Call(func=Attribute(value=Name(id='a', ctx=Load()), attr='count', ctx=Load()), args=[Num(n=2)], keywords=[])
         # value=Call(func=Attribute(value=Name(id='util', ctx=Load()), attr='count', ctx=Load()), args=[Name(id='a', ctx=Load()), Num(n=2)], keywords=[])
-        elif func.attr == 'count':
+        elif func.attr in utilSubsJS:
             value = func.value
             func.value = ast.Name(id='util', ctx=ast.Load())
             args = [value, args]
@@ -342,6 +329,24 @@ class pythonTransformer(ast.NodeTransformer):
                 keywords=[]
             )
 
+        # Substitutions where the function and arguments both change
+        # a = [1,2,3]
+        # a.pop(2) -> a.splice(2, 1);
+        # a.pop() -> a.splice(-1, 1);
+        # The second argument of splice is the number of elements to delete; pass 1 for functionality equivalent to pop.
+        # The default first argument for pop is -1 (remove the last item).
+        elif func.attr == 'pop':
+            func.attr = 'splice'
+            args = args if args else [ast.Constant(-1)]
+            args = [args, [ast.Constant(1)]]
+
+            return ast.Call(
+                func=func,
+                args=args,
+                keywords=[]
+            )
+
+        # Substitutions where the value on which the function is performed (not the function itself) changes
         elif isinstance(func.value, ast.Name):
             # webbrowser.open('https://pavlovia.org') --> window.open('https://pavlovia.org')
             if func.value.id == 'webbrowser':
