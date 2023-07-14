@@ -1519,6 +1519,8 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def project(self, project):
         self._project = project
 
+        self.toolbar.updateProject()
+
 
 class RoutinesNotebook(aui.AuiNotebook, handlers.ThemeMixin):
     """A notebook that stores one or more routines
@@ -4403,12 +4405,22 @@ class BuilderToolbar(BasePsychopyToolbar):
 
         self.AddStretchableSpace()
 
+        # add button for Pavlovia project menu
+        self.pavProjectBtn = self.AddTool(
+            wx.ID_ANY, label="Project", bitmap=icons.ButtonIcon("pavlovia", size=32).bitmap, kind=wx.ITEM_DROPDOWN
+        )
+        self.Bind(wx.EVT_TOOL_DROPDOWN, self.onPavloviaProjectMenu, self.pavProjectBtn)
+        self.Bind(wx.EVT_TOOL, self.onPavloviaProjectPage, self.pavProjectBtn)
+        self.updateProject()
+
         # add button for Pavlovia user menu
         self.pavUserBtn = self.AddTool(
             wx.ID_ANY, label="User", bitmap=icons.ButtonIcon("pavlovia", size=32).bitmap, kind=wx.ITEM_DROPDOWN
         )
-        self.Bind(wx.EVT_TOOL_DROPDOWN, self.onPavloviaMenu, self.pavUserBtn)
-        self.Bind(wx.EVT_TOOL, self.onPavloviaDashboard, self.pavUserBtn)
+        self.Bind(wx.EVT_TOOL_DROPDOWN, self.onPavloviaUserMenu, self.pavUserBtn)
+        self.Bind(wx.EVT_TOOL, self.onPavloviaUserPage, self.pavUserBtn)
+        self.updateUser()
+
 
         # Disable compile buttons until an experiment is present
         self.EnableTool(self.buttons['compile_py'].GetId(), Path(str(self.frame.filename)).is_file())
@@ -4444,7 +4456,16 @@ class BuilderToolbar(BasePsychopyToolbar):
         # set icon
         self.SetToolNormalBitmap(self.pavUserBtn.GetId(), wx.Bitmap(icon))
 
-    def onPavloviaMenu(self, evt=None):
+    def onPavloviaUserPage(self, evt=None):
+        # get user
+        user = pavlovia.getCurrentSession().user
+        # if we have a user, go to profile
+        if user is None:
+            webbrowser.open("https://pavlovia.org")
+        else:
+            webbrowser.open("https://pavlovia.org/%(username)s" % user)
+
+    def onPavloviaUserMenu(self, evt=None):
         # get user
         user = pavlovia.getCurrentSession().user
         # make menu
@@ -4473,6 +4494,46 @@ class BuilderToolbar(BasePsychopyToolbar):
             menu.Bind(wx.EVT_MENU, self.onPavloviaLogin, btn)
 
         self.PopupMenu(menu)
+
+    def updateProject(self, evt=None):
+        project = self.GetTopLevelParent().project
+        if project is None:
+            self.pavProjectBtn.SetLabel(_translate("No project"))
+            icon = icons.ButtonIcon("pavlovia", size=32).bitmap
+        else:
+            try:
+                content = utils.ImageData(project['avatar_url'])
+                content = content.resize(size=(32, 32))
+                icon = wx.Bitmap.FromBufferAndAlpha(
+                    width=content.size[0],
+                    height=content.size[1],
+                    data=content.tobytes("raw", "RGB"),
+                    alpha=content.tobytes("raw", "A")
+                )
+            except requests.exceptions.MissingSchema:
+                icon = icons.ButtonIcon("pavlovia", size=32).bitmap
+            self.pavProjectBtn.SetLabel(project['name'])
+        # apply circle mask
+        mask = icons.ButtonIcon("circle_mask", size=32).bitmap.ConvertToImage()
+        icon = icon.ConvertToImage()
+        maskAlpha = numpy.array(mask.GetAlpha(), dtype=int)
+        iconAlpha = numpy.array(icon.GetAlpha(), dtype=int)
+        combinedAlpha = numpy.minimum(maskAlpha, iconAlpha)
+        icon.SetAlpha(numpy.uint8(combinedAlpha))
+        # set icon
+        self.SetToolNormalBitmap(self.pavProjectBtn.GetId(), wx.Bitmap(icon))
+
+    def onPavloviaProjectPage(self, evt=None):
+        # get project
+        project = self.GetTopLevelParent().project
+        # if we have a user, go to profile
+        if project is None:
+            webbrowser.open("https://pavlovia.org")
+        else:
+            webbrowser.open(f"https://pavlovia.org/{project.stringId}")
+
+    def onPavloviaProjectMenu(self, evt=None):
+        pass
 
     def onPavloviaDebug(self, evt=None):
         # Open runner
@@ -4507,14 +4568,7 @@ class BuilderToolbar(BasePsychopyToolbar):
         user = pavlovia.getCurrentSession().user
         user.user = user.user
 
-    def onPavloviaDashboard(self, evt=None):
-        # get user
-        user = pavlovia.getCurrentSession().user
-        # if we have a user, go to profile
-        if user is None:
-            webbrowser.open("https://pavlovia.org")
-        else:
-            webbrowser.open("https://pavlovia.org/%(username)s" % user)
+
 
     def onPavloviaSwitchUser(self, evt):
         menu = evt.GetEventObject()
