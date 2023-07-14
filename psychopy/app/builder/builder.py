@@ -4403,13 +4403,13 @@ class BuilderToolbar(BasePsychopyToolbar):
 
         self.AddStretchableSpace()
 
-        # add button for Pavlovia menu
-        from ..pavlovia_ui.menu import PavloviaUserMenu
-        self.pavButton = self.AddTool(
+        # add button for Pavlovia user menu
+        self.pavUserBtn = self.AddTool(
             wx.ID_ANY, label="User", bitmap=icons.ButtonIcon("pavlovia", size=32).bitmap, kind=wx.ITEM_DROPDOWN
         )
-        self.Bind(wx.EVT_TOOL_DROPDOWN, self.onPavloviaMenu, self.pavButton)
-        self.Bind(wx.EVT_TOOL, self.onPavloviaDashboard, self.pavButton)
+        self.Bind(wx.EVT_TOOL_DROPDOWN, self.onPavloviaMenu, self.pavUserBtn)
+        self.Bind(wx.EVT_TOOL, self.onPavloviaDashboard, self.pavUserBtn)
+
         # Disable compile buttons until an experiment is present
         self.EnableTool(self.buttons['compile_py'].GetId(), Path(str(self.frame.filename)).is_file())
         self.EnableTool(self.buttons['compile_js'].GetId(), Path(str(self.frame.filename)).is_file())
@@ -4419,7 +4419,7 @@ class BuilderToolbar(BasePsychopyToolbar):
     def updateUser(self, evt=None):
         user = pavlovia.getCurrentSession().user
         if user is None:
-            self.pavButton.SetLabel(_translate("Logged out"))
+            self.pavUserBtn.SetLabel(_translate("Logged out"))
             icon = icons.ButtonIcon("pavlovia", size=32).bitmap
         else:
             try:
@@ -4433,7 +4433,7 @@ class BuilderToolbar(BasePsychopyToolbar):
                 )
             except requests.exceptions.MissingSchema:
                 icon = icons.ButtonIcon("pavlovia", size=32).bitmap
-            self.pavButton.SetLabel(user['username'])
+            self.pavUserBtn.SetLabel(user['username'])
         # apply circle mask
         mask = icons.ButtonIcon("circle_mask", size=32).bitmap.ConvertToImage()
         icon = icon.ConvertToImage()
@@ -4442,7 +4442,7 @@ class BuilderToolbar(BasePsychopyToolbar):
         combinedAlpha = numpy.minimum(maskAlpha, iconAlpha)
         icon.SetAlpha(numpy.uint8(combinedAlpha))
         # set icon
-        self.SetToolNormalBitmap(self.pavButton.GetId(), wx.Bitmap(icon))
+        self.SetToolNormalBitmap(self.pavUserBtn.GetId(), wx.Bitmap(icon))
 
     def onPavloviaMenu(self, evt=None):
         # get user
