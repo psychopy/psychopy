@@ -1072,7 +1072,7 @@ class Experiment:
                 if thisFile.get('name', False) in list(ft.defaultStim):
                     compResources.append(thisFile)
                 # still add survey ID
-                if thisFile.get('name', False) == "surveyId":
+                if 'surveyId' in thisFile:
                     compResources.append(thisFile)
 
         # Get resources for loops
