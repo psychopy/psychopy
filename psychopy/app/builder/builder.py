@@ -4502,7 +4502,7 @@ class BuilderToolbar(BasePsychopyToolbar):
             icon = icons.ButtonIcon("pavlovia", size=32).bitmap
         else:
             try:
-                content = utils.ImageData(project['avatar_url'])
+                content = utils.ImageData(project['avatarUrl'])
                 content = content.resize(size=(32, 32))
                 icon = wx.Bitmap.FromBufferAndAlpha(
                     width=content.size[0],
@@ -4512,7 +4512,7 @@ class BuilderToolbar(BasePsychopyToolbar):
                 )
             except requests.exceptions.MissingSchema:
                 icon = icons.ButtonIcon("pavlovia", size=32).bitmap
-            self.pavProjectBtn.SetLabel(project['name'])
+            self.pavProjectBtn.SetLabel(project['path_with_namespace'])
         # apply circle mask
         mask = icons.ButtonIcon("circle_mask", size=32).bitmap.ConvertToImage()
         icon = icon.ConvertToImage()
@@ -4533,7 +4533,17 @@ class BuilderToolbar(BasePsychopyToolbar):
             webbrowser.open(f"https://pavlovia.org/{project.stringId}")
 
     def onPavloviaProjectMenu(self, evt=None):
-        pass
+        # get user
+        project = self.GetTopLevelParent().project
+        # make menu
+        menu = wx.Menu()
+
+        # sync
+        btn = menu.Append(wx.ID_ANY, _translate("Sync project"))
+        menu.Bind(wx.EVT_MENU, self.frame.onPavloviaSync, btn)
+        menu.Enable(btn.GetId(), project is not None)
+
+        self.PopupMenu(menu)
 
     def onPavloviaDebug(self, evt=None):
         # Open runner
