@@ -29,7 +29,7 @@ from wx.html import HtmlWindow
 
 import psychopy.app.plugin_manager.dialog
 from .validators import WarningManager
-from ..pavlovia_ui import sync
+from ..pavlovia_ui import sync, PavloviaMiniBrowser
 from ..pavlovia_ui.project import ProjectFrame
 from ..pavlovia_ui.search import SearchFrame
 from ..pavlovia_ui.user import UserFrame
@@ -4456,9 +4456,12 @@ class BuilderToolbar(BasePsychopyToolbar):
         # make menu
         menu = wx.Menu()
 
+        # edit user
+        btn = menu.Append(wx.ID_ANY, _translate("Edit user..."))
+        menu.Bind(wx.EVT_MENU, self.onEditPavloviaUser, btn)
         # switch user
         switchTo = wx.Menu()
-        menu.AppendSubMenu(switchTo, "Switch user")
+        menu.AppendSubMenu(switchTo, _translate("Switch user"))
         for name in pavlovia.knownUsers:
             if user is None or name != user['username']:
                 btn = switchTo.Append(wx.ID_ANY, name)
@@ -4468,10 +4471,10 @@ class BuilderToolbar(BasePsychopyToolbar):
         menu.Bind(wx.EVT_MENU, self.onPavloviaLogin, btn)
         # log in/out
         if user is not None:
-            btn = menu.Append(wx.ID_ANY, "Log out")
+            btn = menu.Append(wx.ID_ANY, _translate("Log out"))
             menu.Bind(wx.EVT_MENU, self.onPavloviaLogout, btn)
         else:
-            btn = menu.Append(wx.ID_ANY, "Log in")
+            btn = menu.Append(wx.ID_ANY, _translate("Log in"))
             menu.Bind(wx.EVT_MENU, self.onPavloviaLogin, btn)
 
         self.PopupMenu(menu)
@@ -4499,6 +4502,15 @@ class BuilderToolbar(BasePsychopyToolbar):
     def onPavloviaUser(self, evt=None):
         userDlg = UserFrame(self.frame)
         userDlg.ShowModal()
+
+    def onEditPavloviaUser(self, evt=None):
+        # open edit window
+        dlg = PavloviaMiniBrowser(parent=self, loginOnly=False)
+        dlg.editUserPage()
+        dlg.ShowModal()
+        # refresh user on close
+        user = pavlovia.getCurrentSession().user
+        user.user = user.user
 
     def onPavloviaDashboard(self, evt=None):
         # get user
