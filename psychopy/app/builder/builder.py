@@ -4394,12 +4394,6 @@ class BuilderToolbar(BasePsychopyToolbar):
             label=_translate("Search Pavlovia.org"),
             tooltip=_translate("Find existing studies online (at pavlovia.org)"),
             func=self.onPavloviaSearch)
-        # Pavlovia user
-        self.buttons['pavloviaUser'] = self.makeTool(
-            name='globe_user',
-            label=_translate("Current Pavlovia user"),
-            tooltip=_translate("Log in/out of Pavlovia.org, view your user profile."),
-            func=self.onPavloviaUser)
         # Pavlovia project
         self.buttons['pavloviaProject'] = self.makeTool(
             name='globe_info',
