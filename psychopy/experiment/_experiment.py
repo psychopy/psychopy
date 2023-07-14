@@ -1063,12 +1063,16 @@ class Experiment:
                     'rel': url, 'abs': url,
                 })
         if handled:
-            # If resources are handled, clear all component resources
+            # if resources are handled, clear all component resources
             handledResources = compResources
             compResources = []
-            # Still add default stim
+            # exceptions to the rule...
             for thisFile in handledResources:
+                # still add default stim
                 if thisFile.get('name', False) in list(ft.defaultStim):
+                    compResources.append(thisFile)
+                # still add survey ID
+                if thisFile.get('name', False) == "surveyId":
                     compResources.append(thisFile)
 
         # Get resources for loops
