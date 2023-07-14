@@ -4425,19 +4425,30 @@ class BuilderToolbar(BasePsychopyToolbar):
     def updateUser(self, evt=None):
         user = pavlovia.getCurrentSession().user
         if user is None:
-            self.pavButton.SetToolLabel(_translate("Logged out"))
-            self.SetToolNormalBitmap(self.pavButton.GetId(), icons.ButtonIcon("pavlovia", size=32).bitmap)
+            self.pavButton.SetLabel(_translate("Logged out"))
+            icon = icons.ButtonIcon("pavlovia", size=32).bitmap
         else:
             try:
-                content = requests.get(user['avatar_url']).content
-                buffer = wx.Image(io.BytesIO(content))
-                buffer = buffer.Scale(32, 32, quality=wx.IMAGE_QUALITY_HIGH)
-                icon = wx.Bitmap(buffer)
+                content = utils.ImageData(user['avatar_url'])
+                content = content.resize(size=(32, 32))
+                icon = wx.Bitmap.FromBufferAndAlpha(
+                    width=content.size[0],
+                    height=content.size[1],
+                    data=content.tobytes("raw", "RGB"),
+                    alpha=content.tobytes("raw", "A")
+                )
             except requests.exceptions.MissingSchema:
                 icon = icons.ButtonIcon("pavlovia", size=32).bitmap
-
             self.pavButton.SetLabel(user['username'])
-            self.SetToolNormalBitmap(self.pavButton.GetId(), icon)
+        # apply circle mask
+        mask = icons.ButtonIcon("circle_mask", size=32).bitmap.ConvertToImage()
+        icon = icon.ConvertToImage()
+        maskAlpha = numpy.array(mask.GetAlpha(), dtype=int)
+        iconAlpha = numpy.array(icon.GetAlpha(), dtype=int)
+        combinedAlpha = numpy.minimum(maskAlpha, iconAlpha)
+        icon.SetAlpha(numpy.uint8(combinedAlpha))
+        # set icon
+        self.SetToolNormalBitmap(self.pavButton.GetId(), wx.Bitmap(icon))
 
     def onPavloviaMenu(self, evt=None):
         # get user
