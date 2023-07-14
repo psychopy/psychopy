@@ -4459,6 +4459,7 @@ class BuilderToolbar(BasePsychopyToolbar):
         # edit user
         btn = menu.Append(wx.ID_ANY, _translate("Edit user..."))
         menu.Bind(wx.EVT_MENU, self.onEditPavloviaUser, btn)
+        menu.Enable(btn.GetId(), user is not None)
         # switch user
         switchTo = wx.Menu()
         menu.AppendSubMenu(switchTo, _translate("Switch user"))
