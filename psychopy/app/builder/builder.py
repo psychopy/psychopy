@@ -4415,7 +4415,7 @@ class BuilderToolbar(BasePsychopyToolbar):
 
         # add button for Pavlovia user menu
         self.pavUserBtn = self.AddTool(
-            wx.ID_ANY, label="User", bitmap=icons.ButtonIcon("pavlovia", size=32).bitmap, kind=wx.ITEM_DROPDOWN
+            wx.ID_ANY, label="User", bitmap=icons.ButtonIcon("user_none", size=32).bitmap, kind=wx.ITEM_DROPDOWN
         )
         self.Bind(wx.EVT_TOOL_DROPDOWN, self.onPavloviaUserMenu, self.pavUserBtn)
         self.Bind(wx.EVT_TOOL, self.onPavloviaUserPage, self.pavUserBtn)
@@ -4432,7 +4432,7 @@ class BuilderToolbar(BasePsychopyToolbar):
         user = pavlovia.getCurrentSession().user
         if user is None:
             self.pavUserBtn.SetLabel(_translate("Logged out"))
-            icon = icons.ButtonIcon("pavlovia", size=32).bitmap
+            icon = icons.ButtonIcon("user_none", size=32).bitmap
         else:
             try:
                 content = utils.ImageData(user['avatar_url'])
@@ -4444,15 +4444,15 @@ class BuilderToolbar(BasePsychopyToolbar):
                     alpha=content.tobytes("raw", "A")
                 )
             except requests.exceptions.MissingSchema:
-                icon = icons.ButtonIcon("pavlovia", size=32).bitmap
+                icon = icons.ButtonIcon("user_none", size=32).bitmap
             self.pavUserBtn.SetLabel(user['username'])
         # apply circle mask
         mask = icons.ButtonIcon("circle_mask", size=32).bitmap.ConvertToImage()
         icon = icon.ConvertToImage()
         maskAlpha = numpy.array(mask.GetAlpha(), dtype=int)
-        iconAlpha = numpy.array(icon.GetAlpha(), dtype=int)
-        combinedAlpha = numpy.minimum(maskAlpha, iconAlpha)
-        icon.SetAlpha(numpy.uint8(combinedAlpha))
+        # iconAlpha = numpy.array(icon.GetAlpha(), dtype=int)
+        # combinedAlpha = numpy.minimum(maskAlpha, iconAlpha)
+        icon.SetAlpha(numpy.uint8(maskAlpha))  #icon.SetAlpha(numpy.uint8(combinedAlpha))
         # set icon
         self.SetToolNormalBitmap(self.pavUserBtn.GetId(), wx.Bitmap(icon))
 
@@ -4499,29 +4499,8 @@ class BuilderToolbar(BasePsychopyToolbar):
         project = self.GetTopLevelParent().project
         if project is None:
             self.pavProjectBtn.SetLabel(_translate("No project"))
-            icon = icons.ButtonIcon("pavlovia", size=32).bitmap
         else:
-            try:
-                content = utils.ImageData(project['avatarUrl'])
-                content = content.resize(size=(32, 32))
-                icon = wx.Bitmap.FromBufferAndAlpha(
-                    width=content.size[0],
-                    height=content.size[1],
-                    data=content.tobytes("raw", "RGB"),
-                    alpha=content.tobytes("raw", "A")
-                )
-            except requests.exceptions.MissingSchema:
-                icon = icons.ButtonIcon("pavlovia", size=32).bitmap
             self.pavProjectBtn.SetLabel(project['path_with_namespace'])
-        # apply circle mask
-        mask = icons.ButtonIcon("circle_mask", size=32).bitmap.ConvertToImage()
-        icon = icon.ConvertToImage()
-        maskAlpha = numpy.array(mask.GetAlpha(), dtype=int)
-        iconAlpha = numpy.array(icon.GetAlpha(), dtype=int)
-        combinedAlpha = numpy.minimum(maskAlpha, iconAlpha)
-        icon.SetAlpha(numpy.uint8(combinedAlpha))
-        # set icon
-        self.SetToolNormalBitmap(self.pavProjectBtn.GetId(), wx.Bitmap(icon))
 
     def onPavloviaProjectPage(self, evt=None):
         # get project
