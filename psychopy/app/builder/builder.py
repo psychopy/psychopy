@@ -4374,12 +4374,6 @@ class BuilderToolbar(BasePsychopyToolbar):
             label=_translate("Run in local browser"),
             tooltip=_translate("Run the study in PsychoJS on a local browser, not through pavlovia.org"),
             func=self.onPavloviaDebug)
-        # Pavlovia search
-        self.buttons['pavloviaSearch'] = self.makeTool(
-            name='globe_magnifier',
-            label=_translate("Search Pavlovia.org"),
-            tooltip=_translate("Find existing studies online (at pavlovia.org)"),
-            func=self.onPavloviaSearch)
 
         self.AddStretchableSpace()
 
@@ -4451,19 +4445,24 @@ class BuilderToolbar(BasePsychopyToolbar):
 
         # edit user
         btn = menu.Append(wx.ID_ANY, _translate("Edit user..."))
+        btn.SetBitmap(icons.ButtonIcon("editbtn", size=16).bitmap)
         menu.Bind(wx.EVT_MENU, self.onEditPavloviaUser, btn)
         menu.Enable(btn.GetId(), user is not None)
         # switch user
         switchTo = wx.Menu()
-        menu.AppendSubMenu(switchTo, _translate("Switch user"))
+        item = menu.AppendSubMenu(switchTo, _translate("Switch user"))
+        item.SetBitmap(icons.ButtonIcon("view-refresh", size=16).bitmap)
         for name in pavlovia.knownUsers:
             if user is None or name != user['username']:
                 btn = switchTo.Append(wx.ID_ANY, name)
                 switchTo.Bind(wx.EVT_MENU, self.onPavloviaSwitchUser, btn)
         # log in to new user
+        switchTo.AppendSeparator()
         btn = switchTo.Append(wx.ID_ANY, _translate("New user..."))
+        btn.SetBitmap(icons.ButtonIcon("plus", size=16).bitmap)
         menu.Bind(wx.EVT_MENU, self.onPavloviaLogin, btn)
         # log in/out
+        menu.AppendSeparator()
         if user is not None:
             btn = menu.Append(wx.ID_ANY, _translate("Log out"))
             menu.Bind(wx.EVT_MENU, self.onPavloviaLogout, btn)
@@ -4497,8 +4496,19 @@ class BuilderToolbar(BasePsychopyToolbar):
 
         # sync
         btn = menu.Append(wx.ID_ANY, _translate("Sync project"))
+        btn.SetBitmap(icons.ButtonIcon("view-refresh", size=16).bitmap)
         menu.Bind(wx.EVT_MENU, self.frame.onPavloviaSync, btn)
         menu.Enable(btn.GetId(), project is not None)
+        # edit project
+        btn = menu.Append(wx.ID_ANY, _translate("Edit project..."))
+        btn.SetBitmap(icons.ButtonIcon("editbtn", size=16).bitmap)
+        menu.Bind(wx.EVT_MENU, self.onPavloviaProject, btn)
+        menu.Enable(btn.GetId(), project is not None)
+        # search projects
+        menu.AppendSeparator()
+        btn = menu.Append(wx.ID_ANY, _translate("Search projects..."))
+        btn.SetBitmap(icons.ButtonIcon("search", size=16).bitmap)
+        menu.Bind(wx.EVT_MENU, self.onPavloviaSearch, btn)
 
         self.PopupMenu(menu)
 
