@@ -128,9 +128,6 @@ jobs:
 
     - name: Check available files
       run:
-        echo "********************* ls -al dist";
-        ls -al dist;
-        echo "********************* ls -al";
         ls -al;
 
     - name: Upload builds with googleapi
