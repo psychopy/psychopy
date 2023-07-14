@@ -883,8 +883,12 @@ class BaseComponent:
     def getPosInRoutine(self):
         """Find the index (position) in the parent Routine (0 for top)
         """
+        # get Routine
         routine = self.exp.routines[self.parentName]
-        return routine.index(self)
+        # make list of non-settings components in Routine
+        comps = [comp for comp in routine if not comp == routine.settings]
+        # get index
+        return comps.index(self)
 
     def getType(self):
         """Returns the name of the current object class"""
