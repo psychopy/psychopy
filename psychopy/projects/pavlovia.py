@@ -111,7 +111,7 @@ def login(tokenOrUsername, rememberMe=True):
     if currentSession.user is not None:
         user = currentSession.user
         prefs.appData['projects']['pavloviaUser'] = user['username']
-
+    # update Pavlovia button(s)
     builders = app.getAppInstance().builder
     if not isinstance(builders, (list, tuple)):
         builders = [builders]
@@ -138,6 +138,12 @@ def logout():
         frame = frameWeakref()
         if hasattr(frame, 'setUser'):
             frame.setUser(None)
+    # update Pavlovia button(s)
+    builders = app.getAppInstance().builder
+    if not isinstance(builders, (list, tuple)):
+        builders = [builders]
+    for builder in builders:
+        builder.toolbar.updateUser()
 
 
 class User(dict):

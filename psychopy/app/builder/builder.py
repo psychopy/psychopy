@@ -4426,7 +4426,7 @@ class BuilderToolbar(BasePsychopyToolbar):
         user = pavlovia.getCurrentSession().user
         if user is None:
             self.pavButton.SetToolLabel(_translate("Logged out"))
-            self.pavButton.SetNormalBitmap(icons.ButtonIcon("pavlovia", size=32).bitmap)
+            self.SetToolNormalBitmap(self.pavButton.GetId(), icons.ButtonIcon("pavlovia", size=32).bitmap)
         else:
             try:
                 content = requests.get(user['avatar_url']).content
@@ -4437,7 +4437,7 @@ class BuilderToolbar(BasePsychopyToolbar):
                 icon = icons.ButtonIcon("pavlovia", size=32).bitmap
 
             self.pavButton.SetLabel(user['username'])
-            self.pavButton.SetNormalBitmap(icon)
+            self.SetToolNormalBitmap(self.pavButton.GetId(), icon)
 
     def onPavloviaMenu(self, evt=None):
         # get user
