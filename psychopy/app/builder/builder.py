@@ -4462,6 +4462,7 @@ class BuilderToolbar(BasePsychopyToolbar):
         for name in pavlovia.knownUsers:
             if user is None or name != user['username']:
                 btn = switchTo.Append(wx.ID_ANY, name)
+                switchTo.Bind(wx.EVT_MENU, self.onPavloviaSwitchUser, btn)
         # log in to new user
         btn = switchTo.Append(wx.ID_ANY, _translate("New user..."))
         menu.Bind(wx.EVT_MENU, self.onPavloviaLogin, btn)
@@ -4507,6 +4508,13 @@ class BuilderToolbar(BasePsychopyToolbar):
             webbrowser.open("https://pavlovia.org")
         else:
             webbrowser.open("https://pavlovia.org/%(username)s" % user)
+
+    def onPavloviaSwitchUser(self, evt):
+        menu = evt.GetEventObject()
+        item = menu.FindItem(evt.GetId())[0]
+        username = item.GetItemLabel()
+        pavlovia.logout()
+        pavlovia.login(username)
 
     def onPavloviaLogin(self, evt=None):
         logInPavlovia(self, evt)
