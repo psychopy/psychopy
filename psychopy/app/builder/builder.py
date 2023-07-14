@@ -1435,13 +1435,11 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                     self.fileExport(htmlPath=htmlPath)
                 else:
                     return
-        # Disable button
-        self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
         # Attempy sync, re-enable buttons if it fails
         try:
             pavlovia_ui.syncProject(parent=self, file=self.filename, project=self.project)
         finally:
-            self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
+            pass
 
     def onPavloviaRun(self, evt=None):
         # Sync project
@@ -1489,18 +1487,11 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         colour = {0: "red", -1: "red", 1: "green"}
         toolbarSize = 32
 
-        # Store original
-        origBtn = self.btnHandles['pavloviaSync'].NormalBitmap
-        # Create new feedback bitmap
-        feedbackBmp = icons.ButtonIcon(f"{colour[val]}globe.png", size=toolbarSize).bitmap
-
         # Set feedback button
-        self.btnHandles['pavloviaSync'].SetNormalBitmap(feedbackBmp)
         self.toolbar.Realize()
         self.toolbar.Refresh()
 
         # Reset button to default state after time
-        wx.CallLater(feedbackTime, self.btnHandles['pavloviaSync'].SetNormalBitmap, origBtn)
         wx.CallLater(feedbackTime + 50, self.toolbar.Realize)
         wx.CallLater(feedbackTime + 50, self.toolbar.Refresh)
 
@@ -4341,6 +4332,13 @@ class BuilderToolbar(BasePsychopyToolbar):
             shortcut='none',
             tooltip=_translate("Edit experiment settings"),
             func=self.frame.setExperimentSettings)
+        # Send to runner
+        self.buttons['runner'] = self.makeTool(
+            name='runner',
+            label=_translate('Runner'),
+            shortcut='runnerScript',
+            tooltip=_translate("Send experiment to Runner"),
+            func=self.frame.runFile)
 
         self.AddSeparator()
 
@@ -4351,22 +4349,7 @@ class BuilderToolbar(BasePsychopyToolbar):
             shortcut='compileScript',
             tooltip=_translate("Compile to Python script"),
             func=self.frame.compileScript)
-        # Compile JS
-        self.buttons['compile_js'] = self.makeTool(
-            name='compile_js',
-            label=_translate('Compile JS Script'),
-            shortcut='compileScript',
-            tooltip=_translate("Compile to JS script"),
-            func=self.frame.fileExport)
-        # Send to runner
-        self.buttons['runner'] = self.makeTool(
-            name='runner',
-            label=_translate('Runner'),
-            shortcut='runnerScript',
-            tooltip=_translate("Send experiment to Runner"),
-            func=self.frame.runFile)
-        self.frame.bldrBtnRunner = self.buttons['runner']
-        # Run
+        # Run Py
         self.buttons['run'] = self.makeTool(
             name='run',
             label=_translate('Run'),
@@ -4377,31 +4360,26 @@ class BuilderToolbar(BasePsychopyToolbar):
 
         self.AddSeparator()
 
-        # Pavlovia debug
+        # Compile JS
+        self.buttons['compile_js'] = self.makeTool(
+            name='compile_js',
+            label=_translate('Compile JS Script'),
+            shortcut='compileScript',
+            tooltip=_translate("Compile to JS script"),
+            func=self.frame.fileExport)
+        self.frame.bldrBtnRunner = self.buttons['runner']
+        # Run JS
         self.buttons['pavloviaDebug'] = self.makeTool(
             name='globe_bug',
             label=_translate("Run in local browser"),
             tooltip=_translate("Run the study in PsychoJS on a local browser, not through pavlovia.org"),
             func=self.onPavloviaDebug)
-
-        # Pavlovia sync
-        self.buttons['pavloviaSync'] = self.makeTool(
-            name='globe_greensync',
-            label=_translate("Sync online"),
-            tooltip=_translate("Sync with web project (at pavlovia.org)"),
-            func=self.frame.onPavloviaSync)
         # Pavlovia search
         self.buttons['pavloviaSearch'] = self.makeTool(
             name='globe_magnifier',
             label=_translate("Search Pavlovia.org"),
             tooltip=_translate("Find existing studies online (at pavlovia.org)"),
             func=self.onPavloviaSearch)
-        # Pavlovia project
-        self.buttons['pavloviaProject'] = self.makeTool(
-            name='globe_info',
-            label=_translate("View project"),
-            tooltip=_translate("View details of this project"),
-            func=self.onPavloviaProject)
 
         self.AddStretchableSpace()
 
