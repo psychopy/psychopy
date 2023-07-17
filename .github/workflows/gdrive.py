@@ -200,8 +200,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # check required args
-    if not args.drive_key:
-        raise ValueError("drive_key not defined")
+    if not args.key:
+        raise ValueError("key not defined")
     if not args.glob_pattern:
         glob_pattern = "**/*"  # all files in all subfolders
     else:
@@ -215,7 +215,7 @@ if __name__ == '__main__':
         
     folder_id = args.folder_id or ''
     # are we listing the folder or uploading a file?
-    gdrive = GDrive(drive_key=args.drive_key)
+    gdrive = GDrive(drive_key=args.key)
     if args.filepath:
         gdrive.upload_files(filepath=args.filepath, 
                             folder_id=args.folder_id,
