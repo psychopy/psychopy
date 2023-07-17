@@ -520,7 +520,7 @@ class Session:
 
         return True
 
-    def setupInputsFromExperiment(self, key, expInfo=None, blocking=True):
+    def setupInputsFromExperiment(self, key, expInfo=None, thisExp=None, blocking=True):
         """
         Setup inputs for this Session via the 'setupInputs` method from one of this Session's experiments.
 
@@ -530,6 +530,8 @@ class Session:
             Key by which the experiment is stored (see `.addExperiment`).
         expInfo : dict
             Information about the experiment, created by the `setupExpInfo` function.
+        thisExp : psychopy.data.ExperimentHandler
+            Handler object for this experiment, contains the data to save and information about where to save it to.
         blocking : bool
             Should calling this method block the current thread?
 
@@ -561,7 +563,7 @@ class Session:
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(key)
         # Run the setupInputs method
-        self.inputs = self.experiments[key].setupInputs(expInfo=expInfo, win=self.win)
+        self.inputs = self.experiments[key].setupInputs(expInfo=expInfo, thisExp=thisExp, win=self.win)
 
         return True
 
@@ -667,7 +669,7 @@ class Session:
         # Setup logging
         self.experiments[key].run.__globals__['logFile'] = self.logFile
         # Setup inputs
-        self.setupInputsFromExperiment(key, expInfo=expInfo)
+        self.setupInputsFromExperiment(key, expInfo=expInfo, thisExp=thisExp)
         # Log start
         logging.info(_translate(
             "Running experiment via Session: name={key}, expInfo={expInfo}"
