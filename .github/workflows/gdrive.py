@@ -183,7 +183,7 @@ if __name__ == '__main__':
     # from pathlib import Path
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("drive_key", 
+    parser.add_argument("--key", 
                         help="The base64-encoded key info for the authentication")
     parser.add_argument("--folder_id", 
                         help="The google ID of the folder to list or save the file in")

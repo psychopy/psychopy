@@ -110,7 +110,7 @@ jobs:
         # cp -r nsis_plugins/Plugins "$PROGRAMFILES/NSIS"; 
         # ls -al $PROGRAMFILES/NSIS/Plugins/x86-unicode;
 
-    - name: Create nsis installer
+    - name: Create NSIS installer
       if: runner.os == 'Windows'
       uses: joncloud/makensis-action@publish
       with:
@@ -125,7 +125,7 @@ jobs:
         sudo touch $sitepackages/metapensiero/__init__.py;
         rm $sitepackages/PIL/.dylibs/libwebp.7.dylib;
         sh ./building/buildAppMacOS.sh ${{ secrets.OST_APPLE_ID }} ${{ secrets.OST_APPLE_PWORD }};
-
+    
     - name: Check available files
       run:
         ls -al;
@@ -139,9 +139,9 @@ jobs:
           if [ "${{ runner.os }}" == "Windows" ]
           then
             echo "uploading windows build"
-            python3 .github/workflows/gdrive.py ${{ secrets.PSYCHOPY_BUILD_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.exe' --suffix='date'
+            python3 .github/workflows/gdrive.py --key=${{ secrets.PSYCHOPY_BUILD_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath='.' --glob_pattern='**/*.exe' --suffix='date'
           else
             echo "uploading macos build"
-            # python3 .github/workflows/gdrive.py ${{ secrets.PSYCHOPY_BUILD_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.zip' --suffix='date'
-            python3 .github/workflows/gdrive.py ${{ secrets.PSYCHOPY_BUILD_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.dmg' --suffix='date'
+            # python3 .github/workflows/gdrive.py --key=${{ secrets.PSYCHOPY_BUILD_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.zip' --suffix='date'
+            python3 .github/workflows/gdrive.py --key=${{ secrets.PSYCHOPY_BUILD_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.dmg' --suffix='date'
           fi
