@@ -15,13 +15,13 @@ Using py2exe to build an executable
 
 Instructions:
 
-#. Download and install py2exe (http://www.py2exe.org/)
-#. Develop your PsychoPy script as normal
-#. Copy this setup.py file into the same directory as your script
-#. Change the Name of progName variable in this file to the Name of your desired executable program name
-#. Use cmd (or bash, terminal, etc.) and run the following in the directory of your the two files:
-       python setup.py py2exe
-#. Open the 'dist' directory and run your executable
+   #. Download and install py2exe (http://www.py2exe.org/)
+   #. Develop your PsychoPy script as normal
+   #. Copy this setup.py file into the same directory as your script
+   #. Change the Name of progName variable in this file to the Name of your desired executable program name
+   #. Use cmd (or bash, terminal, etc.) and run the following in the directory of your the two files:
+           python setup.py py2exe
+   #. Open the 'dist' directory and run your executable
 
 
 A example setup.py script::

@@ -53,7 +53,7 @@ image_np = np.array(
     pil_image, order="C"
 )  # convert to numpy array with shape width, height, channels
 image_np = (
-    image_np.astype(float) / 255.0
+    image_np.astype(np.float) / 255.0
 )  # convert to float in 0--1 range, assuming image is 8-bit uint.
 
 # Note this float conversion is "quick and dirty" and will not
