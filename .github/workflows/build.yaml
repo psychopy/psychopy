@@ -131,9 +131,6 @@ jobs:
         ls -al;
 
     - name: Upload builds with googleapi
-      env:
-        DOGFOOD_KEY: ${{ secrets.PSYCHOPY_BUILD_KEY }}
-        NIGHTLY_FOLDER: ${{ secrets.NIGHTLY_FOLDER }}
       if: github.repository_owner == 'psychopy'
       run: |
           ls -al
@@ -142,9 +139,9 @@ jobs:
           if [ "${{ runner.os }}" == "Windows" ]
           then
             echo "uploading windows build"
-            python3 .github/workflows/gdrive.py $DOGFOOD_KEY --folder_id=$NIGHTLY_FOLDER --filepath=dist --glob_pattern='**/*.exe' --suffix='date'
+            python3 .github/workflows/gdrive.py ${{ secrets.PSYCHOPY_BUILD_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.exe' --suffix='date'
           else
             echo "uploading macos build"
-            # python3 .github/workflows/gdrive.py $DOGFOOD_KEY --folder_id=$NIGHTLY_FOLDER --filepath=dist --glob_pattern='**/*.zip' --suffix='date'
-            python3 .github/workflows/gdrive.py $DOGFOOD_KEY --folder_id=NIGHTLY_FOLDER --filepath=dist --glob_pattern='**/*.dmg' --suffix='date'
+            # python3 .github/workflows/gdrive.py ${{ secrets.PSYCHOPY_BUILD_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.zip' --suffix='date'
+            python3 .github/workflows/gdrive.py ${{ secrets.PSYCHOPY_BUILD_KEY }} --folder_id=${{ secrets.NIGHTLY_FOLDER }} --filepath=dist --glob_pattern='**/*.dmg' --suffix='date'
           fi
