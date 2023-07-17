@@ -10,7 +10,7 @@ If you also have PsychoPy materials/course then please let us know so that we ca
 Teaching PsychoPy at A-level?
 -----------------------------
 
-The resources below are useful for anyone interested in learning PsychoPy, but if you're teaching (or learning!) at A-level or lower we now have a dedicated page for `schools resources! ,https://schools.psychopy.org/.`_
+The resources below are useful for anyone interested in learning PsychoPy, but if you're teaching (or learning!) at A-level or lower we now have a dedicated page for `schools resources! <https://schools.psychopy.org>`_
 
 .. _youtube:
 
@@ -30,7 +30,7 @@ Youtube tutorials
 Materials for Builder
 ---------------------
 
-.. image:: ../_images/BuildingExperimentsCover_sm.jpg
+.. image:: ../images/BuildingExperimentsCover_sm.jpg
     :align: right
     :width: 200px
     :alt: PsychoPy Builder book cover
