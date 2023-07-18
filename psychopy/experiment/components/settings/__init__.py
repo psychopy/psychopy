@@ -1202,7 +1202,7 @@ class SettingsComponent:
         # Open function def
         code = (
             '\n'
-            'def setupInputs(expInfo, win):\n'
+            'def setupInputs(expInfo, thisExp, win):\n'
             '    """\n'
             '    Setup whatever inputs are available (mouse, keyboard, eyetracker, etc.)\n'
             '    \n'
@@ -1210,7 +1210,9 @@ class SettingsComponent:
             '    ==========\n'
             '    expInfo : dict\n'
             '        Information about this experiment, created by the `setupExpInfo` function.\n'
-            '    \n'
+            '    thisExp : psychopy.data.ExperimentHandler\n'
+            '        Handler object for this experiment, contains the data to save and information about \n'
+            '        where to save it to.\n'
             '    win : psychopy.visual.Window\n'
             '        Window in which to run this experiment.\n'
             '    Returns\n'
@@ -1464,7 +1466,8 @@ class SettingsComponent:
             # Start server
             if self.params['Save hdf5 file'].val:
                 code = (
-                    f"ioServer = io.launchHubServer(window=win, experiment_code=%(expName)s, session_code=ioSession, datastore_name=filename, **ioConfig)\n"
+                    f"ioServer = io.launchHubServer(window=win, experiment_code=%(expName)s, session_code=ioSession, "
+                    f"datastore_name=thisExp.dataFileName, **ioConfig)\n"
                 )
             else:
                 code = (

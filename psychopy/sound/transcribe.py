@@ -13,7 +13,7 @@ __all__ = [
     'transcribe',
     'TRANSCR_LANG_DEFAULT',
     'BaseTranscriber',
-    'WhisperTranscriber',
+    # 'WhisperTranscriber',
     'recognizerEngineValues',
     'recognizeSphinx',
     'recognizeGoogle',
@@ -611,223 +611,7 @@ class GoogleCloudTranscriber(BaseTranscriber):
         self._lastResult = toReturn
 
         return toReturn
-
-
-def _download(url, root, in_memory):
-    """Download a model for the OpenAI Whisper speech-to-text transcriber.
-
-    This function is monkey-patched to override the `_download()` function to 
-    use the `requests` library to get models from remote sources. This gets 
-    around the SSL certificate errors we see with `urllib`.
-
-    """
-    # derived from source code found here:
-    # https://github.com/openai/whisper/blob/main/whisper/__init__.py
-    import hashlib
-    import os
-    import requests
-    import warnings
-
-    os.makedirs(root, exist_ok=True)
-
-    expected_sha256 = url.split("/")[-2]
-    download_target = os.path.join(root, os.path.basename(url))
-
-    if os.path.exists(download_target) and not os.path.isfile(download_target):
-        raise RuntimeError(
-            f"{download_target} exists and is not a regular file")
-
-    if os.path.isfile(download_target):
-        with open(download_target, "rb") as f:
-            model_bytes = f.read()
-        if hashlib.sha256(model_bytes).hexdigest() == expected_sha256:
-            return model_bytes if in_memory else download_target
-        else:
-            warnings.warn(
-                f"{download_target} exists, but the SHA256 checksum does not "
-                f"match; re-downloading the file"
-            )
     
-    # here is the change we make that uses `requests` instead of `urllib`
-    req = requests.get(url, allow_redirects=True)
-    with open(download_target, 'wb') as dt:
-        dt.write(req.content)
-
-    model_bytes = open(download_target, "rb").read()
-    if hashlib.sha256(model_bytes).hexdigest() != expected_sha256:
-        raise RuntimeError(
-            "Model has been downloaded but the SHA256 checksum does not not "
-            "match. Please retry loading the model."
-        )
-
-    return model_bytes if in_memory else download_target
-
-
-
-class WhisperTranscriber(BaseTranscriber):
-    """Class for speech-to-text transcription using OpenAI Whisper.
-
-    This class provides an interface for OpenAI Whisper for off-line (local) 
-    speech-to-text transcription in various languages. You must first download
-    the model used for transcription on the local machine.
-
-    Parameters
-    ----------
-    initConfig : dict or None
-        Options to configure the speech-to-text engine during initialization. 
-    
-    """
-    _isLocal = True
-    _engine = u'whisper'
-    _longName = u"OpenAI Whisper"
-    def __init__(self, initConfig=None):
-        super(WhisperTranscriber, self).__init__(initConfig)
-
-        # pull in imports
-        import whisper
-        whisper._download = _download  # patch download func using `requests`
-
-        initConfig = {} if initConfig is None else initConfig
-
-        self._device = initConfig.get('device', 'cpu')  # set the device
-        self._modelName = initConfig.get('model_name', 'base')  # set the model
-
-        # setup the model
-        self._model = whisper.load_model(self._modelName).to(self._device)
-
-    @property
-    def device(self):
-        """Device in use (`str`).
-        """
-        return self._device
-    
-    @property
-    def model(self):
-        """Model in use (`str`).
-        """
-        return self._modelName
-
-    @staticmethod
-    def downloadModel(modelName):
-        """Download a model from the internet onto the local machine.
-        
-        Parameters
-        ----------
-        modelName : str
-            Name of the model to download. You can get available models by 
-            calling `getAllModels()`.
-
-        Notes
-        -----
-        * In order to download models, you need to have the correct certificates
-          installed on your system.
-        
-        """
-        import whisper
-        # todo - specify file name for the model
-        whisper.load_model(modelName)  # calling this downloads the model
-
-    @staticmethod
-    def getAllModels():
-        """Get available language models for the Whisper transcriber (`list`).
-
-        Parameters
-        ----------
-        language : str
-            Filter available models by specified language code.
-
-        Returns
-        -------
-        list 
-            List of available models.
-
-        """
-        import whisper
-
-        return whisper.available_models()
-    
-    def transcribe(self, audioClip, modelConfig=None, decoderConfig=None):
-        """Perform a speech-to-text transcription of a voice recording.
-
-        Parameters
-        ----------
-        audioClip : AudioClip, ArrayLike
-            Audio clip containing speech to transcribe (e.g., recorded from a
-            microphone). Can be either an :class:`~psychopy.sound.AudioClip` 
-            object or tuple where the first value is as a Nx1 or Nx2 array of 
-            audio samples (`ndarray`) and the second the sample rate (`int`) in 
-            Hertz (e.g., ``(samples, 48000)``).
-        modelConfig : dict or None
-            Configuration options for the model.
-        decoderConfig : dict or None
-            Configuration options for the decoder.
-
-        Returns
-        -------
-        TranscriptionResult
-            Transcription result instance.
-
-        Notes
-        -----
-        * Audio is down-sampled to 16Khz prior to conversion which may add some
-          overhead.
-
-        """
-        if isinstance(audioClip, AudioClip):  # use raw samples from mic
-            samples = audioClip.samples
-            sr = audioClip.sampleRateHz
-        elif isinstance(audioClip, (list, tuple,)):
-            samples, sr = audioClip
-
-        # whisper requires data to be a flat `float32` array
-        waveform = np.frombuffer(
-            samples, samples.dtype).flatten().astype(np.float32)
-        
-        # resample if needed
-        if sr != 16000:
-            import librosa
-            waveform = librosa.resample(
-                waveform, 
-                orig_sr=sr, 
-                target_sr=16000)
-        
-        # pad and trim the data as required
-        import whisper.audio as _audio
-        waveform = _audio.pad_or_trim(waveform)
-
-        modelConfig = {} if modelConfig is None else modelConfig
-        decoderConfig = {} if decoderConfig is None else decoderConfig
-
-        # our defaults
-        language = "en" if self._modelName.endswith(".en") else None
-        temperature = modelConfig.get('temperature', 0.0)
-        word_timestamps = modelConfig.get('word_timestamps', True)
-
-        # initiate the transcription
-        result = self._model.transcribe(
-            waveform, 
-            language=language, 
-            temperature=temperature, 
-            word_timestamps=word_timestamps,
-            **decoderConfig)
-        
-        transcribed = result.get('text', '')
-        transcribed = transcribed.split(' ')  # split words 
-        language = result.get('langauge', '')
-
-        # create the response value
-        toReturn = TranscriptionResult(
-            words=transcribed,
-            unknownValue=False,
-            requestFailed=False,
-            engine=self._engine,
-            language=language)
-        toReturn.response = str(result)  # provide raw JSON response
-
-        self.lastResult = toReturn
-        
-        return toReturn
-
 
 # ------------------------------------------------------------------------------
 # Functions
@@ -883,22 +667,18 @@ def getAllTranscribers(engineKeys=False):
     return toReturn
 
 
-def transcribe(audioClip, engine='sphinx', language='en-US', expectedWords=None,
+def transcribe(audioClip, engine='whisper', language='en-US', expectedWords=None,
                config=None):
     """Convert speech in audio to text.
 
-    This feature passes the audio clip samples to a specified text-to-speech
-    engine which will attempt to transcribe any speech within. The efficacy of
-    the transcription depends on the engine selected, audio quality, and
-    language support. By default, Pocket Sphinx is used which provides decent
-    transcription capabilities offline for English and a few other languages.
-    For more robust transcription capabilities with a greater range of language
-    support, online providers such as Google may be used.
+    This function accepts an audio clip and returns a transcription of the
+    speech in the clip. The efficacy of the transcription depends on the engine 
+    selected, audio quality, and language support.
 
     Speech-to-text conversion blocks the main application thread when used on
     Python. Don't transcribe audio during time-sensitive parts of your
-    experiment! This issue is known to the developers and will be fixed in a
-    later release.
+    experiment! Instead, initialize the transcriber before the experiment
+    begins by calling this function with `audioClip=None`.
 
     Parameters
     ----------
@@ -907,25 +687,28 @@ def transcribe(audioClip, engine='sphinx', language='en-US', expectedWords=None,
         microphone). Can be either an :class:`~psychopy.sound.AudioClip` object
         or tuple where the first value is as a Nx1 or Nx2 array of audio
         samples (`ndarray`) and the second the sample rate (`int`) in Hertz
-        (e.g., ``(samples, 480000)``).
+        (e.g., `(samples, 48000)`). Passing `None` will initialize the
+        the transcriber without performing a transcription. This is useful for
+        performing the initialization step without blocking the main thread 
+        during a time-sensitive part of the experiment.
     engine : str
-        Speech-to-text engine to use. Can be one of 'sphinx' for CMU Pocket
-        Sphinx or 'google' for Google Cloud.
+        Speech-to-text engine to use.
     language : str
         BCP-47 language code (eg., 'en-US'). Note that supported languages
         vary between transcription engines.
     expectedWords : list or tuple
         List of strings representing expected words or phrases. This will
-        constrain the possible output words to the ones specified. Note not all
-        engines support this feature (only Sphinx and Google Cloud do at this
-        time). A warning will be logged if the engine selected does not support
-        this feature. CMU PocketSphinx has an additional feature where the
-        sensitivity can be specified for each expected word. You can indicate
-        the sensitivity level to use by putting a ``:`` after each word in the
-        list (see the Example below). Sensitivity levels range between 0 and
-        100. A higher number results in the engine being more conservative,
-        resulting in a higher likelihood of false rejections. The default
-        sensitivity is 80% for words/phrases without one specified.
+        constrain the possible output words to the ones specified which 
+        constrains the model for better accuracy. Note not all engines support 
+        this feature (only Sphinx and Google Cloud do at this time). A warning 
+        will be logged if the engine selected does not support this feature. CMU 
+        PocketSphinx has an additional feature where the sensitivity can be 
+        specified for each expected word. You can indicate the sensitivity level 
+        to use by putting a ``:`` after each word in the list (see the Example 
+        below). Sensitivity levels range between 0 and 100. A higher number 
+        results in the engine being more conservative, resulting in a higher 
+        likelihood of false rejections. The default sensitivity is 80% for 
+        words/phrases without one specified.
     config : dict or None
         Additional configuration options for the specified engine. These
         are specified using a dictionary (ex. `config={'pfilter': 1}` will
@@ -938,6 +721,9 @@ def transcribe(audioClip, engine='sphinx', language='en-US', expectedWords=None,
 
     Notes
     -----
+    * The recommended transcriber is OpenAI Whisper which can be used locally
+      without an internet connection once a model is downloaded to cache. It can 
+      be selected by passing `engine='whisper'` to this function.
     * Online transcription services (eg., Google) provide robust and accurate
       speech recognition capabilities with broader language support than offline
       solutions. However, these services may require a paid subscription to use,
@@ -945,7 +731,9 @@ def transcribe(audioClip, engine='sphinx', language='en-US', expectedWords=None,
       of your participants as their responses are being sent to a third-party.
       Also consider that a track of audio data being sent over the network can
       be large, users on metered connections may incur additional costs to run
-      your experiment.
+      your experiment. Offline transcription services (eg., CMU PocketSphinx and 
+      OpenAI Whisper) do not require an internet connection after the model has
+      been downloaded and installed.
     * If the audio clip has multiple channels, they will be combined prior to
       being passed to the transcription service if needed.
 
@@ -961,6 +749,14 @@ def transcribe(audioClip, engine='sphinx', language='en-US', expectedWords=None,
             words = transcribeResults.words
             if 'hello' in words:
                 print('You said hello.')
+
+    Initialize the transcriber without performing a transcription::
+
+        # initialize the transcriber
+        transcribe(None, config={
+            'model_name': 'tiny.en',
+            'device': 'auto'}
+        )
 
     Specifying expected words with sensitivity levels when using CMU Pocket
     Sphinx:
@@ -1019,6 +815,21 @@ def transcribe(audioClip, engine='sphinx', language='en-US', expectedWords=None,
             expectedWords=expectedWords,
             config=config)
     elif engine == 'whisper':
+        try:
+            from psychopy_whisper import recognizeWhisper
+        except ImportError:
+            raise ImportError(
+                'The Whisper speech-to-text engine is not installed. '
+                'Please install the `psychopy-whisper` package to use this '
+                'feature.')
+        
+        # trim the language specifier, this should be close enough for now
+        langSplit = language.split('-')
+        if len(langSplit) > 1:
+            language = langSplit[0]
+        else:
+            language = language
+
         return recognizeWhisper(
             audioClip,
             language=language,
@@ -1235,81 +1046,6 @@ def recognizeGoogle(audioClip=None, language='en-US', expectedWords=None,
     
     # do transcription and return result
     return _googleCloudTranscriber.transcribe(audioClip, modelConfig=config)
-
-
-_whisperTranscriber = None
-
-def recognizeWhisper(audioClip=None, language=None, expectedWords=None,
-                     config=None):
-    """Perform speech-to-text conversion on the provided audio samples locally 
-    using OpenAI Whisper.
-
-    This is a self-hosted (local) transcription engine. This means that the 
-    actual transcription is done on the host machine, without passing data over 
-    the network. 
-
-    Parameters
-    ----------
-    audioClip : :class:`~psychopy.sound.AudioClip` or None
-        Audio clip containing speech to transcribe (e.g., recorded from a
-        microphone). Specify `None` to initialize a client without performing a
-        transcription, this will reduce latency when the transcriber is invoked
-        in successive calls. Any arguments passed to `config` will be sent to
-        the initialization function of the model if `None`.
-    language : str or None
-        Language code (eg., 'en'). Unused for Whisper since models are 
-        multi-lingual, but may be used in the future. 
-    expectedWords : list or None
-        List of strings representing expected words or phrases. This will
-        attempt bias the possible output words to the ones specified if the
-        engine is uncertain. Sensitivity can be specified for each expected
-        word. You can indicate the sensitivity level to use by putting a ``:``
-        after each word in the list (see the Example below). Sensitivity levels
-        range between 0 and 100. A higher number results in the engine being
-        more conservative, resulting in a higher likelihood of false rejections.
-        The default sensitivity is 80% for words/phrases without one specified.
-    config : dict or None
-        Additional configuration options for the specified engine. For Whisper,
-        the following configuration dictionary can be used 
-        `{'device': "cpu", 'model_name': "base"}`. Values for `'device'` can be 
-        either `'cpu'` or `'cuda'`, and `'model_name'` can be any value returned 
-        by `.getAllModels()`. 
-
-    Returns
-    -------
-    TranscriptionResult
-        Transcription result object.
-
-    """
-    if config is None:
-        config = {}  # empty dict if `None`
-
-    # initialization options
-    device = config.get('device', 'cpu')
-    modelName = config.get('model_name', 'base')
-    initConfig = {'device': device, 'model_name': modelName}
-
-    onlyInitialize = audioClip is None
-    global _whisperTranscriber
-    if _whisperTranscriber is None:
-        allTranscribers = getAllTranscribers(engineKeys=True)
-        try:
-            interface = allTranscribers['whisper']
-        except KeyError:
-            raise RecognizerEngineNotFoundError(
-                "Cannot load transcriber interface for 'whisper'.")
-    
-        _whisperTranscriber = interface(initConfig)  # create instance
-    
-    if onlyInitialize:
-        return NULL_TRANSCRIPTION_RESULT
-    
-    # set parameters which we used to support
-    config['expectedWords'] = expectedWords
-    config['language'] = language
-    
-    # do transcription and return result
-    return _whisperTranscriber.transcribe(audioClip, modelConfig=config)
 
 
 if __name__ == "__main__":
