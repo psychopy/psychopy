@@ -337,8 +337,8 @@ class pythonTransformer(ast.NodeTransformer):
         # The default first argument for pop is -1 (remove the last item).
         elif func.attr == 'pop':
             func.attr = 'splice'
-            args = args if args else [ast.Constant(-1)]
-            args = [args, [ast.Constant(1)]]
+            args = args if args else [ast.Constant(value=-1, kind=None)]
+            args = [args, [ast.Constant(value=1, kind=None)]]
 
             return ast.Call(
                 func=func,
@@ -351,7 +351,7 @@ class pythonTransformer(ast.NodeTransformer):
         # Note that .insert only inserts a single element, so there should always be exactly two input args).
         elif func.attr == 'insert':
             func.attr = 'splice'
-            args = [args[0], [ast.Constant(0)], args[1]]
+            args = [args[0], [ast.Constant(value=0, kind=None)], args[1]]
 
             return ast.Call(
                 func=func,
@@ -363,7 +363,7 @@ class pythonTransformer(ast.NodeTransformer):
         # ' '.join(a) -> a.join(" ");
         # In this case func.value and args need to be switched.
         elif func.attr == 'join':
-            new_args = [ast.Constant(func.value.value)]
+            new_args = [ast.Constant(value=func.value.value, kind=None)]
             func.value = args[0]
             
             return ast.Call(
@@ -376,7 +376,7 @@ class pythonTransformer(ast.NodeTransformer):
         # a.split() -> a.split(" ")
         # Note that this function translates correctly if there's an input arg; only the default requires modification.
         elif func.attr == 'split' and not args:
-            args = [ast.Constant(" ")]
+            args = [ast.Constant(value=" ", kind=None)]
             return ast.Call(
                 func=func,
                 args=args,
