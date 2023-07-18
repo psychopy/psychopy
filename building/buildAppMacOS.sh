@@ -4,7 +4,7 @@ CODESIGN_PASSWORD=$2
 
 if [ -z "$CODESIGN_ID" ]
 then
-    SIGN=0
+    SIGN=1 # can't sign without a codesign ID
 else
     SIGN=$3 # 1=Build-only, 2=Sign-and-Sign, 3=Sign-only
 fi
@@ -50,4 +50,3 @@ for i in todo; do
         ${pythons[$i]} building/apple_sign.py --app "${names[$i]}.app" --runPreDmgBuild 0  --id $CODESIGN_ID --pwd $CODESIGN_PASSWORD
     fi
 done
-
