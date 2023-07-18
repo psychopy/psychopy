@@ -117,10 +117,10 @@ class TestImage(_TestUnitsMixin, _TestBoilerplateMixin):
         
         # Test when image input is an array
         self.obj.setImage(ar)
-        np.testing.assert_array_equal(ar, self.getImageData())
+        np.testing.assert_array_equal(ar, self.obj.getImageData())
         # Test when image input is path
         self.obj.setImage(img_path)
-        np.testing.assert_array_equal(ar, self.getImageData())
+        np.testing.assert_array_equal(ar, self.obj.getImageData())
 
         
 
