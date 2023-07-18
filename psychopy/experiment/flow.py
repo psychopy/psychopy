@@ -296,9 +296,9 @@ class Flow(list):
                 "    ioServer.syncClock(globalClock)\n"
                 "logging.setDefaultClock(globalClock)\n"
                 "routineTimer = core.Clock()  # to track time remaining of each (possibly non-slip) routine\n"
+                "win.flip()  # flip window to reset last flip timer\n"
                 "# store the exact time the global clock started\n"
                 "expInfo['expStart'] = data.getDateStr(format='%Y-%m-%d %Hh%M.%S.%f %z', fractionalSecondDigits=6)\n"
-                "thisExp.setSalience('expStart', salience.CRITICAL + 1)\n"
         )
         script.writeIndentedLines(code)
         # run-time code

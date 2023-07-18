@@ -116,7 +116,7 @@ class Session:
                  dataDir=None,
                  liaison=None,
                  loggingLevel="info",
-                 salienceThreshold=constants.SALIENCE_EXCLUDE+1,
+                 priorityThreshold=constants.priority.EXCLUDE+1,
                  inputs=None,
                  win=None,
                  experiments=None,
@@ -136,11 +136,11 @@ class Session:
         # Create log file
         wallTime = data.getDateStr(fractionalSecondDigits=6)
         self.logFile = logging.LogFile(
-            dataDir / f"session_{self.root.stem}_{wallTime}.log",
+            dataDir / f"session_{wallTime}.log",
             level=getattr(logging, loggingLevel.upper())
         )
-        # Store salience threshold
-        self.salienceThreshold = salienceThreshold
+        # Store priority threshold
+        self.priorityThreshold = priorityThreshold
         # Add experiments
         self.experiments = {}
         if experiments is not None:
@@ -294,7 +294,7 @@ class Session:
         importPath = ".".join(relPath)
         # Write experiment as Python script
         pyFile = file.parent / (file.stem + ".py")
-        if "psyexp" in file.suffix and not pyFile.is_file():
+        if "psyexp" in file.suffix:
             exp = experiment.Experiment()
             exp.loadFromXML(file)
             script = exp.writeScript(target="PsychoPy")
@@ -898,7 +898,7 @@ class Session:
 
         return True
 
-    def addData(self, name, value, row=None, salience=None):
+    def addData(self, name, value, row=None, priority=None):
         """
         Add data in the data file at the current point in the experiment, and to the log.
 
@@ -910,9 +910,9 @@ class Session:
             Value to add
         row : int or None
             Row in which to add this data. Leave as None to add to the current entry.
-        salience : int
-            Salience value to set the column to - more salient columns appear nearer to the start of
-            the data file. Use values from `constants.salience` as landmark values:
+        priority : int
+            Priority value to set the column to - higher priority columns appear nearer to the start of
+            the data file. Use values from `constants.priority` as landmark values:
             - CRITICAL: Always at the start of the data file, generally reserved for Routine start times
             - HIGH: Important columns which are near the front of the data file
             - MEDIUM: Possibly important columns which are around the middle of the data file
@@ -927,9 +927,9 @@ class Session:
         # add to experiment data if there's one running
         if hasattr(self.currentExperiment, "addData"):
             # add
-            self.currentExperiment.addData(name, value, row=row, salience=salience)
+            self.currentExperiment.addData(name, value, row=row, priority=priority)
         # log regardless
-        logging.data(f"NAME={name}, SALIENCE={salience}, VALUE={value}")
+        logging.data(f"NAME={name}, PRIORITY={priority}, VALUE={value}")
 
         return True
 
@@ -993,7 +993,7 @@ class Session:
             return
         # If ExperimentHandler, get its data as a list of dicts
         if isinstance(value, data.ExperimentHandler):
-            value = value.getJSON(salienceThreshold=self.salienceThreshold)
+            value = value.getJSON(priorityThreshold=self.priorityThreshold)
         # Convert to JSON
         if not isinstance(value, str):
             value = json.dumps(value)

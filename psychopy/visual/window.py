@@ -2879,7 +2879,7 @@ class Window():
             self._backgroundImage.pos = (0, 0)
         if value in ("contain", "cover"):
             # If value is contain or cover, set one dimension to fill screen and the other to maintain ratio
-            ratios = numpy.asarray(self._backgroundImage.size) / numpy.asarray(self.size)
+            ratios = numpy.asarray(self._backgroundImage._origSize) / numpy.asarray(self.size)
             if value == "cover":
                 i = ratios.argmin()
             else:

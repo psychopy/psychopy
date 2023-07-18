@@ -2,11 +2,37 @@
 # -*- coding: utf-8 -*-
 import functools
 from pathlib import Path
+from psychopy.alerts import alert
+from psychopy import logging
 from psychopy.experiment.components import BaseComponent, Param, _translate, getInitVals
-from psychopy.experiment import params
-from psychopy import prefs
+from psychopy.sound.audiodevice import sampleRateQualityLevels
+from psychopy.tools import stringtools as st, systemtools as syst, audiotools as at
 
-mics = ["default"]
+
+_hasPTB = True
+try:
+    import psychtoolbox.audio as audio
+except (ImportError, ModuleNotFoundError):
+    logging.warning(
+        "The 'psychtoolbox' library cannot be loaded but is required for audio "
+        "capture (use `pip install psychtoolbox` to get it). Microphone "
+        "recording will be unavailable this session. Note that opening a "
+        "microphone stream will raise an error.")
+    _hasPTB = False
+
+# get information about microphones that can accompany the video recording
+if _hasPTB and not syst.isVM_CI():
+    micDevices = syst.getAudioCaptureDevices()
+    micDeviceIndices = [d['index'] for d in micDevices.values()]
+    micDeviceNames = [d['name'] for d in micDevices.values()]
+else:
+    micDevices = []
+    micDeviceIndices = []
+    micDeviceNames = []
+micDeviceIndices.append(None)
+micDeviceNames.append("default")
+# Get list of sample rates
+micSampleRates = {r[1]: r[0] for r in sampleRateQualityLevels.values()}
 
 
 class CameraComponent(BaseComponent):
@@ -26,9 +52,18 @@ class CameraComponent(BaseComponent):
             startType='time (s)', startVal='0', startEstim='',
             stopType='duration (s)', stopVal='', durationEstim='',
             # Basic
-            cameraLib="ffpyplayer", device="default", mic="default",
-            resolution="", frameRate="",
-            deviceManual="", resolutionManual="", frameRateManual="",
+            cameraLib="ffpyplayer", 
+            device="default", 
+            resolution="", 
+            frameRate="",
+            deviceManual="", 
+            resolutionManual="", 
+            frameRateManual="",
+            # audio
+            mic="default", 
+            channels='auto', 
+            sampleRate='DVD Audio (48kHz)', 
+            maxSize=24000,
             # Data
             saveFile=True,
             outputFileType="mp4", codec="h263",
@@ -175,6 +210,7 @@ class CameraComponent(BaseComponent):
                 formats.sort(reverse=True)
 
                 return [""] + formats
+
         except:
             getCameraNames = fallbackPopulator
             getResolutionsForDevice = fallbackPopulator
@@ -240,8 +276,8 @@ class CameraComponent(BaseComponent):
                          "experiments - online experiments ask the participant which device to use.")
         self.params['mic'] = Param(
             mic, valType='str', inputType="choice", categ="Basic",
-            allowedVals=list(range(len(mics))),
-            allowedLabels=[d.title() for d in list(mics)],
+            allowedVals=list(range(len(micDevices))),
+            allowedLabels=[d.title() for d in list(micDevices)],
             hint=msg,
             label=_translate("Audio device")
         )
@@ -281,8 +317,13 @@ class CameraComponent(BaseComponent):
             "false": "show",  # otherwise...
         })
 
-        msg = _translate("Frame rate (frames per second) to record at, leave blank to use device default.")
-        conf = functools.partial(getFrameRatesForDevice, self.params['cameraLib'], self.params['device'], self.params['resolution'])
+        msg = _translate("Frame rate (frames per second) to record at, leave "
+                         "blank to use device default.")
+        conf = functools.partial(
+            getFrameRatesForDevice, 
+            self.params['cameraLib'], 
+            self.params['device'], 
+            self.params['resolution'])
         self.params['frameRate'] = Param(
             frameRate, valType='int', inputType="choice", categ="Basic",
             allowedVals=conf, allowedLabels=conf,
@@ -303,7 +344,10 @@ class CameraComponent(BaseComponent):
             "true": "populate",  # should...
             "false": "populate",  # otherwise...
         })
-        msg += _translate(" For some cameras, you may need to use `camera.CAMERA_FRAMERATE_NTSC` or `camera.CAMERA_FRAMERATE_NTSC / 2`.")
+        msg += _translate(
+            " For some cameras, you may need to use "
+            "`camera.CAMERA_FRAMERATE_NTSC` or "
+            "`camera.CAMERA_FRAMERATE_NTSC / 2`.")
         self.params['frameRateManual'] = Param(
             frameRateManual, valType='int', inputType="single", categ="Basic",
             hint=msg,
@@ -323,6 +367,45 @@ class CameraComponent(BaseComponent):
             "true": "hide",  # should...
             "false": "show",  # otherwise...
         })
+
+        # microphone
+        msg = _translate(
+            "What microphone device would you like the use to record? This "
+            "will only affect local experiments - online experiments ask the "
+            "participant which mic to use.")
+        self.params['mic'] = Param(
+            mic, valType='str', inputType="choice", categ="Audio",
+            allowedVals=micDeviceIndices,
+            allowedLabels=micDeviceNames,
+            hint=msg,
+            label=_translate("Device")
+        )
+
+        msg = _translate(
+            "Record two channels (stereo) or one (mono, smaller file). Select "
+            "'auto' to use as many channels as the selected device allows.")
+        
+        self.params['micChannels'] = Param(
+            channels, valType='str', inputType="choice", categ='Audio',
+            allowedVals=['auto', 'mono', 'stereo'],
+            hint=msg,
+            label=_translate("Channels"))
+
+        msg = _translate(
+            "How many samples per second (Hz) to record at")
+        self.params['micSampleRate'] = Param(
+            sampleRate, valType='num', inputType="choice", categ='Audio',
+            allowedVals=list(micSampleRates),
+            hint=msg, direct=False,
+            label=_translate("Sample rate (hz)"))
+
+        msg = _translate(
+            "To avoid excessively large output files, what is the biggest file "
+            "size you are likely to expect?")
+        self.params['micMaxRecSize'] = Param(
+            maxSize, valType='num', inputType="single", categ='Audio',
+            hint=msg,
+            label=_translate("Max recording size (kb)"))
 
         # Data
         msg = _translate("Save webcam output to a file?")
@@ -380,23 +463,48 @@ class CameraComponent(BaseComponent):
 
     def writeInitCode(self, buff):
         inits = getInitVals(self.params, "PsychoPy")
-        # subtitute manual values if backend is opencv
+        # substitute manual values if backend is opencv
         if self.params['cameraLib'] == "opencv":
             inits['device'] = inits['deviceManual']
             inits['resolution'] = inits['resolutionManual']
             inits['frameRate'] = inits['frameRateManual']
 
-        code = (
+        # Substitute default if device not found
+        if inits['mic'].val not in micDeviceIndices:
+            alert(4330, strFields={'device': self.params['mic'].val})
+            inits['mic'].val = None
+        # Substitute sample rate value for numeric equivalent
+        inits['micSampleRate'] = micSampleRates[inits['micSampleRate'].val]
+        # Substitute channel value for numeric equivalent
+        inits['micChannels'] = {'mono': 1, 'stereo': 2, 'auto': None}[
+            self.params['micChannels'].val]
+        # Get device names
+        inits['micDeviceName'] = getDeviceName(inits['mic'].val)
+        inits['micDeviceVarName'] = getDeviceVarName(inits['mic'].val)
+        # Create Microphone object
+        micInitCode = (
+            "# create a microphone object for device: %(micDeviceName)s\n"
+            "%(micDeviceVarName)s = sound.microphone.Microphone(\n"
+            "    device=%(mic)s, \n"
+            "    channels=%(micChannels)s, \n"
+            "    sampleRateHz=%(micSampleRate)s, \n"
+            "    maxRecordingSize=%(micMaxRecSize)s\n"
+            ")\n"
+        )
+        cameraInitCode = (
             "%(name)s = camera.Camera(\n"
             "    name='%(name)s', \n"
             "    cameraLib=%(cameraLib)s, \n"
-            "    device=%(device)s, mic=microphone.Microphone(device=%(mic)s), \n"
-            "    frameRate=%(frameRate)s, frameSize=%(resolution)s\n"
+            "    device=%(device)s, \n"
+            "    mic=%(micDeviceVarName)s, \n"
+            "    frameRate=%(frameRate)s, \n"
+            "    frameSize=%(resolution)s\n"
             ")\n"
             "# Switch on %(name)s\n"
             "%(name)s.open()\n"
             "\n"
         )
+        code = micInitCode + cameraInitCode
         buff.writeIndentedLines(code % inits)
 
     def writeInitCodeJS(self, buff):
@@ -480,7 +588,7 @@ class CameraComponent(BaseComponent):
             "    %(name)sRecFolder, \n"
             "    'recording_%(name)s_%%s.mp4' %% data.utils.getDateStr()\n"
             ")\n"
-            "%(name)s.save(%(name)sFilename)\n"
+            "%(name)s.save(%(name)sFilename, encoderLib='ffpyplayer')\n"
             "thisExp.currentLoop.addData('%(name)s.clip', %(name)sFilename)\n"
             )
             buff.writeIndentedLines(code % self.params)
@@ -520,3 +628,48 @@ class CameraComponent(BaseComponent):
             "%(name)s.close()\n"
         )
         buff.writeIndentedLines(code % self.params)
+
+
+def getDeviceName(index):
+    """
+    Get device name from a given index
+
+    Parameters
+    ----------
+    index : int or None
+        Index of the device to use
+    """
+    # Alias None
+    if index not in micDeviceIndices:
+        index = None
+    # Get device name
+    i = micDeviceIndices.index(index)
+    name = micDeviceNames[i]
+
+    return name
+
+
+def getDeviceVarName(index, case="camel"):
+    """
+    Get device name from a given index and convert it to a valid variable name.
+
+    Parameters
+    ----------
+    index : int or None
+        Index of the device to use
+    case : str
+        Format of the variable name (see stringtools.makeValidVarName for info on accepted formats)
+    """
+    # Get device name
+    name = getDeviceName(index)
+    # If device name is just default, add "microphone" for clarity
+    if name == "default":
+        name += "_microphone"
+    # Make valid
+    varName = st.makeValidVarName(name, case=case)
+
+    return varName
+
+
+if __name__ == "__main__":
+    pass

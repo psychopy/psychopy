@@ -4,6 +4,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
+import ast
 import functools
 import os
 import subprocess
@@ -1115,23 +1116,35 @@ def validate(obj, valType):
 
 class DictCtrl(ListWidget, _ValidatorMixin, _HideMixin):
     def __init__(self, parent,
-                 val={}, valType='dict',
+                 val={}, labels=(_translate("Field"), _translate("Default")), valType='dict',
                  fieldName=""):
+        # try to convert to a dict if given a string
+        if isinstance(val, str):
+            try:
+                val = ast.literal_eval(val)
+            except:
+                raise ValueError(_translate("Could not interpret parameter value as a dict:\n{}").format(val))
+        # raise error if still not a dict
         if not isinstance(val, (dict, list)):
-            raise ValueError("DictCtrl must be supplied with either a dict or a list of 1-long dicts, value supplied was {}".format(val))
+            raise ValueError("DictCtrl must be supplied with either a dict or a list of 1-long dicts, value supplied was {}: {}".format(type(val), val))
+        # Get labels
+        keyLbl, valLbl = labels
         # If supplied with a dict, convert it to a list of dicts
         if isinstance(val, dict):
             newVal = []
             for key, v in val.items():
                 if hasattr(v, "val"):
                     v = v.val
-                newVal.append({'Field': key, 'Default': v})
+                newVal.append({keyLbl: key, valLbl: v})
             val = newVal
+        # Make sure we have at least 1 value
+        if not len(val):
+            val = [{keyLbl: "", valLbl: ""}]
         # If any items within the list are not dicts or are dicts longer than 1, throw error
         if not all(isinstance(v, dict) and len(v) == 2 for v in val):
             raise ValueError("DictCtrl must be supplied with either a dict or a list of 1-long dicts, value supplied was {}".format(val))
         # Create ListWidget
-        ListWidget.__init__(self, parent, val, order=['Field', 'Default'])
+        ListWidget.__init__(self, parent, val, order=labels)
 
     def SetForegroundColour(self, color):
         for child in self.Children:
