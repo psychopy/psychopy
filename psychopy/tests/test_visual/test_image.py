@@ -1,5 +1,8 @@
 from pathlib import Path
 
+import cv2
+import numpy as np
+
 from psychopy import visual, colors, core
 from .test_basevisual import _TestUnitsMixin
 from psychopy.tests.test_experiment.test_component_compile_python import _TestBoilerplateMixin
@@ -108,9 +111,18 @@ class TestImage(_TestUnitsMixin, _TestBoilerplateMixin):
             self.win.flip()
 
     def test_img_data(self):
-        """Test the accessibility of image array values"""
-        img_ar = self.getImageData()
-        assert isinstance(img_ar, np.ndarray)
+        """Test the accessibility of image array values."""
+        img_path = "default.png"
+        ar = cv2.imread(img_path)
+        
+        # Test when image input is an array
+        self.obj.setImage(ar)
+        np.testing.assert_array_equal(ar, self.getImageData())
+        # Test when image input is path
+        self.obj.setImage(img_path)
+        np.testing.assert_array_equal(ar, self.getImageData())
+
+        
 
 
 class TestImageAnimation:
