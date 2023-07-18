@@ -32,20 +32,20 @@ status.SKIP = SKIP = SEEKING = -2
 status.STOPPING = STOPPING = -3
 status.INVALID = INVALID = -9999
 
-# pertaining to the salience of columns in the data file
-salience = SimpleNamespace()
-salience.__doc__ = (
+# pertaining to the priority of columns in the data file
+priority = SimpleNamespace()
+priority.__doc__ = (
     "- CRITICAL (30): Always at the start of the data file, generally reserved for Routine start times\n "
     "- HIGH (20): Important columns which are near the front of the data file\n"
     "- MEDIUM (10): Possibly important columns which are around the middle of the data file\n"
     "- LOW (0): Columns unlikely to be important which are at the end of the data file\n"
     "- EXCLUDE (-10): Always at the end of the data file, actively marked as unimportant\n"
 )
-salience.CRITICAL = SALIENCE_CRITICAL = 30
-salience.HIGH = SALIENCE_HIGH = 20
-salience.MEDIUM = SALIENCE_MEDIUM = 10
-salience.LOW = SALIENCE_LOW = 0
-salience.EXCLUDE = SALIENCE_EXCLUDE = -10
+priority.CRITICAL = PRIORITY_CRITICAL = 30
+priority.HIGH = PRIORITY_HIGH = 20
+priority.MEDIUM = PRIORITY_MEDIUM = 10
+priority.LOW = PRIORITY_LOW = 0
+priority.EXCLUDE = PRIORITY_EXCLUDE = -10
 
 # for button box:
 PRESSED = 1
