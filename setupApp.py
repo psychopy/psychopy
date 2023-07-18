@@ -11,6 +11,8 @@ from distutils.core import setup
 from pkg_resources import parse_version
 import bdist_mpkg  # noqa: needed to build bdist, even though not explicitly used here
 import py2app  # noqa: needed to build app bundle, even though not explicitly used here
+from ctypes.util import find_library
+import importlib
 
 import psychopy
 version = psychopy.__version__
@@ -33,10 +35,11 @@ if platform != 'darwin':
 
 resources = glob.glob('psychopy/app/Resources/*')
 frameworks = [ # these installed using homebrew
-              "/usr/local/opt/libevent/lib/libevent.dylib", 
-              "/usr/local/opt/lame/lib/libmp3lame.0.dylib",
+              find_library("libevent"),
+              find_library("libmp3lame"),
+              find_library("libglfw"),
+              # libffi comes in the system
               "/usr/local/opt/libffi/lib/libffi.dylib",
-              "/usr/local/opt/libglfw/lib/libglfw.3.2.dylib",
               ]
 opencvLibs = glob.glob(os.path.join(sys.exec_prefix, 'lib', 'libopencv*.2.4.dylib'))
 frameworks.extend(opencvLibs)
@@ -57,16 +60,13 @@ if parse_version(macholib.__version__) <= parse_version('1.7'):
     macholib.MachOGraph.dyld_find = dyld_find
 
 includes = ['_sitebuiltins',  # needed for help()
-            'Tkinter', 'tkFileDialog',
             'imp', 'subprocess', 'shlex',
             'shelve',  # for scipy.io
             '_elementtree', 'pyexpat',  # for openpyxl
-            'hid',
             'pyo', 'greenlet', 'zmq', 'tornado',
             'psutil',  # for iohub
             'tobii_research',  # need tobii_research file and tobiiresearch pkg
-            'pysoundcard', 'soundfile', 'sounddevice', 'readline',
-            'hid',
+            'soundfile', 'sounddevice', 'readline',
             'xlwt',  # writes excel files for pandas
             'vlc',  # install with pip install python-vlc
             'msgpack_numpy',
@@ -76,17 +76,17 @@ includes = ['_sitebuiltins',  # needed for help()
 packages = ['pydoc',  # needed for help()
             'setuptools', 'wheel', # for plugin installing
             'wx', 'psychopy',
-            'PyQt5',
-            'pyglet', 'pytz', 'OpenGL', 'glfw',
+            'PyQt6',
+            'pyglet', 'pytz',
             'scipy', 'matplotlib', 'openpyxl', 'pandas',
-            'xml', 'xmlschema', 'elementpath',
+            'xml', 'xmlschema',
             'ffpyplayer', 'cython', 'AVFoundation',
             'moviepy', 'imageio', 'imageio_ffmpeg',
             '_sounddevice_data', '_soundfile_data',
             'cffi', 'pycparser',
             'PIL',  # 'Image',
             'freetype',
-            'objc', 'Quartz', 'AppKit', 'QTKit', 'Cocoa',
+            'objc', 'Quartz', 'AppKit', 'Cocoa',
             'Foundation', 'CoreFoundation',
             'pkg_resources',  # needed for objc
             'requests', 'certifi', 'cryptography',
@@ -94,29 +94,31 @@ packages = ['pydoc',  # needed for help()
             'git', 'gitlab',
             'msgpack', 'yaml', 'gevent',  # for ioHub
             'astunparse', 'esprima',  # for translating/adapting py/JS
-            'metapensiero.pj', 'dukpy', 'macropy',
+            'metapensiero.pj', 'dukpy', 
             'jedi', 'parso',
-            'bidi', 'arabic_reshaper',  # for right-left language conversions
+            'bidi', 'arabic_reshaper', 'charset_normalizer', # for (natural) language conversions
             'ujson',  # faster than built-in json
             'six',  # needed by configobj
-            # for unit testing
-            'coverage',
             # hardware
             'serial',
-            'egi_pynetstation', 'pylink', 'tobiiresearch',
-            'pyxid2', 'ftd2xx',  # ftd2xx is used by cedrus
             # handy science tools
             'tables',  # 'cython',
             # these aren't needed, but liked
             'pylsl', 'pygaze',
-            'Phidget22',
             'smite',  # https://github.com/marcus-nystrom/SMITE (not pypi!)
             'cv2',
-            'badapted', 'darc_toolbox',  # adaptive methods from Ben Vincent
             'questplus',
             'psychtoolbox',
             'h5py',
-            'markdown_it',
+            'markdown_it'
+            ]
+
+# Add packages that older PsychoPy (<=2023.1.x) shipped, for useVersion() compatibility
+# In PsychoPy 2023.2.0 these packages were removed from Standalone Py3.10+ builds
+if sys.version_info < (3, 9):
+    packages.extend(
+        [
+            'OpenGL', 'glfw',
             'speech_recognition', 'googleapiclient', 'pocketsphinx',
             'badapted', #'darc_toolbox',  # adaptive methods from Ben Vincent
             'egi_pynetstation', 'pylink', 'tobiiresearch',
@@ -150,6 +152,7 @@ setup(
                       'libsz.2.dylib', 'pygame',
                       # 'stringprep',
                       'functools32',
+                      'sympy',
                       ],  # anything we need to forcibly exclude?
             resources=resources,
             argv_emulation=False,  # must be False or app bundle pauses (py2app 0.21 and 0.24 tested)

@@ -12,14 +12,10 @@ import time, sys, os
 import argparse
 import shutil
 import dmgbuild
+import argparse
 
 thisFolder = Path(__file__).parent
 finalDistFolder = thisFolder.parent.parent/'dist'
-
-with Path().home()/ 'keys/apple_ost_id' as p:
-    IDENTITY = p.read_text().strip()
-with Path().home()/ 'keys/apple_psychopy_app_specific' as p:
-    PWORD = p.read_text().strip()
 
 ENTITLEMENTS = thisFolder / "entitlements.plist"
 BUNDLE_ID = "org.opensciencetools.psychopy"
@@ -343,6 +339,10 @@ def main():
                         action='store', required=False, default='true')
     parser.add_argument("--runPostDmgBuild", help="Runs up until dmg is built (and notarised) then exits",
                         action='store', required=False, default='true')
+    parser.add_argument("--id", help="ost id for codesigning",
+                        action='store', required=False, default=None)
+    parser.add_argument("--pwd", help="password for app-specific password",
+                        action='store', required=False, default=None)
     args = parser.parse_args()
     args.runPreDmgBuild = args.runPreDmgBuild.lower() in ['true', 'True', '1', 'y', 'yes']
     args.runDmgBuild = args.runDmgBuild.lower() in ['true', 'True', '1', 'y', 'yes']
@@ -353,6 +353,18 @@ def main():
     else:
         NOTARIZE = True
 
+    # codesigning identity from CLI args?
+    if args.id:
+        IDENTITY = args.id
+    else:
+        with Path().home()/ 'keys/apple_ost_id' as p:
+            IDENTITY = p.read_text().strip()
+    if args.pwd:
+        PWORD = args.pwd
+    else:
+        with Path().home()/ 'keys/apple_psychopy_app_specific' as p:
+            PWORD = p.read_text().strip()
+            
     if args.file:  # not the whole app - just sign one file
         distFolder = (thisFolder / '../dist').resolve()
         signer = AppSigner(appFile='', version=None, pword=PWORD)

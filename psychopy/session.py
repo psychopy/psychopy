@@ -116,7 +116,7 @@ class Session:
                  dataDir=None,
                  liaison=None,
                  loggingLevel="info",
-                 salienceThreshold=constants.SALIENCE_EXCLUDE+1,
+                 priorityThreshold=constants.priority.EXCLUDE+1,
                  inputs=None,
                  win=None,
                  experiments=None,
@@ -127,7 +127,7 @@ class Session:
         sys.path.insert(1, str(self.root))
         # Create data folder
         if dataDir is None:
-            dataDir = self.root / "data" / core.Clock().getTime(format="%Y-%m-%d_%H-%M-%S-%f")
+            dataDir = self.root / "data" / str(core.Clock().getTime(format="%Y-%m-%d_%H-%M-%S-%f"))
         dataDir = Path(dataDir)
         if not dataDir.is_dir():
             os.makedirs(str(dataDir), exist_ok=True)
@@ -136,11 +136,11 @@ class Session:
         # Create log file
         wallTime = data.getDateStr(fractionalSecondDigits=6)
         self.logFile = logging.LogFile(
-            dataDir / f"session_{self.root.stem}_{wallTime}.log",
+            dataDir / f"session_{wallTime}.log",
             level=getattr(logging, loggingLevel.upper())
         )
-        # Store salience threshold
-        self.salienceThreshold = salienceThreshold
+        # Store priority threshold
+        self.priorityThreshold = priorityThreshold
         # Add experiments
         self.experiments = {}
         if experiments is not None:
@@ -294,7 +294,7 @@ class Session:
         importPath = ".".join(relPath)
         # Write experiment as Python script
         pyFile = file.parent / (file.stem + ".py")
-        if "psyexp" in file.suffix and not pyFile.is_file():
+        if "psyexp" in file.suffix:
             exp = experiment.Experiment()
             exp.loadFromXML(file)
             script = exp.writeScript(target="PsychoPy")
@@ -520,7 +520,7 @@ class Session:
 
         return True
 
-    def setupInputsFromExperiment(self, key, expInfo=None, blocking=True):
+    def setupInputsFromExperiment(self, key, expInfo=None, thisExp=None, blocking=True):
         """
         Setup inputs for this Session via the 'setupInputs` method from one of this Session's experiments.
 
@@ -530,6 +530,8 @@ class Session:
             Key by which the experiment is stored (see `.addExperiment`).
         expInfo : dict
             Information about the experiment, created by the `setupExpInfo` function.
+        thisExp : psychopy.data.ExperimentHandler
+            Handler object for this experiment, contains the data to save and information about where to save it to.
         blocking : bool
             Should calling this method block the current thread?
 
@@ -561,7 +563,7 @@ class Session:
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(key)
         # Run the setupInputs method
-        self.inputs = self.experiments[key].setupInputs(expInfo=expInfo, win=self.win)
+        self.inputs = self.experiments[key].setupInputs(expInfo=expInfo, thisExp=thisExp, win=self.win)
 
         return True
 
@@ -667,7 +669,7 @@ class Session:
         # Setup logging
         self.experiments[key].run.__globals__['logFile'] = self.logFile
         # Setup inputs
-        self.setupInputsFromExperiment(key, expInfo=expInfo)
+        self.setupInputsFromExperiment(key, expInfo=expInfo, thisExp=thisExp)
         # Log start
         logging.info(_translate(
             "Running experiment via Session: name={key}, expInfo={expInfo}"
@@ -898,7 +900,7 @@ class Session:
 
         return True
 
-    def addData(self, name, value, row=None, salience=None):
+    def addData(self, name, value, row=None, priority=None):
         """
         Add data in the data file at the current point in the experiment, and to the log.
 
@@ -910,9 +912,9 @@ class Session:
             Value to add
         row : int or None
             Row in which to add this data. Leave as None to add to the current entry.
-        salience : int
-            Salience value to set the column to - more salient columns appear nearer to the start of
-            the data file. Use values from `constants.salience` as landmark values:
+        priority : int
+            Priority value to set the column to - higher priority columns appear nearer to the start of
+            the data file. Use values from `constants.priority` as landmark values:
             - CRITICAL: Always at the start of the data file, generally reserved for Routine start times
             - HIGH: Important columns which are near the front of the data file
             - MEDIUM: Possibly important columns which are around the middle of the data file
@@ -927,9 +929,9 @@ class Session:
         # add to experiment data if there's one running
         if hasattr(self.currentExperiment, "addData"):
             # add
-            self.currentExperiment.addData(name, value, row=row, salience=salience)
+            self.currentExperiment.addData(name, value, row=row, priority=priority)
         # log regardless
-        logging.data(f"NAME={name}, SALIENCE={salience}, VALUE={value}")
+        logging.data(f"NAME={name}, PRIORITY={priority}, VALUE={value}")
 
         return True
 
@@ -993,7 +995,7 @@ class Session:
             return
         # If ExperimentHandler, get its data as a list of dicts
         if isinstance(value, data.ExperimentHandler):
-            value = value.getJSON(salienceThreshold=self.salienceThreshold)
+            value = value.getJSON(priorityThreshold=self.priorityThreshold)
         # Convert to JSON
         if not isinstance(value, str):
             value = json.dumps(value)

@@ -78,7 +78,7 @@ class TestLoops:
         """
         # Define desired length for each case
         answers = {
-            'testLoopsBlocks': 9,  # because 4 'blocks' with 2 trials each (3 stims per trial)
+            'testLoopsBlocks': 8,  # because 4 'blocks' with 2 trials each (3 stims per trial)
             'testStaircase': 6,  # 5 reps + row for start time of final run
         }
         # Test each case

@@ -263,5 +263,9 @@ class WebSocketServer:
 			# send any errors to server
 			tb = traceback.format_exception(type(err), err, err.__traceback__)
 			msg = "".join(tb)
-			await websocket.send(msg)
+			err = json.dumps({
+				'type': "error",
+				'msg': msg
+			})
+			await websocket.send(err)
 			

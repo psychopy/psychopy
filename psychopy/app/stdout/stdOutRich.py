@@ -398,7 +398,12 @@ class ScriptOutputCtrl(StdOutRich, handlers.ThemeMixin):
                 # "C:\Program Files\wxPython...\samples\hangman\hangman.py"
                 filename = evt.GetString().split('"')[1]
                 lineNumber = int(evt.GetString().split(',')[1][5:])
-                self.GetTopLevelParent().gotoLine(filename, lineNumber)
+                # get handle to app
+                app = self.GetTopLevelParent().app
+                # make sure we have a Coder window
+                app.showCoder()
+                # open in coder
+                app.coder.gotoLine(filename, lineNumber)
         except Exception as e:
             print("##### Could not open URL: {} #####\n".format(evt.String))
             print(e)

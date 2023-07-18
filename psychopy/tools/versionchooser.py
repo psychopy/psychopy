@@ -470,14 +470,7 @@ def _checkout(requestedVersion):
         msg = _translate("Couldn't find version {} locally. Trying github...")
         logging.info(msg.format(requestedVersion))
 
-        out = subprocess.Popen(
-            'git fetch github --tags'.split(),
-            stderr=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            cwd=VERSIONSDIR,
-            env=constants.ENVIRON)
-        stdout, stderr = out.communicate()
-        logging.debug(stdout)
+        out, stdout, stderr = _call_process(f"git fetch github --tags")
 
         # check error code
         if out.returncode != 0:
@@ -493,15 +486,8 @@ def _checkout(requestedVersion):
             return ''
 
     # Checkout the requested tag
-    cmd = ['git', 'checkout', requestedVersion]
-    out = subprocess.Popen(
-        cmd,
-        stderr=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        cwd=VERSIONSDIR,
-        env=constants.ENVIRON)
-    stdout, stderr = out.communicate()
-    logging.debug(stdout)
+    out, stdout, stderr = _call_process(f"git reset --hard") # in case of any accidental local changes
+    out, stdout, stderr = _call_process(f"git checkout {requestedVersion}") #
 
     # check error code
     if out.returncode != 0:
@@ -510,7 +496,7 @@ def _checkout(requestedVersion):
             'Error: process exited with code {}, check log for '
             'output.'.format(out.returncode))
 
-    logging.exp('Success:  ' + ' '.join(cmd))
+    logging.exp('Success:  ' + ' '.join(f"git checkout {requestedVersion}"))
 
     return requestedVersion
 
@@ -544,3 +530,19 @@ def _gitPresent():
 
 def _psychopyComponentsImported():
     return [name for name in globals() if name in psychopy.__all__]
+
+def _call_process(cmd, log=True):
+    """Convenience call to open subprocess, and pipe stdout to debug"""
+    if type(cmd) in [str, bytes]:
+        cmd = cmd.split()
+    out = subprocess.Popen(
+        cmd,
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        cwd=VERSIONSDIR,
+        env=constants.ENVIRON)
+    stdout, stderr = out.communicate()
+    if log:
+        logging.debug(stdout)
+
+    return out, stdout, stderr

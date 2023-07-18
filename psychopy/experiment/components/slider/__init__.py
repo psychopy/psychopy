@@ -350,7 +350,7 @@ class SliderComponent(BaseVisualComponent):
         super(SliderComponent, self).writeFrameCode(buff)  # Write basevisual frame code
         forceEnd = self.params['forceEndRoutine'].val
         if forceEnd:
-            code = ("\n# Check %(name)s for response to end routine\n"
+            code = ("\n# Check %(name)s for response to end Routine\n"
                     "if %(name)s.getRating() is not None and %(name)s.status == STARTED:\n"
                     "    continueRoutine = False")
             buff.writeIndentedLines(code % (self.params))
@@ -359,7 +359,7 @@ class SliderComponent(BaseVisualComponent):
         super(SliderComponent, self).writeFrameCodeJS(buff)  # Write basevisual frame code
         forceEnd = self.params['forceEndRoutine'].val
         if forceEnd:
-            code = ("\n// Check %(name)s for response to end routine\n"
+            code = ("\n// Check %(name)s for response to end Routine\n"
                     "if (%(name)s.getRating() !== undefined && %(name)s.status === PsychoJS.Status.STARTED) {\n"
                     "  continueRoutine = false; }\n")
             buff.writeIndentedLines(code % (self.params))

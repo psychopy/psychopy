@@ -1,8 +1,9 @@
 [tool.pdm]
+version = { source = "file", path = "psychopy/__init__.py" }
 
 [project]
 name = "psychopy"
-version = "2023.2.0rc1"
+dynamic = ["version"]
 requires-python = ">=3.8, <3.11"
 description = "PsychoPy provides easy, precise, flexible experiments in behavioural sciences"
 readme ={file = "README.md", content-type = "text/markdown"}
@@ -20,18 +21,23 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10", ]
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Scientific/Engineering",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    ]
     
 dependencies = [
-    "numpy",
-    "scipy",
-    "matplotlib",
+    "numpy>=1.24.3",
+    "scipy>=1.10.1",
+    "matplotlib>=3.7.1",
     "pyglet == 1.4.11; platform_system == \"Windows\"",
     "pyglet == 1.5.27; platform_system != \"Windows\"",
     "pillow>=9.4.0",
-    "pyqt6",
+    "PyQt6",
     "pandas>=1.5.3",
     "questplus>=2023.1",
+    "openpyxl",
+    "xmlschema",
     # for core stimuli
     "soundfile",
     "imageio",
@@ -42,25 +48,31 @@ dependencies = [
     "gevent",
     "psutil",
     "tables",
-    "pyzmq",
+    "pyzmq>=22.2.1",
     "ujson",
+    "msgpack",
     "msgpack-numpy",
+    "pyyaml",
     # for text formatting
     "freetype-py",
     "python-bidi",
     "arabic-reshaper",
     "javascripthon",
-    "websocket_client",  # new in 2023.2 for session.py
+    "websockets",  # new in 2023.2 for session.py
     # for the app
     "wxPython >= 4.1.1",
     "markdown-it-py",
     "requests",
-    "future",  # to support legacy versions in useVersion
+    "future",  # only to support legacy versions in useVersion
+    # supporting plugins
+    "pypi-search>=1.2.1",
+    "setuptools<=66.1.1",
     # pavlovia connections
     "python-gitlab",
     "gitpython",
     "cryptography",  # for sshkeys
     # psychoJS conversions
+    "javascripthon>=0.12",
     "astunparse",
     "esprima",
     "jedi >= 0.16",
@@ -78,22 +90,40 @@ dependencies = [
     "pyobjc-framework-Quartz < 8.0; platform_system == \"Darwin\"",
     "pyobjc; platform_system == \"Darwin\"",
     "python-xlib; platform_system == \"Linux\"",
-    "pyyaml",
-    "pypi-search>=1.2.1",
-    "openpyxl",
-    "setuptools<=66.1.1",
 ]
 
 [project.optional-dependencies]  # This is optional dependencies
-egi = ["egi-pynetstation"]
-legacy = ["moviepy", "pygame"]
 tests = [
-    "pytest",
+    "pytest>=6.2.5",
     "pytest-codecov",
     "pytest-cov",
     "pytest-asyncio",
     "flake8",
     "xmlschema",
+]
+building = [
+    "bdist-mpkg>=0.5.0",
+    "py2app; platform_system == \"Darwin\"",
+]
+suggested = [
+    "pylsl>=1.16.1", # lab streaming layer for general connectivity
+    "xlwt",  # writing excel fiels with pandas
+    "h5py",  # to read hdf5 files for analysis
+    "SpeechRecognition",
+    "google-api-python-client",
+    "pygaze>=1.1.2",
+    "tobii_research",
+    "SMITE @ git+https://github.com/marcus-nystrom/SMITE.git",
+    "badapted>=0.0.3",
+    "egi-pynetstation>=0.0.0rc1",
+    "pyxid2>=1.0.5",
+    "Phidget22",
+]
+legacy = [
+    "pyo>=1.0.3",
+    "pyglfw",
+    "moviepy",
+    "pygame",
 ]
 
 [project.urls]
@@ -115,11 +145,6 @@ build-backend = "pdm.backend"
 includes = []
 excludes = ["building/"]
 #source-includes = ["tests/"]
-
-[[tool.pdm.source]]
-url = "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04/"
-name = "wxpython_wheels"
-type = "find_links"
 
 [tool.distutils.bdist_wheel]
 universal = 1

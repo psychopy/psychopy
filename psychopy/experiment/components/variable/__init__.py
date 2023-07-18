@@ -53,7 +53,7 @@ class VariableComponent(BaseComponent):
             startExpValue, valType='code', inputType="single", allowedTypes=[], updates='constant', categ='Basic',
             hint=hnt,
             label=_translate("Experiment start value"))
-        hnt = _translate("Set the value for the beginning of each routine.")
+        hnt = _translate("Set the value for the beginning of each Routine.")
         self.params['startRoutineValue'] = Param(
             startRoutineValue, valType='code', inputType="single", allowedTypes=[], updates='constant', categ='Basic',
             hint=hnt,
@@ -108,9 +108,9 @@ class VariableComponent(BaseComponent):
         buff.writeIndented(code % self.params)
     #
     def writeRoutineStartCode(self, buff):
-        """Write the code that will be called at the start of the routine."""
+        """Write the code that will be called at the start of the Routine."""
         if not self.params['startRoutineValue'] == '':
-            code = ("%(name)s = %(startRoutineValue)s  # Set routine start values for %(name)s\n")
+            code = ("%(name)s = %(startRoutineValue)s  # Set Routine start values for %(name)s\n")
             if self.params['saveStartRoutine'] == True:
                 code += ("thisExp.addData('%(name)s.routineStartVal', %(name)s)  # Save exp start value\n")
             buff.writeIndentedLines(code % self.params)
@@ -168,12 +168,12 @@ class VariableComponent(BaseComponent):
             buff.writeIndentedLines(code)
 
     def writeRoutineEndCode(self, buff):
-        """Write the code that will be called at the end of the routine."""
+        """Write the code that will be called at the end of the Routine."""
         code = ''
         if self.params['saveStartExp'] == True and not self.params['startExpValue'] == '':
             code = ("thisExp.addData('%(name)s.expStartVal', %(startExpValue)s)  # Save exp start value\n")
         if self.params['saveEndRoutine'] == True and not self.params['startRoutineValue'] == '':
-            code += ("thisExp.addData('%(name)s.routineEndVal', %(name)s)  # Save end routine value\n")
+            code += ("thisExp.addData('%(name)s.routineEndVal', %(name)s)  # Save end Routine value\n")
         if not self.params['startFrameValue'] == '':
             if self.params['saveFrameValue'] == 'last':
                 code += ("thisExp.addData('%(name)s.frameEndVal', %(name)sContainer[-1])  # Save end frame value\n")

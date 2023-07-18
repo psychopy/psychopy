@@ -30,6 +30,7 @@ class SoundComponent(BaseComponent):
                  startType='time (s)', startVal='0.0',
                  stopType='duration (s)', stopVal='1.0',
                  startEstim='', durationEstim='',
+                 stopWithRoutine=True,
                  syncScreenRefresh=True):
         super(SoundComponent, self).__init__(
             exp, parentName, name,
@@ -78,6 +79,12 @@ class SoundComponent(BaseComponent):
                   "For tones we can apply a hamming window to prevent 'clicks' that "
                   "are caused by a sudden onset. This delays onset by roughly 1ms."),
             label=_translate("Hamming window"))
+        self.params['stopWithRoutine'] = Param(
+            stopWithRoutine, valType='bool', inputType="bool", updates='constant', categ='Playback',
+            hint=_translate(
+                "Should playback cease when the Routine ends? Untick to continue playing "
+                "after the Routine has finished."),
+            label=_translate('Stop with Routine?'))
 
     def writeInitCode(self, buff):
         # replaces variable params with sensible defaults
@@ -218,11 +225,19 @@ class SoundComponent(BaseComponent):
             # buff.writeIndentedLines(code % self.params)
 
     def writeRoutineEndCode(self, buff):
-        code = "%s.stop()  # ensure sound has stopped at end of routine\n"
-        buff.writeIndented(code % self.params['name'])
+        if self.params['stopWithRoutine']:
+            # stop at the end of the Routine, if requested
+            code = (
+                "%(name)s.stop()  # ensure sound has stopped at end of Routine\n"
+            )
+            buff.writeIndentedLines(code % self.params)
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCode(buff)  # noinspection
 
     def writeRoutineEndCodeJS(self, buff):
-        code = "%s.stop();  // ensure sound has stopped at end of routine\n"
-        buff.writeIndented(code % self.params['name'])
+        if self.params['stopWithRoutine']:
+            # stop at the end of the Routine, if requested
+            code = (
+                "%(name)s.stop();  // ensure sound has stopped at end of Routine\n"
+            )
+            buff.writeIndentedLines(code % self.params)

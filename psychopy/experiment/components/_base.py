@@ -32,6 +32,8 @@ class BaseComponent:
     plugin = None
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
     tooltip = ""
+    # what version was this Component added in?
+    version = "0.0.0"
 
     def __init__(self, exp, parentName, name='',
                  startType='time (s)', startVal='',
@@ -883,8 +885,12 @@ class BaseComponent:
     def getPosInRoutine(self):
         """Find the index (position) in the parent Routine (0 for top)
         """
+        # get Routine
         routine = self.exp.routines[self.parentName]
-        return routine.index(self)
+        # make list of non-settings components in Routine
+        comps = [comp for comp in routine if not comp == routine.settings]
+        # get index
+        return comps.index(self)
 
     def getType(self):
         """Returns the name of the current object class"""
@@ -999,7 +1005,7 @@ class BaseVisualComponent(BaseComponent):
             hint=msg,
             label=_translate("Fill color"))
 
-        msg = _translate("Color of this stimulus (e.g. $[1,1,0], red )")
+        msg = _translate("Border color of this stimulus (e.g. $[1,1,0], red )")
         self.params['borderColor'] = Param(borderColor,
             valType='color', inputType="color", categ='Appearance',
             updates='constant',allowedTypes=[],
@@ -1112,6 +1118,16 @@ class BaseVisualComponent(BaseComponent):
             buff.writeIndented(f"// *{params['name']}* not supported by PsychoJS\n")
             return
 
+        # set parameters that need updating every frame
+        # do any params need updating? (this method inherited from _base)
+        if self.checkNeedToUpdate('set every frame'):
+            buff.writeIndentedLines(f"\nif ({params['name']}.status === PsychoJS.Status.STARTED){{ "
+                                    f"// only update if being drawn\n")
+            buff.setIndentLevel(+1, relative=True)  # to enter the if block
+            self.writeParamUpdatesJS(buff, 'set every frame')
+            buff.setIndentLevel(-1, relative=True)  # to exit the if block
+            buff.writeIndented("}\n")
+
         buff.writeIndentedLines(f"\n// *{params['name']}* updates\n")
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCodeJS(buff)
@@ -1127,16 +1143,6 @@ class BaseVisualComponent(BaseComponent):
             buff.writeIndented(f"{params['name']}.setAutoDraw(false);\n")
             # to get out of the if statement
             buff.setIndentLevel(-1, relative=True)
-            buff.writeIndented("}\n")
-
-        # set parameters that need updating every frame
-        # do any params need updating? (this method inherited from _base)
-        if self.checkNeedToUpdate('set every frame'):
-            buff.writeIndentedLines(f"\nif ({params['name']}.status === PsychoJS.Status.STARTED){{ "
-                                    f"// only update if being drawn\n")
-            buff.setIndentLevel(+1, relative=True)  # to enter the if block
-            self.writeParamUpdatesJS(buff, 'set every frame')
-            buff.setIndentLevel(-1, relative=True)  # to exit the if block
             buff.writeIndented("}\n")
 
 
