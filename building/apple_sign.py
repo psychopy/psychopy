@@ -40,13 +40,14 @@ SIGN_ALL = True
 
 
 class AppSigner:
-    def __init__(self, appFile, version, destination=None):
+    def __init__(self, appFile, version, pword, destination=None):
         self.appFile = Path(appFile)
         self.version = version
         self.destination = destination
         self._zipFile = None #'/Users/lpzjwp/code/psychopy/git/dist/PsychoPy3_2020.2.3.zip'
         self._appNotarizeUUID = None
         self._dmgBuildFile = None
+        self._pword = pword
 
     def signAll(self):
         # remove files that we know will fail the signing:
@@ -91,9 +92,9 @@ class AppSigner:
         sys.stdout.flush()
 
     def signSingleFile(self, filename, removeFailed=False, verbose=True,
-                       appFile=False):
+                       appFile=False, identity=''):
         cmd = ['codesign', str(filename),
-               '--sign',  IDENTITY,
+               '--sign',  identity,
                '--entitlements', str(ENTITLEMENTS),
                '--force',
                '--timestamp',
@@ -148,7 +149,7 @@ class AppSigner:
         cmdStr = (f"xcrun altool --notarize-app -t osx -f {fileToNotarize} "
                   f"--primary-bundle-id {BUNDLE_ID} -u {USERNAME} ")
         print(cmdStr)
-        cmdStr += f"-p {PWORD}"
+        cmdStr += f"-p {self._pword}"
         t0 = time.time()
         exitcode, output = subprocess.getstatusoutput(cmdStr)
         m = re.match('.*RequestUUID = (.*)\n', output, re.S)
@@ -199,7 +200,7 @@ class AppSigner:
 
     def checkStatus(self, uuid):
         cmd = ['xcrun', 'altool', '--notarization-info', self._appNotarizeUUID,
-               '-u', USERNAME, '-p', PWORD]
+               '-u', USERNAME, '-p', self._pword]
         cmdStr = ' '.join(cmd)
         exitcode, output = subprocess.getstatusoutput(cmdStr)
 
@@ -354,9 +355,8 @@ def main():
 
     if args.file:  # not the whole app - just sign one file
         distFolder = (thisFolder / '../dist').resolve()
-        signer = AppSigner(appFile='',
-                           version=None)
-        signer.signSingleFile(args.file, removeFailed=False, verbose=True)
+        signer = AppSigner(appFile='', version=None, pword=PWORD)
+        signer.signSingleFile(args.file, removeFailed=False, verbose=True, identity=IDENTITY)
         signer.signCheck(args.file, verbose=True)
 
         if NOTARIZE:
@@ -367,8 +367,7 @@ def main():
 
     else:  # full app signing and notarization
         distFolder = (thisFolder / '../dist').resolve()
-        signer = AppSigner(appFile=distFolder/args.app,
-                        version=args.version)
+        signer = AppSigner(appFile=distFolder/args.app, version=args.version, pword=PWORD)
 
         if args.runPreDmgBuild:
             if SIGN_ALL:

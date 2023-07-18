@@ -118,7 +118,28 @@ packages = ['pydoc',  # needed for help()
             'h5py',
             'markdown_it',
             'speech_recognition', 'googleapiclient', 'pocketsphinx',
-            ]
+            'badapted', #'darc_toolbox',  # adaptive methods from Ben Vincent
+            'egi_pynetstation', 'pylink', 'tobiiresearch',
+            'pyxid2', 'ftd2xx',  # ftd2xx is used by cedrus
+            'Phidget22',
+            'hid',
+            'macropy',
+        ]
+    )
+    packages.append('PyQt5')
+    packages.remove('PyQt6')  # PyQt6 is not compatible with earlier PsychoPy versions
+
+# check the includes and packages are all available
+for pkg in includes+packages:
+    missing_pkgs = []
+    try:
+        importlib.import_module(pkg)
+    except ImportError:
+        missing_pkgs.append(pkg)
+if missing_pkgs:
+    raise ImportError("Missing packages: %s" % missing_pkgs)
+else:
+    print("All packages appear to be present. Proceeding to build...")
 
 setup(
     app=['psychopy/app/psychopyApp.py'],

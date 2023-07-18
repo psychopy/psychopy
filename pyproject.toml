@@ -23,13 +23,13 @@ classifiers = [
     "Programming Language :: Python :: 3.10", ]
     
 dependencies = [
-    "scipy>=1.10.1",
-    "numpy<1.24",
-    "matplotlib>=3.7.1",
+    "numpy",
+    "scipy",
+    "matplotlib",
     "pyglet == 1.4.11; platform_system == \"Windows\"",
     "pyglet == 1.5.27; platform_system != \"Windows\"",
     "pillow>=9.4.0",
-    "pyqt5",
+    "pyqt6",
     "pandas>=1.5.3",
     "questplus>=2023.1",
     # for core stimuli
@@ -74,9 +74,9 @@ dependencies = [
     "python-vlc == 3.0.11115; platform_system == \"Windows\"",
     "python-vlc >= 3.0.12118; platform_system != \"Windows\"",
     "pypiwin32; platform_system == \"Windows\"",
-    "pyobjc-core < 8.0; platform_system == \"Darwin\"",
+    "pyobjc-core; platform_system == \"Darwin\"",
     "pyobjc-framework-Quartz < 8.0; platform_system == \"Darwin\"",
-    "pyobjc < 8.0; platform_system == \"Darwin\"",
+    "pyobjc; platform_system == \"Darwin\"",
     "python-xlib; platform_system == \"Linux\"",
     "pyyaml",
     "pypi-search>=1.2.1",
