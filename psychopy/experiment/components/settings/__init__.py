@@ -1022,7 +1022,7 @@ class SettingsComponent:
             loggingLevel=self.params['logging level'].val.upper(),
             setRedirectURL=setRedirectURL,
             version=version, 
-            field_separator=delim
+            field_separator=repr(delim)
         )
         buff.writeIndentedLines(code)
 
