@@ -112,7 +112,10 @@ def login(tokenOrUsername, rememberMe=True):
         user = currentSession.user
         prefs.appData['projects']['pavloviaUser'] = user['username']
     # update Pavlovia button(s)
-    builders = app.getAppInstance().builder
+    try:
+        builders = app.getAppInstance().builder
+    except AttributeError:
+        builders = []
     if not isinstance(builders, (list, tuple)):
         builders = [builders]
     for builder in builders:
