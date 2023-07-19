@@ -102,8 +102,11 @@ class Dlg(QtWidgets.QDialog):
         # add buttons for OK and Cancel
         buttons = QtWidgets.QDialogButtonBox.StandardButton.Ok | QtWidgets.QDialogButtonBox.StandardButton.Cancel
         self.buttonBox = QtWidgets.QDialogButtonBox(buttons, parent=self)
-        self.buttonBox.clicked.connect(self.accept)
-        self.buttonBox.clicked.connect(self.reject)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+        # store references to OK and CANCEL buttons
+        self.okBtn = self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Ok)
+        self.cancelBtn = self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Cancel)
 
         if style:
             raise RuntimeWarning("Dlg does not currently support the "
@@ -123,17 +126,22 @@ class Dlg(QtWidgets.QDialog):
         self.layout.setSpacing(10)
         self.layout.setColumnMinimumWidth(1, 250)
 
+        # add message about required fields (shown/hidden by validate)
+        msg = _translate("Fields marked with an asterisk (*) are required.")
+        self.requiredMsg = QtWidgets.QLabel(text=msg, parent=self)
+        self.layout.addWidget(self.requiredMsg, 0, 0, 1, -1)
+        self.irow += 1
+
         self.setLayout(self.layout)
 
         self.setWindowTitle(title)
-
 
     def addText(self, text, color='', isFieldLabel=False):
         textLabel = QtWidgets.QLabel(text, parent=self)
 
         if len(color):
             textLabel.setStyleSheet("color: {0};".format(color))
-            
+
         if isFieldLabel is True:
             self.layout.addWidget(textLabel, self.irow, 0, 1, 1)
         else:
@@ -143,7 +151,7 @@ class Dlg(QtWidgets.QDialog):
         return textLabel
 
     def addField(self, label='', initial='', color='', choices=None, tip='',
-                 enabled=True):
+                 required=False, enabled=True):
         """Adds a (labelled) input field to the dialogue box,
         optional text color and tooltip.
 
@@ -221,6 +229,8 @@ class Dlg(QtWidgets.QDialog):
                     logging.error(msg.format(label, thisType, self.data[ix],
                                              e))
 
+                self.validate()
+
             inputBox.textEdited.connect(handleLineEditChange)
         else:
             inputBox = QtWidgets.QComboBox(parent=self)
@@ -254,6 +264,9 @@ class Dlg(QtWidgets.QDialog):
 
             inputBox.currentIndexChanged.connect(handleCurrentIndexChanged)
 
+        # set required (attribute is checked later by validate fcn)
+        inputBox.required = required
+
         if len(color):
             inputBox.setPalette(inputLabel.palette())
         if len(tip):
@@ -284,6 +297,35 @@ class Dlg(QtWidgets.QDialog):
         :return: self.data
         """
         return self.exec_()
+
+    def validate(self):
+        """
+        Make sure that required fields have a value.
+        """
+        # start off assuming valid
+        valid = True
+        # start off assuming no required fields
+        hasRequired = False
+        # iterate through fields
+        for field in self.inputFields:
+            # if field isn't required, skip
+            if not field.required:
+                continue
+            # if we got this far, we have a required field
+            hasRequired = True
+            # validation is only relevant for text fields, others have defaults
+            if not isinstance(field, QtWidgets.QLineEdit):
+                continue
+            # check that we have text
+            if not len(field.text()):
+                valid = False
+        # if not valid, disable OK button
+        self.okBtn.setEnabled(valid)
+        # show required message if we have any required fields
+        if hasRequired:
+            self.requiredMsg.show()
+        else:
+            self.requiredMsg.hide()
 
     def show(self):
         """Presents the dialog and waits for the user to press OK or CANCEL.
@@ -322,7 +364,7 @@ class Dlg(QtWidgets.QDialog):
             frameGm.moveCenter(centerPoint)
             self.move(frameGm.topLeft())
         else:
-            self.move(self.pos[0],self.pos[1])
+            self.move(self.pos[0], self.pos[1])
         QtWidgets.QDialog.show(self)
         self.raise_()
         self.activateWindow()
@@ -330,7 +372,7 @@ class Dlg(QtWidgets.QDialog):
             self.inputFields[0].setFocus()
 
         self.OK = False
-        if QtWidgets.QDialog.exec(self) == QtWidgets.QDialog.accepted:
+        if QtWidgets.QDialog.exec(self):  # == QtWidgets.QDialog.accepted:
             self.OK = True
             return self.data
 
@@ -462,13 +504,32 @@ class DlgFromDict(Dlg):
             tooltip = ''
             if field in tip:
                 tooltip = tip[field]
+            # is field required?
+            required = str(label).startswith("*") or str(label).endswith("*")
+            # make field
             if field in fixed:
-                self.addFixedField(label, self.dictionary[field], tip=tooltip)
+                self.addFixedField(
+                    label,
+                    self.dictionary[field],
+                    tip=tooltip
+                )
             elif type(self.dictionary[field]) in [list, tuple]:
-                self.addField(label, choices=self.dictionary[field],
-                              tip=tooltip)
+                self.addField(
+                    label,
+                    choices=self.dictionary[field],
+                    tip=tooltip,
+                    required=required
+                )
             else:
-                self.addField(label, self.dictionary[field], tip=tooltip)
+                self.addField(
+                    label,
+                    self.dictionary[field],
+                    tip=tooltip,
+                    required=required
+                )
+
+        # validate so the required message is shown/hidden as appropriate
+        self.validate()
 
         if show:
             self.show()
@@ -680,7 +741,7 @@ if __name__ == '__main__':
 
     # Test Dict Dialog
 
-    info = {'Observer': 'jwp', 'GratingOri': 45,
+    info = {'Observer*': 'jwp', 'GratingOri': 45,
             'ExpVersion': 1.1, 'Group': ['Test', 'Control']}
     dictDlg = DlgFromDict(dictionary=info, title='TestExperiment',
                           labels={'Group': 'Participant Group'},
@@ -719,3 +780,4 @@ if __name__ == '__main__':
     # win.flip()
     # from psychopy import event
     # event.waitKeys()
+

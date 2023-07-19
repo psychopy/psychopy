@@ -590,8 +590,11 @@ class Window():
 
         self.refreshThreshold = 1.0  # initial val needed by flip()
 
+        # store editable stimuli
         self._editableChildren = []
         self._currentEditableRef = None
+        # store draggable stimuli
+        self.currentDraggable = None
 
         # splash screen
         self._splashTextbox = None  # created on first use

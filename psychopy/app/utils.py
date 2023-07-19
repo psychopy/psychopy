@@ -484,6 +484,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.htmlPreview.Bind(wx.html.EVT_HTML_LINK_CLICKED, self.onUrl)
         self.contentSizer.Add(self.htmlPreview, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
 
+
         # Choose button style
         if style | wx.BU_NOTEXT == style:
             _btnStyle = wx.BU_EXACTFIT | wx.BU_NOTEXT
@@ -493,13 +494,11 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         # Make edit button
         self.editBtn = wx.Button(self, label=_translate("Edit"), style=_btnStyle)
         self.editBtn.Bind(wx.EVT_BUTTON, self.showCode)
-        self.btnSizer.Add(self.editBtn, border=3, flag=wx.ALL | wx.EXPAND)
 
         # Make view button
         self.previewBtn = wx.Button(self, label=_translate("Preview"), style=_btnStyle)
         self.previewBtn.Bind(wx.EVT_BUTTON, self.showHTML)
         self.btnSizer.Add(self.previewBtn, border=3, flag=wx.ALL | wx.EXPAND)
-
         # Make save button
         self.saveBtn = wx.Button(self, label=_translate("Save"), style=_btnStyle)
         self.saveBtn.Bind(wx.EVT_BUTTON, self.save)
@@ -596,7 +595,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
             self.saveBtn.Enable()
             return
         # Set value from file
-        with open(self.file, "r") as f:
+        with open(self.file, "r", encoding="utf-8") as f:
             self.rawTextCtrl.SetValue(f.read())
         # Disable save button
         self.saveBtn.Disable()
