@@ -484,7 +484,6 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.htmlPreview.Bind(wx.html.EVT_HTML_LINK_CLICKED, self.onUrl)
         self.contentSizer.Add(self.htmlPreview, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
 
-
         # Choose button style
         if style | wx.BU_NOTEXT == style:
             _btnStyle = wx.BU_EXACTFIT | wx.BU_NOTEXT
@@ -494,7 +493,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         # Make edit button
         self.editBtn = wx.Button(self, label=_translate("Edit"), style=_btnStyle)
         self.editBtn.Bind(wx.EVT_BUTTON, self.showCode)
-
+        self.btnSizer.Add(self.editBtn, border=3, flag=wx.ALL | wx.EXPAND)
         # Make view button
         self.previewBtn = wx.Button(self, label=_translate("Preview"), style=_btnStyle)
         self.previewBtn.Bind(wx.EVT_BUTTON, self.showHTML)
