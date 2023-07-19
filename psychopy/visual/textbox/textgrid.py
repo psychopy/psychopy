@@ -274,5 +274,5 @@ class TextGrid:
                 glDeleteLists(self._text_dlist, 1)
                 self._text_dlist = 0
             self._current_font_display_lists = None
-        except (ModuleNotFoundError, ImportError):
+        except (ModuleNotFoundError, ImportError, AttributeError):
             pass
