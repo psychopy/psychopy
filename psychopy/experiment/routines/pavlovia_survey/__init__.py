@@ -8,6 +8,7 @@ from pathlib import Path
 class PavloviaSurveyRoutine(BaseStandaloneRoutine):
     categories = ['Responses']
     targets = ["PsychoJS"]
+    version = "2023.1.0"
     iconFile = Path(__file__).parent / "survey.png"
     tooltip = _translate("Run a SurveyJS survey in Pavlovia")
     beta = True

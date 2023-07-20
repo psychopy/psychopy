@@ -41,6 +41,7 @@ class CameraComponent(BaseComponent):
     """
     categories = ['Responses']
     targets = ["PsychoPy", "PsychoJS"]
+    version = "2022.2.0"
     iconFile = Path(__file__).parent / 'webcam.png'
     tooltip = _translate('Webcam: Record video from a webcam.')
     beta = True
