@@ -196,7 +196,10 @@ class BaseStandaloneRoutine:
     def name(self):
         if hasattr(self, 'params'):
             if 'name' in self.params:
-                return self.params['name'].val
+                if hasattr(self.params['name'], "val"):
+                    return self.params['name'].val
+                else:
+                    return self.params['name']
         return self.type
 
     @name.setter
