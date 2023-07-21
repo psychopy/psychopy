@@ -12,7 +12,7 @@ from psychopy import logging
 from psychopy.alerts import alert
 from psychopy.tools import stringtools as st, systemtools as syst, audiotools as at
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
-from psychopy.sound.audiodevice import sampleRateQualityLevels
+from psychopy.tools.audiotools import sampleRateQualityLevels
 from psychopy.localization import _localized as __localized
 
 _hasPTB = True
