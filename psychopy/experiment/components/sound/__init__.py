@@ -9,7 +9,7 @@ Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
-from psychopy.sound._base import knownNoteNames
+from psychopy.tools.audiotools import knownNoteNames
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 
