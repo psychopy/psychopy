@@ -68,9 +68,6 @@ class _ValidatorMixin:
         if not hasattr(self, "SetFont"):
             # Skip if font not applicable to object type
             return
-        if sys.platform == "linux":
-            # Skip on Linux, which doesn't like changing font after init
-            return
         if self.GetName() == "name":
             # Name is never code
             valType = "str"
