@@ -193,8 +193,7 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self.depth = depth
         self.ori = numpy.array(ori, float)
         self.size = size  # make sure that it's 2D
-        if vertices != ():  # flag for when super-init'ing a ShapeStim
-            self.vertices = vertices  # call attributeSetter
+        self.vertices = vertices  # call attributeSetter
         self.anchor = anchor
         self.autoDraw = autoDraw  # call attributeSetter
 
@@ -262,6 +261,8 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
     @vertices.setter
     def vertices(self, value):
+        if value is None:
+            value = "rect"
         # check if this is a name of one of our known shapes
         if isinstance(value, str) and value in knownShapes:
             value = knownShapes[value]
@@ -534,7 +535,7 @@ class ShapeStim(BaseShapeStim):
                                         lineColorSpace=lineColorSpace,
                                         fillColor=fillColor,
                                         fillColorSpace=fillColorSpace,
-                                        vertices=(),  # dummy verts
+                                        vertices=None,  # dummy verts
                                         closeShape=self.closeShape,
                                         pos=pos,
                                         size=size,
