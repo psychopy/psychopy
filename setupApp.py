@@ -125,11 +125,11 @@ if sys.version_info < (3, 9):
             'pyxid2', 'ftd2xx',  # ftd2xx is used by cedrus
             'Phidget22',
             'hid',
-            'QTKit', 
             'macropy',
         ]
     )
-    packages.replace('PyQt6', 'PyQt5')  # PyQt6 is not compatible with earlier PsychoPy versions
+    packages.append('PyQt5')
+    packages.remove('PyQt6')  # PyQt6 is not compatible with earlier PsychoPy versions
 
 # check the includes and packages are all available
 for pkg in includes+packages:
