@@ -277,7 +277,7 @@ class RoutineSettingsComponent(BaseComponent):
                 # Stop when condition is True
                 code = (
                     f"// is it time to end the Routine? (based on condition)\n"
-                    f"if (bool(%(stopVal)s)) {{\n"
+                    f"if (Boolean(%(stopVal)s)) {{\n"
                 )
             else:
                 msg = "Didn't write any stop line for stopType=%(stopType)s"
