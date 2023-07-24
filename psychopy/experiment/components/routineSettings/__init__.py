@@ -285,6 +285,7 @@ class RoutineSettingsComponent(BaseComponent):
             # Contents of if statement
             code += (
                 "    continueRoutine = False\n"
+                "}\n"
             )
             buff.writeIndentedLines(code % self.params)
 

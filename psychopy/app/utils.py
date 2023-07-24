@@ -478,6 +478,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.rawTextCtrl.Bind(wx.stc.EVT_STC_MODIFIED, self.onEdit)
         self.contentSizer.Add(self.rawTextCtrl, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
         self.rawTextCtrl.SetReadOnly(self.readonly)
+        self.rawTextCtrl.SetWrapMode(wx.stc.STC_WRAP_WORD)
 
         # Make HTML preview
         self.htmlPreview = HtmlWindow(self, wx.ID_ANY)
@@ -565,16 +566,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
             # get raw text
             rawText = self.rawTextCtrl.Value
             # remove images (wx doesn't like rendering them)
-            imgBuffer = rawText.split("![")
-            output = []
-            for cell in imgBuffer:
-                if ")" in cell:
-                    output.extend(cell.split(")")[1:])
-                else:
-                    output.append(cell)
-            rawText = "".join(output)
-            # This could also be done by regex, we're avoiding regex for readability
-            # rawText = re.sub(r"\!\[.*\]\(.*\)", "", rawText)
+            rawText = rawText.replace("![", "[")
             # render markdown
             renderedText = md.MarkdownIt("default").render(rawText)
         else:
