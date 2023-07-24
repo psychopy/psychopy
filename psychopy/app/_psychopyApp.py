@@ -4,7 +4,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-
+import traceback
 from pathlib import Path
 
 from psychopy.app.colorpicker import PsychoColorPicker
@@ -576,15 +576,61 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
 
         # Create windows
         if view.runner:
-            self.showRunner(fileList=runlist)
+            # open Runner is requested
+            try:
+                self.showRunner(fileList=runlist)
+            except Exception as err:
+                # if Runner failed with file, try without
+                self.showRunner()
+                # log error
+                logging.error(_translate(
+                    "Failed to open Runner with requested file list, opening without file list.\n"
+                    "Requested: {}\n"
+                    "Err: {}"
+                ).format(runlist, traceback.format_exception_only(err)))
+                logging.debug(
+                    "\n".join(traceback.format_exception(err))
+                )
+
         if view.coder:
-            self.showCoder(fileList=scripts)
+            # open Coder if requested
+            try:
+                self.showCoder(fileList=scripts)
+            except Exception as err:
+                # if Coder failed with file, try without
+                logging.error(_translate(
+                    "Failed to open Coder with requested scripts, opening with no scripts open.\n"
+                    "Requested: {}\n"
+                    "Err: {}"
+                ).format(scripts, traceback.format_exception_only(err)))
+                logging.debug(
+                    "\n".join(traceback.format_exception(err))
+                )
+                self.showCoder()
         if view.builder:
-            self.showBuilder(fileList=exps)
+            # open Builder if requested
+            try:
+                self.showBuilder(fileList=exps)
+            except Exception as err:
+                # if Builder failed with file, try without
+                self.showBuilder()
+                # log error
+                logging.error(_translate(
+                    "Failed to open Builder with requested experiments, opening with no experiments open.\n"
+                    "Requested: {}\n"
+                    "Err: {}"
+                ).format(exps, traceback.format_exception_only(err)))
+                logging.debug(
+                    "\n".join(traceback.format_exception(err))
+                )
+
         if view.direct:
             self.showRunner()
             for exp in [file for file in args if file.endswith('.psyexp') or file.endswith('.py')]:
                 self.runner.panel.runFile(exp)
+        # if we started a busy cursor which never finished, finish it now
+        if wx.IsBusy():
+            wx.EndBusyCursor()
 
         # send anonymous info to https://usage.psychopy.org
         # please don't disable this, it's important for PsychoPy's development
