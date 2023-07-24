@@ -478,6 +478,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.rawTextCtrl.Bind(wx.stc.EVT_STC_MODIFIED, self.onEdit)
         self.contentSizer.Add(self.rawTextCtrl, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
         self.rawTextCtrl.SetReadOnly(self.readonly)
+        self.rawTextCtrl.SetWrapMode(wx.stc.STC_WRAP_WORD)
 
         # Make HTML preview
         self.htmlPreview = HtmlWindow(self, wx.ID_ANY)
