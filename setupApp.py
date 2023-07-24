@@ -68,7 +68,6 @@ includes = ['_sitebuiltins',  # needed for help()
             'tobii_research',  # need tobii_research file and tobiiresearch pkg
             'soundfile', 'sounddevice', 'readline',
             'xlwt',  # writes excel files for pandas
-            'vlc',  # install with pip install python-vlc
             'msgpack_numpy',
             'configparser',
             'ntplib',  # for egi-pynetstation
@@ -81,7 +80,7 @@ packages = ['pydoc',  # needed for help()
             'scipy', 'matplotlib', 'openpyxl', 'pandas',
             'xml', 'xmlschema',
             'ffpyplayer', 'cython', 'AVFoundation',
-            'moviepy', 'imageio', 'imageio_ffmpeg',
+            'imageio', 'imageio_ffmpeg',
             '_sounddevice_data', '_soundfile_data',
             'cffi', 'pycparser',
             'PIL',  # 'Image',
@@ -118,6 +117,7 @@ packages = ['pydoc',  # needed for help()
 if sys.version_info < (3, 9):
     packages.extend(
         [
+            'moviepy', 
             'OpenGL', 'glfw',
             'speech_recognition', 'googleapiclient', 'pocketsphinx',
             'badapted', #'darc_toolbox',  # adaptive methods from Ben Vincent
@@ -153,6 +153,8 @@ setup(
                       # 'stringprep',
                       'functools32',
                       'sympy',
+                      '/usr/lib/libffi.dylib',
+                      'libwebp.7.dylib'
                       ],  # anything we need to forcibly exclude?
             resources=resources,
             argv_emulation=False,  # must be False or app bundle pauses (py2app 0.21 and 0.24 tested)

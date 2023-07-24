@@ -7,7 +7,7 @@ Demo of MovieStim
 MovieStim opens a video file and displays it on a window.
 
 """
-from psychopy import visual, core, event, constants
+from psychopy import visual, core, constants
 
 # window to present the video
 win = visual.Window((800, 600), fullscr=False)

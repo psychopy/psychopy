@@ -114,7 +114,7 @@ class Session:
     def __init__(self,
                  root,
                  dataDir=None,
-                 clock=None,
+                 clock="iso",
                  win=None,
                  experiments=None,
                  loggingLevel="info",
