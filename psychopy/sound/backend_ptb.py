@@ -364,6 +364,8 @@ class SoundPTB(_SoundBase):
         NOT_STARTED, STARTED, FINISHED, PAUSED
 
         Psychtoolbox sounds also have a statusDetailed property with further info"""
+
+        print("status called and is:", self.__dict__['status'])
         if self.__dict__['status']==STARTED:
             # check portaudio to see if still playing
             pa_status = self.statusDetailed
@@ -526,13 +528,24 @@ class SoundPTB(_SoundBase):
                 "experiment settings**".format(self.channels, array.shape[1]))
             logging.error(msg)
             raise ValueError(msg)
+        
+    def _checkPlaybackFinished(self):
+        """Checks whether playback has finished by looking up the status.
+        """
+        pa_status = self.statusDetailed
+        self._isFinished = not pa_status['Active'] and pa_status['State'] == 0
+        return self._isFinished
 
     def play(self, loops=None, when=None, log=True):
-        """Start the sound playing
-        """
-        if self.isPlaying:
-            return
+        """Start the sound playing.
 
+        Calling this after the sound has finished playing will restart the
+        sound.
+
+        """
+        if self._checkPlaybackFinished():
+            self.stop(reset=True)
+        
         if loops is not None and self.loops != loops:
             self.setLoops(loops)
 
@@ -575,6 +588,8 @@ class SoundPTB(_SoundBase):
         self.track.stop()
         self._isPlaying = False
 
+        print('doing reset', file=sys.__stdout__)
+
         if reset:
             self.seek(0)
         if log and self.autoLog:
@@ -595,7 +610,6 @@ class SoundPTB(_SoundBase):
             self._isFinished = True
         elif 0 < self.loops <= self._loopsFinished:
             self.stop(reset=reset, log=False)
-            self._isFinished = True
 
         if log and self.autoLog:
             logging.exp(u"Sound %s reached end of file" % self.name, obj=self)
