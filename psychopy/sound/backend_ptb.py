@@ -365,7 +365,6 @@ class SoundPTB(_SoundBase):
 
         Psychtoolbox sounds also have a statusDetailed property with further info"""
 
-        print("status called and is:", self.__dict__['status'])
         if self.__dict__['status']==STARTED:
             # check portaudio to see if still playing
             pa_status = self.statusDetailed
@@ -587,8 +586,6 @@ class SoundPTB(_SoundBase):
 
         self.track.stop()
         self._isPlaying = False
-
-        print('doing reset', file=sys.__stdout__)
 
         if reset:
             self.seek(0)
