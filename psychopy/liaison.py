@@ -55,6 +55,7 @@ class WebSocketServer:
 		self._methods = {
 			'liaison': (self, ['listRegisteredMethods', 'pingPong'])
 		}
+		self._classes = {}
 
 	def registerMethods(self, targetObject, referenceName):
 		"""
@@ -70,6 +71,19 @@ class WebSocketServer:
 		targetMethods = [fnct for fnct in dir(targetObject) if callable(getattr(targetObject, fnct)) and not fnct.startswith("__")]
 		self._methods[referenceName] = (targetObject, targetMethods)
 		self._logger.info(f"Registered the following methods: {self._methods[referenceName][1]} for object of class: {type(targetObject).__name__} with reference name: {referenceName}")
+
+	def registerClass(self, targetCls, referenceName):
+		"""
+		Register a given class, so that an instance can be created by clients of the server.
+
+		Parameters
+		----------
+		targetCls : class
+			Class to register as <reference name>
+		referenceName : str
+			Name used to refer to the target class when calling its constructor
+		"""
+		self._classes[referenceName] = targetCls
 
 	def listRegisteredMethods(self):
 		"""
@@ -182,9 +196,16 @@ class WebSocketServer:
 
 		Currently, only method calls are processed.
 		They should be in the following format:
-			{"object": <object reference name>, "method": <method name>, "args": [<arg>,<arg>,...], "messageId": <uuid>}
-			"args" and "messageId" are optional. messageId's are used to match results to messages, they enable
-			a single client to make multiple concurrent calls.
+			{
+				"object": <object reference name>,
+				"method": <method name>,
+				"args": [<arg>,<arg>,...],
+				"messageId": <uuid>
+			}
+		"args" and "messageId" are optional. messageId's are used to match results to messages, they enable
+		a single client to make multiple concurrent calls.
+		If "method" is not included, then the value of "object" is assumed to be a class. An instance will
+		be created and its methods registered.
 
 		The result of the method call is sent back to the client in the following format:
 			{"result": <result as string>, "messageId": <uuid>}
@@ -211,9 +232,19 @@ class WebSocketServer:
 		try:
 			# - if the message has an object and a method field, check whether a corresponding method was registered
 			if 'object' in decodedMessage:
+				# get object
 				queryObject = decodedMessage['object']
 				if queryObject not in self._methods:
 					raise Exception(f"No methods of the object {queryObject} have been registered with the server")
+				# extract and unpack args
+				rawArgs = decodedMessage['args'] if 'args' in decodedMessage else []
+				args = []
+				for arg in rawArgs:
+					# try to parse json string
+					try:
+						args.append(json.loads(arg))
+					except json.decoder.JSONDecodeError:
+						args.append(arg)
 
 				if 'method' in decodedMessage:
 					queryMethod = decodedMessage['method']
@@ -225,16 +256,6 @@ class WebSocketServer:
 					# get the method and determine whether it needs to be awaited:
 					method = getattr(self._methods[queryObject][0], queryMethod)
 					methodIsCoroutine = inspect.iscoroutinefunction(method)
-
-					# extract and unpack args
-					rawArgs = decodedMessage['args'] if 'args' in decodedMessage else []
-					args = []
-					for arg in rawArgs:
-						# try to parse json string
-						try:
-							args.append(json.loads(arg))
-						except json.decoder.JSONDecodeError:
-							args.append(arg)
 
 					# run the method, with arguments if need be:
 					if methodIsCoroutine:
@@ -258,6 +279,26 @@ class WebSocketServer:
 						response['messageId'] = decodedMessage['messageId']
 
 					await websocket.send(json.dumps(response))
+				else:
+					# if not given a method argument, treat as a class ref
+					# check that class is registered
+					if queryObject not in self._classes:
+						raise KeyError(
+							f"No class has been registered with the server as '{queryObject}'. Registered "
+							f"classes are: {self._classes}"
+						)
+					# get class
+					cls = self._classes[queryObject]
+					# add self to args if relevant
+					kwargs = {}
+					if "liaison" in inspect.getfullargspec(self._classes[queryObject].__init__).args:
+						kwargs['liaison'] = self
+					# create instance
+					obj = cls(*args, **kwargs)
+					# log
+					self._logger.debug(f"creating instance of registered class: {queryObject}")
+					# register its methods
+					self.registerMethods(obj, referenceName=queryObject)
 
 		except Exception as err:
 			# send any errors to server

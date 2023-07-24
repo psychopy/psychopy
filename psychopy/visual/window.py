@@ -180,6 +180,7 @@ class Window():
                  numSamples=2,
                  stereo=False,
                  name='window1',
+                 title="PsychoPy",
                  checkTiming=True,
                  useFBO=False,
                  useRetina=True,
@@ -263,6 +264,9 @@ class Window():
             this will be enabled. You can switch between left and right-eye
             scenes for drawing operations using
             :py:attr:`~psychopy.visual.Window.setBuffer()`.
+        title : str
+            Name of the Window according to your Operating System. This is
+            the text which appears on the title sash.
         useRetina : bool
             In PsychoPy >1.85.3 this should always be `True` as pyglet
             (or Apple) no longer allows us to create a non-retina display.
@@ -476,6 +480,9 @@ class Window():
         self._setupGL()
 
         self.blendMode = self.blendMode
+
+        # now that we have a window handle, set title
+        self.title = title
 
         # parameters for transforming the overall view
         self.viewScale = val2array(viewScale)

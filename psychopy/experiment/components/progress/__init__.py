@@ -11,6 +11,7 @@ class ProgressComponent(BaseVisualComponent):
     """
     categories = ['Stimuli']
     targets = ['PsychoPy', 'PsychoJS']
+    version = "2023.2.0"
     iconFile = Path(__file__).parent / 'progress.png'
     tooltip = _translate('Progress: Present a progress bar, with values ranging from 0 to 1.')
     beta = True
@@ -116,13 +117,13 @@ class ProgressComponent(BaseVisualComponent):
         inits['depth'] = -self.getPosInRoutine()
         # Create object
         code = (
-            "%(name)s = visual.Progress({\n"
-            "    win, name: '%(name)s',\n"
+            "%(name)s = new visual.Progress({\n"
+            "    win: psychoJS.window, name: '%(name)s',\n"
             "    progress: %(progress)s,\n"
             "    pos: %(pos)s, size: %(size)s, anchor: %(anchor)s, units: %(units)s,\n"
             "    barColor: %(color)s, backColor: %(fillColor)s, borderColor: %(borderColor)s, "
             "colorSpace: %(colorSpace)s,\n"
-            "    lineWidth: %(lineWidth)s, opacity: %(opacity)s, ori: %(ori)s\n"
+            "    lineWidth: %(lineWidth)s, opacity: %(opacity)s, ori: %(ori)s,\n"
             "    depth: %(depth)s\n"
             "})\n"
         )

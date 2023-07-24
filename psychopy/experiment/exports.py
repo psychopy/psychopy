@@ -136,7 +136,7 @@ class NameSpace:
 
         self.numpy = _numpyImports + _numpyRandomImports + ['np']
         # noinspection PyUnresolvedReferences
-        self.keywords = keyword.kwlist + dir(__builtins__)
+        self.keywords = keyword.kwlist + dir(__builtins__) + ['self']
         # these are based on a partial test, known to be incomplete:
         self.psychopy = psychopy.__all__ + ['psychopy', 'os']
         self.constants = dir(constants)
