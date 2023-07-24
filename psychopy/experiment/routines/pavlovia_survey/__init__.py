@@ -11,7 +11,7 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
     version = "2023.1.0"
     iconFile = Path(__file__).parent / "survey.png"
     tooltip = _translate("Run a SurveyJS survey in Pavlovia")
-    beta = True
+    beta = False
 
     def __init__(self, exp, name='survey',
                  surveyType="id", surveyId="", surveyJson="",
