@@ -8,6 +8,7 @@ from pathlib import Path
 class PavloviaSurveyRoutine(BaseStandaloneRoutine):
     categories = ['Responses']
     targets = ["PsychoJS"]
+    version = "2023.1.0"
     iconFile = Path(__file__).parent / "survey.png"
     tooltip = _translate("Run a SurveyJS survey in Pavlovia")
     beta = True
@@ -200,7 +201,14 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
             "// get data from %(name)s\n"
             "const %(name)sResponse =  %(name)s.getResponse();\n"
             "for (const question in %(name)sResponse) {\n"
-            "  psychoJS.experiment.addData(`%(name)s.${question}`, %(name)sResponse[question]);\n"
+            "  if (question instanceof dict) {\n"
+            "    // split multi-response questions (e.g. from a matrix table) into individual columns\n"
+            "    for (const subquestion in question) {\n"
+            "        psychoJS.experiment.addData(`%(name)s.${question}.${subquestion}`, %(name)sResponse[question][subquestion]);\n"
+            "    }\n"
+            "  } else {\n"
+            "    psychoJS.experiment.addData(`%(name)s.${question}`, %(name)sResponse[question]);\n"
+            "  }\n"
             "}\n"
         )
         if self.params['surveyType'] == "id":

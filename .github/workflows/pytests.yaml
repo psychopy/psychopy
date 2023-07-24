@@ -2,7 +2,6 @@ name: pytest
 
 on:
   workflow_dispatch:  # manual
-   branches: [ release, dev ]
   pull_request:
    branches: [ release, dev ]
 
@@ -215,7 +214,6 @@ jobs:
         # these are needed to build wxPython
         pip install attrdict3  # used by wxpython setup
         pip install pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04/ wxPython
-        pdm remove wxpython  # no longer needed in the pdm
 
     - name: Install main dependencies (pdm) and PsychoPy (pip)
       run: |
