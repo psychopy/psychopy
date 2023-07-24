@@ -565,14 +565,15 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
             # get raw text
             rawText = self.rawTextCtrl.Value
             # remove images (wx doesn't like rendering them)
-            imgBuffer = rawText.split("![")
-            output = []
-            for cell in imgBuffer:
-                if ")" in cell:
-                    output.extend(cell.split(")")[1:])
-                else:
-                    output.append(cell)
-            rawText = "".join(output)
+            if "![" in rawText:
+                imgBuffer = rawText.split("![")
+                output = []
+                for cell in imgBuffer:
+                    if ")" in cell:
+                        output.extend(cell.split(")")[1:])
+                    else:
+                        output.append(cell)
+                rawText = "".join(output)
             # This could also be done by regex, we're avoiding regex for readability
             # rawText = re.sub(r"\!\[.*\]\(.*\)", "", rawText)
             # render markdown
