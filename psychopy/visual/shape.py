@@ -262,7 +262,7 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     @vertices.setter
     def vertices(self, value):
         if value is None:
-            value = "rect"
+            value = "rectangle"
         # check if this is a name of one of our known shapes
         if isinstance(value, str) and value in knownShapes:
             value = knownShapes[value]
