@@ -17,7 +17,8 @@ import argparse
 thisFolder = Path(__file__).parent
 finalDistFolder = thisFolder.parent.parent/'dist'
 
-ENTITLEMENTS = thisFolder / "entitlements.plist"
+ENTITLEMENTS = (thisFolder / "entitlements.plist").absolute()
+assert ENTITLEMENTS.exists()
 BUNDLE_ID = "org.opensciencetools.psychopy"
 USERNAME = "admin@opensciencetools.org"
 
@@ -36,7 +37,7 @@ SIGN_ALL = True
 
 
 class AppSigner:
-    def __init__(self, appFile, version, pword, destination=None):
+    def __init__(self, appFile, version, identity='', pword='', destination=None, verbose=False):
         self.appFile = Path(appFile)
         self.version = version
         self.destination = destination
@@ -44,8 +45,12 @@ class AppSigner:
         self._appNotarizeUUID = None
         self._dmgBuildFile = None
         self._pword = pword
+        self.verbose = verbose
+        self._identity = identity
 
-    def signAll(self):
+    def signAll(self, verbose=None):
+        if verbose is None:
+            verbose = self.verbose
         # remove files that we know will fail the signing:
         for filename in self.appFile.glob("**/Frameworks/SDL*"):
             shutil.rmtree(filename)
@@ -87,10 +92,14 @@ class AppSigner:
         print(f'...done signing app in {time.time()-t0:.03f}s')
         sys.stdout.flush()
 
-    def signSingleFile(self, filename, removeFailed=False, verbose=True,
-                       appFile=False, identity=''):
+    def signSingleFile(self, filename, removeFailed=False, verbose=None,
+                       appFile=False):
+        if verbose is None:
+            verbose = self.verbose
+        if not self._identity:
+            raise ValueError('No identity provided for signing')
         cmd = ['codesign', str(filename),
-               '--sign',  identity,
+               '--sign',  self._identity,
                '--entitlements', str(ENTITLEMENTS),
                '--force',
                '--timestamp',
@@ -107,7 +116,7 @@ class AppSigner:
         # if failed and removing then remove
         if (exitcode != 0 or 'failed' in output) and removeFailed:
             Path(filename).unlink()
-            print(f"REMOVED FILE {filename}: failed to codesign")
+            print(f"FILE {filename}: failed to codesign")
         return self.signCheck(filename, verbose=False, removeFailed=removeFailed)
 
     def signCheck(self, filepath=None, verbose=False, strict=True,
@@ -140,6 +149,9 @@ class AppSigner:
         return warnings
 
     def upload(self, fileToNotarize):
+        """Uploads a file to Apple for notarizing"""
+        if not self._pword:
+            raise ValueError('No app-specific password provided for notarizing')
         filename = Path(fileToNotarize).name
         print(f'Sending {filename} to apple for notarizing')
         cmdStr = (f"xcrun altool --notarize-app -t osx -f {fileToNotarize} "
@@ -367,8 +379,8 @@ def main():
             
     if args.file:  # not the whole app - just sign one file
         distFolder = (thisFolder / '../dist').resolve()
-        signer = AppSigner(appFile='', version=None, pword=PWORD)
-        signer.signSingleFile(args.file, removeFailed=False, verbose=True, identity=IDENTITY)
+        signer = AppSigner(appFile='', version=None, pword=PWORD, identity=IDENTITY)
+        signer.signSingleFile(args.file, removeFailed=False, verbose=True)
         signer.signCheck(args.file, verbose=True)
 
         if NOTARIZE:
@@ -379,7 +391,7 @@ def main():
 
     else:  # full app signing and notarization
         distFolder = (thisFolder / '../dist').resolve()
-        signer = AppSigner(appFile=distFolder/args.app, version=args.version, pword=PWORD)
+        signer = AppSigner(appFile=distFolder/args.app, version=args.version, pword=PWORD, identity=IDENTITY)
 
         if args.runPreDmgBuild:
             if SIGN_ALL:
