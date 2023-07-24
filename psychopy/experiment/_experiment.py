@@ -167,6 +167,13 @@ class Experiment:
         """What kind of eyetracker this experiment is set up for"""
         return self.settings.params['eyetracker']
 
+    @property
+    def legacyFilename(self):
+        """
+        Variant of this experiment's filename with "_legacy" on the end
+        """
+        return ft.constructLegacyFilename(self.filename)
+
     def requireImport(self, importName, importFrom='', importAs=''):
         """Add a top-level import to the experiment.
 
@@ -303,7 +310,7 @@ class Experiment:
                 "    thisExp = setupData(expInfo=expInfo)\n"
                 "    logFile = setupLogging(filename=thisExp.dataFileName)\n"
                 "    win = setupWindow(expInfo=expInfo)\n"
-                "    inputs = setupInputs(expInfo=expInfo, win=win)\n"
+                "    inputs = setupInputs(expInfo=expInfo, thisExp=thisExp, win=win)\n"
                 "    run(\n"
                 "        expInfo=expInfo, \n"
                 "        thisExp=thisExp, \n"
@@ -409,24 +416,88 @@ class Experiment:
 
         return experimentNode
 
-    def saveToXML(self, filename):
-        self.psychopyVersion = psychopy.__version__  # make sure is current
+    def sanitizeForVersion(self, targetVersion):
+        """
+        Create a copy of this experiment with components/routines added after the given version removed.
+
+        Parameters
+        ----------
+        version : packaging.Version, str
+            Version of PsychoPy to sanitize for.
+
+        Returns
+        -------
+        Experiment
+            Sanitized copy of this experiment
+        """
+        # copy self
+        exp = deepcopy(self)
+        # parse version
+        targetVersion = parse_version(targetVersion)
+        # change experiment version
+        exp.psychopyVersion = targetVersion
+        # iterate through Routines
+        for rtName, rt in copy(exp.routines).items():
+            # if Routine was added after the target version, remove it
+            if hasattr(type(rt), "version") and parse_version(rt.version) > targetVersion:
+                exp.routines.pop(rtName)
+            # if Routine is a standalone, we're done
+            if isinstance(rt, BaseStandaloneRoutine):
+                continue
+            # iterate through Components
+            for comp in copy(rt):
+                # if Component was added after target version, remove it
+                if hasattr(type(comp), "version") and parse_version(comp.version) > targetVersion:
+                    i = rt.index(comp)
+                    rt.pop(i)
+
+        return exp
+
+    def saveToXML(self, filename, makeLegacy=True):
+        """
+        Save this experiment to a `.psyexp` file (under the hood, this is XML)
+        Parameters
+        ----------
+        filename : str, Path
+            Filename to save to.
+        makeLegacy : bool
+            If True, and useVersion is lower than the current version, a legacy-safe version of this experiment is also
+            saved.
+
+        Returns
+        -------
+        filename : str
+            The filename which was eventually saved to
+        """
+        # get current version
+        self.psychopyVersion = psychopy.__version__
+        # make path object
+        filename = Path(filename)
         # create the dom object
         self.xmlRoot = self._xml
-        # convert to a pretty string
         # update our document to use the new root
         self._doc._setroot(self.xmlRoot)
         simpleString = xml.tostring(self.xmlRoot, 'utf-8')
+        # convert to a pretty string
         pretty = minidom.parseString(simpleString).toprettyxml(indent="  ")
-        # then write to file
-        if not filename.endswith(".psyexp"):
-            filename += ".psyexp"
-
-        with codecs.open(filename, 'wb', encoding='utf-8-sig') as f:
+        # make sure we have the correct extension
+        if filename.suffix != ".psyexp":
+            filename = filename.parent / (filename.stem + ".psyexp")
+        # write to file
+        with codecs.open(str(filename), 'wb', encoding='utf-8-sig') as f:
             f.write(pretty)
+        # if useVersion is less than current version, create a sanitized legacy variant
+        if self.settings.params['Use version'].val and makeLegacy:
+            # create sanitized legacy experiment object
+            legacy = self.sanitizeForVersion(self.settings.params['Use version'].val)
+            # construct a legacy variant of the filename
+            legacyFilename = ft.constructLegacyFilename(filename)
+            # call save method from that experiment
+            legacy.saveToXML(filename=str(legacyFilename), makeLegacy=False)
+        # update internal reference to filename
+        self.filename = str(filename)
 
-        self.filename = filename
-        return filename  # this may have been updated to include an extension
+        return str(filename)  # this may have been updated to include an extension
 
     def _getShortName(self, longName):
         return longName.replace('(', '').replace(')', '').replace(' ', '')
@@ -803,12 +874,18 @@ class Experiment:
                         # e.g. param.val=[{'ori':0},{'ori':3}]
                         try:
                             param.val = eval('%s' % (param.val))
-                        except SyntaxError:
-                            # This can occur if Python2.7 conditions string
-                            # contained long ints (e.g. 8L) and these can't be
-                            # parsed by Py3. But allow the file to carry on
-                            # loading and the conditions will still be loaded
-                            # from the xlsx file
+                        except (NameError, SyntaxError):
+                            """
+                            Catches
+                            -------
+                            SyntaxError
+                                This can occur if Python2.7 conditions string contained long ints (e.g. 8L) and these 
+                                can't be parsed by Py3. But allow the file to carry on loading and the conditions will 
+                                still be loaded from the xlsx file
+                            NameError
+                                Happens when a cell in the conditions file contains a reserved JSON keyword which isn't 
+                                a reserved Python keyword (e.g. nan), as it's read in as literal but can't be evaluated.
+                            """
                             pass
                 # get condition names from within conditionsFile, if any:
                 try:
@@ -1057,12 +1134,16 @@ class Experiment:
                     'rel': url, 'abs': url,
                 })
         if handled:
-            # If resources are handled, clear all component resources
+            # if resources are handled, clear all component resources
             handledResources = compResources
             compResources = []
-            # Still add default stim
+            # exceptions to the rule...
             for thisFile in handledResources:
+                # still add default stim
                 if thisFile.get('name', False) in list(ft.defaultStim):
+                    compResources.append(thisFile)
+                # still add survey ID
+                if 'surveyId' in thisFile:
                     compResources.append(thisFile)
 
         # Get resources for loops

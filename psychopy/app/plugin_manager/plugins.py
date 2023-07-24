@@ -5,9 +5,10 @@ from PIL import Image as pil
 
 from psychopy.tools import pkgtools
 from psychopy.app.themes import theme, handlers, colors, icons
+from psychopy.tools.versionchooser import VersionRange
 from psychopy.app import utils
 from psychopy.localization import _translate
-from psychopy import plugins
+from psychopy import plugins, __version__
 import requests
 
 
@@ -30,7 +31,8 @@ class AuthorInfo:
                  name="",
                  email="",
                  github="",
-                 avatar=None):
+                 avatar=None,
+                 **kwargs):
         self.name = name
         self.email = email
         self.github = github
@@ -83,8 +85,8 @@ class PluginInfo:
     def __init__(self,
                  pipname, name="",
                  author=None, homepage="", docs="", repo="",
-                 keywords=None,
-                 icon=None, description=""):
+                 keywords=None, version=(None, None),
+                 icon=None, description="", **kwargs):
         self.pipname = pipname
         self.name = name
         self.author = author
@@ -94,6 +96,7 @@ class PluginInfo:
         self.icon = icon
         self.description = description
         self.keywords = keywords or []
+        self.version = VersionRange(*version)
 
         self.parent = None   # set after
 
@@ -277,6 +280,9 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             # Bind navigation
             self.Bind(wx.EVT_NAVIGATION_KEY, self.onNavigation)
 
+            # Handle version mismatch
+            self.installBtn.Enable(__version__ in self.info.version)
+
             self._applyAppTheme()
 
         @property
@@ -422,6 +428,10 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         # Setup items sizers & labels
         self.itemSizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.itemSizer, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
+        self.badItemLbl = wx.StaticText(self, label=_translate("Not for PsychoPy {}:").format(__version__))
+        self.sizer.Add(self.badItemLbl, border=9, flag=wx.ALL | wx.EXPAND)
+        self.badItemSizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.badItemSizer, border=3, flag=wx.ALL | wx.EXPAND)
 
         # Bind deselect
         self.Bind(wx.EVT_LEFT_DOWN, self.onDeselect)
@@ -435,10 +445,10 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.initState[item.info.pipname] = {"installed": item.info.installed, "active": item.info.active}
 
     def populate(self):
-        for item in self.items:
-            self.removeItem(item)
         # Get all plugin details
         items = getAllPluginDetails()
+        # Start off assuming no headings
+        self.badItemLbl.Hide()
         # Put installed packages at top of list
         items.sort(key=lambda obj: obj.installed, reverse=True)
         for item in items:
@@ -544,11 +554,18 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
     def _applyAppTheme(self):
         # Set colors
         self.SetBackgroundColour("white")
+        # Style heading(s)
+        from psychopy.app.themes import fonts
+        self.badItemLbl.SetFont(fonts.appTheme['h6'].obj)
 
     def appendItem(self, info):
         item = self.PluginListItem(self, info)
         self.items.append(item)
-        self.itemSizer.Add(item, border=6, flag=wx.ALL | wx.EXPAND)
+        if __version__ in item.info.version:
+            self.itemSizer.Add(item, border=6, flag=wx.ALL | wx.EXPAND)
+        else:
+            self.badItemSizer.Add(item, border=6, flag=wx.ALL | wx.EXPAND)
+            self.badItemLbl.Show()
 
     def getItem(self, info):
         """
@@ -586,9 +603,13 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Pip name
         self.pipName = wx.StaticText(self, label="psychopy-...")
         self.titleSizer.Add(self.pipName, flag=wx.EXPAND)
+        # Space
+        self.titleSizer.AddStretchSpacer()
+        # Versions
+        self.versionCtrl = wx.StaticText(self, label=_translate("Version:"))
+        self.titleSizer.Add(self.versionCtrl, border=6, flag=wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND)
         # Buttons
         self.buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.titleSizer.AddStretchSpacer()
         self.titleSizer.Add(self.buttonSizer, flag=wx.EXPAND)
         # Install btn
         self.installBtn = wx.Button(self)
@@ -649,6 +670,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Set background
         self.SetBackgroundColour("white")
         self.keywordsCtrl.SetBackgroundColour("white")
+        self.versionCtrl.SetForegroundColour("grey")
         # Set fonts
         from psychopy.app.themes import fonts
         self.title.SetFont(fonts.appTheme['h1'].obj)
@@ -809,11 +831,21 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # self.markActive(value.active)
         # Set description
         self.description.setValue(value.description)
+        # Set version text
+        self.versionCtrl.SetLabelText(_translate(
+            "Works with versions {}."
+        ).format(value.version))
+        self.versionCtrl.Show(
+            value.version.first is not None or value.version.last is not None
+        )
         # Set keywords
         self.keywordsCtrl.items = value.keywords
 
         # Set author info
         self.author.info = value.author
+
+        # Handle version mismatch
+        self.installBtn.Enable(__version__ in self.info.version)
 
         self.Layout()
 
@@ -979,7 +1011,7 @@ def markInstalled(pluginItem, pluginPanel, installed=True):
         if installed is None:
             # If pending, show elipsis and refresh icon
             pluginPanel.installBtn.Show()
-            pluginPanel.installBtn.Enable()
+            pluginPanel.installBtn.Enable(__version__ in pluginItem.info.version)
             pluginPanel.installBtn.SetLabel("...")
             _setAllBitmaps(pluginPanel.installBtn, icons.ButtonIcon("view-refresh", 16).bitmap)
             # Hide active button while pending
@@ -995,7 +1027,7 @@ def markInstalled(pluginItem, pluginPanel, installed=True):
         else:
             # If not installed, show "Install" and download icon
             pluginPanel.installBtn.Show()
-            pluginPanel.installBtn.Enable()
+            pluginPanel.installBtn.Enable(__version__ in pluginItem.info.version)
             pluginPanel.installBtn.SetLabel(_translate("Install"))
             _setAllBitmaps(pluginPanel.installBtn, icons.ButtonIcon("download", 16).bitmap)
             # Hide active button when not installed

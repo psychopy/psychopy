@@ -365,6 +365,13 @@ class BasePsychopyToolbar(wx.ToolBar, handlers.ThemeMixin):
         pass
 
 
+class ThemedPanel(wx.Panel, handlers.ThemeMixin):
+    """
+    A wx.Panel object with themeing methods from ThemeMixin.
+    """
+    pass
+
+
 class HoverButton(wx.Button, HoverMixin, handlers.ThemeMixin):
     def __init__(self, parent, id=wx.ID_ANY, label='', bmp=None,
                  pos=wx.DefaultPosition, size=wx.DefaultSize,
@@ -471,6 +478,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.rawTextCtrl.Bind(wx.stc.EVT_STC_MODIFIED, self.onEdit)
         self.contentSizer.Add(self.rawTextCtrl, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
         self.rawTextCtrl.SetReadOnly(self.readonly)
+        self.rawTextCtrl.SetWrapMode(wx.stc.STC_WRAP_WORD)
 
         # Make HTML preview
         self.htmlPreview = HtmlWindow(self, wx.ID_ANY)
@@ -483,12 +491,14 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         else:
             _btnStyle = wx.BU_EXACTFIT
 
-        # Make switch
-        self.editBtn = ToggleLabelButton(self, label=_translate("Edit"), style=_btnStyle)
-        self.editBtn.SetLabelPressed(_translate("Preview"))
-        self.editBtn.Bind(wx.EVT_TOGGLEBUTTON, self.toggleView)
+        # Make edit button
+        self.editBtn = wx.Button(self, label=_translate("Edit"), style=_btnStyle)
+        self.editBtn.Bind(wx.EVT_BUTTON, self.showCode)
         self.btnSizer.Add(self.editBtn, border=3, flag=wx.ALL | wx.EXPAND)
-
+        # Make view button
+        self.previewBtn = wx.Button(self, label=_translate("Preview"), style=_btnStyle)
+        self.previewBtn.Bind(wx.EVT_BUTTON, self.showHTML)
+        self.btnSizer.Add(self.previewBtn, border=3, flag=wx.ALL | wx.EXPAND)
         # Make save button
         self.saveBtn = wx.Button(self, label=_translate("Save"), style=_btnStyle)
         self.saveBtn.Bind(wx.EVT_BUTTON, self.save)
@@ -506,9 +516,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
             self.rawTextCtrl.SetValue(value)
 
         # Set initial view
-        self.editBtn.SetValue(False)
-        self.editBtn.Show(not self.readonly)
-        self.toggleView(False)
+        self.showHTML()
         self.saveBtn.Disable()
         self.saveBtn.Show(self.file is not None)
         self._applyAppTheme()
@@ -526,27 +534,28 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         # Restore readonly state
         self.rawTextCtrl.SetReadOnly(og)
         # Render
-        self.toggleView(self.editBtn.Value)
-
-    def showCode(self, evt=None):
-        self.toggleView(True)
-
-    def showHTML(self, evt=None):
-        self.toggleView(False)
-
-    def toggleView(self, evt=True):
-        if isinstance(evt, bool):
-            edit = evt
-        else:
-            edit = evt.EventObject.Value
-        # Render html
         self.render()
 
-        # Show opposite control
-        self.rawTextCtrl.Show(edit)
-        self.htmlPreview.Show(not edit)
+    def showCode(self, evt=None):
+        # Show edit control and view button
+        self.rawTextCtrl.Show(not self.readonly)
+        self.previewBtn.Show(not self.readonly)
+        # Hide preview control and edit button
+        self.htmlPreview.Show(self.readonly)
+        self.editBtn.Hide()
+        # Refresh
+        self.Layout()
 
-        self._applyAppTheme()
+    def showHTML(self, evt=None):
+        # Hide edit control
+        self.rawTextCtrl.Hide()
+        self.previewBtn.Hide()
+        # Render html
+        self.render()
+        # Show html control
+        self.htmlPreview.Show()
+        self.editBtn.Show(not self.readonly)
+        # Refresh
         self.Layout()
         if hasattr(evt, "Skip"):
             evt.Skip()
@@ -557,16 +566,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
             # get raw text
             rawText = self.rawTextCtrl.Value
             # remove images (wx doesn't like rendering them)
-            imgBuffer = rawText.split("![")
-            output = []
-            for cell in imgBuffer:
-                if ")" in cell:
-                    output.extend(cell.split(")")[1:])
-                else:
-                    output.append(cell)
-            rawText = "".join(output)
-            # This could also be done by regex, we're avoiding regex for readability
-            # rawText = re.sub(r"\!\[.*\]\(.*\)", "", rawText)
+            rawText = rawText.replace("![", "[")
             # render markdown
             renderedText = md.MarkdownIt("default").render(rawText)
         else:
@@ -586,7 +586,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
             self.saveBtn.Enable()
             return
         # Set value from file
-        with open(self.file, "r") as f:
+        with open(self.file, "r", encoding="utf-8") as f:
             self.rawTextCtrl.SetValue(f.read())
         # Disable save button
         self.saveBtn.Disable()
@@ -644,7 +644,7 @@ class MarkdownCtrl(wx.Panel, handlers.ThemeMixin):
         self.editBtn.SetBitmap(
             icons.ButtonIcon(stem="editbtn", size=(16, 16)).bitmap
         )
-        self.editBtn.SetBitmapPressed(
+        self.previewBtn.SetBitmap(
             icons.ButtonIcon(stem="viewbtn", size=(16, 16)).bitmap
         )
 

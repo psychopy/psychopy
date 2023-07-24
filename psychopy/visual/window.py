@@ -180,6 +180,7 @@ class Window():
                  numSamples=2,
                  stereo=False,
                  name='window1',
+                 title="PsychoPy",
                  checkTiming=True,
                  useFBO=False,
                  useRetina=True,
@@ -263,6 +264,9 @@ class Window():
             this will be enabled. You can switch between left and right-eye
             scenes for drawing operations using
             :py:attr:`~psychopy.visual.Window.setBuffer()`.
+        title : str
+            Name of the Window according to your Operating System. This is
+            the text which appears on the title sash.
         useRetina : bool
             In PsychoPy >1.85.3 this should always be `True` as pyglet
             (or Apple) no longer allows us to create a non-retina display.
@@ -477,6 +481,9 @@ class Window():
 
         self.blendMode = self.blendMode
 
+        # now that we have a window handle, set title
+        self.title = title
+
         # parameters for transforming the overall view
         self.viewScale = val2array(viewScale)
         if self.viewPos is not None and self.units is None:
@@ -590,8 +597,11 @@ class Window():
 
         self.refreshThreshold = 1.0  # initial val needed by flip()
 
+        # store editable stimuli
         self._editableChildren = []
         self._currentEditableRef = None
+        # store draggable stimuli
+        self.currentDraggable = None
 
         # splash screen
         self._splashTextbox = None  # created on first use
@@ -2879,7 +2889,7 @@ class Window():
             self._backgroundImage.pos = (0, 0)
         if value in ("contain", "cover"):
             # If value is contain or cover, set one dimension to fill screen and the other to maintain ratio
-            ratios = numpy.asarray(self._backgroundImage.size) / numpy.asarray(self.size)
+            ratios = numpy.asarray(self._backgroundImage._origSize) / numpy.asarray(self.size)
             if value == "cover":
                 i = ratios.argmin()
             else:

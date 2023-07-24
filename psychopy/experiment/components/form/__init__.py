@@ -29,6 +29,7 @@ class FormComponent(BaseVisualComponent):
 
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
+    version = "2020.2.0"
     iconFile = Path(__file__).parent / 'form.png'
     tooltip = _translate('Form: a Psychopy survey tool')
     beta = True

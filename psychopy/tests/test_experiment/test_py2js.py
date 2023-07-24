@@ -54,15 +54,37 @@ class TestTranspiler:
         # Define some cases which should be handled
         cases = [
             {'py': "a.append(4)", 'js': "a.push(4);\n"},
+            {'py': "a.split()", 'js': 'a.split(" ");\n'},
+            {'py': "a.split('.')", 'js': 'a.split(".");\n'},
+            {'py': "a.sort(reverse=True)", 'js': "a.reverse();\n"},
+            {'py': "a.sort()", 'js': "a.sort();\n"},
+            {'py': "a.insert(0, 5)", 'js': "a.splice(0, 0, 5);\n"},
+            {'py': "a.insert(-1, x)", 'js': "a.splice((- 1), 0, x);\n"},
+            {'py': "' '.join(a)", 'js': 'a.join(" ");\n'},
             {'py': "a.index(2)", 'js': "util.index(a, 2);\n"},
             {'py': "a.count(2)", 'js': "util.count(a, 2);\n"},
             {'py': "a.lower()", 'js': "a.toLowerCase();\n"},
             {'py': "a.upper()", 'js': "a.toUpperCase();\n"},
             {'py': "a.extend([4, 5, 6])", 'js': "a.concat([4, 5, 6]);\n"},
+            {'py': "a.pop(0)", 'js': "a.splice(0, 1);\n"},
+            {'py': "a.pop()", 'js': "a.splice((- 1), 1);\n"},
         ]
         # Try each case
         for case in cases:
             self.runTranspile(case['py'], case['js'])
+
+    def test_util_substitutions(self):
+        # Define some cases which should be handled
+        cases = [
+            {'py': "shuffle(a)", 'js': "util.shuffle(a);\n"},
+            {'py': "sum(a)", 'js': "util.sum(a);\n"},
+            {'py': "average(a)", 'js': "util.average(a);\n"},
+            {'py': "core.Clock()", 'js': "new util.Clock();\n"},
+        ]
+        # Try each case
+        for case in cases:
+            self.runTranspile(case['py'], case['js'])
+
 
     def test_var_defs(self):
         cases = [
@@ -167,6 +189,8 @@ class Test_PY2JS_Compile:
         input = ['sin(t)',
                  'cos(t)',
                  'tan(t)',
+                 'floor(t)',
+                 'ceil(t)',
                  'pi',
                  'rand',
                  'random',
@@ -184,6 +208,8 @@ class Test_PY2JS_Compile:
         output = ['Math.sin(t)',
                   'Math.cos(t)',
                   'Math.tan(t)',
+                  'Math.floor(t)',
+                  'Math.ceil(t)',
                   'Math.PI',
                   'Math.random',
                   'Math.random',

@@ -13,12 +13,11 @@ _localized = {'name': _translate("Name")}
 class RoutineSettingsComponent(BaseComponent):
     """
     """
-    targets = ['PsychoPy']
-
     categories = ['Other']
-    targets = ['PsychoPy']
+    targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'routineSettings.png'
     tooltip = _translate('Settings for this Routine.')
+    version = "2023.2.0"
 
     def __init__(
             self, exp, parentName,
@@ -144,7 +143,9 @@ class RoutineSettingsComponent(BaseComponent):
             }]
 
         # --- Data params ---
-        self.params['saveStartStop'].hint = _translate("Save the start and stop times of this Routine (according to the global clock) to the data file.")
+        self.params['saveStartStop'].hint = _translate(
+            "Save the start and stop times of this Routine (according to the global clock) to the data file."
+        )
 
     def writeRoutineStartCode(self, buff):
         # Sanitize
@@ -169,6 +170,38 @@ class RoutineSettingsComponent(BaseComponent):
                 "win.colorSpace = %(colorSpace)s\n"
                 "win.backgroundImage = %(backgroundImg)s\n"
                 "win.backgroundFit = %(backgroundFit)s\n"
+            )
+            buff.writeIndentedLines(code % params)
+
+    def writeRoutineStartCodeJS(self, buff):
+        # Sanitize
+        params = self.params.copy()
+        # Store Routine start time (UTC)
+        if self.params['saveStartStop']:
+            code = (
+                "psychoJS.experiment.addData('%(name)s.started', globalClock.getTime());\n"
+            )
+            buff.writeIndentedLines(code % params)
+        # Skip Routine if condition is met
+        if params['skipIf'].val not in ('', None, -1, 'None'):
+            code = (
+                "// skip this Routine if its 'Skip if' condition is True\n"
+                "continueRoutine = continueRoutine && !(%(skipIf)s);\n"
+            )
+            buff.writeIndentedLines(code % params)
+        # Change window appearance for this Routine (if requested)
+        if params['useWindowParams']:
+            code = (
+                "%(name)sStartWinParams = {\n"
+                "    'color': psychoJS.window.color,\n"
+                "    'colorSpace': psychoJS.window.colorSpace,\n"
+                "    'backgroundImage': psychoJS.window.backgroundImage,\n"
+                "    'backgroundFit': psychoJS.window.backgroundFit,\n"
+                "};\n"
+                "psychoJS.window.color = %(color)s;\n"
+                "psychoJS.window.colorSpace = %(colorSpace)s;\n"
+                "psychoJS.window.backgroundImage = %(backgroundImg)s;\n"
+                "psychoJS.window.backgroundFit = %(backgroundFit)s;\n"
             )
             buff.writeIndentedLines(code % params)
 
@@ -218,6 +251,43 @@ class RoutineSettingsComponent(BaseComponent):
             )
             buff.writeIndentedLines(code % self.params)
 
+    def writeFrameCodeJS(self, buff):
+        # Sanitize
+        params = self.params.copy()
+        # Get current loop
+        if len(self.exp.flow._loopList):
+            params['loop'] = self.exp.flow._loopList[-1]  # last (outer-most) loop
+        else:
+            params['loop'] = self.exp._expHandler
+        # Write stop test
+        if self.params['stopVal'].val not in ('', None, -1, 'None'):
+            if self.params['stopType'].val == 'duration (s)':
+                # Stop after given number of seconds
+                code = (
+                    f"// is it time to end the Routine? (based on local clock)\n"
+                    f"if (tThisFlip > %(stopVal)s-frameTolerance) {{\n"
+                )
+            elif self.params['stopType'].val == 'frame N':
+                # Stop at given frame num
+                code = (
+                    f"// is it time to end the Routine? (based on frames since Routine start)\n"
+                    f"if (frameN >= %(stopVal)s) {{\n"
+                )
+            elif self.params['stopType'].val == 'condition':
+                # Stop when condition is True
+                code = (
+                    f"// is it time to end the Routine? (based on condition)\n"
+                    f"if (bool(%(stopVal)s)) {{\n"
+                )
+            else:
+                msg = "Didn't write any stop line for stopType=%(stopType)s"
+                raise CodeGenerationException(msg % params)
+            # Contents of if statement
+            code += (
+                "    continueRoutine = False\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+
     def writeRoutineEndCode(self, buff):
         params = self.params.copy()
         # Store Routine start time (UTC)
@@ -230,6 +300,24 @@ class RoutineSettingsComponent(BaseComponent):
         if params['useWindowParams']:
             code = (
                 "setupWindow(expInfo=expInfo, win=win)\n"
+            )
+            buff.writeIndentedLines(code % params)
+
+    def writeRoutineEndCodeJS(self, buff):
+        params = self.params.copy()
+        # Store Routine start time (UTC)
+        if self.params['saveStartStop']:
+            code = (
+                "psychoJS.experiment.addData('%(name)s.stopped', globalClock.getTime());\n"
+            )
+            buff.writeIndentedLines(code % params)
+        # Restore window appearance after this Routine (if changed)
+        if params['useWindowParams']:
+            code = (
+                "psychoJS.window.color = %(name)sStartWinParams['color'];\n"
+                "psychoJS.window.colorSpace = %(name)sStartWinParams['colorSpace'];\n"
+                "psychoJS.window.backgroundImage = %(name)sStartWinParams['backgroundImage'];\n"
+                "psychoJS.window.backgroundFit = %(name)sStartWinParams['backgroundFit'];\n"
             )
             buff.writeIndentedLines(code % params)
 

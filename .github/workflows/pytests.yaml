@@ -1,10 +1,9 @@
 name: pytest
 
 on:
-  push:
-    branches: [ release, dev ]
+  workflow_dispatch:  # manual
   pull_request:
-    branches: [ release, dev ]
+   branches: [ release, dev ]
 
 permissions:
   contents: read
@@ -40,6 +39,7 @@ jobs:
         pip install pdm
         pdm config python.use_venv false  # don't need/want venv in a vm!
         pdm install  # fetch dependendices in lock file
+        pdm add -G tests
         pdm install -G tests
         pdm build
         # install with pip both the main and [tests] group
@@ -214,7 +214,6 @@ jobs:
         # these are needed to build wxPython
         pip install attrdict3  # used by wxpython setup
         pip install pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04/ wxPython
-        pdm remove wxpython  # no longer needed in the pdm
 
     - name: Install main dependencies (pdm) and PsychoPy (pip)
       run: |

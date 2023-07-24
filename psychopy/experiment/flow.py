@@ -219,7 +219,7 @@ class Flow(list):
         # Open function def
         code = (
             '\n'
-            'def run(expInfo, thisExp, win, inputs, thisSession=None):\n'
+            'def run(expInfo, thisExp, win, inputs, globalClock=None, thisSession=None):\n'
             '    """\n'
             '    Run the experiment flow.\n'
             '    \n'
@@ -234,6 +234,8 @@ class Flow(list):
             '        Window in which to run this experiment.\n'
             '    inputs : dict\n'
             '        Dictionary of input devices by name.\n'
+            '    globalClock : psychopy.core.clock.Clock or None\n'
+            '        Clock to get global time from - supply None to make a new one.\n'
             '    thisSession : psychopy.session.Session or None\n'
             '        Handle of the Session object this experiment is being run from, if any.\n'
             '    """\n'
@@ -248,6 +250,7 @@ class Flow(list):
             "# make sure variables created by exec are available globally\n"
             "exec = environmenttools.setExecEnvironment(globals())\n"
             "# get device handles from dict of input devices\n"
+            "ioServer = inputs['ioServer']\n"
             "defaultKeyboard = inputs['defaultKeyboard']\n"
             "eyetracker = inputs['eyetracker']\n"
             "# make sure we're running in the directory for this experiment\n"
@@ -285,11 +288,18 @@ class Flow(list):
                 entry.writeRunOnceInitCode(script)
             entry.writeInitCode(script)
         # create clocks (after initialising stimuli)
-        code = ("\n# Create some handy timers\n"
-                "globalClock = core.Clock()  # to track the "
-                "time since experiment started\n"
-                "routineTimer = core.Clock()  # to "
-                "track time remaining of each (possibly non-slip) routine \n")
+        code = ("\n"
+                "# create some handy timers\n"
+                "if globalClock is None:\n"
+                "    globalClock = core.Clock()  # to track the time since experiment started\n"
+                "if ioServer is not None:\n"
+                "    ioServer.syncClock(globalClock)\n"
+                "logging.setDefaultClock(globalClock)\n"
+                "routineTimer = core.Clock()  # to track time remaining of each (possibly non-slip) routine\n"
+                "win.flip()  # flip window to reset last flip timer\n"
+                "# store the exact time the global clock started\n"
+                "expInfo['expStart'] = data.getDateStr(format='%Y-%m-%d %Hh%M.%S.%f %z', fractionalSecondDigits=6)\n"
+        )
         script.writeIndentedLines(code)
         # run-time code
         for entry in self:

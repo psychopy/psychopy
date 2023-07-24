@@ -9,31 +9,43 @@ import sys, os, copy
 from os.path import abspath, join
 from types import SimpleNamespace
 
-NOT_STARTED = 0
-PLAYING = 1
-STARTED = PLAYING
-PAUSED = 2
-RECORDING = 3
-STOPPED = -1
-FINISHED = STOPPED
-SKIP = SEEKING = -2
-STOPPING = -3
-INVALID = -9999
+# pertaining to the status of components/routines/experiments
+status = SimpleNamespace()
+status.__doc__ = (
+    "- NOT_STARTED (0): The component has not yet started.\n"
+    "- PLAYING / STARTED (1): The component has started.\n"
+    "- PAUSED (2): The component has started but has been paused.\n"
+    "- RECORDING (3): Component is not only started, but also actively recording some input.\n"
+    "- STOPPED / FINISHED (-1): Component has finished.\n"
+    "- SKIP / SEEKING (-2): Component is in the process of changing state.\n"
+    "- STOPPING (-3): Component is in the process of stopping.\n"
+    "- INVALID (-9999): Something has gone wrong and status is not available.\n"
+)
+status.NOT_STARTED = NOT_STARTED = 0
+status.PLAYING = PLAYING = 1
+status.STARTED = STARTED = PLAYING
+status.PAUSED = PAUSED = 2
+status.RECORDING = RECORDING = 3
+status.STOPPED = STOPPED = -1
+status.FINISHED = FINISHED = STOPPED
+status.SKIP = SKIP = SEEKING = -2
+status.STOPPING = STOPPING = -3
+status.INVALID = INVALID = -9999
 
-
-salience = SimpleNamespace()
-salience.__doc__ = (
+# pertaining to the priority of columns in the data file
+priority = SimpleNamespace()
+priority.__doc__ = (
     "- CRITICAL (30): Always at the start of the data file, generally reserved for Routine start times\n "
     "- HIGH (20): Important columns which are near the front of the data file\n"
     "- MEDIUM (10): Possibly important columns which are around the middle of the data file\n"
     "- LOW (0): Columns unlikely to be important which are at the end of the data file\n"
     "- EXCLUDE (-10): Always at the end of the data file, actively marked as unimportant\n"
 )
-salience.CRITICAL = SALIENCE_CRITICAL = 30
-salience.HIGH = SALIENCE_HIGH = 20
-salience.MEDIUM = SALIENCE_MEDIUM = 10
-salience.LOW = SALIENCE_LOW = 0
-salience.EXCLUDE = SALIENCE_EXCLUDE = -10
+priority.CRITICAL = PRIORITY_CRITICAL = 30
+priority.HIGH = PRIORITY_HIGH = 20
+priority.MEDIUM = PRIORITY_MEDIUM = 10
+priority.LOW = PRIORITY_LOW = 0
+priority.EXCLUDE = PRIORITY_EXCLUDE = -10
 
 # for button box:
 PRESSED = 1

@@ -1157,7 +1157,11 @@ class CameraInterfaceOpenCV(CameraInterface):
             """
             # poll interval is half the frame period, this makes sure we don't
             # miss frames while not wasting CPU cycles
-            pollInterval = (1.0 / cap.get(cv2.CAP_PROP_FPS)) * 0.5
+            # fps = videoCapture.get(cv2.CAP_PROP_FPS)
+            # if fps > 0.0:
+            #     pollInterval = (1.0 / fps) * 0.5
+            # else:
+            #     pollInterval = 1 / 60.0
             
             # if the camera is opened, wait until the main thread is ready to
             # take frames
@@ -1194,7 +1198,7 @@ class CameraInterfaceOpenCV(CameraInterface):
                     isRecording = False
 
                 if not isRecording:
-                    time.sleep(pollInterval)
+                    # time.sleep(pollInterval)
                     continue
 
                 if audioCapture is not None:
@@ -1809,7 +1813,7 @@ class Camera:
         if self._captureThread is None:
             return False
 
-        return self._captureThread.is_alive()
+        return self._captureThread.isOpen()
 
     @property
     def isNotStarted(self):

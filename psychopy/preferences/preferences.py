@@ -138,12 +138,16 @@ class Preferences:
             self.paths['userPrefsDir'] = join(os.environ['HOME'],
                                               '.psychopy3')
 
+        # directory for files created by the app at runtime needed for operation
+        self.paths['userCacheDir'] = join(self.paths['userPrefsDir'], 'cache')
+
         # paths in user directory to create/check write access
         userPrefsPaths = (
             'userPrefsDir',  # root dir
             'themes',  # define theme path
             'fonts',  # find / copy fonts
-            'packages'  # packages and plugins
+            'packages',  # packages and plugins
+            'cache',  # cache for downloaded and other temporary files
         )
 
         # build directory structure inside user directory

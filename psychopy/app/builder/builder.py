@@ -265,6 +265,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # self.SetAutoLayout(True)
         self.Bind(wx.EVT_CLOSE, self.closeFrame)
         self.Bind(wx.EVT_SIZE, self.onResize)
+        self.Bind(wx.EVT_SHOW, self.onShow)
 
         self.app.trackFrame(self)
         self.SetDropTarget(FileDropTarget(targetFrame=self))
@@ -639,6 +640,12 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.flowPanel.canvas.Refresh()
         event.Skip()
 
+    def onShow(self, event):
+        """Called when the frame is shown"""
+        event.Skip()
+        # if README was updated when frame wasn't shown, it won't be show either - so update again
+        self.updateReadme()
+
     @property
     def filename(self):
         """Name of the currently open file"""
@@ -904,6 +911,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # Show/hide frame as appropriate
         if show is None:
             show = len(self.readmeFrame.ctrl.getValue()) > 0
+        show = show and self.IsShown()
         self.readmeFrame.show(show)
 
     def showReadme(self, evt=None, value=True):
@@ -2107,6 +2115,9 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         dc.SetTextForeground(wx.Colour(colors.app['rt_timegrid']))
         self.setFontSize(self.fontBaseSize // self.dpi, dc)
 
+        id = wx.NewIdRef()
+        dc.SetId(id)
+
         # draw horizontal lines on top and bottom
         dc.DrawLine(
             x1=int(xSt),
@@ -3288,13 +3299,11 @@ class FlowPanel(wx.Panel, handlers.ThemeMixin):
         self.SetSizer(self.sizer)
         # buttons panel
         self.btnPanel = wx.Panel(self)
-        self.btnPanel.SetBackgroundColour("red")
         self.btnPanel.sizer = wx.BoxSizer(wx.VERTICAL)
         self.btnPanel.SetSizer(self.btnPanel.sizer)
         self.sizer.Add(self.btnPanel, border=6, flag=wx.EXPAND | wx.ALL)
         # canvas
         self.canvas = FlowCanvas(parent=self, frame=frame)
-        self.canvas.SetBackgroundColour("red")
         self.sizer.Add(self.canvas, border=0, proportion=1, flag=wx.EXPAND | wx.ALL)
         # add routine button
         self.btnInsertRoutine = self.canvas.btnInsertRoutine = HoverButton(
@@ -3314,6 +3323,12 @@ class FlowPanel(wx.Panel, handlers.ThemeMixin):
         self.btnPanel.sizer.AddStretchSpacer(1)
 
         self.Layout()
+
+    def _applyAppTheme(self):
+        self.SetBackgroundColour(colors.app['panel_bg'])
+        self.btnPanel.SetBackgroundColour(colors.app['panel_bg'])
+
+        self.Refresh()
 
 
 class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
@@ -3465,9 +3480,7 @@ class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
                 item.Enable(limitProgress < routine.limit or routine in flow)
             self.routinesFromID[id] = name
             menu.Bind(wx.EVT_MENU, self.onInsertRoutineSelect, id=id)
-        btnPos = self.btnInsertRoutine.GetRect()
-        menuPos = (btnPos[0], btnPos[1] + btnPos[3])
-        self.PopupMenu(menu, menuPos)
+        self.PopupMenu(menu)
         menu.Bind(wx.EVT_MENU_CLOSE, self.clearMode)
         menu.Destroy()  # destroy to avoid mem leak
 

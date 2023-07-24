@@ -24,6 +24,7 @@ class SerialOutComponent(BaseComponent):
 
     categories = ['I/O', 'EEG']
     targets = ['PsychoPy']
+    version = "2022.2.0"
     iconFile = Path(__file__).parent / 'serial.png'
     tooltip = _translate('Serial out: send signals from a serial port')
     beta = True

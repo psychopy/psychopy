@@ -36,7 +36,7 @@ _localized.update({'visualAnalogScale': _translate('Visual analog scale'),
 
 
 class RatingScaleComponent(BaseComponent):
-    """A class for presenting a rating scale as a builder component
+    """A class for presenting a rating scale as a builder Component
     """
     categories = ['Responses']
     targets = ['PsychoPy']
@@ -184,7 +184,7 @@ class RatingScaleComponent(BaseComponent):
             customize_everything, valType='code', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Custom",
             hint=_translate("Use this text to create the rating scale as you"
-                            " would in a code component; overrides all"
+                            " would in a code Component; overrides all"
                             " dialog settings except time parameters, "
                             "forceEndRoutine, storeRatingTime, storeRating"),
             label=_translate("Customize everything :"))

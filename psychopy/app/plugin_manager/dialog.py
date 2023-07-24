@@ -326,7 +326,8 @@ class EnvironmentManagerDlg(wx.Dialog):
                     emts.append(f"{name} ({cats})")
             if len(emts):
                 msg = _translate(
-                    "The following components/routines should now be visible in the Components panel:\n"
+                    "The following components/routines should now be visible in the Components panel (a restart may be "
+                    "required in some cases):\n"
                 )
                 for emt in emts:
                     msg += (
