@@ -284,7 +284,7 @@ class RoutineSettingsComponent(BaseComponent):
                 raise CodeGenerationException(msg % params)
             # Contents of if statement
             code += (
-                "    continueRoutine = False\n"
+                "    continueRoutine = false\n"
                 "}\n"
             )
             buff.writeIndentedLines(code % self.params)
