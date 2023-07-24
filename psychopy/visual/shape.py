@@ -577,7 +577,7 @@ class ShapeStim(BaseShapeStim):
             # convert original vertices to triangles (= tesselation) if
             # possible. (not possible if closeShape is False, don't even try)
             GL.glPushMatrix()  # seemed to help at one point, superfluous?
-            if self.windingRule:
+            if getattr(self, "windingRule", False):
                 GL.gluTessProperty(tesselate.tess, GL.GLU_TESS_WINDING_RULE,
                                    self.windingRule)
             if hasattr(newVertices[0][0], '__iter__'):
@@ -586,7 +586,7 @@ class ShapeStim(BaseShapeStim):
                 loops = [newVertices]
             tessVertices = tesselate.tesselate(loops)
             GL.glPopMatrix()
-            if self.windingRule:
+            if getattr(self, "windingRule", False):
                 GL.gluTessProperty(tesselate.tess, GL.GLU_TESS_WINDING_RULE,
                                    tesselate.default_winding_rule)
 
