@@ -60,6 +60,6 @@ body:
     id: bug-additional-context
     attributes:
       label: Additional context
-      description: Add any other context or screenshots about the feature request here.
+      description: Add any other context about the bug here.
     validations:
       required: false
