@@ -206,19 +206,16 @@ jobs:
         pip install wheel
         pip install six  # for configobj and wxpython
         pip install distro  # used by createInitFile
-        pip install pdm
 
-    - name: Install wxPython from source for linux
+    - name: Install wxPython from https://extras.wxpython.org/wxPython4/extras
       if: runner.os=='Linux'
       run: |
         # these are needed to build wxPython
         pip install attrdict3  # used by wxpython setup
         pip install pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04/ wxPython
 
-    - name: Install main dependencies (pdm) and PsychoPy (pip)
+    - name: Install main dependencies (pip)
       run: |
-        pdm install  # fetch dependendices in lock file
-        pdm build  # test that we can build the sdist.tar.gz and whl files
         pip install .
 
     - name: Install PsychoPy plugins
