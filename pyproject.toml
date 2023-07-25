@@ -114,7 +114,7 @@ suggested = [
     "google-api-python-client",
     "pygaze>=1.1.2",
     "tobii_research",
-    "SMITE @ git+https://github.com/marcus-nystrom/SMITE.git",
+    "SMITE @ git+https://github.com/marcus-nystrom/SMITE.git@1.0.0rc1",
     "badapted>=0.0.3",
     "egi-pynetstation>=0.0.0rc1",
     "pyxid2>=1.0.5",
