@@ -605,6 +605,9 @@ class Mouse():
         if newPos is not None:
             self.setPos(newPos)
 
+        # get the scaling factors for the display
+        self._winScaleFactor = self.win.getContentScaleFactor()
+
     @property
     def units(self):
         """The units for this mouse
@@ -669,7 +672,8 @@ class Mouse():
             if self.win.useRetina:
                 lastPosPix = lastPosPix * 2 - numpy.array(self.win.size) / 2
             else:
-                lastPosPix = lastPosPix - numpy.array(self.win.size) / 2
+                wsf = self._winScaleFactor 
+                lastPosPix = lastPosPix * wsf - numpy.array(self.win.size) / 2
 
         self.lastPos = self._pix2windowUnits(lastPosPix)
 
