@@ -181,24 +181,22 @@ class TranscriptionResult:
         self._response = val
 
     @property
+    def responseData(self):
+        """
+        Values from self.response, parsed into a `dict`.
+        """
+        return json.loads(self.response)
+
+    @responseData.setter
+    def responseData(self, val):
+        self._response = str(val)
+
+    @property
     def wordData(self):
         """Additional data about each word (`list`).
 
         Not all engines provide this data in the same format or at all.
         """
-        if not hasattr(self, "_wordData") or self._wordData is None:
-            self._wordData = []
-            # get response as a dict
-            resp = json.loads(self.response)
-            # get dict of segments
-            segments = resp.get('segments', {})
-            # iterate through segments
-            for thisSegment in segments.values():
-                # iterate through words
-                for thisWord in thisSegment.get('words', {}).values():
-                    # append word data
-                    self._wordData.append(thisWord)
-
         return self._wordData
 
     @wordData.setter
