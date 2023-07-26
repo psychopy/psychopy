@@ -450,6 +450,9 @@ class MicrophoneComponent(BaseComponent):
             buff.writeIndentedLines(code % inits)
         if inits['speakTimes'] and inits['transcribeBackend'].val == "whisper":
             code = (
+                "# save transcription data\n"
+                "with open(os.path.join(%(name)sRecFolder, 'recording_%(name)s_%%s.json' %% tag), 'w') as fp:\n"
+                "    fp.write(%(name)sScript.response)\n"
                 "# save speaking start/stop times\n"
                 "%(name)sWordData = []\n"
                 "%(name)sSegments = %(name)s.lastScript.responseData.get('segments', {})\n"
