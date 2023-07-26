@@ -140,18 +140,13 @@ class MicrophoneComponent(BaseComponent):
             label=_translate("Output file type")
         )
 
-        """
-        REMOVED IN 2023.2.0
-        to be reinstated when we have speakTimes available from the transcriber (should be possible in Whisper 
-        but remains as-yet unimplemented)
-        """
-        # msg = _translate(
-        #     "Tick this to save times when the participant starts and stops speaking")
-        # self.params['speakTimes'] = Param(
-        #     speakTimes, valType='bool', inputType='bool', categ='Data',
-        #     hint=msg,
-        #     label=_translate("Speaking start / stop times")
-        # )
+        msg = _translate(
+            "Tick this to save times when the participant starts and stops speaking")
+        self.params['speakTimes'] = Param(
+            speakTimes, valType='bool', inputType='bool', categ='Data',
+            hint=msg,
+            label=_translate("Speaking start / stop times")
+        )
 
         msg = _translate(
             "Trim periods of silence from the output file")
@@ -451,6 +446,17 @@ class MicrophoneComponent(BaseComponent):
         if transcribe:
             code = (
                 "%(loop)s.addData('%(name)s.script', %(name)sScript)\n"
+            )
+            buff.writeIndentedLines(code % inits)
+        if inits['speakTimes'] and inits['transcribeBackend'].val == "whisper":
+            code = (
+                "# save speaking start/stop times\n"
+                "if len(%(name)sScript.wordData):\n"
+                "    thisExp.addData('%(name)s.speechStart', %(name)sScript.wordData[0]['start'])\n"
+                "    thisExp.addData('%(name)s.speechEnd', %(name)sScript.wordData[-1]['end'])\n"
+                "else:\n"
+                "    thisExp.addData('%(name)s.speechStart', '')\n"
+                "    thisExp.addData('%(name)s.speechEnd', '')\n"
             )
             buff.writeIndentedLines(code % inits)
         # Write base end routine code
