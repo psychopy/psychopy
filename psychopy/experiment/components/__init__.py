@@ -270,7 +270,7 @@ def getInitVals(params, target="PsychoPy"):
             "none"
     ):
         if target == "PsychoJS":
-            inits['units'].val = "psychoJS.window"
+            inits['units'].val = "psychoJS.window.units"
         else:
             inits['units'].val = "win.units"
 
