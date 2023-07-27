@@ -324,6 +324,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
 
         # convert to bytes
         for line in lines.split('\n'):
+            self.setFonts()  # update fonts
             self.submit(line)
 
     def submit(self, line):
@@ -332,7 +333,6 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         if not self.isStarted:
             return
 
-        self.setFonts()  # update fonts
         if not line.endswith('\n'):
             line += '\n'
 
