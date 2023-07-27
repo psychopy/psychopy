@@ -2172,6 +2172,8 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         dc.SetTextForeground(colors.app['text'])
 
     def drawForceEndLine(self, dc, yPosBottom):
+        id = wx.NewIdRef()
+        dc.SetId(id)
         # get max time & check if we have a hard stop
         tMax, hardStop = self.getMaxTime()
         if hardStop:
