@@ -448,6 +448,28 @@ class MicrophoneComponent(BaseComponent):
                 "%(loop)s.addData('%(name)s.script', %(name)sScript)\n"
             )
             buff.writeIndentedLines(code % inits)
+        if inits['speakTimes'] and inits['transcribeBackend'].val == "whisper":
+            code = (
+                "# save transcription data\n"
+                "with open(os.path.join(%(name)sRecFolder, 'recording_%(name)s_%%s.json' %% tag), 'w') as fp:\n"
+                "    fp.write(%(name)sScript.response)\n"
+                "# save speaking start/stop times\n"
+                "%(name)sWordData = []\n"
+                "%(name)sSegments = %(name)s.lastScript.responseData.get('segments', {})\n"
+                "for thisSegment in %(name)sSegments.values():\n"
+                "    # for each segment...\n"
+                "    for thisWord in thisSegment.get('words', {}).values():\n"
+                "        # append word data\n"
+                "        %(name)sWordData.append(thisWord)\n"
+                "# if there were any words, store the start of first & end of last \n"
+                "if len(%(name)sWordData):\n"
+                "    thisExp.addData('%(name)s.speechStart', %(name)sWordData[0]['start'])\n"
+                "    thisExp.addData('%(name)s.speechEnd', %(name)sWordData[-1]['end'])\n"
+                "else:\n"
+                "    thisExp.addData('%(name)s.speechStart', '')\n"
+                "    thisExp.addData('%(name)s.speechEnd', '')\n"
+            )
+            buff.writeIndentedLines(code % inits)
         # Write base end routine code
         BaseComponent.writeRoutineEndCode(self, buff)
 
