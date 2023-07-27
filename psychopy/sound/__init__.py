@@ -206,7 +206,7 @@ if Sound is not None:
     logging.info('sound is using audioLib: %s' % audioLib)
 else:
     # if we get here, there is no audioLib that is supported
-    raise DependencyError(
+    logging.error(
         "No audioLib could be loaded. Tried: {}\n Check whether the necessary "
         "audioLibs are installed".format(prefs.hardware['audioLib']))
 
