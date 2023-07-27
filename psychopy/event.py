@@ -590,6 +590,13 @@ class Mouse():
                 logging.error('Mouse: failed to get a default visual.Window'
                               ' (need to create one first)')
                 self.win = None
+
+        # get the scaling factors for the display
+        if self.win is not None:
+            self._winScaleFactor = self.win.getContentScaleFactor()
+        else:
+            self._winScaleFactor = 1.0
+
         # for builder: set status to STARTED, NOT_STARTED etc
         self.status = None
         self.mouseClock = psychopy.core.Clock()
@@ -604,9 +611,6 @@ class Mouse():
         self.setVisible(visible)
         if newPos is not None:
             self.setPos(newPos)
-
-        # get the scaling factors for the display
-        self._winScaleFactor = self.win.getContentScaleFactor()
 
     @property
     def units(self):
