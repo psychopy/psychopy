@@ -809,7 +809,7 @@ class Mouse():
         elif usePygame:
             mouse.set_visible(visible)
         else:  # try communicating with window directly?
-            from visual import openWindows
+            from psychopy.visual import openWindows
             if openWindows:
                 w = openWindows[0]  # type: psychopy.visual.Window
             else:
