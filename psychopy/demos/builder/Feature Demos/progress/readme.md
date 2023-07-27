@@ -1,5 +1,1 @@
-A go-no-go task, with funky spritework. Showcases how the Progress Bar Component can be used as a health bar in games.
-
----
-
-Assets: [Kings and Pigs by Pixel Frog](https://pixelfrog-assets.itch.io/kings-and-pigs)
+A simple demo to showcase the new Progress Component. The value of a Progress bar can be set between 0 and 1, and the bar will show this. Setting it each repeat or each frame means you can continuously keep track of values - such as time passed or trials complete.
