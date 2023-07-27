@@ -590,6 +590,13 @@ class Mouse():
                 logging.error('Mouse: failed to get a default visual.Window'
                               ' (need to create one first)')
                 self.win = None
+
+        # get the scaling factors for the display
+        if self.win is not None:
+            self._winScaleFactor = self.win.getContentScaleFactor()
+        else:
+            self._winScaleFactor = 1.0
+
         # for builder: set status to STARTED, NOT_STARTED etc
         self.status = None
         self.mouseClock = psychopy.core.Clock()
@@ -630,7 +637,9 @@ class Mouse():
                 if self.win.useRetina:
                     newPosPix = numpy.array(self.win.size) / 4 + newPosPix / 2
                 else:
-                    newPosPix = numpy.array(self.win.size) / 2 + newPosPix
+                    wsf = self._winScaleFactor 
+                    newPosPix = \
+                        numpy.array(self.win.size) / (2 * wsf) + newPosPix / wsf
                 x, y = int(newPosPix[0]), int(newPosPix[1])
                 self.win.winHandle.set_mouse_position(x, y)
                 self.win.winHandle._mouse_x = x
@@ -673,7 +682,8 @@ class Mouse():
             if self.win.useRetina:
                 lastPosPix = lastPosPix * 2 - numpy.array(self.win.size) / 2
             else:
-                lastPosPix = lastPosPix - numpy.array(self.win.size) / 2
+                wsf = self._winScaleFactor 
+                lastPosPix = lastPosPix * wsf - numpy.array(self.win.size) / 2
 
         self.lastPos = self._pix2windowUnits(lastPosPix)
 
