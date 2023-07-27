@@ -71,4 +71,4 @@ Exercise
 ----------------------------------------------
 
 1. Add a routine to the start of your experiment and ask participants to type their name and occupation. 
-2. Turn this digit span task into a letter span task using code. *Hint: you can ` generate a random letter in python <https://www.kite.com/python/answers/how-to-generate-a-random-letter-in-python>`_ or use a random integer to index a letter from a list e.g. :code:`myList[randint()]`
+2. Turn this digit span task into a letter span task using code. Hint: you can `generate a random letter in python <https://www.kite.com/python/answers/how-to-generate-a-random-letter-in-python>`_ or use a random integer to index a letter from a list e.g. :code:`myList[randint()]`
