@@ -22,6 +22,10 @@ parser.add_argument('--version', '-v', help='The PsychoPy version to use for com
 parser.add_argument('--outfile', '-o', help='The output (py) file to be generated (defaults to the ')
 
 
+class LegacyScriptError(ChildProcessError):
+    pass
+
+
 def generateScript(experimentPath, exp, target="PsychoPy"):
     """
     Generate python script from the current builder experiment.
@@ -75,9 +79,9 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
 
         # we got a non-zero error code, raise an error
         if output.returncode != 0:
-            raise ChildProcessError(
-                'Error: process exited with code {}, check log for '
-                'output.'.format(output.returncode))
+            raise LegacyScriptError(
+                'Error: Script compile exited with code {}. Traceback:\n'
+                '{}'.format(output.returncode, stderr))
 
     else:
         compileScript(infile=exp, version=None, outfile=filename)
