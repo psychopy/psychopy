@@ -374,7 +374,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         # clear all text in the widget and display the welcome message
         self.txtTerm.Clear()
         self.txtTerm.WriteText(
-            "Python shell in PsychoPy (pid:{}) - type some commands!\n\n".format(
+            "Python shell in PsychoPy (pid:{}) - type some commands!\n".format(
                 self._pid))  # show the subprocess PID for reference
         self._lastTextPos = self.txtTerm.GetLastPosition()
         self.toolbar.update()
