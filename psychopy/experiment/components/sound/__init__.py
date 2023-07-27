@@ -180,7 +180,7 @@ class SoundComponent(BaseComponent):
         # the sound object is unusual, because it is
         buff.writeIndented("// start/stop %(name)s\n" % (self.params))
         # do this EVERY frame, even before/after playing?
-        self.writeParamUpdates(buff, 'set every frame')
+        self.writeParamUpdates(buff, 'set every frame', target="PsychoJS")
         self.writeStartTestCodeJS(buff)
         if self.params['syncScreenRefresh'].val:
             code = ("psychoJS.window.callOnFlip(function(){ %(name)s.play(); });  // screen flip\n")
