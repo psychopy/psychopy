@@ -659,7 +659,7 @@ class Mouse():
             if self.win:
                 w = self.win.winHandle
             else:
-                from visual import openWindows
+                from psychopy.visual import openWindows
                 if openWindows:
                     w = openWindows[0]
                 else:
