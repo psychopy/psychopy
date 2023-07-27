@@ -471,6 +471,9 @@ class _TestUnitsMixin:
                 try:
                     # Create a window and object
                     win = visual.Window(monitor="testMonitor", units=winunits)
+                    win.monitor.setSizePix((256, 128))
+                    win.monitor.setWidth(4)
+                    win.monitor.setDistance(50)
                     obj = copy(self.obj)
                     obj.win = win
                     obj.units = objunits
@@ -515,7 +518,10 @@ class _TestUnitsMixin:
             if units in [None, "None", "none", ""]:
                 continue
             # Create a window with given units
-            win = visual.Window(monitor="testmonitor", units=units)
+            win = visual.Window(monitor="testMonitor", units=units)
+            win.monitor.setSizePix((256, 128))
+            win.monitor.setWidth(4)
+            win.monitor.setDistance(50)
             # When setting units to None with win, does it inherit units?
             self.obj.win = win
             self.obj.units = None

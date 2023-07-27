@@ -1,0 +1,65 @@
+name: Bug Report
+description: File a bug report
+labels: 🐞 bug
+title: "[Bug]: "
+body:
+  - type: input
+    id: psychopy-version
+    attributes:
+      label: PsychoPy Version
+      description: What version of PsychoPy are you using?
+      placeholder: "e.g. 2023.1.3"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: What OS are your PsychoPy running on?
+      description: Please mention the name and version of the Operation System that you are using?
+      multiple: true
+      options:
+        - Windows 10
+        - Windows 11
+        - macOS Intel
+        - macOS Silicon
+        - Linux-based systems
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Bug Description
+      description: |
+        Please tell us what happened.
+        Note: You can attach images or log info by dragging files in this input field.
+      placeholder: "Describe the issue in detail"
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behaviour
+    attributes:
+      label: Expected Behaviour
+      description: Please tell us what should have happened instead of the bug.
+      placeholder: "The correct behavior I expected is..."
+    validations:
+      required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Can you reproduce the bug? If so, please let us know what steps you take to reproduce this bug.
+      value: |
+        1.
+        2.
+        3.
+        ...
+    validations:
+      required: true
+  - type: textarea
+    id: bug-additional-context
+    attributes:
+      label: Additional context
+      description: Add any other context about the bug here.
+    validations:
+      required: false

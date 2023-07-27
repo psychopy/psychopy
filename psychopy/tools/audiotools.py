@@ -24,6 +24,7 @@ __all__ = [
     'SAMPLE_RATE_96kHz',
     'SAMPLE_RATE_192kHz',
     'AUDIO_SUPPORTED_CODECS',
+    'knownNoteNames', 'stepsFromA'
 ]
 
 # Part of the PsychoPy library
@@ -41,6 +42,29 @@ from scipy import signal
 #     import pydub
 # except (ImportError, ModuleNotFoundError):
 #     _has_pydub = False
+
+
+# note names mapped to steps from A, used in Sound stimulus and Component
+stepsFromA = {
+    'C': -9,
+    'Csh': -8, 'C#': -8,
+    'Dfl': -8, 'D♭': -8,
+    'D': -7,
+    'Dsh': -6, 'D#': -6,
+    'Efl': -6, 'E♭': -6,
+    'E': -5,
+    'F': -4,
+    'Fsh': -3, 'F#': -3,
+    'Gfl': -3, 'G♭': -3,
+    'G': -2,
+    'Gsh': -1, 'G#': -1,
+    'Afl': -1, 'A♭': -1,
+    'A': +0,
+    'Ash': +1, 'A#': +1,
+    'Bfl': +1, 'B♭': +1,
+    'B': +2,
+    'Bsh': +2, 'B#': +2}
+knownNoteNames = sorted(stepsFromA.keys())
 
 # Constants for common sample rates. Some are aliased to give the programmer an
 # idea to the quality they would expect from each. It is recommended to only use
