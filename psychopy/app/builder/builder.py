@@ -4242,6 +4242,7 @@ class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
 
         dc.SetId(id)
         font = self.GetFont()
+        font.SetWeight(wx.FONTWEIGHT_NORMAL)
         if sys.platform == 'darwin':
             basePtSize = (650, 750, 900)[flowsize]
         elif sys.platform.startswith('linux'):
