@@ -332,6 +332,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         if not self.isStarted:
             return
 
+        self.setFonts()  # update fonts
         if not line.endswith('\n'):
             line += '\n'
 
