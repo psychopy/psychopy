@@ -65,7 +65,7 @@ class _ValidatorMixin:
 
     def updateCodeFont(self, valType):
         """Style input box according to code wanted"""
-        if not hasattr(self, "SetFont"):
+        if not hasattr(self, "SetStyle"):
             # Skip if font not applicable to object type
             return
         if self.GetName() == "name":

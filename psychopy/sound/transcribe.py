@@ -21,6 +21,7 @@ __all__ = [
     'getAllTranscribers'
 ]
 
+import json
 import sys
 import os
 import psychopy.logging as logging
@@ -131,7 +132,7 @@ class TranscriptionResult:
         self.language = language
 
         # initialize other fields
-        self._wordData = []  
+        self._wordData = None
         self._text = ""  
         self._confidence = 0.0  
         self._response = None
@@ -180,17 +181,28 @@ class TranscriptionResult:
         self._response = val
 
     @property
+    def responseData(self):
+        """
+        Values from self.response, parsed into a `dict`.
+        """
+        return json.loads(self.response)
+
+    @responseData.setter
+    def responseData(self, val):
+        self._response = str(val)
+
+    @property
     def wordData(self):
-        """Additional data about each word (`Any`). 
+        """Additional data about each word (`list`).
 
         Not all engines provide this data in the same format or at all.
         """
         return self._wordData
-    
+
     @wordData.setter
     def wordData(self, val):
         self._wordData = val
-        
+
     @property
     def success(self):
         """`True` if the transcriber returned a result successfully (`bool`)."""

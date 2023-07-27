@@ -55,7 +55,6 @@ class WebSocketServer:
 		self._methods = {
 			'liaison': (self, ['listRegisteredMethods', 'pingPong'])
 		}
-		self._classes = {}
 
 	def registerObject(self, targetObject, referenceName):
 		"""
@@ -68,7 +67,7 @@ class WebSocketServer:
 		referenceName : string
 			the name used to refer to the given target object when calling its method
 		"""
-		self._methods[referenceName] = (targetObject, [])
+		self._methods[referenceName] = (targetObject, ['registerMethods'])
 		# create, log and return success message
 		msg = f"Registered object of class: {type(targetObject).__name__} with reference name: {referenceName}"
 		self._logger.info(msg)
@@ -109,7 +108,7 @@ class WebSocketServer:
 			Name used to refer to the target class when calling its constructor
 		"""
 		# register init
-		self._classes[referenceName] = targetCls
+		self._methods[referenceName] = (targetCls, ['init'])
 		# create, log and return success message
 		msg = f"Registered class: {targetCls} with reference name: {referenceName}"
 		self._logger.info(msg)
@@ -267,6 +266,10 @@ class WebSocketServer:
 				queryObject = decodedMessage['object']
 				if queryObject not in self._methods:
 					raise Exception(f"No methods of the object {queryObject} have been registered with the server")
+				# get method
+				queryMethod = decodedMessage['method']
+				if queryMethod not in self._methods[queryObject][1]:
+					raise Exception(f"{queryObject}.{queryMethod} has not been registered with the server")
 				# extract and unpack args
 				rawArgs = decodedMessage['args'] if 'args' in decodedMessage else []
 				args = []
@@ -278,20 +281,12 @@ class WebSocketServer:
 						args.append(arg)
 
 				if 'method' in decodedMessage:
-					# get method name
-					queryMethod = decodedMessage['method']
 					# if method is init, initialise object from class and register it under reference name
 					if queryMethod == "init":
-						# make sure class is registered
-						if queryObject not in self._classes:
-							raise KeyError(
-								f"No class has been registered with the server as '{queryObject}'. Registered "
-								f"classes are: {self._classes}"
-							)
-						cls = self._classes[queryObject]
+						cls = self._methods[queryObject][0]
 						# add self to args if relevant
 						kwargs = {}
-						if "liaison" in inspect.getfullargspec(self._classes[queryObject].__init__).args:
+						if "liaison" in inspect.getfullargspec(cls.__init__).args:
 							kwargs['liaison'] = self
 						# create instance
 						obj = cls(*args, **kwargs)
@@ -300,12 +295,6 @@ class WebSocketServer:
 
 					# if method is register, register methods of object
 					elif queryMethod == "registerMethods":
-						# make sure object is registered
-						if queryObject not in self._methods:
-							raise Exception(
-								f"No object has been registered with the server as '{queryObject}'. Registered "
-								f"objects are: {list(self._methods)}"
-							)
 						# get object
 						obj = self._methods[queryObject][0]
 						# register its methods
@@ -313,9 +302,6 @@ class WebSocketServer:
 
 					# any other method, call as normal
 					else:
-						if queryMethod not in self._methods[queryObject][1]:
-							raise Exception(f"{queryObject}.{queryMethod} has not been registered with the server")
-
 						self._logger.debug(f"running the registered method: {queryObject}.{queryMethod}")
 
 						# get the method and determine whether it needs to be awaited:
