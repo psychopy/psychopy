@@ -8,9 +8,11 @@ from psychopy.alerts import alert
 
 positions = ['THREE_POINTS', 'FIVE_POINTS', 'NINE_POINTS', "THIRTEEN_POINTS", "SEVENTEEN_POINTS"]
 
+
 class EyetrackerValidationRoutine(BaseStandaloneRoutine):
     categories = ['Eyetracking']
     targets = ["PsychoPy"]
+    version = "2021.2.0"
     iconFile = Path(__file__).parent / "eyetracker_valid.png"
     tooltip = _translate("Validation routine for eyetrackers")
     beta = True

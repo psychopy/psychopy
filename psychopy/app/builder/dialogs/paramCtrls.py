@@ -72,18 +72,20 @@ class _ValidatorMixin:
             # Name is never code
             valType = "str"
 
-        fontNormal = self.GetTopLevelParent().app._mainFont
+        # get font
         if valType == "code" or hasattr(self, "dollarLbl"):
-            # Set font
-            fontCode = self.GetTopLevelParent().app._codeFont
-            fontCodeBold = fontCode.Bold()
-            if fontCodeBold.IsOk():
-                self.SetFont(fontCodeBold)
-            else:
-                # use normal font if the bold version is invalid on the system
-                self.SetFont(fontCode)
+            font = self.GetTopLevelParent().app._codeFont.Bold()
         else:
-            self.SetFont(fontNormal)
+            font = self.GetTopLevelParent().app._mainFont
+
+        # set font
+        if sys.platform == "linux":
+            # have to go via SetStyle on Linux
+            style = wx.TextAttr(self.GetForegroundColour(), font=font)
+            self.SetStyle(0, len(self.GetValue()), style)
+        else:
+            # otherwise SetFont is fine
+            self.SetFont(font)
 
 
 class _FileMixin(_FrameMixin):

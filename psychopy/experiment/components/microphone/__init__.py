@@ -12,7 +12,7 @@ from psychopy import logging
 from psychopy.alerts import alert
 from psychopy.tools import stringtools as st, systemtools as syst, audiotools as at
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
-from psychopy.sound.audiodevice import sampleRateQualityLevels
+from psychopy.tools.audiotools import sampleRateQualityLevels
 from psychopy.localization import _localized as __localized
 
 _hasPTB = True
@@ -59,6 +59,7 @@ class MicrophoneComponent(BaseComponent):
     """An event class for capturing short sound stimuli"""
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
+    version = "2021.2.0"
     iconFile = Path(__file__).parent / 'microphone.png'
     tooltip = _translate('Microphone: basic sound capture (fixed onset & '
                          'duration), okay for spoken words')

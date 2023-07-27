@@ -835,6 +835,9 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.versionCtrl.SetLabelText(_translate(
             "Works with versions {}."
         ).format(value.version))
+        self.versionCtrl.Show(
+            value.version.first is not None or value.version.last is not None
+        )
         # Set keywords
         self.keywordsCtrl.items = value.keywords
 

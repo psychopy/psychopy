@@ -56,6 +56,24 @@ class WebSocketServer:
 			'liaison': (self, ['listRegisteredMethods', 'pingPong'])
 		}
 
+	def registerObject(self, targetObject, referenceName):
+		"""
+		Register handle of the given target object, so it can be acted upon by clients of the server.
+
+		Parameters
+		----------
+		targetObject : 	object
+			the object whose handle will be registered as <reference name>
+		referenceName : string
+			the name used to refer to the given target object when calling its method
+		"""
+		self._methods[referenceName] = (targetObject, ['registerMethods'])
+		# create, log and return success message
+		msg = f"Registered object of class: {type(targetObject).__name__} with reference name: {referenceName}"
+		self._logger.info(msg)
+
+		return msg
+
 	def registerMethods(self, targetObject, referenceName):
 		"""
 		Register all public methods of the given target object, so they can be called by clients of the server.
@@ -69,7 +87,33 @@ class WebSocketServer:
 		"""
 		targetMethods = [fnct for fnct in dir(targetObject) if callable(getattr(targetObject, fnct)) and not fnct.startswith("__")]
 		self._methods[referenceName] = (targetObject, targetMethods)
-		self._logger.info(f"Registered the following methods: {self._methods[referenceName][1]} for object of class: {type(targetObject).__name__} with reference name: {referenceName}")
+		# create, log and return success message
+		msg = (
+			f"Registered the following methods: {self._methods[referenceName][1]} for object of class: "
+			f"{type(targetObject).__name__} with reference name: {referenceName}"
+		)
+		self._logger.info(msg)
+
+		return msg
+
+	def registerClass(self, targetCls, referenceName):
+		"""
+		Register a given class, so that an instance can be created by clients of the server.
+
+		Parameters
+		----------
+		targetCls : class
+			Class to register as <reference name>
+		referenceName : str
+			Name used to refer to the target class when calling its constructor
+		"""
+		# register init
+		self._methods[referenceName] = (targetCls, ['init'])
+		# create, log and return success message
+		msg = f"Registered class: {targetCls} with reference name: {referenceName}"
+		self._logger.info(msg)
+
+		return msg
 
 	def listRegisteredMethods(self):
 		"""
@@ -182,9 +226,16 @@ class WebSocketServer:
 
 		Currently, only method calls are processed.
 		They should be in the following format:
-			{"object": <object reference name>, "method": <method name>, "args": [<arg>,<arg>,...], "messageId": <uuid>}
-			"args" and "messageId" are optional. messageId's are used to match results to messages, they enable
-			a single client to make multiple concurrent calls.
+			{
+				"object": <object reference name>,
+				"method": <method name>,
+				"args": [<arg>,<arg>,...],
+				"messageId": <uuid>
+			}
+		"args" and "messageId" are optional. messageId's are used to match results to messages, they enable
+		a single client to make multiple concurrent calls.
+		To instantiate a registered class, use the keyword "init" as the method name. To register the methods of
+		an instantiated object, use the keyword "registerMethods" as the method name.
 
 		The result of the method call is sent back to the client in the following format:
 			{"result": <result as string>, "messageId": <uuid>}
@@ -211,42 +262,63 @@ class WebSocketServer:
 		try:
 			# - if the message has an object and a method field, check whether a corresponding method was registered
 			if 'object' in decodedMessage:
+				# get object
 				queryObject = decodedMessage['object']
 				if queryObject not in self._methods:
 					raise Exception(f"No methods of the object {queryObject} have been registered with the server")
+				# get method
+				queryMethod = decodedMessage['method']
+				if queryMethod not in self._methods[queryObject][1]:
+					raise Exception(f"{queryObject}.{queryMethod} has not been registered with the server")
+				# extract and unpack args
+				rawArgs = decodedMessage['args'] if 'args' in decodedMessage else []
+				args = []
+				for arg in rawArgs:
+					# try to parse json string
+					try:
+						args.append(json.loads(arg))
+					except json.decoder.JSONDecodeError:
+						args.append(arg)
 
 				if 'method' in decodedMessage:
-					queryMethod = decodedMessage['method']
-					if queryMethod not in self._methods[queryObject][1]:
-						raise Exception(f"{queryObject}.{queryMethod} has not been registered with the server")
+					# if method is init, initialise object from class and register it under reference name
+					if queryMethod == "init":
+						cls = self._methods[queryObject][0]
+						# add self to args if relevant
+						kwargs = {}
+						if "liaison" in inspect.getfullargspec(cls.__init__).args:
+							kwargs['liaison'] = self
+						# create instance
+						obj = cls(*args, **kwargs)
+						# register object (but not its methods yet)
+						rawResult = self.registerObject(obj, referenceName=queryObject)
 
-					self._logger.debug(f"running the registered method: {queryObject}.{queryMethod}")
+					# if method is register, register methods of object
+					elif queryMethod == "registerMethods":
+						# get object
+						obj = self._methods[queryObject][0]
+						# register its methods
+						rawResult = self.registerMethods(obj, referenceName=queryObject)
 
-					# get the method and determine whether it needs to be awaited:
-					method = getattr(self._methods[queryObject][0], queryMethod)
-					methodIsCoroutine = inspect.iscoroutinefunction(method)
-
-					# extract and unpack args
-					rawArgs = decodedMessage['args'] if 'args' in decodedMessage else []
-					args = []
-					for arg in rawArgs:
-						# try to parse json string
-						try:
-							args.append(json.loads(arg))
-						except json.decoder.JSONDecodeError:
-							args.append(arg)
-
-					# run the method, with arguments if need be:
-					if methodIsCoroutine:
-						rawResult = await method(*args)
+					# any other method, call as normal
 					else:
-						rawResult = method(*args)
+						self._logger.debug(f"running the registered method: {queryObject}.{queryMethod}")
+
+						# get the method and determine whether it needs to be awaited:
+						method = getattr(self._methods[queryObject][0], queryMethod)
+						methodIsCoroutine = inspect.iscoroutinefunction(method)
+
+						# run the method, with arguments if need be:
+						if methodIsCoroutine:
+							rawResult = await method(*args)
+						else:
+							rawResult = method(*args)
 
 					# convert result to a string
 					try:
 						result = json.dumps(rawResult)
 					except TypeError:
-						result = str(result)
+						result = str(rawResult)
 
 					# send a response back to the client:
 					response = {

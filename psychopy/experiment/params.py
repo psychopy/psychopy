@@ -275,6 +275,8 @@ class Param():
                 return self.val.strip('$')
             else:
                 return f"\"{self.val}\""
+        elif self.valType == "dict":
+            return str(self.val)
         else:
             raise TypeError("Can't represent a Param of type %s" %
                             self.valType)

@@ -114,14 +114,14 @@ class Session:
     def __init__(self,
                  root,
                  dataDir=None,
-                 liaison=None,
+                 clock="iso",
+                 win=None,
+                 experiments=None,
                  loggingLevel="info",
                  priorityThreshold=constants.priority.EXCLUDE+1,
                  inputs=None,
-                 win=None,
-                 experiments=None,
                  params=None,
-                 clock=None):
+                 liaison=None):
         # Store root and add to Python path
         self.root = Path(root)
         sys.path.insert(1, str(self.root))
@@ -166,8 +166,12 @@ class Session:
             # If inputs is the name of an experiment, setup from that experiment's method
             self.setupInputsFromExperiment(inputs)
         # Setup Session clock
-        if clock is None:
+        if clock in (None, "float"):
             clock = core.Clock()
+        elif clock == "iso":
+            clock = core.Clock(format=str)
+        elif isinstance(clock, str):
+            clock = core.Clock(format=clock)
         self.sessionClock = clock
         # Store params as an aliased dict
         if params is None:
@@ -520,7 +524,7 @@ class Session:
 
         return True
 
-    def setupInputsFromExperiment(self, key, expInfo=None, blocking=True):
+    def setupInputsFromExperiment(self, key, expInfo=None, thisExp=None, blocking=True):
         """
         Setup inputs for this Session via the 'setupInputs` method from one of this Session's experiments.
 
@@ -530,6 +534,8 @@ class Session:
             Key by which the experiment is stored (see `.addExperiment`).
         expInfo : dict
             Information about the experiment, created by the `setupExpInfo` function.
+        thisExp : psychopy.data.ExperimentHandler
+            Handler object for this experiment, contains the data to save and information about where to save it to.
         blocking : bool
             Should calling this method block the current thread?
 
@@ -561,7 +567,7 @@ class Session:
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(key)
         # Run the setupInputs method
-        self.inputs = self.experiments[key].setupInputs(expInfo=expInfo, win=self.win)
+        self.inputs = self.experiments[key].setupInputs(expInfo=expInfo, thisExp=thisExp, win=self.win)
 
         return True
 
@@ -667,7 +673,7 @@ class Session:
         # Setup logging
         self.experiments[key].run.__globals__['logFile'] = self.logFile
         # Setup inputs
-        self.setupInputsFromExperiment(key, expInfo=expInfo)
+        self.setupInputsFromExperiment(key, expInfo=expInfo, thisExp=thisExp)
         # Log start
         logging.info(_translate(
             "Running experiment via Session: name={key}, expInfo={expInfo}"
@@ -1028,34 +1034,17 @@ if __name__ == "__main__":
     # Parse args
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--root", dest="root")
     parser.add_argument("--host", dest="host")
-    parser.add_argument("--timing", dest="timing", default="iso")
-    parser.add_argument("--session-data-dir", dest="dataDir")
     args, _ = parser.parse_known_args()
-    # Setup timing
-    if args.timing == "float":
-        sessionClock = core.Clock()
-    elif args.timing == "iso":
-        sessionClock = core.Clock(format=str)
-    else:
-        sessionClock = core.Clock(format=args.timing)
-    # Create session
-    session = Session(
-        root=args.root,
-        clock=sessionClock,
-        dataDir=args.dataDir
-    )
+
     if ":" in str(args.host):
         host, port = str(args.host).split(":")
         # Import liaison
         from psychopy import liaison
         # Create liaison server
         liaisonServer = liaison.WebSocketServer()
-        session.liaison = liaisonServer
         # Add session to liaison server
-        liaisonServer.registerMethods(session, "session")
-        liaisonServer.registerMethods(session.params, "params")
+        liaisonServer.registerClass(Session, "session")
         # Create thread to run liaison server in
         liaisonThread = threading.Thread(
             target=liaisonServer.start,
@@ -1066,7 +1055,5 @@ if __name__ == "__main__":
         )
         # Start liaison server
         liaisonThread.start()
-        # Start Session
-        session.start()
     else:
         liaisonServer = None
