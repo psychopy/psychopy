@@ -659,8 +659,12 @@ class Mouse():
             if self.win:
                 w = self.win.winHandle
             else:
-                defDisplay = _default_display_
-                w = defDisplay.get_windows()[0]
+                from psychopy.visual import openWindows
+                if openWindows:
+                    w = openWindows[0]
+                else:
+                    logging.warning("Called event.Mouse.getPos() for the mouse with no Window being opened")
+                    return None
 
             # get position in window
             lastPosPix[:] = w._mouse_x, w._mouse_y
@@ -805,9 +809,13 @@ class Mouse():
         elif usePygame:
             mouse.set_visible(visible)
         else:  # try communicating with window directly?
-            plat = _default_display_
-            w = plat.get_windows()[0]
-            w.set_mouse_visible(visible)
+            from visual import openWindows
+            if openWindows:
+                w = openWindows[0]  # type: psychopy.visual.Window
+            else:
+                logging.warning("Called event.Mouse.getPos() for the mouse with no Window being opened")
+                return None
+            w.setMouseVisible(visible)
 
     def clickReset(self, buttons=(0, 1, 2)):
         """Reset a 3-item list of core.Clocks use in timing button clicks.
