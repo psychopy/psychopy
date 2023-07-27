@@ -239,10 +239,10 @@ class PsychoColorPicker(ColorPickerDialog):
 
         """
         # get colors and convert to format wxPython controls can accept
-        hsvColor = [int(gun) for gun in self.color.hsv]
-        self.sldHueChannel.SetValue(hsvColor[0])
-        self.sldStaturationChannel.SetValue(hsvColor[1] * SLIDER_RES)
-        self.sldValueChannel.SetValue(hsvColor[2] * SLIDER_RES)
+        hsvColor = self.color.hsv
+        self.sldHueChannel.SetValue(int(hsvColor[0]))
+        self.sldStaturationChannel.SetValue(int(hsvColor[1] * SLIDER_RES))
+        self.sldValueChannel.SetValue(int(hsvColor[2] * SLIDER_RES))
 
         # set the value in the new range
         self.spnHueChannel.SetValue(hsvColor[0])
