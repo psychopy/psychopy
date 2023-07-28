@@ -391,6 +391,10 @@ class PrefPropGrid(wx.Panel):
             for s in sections:
                 _ = pagePtr.Append(pg.PropertyCategory(_localized[s], s))
                 for name, prop in self.sections[s].items():
+                    if name in prefs.legacy:
+                        # If this is included in the config file only for legacy, don't show it
+                        continue
+
                     item = pagePtr.Append(prop)
 
                     # set the appropriate control to edit the attribute
@@ -499,15 +503,15 @@ class PreferencesDlg(wx.Dialog):
 
         # dialog controls, have builtin localization
         sdbControls = wx.BoxSizer(wx.HORIZONTAL)
-        self.sdbControlsHelp = wx.Button(self.pnlMain, wx.ID_HELP)
+        self.sdbControlsHelp = wx.Button(self.pnlMain, wx.ID_HELP, _translate(" Help "))
         sdbControls.Add(self.sdbControlsHelp, 0,
                         wx.LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL,
                         border=3)
         sdbControls.AddStretchSpacer()
         # Add Okay and Cancel buttons
-        self.sdbControlsApply = wx.Button(self.pnlMain, wx.ID_APPLY)
-        self.sdbControlsOK = wx.Button(self.pnlMain, wx.ID_OK)
-        self.sdbControlsCancel = wx.Button(self.pnlMain, wx.ID_CANCEL)
+        self.sdbControlsApply = wx.Button(self.pnlMain, wx.ID_APPLY, _translate(" Apply "))
+        self.sdbControlsOK = wx.Button(self.pnlMain, wx.ID_OK, _translate(" OK "))
+        self.sdbControlsCancel = wx.Button(self.pnlMain, wx.ID_CANCEL, _translate(" Cancel "))
         if sys.platform == "win32":
             btns = [self.sdbControlsOK, self.sdbControlsApply, self.sdbControlsCancel]
         else:

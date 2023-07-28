@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" ?>
-<PsychoPy2experiment encoding="utf-8" version="2022.1.0rc14">
+<PsychoPy2experiment encoding="utf-8" version="2023.1.0rc8">
   <Settings>
     <Param val="use prefs" valType="str" updates="None" name="Audio latency priority"/>
     <Param val="use prefs" valType="str" updates="None" name="Audio lib"/>
@@ -7,6 +7,7 @@
     <Param val="auto" valType="str" updates="None" name="Data file delimiter"/>
     <Param val="u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])" valType="code" updates="None" name="Data filename"/>
     <Param val="True" valType="bool" updates="None" name="Enable Escape"/>
+    <Param val="" valType="str" updates="None" name="End Message"/>
     <Param val="{'participant':'', 'session':'001'}" valType="code" updates="None" name="Experiment info"/>
     <Param val="True" valType="bool" updates="None" name="Force stereo"/>
     <Param val="True" valType="bool" updates="None" name="Full-screen window"/>
@@ -26,6 +27,8 @@
     <Param val="height" valType="str" updates="None" name="Units"/>
     <Param val="" valType="str" updates="None" name="Use version"/>
     <Param val="(1024, 768)" valType="list" updates="None" name="Window size (pixels)"/>
+    <Param val="none" valType="str" updates="None" name="backgroundFit"/>
+    <Param val="" valType="str" updates="None" name="backgroundImg"/>
     <Param val="avg" valType="str" updates="None" name="blendMode"/>
     <Param val="$[0,0,0]" valType="color" updates="None" name="color"/>
     <Param val="rgb" valType="str" updates="None" name="colorSpace"/>
@@ -61,10 +64,11 @@
     <Param val="" valType="str" updates="None" name="tbModel"/>
     <Param val="60" valType="num" updates="None" name="tbSampleRate"/>
     <Param val="" valType="str" updates="None" name="tbSerialNo"/>
+    <Param val="pyglet" valType="str" updates="None" name="winBackend"/>
   </Settings>
   <Routines>
     <Routine name="routine_10_second_countdown">
-      <TextComponent name="text_countdown">
+      <TextComponent name="text_countdown" plugin="None">
         <Param val="white" valType="color" updates="constant" name="color"/>
         <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
         <Param val="1" valType="num" updates="constant" name="contrast"/>
@@ -90,8 +94,136 @@
         <Param val="" valType="num" updates="constant" name="wrapWidth"/>
       </TextComponent>
     </Routine>
-    <Routine name="load_resources"/>
-    <Routine name="check_resources"/>
+    <Routine name="load_resources">
+      <ResourceManagerComponent name="resources" plugin="None">
+        <Param val="Start and Check" valType="str" updates="None" name="actionType"/>
+        <Param val="False" valType="bool" updates="None" name="checkAll"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="False" valType="bool" updates="constant" name="forceEndRoutine"/>
+        <Param val="resources" valType="code" updates="None" name="name"/>
+        <Param val="[]" valType="list" updates="constant" name="resources"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="" valType="code" updates="constant" name="stopVal"/>
+      </ResourceManagerComponent>
+    </Routine>
+    <Routine name="check_resources">
+      <ResourceManagerComponent name="resources_2" plugin="None">
+        <Param val="Check Only" valType="str" updates="None" name="actionType"/>
+        <Param val="False" valType="bool" updates="None" name="checkAll"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="False" valType="bool" updates="constant" name="forceEndRoutine"/>
+        <Param val="resources_2" valType="code" updates="None" name="name"/>
+        <Param val="[]" valType="list" updates="constant" name="resources"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="" valType="code" updates="constant" name="stopVal"/>
+      </ResourceManagerComponent>
+    </Routine>
+    <Routine name="screen_scale">
+      <CodeComponent name="code_scale" plugin="None">
+        <Param val="" valType="extendedCode" updates="constant" name="Before Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Before JS Experiment"/>
+        <Param val="# Morys-Carter, W. L. (2023, January 131). ScreenScale [Computer software]. Pavlovia. https://doi.org/10.17605/OSF.IO/8FHQK&amp;#10;&amp;#10;# Initialise variables&amp;#10;oldT = 0 &amp;#10;screen_height=0&amp;#10;&amp;#10;x_size = 8.560 # Width of standard credit card in cm&amp;#10;y_size = 5.398 # Height of standard credit card in cm&amp;#10;&amp;#10;# Start with default values&amp;#10;unitText = ' height units'&amp;#10;x_scale = .05 # Width units per cm&amp;#10;y_scale = .05 # Height units per cm&amp;#10;dBase = .0001 # Default change in scale per keypress&amp;#10;vsize=1 # Height of screen&amp;#10;if win.units == 'norm':&amp;#10;    x_scale = .05&amp;#10;    y_scale = .1&amp;#10;    dBase = .0001&amp;#10;    unitText = ' norm units'&amp;#10;    vsize = 2&amp;#10;elif win.units == 'pix':&amp;#10;    x_scale = 60&amp;#10;    y_scale = 40&amp;#10;    dBase = .1&amp;#10;    unitText = ' pixels'&amp;#10;    vsize = win.size[1]&amp;#10;elif win.units == 'cm':&amp;#10;    x_scale = 1&amp;#10;    y_scale = 1&amp;#10;    dBase = .01&amp;#10;    unitText = ' cm'&amp;#10;    vsize = win.size[1]&amp;#10;print('begin exp',x_size,x_scale, y_size,y_scale)" valType="extendedCode" updates="constant" name="Begin Experiment"/>
+        <Param val="oldT = 0;&amp;#10;screen_height = 0;&amp;#10;x_size = 8.56;&amp;#10;y_size = 5.398;&amp;#10;unitText = &quot; height units&quot;;&amp;#10;x_scale = 0.05;&amp;#10;y_scale = 0.05;&amp;#10;dBase = 0.0001;&amp;#10;vsize = 1;&amp;#10;if ((psychoJS.window.units === &quot;norm&quot;)) {&amp;#10;    x_scale = 0.05;&amp;#10;    y_scale = 0.1;&amp;#10;    dBase = 0.0001;&amp;#10;    unitText = &quot; norm units&quot;;&amp;#10;    vsize = 2;&amp;#10;} else {&amp;#10;    if ((psychoJS.window.units === &quot;pix&quot;)) {&amp;#10;        x_scale = 60;&amp;#10;        y_scale = 40;&amp;#10;        dBase = 0.1;&amp;#10;        unitText = &quot; pixels&quot;;&amp;#10;        vsize = psychoJS.window.size[1];&amp;#10;    } else {&amp;#10;        if ((psychoJS.window.units === &quot;cm&quot;)) {&amp;#10;            x_scale = 1;&amp;#10;            y_scale = 1;&amp;#10;            dBase = 0.01;&amp;#10;            unitText = &quot; cm&quot;;&amp;#10;            vsize = psychoJS.window.size[1];&amp;#10;        }&amp;#10;    }&amp;#10;}&amp;#10;console.log(&quot;begin exp&quot;, x_size, x_scale, y_size, y_scale);&amp;#10;" valType="extendedCode" updates="constant" name="Begin JS Experiment"/>
+        <Param val="console.log(&quot;pre image&quot;, x_size, x_scale, y_size, y_scale);&amp;#10;psychoJS.eventManager.clearEvents();&amp;#10;" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
+        <Param val="# Clear keyboard buffer from previous routine&amp;#10;print('pre image',x_size,x_scale, y_size,y_scale)&amp;#10;event.clearEvents()&amp;#10;" valType="extendedCode" updates="constant" name="Begin Routine"/>
+        <Param val="Auto-&gt;JS" valType="str" updates="None" name="Code Type"/>
+        <Param val="keys=event.getKeys() # Check the keyboard&amp;#10;if len(keys):&amp;#10;    if t - oldT &lt; .5: # If new key press within 500ms&amp;#10;        dScale=5*dBase # Change the scale 5 times as fast&amp;#10;        oldT=t&amp;#10;    else:&amp;#10;        dScale=dBase&amp;#10;        oldT=t&amp;#10;    if 'space' in keys and t &gt; 1: # Minimum 1 second&amp;#10;        continueRoutine=False&amp;#10;    elif 'up' in keys:&amp;#10;        y_scale=round((y_scale+dScale)*10000)/10000&amp;#10;    elif 'down' in keys:&amp;#10;        y_scale=round((y_scale-dScale)*10000)/10000&amp;#10;    elif 'left' in keys:&amp;#10;        x_scale=round((x_scale-dScale)*10000)/10000&amp;#10;    elif 'right' in keys:&amp;#10;        x_scale=round((x_scale+dScale)*10000)/10000&amp;#10;    screen_height=round(vsize*10/y_scale)/10&amp;#10;    text_bottom.text='X Scale = '+str(x_scale)+unitText+' per cm\nY Scale = '+str(y_scale)+unitText+' per cm\nScreen height = '+str(screen_height)+' cm\n\nPress the space bar when done'&amp;#10;    ccimage.size=[x_size*x_scale, y_size*y_scale]&amp;#10;    " valType="extendedCode" updates="constant" name="Each Frame"/>
+        <Param val="var _pj;&amp;#10;function _pj_snippets(container) {&amp;#10;    function in_es6(left, right) {&amp;#10;        if (((right instanceof Array) || ((typeof right) === &quot;string&quot;))) {&amp;#10;            return (right.indexOf(left) &gt; (- 1));&amp;#10;        } else {&amp;#10;            if (((right instanceof Map) || (right instanceof Set) || (right instanceof WeakMap) || (right instanceof WeakSet))) {&amp;#10;                return right.has(left);&amp;#10;            } else {&amp;#10;                return (left in right);&amp;#10;            }&amp;#10;        }&amp;#10;    }&amp;#10;    container[&quot;in_es6&quot;] = in_es6;&amp;#10;    return container;&amp;#10;}&amp;#10;_pj = {};&amp;#10;_pj_snippets(_pj);&amp;#10;keys = psychoJS.eventManager.getKeys();&amp;#10;if (keys.length) {&amp;#10;    if (((t - oldT) &lt; 0.5)) {&amp;#10;        dScale = (5 * dBase);&amp;#10;        oldT = t;&amp;#10;    } else {&amp;#10;        dScale = dBase;&amp;#10;        oldT = t;&amp;#10;    }&amp;#10;    if ((_pj.in_es6(&quot;space&quot;, keys) &amp;&amp; (t &gt; 1))) {&amp;#10;        continueRoutine = false;&amp;#10;    } else {&amp;#10;        if (_pj.in_es6(&quot;up&quot;, keys)) {&amp;#10;            y_scale = (util.round(((y_scale + dScale) * 10000)) / 10000);&amp;#10;        } else {&amp;#10;            if (_pj.in_es6(&quot;down&quot;, keys)) {&amp;#10;                y_scale = (util.round(((y_scale - dScale) * 10000)) / 10000);&amp;#10;            } else {&amp;#10;                if (_pj.in_es6(&quot;left&quot;, keys)) {&amp;#10;                    x_scale = (util.round(((x_scale - dScale) * 10000)) / 10000);&amp;#10;                } else {&amp;#10;                    if (_pj.in_es6(&quot;right&quot;, keys)) {&amp;#10;                        x_scale = (util.round(((x_scale + dScale) * 10000)) / 10000);&amp;#10;                    }&amp;#10;                }&amp;#10;            }&amp;#10;        }&amp;#10;    }&amp;#10;    screen_height = (util.round(((vsize * 10) / y_scale)) / 10);&amp;#10;    text_bottom.text = ((((((((&quot;X Scale = &quot; + x_scale.toString()) + unitText) + &quot; per cm\nY Scale = &quot;) + y_scale.toString()) + unitText) + &quot; per cm\nScreen height = &quot;) + screen_height.toString()) + &quot; cm\n\nPress the space bar when done&quot;);&amp;#10;    ccimage.size = [(x_size * x_scale), (y_size * y_scale)];&amp;#10;}&amp;#10;" valType="extendedCode" updates="constant" name="Each JS Frame"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End JS Experiment"/>
+        <Param val="expInfo[&quot;xScale&quot;] = x_scale;&amp;#10;expInfo[&quot;yScale&quot;] = y_scale;&amp;#10;expInfo[&quot;xRes&quot;] = psychoJS.window.size[0];&amp;#10;expInfo[&quot;yRes&quot;] = psychoJS.window.size[1];&amp;#10;psychoJS.eventManager.clearEvents();&amp;#10;" valType="extendedCode" updates="constant" name="End JS Routine"/>
+        <Param val="# Multiply the desired horizontal and vertical&amp;#10;# sizes in cm of objects by x_scale and y_scale&amp;#10;# set Every Repeat&amp;#10;expInfo['xScale'] = x_scale&amp;#10;expInfo['yScale'] = y_scale&amp;#10;expInfo['xRes'] = win.size[0]&amp;#10;expInfo['yRes'] = win.size[1]&amp;#10;&amp;#10;# Clear keyboard buffer for next routine&amp;#10;event.clearEvents()" valType="extendedCode" updates="constant" name="End Routine"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="code_scale" valType="code" updates="None" name="name"/>
+      </CodeComponent>
+      <TextComponent name="text_top" plugin="None">
+        <Param val="white" valType="str" updates="constant" name="color"/>
+        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
+        <Param val="1" valType="num" updates="constant" name="contrast"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="" valType="str" updates="constant" name="flip"/>
+        <Param val="Arial" valType="str" updates="constant" name="font"/>
+        <Param val="LTR" valType="str" updates="None" name="languageStyle"/>
+        <Param val="0.1" valType="code" updates="constant" name="letterHeight"/>
+        <Param val="text_top" valType="code" updates="None" name="name"/>
+        <Param val="1" valType="code" updates="constant" name="opacity"/>
+        <Param val="0" valType="code" updates="constant" name="ori"/>
+        <Param val="(0, .7)" valType="list" updates="constant" name="pos"/>
+        <Param val="False" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val="Resize this image to match the size of a credit card&amp;#10;Up arrow for taller&amp;#10;Down arrow for shorter&amp;#10;Left arrow for narrower&amp;#10;Right arrow for wider" valType="str" updates="constant" name="text"/>
+        <Param val="norm" valType="str" updates="None" name="units"/>
+        <Param val="1.5" valType="code" updates="constant" name="wrapWidth"/>
+      </TextComponent>
+      <TextComponent name="text_bottom" plugin="None">
+        <Param val="white" valType="str" updates="constant" name="color"/>
+        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
+        <Param val="1" valType="num" updates="constant" name="contrast"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="" valType="str" updates="constant" name="flip"/>
+        <Param val="Arial" valType="str" updates="constant" name="font"/>
+        <Param val="LTR" valType="str" updates="None" name="languageStyle"/>
+        <Param val="0.1" valType="code" updates="constant" name="letterHeight"/>
+        <Param val="text_bottom" valType="code" updates="None" name="name"/>
+        <Param val="1" valType="code" updates="constant" name="opacity"/>
+        <Param val="0" valType="code" updates="constant" name="ori"/>
+        <Param val="(0, -.6)" valType="list" updates="constant" name="pos"/>
+        <Param val="False" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val="Press the space bar when done" valType="str" updates="constant" name="text"/>
+        <Param val="norm" valType="str" updates="None" name="units"/>
+        <Param val="1.5" valType="code" updates="constant" name="wrapWidth"/>
+      </TextComponent>
+      <ImageComponent name="ccimage" plugin="None">
+        <Param val="center" valType="str" updates="constant" name="anchor"/>
+        <Param val="$[1,1,1]" valType="color" updates="constant" name="color"/>
+        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
+        <Param val="1" valType="num" updates="constant" name="contrast"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="False" valType="bool" updates="constant" name="flipHoriz"/>
+        <Param val="False" valType="bool" updates="constant" name="flipVert"/>
+        <Param val="creditCard.png" valType="file" updates="constant" name="image"/>
+        <Param val="linear" valType="str" updates="constant" name="interpolate"/>
+        <Param val="" valType="str" updates="constant" name="mask"/>
+        <Param val="ccimage" valType="code" updates="None" name="name"/>
+        <Param val="" valType="num" updates="constant" name="opacity"/>
+        <Param val="0" valType="num" updates="constant" name="ori"/>
+        <Param val="(0, 0)" valType="list" updates="constant" name="pos"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="(x_size*x_scale, y_size*y_scale)" valType="list" updates="set every repeat" name="size"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val="128" valType="num" updates="constant" name="texture resolution"/>
+        <Param val="from exp settings" valType="str" updates="None" name="units"/>
+      </ImageComponent>
+    </Routine>
   </Routines>
-  <Flow/>
+  <Flow>
+    <Routine name="screen_scale"/>
+  </Flow>
 </PsychoPy2experiment>

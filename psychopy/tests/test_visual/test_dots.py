@@ -5,7 +5,7 @@ from psychopy import visual, colors
 class TestDots:
 
     @classmethod
-    def setup(self):
+    def setup_method(self):
         self.win = visual.Window([128, 128], monitor="testMonitor", pos=[50,50], allowGUI=False, autoLog=False)
 
     def test_fieldSize(self):

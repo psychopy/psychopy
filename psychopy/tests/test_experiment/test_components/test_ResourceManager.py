@@ -8,7 +8,7 @@ from ...utils import TESTS_DATA_PATH
 
 
 class TestResourceManagerComponent(_TestBaseComponentsMixin, _TestDisabledMixin):
-    def setup(self):
+    def setup_method(self):
         # Make blank experiment
         self.exp = experiment.Experiment()
         # Make blank routine

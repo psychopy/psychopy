@@ -8,7 +8,7 @@ from psychopy.experiment.components.code import CodeComponent
 
 class TestComponentDialogs:
 
-    def setup(self):
+    def setup_method(self):
         # Create experiment
         self.exp = experiment.Experiment()
         self.exp.addRoutine(

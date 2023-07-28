@@ -26,12 +26,14 @@ from psychopy import logging
 
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import attributeSetter
-from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
-                                        ContainerMixin, TextureMixin)
+from psychopy.visual.basevisual import (
+    BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin, TextureMixin
+)
 import numpy
 
 
-class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
+class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
+                  ContainerMixin):
     """Stimulus object for drawing arbitrary bitmaps that can repeat (cycle) in
     either dimension.
 
@@ -123,6 +125,8 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
     interpolate : bool
         Enable smoothing (anti-aliasing) when drawing shape outlines. This
         produces a smoother (less-pixelated) outline of the shape.
+    draggable : bool
+        Can this stimulus be dragged by a mouse click?
     lineRGB, fillRGB: ArrayLike, :class:`~psychopy.colors.Color` or None
         *Deprecated*. Please use `lineColor` and `fillColor`. These arguments
         may be removed in a future version.
@@ -169,6 +173,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
                  depth=0,
                  rgbPedestal=(0.0, 0.0, 0.0),
                  interpolate=False,
+                 draggable=False,
                  blendmode='avg',
                  name=None,
                  autoLog=None,
@@ -183,7 +188,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         # initialise parent class
         super(GratingStim, self).__init__(win, units=units, name=name,
                                           autoLog=False)
-
+        self.draggable = draggable
         # UGLY HACK: Some parameters depend on each other for processing.
         # They are set "superficially" here.
         # TO DO: postpone calls to _createTexture, setColor and

@@ -105,7 +105,10 @@ class Joystick:
                               "etc...)")
             else:
                 self._device = joys[id]
-                self._device.open()
+                try:
+                    self._device.open()
+                except pyglet_input.DeviceOpenException as e:
+                    pass
                 self.name = self._device.device.name
             if len(visual.openWindows) == 0:
                 logging.error(

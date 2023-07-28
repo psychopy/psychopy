@@ -15,6 +15,7 @@ consoles/terminals within the PsychoPy GUI suite.
 #
 import os.path
 import sys
+import io
 
 
 class StdStreamDispatcher:
@@ -135,7 +136,8 @@ class StdStreamDispatcher:
 
         # write to log file
         if self._logFile is not None:
-            with open(self._logFile, 'a') as lf:
+            # with open(self._logFile, 'a') as lf:
+            with io.open(self._logFile, 'a', encoding="utf-8") as lf:
                 lf.write(text)
                 lf.flush()
 

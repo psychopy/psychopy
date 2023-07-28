@@ -15,6 +15,7 @@ These are issues that users should be aware of, whether they are using Builder o
    dataOutputs
    gamma
    rendering
+   staircases
 
 .. toctree::
    :maxdepth: 2

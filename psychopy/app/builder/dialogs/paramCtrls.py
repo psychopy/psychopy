@@ -4,10 +4,12 @@
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-
+import ast
+import functools
 import os
 import subprocess
 import sys
+import webbrowser
 
 import wx
 import wx.stc
@@ -63,25 +65,27 @@ class _ValidatorMixin:
 
     def updateCodeFont(self, valType):
         """Style input box according to code wanted"""
-        if not hasattr(self, "SetFont"):
+        if not hasattr(self, "SetStyle"):
             # Skip if font not applicable to object type
             return
         if self.GetName() == "name":
             # Name is never code
             valType = "str"
 
-        fontNormal = self.GetTopLevelParent().app._mainFont
+        # get font
         if valType == "code" or hasattr(self, "dollarLbl"):
-            # Set font
-            fontCode = self.GetTopLevelParent().app._codeFont
-            fontCodeBold = fontCode.Bold()
-            if fontCodeBold.IsOk():
-                self.SetFont(fontCodeBold)
-            else:
-                # use normal font if the bold version is invalid on the system
-                self.SetFont(fontCode)
+            font = self.GetTopLevelParent().app._codeFont.Bold()
         else:
-            self.SetFont(fontNormal)
+            font = self.GetTopLevelParent().app._mainFont
+
+        # set font
+        if sys.platform == "linux":
+            # have to go via SetStyle on Linux
+            style = wx.TextAttr(self.GetForegroundColour(), font=font)
+            self.SetStyle(0, len(self.GetValue()), style)
+        else:
+            # otherwise SetFont is fine
+            self.SetFont(font)
 
 
 class _FileMixin(_FrameMixin):
@@ -330,49 +334,73 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
     def __init__(self, parent, valType,
                  val="", choices=[], labels=[], fieldName="",
                  size=wx.Size(-1, 24)):
-        self._choices = list(choices)
-        # If not given any labels, alias values
-        if not labels:
-            labels = self._choices
-        # Map labels to values
-        self._labels = {}
-        for i, value in enumerate(self._choices):
-            if i < len(labels):
-                self._labels[value] = labels[i]
-            else:
-                self._labels[value] = value
-        # Translate labels
-        for v, l in self._labels.items():
-            if l in _localized:
-                self._labels[v] = _localized[l]
+        self._choices = choices
+        self._labels = labels
         # Create choice ctrl from labels
         wx.Choice.__init__(self)
-        self.Create(parent, -1, size=size, choices=[self._labels[c] for c in self._choices], name=fieldName)
+        self.Create(parent, -1, size=size, name=fieldName)
+        self.populate()
         self.valType = valType
         self.SetStringSelection(val)
 
+    def populate(self):
+        if isinstance(self._choices, functools.partial):
+            # if choices are given as a partial, execute it now to get values
+            choices = self._choices()
+        else:
+            # otherwise, treat it as a list
+            choices = list(self._choices)
+
+        if isinstance(self._labels, functools.partial):
+            # if labels are given as a partial, execute it now to get values
+            labels = self._labels()
+        elif self._labels:
+            # otherwise, treat it as a list
+            labels = list(self._labels)
+        else:
+            # if not given any labels, alias values
+            labels = choices
+        # Map labels to values
+        _labels = {}
+        for i, value in enumerate(choices):
+            if i < len(labels):
+                _labels[value] = labels[i]
+            else:
+                _labels[value] = value
+        labels = _labels
+        # Translate labels
+        for v, l in labels.items():
+            if l in _localized:
+                labels[v] = _localized[l]
+        # store labels and choices
+        self.labels = labels
+        self.choices = choices
+
+        # apply to ctrl
+        self.SetItems([str(self.labels[c]) for c in self.choices])
+
     def SetStringSelection(self, string):
-        strChoices = [str(choice) for choice in self._choices]
-        if string not in self._choices:
+        strChoices = [str(choice) for choice in self.choices]
+        if string not in self.choices:
             if string in strChoices:
                 # If string is a stringified version of a value in choices, stringify the value in choices
                 i = strChoices.index(string)
-                self._labels[string] = self._labels.pop(self._choices[i])
-                self._choices[i] = string
+                self.labels[string] = self.labels.pop(self.choices[i])
+                self.choices[i] = string
             else:
                 # Otherwise it is a genuinely new value, so add it to options
-                self._choices.append(string)
-                self._labels[string] = string
+                self.choices.append(string)
+                self.labels[string] = string
             # Refresh items
             self.SetItems(
-                [self._labels[c] for c in self._choices]
+                [str(self.labels[c]) for c in self.choices]
             )
         # Don't use wx.Choice.SetStringSelection here because label string is localized.
-        wx.Choice.SetSelection(self, self._choices.index(string))
+        wx.Choice.SetSelection(self, self.choices.index(string))
 
-    def GetValue(self):
+    def getValue(self):
         # Don't use wx.Choice.GetStringSelection here because label string is localized.
-        return self._choices[self.GetSelection()]
+        return self.choices[self.GetSelection()]
 
 
 class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin, _HideMixin):
@@ -732,7 +760,7 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
             # Update button
             self.updateBtn = wx.Button(self.extraCtrls, size=(24, 24))
             self.updateBtn.SetBitmap(icons.ButtonIcon(stem="view-refresh", size=16).bitmap)
-            self.updateBtn.SetToolTipString(_translate(
+            self.updateBtn.SetToolTip(_translate(
                 "Refresh survey list"
             ))
             self.updateBtn.Bind(wx.EVT_BUTTON, self.populate)
@@ -791,18 +819,42 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         wx.TextCtrl.__init__(self)
         self.Create(parent, -1, val, name=fieldName, size=size)
         self.valType = valType
+        # Add CTRL + click behaviour
+        self.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
+        # Add placeholder
+        self.SetHint("e.g. e89cd6eb-296e-4960-af14-103026a59c14")
         # Add sizer
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         self._szr.Add(self, border=5, proportion=1, flag=wx.EXPAND | wx.RIGHT)
         # Add button to browse for survey
-        icn = icons.ButtonIcon(stem="search", size=16).bitmap
-        self.findBtn = wx.BitmapButton(parent, -1, size=wx.Size(24, 24), bitmap=icn)
-        self.findBtn.SetToolTip(_translate("Specify survey ..."))
+        self.findBtn = wx.Button(
+            parent, -1,
+            label=_translate("Find online..."),
+            size=wx.Size(-1, 24)
+        )
+        self.findBtn.SetBitmap(
+            icons.ButtonIcon(stem="search", size=16).bitmap
+        )
+        self.findBtn.SetToolTip(_translate(
+            "Get survey ID from a list of your surveys on Pavlovia"
+        ))
         self.findBtn.Bind(wx.EVT_BUTTON, self.findSurvey)
         self._szr.Add(self.findBtn)
         # Configure validation
         self.Bind(wx.EVT_TEXT, self.validate)
         self.validate()
+
+    def onRightClick(self, evt=None):
+        menu = wx.Menu()
+        thisId = menu.Append(wx.ID_ANY, item=f"https://pavlovia.org/surveys/{self.getValue()}")
+        menu.Bind(wx.EVT_MENU, self.openSurvey, source=thisId)
+        self.PopupMenu(menu)
+
+    def openSurvey(self, evt=None):
+        """
+        Open current survey in web browser
+        """
+        webbrowser.open(f"https://pavlovia.org/surveys/{self.getValue()}")
 
     def findSurvey(self, evt=None):
         # Import Pavlovia modules locally to avoid Pavlovia bugs affecting other param ctrls
@@ -825,6 +877,30 @@ class SurveyCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
                 evt = wx.ListEvent(wx.EVT_KEY_UP.typeId)
                 evt.SetEventObject(self)
                 wx.PostEvent(self, evt)
+
+    def getValue(self, evt=None):
+        """
+        Get the value of the text control, but sanitize such that if the user pastes a full survey URL
+        we only take the survey ID
+        """
+        # Get value by usual wx method
+        value = self.GetValue()
+        # Strip pavlovia run url
+        if "run.pavlovia.org/pavlovia/survey/?surveyId=" in value:
+            # Keep only the values after the URL
+            value = value.split("run.pavlovia.org/pavlovia/survey/?surveyId=")[-1]
+            if "&" in value:
+                # If there are multiple URL parameters, only keep the Id
+                value = value.split("&")[0]
+        # Strip regular pavlovia url
+        elif "pavlovia.org/surveys/" in value:
+            # Keep only the values after the URL
+            value = value.split(".pavlovia.org/pavlovia/survey/")[-1]
+            if "&" in value:
+                # If there are URL parameters, only keep the Id
+                value = value.split("?")[0]
+
+        return value
 
 
 class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
@@ -857,8 +933,9 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
             'Form': Path(cmpRoot) / "form" / "formItems.xltx",
             'TrialHandler': Path(expRoot) / "loopTemplate.xltx",
             'StairHandler': Path(expRoot) / "loopTemplate.xltx",
-            'MultiStairHandler': Path(expRoot) / "loopTemplate.xltx",
-            'QuestHandler': Path(expRoot) / "loopTemplate.xltx",
+            'MultiStairHandler:simple': Path(expRoot) / "staircaseTemplate.xltx",
+            'MultiStairHandler:QUEST': Path(expRoot) / "questTemplate.xltx",
+            'MultiStairHandler:QUESTPLUS': Path() / "questPlugTemplate.xltx",
             'None': Path(expRoot) / 'blankTemplate.xltx',
         }
         # Specify valid extensions
@@ -1041,23 +1118,35 @@ def validate(obj, valType):
 
 class DictCtrl(ListWidget, _ValidatorMixin, _HideMixin):
     def __init__(self, parent,
-                 val={}, valType='dict',
+                 val={}, labels=(_translate("Field"), _translate("Default")), valType='dict',
                  fieldName=""):
+        # try to convert to a dict if given a string
+        if isinstance(val, str):
+            try:
+                val = ast.literal_eval(val)
+            except:
+                raise ValueError(_translate("Could not interpret parameter value as a dict:\n{}").format(val))
+        # raise error if still not a dict
         if not isinstance(val, (dict, list)):
-            raise ValueError("DictCtrl must be supplied with either a dict or a list of 1-long dicts, value supplied was {}".format(val))
+            raise ValueError("DictCtrl must be supplied with either a dict or a list of 1-long dicts, value supplied was {}: {}".format(type(val), val))
+        # Get labels
+        keyLbl, valLbl = labels
         # If supplied with a dict, convert it to a list of dicts
         if isinstance(val, dict):
             newVal = []
             for key, v in val.items():
                 if hasattr(v, "val"):
                     v = v.val
-                newVal.append({'Field': key, 'Default': v})
+                newVal.append({keyLbl: key, valLbl: v})
             val = newVal
+        # Make sure we have at least 1 value
+        if not len(val):
+            val = [{keyLbl: "", valLbl: ""}]
         # If any items within the list are not dicts or are dicts longer than 1, throw error
         if not all(isinstance(v, dict) and len(v) == 2 for v in val):
             raise ValueError("DictCtrl must be supplied with either a dict or a list of 1-long dicts, value supplied was {}".format(val))
         # Create ListWidget
-        ListWidget.__init__(self, parent, val, order=['Field', 'Default'])
+        ListWidget.__init__(self, parent, val, order=labels)
 
     def SetForegroundColour(self, color):
         for child in self.Children:

@@ -19,6 +19,7 @@ class RegionOfInterestComponent(PolygonComponent):
     """A class for using one of several eyetrackers to follow gaze"""
     categories = ['Eyetracking']
     targets = ['PsychoPy']
+    version = "2021.2.0"
     iconFile = Path(__file__).parent / 'eyetracker_roi.png'
     tooltip = _translate('Region Of Interest: Define a region of interest for use with eyetrackers')
     beta = True
@@ -59,8 +60,8 @@ class RegionOfInterestComponent(PolygonComponent):
         self.params['endRoutineOn'] = Param(endRoutineOn,
             valType='str', inputType='choice', categ='Basic',
             allowedVals=["look at", "look away", "none"],
-            hint=_translate("Under what condition should this ROI end the routine?"),
-            label=_translate("End Routine On...")
+            hint=_translate("Under what condition should this ROI end the Routine?"),
+            label=_translate("End Routine on...")
         )
 
         self.depends.append(
@@ -75,14 +76,14 @@ class RegionOfInterestComponent(PolygonComponent):
         self.params['lookDur'] = Param(lookDur,
             valType='num', inputType='single', categ='Basic',
             hint=_translate("Minimum dwell time within roi (look at) or outside roi (look away)."),
-            label=_translate("Min. Look Time")
+            label=_translate("Min. look time")
         )
 
         self.params['debug'] = Param(
             debug, valType='bool', inputType='bool', categ='Testing',
             hint=_translate("In debug mode, the ROI is drawn in red. Use this to see what area of the "
                             "screen is in the ROI."),
-            label=_translate("Debug Mode")
+            label=_translate("Debug mode")
         )
 
         self.params['save'] = Param(
@@ -91,7 +92,7 @@ class RegionOfInterestComponent(PolygonComponent):
             direct=False,
             hint=_translate(
                 "What looks on this ROI should be saved to the data output?"),
-            label=_translate('Save...'))
+            label=_translate("Save..."))
 
         self.params['timeRelativeTo'] = Param(
             timeRelativeTo, valType='str', inputType="choice", categ='Data',
@@ -100,7 +101,7 @@ class RegionOfInterestComponent(PolygonComponent):
             hint=_translate(
                 "What should the values of roi.time should be "
                 "relative to?"),
-            label=_translate('Time Relative To...'))
+            label=_translate("Time relative to..."))
 
     def writePreWindowCode(self, buff):
         pass
@@ -111,13 +112,16 @@ class RegionOfInterestComponent(PolygonComponent):
             unitsStr = ""
         else:
             unitsStr = "units=%(units)s, " % self.params
+        # handle dependent params
+        params = self.params.copy()
+
+        if params['shape'] == 'regular polygon...':
+            params['shape'] = params['nVertices']
+        elif params['shape'] == 'custom polygon...':
+            params['shape'] = params['vertices']
         # do writing of init
-        inits = getInitVals(self.params, 'PsychoPy')
+        inits = getInitVals(params, 'PsychoPy')
         inits['depth'] = -self.getPosInRoutine()
-        if self.params['shape'] == 'regular polygon...':
-            inits['shape'] = self.params['nVertices']
-        elif self.params['shape'] == 'custom polygon...':
-            inits['shape'] = self.params['vertices']
 
         code = (
             "%(name)s = visual.ROI(win, name='%(name)s', device=eyetracker,\n"
@@ -153,6 +157,11 @@ class RegionOfInterestComponent(PolygonComponent):
         inits = getInitVals(self.params, 'PsychoPy')
         # Write start code
         indented = self.writeStartTestCode(buff)
+        if indented:
+            code = (
+                "%(name)s.setAutoDraw(True)\n"
+            )
+            buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-indented, relative=True)
         # String to get time
         if inits['timeRelativeTo'] == 'roi onset':
@@ -198,7 +207,7 @@ class RegionOfInterestComponent(PolygonComponent):
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
             code = (
-                    "continueRoutine = False # end routine on sufficiently long look\n"
+                    "continueRoutine = False # end Routine on sufficiently long look\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(-1, relative=True)
@@ -231,7 +240,7 @@ class RegionOfInterestComponent(PolygonComponent):
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
             code = (
-                    f"continueRoutine = False # end routine after sufficiently long look outside roi\n"
+                    f"continueRoutine = False # end Routine after sufficiently long look outside roi\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(-1, relative=True)
@@ -242,7 +251,7 @@ class RegionOfInterestComponent(PolygonComponent):
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
             code = (
-                    f"continueRoutine = False # end routine after sufficiently long look outside roi\n"
+                    f"continueRoutine = False # end Routine after sufficiently long look outside roi\n"
             )
             buff.writeIndentedLines(code % inits)
 
@@ -270,6 +279,11 @@ class RegionOfInterestComponent(PolygonComponent):
 
         # Write stop code
         indented = self.writeStopTestCode(buff)
+        if indented:
+            code = (
+                "%(name)s.setAutoDraw(False)\n"
+            )
+            buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-indented, relative=True)
 
     def writeRoutineEndCode(self, buff):

@@ -22,7 +22,7 @@ try:
         DisplayPlusPlusTouch)
     from .optical import OptiCAL
     from .colorcal import ColorCAL
-except (ModuleNotFoundError, ImportError):
+except (ModuleNotFoundError, ImportError, NameError):
     logging.error(
         "Support for Cambridge Research Systems hardware is not available this "
         "session. Please install `psychopy-crs` and restart the session to "

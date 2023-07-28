@@ -20,10 +20,14 @@ try:
         CortexApiException,
         CortexNoHeadsetException,
         CortexTimingException)
-except (ModuleNotFoundError, ImportError):
+except (ModuleNotFoundError, ImportError, NameError):
     logging.error(
         "Support for Emotiv hardware is not available this session. Please "
         "install `psychopy-emotiv` and restart the session to enable support.")
+except Exception as e:
+    logging.error(
+        "Error encountered while loading `psychopy-emotiv`. Check logs for "
+        "more information.")
 
 if __name__ == "__main__":
     pass

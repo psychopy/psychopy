@@ -21,7 +21,7 @@ Coder: you can click the color-picker icon on the toolbar. The R,G,B color tripl
 If you have a tip that you'd like to added here, email it to the users list.
 To flip an image stimulus, give it a negative 'size', in x, y or both
 PsychoPy is free. Please cite the most recent paper (Peirce et al 2019) if you use PsychoPy in published work
-Builder: To set stimulus position to your variables X and Y, you can use either $[X,Y] or [$X,$Y]. (A $ anywhere indicates that the entire entry box is Python code)
+Builder: To set stimulus position to your variables X and Y, you can use either $[X,Y] or [$X,Y]. (A $ anywhere indicates that the entire entry box is Python code)
 You should wear sunscreen. (Where does it say these tips have to be original?!)
 In Python, the values True and False must have capitals and really just stand for 1 and 0.
 Builder: The contents of the dialog box at the start of your experiment are controlled from the Experiment Settings button. You can use these values in your study by referring to the value in expInfo e.g. expInfo['participant']
@@ -29,7 +29,7 @@ Coder: You can comment/uncomment entire blocks of code with Ctrl-' and Ctrl-Shif
 Did your stimulus not appear? Was it really tiny? Setting units='pix' and size=0.1 means it has a size of 0.1 pixels!
 The default color values in PsychoPy range from -1 to +1, with 0 being the mean grey of the screen. So black is like the maximum decrement from grey and white is an increment. Right?
 Data can be output in many different formats, but it's worth saving the 'psydat' (aka pickle) format as well as the others. Although this isn't "human readable" it stores more information than excel/csv files including an entire copy of your actual experiment!
-You can see how many people used PsychoPy this month at https://www.psychopy.org/usage.php
+You can see how many people used PsychoPy this month at https://usage.psychopy.org
 Builder: You can increase or decrease the display size of the flow using "Ctrl + =" or "Ctrl + -" (like some web browsers). Similarly, you can change the display size of routines using "Ctrl + Shift + =" and "Ctrl + Shift + -". (Use "Cmd" on Mac, not "Ctrl".)
 In the Builder, you can display details about the trials and sequences of loops. Press "Ctrl + =" when at the largest view size. To turn off, press "Ctrl + -" from the smallest view size.
 Builder: To put a $ symbol in a stimulus, you need to use \$, like this: "You win \$5.00!". (This is only for input boxes, and not for code components.)

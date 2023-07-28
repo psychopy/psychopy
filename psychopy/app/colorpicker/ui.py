@@ -1,14 +1,8 @@
 # -*- coding: utf-8 -*-
 
-###########################################################################
-## Python code generated with wxFormBuilder (version 3.10.0-4761b0c)
-## http://www.wxformbuilder.org/
-##
-## PLEASE DO *NOT* EDIT THIS FILE!
-###########################################################################
-
 import wx
 import wx.xrc
+from psychopy.localization import _translate
 
 ###########################################################################
 ## Class ColorPickerDialog
@@ -17,7 +11,7 @@ import wx.xrc
 class ColorPickerDialog ( wx.Dialog ):
 
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Color Picker", pos = wx.DefaultPosition, size = wx.Size( 640,480 ), style = wx.DEFAULT_DIALOG_STYLE )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = "Color Picker", pos = wx.DefaultPosition, size = wx.Size( 640,480 ), style = wx.DEFAULT_DIALOG_STYLE )
 
 		self.SetSizeHints( wx.Size( -1,-1 ), wx.DefaultSize )
 
@@ -36,7 +30,7 @@ class ColorPickerDialog ( wx.Dialog ):
 		self.pnlRGBPage = wx.Panel( self.nbColorSelector, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		szrRGBPage = wx.BoxSizer( wx.VERTICAL )
 
-		fraRGBChannels = wx.StaticBoxSizer( wx.StaticBox( self.pnlRGBPage, wx.ID_ANY, u" RGB Channels " ), wx.VERTICAL )
+		fraRGBChannels = wx.StaticBoxSizer( wx.StaticBox( self.pnlRGBPage, wx.ID_ANY, _translate(" RGB Channels ") ), wx.VERTICAL )
 
 		szrRGBChannels = wx.FlexGridSizer( 3, 3, 5, 10 )
 		szrRGBChannels.AddGrowableCol( 1 )
@@ -87,7 +81,7 @@ class ColorPickerDialog ( wx.Dialog ):
 
 		szrLowerRGBPage = wx.BoxSizer( wx.HORIZONTAL )
 
-		fraHexRGB = wx.StaticBoxSizer( wx.StaticBox( self.pnlRGBPage, wx.ID_ANY, u"Hex/HTML" ), wx.VERTICAL )
+		fraHexRGB = wx.StaticBoxSizer( wx.StaticBox( self.pnlRGBPage, wx.ID_ANY, _translate("Hex/HTML") ), wx.VERTICAL )
 
 		self.txtHexRGB = wx.TextCtrl( fraHexRGB.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		fraHexRGB.Add( self.txtHexRGB, 0, wx.ALL|wx.EXPAND, 5 )
@@ -95,7 +89,7 @@ class ColorPickerDialog ( wx.Dialog ):
 
 		szrLowerRGBPage.Add( fraHexRGB, 1, wx.ALL, 5 )
 
-		fraRGBFormat = wx.StaticBoxSizer( wx.StaticBox( self.pnlRGBPage, wx.ID_ANY, u"RGB Format" ), wx.VERTICAL )
+		fraRGBFormat = wx.StaticBoxSizer( wx.StaticBox( self.pnlRGBPage, wx.ID_ANY, _translate("RGB Format") ), wx.VERTICAL )
 
 		self.rdoRGBModePsychoPy = wx.RadioButton( fraRGBFormat.GetStaticBox(), wx.ID_ANY, u"PsychoPy RGB [-1:1]", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.rdoRGBModePsychoPy.SetValue( True )
@@ -121,7 +115,7 @@ class ColorPickerDialog ( wx.Dialog ):
 		self.pnlHSVPage = wx.Panel( self.nbColorSelector, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		szrHSVPage = wx.BoxSizer( wx.VERTICAL )
 
-		fraHSVChannels = wx.StaticBoxSizer( wx.StaticBox( self.pnlHSVPage, wx.ID_ANY, u" HSV Channels " ), wx.VERTICAL )
+		fraHSVChannels = wx.StaticBoxSizer( wx.StaticBox( self.pnlHSVPage, wx.ID_ANY, _translate(" HSV Channels ") ), wx.VERTICAL )
 
 		szrHSVChannels = wx.FlexGridSizer( 3, 3, 5, 10 )
 		szrHSVChannels.AddGrowableCol( 1 )
@@ -195,7 +189,7 @@ class ColorPickerDialog ( wx.Dialog ):
 		szrOutputSelector = wx.BoxSizer(wx.HORIZONTAL)
 		szrOutputSelector.AddStretchSpacer(1)
 
-		self.lblOutputSpace = wx.StaticText( self.pnlOutputSelector, wx.ID_ANY, u"Output Space:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.lblOutputSpace = wx.StaticText( self.pnlOutputSelector, wx.ID_ANY, _translate("Output Space:"), wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.lblOutputSpace.Wrap( -1 )
 		szrOutputSelector.Add( self.lblOutputSpace, 0, wx.ALIGN_CENTER_VERTICAL|wx.BOTTOM|wx.LEFT|wx.TOP, 0 )
 
@@ -205,10 +199,10 @@ class ColorPickerDialog ( wx.Dialog ):
 		self.cboOutputSpace.SetSelection(0)
 		szrOutputSelector.Add(self.cboOutputSpace, 0, wx.ALL | wx.EXPAND, 5)
 
-		self.cmdCopy = wx.Button( self.pnlOutputSelector, wx.ID_ANY, u"Copy", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.cmdCopy = wx.Button( self.pnlOutputSelector, wx.ID_ANY, _translate("Copy"), wx.DefaultPosition, wx.DefaultSize, 0 )
 		szrOutputSelector.Add( self.cmdCopy, 0, wx.BOTTOM|wx.LEFT|wx.TOP, 5 )
 
-		self.cmdInsert = wx.Button( self.pnlOutputSelector, wx.ID_ANY, u"Insert", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.cmdInsert = wx.Button( self.pnlOutputSelector, wx.ID_ANY, _translate("Insert"), wx.DefaultPosition, wx.DefaultSize, 0 )
 		szrOutputSelector.Add( self.cmdInsert, 0, wx.ALL, 5 )
 
 		self.pnlOutputSelector.SetSizer(szrOutputSelector)

@@ -32,7 +32,7 @@ class Test_BuilderFrame():
     settings, they can be added to a Routine and result in a script that compiles
     """
 
-    def setup(self):
+    def setup_method(self):
 
         self.here = path.abspath(path.dirname(__file__))
         self.tmp_dir = mkdtemp(prefix='psychopy-tests-app')

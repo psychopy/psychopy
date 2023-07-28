@@ -33,6 +33,10 @@ except (ModuleNotFoundError, ImportError):
         "Support for Current Designs Inc. hardware is not available this "
         "session. Please install `psychopy-curdes` and restart the session "
         "to enable support.")
+except Exception as e:
+    logging.error(
+        "Error encountered while loading `psychopy-curdes`. Check logs for "
+        "more information.")
 
 if __name__ == "__main__":
     pass

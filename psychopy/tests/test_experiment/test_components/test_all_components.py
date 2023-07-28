@@ -73,6 +73,38 @@ def test_all_have_depth():
             )
 
 
+def test_visual_set_autodraw():
+    """
+    Check that any components derived from BaseVisualComponent make some reference to `.autoDraw` in their each
+    frame code
+    """
+    # List of components to skip
+    skipComponents = ["ApertureComponent"]
+
+    for compName, compClass in experiment.getAllComponents().items():
+        # Skip component if marked to skip
+        if compName in skipComponents:
+            continue
+        # Skip if component isn't derived from BaseVisual
+        if not issubclass(compClass, experiment.components.BaseVisualComponent):
+            continue
+        # Make a generic testing object for this component
+        tester = _Generic(compClass).comp
+        if 'startVal' in tester.params:
+            tester.params['startVal'].val = 0
+        if 'stopVal' in tester.params:
+            tester.params['stopVal'].val = 1
+        # Create text buffer to write to
+        buff = IndentingBuffer(target="PsychoPy")
+        # Write each frame code
+        tester.writeFrameCode(buff)
+        code = buff.getvalue()
+        # Look for autoDraw refs
+        assert ".autoDraw = " in code or ".setAutoDraw(" in code, (
+            f"{compName} does not set autoDraw in its Each Frame code. If this is acceptable, add the component name "
+            f"to `skipComponents`."
+        )
+
 def test_indentation_consistency():
     """
     No component should exit any of its write methods at a different indent level as it entered, as this would break

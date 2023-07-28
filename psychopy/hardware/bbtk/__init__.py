@@ -21,6 +21,10 @@ except (ModuleNotFoundError, ImportError):
         "Support for Black Box Toolkit hardware is not available this session. "
         "Please install `psychopy-bbtk` and restart the session to enable "
         "support.")
+except Exception as e:  # misc errors during module loading
+    logging.error(
+        "Error encountered while loading `psychopy-bbtk`. Check logs for more "
+        "information.")
 
 if __name__ == "__main__":
     pass

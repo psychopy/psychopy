@@ -17,7 +17,7 @@ import psychopy.logging as logging
 try:
     from psychopy_labhackers import (
         getDevices, getSerialPorts, getUSB2TTL8s, USB2TTL8)
-except (ModuleNotFoundError, ImportError):
+except (ModuleNotFoundError, ImportError, NameError):
     logging.error(
         "Support for LabHackers hardware is not available this session. "
         "Please install `psychopy-labhackers` and restart the session to "

@@ -14,7 +14,7 @@
 
 try:
     from psychopy_crs.shaders import bitsMonoModeFrag, bitsColorModeFrag
-except (ModuleNotFoundError, ImportError):
+except Exception:
     pass
 
 if __name__ == "__main__":

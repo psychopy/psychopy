@@ -90,7 +90,7 @@ class _TestBoilerplateMixin:
 
 class TestComponentCompilerPython():
     """A class for testing the Python code compiler for all components"""
-    def setup(self):
+    def setup_method(self):
         self.temp_dir = mkdtemp()
         self.allComp = getAllComponents(fetchIcons=False)
         self.exp = Experiment() # create once, not every test
@@ -150,8 +150,10 @@ class TestComponentCompilerPython():
 
     def test_component_type_in_experiment(self):
         for compName, compObj in self.allComp.items():
-            if (compName not in ['SettingsComponent', 'UnknownComponent', 'UnknownPluginComponent']
-                    and "PsychoPy" in compObj.targets):
+            if (compName not in [
+                'SettingsComponent', 'UnknownComponent',
+                'UnknownPluginComponent', 'RoutineSettingsComponent'
+            ] and "PsychoPy" in compObj.targets):
                 # reset exp
                 self.reset_experiment()
                 # Add components

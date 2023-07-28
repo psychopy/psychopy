@@ -26,23 +26,78 @@ from psychopy import logging
 from psychopy.tools.fileerrortools import handleFileCollision
 from pathlib import Path
 
+
+def _synonymiseExtensions(assets):
+    """
+    Synonymise filetypes which refer to the same media types.
+
+    Parameters
+    ==========
+    assets : dict
+        Dict of {name: path} pairs
+
+    Returns
+    ==========
+    dict
+        Same dict which was passed in, but any names ending in a recognised extension
+        will have variants with the same stem but different (and synonymous) extensions,
+        pointing to the same path. For example:
+        {"default.png": "default.png"}
+        becomes
+        {"default.png": "default.png", "default.jpg": "default.png", "default.jpeg": "default.png"}
+    """
+    # Alias filetypes
+    newAssets = {}
+    for key, val in assets.items():
+        # Skip if no ext
+        if "." not in key:
+            continue
+        # Get stem and ext
+        stem, ext = key.split(".")
+        # Synonymise image types
+        imgTypes = ("png", "jpg", "jpeg")
+        if ext in imgTypes:
+            for thisExt in imgTypes:
+                newAssets[stem + "." + thisExt] = val
+        # Synonymise movie types
+        movTypes = ("mp4", "mov", "mkv", "avi", "wmv")
+        if ext in movTypes:
+            for thisExt in movTypes:
+                newAssets[stem + "." + thisExt] = val
+        # Synonymise audio types
+        sndTypes = ("mp3", "wav")
+        if ext in sndTypes:
+            for thisExt in sndTypes:
+                newAssets[stem + "." + thisExt] = val
+
+    return newAssets
+
+
 # Names accepted by stimulus classes & the filename of the default stimulus to use
 defaultStimRoot = Path(__file__).parent.parent / "app" / "Resources"
 defaultStim = {
     # Image stimuli
     "default.png": "default.png",
-    "default.jpg": "default.png",
-    "default.jpeg": "default.png",
     # Movie stimuli
     "default.mp4": "default.mp4",
-    "default.mov": "default.mp4",
-    "default.mkv": "default.mp4",
-    "default.avi": "default.mp4",
-    "default.wmv": "default.mp4",
     # Sound stimuli
     "default.mp3": "default.mp3",
-    "default.wav": "default.mp3",
+    # Credit card image
+    "creditCard.png": "creditCard.png",
+    "CreditCard.png": "creditCard.png",
+    "creditcard.png": "creditCard.png",
+    # USB image
+    "USB.png": "USB.png",
+    "usb.png": "USB.png",
+    # USB-C image
+    "USB-C.png": "USB-C.png",
+    "USB_C.png": "USB-C.png",
+    "USBC.png": "USB-C.png",
+    "usb-c.png": "USB-C.png",
+    "usb_c.png": "USB-C.png",
+    "usbc.png": "USB-C.png",
 }
+defaultStim = _synonymiseExtensions(defaultStim)
 
 
 def toFile(filename, data):
@@ -239,6 +294,15 @@ def genFilenameFromDelimiter(filename, delim):
             filename += '.txt'
 
     return filename
+
+
+def constructLegacyFilename(filename):
+    # make path object from filename
+    filename = Path(filename)
+    # construct legacy variant name
+    legacyName = filename.parent / (filename.stem + "_legacy" + filename.suffix)
+
+    return legacyName
 
 
 class DictStorage(dict):

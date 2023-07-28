@@ -157,7 +157,7 @@ class ProjectionsLinesAndCircles:
 
 class Test_class_WindowWarp():
     def setup_class(self):
-        self.win = Window(monitor='testMonitor', screen=1, fullscr=True, color='gray', useFBO = True, autoLog=False)
+        self.win = Window(monitor='testMonitor', screen=0, fullscr=True, color='gray', useFBO = True, autoLog=False)
         self.warper = Warper(self.win, warp='spherical', warpfile="", warpGridsize=128, eyepoint=[0.5, 0.5],
                              flipHorizontal=False, flipVertical=False)
         self.warper.dist_cm = 15

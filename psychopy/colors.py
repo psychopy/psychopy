@@ -38,7 +38,8 @@ colorExamples = {
 
 # Dict of named colours
 colorNames = {
-    "none": (0, 0, 0),
+    "none": (0, 0, 0, 0),
+    "transparent": (0, 0, 0, 0),
     "aliceblue": (0.882352941176471, 0.945098039215686, 1),
     "antiquewhite": (0.96078431372549, 0.843137254901961, 0.686274509803922),
     "aqua": (-1, 1, 1),
@@ -491,6 +492,42 @@ class Color:
         dupe.rgba = self.rgba
         dupe.valid = self.valid
         return dupe
+
+    def getReadable(self, contrast=4.5/21):
+        """
+        Get a color which will stand out and be easily readable against this
+        one. Useful for choosing text colors based on background color.
+
+        Parameters
+        ----------
+        contrast : float
+            Desired perceived contrast between the two colors, between 0 (the
+            same color) and 1 (as opposite as possible). Default is the
+            w3c recommended minimum of 4.5/21 (dividing by 21 to adjust for
+            sRGB units).
+
+        Returns
+        -------
+        colors.Color
+            A contrasting color to this color.
+        """
+        # adjust contrast to sRGB
+        contrast *= 21
+        # get value as rgb1
+        rgb = self.rgb1
+        # convert to srgb
+        srgb = rgb**2.2 * [0.2126, 0.7151, 0.0721]
+        # apply contrast adjustment
+        if np.sum(srgb) < 0.5:
+            srgb = (srgb + 0.05) * contrast
+        else:
+            srgb = (srgb + 0.05) / contrast
+        # convert back
+        rgb = (srgb / [0.2126, 0.7151, 0.0721])**(1/2.2)
+        # cap
+        rgb = np.clip(rgb, 0, 1)
+        # Return new color
+        return Color(rgb, "rgb1")
 
     @property
     def alpha(self):

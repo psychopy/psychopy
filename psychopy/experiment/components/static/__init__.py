@@ -36,7 +36,12 @@ class StaticComponent(BaseComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=0.5,
                  startEstim='', durationEstim=''):
-        BaseComponent.__init__(self, exp, parentName, name=name)
+        BaseComponent.__init__(
+            self, exp, parentName, name=name,
+            startType=startType, startVal=startVal,
+            stopType=stopType, stopVal=stopVal,
+            startEstim=startEstim, durationEstim=durationEstim
+        )
         self.updatesList = []  # a list of dicts {compParams, fieldName}
         self.type = 'Static'
         self.url = "https://www.psychopy.org/builder/components/static.html"
@@ -44,7 +49,7 @@ class StaticComponent(BaseComponent):
             "Custom code to be run during the static period (after updates)")
         self.params['code'] = Param("", valType='code', inputType="multi", categ='Custom',
                                     hint=hnt,
-                                    label=_localized['Custom code'])
+                                    label=_translate("Custom code"))
 
     def addComponentUpdate(self, routine, compName, fieldName):
         self.updatesList.append({'compName': compName,

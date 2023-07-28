@@ -14,7 +14,7 @@ from ... import logging
 
 
 class TestSpeed:
-    def setup(self):
+    def setup_method(self):
         self.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
 
     def teardown(self):

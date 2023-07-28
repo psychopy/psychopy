@@ -18,7 +18,7 @@ import string
 
 
 CPP_DEFS = ['void', 'int', 'float', 'double', 'short', 'byte', 'struct', 'enum',
-            'function', 'class']  # javascript tokens
+            'function', 'async function', 'class']  # javascript tokens
 PYTHON_DEFS = ['def', 'class']
 
 
@@ -179,7 +179,14 @@ class SourceTreePanel(wx.Panel, handlers.ThemeMixin):
         lastItem = None
         for df in foldLines:
             lineText = doc.GetLineText(df[1]).lstrip()
-            if not any([lineText.startswith(i) for i in kwrds]):
+            # work out which keyword the line starts with
+            kwrd = None
+            for i in kwrds:
+                i += " "  # add a space to avoid e.g. `defaultKeyboard` being read as a keyword
+                if lineText.startswith(i):
+                    kwrd = i
+            # skip if it starts with no keywords
+            if kwrd is None:
                 continue
 
             if lastItem is not None:
@@ -188,14 +195,18 @@ class SourceTreePanel(wx.Panel, handlers.ThemeMixin):
 
             # slice off comment
             lineText = lineText.split('#')[0]
+            # split into tokens
             lineTokens = [
                 tok.strip(stripChars) for tok in re.split(
                     r' |\(|\)', lineText) if tok]
 
-            # for some reason the line is valid but cannot be parsed, ignore it
+            # take value before keyword end as def type, value after as def name
+            kwrdEnd = len(re.findall(r' |\(|\)', kwrd))
             try:
-                defType, defName = lineTokens[:2]
+                defType = lineTokens[kwrdEnd-1]
+                defName = lineTokens[kwrdEnd]
             except ValueError:
+                # if for some reason the line is valid but cannot be parsed, ignore it
                 continue
 
             lastItem = (defType, defName, df[1], df[0])

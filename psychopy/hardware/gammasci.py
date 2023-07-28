@@ -23,6 +23,10 @@ except (ModuleNotFoundError, ImportError):
         "Support for Gamma-Scientific Inc. hardware is not available this "
         "session. Please install `psychopy-gammasci` and restart the session "
         "to enable support.")
+except Exception as e:
+    logging.error(
+        "Error encountered while loading `psychopy-gammasci`. Check logs for "
+        "more information.")
 
 if __name__ == "__main__":
     pass

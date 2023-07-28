@@ -23,7 +23,7 @@ class TestCodeComponent(_TestBaseComponentsMixin, _TestDisabledMixin):
             # can't write to root on Linux
             cls.tempDir = mkdtemp(prefix='psychopy-tests-app')
 
-    def setup(self):
+    def setup_method(self):
         # Make blank experiment
         self.exp = experiment.Experiment()
         # Make blank routine

@@ -38,7 +38,6 @@ Shapes (all special classes of :class:`ShapeStim`):
 
 Images and patterns:
 
-* :class:`.ImageStim` to show images
 * :class:`.SimpleImageStim` to show images without bells and whistles
 * :class:`.GratingStim` to show gratings
 * :class:`.RadialStim` to show annulus, a rotating wedge, a checkerboard etc

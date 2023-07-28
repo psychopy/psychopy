@@ -31,6 +31,7 @@ from .devices import DeviceEvent, import_device
 from .devices import Computer
 from .devices.deviceConfigValidation import validateDeviceConfiguration
 getTime = Computer.getTime
+syncClock = Computer.syncClock
 
 # pylint: disable=protected-access
 # pylint: disable=broad-except
@@ -505,6 +506,12 @@ class udpServer(DatagramServer):
         """See Computer.getTime documentation, where current process will be
         the ioHub Server process."""
         return getTime()
+
+    @staticmethod
+    def syncClock(lastResetTime):
+        """See Computer.syncClock documentation, where current process will be
+        the ioHub Server process."""
+        return syncClock(lastResetTime)
 
     @staticmethod
     def setPriority(level='normal', disable_gc=False):

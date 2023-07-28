@@ -176,13 +176,7 @@ class Dlg(wx.Dialog):
         :return: self.data
         """
         # add buttons for OK and Cancel
-        buttons = wx.BoxSizer(wx.HORIZONTAL)
-        OK = wx.Button(self, wx.ID_OK, self.labelButtonOK)
-        OK.SetDefault()
-
-        buttons.Add(OK)
-        CANCEL = wx.Button(self, wx.ID_CANCEL, self.labelButtonCancel)
-        buttons.Add(CANCEL)
+        buttons = self.CreateStdDialogButtonSizer(flags=wx.OK | wx.CANCEL)
         self.sizer.Add(buttons, 1, flag=wx.ALIGN_RIGHT, border=5)
 
         self.SetSizerAndFit(self.sizer)

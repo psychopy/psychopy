@@ -14,6 +14,7 @@ The `Shelf <https://psychopy.github.io/psychojs/module-data.Shelf.html>`_ is a f
 * :ref:`Multi-session testing <multi_session_testing>`
 * :ref:`Counterbalancing <counterbalanceShelf>`
 * Multi-player games
+* :ref:`Leaderboards <leaderboardShelf>`
 
 Here we will walk through some of the use cases and how to implement them. At the moment, we must interact with the Shelf through :ref:`Code Components <code>`. In the longer term, once we better understand the ways in which scientists are using the Shelf, we hope to make this more accessible by making a :ref:`Builder <builder>` component.
 
@@ -40,7 +41,7 @@ Interacting with Integer Records
 
 Imagine the simple case of wanting to count how many participants have completed your task. You would make an Integer Record, which starts at 0 and assign the scope of the Record to the experiment of interest.
 
-From within your experiment you can use several methods to interact with Integers including (though not limited to; see all methods `here <https://psychopy.github.io/psychojs/module-data.Shelf.html>`_):
+From within your experiment you can use several methods to interact with Integers including (though not limited to; see all methods `here <https://psychopy.github.io/psychojs/Shelf.html>`_):
 
 * :code:`psychoJS.shelf.getIntegerValue()`
 * :code:`psychoJS.shelf.setIntegerValue()`
@@ -94,7 +95,7 @@ Imagine you have an experiment where you wish for many players to interact with 
 * :code:`psychoJS.shelf.appendListValue()`
 * :code:`psychoJS.shelf.popListValue()`
 
-First imagine you want to allow the player to clear the list of preexisting players (in our demo we achieve this though a drop down). We would do that using :code:`psychoJS.shelf.setListValue({key: ["player_list"], value: []})`. Then imagine we want to add this players screen name to the existing list of screen names, that is achieved using :code:`psychoJS.shelf.appendListValue({key: ["player_list"], elements: expInfo["screen name"]})` finally, to fetch the screen names (and we may wish to do this periodically) we can ude :code:`players = await psychoJS.shelf.getListValue({key: ["player_list"], defaultValue:[]})` (remember, it is important to use :code:`await` in order to retrieve the value once the JS Promise has been fulfilled.
+First imagine you want to allow the player to clear the list of preexisting players (in our demo we achieve this though a drop down). We would do that using :code:`psychoJS.shelf.setListValue({key: ["player_list"], value: []})`. Then imagine we want to add this players screen name to the existing list of screen names, that is achieved using :code:`psychoJS.shelf.appendListValue({key: ["player_list"], elements: expInfo["screen name"]})` finally, to fetch the screen names (and we may wish to do this periodically) we can use :code:`players = await psychoJS.shelf.getListValue({key: ["player_list"], defaultValue:[]})` (remember, it is important to use :code:`await` in order to retrieve the value once the JS Promise has been fulfilled.
 
 .. _multi_session_testing:
 
@@ -161,3 +162,99 @@ To get started you must make a record with the type, Dictionary. It must also ha
 |   
 In your experiment, you can then use :code:`counterbal = await psychoJS.shelf.counterBalanceSelect({key: ['my_groups']})` which will return a counterbalance object `counterbal` with two properties, :code:`counterbal.group` indicates the group selected for this participant and :code:`counterbal.finished` indicating if sampling has completed (i.e. all groups are full). If during testing you notice that some groups need "topping up" e.g. the data from one participant is unusable, you can always edit the Shelf directly to allow more participants in each group.
 
+
+.. _leaderboardShelf:
+
+Leaderboard
+^^^^^^^^^^^^
+
+**Demo link:** `here <https://run.pavlovia.org/SueLynnNotts/leaderboard>`_
+
+**Demo experiment files:** `here <https://gitlab.pavlovia.org/SueLynnNotts/leaderboard>`_
+
+Leaderboards are a fun way of adding an element of gamification to your tasks! You can do this by using a Dictionary type shelf record. Just like in the counterbalancing example, the Key Component (on your Pavlovia shelf) and the :code:`key` within the code component of your PsychoPy task needs to match and have a meaningful name. Since the demo task records both the reaction times and accuracy data, the name used is "leaderboard_scores".
+
+You would not need to add any fields within the shelf record on Pavlovia as they will automatically be populated when the task is completed. As more people complete the task, the shelf record would look like so:
+
+.. figure:: /images/leaderboard_images/exampleLeaderboardShelf.png
+    :name: leaderboardShelf
+    :align: center
+    :figclass: align-center
+
+|
+
+If you would like to just record each participants' scores, you would only need the following code component:
+
+.. figure:: /images/leaderboard_images/setupLeaderboardCode.png
+    :name: leaderboardCodeComponent
+    :align: center
+    :figclass: align-center
+
+|
+
+This is how you would fetch all the records that's stored within the leaderboard.
+
+.. figure:: /images/leaderboard_images/fetchLeaderboardCode1.png
+    :name: fetchLeaderboardCodeComponent1
+    :align: center
+    :figclass: align-center
+
+|
+
+.. figure:: /images/leaderboard_images/fetchLeaderboardCode2.png
+    :name: fetchLeaderboardCodeComponent2
+    :align: center
+    :figclass: align-center
+
+|
+
+**Average Reaction Times**
+
+This is an example JavaScript snippet to fetch all the reaction times recorded and calculate the average reaction times:
+
+.. figure:: /images/leaderboard_images/leaderboardRTCode.png
+    :name: leaderboardRTCodeComponent1
+    :align: center
+    :figclass: align-center
+
+|
+
+**Ranked Accuracy**
+
+This is an example JavaScript snippet to fetch all the accuracy stored and sort them in descending order:
+
+.. figure:: /images/leaderboard_images/leaderboardAccuracyCode1.png
+    :name: leaderboardSortAccuracyCodeComponent1
+    :align: center
+    :figclass: align-center
+|
+
+.. figure:: /images/leaderboard_images/leaderboardAccuracyCode2.png
+    :name: leaderboardSortAccuracyCodeComponent2
+    :align: center
+    :figclass: align-center
+
+|
+
+The above code component only sorts the accuracies of each participant but doesn't return the participants' IDs. To get the sorted IDs, you would need the following code component:
+
+.. figure:: /images/leaderboard_images/leaderboardSortID1.png
+    :name: leaderboardSortIDCodeComponent1
+    :align: center
+    :figclass: align-center
+
+|
+
+.. figure:: /images/leaderboard_images/leaderboardSortID2.png
+    :name: leaderboardSortIDCodeComponent2
+    :align: center
+    :figclass: align-center
+
+|
+
+The IDs and accuracy scores are stored in the separate lists (in descending order) and therefore can be indexed. In this example, we index the first 5 IDs and accuracy scores.
+
+.. figure:: /images/leaderboard_images/leaderboardExample.png
+    :name: leaderboardExample
+    :align: center
+    :figclass: align-center

@@ -24,7 +24,9 @@ from bidi import algorithm as bidi
 import re
 
 from ..aperture import Aperture
-from ..basevisual import BaseVisualStim, ColorMixin, ContainerMixin, WindowMixin
+from ..basevisual import (
+    BaseVisualStim, ColorMixin, ContainerMixin, WindowMixin, DraggingMixin
+)
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools import mathtools as mt
 from psychopy.tools.arraytools import val2array
@@ -66,9 +68,8 @@ debug = False
 # If text is ". " we don't want to start next line with single space?
 
 
-class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
+class TextBox2(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin):
     def __init__(self, win, text,
-                 placeholder="Type here...",
                  font="Open Sans",
                  pos=(0, 0), units=None, letterHeight=None,
                  size=None,
@@ -79,7 +80,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  opacity=None,
                  bold=False,
                  italic=False,
+                 placeholder="Type here...",
                  lineSpacing=None,
+                 letterSpacing=None,
                  padding=None,  # gap between box and text
                  speechPoint=None,
                  anchor='center',
@@ -90,6 +93,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  editable=False,
                  overflow="visible",
                  lineBreaking='default',
+                 draggable=False,
                  name='',
                  autoLog=None,
                  autoDraw=False,
@@ -132,6 +136,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         lineBreaking: Specifying 'default', text will be broken at a set of
             characters defined in the module. Specifying 'uax14', text will be
             broken in accordance with UAX#14 (Unicode Line Breaking Algorithm).
+        draggable : bool
+            Can this stimulus be dragged by a mouse click?
         name
         autoLog
         """
@@ -142,6 +148,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.colorSpace = colorSpace
         ColorMixin.foreColor.fset(self, color)  # Have to call the superclass directly on init as text has not been set
         self.onTextCallback = onTextCallback
+        self.draggable = draggable
 
         # Box around the whole textbox - drawn
         self.box = Rect(
@@ -189,6 +196,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.font = font
         if lineSpacing is not None:
             self.lineSpacing = lineSpacing
+        self.letterSpacing = letterSpacing
         # If font not found, default to Open Sans Regular and raise alert
         if not self.glFont:
             alerts.alert(4325, self, {
@@ -611,6 +619,21 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.glFont.lineSpacing = value
         self._needVertexUpdate = True
 
+    @attributeSetter
+    def letterSpacing(self, value):
+        """
+        Distance between letters, relative to the current font's default. Set as None or 1
+        to use font default unchanged.
+        """
+        # Default is 1
+        if value is None:
+            value = 1
+        # Set
+        self.__dict__['letterSpacing'] = value
+        # If text has been set, layout
+        if hasattr(self, "_text"):
+            self._layout()
+
     @property
     def fontMGR(self):
         return allFonts
@@ -768,7 +791,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             cstyle = self._styles[self.caret.index-1]
         self._styles.insert(self.caret.index, cstyle)
         self.caret.index += 1
-        self._text = txt
+        self.text = txt
         self._layout()
 
     def deleteCaretLeft(self):
@@ -779,7 +802,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             txt = txt[:ci-1] + txt[ci:]
             self._styles = self._styles[:ci-1]+self._styles[ci:]
             self.caret.index -= 1
-            self._text = txt
+            self.text = txt
             self._layout()
 
     def deleteCaretRight(self):
@@ -789,7 +812,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             txt = self._text
             txt = txt[:ci] + txt[ci+1:]
             self._styles = self._styles[:ci]+self._styles[ci+1:]
-            self._text = txt
+            self.text = txt
             self._layout()
         
     def _layout(self):
@@ -898,7 +921,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 else:
                     self._colors[i*4 : i*4+4, :4] = rgb # set default color
                 self._lineNs[i] = lineN
-                current[0] = current[0] + glyph.advance[0] + fakeBold / 2
+                current[0] = current[0] + (glyph.advance[0] + fakeBold / 2) * self.letterSpacing
                 current[1] = current[1] + glyph.advance[1]
 
                 # are we wrapping the line?
@@ -1555,11 +1578,29 @@ class Caret(ColorMixin):
         self.colorSpace = colorSpace
         self.color = color
 
-    def draw(self):
-        if not self.visible:
+    def draw(self, override=None):
+        """
+        Draw the caret
+
+        Parameters
+        ==========
+        override : bool or None
+            Set to True to always draw the caret, to False to never draw the caret, or leave as None to
+            draw only according to the usual conditions (being visible and within the correct timeframe
+            for the flashing effect)
+        """
+        if override is None:
+            # If no override, draw only if conditions are met
+            if not self.visible:
+                return
+            # Flash every other second
+            if core.getTime() % 1 > 0.6:
+                return
+        elif not override:
+            # If override is False, never draw
             return
-        if core.getTime() % 1 > 0.6:  # Flash every other second
-            return
+
+        # If no override and conditions are met, or override is True, draw
         gl.glLineWidth(self.width)
         gl.glColor4f(
             *self._foreColor.rgba1

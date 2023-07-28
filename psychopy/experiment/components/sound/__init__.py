@@ -9,7 +9,7 @@ Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
-from psychopy.sound._base import knownNoteNames
+from psychopy.tools.audiotools import knownNoteNames
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 
@@ -30,6 +30,7 @@ class SoundComponent(BaseComponent):
                  startType='time (s)', startVal='0.0',
                  stopType='duration (s)', stopVal='1.0',
                  startEstim='', durationEstim='',
+                 stopWithRoutine=True,
                  syncScreenRefresh=True):
         super(SoundComponent, self).__init__(
             exp, parentName, name,
@@ -47,7 +48,7 @@ class SoundComponent(BaseComponent):
         self.params['stopType'].allowedVals = ['duration (s)']
         self.params['stopType'].hint = _translate('The maximum duration of a'
                                                   ' sound in seconds')
-        hnt = _translate("When does the component end? (blank to use the "
+        hnt = _translate("When does the Component end? (blank to use the "
                          "duration of the media)")
         self.params['stopVal'].hint = hnt
 
@@ -57,13 +58,13 @@ class SoundComponent(BaseComponent):
             sound, valType='str', inputType="file", allowedTypes=[], updates='constant', categ='Basic',
             allowedUpdates=['constant', 'set every repeat'],
             hint=hnt,
-            label=_localized['sound'])
+            label=_translate("Sound"))
         _allowed = ['constant', 'set every repeat', 'set every frame']
         self.params['volume'] = Param(
             volume, valType='num', inputType="single", allowedTypes=[], updates='constant', categ='Playback',
             allowedUpdates=_allowed[:],  # use a copy
             hint=_translate("The volume (in range 0 to 1)"),
-            label=_localized["volume"])
+            label=_translate("Volume"))
         msg = _translate(
             "A reaction time to a sound stimulus should be based on when "
             "the screen flipped")
@@ -71,13 +72,19 @@ class SoundComponent(BaseComponent):
             syncScreenRefresh, valType='bool', inputType="bool", categ='Basic',
             updates='constant',
             hint=msg,
-            label=_localized['syncScreenRefresh'])
+            label=_translate("Sync start with screen"))
         self.params['hamming'] = Param(
             True, valType='bool', inputType="bool", updates='constant', categ='Playback',
             hint=_translate(
-                  "For tones we can apply a Hamming window to prevent 'clicks' that "
+                  "For tones we can apply a hamming window to prevent 'clicks' that "
                   "are caused by a sudden onset. This delays onset by roughly 1ms."),
-            label=_translate('Hamming window'))
+            label=_translate("Hamming window"))
+        self.params['stopWithRoutine'] = Param(
+            stopWithRoutine, valType='bool', inputType="bool", updates='constant', categ='Playback',
+            hint=_translate(
+                "Should playback cease when the Routine ends? Untick to continue playing "
+                "after the Routine has finished."),
+            label=_translate('Stop with Routine?'))
 
     def writeInitCode(self, buff):
         # replaces variable params with sensible defaults
@@ -138,9 +145,7 @@ class SoundComponent(BaseComponent):
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
         """
-        # the sound object is unusual, because it is
-        buff.writeIndented("# start/stop %(name)s\n" % (self.params))
-        # do this EVERY frame, even before/after playing?
+        # Write start code
         self.writeParamUpdates(buff, 'set every frame')
         indented = self.writeStartTestCode(buff)
         if indented:
@@ -149,8 +154,9 @@ class SoundComponent(BaseComponent):
             else:
                 code = "%(name)s.play()  # start the sound (it finishes automatically)\n" % self.params
             buff.writeIndented(code)
-        # because of the 'if' statement of the time test
         buff.setIndentLevel(-indented, relative=True)
+
+        # Write stop code
         indented = self.writeStopTestCode(buff)
         if indented:
             code = ("%(name)s.stop()\n")
@@ -158,13 +164,23 @@ class SoundComponent(BaseComponent):
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-indented, relative=True)
 
+        # Update status
+        code = (
+            "# update %(name)s status according to whether it's playing\n"
+            "if %(name)s.isPlaying:\n"
+            "    %(name)s.status = STARTED\n"
+            "elif %(name)s.isFinished:\n"
+            "    %(name)s.status = FINISHED\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
     def writeFrameCodeJS(self, buff):
         """Write the code that will be called every frame
         """
         # the sound object is unusual, because it is
         buff.writeIndented("// start/stop %(name)s\n" % (self.params))
         # do this EVERY frame, even before/after playing?
-        self.writeParamUpdates(buff, 'set every frame')
+        self.writeParamUpdates(buff, 'set every frame', target="PsychoJS")
         self.writeStartTestCodeJS(buff)
         if self.params['syncScreenRefresh'].val:
             code = ("psychoJS.window.callOnFlip(function(){ %(name)s.play(); });  // screen flip\n")
@@ -188,21 +204,40 @@ class SoundComponent(BaseComponent):
         else:
             # sounds with stop values
             self.writeStopTestCodeJS(buff)
-            code = ("if (%(stopVal)s > 0.5) {\n"
+            code = ("if (t >= %(name)s.tStart + 0.5) {\n"
                     "  %(name)s.stop();  // stop the sound (if longer than duration)\n"
-                    "}\n"
-                    "%(name)s.status = PsychoJS.Status.FINISHED;\n")
+                    "  %(name)s.status = PsychoJS.Status.FINISHED;\n"
+                    "}\n")
             buff.writeIndentedLines(code % self.params)
             # because of the 'if' statement of the time test
             buff.setIndentLevel(-1, relative=True)
             buff.writeIndented('}\n')
 
+            # # Update status
+            # code = (
+            #     "// update %(name)s status according to whether it's playing\n"
+            #     "if (%(name)s.isPlaying) {\n"
+            #     "  %(name)s.status = PsychoJS.Status.STARTED;\n"
+            #     "} else if (%(name)s.isFinished) {\n"
+            #     "  %(name)s.status = PsychoJS.Status.FINISHED;\n"
+            #     "}\n"
+            # )
+            # buff.writeIndentedLines(code % self.params)
+
     def writeRoutineEndCode(self, buff):
-        code = "%s.stop()  # ensure sound has stopped at end of routine\n"
-        buff.writeIndented(code % self.params['name'])
+        if self.params['stopWithRoutine']:
+            # stop at the end of the Routine, if requested
+            code = (
+                "%(name)s.stop()  # ensure sound has stopped at end of Routine\n"
+            )
+            buff.writeIndentedLines(code % self.params)
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCode(buff)  # noinspection
 
     def writeRoutineEndCodeJS(self, buff):
-        code = "%s.stop();  // ensure sound has stopped at end of routine\n"
-        buff.writeIndented(code % self.params['name'])
+        if self.params['stopWithRoutine']:
+            # stop at the end of the Routine, if requested
+            code = (
+                "%(name)s.stop();  // ensure sound has stopped at end of Routine\n"
+            )
+            buff.writeIndentedLines(code % self.params)

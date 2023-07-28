@@ -3,13 +3,12 @@ from wx.lib import scrolledpanel
 import webbrowser
 from PIL import Image as pil
 
-from .packages import InstallErrorDlg
+from psychopy.tools import pkgtools
 from psychopy.app.themes import theme, handlers, colors, icons
+from psychopy.tools.versionchooser import VersionRange
 from psychopy.app import utils
 from psychopy.localization import _translate
-from psychopy import plugins
-import subprocess as sp
-import sys
+from psychopy import plugins, __version__
 import requests
 
 
@@ -32,7 +31,8 @@ class AuthorInfo:
                  name="",
                  email="",
                  github="",
-                 avatar=None):
+                 avatar=None,
+                 **kwargs):
         self.name = name
         self.email = email
         self.github = github
@@ -85,8 +85,8 @@ class PluginInfo:
     def __init__(self,
                  pipname, name="",
                  author=None, homepage="", docs="", repo="",
-                 keywords=None,
-                 icon=None, description=""):
+                 keywords=None, version=(None, None),
+                 icon=None, description="", **kwargs):
         self.pipname = pipname
         self.name = name
         self.author = author
@@ -96,6 +96,12 @@ class PluginInfo:
         self.icon = icon
         self.description = description
         self.keywords = keywords or []
+        self.version = VersionRange(*version)
+
+        self.parent = None   # set after
+
+        # icon graphic
+        self._icon = None
 
     def __repr__(self):
         return (f"<psychopy.plugins.PluginInfo: {self.name} "
@@ -107,15 +113,32 @@ class PluginInfo:
         else:
             return self.pipname == str(other)
 
+    def setParent(self, parent):
+        """Set the parent window or panel.
+
+        Need a parent to invoke methods on the top-level window. Might not
+        be set.
+
+        Parameters
+        ----------
+        parent : wx.Window or wx.Panel
+            Parent window or panel.
+
+        """
+        self.parent = parent
+
     @property
     def icon(self):
+        # memoize on first access
+        if self._requestedIcon is not None:
+            self._icon = utils.ImageData(self._requestedIcon)
+
         if hasattr(self, "_icon"):
             return self._icon
 
     @icon.setter
     def icon(self, value):
         self._requestedIcon = value
-        self._icon = utils.ImageData(value)
 
     @property
     def active(self):
@@ -125,74 +148,34 @@ class PluginInfo:
         """
         return plugins.isStartUpPlugin(self.pipname)
 
-    @active.setter
-    def active(self, value):
-        if value is None:
-            # Setting active as None skips the whole process - useful for
-            # avoiding recursion
-            return
-
-        if value:
-            # If active, add to list of startup plugins
-            plugins.startUpPlugins(self.pipname, add=True)
-        else:
-            # If active and changed to inactive, remove from list of startup
-            # plugins.
-            current = plugins.listPlugins(which='startup')
-            if self.pipname in current:
-                current.remove(self.pipname)
-            plugins.startUpPlugins(current, add=False)
-
     def activate(self, evt=None):
-        self.active = True
+        # If active, add to list of startup plugins
+        plugins.startUpPlugins(self.pipname, add=True, verify=False)
 
     def deactivate(self, evt=None):
-        self.active = False
+        # Remove from list of startup plugins
+        current = plugins.listPlugins(which='startup')
+        if self.pipname in current:
+            current.remove(self.pipname)
+        plugins.startUpPlugins(current, add=False, verify=False)
 
     def install(self):
-        self._execute("install")
+        if self.parent is None:
+            return
+
+        wx.CallAfter(
+            self.parent.GetTopLevelParent().installPlugin, self)
 
     def uninstall(self):
-        self._execute("uninstall")
+        if self.parent is None:
+            return
+
+        wx.CallAfter(
+            self.parent.GetTopLevelParent().uninstallPackage, self.pipname)
 
     @property
     def installed(self):
-        current = plugins.listPlugins(which='all')
-        return self.pipname in current
-
-    @installed.setter
-    def installed(self, value):
-        if value is None:
-            # Setting installed as None skips the whole process - useful for
-            # avoiding recursion
-            return
-        # Get action string from value
-        if value and not self.installed:
-            self.install()
-        elif self.installed:
-            self.uninstall()
-
-    def _execute(self, action):
-        # Install/uninstall
-        emts = [sys.executable, "-m", "pip", action, self.pipname]
-        cmd = " ".join(emts)
-        output = sp.Popen(cmd,
-                          stdout=sp.PIPE,
-                          stderr=sp.PIPE,
-                          shell=True,
-                          universal_newlines=True)
-        stdout, stderr = output.communicate()
-        sys.stdout.write(stdout)
-        sys.stderr.write(stderr)
-        # Throw up error dlg if needed
-        if stderr:
-            dlg = InstallErrorDlg(
-                label=_translate("Could not install %s") % self.pipname,
-                cmd=" ".join(emts[2:]),
-                stdout=stdout,
-                stderr=stderr
-            )
-            dlg.ShowModal()
+        return pkgtools.isInstalled(self.pipname)
 
     @property
     def author(self):
@@ -213,20 +196,21 @@ class PluginInfo:
 
 
 class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent)
+    def __init__(self, parent, dlg):
+        wx.Panel.__init__(self, parent, style=wx.NO_BORDER)
+        self.dlg = dlg
         # Setup sizer
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         # Make splitter
-        self.splitter = wx.SplitterWindow(self)
+        self.splitter = wx.SplitterWindow(self, style=wx.NO_BORDER)
         self.sizer.Add(self.splitter, proportion=1, border=0, flag=wx.EXPAND | wx.ALL)
         # Make list
-        self.pluginList = PluginBrowserList(self.splitter)
+        self.pluginList = PluginBrowserList(self.splitter, stream=dlg.output)
         # Make viewer
-        self.pluginViewer = PluginDetailsPanel(self.splitter)
+        self.pluginViewer = PluginDetailsPanel(self.splitter, stream=self.dlg.output)
         # Cross-reference viewer & list
         self.pluginViewer.list = self.pluginList
         self.pluginList.viewer = self.pluginViewer
@@ -237,13 +221,12 @@ class PluginManagerPanel(wx.Panel, handlers.ThemeMixin):
             sashPosition=0
         )
         self.splitter.SetMinimumPaneSize(450)
-        # Mark installed on items now that we have necessary references
-        for item in self.pluginList.items:
-            item.markInstalled(item.info.installed)
+
         # Start of with nothing selected
-        self.pluginList.onClick()
+        self.pluginList.onDeselect()
 
         self.Layout()
+        self.splitter.SetSashPosition(1, True)
         self.theme = theme.app
 
     def _applyAppTheme(self):
@@ -270,10 +253,6 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.SetSizer(self.border)
             self.sizer = wx.BoxSizer(wx.HORIZONTAL)
             self.border.Add(self.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
-            # Add active checkbox
-            self.activeBtn = wx.CheckBox(self)
-            self.activeBtn.Bind(wx.EVT_CHECKBOX, self.onActive)
-            self.sizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.EXPAND)
             # Add label
             self.label = wx.BoxSizer(wx.VERTICAL)
             self.nameLbl = wx.StaticText(self, label=info.name)
@@ -282,72 +261,94 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.label.Add(self.pipNameLbl, flag=wx.ALIGN_LEFT)
             self.sizer.Add(self.label, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
             # Button sizer
-            self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
+            self.btnSizer = wx.BoxSizer(wx.VERTICAL)
             self.sizer.Add(self.btnSizer, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
+            self.btnSizer.AddStretchSpacer(1)
+            # # Add active button
+            # self.activeBtn = wx.Button(self)
+            # self.activeBtn.Bind(wx.EVT_BUTTON, self.onToggleActivate)
+            # self.btnSizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.ALIGN_RIGHT)
             # Add install button
-            self.installBtn = PluginInstallBtn(self)
+            self.installBtn = wx.Button(self)
             self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
-            self.btnSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_BOTTOM)
+            self.btnSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_RIGHT)
 
             # Map to onclick function
-            self.Bind(wx.EVT_LEFT_DOWN, self.onClick)
-            self.nameLbl.Bind(wx.EVT_LEFT_DOWN, self.onClick)
-            self.pipNameLbl.Bind(wx.EVT_LEFT_DOWN, self.onClick)
-            self.Bind(wx.EVT_SET_FOCUS, self.onFocus)
-            self.Bind(wx.EVT_KILL_FOCUS, self.onFocus)
-
-            # Set initial value
-            self.markInstalled(info.installed)
-            self.activeBtn.SetValue(info.active)
-
+            self.Bind(wx.EVT_LEFT_DOWN, self.onSelect)
+            self.nameLbl.Bind(wx.EVT_LEFT_DOWN, self.onSelect)
+            self.pipNameLbl.Bind(wx.EVT_LEFT_DOWN, self.onSelect)
             # Bind navigation
             self.Bind(wx.EVT_NAVIGATION_KEY, self.onNavigation)
 
+            # Handle version mismatch
+            self.installBtn.Enable(__version__ in self.info.version)
+
+            self._applyAppTheme()
+
+        @property
+        def viewer(self):
+            """
+            Return parent's linked viewer when asked for viewer
+            """
+            return self.parent.viewer
+
         def _applyAppTheme(self):
-            # Set colors
-            if self.HasFocus():
-                bg = colors.app['panel_bg']
-                fg = colors.app['text']
-            else:
-                bg = colors.app['tab_bg']
-                fg = colors.app['text']
-            self.SetBackgroundColour(bg)
-            self.SetForegroundColour(fg)
             # Set label fonts
             from psychopy.app.themes import fonts
             self.nameLbl.SetFont(fonts.appTheme['h6'].obj)
             self.pipNameLbl.SetFont(fonts.coderTheme.base.obj)
-            # Set text colors
-            self.nameLbl.SetForegroundColour(fg)
-            self.pipNameLbl.SetForegroundColour(fg)
-
-            self.Update()
-            self.Refresh()
-
-        def onClick(self, evt=None):
-            self.SetFocus()
-
-        def onFocus(self, evt=None):
-            if evt.GetEventType() == wx.EVT_SET_FOCUS.typeId:
-                # Display info in viewer
-                self.parent.viewer.info = self.info
-            # Update appearance
-            self._applyAppTheme()
-
-        def onInstall(self, evt=None):
-            # Mark pending
-            self.markInstalled(None)
-            # Install
-            self.info.install()
-            # Mark installed
+            # Mark installed/active
             self.markInstalled(self.info.installed)
+            #self.markActive(self.info.active)
 
-        def onActive(self, evt=None):
-            # Activate/deactivate
-            self.info.active = evt.IsChecked()
+        def onNavigation(self, evt=None):
+            """
+            Use the tab key to progress to the next panel, or the arrow keys to
+            change selection in this panel.
 
-            # Continue with normal checkbox behaviour
+            This is the same functionality as in a wx.ListCtrl
+            """
+            # Some shorthands for prev, next and whether each have focus
+            prev = self.GetPrevSibling()
+            prevFocus = False
+            if hasattr(prev, "HasFocus"):
+                prevFocus = prev.HasFocus()
+            next = self.GetNextSibling()
+            nextFocus = False
+            if hasattr(next, "HasFocus"):
+                nextFocus = next.HasFocus()
+
+            if evt.GetDirection() and prevFocus:
+                # If moving forwards from previous sibling, target is self
+                target = self
+            elif evt.GetDirection() and self.HasFocus():
+                # If moving forwards from self, target is next sibling
+                target = next
+            elif evt.GetDirection():
+                # If we're moving forwards from anything else, this event shouldn't have happened. Just deselect.
+                target = None
+            elif not evt.GetDirection() and nextFocus:
+                # If moving backwards from next sibling, target is self
+                target = self
+            elif not evt.GetDirection() and self.HasFocus():
+                # If moving backwards from self, target is prev sibling
+                target = prev
+            else:
+                # If we're moving backwards from anything else, this event shouldn't have happened. Just deselect.
+                target = None
+
+            # If target is self or another PluginListItem, select it
+            if target in self.parent.items:
+                self.parent.setSelection(target)
+                target.SetFocus()
+            else:
+                self.parent.setSelection(None)
+
+            # Do usual behaviour
             evt.Skip()
+
+        def onSelect(self, evt=None):
+            self.parent.setSelection(self)
 
         def markInstalled(self, installed=True):
             """
@@ -364,29 +365,57 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
                 installed=installed
             )
 
-        def onNavigation(self, evt=None):
+        def markActive(self, active=True):
             """
-            Use the tab key to progress to the next panel, or the arrow keys to
-            change selection in this panel.
+            Shorthand to call markActive with self and corresponding item
 
-            This is the same functionality as in a wx.ListCtrl
+            Parameters
+            ----------
+            active : bool or None
+                True if active, False if not active, None if pending/unclear
             """
-            if evt.IsFromTab() and self.GetPrevSibling().HasFocus():
-                # If navigating via tab, move on to next object
-                if evt.GetDirection():
-                    next = self.parent.GetNextSibling()
-                else:
-                    next = self.parent.GetPrevSibling()
-                if hasattr(next, "SetFocus"):
-                    next.SetFocus()
+            markActive(
+                pluginItem=self,
+                pluginPanel=self.parent.viewer,
+                active=active
+            )
+
+        def onInstall(self, evt=None):
+            # Mark as pending
+            self.markInstalled(None)
+            # Do install
+            self.info.install()
+            # Mark according to install success
+            self.markInstalled(self.info.installed)
+
+        def onToggleActivate(self, evt=None):
+            if self.info.active:
+                self.onDeactivate(evt=evt)
             else:
-                # Do usual behaviour
-                evt.Skip()
+                self.onActivate(evt=evt)
 
-    def __init__(self, parent, viewer=None):
+        def onActivate(self, evt=None):
+            # Mark as pending
+            self.markActive(None)
+            # Do activation
+            self.info.activate()
+            # Mark according to success
+            self.markActive(self.info.active)
+
+        def onDeactivate(self, evt=None):
+            # Mark as pending
+            self.markActive(None)
+            # Do deactivation
+            self.info.deactivate()
+            # Mark according to success
+            self.markActive(self.info.active)
+
+
+    def __init__(self, parent, stream, viewer=None):
         scrolledpanel.ScrolledPanel.__init__(self, parent=parent, style=wx.VSCROLL)
         self.parent = parent
         self.viewer = viewer
+        self.stream = stream
         # Setup sizer
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -399,23 +428,33 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
         # Setup items sizers & labels
         self.itemSizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.itemSizer, proportion=1, border=3, flag=wx.ALL | wx.EXPAND)
+        self.badItemLbl = wx.StaticText(self, label=_translate("Not for PsychoPy {}:").format(__version__))
+        self.sizer.Add(self.badItemLbl, border=9, flag=wx.ALL | wx.EXPAND)
+        self.badItemSizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.badItemSizer, border=3, flag=wx.ALL | wx.EXPAND)
 
         # Bind deselect
-        self.Bind(wx.EVT_LEFT_DOWN, self.onClick)
+        self.Bind(wx.EVT_LEFT_DOWN, self.onDeselect)
 
         # Setup items
         self.items = []
         self.populate()
+        # Store state of plugins on init so we can detect changes later
+        self.initState = {}
+        for item in self.items:
+            self.initState[item.info.pipname] = {"installed": item.info.installed, "active": item.info.active}
 
     def populate(self):
-        for item in self.items:
-            self.removeItem(item)
         # Get all plugin details
         items = getAllPluginDetails()
+        # Start off assuming no headings
+        self.badItemLbl.Hide()
         # Put installed packages at top of list
         items.sort(key=lambda obj: obj.installed, reverse=True)
         for item in items:
+            item.setParent(self)
             self.appendItem(item)
+
         # Layout
         self.Layout()
         self.SetupScrolling()
@@ -435,18 +474,98 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
 
         self.Layout()
 
+    def getChanges(self):
+        """
+        Check what plugins have changed state (installed, active) since this dialog was opened
+        """
+        changes = {}
+        for item in self.items:
+            info = item.info
+            # Skip if its init state wasn't stored
+            if info.pipname not in self.initState:
+                continue
+            # Get inits
+            inits = self.initState[info.pipname]
+
+            itemChanges = []
+            # Has it been activated?
+            if info.active and not inits['active']:
+                itemChanges.append("activated")
+            # Has it been deactivated?
+            if inits['active'] and not info.active:
+                itemChanges.append("deactivated")
+            # Has it been installed?
+            if info.installed and not inits['installed']:
+                itemChanges.append("installed")
+            # Has it been uninstalled?
+            if inits['installed'] and not info.installed:
+                itemChanges.append("uninstalled")
+
+            # Add changes if there are any
+            if itemChanges:
+                changes[info.pipname] = itemChanges
+
+        return changes
+
     def onClick(self, evt=None):
         self.SetFocusIgnoringChildren()
         self.viewer.info = None
 
+    def setSelection(self, item):
+        """
+        Set the current selection as either None or the handle of a PluginListItem
+        """
+        if item is None:
+            # If None, set to no selection
+            self.selected = None
+            self.viewer.info = None
+        elif isinstance(item, self.PluginListItem):
+            # If given a valid item, select it
+            self.selected = item
+            self.viewer.info = item.info
+        # Style all items
+        for obj in self.items:
+            if obj == self.selected:
+                # Selected colors
+                bg = colors.app.light['panel_bg']
+            else:
+                # Deselected colors
+                bg = colors.app.light['tab_bg']
+            # Set color
+            obj.SetBackgroundColour(bg)
+            # Restyle item
+            obj._applyAppTheme()
+            # Refresh
+            obj.Update()
+            obj.Refresh()
+
+        # Post CHOICE event
+        evt = wx.CommandEvent(wx.EVT_CHOICE.typeId)
+        evt.SetEventObject(self)
+        evt.SetClientData(item)
+        wx.PostEvent(self, evt)
+
+    def onDeselect(self, evt=None):
+        """
+        If panel itself (not any children) are clicked on, set selection to None
+        """
+        self.setSelection(None)
+
     def _applyAppTheme(self):
         # Set colors
         self.SetBackgroundColour("white")
+        # Style heading(s)
+        from psychopy.app.themes import fonts
+        self.badItemLbl.SetFont(fonts.appTheme['h6'].obj)
 
     def appendItem(self, info):
         item = self.PluginListItem(self, info)
         self.items.append(item)
-        self.itemSizer.Add(item, border=6, flag=wx.ALL | wx.EXPAND)
+        if __version__ in item.info.version:
+            self.itemSizer.Add(item, border=6, flag=wx.ALL | wx.EXPAND)
+        else:
+            self.badItemSizer.Add(item, border=6, flag=wx.ALL | wx.EXPAND)
+            self.badItemLbl.Show()
 
     def getItem(self, info):
         """
@@ -460,10 +579,12 @@ class PluginBrowserList(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
 class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
     iconSize = (128, 128)
 
-    def __init__(self, parent, info=None, list=None):
+    def __init__(self, parent, stream, info=None, list=None):
         wx.Panel.__init__(self, parent)
+        self.SetMinSize((480, 620))
         self.parent = parent
         self.list = list
+        self.stream = stream
         # Setup sizers
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -482,30 +603,43 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Pip name
         self.pipName = wx.StaticText(self, label="psychopy-...")
         self.titleSizer.Add(self.pipName, flag=wx.EXPAND)
+        # Space
+        self.titleSizer.AddStretchSpacer()
+        # Versions
+        self.versionCtrl = wx.StaticText(self, label=_translate("Version:"))
+        self.titleSizer.Add(self.versionCtrl, border=6, flag=wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND)
         # Buttons
         self.buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.titleSizer.AddStretchSpacer()
         self.titleSizer.Add(self.buttonSizer, flag=wx.EXPAND)
-        self.installBtn = PluginInstallBtn(self)
+        # Install btn
+        self.installBtn = wx.Button(self)
         self.installBtn.Bind(wx.EVT_BUTTON, self.onInstall)
-        self.buttonSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        self.activeBtn = wx.CheckBox(self, label=_translate("Activated"))
-        self.activeBtn.Bind(wx.EVT_CHECKBOX, self.onActivate)
-        self.buttonSizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.buttonSizer.Add(self.installBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        # Active btn
+        # self.activeBtn = wx.Button(self)
+        # self.activeBtn.Bind(wx.EVT_BUTTON, self.onToggleActivate)
+        # self.buttonSizer.Add(self.activeBtn, border=3, flag=wx.ALL | wx.EXPAND)
+        # Homepage btn
+        self.homepageBtn = wx.Button(self, label=_translate("Homepage"))
+        self.homepageBtn.Bind(wx.EVT_BUTTON, self.onHomepage)
+        self.buttonSizer.Add(self.homepageBtn, border=3, flag=wx.ALL | wx.EXPAND)
         # Description
         self.description = utils.MarkdownCtrl(
             self, value="",
             style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL
         )
-        self.sizer.Add(self.description, border=12, proportion=1, flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(self.description, border=0, proportion=1, flag=wx.ALL | wx.EXPAND)
         # Keywords
+        self.keywordsLbl = wx.StaticText(self, label=_translate("Keywords:"))
+        self.sizer.Add(self.keywordsLbl, border=12, flag=wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND)
         self.keywordsCtrl = utils.ButtonArray(
             self,
             orient=wx.HORIZONTAL,
             itemAlias=_translate("keyword"),
             readonly=True
         )
-        self.sizer.Add(self.keywordsCtrl, border=6, flag=wx.ALL | wx.EXPAND)
+        self.keywordsCtrl.Bind(wx.EVT_BUTTON, self.onKeyword)
+        self.sizer.Add(self.keywordsCtrl, border=6, flag=wx.BOTTOM | wx.LEFT | wx.RIGHT | wx.EXPAND)
 
         self.sizer.Add(wx.StaticLine(self), border=6, flag=wx.EXPAND | wx.ALL)
 
@@ -513,7 +647,22 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.author = AuthorDetailsPanel(self, info=None)
         self.sizer.Add(self.author, border=6, flag=wx.EXPAND | wx.ALL)
 
+        # Add placeholder for when there's no plugin selected
+        self.placeholder = utils.MarkdownCtrl(
+            self, value=_translate("Select a plugin to view details."),
+            style=wx.TE_MULTILINE | wx.BORDER_NONE | wx.TE_NO_VSCROLL
+        )
+        self.border.Add(
+            self.placeholder,
+            proportion=1,
+            border=12,
+            flag=wx.ALL | wx.EXPAND)
+
+        # Set info and installed status
         self.info = info
+        self.markInstalled(self.info.installed)
+        #self.markActive(self.info.active)
+        # Style
         self.Layout()
         self._applyAppTheme()
 
@@ -521,6 +670,7 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         # Set background
         self.SetBackgroundColour("white")
         self.keywordsCtrl.SetBackgroundColour("white")
+        self.versionCtrl.SetForegroundColour("grey")
         # Set fonts
         from psychopy.app.themes import fonts
         self.title.SetFont(fonts.appTheme['h1'].obj)
@@ -545,29 +695,90 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
             installed=installed
         )
 
-    def onInstall(self, evt=None):
+    def markActive(self, active=True):
+        """
+        Shorthand to call markActive with self and corresponding item
+
+        Parameters
+        ----------
+        active : bool or None
+            True if active, False if not active, None if pending/unclear
+        """
+        if self.list:
+            item = self.list.getItem(self.info)
+        else:
+            item = None
+        markActive(
+            pluginItem=item,
+            pluginPanel=self,
+            active=active
+        )
+
+    def _doInstall(self):
+        """Routine to run the installation of a package after the `onInstall`
+        event is processed.
+        """
         # Mark as pending
-        self.markInstalled(installed=None)
+        self.markInstalled(None)
         # Do install
         self.info.install()
         # Mark according to install success
-        if self.info.installed:
-            self.markInstalled(True)
-        else:
-            dlg = wx.MessageDialog(
-                self,
-                message=_translate(
-                    "Plugin %s failed to install, no error given."
-                ) % self.info.pipname,
-                style=wx.ICON_ERROR
-            )
-            dlg.ShowModal()
+        self.markInstalled(self.info.installed)
 
-    def onActivate(self, evt=None):
-        if self.activeBtn.GetValue():
+    def onInstall(self, evt=None):
+        """Event called when the install button is clicked.
+        """
+        wx.CallAfter(self._doInstall)  # call after processing button events
+        if evt is not None and hasattr(evt, 'Skip'):
+            evt.Skip()
+
+    def _doActivate(self, state=True):
+        """Activate a plugin or package after the `onActivate` event.
+
+        Parameters
+        ----------
+        state : bool
+            Active state to set, True for active or False for inactive. Default
+            is `True`.
+
+        """
+        # Mark as pending
+        self.markActive(None)
+
+        if state:  # handle activation
             self.info.activate()
         else:
             self.info.deactivate()
+
+        # Mark according to success
+        self.markActive(self.info.active)
+
+    def onToggleActivate(self, evt=None):
+        if self.info.active:
+            self.onDeactivate(evt=evt)
+        else:
+            self.onActivate(evt=evt)
+
+    def onActivate(self, evt=None):
+        wx.CallAfter(self._doActivate, True)  # call after processing button events
+        if evt is not None and hasattr(evt, 'Skip'):
+            evt.Skip()
+
+    def onDeactivate(self, evt=None):
+        wx.CallAfter(self._doActivate, False)
+        if evt is not None and hasattr(evt, 'Skip'):
+            evt.Skip()
+
+    def onKeyword(self, evt=None):
+        kw = evt.GetString()
+        if kw:
+            # If we have a keyword, use it in a search
+            self.list.searchCtrl.SetValue(kw)
+            self.list.search()
+
+    def onHomepage(self, evt=None):
+        if self.info.homepage:
+            webbrowser.open(self.info.homepage)
 
     @property
     def info(self):
@@ -578,13 +789,18 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
 
     @info.setter
     def info(self, value):
-        self.Enable(value is not None)
+        # Hide/show everything according to None
+        self.sizer.ShowItems(value is not None)
+        # Show/hide placeholder according to None
+        self.placeholder.Show(value is None)
+        self.placeholder.editBtn.Hide()
         # Handle None
         if value is None:
             value = PluginInfo(
                 "psychopy-...",
                 name="..."
             )
+
         self._info = value
         # Set icon
         icon = value.icon
@@ -593,16 +809,13 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         if isinstance(icon, pil.Image):
             # Resize to fit ctrl
             icon = icon.resize(size=self.iconSize)
-            # Supply an alpha channel if there is one
-            if "A" in icon.getbands():
-                alpha = icon.tobytes("raw", "A")
-            else:
-                alpha = None
-            icon = wx.BitmapFromBuffer(
+            # Supply an alpha channel
+            alpha = icon.tobytes("raw", "A")
+            icon = wx.Bitmap.FromBufferAndAlpha(
                 width=icon.size[0],
                 height=icon.size[1],
-                dataBuffer=icon.tobytes("raw", "RGB"),
-                alphaBuffer=alpha
+                data=icon.tobytes("raw", "RGB"),
+                alpha=alpha
             )
         if not isinstance(icon, wx.Bitmap):
             icon = wx.Bitmap(icon)
@@ -612,15 +825,27 @@ class PluginDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.pipName.SetLabelText(value.pipname)
         # Set installed
         self.markInstalled(value.installed)
+        # Enable/disable homepage
+        self.homepageBtn.Enable(bool(self.info.homepage))
         # Set activated
-        self.activeBtn.SetValue(value.active)
+        # self.markActive(value.active)
         # Set description
         self.description.setValue(value.description)
+        # Set version text
+        self.versionCtrl.SetLabelText(_translate(
+            "Works with versions {}."
+        ).format(value.version))
+        self.versionCtrl.Show(
+            value.version.first is not None or value.version.last is not None
+        )
         # Set keywords
         self.keywordsCtrl.items = value.keywords
 
         # Set author info
         self.author.info = value.author
+
+        # Handle version mismatch
+        self.installBtn.Enable(__version__ in self.info.version)
 
         self.Layout()
 
@@ -649,12 +874,12 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.detailsSizer.Add(self.buttonSizer, border=3, flag=wx.ALIGN_RIGHT | wx.ALL)
         # Email button
         self.emailBtn = wx.Button(self, style=wx.BU_EXACTFIT)
-        self.emailBtn.SetToolTipString(_translate("Email author"))
+        self.emailBtn.SetToolTip(_translate("Email author"))
         self.emailBtn.Bind(wx.EVT_BUTTON, self.onEmailBtn)
         self.buttonSizer.Add(self.emailBtn, border=3, flag=wx.EXPAND | wx.ALL)
         # GitHub button
         self.githubBtn = wx.Button(self, style=wx.BU_EXACTFIT)
-        self.githubBtn.SetToolTipString(_translate("Author's GitHub"))
+        self.githubBtn.SetToolTip(_translate("Author's GitHub"))
         self.githubBtn.Bind(wx.EVT_BUTTON, self.onGithubBtn)
         self.buttonSizer.Add(self.githubBtn, border=3, flag=wx.EXPAND | wx.ALL)
 
@@ -701,16 +926,14 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
         if isinstance(icon, pil.Image):
             # Resize to fit ctrl
             icon = icon.resize(size=self.avatarSize)
-            # Supply an alpha channel if there is one
-            if "A" in icon.getbands():
-                alpha = icon.tobytes("raw", "A")
-            else:
-                alpha = None
-            icon = wx.BitmapFromBuffer(
+            # Supply an alpha channel
+            alpha = icon.tobytes("raw", "A")
+
+            icon = wx.Bitmap.FromBufferAndAlpha(
                 width=icon.size[0],
                 height=icon.size[1],
-                dataBuffer=icon.tobytes("raw", "RGB"),
-                alphaBuffer=alpha
+                data=icon.tobytes("raw", "RGB"),
+                alpha=alpha
             )
         if not isinstance(icon, wx.Bitmap):
             icon = wx.Bitmap(icon)
@@ -719,11 +942,11 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
         self.name.SetLabelText(value.name)
         # Add tooltip for OST
         if value == "ost":
-            self.name.SetToolTipString(_translate(
+            self.name.SetToolTip(_translate(
                 "That's us! We make PsychoPy and Pavlovia!"
             ))
         else:
-            self.name.SetToolTipString("")
+            self.name.SetToolTip("")
         # Show/hide buttons
         self.emailBtn.Show(bool(value.email))
         self.githubBtn.Show(bool(value.github))
@@ -733,57 +956,6 @@ class AuthorDetailsPanel(wx.Panel, handlers.ThemeMixin):
 
     def onGithubBtn(self, evt=None):
         webbrowser.open(f"github.com/{self.info.github}")
-
-
-class PluginInstallBtn(wx.Button, handlers.ThemeMixin):
-    """
-    Install button for a plugin, comes with a method to update its appearance according to installation
-    status & availability
-    """
-    def __init__(self, parent):
-        # Initialise
-        wx.Button.__init__(
-            self, parent,
-            label="..."
-        )
-        self.SetBitmap(icons.ButtonIcon("download", 16).bitmap)
-
-    def markInstalled(self, installed=True):
-        """
-        Mark on this button whether install has completed / is in progress / is available
-
-        Parameters
-        ----------
-        installed : bool or None
-            True if installed, False if not installed, None if pending/unclear
-        """
-        if installed is None:
-            # If pending, disable and set label as ellipsis
-            self.Disable()
-            self.SetLabelText("...")
-            self.setAllBitmaps(icons.ButtonIcon("view-refresh", 16).bitmap)
-        elif installed:
-            # If installed, disable and set label as installed
-            self.Disable()
-            self.SetLabelText(_translate("Installed"))
-            self.setAllBitmaps(icons.ButtonIcon("greytick", 16).bitmap)
-        else:
-            # If not installed, enable and set label as not installed
-            self.Enable()
-            self.SetLabelText(_translate("Install"))
-            self.setAllBitmaps(icons.ButtonIcon("download", 16).bitmap)
-
-        self.Refresh()
-
-    def setAllBitmaps(self, bmp):
-        self.SetBitmap(bmp)
-        self.SetBitmapDisabled(bmp)
-        self.SetBitmapPressed(bmp)
-        self.SetBitmapCurrent(bmp)
-
-    def _applyAppTheme(self):
-        # Setup icon
-        self.SetBitmapMargins(6, 3)
 
 
 def markInstalled(pluginItem, pluginPanel, installed=True):
@@ -799,14 +971,129 @@ def markInstalled(pluginItem, pluginPanel, installed=True):
     installed : bool or None
         True if installed, False if not installed, None if pending/unclear
     """
+    def _setAllBitmaps(btn, bmp):
+        """
+        Set all bitmaps (enabled, disabled, focus, unfocus, etc.) for a button
+        """
+        btn.SetBitmap(bmp)
+        btn.SetBitmapDisabled(bmp)
+        btn.SetBitmapPressed(bmp)
+        btn.SetBitmapCurrent(bmp)
+        btn.SetBitmapMargins(6, 3)
+
     # Update plugin item
     if pluginItem:
-        pluginItem.installBtn.markInstalled(installed)
-        pluginItem.activeBtn.Enable(bool(installed))
+        if installed is None:
+            # If pending, show elipsis and refresh icon
+            pluginItem.installBtn.Show()
+            pluginItem.installBtn.SetLabel("...")
+            _setAllBitmaps(pluginItem.installBtn, icons.ButtonIcon("view-refresh", 16).bitmap)
+            # Hide active button while pending
+            # pluginItem.activeBtn.Hide()
+        elif installed:
+            # If installed, hide install button
+            pluginItem.installBtn.Hide()
+            # Show active button when installed
+            # pluginItem.activeBtn.Show()
+        else:
+            # If not installed, show "Install" and download icon
+            pluginItem.installBtn.Show()
+            pluginItem.installBtn.SetLabel(_translate("Install"))
+            _setAllBitmaps(pluginItem.installBtn, icons.ButtonIcon("download", 16).bitmap)
+            # Hide active button when not installed
+            # pluginItem.activeBtn.Hide()
+        # Refresh buttons
+        pluginItem.Update()
+        pluginItem.Layout()
+
     # Update panel (if applicable)
     if pluginPanel and pluginItem and pluginPanel.info == pluginItem.info:
-        pluginPanel.installBtn.markInstalled(installed)
-        pluginPanel.activeBtn.Enable(bool(installed))
+        if installed is None:
+            # If pending, show elipsis and refresh icon
+            pluginPanel.installBtn.Show()
+            pluginPanel.installBtn.Enable(__version__ in pluginItem.info.version)
+            pluginPanel.installBtn.SetLabel("...")
+            _setAllBitmaps(pluginPanel.installBtn, icons.ButtonIcon("view-refresh", 16).bitmap)
+            # Hide active button while pending
+            # pluginPanel.activeBtn.Hide()
+        elif installed:
+            # If installed, show as installed with tick
+            pluginPanel.installBtn.Show()
+            pluginPanel.installBtn.Disable()
+            pluginPanel.installBtn.SetLabelText(_translate("Installed"))
+            _setAllBitmaps(pluginPanel.installBtn, icons.ButtonIcon("greytick", 16).bitmap)
+            # Show active button when installed
+            # pluginPanel.activeBtn.Show()
+        else:
+            # If not installed, show "Install" and download icon
+            pluginPanel.installBtn.Show()
+            pluginPanel.installBtn.Enable(__version__ in pluginItem.info.version)
+            pluginPanel.installBtn.SetLabel(_translate("Install"))
+            _setAllBitmaps(pluginPanel.installBtn, icons.ButtonIcon("download", 16).bitmap)
+            # Hide active button when not installed
+            # pluginPanel.activeBtn.Hide()
+        # Refresh buttons
+        pluginPanel.Update()
+
+
+def markActive(pluginItem, pluginPanel, active=True):
+    """
+    Setup installed button according to install state
+
+    Parameters
+    ----------
+    pluginItem : PluginBrowserList.PluginListItem
+        Plugin list item associated with this plugin
+    pluginPanel : PluginDetailsPanel
+        Plugin viewer panel to update
+    active : bool or None
+        True if active, False if not active, None if pending/unclear
+    """
+    def _setAllBitmaps(btn, bmp):
+        """
+        Set all bitmaps (enabled, disabled, focus, unfocus, etc.) for a button
+        """
+        btn.SetBitmap(bmp)
+        btn.SetBitmapDisabled(bmp)
+        btn.SetBitmapPressed(bmp)
+        btn.SetBitmapCurrent(bmp)
+        btn.SetBitmapFocus(bmp)
+        btn.SetBitmapMargins(6, 3)
+
+    # Update plugin item
+    if pluginItem:
+        if active is None:
+            # If pending, show elipsis and refresh icon
+            pluginItem.activeBtn.SetLabel("...")
+            _setAllBitmaps(pluginItem.activeBtn, icons.ButtonIcon("orangedot", 16).bitmap)
+        elif active:
+            # If active, show Enabled and green dot
+            pluginItem.activeBtn.SetLabel(_translate("Enabled"))
+            _setAllBitmaps(pluginItem.activeBtn, icons.ButtonIcon("greendot", 16).bitmap)
+        else:
+            # If not active, show Disabled and grey dot
+            pluginItem.activeBtn.SetLabel(_translate("Disabled"))
+            _setAllBitmaps(pluginItem.activeBtn, icons.ButtonIcon("greydot", 16).bitmap)
+        # Refresh
+        pluginItem.Update()
+        pluginItem.Layout()
+
+    # Update panel (if applicable)
+    if pluginPanel and pluginItem and pluginPanel.info == pluginItem.info:
+        if active is None:
+            # If pending, show elipsis and refresh icon
+            pluginPanel.activeBtn.SetLabel("...")
+            _setAllBitmaps(pluginPanel.activeBtn, icons.ButtonIcon("orangedot", 16).bitmap)
+        elif active:
+            # If active, show Enabled and green dot
+            pluginPanel.activeBtn.SetLabel(_translate("Enabled"))
+            _setAllBitmaps(pluginPanel.activeBtn, icons.ButtonIcon("greendot", 16).bitmap)
+        else:
+            # If not active, show Disabled and grey dot
+            pluginPanel.activeBtn.SetLabel(_translate("Disabled"))
+            _setAllBitmaps(pluginPanel.activeBtn, icons.ButtonIcon("greydot", 16).bitmap)
+        # Refresh
+        pluginPanel.Update()
 
 
 def getAllPluginDetails():

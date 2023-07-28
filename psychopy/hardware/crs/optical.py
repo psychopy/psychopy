@@ -30,6 +30,10 @@ except (ModuleNotFoundError, ImportError):
         "Support for Cambridge Research Systems OptiCAL is not available this "
         "session. Please install `psychopy-crs` and restart the session to "
         "enable support.")
+except Exception as e:
+    logging.error(
+        "Error encountered while loading `psychopy-crs`. Check logs for more "
+        "information.")
 else:
     # Monkey-patch our metadata into CRS class if missing required attributes
     if not hasattr(OptiCAL, "longName"):

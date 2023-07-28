@@ -7,7 +7,7 @@ from psychopy.experiment import getAllComponents, Experiment
 class TestAlertTools():
     """A class for testing the alerttools module"""
 
-    def setup(self):
+    def setup_method(self):
         # Set ErrorHandler
         self.error = _BaseErrorHandler()
 
@@ -127,5 +127,5 @@ def test_validDuration():
 
 if __name__ == "__main__":
     tester = TestAlertTools()
-    tester.setup()
+    tester.setup_method()
     tester.test_sizing_x_dimension()

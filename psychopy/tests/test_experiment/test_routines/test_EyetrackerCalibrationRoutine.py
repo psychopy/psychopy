@@ -4,6 +4,6 @@ from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrat
 
 
 class TestEyetrackerCalibrationRoutine(_TestBaseStandaloneRoutinesMixin, _TestDisabledMixin):
-    def setup(self):
+    def setup_method(self):
         self.exp = experiment.Experiment()
         self.rt = EyetrackerCalibrationRoutine(exp=self.exp, name="testEyetrackerCalibrationRoutine")

@@ -26,6 +26,8 @@ import math
 # try to find avbin (we'll overload pyglet's load_library tool and then
 # add some paths)
 from ..colors import Color, colorSpaces
+from .textbox2 import TextBox2
+
 
 haveAvbin = False
 
@@ -178,6 +180,7 @@ class Window():
                  numSamples=2,
                  stereo=False,
                  name='window1',
+                 title="PsychoPy",
                  checkTiming=True,
                  useFBO=False,
                  useRetina=True,
@@ -261,6 +264,9 @@ class Window():
             this will be enabled. You can switch between left and right-eye
             scenes for drawing operations using
             :py:attr:`~psychopy.visual.Window.setBuffer()`.
+        title : str
+            Name of the Window according to your Operating System. This is
+            the text which appears on the title sash.
         useRetina : bool
             In PsychoPy >1.85.3 this should always be `True` as pyglet
             (or Apple) no longer allows us to create a non-retina display.
@@ -369,8 +375,6 @@ class Window():
             fullscr = prefs.general['fullscr']
         self._isFullScr = fullscr
 
-        if units is None:
-            units = prefs.general['units']
         self.units = units
 
         if allowGUI is None:
@@ -430,7 +434,7 @@ class Window():
 
         # setup context and openGL()
         if winType is None:  # choose the default windowing
-            winType = prefs.general['winType']
+            winType = "pyglet"
         self.winType = winType
 
         # setup the context
@@ -476,6 +480,9 @@ class Window():
         self._setupGL()
 
         self.blendMode = self.blendMode
+
+        # now that we have a window handle, set title
+        self.title = title
 
         # parameters for transforming the overall view
         self.viewScale = val2array(viewScale)
@@ -577,6 +584,7 @@ class Window():
         self._frameTimes = deque(maxlen=1000)  # 1000 keeps overhead low
 
         self._toDraw = []
+        self._heldDraw = []
         self._toDrawDepths = []
         self._eventDispatchers = []
 
@@ -589,8 +597,16 @@ class Window():
 
         self.refreshThreshold = 1.0  # initial val needed by flip()
 
+        # store editable stimuli
         self._editableChildren = []
         self._currentEditableRef = None
+        # store draggable stimuli
+        self.currentDraggable = None
+
+        # splash screen
+        self._splashTextbox = None  # created on first use
+        self._showSplash = False
+        self.resetViewport()  # set viewport to full window size
 
         # over several frames with no drawing
         self._monitorFrameRate = None
@@ -598,6 +614,7 @@ class Window():
         self.monitorFramePeriod = 0.0
         if checkTiming:
             self._monitorFrameRate = self.getActualFrameRate()
+
         if self._monitorFrameRate is not None:
             self.monitorFramePeriod = 1.0 / self._monitorFrameRate
         else:
@@ -652,6 +669,19 @@ class Window():
         return s
 
     @attributeSetter
+    def title(self, value):
+        self.__dict__['title'] = value
+        if hasattr(self.winHandle, "set_caption"):
+            # Pyglet backend
+            self.winHandle.set_caption(value)
+        elif hasattr(self.winHandle, "SetWindowTitle"):
+            # GLFW backend
+            self.winHandle.SetWindowTitle(value)
+        else:
+            # Unknown backend
+            logging.warning(f"Cannot set Window title in backend {self.winType}")
+
+    @attributeSetter
     def units(self, value):
         """*None*, 'height' (of the window), 'norm', 'deg', 'cm', 'pix'
         Defines the default units of stimuli initialized in the window.
@@ -664,6 +694,8 @@ class Window():
         See :ref:`units` for explanation of options.
 
         """
+        if value is None:
+            value = prefs.general['units']
         self.__dict__['units'] = value
 
     def setUnits(self, value, log=True):
@@ -1051,6 +1083,37 @@ class Window():
         """
         Window.backend.dispatchEvents()
 
+    def clearAutoDraw(self):
+        """
+        Remove all autoDraw components, meaning they get autoDraw set to False and are not
+        added to any list (as in .stashAutoDraw)
+        """
+        for thisStim in self._toDraw.copy():
+            # set autoDraw to False
+            thisStim.autoDraw = False
+
+    def stashAutoDraw(self):
+        """
+        Put autoDraw components on 'hold', meaning they get autoDraw set to False but
+        are added to an internal list to be 'released' when .releaseAutoDraw is called.
+        """
+        for thisStim in self._toDraw.copy():
+            # set autoDraw to False
+            thisStim.autoDraw = False
+            # add stim to held list
+            self._heldDraw.append(thisStim)
+
+    def retrieveAutoDraw(self):
+        """
+        Add all stimuli which are on 'hold' back into the autoDraw list, and clear the
+        hold list.
+        """
+        for thisStim in self._heldDraw:
+            # set autoDraw to True
+            thisStim.autoDraw = True
+        # clear list
+        self._heldDraw = []
+
     def flip(self, clearBuffer=True):
         """Flip the front and back buffers after drawing everything for your
         frame. (This replaces the :py:attr:`~Window.update()` method, better
@@ -1086,9 +1149,17 @@ class Window():
             win.flip(clearBuffer=False)
 
         """
+        # draw message/splash if needed
+        if self._showSplash:
+            self._splashTextbox.draw()
+
         if self._toDraw:
             for thisStim in self._toDraw:
+                # Draw
                 thisStim.draw()
+                # Handle dragging
+                if getattr(thisStim, "draggable", False):
+                    thisStim.doDragging()
         else:
             self.backend.setCurrent()
 
@@ -2818,7 +2889,7 @@ class Window():
             self._backgroundImage.pos = (0, 0)
         if value in ("contain", "cover"):
             # If value is contain or cover, set one dimension to fill screen and the other to maintain ratio
-            ratios = numpy.asarray(self._backgroundImage.size) / numpy.asarray(self.size)
+            ratios = numpy.asarray(self._backgroundImage._origSize) / numpy.asarray(self.size)
             if value == "cover":
                 i = ratios.argmin()
             else:
@@ -3193,6 +3264,42 @@ class Window():
         if hasattr(self.backend, "setMouseType"):
             self.backend.setMouseType(name)
 
+    def showMessage(self, msg):
+        """Show a message in the window. This can be used to show information
+        to the participant.
+
+        This creates a TextBox2 object that is displayed in the window. The 
+        text can be updated by calling this method again with a new message. 
+        The updated text will appear the next time `draw()` is called.
+
+        Parameters
+        ----------
+        msg : str or None   
+            Message text to display. If None, then any existing message is 
+            removed.
+
+        """
+        if msg is None:
+            self.hideMessage()
+        else:
+            self._showSplash = True
+        
+        if self._splashTextbox is None:  # create the textbox
+            self._splashTextbox = TextBox2(
+                self, text=msg,
+                units="norm", size=(2, 2), alignment="center",  # full screen and centred
+                letterHeight=0.1,  # font size relative to window
+                autoDraw=False
+            )
+        else:
+            self._splashTextbox.text = str(msg)  # update the text
+        # set text color to contrast with background
+        self._splashTextbox.color = self._color.getReadable(contrast=1)
+
+    def hideMessage(self):
+        """Remove any message that is currently being displayed."""
+        self._showSplash = False
+
     def getActualFrameRate(self, nIdentical=10, nMaxFrames=100,
                            nWarmUpFrames=10, threshold=1):
         """Measures the actual frames-per-second (FPS) for the screen.
@@ -3232,6 +3339,9 @@ class Window():
         screen = self.screen
         name = self.name
 
+        self.showMessage(
+            "Attempting to measure frame rate of screen, please wait ...")
+
         # log that we're measuring the frame rate now
         if self.autoLog:
             msg = "{}: Attempting to measure frame rate of screen ({:d}) ..."
@@ -3267,8 +3377,10 @@ class Window():
 
                 self.recordFrameIntervals = recordFrmIntsOrig
                 self.frameIntervals = []
-
+                self.hideMessage()  # remove the message
                 return rate
+
+        self.hideMessage()  # remove the message
 
         # if we get here we reached end of `maxFrames` with no consistent value
         msg = ("Couldn't measure a consistent frame rate!\n"

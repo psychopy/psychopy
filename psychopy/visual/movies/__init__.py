@@ -17,7 +17,9 @@ from pathlib import Path
 
 from psychopy import prefs
 from psychopy.tools.filetools import pathToString, defaultStim
-from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin, ColorMixin
+from psychopy.visual.basevisual import (
+    BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin
+)
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 
 from .players import getMoviePlayer
@@ -44,7 +46,7 @@ PREFERRED_VIDEO_LIB = 'ffpyplayer'
 #
 
 
-class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
+class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     """Class for presenting movie clips as stimuli.
 
     Parameters
@@ -64,6 +66,8 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
     size : ArrayLike or None
         Size of the video frame on the window in `units`. If `None`, the native
         size of the video will be used.
+    draggable : bool
+        Can this stimulus be dragged by a mouse click?
     flipVert : bool
         If `True` then the movie will be top-bottom flipped.
     flipHoriz : bool
@@ -87,6 +91,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  pos=(0.0, 0.0),
                  ori=0.0,
                  anchor="center",
+                 draggable=False,
                  flipVert=False,
                  flipHoriz=False,
                  color=(1.0, 1.0, 1.0),  # remove?
@@ -116,16 +121,17 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
             win, units=units, name=name, autoLog=False)
 
         # drawing stuff
+        self.draggable = draggable
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
         self.pos = pos
         self.ori = ori
         self.size = size
         self.depth = depth
-        self.opacity = opacity
         self.anchor = anchor
         self.colorSpace = colorSpace
         self.color = color
+        self.opacity = opacity
 
         # playback stuff
         self._filename = pathToString(filename)
@@ -134,6 +140,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.loop = loop
         self._recentFrame = None
         self._autoStart = autoStart
+        self._isLoaded = False
 
         # OpenGL data
         self.interpolate = interpolate
@@ -162,6 +169,8 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.loadMovie(value)
 
     def setMovie(self, value):
+        if self._isLoaded:
+            self.unload()
         self.loadMovie(value)
 
     @property
@@ -217,6 +226,8 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._freeBuffers()  # free buffers (if any) before creating a new one
         self._setupTextureBuffers()
 
+        self._isLoaded = True
+
     def load(self, filename):
         """Load a movie file from disk (alias of `loadMovie`).
 
@@ -240,6 +251,7 @@ class MovieStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._player.stop(log=log)
         self._player.unload()
         self._freeBuffers()  # free buffer before creating a new one
+        self._isLoaded = False
 
     @property
     def frameTexture(self):

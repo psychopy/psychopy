@@ -8,12 +8,11 @@ import glob
 import json
 import errno
 
+from ..stdout.stdOutRich import ScriptOutputPanel
 from ..themes import handlers, colors, icons
 from ..themes.ui import ThemeSwitcher
 
 import wx
-from wx.lib import platebtn
-import wx.lib.agw.aui as aui  # some versions of phoenix
 import os
 import sys
 import time
@@ -23,10 +22,9 @@ import webbrowser
 from pathlib import Path
 from subprocess import Popen, PIPE
 
-from psychopy import experiment, prefs
-from psychopy.app.utils import BasePsychopyToolbar, FrameSwitcher, FileDropTarget
+from psychopy import experiment
+from psychopy.app.utils import FrameSwitcher, FileDropTarget
 from psychopy.localization import _translate
-from psychopy.app.stdOutRich import StdOutRich
 from psychopy.projects.pavlovia import getProject
 from psychopy.scripts.psyexpCompile import generateScript
 from psychopy.app.runner.scriptProcess import ScriptProcess
@@ -86,6 +84,10 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
             if os.path.exists(filePath):
                 self.addTask(fileName=filePath)
         self.Bind(wx.EVT_CLOSE, self.onClose)
+
+        # hide alerts to begin with, more room for std while also making alerts more noticeable
+        self.panel.alertsToggleBtn.ToggleMenu(False)
+        self.Layout()
 
         self.theme = app.theme
 
@@ -150,10 +152,6 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
         ]
 
         viewMenuItems = [
-            {'id': wx.ID_ANY, 'label': _translate("Open &Builder view"),
-             'status': _translate("Opening Builder"), 'func': self.viewBuilder},
-            {'id': wx.ID_ANY, 'label': _translate("Open &Coder view"),
-             'status': _translate('Opening Coder'), 'func': self.viewCoder},
         ]
 
         runMenuItems = [
@@ -196,18 +194,24 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
                 self.Bind(wx.EVT_MENU, item['func'], fileItem)
                 if item['label'].lower() in eachMenu['separators']:
                     eachMenu['menu'].AppendSeparator()
-        # Add Theme Switcher
+
+        # Theme switcher
         self.themesMenu = ThemeSwitcher(app=self.app)
-        viewMenu.AppendSubMenu(self.themesMenu,
-                           _translate("&Themes"))
-        # Add frame switcher
-        self.windowMenu = FrameSwitcher(self)
+        viewMenu.AppendSubMenu(self.themesMenu, _translate("&Themes"))
+
+        # Frame switcher
+        framesMenu = wx.Menu()
+        FrameSwitcher.makeViewSwitcherButtons(framesMenu, frame=self, app=self.app)
+        viewMenu.AppendSubMenu(framesMenu, _translate("&Frames"))
 
         # Create menus
         self.runnerMenu.Append(fileMenu, _translate('&File'))
         self.runnerMenu.Append(viewMenu, _translate('&View'))
         self.runnerMenu.Append(runMenu, _translate('&Run'))
         self.runnerMenu.Append(demosMenu, _translate('&Demos'))
+
+        # Add frame switcher
+        self.windowMenu = FrameSwitcher(self)
         self.runnerMenu.Append(self.windowMenu, _translate('&Window'))
 
     def saveTaskList(self, evt=None):
@@ -603,7 +607,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
         # Setup splitter
         self.mainSizer = wx.BoxSizer()
-        self.splitter = wx.SplitterWindow(self)
+        self.splitter = wx.SplitterWindow(self, style=wx.SP_NOBORDER)
         self.mainSizer.Add(self.splitter, proportion=1, border=0, flag=wx.EXPAND | wx.ALL)
 
         # Setup panel for top half (experiment control and toolbar)
@@ -638,24 +642,24 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
         # Alerts
         self._selectedHiddenAlerts = False  # has user manually hidden alerts?
-        self.alertsCtrl = StdOutText(parent=self.bottomPanel,
-                                     app=self.app,
-                                     style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE)
-        self.alertsCtrl.SetMinSize((-1, 150))
-        self.alertsToggleBtn = self.SizerButton(self.bottomPanel, _translate("Alerts"), self.alertsCtrl)
-        self.setAlertsVisible(True)
+        self.alertsPnl = ScriptOutputPanel(parent=self.bottomPanel,
+                                           style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE)
+        self.alertsPnl.SetMinSize((-1, 150))
+        self.alertsToggleBtn = self.SizerButton(self.bottomPanel, _translate("Alerts"), self.alertsPnl)
         self.bottomPanel.sizer.Add(self.alertsToggleBtn, 0, wx.TOP | wx.EXPAND, 10)
-        self.bottomPanel.sizer.Add(self.alertsCtrl, proportion=1, border=10, flag=wx.EXPAND | wx.ALL)
+        self.bottomPanel.sizer.Add(self.alertsPnl, proportion=1, border=10, flag=wx.EXPAND | wx.ALL)
+        self.alertsCtrl = self.alertsPnl.ctrl
+        self.setAlertsVisible(True)
 
         # StdOut
-        self.stdoutCtrl = StdOutText(parent=self.bottomPanel,
-                                     app=self.app,
+        self.stdoutPnl = ScriptOutputPanel(parent=self.bottomPanel,
                                      style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE)
-        self.stdoutCtrl.SetMinSize((-1, 150))
-        self.stdoutToggleBtn = self.SizerButton(self.bottomPanel, _translate("Stdout"), self.stdoutCtrl)
-        self.setStdoutVisible(True)
+        self.stdoutPnl.SetMinSize((-1, 150))
+        self.stdoutToggleBtn = self.SizerButton(self.bottomPanel, _translate("Stdout"), self.stdoutPnl)
         self.bottomPanel.sizer.Add(self.stdoutToggleBtn, proportion=0, border=10, flag=wx.TOP | wx.EXPAND)
-        self.bottomPanel.sizer.Add(self.stdoutCtrl, proportion=1, border=10, flag=wx.EXPAND | wx.ALL)
+        self.bottomPanel.sizer.Add(self.stdoutPnl, proportion=1, border=10, flag=wx.EXPAND | wx.ALL)
+        self.stdoutCtrl = self.stdoutPnl.ctrl
+        self.setStdoutVisible(True)
 
         # Assign to splitter
         self.splitter.SplitHorizontally(
@@ -678,6 +682,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
     def _applyAppTheme(self):
         # Srt own background
         self.SetBackgroundColour(colors.app['panel_bg'])
+        self.topPanel.SetBackgroundColour(colors.app['panel_bg'])
+        self.bottomPanel.SetBackgroundColour(colors.app['panel_bg'])
         # Theme buttons
         self.toolbar.theme = self.theme
         # Add icons to buttons
@@ -689,10 +695,11 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.alertsToggleBtn.SetBitmapMargins(x=6, y=0)
         # Apply app theme on objects in non-theme-mixin panels
         for obj in (
-                self.alertsCtrl, self.alertsToggleBtn,
-                self.stdoutCtrl, self.stdoutToggleBtn,
+                self.alertsPnl, self.alertsToggleBtn,
+                self.stdoutPnl, self.stdoutToggleBtn,
                 self.expCtrl, self.toolbar
         ):
+            obj.theme = self.theme
             if hasattr(obj, "_applyAppTheme"):
                 obj._applyAppTheme()
             else:
@@ -1049,32 +1056,3 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
     @currentProject.setter
     def currentProject(self, project):
         self._currentProject = None
-
-
-class StdOutText(StdOutRich, handlers.ThemeMixin):
-    """StdOutRich subclass which also handles Git messages from Pavlovia projects."""
-
-    def __init__(self, parent=None, app=None, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE, size=wx.DefaultSize):
-        StdOutRich.__init__(self, parent=parent, app=app, style=style, size=size)
-        self.prefs = prefs
-        self.paths = prefs.paths
-        self._applyAppTheme()
-
-    def getText(self):
-        """Get and return the text of the current buffer."""
-        return self.GetValue()
-
-    def setStatus(self, status):
-        self.SetValue(status)
-        self.Refresh()
-        self.Layout()
-        wx.Yield()
-
-    def statusAppend(self, newText):
-        text = self.GetValue() + newText
-        self.setStatus(text)
-
-    def write(self, inStr, evt=False):
-        # Override default write behaviour to also update theme on each write
-        StdOutRich.write(self, inStr, evt)
-        self._applyAppTheme()

@@ -39,6 +39,7 @@
     4105: Component start time exceeds stop times
     4115: Frames must be given as whole numbers
     4120: Component stop duration with no start time
+    4125: Microphone given no stop duration
   4200:
     cat: Code component syntax
     4205: Python syntax error

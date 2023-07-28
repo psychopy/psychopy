@@ -21,6 +21,10 @@ except (ModuleNotFoundError, ImportError):
         "Support for ioLab Systems hardware is not available this session. "
         "Please install `psychopy-iolabs` and restart the session to enable "
         "support.")
+except Exception as e:
+    logging.error(
+        "Error encountered while loading `psychopy-iolabs`. Check logs for "
+        "more information.")
 finally:
     logging.warning(
         "Support for ioLabs Systems hardware has been discontinued and will "

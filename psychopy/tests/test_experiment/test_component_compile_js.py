@@ -8,7 +8,7 @@ from psychopy.scripts import psyexpCompile
 
 class TestComponentCompilerJS():
     """A class for testing the JS code compiler for all components"""
-    def setup(self):
+    def setup_method(self):
         self.temp_dir = mkdtemp()
         self.allComp = getAllComponents(fetchIcons=False)
         self.exp = Experiment() # create once, not every test

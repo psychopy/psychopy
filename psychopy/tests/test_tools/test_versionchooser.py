@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """Tests for psychopy.tools.versionchooser"""
 import os
+import sys
 from pathlib import Path
 
 import psychopy
-from psychopy.tools.versionchooser import useVersion
+from psychopy.tools.versionchooser import Version, VersionRange, useVersion, versionMap
 from psychopy import prefs, experiment
 from psychopy.scripts.psyexpCompile import generateScript
 from psychopy.experiment.components import polygon
@@ -14,34 +15,32 @@ USERDIR = prefs.paths['userPrefsDir']
 VER_SUBDIR = 'versions'
 VERSIONSDIR = os.path.join(USERDIR, VER_SUBDIR)
 
+pyVersion = Version(".".join(
+    [str(sys.version_info.major), str(sys.version_info.minor)]
+))
 
-class _baseVersionChooser():
-    def test_currentVersion(self):
-        vers = useVersion('1.90.0')
-        assert(vers == '1.90.0')
+
+class TestVersionChooser():
+    def setup_method(self):
+        self.temp = Path(mkdtemp())
+
+    def test_same_version(self):
+        # pick a version which works with installed Python
+        rVers = versionMap[pyVersion][0]
+        # use it
+        vers = useVersion(rVers)
+        vers = Version(vers)
+        # confirm that it is being used
+        assert (vers.major, vers.minor) == (rVers.major, rVers.minor)
 
     def test_version_folder(self):
         assert(os.path.isdir(VERSIONSDIR))
 
-
-class Test_Same_Version(_baseVersionChooser):
-    def setup(self):
-        self.requested = '1.90.0'
-        useVersion(self.requested)
-
-    def test_same_version(self):
-        assert(psychopy.__version__ == self.requested)
-
-
-class Test_Older_Version(_baseVersionChooser):
-    def setup(self):
-        self.requested = '1.90.0'
-        self.temp = Path(mkdtemp())
-
-    def test_older_version(self):
-        assert(useVersion(self.requested))
-
     def test_writing(self):
+        # Can't run this test on anything beyond 3.6
+        if pyVersion > Version("3.6"):
+            return
+
         # Create simple experiment with a Polygon
         exp = experiment.Experiment()
         rt = experiment.routines.Routine(name="testRoutine", exp=exp)
@@ -89,6 +88,84 @@ class Test_Older_Version(_baseVersionChooser):
         assert "import { PsychoJS } from './lib/core-2021.1.4.js'" in script, (
             "When compiling JS with useversion 2021.1.4, could not find version-specific import statement."
         )
+
+
+class TestVersionRange:
+    def test_comparisons(self):
+        """
+        Test that version numbers below the range register as less than.
+        """
+        cases = [
+            # value < range
+            {'range': ("2023.1.0", "2023.2.0"), 'value': "2022.2.0",
+             'lt': False, 'eq': False, 'gt': True},
+            # value == range.first
+            {'range': ("2023.1.0", "2023.2.0"), 'value': "2023.1.0",
+             'lt': False, 'eq': True, 'gt': False},
+            # value in range
+            {'range': ("2023.1.0", "2023.2.0"), 'value': "2023.1.5",
+             'lt': False, 'eq': True, 'gt': False},
+            # value == range.last
+            {'range': ("2023.1.0", "2023.2.0"), 'value': "2023.2.0",
+             'lt': False, 'eq': True, 'gt': False},
+            # value > range
+            {'range': ("2023.1.0", "2023.2.0"), 'value': "2024.1.0",
+             'lt': True, 'eq': False, 'gt': False},
+
+            # value < range.last with no first
+            {'range': (None, "2023.2.0"), 'value': "2022.2.0",
+             'lt': False, 'eq': True, 'gt': False},
+            # value == range.last with no first
+            {'range': (None, "2023.2.0"), 'value': "2023.2.0",
+             'lt': False, 'eq': True, 'gt': False},
+            # value > range.last with no first
+            {'range': (None, "2023.2.0"), 'value': "2024.1.0",
+             'lt': True, 'eq': False, 'gt': False},
+
+            # value < range.first with no last
+            {'range': ("2023.1.0", None), 'value': "2022.2.0",
+             'lt': False, 'eq': False, 'gt': True},
+            # value == range.first with no last
+            {'range': ("2023.1.0", None), 'value': "2023.1.0",
+             'lt': False, 'eq': True, 'gt': False},
+            # value > range.first with no last
+            {'range': ("2023.1.0", None), 'value': "2024.1.0",
+             'lt': False, 'eq': True, 'gt': False},
+
+            # no last or first
+            {'range': (None, None), 'value': "2022.2.0",
+             'lt': False, 'eq': True, 'gt': False},
+            {'range': (None, None), 'value': "2023.1.0",
+             'lt': False, 'eq': True, 'gt': False},
+            {'range': (None, None), 'value': "2024.1.0",
+             'lt': False, 'eq': True, 'gt': False},
+        ]
+
+        for case in cases:
+            # make VersionRange
+            r = VersionRange(
+                first=case['range'][0],
+                last=case['range'][1]
+            )
+            # work out le and ge from case values
+            case['le'] = case['lt'] or case['eq']
+            case['ge'] = case['gt'] or case['eq']
+            # confirm that comparisons work as expected
+            assert (r > case['value']) == case['gt'], (
+                "VersionRange%(range)s > '%(value)s' should be %(gt)s" % case
+            )
+            assert (r >= case['value']) == case['ge'], (
+                "VersionRange%(range)s >= '%(value)s' should be %(ge)s" % case
+            )
+            assert (case['value'] in r) == case['eq'], (
+                "'%(value)s' in VersionRange%(range)s should be %(eq)s" % case
+            )
+            assert (r <= case['value']) == case['le'], (
+                "VersionRange%(range)s <= '%(value)s' should be %(le)s" % case
+            )
+            assert (r < case['value']) == case['lt'], (
+                "VersionRange%(range)s < '%(value)s' should be %(lt)s" % case
+            )
 
 
 """

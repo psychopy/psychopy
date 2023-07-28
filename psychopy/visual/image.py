@@ -26,12 +26,13 @@ import psychopy  # so we can get the __path__
 from psychopy import logging, colors, layout
 
 from psychopy.tools.attributetools import attributeSetter, setAttribute
-from psychopy.visual.basevisual import BaseVisualStim
-from psychopy.visual.basevisual import (ContainerMixin, ColorMixin,
-                                        TextureMixin)
+from psychopy.visual.basevisual import (
+    BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin, TextureMixin
+)
 
 
-class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
+class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
+                TextureMixin):
     """Display an image on a :class:`psychopy.visual.Window`
     """
 
@@ -50,6 +51,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
                  opacity=None,
                  depth=0,
                  interpolate=False,
+                 draggable=False,
                  flipHoriz=False,
                  flipVert=False,
                  texRes=128,
@@ -64,6 +66,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
 
         super(ImageStim, self).__init__(win, units=units, name=name,
                                         autoLog=False)  # set at end of init
+        self.draggable = draggable
         # use shaders if available by default, this is a good thing
         self.__dict__['useShaders'] = win._haveShaders
 
@@ -215,7 +218,9 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         # If our image is a movie stim object, pull pixel data from the most
         # recent frame and write it to the memory
         if hasattr(self.image, 'getVideoFrame'):
-            self._movieFrameToTexture(self.image.getVideoFrame())
+            videoFrame = self.image.getVideoFrame()
+            if videoFrame is not None:
+                self._movieFrameToTexture(videoFrame)
 
         GL.glPushMatrix()  # push before the list, pop after
         win.setScale('pix')
@@ -430,6 +435,8 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
 
     @size.setter
     def size(self, value):
+        # store requested size
+        self._requestedSize = value
         isNone = numpy.asarray(value) == None
         if (self.aspectRatio is not None) and (isNone.any()) and (not isNone.all()):
             # If only one value is None, replace it with a value which maintains aspect ratio

@@ -67,7 +67,7 @@ class TestExpt():
             # can't write to root on Linux
             cls.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
 
-    def setup(self):
+    def setup_method(self):
         """This setup is done for each test individually
         """
         self.here = path.abspath(path.dirname(__file__))
@@ -237,6 +237,11 @@ class TestExpt():
             f.write(text)
 
         self.exp.loadFromXML(expfile)  # reload the edited file
+
+        # supply temp dir to experiment
+        self.exp.settings.params['Saved data folder'].val = os.path.abspath(self.tmp_dir)
+        self.exp.settings.params['Saved data folder'].valType = "str"
+
         script = self.exp.writeScript()
 
         # reposition its window out from under splashscreen (can't do easily from .psyexp):
@@ -279,7 +284,7 @@ class TestExpt():
 
 
 class TestExpImports():
-    def setup(self):
+    def setup_method(self):
         self.exp = psychopy.experiment.Experiment()
         self.exp.requiredImports = []
 
@@ -365,7 +370,7 @@ class TestExpImports():
 
 
 class TestRunOnce():
-    def setup(self):
+    def setup_method(self):
         from psychopy.experiment import exports
         self.buff = exports.IndentingBuffer()
 
