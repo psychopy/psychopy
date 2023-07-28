@@ -27,9 +27,9 @@ classifiers = [
     ]
     
 dependencies = [
-    "numpy>=1.24.3",
-    "scipy>=1.10.1",
-    "matplotlib>=3.7.1",
+    "numpy",  # use numpy<1.24 for psychopy<2023.1
+    "scipy",
+    "matplotlib",
     "pyglet == 1.4.11; platform_system == \"Windows\"",
     "pyglet == 1.5.27; platform_system != \"Windows\"",
     "pillow>=9.4.0",
