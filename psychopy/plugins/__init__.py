@@ -9,6 +9,7 @@
 __all__ = [
     'loadPlugin',
     'listPlugins',
+    'installPlugin',
     'computeChecksum',
     'startUpPlugins',
     'pluginMetadata',
@@ -31,6 +32,7 @@ import hashlib
 import importlib
 import psychopy.tools.pkgtools as pkgtools
 import pkg_resources
+import psychopy.tools.pkgtools as pkgtools
 from psychopy import logging
 from psychopy.preferences import prefs
 
@@ -302,6 +304,36 @@ def refreshBundlePaths():
     pkgtools.refreshPackages()
 
     return foundBundles
+
+
+def installPlugin(package, local=True, upgrade=False, forceReinstall=False,
+                  noDeps=False):
+    """Install a plugin package.
+
+    Parameters
+    ----------
+    package : str
+        Name or path to distribution of the plugin package to install.
+    local : bool
+        If `True`, install the package locally to the PsychoPy user plugin 
+        directory.
+    upgrade : bool
+        Upgrade the specified package to the newest available version.
+    forceReinstall : bool
+        If `True`, the package and all it's dependencies will be reinstalled if
+        they are present in the current distribution.
+    noDeps : bool
+        Don't install dependencies if `True`.
+
+    """
+    # determine where to install the package
+    installWhere = getBundleInstallTarget(package) if local else None
+    pkgtools.installPackage(
+        package, 
+        target=installWhere,
+        upgrade=upgrade,
+        forceReinstall=forceReinstall,
+        noDeps=noDeps)
 
 
 def scanPlugins():

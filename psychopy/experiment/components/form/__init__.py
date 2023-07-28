@@ -29,6 +29,7 @@ class FormComponent(BaseVisualComponent):
 
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
+    version = "2020.2.0"
     iconFile = Path(__file__).parent / 'form.png'
     tooltip = _translate('Form: a Psychopy survey tool')
     beta = True
@@ -84,38 +85,38 @@ class FormComponent(BaseVisualComponent):
             items, valType='file', inputType="table", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=_translate("The csv filename containing the items for your survey."),
-            label=_localized['Items'])
+            label=_translate("Items"))
 
         self.params['Text Height'] = Param(
             textHeight, valType='num', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant',
             hint=_translate("The size of the item text for Form"),
-            label=_localized['Text Height'])
+            label=_translate("Text height"))
 
         self.params['Font'] = Param(
             font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=["constant"],
             hint=_translate("The font name (e.g. Comic Sans)"),
-            label=_translate('Font'))
+            label=_translate("Font"))
 
         self.params['Randomize'] = Param(
             randomize, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=_translate("Do you want to randomize the order of your questions?"),
-            label=_localized['Randomize'])
+            label=_translate("Randomize"))
 
         self.params['Item Padding'] = Param(
             itemPadding, valType='num', inputType="single", allowedTypes=[], categ='Layout',
             updates='constant',
             hint=_translate("The padding or space between items."),
-            label=_localized['Item Padding'])
+            label=_translate("Item padding"))
 
         self.params['Data Format'] = Param(
             'rows', valType='str', inputType="choice", allowedTypes=[], categ='Basic',
             allowedVals=['columns', 'rows'],
             updates='constant',
             hint=_translate("Store item data by columns, or rows"),
-            label=_localized['Data Format'])
+            label=_translate("Data format"))
 
         # Appearance
         for param in ['fillColor', 'borderColor', 'itemColor', 'responseColor', 'markerColor', 'Style']:
@@ -131,7 +132,7 @@ class FormComponent(BaseVisualComponent):
             updates='constant', allowedVals=knownStyles + ["custom..."],
             hint=_translate(
                     "Styles determine the appearance of the form"),
-            label=_localized['Style'])
+            label=_translate("Styles"))
 
         for param in ['fillColor', 'borderColor', 'itemColor', 'responseColor', 'markerColor']:
             self.depends += [{
@@ -151,21 +152,21 @@ class FormComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=_translate("Base text color for questions"),
-            label=_translate("Item Color"))
+            label=_translate("Item color"))
 
         self.params['responseColor'] = Param(responseColor,
             valType='color', inputType="color", categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=_translate("Base text color for responses, also sets color of lines in sliders and borders of textboxes"),
-            label=_translate("Response Color"))
+            label=_translate("Response color"))
 
         self.params['markerColor'] = Param(markerColor,
             valType='color', inputType="color", categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=_translate("Color of markers and the scrollbar"),
-            label=_translate("Marker Color"))
+            label=_translate("Marker color"))
 
         self.params['pos'].allowedUpdates = []
         self.params['size'].allowedUpdates = []

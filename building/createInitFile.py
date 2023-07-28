@@ -9,12 +9,12 @@ import os
 import platform
 import subprocess
 from pathlib import Path
+import tomlkit
 
 root = Path(__file__).parent.parent
-# import versioneer
-# get version from file
-with open('version') as f:
-    version = f.read().strip()
+with open(root/"pyproject.toml") as f:
+    metadata = tomlkit.load(f)
+version = metadata['project']['version']
 
 
 def createInitFile(dist=None, version=None, sha=None):
@@ -37,14 +37,13 @@ def createInitFile(dist=None, version=None, sha=None):
         sha = _getGitShaString(dist)
     platformStr = _getPlatformString(dist)
 
-    metadata = read_configuration('setup.cfg')['metadata']
     infoDict = {'version': version,
-                'author': metadata['author'],
-                'author_email': metadata['author_email'],
-                'maintainer_email': metadata['maintainer_email'],
-                'url': metadata['url'],
-                'download_url': metadata['download_url'],
-                'license': metadata['license'],
+                'author': "Open Science Tools Ltd",
+                'author_email': "support@opensciencetools.org",
+                'maintainer_email': "support@opensciencetools.org",
+                'url': metadata['project']['urls']['Homepage'],
+                'download_url': metadata['project']['urls']['Download'],
+                'license': "GPL v3",
                 'shaStr': sha,
                 'platform': platformStr}
 

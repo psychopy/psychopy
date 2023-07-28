@@ -2,7 +2,7 @@
 """Tests for psychopy.tools.arraytools
 """
 
-from psychopy.tools.arraytools import *
+from psychopy.tools import arraytools as at
 import pytest
 import numpy
 
@@ -21,7 +21,7 @@ def test_xys():
     for case in cases:
         # Check equality
         assert numpy.allclose(
-            createXYs(x=case['x'], y=case['y']),
+            at.createXYs(x=case['x'], y=case['y']),
             case['ans']
         )
 
@@ -34,7 +34,7 @@ def test_xys():
     for case in cases:
         # Check equality
         assert numpy.allclose(
-            extendArr(case['arr'], case['size']),
+            at.extendArr(case['arr'], case['size']),
             case['ans']
         )
 
@@ -55,12 +55,13 @@ def test_makeRadialMatrix():
     ]
     for case in cases:
         assert numpy.allclose(
-            numpy.round(makeRadialMatrix(case['size']), 8),
+            numpy.round(at.makeRadialMatrix(case['size']), 8),
             case['ans']
         )
     # also test that matrixSize=0 raises an error
     with pytest.raises(ValueError):
-        makeRadialMatrix(0)
+        at.makeRadialMatrix(0)
+
 
 def test_ratioRange():
     cases = [
@@ -78,7 +79,7 @@ def test_ratioRange():
 
     for case in cases:
         assert numpy.allclose(
-            ratioRange(case['start'], nSteps=case['nSteps'], stop=case['stop'], stepRatio=case['stepRatio'], stepdB=case['stepdB'], stepLogUnits=case['stepLogUnits']),
+            at.ratioRange(case['start'], nSteps=case['nSteps'], stop=case['stop'], stepRatio=case['stepRatio'], stepdB=case['stepdB'], stepLogUnits=case['stepLogUnits']),
             case['ans']
         )
 
@@ -96,7 +97,34 @@ def test_val2array():
     ]
     for case in cases:
         assert numpy.allclose(
-            val2array(case['value'], withNone=case['withNone'], withScalar=case['withScalar'], length=case['length']),
+            at.val2array(case['value'], withNone=case['withNone'], withScalar=case['withScalar'], length=case['length']),
             case['ans'],
             equal_nan=True
         )
+
+
+def test_AliasDict():
+    """
+    Test that the AliasDict class works as expected.
+    """
+    # make alias
+    params = at.AliasDict({'patient': 1})
+    params.alias("patient", alias="participant")
+    # test that aliases are counted in contains method
+    assert 'participant' in params
+    # test that aliases are not included in iteration
+    for key in params:
+        assert key != 'participant'
+    # test that participant and patient return the same value
+    assert params['patient'] == params['participant'] == 1
+    # test that setting the alias sets the original
+    params['participant'] = 2
+    assert params['patient'] == params['participant'] == 2
+    # test that setting the original sets the alias
+    params['patient'] = 3
+    assert params['patient'] == params['participant'] == 3
+    # test that adding an alias to a new object doesn't affect the original
+    params2 = at.AliasDict({"1": 1})
+    params2.alias("1", alias="one")
+    assert "one" not in params.aliases
+    assert "1" not in params.aliases

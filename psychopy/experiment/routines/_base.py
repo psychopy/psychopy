@@ -14,6 +14,7 @@ from xml.etree.ElementTree import Element
 from pathlib import Path
 
 from psychopy.experiment.components.static import StaticComponent
+from psychopy.experiment.components.routineSettings import RoutineSettingsComponent
 from psychopy.localization import _translate
 from psychopy.experiment import Param
 
@@ -24,6 +25,8 @@ class BaseStandaloneRoutine:
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
     tooltip = ""
     limit = float('inf')
+    # what version was this Routine added in?
+    version = "0.0.0"
 
     def __init__(self, exp, name='',
                  stopType='duration (s)', stopVal='',
@@ -37,16 +40,16 @@ class BaseStandaloneRoutine:
         self.order = ['stopVal', 'stopType', 'name']
 
         msg = _translate(
-            "Name of this routine (alphanumeric or _, no spaces)")
+            "Name of this Routine (alphanumeric or _, no spaces)")
         self.params['name'] = Param(name,
                                     valType='code', inputType="single", categ='Basic',
                                     hint=msg,
-                                    label=_translate('name'))
+                                    label=_translate('Name'))
 
         self.params['stopVal'] = Param(stopVal,
             valType='num', inputType="single", categ='Basic',
             updates='constant', allowedUpdates=[], allowedTypes=[],
-            hint=_translate("When does the routine end? (blank is endless)"),
+            hint=_translate("When does the Routine end? (blank is endless)"),
             label=_translate('Stop'))
 
         msg = _translate("How do you want to define your end point?")
@@ -54,14 +57,14 @@ class BaseStandaloneRoutine:
             valType='str', inputType="choice", categ='Basic',
             allowedVals=['duration (s)', 'duration (frames)', 'condition'],
             hint=msg, direct=False,
-            label=_translate('Stop Type...'))
+            label=_translate('Stop type...'))
 
         # Testing
-        msg = _translate("Disable this routine")
+        msg = _translate("Disable this Routine")
         self.params['disabled'] = Param(disabled,
             valType='bool', inputType="bool", categ="Testing",
             hint=msg, allowedTypes=[], direct=False,
-            label=_translate('Disable routine'))
+            label=_translate('Disable Routine'))
 
     def __repr__(self):
         _rep = "psychopy.experiment.routines.%s(name='%s', exp=%s)"
@@ -193,7 +196,10 @@ class BaseStandaloneRoutine:
     def name(self):
         if hasattr(self, 'params'):
             if 'name' in self.params:
-                return self.params['name'].val
+                if hasattr(self.params['name'], "val"):
+                    return self.params['name'].val
+                else:
+                    return self.params['name']
         return self.type
 
     @name.setter
@@ -223,23 +229,17 @@ class Routine(list):
     """
 
     targets = ["PsychoPy", "PsychoJS"]
+    version = "0.0.0"
 
     def __init__(self, name, exp, components=(), disabled=False):
+        self.settings = RoutineSettingsComponent(exp, name, disabled=disabled)
         super(Routine, self).__init__()
-        self.params = {'name': name}
 
-        # Testing
-        msg = _translate("Disable this component")
-        self.params['disabled'] = Param(disabled,
-            valType='bool', inputType="bool", categ="Testing",
-            hint=msg, allowedTypes=[], direct=False,
-            label=_translate('Disable component'))
-
-        self.name = name
         self.exp = exp
         self._clockName = None  # for scripts e.g. "t = trialClock.GetTime()"
         self.type = 'Routine'
         list.__init__(self, list(components))
+        self.addComponent(self.settings)
 
     def __repr__(self):
         _rep = "psychopy.experiment.Routine(name='%s', exp=%s, components=%s)"
@@ -272,14 +272,18 @@ class Routine(list):
 
     @property
     def name(self):
-        return self.params['name']
+        return self.params['name'].val
 
     @name.setter
     def name(self, name):
-        self.params['name'] = name
+        self.params['name'].val = name
         # Update references in components
         for comp in self:
             comp.parentName = name
+
+    @property
+    def params(self):
+        return self.settings.params
 
     def integrityCheck(self):
         """Run tests on self and on all the Components inside"""
@@ -481,12 +485,16 @@ class Routine(list):
             code = (
                 '\n'
                 '# check for quit (typically the Esc key)\n'
-                'if endExpNow or defaultKeyboard.getKeys(keyList=["escape"]):\n'
-                '    core.quit()\n'
-                '    if eyetracker:\n'
-                '        eyetracker.setConnectionState(False)\n'
+                'if defaultKeyboard.getKeys(keyList=["escape"]):\n'
+                '    thisExp.status = FINISHED\n'
             )
             buff.writeIndentedLines(code)
+        code = (
+            "if thisExp.status == FINISHED or endExpNow:\n"
+            "    endExperiment(thisExp, inputs=inputs, win=win)\n"
+            "    return\n"
+        )
+        buff.writeIndentedLines(code)
 
         # are we done yet?
         code = (
@@ -783,7 +791,12 @@ class Routine(list):
                 except Exception:
                     thisT = 0
                 maxTime = max(maxTime, thisT)
-        if maxTime == 0:  # if there are no components
+        # if max set by routine, override calculated max
+        rtDur, numericStop = self.settings.getDuration()
+        if numericStop and rtDur != FOREVER:
+            maxTime = rtDur
+        # if there are no components, default to 10s
+        if maxTime == 0:
             maxTime = 10
             nonSlipSafe = False
         return maxTime, nonSlipSafe

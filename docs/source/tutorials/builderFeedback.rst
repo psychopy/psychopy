@@ -18,20 +18,20 @@ This is actually demonstrated in the demo, `ExtendedStroop` (in the Builder>demo
 
 If you have a Keyboard Component called `key_resp` then, after every trial you will have the following variables::
 
-    key_resp.keys #a python list of keys pressed
-    key_resp.rt #the time to the first key press
-    key_resp.corr #None, 0 or 1, if you are using 'store correct'
+    key_resp.keys # A python list of keys pressed
+    key_resp.rt # The time to the first key press
+    key_resp.corr # None, 0 or 1, if you are using 'store correct'
 
 To create your `msg`, insert the following into the 'start experiment` section of the :ref:`code`::
 
-    msg='doh!'#if this comes up we forgot to update the msg!
+    msg='doh!'# If this comes up we forgot to update the msg!
     
 and then insert the following into the `Begin Routine` section (this will get run every repeat of the routine)::
     
     if not key_resp.keys :
-        msg="Failed to respond"
-    elif resp.corr:#stored on last run routine
-        msg="Correct! RT=%.3f" %(resp.rt)
+        msg = "Failed to respond"
+    elif key_resp.corr: # Stored on last run routine
+        msg = "Correct! RT=%.3f" %(key_resp.rt)
     else:
         msg="Oops! That was wrong"
   
@@ -42,20 +42,20 @@ In this case the feedback routine would need to come after the loop (the block o
 
 In this case, to get all the keys pressed in a `numpy <http://www.numpy.org>`_ array::
 
-    trials.data['key_resp.keys'] #numpy array with size=[ntrials,ntypes]
+    trials.data['key_resp.keys'] # numpy array with size=[ntrials,ntypes]
 
 If you used the 'Store Correct' feature of the Keyboard Component (and told psychopy what the correct answer was) you will also have a variable::
 
-    #numpy array storing whether each response was correct (1) or not (0)
-    trials.data['resp.corr'] 
+    # numpy array storing whether each response was correct (1) or not (0)
+    trials.data['key_resp.corr'] 
     
 So, to create your `msg`, insert the following into the 'start experiment` section of the :ref:`code`::
 
-    msg='doh!'#if this comes up we forgot to update the msg!
+    msg='doh!'# If this comes up we forgot to update the msg!
     
 and then insert the following into the `Begin Routine` section (this will get run every repeat of the routine)::
 
-    nCorr = trials.data['key_resp.corr'].sum() #.std(), .mean() also available
+    nCorr = trials.data['key_resp.corr'].sum() # .std(), .mean() also available
     meanRt = trials.data['key_resp.rt'].mean()
     msg = "You got %i trials correct (rt=%.2f)" %(nCorr,meanRt)
 

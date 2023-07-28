@@ -1,0 +1,1 @@
+A simple demo to showcase the new Progress Component. The value of a Progress bar can be set between 0 and 1, and the bar will show this. Setting it each repeat or each frame means you can continuously keep track of values - such as time passed or trials complete.
