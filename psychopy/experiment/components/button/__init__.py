@@ -39,6 +39,7 @@ class ButtonComponent(BaseVisualComponent):
     """
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
+    version = "2021.1.0"
     iconFile = Path(__file__).parent / 'button.png'
     tooltip = _translate('Button: A clickable textbox')
     beta = True
@@ -74,14 +75,14 @@ class ButtonComponent(BaseVisualComponent):
         ]
         # params
         _allow3 = ['constant', 'set every repeat', 'set every frame']  # list
-        self.params['color'].label = _translate("Text Color")
+        self.params['color'].label = _translate("Text color")
 
         self.params['forceEndRoutine'] = Param(
             forceEndRoutine, valType='bool', inputType="bool", categ='Basic',
             updates='constant', direct=False,
             hint=_translate("Should a response force the end of the Routine "
                             "(e.g end the trial)?"),
-            label=_localized['forceEndRoutine'])
+            label=_translate("Force end of Routine"))
 
         # If force end routine, then once per click doesn't make sense
         self.depends += [
@@ -98,44 +99,44 @@ class ButtonComponent(BaseVisualComponent):
             oncePerClick, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=_translate("Should the callback run once per click (True), or each frame until click is released (False)"),
-            label=_localized['oncePerClick']
+            label=_translate("Run once per click")
         )
         self.params['callback'] = Param(
             callback, valType='extendedCode', inputType="multi", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=_translate("Code to run when button is clicked"),
-            label=_localized['callback'])
+            label=_translate("Callback function"))
         self.params['text'] = Param(
             text, valType='str', inputType="single", allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The text to be displayed"),
-            label=_localized['text'])
+            label=_translate("Button text"))
         self.params['font'] = Param(
             font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The font name (e.g. Comic Sans)"),
-            label=_localized['font'])
+            label=_translate("Font"))
         self.params['letterHeight'] = Param(
             letterHeight, valType='num', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("Specifies the height of the letter (the width"
                             " is then determined by the font)"),
-            label=_localized['letterHeight'])
+            label=_translate("Letter height"))
         self.params['italic'] = Param(
             italic, valType='bool', inputType="bool", allowedTypes=[], categ='Formatting',
             updates='constant',
             hint=_translate("Should text be italic?"),
-            label=_localized['italic'])
+            label=_translate("Italic"))
         self.params['bold'] = Param(
             bold, valType='bool', inputType="bool", allowedTypes=[], categ='Formatting',
             updates='constant',
             hint=_translate("Should text be bold?"),
-            label=_localized['bold'])
+            label=_translate("Bold"))
         self.params['padding'] = Param(
             padding, valType='num', inputType="single", allowedTypes=[], categ='Layout',
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Defines the space between text and the textbox border"),
-            label=_localized['padding'])
+            label=_translate("Padding"))
         self.params['anchor'] = Param(
             anchor, valType='str', inputType="choice", categ='Layout',
             allowedVals=['center',
@@ -150,19 +151,19 @@ class ButtonComponent(BaseVisualComponent):
                          ],
             updates='constant',
             hint=_translate("Should text anchor to the top, center or bottom of the box?"),
-            label=_localized['anchor'])
+            label=_translate("Anchor"))
         self.params['borderWidth'] = Param(
             borderWidth, valType='num', inputType="single", allowedTypes=[], categ='Appearance',
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Textbox border width"),
-            label=_localized['borderWidth'])
+            label=_translate("Border width"))
         self.params['save'] = Param(
             save, valType='str', inputType="choice", categ='Data',
             allowedVals=['first click', 'last click', 'every click', 'none'],
             hint=_translate(
                 "What clicks on this button should be saved to the data output?"),
             direct=False,
-            label=_localized['save'])
+            label=_translate("Record clicks"))
         self.params['timeRelativeTo'] = Param(
             timeRelativeTo, valType='str', inputType="choice", categ='Data',
             allowedVals=['button onset', 'experiment', 'routine'],
@@ -171,7 +172,7 @@ class ButtonComponent(BaseVisualComponent):
             hint=_translate(
                 "What should the values of mouse.time should be "
                 "relative to?"),
-            label=_localized['timeRelativeTo'])
+            label=_translate("Time relative to"))
 
 
     def writeInitCode(self, buff):

@@ -164,12 +164,3 @@ def shellCall(shellCmd, stdin='', stderr=False, env=None, encoding=None):
         return stdoutData.strip(), stderrData.strip()
     else:
         return stdoutData.strip()
-
-
-class ComponentPlaceholder:
-    """
-    When a component is not implemented, we need an object to represent it when running, which will accept any
-    attribute given without causing an error and breaking the experiment. This object extends the base Python
-    `object` class, with no additions.
-    """
-    pass

@@ -582,6 +582,37 @@ class AudioClip:
         self._sampleRateHz = int(value)
         # recompute duration after updating sample rate
         self._duration = len(self._samples) / float(self._sampleRateHz)
+    
+    def resample(self, targetSampleRateHz, resampleType='soxr_hq', 
+                 equalEnergy=False):
+        """Resample audio to another sample rate.
+
+        Parameters
+        ----------
+        targetSampleRateHz : int
+            New sample rate.
+        resampleType : str or None
+            Method to use for resampling. 
+        equalEnergy : bool
+            Make the output have similar energy to the input.
+
+        Notes
+        -----
+        * Resampling audio clip may result in distortion which is exaserbated by 
+          successive resamplings.
+
+        """
+        import librosa
+
+        self.samples = librosa.resample(
+            self.samples, 
+            self._sampleRateHz, 
+            targetSampleRateHz,
+            res_type=resampleType,
+            scale=equalEnergy, 
+            axis=0)
+
+        self.sampleRateHz = targetSampleRateHz  # update
 
     @property
     def duration(self):
@@ -688,44 +719,40 @@ class AudioClip:
 
         return self
 
-    def transcribe(self, engine='sphinx', language='en-US', expectedWords=None,
+    def transcribe(self, engine='whisper', language='en-US', expectedWords=None,
                    config=None):
         """Convert speech in audio to text.
 
-        This feature passes the audio clip samples to a specified text-to-speech
-        engine which will attempt to transcribe any speech within. The efficacy
-        of the transcription depends on the engine selected, audio quality, and
-        language support. By default, Pocket Sphinx is used which provides
-        decent transcription capabilities offline for English and a few other
-        languages. For more robust transcription capabilities with a greater
-        range of language support, online providers such as Google may be used.
+        This function accepts an audio clip and returns a transcription of the
+        speech in the clip. The efficacy of the transcription depends on the 
+        engine selected, audio quality, and language support.
 
-        Speech-to-text conversion blocks the main application thread when used
+        Speech-to-text conversion blocks the main application thread when used 
         on Python. Don't transcribe audio during time-sensitive parts of your
-        experiment! This issue is known to the developers and will be fixed in a
-        later release.
+        experiment! Instead, initialize the transcriber before the experiment
+        begins by calling this function with `audioClip=None`.
 
         Parameters
         ----------
         engine : str
-            Speech-to-text engine to use. Can be one of 'sphinx' for CMU Pocket
-            Sphinx or 'google' for Google Cloud.
+            Speech-to-text engine to use.
         language : str
             BCP-47 language code (eg., 'en-US'). Note that supported languages
             vary between transcription engines.
         expectedWords : list or tuple
             List of strings representing expected words or phrases. This will
-            constrain the possible output words to the ones specified. Note not
-            all engines support this feature (only Sphinx and Google Cloud do at
-            this time). A warning will be logged if the engine selected does not
-            support this feature. CMU PocketSphinx has an additional feature
-            where the sensitivity can be specified for each expected word. You
-            can indicate the sensitivity level to use by putting a ``:`` (colon)
-            after each word in the list (see the Example below). Sensitivity
-            levels range between 0 and 100. A higher number results in the
-            engine being more conservative, resulting in a higher likelihood of
-            false rejections. The default sensitivity is 80% for words/phrases
-            without one specified.
+            constrain the possible output words to the ones specified which 
+            constrains the model for better accuracy. Note not all engines 
+            support this feature (only Sphinx and Google Cloud do at this time). 
+            A warning will be logged if the engine selected does not support this 
+            feature. CMU PocketSphinx has an additional feature where the 
+            sensitivity can be specified for each expected word. You can 
+            indicate the sensitivity level to use by putting a ``:`` after each 
+            word in the list (see the Example below). Sensitivity levels range 
+            between 0 and 100. A higher number results in the engine being more 
+            conservative, resulting in a higher likelihood of false rejections. 
+            The default sensitivity is 80% for words/phrases without one 
+            specified.
         config : dict or None
             Additional configuration options for the specified engine. These
             are specified using a dictionary (ex. `config={'pfilter': 1}` will
@@ -738,16 +765,22 @@ class AudioClip:
 
         Notes
         -----
-        * Online transcription services (eg., Google) provide robust and
-          accurate speech recognition capabilities with broader language support
-          than offline solutions. However, these services may require a paid
-          subscription to use, reliable broadband internet connections, and may
-          not respect the privacy of your participants as their responses are
-          being sent to a third-party. Also consider that a track of audio data
-          being sent over the network can be large, users on metered connections
-          may incur additional costs to run your experiment.
-        * If the audio clip has multiple channels, they will be combined prior
-          to being passed to the transcription service if needed.
+        * The recommended transcriber is OpenAI Whisper which can be used locally
+          without an internet connection once a model is downloaded to cache. It 
+          can be selected by passing `engine='whisper'` to this function.
+        * Online transcription services (eg., Google) provide robust and accurate 
+          speech recognition capabilities with broader language support than 
+          offline solutions. However, these services may require a paid
+          subscription to use, reliable broadband internet connections, and may 
+          not respect the privacy of your participants as their responses are 
+          being sent to a third-party. Also consider that a track of audio data 
+          being sent over the network can be large, users on metered connections 
+          may incur additional costs to run your experiment. Offline 
+          transcription services (eg., CMU PocketSphinx and OpenAI Whisper) do not 
+          require an internet connection after the model has been downloaded and 
+          installed.
+        * If the audio clip has multiple channels, they will be combined prior to
+          being passed to the transcription service if needed.
 
         """
         # avoid circular import

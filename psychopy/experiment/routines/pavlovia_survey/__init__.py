@@ -8,9 +8,10 @@ from pathlib import Path
 class PavloviaSurveyRoutine(BaseStandaloneRoutine):
     categories = ['Responses']
     targets = ["PsychoJS"]
+    version = "2023.1.0"
     iconFile = Path(__file__).parent / "survey.png"
     tooltip = _translate("Run a SurveyJS survey in Pavlovia")
-    beta = True
+    beta = False
 
     def __init__(self, exp, name='survey',
                  surveyType="id", surveyId="", surveyJson="",
@@ -38,7 +39,7 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
         self.params['surveyType'] = Param(
             surveyType, valType='code', inputType="richChoice", categ='Basic',
             allowedVals=["id", "json"], allowedLabels=[
-                {'label': _translate("Survey ID"),
+                {'label': _translate("Survey id"),
                  'body': _translate(
                      "Linking to a survey ID from Pavlovia Surveys means that the content will automatically update "
                      "if that survey changes (better for dynamic use)"),
@@ -69,7 +70,7 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
             hint=_translate(
                 "The ID for your survey on Pavlovia. Tip: Right click to open the survey in your browser!"
             ),
-            label=_translate("Survey ID"))
+            label=_translate("Survey id"))
 
         self.depends += [{
             "dependsOn": "surveyType",  # must be param name
@@ -200,7 +201,14 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
             "// get data from %(name)s\n"
             "const %(name)sResponse =  %(name)s.getResponse();\n"
             "for (const question in %(name)sResponse) {\n"
-            "  psychoJS.experiment.addData(`%(name)s.${question}`, %(name)sResponse[question]);\n"
+            "  if (question instanceof dict) {\n"
+            "    // split multi-response questions (e.g. from a matrix table) into individual columns\n"
+            "    for (const subquestion in question) {\n"
+            "        psychoJS.experiment.addData(`%(name)s.${question}.${subquestion}`, %(name)sResponse[question][subquestion]);\n"
+            "    }\n"
+            "  } else {\n"
+            "    psychoJS.experiment.addData(`%(name)s.${question}`, %(name)sResponse[question]);\n"
+            "  }\n"
             "}\n"
         )
         if self.params['surveyType'] == "id":

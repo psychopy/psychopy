@@ -24,6 +24,7 @@ class SerialOutComponent(BaseComponent):
 
     categories = ['I/O', 'EEG']
     targets = ['PsychoPy']
+    version = "2022.2.0"
     iconFile = Path(__file__).parent / 'serial.png'
     tooltip = _translate('Serial out: send signals from a serial port')
     beta = True
@@ -53,17 +54,17 @@ class SerialOutComponent(BaseComponent):
             label=_translate("Port")
         )
         self.params['baudrate'] = Param(
-            baudrate, valType='int', inputType="int", categ='Hardware',
+            baudrate, valType='int', inputType="single", categ='Hardware',
             hint=_translate("The baud rate, or speed, of the connection."),
             label=_translate("Baud rate")
         )
         self.params['bytesize'] = Param(
-            bytesize, valType='int', inputType="int", categ='Hardware',
+            bytesize, valType='int', inputType="single", categ='Hardware',
             hint=_translate("Size of bits to be sent."),
             label=_translate("Data bits")
         )
         self.params['stopbits'] = Param(
-            stopbits, valType='int', inputType="int", categ='Hardware',
+            stopbits, valType='int', inputType="single", categ='Hardware',
             hint=_translate("Size of bits to be sent on stop."),
             label=_translate("Stop bits")
         )
@@ -78,18 +79,18 @@ class SerialOutComponent(BaseComponent):
         self.params['timeout'] = Param(
             timeout, valType='int', inputType="single", allowedTypes=[], categ='Hardware',
             hint=_translate("Time at which to give up listening for a response (leave blank for no limit)"),
-            label=_translate('Timeout'))
+            label=_translate("Timeout"))
 
         self.params['startdata'] = Param(
             startdata, valType='str', inputType="single", allowedTypes=[], categ='Basic',
             hint=_translate("Data to be sent at start of pulse. Data will be converted to bytes, so to specify a"
                             "numeric value directly use $chr(...)."),
-            label=_translate('Start data'))
+            label=_translate("Start data"))
         self.params['stopdata'] = Param(
             stopdata, valType='str', inputType="single", allowedTypes=[], categ='Basic',
             hint=_translate("String data to be sent at end of pulse. Data will be converted to bytes, so to specify a"
                             "numeric value directly use $chr(...)."),
-            label=_translate('Stop data'))
+            label=_translate("Stop data"))
         self.params['getResponse'] = Param(
             getResponse, valType='bool', inputType='bool', categ="Data",
             hint=_translate("After sending a signal, should PsychoPy read and record a response from the port?"),

@@ -500,7 +500,9 @@ class ListWidget(GlobSizer):
         """
         GlobSizer.__init__(self, hgap=2, vgap=2)
         self.parent = parent
-        self.value = value if value else [{"Field":"", "Default": ""}]
+        if value is None:
+            value = [{'Field': "", 'Default': ""}]
+        self.value = value
         if type(value) != list:
             msg = 'The initial value for a ListWidget must be a list of dicts'
             raise AttributeError(msg)
@@ -579,6 +581,23 @@ class ListWidget(GlobSizer):
                 ctrl = self.FindItemAtPosition((rowN, colN)).GetWindow()
                 thisEntry[fieldName] = ctrl.GetValue()
             currValue.append(thisEntry)
+        return currValue
+
+    def getValue(self):
+        """
+        Return value as a dict so it's label-agnostic.
+
+        Returns
+        -------
+        dict
+            key:value pairs represented by the two columns of this ctrl
+        """
+        currValue = {}
+        # skipping the first row (headers)
+        for rowN in range(self.GetRows())[1:]:
+            keyCtrl = self.FindItemAtPosition((rowN, 0)).GetWindow()
+            valCtrl = self.FindItemAtPosition((rowN, 1)).GetWindow()
+            currValue[keyCtrl.GetValue()] = valCtrl.GetValue()
         return currValue
 
     def GetValue(self):

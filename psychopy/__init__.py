@@ -12,8 +12,8 @@
 import os
 import sys
 
-__version__ = '2023.1.2'
-__license__ = 'GNU GPLv3 (or more recent equivalent)'
+__version__ = '2023.2.0'
+__license__ = 'GPL v3'
 __author__ = 'Open Science Tools Ltd'
 __author_email__ = 'support@opensciencetools.org'
 __maintainer_email__ = 'support@opensciencetools.org'
