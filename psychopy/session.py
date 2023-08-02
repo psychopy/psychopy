@@ -6,6 +6,7 @@ import shutil
 import threading
 import time
 import json
+import traceback
 from functools import partial
 from pathlib import Path
 
@@ -40,14 +41,27 @@ class SessionQueue:
             while len(self.queue):
                 # run the task
                 task = self.queue.pop(0)
-                retval = task()
-                # Store its output
-                self.results.append({
-                    'method': task.func.__name__,
-                    'args': task.args,
-                    'kwargs': task.kwargs,
-                    'returned': retval
-                })
+                try:
+                    retval = task()
+                except Exception as err:
+                    # send any errors to server
+                    tb = traceback.format_exception(type(err), err, err.__traceback__)
+                    output = json.dumps({
+                        'type': "error",
+                        'msg': "".join(tb)
+                    })
+                else:
+                    # process output
+                    output = {
+                        'method': task.func.__name__,
+                        'args': task.args,
+                        'kwargs': task.keywords,
+                        'returned': retval
+                    }
+                self.results.append(output)
+                # Send to liaisons
+                for session in self.sessions:
+                    session.sendToLiaison(output)
             # while idle, run idle functions for each session
             for session in self.sessions:
                 session.onIdle()
@@ -80,7 +94,7 @@ class SessionQueue:
             True if added successfully.
         """
         # create partial from supplied method, args and kwargs
-        task = partial(method, args=args, kwargs=kwargs)
+        task = partial(method, *args, **kwargs)
         # add partial to queue
         self.queue.append(task)
 
@@ -311,6 +325,8 @@ class Session:
         if threading.current_thread() == threading.main_thread() and not _queue._alive:
             _queue.start()
 
+        return True
+
     def onIdle(self):
         """
         Function to be called continuously while a SessionQueue is idle.
@@ -328,6 +344,8 @@ class Session:
             self.win.color = "grey"
             # Flip the screen
             self.win.flip()
+            # Flush log
+            self.logFile.logger.flush()
 
     def stop(self):
         """
