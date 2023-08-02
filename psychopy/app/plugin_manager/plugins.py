@@ -5,11 +5,17 @@ from PIL import Image as pil
 
 from psychopy.tools import pkgtools
 from psychopy.app.themes import theme, handlers, colors, icons
+from psychopy.tools import stringtools as st
 from psychopy.tools.versionchooser import VersionRange
 from psychopy.app import utils
 from psychopy.localization import _translate
 from psychopy import plugins, __version__
+from psychopy.preferences import prefs
 import requests
+import os.path
+import errno
+import sys
+import json
 
 
 class AuthorInfo:
@@ -129,10 +135,50 @@ class PluginInfo:
 
     @property
     def icon(self):
-        # memoize on first access
-        if self._requestedIcon is not None:
-            self._icon = utils.ImageData(self._requestedIcon)
+        # check if the directory for the plugin cache exists, create it otherwise
+        appPluginCacheDir = os.path.join(
+            prefs.paths['userCacheDir'], 'appCache', 'plugins')
+        try:
+            os.makedirs(appPluginCacheDir, exist_ok=True)
+        except OSError as err:
+            if err.errno != errno.EEXIST:
+                raise
 
+        if isinstance(self._requestedIcon, str):
+            if st.is_url(self._requestedIcon):
+                # get the file name from the URL in the JSON
+                fname = str(self._requestedIcon).split("/")
+                if len(fname) > 1:
+                    fname = fname[-1]
+                else:
+                    pass  # not a valid URL, use broken image icon
+
+                # check if the icon is already in the cache, use it if so
+                if fname in os.listdir(appPluginCacheDir):
+                    self._icon = utils.ImageData(os.path.join(
+                        appPluginCacheDir, fname))
+                    return self._icon
+                
+                # if not, download it
+                if st.is_url(self._requestedIcon):
+                    # download to cache directory
+                    ext = "." + str(self._requestedIcon).split(".")[-1]
+                    if ext in pil.registered_extensions():
+                        content = requests.get(self._requestedIcon).content
+                        writeOut = os.path.join(appPluginCacheDir, fname)
+                        with open(writeOut, 'wb') as f:
+                            f.write(content)
+                        self._icon = utils.ImageData(os.path.join(
+                            appPluginCacheDir, fname))
+
+            elif st.is_file(self._requestedIcon):
+                self._icon = utils.ImageData(self._requestedIcon) 
+            else:
+                raise ValueError("Invalid icon URL or file path.")
+            
+            return self._icon
+        
+        # icon already loaded into memory, just return that
         if hasattr(self, "_icon"):
             return self._icon
 
@@ -1096,24 +1142,58 @@ def markActive(pluginItem, pluginPanel, active=True):
         pluginPanel.Update()
 
 
+# store plugin objects for later use
+_pluginObjects = None
+
+
 def getAllPluginDetails():
     """
     Placeholder function - returns an example list of objects with desired
     structure.
     """
+    # check if the local `plugins.json` file exists and is up to date
+    appPluginCacheDir = os.path.join(
+        prefs.paths['userCacheDir'], 'appCache', 'plugins')
+
+    # make the directory if it doesn't exist
+    if not os.path.exists(appPluginCacheDir):
+        try:
+            os.makedirs(appPluginCacheDir, exist_ok=True)
+        except OSError as err:
+            if err.errno != errno.EEXIST:
+                raise
+    
+    # check if the file exists
+    pluginDirectoryFile = os.path.join(appPluginCacheDir, 'plugins.json')
+    hasPluginDirectoryFile = os.path.exists(pluginDirectoryFile)
+
     # Request plugin info list from server
     resp = requests.get("https://psychopy.org/plugins.json")
     # If 404, return None so the interface can handle this nicely rather than an
     # unhandled error.
     if resp.status_code == 404:
-        return
+        return 
+    
+    if not hasPluginDirectoryFile:
+        # save the file
+        with open(pluginDirectoryFile, 'w') as f:
+            f.write(resp.text)
+        hasPluginDirectoryFile = True
+
+    # nb - we should check if the file differs from the one on the server
+
+    global _pluginObjects
+    requiresRefresh = _pluginObjects is None
+    if not requiresRefresh:
+        return _pluginObjects
 
     # Create PluginInfo objects from info list
     objs = []
-    for info in resp.json():
-        objs.append(
-            PluginInfo(**info)
-        )
+    with open(pluginDirectoryFile, 'r') as f:
+        for info in json.load(f):
+            objs.append(
+                PluginInfo(**info)
+            )
 
     # Add info objects for local plugins which aren't found online
     localPlugins = plugins.listPlugins(which='all')
@@ -1137,7 +1217,9 @@ def getAllPluginDetails():
             # Add to list
             objs.append(info)
 
-    return objs
+    _pluginObjects = objs  # cache for later
+
+    return _pluginObjects
 
 
 if __name__ == "__main__":
