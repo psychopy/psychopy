@@ -668,9 +668,9 @@ class Mouse():
             if self.win:
                 w = self.win.winHandle
             else:
-                from psychopy.visual import openWindows
-                if openWindows:
-                    w = openWindows[0]
+
+                if psychopy.core.openWindows:
+                    w = psychopy.core.openWindows[0]()
                 else:
                     logging.warning("Called event.Mouse.getPos() for the mouse with no Window being opened")
                     return None
@@ -820,8 +820,8 @@ class Mouse():
             mouse.set_visible(visible)
         else:  # try communicating with window directly?
             from psychopy.visual import openWindows
-            if openWindows:
-                w = openWindows[0]  # type: psychopy.visual.Window
+            if psychopy.core.openWindows:
+                w = psychopy.core.openWindows[0]()  # type: psychopy.visual.Window
             else:
                 logging.warning("Called event.Mouse.getPos() for the mouse with no Window being opened")
                 return None
