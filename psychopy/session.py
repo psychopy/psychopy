@@ -1130,7 +1130,11 @@ class Session:
         """
         Safely close the current session. This will end the Python instance.
         """
-        sys.exit()
+        # if there is a Liaison object, re-register Session class
+        if self.liaison is not None:
+            self.liaison.registerClass(Session, "session")
+        # delete self
+        del self
 
 
 if __name__ == "__main__":
