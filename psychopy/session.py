@@ -1136,6 +1136,7 @@ class Session:
         # close any windows
         if self.win is not None:
             self.win.close()
+            self.win = None
         # delete self
         del self
 
