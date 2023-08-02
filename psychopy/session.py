@@ -336,7 +336,7 @@ class Session:
         bool
             True if this Session was stopped safely.
         """
-        if self.win is not None:
+        if self.win is not None and not self.win._closed:
             # Show waiting message
             self.win.showMessage(_translate(
                 "Waiting to start..."
@@ -1136,6 +1136,7 @@ class Session:
         # close any windows
         if self.win is not None:
             self.win.close()
+            self.win = None
         # delete self
         del self
 
