@@ -344,8 +344,8 @@ class Session:
             self.win.color = "grey"
             # Flip the screen
             self.win.flip()
-            # Flush log
-            self.logFile.logger.flush()
+        # Flush log
+        self.logFile.logger.flush()
 
     def stop(self):
         """
@@ -1126,10 +1126,35 @@ class Session:
         # Send
         asyncio.run(self.liaison.broadcast(message=value))
 
-    def close(self):
+    def close(self, blocking=True):
         """
         Safely close the current session. This will end the Python instance.
+
+        Parameters
+        ----------
+        blocking : bool
+            Should calling this method block the current thread?
+
+            If True (default), the method runs as normal and won't return until
+            completed.
+            If False, the method is added to a `queue` and will be run by the
+            while loop within `Session.start`. This will block the main thread,
+            but won't block the thread this method was called from.
+
+            If not using multithreading, this value is ignored. If you don't
+            know what multithreading is, you probably aren't using it - it's
+            difficult to do by accident!
         """
+        # If not in main thread and not requested blocking, use queue and return now
+        if threading.current_thread() != threading.main_thread() and not blocking:
+            # The queue is emptied each iteration of the while loop in `Session.start`
+            _queue.queueTask(
+                self.close
+            )
+            return True
+        # remove self from queue
+        if self in _queue.sessions:
+            self.stop()
         # if there is a Liaison object, re-register Session class
         if self.liaison is not None:
             self.liaison.registerClass(Session, "session")
@@ -1137,11 +1162,10 @@ class Session:
         if self.win is not None:
             self.win.close()
             self.win = None
-        # remove self from queue
-        if self in _queue.sessions:
-            self.stop()
         # delete self
         del self
+
+        return True
 
 
 if __name__ == "__main__":
