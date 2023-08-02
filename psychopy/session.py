@@ -1133,6 +1133,9 @@ class Session:
         # if there is a Liaison object, re-register Session class
         if self.liaison is not None:
             self.liaison.registerClass(Session, "session")
+        # close any windows
+        if self.win is not None:
+            self.win.close()
         # delete self
         del self
 
