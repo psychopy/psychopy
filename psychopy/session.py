@@ -305,8 +305,11 @@ class Session:
         bool
             True if this Session was started safely.
         """
-        # Register self with queue
+        # register self with queue
         _queue.connectSession(self)
+        # start queue if we're in the main branch and it's not alive yet
+        if threading.current_thread() == threading.main_thread() and not _queue._alive:
+            _queue.start()
 
     def onIdle(self):
         """
