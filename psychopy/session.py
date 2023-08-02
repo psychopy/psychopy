@@ -1137,6 +1137,9 @@ class Session:
         if self.win is not None:
             self.win.close()
             self.win = None
+        # remove self from queue
+        if self in _queue.sessions:
+            self.stop()
         # delete self
         del self
 
