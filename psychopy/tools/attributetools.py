@@ -10,6 +10,8 @@
 
 import numpy
 from psychopy import logging
+from functools import partialmethod
+import case_changer as cc
 
 
 class attributeSetter:
@@ -160,3 +162,29 @@ def logAttrib(obj, log, attrib, value=None):
         except AttributeError:
             # the "win" attribute only exists if sync-to-visual (e.g. stimuli)
             logging.log(message, level=logging.EXP, obj=obj)
+
+
+class SetterAliasMixin:
+    """
+    Makes aliases of all attributeSetter functions which are their names capitalized, preceeded by `set`
+    """
+    def __new__(cls, *args, **kwargs):
+        # iterate through methods
+        for name in dir(cls):
+            # get function
+            func = getattr(cls, name)
+            # ignore any which aren't attributeSetters
+            if not isinstance(func, attributeSetter):
+                continue
+            # work out setter method name
+            setterName = "set" + cc.pascal_case(name)
+            # ignore any which already have a setter method
+            if hasattr(cls, setterName):
+                continue
+            # create a pre-populated caller for setAttribute
+            meth = partialmethod(setAttribute, name)
+            # assign setter method
+            setattr(cls, setterName, meth)
+
+        # return class
+        return cls
