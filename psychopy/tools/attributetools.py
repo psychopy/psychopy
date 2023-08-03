@@ -174,7 +174,7 @@ class SetterAliasMixin:
             # get function
             func = getattr(cls, name)
             # ignore any which aren't attributeSetters
-            if not isinstance(func, attributeSetter):
+            if not isinstance(func, (attributeSetter, property)):
                 continue
             # work out setter method name
             setterName = "set" + cc.pascal_case(name)
