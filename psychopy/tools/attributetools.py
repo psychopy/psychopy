@@ -75,6 +75,10 @@ def setAttribute(self, attrib, value, log=None,
     Even though it looks complex, it is very fast :-)
     """
 
+    # if log is None, use autoLog
+    if log is None:
+        log = getattr(self, "autoLog", False)
+
     # Change the value of "value" if there is an operation. Even if it is '',
     # which indicates that this value could potentially be subjected to an
     # operation.
