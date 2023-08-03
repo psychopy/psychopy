@@ -1,11 +1,12 @@
 from psychopy.constants import STARTED, NOT_STARTED, PAUSED, STOPPED, FINISHED
 from psychopy.alerts import alert
 from psychopy import logging
+from psychopy.tools.attributetools import SetterAliasMixin
 from copy import copy
 import sys
 
 
-class EyetrackerControl:
+class EyetrackerControl(SetterAliasMixin):
     currentlyRecording = False
 
     def __init__(self, tracker, actionType="Start and Stop"):

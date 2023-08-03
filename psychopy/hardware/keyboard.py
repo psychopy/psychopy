@@ -68,6 +68,7 @@ import psychopy.clock
 from psychopy import logging
 from psychopy.constants import NOT_STARTED
 import time
+from psychopy.tools.attributetools import SetterAliasMixin
 
 try:
     import psychtoolbox as ptb
@@ -120,7 +121,7 @@ def getKeyboards():
     return []
 
 
-class Keyboard:
+class Keyboard(SetterAliasMixin):
     """The Keyboard class provides access to the Psychtoolbox KbQueue-based
     calls on **Python3 64-bit** with fall-back to `event.getKeys` on legacy
     systems.
