@@ -597,6 +597,7 @@ class SoundPTB(_SoundBase):
         self.frameN = int(round(t * self.sampleRate))
         if self.sndFile and not self.sndFile.closed:
             self.sndFile.seek(self.frameN)
+        self._isFinished = t >= self.duration
 
     def _EOS(self, reset=True, log=True):
         """Function called on End Of Stream
