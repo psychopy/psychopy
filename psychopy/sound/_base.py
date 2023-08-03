@@ -13,7 +13,7 @@ from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)
 from psychopy.tools.filetools import pathToString, defaultStim, defaultStimRoot
 from psychopy.tools.audiotools import knownNoteNames, stepsFromA
-from psychopy.tools.attributetools import SetterAliasMixin
+from psychopy.tools.attributetools import AttributeGetSetMixin
 from sys import platform
 from .audioclip import AudioClip
 
@@ -101,7 +101,7 @@ class HammingWindow():
         return block
 
 
-class _SoundBase(SetterAliasMixin):
+class _SoundBase(AttributeGetSetMixin):
     """Base class for sound object, from one of many ways.
     """
     # Must be provided by class SoundPygame or SoundPyo:

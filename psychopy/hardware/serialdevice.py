@@ -13,14 +13,14 @@ import sys
 import time
 
 from psychopy import logging
-from psychopy.tools.attributetools import SetterAliasMixin
+from psychopy.tools.attributetools import AttributeGetSetMixin
 try:
     import serial
 except ImportError:
     serial = False
 
 
-class SerialDevice(SetterAliasMixin):
+class SerialDevice(AttributeGetSetMixin):
     """A base class for serial devices, to be sub-classed by specific devices
 
     If port=None then the SerialDevice.__init__() will search for the device

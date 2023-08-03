@@ -168,9 +168,10 @@ def logAttrib(obj, log, attrib, value=None):
             logging.log(message, level=logging.EXP, obj=obj)
 
 
-class SetterAliasMixin:
+class AttributeGetSetMixin:
     """
-    Makes aliases of all attributeSetter functions which are their names capitalized, preceeded by `set`
+    For all attributeSetter and property/setter methods, makes a get and set method whose names are the attribute name,
+    in PascalCase, preceeded by "set" or "get"
     """
     def __init_subclass__(cls, **kwargs):
         # iterate through methods
@@ -180,18 +181,25 @@ class SetterAliasMixin:
             # ignore any which aren't attributeSetters
             if not isinstance(func, (attributeSetter, property)):
                 continue
-            # ignore any non-settable properties
+            # work out getter method name
+            getterName = "get" + cc.pascal_case(name)
+            # ignore any which already have a getter method
+            if not hasattr(cls, getterName):
+                # create a pre-populated caller for getattr
+                meth = partialmethod(getattr, name)
+                # assign setter method
+                setattr(cls, getterName, meth)
+            # any non-settable properties are now done
             if isinstance(func, property) and func.fset is None:
                 continue
             # work out setter method name
             setterName = "set" + cc.pascal_case(name)
             # ignore any which already have a setter method
-            if hasattr(cls, setterName):
-                continue
-            # create a pre-populated caller for setAttribute
-            meth = partialmethod(setAttribute, name)
-            # assign setter method
-            setattr(cls, setterName, meth)
+            if not hasattr(cls, setterName):
+                # create a pre-populated caller for setAttribute
+                meth = partialmethod(setAttribute, name)
+                # assign setter method
+                setattr(cls, setterName, meth)
 
         # return class
         return cls
