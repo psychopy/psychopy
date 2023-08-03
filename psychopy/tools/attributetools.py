@@ -49,7 +49,7 @@ class attributeSetter:
         return repr(self.__getattribute__)
 
 
-def setAttribute(self, attrib, value, log,
+def setAttribute(self, attrib, value, log=None,
                  operation=False, stealth=False):
     """This function is useful to direct the old set* functions to the
     @attributeSetter.
@@ -168,7 +168,7 @@ class SetterAliasMixin:
     """
     Makes aliases of all attributeSetter functions which are their names capitalized, preceeded by `set`
     """
-    def __new__(cls, *args, **kwargs):
+    def __init_subclass__(cls, **kwargs):
         # iterate through methods
         for name in dir(cls):
             # get function
