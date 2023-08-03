@@ -773,6 +773,22 @@ class BorderColorMixin(BaseColorMixin, LegacyBorderColorMixin):
     def setLineColor(self, color, colorSpace=None, operation='', log=None):
         self.setBorderColor(color, colorSpace=None, operation='', log=None)
 
+    @attributeSetter
+    def borderWidth(self, value):
+        self.__dict__['borderWidth'] = value
+        return self.__dict__['borderWidth']
+
+    def setBorderWidth(self, newWidth, operation='', log=None):
+        setAttribute(self, 'borderWidth', newWidth, log, operation)
+
+    @attributeSetter
+    def lineWidth(self, value):
+        self.__dict__['borderWidth'] = value
+        return self.__dict__['borderWidth']
+
+    def setLineWidth(self, newWidth, operation='', log=None):
+        setAttribute(self, 'lineWidth', newWidth, log, operation)
+
 
 class ColorMixin(ForeColorMixin, FillColorMixin, BorderColorMixin):
     """
