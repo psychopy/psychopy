@@ -180,6 +180,9 @@ class SetterAliasMixin:
             # ignore any which aren't attributeSetters
             if not isinstance(func, (attributeSetter, property)):
                 continue
+            # ignore any non-settable properties
+            if isinstance(func, property) and func.fset is None:
+                continue
             # work out setter method name
             setterName = "set" + cc.pascal_case(name)
             # ignore any which already have a setter method
