@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 2023.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-01 14:04+0900\n"
-"PO-Revision-Date: 2023-08-03 21:32+0900\n"
+"POT-Creation-Date: 2023-08-04 17:55+0900\n"
+"PO-Revision-Date: 2023-08-04 17:55+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -9371,11 +9371,13 @@ msgid "Projects: Create new project"
 msgstr "Projects: プロジェクトを新規作成します"
 
 #: psychopy/projects/pavlovia.py:151
-#, python-brace-format
-msgid "Could not retrieve user info for user {id}, server returned:\n"
+msgid ""
+"Could not retrieve user info for user {}, server returned:\n"
+"{}"
 msgstr ""
-"ユーザー {id} の情報を取得できませんでした. サーバーからの返答は以下の通りで"
-"す.\n"
+"ユーザー {} の情報を取得できませんでした. サーバーからの返答は以下の通りで"
+"す:\n"
+"{}"
 
 #: psychopy/projects/pavlovia.py:285
 #, python-brace-format
@@ -9475,20 +9477,17 @@ msgid "Waiting to start..."
 msgstr "開始を待っています..."
 
 #: psychopy/session.py:266
-#, python-brace-format
 msgid ""
-"Experiment '{file.stem}' is located outside of the root folder for this "
-"Session. All files from its "
+"Experiment '{}' is located outside of the root folder for this Session. All "
+"files from its experiment folder ('{}') will be copied to the root folder "
+"and the experiment will run from there."
 msgstr ""
+"実験'{}'はセッションのルートフォルダの外にあります. 実験フォルダ('{}')にある"
+"すべてのファイルはルートフォルダ内にコピーされ, 実験はそこで実行されます."
 
 #: psychopy/session.py:283
-#, python-brace-format
-msgid ""
-"Experiment '{file.stem}' and its experiment folder ('{folder.stem}') have "
-"been copied to {newFolder}"
-msgstr ""
-"実験 '{file.stem}' とそのフォルダ('{folder.stem}')は{newFolder}にコピーされま"
-"した."
+msgid "Experiment '{}' and its experiment folder ('{}') have been copied to {}"
+msgstr "実験 '{}' とそのフォルダ('{}')は{}にコピーされました."
 
 #: psychopy/session.py:315
 msgid ""
@@ -9529,9 +9528,14 @@ msgstr ""
 "せん."
 
 #: psychopy/tools/pkgtools.py:544
-#, python-brace-format
-msgid "Could not get info for package {packageName}. Reason:\n"
-msgstr "{packageName}というパッケージが見つかりません: \n"
+msgid ""
+"Could not get info for package {}. Reason:\n"
+"\n"
+"{}"
+msgstr ""
+"{}というパッケージが見つかりません: \n"
+"\n"
+"{}"
 
 #: psychopy/tools/versionchooser.py:116
 msgid "{} to {}"
@@ -9561,6 +9565,13 @@ msgid ""
 "different version of Python - some standalone PsychoPy releases include "
 "installers for multiple versions."
 msgstr ""
+"要求されたPsychoPy {requested} はインストールされている Python {py} でサポー"
+"トされていません. {py}をサポートする{mode}バージョンのPsychoPyは {key} で"
+"す.\n"
+"\n"
+"異なるバージョンのPsychoPyを選択するか, 異なるバージョンのPythonをインストー"
+"ルしてください. スタンドアローン版のPsychoPyの中には複数のバージョンのインス"
+"トーラーを含むものがあります."
 
 #: psychopy/tools/versionchooser.py:275
 msgid "Required minimal version `{}` not met ({})."
