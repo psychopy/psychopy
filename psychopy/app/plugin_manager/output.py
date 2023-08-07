@@ -58,7 +58,7 @@ class InstallStdoutPanel(wx.Panel, handlers.ThemeMixin):
         if "i" in style:
             self.output.BeginItalic()
         # Write content
-        self.output.WriteText(content)
+        self.output.WriteText(f"\n{content}")
         # End style
         self.output.EndTextColour()
         self.output.EndBold()
@@ -88,7 +88,7 @@ class InstallStdoutPanel(wx.Panel, handlers.ThemeMixin):
         cmd : bytes or str
             Command which was supplied to the subprocess
         """
-        self.write(f">> {cmd}\n", style="bi")
+        self.write(f">> {cmd}", style="bi")
 
     def writeStdOut(self, lines=""):
         """
@@ -99,7 +99,7 @@ class InstallStdoutPanel(wx.Panel, handlers.ThemeMixin):
         lines : bytes or str
             String to print, can also be bytes (as is the case when retrieved directly from the subprocess).
         """
-        self.write(f"{lines}\n")
+        self.write(lines)
 
     def writeStdErr(self, lines=""):
         """
@@ -110,7 +110,7 @@ class InstallStdoutPanel(wx.Panel, handlers.ThemeMixin):
         lines : bytes or str
             String to print, can also be bytes (as is the case when retrieved directly from the subprocess).
         """
-        self.write(f"{lines}\n", color=colors.scheme["red"])
+        self.write(lines, color=colors.scheme["red"])
 
     def writeTerminus(self, msg="Process completed"):
         """
@@ -122,7 +122,7 @@ class InstallStdoutPanel(wx.Panel, handlers.ThemeMixin):
             Message to be printed flanked by `#` characters.
         """
         # Construct a close message, shows the exit code
-        closeMsg = f" {msg} ".center(80, '#') + '\n'
+        closeMsg = f" {msg} ".center(80, '#')
         # Write close message
         self.write(closeMsg, color=colors.scheme["green"])
 
