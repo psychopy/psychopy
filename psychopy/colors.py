@@ -257,7 +257,7 @@ class Color:
         Cone matrix for colorspaces which require it. Must be a 3x3 array.
 
     """
-    def __init__(self, color=None, space=None, contrast=None, conematrix=None):
+    def __init__(self, color=None, space=None, contrast=None, conematrix=None, validate=True):
         self._cache = {}
         self._renderCache = {}
         self.contrast = contrast if isinstance(contrast, (int, float)) else 1
@@ -269,16 +269,12 @@ class Color:
         self._requested = None
         self._requestedSpace = None
 
-        self.set(color=color, space=space)
-    
-    perform_validation = True # Static flag
+        self.set(color=color, space=space, validate=validate)
+
     def validate(self, color, space=None):
         """
         Check that a color value is valid in the given space, or all spaces if space==None.
         """
-        if (not Color.perform_validation):
-            return color, space
-
         # Treat None as a named color
         if color is None:
             color = "none"
@@ -351,7 +347,7 @@ class Color:
 
         return color, space
 
-    def set(self, color=None, space=None):
+    def set(self, color=None, space=None, validate=True):
         """Set the colour of this object - essentially the same as what happens
         on creation, but without having to initialise a new object.
         """
@@ -366,8 +362,9 @@ class Color:
         # Store requested colour and space (or defaults, if none given)
         self._requested = color
         self._requestedSpace = space
-        # Validate and prepare values
-        color, space = self.validate(color, space)
+        if validate:
+            # Validate and prepare values
+            color, space = self.validate(color, space)
         # Convert to lingua franca
         if space in colorSpaces:
             self.valid = True
@@ -491,17 +488,10 @@ class Color:
         return self.__deepcopy__()
 
     def __deepcopy__(self):
-        # optimization to disable validation while copying
-        # since it isn't necessary and is very slow
-        original_perform_validation = Color.perform_validation
-        Color.perform_validation = False
-
         dupe = self.__class__(
-            self._requested, self._requestedSpace, self.contrast)
-        dupe.rgba = self.rgba
+            self._requested, self._requestedSpace, self.contrast, validate=False)
+        dupe.set(self.rgba, "rgba", validate=False)
         dupe.valid = self.valid
-
-        Color.perform_validation = original_perform_validation
 
         return dupe
 
