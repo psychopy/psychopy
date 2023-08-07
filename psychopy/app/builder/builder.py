@@ -4362,7 +4362,7 @@ class BuilderToolbar(BasePsychopyToolbar):
             func=self.frame.compileScript)
         # Run Py
         self.buttons['run'] = self.makeTool(
-            name='run',
+            name='pyRun',
             label=_translate('Run'),
             shortcut='runScript',
             tooltip=_translate("Run experiment"),
@@ -4381,7 +4381,7 @@ class BuilderToolbar(BasePsychopyToolbar):
         self.frame.bldrBtnRunner = self.buttons['runner']
         # Run JS
         self.buttons['pavloviaDebug'] = self.makeTool(
-            name='globe_bug',
+            name='jsRun',
             label=_translate("Run in local browser"),
             tooltip=_translate("Run the study in PsychoJS on a local browser, not through pavlovia.org"),
             func=self.onPavloviaDebug)
