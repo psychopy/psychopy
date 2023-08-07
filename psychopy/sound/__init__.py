@@ -55,16 +55,16 @@ except ImportError as err:
         "possible on this machine. For details see stack trace below:\n"
         f"{formatted_tb}")
 
-# import transcription if possible
-try:
-    from .transcribe import *  # import transcription engine stuff
-except ImportError as err:
-    formatted_tb = ''.join(
-        traceback.format_exception(type(err), err, err.__traceback__))
-    logging.error(
-        "Failed to import psychopy.sound.transcribe. Transcription will not be"
-        "possible on this machine. For details see stack trace below:\n"
-        f"{formatted_tb}")
+# # import transcription if possible
+# try:
+#     from .transcribe import *  # import transcription engine stuff
+# except ImportError as err:
+#     formatted_tb = ''.join(
+#         traceback.format_exception(type(err), err, err.__traceback__))
+#     logging.error(
+#         "Failed to import psychopy.sound.transcribe. Transcription will not be"
+#         "possible on this machine. For details see stack trace below:\n"
+#         f"{formatted_tb}")
 
 # used to check if we are on 64-bit Python
 bits32 = sys.maxsize == 2 ** 32
@@ -206,7 +206,7 @@ if Sound is not None:
     logging.info('sound is using audioLib: %s' % audioLib)
 else:
     # if we get here, there is no audioLib that is supported
-    raise DependencyError(
+    logging.error(
         "No audioLib could be loaded. Tried: {}\n Check whether the necessary "
         "audioLibs are installed".format(prefs.hardware['audioLib']))
 

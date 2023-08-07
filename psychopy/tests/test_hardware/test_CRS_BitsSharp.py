@@ -14,7 +14,7 @@ def test_bitsSharp():
     except (ModuleNotFoundError, ImportError):
         return
 
-    win = visual.Window(screen=1, fullscr=True, useFBO=True, autoLog=True)
+    win = visual.Window(screen=0, fullscr=True, useFBO=True, autoLog=True)
     win.setGamma(1.0) #make sure gfx card LUT is identity
     #initialise BitsSharp
     try:

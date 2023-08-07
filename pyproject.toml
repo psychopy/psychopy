@@ -27,13 +27,13 @@ classifiers = [
     ]
     
 dependencies = [
-    "numpy>=1.24.3",
-    "scipy>=1.10.1",
-    "matplotlib>=3.7.1",
+    "numpy",  # use numpy<1.24 for psychopy<2023.1
+    "scipy",
+    "matplotlib",
     "pyglet == 1.4.11; platform_system == \"Windows\"",
     "pyglet == 1.5.27; platform_system != \"Windows\"",
     "pillow>=9.4.0",
-    "PyQt6",
+    "pyqt6",
     "pandas>=1.5.3",
     "questplus>=2023.1",
     "openpyxl",
@@ -86,9 +86,9 @@ dependencies = [
     "python-vlc == 3.0.11115; platform_system == \"Windows\"",
     "python-vlc >= 3.0.12118; platform_system != \"Windows\"",
     "pypiwin32; platform_system == \"Windows\"",
-    "pyobjc-core < 8.0; platform_system == \"Darwin\"",
+    "pyobjc-core; platform_system == \"Darwin\"",
     "pyobjc-framework-Quartz < 8.0; platform_system == \"Darwin\"",
-    "pyobjc < 8.0; platform_system == \"Darwin\"",
+    "pyobjc; platform_system == \"Darwin\"",
     "python-xlib; platform_system == \"Linux\"",
 ]
 
@@ -102,8 +102,9 @@ tests = [
     "xmlschema",
 ]
 building = [
-    "bdist-mpkg>=0.5.0",
+    "bdist-mpkg>=0.5.0; platform_system == \"Darwin\"",
     "py2app; platform_system == \"Darwin\"",
+    "dmgbuild; platform_system == \"Darwin\"",
 ]
 suggested = [
     "pylsl>=1.16.1", # lab streaming layer for general connectivity
@@ -113,7 +114,7 @@ suggested = [
     "google-api-python-client",
     "pygaze>=1.1.2",
     "tobii_research",
-    "SMITE @ git+https://github.com/marcus-nystrom/SMITE.git",
+    "SMITE @ git+https://github.com/marcus-nystrom/SMITE.git@1.0.0rc1",
     "badapted>=0.0.3",
     "egi-pynetstation>=0.0.0rc1",
     "pyxid2>=1.0.5",

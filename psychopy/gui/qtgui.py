@@ -102,8 +102,8 @@ class Dlg(QtWidgets.QDialog):
         # add buttons for OK and Cancel
         buttons = QtWidgets.QDialogButtonBox.StandardButton.Ok | QtWidgets.QDialogButtonBox.StandardButton.Cancel
         self.buttonBox = QtWidgets.QDialogButtonBox(buttons, parent=self)
-        self.buttonBox.clicked.connect(self.accept)
-        self.buttonBox.clicked.connect(self.reject)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
         # store references to OK and CANCEL buttons
         self.okBtn = self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Ok)
         self.cancelBtn = self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Cancel)
@@ -364,7 +364,7 @@ class Dlg(QtWidgets.QDialog):
             frameGm.moveCenter(centerPoint)
             self.move(frameGm.topLeft())
         else:
-            self.move(self.pos[0],self.pos[1])
+            self.move(self.pos[0], self.pos[1])
         QtWidgets.QDialog.show(self)
         self.raise_()
         self.activateWindow()
@@ -372,7 +372,7 @@ class Dlg(QtWidgets.QDialog):
             self.inputFields[0].setFocus()
 
         self.OK = False
-        if QtWidgets.QDialog.exec(self) == QtWidgets.QDialog.accepted:
+        if QtWidgets.QDialog.exec(self):  # == QtWidgets.QDialog.accepted:
             self.OK = True
             return self.data
 

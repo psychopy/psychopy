@@ -12,7 +12,7 @@ from psychopy import logging
 from psychopy.alerts import alert
 from psychopy.tools import stringtools as st, systemtools as syst, audiotools as at
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
-from psychopy.sound.audiodevice import sampleRateQualityLevels
+from psychopy.tools.audiotools import sampleRateQualityLevels
 from psychopy.localization import _localized as __localized
 
 _hasPTB = True
@@ -59,6 +59,7 @@ class MicrophoneComponent(BaseComponent):
     """An event class for capturing short sound stimuli"""
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
+    version = "2021.2.0"
     iconFile = Path(__file__).parent / 'microphone.png'
     tooltip = _translate('Microphone: basic sound capture (fixed onset & '
                          'duration), okay for spoken words')
@@ -445,6 +446,28 @@ class MicrophoneComponent(BaseComponent):
         if transcribe:
             code = (
                 "%(loop)s.addData('%(name)s.script', %(name)sScript)\n"
+            )
+            buff.writeIndentedLines(code % inits)
+        if inits['speakTimes'] and inits['transcribeBackend'].val == "whisper":
+            code = (
+                "# save transcription data\n"
+                "with open(os.path.join(%(name)sRecFolder, 'recording_%(name)s_%%s.json' %% tag), 'w') as fp:\n"
+                "    fp.write(%(name)sScript.response)\n"
+                "# save speaking start/stop times\n"
+                "%(name)sWordData = []\n"
+                "%(name)sSegments = %(name)s.lastScript.responseData.get('segments', {})\n"
+                "for thisSegment in %(name)sSegments.values():\n"
+                "    # for each segment...\n"
+                "    for thisWord in thisSegment.get('words', {}).values():\n"
+                "        # append word data\n"
+                "        %(name)sWordData.append(thisWord)\n"
+                "# if there were any words, store the start of first & end of last \n"
+                "if len(%(name)sWordData):\n"
+                "    thisExp.addData('%(name)s.speechStart', %(name)sWordData[0]['start'])\n"
+                "    thisExp.addData('%(name)s.speechEnd', %(name)sWordData[-1]['end'])\n"
+                "else:\n"
+                "    thisExp.addData('%(name)s.speechStart', '')\n"
+                "    thisExp.addData('%(name)s.speechEnd', '')\n"
             )
             buff.writeIndentedLines(code % inits)
         # Write base end routine code

@@ -6,12 +6,140 @@ import shutil
 import threading
 import time
 import json
+import traceback
+from functools import partial
 from pathlib import Path
 
 from psychopy import experiment, logging, constants, data, core, __version__
 from psychopy.tools.arraytools import AliasDict
 
 from psychopy.localization import _translate
+
+
+class SessionQueue:
+    def __init__(self):
+        # start off alive
+        self._alive = True
+        # blank list of partials to run
+        self.queue = []
+        # blank list of outputs
+        self.results = []
+        # blank list of Sessions to maintain
+        self.sessions = []
+
+    def start(self):
+        """
+        Start a while loop which will execute any methods added to this queue via
+        queueTask as well as the onIdle functions of any sessions registered with
+        this queue. This while loop will keep running until `stop` is called, so
+        only use this method if you're running with multiple threads!
+        """
+        self._alive = True
+        # process any calls
+        while self._alive:
+            # empty the queue of any tasks
+            while len(self.queue):
+                # run the task
+                task = self.queue.pop(0)
+                try:
+                    retval = task()
+                except Exception as err:
+                    # send any errors to server
+                    tb = traceback.format_exception(type(err), err, err.__traceback__)
+                    output = json.dumps({
+                        'type': "error",
+                        'msg': "".join(tb)
+                    })
+                else:
+                    # process output
+                    output = {
+                        'method': task.func.__name__,
+                        'args': task.args,
+                        'kwargs': task.keywords,
+                        'returned': retval
+                    }
+                self.results.append(output)
+                # Send to liaisons
+                for session in self.sessions:
+                    session.sendToLiaison(output)
+            # while idle, run idle functions for each session
+            for session in self.sessions:
+                session.onIdle()
+            # take a little time to sleep so tasks on other threads can execute
+            time.sleep(0.1)
+
+    def stop(self):
+        """
+        Stop this queue.
+        """
+        # stop running the queue
+        self._alive = False
+
+    def queueTask(self, method, *args, **kwargs):
+        """
+        Add a task to this queue, to be executed when next possible.
+
+        Parameters
+        ----------
+        method : function
+            Method to execute
+        args : tuple
+            Tuple of positional arguments to call `method` with.
+        kwargs : dict
+            Dict of named arguments to call `method` with.
+
+        Returns
+        -------
+        bool
+            True if added successfully.
+        """
+        # create partial from supplied method, args and kwargs
+        task = partial(method, *args, **kwargs)
+        # add partial to queue
+        self.queue.append(task)
+
+        return True
+
+    def connectSession(self, session):
+        """
+        Associate a Session object with this queue, meaning that its onIdle
+        method will be called whenever the queue is not running anything else.
+
+        Parameters
+        ----------
+        session : Session
+            Session to associate with this queue.
+
+        Returns
+        -------
+        bool
+            True if associated successfully.
+        """
+        # add session to list of sessions whose onIdle function to call
+        self.sessions.append(session)
+
+    def disconnectSession(self, session):
+        """
+        Remove association between a Session object and this queue, meaning
+        that its onIdle method will not be called by the queue.
+
+        Parameters
+        ----------
+        session : Session
+            Session to disconnect from this queue.
+
+        Returns
+        -------
+        bool
+            True if associated successfully.
+        """
+        # remove session from list of linked sessions
+        if session in self.sessions:
+            i = self.sessions.index(session)
+            self.sessions.pop(i)
+
+
+_queue = SessionQueue()
 
 
 class Session:
@@ -108,20 +236,17 @@ class Session:
         later on via `addExperiment()`.
     """
 
-    _queue = []
-    _results = []
-
     def __init__(self,
                  root,
                  dataDir=None,
-                 liaison=None,
+                 clock="iso",
+                 win=None,
+                 experiments=None,
                  loggingLevel="info",
                  priorityThreshold=constants.priority.EXCLUDE+1,
                  inputs=None,
-                 win=None,
-                 experiments=None,
                  params=None,
-                 clock=None):
+                 liaison=None):
         # Store root and add to Python path
         self.root = Path(root)
         sys.path.insert(1, str(self.root))
@@ -166,8 +291,12 @@ class Session:
             # If inputs is the name of an experiment, setup from that experiment's method
             self.setupInputsFromExperiment(inputs)
         # Setup Session clock
-        if clock is None:
+        if clock in (None, "float"):
             clock = core.Clock()
+        elif clock == "iso":
+            clock = core.Clock(format=str)
+        elif isinstance(clock, str):
+            clock = core.Clock(format=clock)
         self.sessionClock = clock
         # Store params as an aliased dict
         if params is None:
@@ -188,41 +317,42 @@ class Session:
         Returns
         -------
         bool
+            True if this Session was started safely.
+        """
+        # register self with queue
+        _queue.connectSession(self)
+        # start queue if we're in the main branch and it's not alive yet
+        if threading.current_thread() == threading.main_thread() and not _queue._alive:
+            _queue.start()
+
+        return True
+
+    def onIdle(self):
+        """
+        Function to be called continuously while a SessionQueue is idle.
+
+        Returns
+        -------
+        bool
             True if this Session was stopped safely.
         """
-        # Create attribute to keep self running
-        self._alive = True
-        # Show waiting message
-        if self.win is not None:
+        if self.win is not None and not self.win._closed:
+            # Show waiting message
             self.win.showMessage(_translate(
                 "Waiting to start..."
             ))
             self.win.color = "grey"
-        # Process any calls
-        while self._alive:
-            # Empty the queue of any tasks
-            while len(self._queue):
-                # Run the task
-                method, args, kwargs = self._queue.pop(0)
-                retval = method(*args, **kwargs)
-                # Store its output
-                self._results.append({
-                    'method': method.__name__,
-                    'args': args,
-                    'kwargs': kwargs,
-                    'returned': retval
-                })
-            # Flip the screen and give a little time to sleep
-            if self.win is not None:
-                self.win.flip()
-                time.sleep(0.1)
+            # Flip the screen
+            self.win.flip()
+        # Flush log
+        self.logFile.logger.flush()
 
     def stop(self):
         """
-        Stop this Session running its queue. Not recommended unless running
+        Stop this Session running the queue. Not recommended unless running
         across multiple threads.
         """
-        self._alive = False
+        _queue.disconnectSession(self)
 
     def addExperiment(self, file, key=None, folder=None):
         """
@@ -448,11 +578,10 @@ class Session:
         # If not in main thread and not requested blocking, use queue and return now
         if threading.current_thread() != threading.main_thread() and not blocking:
             # The queue is emptied each iteration of the while loop in `Session.start`
-            self._queue.append((
+            _queue.queueTask(
                 self.setupWindowFromExperiment,
-                (key,),
-                {'expInfo': expInfo}
-            ))
+                key, expInfo=expInfo
+            )
             return True
 
         if expInfo is None:
@@ -494,11 +623,10 @@ class Session:
         # If not in main thread and not requested blocking, use queue and return now
         if threading.current_thread() != threading.main_thread() and not blocking:
             # The queue is emptied each iteration of the while loop in `Session.start`
-            self._queue.append((
+            _queue.queueTask(
                 self.setupWindowFromParams,
-                (params,),
-                {}
-            ))
+                params
+            )
             return True
 
         if self.win is None:
@@ -520,7 +648,7 @@ class Session:
 
         return True
 
-    def setupInputsFromExperiment(self, key, expInfo=None, blocking=True):
+    def setupInputsFromExperiment(self, key, expInfo=None, thisExp=None, blocking=True):
         """
         Setup inputs for this Session via the 'setupInputs` method from one of this Session's experiments.
 
@@ -530,6 +658,8 @@ class Session:
             Key by which the experiment is stored (see `.addExperiment`).
         expInfo : dict
             Information about the experiment, created by the `setupExpInfo` function.
+        thisExp : psychopy.data.ExperimentHandler
+            Handler object for this experiment, contains the data to save and information about where to save it to.
         blocking : bool
             Should calling this method block the current thread?
 
@@ -551,17 +681,16 @@ class Session:
         # If not in main thread and not requested blocking, use queue and return now
         if threading.current_thread() != threading.main_thread() and not blocking:
             # The queue is emptied each iteration of the while loop in `Session.start`
-            self._queue.append((
+            _queue.queueTask(
                 self.setupInputsFromExperiment,
-                (key,),
-                {'expInfo': expInfo}
-            ))
+                key, expInfo=expInfo
+            )
             return True
 
         if expInfo is None:
             expInfo = self.getExpInfoFromExperiment(key)
         # Run the setupInputs method
-        self.inputs = self.experiments[key].setupInputs(expInfo=expInfo, win=self.win)
+        self.inputs = self.experiments[key].setupInputs(expInfo=expInfo, thisExp=thisExp, win=self.win)
 
         return True
 
@@ -597,11 +726,10 @@ class Session:
         # If not in main thread and not requested blocking, use queue and return now
         if threading.current_thread() != threading.main_thread() and not blocking:
             # The queue is emptied each iteration of the while loop in `Session.start`
-            self._queue.append((
+            _queue.queueTask(
                 self.addKeyboardFromParams,
-                (name, params),
-                {}
-            ))
+                name, params
+            )
             return True
 
         # Create keyboard
@@ -642,11 +770,10 @@ class Session:
         # If not in main thread and not requested blocking, use queue and return now
         if threading.current_thread() != threading.main_thread() and not blocking:
             # The queue is emptied each iteration of the while loop in `Session.start`
-            self._queue.append((
+            _queue.queueTask(
                 self.runExperiment,
-                (key,),
-                {'expInfo': expInfo}
-            ))
+                key, expInfo=expInfo
+            )
             return True
 
         if expInfo is None:
@@ -667,7 +794,7 @@ class Session:
         # Setup logging
         self.experiments[key].run.__globals__['logFile'] = self.logFile
         # Setup inputs
-        self.setupInputsFromExperiment(key, expInfo=expInfo)
+        self.setupInputsFromExperiment(key, expInfo=expInfo, thisExp=thisExp)
         # Log start
         logging.info(_translate(
             "Running experiment via Session: name={key}, expInfo={expInfo}"
@@ -816,11 +943,10 @@ class Session:
         # If not in main thread and not requested blocking, use queue and return now
         if threading.current_thread() != threading.main_thread() and not blocking:
             # The queue is emptied each iteration of the while loop in `Session.start`
-            self._queue.append((
+            _queue.queueTask(
                 self.saveExperimentData,
-                (key,),
-                {'thisExp': thisExp}
-            ))
+                key, thisExp=thisExp
+            )
             return True
 
         # get last run
@@ -1000,11 +1126,46 @@ class Session:
         # Send
         asyncio.run(self.liaison.broadcast(message=value))
 
-    def close(self):
+    def close(self, blocking=True):
         """
         Safely close the current session. This will end the Python instance.
+
+        Parameters
+        ----------
+        blocking : bool
+            Should calling this method block the current thread?
+
+            If True (default), the method runs as normal and won't return until
+            completed.
+            If False, the method is added to a `queue` and will be run by the
+            while loop within `Session.start`. This will block the main thread,
+            but won't block the thread this method was called from.
+
+            If not using multithreading, this value is ignored. If you don't
+            know what multithreading is, you probably aren't using it - it's
+            difficult to do by accident!
         """
-        sys.exit()
+        # If not in main thread and not requested blocking, use queue and return now
+        if threading.current_thread() != threading.main_thread() and not blocking:
+            # The queue is emptied each iteration of the while loop in `Session.start`
+            _queue.queueTask(
+                self.close
+            )
+            return True
+        # remove self from queue
+        if self in _queue.sessions:
+            self.stop()
+        # if there is a Liaison object, re-register Session class
+        if self.liaison is not None:
+            self.liaison.registerClass(Session, "session")
+        # close any windows
+        if self.win is not None:
+            self.win.close()
+            self.win = None
+        # delete self
+        del self
+
+        return True
 
 
 if __name__ == "__main__":
@@ -1028,34 +1189,19 @@ if __name__ == "__main__":
     # Parse args
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--root", dest="root")
     parser.add_argument("--host", dest="host")
-    parser.add_argument("--timing", dest="timing", default="iso")
-    parser.add_argument("--session-data-dir", dest="dataDir")
     args, _ = parser.parse_known_args()
-    # Setup timing
-    if args.timing == "float":
-        sessionClock = core.Clock()
-    elif args.timing == "iso":
-        sessionClock = core.Clock(format=str)
-    else:
-        sessionClock = core.Clock(format=args.timing)
-    # Create session
-    session = Session(
-        root=args.root,
-        clock=sessionClock,
-        dataDir=args.dataDir
-    )
+
     if ":" in str(args.host):
         host, port = str(args.host).split(":")
         # Import liaison
         from psychopy import liaison
         # Create liaison server
         liaisonServer = liaison.WebSocketServer()
-        session.liaison = liaisonServer
         # Add session to liaison server
-        liaisonServer.registerMethods(session, "session")
-        liaisonServer.registerMethods(session.params, "params")
+        liaisonServer.registerClass(Session, "session")
+        # Register queue with liaison
+        liaisonServer.registerMethods(_queue, "SessionQueue")
         # Create thread to run liaison server in
         liaisonThread = threading.Thread(
             target=liaisonServer.start,
@@ -1066,7 +1212,7 @@ if __name__ == "__main__":
         )
         # Start liaison server
         liaisonThread.start()
-        # Start Session
-        session.start()
+        # Start processing script queue
+        _queue.start()
     else:
         liaisonServer = None

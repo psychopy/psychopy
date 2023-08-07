@@ -241,6 +241,7 @@ def getDeviceDefaultConfig(device_name, builder_hides=True):
     if device_name.endswith(".EyeTracker"):
         device_name = device_name[:-11]
     device_paths = getDevicePaths(device_name)
+
     device_configs = []
     for dpath, dconf in device_paths:
         dname, dconf_dict = list(readConfig(os.path.join(dpath, dconf)).items())[0]
@@ -263,9 +264,10 @@ def getDeviceDefaultConfig(device_name, builder_hides=True):
                 else:
                     del dconf_dict[param]
         device_configs.append({dname: dconf_dict})
-    if len(device_configs) == 1:
-        # simplify return value when only one device was requested
-        return list(device_configs[0].values())[0]
+    # if len(device_configs) == 1:
+    #     # simplify return value when only one device was requested
+    #     return list(device_configs[0].values())[0]
+    
     return device_configs
 
 

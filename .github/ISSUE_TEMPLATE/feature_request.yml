@@ -1,0 +1,51 @@
+name: Feature Request
+description: Request a new feature, or an enhancement to an existing functionality
+labels: 🌟 enhancement
+title: "[Feature Request]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please try to describe your request or enhancement as detailed as possible.
+  - type: textarea
+    id: feature-short-description
+    attributes:
+      label: Description
+      description: Please describe this feature or enhancement here.
+    validations:
+      required: false
+  - type: textarea
+    id: feature-purpose
+    attributes:
+      label: Purpose
+      description: What is the purpose of this feature or enhancement, or give some use cases?
+    validations:
+      required: false
+  - type: textarea
+    id: feature-is-related-to-a-problem
+    attributes:
+      label: Is your feature request related to a problem? 
+      description: A clear and concise description of what the problem is, note if it's a bug please report it in [Bug] template.
+    validations:
+      required: false
+  - type: textarea
+    id: feature-solution-description
+    attributes:
+      label: Describe the solution you would like
+      description: A clear and concise description of what you want to happen.
+    validations:
+      required: false
+  - type: textarea
+    id: feature-alternative
+    attributes:
+      label: Describe alternatives that you have considered
+      description: A clear and concise description of any alternative solutions or features you've considered.
+    validations:
+      required: false
+  - type: textarea
+    id: feature-additional-context
+    attributes:
+      label: Additional context
+      description: Add any other context or screenshots about the feature request here.
+    validations:
+      required: false

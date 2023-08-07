@@ -268,6 +268,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # self.SetAutoLayout(True)
         self.Bind(wx.EVT_CLOSE, self.closeFrame)
         self.Bind(wx.EVT_SIZE, self.onResize)
+        self.Bind(wx.EVT_SHOW, self.onShow)
 
         self.app.trackFrame(self)
         self.SetDropTarget(FileDropTarget(targetFrame=self))
@@ -642,6 +643,12 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.flowPanel.canvas.Refresh()
         event.Skip()
 
+    def onShow(self, event):
+        """Called when the frame is shown"""
+        event.Skip()
+        # if README was updated when frame wasn't shown, it won't be show either - so update again
+        self.updateReadme()
+
     @property
     def filename(self):
         """Name of the currently open file"""
@@ -907,6 +914,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # Show/hide frame as appropriate
         if show is None:
             show = len(self.readmeFrame.ctrl.getValue()) > 0
+        show = show and self.IsShown()
         self.readmeFrame.show(show)
 
     def showReadme(self, evt=None, value=True):
@@ -2160,6 +2168,8 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         dc.SetTextForeground(colors.app['text'])
 
     def drawForceEndLine(self, dc, yPosBottom):
+        id = wx.NewIdRef()
+        dc.SetId(id)
         # get max time & check if we have a hard stop
         tMax, hardStop = self.getMaxTime()
         if hardStop:
@@ -4230,6 +4240,7 @@ class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
 
         dc.SetId(id)
         font = self.GetFont()
+        font.SetWeight(wx.FONTWEIGHT_NORMAL)
         if sys.platform == 'darwin':
             basePtSize = (650, 750, 900)[flowsize]
         elif sys.platform.startswith('linux'):

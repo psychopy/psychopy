@@ -590,6 +590,13 @@ class Mouse():
                 logging.error('Mouse: failed to get a default visual.Window'
                               ' (need to create one first)')
                 self.win = None
+
+        # get the scaling factors for the display
+        if self.win is not None:
+            self._winScaleFactor = self.win.getContentScaleFactor()
+        else:
+            self._winScaleFactor = 1.0
+
         # for builder: set status to STARTED, NOT_STARTED etc
         self.status = None
         self.mouseClock = psychopy.core.Clock()
@@ -630,7 +637,9 @@ class Mouse():
                 if self.win.useRetina:
                     newPosPix = numpy.array(self.win.size) / 4 + newPosPix / 2
                 else:
-                    newPosPix = numpy.array(self.win.size) / 2 + newPosPix
+                    wsf = self._winScaleFactor 
+                    newPosPix = \
+                        numpy.array(self.win.size) / (2 * wsf) + newPosPix / wsf
                 x, y = int(newPosPix[0]), int(newPosPix[1])
                 self.win.winHandle.set_mouse_position(x, y)
                 self.win.winHandle._mouse_x = x
@@ -659,8 +668,12 @@ class Mouse():
             if self.win:
                 w = self.win.winHandle
             else:
-                defDisplay = _default_display_
-                w = defDisplay.get_windows()[0]
+
+                if psychopy.core.openWindows:
+                    w = psychopy.core.openWindows[0]()
+                else:
+                    logging.warning("Called event.Mouse.getPos() for the mouse with no Window being opened")
+                    return None
 
             # get position in window
             lastPosPix[:] = w._mouse_x, w._mouse_y
@@ -669,7 +682,8 @@ class Mouse():
             if self.win.useRetina:
                 lastPosPix = lastPosPix * 2 - numpy.array(self.win.size) / 2
             else:
-                lastPosPix = lastPosPix - numpy.array(self.win.size) / 2
+                wsf = self._winScaleFactor 
+                lastPosPix = lastPosPix * wsf - numpy.array(self.win.size) / 2
 
         self.lastPos = self._pix2windowUnits(lastPosPix)
 
@@ -805,9 +819,13 @@ class Mouse():
         elif usePygame:
             mouse.set_visible(visible)
         else:  # try communicating with window directly?
-            plat = _default_display_
-            w = plat.get_windows()[0]
-            w.set_mouse_visible(visible)
+            from psychopy.visual import openWindows
+            if psychopy.core.openWindows:
+                w = psychopy.core.openWindows[0]()  # type: psychopy.visual.Window
+            else:
+                logging.warning("Called event.Mouse.getPos() for the mouse with no Window being opened")
+                return None
+            w.setMouseVisible(visible)
 
     def clickReset(self, buttons=(0, 1, 2)):
         """Reset a 3-item list of core.Clocks use in timing button clicks.
