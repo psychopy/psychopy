@@ -1432,6 +1432,36 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # Do post-close checks
         dlg.onClose()
 
+    def onPavloviaCreate(self, evt=None):
+        if Path(self.filename).is_file():
+            # Save file
+            self.fileSave(self.filename)
+            # If allowed by prefs, export html and js files
+            if self._getExportPref('on sync'):
+                htmlPath = self._getHtmlPath(self.filename)
+                if htmlPath:
+                    self.fileExport(htmlPath=htmlPath)
+                else:
+                    return
+        # Get start path and name from builder/coder if possible
+        if self.filename:
+            file = Path(self.filename)
+            name = file.stem
+            path = file.parent
+        else:
+            name = path = ""
+        # Open dlg to create new project
+        createDlg = sync.CreateDlg(self,
+                                   user=pavlovia.getCurrentSession().user,
+                                   name=name,
+                                   path=path)
+        if createDlg.ShowModal() == wx.ID_OK and createDlg.project is not None:
+            self.project = createDlg.project
+        else:
+            return
+        # Do first sync
+        self.onPavloviaSync()
+
     def onPavloviaSync(self, evt=None):
         if Path(self.filename).is_file():
             # Save file
@@ -4507,6 +4537,11 @@ class BuilderToolbar(BasePsychopyToolbar):
         # make menu
         menu = wx.Menu()
 
+        # create project
+        if project is None:
+            btn = menu.Append(wx.ID_ANY, _translate("New project"))
+            btn.SetBitmap(icons.ButtonIcon("plus", size=16).bitmap)
+            menu.Bind(wx.EVT_MENU, self.frame.onPavloviaCreate, btn)
         # sync
         btn = menu.Append(wx.ID_ANY, _translate("Sync project"))
         btn.SetBitmap(icons.ButtonIcon("view-refresh", size=16).bitmap)
