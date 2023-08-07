@@ -1834,8 +1834,8 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
 
     def OnScroll(self, event):
         xy = self.GetViewStart()
-        multiplier = self.dpi / 1600
-        self.Scroll(xy[0], int(xy[1] - event.WheelRotation * multiplier))
+        delta = int(event.WheelRotation * self.dpi / 1600)
+        self.Scroll(xy[0], xy[1]-delta)
 
     def showContextMenu(self, component, xy):
         """Show a context menu in the routine view.
