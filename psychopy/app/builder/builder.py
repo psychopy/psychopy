@@ -1726,7 +1726,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         self.fontBaseSize = (1100, 1200, 1300)[self.drawSize]  # depends on OS?
         #self.scroller = PsychopyScrollbar(self, wx.VERTICAL)
         self.SetVirtualSize((self.maxWidth, self.maxHeight))
-        self.SetScrollRate(self.dpi // 4, self.dpi // 4)
+        self.SetScrollRate(self.dpi // 16, self.dpi // 16)
 
         self.routine = routine
         self.yPositions = None
@@ -3357,7 +3357,7 @@ class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         self.appData = self.app.prefs.appData
 
         # self.SetAutoLayout(True)
-        self.SetScrollRate(self.dpi // 4, self.dpi // 4)
+        self.SetScrollRate(self.dpi // 16, self.dpi // 16)
 
         # create a PseudoDC to record our drawing
         self.pdc = PseudoDC()
