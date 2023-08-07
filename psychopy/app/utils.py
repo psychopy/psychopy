@@ -1226,7 +1226,7 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
             if not len(fr):
                 fr.append(200)
             # Start animation (average framerate across frames)
-            self.frameTimer.Start(numpy.mean(fr), oneShot=False)
+            self.frameTimer.Start(int(numpy.mean(fr)), oneShot=False)
 
     def LoadBitmap(self, evt=None):
         # Open file dlg

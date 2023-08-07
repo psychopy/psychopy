@@ -262,11 +262,8 @@ class Flow(list):
             "# get filename from ExperimentHandler for convenience\n"
             "filename = thisExp.dataFileName\n"
             "frameTolerance = 0.001  # how close to onset before 'same' frame\n"
-        )
-        if self.exp.settings.params['Enable Escape'].val:
-            code += (
             "endExpNow = False  # flag for 'escape' or other condition => quit the exp\n"
-            )
+        )
         script.writeIndentedLines(code)
         # get frame dur from frame rate
         code = (

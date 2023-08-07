@@ -4031,6 +4031,8 @@ class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
 
     def drawLineStart(self, dc, pos):
         # draw bar at start of timeline; circle looked bad, offset vertically
+        tmpId = wx.NewId()
+        dc.SetId(tmpId)
         ptSize = (9, 9, 12)[self.appData['flowSize']]
         thic = (1, 1, 2)[self.appData['flowSize']]
         dc.SetBrush(wx.Brush(colors.app['fl_flowline_bg']))
@@ -4043,8 +4045,8 @@ class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
 
     def drawLineEnd(self, dc, pos):
         # draws arrow at end of timeline
-        # tmpId = wx.NewIdRef()
-        # dc.SetId(tmpId)
+        tmpId = wx.NewId()
+        dc.SetId(tmpId)
         dc.SetBrush(wx.Brush(colors.app['fl_flowline_bg']))
         dc.SetPen(wx.Pen(colors.app['fl_flowline_bg']))
 
