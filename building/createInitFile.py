@@ -14,7 +14,8 @@ import tomlkit
 root = Path(__file__).parent.parent
 with open(root/"pyproject.toml") as f:
     metadata = tomlkit.load(f)
-version = metadata['project']['version']
+with open(root/"version") as f:
+    version = f.read().strip()
 
 
 def createInitFile(dist=None, version=None, sha=None):
