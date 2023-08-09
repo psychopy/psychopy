@@ -1128,7 +1128,7 @@ class Session:
 
     def close(self, blocking=True):
         """
-        Safely close the current session. This will end the Python instance.
+        Safely close and delete the current session.
 
         Parameters
         ----------
@@ -1162,6 +1162,9 @@ class Session:
         if self.win is not None:
             self.win.close()
             self.win = None
+        # flush any remaining logs and kill reference to log file
+        self.logFile.logger.flush()
+        del self.logFile
         # delete self
         del self
 
