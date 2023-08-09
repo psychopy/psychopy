@@ -58,7 +58,6 @@ dependencies = [
     "python-bidi",
     "arabic-reshaper",
     "javascripthon",
-    "case-changer",
     "websockets",  # new in 2023.2 for session.py
     # for the app
     "wxPython >= 4.1.1",

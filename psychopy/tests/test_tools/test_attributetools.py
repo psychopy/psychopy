@@ -6,7 +6,7 @@ import scipy.stats as sp
 from psychopy.tests import skip_under_vm
 from psychopy import colors
 from psychopy.tools.attributetools import attributeSetter, logAttrib
-import case_changer as cc
+from psychopy.tools.stringtools import makeValidVarName
 
 
 pd.options.display.float_format = "{:,.0f}".format
@@ -245,13 +245,13 @@ def testGetSetAliases():
             if not isinstance(func, (attributeSetter, property)):
                 continue
             # work out getter method name
-            getterName = "get" + cc.pascal_case(name)
+            getterName = "get" + makeValidVarName(name, case="title")
             # ensure that the corresponding get function exists
             assert hasattr(cls, getterName), f"Class '{cls.__name__}' has not attribute '{getterName}'"
             # any non-settable properties are now done
             if isinstance(func, property) and func.fset is None:
                 continue
             # work out setter method name
-            setterName = "set" + cc.pascal_case(name)
+            setterName = "set" + makeValidVarName(name, case="title")
             # ensure that the corresponding set function exists
             assert hasattr(cls, setterName), f"Class '{cls.__name__}' has not attribute '{setterName}'"
