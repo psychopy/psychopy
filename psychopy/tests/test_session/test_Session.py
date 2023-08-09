@@ -135,6 +135,16 @@ class TestSession:
 
             sess.runExperiment('clockFormat', expInfo={'targetFormat': case['ans']})
 
+    def test_disable_useversion(self):
+        """
+        Experiment compiled via a Session shouldn't respect the useVersion setting.
+        """
+        # add an experiment which has useVersion set to 2023.1.3
+        self.sess.addExperiment("invUseVersion/invUseVersion.psyexp", "invUseVersion")
+        # make sure compiled Python file has correct version
+        from psychopy import __version__
+        assert self.sess.experiments['invUseVersion'].psychopyVersion == __version__
+
     # def test_error(self, capsys):
     #     """
     #     Check that an error in an experiment doesn't interrupt the session.
