@@ -57,7 +57,7 @@ class ImageComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized["image"])
+            label=_translate("Image"))
 
         msg = _translate(
             "An image to define the alpha mask through which the image is "
@@ -67,7 +67,7 @@ class ImageComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized["mask"])
+            label=_translate("Mask"))
 
         msg = _translate("Resolution of the mask if one is used.")
         self.params['texture resolution'] = Param(
@@ -75,7 +75,7 @@ class ImageComponent(BaseVisualComponent):
             allowedVals=['32', '64', '128', '256', '512'],
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized["texture resolution"])
+            label=_translate("Texture resolution"))
 
         msg = _translate(
             "How should the image be interpolated if/when rescaled")
@@ -83,7 +83,7 @@ class ImageComponent(BaseVisualComponent):
             interpolate, valType='str', inputType="choice", allowedVals=['linear', 'nearest'], categ='Texture',
             updates='constant', allowedUpdates=[],
             hint=msg, direct=False,
-            label=_localized["interpolate"])
+            label=_translate("Interpolate"))
 
         msg = _translate(
             "Should the image be flipped vertically (top to bottom)?")
@@ -91,7 +91,7 @@ class ImageComponent(BaseVisualComponent):
             flipVert, valType='bool', inputType="bool", categ='Layout',
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized["flipVert"])
+            label=_translate("Flip vertically"))
 
         msg = _translate(
             "Should the image be flipped horizontally (left to right)?")
@@ -99,7 +99,7 @@ class ImageComponent(BaseVisualComponent):
             flipHoriz, valType='bool', inputType="bool", categ='Layout',
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized["flipHoriz"])
+            label=_translate("Flip horizontally"))
         self.params['anchor'] = Param(
             anchor, valType='str', inputType="choice", categ='Layout',
             allowedVals=['center',
@@ -114,7 +114,7 @@ class ImageComponent(BaseVisualComponent):
                          ],
             updates='constant',
             hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
-            label=_translate('Anchor'))
+            label=_translate("Anchor"))
 
         del self.params['fillColor']
         del self.params['borderColor']

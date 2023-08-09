@@ -25,8 +25,8 @@ else:
 # then setup prefs for
 haveQt = False  # until we confirm otherwise
 if wxApp is None:  # i.e. don't try this if wx is already running
-    # set order for attempts on PyQt4/PyQt5
-    importOrder = ['PyQt5', 'PyQt4']
+    # set order for attempts on PyQt5/PyQt6
+    importOrder = ['PyQt6', 'PyQt5']
     # then check each in turn
     for libname in importOrder:
         try:

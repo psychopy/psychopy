@@ -139,30 +139,85 @@ def isIterable(o):
 
 # Get available device module paths
 def getDevicePaths(device_name=""):
-    """
+    """Get the paths to the iohub device modules that are available.
+
+    Parameters
+    ----------
+    device_name : str, optional
+        The name of the device to get the paths for. If not provided, all
+        available device paths are returned.
+
+    Returns
+    -------
+    list
+        A list of tuples containing the path to the device module and the
+        name of the device module.
+
     """
     from psychopy.iohub.devices import import_device
+
+    # mdc - Changes here were made to support loading device modules from
+    #       extensions. This allows support for devices that are not included in 
+    #       the iohub package.
+
+    def _getDevicePaths(iohub_device_path):
+        """Look for device configuration files in the specified path.
+        
+        Parameters
+        ----------
+        iohub_device_path : str
+            The path to the iohub device module.
+
+        Returns
+        -------
+        list
+            A list of tuples containing the path to the device module and the
+            name of the device module. If empty, no device configuration files
+            were found.
+        
+        """
+        yaml_paths = []
+        for root, _, files in os.walk(iohub_device_path):
+            device_folder = None
+            for file in files:
+                if file == 'supported_config_settings.yaml':
+                    device_folder = root
+                    break
+            if device_folder:
+                for dfile in files:
+                    if dfile.startswith("default_") and dfile.endswith('.yaml'):
+                        yaml_paths.append((device_folder, dfile))
+        
+        return yaml_paths
+
+    scs_yaml_paths = []  # stores the paths to the device config files
+
+    # get device paths for extant extensions
+    try:
+        import psychopy_eyetracker_tobii.tobii as tobii
+        deviceConfig = _getDevicePaths(os.path.dirname(tobii.__file__))
+        if deviceConfig:
+            scs_yaml_paths.extend(deviceConfig)
+    except ImportError:
+        pass  # do nothing
+    
+    # use this method for built-in devices
     iohub_device_path = module_directory(import_device)
     if device_name:
-        iohub_device_path = os.path.join(iohub_device_path, device_name.replace('.', os.path.sep))
-    scs_yaml_paths = []
-    for root, dirs, files in os.walk(iohub_device_path):
-        device_folder = None
-        for file in files:
-            if file == 'supported_config_settings.yaml':
-                device_folder = root
-                break
-        if device_folder:
-            for dfile in files:
-                if dfile.startswith("default_") and dfile.endswith('.yaml'):
-                    scs_yaml_paths.append((device_folder, dfile))
+        iohub_device_path = os.path.join(
+            iohub_device_path, device_name.replace('.', os.path.sep))
+
+    deviceConfigs = _getDevicePaths(iohub_device_path)
+    if deviceConfigs:
+        scs_yaml_paths.extend(deviceConfigs)
+
     return scs_yaml_paths
 
 
 def getDeviceDefaultConfig(device_name, builder_hides=True):
     """
     Return the default iohub config dictionary for the given device(s). The dictionary contains the
-    (possibly nested) settings that should be displayed for the device (the dict item key) and the default value
+    (possibly nested) settings that should be displayed for the device (the dct item key) and the default value
     (the dict item value).
 
     Example:
@@ -186,6 +241,7 @@ def getDeviceDefaultConfig(device_name, builder_hides=True):
     if device_name.endswith(".EyeTracker"):
         device_name = device_name[:-11]
     device_paths = getDevicePaths(device_name)
+
     device_configs = []
     for dpath, dconf in device_paths:
         dname, dconf_dict = list(readConfig(os.path.join(dpath, dconf)).items())[0]
@@ -208,9 +264,10 @@ def getDeviceDefaultConfig(device_name, builder_hides=True):
                 else:
                     del dconf_dict[param]
         device_configs.append({dname: dconf_dict})
-    if len(device_configs) == 1:
-        # simplify return value when only one device was requested
-        return list(device_configs[0].values())[0]
+    # if len(device_configs) == 1:
+    #     # simplify return value when only one device was requested
+    #     return list(device_configs[0].values())[0]
+    
     return device_configs
 
 

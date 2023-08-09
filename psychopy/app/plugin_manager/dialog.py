@@ -145,17 +145,17 @@ class EnvironmentManagerDlg(wx.Dialog):
         self.output.open()
 
         if pkgtools._isUserPackage(packageName):
-            msg = 'Uninstalling package bundle for `{}` ...\n'.format(
+            msg = 'Uninstalling package bundle for `{}` ...'.format(
                 packageName)
             self.output.writeStdOut(msg)
 
             success = pkgtools._uninstallUserPackage(packageName)
             if success:
-                msg = 'Successfully removed package `{}`.\n'.format(
+                msg = 'Successfully removed package `{}`.'.format(
                     packageName)
             else:
                 msg = ('Failed to remove package `{}`, check log for '
-                       'details.\n').format(packageName)
+                       'details.').format(packageName)
 
             self.output.writeStdOut(msg)
 
@@ -224,12 +224,12 @@ class EnvironmentManagerDlg(wx.Dialog):
         bundlePath = plugins.getBundleInstallTarget(packageName)
         if not os.path.exists(bundlePath):
             self.output.writeStdOut(
-                "Creating bundle path `{}` for package `{}`.\n".format(
+                "Creating bundle path `{}` for package `{}`.".format(
                     bundlePath, packageName))
             os.mkdir(bundlePath)  # make the directory
         else:
             self.output.writeStdOut(
-                "Using existing bundle path `{}` for package `{}`.\n".format(
+                "Using existing bundle path `{}` for package `{}`.".format(
                     bundlePath, packageName))
 
         # add the bundle to path, refresh makes it discoverable after install
@@ -326,7 +326,8 @@ class EnvironmentManagerDlg(wx.Dialog):
                     emts.append(f"{name} ({cats})")
             if len(emts):
                 msg = _translate(
-                    "The following components/routines should now be visible in the Components panel:\n"
+                    "The following components/routines should now be visible in the Components panel (a restart may be "
+                    "required in some cases):\n"
                 )
                 for emt in emts:
                     msg += (
@@ -336,13 +337,10 @@ class EnvironmentManagerDlg(wx.Dialog):
             # show info link
             if pluginInfo.docs:
                 msg = _translate(
-                    "\n"
-                    "\n"
-                    "For more information about the %s plugin, read the documentation at:\n"
+                    "For more information about the %s plugin, read the documentation at:"
                 ) % pluginInfo.name
                 self.output.writeStdOut(msg)
                 self.output.writeLink(pluginInfo.docs, link=pluginInfo.docs)
-                self.output.writeStdOut("\n")
 
         # clear pip process
         self.pipProcess = None
@@ -355,7 +353,7 @@ class EnvironmentManagerDlg(wx.Dialog):
         if any(["uninstalled" in changes for changes in pluginChanges.values()]):
             msg = _translate(
                 "It looks like you've uninstalled some plugins. In order for this to take effect, you will need to "
-                "restart the PsychoPy app.\n"
+                "restart the PsychoPy app."
             )
             dlg = wx.MessageDialog(
                 None, msg,

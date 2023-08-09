@@ -100,6 +100,8 @@ class Polygon(BaseShapeStim):
     colorSpace : str
         Sets the colorspace, changing how values passed to `lineColor` and
         `fillColor` are interpreted.
+    draggable : bool
+        Can this stimulus be dragged by a mouse click?
 
     """
 
@@ -122,6 +124,7 @@ class Polygon(BaseShapeStim):
                  contrast=1.0,
                  depth=0,
                  interpolate=True,
+                 draggable=False,
                  name=None,
                  autoLog=None,
                  autoDraw=False,
@@ -163,6 +166,7 @@ class Polygon(BaseShapeStim):
             contrast=contrast,
             depth=depth,
             interpolate=interpolate,
+            draggable=draggable,
             lineRGB=lineRGB,
             fillRGB=fillRGB,
             name=name,

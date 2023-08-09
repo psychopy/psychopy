@@ -186,7 +186,7 @@ class TrialHandler(_BaseLoopHandler):
             code = ("# abbreviate parameter names if possible (e.g. rgb = %(name)s.rgb)\n"
                     "if %(name)s != None:\n"
                     "    for paramName in %(name)s:\n"
-                    "        exec('{} = %(name)s[paramName]'.format(paramName))\n")
+                    "        globals()[paramName] = %(name)s[paramName]\n")
             buff.writeIndentedLines(code % {'name': self.thisName})
 
         # then run the trials loop
@@ -194,13 +194,31 @@ class TrialHandler(_BaseLoopHandler):
         buff.writeIndentedLines(code % (self.thisName, self.params['name']))
         # fetch parameter info from conditions
         buff.setIndentLevel(1, relative=True)
-        buff.writeIndented("currentLoop = %s\n" % self.params['name'])
+        code = (
+            "currentLoop = %(name)s\n"
+            "thisExp.timestampOnFlip(win, 'thisRow.t')\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        # handle pausing
+        code = (
+            "# pause experiment here if requested\n"
+            "if thisExp.status == PAUSED:\n"
+            "    pauseExperiment(\n"
+            "        thisExp=thisExp, \n"
+            "        inputs=inputs, \n"
+            "        win=win, \n"
+            "        timers=[routineTimer], \n"
+            "        playbackComponents=[]\n"
+            ")\n"
+        )
+        buff.writeIndentedLines(code)
         # unclutter the namespace
         if not self.exp.prefsBuilder['unclutteredNamespace']:
             code = ("# abbreviate parameter names if possible (e.g. rgb = %(name)s.rgb)\n"
                     "if %(name)s != None:\n"
                     "    for paramName in %(name)s:\n"
-                    "        exec('{} = %(name)s[paramName]'.format(paramName))\n")
+                    "        globals()[paramName] = %(name)s[paramName]\n")
             buff.writeIndentedLines(code % {'name': self.thisName})
 
     def writeLoopStartCodeJS(self, buff, modular):
@@ -311,7 +329,13 @@ class TrialHandler(_BaseLoopHandler):
     def writeLoopEndCode(self, buff):
         # Just within the loop advance data line if loop is whole trials
         if self.params['isTrials'].val == True:
-            buff.writeIndentedLines("thisExp.nextEntry()\n\n")
+            buff.writeIndentedLines(
+                "thisExp.nextEntry()\n"
+                "\n"
+                "if thisSession is not None:\n"
+                "    # if running in a Session with a Liaison client, send data up to now\n"
+                "    thisSession.sendExperimentData()\n"
+            )
         # end of the loop. dedent
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("# completed %s repeats of '%s'\n"
@@ -500,13 +524,23 @@ class StairHandler(_BaseLoopHandler):
         code = "\nfor %s in %s:\n"
         buff.writeIndentedLines(code % (self.thisName, self.params['name']))
         buff.setIndentLevel(1, relative=True)
-        buff.writeIndented("currentLoop = %s\n" % self.params['name'])
+        code = (
+            "currentLoop = %(name)s\n"
+            "thisExp.timestampOnFlip(win, 'thisRow.t')\n"
+        )
+        buff.writeIndentedLines(code % self.params)
         buff.writeIndented("level = %s\n" % self.thisName)
 
     def writeLoopEndCode(self, buff):
         # Just within the loop advance data line if loop is whole trials
         if self.params['isTrials'].val:
-            buff.writeIndentedLines("thisExp.nextEntry()\n\n")
+            buff.writeIndentedLines(
+                "thisExp.nextEntry()\n"
+                "\n"
+                "if thisSession is not None:\n"
+                "    # if running in a Session with a Liaison client, send data up to now\n"
+                "    thisSession.sendExperimentData()\n"
+            )
         # end of the loop. dedent
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("# staircase completed\n")
@@ -621,13 +655,17 @@ class MultiStairHandler(_BaseLoopHandler):
         buff.writeIndentedLines(code % self.params)
 
         buff.setIndentLevel(1, relative=True)
-        buff.writeIndented("currentLoop = %(name)s\n" % (self.params))
+        code = (
+            "currentLoop = %(name)s\n"
+            "thisExp.timestampOnFlip(win, 'thisRow.t')\n"
+        )
+        buff.writeIndentedLines(code % self.params)
         # uncluttered namespace
         if not self.exp.prefsBuilder['unclutteredNamespace']:
             code = ("# abbreviate parameter names if possible (e.g. "
                     "rgb=condition.rgb)\n"
                     "for paramName in condition:\n"
-                    "    exec(paramName + '= condition[paramName]')\n")
+                    "    globals()[paramName] = condition[paramName]\n")
             buff.writeIndentedLines(code)
 
     def writeLoopStartCodeJS(self, buff, modular):
@@ -728,11 +766,16 @@ class MultiStairHandler(_BaseLoopHandler):
         )
         buff.writeIndentedLines(code % inits)
 
-
     def writeLoopEndCode(self, buff):
         # Just within the loop advance data line if loop is whole trials
         if self.params['isTrials'].val:
-            buff.writeIndentedLines("thisExp.nextEntry()\n\n")
+            buff.writeIndentedLines(
+                "thisExp.nextEntry()\n"
+                "\n"
+                "if thisSession is not None:\n"
+                "    # if running in a Session with a Liaison client, send data up to now\n"
+                "    thisSession.sendExperimentData()\n"
+            )
         # end of the loop. dedent
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("# all staircases completed\n")
@@ -772,7 +815,7 @@ class MultiStairHandler(_BaseLoopHandler):
                 "if (psychoJS.experiment._unfinishedLoops.length>0)\n"
                 "  currentLoop = psychoJS.experiment._unfinishedLoops.at(-1);\n"
                 "else\n"
-                "  currentLoop = psychoJS.experiment;  // so we use addData from the experiment\n"
+                "  currentLoop = psychoJS.experiment;  // so we use addData from the experiment\n"\
                 "return Scheduler.Event.NEXT;\n"
         )
         buff.writeIndentedLines(code % self.params)

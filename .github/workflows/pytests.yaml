@@ -1,6 +1,9 @@
 name: pytest
 
-on: [push, pull_request]
+on:
+  workflow_dispatch:  # manual
+  pull_request:
+   branches: [ release, dev ]
 
 permissions:
   contents: read
@@ -27,20 +30,29 @@ jobs:
     - name: Pre-Install
       run: |
         python -m pip install --upgrade pip
-        pip install pytest pytest-cov flake8 xmlschema
         pip install wheel
         pip install six  # for configobj and wxpython
         pip install distro  # used by createInitFile
+        pip install attrdict3  # used by wxpython setup
         python ./building/plat_custom_installs.py
 
-    - name: Install PsychoPy and dependencies
+        pip install pdm
+        pdm config python.use_venv false  # don't need/want venv in a vm!
+        pdm install  # fetch dependendices in lock file
+        pdm add -G tests
+        pdm install -G tests
+        pdm build
+        # install with pip both the main and [tests] group
+        pip install . --prefer-binary  # install with pip
+        pip install '.[tests]' --prefer-binary  # optional dependency group
+
+    - name: Install plugins
       run: |
         # for pocketsphinx we need this adapted package:
-        brew install swig vlc portaudio portmidi liblo
+        brew install swig vlc portaudio portmidi liblo sdl2
         # install optional components
         pip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator psychopy-visionscience
-        # then use the standard requirements:
-        pip install .
+        pip install moviepy
 
 #    - name: test docs to pdf
 #      run: |
@@ -101,6 +113,7 @@ jobs:
           !**/*.wav
 
     - name: Upload coverage to Codecov
+      if: always()
       uses: codecov/codecov-action@v3
       with:
         fail_ci_if_error: false
@@ -169,7 +182,7 @@ jobs:
         sudo apt-get install -y -qq libgstreamer1.0-0 gstreamer1.0-plugins-base
         sudo apt-get install -y -qq libwebkit2gtk-4.0-dev
         sudo apt-get install -y -qq libpng-dev libjpeg-dev libtiff-dev libnotify-dev libsm-dev
-        sudo apt-get install -y -qq libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0
+        sudo apt-get install -y -qq libsdl2-dev libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0
         sudo apt-get install -y -qq libportaudio2
         # virtual frame buffer
         sudo apt install llvm-13-dev  # for xvfb
@@ -186,12 +199,6 @@ jobs:
         export LIBGL_ALWAYS_INDIRECT=0
         export QT_DEBUG_PLUGINS=1 # let us know about missing dependencies?
 
-    - name: Install wxPython from source for linux
-      if: runner.os=='Linux'
-      run: |
-        # these are needed to build wxPython
-        pip install pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04/ wxPython
-
     - name: Install packaging and testing libs
       run: |
         python -m pip install --upgrade pip
@@ -200,14 +207,25 @@ jobs:
         pip install six  # for configobj and wxpython
         pip install distro  # used by createInitFile
 
-    - name: Install PsychoPy Dependencies
+    - name: Install wxPython from https://extras.wxpython.org/wxPython4/extras
+      if: runner.os=='Linux'
+      run: |
+        # these are needed to build wxPython
+        pip install attrdict3  # used by wxpython setup
+        pip install pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04/ wxPython
+
+    - name: Install main dependencies (pip)
+      run: |
+        pip install .
+
+    - name: Install PsychoPy plugins
       run: |
         # install optional components
         pip install psychopy-sounddevice psychopy-pyo psychopy-legacy-mic psychopy-connect psychopy-crs psychopy-emotiv psychopy-gammasci psychopy-mri-emulator psychopy-visionscience
-        # to install all dependencies
-        pip install .
+        pip install moviepy
 
     - name: Set nice level
+      if: runner.os=='Linux'
       run: |
         # sudo setcap cap_sys_nice=eip ${{ env.pythonLocation }}/python
         export PYTHON_EXECUTABLE=`python -c "import os; import sys; print(os.path.realpath(sys.executable))"`
@@ -215,12 +233,13 @@ jobs:
         getcap ${PYTHON_EXECUTABLE}  # did it work?
 
     - name: Test gui toolkits Qt
+      if: runner.os=='Linux'
       run: |
         # quick test of the gui toolkits (without pytest swallowing errors)
         xvfb-run -a --server-args="-screen 0 1024x768x24" python psychopy/tests/test_gui/test_DlgFromDictQt.py
 
     - name: Test gui toolkits Wx
-      if: always()
+      if: runner.os=='Linux'
       run: |
         # quick test of the gui toolkits (without pytest swallowing errors)
         xvfb-run -a --server-args="-screen 0 1024x768x24" python psychopy/tests/test_gui/test_DlgFromDictWx.py
@@ -241,7 +260,7 @@ jobs:
 
     - name: upload failed screenshots
       if: always()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: test artifacts
         path: |
@@ -251,6 +270,7 @@ jobs:
           !**/*.wav
 
     - name: Upload coverage to Codecov
+      if: always()
       uses: codecov/codecov-action@v3
       with:
         fail_ci_if_error: false

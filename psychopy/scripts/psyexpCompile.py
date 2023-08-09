@@ -10,6 +10,7 @@ import sys
 import os
 import argparse
 from subprocess import PIPE, Popen
+from pathlib import Path
 
 from psychopy import __version__
 
@@ -19,6 +20,10 @@ parser = argparse.ArgumentParser(description='Compile your python file from here
 parser.add_argument('infile', help='The input (psyexp) file to be compiled')
 parser.add_argument('--version', '-v', help='The PsychoPy version to use for compiling the script. e.g. 1.84.1')
 parser.add_argument('--outfile', '-o', help='The output (py) file to be generated (defaults to the ')
+
+
+class LegacyScriptError(ChildProcessError):
+    pass
 
 
 def generateScript(experimentPath, exp, target="PsychoPy"):
@@ -48,15 +53,20 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
 
     filename = experimentPath
 
-    # Compile script from command line using version
+    # compile script from command line using version
     compiler = 'psychopy.scripts.psyexpCompile'
-    # run compile
-    cmd = [pythonExec, '-m', compiler, exp.filename,
-           '-o', experimentPath]
     # if version is not specified then don't touch useVersion at all
     version = exp.settings.params['Use version'].val
-
+    # if useVersion is different to installed version...
     if version not in [None, 'None', '', __version__]:
+        # make sure we have a legacy save file
+        if not Path(exp.legacyFilename).is_file():
+            exp.saveToXML(filename=exp.filename)
+        # generate command to run compile from requested version
+        cmd = [
+            pythonExec, '-m', compiler, str(exp.legacyFilename), '-o', experimentPath
+        ]
+        # run command
         cmd.extend(['-v', version])
         logging.info(' '.join(cmd))
         output = Popen(cmd,
@@ -69,9 +79,9 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
 
         # we got a non-zero error code, raise an error
         if output.returncode != 0:
-            raise ChildProcessError(
-                'Error: process exited with code {}, check log for '
-                'output.'.format(output.returncode))
+            raise LegacyScriptError(
+                'Error: Script compile exited with code {}. Traceback:\n'
+                '{}'.format(output.returncode, stderr))
 
     else:
         compileScript(infile=exp, version=None, outfile=filename)

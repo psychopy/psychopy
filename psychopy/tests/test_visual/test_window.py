@@ -1,7 +1,7 @@
 from copy import copy
 from pathlib import Path
 
-from psychopy import visual
+from psychopy import visual, colors
 from psychopy.tests import utils
 from psychopy.tests.test_visual.test_basevisual import _TestColorMixin
 from psychopy import colors
@@ -86,3 +86,22 @@ class TestWindow:
             filename = f"test_win_bgcolor_{case}.png"
             # win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
             utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, win, crit=10)
+
+    def test_window_colors(self):
+        win = visual.Window(size=(200, 200))
+
+        for case in _TestColorMixin.colorTykes + _TestColorMixin.colorExemplars:
+            # Go through all TestColorMixin cases
+            for colorSpace, color in case.items():
+                # Make color to compare against
+                target = colors.Color(color, colorSpace)
+                # Set each colorspace/color combo
+                win.colorSpace = colorSpace
+                win.color = color
+                win.flip()
+                # Check that the middle pixel is this color
+                utils.comparePixelColor(
+                    win, target,
+                    coord=(0, 0),
+                    context=f"win_{color}_{colorSpace}")
+
