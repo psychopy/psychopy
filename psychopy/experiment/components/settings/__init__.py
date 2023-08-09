@@ -926,7 +926,7 @@ class SettingsComponent:
         # create resources folder
         if self.exp.htmlFolder:
             self.prepareResourcesJS()
-        jsFilename = self.params['expName'].val
+        jsFilename = os.path.basename(os.path.splitext(self.exp.filename)[0])
 
         # configure the PsychoJS version number from current/requested versions
         useVer = self.params['Use version'].val
