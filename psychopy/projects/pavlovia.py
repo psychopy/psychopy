@@ -148,9 +148,9 @@ class User(dict):
             ).json()['designer']
             # Make sure self.info has necessary keys
             assert 'gitlabId' in self.info, _translate(
-                f"Could not retrieve user info for user {id}, server returned:\n"
-                f"{self.info}"
-            )
+                "Could not retrieve user info for user {}, server returned:\n"
+                "{}"
+            ).format(id,self.info)
         elif isinstance(id, dict) and 'gitlabId' in id:
             # If given a dict from Pavlovia rather than an ID, store it rather than requesting again
             self.info = id

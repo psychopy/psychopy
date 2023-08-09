@@ -263,10 +263,10 @@ class Session:
         if not str(folder).startswith(str(self.root)):
             # Warn user that some files are going to be copied
             logging.warning(_translate(
-                f"Experiment '{file.stem}' is located outside of the root folder for this Session. All files from its "
-                f"experiment folder ('{folder.stem}') will be copied to the root folder and the experiment will run "
-                f"from there."
-            ))
+                "Experiment '{}' is located outside of the root folder for this Session. All files from its "
+                "experiment folder ('{}') will be copied to the root folder and the experiment will run "
+                "from there."
+            ).format(file.stem, folder.stem))
             # Create new folder
             newFolder = self.root / folder.stem
             # Copy files to it
@@ -280,8 +280,8 @@ class Session:
             folder = newFolder
             # Notify user than files are copied
             logging.info(_translate(
-                f"Experiment '{file.stem}' and its experiment folder ('{folder.stem}') have been copied to {newFolder}"
-            ))
+                "Experiment '{}' and its experiment folder ('{}') have been copied to {}"
+            ).format(file.stem,folder.stem,newFolder))
         # Initialise as module
         moduleInitFile = (folder / "__init__.py")
         if not moduleInitFile.is_file():
