@@ -281,6 +281,9 @@ class Color:
         if isinstance(color, str):
             if color == "":
                 color = "none"
+            # If None, skip the rest of validation - we know it's transparent
+            if color == "none":
+                return "none", "named"
         # Handle everything as an array
         if not isinstance(color, np.ndarray):
             color = np.array(color)
