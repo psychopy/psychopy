@@ -425,8 +425,12 @@ class Session:
         # Write experiment as Python script
         pyFile = file.parent / (file.stem + ".py")
         if "psyexp" in file.suffix:
+            # Load experiment
             exp = experiment.Experiment()
             exp.loadFromXML(file)
+            # Make sure useVersion is off
+            exp.settings.params['Use version'].val = ""
+            # Write script
             script = exp.writeScript(target="PsychoPy")
             pyFile.write_text(script, encoding="utf8")
         # Handle if key is None
