@@ -79,6 +79,10 @@ def launchHubServer(**kwargs):
     Please see the psychopy/demos/coder/iohub/launchHub.py demo for examples
     of different ways to use the launchHubServer function.
     """
+    # if already running, return extant connection object
+    if ioHubConnection.ACTIVE_CONNECTION is not None:
+        return ioHubConnection.ACTIVE_CONNECTION
+    # otherwise, make a new one
     experiment_code = kwargs.get('experiment_code', None)
     if experiment_code:
         del kwargs['experiment_code']

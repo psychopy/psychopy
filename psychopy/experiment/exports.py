@@ -46,14 +46,16 @@ class IndentingBuffer(io.StringIO):
             self.getvalue()[-1]=='\n'
 
         """
-        self.write(self.oneIndent * self.indentLevel + text)
+        for line in text.splitlines(keepends=True):
+            self.write(self.oneIndent * self.indentLevel + line)
 
     def writeIndentedLines(self, text):
         """As writeIndented(text) except that each line in text gets
         the indent level rather than the first line only.
         """
-        for line in text.splitlines():
-            self.write(self.oneIndent * self.indentLevel + line + '\n')
+        if not text.endswith("\n"):
+            text += "\n"
+        self.writeIndented(text)
 
     def writeOnceIndentedLines(self, text):
         """Add code to the experiment that is only run exactly once,
@@ -134,7 +136,7 @@ class NameSpace:
 
         self.numpy = _numpyImports + _numpyRandomImports + ['np']
         # noinspection PyUnresolvedReferences
-        self.keywords = keyword.kwlist + dir(__builtins__)
+        self.keywords = keyword.kwlist + dir(__builtins__) + ['self']
         # these are based on a partial test, known to be incomplete:
         self.psychopy = psychopy.__all__ + ['psychopy', 'os']
         self.constants = dir(constants)

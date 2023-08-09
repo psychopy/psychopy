@@ -3,11 +3,54 @@ coverage:
   status:
     project:
       default:
-        branches: 
-          - master
+        branches:
+          - dev
+          - release
         if_ci_failed: error #success, failure, error, ignore
+        informational: false
+        only_pulls: false
+    patch:
+      default:
+        branches:
+          - release
+        if_ci_failed: failure #success, failure, error, ignore
         informational: true
         only_pulls: false
+
+comment:
+  layout: "header, diff, flags, components"  # show component info in the PR comment
+
+component_management:
+  individual_components:
+    - component_id: app
+      name: app
+      paths:
+        - app/**
+    - component_id: experiment
+      name: boilerplate
+      paths:
+        - experiment/**
+        - scripts/**
+    - component_id: lib
+      name: library
+      paths:
+        - visual/**
+        - tools/**
+        - data/**
+        - alerts/**
+        - sound/**
+        - parallel/**
+        - monitors/**
+        - iohub/**
+        - hardware/**
+        - gui/**
+    - component_id: libvm  # just what can be tested without a physical machine
+      name: vm-safe library
+      paths:
+        - visual/**
+        - tools/**
+        - data/**
+        - alerts/**
 
 ignore:
   - "psychopy/demos/coder"  # ignore folders and all its contents
@@ -15,3 +58,4 @@ ignore:
   - "psychopy/scripts"
   - "psychopy/iohub"
   - "psychopy/contrib"
+  - "psychopy/visual/textbox"

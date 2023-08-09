@@ -16,37 +16,31 @@
         <!-- <span class="navbar-text navbar-version pull-right"><b>{{ version|e }}</b></span> -->
       </div>
 
-        <div class="collapse navbar-collapse nav-collapse w-100 pull-right">
-          <ul class="nav navbar-nav ml-auto">
-            <li><a href="https://discourse.psychopy.org">Forum</a></li>
-            <li><a href="{{ pathto('download') }}" style="font-weight:bold">Download</a></li>
+      <div class="collapse navbar-collapse nav-collapse w-100 pull-right">
+        <ul class="nav navbar-nav ml-auto">
+          <li><a href="https://www.psychopy.org/download.html" style="font-weight:bold">Download</a></li>
+          <li><a href="https://discourse.psychopy.org">Forum</a></li>
+          <li><a href="https://psychopy.org/consultancy.html">Consultancy</a></li> 
+          <li><a href="https://workshops.psychopy.org">Workshops</a></li>      
             <li class="dropdown globaltoc-container">
                     <a role="button"
                        id="dLabelGlobalToc"
                        data-toggle="dropdown"
                        data-target="#"
-                       href="#">Documentation <b class="caret"></b></a>
+                       href="#">More <b class="caret"></b></a>
                     <ul class="dropdown-menu globaltoc"
                         role="menu"
                         aria-labelledby="dLabelGlobalToc">
                         <ul>
-                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('about/index') }}">About</a>
-                            </li>
-                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('documentation') }}">Documentation</a></li>
-                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('api/index') }}">Reference Manual
-                                (API)</a></li>
-                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('changelog') }}">Changelog</a>
-                            </li>
-                            <li class="toctree-l1"><a class="reference internal" href=https://workshops.psychopy.org/teaching/index.html>Resources
-                                (e.g. for teaching)</a></li>
-                            <li class="toctree-l1"><a class="reference internal" href=https://workshops.psychopy.org/>Workshops</a></li>
-                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('consultancy') }}">
-                              Consultancy
-                            </a></li>
+                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('about/index') }}">About</a></li>
+                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('documentation') }}">Resources</a></li>
+                            <li class="toctree-l1"><a class="reference internal" href="https://psychopy.org/tutorials/index.html">How to</a></li>
+                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('api/index') }}">Reference Manual (API)</a></li>
+                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('changelog') }}">Changelog</a></li>
+                            <li class="toctree-l1"><a class="reference internal" href="https://psychopy.org/teaching/index.html">Teaching Materials</a></li>
                         </ul>
                     </ul>
                 </li>
-            <li><a href="{{ pathto('consultancy') }}" style="font-weight:bold">Consultancy</a></li>
             {% if theme_navbar_links %}
               {%- for link in theme_navbar_links %}
                 <li><a href="{{ pathto(*link[1:]) }}">{{ link[0] }}</a></li>

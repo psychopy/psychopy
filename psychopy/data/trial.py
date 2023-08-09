@@ -869,6 +869,7 @@ class TrialHandler2(_BaseTrialHandler):
         self.extraInfo = extraInfo
         self.seed = seed
         self._rng = np.random.default_rng(seed=seed)
+        self._trialAborted = False
 
         # store a list of dicts, convert to pandas DataFrame on access
         self._data = []
@@ -1014,9 +1015,62 @@ class TrialHandler2(_BaseTrialHandler):
             msg = 'New trial (rep=%i, index=%i): %s'
             vals = (self.thisRepN, self.thisTrialN, self.thisTrial)
             logging.exp(msg % vals, obj=self.thisTrial)
+
+        # if the trial was aborted, reset the flag
+        self._trialAborted = False
+        
         return self.thisTrial
 
     next = __next__  # allows user to call without a loop `val = trials.next()`
+
+    @property
+    def trialAborted(self):
+        """`True` if the trial has been aborted an should end.
+        
+        This flag is reset to `False` on the next call to `next()`.
+        
+        """
+        return self._trialAborted 
+
+    def abortCurrentTrial(self, action='random'):
+        """Abort the current trial.
+
+        Calling this during an experiment replace this trial. The condition
+        related to the aborted trial will be replaced elsewhere in the session
+        depending on the `method` in use for sampling conditions.
+
+        Parameters
+        ----------
+        action : str
+            Action to take with the aborted trial. Can be either of `'random'`,
+            or `'append'`. The default action is `'random'`.
+
+        Notes
+        -----
+        * When using `action='random'`, the RNG state for the trial handler is
+          not used.
+
+        """
+        # check if value for parameter `action` is valid
+        if not isinstance(action, str):  # type checks for params
+            raise TypeError(
+                "Parameter `action` specified incorrect type, must be `str`.")
+        
+        if action not in ('random', 'append'):
+            raise ValueError(
+                "Value for parameter `action` must be either 'random' or "
+                "'append'.")
+
+        # use the appropriate action for the current sampling method
+        if action == 'random':  # insert trial into random index
+            # use numpy RNG to sample a new index
+            newIndex = np.random.randint(0, len(self.remainingIndices))
+            self.remainingIndices.insert(newIndex, self.thisIndex)
+        elif action == 'append':  # insert at end of trial block
+            self.remainingIndices.append(self.thisIndex)
+
+        # flag that the trial has been aborted, user can take approriate action
+        self._trialAborted = True  
 
     def getFutureTrial(self, n=1):
         """Returns the condition for n trials into the future, without
@@ -1672,30 +1726,51 @@ class TrialHandlerExt(TrialHandler):
             if self.trialWeights is None:
                 thisData = self.data[dataType]
             else:
-                resizedData = np.ma.masked_array(
-                    np.zeros((len(self.trialList),
-                                 max(self.trialWeights) * self.nReps)),
-                    np.ones((len(self.trialList),
-                                max(self.trialWeights) * self.nReps),
-                               dtype=bool))
-                for curTrialIndex in range(len(self.trialList)):
-                    thisDataChunk = self.data[dataType][
-                                    idx_data == curTrialIndex, :]
-                    padWidth = (max(self.trialWeights) * self.nReps -
-                                np.prod(thisDataChunk.shape))
-                    thisDataChunkRowPadded = np.pad(
-                        thisDataChunk.transpose().flatten().data,
-                        (0, padWidth), mode='constant',
-                        constant_values=(0, 0))
-                    thisDataChunkRowPaddedMask = np.pad(
-                        thisDataChunk.transpose().flatten().mask,
-                        (0, padWidth), mode='constant',
-                        constant_values=(0, True))
+                # BF_202302210_trialHandlerExt_save_nonnumeric_excel
+                # Allow saving non-numeric data to the excel format
+                # Previous case: masked arrays for numeric data
+                if self.data.isNumeric[dataType]:
+                    resizedData = np.ma.masked_array(
+                        np.zeros((len(self.trialList),
+                                     max(self.trialWeights) * self.nReps)),
+                        np.ones((len(self.trialList),
+                                    max(self.trialWeights) * self.nReps),
+                                   dtype=bool))
+                    for curTrialIndex in range(len(self.trialList)):
+                        thisDataChunk = self.data[dataType][
+                                        idx_data == curTrialIndex, :]
+                        padWidth = (max(self.trialWeights) * self.nReps -
+                                    np.prod(thisDataChunk.shape))
+                        thisDataChunkRowPadded = np.pad(
+                            thisDataChunk.transpose().flatten().data,
+                            (0, padWidth), mode='constant',
+                            constant_values=(0, 0))
+                        thisDataChunkRowPaddedMask = np.pad(
+                            thisDataChunk.transpose().flatten().mask,
+                            (0, padWidth), mode='constant',
+                            constant_values=(0, True))
 
-                    thisDataChunkRow = np.ma.masked_array(
-                        thisDataChunkRowPadded,
-                        mask=thisDataChunkRowPaddedMask)
-                    resizedData[curTrialIndex, :] = thisDataChunkRow
+                        thisDataChunkRow = np.ma.masked_array(
+                            thisDataChunkRowPadded,
+                            mask=thisDataChunkRowPaddedMask)
+                        resizedData[curTrialIndex, :] = thisDataChunkRow
+                # For non-numeric data, Psychopy uses typical object arrays in-
+                # stead of masked arrays. Adjust accordingly, filling with '--'
+                # instead of masks
+                else:
+                    resizedData = np.array(np.zeros((len(self.trialList),
+                                                     max(self.trialWeights) *
+                                                     self.nReps)), dtype='O')
+                    for curTrialIndex in range(len(self.trialList)):
+                        thisDataChunk = self.data[dataType][
+                                        idx_data == curTrialIndex, :]
+                        padWidth = (max(self.trialWeights) * self.nReps -
+                                    np.prod(thisDataChunk.shape))
+                        thisDataChunkRowPadded = np.pad(
+                            thisDataChunk.transpose().flatten().data,
+                            (0, padWidth), mode='constant',
+                            constant_values=('--', '--'))
+                        resizedData[curTrialIndex, :] = thisDataChunkRowPadded
 
                 thisData = resizedData
 

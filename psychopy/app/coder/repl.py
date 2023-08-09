@@ -10,7 +10,7 @@
 import sys
 import wx
 import wx.richtext
-from psychopy.app.themes import handlers, colors, icons
+from psychopy.app.themes import handlers, colors, icons, fonts
 from psychopy.localization import _translate
 import os
 
@@ -49,7 +49,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
             self.borderBox = wx.BoxSizer(wx.VERTICAL)
             self.SetSizer(self.borderBox)
             self.sizer = wx.BoxSizer(wx.VERTICAL)
-            self.borderBox.Add(self.sizer, border=3, flag=wx.ALL)
+            self.borderBox.Add(self.sizer, border=6, flag=wx.ALL)
             # Start button
             self.startBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
             self.startBtn.SetToolTip(_translate(
@@ -58,7 +58,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
             self.startBtn.SetBitmap(
                 icons.ButtonIcon(stem="start", size=16).bitmap
             )
-            self.sizer.Add(self.startBtn, border=3, flag=wx.ALL)
+            self.sizer.Add(self.startBtn, border=6, flag=wx.BOTTOM)
             self.startBtn.Bind(wx.EVT_BUTTON, self.parent.start)
             # Restart button
             self.restartBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
@@ -68,7 +68,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
             self.restartBtn.SetBitmap(
                 icons.ButtonIcon(stem="restart", size=16).bitmap
             )
-            self.sizer.Add(self.restartBtn, border=3, flag=wx.ALL)
+            self.sizer.Add(self.restartBtn, border=6, flag=wx.BOTTOM)
             self.restartBtn.Bind(wx.EVT_BUTTON, self.parent.restart)
             # Stop button
             self.stopBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
@@ -78,7 +78,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
             self.stopBtn.SetBitmap(
                 icons.ButtonIcon(stem="stop", size=16).bitmap
             )
-            self.sizer.Add(self.stopBtn, border=3, flag=wx.ALL)
+            self.sizer.Add(self.stopBtn, border=6, flag=wx.BOTTOM)
             self.stopBtn.Bind(wx.EVT_BUTTON, self.parent.close)
             # Clear button
             self.clrBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
@@ -88,7 +88,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
             self.clrBtn.SetBitmap(
                 icons.ButtonIcon(stem="clear", size=16).bitmap
             )
-            self.sizer.Add(self.clrBtn, border=3, flag=wx.ALL)
+            self.sizer.Add(self.clrBtn, border=6, flag=wx.BOTTOM)
             self.clrBtn.Bind(wx.EVT_BUTTON, self.parent.clear)
 
             self.update()
@@ -102,10 +102,10 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
 
         def _applyAppTheme(self):
             # Set background
-            self.SetBackgroundColour(colors.app['tab_bg'])
+            self.SetBackgroundColour(fonts.coderTheme.base.backColor)
             # Style buttons
             for btn in (self.startBtn, self.stopBtn, self.clrBtn, self.restartBtn):
-                btn.SetBackgroundColour(colors.app['tab_bg'])
+                btn.SetBackgroundColour(fonts.coderTheme.base.backColor)
             self.Refresh()
             self.Update()
 
@@ -126,7 +126,11 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
 
         # Toolbar
         self.toolbar = self.PythonREPLToolbar(self)
-        self.sizer.Add(self.toolbar, flag=wx.EXPAND)
+        self.sizer.Add(self.toolbar, border=6, flag=wx.EXPAND | wx.TOP | wx.BOTTOM)
+
+        # Sep
+        self.sep = wx.Window(self, size=(1, -1))
+        self.sizer.Add(self.sep, border=12, flag=wx.EXPAND | wx.TOP | wx.BOTTOM)
 
         # TextCtrl used to display the text from the terminal
         styleFlags = (wx.HSCROLL | wx.TE_MULTILINE | wx.TE_PROCESS_ENTER |
@@ -178,7 +182,6 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
 
         # Setup fonts and margins
         self.setFonts()
-        self.txtTerm.SetMargins(8)
 
     def setFonts(self):
         """Set the font for the console."""
@@ -321,6 +324,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
 
         # convert to bytes
         for line in lines.split('\n'):
+            self.setFonts()  # update fonts
             self.submit(line)
 
     def submit(self, line):
@@ -371,7 +375,7 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         # clear all text in the widget and display the welcome message
         self.txtTerm.Clear()
         self.txtTerm.WriteText(
-            "Python shell in PsychoPy (pid:{}) - type some commands!\n\n".format(
+            "Python shell in PsychoPy (pid:{}) - type some commands!\n".format(
                 self._pid))  # show the subprocess PID for reference
         self._lastTextPos = self.txtTerm.GetLastPosition()
         self.toolbar.update()
@@ -484,7 +488,12 @@ class PythonREPLCtrl(wx.Panel, handlers.ThemeMixin):
         event.Skip()
 
     def _applyAppTheme(self):
-        self.SetBackgroundColour(colors.app['tab_bg'])
+        # Set background
+        self.SetBackgroundColour(fonts.coderTheme.base.backColor)
+        self.Refresh()
+        self.Update()
+        # Match line
+        self.sep.SetBackgroundColour(fonts.coderTheme.margin.backColor)
         self.Refresh()
         self.Update()
 

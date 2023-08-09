@@ -58,7 +58,7 @@ class ParallelOutComponent(BaseComponent):
                          "options in preferences>general)")
         self.params['address'] = Param(
             address, valType='str', inputType="choice", allowedVals=addressOptions,
-            categ='Hardware', hint=msg, label=_localized['address'])
+            categ='Hardware', hint=msg, label=_translate("Port address"))
 
         self.depends.append(
             {"dependsOn": "address",  # must be param name
@@ -72,17 +72,17 @@ class ParallelOutComponent(BaseComponent):
         msg = _translate("U3 Register to write byte to")
         self.params['register'] = Param(register, valType='str',
                                         inputType="choice", allowedVals=['EIO', 'FIO'],
-                                        categ='Hardware', hint=msg, label=_localized['register'])
+                                        categ='Hardware', hint=msg, label=_translate("U3 register"))
 
         self.params['startData'] = Param(
             startData, valType='code', inputType="single", allowedTypes=[], categ='Data',
             hint=_translate("Data to be sent at 'start'"),
-            label=_localized['startData'])
+            label=_translate("Start data"))
 
         self.params['stopData'] = Param(
             stopData, valType='code', inputType="single", allowedTypes=[], categ='Data',
             hint=_translate("Data to be sent at 'end'"),
-            label=_localized['stopData'])
+            label=_translate("Stop data"))
 
         msg = _translate("If the parallel port data relates to visual "
                          "stimuli then sync its pulse to the screen refresh")
@@ -91,7 +91,7 @@ class ParallelOutComponent(BaseComponent):
             allowedVals=[True, False],
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['syncScreen'])
+            label=_translate("Sync to screen"))
 
     def writeInitCode(self, buff):
         if self.params['address'].val == 'LabJack U3':

@@ -270,7 +270,7 @@ def getInitVals(params, target="PsychoPy"):
             "none"
     ):
         if target == "PsychoJS":
-            inits['units'].val = "psychoJS.window"
+            inits['units'].val = "psychoJS.window.units"
         else:
             inits['units'].val = "win.units"
 
@@ -324,6 +324,9 @@ def getInitVals(params, target="PsychoPy"):
                       'noiseFractalPower', 'zoom']:
             inits[name].val = "1.0"
             inits[name].valType = 'code'
+        elif name in ['progress']:
+            inits[name].val = "0.0"
+            inits[name].valType = 'code'
         elif name in ['image']:
             inits[name].val = "default.png"
             inits[name].valType = 'str'
@@ -375,6 +378,9 @@ def getInitVals(params, target="PsychoPy"):
         elif name == 'vertices':
             inits[name].val = "[[-0.5,-0.5], [-0.5, 0.5], [0.5, 0.5], [0.5, -0.5]]"
             inits[name].valType = 'code'
+        elif name == 'shape':
+            inits[name].val = 'triangle'
+            inits[name].valType = 'str'
         elif name in ('movie', 'latitude', 'longitude', 'elevation', 'azimuth', 'speechPoint'):
             inits[name].val = 'None'
             inits[name].valType = 'code'

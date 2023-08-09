@@ -65,6 +65,9 @@ while cam.recordingTime < 5.0:
     if event.getKeys('q'):
         break
 
+# close the window, we don't need it anymore
+win.close()
+
 # Stop the camera recording. This must be called prior to saving the video to
 # file. The webcam stream is still open at this point and record can be called
 # again.

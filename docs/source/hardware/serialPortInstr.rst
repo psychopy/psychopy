@@ -2,7 +2,7 @@
 
 Sending triggers via a Serial Port
 =================================================
-Note that if you are using PsychoPy version 2022.2 onwards, you may use the :ref: `serial port component <serial_comp>`. If you are using an earlier version you will need to use :ref: `code components <serial_code>`. For both use cases you will need to know your serial port address.
+Note that if you are using PsychoPy version 2022.2 onwards, you may use the :ref:`serial port component <serial_comp>`. If you are using an earlier version you will need to use :ref: `code components <serial_code>`. For both use cases you will need to know your serial port address.
 
 .. _serial_address:
 
@@ -42,6 +42,7 @@ If you're using PsychoPy version 2022.2 or later, you can use the serial port co
 * The serial port component can be found in both the I/O and EEG component drop down menus. Add in a serial port component to the routine that you'd like triggers to be sent from by selecting it from the menu:
 
 .. figure:: /images/serial1.png
+    :scale: 50%
 
     Select the `SerialPort` component from the `I/O` or `EEG` component drop-down menus.
 

@@ -268,7 +268,7 @@ class Keyboard:
             for buffer in self._buffers.values():
                 buffer.stop()
 
-    def getKeys(self, keyList=None, waitRelease=True, clear=True):
+    def getKeys(self, keyList=None, ignoreKeys=None, waitRelease=True, clear=True):
         """
 
         Parameters
@@ -298,7 +298,11 @@ class Keyboard:
         keys = []
         if Keyboard._backend == 'ptb':
             for buffer in self._buffers.values():
-                for origKey in buffer.getKeys(keyList, waitRelease, clear):
+                for origKey in buffer.getKeys(
+                        keyList=keyList,
+                        ignoreKeys=ignoreKeys,
+                        waitRelease=waitRelease,
+                        clear=clear):
                     # calculate rt from time and self.timer
                     thisKey = copy.copy(origKey)  # don't alter the original
                     thisKey.rt = thisKey.tDown - self.clock.getLastResetTime()
@@ -307,11 +311,19 @@ class Keyboard:
         elif Keyboard._backend == 'iohub':
             watchForKeys = keyList
             if waitRelease:
-                key_events = Keyboard._iohubKeyboard.getReleases(keys=watchForKeys, clear=clear)
+                key_events = Keyboard._iohubKeyboard.getReleases(
+                    keys=watchForKeys,
+                    ignoreKeys=ignoreKeys,
+                    clear=clear
+                )
             else:
                 key_events = []
                 released_press_evt_ids = []
-                all_key_events = Keyboard._iohubKeyboard.getKeys(keys=watchForKeys, clear=clear)
+                all_key_events = Keyboard._iohubKeyboard.getKeys(
+                    keys=watchForKeys,
+                    ignoreKeys=ignoreKeys,
+                    clear=clear
+                )
                 if all_key_events:
                     all_key_events_ids = [k.id for k in all_key_events]
                     all_key_events.reverse()
@@ -445,11 +457,9 @@ class KeyPress(object):
             self.name = name
             self.rt = tDown
         elif Keyboard._backend == 'ptb':
-            if code not in keyNames:
-                self.name = 'n/a'
-                logging.warning("Got keycode {} but that code isn't yet known")
-            else:
-                self.name = keyNames[code]
+            if code not in keyNames and code in keyNames.values():
+                i = list(keyNames.values()).index(code)
+                code = list(keyNames.keys())[i]
             if code not in keyNames:
                 logging.warning('Keypress was given unknown key code ({})'.format(code))
                 self.name = 'unknown'
@@ -534,12 +544,13 @@ class _KeyBuffer(object):
             key['time'] = evt['Time']
             self._evts.append(key)
 
-    def getKeys(self, keyList=[], waitRelease=True, clear=True):
+    def getKeys(self, keyList=[], ignoreKeys=[], waitRelease=True, clear=True):
         """Return the KeyPress objects from the software buffer
 
         Parameters
         ----------
         keyList : list of key(name)s of interest
+        ignoreKeys : list of keys(name)s to ignore if keylist is blank
         waitRelease : if True then only process keys that are also released
         clear : clear any keys (that have been returned in this call)
 
@@ -566,6 +577,8 @@ class _KeyBuffer(object):
             if waitRelease and not keyPress.duration:
                 continue
             if keyList and keyPress.name not in keyList:
+                continue
+            if ignoreKeys and keyPress.name in ignoreKeys:
                 continue
             keyPresses.append(keyPress)
 
