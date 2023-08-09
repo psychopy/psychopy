@@ -257,7 +257,7 @@ class Color:
         Cone matrix for colorspaces which require it. Must be a 3x3 array.
 
     """
-    def __init__(self, color=None, space=None, contrast=None, conematrix=None, validate=True):
+    def __init__(self, color=None, space=None, contrast=None, conematrix=None):
         self._cache = {}
         self._renderCache = {}
         self.contrast = contrast if isinstance(contrast, (int, float)) else 1
@@ -269,7 +269,7 @@ class Color:
         self._requested = None
         self._requestedSpace = None
 
-        self.set(color=color, space=space, validate=validate)
+        self.set(color=color, space=space)
 
     def validate(self, color, space=None):
         """
@@ -347,7 +347,7 @@ class Color:
 
         return color, space
 
-    def set(self, color=None, space=None, validate=True):
+    def set(self, color=None, space=None):
         """Set the colour of this object - essentially the same as what happens
         on creation, but without having to initialise a new object.
         """
@@ -362,9 +362,8 @@ class Color:
         # Store requested colour and space (or defaults, if none given)
         self._requested = color
         self._requestedSpace = space
-        if validate:
-            # Validate and prepare values
-            color, space = self.validate(color, space)
+        # Validate and prepare values
+        color, space = self.validate(color, space)
         # Convert to lingua franca
         if space in colorSpaces:
             self.valid = True
@@ -488,10 +487,11 @@ class Color:
         return self.__deepcopy__()
 
     def __deepcopy__(self):
-        dupe = self.__class__(
-            self._requested, self._requestedSpace, self.contrast, validate=False)
-        dupe.set(self.rgba, "rgba", validate=False)
+        dupe = self.__class__(None, contrast=self.contrast)
+        dupe._requested = self._requested
+        dupe._requestedSpace = self._requestedSpace
         dupe.valid = self.valid
+        dupe._cache = self._cache
 
         return dupe
 
