@@ -1164,7 +1164,7 @@ class Session:
             self.win = None
         # flush any remaining logs and kill reference to log file
         self.logFile.logger.flush()
-        del self.logFile
+        self.logFile.logger.removeTarget(self.logFile)
         # delete self
         del self
 
