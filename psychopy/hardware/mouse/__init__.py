@@ -19,6 +19,7 @@ import numpy as np
 import psychopy.core as core
 import psychopy.visual.window as window
 from psychopy.tools.monitorunittools import pix2cm, pix2deg, cm2pix, deg2pix
+from psychopy.tools.attributetools import AttributeGetSetMixin
 
 
 # mouse button indices
@@ -45,7 +46,7 @@ MOUSE_POS_CURRENT = 0
 MOUSE_POS_PREVIOUS = 1
 
 
-class Mouse:
+class Mouse(AttributeGetSetMixin):
     """Class for using pointing devices (e.g., mice, trackballs, etc.) as input.
 
     PsychoPy presently only supports one pointing device input at a time.
