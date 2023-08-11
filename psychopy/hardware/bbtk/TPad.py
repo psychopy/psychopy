@@ -1,4 +1,4 @@
-import serial
+from .. import serialdevice as sd
 
 
 class TPad:
@@ -13,15 +13,16 @@ class TPad:
         def isRelease(self):
             return self.state == "R"
 
-    def __init__(self, timeout=1):
+    def __init__(self):
         # setup port
-        self.serial = serial.Serial("COM8", 115200, timeout=timeout)
+        self.serial = sd.SerialDevice("COM8", 115200)
+        self.com = self.serial.com
         # array for responses
         self.responses = []
 
     def read(self):
         # ready data from serial port
-        data = self.serial.read().decode()
+        data = self.com.read().decode()
         # split into lines
         for line in data.split("\n"):
             # create a Response object for each line
@@ -31,6 +32,6 @@ class TPad:
 
     def write(self, msg):
         # write data to the serial port
-        self.serial.write(msg.encode())
+        self.com.write(msg.encode())
 
 
