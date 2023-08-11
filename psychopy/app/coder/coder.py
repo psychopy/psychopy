@@ -2318,7 +2318,8 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.setTitle(title=self.winTitle, document=fname)
         #if len(self.getOpenFilenames()) > 0:
         self.currentDoc.analyseScript()
-        self.fileBrowserWindow.gotoDir(path)
+        if os.path.isdir(path):
+            self.fileBrowserWindow.gotoDir(path)
 
         if not keepHidden:
             self.Show()  # if the user had closed the frame it might be hidden
