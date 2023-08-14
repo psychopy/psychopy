@@ -1719,7 +1719,10 @@ class DlgLoopProperties(_BaseParamsDlg):
         or message, as appropriate. Upon completion this will disable the update button as
         we are now up to date.
         """
-        self.conditionsFile = self.constantsCtrls['conditionsFile'].valueCtrl.GetValue()
+        if "MultiStairHandler" in self.type:
+            self.conditionsFile = self.multiStairCtrls['conditionsFile'].valueCtrl.GetValue()
+        else:
+            self.conditionsFile = self.constantsCtrls['conditionsFile'].valueCtrl.GetValue()
         # Check whether the file and path are the same as previously
         isSameFilePathAndName = self.conditionsFileAbs == self.conditionsFileOrig
         # Start off with no message and assumed valid
