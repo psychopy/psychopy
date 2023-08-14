@@ -33,7 +33,7 @@ dependencies = [
     "pyglet == 1.4.11; platform_system == \"Windows\"",
     "pyglet == 1.5.27; platform_system != \"Windows\"",
     "pillow>=9.4.0",
-    "pyqt6",
+    "pyqt5",
     "pandas>=1.5.3",
     "questplus>=2023.1",
     "openpyxl",
