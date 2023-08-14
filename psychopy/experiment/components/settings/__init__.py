@@ -1706,8 +1706,8 @@ class SettingsComponent:
                 "  color: new util.Color({params[color]}),\n"
                 "  units: '{units}',\n"
                 "  waitBlanking: true,\n"
-                "  backgroundImage={params[backgroundImg]},\n"
-                "  backgroundFit={params[backgroundFit]},\n"
+                "  backgroundImage: {params[backgroundImg]},\n"
+                "  backgroundFit: {params[backgroundFit]},\n"
                 "}});\n").format(
             fullScr=str(self.params['Full-screen window']).lower(),
             params=self.params,
