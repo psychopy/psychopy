@@ -350,7 +350,7 @@ class Keyboard:
                     tDown = k.time
 
                 kpress = KeyPress(code=k.char, tDown=tDown, name=kname)
-                kpress.rt = kpress.tDown - self.clock.getLastResetTime() + Keyboard._iohubOffset
+                kpress.rt = kpress.tDown - (self.clock.getLastResetTime() - Keyboard._iohubKeyboard.clock.getLastResetTime())
                 if hasattr(k, 'duration'):
                     kpress.duration = k.duration
 
