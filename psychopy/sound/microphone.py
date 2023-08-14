@@ -403,13 +403,13 @@ class Microphone:
                 "Microphone audio capture requires package `psychtoolbox` to "
                 "be installed.")
         
-        def _getDeviceByIndex(index):
+        def _getDeviceByIndex(deviceIndex):
             """Subroutine to get a device by index. Used to handle the case 
             where the user specifies a device by index.
 
             Parameters
             ----------
-            index : int, float or str
+            deviceIndex : int, float or str
                 Index of the device to get.
             
             Returns
@@ -420,27 +420,32 @@ class Microphone:
             """
             # convert to `int` first, sometimes strings can specify the enum
             # value from builder
-            index = int(index)
+            deviceIndex = int(deviceIndex)
+            # get all audio devices
+            devices_ = Microphone.getDevices()
+
+            import sys
+            print(devices_, file=sys.__stdout__)
 
             # get information about the selected device
-            devicesByIndex = {d.deviceIndex: d for d in devices}
-            if device in devicesByIndex:
-                self._device = devicesByIndex[device]
+            devicesByIndex = {d.deviceIndex: d for d in devices_}
+            if deviceIndex in devicesByIndex:
+                useDevice = devicesByIndex[deviceIndex]
             else:
                 raise AudioInvalidCaptureDeviceError(
                     'No suitable audio recording devices found matching index '
-                    '{}.'.format(device))
+                    '{}.'.format(deviceIndex))
             
-            return device
+            return useDevice
 
         # get information about the selected device
-        devices = Microphone.getDevices()
         if isinstance(device, AudioDeviceInfo):
             self._device = device
         elif isinstance(device, (int, float, str)):
             self._device = _getDeviceByIndex(device)
         else:
             # get default device, first enumerated usually
+            devices = Microphone.getDevices()
             if not devices:
                 raise AudioInvalidCaptureDeviceError(
                     'No suitable audio recording devices found on this system. '
