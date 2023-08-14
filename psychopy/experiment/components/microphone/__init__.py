@@ -33,7 +33,7 @@ _localized.update({'stereo': _translate('Stereo'),
 # Get list of devices
 if _hasPTB and not syst.isVM_CI():
     devices = syst.getAudioCaptureDevices()
-    deviceIndices = [d['index'] for d in devices.values()]
+    deviceIndices = [str(d['index']) for d in devices.values()]
     deviceNames = [d['name'] for d in devices.values()]
 else:
     devices = []
