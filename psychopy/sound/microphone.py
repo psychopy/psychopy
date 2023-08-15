@@ -423,10 +423,7 @@ class Microphone:
             deviceIndex = int(deviceIndex)
             # get all audio devices
             devices_ = Microphone.getDevices()
-
-            import sys
-            print(devices_, file=sys.__stdout__)
-
+            
             # get information about the selected device
             devicesByIndex = {d.deviceIndex: d for d in devices_}
             if deviceIndex in devicesByIndex:
