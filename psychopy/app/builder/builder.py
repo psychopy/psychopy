@@ -2256,7 +2256,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         # draw the rectangle, draw text on top:
         dc.DrawRectangle(
             int(xSt), int(yPosTop - nameH * 4), int(w), int(h + nameH * 5))
-        dc.DrawText(name, x - nameW // 2, y)
+        dc.DrawText(name, int(x - nameW // 2), y)
         # update bounds to include time bar
         fullRect.Union(wx.Rect(int(xSt), int(yPosTop), int(w), int(h)))
         dc.SetIdBounds(id, fullRect)
