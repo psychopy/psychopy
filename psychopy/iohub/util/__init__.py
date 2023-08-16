@@ -13,6 +13,7 @@ import datetime
 from ..errors import print2err, printExceptionDetailsToStdErr
 import re
 import collections.abc
+import psychopy.logging as logging
 import psychopy.plugins as plugins
 
 ########################
