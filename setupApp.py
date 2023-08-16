@@ -75,7 +75,7 @@ includes = ['_sitebuiltins',  # needed for help()
 packages = ['pydoc',  # needed for help()
             'setuptools', 'wheel', # for plugin installing
             'wx', 'psychopy',
-            'PyQt6',
+            'PyQt5',
             'pyglet', 'pytz',
             'scipy', 'matplotlib', 'openpyxl', 'pandas',
             'xml', 'xmlschema',
