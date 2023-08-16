@@ -8,11 +8,11 @@
 from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, \
     getInitVals, _translate
-from psychopy.visual import slider
 from psychopy.experiment import py2js
 from psychopy import logging
 from psychopy.data import utils
 from psychopy.localization import _localized as __localized
+from psychopy.tools.stimulustools import sliderStyles, sliderStyleTweaks
 _localized = __localized.copy()
 import copy
 
@@ -28,10 +28,8 @@ _localized.update({'categoryChoices': _translate('Category choices'),
                    'storeRatingTime': _translate('Store rating time'),
                    'readOnly': _translate('readOnly')})
 
-knownStyles = slider.Slider.knownStyles
-legacyStyles = slider.Slider.legacyStyles
-knownStyleTweaks = slider.Slider.knownStyleTweaks
-legacyStyleTweaks = slider.Slider.legacyStyleTweaks
+knownStyles = sliderStyles
+knownStyleTweaks = sliderStyleTweaks
 
 
 # ticks = (1, 2, 3, 4, 5),
