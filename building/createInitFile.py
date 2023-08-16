@@ -103,6 +103,10 @@ if 'installing' not in locals():
     from psychopy.preferences import prefs
     for pathName in prefs.general['paths']:
         sys.path.append(pathName)
+    # add paths from plugins/packages (installed by plugins manager)
+    for _pathName in _pathlib.Path(prefs.paths['packages']).glob("*"):
+        if _pathName.is_dir():
+            sys.path.append(str(_pathName))
 
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
 
