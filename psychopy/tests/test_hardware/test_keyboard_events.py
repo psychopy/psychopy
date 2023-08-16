@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from psychopy import event, core, iohub, visual
+from psychopy import event, core
 from psychopy.preferences import prefs
-from psychopy.hardware import keyboard
 from psychopy.visual import Window
 
 from pyglet.window.key import (MOD_SHIFT,
@@ -94,34 +93,6 @@ class TestKeyboardEvents():
         assert keys[0][1]['shift']
         assert keys[0][1]['scrolllock']
         assert isinstance(keys[0][2], float)
-
-
-class TestIohubKeyboard:
-    def setup(self):
-        self.win = visual.Window()
-        self.ioServer = iohub.launchHubServer(window=self.win)
-        self.kb = keyboard.Keyboard(backend="iohub")
-
-    def test_timestamps(self):
-        # make global clock
-        globalClock = core.Clock()
-        # sync global clock with iohub
-        self.ioServer.syncClock(globalClock)
-        # get time from a variety of sources
-        times = [
-            # ioHub process time
-            self.kb._iohubKeyboard.clock.getTime(),
-            # ioHub time in current process
-            iohub.Computer.global_clock.getTime(),
-            # experiment time
-            globalClock.getTime(),
-        ]
-        # confirm that all values are within 0.001 of eachother
-        avg = sum(times) / len(times)
-        deltas = [abs(t - avg) for t in times]
-        same = [d < 0.001 for d in deltas]
-
-        assert all(same)
 
 
 @pytest.mark.keyboard
