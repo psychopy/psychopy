@@ -926,7 +926,7 @@ class SettingsComponent:
         # create resources folder
         if self.exp.htmlFolder:
             self.prepareResourcesJS()
-        jsFilename = os.path.basename(os.path.splitext(self.exp.filename)[0])
+        jsFilename = self.params['expName'].val
 
         # configure the PsychoJS version number from current/requested versions
         useVer = self.params['Use version'].val
@@ -1705,10 +1705,14 @@ class SettingsComponent:
                 "  fullscr: {fullScr},\n"
                 "  color: new util.Color({params[color]}),\n"
                 "  units: '{units}',\n"
-                "  waitBlanking: true\n"
-                "}});\n").format(fullScr=str(self.params['Full-screen window']).lower(),
-                                 params=self.params,
-                                 units=units)
+                "  waitBlanking: true,\n"
+                "  backgroundImage: {params[backgroundImg]},\n"
+                "  backgroundFit: {params[backgroundFit]},\n"
+                "}});\n").format(
+            fullScr=str(self.params['Full-screen window']).lower(),
+            params=self.params,
+            units=units
+        )
         buff.writeIndentedLines(code)
 
     def writePauseCode(self, buff):
