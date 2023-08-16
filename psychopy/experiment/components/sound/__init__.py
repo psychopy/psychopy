@@ -110,6 +110,10 @@ class SoundComponent(BaseComponent):
         else:
             buff.writeIndentedLines("%(name)s.setSound(%(sound)s, secs=%(stopVal)s, hamming=%(hamming)s)\n"
                                     "%(name)s.setVolume(%(volume)s, log=False)\n" % self.params)
+        code = (
+            "%(name)s.seek(0)\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def writeInitCodeJS(self, buff):
         # replaces variable params with sensible defaults
@@ -228,7 +232,7 @@ class SoundComponent(BaseComponent):
         if self.params['stopWithRoutine']:
             # stop at the end of the Routine, if requested
             code = (
-                "%(name)s.stop()  # ensure sound has stopped at end of Routine\n"
+                "%(name)s.pause()  # ensure sound has stopped at end of Routine\n"
             )
             buff.writeIndentedLines(code % self.params)
         # get parent to write code too (e.g. store onset/offset times)
