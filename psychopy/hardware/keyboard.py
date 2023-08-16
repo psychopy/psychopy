@@ -128,7 +128,6 @@ class Keyboard:
     """
     _backend = None
     _iohubKeyboard = None
-    _iohubOffset = 0.0
     _ptbOffset = 0.0
 
     def __init__(self, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None):
@@ -188,7 +187,6 @@ class Keyboard:
 
             if ioHubConnection.getActiveConnection() and Keyboard._iohubKeyboard is None:
                 Keyboard._iohubKeyboard = ioHubConnection.getActiveConnection().getDevice('keyboard')
-                Keyboard._iohubOffset = Computer.global_clock.getLastResetTime()
                 Keyboard._backend = 'iohub'
 
         if Keyboard._backend in ['', 'ptb'] and havePTB:
@@ -350,7 +348,7 @@ class Keyboard:
                     tDown = k.time
 
                 kpress = KeyPress(code=k.char, tDown=tDown, name=kname)
-                kpress.rt = kpress.tDown - self.clock.getLastResetTime() + Keyboard._iohubOffset
+                kpress.rt = kpress.tDown - (self.clock.getLastResetTime() - Keyboard._iohubKeyboard.clock.getLastResetTime())
                 if hasattr(k, 'duration'):
                     kpress.duration = k.duration
 

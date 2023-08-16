@@ -2002,12 +2002,19 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         )
 
         # --- Time grid ---
+        # filter Components for just those included in the time grid
+        trueComponents = []
+        for comp in self.routine:
+            if type(comp).__name__ in ("StaticComponent", "RoutineSettingsComponent"):
+                continue
+            else:
+                trueComponents.append(comp)
         # note: will be modified as things are added around it
         grid = self.rects['grid'] = wx.Rect(
             x=canvas.Left,
             y=canvas.Top,
             width=canvas.Width,
-            height=self.componentStep * (len(self.routine) - 1)
+            height=self.componentStep * len(trueComponents)
         )
 
         # --- Top bar ---
@@ -2256,7 +2263,7 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         # draw the rectangle, draw text on top:
         dc.DrawRectangle(
             int(xSt), int(yPosTop - nameH * 4), int(w), int(h + nameH * 5))
-        dc.DrawText(name, x - nameW // 2, y)
+        dc.DrawText(name, int(x - nameW // 2), y)
         # update bounds to include time bar
         fullRect.Union(wx.Rect(int(xSt), int(yPosTop), int(w), int(h)))
         dc.SetIdBounds(id, fullRect)
