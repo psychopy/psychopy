@@ -317,12 +317,15 @@ class PavloviaSession:
         pavProject = PavloviaProject(gitlabProj.get_id(), localRoot=localRoot)
         return pavProject
 
-    def getProject(self, id):
+    def getProject(self, id, localRoot=""):
         """Gets a Pavlovia project from an ID number or namespace/name
 
         Parameters
         ----------
-        id a numerical
+        id : float
+            Numeric ID of the project
+        localRoot : str or Path
+            Path of the project root
 
         Returns
         -------
@@ -330,7 +333,7 @@ class PavloviaSession:
 
         """
         if id:
-            return PavloviaProject(id)
+            return PavloviaProject(id, localRoot=localRoot)
         else:
             return None
 
@@ -1353,7 +1356,7 @@ def getProject(filename):
             return None
         # If project is still there, get it
         try:
-            return PavloviaProject(thisId)
+            return PavloviaProject(thisId, localRoot=gitRoot)
         except LookupError as err:
             # If project not found, print warning and return None
             logging.warn(str(err))
@@ -1403,7 +1406,7 @@ def getProject(filename):
 
                     if pavSession.user:
                         # Get PavloviaProject via id
-                        proj = pavSession.getProject(namespaceName)
+                        proj = pavSession.getProject(namespaceName, localRoot=gitRoot)
                         proj.repo = localRepo
                     else:
                         # If we are still logged out, prompt user
