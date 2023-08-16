@@ -15,7 +15,7 @@ from psychopy.localization import _translate
 from . import experiment
 from .localizedStrings import _localized
 from pkg_resources import parse_version
-from ...visual.textbox2.fontmanager import FontManager
+from psychopy.tools.fontmanager import FontManager
 
 fontMGR = FontManager()
 

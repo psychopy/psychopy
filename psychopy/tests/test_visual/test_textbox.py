@@ -8,7 +8,7 @@ from psychopy.tests.test_visual.test_basevisual import _TestColorMixin, _TestUni
 from psychopy.tests.test_experiment.test_component_compile_python import _TestBoilerplateMixin
 from psychopy.visual import Window
 from psychopy.visual import TextBox2
-from psychopy.visual.textbox2.fontmanager import FontManager
+from psychopy.tools.fontmanager import FontManager
 import pytest
 from psychopy.tests import utils
 

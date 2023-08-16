@@ -7,7 +7,7 @@
 
 from pathlib import Path
 from psychopy.experiment.components import Param, getInitVals, _translate, BaseVisualComponent
-from psychopy.visual import form
+from psychopy.tools.stimulustools import formStyles
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 
@@ -21,7 +21,7 @@ _localized.update({'Items': _translate('Items'),
                    'Data Format': _translate('Data Format'),
                    'Randomize': _translate('Randomize')
                    })
-knownStyles = list(form.Form.knownStyles)
+knownStyles = list(formStyles)
 
 
 class FormComponent(BaseVisualComponent):

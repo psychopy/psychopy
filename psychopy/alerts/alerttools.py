@@ -1,12 +1,11 @@
 import ast
-import re
 
 from numpy import array
 from esprima import parseScript
 
 from psychopy.tools import monitorunittools
 from psychopy.alerts._alerts import alert
-from psychopy.visual.textbox2.fontmanager import FontManager
+from psychopy.tools.fontmanager import FontManager
 
 fontMGR = FontManager()
 
