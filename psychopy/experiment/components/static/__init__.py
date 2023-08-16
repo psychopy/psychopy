@@ -224,16 +224,18 @@ class StaticComponent(BaseComponent):
             buff.writeIndented(code % self.params['name'])
             # Do updates
             for update in self.updatesList:
-                # update = {'compName':compName,'fieldName':fieldName,
-                #    'routine':routine}
                 compName = update['compName']
                 fieldName = update['fieldName']
-                # routine = self.exp.routines[update['routine']]
+                # get component
                 if hasattr(compName, 'params'):
-                    prms = compName.params  # it's already a compon so get params
+                    comp = compName
                 else:
-                    # it's a name so get compon and then get params
-                    prms = self.exp.getComponentFromName(str(compName)).params
+                    comp = self.exp.getComponentFromName(str(compName))
+                # component may be disabled or otherwise not present - skip it if so
+                if comp is None:
+                    return
+                # get params
+                prms = comp.params  # it's already a compon so get params
                 # If in JS, prepare resources
                 if target == "PsychoJS" and prms[fieldName].valType == "file":
                     # Do resource manager stuff
