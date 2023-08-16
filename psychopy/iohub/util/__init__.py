@@ -238,6 +238,10 @@ def getDeviceDefaultConfig(device_name, builder_hides=True):
          'save_events': True,
          'stream_events': True}
     """
+    # activate plugins so that optional backends are detected
+    from psychopy.plugins import activatePlugins
+    activatePlugins()
+
     if device_name.endswith(".EyeTracker"):
         device_name = device_name[:-11]
     device_paths = getDevicePaths(device_name)
