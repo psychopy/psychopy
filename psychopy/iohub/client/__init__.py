@@ -1342,7 +1342,8 @@ class ioHubConnection():
     def _osxKillAndFreePort(self):
         server_udp_port = self._iohub_server_config.get('udp_port', 9000)
         p = subprocess.Popen(['lsof', '-i:%d'%server_udp_port, '-P'],
-                             stdout=subprocess.PIPE)
+                             stdout=subprocess.PIPE,
+                             encoding='utf-8')
         lines = p.communicate()[0]
         for line in lines.splitlines():
             if line.startswith('Python'):
