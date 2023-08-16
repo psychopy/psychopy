@@ -1705,10 +1705,14 @@ class SettingsComponent:
                 "  fullscr: {fullScr},\n"
                 "  color: new util.Color({params[color]}),\n"
                 "  units: '{units}',\n"
-                "  waitBlanking: true\n"
-                "}});\n").format(fullScr=str(self.params['Full-screen window']).lower(),
-                                 params=self.params,
-                                 units=units)
+                "  waitBlanking: true,\n"
+                "  backgroundImage: {params[backgroundImg]},\n"
+                "  backgroundFit: {params[backgroundFit]},\n"
+                "}});\n").format(
+            fullScr=str(self.params['Full-screen window']).lower(),
+            params=self.params,
+            units=units
+        )
         buff.writeIndentedLines(code)
 
     def writePauseCode(self, buff):
