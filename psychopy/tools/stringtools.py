@@ -11,8 +11,6 @@
 import re
 import ast
 
-__all__ = ["prettyname"]
-
 # Regex for identifying a valid Pavlovia project name
 import urllib
 from pathlib import Path
@@ -352,39 +350,6 @@ def makeValidVarName(name, case="camel"):
     if core:
         # If styled like a core variable (e.g. __file__), append __
         name = name + "__"
-    return name
-
-
-
-def prettyname(name, wrap=False):
-    """Convert a camelCase, TitleCase or underscore_delineated title to Full Title Case"""
-    # Replace _ with space
-    name = name.replace("_", " ")
-    # Put a space before any capital letter, apart from at the beginning, or already after a space
-    name = name[0] + re.sub('(?<![ -.])([A-Z])', r' \1', name[1:])
-    # Capitalise first letter of each word
-    name = name.title()
-    # Treat the word "PsychoPy" as a special case
-    name = name.replace("Psycho Py", "PsychoPy")
-    # Split into multiple lines if wrap is requested
-    if wrap:
-        sentence = []
-        letter = 0
-        # Iterate through each word
-        for n, word in enumerate(name.split(" ")):
-            # Count its letters
-            letter += len(word)
-            if letter > wrap and n > 0:
-                # If this brings the current letters this line to more than the wrap limit, insert a line break
-                sentence.append("\n")
-                letter = len(word)
-            # Insert word
-            sentence.append(word)
-        # Recombine name
-        name = " ".join(sentence)
-        # Remove spaces after line
-        name = re.sub(r" *\n *", "\n", name)
-
     return name
 
 
