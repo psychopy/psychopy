@@ -204,7 +204,7 @@ def test_profile():
         processed = ourBusiness.sort_values(col, ascending=False)
         colnm = col.replace('.', '_')
         processed.to_csv(str(REPORTS_PATH / f"profile_by_{colnm}.csv"))
-        output[colnm] = ourBusiness[ourBusiness[col] > ourBusiness[col].quantile(.95)]
+        output[colnm] = processed[processed[col] > processed[col].quantile(.95)]
         output[colnm + "str"] = pd.DataFrame(output[colnm]).to_markdown()
     # save markdown summary
     content = (
