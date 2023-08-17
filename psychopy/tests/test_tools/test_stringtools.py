@@ -104,3 +104,33 @@ def test_make_valid_name():
 
     for case in cases:
         assert tools.makeValidVarName(name=case['in'], case=case['case']) == case['out']
+
+
+def test_CaseSwitcher():
+
+    cases = [
+        # already valid names
+        {'fcn': "pascal2camel", 'in': "alreadyValidCamel", 'out': "alreadyValidCamel"},
+        {'fcn': "title2camel", 'in': "alreadyValidCamel", 'out': "alreadyValidCamel"},
+        {'fcn': "camel2pascal", 'in': "AlreadyValidPascal", 'out': "AlreadyValidPascal"},
+        {'fcn': "title2pascal", 'in': "AlreadyValidPascal", 'out': "AlreadyValidPascal"},
+        {'fcn': "camel2title", 'in': "Already Valid Title", 'out': "Already Valid Title"},
+        {'fcn': "pascal2title", 'in': "Already Valid Title", 'out': "Already Valid Title"},
+        # to camel
+        {'fcn': "pascal2camel", 'in': "MakeCamel", 'out': "makeCamel"},
+        {'fcn': "title2camel", 'in': "Make Camel", 'out': "makeCamel"},
+        # to pascal
+        {'fcn': "camel2pascal", 'in': "makePascal", 'out': "MakePascal"},
+        {'fcn': "title2pascal", 'in': "Make Pascal", 'out': "MakePascal"},
+        # to title
+        {'fcn': "camel2title", 'in': "makeTitle", 'out': "Make Title"},
+        {'fcn': "pascal2title", 'in': "MakeTitle", 'out': "Make Title"},
+    ]
+
+    for case in cases:
+        # get function
+        fcn = getattr(tools.CaseSwitcher, case['fcn'])
+        # call function
+        case['result'] = fcn(case['in'])
+        # check result
+        assert case['result'] == case['out'], "CaseSwitcher.{fcn}({in}) should be {out}, was {result}.".format(case)
