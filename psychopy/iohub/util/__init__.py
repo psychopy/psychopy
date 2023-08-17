@@ -32,6 +32,8 @@ try:
 except ImportError:
     from collections import Iterable
 
+from psychopy.preferences import prefs
+
 
 def saveConfig(config, dst_path):
     '''
@@ -179,17 +181,23 @@ def getDevicePaths(device_name=""):
         
         """
         yaml_paths = []
-        for root, _, files in os.walk(iohub_device_path):
-            device_folder = None
-            for file in files:
-                if file == 'supported_config_settings.yaml':
-                    device_folder = root
-                    break
-            if device_folder:
-                for dfile in files:
-                    if dfile.startswith("default_") and dfile.endswith('.yaml'):
-                        yaml_paths.append((device_folder, dfile))
-        
+        # try to walk both the internal iohub_device_path and user-level packages folder
+        for route in (os.walk(iohub_device_path), os.walk(prefs.paths['packages'])):
+            for root, _, files in route:
+                # check each file in the route to see if it's a config yaml
+                device_folder = None
+                for file in files:
+                    if file == 'supported_config_settings.yaml':
+                        device_folder = root
+                        break
+                if device_folder:
+                    for dfile in files:
+                        if dfile.startswith("default_") and dfile.endswith('.yaml'):
+                            # if file is a new config yaml, append it
+                            item = (device_folder, dfile)
+                            if item not in yaml_paths:
+                                yaml_paths.append(item)
+
         return yaml_paths
 
     scs_yaml_paths = []  # stores the paths to the device config files
