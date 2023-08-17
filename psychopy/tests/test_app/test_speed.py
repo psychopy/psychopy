@@ -4,6 +4,7 @@ import numpy
 from pathlib import Path
 
 from ..utils import TESTS_DATA_PATH, TESTS_PATH
+from psychopy.tests import skip_under_vm
 
 import shutil
 from tempfile import mkdtemp
@@ -152,7 +153,7 @@ class TestSpeed:
         dur = finish - start
         return dur
 
-
+@skip_under_vm
 def test_profile():
 
     # --- Run ---
