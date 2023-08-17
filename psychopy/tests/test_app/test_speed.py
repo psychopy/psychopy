@@ -3,12 +3,21 @@ import sys
 import numpy
 from pathlib import Path
 
-from ..utils import TESTS_DATA_PATH
+from ..utils import TESTS_DATA_PATH, TESTS_PATH
 
 import shutil
 from tempfile import mkdtemp
 import pytest
 import time
+import os
+import psychopy
+from psychopy.app._psychopyApp import PsychoPyApp
+from pathlib import Path
+import cProfile
+import pstats
+import io
+import pandas as pd
+import tabulate
 
 from ... import logging
 
@@ -143,23 +152,23 @@ class TestSpeed:
         dur = finish - start
         return dur
 
-def test_profile():
-    import psychopy
-    from psychopy.app._psychopyApp import PsychoPyApp
-    from pathlib import Path
 
-    import cProfile
-    import pstats
-    import io
-    import pandas as pd
+def test_profile():
+
+    # --- Run ---
 
     # setup profiler
     profile = cProfile.Profile()
+    start = time.time()
     profile.enable()
-    # start the app#
+    # run the app
     PsychoPyApp(showSplash=False)
     # stop profiler
     profile.disable()
+    stop = time.time()
+
+    # --- Get data ---
+
     # create a stream to put data in
     stream1 = io.StringIO("")
     # get the data
@@ -170,18 +179,46 @@ def test_profile():
     value = stream1.getvalue()
     # put string contents back into a stream
     stream2 = io.StringIO(value)
-    # now we can read the stream with pandas
-    data = pd.read_csv(stream2, header=2, delimiter=r"\s+", skipinitialspace=True, on_bad_lines="warn", index_col=False)
+    # read the stream with pandas
+    data = pd.read_csv(stream2, header=2, delimiter=r"\s+", skipinitialspace=True, on_bad_lines="skip", index_col=False)
 
-    # sort by per call time
-    data = data.sort_values("tottime", ascending=False)
-    # filter for only problem functions
+    # --- Process data ---
+
+    # filter for only functions which we can change
     root = str(Path(psychopy.__file__).parent).replace("\\", "\\\\")
     i = data[data.columns[-1]].str.contains(root)
     ourBusiness = data[i]
-    # sort by total time
-    byTotalTime = ourBusiness.sort_values("tottime", ascending=False)
-    byTimeEachCall = ourBusiness.sort_values("percall", ascending=False)
 
-    print(byTotalTime.head(10))
-    print(byTimeEachCall.head(10))
+    # --- Generate reports ---
+
+    # setup reports folder
+    REPORTS_PATH = Path(TESTS_PATH) / "reports" / "test_speed"
+    if not REPORTS_PATH.is_dir():
+        os.makedirs(str(REPORTS_PATH))
+    # array to store output in
+    output = {
+        'total': stop - start,
+    }
+    # store table variants
+    for col in ("tottime", "cumtime", "percall", "percall.1"):
+        processed = ourBusiness.sort_values(col, ascending=False)
+        colnm = col.replace('.', '_')
+        processed.to_csv(str(REPORTS_PATH / f"profile_by_{colnm}.csv"))
+        output[colnm] = ourBusiness[ourBusiness[col] > ourBusiness[col].quantile(.95)]
+        output[colnm + "str"] = pd.DataFrame(output[colnm]).to_markdown()
+    # save markdown summary
+    content = (
+        "Total time: {total}\n"
+        "\n"
+        "# By total time taken, including subcalls:\n"
+        "{cumtimestr}\n"
+        "\n"
+        "# By total time taken, excluding subcalls:\n"
+        "{tottimestr}\n"
+        "# By time taken per call, including subcalls:\n"
+        "{percall_1str}\n"
+        "\n"
+        "# By time taken per call, excluding subcalls:\n"
+        "{percallstr}\n"
+    ).format(**output)
+    (REPORTS_PATH / "profile_summary.md").write_text(content, encoding="utf8")
