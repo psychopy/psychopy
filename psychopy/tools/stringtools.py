@@ -57,6 +57,94 @@ def is_file(source):
     return isFile
 
 
+class CaseSwitcher:
+    """
+    Collection of static methods for switching case in strings. Can currently convert between:
+    - camelCase
+    - PascalCase
+    - Title Case
+    """
+
+    @staticmethod
+    def camel2pascal(value):
+        """
+        Convert from camelCase to PascalCase
+        """
+        # capitalise first letter
+        value = value[0].upper() + value[1:]
+
+        return value
+
+    @staticmethod
+    def camel2title(value):
+        """
+        Convert from camelCase to Title Case
+        """
+        # convert to pascal
+        value = CaseSwitcher.camel2pascal(value)
+        # convert to title
+        value = CaseSwitcher.pascal2title(value)
+
+        return value
+
+    @staticmethod
+    def pascal2camel(value):
+        """
+        Convert from PascalCase to camelCase
+        """
+        # decapitalise first letter
+        value = value[0].lower() + value[1:]
+
+        return value
+
+    @staticmethod
+    def pascal2title(value):
+        """
+        Convert from PascalCase to Title Case
+        """
+        def _titleize(match):
+            """
+            Replace a regex match for a lowercase letter followed by an uppercase letter with the same two letters, in
+            uppercase, with a space inbetween.
+            """
+            # get matching text (should be a lower case letter then an upper case letter)
+            txt = match[0]
+            # add a space
+            txt = txt[0] + " " + txt[1]
+
+            return txt
+        # make regex substitution
+        value = re.sub(
+            pattern=r"([a-z][A-Z])",
+            repl=_titleize,
+            string=value
+        )
+
+        return value
+
+    @staticmethod
+    def title2camel(value):
+        """
+        Convert from PascalCase to camelCase
+        """
+        # convert to pascal
+        value = CaseSwitcher.title2pascal(value)
+        # convert to camel
+        value = CaseSwitcher.pascal2camel(value)
+
+        return value
+
+    @staticmethod
+    def title2pascal(value):
+        """
+        Convert from PascalCase to Title Case
+        """
+        # remove spaces
+        value = value.replace(" ", "")
+
+        return value
+
+
 def makeValidVarName(name, case="camel"):
     """
     Transform a string into a valid variable name
