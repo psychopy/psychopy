@@ -18,7 +18,6 @@ import cProfile
 import pstats
 import io
 import pandas as pd
-import tabulate
 
 from ... import logging
 
@@ -201,6 +200,7 @@ def test_profile():
         'total': stop - start,
     }
     # store table variants
+    import tabulate
     for col in ("tottime", "cumtime", "percall", "percall.1"):
         processed = ourBusiness.sort_values(col, ascending=False)
         colnm = col.replace('.', '_')
