@@ -109,22 +109,34 @@ def test_make_valid_name():
 def test_CaseSwitcher():
 
     cases = [
-        # already valid names
+        # to camel
         {'fcn': "pascal2camel", 'in': "alreadyValidCamel", 'out': "alreadyValidCamel"},
         {'fcn': "title2camel", 'in': "alreadyValidCamel", 'out': "alreadyValidCamel"},
-        {'fcn': "camel2pascal", 'in': "AlreadyValidPascal", 'out': "AlreadyValidPascal"},
-        {'fcn': "title2pascal", 'in': "AlreadyValidPascal", 'out': "AlreadyValidPascal"},
-        {'fcn': "camel2title", 'in': "Already Valid Title", 'out': "Already Valid Title"},
-        {'fcn': "pascal2title", 'in': "Already Valid Title", 'out': "Already Valid Title"},
-        # to camel
+        {'fcn': "snake2camel", 'in': "alreadyValidCamel", 'out': "alreadyValidCamel"},
         {'fcn': "pascal2camel", 'in': "MakeCamel", 'out': "makeCamel"},
         {'fcn': "title2camel", 'in': "Make Camel", 'out': "makeCamel"},
+        {'fcn': "snake2camel", 'in': "make_camel", 'out': "makeCamel"},
         # to pascal
+        {'fcn': "camel2pascal", 'in': "AlreadyValidPascal", 'out': "AlreadyValidPascal"},
+        {'fcn': "title2pascal", 'in': "AlreadyValidPascal", 'out': "AlreadyValidPascal"},
+        {'fcn': "snake2pascal", 'in': "AlreadyValidPascal", 'out': "AlreadyValidPascal"},
         {'fcn': "camel2pascal", 'in': "makePascal", 'out': "MakePascal"},
         {'fcn': "title2pascal", 'in': "Make Pascal", 'out': "MakePascal"},
+        {'fcn': "snake2pascal", 'in': "make_pascal", 'out': "MakePascal"},
         # to title
+        {'fcn': "camel2title", 'in': "Already Valid Title", 'out': "Already Valid Title"},
+        {'fcn': "pascal2title", 'in': "Already Valid Title", 'out': "Already Valid Title"},
+        {'fcn': "snake2title", 'in': "Already Valid Title", 'out': "Already Valid Title"},
         {'fcn': "camel2title", 'in': "makeTitle", 'out': "Make Title"},
         {'fcn': "pascal2title", 'in': "MakeTitle", 'out': "Make Title"},
+        {'fcn': "snake2title", 'in': "make_title", 'out': "Make Title"},
+        # to snake
+        {'fcn': "camel2snake", 'in': "already_valid_snake", 'out': "already_valid_snake"},
+        {'fcn': "pascal2snake", 'in': "already_valid_snake", 'out': "already_valid_snake"},
+        {'fcn': "title2snake", 'in': "already_valid_snake", 'out': "already_valid_snake"},
+        {'fcn': "camel2snake", 'in': "makeSnake", 'out': "make_snake"},
+        {'fcn': "pascal2snake", 'in': "MakeSnake", 'out': "make_snake"},
+        {'fcn': "title2snake", 'in': "Make Snake", 'out': "make_snake"},
     ]
 
     for case in cases:
@@ -133,4 +145,4 @@ def test_CaseSwitcher():
         # call function
         case['result'] = fcn(case['in'])
         # check result
-        assert case['result'] == case['out'], "CaseSwitcher.{fcn}({in}) should be {out}, was {result}.".format(case)
+        assert case['result'] == case['out'], "CaseSwitcher.{fcn}({in}) should be {out}, was {result}.".format(**case)
