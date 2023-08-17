@@ -88,6 +88,18 @@ class CaseSwitcher:
         return value
 
     @staticmethod
+    def camel2snake(value):
+        """
+        Convert from camelCase to snake_case
+        """
+        # convert to title
+        value = CaseSwitcher.camel2title(value)
+        # convert to snake
+        value = CaseSwitcher.title2snake(value)
+
+        return value
+
+    @staticmethod
     def pascal2camel(value):
         """
         Convert from PascalCase to camelCase
@@ -123,9 +135,21 @@ class CaseSwitcher:
         return value
 
     @staticmethod
+    def pascal2snake(value):
+        """
+        Convert from PascalCase to snake_case
+        """
+        # convert to title
+        value = CaseSwitcher.pascal2title(value)
+        # convert to snake
+        value = CaseSwitcher.title2snake(value)
+
+        return value
+
+    @staticmethod
     def title2camel(value):
         """
-        Convert from PascalCase to camelCase
+        Convert from Title Case to camelCase
         """
         # convert to pascal
         value = CaseSwitcher.title2pascal(value)
@@ -137,10 +161,73 @@ class CaseSwitcher:
     @staticmethod
     def title2pascal(value):
         """
-        Convert from PascalCase to Title Case
+        Convert from Title Case to PascalCase
         """
         # remove spaces
         value = value.replace(" ", "")
+
+        return value
+
+    @staticmethod
+    def title2snake(value):
+        """
+        Convert from Title Case to snake_case
+        """
+        # lowercase
+        value = value.lower()
+        # replace spaces with underscores
+        value = value.replace(" ", "_")
+
+        return value
+
+    @staticmethod
+    def snake2camel(value):
+        """
+        Convert from snake_case to camelCase
+        """
+        # convert to pascal
+        value = CaseSwitcher.snake2pascal(value)
+        # convert to camel
+        value = CaseSwitcher.pascal2camel(value)
+
+        return value
+
+    @staticmethod
+    def snake2pascal(value):
+        """
+        Convert from snake_case to PascalCase
+        """
+        # convert to title
+        value = CaseSwitcher.snake2title(value)
+        # convert to pascal
+        value = CaseSwitcher.title2pascal(value)
+
+        return value
+
+    @staticmethod
+    def snake2title(value):
+        """
+        Convert from snake_case to Title Case
+        """
+        def _titleize(match):
+            """
+            Replace a regex match for a lowercase letter followed by an uppercase letter with the same two letters, in
+            uppercase, with a space inbetween.
+            """
+            # get matching text (should be a lower case letter then an upper case letter)
+            txt = match[0]
+            # add a space and capitalise
+            txt = " " + txt[1].upper()
+
+            return txt
+        # make regex substitution
+        value = re.sub(
+            pattern=r"(_[a-z])",
+            repl=_titleize,
+            string=value
+        )
+        # capitalise first letter
+        value = value[0].upper() + value[1:]
 
         return value
 
