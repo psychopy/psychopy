@@ -142,3 +142,46 @@ class TestSpeed:
         finish = time.time()
         dur = finish - start
         return dur
+
+def test_profile():
+    import psychopy
+    from psychopy.app._psychopyApp import PsychoPyApp
+    from pathlib import Path
+
+    import cProfile
+    import pstats
+    import io
+    import pandas as pd
+
+    # setup profiler
+    profile = cProfile.Profile()
+    profile.enable()
+    # start the app#
+    PsychoPyApp(showSplash=False)
+    # stop profiler
+    profile.disable()
+    # create a stream to put data in
+    stream1 = io.StringIO("")
+    # get the data
+    data = pstats.Stats(profile, stream=stream1)
+    # put it in the stream
+    data.print_stats()
+    # get raw string value
+    value = stream1.getvalue()
+    # put string contents back into a stream
+    stream2 = io.StringIO(value)
+    # now we can read the stream with pandas
+    data = pd.read_csv(stream2, header=2, delimiter=r"\s+", skipinitialspace=True, on_bad_lines="warn", index_col=False)
+
+    # sort by per call time
+    data = data.sort_values("tottime", ascending=False)
+    # filter for only problem functions
+    root = str(Path(psychopy.__file__).parent).replace("\\", "\\\\")
+    i = data[data.columns[-1]].str.contains(root)
+    ourBusiness = data[i]
+    # sort by total time
+    byTotalTime = ourBusiness.sort_values("tottime", ascending=False)
+    byTimeEachCall = ourBusiness.sort_values("percall", ascending=False)
+
+    print(byTotalTime.head(10))
+    print(byTimeEachCall.head(10))
