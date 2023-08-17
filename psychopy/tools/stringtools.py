@@ -232,6 +232,41 @@ class CaseSwitcher:
         return value
 
 
+def wrap(value, chars, delim=r"\s"):
+    """
+    Wrap a string at a number of characters.
+
+    Parameters
+    ----------
+    value : str
+        String to wrap
+    chars : int
+        Number of characters to split at
+    delim : str
+        Regex string delimeter to split words at, default is a space (r"\s")
+
+    Returns
+    -------
+    str
+        Wrapped string
+    """
+    newValue = ""
+    letter = 0
+    # iterate through each word
+    for n, word in enumerate(re.split(pattern=r"(" + delim + r")", string=value)):
+        # count its letters
+        letter += len(word)
+        # if this brings the current letters this line to more than the wrap limit, insert a line break
+        if letter > chars and n > 0 and not re.match(pattern=delim, string=word):
+            newValue += "\n"
+            letter = len(word)
+
+        # insert word
+        newValue += word
+
+    return newValue
+
+
 def makeValidVarName(name, case="camel"):
     """
     Transform a string into a valid variable name
