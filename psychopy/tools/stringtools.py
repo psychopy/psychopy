@@ -11,8 +11,6 @@
 import re
 import ast
 
-__all__ = ["prettyname"]
-
 # Regex for identifying a valid Pavlovia project name
 import urllib
 from pathlib import Path
@@ -55,6 +53,216 @@ def is_file(source):
     except OSError:
         isFile = False
     return isFile
+
+
+class CaseSwitcher:
+    """
+    Collection of static methods for switching case in strings. Can currently convert between:
+    - camelCase
+    - PascalCase
+    - Title Case
+    """
+
+    @staticmethod
+    def camel2pascal(value):
+        """
+        Convert from camelCase to PascalCase
+        """
+        # capitalise first letter
+        value = value[0].upper() + value[1:]
+
+        return value
+
+    @staticmethod
+    def camel2title(value):
+        """
+        Convert from camelCase to Title Case
+        """
+        # convert to pascal
+        value = CaseSwitcher.camel2pascal(value)
+        # convert to title
+        value = CaseSwitcher.pascal2title(value)
+
+        return value
+
+    @staticmethod
+    def camel2snake(value):
+        """
+        Convert from camelCase to snake_case
+        """
+        # convert to title
+        value = CaseSwitcher.camel2title(value)
+        # convert to snake
+        value = CaseSwitcher.title2snake(value)
+
+        return value
+
+    @staticmethod
+    def pascal2camel(value):
+        """
+        Convert from PascalCase to camelCase
+        """
+        # decapitalise first letter
+        value = value[0].lower() + value[1:]
+
+        return value
+
+    @staticmethod
+    def pascal2title(value):
+        """
+        Convert from PascalCase to Title Case
+        """
+        def _titleize(match):
+            """
+            Replace a regex match for a lowercase letter followed by an uppercase letter with the same two letters, in
+            uppercase, with a space inbetween.
+            """
+            # get matching text (should be a lower case letter then an upper case letter)
+            txt = match[0]
+            # add a space
+            txt = txt[0] + " " + txt[1]
+
+            return txt
+        # make regex substitution
+        value = re.sub(
+            pattern=r"([a-z][A-Z])",
+            repl=_titleize,
+            string=value
+        )
+
+        return value
+
+    @staticmethod
+    def pascal2snake(value):
+        """
+        Convert from PascalCase to snake_case
+        """
+        # convert to title
+        value = CaseSwitcher.pascal2title(value)
+        # convert to snake
+        value = CaseSwitcher.title2snake(value)
+
+        return value
+
+    @staticmethod
+    def title2camel(value):
+        """
+        Convert from Title Case to camelCase
+        """
+        # convert to pascal
+        value = CaseSwitcher.title2pascal(value)
+        # convert to camel
+        value = CaseSwitcher.pascal2camel(value)
+
+        return value
+
+    @staticmethod
+    def title2pascal(value):
+        """
+        Convert from Title Case to PascalCase
+        """
+        # remove spaces
+        value = value.replace(" ", "")
+
+        return value
+
+    @staticmethod
+    def title2snake(value):
+        """
+        Convert from Title Case to snake_case
+        """
+        # lowercase
+        value = value.lower()
+        # replace spaces with underscores
+        value = value.replace(" ", "_")
+
+        return value
+
+    @staticmethod
+    def snake2camel(value):
+        """
+        Convert from snake_case to camelCase
+        """
+        # convert to pascal
+        value = CaseSwitcher.snake2pascal(value)
+        # convert to camel
+        value = CaseSwitcher.pascal2camel(value)
+
+        return value
+
+    @staticmethod
+    def snake2pascal(value):
+        """
+        Convert from snake_case to PascalCase
+        """
+        # convert to title
+        value = CaseSwitcher.snake2title(value)
+        # convert to pascal
+        value = CaseSwitcher.title2pascal(value)
+
+        return value
+
+    @staticmethod
+    def snake2title(value):
+        """
+        Convert from snake_case to Title Case
+        """
+        def _titleize(match):
+            """
+            Replace a regex match for a lowercase letter followed by an uppercase letter with the same two letters, in
+            uppercase, with a space inbetween.
+            """
+            # get matching text (should be a lower case letter then an upper case letter)
+            txt = match[0]
+            # add a space and capitalise
+            txt = " " + txt[1].upper()
+
+            return txt
+        # make regex substitution
+        value = re.sub(
+            pattern=r"(_[a-z])",
+            repl=_titleize,
+            string=value
+        )
+        # capitalise first letter
+        value = value[0].upper() + value[1:]
+
+        return value
+
+
+def wrap(value, chars, delim=r"\s"):
+    """
+    Wrap a string at a number of characters.
+
+    Parameters
+    ----------
+    value : str
+        String to wrap
+    chars : int
+        Number of characters to split at
+    delim : str
+        Regex string delimeter to split words at, default is a space (r"\s")
+
+    Returns
+    -------
+    str
+        Wrapped string
+    """
+    newValue = ""
+    letter = 0
+    # iterate through each word
+    for n, word in enumerate(re.split(pattern=r"(" + delim + r")", string=value)):
+        # count its letters
+        letter += len(word)
+        # if this brings the current letters this line to more than the wrap limit, insert a line break
+        if letter > chars and n > 0 and not re.match(pattern=delim, string=word):
+            newValue += "\n"
+            letter = len(word)
+
+        # insert word
+        newValue += word
+
+    return newValue
 
 
 def makeValidVarName(name, case="camel"):
@@ -142,39 +350,6 @@ def makeValidVarName(name, case="camel"):
     if core:
         # If styled like a core variable (e.g. __file__), append __
         name = name + "__"
-    return name
-
-
-
-def prettyname(name, wrap=False):
-    """Convert a camelCase, TitleCase or underscore_delineated title to Full Title Case"""
-    # Replace _ with space
-    name = name.replace("_", " ")
-    # Put a space before any capital letter, apart from at the beginning, or already after a space
-    name = name[0] + re.sub('(?<![ -.])([A-Z])', r' \1', name[1:])
-    # Capitalise first letter of each word
-    name = name.title()
-    # Treat the word "PsychoPy" as a special case
-    name = name.replace("Psycho Py", "PsychoPy")
-    # Split into multiple lines if wrap is requested
-    if wrap:
-        sentence = []
-        letter = 0
-        # Iterate through each word
-        for n, word in enumerate(name.split(" ")):
-            # Count its letters
-            letter += len(word)
-            if letter > wrap and n > 0:
-                # If this brings the current letters this line to more than the wrap limit, insert a line break
-                sentence.append("\n")
-                letter = len(word)
-            # Insert word
-            sentence.append(word)
-        # Recombine name
-        name = " ".join(sentence)
-        # Remove spaces after line
-        name = re.sub(r" *\n *", "\n", name)
-
     return name
 
 
