@@ -14,10 +14,9 @@ translation _translate():
 
 try:
     from ._localization import (
-        _translate, _localized, setLocaleWX, locname, available)
+        _translate, setLocaleWX, locname, available)
 except ModuleNotFoundError:
     # if wx doesn't exist we can't translate but most other parts
     # of the _localization lib will not be relevant
     def _translate(val):
         return val
-    _localized = {}
