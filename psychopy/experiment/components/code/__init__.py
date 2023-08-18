@@ -5,27 +5,10 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from os import path
 from pathlib import Path
-
 from psychopy import prefs
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.alerts import alerttools
-
-_localized = {'Code Type': _translate('Code Type'),
-              'Before Experiment': _translate('Before Experiment'),
-              'Begin Experiment': _translate('Begin Experiment'),
-              'Begin Routine': _translate('Begin Routine'),
-              'Each Frame': _translate('Each Frame'),
-              'End Routine': _translate('End Routine'),
-              'End Experiment': _translate('End Experiment'),
-              'Before JS Experiment': _translate('Before JS Experiment'),
-              'Begin JS Experiment': _translate('Begin JS Experiment'),
-              'Begin JS Routine': _translate('Begin JS Routine'),
-              'Each JS Frame': _translate('Each JS Frame'),
-              'End JS Routine': _translate('End JS Routine'),
-              'End JS Experiment': _translate('End JS Experiment'),
-              }
 
 
 class CodeComponent(BaseComponent):

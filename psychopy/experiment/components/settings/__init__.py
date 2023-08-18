@@ -43,38 +43,6 @@ _numpyRandomImports = ['random', 'randint', 'normal', 'shuffle', 'choice as rand
 
 # this is not a standard component - it will appear on toolbar not in
 # components panel
-
-# only use _localized values for label values, nothing functional:
-_localized = {'expName': _translate("Experiment name"),
-              'Show info dlg':  _translate("Show info dialog"),
-              'Enable Escape':  _translate("Enable Escape key"),
-              'Experiment info':  _translate("Experiment info"),
-              'Data filename':  _translate("Data filename"),
-              'Data file delimiter':  _translate("Data file delimiter"),
-              'Full-screen window':  _translate("Full-screen window"),
-              'Window size (pixels)':  _translate("Window size (pixels)"),
-              'Screen': _translate('Screen'),
-              'Monitor':  _translate("Monitor"),
-              'color': _translate("Color"),
-              'colorSpace':  _translate("Color space"),
-              'Units':  _translate("Units"),
-              'blendMode':   _translate("Blend mode"),
-              'Show mouse':  _translate("Show mouse"),
-              'Save log file':  _translate("Save log file"),
-              'Save wide csv file':
-                  _translate("Save csv file (trial-by-trial)"),
-              'Save csv file': _translate("Save csv file (summaries)"),
-              'Save excel file':  _translate("Save excel file"),
-              'Save psydat file':  _translate("Save psydat file"),
-              'logging level': _translate("Logging level"),
-              'Use version': _translate("Use PsychoPy version"),
-              'Completed URL': _translate("Completed URL"),
-              'Incomplete URL': _translate("Incomplete URL"),
-              'Output path': _translate("Output path"),
-              'Additional Resources': _translate("Additional Resources"),
-              'JS libs': _translate("JS libs"),
-              'Force stereo': _translate("Force stereo"),
-              'Export HTML': _translate("Export HTML")}
 ioDeviceMap = dict(ioUtil.getDeviceNames())
 ioDeviceMap['None'] = ""
 

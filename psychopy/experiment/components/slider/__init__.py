@@ -11,22 +11,10 @@ from psychopy.experiment.components import BaseVisualComponent, Param, \
 from psychopy.experiment import py2js
 from psychopy import logging
 from psychopy.data import utils
-from psychopy.localization import _localized as __localized
 from psychopy.tools.stimulustools import sliderStyles, sliderStyleTweaks
-_localized = __localized.copy()
 import copy
 
 __author__ = 'Jon Peirce'
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'categoryChoices': _translate('Category choices'),
-                   'labels': _translate('Labels'),
-                   'ticks': _translate('Ticks'),
-                   'forceEndRoutine': _translate('Force end of Routine'),
-                   'storeHistory': _translate('Store history'),
-                   'storeRating': _translate('Store rating'),
-                   'storeRatingTime': _translate('Store rating time'),
-                   'readOnly': _translate('readOnly')})
 
 knownStyles = sliderStyles
 knownStyleTweaks = sliderStyleTweaks

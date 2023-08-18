@@ -9,21 +9,10 @@ from pathlib import Path
 
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.experiment import CodeGenerationException, valid_var_re
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
 from pkgutil import find_loader
 
 # Check for psychtoolbox
 havePTB = find_loader('psychtoolbox') is not None
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'allowedKeys': _translate('Allowed keys'),
-                   'discard previous': _translate('Discard previous'),
-                   'store': _translate('Store'),
-                   'forceEndRoutine': _translate('Force end of Routine'),
-                   'storeCorrect': _translate('Store correct'),
-                   'correctAns': _translate('Correct answer'),
-                   'syncScreenRefresh': _translate('Sync timing with screen')})
 
 
 class KeyboardComponent(BaseComponent):

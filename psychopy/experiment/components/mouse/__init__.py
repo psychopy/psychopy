@@ -7,17 +7,7 @@
 
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
 import re
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'saveMouseState': _translate('Save mouse state'),
-                   'forceEndRoutineOnPress': _translate('End Routine on press'),
-                   'timeRelativeTo': _translate('Time relative to'),
-                   'Clickable stimuli': _translate('Clickable stimuli'),
-                   'Store params for clicked': _translate('Store params for clicked'),
-                   'New clicks only': _translate('New clicks only')})
 
 
 class MouseComponent(BaseComponent):

@@ -4,10 +4,6 @@
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.experiment.utils import CodeGenerationException
-from psychopy import prefs
-
-# only use _localized values for label values, nothing functional:
-_localized = {'name': _translate("Name")}
 
 
 class RoutineSettingsComponent(BaseComponent):
