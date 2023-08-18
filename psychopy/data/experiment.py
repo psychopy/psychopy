@@ -106,7 +106,10 @@ class ExperimentHandler(_ComparisonMixin):
         }
         self.autoLog = autoLog
         self.appendFiles = appendFiles
+        # overall status of the experiment, a value from constants.status
         self.status = constants.NOT_STARTED
+        # dict in which to store variables, so they can exist outside of the run function
+        self.variables = {}
 
         if dataFileName in ['', None]:
             logging.warning('ExperimentHandler created with no dataFileName'

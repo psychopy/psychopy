@@ -848,6 +848,105 @@ class Session:
 
         return True
 
+    def setExperimentVariablesDict(self, variables):
+        """
+        Set the `variables` dict in the currently running ExperimentHandler.
+
+        Parameters
+        ----------
+        variables : dict
+            Dictionary to replace experiment variables dict with
+
+        Returns
+        -------
+        bool or None
+            True if the operation completed successfully
+        """
+        # warn and return failed if no experiment is running
+        if self.currentExperiment is None:
+            logging.warn(
+                _translate("Could not update experiment variables as there is "
+                           "no experiment running.")
+            )
+            return False
+
+        for name, value in variables.items():
+            self.setExperimentVariable(name, value)
+
+    def setExperimentVariable(self, name, value):
+        """
+        Set a variable in the currently running ExperimentHandler.
+
+        Parameters
+        ----------
+        name : str
+            Name of the variable, this will be its key in the dict `thisExp.variables`
+        value : any
+            Value to set
+
+        Returns
+        -------
+        bool or None
+            True if the operation completed successfully
+        """
+        # warn and return failed if no experiment is running
+        if self.currentExperiment is None:
+            logging.warn(
+                _translate("Could not set experiment variable as there is "
+                           "no experiment running.")
+            )
+            return False
+
+        # set variable
+        self.currentExperiment.variables[name] = value
+
+        return True
+
+    def getExperimentVariablesDict(self):
+        """
+        Get all variables from the currently running ExperimentHandler.
+
+        Returns
+        -------
+        dict
+            Dict of experiment values
+        """
+        # warn and return failed if no experiment is running
+        if self.currentExperiment is None:
+            logging.warn(
+                _translate("Could not get experiment variable as there is "
+                           "no experiment running.")
+            )
+            return False
+
+        # get variables
+        return self.currentExperiment.variables
+
+    def getExperimentVariable(self, name):
+        """
+        Get a variable from the currently running ExperimentHandler.
+
+        Parameters
+        ----------
+        name : str
+            Name of the variable, this is its key in the dict `thisExp.variables`
+
+        Returns
+        -------
+        any
+            Value of the experiment variable
+        """
+        # warn and return failed if no experiment is running
+        if self.currentExperiment is None:
+            logging.warn(
+                _translate("Could not get experiment variable as there is "
+                           "no experiment running.")
+            )
+            return False
+
+        # get variable
+        return self.currentExperiment.variables[name]
+
     def pauseExperiment(self):
         """
         Pause the currently running experiment.
