@@ -773,13 +773,13 @@ class Experiment:
                     elif plugin:
                         # create UnknownPluginComponent instead
                         component = allCompons['UnknownPluginComponent'](
-                            name=componentNode.get('name'),
+                            name=componentNode.get('name'), compType=componentType,
                             parentName=routineNode.get('name'), exp=self)
                         alert(7105, strFields={'name': componentNode.get('name'), 'plugin': plugin})
                     else:
                         # create UnknownComponent instead
                         component = allCompons['UnknownComponent'](
-                            name=componentNode.get('name'),
+                            name=componentNode.get('name'), compType=componentType,
                             parentName=routineNode.get('name'), exp=self)
                     component.plugin = plugin
                     # check for components that were absent in older versions of
