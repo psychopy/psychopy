@@ -52,7 +52,8 @@ RequiredImport = namedtuple('RequiredImport',
                                          'importAs'))
 
 
-# Some params have previously had types which cause errors compiling in new versions, so we need to keep track of them and force them to the new type if needed
+# some params have previously had types which cause errors compiling in new versions, so we need to keep track of
+# them and force them to the new type if needed
 forceType = {
     'pos': 'list',
     'size': 'list',
@@ -78,6 +79,18 @@ forceType = {
     ('SliderComponent', 'ticks'): 'list',
     ('SliderComponent', 'labels'): 'list',
     ('SliderComponent', 'styleTweaks'): 'list'
+}
+
+# some components in plugins used to be in the main lib, keep track of which plugins they're in
+pluginComponents = {
+    'QmixPumpComponent': "psychopy-qmix",
+    'PeristalticPumpComponent': "psychopy-labeotech",
+    'ioLabsButtonBoxComponent': "psychopy-iolabs",
+    'cedrusButtonBoxComponent': "psychopy-cedrus",
+    'EmotivRecordingComponent': "psychopy-emotiv",
+    'EmotivMarkingComponent': "psychopy-emotiv",
+    'EnvGratingComponent': "psychopy-visionscience",
+    'NoiseStimComponent': "psychopy-visionscience",
 }
 
 # # Code to generate force list
@@ -760,7 +773,10 @@ class Experiment:
                 for componentNode in routineNode:
 
                     componentType = componentNode.tag
+                    # get plugin, if any
                     plugin = componentNode.get('plugin')
+                    if plugin in ("None", None) and componentNode.tag in pluginComponents:
+                        plugin = pluginComponents[componentNode.tag]
 
                     if componentType == "RoutineSettingsComponent":
                         # if settings, use existing component
