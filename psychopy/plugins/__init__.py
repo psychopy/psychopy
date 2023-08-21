@@ -1027,13 +1027,20 @@ def activatePlugins():
         loadPlugin(plugin)
 
 
+# Keep track of currently installed window backends. When a window is loaded,
+# its `winType` is looked up here and the matching backend is loaded. Plugins
+# which define entry points into this module will update `winTypes` if they
+# define subclasses of `BaseBackend` that have valid names.
+_winTypes = {
+    'pyglet': '.pygletbackend.PygletBackend',
+    'glfw': '.glfwbackend.GLFWBackend',  # moved to plugin
+    'pygame': '.pygamebackend.PygameBackend'
+}
+
+
 def getWindowBackends():
-    # get reference to the backend class
-    fqn = 'psychopy.visual.backends'
-    backend = resolveObjectFromName(
-        fqn, resolve=(fqn not in sys.modules), error=False)
     # Return winTypes array from backend object
-    return backend.winTypes
+    return _winTypes
 
 
 def discoverModuleClasses(nameSpace, classType, includeUnbound=True):

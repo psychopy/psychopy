@@ -33,7 +33,6 @@ from ..pavlovia_ui.search import SearchFrame
 from ..pavlovia_ui.user import UserFrame
 from ...experiment import getAllElements, getAllCategories
 from ...experiment.routines import Routine, BaseStandaloneRoutine
-from ...tools.stringtools import prettyname
 
 try:
     import markdown_it as md
@@ -66,7 +65,7 @@ from ..utils import (BasePsychopyToolbar, HoverButton, WindowFrozen,
 from psychopy.experiment import getAllStandaloneRoutines
 from psychopy.app import pavlovia_ui
 from psychopy.projects import pavlovia
-
+from psychopy.tools import stringtools as st
 from psychopy.scripts.psyexpCompile import generateScript
 
 # Components which are always hidden
@@ -2654,11 +2653,16 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.parent = parent
             self.component = comp
             self.category = cat
-            # Get a shorter, title case version of component name
+            # construct label
             label = name
+            # remove "Component" from the end
             for redundant in ['component', 'Component', "ButtonBox"]:
                 label = label.replace(redundant, "")
-            label = prettyname(label, wrap=10)
+            # convert to title case
+            label = st.CaseSwitcher.pascal2title(label)
+            # wrap
+            label = st.wrap(label, 10)
+
             # Make button
             wx.Button.__init__(self, parent, wx.ID_ANY,
                                label=label, name=name,
@@ -2782,11 +2786,15 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.parent = parent
             self.routine = rt
             self.category = cat
-            # Get a shorter, title case version of routine name
+            # construct label
             label = name
+            # remove "Routine" from the end
             for redundant in ['routine', 'Routine', "ButtonBox"]:
                 label = label.replace(redundant, "")
-            label = prettyname(label, wrap=10)
+            # convert to title case
+            label = st.CaseSwitcher.pascal2title(label)
+            # wrap
+            label = st.wrap(label, 10)
             # Make button
             wx.Button.__init__(self, parent, wx.ID_ANY,
                                label=label, name=name,
