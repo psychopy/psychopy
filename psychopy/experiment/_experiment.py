@@ -677,7 +677,7 @@ class Experiment:
                         # don't warn people if we know it's OK (e.g. for params
                         # that have been removed
                         pass
-                    elif componentNode is not None and componentNode.get("plugin") is not None:
+                    elif componentNode is not None and componentNode.get("plugin") not in ("None", None):
                         # don't warn people if param is from a plugin
                         pass
                     else:
