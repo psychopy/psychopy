@@ -7,12 +7,8 @@
 
 from pathlib import Path
 
-from psychopy.alerts import alert
 from psychopy.experiment.components import Param, getInitVals, _translate, BaseVisualComponent
-from psychopy.experiment.components.eyetracker_record import EyetrackerRecordComponent
 from psychopy.experiment.components.polygon import PolygonComponent
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
 
 
 class RegionOfInterestComponent(PolygonComponent):

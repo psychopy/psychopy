@@ -11,9 +11,7 @@ from builtins import super  # provides Py3-style super() using python-future
 from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
-from psychopy.localization import _localized as __localized
 from psychopy.alerts import alert
-_localized = __localized.copy()
 
 
 class EyetrackerRecordComponent(BaseComponent):

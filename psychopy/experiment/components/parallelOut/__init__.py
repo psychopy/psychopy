@@ -8,15 +8,6 @@
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy import prefs
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'address': _translate('Port address'),
-                   'register': _translate('U3 Register'),
-                   'startData': _translate("Start data"),
-                   'stopData': _translate("Stop data"),
-                   'syncScreen': _translate('Sync to screen')})
 
 
 class ParallelOutComponent(BaseComponent):

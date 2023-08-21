@@ -9,20 +9,7 @@ Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
 import numpy as np
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'name': _translate('Name'),
-                   'startExpValue': _translate('Experiment start value'),
-                   'startRoutineValue': _translate('Routine start value'),
-                   'startFrameValue': _translate('Frame start value'),
-                   'saveStartExp': _translate('Save exp start value'),
-                   'saveStartRoutine': _translate('Save routine start value'),
-                   'saveFrameValue': _translate('Save frame value'),
-                   'saveEndRoutine': _translate('Save routine end value'),
-                   'saveEndExp': _translate('Save exp end value')})
 
 
 class VariableComponent(BaseComponent):
