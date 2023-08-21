@@ -775,7 +775,7 @@ class Experiment:
                     componentType = componentNode.tag
                     # get plugin, if any
                     plugin = componentNode.get('plugin')
-                    if plugin is None and componentNode.tag in pluginComponents:
+                    if plugin in ("None", None) and componentNode.tag in pluginComponents:
                         plugin = pluginComponents[componentNode.tag]
 
                     if componentType == "RoutineSettingsComponent":
