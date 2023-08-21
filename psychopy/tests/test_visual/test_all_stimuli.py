@@ -17,7 +17,7 @@ To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
 
-from psychopy.tests import skip_under_vm
+from psychopy.tests import skip_under_vm, requires_plugin
 from psychopy.tools import systemtools
 
 
@@ -140,6 +140,7 @@ class _baseVisualTest():
         utils.compareScreenshot('imageAndGauss_%s.png' %(self.contextName), win)
         win.flip()
 
+    @requires_plugin("psychopy-visionscience")
     def test_envelopeGratingAndRaisedCos(self):
         win = self.win
         size = numpy.array([2.0,2.0])*self.scaleFactor
@@ -157,7 +158,8 @@ class _baseVisualTest():
             utils.compareScreenshot('envelopeandrcos_%s.png' %(self.contextName), win)
             win.flip()
             "{}".format(image)
-            
+
+    @requires_plugin("psychopy-visionscience")
     def test_envelopeGratingPowerAndRaisedCos(self):
         win = self.win
         size = numpy.array([2.0,2.0])*self.scaleFactor
@@ -176,6 +178,7 @@ class _baseVisualTest():
             win.flip()
             "{}".format(image)
 
+    @requires_plugin("psychopy-visionscience")
     def test_NoiseStim_defaults(self):
         noiseTypes = ['binary', 'uniform', 'normal', 'white', 'filtered']
 
@@ -187,6 +190,7 @@ class _baseVisualTest():
             stim.updateNoise()
             stim.draw()
 
+    @requires_plugin("psychopy-visionscience")
     def test_NoiseStim_defaults_image(self):
         noiseType = 'image'
 
@@ -197,6 +201,7 @@ class _baseVisualTest():
                              size=(32, 32),
                              units='pix')
 
+    @requires_plugin("psychopy-visionscience")
     def test_noiseAndRaisedCos(self):
         numpy.random.seed(1)
         win = self.win
@@ -239,7 +244,8 @@ class _baseVisualTest():
         utils.compareScreenshot('noiseAndRcos_%s.png' %(self.contextName), win)
         win.flip()
         str(image)
-        
+
+    @requires_plugin("psychopy-visionscience")
     def test_noiseFiltersAndRaisedCos(self):
         numpy.random.seed(1)
         win = self.win
@@ -296,6 +302,7 @@ class _baseVisualTest():
         win.flip()
         str(image)
 
+    @requires_plugin("psychopy-visionscience")
     def test_envelopeBeatAndRaisedCos(self):
         win = self.win
         size = numpy.array([2.0,2.0])*self.scaleFactor
