@@ -263,18 +263,15 @@ class Experiment:
 
         if target == "PsychoPy":
             # Imports
-            self_copy.settings.writeInitCode(script, self_copy.psychopyVersion,
-                                             localDateTime)
-            # Global variables
-            self_copy.settings.writeGlobals(script, version=self_copy.psychopyVersion)
-
+            self_copy.settings.writeInitCode(script, self_copy.psychopyVersion, localDateTime)
             # Write "run once" code sections
             for entry in self_copy.flow:
                 # NB each entry is a routine or LoopInitiator/Terminator
                 self_copy._currentRoutine = entry
                 if hasattr(entry, 'writePreCode'):
                     entry.writePreCode(script)
-
+            # global variables
+            self_copy.settings.writeGlobals(script, version=self_copy.psychopyVersion)
             # present info
             self_copy.settings.writeExpInfoDlgCode(script)
             # setup data and saving
