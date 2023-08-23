@@ -423,7 +423,13 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                 if (isinstance(val, str) and
                         (val.startswith('[') and val.endswith(']') or
                                  val.startswith('(') and val.endswith(')'))):
-                    val = eval(val)
+                    # strip parentheses
+                    val = val[1:-1]
+                    # split by commas
+                    val = val.split(",")
+                    # strip spaces
+                    val = [subval.strip() for subval in val]
+
                 # if it has any line breaks correct them
                 if isinstance(val, str):
                     val = val.replace('\\n', '\n')
