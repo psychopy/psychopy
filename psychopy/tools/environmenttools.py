@@ -35,11 +35,13 @@ def getFromNames(names, namespace):
     # If single name, put in list
     from collections.abc import Iterable
     if isinstance(names, str) or not isinstance(names, Iterable):
-        names = [names.strip()]
+        names = [names]
 
     # Get objects
     objs = []
     for nm in names:
+        # Strip spaces
+        nm = nm.strip()
         # Get (use original value if not present)
         obj = namespace.get(nm, nm)
         # Append
