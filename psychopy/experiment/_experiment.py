@@ -686,9 +686,14 @@ class Experiment:
                     params[name].allowedTypes = paramNode.get('allowedTypes')
                     if params[name].allowedTypes is None:
                         params[name].allowedTypes = []
-                    if name not in legacyParams + ['JS libs', 'OSF Project ID']:
+                    if name in legacyParams + ['JS libs', 'OSF Project ID']:
                         # don't warn people if we know it's OK (e.g. for params
                         # that have been removed
+                        pass
+                    elif componentNode is not None and componentNode.get("plugin") not in ("None", None):
+                        # don't warn people if param is from a plugin
+                        pass
+                    else:
                         msg = _translate(
                             "Parameter %r is not known to this version of "
                             "PsychoPy but has come from your experiment file "
