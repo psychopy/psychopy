@@ -40,8 +40,14 @@ def getFromNames(names, namespace):
     # Get objects
     objs = []
     for nm in names:
-        # Get (use original value if not present)
-        obj = namespace.get(nm, nm)
+        # fallback is to use original value
+        obj = nm
+        if nm in namespace:
+            # if in namespace, return value from namespace
+            obj = namespace[nm]
+        elif nm.replace(".", "").replace("-", "").isnumeric() or nm in ("None", "True", "False"):
+            # if otherwise safely evaluable, evaluate
+            obj = eval(nm)
         # Append
         objs.append(obj)
 
