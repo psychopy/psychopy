@@ -51,7 +51,8 @@ def getFromNames(names, namespace):
             # if otherwise safely evaluable, evaluate
             obj = eval(nm)
         # Append
-        objs.append(obj)
+        if len(nm):
+            objs.append(obj)
 
     return objs
 
