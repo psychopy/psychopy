@@ -750,6 +750,24 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         self.rating = val
 
     @attributeSetter
+    def ticks(self, value):
+        if isinstance(value, (list, tuple, np.ndarray)):
+            # make sure all values are numeric
+            for i, subval in enumerate(value):
+                if isinstance(subval, str):
+                    if subval in self.labels:
+                        # if it's a label name, get its index
+                        value[i] = self.labels.index(subval)
+                    elif subval.isnumeric():
+                        # if it's a stringified number, make it a float
+                        value[i] = float(subval)
+                    else:
+                        # otherwise, use its index within the array
+                        value[i] = i
+
+        self.__dict__['ticks'] = value
+
+    @attributeSetter
     def markerPos(self, rating):
         """The position on the scale where the marker should be. Note that
         this does not alter the value of the reported rating, only its visible
