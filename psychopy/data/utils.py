@@ -18,6 +18,7 @@ from pkg_resources import parse_version
 
 from psychopy import logging, exceptions
 from psychopy.tools.filetools import pathToString
+from psychopy.tools.environmenttools import getFromNames
 from psychopy.localization import _translate
 
 try:
@@ -429,6 +430,8 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                     val = val.split(",")
                     # strip spaces
                     val = [subval.strip() for subval in val]
+                    # evaluate variable names
+                    val = getFromNames(val, namespace=globals())
 
                 # if it has any line breaks correct them
                 if isinstance(val, str):
