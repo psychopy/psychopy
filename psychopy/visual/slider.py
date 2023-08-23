@@ -535,7 +535,10 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         if self.ticks is not None:
             ticks = self.ticks
         else:
-            ticks = [0, 1]
+            ticks = [0, len(self.labels)]
+        # If rating is a label, convert to an index
+        if isinstance(rating, str) and rating in self.labels:
+            rating = self.labels.index(rating)
         # Reshape rating to handle multiple values
         rating = np.array(rating)
         rating = rating.reshape((-1, 1))
