@@ -42,6 +42,8 @@ def getFromNames(names, namespace):
     for nm in names:
         # fallback is to use original value
         obj = nm
+        # convert to a string
+        nm = str(nm)
         if nm in namespace:
             # if in namespace, return value from namespace
             obj = namespace[nm]
