@@ -1865,7 +1865,7 @@ class SettingsComponent:
             "    win.close()\n"
             "if inputs is not None:\n"
             "    if 'eyetracker' in inputs and inputs['eyetracker'] is not None:\n"
-            "        eyetracker.setConnectionState(False)\n"
+            "        inputs['eyetracker'].setConnectionState(False)\n"
         )
         if self.params['Save log file'].val:
             code += (
