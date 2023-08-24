@@ -41,7 +41,8 @@ def getFromNames(names, namespace):
     objs = []
     for nm in names:
         # Strip spaces
-        nm = nm.strip()
+        if isinstance(nm, str):
+            nm = nm.strip()
         # Get (use original value if not present)
         obj = namespace.get(nm, nm)
         # Append
