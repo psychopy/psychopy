@@ -265,7 +265,7 @@ class RoutineSettingsComponent(BaseComponent):
                 # Stop after given number of seconds
                 code = (
                     f"// is it time to end the Routine? (based on local clock)\n"
-                    f"if (tThisFlip > %(stopVal)s-frameTolerance) {{\n"
+                    f"if (t > %(stopVal)s-frameTolerance) {{\n"
                 )
             elif self.params['stopType'].val == 'frame N':
                 # Stop at given frame num
