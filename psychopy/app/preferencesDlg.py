@@ -38,26 +38,34 @@ class PrefPropGrid(wx.Panel):
             self, parent, id=id, pos=pos, size=size, style=style, name=name)
         bSizer1 = wx.BoxSizer(wx.HORIZONTAL)
         self.app = wx.GetApp()
-
+        # make splitter so panels are resizable
+        self.splitter = wx.SplitterWindow(self)
+        bSizer1.Add(self.splitter, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
+        # tabs panel
         self.lstPrefPages = wx.ListCtrl(
-            self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+            self.splitter, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
             wx.LC_ALIGN_TOP | wx.LC_LIST | wx.LC_SINGLE_SEL)
-        bSizer1.Add(self.lstPrefPages, 0,
-                    wx.BOTTOM | wx.EXPAND | wx.LEFT | wx.TOP, 5)
-
+        # images for tabs panel
         prefsImageSize = wx.Size(48, 48)
         self.prefsIndex = 0
         self.prefsImages = wx.ImageList(
             prefsImageSize.GetWidth(), prefsImageSize.GetHeight())
         self.lstPrefPages.AssignImageList(self.prefsImages, wx.IMAGE_LIST_SMALL)
-
+        # property grid
         self.proPrefs = pg.PropertyGridManager(
-            self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+            self.splitter, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
             wx.propgrid.PGMAN_DEFAULT_STYLE | wx.propgrid.PG_BOLD_MODIFIED |
             wx.propgrid.PG_DESCRIPTION | wx.TAB_TRAVERSAL)
         self.proPrefs.SetExtraStyle(wx.propgrid.PG_EX_MODE_BUTTONS)
+        # assign panels to splitter
+        self.splitter.SplitVertically(
+            self.lstPrefPages, self.proPrefs
+        )
+        # move sash to min extent of page ctrls
+        sz = self.lstPrefPages.GetColumnWidth(0)
+        self.splitter.SetMinimumPaneSize(sz)
+        self.splitter.SetSashPosition(sz)
 
-        bSizer1.Add(self.proPrefs, 1, wx.ALL | wx.EXPAND, 5)
 
         self.SetSizer(bSizer1)
         self.Layout()
