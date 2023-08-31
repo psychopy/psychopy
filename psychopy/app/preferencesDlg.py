@@ -62,10 +62,8 @@ class PrefPropGrid(wx.Panel):
             self.lstPrefPages, self.proPrefs
         )
         # move sash to min extent of page ctrls
-        sz = self.lstPrefPages.GetColumnWidth(0)
-        self.splitter.SetMinimumPaneSize(sz)
-        self.splitter.SetSashPosition(sz)
-
+        self.splitter.SetMinimumPaneSize(prefsImageSize[0] + 2)
+        self.splitter.SetSashPosition(self.lstPrefPages.GetColumnWidth(0))
 
         self.SetSizer(bSizer1)
         self.Layout()
