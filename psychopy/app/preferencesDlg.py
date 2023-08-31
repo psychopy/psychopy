@@ -41,7 +41,7 @@ class PrefPropGrid(wx.Panel):
 
         self.lstPrefPages = wx.ListCtrl(
             self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
-            wx.LC_ALIGN_TOP | wx.LC_ICON | wx.LC_SINGLE_SEL)
+            wx.LC_ALIGN_TOP | wx.LC_LIST | wx.LC_SINGLE_SEL)
         bSizer1.Add(self.lstPrefPages, 0,
                     wx.BOTTOM | wx.EXPAND | wx.LEFT | wx.TOP, 5)
 
@@ -49,7 +49,7 @@ class PrefPropGrid(wx.Panel):
         self.prefsIndex = 0
         self.prefsImages = wx.ImageList(
             prefsImageSize.GetWidth(), prefsImageSize.GetHeight())
-        self.lstPrefPages.AssignImageList(self.prefsImages, wx.IMAGE_LIST_NORMAL)
+        self.lstPrefPages.AssignImageList(self.prefsImages, wx.IMAGE_LIST_SMALL)
 
         self.proPrefs = pg.PropertyGridManager(
             self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
