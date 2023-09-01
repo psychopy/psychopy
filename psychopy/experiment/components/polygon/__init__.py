@@ -278,7 +278,7 @@ class PolygonComponent(BaseVisualComponent):
         else:
             code = ("{name} = visual.ShapeStim({{\n" +
                     "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
-                    "  vertices={vertices}, size={size},\n")
+                    "  vertices: {vertices}, size: {size},\n")
 
         depth = -self.getPosInRoutine()
 

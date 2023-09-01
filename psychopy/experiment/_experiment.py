@@ -52,7 +52,8 @@ RequiredImport = namedtuple('RequiredImport',
                                          'importAs'))
 
 
-# Some params have previously had types which cause errors compiling in new versions, so we need to keep track of them and force them to the new type if needed
+# some params have previously had types which cause errors compiling in new versions, so we need to keep track of
+# them and force them to the new type if needed
 forceType = {
     'pos': 'list',
     'size': 'list',
@@ -78,6 +79,18 @@ forceType = {
     ('SliderComponent', 'ticks'): 'list',
     ('SliderComponent', 'labels'): 'list',
     ('SliderComponent', 'styleTweaks'): 'list'
+}
+
+# some components in plugins used to be in the main lib, keep track of which plugins they're in
+pluginComponents = {
+    'QmixPumpComponent': "psychopy-qmix",
+    'PeristalticPumpComponent': "psychopy-labeotech",
+    'ioLabsButtonBoxComponent': "psychopy-iolabs",
+    'cedrusButtonBoxComponent': "psychopy-cedrus",
+    'EmotivRecordingComponent': "psychopy-emotiv",
+    'EmotivMarkingComponent': "psychopy-emotiv",
+    'EnvGratingComponent': "psychopy-visionscience",
+    'NoiseStimComponent': "psychopy-visionscience",
 }
 
 # # Code to generate force list
@@ -263,18 +276,15 @@ class Experiment:
 
         if target == "PsychoPy":
             # Imports
-            self_copy.settings.writeInitCode(script, self_copy.psychopyVersion,
-                                             localDateTime)
-            # Global variables
-            self_copy.settings.writeGlobals(script, version=self_copy.psychopyVersion)
-
+            self_copy.settings.writeInitCode(script, self_copy.psychopyVersion, localDateTime)
             # Write "run once" code sections
             for entry in self_copy.flow:
                 # NB each entry is a routine or LoopInitiator/Terminator
                 self_copy._currentRoutine = entry
                 if hasattr(entry, 'writePreCode'):
                     entry.writePreCode(script)
-
+            # global variables
+            self_copy.settings.writeGlobals(script, version=self_copy.psychopyVersion)
             # present info
             self_copy.settings.writeExpInfoDlgCode(script)
             # setup data and saving
@@ -673,9 +683,14 @@ class Experiment:
                     params[name].allowedTypes = paramNode.get('allowedTypes')
                     if params[name].allowedTypes is None:
                         params[name].allowedTypes = []
-                    if name not in legacyParams + ['JS libs', 'OSF Project ID']:
+                    if name in legacyParams + ['JS libs', 'OSF Project ID']:
                         # don't warn people if we know it's OK (e.g. for params
                         # that have been removed
+                        pass
+                    elif componentNode is not None and componentNode.get("plugin") not in ("None", None):
+                        # don't warn people if param is from a plugin
+                        pass
+                    else:
                         msg = _translate(
                             "Parameter %r is not known to this version of "
                             "PsychoPy but has come from your experiment file "
@@ -760,7 +775,10 @@ class Experiment:
                 for componentNode in routineNode:
 
                     componentType = componentNode.tag
+                    # get plugin, if any
                     plugin = componentNode.get('plugin')
+                    if plugin in ("None", None) and componentNode.tag in pluginComponents:
+                        plugin = pluginComponents[componentNode.tag]
 
                     if componentType == "RoutineSettingsComponent":
                         # if settings, use existing component
@@ -773,13 +791,13 @@ class Experiment:
                     elif plugin:
                         # create UnknownPluginComponent instead
                         component = allCompons['UnknownPluginComponent'](
-                            name=componentNode.get('name'),
+                            name=componentNode.get('name'), compType=componentType,
                             parentName=routineNode.get('name'), exp=self)
                         alert(7105, strFields={'name': componentNode.get('name'), 'plugin': plugin})
                     else:
                         # create UnknownComponent instead
                         component = allCompons['UnknownComponent'](
-                            name=componentNode.get('name'),
+                            name=componentNode.get('name'), compType=componentType,
                             parentName=routineNode.get('name'), exp=self)
                     component.plugin = plugin
                     # check for components that were absent in older versions of
