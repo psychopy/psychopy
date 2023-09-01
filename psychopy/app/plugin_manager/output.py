@@ -13,7 +13,7 @@ class InstallStdoutPanel(wx.Panel, handlers.ThemeMixin):
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self.sizer)
         # Output
-        self.output = wx.richtext.RichTextCtrl(self, style=wx.BORDER_NONE)
+        self.output = wx.richtext.RichTextCtrl(self, style=wx.BORDER_NONE | wx.richtext.RE_READONLY)
         self.output.Bind(wx.EVT_TEXT_URL, self.onLink)
         self.sizer.Add(self.output, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         # Start off hidden
@@ -48,6 +48,8 @@ class InstallStdoutPanel(wx.Panel, handlers.ThemeMixin):
         # Decode content if needed
         if isinstance(content, bytes):
             content = content.decode('utf-8')
+        # Move cursor to end
+        self.output.SetInsertionPointEnd()
         # Set font
         from psychopy.app.themes import fonts
         self.output.BeginFont(fonts.CodeFont().obj)
