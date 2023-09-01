@@ -187,7 +187,7 @@
       </KeyboardComponent>
     </Routine>
     <Routine name="aspirate_liquid_2">
-      <QmixPumpComponent name="pump_0_2">
+      <QmixPumpComponent name="pump_0_2" plugin="psychopy-qmix">
         <Param name="durationEstim" updates="None" val="" valType="code"/>
         <Param name="flowRate" updates="None" val="1.0" valType="code"/>
         <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
@@ -203,7 +203,7 @@
         <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
         <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
       </QmixPumpComponent>
-      <QmixPumpComponent name="pump_1_2">
+      <QmixPumpComponent name="pump_1_2" plugin="psychopy-qmix">
         <Param name="durationEstim" updates="None" val="" valType="code"/>
         <Param name="flowRate" updates="None" val="1.0" valType="code"/>
         <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
@@ -221,7 +221,7 @@
       </QmixPumpComponent>
     </Routine>
     <Routine name="aspirate_air">
-      <QmixPumpComponent name="pump_0_1">
+      <QmixPumpComponent name="pump_0_1" plugin="psychopy-qmix">
         <Param name="durationEstim" updates="None" val="" valType="code"/>
         <Param name="flowRate" updates="None" val="1.0" valType="code"/>
         <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
@@ -237,7 +237,7 @@
         <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
         <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
       </QmixPumpComponent>
-      <QmixPumpComponent name="pump_1_1">
+      <QmixPumpComponent name="pump_1_1" plugin="psychopy-qmix">
         <Param name="durationEstim" updates="None" val="" valType="code"/>
         <Param name="flowRate" updates="None" val="1.0" valType="code"/>
         <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
@@ -255,7 +255,7 @@
       </QmixPumpComponent>
     </Routine>
     <Routine name="aspirate_liquid_1">
-      <QmixPumpComponent name="pump_0_0">
+      <QmixPumpComponent name="pump_0_0" plugin="psychopy-qmix">
         <Param name="durationEstim" updates="None" val="" valType="code"/>
         <Param name="flowRate" updates="None" val="1.0" valType="code"/>
         <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
@@ -271,7 +271,7 @@
         <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
         <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
       </QmixPumpComponent>
-      <QmixPumpComponent name="pump_1_0">
+      <QmixPumpComponent name="pump_1_0" plugin="psychopy-qmix">
         <Param name="durationEstim" updates="None" val="" valType="code"/>
         <Param name="flowRate" updates="None" val="1.0" valType="code"/>
         <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
@@ -289,7 +289,7 @@
       </QmixPumpComponent>
     </Routine>
     <Routine name="empty">
-      <QmixPumpComponent name="pump_0_3">
+      <QmixPumpComponent name="pump_0_3" plugin="psychopy-qmix">
         <Param name="durationEstim" updates="None" val="" valType="code"/>
         <Param name="flowRate" updates="None" val="1.0" valType="code"/>
         <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
@@ -305,7 +305,7 @@
         <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
         <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
       </QmixPumpComponent>
-      <QmixPumpComponent name="pump_1_3">
+      <QmixPumpComponent name="pump_1_3" plugin="psychopy-qmix">
         <Param name="durationEstim" updates="None" val="" valType="code"/>
         <Param name="flowRate" updates="None" val="1.0" valType="code"/>
         <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
@@ -323,7 +323,7 @@
       </QmixPumpComponent>
     </Routine>
     <Routine name="fill">
-      <QmixPumpComponent name="pump_0_4">
+      <QmixPumpComponent name="pump_0_4" plugin="psychopy-qmix">
         <Param name="durationEstim" updates="None" val="" valType="code"/>
         <Param name="flowRate" updates="None" val="1.0" valType="code"/>
         <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
@@ -339,7 +339,7 @@
         <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
         <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
       </QmixPumpComponent>
-      <QmixPumpComponent name="pump_1_4">
+      <QmixPumpComponent name="pump_1_4" plugin="psychopy-qmix">
         <Param name="durationEstim" updates="None" val="" valType="code"/>
         <Param name="flowRate" updates="None" val="1.0" valType="code"/>
         <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>

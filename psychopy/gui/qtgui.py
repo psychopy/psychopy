@@ -7,6 +7,7 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import importlib
+from psychopy import logging
 
 haveQt = False  # until we confirm otherwise
 importOrder = ['PyQt6', 'PyQt5']
@@ -15,7 +16,7 @@ for libname in importOrder:
     try:
         importlib.import_module(f"{libname}.QtCore")
         haveQt = libname
-        print(f"using {haveQt}")
+        logging.debug(f"psychopy.gui is using {haveQt}")
         break
     except ModuleNotFoundError:
         pass
