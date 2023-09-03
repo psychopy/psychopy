@@ -16,7 +16,7 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
         # dict in which to store sections
         self.sections = {}
 
-    def addSection(self, name, label=None, sep=""):
+    def addSection(self, name, label=None):
         """
         Add a section to the ribbon.
 
@@ -26,11 +26,6 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
             Name by which to internally refer to this section
         label : str
             Label to display on the section
-        sep : str
-            Type of separator to use after this section, one of:
-            "" - No separator
-            "|" - Vertical line
-            " " - Stretchable space
 
         Returns
         -------
@@ -43,11 +38,6 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
         )
         # add section to sizer
         self.sizer.Add(sct, border=0, flag=wx.EXPAND | wx.ALL)
-        # add separator
-        if sep == "|":
-            self.addSeparator()
-        elif sep == " ":
-            self.addStretchSpacer()
 
         return sct
 

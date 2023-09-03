@@ -4321,7 +4321,7 @@ class BuilderRibbon(ribbon.FrameRibbon):
 
         # --- File ---
         self.addSection(
-            "file", label=_translate("File"), sep="|"
+            "file", label=_translate("File")
         )
         # file new
         self.addButton(
@@ -4344,9 +4344,11 @@ class BuilderRibbon(ribbon.FrameRibbon):
             callback=parent.fileSaveAs
         )
 
+        self.addSeparator()
+
         # --- Edit ---
         self.addSection(
-            "edit", label=_translate("Edit"), sep="|"
+            "edit", label=_translate("Edit")
         )
         # undo
         self.addButton(
@@ -4359,9 +4361,11 @@ class BuilderRibbon(ribbon.FrameRibbon):
             callback=parent.redo
         )
 
+        self.addSeparator()
+
         # --- Experiment ---
         self.addSection(
-            "experiment", label=_translate("Experiment"), sep="|"
+            "experiment", label=_translate("Experiment")
         )
         # monitor center
         self.addButton(
@@ -4379,9 +4383,11 @@ class BuilderRibbon(ribbon.FrameRibbon):
             callback=parent.runFile
         )
 
+        self.addSeparator()
+
         # --- Python ---
         self.addSection(
-            "py", label=_translate("Python"), sep="|"
+            "py", label=_translate("Python")
         )
         # compile python
         self.addButton(
@@ -4394,9 +4400,11 @@ class BuilderRibbon(ribbon.FrameRibbon):
             callback=parent.runFile
         )
 
+        self.addSeparator()
+
         # --- JS ---
         self.addSection(
-            "js", label=_translate("JavaScript"), sep=" "
+            "js", label=_translate("JavaScript")
         )
         # compile JS
         self.addButton(
@@ -4409,9 +4417,13 @@ class BuilderRibbon(ribbon.FrameRibbon):
             callback=None#parent.onPavloviaDebug
         )
 
+        self.addSeparator()
+
         # --- Pavlovia ---
+        self.addStretchSpacer()
+        self.addSeparator()
         self.addSection(
-            name="pavlovia", label="", sep=""
+            name="pavlovia", label=_translate("Pavlovia")
         )
         # pavlovia user
         self.addDropdownButton(
