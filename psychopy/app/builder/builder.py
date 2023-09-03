@@ -4320,7 +4320,7 @@ class BuilderRibbon(ribbon.FrameRibbon):
 
         # --- File ---
         self.addSection(
-            "file", label=_translate("File")
+            "file", label=_translate("File"), sep="|"
         )
         # file new
         self.addButton(
@@ -4345,7 +4345,7 @@ class BuilderRibbon(ribbon.FrameRibbon):
 
         # --- Edit ---
         self.addSection(
-            "edit", label=_translate("Edit")
+            "edit", label=_translate("Edit"), sep="|"
         )
         # undo
         self.addButton(
@@ -4360,19 +4360,19 @@ class BuilderRibbon(ribbon.FrameRibbon):
 
         # --- Experiment ---
         self.addSection(
-            "experiment", label=_translate("Experiment")
+            "experiment", label=_translate("Experiment"), sep="|"
         )
         # monitor center
         self.addButton(
             section="experiment", name='monitor', label=_translate('Monitor center'), icon="monitors",
             callback=parent.app.openMonitorCenter
         )
-        # Settings
+        # settings
         self.addButton(
             section="experiment", name='expsettings', label=_translate('Experiment settings'), icon="cogwindow",
             callback=parent.setExperimentSettings
         )
-        # Send to runner
+        # send to runner
         self.addButton(
             section="experiment", name='runner', label=_translate('Runner'), icon="runner",
             callback=parent.runFile
@@ -4380,14 +4380,14 @@ class BuilderRibbon(ribbon.FrameRibbon):
 
         # --- Python ---
         self.addSection(
-            "py", label=_translate("Python")
+            "py", label=_translate("Python"), sep="|"
         )
         # compile python
         self.addButton(
             section="py", name="pycompile", label=_translate('Write Python script'), icon='compile_py',
             callback=parent.compileScript
         )
-        # Run Py
+        # run Py
         self.addButton(
             section="py", name="pyrun", label=_translate("Run in Python"), icon='pyRun',
             callback=parent.runFile
@@ -4395,17 +4395,30 @@ class BuilderRibbon(ribbon.FrameRibbon):
 
         # --- JS ---
         self.addSection(
-            "js", label=_translate("JavaScript")
+            "js", label=_translate("JavaScript"), sep=" "
         )
-        # Compile JS
+        # compile JS
         self.addButton(
             section="js", name="jscompile", label=_translate('Write JS script'), icon='compile_js',
             callback=parent.fileExport
         )
-        # Run JS
+        # run JS
         self.addButton(
             section="js", name="jsrun", label=_translate("Run in local browser"), icon='jsRun',
             callback=None#parent.onPavloviaDebug
+        )
+
+        # --- Pavlovia ---
+        self.addSection(
+            name="pavlovia", label="", sep=""
+        )
+        # pavlovia user
+        self.addDropdownButton(
+            section="pavlovia", name="pavuser", label=_translate("No user")
+        )
+        # pavlovia project
+        self.addDropdownButton(
+            section="pavlovia", name="pavproject", label=_translate("No project")
         )
 
 
