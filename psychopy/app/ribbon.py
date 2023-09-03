@@ -155,6 +155,9 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
             self.label, border=0, flag=wx.EXPAND | wx.ALL
         )
 
+        # add space
+        self.border.AddSpacer(6)
+
         # dict in which to store buttons
         self.buttons = {}
 
