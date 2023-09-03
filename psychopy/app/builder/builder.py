@@ -53,7 +53,7 @@ if parse_version(wx.__version__) < parse_version('4.0.3'):
 
 from psychopy.localization import _translate
 from ... import experiment, prefs
-from .. import dialogs, utils, plugin_manager
+from .. import dialogs, utils, ribbon
 from ..themes import icons, colors, handlers
 from ..themes.ui import ThemeSwitcher
 from ..ui import BaseAuiFrame
@@ -201,6 +201,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.flowCanvas = self.flowPanel.canvas
         self.routinePanel = RoutinesNotebook(self)
         self.componentButtons = ComponentsPanel(self)
+        self.ribbon = BuilderRibbon(self)
         # menus and toolbars
         self.toolbar = BuilderToolbar(frame=self)
         self.SetToolBar(self.toolbar)
@@ -229,6 +230,12 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         #self._mgr.SetArtProvider(PsychopyDockArt())
         #self._art = self._mgr.GetArtProvider()
         # Create panels
+        self._mgr.AddPane(self.ribbon,
+                          aui.AuiPaneInfo().
+                          DockFixed(True).
+                          CloseButton(False).MaximizeButton(True).PaneBorder(False).CaptionVisible(False).
+                          Top()
+                          )
         self._mgr.AddPane(self.routinePanel,
                           aui.AuiPaneInfo().
                           Name("Routines").Caption("Routines").CaptionVisible(True).
@@ -4304,6 +4311,102 @@ class FlowCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         self.componentFromID[id] = loop
         # set the area for this component
         dc.SetIdBounds(id, rect)
+
+
+class BuilderRibbon(ribbon.FrameRibbon):
+    def __init__(self, parent):
+        # initialize
+        ribbon.FrameRibbon.__init__(self, parent)
+
+        # --- File ---
+        self.addSection(
+            "file", label=_translate("File")
+        )
+        # file new
+        self.addButton(
+            section="file", name="new", label=_translate("New"), icon="filenew",
+            callback=parent.app.newBuilderFrame
+        )
+        # file open
+        self.addButton(
+            section="file", name="open", label=_translate("Open"), icon="fileopen",
+            callback=parent.fileOpen
+        )
+        # file save
+        self.addButton(
+            section="file", name="save", label=_translate("Save"), icon="filesave",
+            callback=parent.fileSave
+        )
+        # file save as
+        self.addButton(
+            section="file", name="saveas", label=_translate("Save as..."), icon="filesaveas",
+            callback=parent.fileSaveAs
+        )
+
+        # --- Edit ---
+        self.addSection(
+            "edit", label=_translate("Edit")
+        )
+        # undo
+        self.addButton(
+            section="edit", name="undo", label=_translate("Undo"), icon="undo",
+            callback=parent.undo
+        )
+        # redo
+        self.addButton(
+            section="edit", name="redo", label=_translate("Redo"), icon="redo",
+            callback=parent.redo
+        )
+
+        # --- Experiment ---
+        self.addSection(
+            "experiment", label=_translate("Experiment")
+        )
+        # monitor center
+        self.addButton(
+            section="experiment", name='monitor', label=_translate('Monitor center'), icon="monitors",
+            callback=parent.app.openMonitorCenter
+        )
+        # Settings
+        self.addButton(
+            section="experiment", name='expsettings', label=_translate('Experiment settings'), icon="cogwindow",
+            callback=parent.setExperimentSettings
+        )
+        # Send to runner
+        self.addButton(
+            section="experiment", name='runner', label=_translate('Runner'), icon="runner",
+            callback=parent.runFile
+        )
+
+        # --- Python ---
+        self.addSection(
+            "py", label=_translate("Python")
+        )
+        # compile python
+        self.addButton(
+            section="py", name="pycompile", label=_translate('Write Python script'), icon='compile_py',
+            callback=parent.compileScript
+        )
+        # Run Py
+        self.addButton(
+            section="py", name="pyrun", label=_translate("Run in Python"), icon='pyRun',
+            callback=parent.runFile
+        )
+
+        # --- JS ---
+        self.addSection(
+            "js", label=_translate("JavaScript")
+        )
+        # Compile JS
+        self.addButton(
+            section="js", name="jscompile", label=_translate('Write JS script'), icon='compile_js',
+            callback=parent.fileExport
+        )
+        # Run JS
+        self.addButton(
+            section="js", name="jsrun", label=_translate("Run in local browser"), icon='jsRun',
+            callback=None#parent.onPavloviaDebug
+        )
 
 
 class BuilderToolbar(BasePsychopyToolbar):
