@@ -16,7 +16,7 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
         # dict in which to store sections
         self.sections = {}
 
-    def addSection(self, name, label=None):
+    def addSection(self, name, label=None, sep=""):
         """
         Add a section to the ribbon.
 
@@ -26,21 +26,28 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
             Name by which to internally refer to this section
         label : str
             Label to display on the section
+        sep : str
+            Type of separator to use after this section, one of:
+            "" - No separator
+            "|" - Vertical line
+            " " - Stretchable space
 
         Returns
         -------
         FrameRibbonSection
             The created section handle
         """
-        # if there are preceeding sections, add a separator
-        if len(self.sections):
-            self.addSeparator()
         # create section
         self.sections[name] = sct = FrameRibbonSection(
             self, label=label
         )
         # add section to sizer
         self.sizer.Add(sct, border=0, flag=wx.EXPAND | wx.ALL)
+        # add separator
+        if sep == "|":
+            self.addSeparator()
+        elif sep == " ":
+            self.addStretchSpacer()
 
         return sct
 
@@ -76,6 +83,40 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
 
         return btn
 
+    def addDropdownButton(self, section, name, label, icon=None, callback=None, menu=None):
+        """
+        Add a dropdown button to a given section.
+
+        Parameters
+        ----------
+        section : str
+            Name of section to add button to
+        name : str
+            Name by which to internally refer to this button
+        label : str
+            Label to display on this button
+        icon : str
+            Stem of icon to use for this button
+        callback : function
+            Function to call when this button is clicked
+        menu : wx.Menu or function
+            Menu to show when the dropdown arrow is clicked, or a function to generate this menu
+
+        Returns
+        -------
+        FrameRibbonDropdownButton
+            The created button handle
+        """
+        # if section doesn't exist, make it
+        if section not in self.sections:
+            self.addSection(section, label=section)
+        # call addButton method from given section
+        btn = self.sections[section].addDropdownButton(
+            name, label=label, icon=icon, callback=callback, menu=menu
+        )
+
+        return btn
+
     def addSeparator(self):
         """
         Add a vertical line.
@@ -84,6 +125,13 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
         sep = wx.StaticLine(self, style=wx.LI_VERTICAL)
         # add separator
         self.sizer.Add(sep, border=6, flag=wx.EXPAND | wx.ALL)
+
+    def addStretchSpacer(self, prop=1):
+        """
+        Add a stretching space.
+        """
+        # add space
+        self.sizer.AddStretchSpacer()
 
     def _applyAppTheme(self):
         self.SetBackgroundColour(colors.app['frame_bg'])
@@ -149,6 +197,37 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
 
         return btn
 
+    def addDropdownButton(self, name, label, icon=None, callback=None, menu=None):
+        """
+        Add a dropdown button to this section.
+
+        Parameters
+        ----------
+        name : str
+            Name by which to internally refer to this button
+        label : str
+            Label to display on this button
+        icon : str
+            Stem of icon to use for this button
+        callback : function
+            Function to call when this button is clicked
+        menu : wx.Menu or function
+            Menu to show when the dropdown arrow is clicked, or a function to generate this menu
+
+        Returns
+        -------
+        FrameRibbonDropdownButton
+            The created button handle
+        """
+        # create button
+        self.buttons[name] = btn = FrameRibbonDropdownButton(
+            self, label=label, icon=icon, callback=callback, menu=menu
+        )
+        # add button to sizer
+        self.sizer.Add(btn, border=0, flag=wx.EXPAND | wx.ALL)
+
+        return btn
+
     def _applyAppTheme(self):
         self.SetBackgroundColour(colors.app['frame_bg'])
 
@@ -197,3 +276,59 @@ class FrameRibbonButton(wx.Button, handlers.ThemeMixin):
         else:
             # otherwise, keep same colour as parent
             self.SetBackgroundColour(colors.app['frame_bg'])
+
+
+class FrameRibbonDropdownButton(wx.Panel, handlers.ThemeMixin):
+    def __init__(self, parent, label, icon=None, callback=None, menu=None):
+        wx.Panel.__init__(self, parent)
+        # setup sizer
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.SetSizer(self.sizer)
+
+        # make button
+        self.button = wx.Button(self, label=label, style=wx.BORDER_NONE)
+        self.sizer.Add(self.button, proportion=1, border=0, flag=wx.EXPAND | wx.ALL)
+        # set icon
+        self.button.SetBitmap(
+            icons.ButtonIcon(icon, size=32).bitmap
+        )
+        # bind button callback
+        if callback is not None:
+            self.button.Bind(wx.EVT_BUTTON, callback)
+
+        # make dropdown
+        self.drop = wx.Button(self, label="▾", style=wx.BU_EXACTFIT | wx.BORDER_NONE)
+        self.sizer.Add(self.drop, border=0, flag=wx.EXPAND | wx.ALL)
+        # bind menu
+        self.drop.Bind(wx.EVT_BUTTON, self.onMenu)
+        self.menu = menu
+
+        # setup hover behaviour
+        self.button.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
+        self.button.Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
+        self.drop.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
+        self.drop.Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
+
+    def onMenu(self, evt):
+        menu = self.menu
+        # skip if there's no menu
+        if menu is None:
+            return
+        # if menu is created live, create it
+        if callable(menu):
+            menu = menu(self, evt)
+        # show menu
+        self.PopupMenu(menu)
+
+    def _applyAppTheme(self):
+        self.SetBackgroundColour(colors.app['frame_bg'])
+        self.button.SetBackgroundColour(colors.app['frame_bg'])
+        self.drop.SetBackgroundColour(colors.app['frame_bg'])
+
+    def onHover(self, evt):
+        if evt.EventType == wx.EVT_ENTER_WINDOW.typeId:
+            # on hover, lighten background
+            evt.EventObject.SetBackgroundColour(colors.app['panel_bg'])
+        else:
+            # otherwise, keep same colour as parent
+            evt.EventObject.SetBackgroundColour(colors.app['frame_bg'])
