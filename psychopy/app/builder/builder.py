@@ -206,6 +206,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.toolbar = BuilderToolbar(frame=self)
         self.SetToolBar(self.toolbar)
         self.toolbar.Realize()
+        self.toolbar.Hide()
         self.makeMenus()
         self.CreateStatusBar()
         self.SetStatusText("")
