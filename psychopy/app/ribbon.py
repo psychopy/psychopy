@@ -1,6 +1,13 @@
+import webbrowser
+import numpy
+import requests
 import wx
-import wx.ribbon
+
+from psychopy.app import utils
+from psychopy.app import pavlovia_ui as pavui
 from psychopy.app.themes import icons, handlers, colors
+from psychopy.localization import _translate
+from psychopy.projects import pavlovia
 
 
 class FrameRibbon(wx.Panel, handlers.ThemeMixin):
@@ -104,6 +111,15 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
         btn = self.sections[section].addDropdownButton(
             name, label=label, icon=icon, callback=callback, menu=menu
         )
+
+        return btn
+
+    def addPavloviaUserCtrl(self, section="pavlovia", name="pavuser", frame=None):
+        # if section doesn't exist, make it
+        if section not in self.sections:
+            self.addSection(section, label=section)
+        # call addButton method from given section
+        btn = self.sections[section].addPavloviaUserCtrl(name=name, ribbon=self, frame=frame)
 
         return btn
 
@@ -221,6 +237,17 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
 
         return btn
 
+    def addPavloviaUserCtrl(self, name="pavuser", ribbon=None, frame=None):
+        # substitute ribbon if not given
+        if ribbon is None:
+            ribbon = self.GetParent()
+        # create button
+        self.buttons[name] = btn = PavloviaUserCtrl(self, ribbon=ribbon, frame=frame)
+        # add button to sizer
+        self.sizer.Add(btn, border=0, flag=wx.EXPAND | wx.ALL)
+
+        return btn
+
     def _applyAppTheme(self):
         self.SetBackgroundColour(colors.app['frame_bg'])
 
@@ -325,3 +352,127 @@ class FrameRibbonDropdownButton(wx.Panel, handlers.ThemeMixin):
         else:
             # otherwise, keep same colour as parent
             evt.EventObject.SetBackgroundColour(colors.app['frame_bg'])
+
+
+class PavloviaUserCtrl(FrameRibbonDropdownButton):
+    def __init__(self, parent, ribbon=None, frame=None):
+        # make button
+        FrameRibbonDropdownButton.__init__(
+            self, parent, label=_translate("No user"), icon=None,
+            callback=self.onClick, menu=self.makeMenu
+        )
+        # store reference to frame and ribbon
+        self.frame = frame
+        self.ribbon = ribbon
+        # let app know about this button
+        self.frame.app.pavloviaButtons['user'].append(self)
+
+        # update info once now (in case creation happens after logging in)
+        self.updateInfo()
+
+    def __del__(self):
+        i = self.frame.app.pavloviaButtons['user'].index(self)
+        self.frame.app.pavloviaButtons['user'].pop(i)
+
+    def onClick(self, evt):
+        # get user
+        user = pavlovia.getCurrentSession().user
+        # if we have a user, go to profile
+        if user is None:
+            self.onPavloviaLogin()
+        else:
+            webbrowser.open("https://pavlovia.org/%(username)s" % user)
+
+    @staticmethod
+    def makeMenu(self, evt):
+        # get user
+        user = pavlovia.getCurrentSession().user
+        # make menu
+        menu = wx.Menu()
+
+        # edit user
+        btn = menu.Append(wx.ID_ANY, _translate("Edit user..."))
+        btn.SetBitmap(icons.ButtonIcon("editbtn", size=16).bitmap)
+        menu.Bind(wx.EVT_MENU, self.onEditPavloviaUser, btn)
+        menu.Enable(btn.GetId(), user is not None)
+        # switch user
+        switchTo = wx.Menu()
+        item = menu.AppendSubMenu(switchTo, _translate("Switch user"))
+        item.SetBitmap(icons.ButtonIcon("view-refresh", size=16).bitmap)
+        for name in pavlovia.knownUsers:
+            if user is None or name != user['username']:
+                btn = switchTo.Append(wx.ID_ANY, name)
+                switchTo.Bind(wx.EVT_MENU, self.onPavloviaSwitchUser, btn)
+        # log in to new user
+        switchTo.AppendSeparator()
+        btn = switchTo.Append(wx.ID_ANY, _translate("New user..."))
+        btn.SetBitmap(icons.ButtonIcon("plus", size=16).bitmap)
+        menu.Bind(wx.EVT_MENU, self.onPavloviaLogin, btn)
+        # log in/out
+        menu.AppendSeparator()
+        if user is not None:
+            btn = menu.Append(wx.ID_ANY, _translate("Log out"))
+            menu.Bind(wx.EVT_MENU, self.onPavloviaLogout, btn)
+        else:
+            btn = menu.Append(wx.ID_ANY, _translate("Log in"))
+            menu.Bind(wx.EVT_MENU, self.onPavloviaLogin, btn)
+
+        return menu
+
+    def updateInfo(self):
+        # get user
+        user = pavlovia.getCurrentSession().user
+
+        if user is None:
+            # if no user, set as defaults
+            self.button.SetLabel(_translate("No user"))
+            icon = icons.ButtonIcon("user_none", size=32).bitmap
+        else:
+            # if there us a user, set username
+            self.button.SetLabel(user['username'])
+            # get icon (use blank if failed)
+            try:
+                content = utils.ImageData(user['avatar_url'])
+                content = content.resize(size=(32, 32))
+                icon = wx.Bitmap.FromBufferAndAlpha(
+                    width=content.size[0],
+                    height=content.size[1],
+                    data=content.tobytes("raw", "RGB"),
+                    alpha=content.tobytes("raw", "A")
+                )
+            except requests.exceptions.MissingSchema:
+                icon = icons.ButtonIcon("user_none", size=32).bitmap
+
+        # apply circle mask
+        mask = icons.ButtonIcon("circle_mask", size=32).bitmap.ConvertToImage()
+        icon = icon.ConvertToImage()
+        maskAlpha = numpy.array(mask.GetAlpha(), dtype=int)
+        icon.SetAlpha(numpy.uint8(maskAlpha))
+        # set icon
+        self.button.SetBitmap(wx.Bitmap(icon))
+
+        self.Layout()
+        if self.ribbon is not None:
+            self.ribbon.Layout()
+
+    def onEditPavloviaUser(self, evt=None):
+        # open edit window
+        dlg = pavui.PavloviaMiniBrowser(parent=self, loginOnly=False)
+        dlg.editUserPage()
+        dlg.ShowModal()
+        # refresh user on close
+        user = pavlovia.getCurrentSession().user
+        user.user = user.user
+
+    def onPavloviaSwitchUser(self, evt):
+        menu = evt.GetEventObject()
+        item = menu.FindItem(evt.GetId())[0]
+        username = item.GetItemLabel()
+        pavlovia.logout()
+        pavlovia.login(username)
+
+    def onPavloviaLogin(self, evt=None):
+        pavui.logInPavlovia(self, evt)
+
+    def onPavloviaLogout(self, evt=None):
+        pavlovia.logout()

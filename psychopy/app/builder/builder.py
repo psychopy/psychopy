@@ -4426,8 +4426,8 @@ class BuilderRibbon(ribbon.FrameRibbon):
             name="pavlovia", label=_translate("Pavlovia")
         )
         # pavlovia user
-        self.addDropdownButton(
-            section="pavlovia", name="pavuser", label=_translate("No user")
+        self.addPavloviaUserCtrl(
+            section="pavlovia", name="pavuser", frame=parent
         )
         # pavlovia project
         self.addDropdownButton(
@@ -4721,8 +4721,6 @@ class BuilderToolbar(BasePsychopyToolbar):
         # refresh user on close
         user = pavlovia.getCurrentSession().user
         user.user = user.user
-
-
 
     def onPavloviaSwitchUser(self, evt):
         menu = evt.GetEventObject()

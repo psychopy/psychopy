@@ -112,15 +112,8 @@ def login(tokenOrUsername, rememberMe=True):
         user = currentSession.user
         prefs.appData['projects']['pavloviaUser'] = user['username']
     # update Pavlovia button(s)
-    try:
-        builders = app.getAppInstance().builder
-    except AttributeError:
-        builders = []
-    if not isinstance(builders, (list, tuple)):
-        builders = [builders]
-    for builder in builders:
-        builder.toolbar.updateUser()
-
+    for btn in app._psychopyApp.pavloviaButtons['user'] + app._psychopyApp.pavloviaButtons['project']:
+        btn.updateInfo()
 
 def logout():
     """Log the current user out of pavlovia.
@@ -142,11 +135,8 @@ def logout():
         if hasattr(frame, 'setUser'):
             frame.setUser(None)
     # update Pavlovia button(s)
-    builders = app.getAppInstance().builder
-    if not isinstance(builders, (list, tuple)):
-        builders = [builders]
-    for builder in builders:
-        builder.toolbar.updateUser()
+    for btn in app._psychopyApp.pavloviaButtons['user'] + app._psychopyApp.pavloviaButtons['project']:
+        btn.updateInfo()
 
 
 class User(dict):
