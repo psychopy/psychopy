@@ -1556,7 +1556,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def project(self, project):
         self._project = project
 
-        self.toolbar.updateProject()
+        self.ribbon.buttons['pavproject'].updateInfo()
 
 
 class RoutinesNotebook(aui.AuiNotebook, handlers.ThemeMixin):
@@ -4430,8 +4430,8 @@ class BuilderRibbon(ribbon.FrameRibbon):
             section="pavlovia", name="pavuser", frame=parent
         )
         # pavlovia project
-        self.addDropdownButton(
-            section="pavlovia", name="pavproject", label=_translate("No project")
+        self.addPavloviaProjectCtrl(
+            section="pavlovia", name="pavproject", frame=parent
         )
 
 
