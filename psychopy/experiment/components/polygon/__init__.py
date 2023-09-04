@@ -276,7 +276,7 @@ class PolygonComponent(BaseVisualComponent):
                     "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
                     "  edges: {nVertices}, size:{size},\n")
         else:
-            code = ("{name} = visual.ShapeStim({{\n" +
+            code = ("{name} = new visual.ShapeStim({{\n" +
                     "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
                     "  vertices: {vertices}, size: {size},\n")
 
