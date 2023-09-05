@@ -550,6 +550,112 @@ class Session:
 
         return expInfo
 
+    def setCurrentExpInfoItem(self, key, value):
+        """
+        Set the value of a key (or set of keys) from the current expInfo dict.
+
+        Parameters
+        ----------
+        key : str or Iterable[str]
+            Key or list of keys whose value or values to set.
+
+        value : object or Iterable[str]
+            Value or values to set the key to. If one value is given along with multiple keys, all
+            keys will be set to that value. Otherwise, the number of values should match the number
+            of keys.
+
+        Returns
+        -------
+        bool
+            True if operation completed successfully
+        """
+        # get expInfo dict
+        expInfo = self.getCurrentExpInfo()
+        # return False if there is none
+        if expInfo is False:
+            return expInfo
+        # wrap key in list
+        if not isinstance(key, (list, tuple)):
+            key = [key]
+        # wrap value in a list and extend it to match length of key
+        if not isinstance(value, (list, tuple)):
+            value = [value] * len(key)
+        # set values
+        for subkey, subval in zip(key, value):
+            expInfo[subkey] = subval
+
+    def getCurrentExpInfoItem(self, key):
+        """
+        Get the value of a key (or set of keys) from the current expInfo dict.
+
+        Parameters
+        ----------
+        key : str or Iterable[str]
+            Key or keys to get vaues of fro expInfo dict
+
+        Returns
+        -------
+        object, dict{str:object} or False
+            If key was a string, the value of this key in expInfo. If key was a list of strings, a dict of key:value
+            pairs for each key in the list. If no experiment is running or the process can't complete, False.
+        """
+        # get expInfo dict
+        expInfo = self.getCurrentExpInfo()
+        # return False if there is none
+        if expInfo is False:
+            return expInfo
+        # if given a single key, get it
+        if key in expInfo:
+            return expInfo[key]
+        # if given a list of keys, get subset
+        if isinstance(key, (list, tuple)):
+            subset = {}
+            for subkey in key:
+                subset[subkey] = expInfo[subkey]
+            return subset
+        # if we've not returned yet, something is up, so return False
+        return False
+
+    def updateCurrentExpInfo(self, other):
+        """
+        Update key:value pairs in the current expInfo dict from another dict.
+
+        Parameters
+        ----------
+        other : dict
+            key:value pairs to update dict from.
+
+        Returns
+        -------
+        bool
+            True if operation completed successfully
+        """
+        # get expInfo dict
+        expInfo = self.getCurrentExpInfo()
+        # return False if there is none
+        if expInfo is False:
+            return expInfo
+        # set each key
+        for key, value in other.items():
+            expInfo[key] = value
+
+        return True
+
+    def getCurrentExpInfo(self):
+        """
+        Get the `expInfo` dict for the currently running experiment.
+
+        Returns
+        -------
+        dict or False
+            The `expInfo` for the currently running experiment, or False if no experiment is running.
+        """
+        # if no experiment is currently running, return False
+        if self.currentExperiment is None:
+            return False
+        # get expInfo from ExperimentHandler object
+        return self.currentExperiment.extraInfo
+
     def setupWindowFromExperiment(self, key, expInfo=None, blocking=True):
         """
         Setup the window for this Session via the 'setupWindow` method from one of this

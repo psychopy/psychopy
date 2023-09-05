@@ -33,7 +33,6 @@ from ..pavlovia_ui.search import SearchFrame
 from ..pavlovia_ui.user import UserFrame
 from ...experiment import getAllElements, getAllCategories
 from ...experiment.routines import Routine, BaseStandaloneRoutine
-from ...tools.stringtools import prettyname
 
 try:
     import markdown_it as md
@@ -66,33 +65,8 @@ from ..utils import (BasePsychopyToolbar, HoverButton, WindowFrozen,
 from psychopy.experiment import getAllStandaloneRoutines
 from psychopy.app import pavlovia_ui
 from psychopy.projects import pavlovia
-
+from psychopy.tools import stringtools as st
 from psychopy.scripts.psyexpCompile import generateScript
-
-# _localized separates internal (functional) from displayed strings
-# long form here allows poedit string discovery
-_localized = {
-    'Field': _translate('Field'),
-    'Default': _translate('Default'),
-    'Favorites': _translate('Favorites'),
-    'Stimuli': _translate('Stimuli'),
-    'Responses': _translate('Responses'),
-    'Custom': _translate('Custom'),
-    'I/O': _translate('I/O'),
-    'Add to favorites': _translate('Add to favorites'),
-    'Remove from favorites': _translate('Remove from favorites'),
-    # contextMenuLabels
-    'edit': _translate('edit'),
-    'remove': _translate('remove'),
-    'copy': _translate('copy'),
-    'paste above': _translate('paste above'),
-    'paste below': _translate('paste below'),
-    'move to top': _translate('move to top'),
-    'move up': _translate('move up'),
-    'move down': _translate('move down'),
-    'move to bottom': _translate('move to bottom')
-}
-
 
 # Components which are always hidden
 alwaysHidden = [
@@ -1755,12 +1729,20 @@ class RoutineCanvas(wx.ScrolledWindow, handlers.ThemeMixin):
         self.lastpos = (0, 0)
         # use the ID of the drawn icon to retrieve component name:
         self.componentFromID = {}
-        self.contextMenuItems = [
-            'copy', 'paste above', 'paste below', 'edit', 'remove',
-            'move to top', 'move up', 'move down', 'move to bottom']
-        # labels are only for display, and allow localization
-        self.contextMenuLabels = {k: _localized[k]
-                                  for k in self.contextMenuItems}
+        # define context menu items and labels
+        self.contextMenuLabels = {
+            'copy': _translate("Copy"),
+            'paste above': _translate("Paste above"),
+            'paste below': _translate("Paste below"),
+            'edit': _translate("Edit"),
+            'remove': _translate("Remove"),
+            'move to top': _translate("Move to top"),
+            'move up': _translate("Move up"),
+            'move down': _translate("Move down"),
+            'move to bottom': _translate("Move to bottom"),
+        }
+        self.contextMenuItems = list(self.contextMenuLabels)
+
         self.contextItemFromID = {}
         self.contextIDFromItem = {}
         for item in self.contextMenuItems:
@@ -2678,11 +2660,16 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.parent = parent
             self.component = comp
             self.category = cat
-            # Get a shorter, title case version of component name
+            # construct label
             label = name
+            # remove "Component" from the end
             for redundant in ['component', 'Component', "ButtonBox"]:
                 label = label.replace(redundant, "")
-            label = prettyname(label, wrap=10)
+            # convert to title case
+            label = st.CaseSwitcher.pascal2title(label)
+            # wrap
+            label = st.wrap(label, 10)
+
             # Make button
             wx.Button.__init__(self, parent, wx.ID_ANY,
                                label=label, name=name,
@@ -2763,13 +2750,13 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             menu = wx.Menu()
             if faveLevels[self.component.__name__] > ComponentsPanel.faveThreshold:
                 # If is in favs
-                msg = "Remove from favorites"
+                msg = _translate("Remove from favorites")
                 fun = self.removeFromFavorites
             else:
                 # If is not in favs
-                msg = "Add to favorites"
+                msg = _translate("Add to favorites")
                 fun = self.addToFavorites
-            btn = menu.Append(wx.ID_ANY, _localized[msg])
+            btn = menu.Append(wx.ID_ANY, msg)
             menu.Bind(wx.EVT_MENU, fun, btn)
             # Show as popup
             self.PopupMenu(menu, evt.GetPosition())
@@ -2806,11 +2793,15 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.parent = parent
             self.routine = rt
             self.category = cat
-            # Get a shorter, title case version of routine name
+            # construct label
             label = name
+            # remove "Routine" from the end
             for redundant in ['routine', 'Routine', "ButtonBox"]:
                 label = label.replace(redundant, "")
-            label = prettyname(label, wrap=10)
+            # convert to title case
+            label = st.CaseSwitcher.pascal2title(label)
+            # wrap
+            label = st.wrap(label, 10)
             # Make button
             wx.Button.__init__(self, parent, wx.ID_ANY,
                                label=label, name=name,

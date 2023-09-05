@@ -11,7 +11,7 @@
 import numpy
 from psychopy import logging
 from functools import partialmethod
-from psychopy.tools.stringtools import makeValidVarName
+from psychopy.tools.stringtools import CaseSwitcher
 
 
 class attributeSetter:
@@ -182,7 +182,7 @@ class AttributeGetSetMixin:
             if not isinstance(func, (attributeSetter, property)):
                 continue
             # work out getter method name
-            getterName = "get" + makeValidVarName(name, case="title")
+            getterName = "get" + CaseSwitcher.camel2pascal(name)
             # ignore any which already have a getter method
             if not hasattr(cls, getterName):
                 # create a pre-populated caller for getattr
@@ -193,7 +193,7 @@ class AttributeGetSetMixin:
             if isinstance(func, property) and func.fset is None:
                 continue
             # work out setter method name
-            setterName = "set" + makeValidVarName(name, case="title")
+            setterName = "set" + CaseSwitcher.camel2pascal(name)
             # ignore any which already have a setter method
             if not hasattr(cls, setterName):
                 # create a pre-populated caller for setAttribute

@@ -41,8 +41,6 @@ from ...themes import handlers, icons
 white = wx.Colour(255, 255, 255, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
 
-from ..localizedStrings import _localizedDialogs as _localized
-
 
 class ParamCtrls():
 
@@ -266,7 +264,7 @@ class ParamCtrls():
             self.valueCtrl.SetValidator(NameValidator())
         elif param.inputType in ("single", "multi"):
             # only want anything that is valType code, or can be with $
-            self.valueCtrl.SetValidator(CodeSnippetValidator(fieldName))
+            self.valueCtrl.SetValidator(CodeSnippetValidator(fieldName, param.label))
 
         # create the type control
         if len(param.allowedTypes):
@@ -279,9 +277,14 @@ class ParamCtrls():
                 self.typeCtrl.Disable()  # visible but can't be changed
 
         # create update control
+        _localizedUpdateLbls = {
+            'constant': _translate('constant'),
+            'set every repeat': _translate('set every repeat'),
+            'set every frame': _translate('set every frame'),
+        }
         if param.allowedUpdates is not None and len(param.allowedUpdates):
             # updates = display-only version of allowed updates
-            updateLabels = [_localized[upd] for upd in param.allowedUpdates]
+            updateLabels = [_localizedUpdateLbls.get(upd, upd) for upd in param.allowedUpdates]
             # allowedUpdates = extend version of allowed updates that includes
             # "set during:static period"
             allowedUpdates = copy.copy(param.allowedUpdates)

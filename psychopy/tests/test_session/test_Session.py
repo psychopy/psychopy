@@ -145,6 +145,24 @@ class TestSession:
         from psychopy import __version__
         assert self.sess.experiments['invUseVersion'].psychopyVersion == __version__
 
+    def test_update_expInfo(self):
+        """
+        Test that expInfo can be update during an experiment running.
+        """
+        # add test experiment to Session
+        self.sess.addExperiment("testEditExpInfo/testEditExpInfo.psyexp", "testEditExpInfo")
+        # make expInfo dict
+        expInfo = self.sess.getExpInfoFromExperiment("testEditExpInfo")
+        # run test experiment
+        self.sess.runExperiment(
+            "testEditExpInfo",
+            expInfo=expInfo,
+            blocking=True
+        )
+        # check that our reference to expInfo is updated too
+        assert 'insertedKey' in expInfo
+        assert expInfo['insertedKey'] == "insertedValue"
+
     # def test_error(self, capsys):
     #     """
     #     Check that an error in an experiment doesn't interrupt the session.

@@ -4,7 +4,7 @@ This demo produces a handy diagram showing how the metrics of a PsychoPy GLFont 
 
 
 from psychopy import visual, event
-from psychopy.visual.textbox2.fontmanager import FontManager
+from psychopy.tools.fontmanager import FontManager
 
 # Create window
 win = visual.Window(size=(500, 200), units="pix", color="white")
