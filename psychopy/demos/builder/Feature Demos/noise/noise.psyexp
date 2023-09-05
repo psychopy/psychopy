@@ -57,7 +57,7 @@
   </Settings>
   <Routines>
     <Routine name="trial">
-      <NoiseStimComponent name="BinaryNoise">
+      <NoiseStimComponent name="BinaryNoise" plugin="psychopy-visionscience">
         <Param val="avg" valType="str" updates="constant" name="blendmode"/>
         <Param val="$[1,1,1]" valType="str" updates="constant" name="color"/>
         <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
@@ -99,7 +99,7 @@
         <Param val="512" valType="code" updates="constant" name="texture resolution"/>
         <Param val="pix" valType="str" updates="None" name="units"/>
       </NoiseStimComponent>
-      <NoiseStimComponent name="GaborNoise">
+      <NoiseStimComponent name="GaborNoise" plugin="psychopy-visionscience">
         <Param val="avg" valType="str" updates="constant" name="blendmode"/>
         <Param val="$[1,1,1]" valType="str" updates="constant" name="color"/>
         <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
@@ -141,7 +141,7 @@
         <Param val="512" valType="code" updates="constant" name="texture resolution"/>
         <Param val="deg" valType="str" updates="None" name="units"/>
       </NoiseStimComponent>
-      <NoiseStimComponent name="PinkNoise">
+      <NoiseStimComponent name="PinkNoise" plugin="psychopy-visionscience">
         <Param val="avg" valType="str" updates="constant" name="blendmode"/>
         <Param val="$[1,1,1]" valType="str" updates="constant" name="color"/>
         <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
@@ -183,7 +183,7 @@
         <Param val="512" valType="code" updates="constant" name="texture resolution"/>
         <Param val="deg" valType="str" updates="None" name="units"/>
       </NoiseStimComponent>
-      <NoiseStimComponent name="FilteredNoise">
+      <NoiseStimComponent name="FilteredNoise" plugin="psychopy-visionscience">
         <Param val="avg" valType="str" updates="constant" name="blendmode"/>
         <Param val="$[1,1,1]" valType="str" updates="constant" name="color"/>
         <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
@@ -225,7 +225,7 @@
         <Param val="512" valType="code" updates="constant" name="texture resolution"/>
         <Param val="deg" valType="str" updates="None" name="units"/>
       </NoiseStimComponent>
-      <NoiseStimComponent name="ImageNoise">
+      <NoiseStimComponent name="ImageNoise" plugin="psychopy-visionscience">
         <Param val="avg" valType="str" updates="constant" name="blendmode"/>
         <Param val="$[1,1,1]" valType="str" updates="constant" name="color"/>
         <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
