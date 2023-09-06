@@ -52,7 +52,7 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
 
         return sct
 
-    def addButton(self, section, name, label="", icon=None, tooltip=None, callback=None):
+    def addButton(self, section, name, label="", icon=None, tooltip="", callback=None):
         """
         Add a button to a given section.
 
@@ -193,7 +193,7 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
         # dict in which to store buttons
         self.buttons = {}
 
-    def addButton(self, name, label="", icon=None, tooltip=None, callback=None):
+    def addButton(self, name, label="", icon=None, tooltip="", callback=None):
         """
         Add a button to this section.
 
@@ -305,14 +305,23 @@ class FrameRibbonButton(wx.Button, handlers.ThemeMixin):
         Tooltip to display on hover
     callback : function
         Function to call when this button is clicked
+    style : int
+        Combination of wx button styles to apply
     """
-    def __init__(self, parent, label, icon=None, tooltip=None, callback=None):
+    def __init__(self, parent, label, icon=None, tooltip="", callback=None, style=wx.BU_NOTEXT):
+        # figure out width
+        w = -1
+        if style | wx.BU_NOTEXT == style:
+            w = 40
         # initialize
-        wx.Button.__init__(self, parent, style=wx.BU_NOTEXT | wx.BORDER_NONE, size=(40, 44))
+        wx.Button.__init__(self, parent, style=wx.BORDER_NONE | style, size=(w, 44))
+        # set label
+        self.SetLabelText(label)
         # set tooltip
-        if tooltip:
-            label = f"{label}: {tooltip}"
-        self.SetToolTipString(label)
+        if tooltip and style | wx.BU_NOTEXT == style:
+            # if there's no label, include it in the tooltip
+            tooltip = f"{label}: {tooltip}"
+        self.SetToolTipString(tooltip)
         # set icon
         self.SetBitmap(
             icons.ButtonIcon(icon, size=32).bitmap
