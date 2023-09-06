@@ -1252,8 +1252,10 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def openPavloviaDemos(self, event=None):
         webbrowser.open("https://pavlovia.org/explore")
 
-    def runFile(self, event=None):
-        """Open Runner for running the psyexp file."""
+    def sendToRunner(self, evt=None):
+        """
+        Send the current file to the Runner.
+        """
         # Check whether file is truly untitled (not just saved as untitled)
         untitled = os.path.abspath("untitled.psyexp")
         if not os.path.exists(self.filename) or os.path.abspath(self.filename) == untitled:
@@ -1268,11 +1270,14 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.app.showRunner()
         self.stdoutFrame.addTask(fileName=self.filename)
         self.app.runner.Raise()
-        if event:
-            if event.Id in [self.bldrBtnRun.Id, self.bldrRun.Id]:
-                self.app.runner.panel.runLocal(event)
-            else:
-                self.app.showRunner()
+        self.app.showRunner()
+
+    def runFile(self, event=None):
+        """
+        Send the current file to the Runner and run it.
+        """
+        self.sendToRunner(event)
+        self.app.runner.panel.runLocal(event)
 
     def onCopyRoutine(self, event=None):
         """copy the current routine from self.routinePanel

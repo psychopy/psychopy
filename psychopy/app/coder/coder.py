@@ -2571,9 +2571,10 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         for fname in self.getOpenFilenames():
             self.fileClose(event, fname, checkSave)
 
-    def runFile(self, event=None):
-        """Open Runner for running the script."""
-
+    def sendToRunner(self, evt=None):
+        """
+        Send the current file to the Runner.
+        """
         fullPath = Path(self.currentDoc.filename)
         # does the file need saving before running?
         if self.currentDoc.UNSAVED or not fullPath.is_file():
@@ -2597,12 +2598,15 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         else:
             alert(code=6105, strFields={'path': str(fullPath)})
         self.app.runner.Raise()
-        if event:
-            if event.Id in [self.cdrBtnRun.Id, self.IDs.cdrRun]:
-                self.app.runner.panel.runLocal(event, focusOnExit='coder')
-                self.Raise()
-            else:
-                self.app.showRunner()
+        self.app.showRunner()
+
+    def runFile(self, event=None):
+        """
+        Send the current file to the Runner and run it.
+        """
+        self.sendToRunner(event)
+        self.app.runner.panel.runLocal(event, focusOnExit='coder')
+        self.Raise()
 
     def duplicateLine(self, event):
         """Duplicate the current line."""
