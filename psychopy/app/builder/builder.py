@@ -4302,21 +4302,25 @@ class BuilderRibbon(ribbon.FrameRibbon):
         # file new
         self.addButton(
             section="file", name="new", label=_translate("New"), icon="filenew",
+            tooltip=_translate("Create new experiment file"),
             callback=parent.app.newBuilderFrame
         )
         # file open
         self.addButton(
             section="file", name="open", label=_translate("Open"), icon="fileopen",
+            tooltip=_translate("Open an existing experiment file"),
             callback=parent.fileOpen
         )
         # file save
         self.addButton(
             section="file", name="save", label=_translate("Save"), icon="filesave",
+            tooltip=_translate("Save current experiment file"),
             callback=parent.fileSave
         )
         # file save as
         self.addButton(
             section="file", name="saveas", label=_translate("Save as..."), icon="filesaveas",
+            tooltip=_translate("Save current experiment file as..."),
             callback=parent.fileSaveAs
         )
 
@@ -4329,11 +4333,13 @@ class BuilderRibbon(ribbon.FrameRibbon):
         # undo
         self.addButton(
             section="edit", name="undo", label=_translate("Undo"), icon="undo",
+            tooltip=_translate("Undo last action"),
             callback=parent.undo
         )
         # redo
         self.addButton(
             section="edit", name="redo", label=_translate("Redo"), icon="redo",
+            tooltip=_translate("Redo last action"),
             callback=parent.redo
         )
 
@@ -4346,16 +4352,19 @@ class BuilderRibbon(ribbon.FrameRibbon):
         # monitor center
         self.addButton(
             section="tools", name='monitor', label=_translate('Monitor center'), icon="monitors",
+            tooltip=_translate("Monitor settings and calibration"),
             callback=parent.app.openMonitorCenter
         )
         # settings
         self.addButton(
             section="tools", name='expsettings', label=_translate('Experiment settings'), icon="cogwindow",
+            tooltip=_translate("Edit experiment settings"),
             callback=parent.setExperimentSettings
         )
         # send to runner
         self.addButton(
             section="tools", name='runner', label=_translate('Runner'), icon="runner",
+            tooltip=_translate("Send experiment to Runner"),
             callback=parent.sendToRunner
         )
 
@@ -4367,12 +4376,14 @@ class BuilderRibbon(ribbon.FrameRibbon):
         )
         # compile python
         self.addButton(
-            section="py", name="pycompile", label=_translate('Write Python script'), icon='compile_py',
+            section="py", name="pycompile", label=_translate('Write Python'), icon='compile_py',
+            tooltip=_translate("Write experiment as a Python script"),
             callback=parent.compileScript
         )
         # run Py
         self.addButton(
             section="py", name="pyrun", label=_translate("Run in Python"), icon='pyRun',
+            tooltip=_translate("Run experiment locally in Python"),
             callback=parent.runFile
         )
 
@@ -4384,12 +4395,14 @@ class BuilderRibbon(ribbon.FrameRibbon):
         )
         # compile JS
         self.addButton(
-            section="js", name="jscompile", label=_translate('Write JS script'), icon='compile_js',
+            section="js", name="jscompile", label=_translate('Write JS'), icon='compile_js',
+            tooltip=_translate("Write experiment as a JavaScript (JS) script"),
             callback=parent.fileExport
         )
         # run JS
         self.addButton(
             section="js", name="jsrun", label=_translate("Run in local browser"), icon='jsRun',
+            tooltip=_translate("Run experiment locally on your browser"),
             callback=parent.onPavloviaDebug
         )
 

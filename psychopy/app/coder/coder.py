@@ -2867,21 +2867,25 @@ class CoderRibbon(ribbon.FrameRibbon):
         # file new
         self.addButton(
             section="file", name="new", label=_translate("New"), icon="filenew",
+            tooltip=_translate("Create new text file"),
             callback=parent.fileNew
         )
         # file open
         self.addButton(
             section="file", name="open", label=_translate("Open"), icon="fileopen",
+            tooltip=_translate("Open an existing text file"),
             callback=parent.fileOpen
         )
         # file save
         self.addButton(
             section="file", name="save", label=_translate("Save"), icon="filesave",
+            tooltip=_translate("Save current text file"),
             callback=parent.fileSave
         )
         # file save as
         self.addButton(
             section="file", name="saveas", label=_translate("Save as..."), icon="filesaveas",
+            tooltip=_translate("Save current text file as..."),
             callback=parent.fileSaveAs
         )
 
@@ -2894,11 +2898,13 @@ class CoderRibbon(ribbon.FrameRibbon):
         # undo
         self.addButton(
             section="edit", name="undo", label=_translate("Undo"), icon="undo",
+            tooltip=_translate("Undo last action"),
             callback=parent.undo
         )
         # redo
         self.addButton(
             section="edit", name="redo", label=_translate("Redo"), icon="redo",
+            tooltip=_translate("Redo last action"),
             callback=parent.redo
         )
 
@@ -2911,16 +2917,19 @@ class CoderRibbon(ribbon.FrameRibbon):
         # monitor center
         self.addButton(
             section="tools", name='monitor', label=_translate('Monitor center'), icon="monitors",
+            tooltip=_translate("Monitor settings and calibration"),
             callback=parent.app.openMonitorCenter
         )
         # settings
         self.addButton(
             section="tools", name='color', label=_translate('Color picker'), icon="color",
+            tooltip=_translate("Open a tool for choosing colors"),
             callback=parent.app.colorPicker
         )
         # send to runner
         self.addButton(
             section="tools", name='runner', label=_translate('Runner'), icon="runner",
+            tooltip=_translate("Send current file to Runner"),
             callback=parent.sendToRunner
         ).Disable()
 

@@ -52,7 +52,7 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
 
         return sct
 
-    def addButton(self, section, name, label="", icon=None, callback=None):
+    def addButton(self, section, name, label="", icon=None, tooltip=None, callback=None):
         """
         Add a button to a given section.
 
@@ -66,6 +66,8 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
             Label to display on this button
         icon : str
             Stem of icon to use for this button
+        tooltip : str
+            Tooltip to display on hover
         callback : function
             Function to call when this button is clicked
 
@@ -79,7 +81,7 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
             self.addSection(section, label=section)
         # call addButton method from given section
         btn = self.sections[section].addButton(
-            name, label=label, icon=icon, callback=callback
+            name, label=label, icon=icon, tooltip=tooltip, callback=callback
         )
 
         return btn
@@ -191,7 +193,7 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
         # dict in which to store buttons
         self.buttons = {}
 
-    def addButton(self, name, label="", icon=None, callback=None):
+    def addButton(self, name, label="", icon=None, tooltip=None, callback=None):
         """
         Add a button to this section.
 
@@ -203,6 +205,8 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
             Label to display on this button
         icon : str
             Stem of icon to use for this button
+        tooltip : str
+            Tooltip to display on hover
         callback : function
             Function to call when this button is clicked
 
@@ -213,7 +217,7 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
         """
         # create button
         btn = FrameRibbonButton(
-            self, label=label, icon=icon, callback=callback
+            self, label=label, icon=icon, tooltip=tooltip, callback=callback
         )
         # store references
         self.buttons[name] = self.ribbon.buttons[name] = btn
@@ -297,16 +301,17 @@ class FrameRibbonButton(wx.Button, handlers.ThemeMixin):
         Label to display on this button
     icon : str
         Stem of icon to use for this button
+    tooltip : str
+        Tooltip to display on hover
     callback : function
         Function to call when this button is clicked
     """
-    def __init__(self, parent, label, icon=None, callback=None):
-        """
-
-        """
+    def __init__(self, parent, label, icon=None, tooltip=None, callback=None):
         # initialize
         wx.Button.__init__(self, parent, style=wx.BU_NOTEXT | wx.BORDER_NONE, size=(40, 44))
         # set tooltip
+        if tooltip:
+            label = f"{label}: {tooltip}"
         self.SetToolTipString(label)
         # set icon
         self.SetBitmap(
