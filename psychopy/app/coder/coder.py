@@ -1163,11 +1163,6 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # Setup pane and art managers
         self.paneManager = self.getAuiManager()
 
-        # Create toolbar
-        self.toolbar = CoderToolbar(self)
-        self.SetToolBar(self.toolbar)
-        self.toolbar.Realize()
-        self.toolbar.Hide()
         # Create menus and status bar
         self.makeMenus()
         self.makeStatusBar()
@@ -1289,8 +1284,6 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                                  BottomDockable(True).TopDockable(True).
                                  CloseButton(False).
                                  Bottom())
-        if 'pavloviaSync' in self.btnHandles:
-            self.toolbar.EnableTool(self.btnHandles['pavloviaSync'].Id, bool(self.filename))
         self.unitTestFrame = None
 
         # Link to Runner output
@@ -1313,10 +1306,6 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # Update panes PsychopyToolbar
         isExp = filename.endswith(".py") or filename.endswith(".psyexp")
 
-        # if the toolbar is done then adjust buttons
-        if hasattr(self, 'cdrBtnRunner'):
-            self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
-            self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
         # Hide panels as specified
         self.paneManager.GetPane("SourceAsst").Show(self.prefs['showSourceAsst'])
         self.paneManager.GetPane("Shelf").Show(self.prefs['showOutput'])
@@ -1990,7 +1979,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
                     dlg.Destroy()
                 self.fileStatusLastChecked = time.time()
                 # Enable / disable save button
-                self.toolbar.enableSave(self.currentDoc.UNSAVED)
+                self.ribbon.buttons['save'].Enable(self.currentDoc.UNSAVED)
 
     def pageChanged(self, event):
         """Event called when the user switches between editor tabs."""
@@ -2023,10 +2012,9 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         fileType = self.currentDoc.getFileType()
         # enable run buttons if current file is a Python script
-        if hasattr(self, 'cdrBtnRunner'):
+        if 'runner' in self.ribbon.buttons:
             isExp = fileType == 'Python'
-            self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
-            self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
+            self.ribbon.buttons['runner'].Enable(isExp)
 
         self.statusBar.SetStatusText(fileType, 2)
 
@@ -2217,7 +2205,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
         if doc == self.currentDoc:
             # Enable / disable save button
-            self.toolbar.enableSave(self.currentDoc.UNSAVED)
+            self.ribbon.buttons['save'].Enable(self.currentDoc.UNSAVED)
 
         self.currentDoc.analyseScript()
 
@@ -2314,12 +2302,6 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
 
             fileType = self.currentDoc.getFileType()
 
-            # enable run buttons if current file is a Python script
-            if hasattr(self, 'cdrBtnRunner'):
-                isExp = fileType == 'Python'
-                self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
-                self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
-
             # line wrapping
             self.currentDoc.SetWrapMode(
                 wx.stc.STC_WRAP_WORD if self.lineWrapChk.IsChecked() else wx.stc.STC_WRAP_NONE)
@@ -2338,11 +2320,8 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         isExp = filename.endswith(".py") or filename.endswith(".psyexp")
 
         # if the toolbar is done then adjust buttons
-        if hasattr(self, 'cdrBtnRunner'):
-            self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
-            self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
-        if 'pavloviaSync' in self.btnHandles:
-            self.toolbar.EnableTool(self.btnHandles['pavloviaSync'].Id, bool(self.filename))
+        if 'runner' in self.ribbon.buttons:
+            self.ribbon.buttons['runner'].Enable(isExp)
         # update menu items
         self.pavloviaMenu.syncBtn.Enable(bool(self.filename))
         self.pavloviaMenu.newBtn.Enable(bool(self.filename))
@@ -2795,15 +2774,14 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # changes the document flag, updates save buttons
         self.currentDoc.UNSAVED = isModified
         # Enable / disable save button
-        self.toolbar.enableSave(self.currentDoc.UNSAVED)
+        self.ribbon.buttons['save'].Enable(self.currentDoc.UNSAVED)
 
     def onProcessEnded(self, event):
         # this is will check the stdout and stderr for any last messages
         self.onIdle(event=None)
         self.scriptProcess = None
         self.scriptProcessID = None
-        self.toolbar.EnableTool(self.cdrBtnRun.Id, True)
-        self.toolbar.EnableTool(self.cdrBtnRunner.Id, True)
+        self.ribbon.buttons['runner'].Enable(True)
 
     def onURL(self, evt):
         """decompose the URL of a file and line number"""
@@ -2834,12 +2812,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         """Push changes to project repo, or create new proj if proj is None"""
         self.project = pavlovia.getProject(self.currentDoc.filename)
         self.fileSave(self.currentDoc.filename)  # Must save on sync else changes not pushed
-        syncBtnId = self.toolbar.buttons['pavloviaSync'].GetId()
-        self.toolbar.EnableTool(syncBtnId, False)
-        try:
-            pavlovia_ui.syncProject(parent=self, file=self.currentDoc.filename, project=self.project)
-        finally:
-            self.toolbar.EnableTool(syncBtnId, True)
+        pavlovia_ui.syncProject(parent=self, file=self.currentDoc.filename, project=self.project)
 
     def onPavloviaRun(self, evt=None):
         # TODO: Allow user to run project from coder
@@ -3078,7 +3051,7 @@ class CoderRibbon(ribbon.FrameRibbon):
         self.addButton(
             section="tools", name='runner', label=_translate('Runner'), icon="runner",
             callback=parent.sendToRunner
-        )
+        ).Disable()
 
         self.addSeparator()
 
