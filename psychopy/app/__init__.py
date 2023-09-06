@@ -17,6 +17,7 @@ __all__ = [
 
 import sys
 import os
+import io
 from .console import StdStreamDispatcher
 from .frametracker import openFrames
 
@@ -96,7 +97,15 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
             'this is not permitted.')
 
     stdDisp = StdStreamDispatcher(_psychopyApp, prefLogFilePath)
+    lastRunLog.close()  # close after redircet
     stdDisp.redirect()
+
+    if prefLogFilePath is not None:
+        # write all messages that came up in the log file to console
+        with io.open(sys.__stdout__.fileno(), 'w', encoding="utf-8") as f:
+            with open(prefLogFilePath, 'r') as lf:
+                f.write(lf.read())
+                f.flush()
 
     if not testMode:
         # Setup redirection of errors to the error reporting dialog box. We

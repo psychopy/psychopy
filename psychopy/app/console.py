@@ -141,6 +141,11 @@ class StdStreamDispatcher:
                 lf.write(text)
                 lf.flush()
 
+        # print text to stdout
+        with io.open(sys.__stdout__.fileno(), 'w', encoding="utf-8") as f:
+            f.write(text)
+            f.flush()
+
     def flush(self):
         pass
 
