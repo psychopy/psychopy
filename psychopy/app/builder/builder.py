@@ -1498,6 +1498,20 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             url = "https://pavlovia.org/run/{}".format(self.project['path_with_namespace'])
             wx.LaunchDefaultBrowser(url)
 
+    def onPavloviaDebug(self, evt=None):
+        # Open runner
+        self.app.showRunner()
+        runner = self.app.runner
+        # Make sure we have a current file
+        if self.getIsModified() or not Path(self.filename).is_file():
+            saved = self.fileSave()
+            if not saved:
+                return
+        # Send current file to runner
+        runner.addTask(fileName=self.filename)
+        # Run debug function from runner
+        self.app.runner.panel.runOnlineDebug(evt=evt)
+
     def enablePavloviaButton(self, buttons, enable):
         """
         Enables or disables Pavlovia buttons.
@@ -4414,7 +4428,7 @@ class BuilderRibbon(ribbon.FrameRibbon):
         # run JS
         self.addButton(
             section="js", name="jsrun", label=_translate("Run in local browser"), icon='jsRun',
-            callback=None#parent.onPavloviaDebug
+            callback=parent.onPavloviaDebug
         )
 
         self.addSeparator()
