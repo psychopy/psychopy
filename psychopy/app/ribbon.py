@@ -157,7 +157,7 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
         Add a stretching space.
         """
         # add space
-        self.sizer.AddStretchSpacer()
+        self.sizer.AddStretchSpacer(prop=prop)
 
     def _applyAppTheme(self):
         self.SetBackgroundColour(colors.app['frame_bg'])
