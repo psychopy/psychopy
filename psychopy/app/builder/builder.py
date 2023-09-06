@@ -4337,23 +4337,23 @@ class BuilderRibbon(ribbon.FrameRibbon):
 
         self.addSeparator()
 
-        # --- Experiment ---
+        # --- Tools ---
         self.addSection(
-            "experiment", label=_translate("Experiment")
+            "tools", label=_translate("Tools")
         )
         # monitor center
         self.addButton(
-            section="experiment", name='monitor', label=_translate('Monitor center'), icon="monitors",
+            section="tools", name='monitor', label=_translate('Monitor center'), icon="monitors",
             callback=parent.app.openMonitorCenter
         )
         # settings
         self.addButton(
-            section="experiment", name='expsettings', label=_translate('Experiment settings'), icon="cogwindow",
+            section="tools", name='expsettings', label=_translate('Experiment settings'), icon="cogwindow",
             callback=parent.setExperimentSettings
         )
         # send to runner
         self.addButton(
-            section="experiment", name='runner', label=_translate('Runner'), icon="runner",
+            section="tools", name='runner', label=_translate('Runner'), icon="runner",
             callback=parent.sendToRunner
         )
 
