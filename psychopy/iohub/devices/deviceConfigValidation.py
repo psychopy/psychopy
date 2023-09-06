@@ -2,7 +2,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-
+import importlib
 import socket
 import os
 import numbers  # numbers.Integral is like (int, long) but supports Py3
@@ -486,14 +486,16 @@ def validateDeviceConfiguration(
         relative_module_path,
         device_class_name,
         current_device_config):
-    validation_file_path = os.path.join(_current_dir,
-                                        relative_module_path[len('psychopy.iohub.devices.'):].replace('.', os.path.sep),
+    # convert subdirectory to path
+    validation_module = importlib.import_module(relative_module_path)
+    validation_dir_path = os.path.dirname(validation_module.__file__)
+    # get config file from subdiretory path
+    validation_file_path = os.path.join(validation_dir_path,
                                         'supported_config_settings_{0}.yaml'.format(device_class_name.lower()))
     if not os.path.exists(validation_file_path):
-        validation_file_path = os.path.join(_current_dir,
-                                            relative_module_path[len('psychopy.iohub.devices.'):].replace('.',
-                                                                                                          os.path.sep),
+        validation_file_path = os.path.join(validation_dir_path,
                                             'supported_config_settings.yaml')
+    # load config file
     device_settings_validation_dict = yload(open(validation_file_path, 'r'), Loader=yLoader)
     device_settings_validation_dict = device_settings_validation_dict[list(device_settings_validation_dict.keys())[0]]
 
