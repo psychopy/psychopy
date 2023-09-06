@@ -2585,7 +2585,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
             sys.stdout.flush()
             dlg.Destroy()
             if resp == wx.ID_CANCEL:
-                return -1  # return, don't run
+                return False  # return, don't run
             elif resp == wx.ID_YES:
                 self.fileSave(None)  # save then run
             elif resp == wx.ID_NO:
@@ -2600,13 +2600,15 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.app.runner.Raise()
         self.app.showRunner()
 
+        return True
+
     def runFile(self, event=None):
         """
         Send the current file to the Runner and run it.
         """
-        self.sendToRunner(event)
-        self.app.runner.panel.runLocal(event, focusOnExit='coder')
-        self.Raise()
+        if self.sendToRunner(event):
+            self.app.runner.panel.runLocal(event, focusOnExit='coder')
+            self.Raise()
 
     def duplicateLine(self, event):
         """Duplicate the current line."""

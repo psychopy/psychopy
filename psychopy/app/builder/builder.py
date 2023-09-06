@@ -1261,23 +1261,25 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         if not os.path.exists(self.filename) or os.path.abspath(self.filename) == untitled:
             ok = self.fileSave(self.filename)
             if not ok:
-                return  # save file before compiling script
+                return False  # save file before compiling script
 
         if self.getIsModified():
             ok = self.fileSave(self.filename)
             if not ok:
-                return  # save file before compiling script
+                return False  # save file before compiling script
         self.app.showRunner()
         self.stdoutFrame.addTask(fileName=self.filename)
         self.app.runner.Raise()
         self.app.showRunner()
 
+        return True
+
     def runFile(self, event=None):
         """
         Send the current file to the Runner and run it.
         """
-        self.sendToRunner(event)
-        self.app.runner.panel.runLocal(event)
+        if self.sendToRunner(event):
+            self.app.runner.panel.runLocal(event)
 
     def onCopyRoutine(self, event=None):
         """copy the current routine from self.routinePanel
@@ -4352,7 +4354,7 @@ class BuilderRibbon(ribbon.FrameRibbon):
         # send to runner
         self.addButton(
             section="experiment", name='runner', label=_translate('Runner'), icon="runner",
-            callback=parent.runFile
+            callback=parent.sendToRunner
         )
 
         self.addSeparator()
