@@ -31,7 +31,7 @@ import time
 import textwrap
 import codecs
 
-from .. import dialogs
+from .. import dialogs, ribbon
 from ..stdout import stdOutRich
 from .. import pavlovia_ui
 from psychopy import logging, prefs
@@ -1167,6 +1167,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.toolbar = CoderToolbar(self)
         self.SetToolBar(self.toolbar)
         self.toolbar.Realize()
+        self.toolbar.Hide()
         # Create menus and status bar
         self.makeMenus()
         self.makeStatusBar()
@@ -1182,6 +1183,14 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
             self, -1, size=wx.Size(480, 480),
             agwStyle=aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB)
 
+        # add ribbon
+        self.ribbon = CoderRibbon(self)
+        self.paneManager.AddPane(self.ribbon,
+                                 aui.AuiPaneInfo().
+                                 Name("Ribbon").
+                                 DockFixed(True).
+                                 CloseButton(False).MaximizeButton(True).PaneBorder(False).CaptionVisible(False).
+                                 Top())
         # Add editor panel
         self.paneManager.AddPane(self.notebook, aui.AuiPaneInfo().
                                  Name("Editor").
@@ -1311,6 +1320,7 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # Hide panels as specified
         self.paneManager.GetPane("SourceAsst").Show(self.prefs['showSourceAsst'])
         self.paneManager.GetPane("Shelf").Show(self.prefs['showOutput'])
+        self.paneManager.GetPane("Ribbon").Show()
         self.paneManager.Update()
         #self.chkShowAutoComp.Check(self.prefs['autocomplete'])
         self.SendSizeEvent()
@@ -2338,6 +2348,9 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.pavloviaMenu.newBtn.Enable(bool(self.filename))
         self.app.updateWindowMenu()
         self.fileBrowserWindow.updateFileBrowser()
+        # update pavlovia project
+        self.project = pavlovia.getProject(self.currentDoc.filename)
+        self.ribbon.buttons['pavproject'].updateInfo()
 
     def fileOpen(self, event=None, filename=None):
         if not filename:
@@ -2996,3 +3009,90 @@ class CoderToolbar(BasePsychopyToolbar):
         Alias for .enableSave(False)
         """
         self.enableSave(False)
+
+
+class CoderRibbon(ribbon.FrameRibbon):
+    def __init__(self, parent):
+        # initialize
+        ribbon.FrameRibbon.__init__(self, parent)
+
+        # --- File ---
+        self.addSection(
+            "file", label=_translate("File")
+        )
+        # file new
+        self.addButton(
+            section="file", name="new", label=_translate("New"), icon="filenew",
+            callback=parent.fileNew
+        )
+        # file open
+        self.addButton(
+            section="file", name="open", label=_translate("Open"), icon="fileopen",
+            callback=parent.fileOpen
+        )
+        # file save
+        self.addButton(
+            section="file", name="save", label=_translate("Save"), icon="filesave",
+            callback=parent.fileSave
+        )
+        # file save as
+        self.addButton(
+            section="file", name="saveas", label=_translate("Save as..."), icon="filesaveas",
+            callback=parent.fileSaveAs
+        )
+
+        self.addSeparator()
+
+        # --- Edit ---
+        self.addSection(
+            "edit", label=_translate("Edit")
+        )
+        # undo
+        self.addButton(
+            section="edit", name="undo", label=_translate("Undo"), icon="undo",
+            callback=parent.undo
+        )
+        # redo
+        self.addButton(
+            section="edit", name="redo", label=_translate("Redo"), icon="redo",
+            callback=parent.redo
+        )
+
+        self.addSeparator()
+
+        # --- Tools ---
+        self.addSection(
+            "tools", label=_translate("Tools")
+        )
+        # monitor center
+        self.addButton(
+            section="tools", name='monitor', label=_translate('Monitor center'), icon="monitors",
+            callback=parent.app.openMonitorCenter
+        )
+        # settings
+        self.addButton(
+            section="tools", name='color', label=_translate('Color picker'), icon="color",
+            callback=parent.app.colorPicker
+        )
+        # send to runner
+        self.addButton(
+            section="tools", name='runner', label=_translate('Runner'), icon="runner",
+            callback=parent.sendToRunner
+        )
+
+        self.addSeparator()
+
+        # --- Pavlovia ---
+        self.addStretchSpacer()
+        self.addSeparator()
+        self.addSection(
+            name="pavlovia", label=_translate("Pavlovia")
+        )
+        # pavlovia user
+        self.addPavloviaUserCtrl(
+            section="pavlovia", name="pavuser", frame=parent
+        )
+        # pavlovia project
+        self.addPavloviaProjectCtrl(
+            section="pavlovia", name="pavproject", frame=parent
+        )

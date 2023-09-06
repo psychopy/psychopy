@@ -229,6 +229,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # Create panels
         self._mgr.AddPane(self.ribbon,
                           aui.AuiPaneInfo().
+                          Name("Ribbon").
                           DockFixed(True).
                           CloseButton(False).MaximizeButton(True).PaneBorder(False).CaptionVisible(False).
                           Top()
@@ -267,6 +268,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.SetSize(
             (int(self.frameData['winW']), int(self.frameData['winH'])))
         self.SendSizeEvent()
+        self._mgr.GetPane("Ribbon").Show()
         self._mgr.Update()
 
         # self.SetAutoLayout(True)
