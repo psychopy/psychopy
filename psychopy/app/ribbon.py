@@ -23,16 +23,9 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
         # setup sizer
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self.sizer)
-        # dict in which to store sections
+        # dicts in which to store sections and buttons
         self.sections = {}
-
-    @property
-    def buttons(self):
-        value = {}
-        for sct in self.sections.values():
-            value.update(sct.buttons)
-
-        return value
+        self.buttons = {}
 
     def addSection(self, name, label=None):
         """
@@ -176,6 +169,7 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
     """
     def __init__(self, parent, label=None):
         wx.Panel.__init__(self, parent)
+        self.ribbon = parent
         # setup sizers
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.border)
@@ -218,9 +212,11 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
             The created button handle
         """
         # create button
-        self.buttons[name] = btn = FrameRibbonButton(
+        btn = FrameRibbonButton(
             self, label=label, icon=icon, callback=callback
         )
+        # store references
+        self.buttons[name] = self.ribbon.buttons[name] = btn
         # add button to sizer
         self.sizer.Add(btn, border=0, flag=wx.EXPAND | wx.ALL)
 
@@ -249,9 +245,11 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
             The created button handle
         """
         # create button
-        self.buttons[name] = btn = FrameRibbonDropdownButton(
+        btn = FrameRibbonDropdownButton(
             self, label=label, icon=icon, callback=callback, menu=menu
         )
+        # store references
+        self.buttons[name] = self.ribbon.buttons[name] = btn
         # add button to sizer
         self.sizer.Add(btn, border=0, flag=wx.EXPAND | wx.ALL)
 
@@ -262,7 +260,9 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
         if ribbon is None:
             ribbon = self.GetParent()
         # create button
-        self.buttons[name] = btn = PavloviaUserCtrl(self, ribbon=ribbon, frame=frame)
+        btn = PavloviaUserCtrl(self, ribbon=ribbon, frame=frame)
+        # store references
+        self.buttons[name] = self.ribbon.buttons[name] = btn
         # add button to sizer
         self.sizer.Add(btn, border=0, flag=wx.EXPAND | wx.ALL)
 
@@ -273,7 +273,9 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
         if ribbon is None:
             ribbon = self.GetParent()
         # create button
-        self.buttons[name] = btn = PavloviaProjectCtrl(self, ribbon=ribbon, frame=frame)
+        btn = PavloviaProjectCtrl(self, ribbon=ribbon, frame=frame)
+        # store references
+        self.buttons[name] = self.ribbon.buttons[name] = btn
         # add button to sizer
         self.sizer.Add(btn, border=0, flag=wx.EXPAND | wx.ALL)
 

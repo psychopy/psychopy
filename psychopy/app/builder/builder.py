@@ -203,10 +203,6 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.componentButtons = ComponentsPanel(self)
         self.ribbon = BuilderRibbon(self)
         # menus and toolbars
-        self.toolbar = BuilderToolbar(frame=self)
-        self.SetToolBar(self.toolbar)
-        self.toolbar.Realize()
-        self.toolbar.Hide()
         self.makeMenus()
         self.CreateStatusBar()
         self.SetStatusText("")
@@ -665,20 +661,15 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     @filename.setter
     def filename(self, value):
         self._filename = value
-        # Skip if there's no toolbar
-        if not hasattr(self, "toolbar"):
+        # skip if there's no ribbon
+        if not hasattr(self, "ribbon"):
             return
-        # Enable/disable compile buttons
-        if 'compile_py' in self.toolbar.buttons:
-            self.toolbar.EnableTool(
-                self.toolbar.buttons['compile_py'].GetId(),
-                Path(value).is_file()
-            )
-        if 'compile_js' in self.toolbar.buttons:
-            self.toolbar.EnableTool(
-                self.toolbar.buttons['compile_js'].GetId(),
-                Path(value).is_file()
-            )
+        # enable/disable compile buttons
+        for key in ('compile_py', 'compile_js'):
+            if key in self.ribbon.buttons:
+                self.ribbon.buttons[key].Enable(
+                    Path(value).is_file()
+                )
 
     def fileNew(self, event=None, closeCurrent=True):
         """Create a default experiment (maybe an empty one instead)
@@ -1099,8 +1090,9 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             newVal = self.getIsModified()
         else:
             self.isModified = newVal
-        if hasattr(self, 'bldrBtnSave'):
-            self.toolbar.EnableTool(self.bldrBtnSave.Id, newVal)
+        # get ribbon buttons
+        if 'save' in self.ribbon.buttons:
+            self.ribbon.buttons['save'].Enable(newVal)
         self.fileMenu.Enable(wx.ID_SAVE, newVal)
 
     def getIsModified(self):
@@ -1197,8 +1189,8 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             label = txt % fmt
             enable = True
         self._undoLabel.SetItemLabel(label)
-        if hasattr(self, 'bldrBtnUndo'):
-            self.toolbar.EnableTool(self.bldrBtnUndo.Id, enable)
+        if 'undo' in self.ribbon.buttons:
+            self.ribbon.buttons['undo'].Enable(enable)
         self.editMenu.Enable(wx.ID_UNDO, enable)
 
         # check redo
@@ -1212,8 +1204,8 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             label = txt % fmt
             enable = True
         self._redoLabel.SetItemLabel(label)
-        if hasattr(self, 'bldrBtnRedo'):
-            self.toolbar.EnableTool(self.bldrBtnRedo.Id, enable)
+        if 'redo' in self.ribbon.buttons:
+            self.ribbon.buttons['redo'].Enable(enable)
         self.editMenu.Enable(wx.ID_REDO, enable)
 
     def demosUnpack(self, event=None):
@@ -1512,48 +1504,9 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         # Run debug function from runner
         self.app.runner.panel.runOnlineDebug(evt=evt)
 
-    def enablePavloviaButton(self, buttons, enable):
-        """
-        Enables or disables Pavlovia buttons.
-
-        Parameters
-        ----------
-        name: string, list
-            Takes single buttons 'pavloviaSync', 'pavloviaRun', 'pavloviaSearch', 'pavloviaUser',
-            or multiple buttons in string 'pavloviaSync, pavloviaRun',
-            or comma separated list of strings ['pavloviaSync', 'pavloviaRun', ...].
-        enable: bool
-            True enables and False disables the button
-        """
-        if isinstance(buttons, str):
-            buttons = buttons.split(',')
-        for button in buttons:
-            self.toolbar.EnableTool(self.btnHandles[button.strip(' ')].GetId(), enable)
-
     def setPavloviaUser(self, user):
         # TODO: update user icon on button to user avatar
         pass
-
-    def gitFeedback(self, val):
-        """
-        Set feedback color for the Pavlovia Sync toolbar button.
-
-        Parameters
-        ----------
-        val: int
-            Status of git sync. 1 for SUCCESS (green), 0 or -1 for FAIL (RED)
-        """
-        feedbackTime = 1500
-        colour = {0: "red", -1: "red", 1: "green"}
-        toolbarSize = 32
-
-        # Set feedback button
-        self.toolbar.Realize()
-        self.toolbar.Refresh()
-
-        # Reset button to default state after time
-        wx.CallLater(feedbackTime + 50, self.toolbar.Realize)
-        wx.CallLater(feedbackTime + 50, self.toolbar.Refresh)
 
     @property
     def project(self):
