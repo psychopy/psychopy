@@ -13,6 +13,7 @@ import datetime
 from ..errors import print2err, printExceptionDetailsToStdErr
 import re
 import collections.abc
+import pathlib
 import psychopy.logging as logging
 import psychopy.plugins as plugins
 
@@ -135,6 +136,33 @@ def module_directory(local_function):
     mp = module_path(local_function)
     moduleDirectory, mname = os.path.split(mp)
     return moduleDirectory
+
+
+def getSupportedConfigSettings(module_name):
+    """Get the supported configuration settings for a device.
+
+    Parameters
+    ----------
+    module_name : str
+        The name of the module to get the path for. Must be a package that defines
+        `__init__.py`.
+    
+    Returns
+    -------
+    str
+        The path to the module.
+
+    """
+    fileName = 'supported_config_settings_{0}.yaml'.format(device_class_name.lower())
+    yamlFile = pathlib.Path(module_name.__file__).parent / fileName
+
+    # check if exists
+    if not yamlFile.exists():
+        raise FileNotFoundError(
+            'Could not find supported_config_settings.yaml for {0}.'.format(
+                module_name))
+
+    return yamlFile
 
 
 def isIterable(o):

@@ -5,3 +5,6 @@
 from .eyetracker import EyeTracker
 from psychopy.iohub.devices.eyetracker import (MonocularEyeSampleEvent, FixationStartEvent, FixationEndEvent,
                                                SaccadeEndEvent, SaccadeStartEvent, BlinkEndEvent, BlinkStartEvent)
+
+# builtin mouse device
+yamlFile = __file__.replace('__init__.py', 'supported_config_settings.yaml')

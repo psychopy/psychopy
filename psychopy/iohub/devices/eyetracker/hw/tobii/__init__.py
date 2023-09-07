@@ -4,7 +4,9 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import psychopy.logging as logging
+import psyhopy.iohub.util as _util
 
+yamlFile = None
 try:
     from psychopy_eyetracker_tobii.tobii import *
 except (ModuleNotFoundError, ImportError, NameError):
@@ -12,6 +14,9 @@ except (ModuleNotFoundError, ImportError, NameError):
         "The Tobii eyetracker requires package 'psychopy-eyetracker-tobii' to "
         "be installed. Please install this package and restart the session to "
         "enable support.")
+
+# get configuration from plugin
+yamlFile = _util.getSupportedConfigSettings(tobii)
 
 if __name__ == "__main__":
     pass
