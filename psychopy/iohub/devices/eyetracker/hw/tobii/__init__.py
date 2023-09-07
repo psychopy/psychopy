@@ -8,6 +8,7 @@ import psyhopy.iohub.util as _util
 
 yamlFile = None
 try:
+    from psychopy_eyetracker_tobii.tobii import __file__
     from psychopy_eyetracker_tobii.tobii import *
 except (ModuleNotFoundError, ImportError, NameError):
     logging.error(
