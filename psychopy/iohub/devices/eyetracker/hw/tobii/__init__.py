@@ -6,6 +6,7 @@
 import psychopy.logging as logging
 
 try:
+    from psychopy_eyetracker_tobii.tobii import __file__
     from psychopy_eyetracker_tobii.tobii import *
 except (ModuleNotFoundError, ImportError, NameError):
     logging.error(
