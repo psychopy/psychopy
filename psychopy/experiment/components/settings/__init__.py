@@ -647,23 +647,23 @@ class SettingsComponent:
         )
         self.params['plCompanionAddress'] = Param(
             plCompanionAddress, valType='str', inputType="single",
-            hint=_translate("Companion Address"),
-            label=_translate("Companion Address"), categ="Eyetracking"
+            hint=_translate("Companion address"),
+            label=_translate("Companion address"), categ="Eyetracking"
         )
         self.params['plCompanionPort'] = Param(
             plCompanionPort, valType='num', inputType="single",
-            hint=_translate("Companion Port"),
-            label=_translate("Companion Port"), categ="Eyetracking"
+            hint=_translate("Companion port"),
+            label=_translate("Companion port"), categ="Eyetracking"
         )
         self.params['plCompanionRecordingEnabled'] = Param(
             plCompanionRecordingEnabled, valType='bool', inputType="bool",
-            hint=_translate("Recording Enabled"),
-            label=_translate("Recording Enabled"), categ="Eyetracking"
+            hint=_translate("Recording enabled"),
+            label=_translate("Recording enabled"), categ="Eyetracking"
         )
         self.params['plCompanionCameraCalibration'] = Param(
             plCompanionCameraCalibration, valType='file', inputType="file",
-            hint=_translate("Camera Calibration Path"),
-            label=_translate("Camera Calibration Path"), categ="Eyetracking"
+            hint=_translate("Camera calibration path"),
+            label=_translate("Camera calibration path"), categ="Eyetracking"
         )
 
         # Input
