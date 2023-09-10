@@ -542,8 +542,7 @@ class PavloviaProjectCtrl(FrameRibbonDropdownButton):
             callback=self.onPavloviaSync
         )
         self.sync.SetBitmap(icons.ButtonIcon("globe_greensync", size=32).bitmap)
-        self.sizer.Insert(0, self.sync, border=0, flag=wx.EXPAND | wx.ALL)
-        self.sizer.InsertSpacer(0, 6)
+        self.sizer.Add(self.sync, border=0, flag=wx.EXPAND | wx.ALL)
         # bind hover function to sync button
         self.sync.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
         self.sync.Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
