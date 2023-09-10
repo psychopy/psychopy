@@ -1482,11 +1482,8 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
                     self.fileExport(htmlPath=htmlPath)
                 else:
                     return
-        # Attempy sync, re-enable buttons if it fails
-        try:
-            pavlovia_ui.syncProject(parent=self, file=self.filename, project=self.project)
-        finally:
-            pass
+        # Sync
+        pavlovia_ui.syncProject(parent=self, file=self.filename, project=self.project)
 
     def onPavloviaRun(self, evt=None):
         # Sync project

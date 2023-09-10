@@ -535,6 +535,18 @@ class PavloviaProjectCtrl(FrameRibbonDropdownButton):
         # store reference to frame and ribbon
         self.frame = frame
         self.ribbon = ribbon
+        # add sync button
+        self.sync = FrameRibbonButton(
+            self, label=_translate("Sync"), icon="globe_greensync",
+            tooltip=_translate("Sync project with Pavlovia"),
+            callback=self.onPavloviaSync
+        )
+        self.sync.SetBitmap(icons.ButtonIcon("globe_greensync", size=32).bitmap)
+        self.sizer.Insert(0, self.sync, border=0, flag=wx.EXPAND | wx.ALL)
+        self.sizer.InsertSpacer(0, 6)
+        # bind hover function to sync button
+        self.sync.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
+        self.sync.Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
         # let app know about this button
         self.frame.app.pavloviaButtons['project'].append(self)
 
@@ -544,6 +556,11 @@ class PavloviaProjectCtrl(FrameRibbonDropdownButton):
     def __del__(self):
         i = self.frame.app.pavloviaButtons['project'].index(self)
         self.frame.app.pavloviaButtons['project'].pop(i)
+
+    def _applyAppTheme(self):
+        FrameRibbonDropdownButton._applyAppTheme(self)
+        # apply to sync button
+        self.sync.SetBackgroundColour(colors.app['frame_bg'])
 
     def onClick(self, evt):
         # get project
@@ -590,12 +607,28 @@ class PavloviaProjectCtrl(FrameRibbonDropdownButton):
 
         if project is None:
             self.button.SetLabel(_translate("No project"))
+            self.sync.Disable()
         else:
             self.button.SetLabel(project['path_with_namespace'])
+            self.sync.Enable()
 
         self.Layout()
         if self.ribbon is not None:
             self.ribbon.Layout()
+
+    def onPavloviaSync(self, evt=None):
+        # disable sync buttons
+        for ctrl in self.frame.app.pavloviaButtons['project']:
+            ctrl.sync.Disable()
+            ctrl.Update()
+        try:
+            # do sync as usual
+            self.frame.onPavloviaSync(evt)
+        finally:
+            # regardless of outcome, re-enable sync once done
+            for ctrl in self.frame.app.pavloviaButtons['project']:
+                ctrl.sync.Enable()
+                ctrl.Update()
 
     def onPavloviaSearch(self, evt=None):
         searchDlg = pavui.search.SearchFrame(
