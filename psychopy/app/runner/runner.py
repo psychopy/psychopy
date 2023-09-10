@@ -8,6 +8,7 @@ import glob
 import json
 import errno
 
+from .. import ribbon
 from ..stdout.stdOutRich import ScriptOutputPanel
 from ..themes import handlers, colors, icons
 from ..themes.ui import ThemeSwitcher
@@ -582,7 +583,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         super(RunnerPanel, self).__init__(parent=parent,
                                           id=id,
                                           pos=wx.DefaultPosition,
-                                          size=[400,700],
+                                          size=[1080, 720],
                                           style=wx.DEFAULT_FRAME_STYLE,
                                           name=title,
                                           )
@@ -605,8 +606,14 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.currentSelection = None
         self.currentExperiment = None
 
+        # setup sizer
+        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
+
+        # setup ribbon
+        self.ribbon = RunnerRibbon(self)
+        self.mainSizer.Add(self.ribbon, border=0, flag=wx.EXPAND | wx.ALL)
+
         # Setup splitter
-        self.mainSizer = wx.BoxSizer()
         self.splitter = wx.SplitterWindow(self, style=wx.SP_NOBORDER)
         self.mainSizer.Add(self.splitter, proportion=1, border=0, flag=wx.EXPAND | wx.ALL)
 
@@ -621,7 +628,6 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.expCtrl = wx.ListCtrl(self.topPanel,
                                    id=wx.ID_ANY,
                                    style=wx.LC_REPORT | wx.BORDER_NONE | wx.LC_NO_HEADER | wx.LC_SINGLE_SEL)
-        self.expCtrl.SetMinSize((500, -1))
         self.expCtrl.Bind(wx.EVT_LIST_ITEM_SELECTED,
                           self.onItemSelected, self.expCtrl)
         self.expCtrl.Bind(wx.EVT_LIST_ITEM_DESELECTED,
@@ -634,6 +640,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         # Toolbar
         self.toolbar = self.RunnerToolbar(self.topPanel, runner=self)
         self.topPanel.sizer.Add(self.toolbar, proportion=0, border=12, flag=wx.LEFT | wx.RIGHT | wx.EXPAND)
+        self.toolbar.Hide()
 
         # Setup panel for bottom half (alerts and stdout)
         self.bottomPanel = wx.Panel(self.splitter)
@@ -662,12 +669,12 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.setStdoutVisible(True)
 
         # Assign to splitter
-        self.splitter.SplitHorizontally(
+        self.splitter.SplitVertically(
             window1=self.topPanel,
             window2=self.bottomPanel,
-            sashPosition=0
+            sashPosition=480
         )
-        self.splitter.SetMinimumPaneSize(self.topPanel.GetBestSize()[1])
+        self.splitter.SetMinimumPaneSize(360)
 
         self.SetSizerAndFit(self.mainSizer)
         self.SetMinSize(self.Size)
@@ -1056,3 +1063,83 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
     @currentProject.setter
     def currentProject(self, project):
         self._currentProject = None
+
+
+class RunnerRibbon(ribbon.FrameRibbon):
+    def __init__(self, parent):
+        # initialize
+        ribbon.FrameRibbon.__init__(self, parent)
+
+        # --- File ---
+        self.addSection(
+            "list", label=_translate("Manage list")
+        )
+        # add experiment
+        self.addButton(
+            section="list", name="add", label=_translate("Add"), icon="addExp",
+            tooltip=_translate("Add experiment to list"),
+            callback=parent.addTask
+        )
+        # remove experiment
+        self.addButton(
+            section="list", name="remove", label=_translate("Remove"), icon="removeExp",
+            tooltip=_translate("Remove experiment from list"),
+            callback=parent.removeTask
+        )
+        # save
+        self.addButton(
+            section="list", name="save", label=_translate("Save"), icon="filesaveas",
+            tooltip=_translate("Save task list to a file"),
+            callback=parent.parent.saveTaskList
+        )
+        # load
+        self.addButton(
+            section="list", name="open", label=_translate("Open"), icon="fileopen",
+            tooltip=_translate("Load tasks from a file"),
+            callback=parent.parent.loadTaskList
+        )
+
+        self.addSeparator()
+
+        # --- Python ---
+        self.addSection(
+            "py", label=_translate("Python")
+        )
+        # run Py
+        self.addButton(
+            section="py", name="pyrun", label=_translate("Run in Python"), icon='pyRun',
+            tooltip=_translate("Run the current script in Python"),
+            callback=parent.runLocal
+        )
+        # stop
+        self.addButton(
+            section="py", name="pystop", label=_translate("Stop"), icon='stop',
+            tooltip=_translate("Stop the current (Python) script"),
+            callback=parent.stopTask
+        )
+
+        self.addSeparator()
+
+        # --- JS ---
+        self.addSection(
+            "js", label=_translate("JavaScript")
+        )
+        # run JS
+        self.addButton(
+            section="js", name="jsrun", label=_translate("Run in local browser"), icon='jsRun',
+            tooltip=_translate("Run the current script locally on your browser"),
+            callback=parent.runOnlineDebug
+        )
+
+        self.addSeparator()
+
+        # --- Pavlovia ---
+        self.addStretchSpacer()
+        self.addSeparator()
+        self.addSection(
+            name="pavlovia", label=_translate("Pavlovia")
+        )
+        # pavlovia user
+        self.addPavloviaUserCtrl(
+            section="pavlovia", name="pavuser", frame=parent
+        )
