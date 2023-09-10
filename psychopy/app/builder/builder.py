@@ -4344,23 +4344,23 @@ class BuilderRibbon(ribbon.FrameRibbon):
 
         # --- Tools ---
         self.addSection(
-            "tools", label=_translate("Tools")
+            "experiment", label=_translate("Experiment")
         )
         # monitor center
         self.addButton(
-            section="tools", name='monitor', label=_translate('Monitor center'), icon="monitors",
+            section="experiment", name='monitor', label=_translate('Monitor center'), icon="monitors",
             tooltip=_translate("Monitor settings and calibration"),
             callback=parent.app.openMonitorCenter
         )
         # settings
         self.addButton(
-            section="tools", name='expsettings', label=_translate('Experiment settings'), icon="cogwindow",
+            section="experiment", name='expsettings', label=_translate('Experiment settings'), icon="cogwindow",
             tooltip=_translate("Edit experiment settings"),
             callback=parent.setExperimentSettings
         )
         # send to runner
         self.addButton(
-            section="tools", name='runner', label=_translate('Runner'), icon="runner",
+            section="experiment", name='runner', label=_translate('Runner'), icon="runner",
             tooltip=_translate("Send experiment to Runner"),
             callback=parent.sendToRunner
         )

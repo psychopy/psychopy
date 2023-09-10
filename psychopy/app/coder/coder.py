@@ -2912,23 +2912,23 @@ class CoderRibbon(ribbon.FrameRibbon):
 
         # --- Tools ---
         self.addSection(
-            "tools", label=_translate("Tools")
+            "experiment", label=_translate("Experiment")
         )
         # monitor center
         self.addButton(
-            section="tools", name='monitor', label=_translate('Monitor center'), icon="monitors",
+            section="experiment", name='monitor', label=_translate('Monitor center'), icon="monitors",
             tooltip=_translate("Monitor settings and calibration"),
             callback=parent.app.openMonitorCenter
         )
         # settings
         self.addButton(
-            section="tools", name='color', label=_translate('Color picker'), icon="color",
+            section="experiment", name='color', label=_translate('Color picker'), icon="color",
             tooltip=_translate("Open a tool for choosing colors"),
             callback=parent.app.colorPicker
         )
         # send to runner
         self.addButton(
-            section="tools", name='runner', label=_translate('Runner'), icon="runner",
+            section="experiment", name='runner', label=_translate('Runner'), icon="runner",
             tooltip=_translate("Send current file to Runner"),
             callback=parent.sendToRunner
         ).Disable()
