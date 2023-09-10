@@ -583,11 +583,6 @@ class PavloviaProjectCtrl(FrameRibbonDropdownButton):
             btn = menu.Append(wx.ID_ANY, _translate("New project"))
             btn.SetBitmap(icons.ButtonIcon("plus", size=16).bitmap)
             menu.Bind(wx.EVT_MENU, self.frame.onPavloviaCreate, btn)
-        # sync
-        btn = menu.Append(wx.ID_ANY, _translate("Sync project"))
-        btn.SetBitmap(icons.ButtonIcon("view-refresh", size=16).bitmap)
-        menu.Bind(wx.EVT_MENU, self.frame.onPavloviaSync, btn)
-        menu.Enable(btn.GetId(), project is not None)
         # edit project
         btn = menu.Append(wx.ID_ANY, _translate("Edit project..."))
         btn.SetBitmap(icons.ButtonIcon("editbtn", size=16).bitmap)
