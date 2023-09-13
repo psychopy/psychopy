@@ -8,7 +8,7 @@ import os
 import numbers  # numbers.Integral is like (int, long) but supports Py3
 from psychopy import colors
 from psychopy.tools import arraytools
-from ..util import yload, yLoader, module_directory
+from ..util import yload, yLoader, module_directory, getSupportedConfigSettings
 from ..errors import print2err
 
 # Takes a device configuration yaml dict and processes it based on the devices
@@ -489,7 +489,9 @@ def validateDeviceConfiguration(
     """Validate the device configuration settings provided.
     """
     validation_module = importlib.import_module(relative_module_path)
-    validation_file_path = validation_module.yamlFile
+    validation_file_path = getSupportedConfigSettings(validation_module)
+
+    # use a default config if we can't get the YAML file
     if not os.path.exists(validation_file_path):
         validation_file_path = os.path.join(
             _current_dir, 
