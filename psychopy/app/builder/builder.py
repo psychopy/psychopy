@@ -799,6 +799,13 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         dlg.Destroy()
 
         self.updateWindowTitle()
+        # update README in case the file path has changed
+        if self.prefs['alwaysShowReadme']:
+            # if prefs are to always show README, show if populated
+            self.updateReadme()
+        else:
+            # otherwise update so we have the object, but don't show until asked
+            self.updateReadme(show=False)
         return returnVal
 
     def fileExport(self, event=None, htmlPath=None):

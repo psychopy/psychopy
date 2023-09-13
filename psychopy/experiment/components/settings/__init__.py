@@ -1117,22 +1117,22 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
 
+        # set logging level
         level = self.params['logging level'].val.upper()
+        code = (
+            "# this outputs to the screen, not a file\n"
+            "logging.console.setLevel(logging.%s)\n"
+        )
+        buff.writeIndentedLines(code % level)
 
         if self.params['Save log file'].val:
             code = (
                 "# save a log file for detail verbose info\n"
                 "logFile = logging.LogFile(filename+'.log', level=logging.%s)\n"
+                "\n"
+                "return logFile\n"
             )
             buff.writeIndentedLines(code % level)
-        buff.writeIndented("logging.console.setLevel(logging.WARNING)  "
-                           "# this outputs to the screen, not a file\n")
-
-        code = (
-            "# return log file\n"
-            "return logFile\n"
-        )
-        buff.writeIndentedLines(code)
         # Exit function def
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("\n")
@@ -1833,7 +1833,7 @@ class SettingsComponent:
             "    win.close()\n"
             "if inputs is not None:\n"
             "    if 'eyetracker' in inputs and inputs['eyetracker'] is not None:\n"
-            "        eyetracker.setConnectionState(False)\n"
+            "        inputs['eyetracker'].setConnectionState(False)\n"
         )
         if self.params['Save log file'].val:
             code += (

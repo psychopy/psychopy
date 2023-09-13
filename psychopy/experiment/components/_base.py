@@ -41,7 +41,7 @@ class BaseComponent:
                  startEstim='', durationEstim='',
                  saveStartStop=True, syncScreenRefresh=False,
                  disabled=False):
-        self.type = 'Base'
+        self.type = type(self).__name__
         self.exp = exp  # so we can access the experiment if necess
         self.parentName = parentName  # to access the routine too if needed
 
@@ -125,8 +125,11 @@ class BaseComponent:
 
     @property
     def _xml(self):
+        return self.makeXmlNode(self.__class__.__name__)
+
+    def makeXmlNode(self, tag):
         # Make root element
-        element = Element(self.__class__.__name__)
+        element = Element(tag)
         element.set("name", self.params['name'].val)
         element.set("plugin", str(self.plugin))
         # Add an element for each parameter

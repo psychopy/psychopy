@@ -535,7 +535,10 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         if self.ticks is not None:
             ticks = self.ticks
         else:
-            ticks = [0, 1]
+            ticks = [0, len(self.labels)]
+        # If rating is a label, convert to an index
+        if isinstance(rating, str) and rating in self.labels:
+            rating = self.labels.index(rating)
         # Reshape rating to handle multiple values
         rating = np.array(rating)
         rating = rating.reshape((-1, 1))
@@ -745,6 +748,24 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
     @value.setter
     def value(self, val):
         self.rating = val
+
+    @attributeSetter
+    def ticks(self, value):
+        if isinstance(value, (list, tuple, np.ndarray)):
+            # make sure all values are numeric
+            for i, subval in enumerate(value):
+                if isinstance(subval, str):
+                    if subval in self.labels:
+                        # if it's a label name, get its index
+                        value[i] = self.labels.index(subval)
+                    elif subval.isnumeric():
+                        # if it's a stringified number, make it a float
+                        value[i] = float(subval)
+                    else:
+                        # otherwise, use its index within the array
+                        value[i] = i
+
+        self.__dict__['ticks'] = value
 
     @attributeSetter
     def markerPos(self, rating):

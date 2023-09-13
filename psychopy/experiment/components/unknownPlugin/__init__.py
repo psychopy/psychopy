@@ -19,14 +19,20 @@ class UnknownPluginComponent(BaseComponent):
     iconFile = Path(__file__).parent / 'unknownPlugin.png'
     tooltip = _translate('Unknown: A component which comes from a plugin which you do not have installed & activated.')
 
-    def __init__(self, exp, parentName, name=''):
-        self.type = 'Unknown'
+    def __init__(self, exp, parentName, name='', compType="UnknownPluginComponent"):
+        self.type = compType
         self.exp = exp  # so we can access the experiment if necess
         self.parentName = parentName  # to access the routine too if needed
         self.params = {}
         self.depends = []
         super(UnknownPluginComponent, self).__init__(exp, parentName, name=name)
         self.order += []
+
+    @property
+    def _xml(self):
+        # make XML node with tag from self.type rather than class name
+        return self.makeXmlNode(self.type)
+
     # make sure nothing gets written into experiment for an unknown object
     # class!
 
