@@ -32,7 +32,7 @@
 *.so
 *.egg
 .eggs
-psychopy/app/locale/*/LC_MESSAGE/messages.mo
+psychopy/app/locale/**/LC_MESSAGE/messages.mo
 
 # Python files #
 ################
