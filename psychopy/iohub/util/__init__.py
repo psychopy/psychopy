@@ -138,31 +138,45 @@ def module_directory(local_function):
     return moduleDirectory
 
 
-def getSupportedConfigSettings(module_name):
+def getSupportedConfigSettings(moduleName, deviceClassName=None):
     """Get the supported configuration settings for a device.
+
+    These are usually stored as YAML files within the module directory that 
+    defines the device class.
 
     Parameters
     ----------
-    module_name : str
+    moduleName : str
         The name of the module to get the path for. Must be a package that defines
         `__init__.py`.
+    deviceClassName : str, optional
+        The name of the specific device class to get the path for. If not provided, 
+        the default configuration file will be searched for in the module 
+        directory.
     
     Returns
     -------
     str
-        The path to the module.
+        The path to the supported configuration settings file in YAML format.
 
     """
-    fileName = 'supported_config_settings_{0}.yaml'.format(device_class_name.lower())
-    yamlFile = pathlib.Path(module_name.__file__).parent / fileName
-
-    # check if exists
-    if not yamlFile.exists():
+    if deviceClassName is not None:
+        # file name for yaml file name convention for multiple files
+        fileName = 'supported_config_settings_{0}.yaml'.format(
+            deviceClassName.lower())
+        yamlFile = pathlib.Path(moduleName.__file__).parent / fileName
+        if not yamlFile.exists():
+            raise FileNotFoundError(
+                "No config file found in module dir {0}".format(moduleName))
+        return str(yamlFile)
+        
+    # file name for yaml file name convention for single file
+    yamlFile = pathlib.Path('supported_config_settings.yaml')
+    if not yamlFile.exists():  # nothing is found
         raise FileNotFoundError(
-            'Could not find supported_config_settings.yaml for {0}.'.format(
-                module_name))
+            "No config file found in module dir {0}".format(moduleName))
 
-    return yamlFile
+    return str(yamlFile)
 
 
 def isIterable(o):
