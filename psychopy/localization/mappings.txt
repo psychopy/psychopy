@@ -76,7 +76,7 @@ es_UY ESY
 es_PY ESZ
 et_EE ETI
 eu_ES EUQ
-fa_IR FAR (Persian)
+fa_IR FAR فارسی (Persian)
 fi_FI FIN suomi  (Finnish)
 fo_FO FOS
 fr_FR FRA français  (French)
