@@ -5,11 +5,11 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PsychoPy 2021.2.3\n"
+"Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2023-03-02 12:53+0000\n"
-"Last-Translator: Shun Wang <shuonwang@gmail.com>\n"
+"PO-Revision-Date: 2023-09-13 06:41-0400\n"
+"Last-Translator: Bingzi Yu <ybzice@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "Generated-By: Babel 2.6.0\n"
-"X-Generator: Poedit 3.2.2\n"
+"X-Generator: Poedit 3.3.2\n"
 "X-Poedit-KeywordsList: _translate\n"
 
 #: __init__.py:48
@@ -30,7 +30,7 @@ msgstr ""
 
 #: ../alerts/alertsCatalogue/alertmsg.py:12
 msgid "Your stimulus size exceeds the {dimension} dimension of your window."
-msgstr ""
+msgstr "你的刺激大小超过了你的窗口尺寸{dimension}。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:16
 msgid "Your stimulus size is smaller than 1 pixel ({dimension} dimension)."
