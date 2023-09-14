@@ -85,6 +85,16 @@ class StdStreamDispatcher:
         return cls._initialized
 
     @property
+    def app(self):
+        """Handle to the app (`PsychopyApp` or `None`).
+        """
+        return self._app
+
+    @app.setter
+    def app(self, val):
+        self._app = val
+
+    @property
     def logFile(self):
         """Log file for standard streams (`str` or `None`).
         """
@@ -102,7 +112,7 @@ class StdStreamDispatcher:
     def write(self, text):
         """Send text standard output to all listeners (legacy). This method is
         used for compatibility for older code. This makes it so an instance of
-        this object looks like a ...
+        this object looks like a file object.
 
         Parameters
         ----------
@@ -121,9 +131,21 @@ class StdStreamDispatcher:
             Text to broadcast to all standard output windows.
 
         """
+        # write to log file
+        if self._logFile is not None:
+            # with open(self._logFile, 'a') as lf:
+            with io.open(self._logFile, 'a', encoding="utf-8") as lf:
+                lf.write(text)
+                lf.flush()
+
+        # print text to stdout
+        with io.open(sys.__stdout__.fileno(), 'w', encoding="utf-8") as sdto:
+            sdto.write(text)
+            sdto.flush()
+
         # do nothing is the app isn't fully realized
-        if not self._app.appLoaded:
-            return
+        if self.app is None or not self.app.appLoaded:
+            return 
 
         coder = self._app.coder
         if coder is not None:
@@ -133,18 +155,6 @@ class StdStreamDispatcher:
         runner = self._app.runner
         if runner is not None:
             runner.stdOut.write(text)
-
-        # write to log file
-        if self._logFile is not None:
-            # with open(self._logFile, 'a') as lf:
-            with io.open(self._logFile, 'a', encoding="utf-8") as lf:
-                lf.write(text)
-                lf.flush()
-
-        # print text to stdout
-        with io.open(sys.__stdout__.fileno(), 'w', encoding="utf-8") as f:
-            f.write(text)
-            f.flush()
 
     def flush(self):
         pass
