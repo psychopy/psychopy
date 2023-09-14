@@ -66,9 +66,15 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
         raise RuntimeError(
             '`StdStreamDispatcher` instance initialized outside of `startApp`, '
             'this is not permitted.')
-            
+
     userPrefsDir = prefs.paths['userPrefsDir']
     prefLogFilePath = os.path.join(userPrefsDir, 'last_app_load.log')
+
+    # clear the log file
+    with io.open(prefLogFilePath, 'w', encoding='utf-8') as f:
+        f.write('')
+
+    # redirect logging
     stdDisp = StdStreamDispatcher(None, prefLogFilePath)
     stdDisp.redirect()
 
