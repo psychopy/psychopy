@@ -32,6 +32,7 @@
 *.so
 *.egg
 .eggs
+messages.mo
 
 # Python files #
 ################

@@ -6,11 +6,12 @@
 import psychopy.logging as logging
 
 try:
-    from psychopy_eyetracker_gazepoint import gp3
+    from psychopy_eyetracker_pupil_labs.pupil_labs.neon.eyetracker import (
+        EyeTracker)
 except (ModuleNotFoundError, ImportError, NameError):
     logging.error(
-        "The Gazepoint eyetracker requires package " 
-        "'psychopy-eyetracker-gazepoint' to be installed. Please install this "
+        "Pupil Labs eyetracker support requires the package "
+        "'psychopy-eyetracker-pupil-labs' to be installed. Please install this "
         "package and restart the session to enable support.")
 
 if __name__ == "__main__":
