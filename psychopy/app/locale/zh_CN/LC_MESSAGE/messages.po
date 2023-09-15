@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2023-09-14 21:39-0400\n"
+"PO-Revision-Date: 2023-09-15 13:31-0400\n"
 "Last-Translator: Bingzi Yu <ybzice@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -45,7 +45,7 @@ msgstr "刺激位置超出了窗口尺寸{dimension}。"
 msgid ""
 "Your stimulus {type} time of {time} is less than a screen refresh for a {Hz}"
 "Hz monitor."
-msgstr "刺激{type}持续时间{type}小于显示器屏幕刷新率{Hz}赫兹。"
+msgstr "刺激{type}持续时间{time}小于显示器屏幕刷新率{Hz}赫兹。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:28
 msgid ""
@@ -61,7 +61,7 @@ msgid ""
 "in Experiment Settings to this version."
 msgstr ""
 "此实验由更高版本的PsychoPy（{version}）搭建，我们建议升级PsychoPy，或在实验设"
-"置（Experiment Settings）中将使用版本（Use Version）修改为现版本。"
+"置中将使用版本（Use Version）修改为现版本。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:36
 #, fuzzy
@@ -121,7 +121,7 @@ msgstr ""
 #: ../alerts/alertsCatalogue/alertmsg.py:67
 msgid ""
 "Font `{param.val}` not found locally, will check Google Fonts on next run."
-msgstr "为在本地找到“{param.val}”字体，下次运行将在Google Fonts中查找。"
+msgstr "未在本地找到“{param.val}”字体，下次运行将在Google Fonts中查找。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:71
 msgid ""
@@ -161,6 +161,7 @@ msgid ""
 "As {brand} eyetrackers do not support animations in their calibration "
 "routine, animation values have not been used in your calibration routine."
 msgstr ""
+"因为眼动追踪器{brand}不支持校准例程中的动画，动画值未被用于您的校准例程。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:93
 msgid "Eyetrackers by {brand} do not support manual pacing"
@@ -187,40 +188,40 @@ msgstr ""
 
 #: ../alerts/alertsCatalogue/alertmsg.py:108
 msgid "Audio transcription service \"{transcriber}\" is not supported online."
-msgstr ""
+msgstr "音屏转录服务“{transcrbiver}”不支持在线。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:112
 msgid "Audio transcription service \"{transcriber}\" is not supported offline."
-msgstr ""
+msgstr "音屏转录服务“{transcrbiver}”不支持离线。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:116
 msgid ""
 "Chosen transcriber '{engine}' requires an API key, please supply one in "
 "Preferences."
-msgstr ""
+msgstr "所选择的转录器“{engine}”要求API密钥，请在首选项中提供。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:120
 msgid ""
 "Device parameter of microphone component \"{name}\" will not be used online."
-msgstr ""
+msgstr "麦克风组件“{name}”的设备参数无法在线使用。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:124
 msgid ""
 "The file you are attempting to run does not seem to exist, the full path "
 "supplied to Runner was {path}"
-msgstr ""
+msgstr "您将要运行的文件似乎不存在，该文件在Runner中的完整路径为{path}"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:128
 msgid ""
 "Color space attribute `.{colorSpaceAttrib}` is no longer in use, as colors "
 "are no longer tied to one space."
-msgstr ""
+msgstr "因为颜色不与单一空间绑定，不再使用色彩空间属性“.{colorSpaceAttrib}”。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:132
 msgid ""
 "RGB attribute `.{rgbAttrib}` is no longer in use, as non-RGB colors now "
 "handle their own conversion."
-msgstr ""
+msgstr "因为非RGB颜色已自行处理换算，不再使用RGB属性“.{rgbAttrib}”。"
 
 #: ../app/_psychopyApp.py:102 ../app/builder/builder.py:355
 #: ../app/coder/coder.py:1629
@@ -2218,7 +2219,7 @@ msgstr "稍后"
 #: ../app/connections/updates.py:171
 #, python-format
 msgid "You are running the latest version of PsychoPy (%s). "
-msgstr ""
+msgstr "正在运行最新版本的PsychoPy（%s）。"
 
 #: ../app/connections/updates.py:198
 #, python-format
@@ -2227,18 +2228,22 @@ msgid ""
 "\n"
 "(To disable this check, see Preferences > connections > checkForUpdates)"
 msgstr ""
+"PsychoPy版本v%(latest)s可用（您运行的版本为%(running)s）。\n"
+"（如需禁用此检查，见 首选项>链接>检查更新（checkForUpdates））"
 
 #: ../app/connections/updates.py:205
 msgid ""
 "This version MAY require you to modify your\n"
 "scripts/exps slightly. Read the changelog carefully."
 msgstr ""
+"此版本可能要求对\n"
+"由较早版本生成的脚本/实验进行修改。请仔细阅读日志。"
 
 #: ../app/connections/updates.py:211
 msgid ""
 "There are no known compatibility\n"
 "issues with your current version."
-msgstr ""
+msgstr "当前版本不存在已知的兼容性问题。"
 
 #: ../app/connections/updates.py:215
 msgid "View complete Changelog"
@@ -2294,7 +2299,7 @@ msgid ""
 "You are running PsychoPy v%s.\n"
 " "
 msgstr ""
-"您正在运行 PsychoPy 版本 v%s.\n"
+"正在运行 PsychoPy 版本 v%s.\n"
 " "
 
 #: ../app/connections/updates.py:343
@@ -2302,10 +2307,12 @@ msgid ""
 "PsychoPy could not connect to the \n"
 " internet to check for more recent versions.\n"
 msgstr ""
+"PsychoPy无法连接到\n"
+"网络以检查更新的版本。\n"
 
 #: ../app/connections/updates.py:345
 msgid "Check proxy settings in preferences."
-msgstr ""
+msgstr "请在首选项中检查代理设置。"
 
 #: ../app/connections/updates.py:350
 #, python-format
@@ -2313,19 +2320,20 @@ msgid ""
 "You are running PsychoPy (%(running)s), which is ahead of the latest "
 "official version (%(latest)s)"
 msgstr ""
+"正在运行PsychoPy （%(running)s），此版本领先官方最新版本（%(latest)s）。"
 
 #: ../app/connections/updates.py:355
 #, python-format
 msgid ""
 "You are running the latest version of PsychoPy (%s)\n"
 " "
-msgstr ""
+msgstr "正在运行最新版本的PsychoPy（%s）"
 
 #: ../app/connections/updates.py:357
 msgid ""
 "You can revert to a previous version by selecting a specific .zip source "
 "installation file"
-msgstr ""
+msgstr "您可通过选择一个特定的.zip源安装文件以恢复至较早版本。"
 
 #: ../app/connections/updates.py:360
 #, python-format
@@ -2333,6 +2341,8 @@ msgid ""
 "PsychoPy v%(latest)s is available\n"
 "You are running v%(running)s"
 msgstr ""
+"PsychoPy v%(latest)s可用\n"
+"正在运行v%(running)s"
 
 #: ../app/connections/updates.py:366
 msgid ""
@@ -2355,27 +2365,30 @@ msgstr ""
 #: ../app/connections/updates.py:419
 #, python-format
 msgid "Attempting to fetch PsychoPy %s..."
-msgstr ""
+msgstr "尝试获取PsychoPy %s…"
 
 #: ../app/connections/updates.py:439
 #, python-format
 msgid "Fetched %(done)i of %(total)i kb of PsychoPy-%(version)s.zip"
-msgstr ""
+msgstr "已获取PsychoPy-%(version)s.zip的%(done)i/%(total)i kb"
 
 #: ../app/connections/updates.py:445
 #, python-format
 msgid "Successfully downloaded PsychoPy-%s.zip"
-msgstr ""
+msgstr "成功下载PsychoPy-%s.zip"
 
+# Translate “admin” as 管理者
 #: ../app/connections/updates.py:495
 msgid ""
 "To upgrade you need to restart the app as admin (Right-click the app and "
 "'Run as admin')"
 msgstr ""
+"如需更新，您需要以管理者重启软件（右键软件图标并选择“以管理者运行（Run as "
+"admin）”）"
 
 #: ../app/connections/updates.py:499
 msgid "Could not move existing PsychoPy installation (permissions error?)"
-msgstr ""
+msgstr "无法移动已有的PsychoPy安装（权限错误？）"
 
 #: ../app/connections/updates.py:527
 #, python-format
@@ -2383,6 +2396,8 @@ msgid ""
 "Right-click the app and 'Run as admin'):\n"
 "%s"
 msgstr ""
+"右键软件图标并选择“以管理者运行（Run as admin）”：\n"
+"%s"
 
 #: ../app/connections/updates.py:530
 #, python-format
@@ -2390,27 +2405,33 @@ msgid ""
 "Failed to create directory for new version (permissions error?):\n"
 "%s"
 msgstr ""
+"为新版本创建目录失败（权限错误？）：\n"
+"%s"
 
 #: ../app/connections/updates.py:555
 msgid ""
 "Success. \n"
 "Changes to PsychoPy will be completed when the application is next run"
 msgstr ""
+"成功。\n"
+"下次运行软件时将完成PsychoPy的更新"
 
 #: ../app/connections/updates.py:564
 #, python-format
 msgid "Downloading PsychoPy v%s"
-msgstr ""
+msgstr "正在下载PsychoPy v%s"
 
 #: ../app/connections/updates.py:569
 msgid ""
 "Failed to fetch PsychoPy release.\n"
 "Check proxy setting in preferences"
 msgstr ""
+"无法获取PsychoPy发布。\n"
+"请于首选项中检查代理设置"
 
 #: ../app/dialogs.py:38 ../gui/qtgui.py:610
 msgid "Warning"
-msgstr ""
+msgstr "警告"
 
 #: ../app/dialogs.py:39
 msgid "Info"
@@ -2475,7 +2496,7 @@ msgstr "保存(&S)"
 msgid ""
 "Are you sure you want to exit PsychoPy? Unsaved work may be lost (but we'll "
 "try to save opened files)."
-msgstr ""
+msgstr "确定退出PsychoPy？未储存的内容将会丢失（我们会尝试保存已打开的文件）。"
 
 #: ../app/errorDlg.py:127
 msgid "Exit PsychoPy?"
