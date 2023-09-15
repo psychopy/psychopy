@@ -159,6 +159,15 @@ class StdStreamDispatcher:
     def flush(self):
         pass
 
+    def close(self):
+        """Close sthe log writer.
+        
+        This unredirects stdout and stderr.
+        
+        """
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+
     def clear(self):
         """Clear all output windows."""
         # do nothing is the app isn't fully realized
