@@ -159,6 +159,25 @@ class StdStreamDispatcher:
     def flush(self):
         pass
 
+    def __enter__(self):
+        """Context manager entry point.
+        """
+        self.open()
+        return self
+    
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+    def open(self):
+        """Open the log writer.
+        
+        This redirects stdout and stderr. Same as calling `redirect()` but
+        included for compatibility with context managers.
+        
+        """
+        sys.stdout = self
+        sys.stderr = self
+
     def close(self):
         """Close sthe log writer.
         
