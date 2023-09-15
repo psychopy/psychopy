@@ -210,12 +210,12 @@ def getDevicePaths(device_name=""):
     from psychopy.iohub.devices import import_device
 
     # mdc - Changes here were made to support loading device modules from
-    #       extensions. This allows support for devices that are not included in 
+    #       extensions. This allows support for devices that are not included in
     #       the iohub package.
 
     def _getDevicePaths(iohub_device_path):
         """Look for device configuration files in the specified path.
-        
+
         Parameters
         ----------
         iohub_device_path : str
@@ -227,7 +227,7 @@ def getDevicePaths(device_name=""):
             A list of tuples containing the path to the device module and the
             name of the device module. If empty, no device configuration files
             were found.
-        
+
         """
         yaml_paths = []
         # try to walk both the internal iohub_device_path and user-level packages folder
@@ -250,7 +250,7 @@ def getDevicePaths(device_name=""):
         return yaml_paths
 
     scs_yaml_paths = []  # stores the paths to the device config files
-    plugins.refreshBundlePaths()  # make sure eyetracker external plugins are reachable 
+    plugins.refreshBundlePaths()  # make sure eyetracker external plugins are reachable
 
     # get device paths for extant extensions
     try:  # tobii eyetrackers
@@ -290,9 +290,16 @@ def getDevicePaths(device_name=""):
         if deviceConfig:
             logging.debug("Found PupilLabs device configuration file.")
             scs_yaml_paths.extend(deviceConfig)
+
+        import psychopy_eyetracker_pupil_labs.pupil_labs.neon as neon
+        deviceConfig = _getDevicePaths(os.path.dirname(neon.__file__))
+        if deviceConfig:
+            logging.debug("Found PupilLabs Neon device configuration file.")
+            scs_yaml_paths.extend(deviceConfig)
+
     except ImportError:
-        logging.debug("No PupilLabs device configuration file found.")    
-    
+        logging.debug("No PupilLabs device configuration file found.")
+
     # use this method for built-in devices
     iohub_device_path = module_directory(import_device)
     if device_name:
@@ -359,7 +366,7 @@ def getDeviceDefaultConfig(device_name, builder_hides=True):
     # if len(device_configs) == 1:
     #     # simplify return value when only one device was requested
     #     return list(device_configs[0].values())[0]
-    
+
     return device_configs
 
 
