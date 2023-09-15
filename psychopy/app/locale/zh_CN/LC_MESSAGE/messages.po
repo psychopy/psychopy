@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2023-09-13 06:41-0400\n"
+"PO-Revision-Date: 2023-09-14 21:39-0400\n"
 "Last-Translator: Bingzi Yu <ybzice@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -30,28 +30,29 @@ msgstr ""
 
 #: ../alerts/alertsCatalogue/alertmsg.py:12
 msgid "Your stimulus size exceeds the {dimension} dimension of your window."
-msgstr "你的刺激大小超过了你的窗口尺寸{dimension}。"
+msgstr "刺激大小超过了窗口尺寸{dimension}。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:16
 msgid "Your stimulus size is smaller than 1 pixel ({dimension} dimension)."
-msgstr ""
+msgstr "刺激尺寸小于一像素（{dimension} 尺寸）。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:20
 msgid ""
 "Your stimulus position exceeds the {dimension} dimension of your window."
-msgstr ""
+msgstr "刺激位置超出了窗口尺寸{dimension}。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:24
 msgid ""
 "Your stimulus {type} time of {time} is less than a screen refresh for a {Hz}"
 "Hz monitor."
-msgstr ""
+msgstr "刺激{type}持续时间{type}小于显示器屏幕刷新率{Hz}赫兹。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:28
 msgid ""
 "Your stimulus {type} time of {time} seconds cannot be accurately presented "
 "for {time} on a {Hz}Hz monitor."
 msgstr ""
+"刷新率为{Hz}赫兹的显示器屏幕不能精确地显示持续时间为{time}秒的刺激{type}。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:32
 msgid ""
@@ -59,45 +60,54 @@ msgid ""
 "recommend either updating PsychoPy or changing the \"Use Version\" setting "
 "in Experiment Settings to this version."
 msgstr ""
+"此实验由更高版本的PsychoPy（{version}）搭建，我们建议升级PsychoPy，或在实验设"
+"置（Experiment Settings）中将使用版本（Use Version）修改为现版本。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:36
+#, fuzzy
 msgid ""
 "Experiment was built in a past version of PsychoPy ({version}), saving it in "
 "this version may add parameters which cannot be parsed."
 msgstr ""
+"此实验由较低版本的PsychoPy（{version}）搭建，将实验保存为现版本可能出现不可读"
+"的参数。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:40
 msgid ""
 "Your stimulus start {type} exceeds the stop {type}. Consider using a {type} "
 "duration."
-msgstr ""
+msgstr "刺激的起始时间{type}超过终止时间{type}。请考虑定义时长{type}。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:44
 msgid ""
 "Your stimulus {type} type {frameType} must be expressed as a whole number."
-msgstr ""
+msgstr "刺激{type}类型{frameType}必须表现为整数。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:48
 msgid ""
 "Python Syntax Error in '{codeTab}' tab. See '{code}' on line number "
 "{lineNumber} of the '{codeTab}' tab."
 msgstr ""
+"“{codeTab}”标签页出现Python语法错误。见“{codeTab}”标签页第{lineNumber}"
+"的“{code}”。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:52
 msgid ""
 "JavaScript Syntax Error in '{codeTab}' tab. See '{lineNumber}' in the "
 "'{codeTab}' tab."
 msgstr ""
+"“{codeTab}”标签页出现JavaScript语法错误。见“{codeTab}”标签页第{lineNumber}"
+"的“{code}”。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:56
 msgid ""
 "The component {name} is currently disabled and will not be written to your "
 "experiment script."
-msgstr ""
+msgstr "组件{name}已被禁用且不会被写入实验脚本。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:60
 msgid "Cannot calculate parameter."
-msgstr ""
+msgstr "无法计算参数。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:63
 msgid ""
@@ -105,39 +115,46 @@ msgid ""
 "{component.type} component \"{component.params[name].val}\" as a dollar sign "
 "has been used incorrectly."
 msgstr ""
+"Builder无法解释{component.type}组件的“{param.val}”值\n"
+"“{component.params[name].val}”被误用为美元符号（$）。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:67
 msgid ""
 "Font `{param.val}` not found locally, will check Google Fonts on next run."
-msgstr ""
+msgstr "为在本地找到“{param.val}”字体，下次运行将在Google Fonts中查找。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:71
 msgid ""
 "Font `{font} {style}` not available in weight `{weight}`, component `{name}` "
 "will default to Open Sans Regular."
 msgstr ""
+"磅值“{weight}”不可用于“{font}{style}”字体，组件“{name}”将默认显示为Open Sans "
+"Regular。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:75
 msgid "Recording device '{device}' not found, using default device instead."
-msgstr ""
+msgstr "未找到录音设备“{device}”，将使用默认设备。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:79
+#, fuzzy
 msgid ""
 "Editable textbox component {textbox} and keyboard component {keyboard} in "
 "the same routine may compete for keypresses"
 msgstr ""
+"同一例程中的可编辑文本框组件{textbox}和键盘组件{keyboard}可能在按键时互相干"
+"扰。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:83
 msgid ""
 "Experiment includes components or routines which use eyetracking, but no eye "
 "tracker is configured."
-msgstr ""
+msgstr "实验包含使用眼动追踪的组件或者例程，但未配置眼动追踪器。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:86
 msgid ""
 "A {eyetracker} eye tracker has been configured, but no calibration routine "
 "is present."
-msgstr ""
+msgstr "已配置眼动追踪器{eyetracker}，但未设置校准例程。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:90
 msgid ""
