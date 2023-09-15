@@ -174,6 +174,11 @@ class StdStreamDispatcher:
         if runner is not None:
             runner.stdOut.Clear()
 
+    def __del__(self):
+        # restore stdout and stderr
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+
 
 if __name__ == "__main__":
     pass
