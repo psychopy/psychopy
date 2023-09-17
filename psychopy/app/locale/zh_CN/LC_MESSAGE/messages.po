@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2023-09-15 13:31-0400\n"
+"PO-Revision-Date: 2023-09-17 12:47-0400\n"
 "Last-Translator: Bingzi Yu <ybzice@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -97,7 +97,7 @@ msgid ""
 "'{codeTab}' tab."
 msgstr ""
 "“{codeTab}”标签页出现JavaScript语法错误。见“{codeTab}”标签页第{lineNumber}"
-"的“{code}”。"
+"行。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:56
 msgid ""
@@ -136,13 +136,11 @@ msgid "Recording device '{device}' not found, using default device instead."
 msgstr "未找到录音设备“{device}”，将使用默认设备。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:79
-#, fuzzy
 msgid ""
 "Editable textbox component {textbox} and keyboard component {keyboard} in "
 "the same routine may compete for keypresses"
 msgstr ""
-"同一例程中的可编辑文本框组件{textbox}和键盘组件{keyboard}可能在按键时互相干"
-"扰。"
+"同一例程中的可编辑文本框组件{textbox}和键盘组件{keyboard}可能在按键时互相干扰"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:83
 msgid ""
@@ -304,9 +302,10 @@ msgstr "偏好"
 msgid "Stimuli"
 msgstr "刺激"
 
+# Change all translations of “responses” into “应答”.
 #: ../app/builder/builder.py:80
 msgid "Responses"
-msgstr "反应"
+msgstr "应答"
 
 #: ../app/builder/builder.py:81 ../app/builder/localizedStrings.py:30
 msgid "Custom"
@@ -2642,11 +2641,11 @@ msgstr "同步已就绪"
 
 #: ../app/pavlovia_ui/project.py:257
 msgid "This file doesn't belong to a project yet"
-msgstr ""
+msgstr "此文件不属于任何项目。"
 
 #: ../app/pavlovia_ui/project.py:286
 msgid "User not logged in!"
-msgstr ""
+msgstr "用户未登录！"
 
 #: ../app/pavlovia_ui/project.py:291
 msgid "Visibility: {}"
@@ -2663,7 +2662,7 @@ msgstr ""
 
 #: ../app/pavlovia_ui/project.py:304
 msgid "Log in to sync..."
-msgstr ""
+msgstr "登录以同步…"
 
 #: ../app/pavlovia_ui/project.py:306
 msgid "Fork + sync..."
@@ -2671,11 +2670,11 @@ msgstr "Fork + sync..."
 
 #: ../app/pavlovia_ui/project.py:313
 msgid "Tags:"
-msgstr ""
+msgstr "标签："
 
 #: ../app/pavlovia_ui/project.py:369
 msgid "Synchronizing..."
-msgstr ""
+msgstr "同步中…"
 
 #: ../app/pavlovia_ui/project.py:393
 msgid "Project info"
@@ -3655,57 +3654,58 @@ msgstr "你想如何定义你的终点？"
 
 #: ../experiment/components/_base.py:84
 msgid "When does the component start?"
-msgstr ""
+msgstr "组件起始时间？"
 
 #: ../experiment/components/_base.py:90
+#, fuzzy
 msgid "When does the component end? (blank is endless)"
-msgstr ""
+msgstr "组件终止时间？（空白意味时长无限）"
 
 #: ../experiment/components/_base.py:93
 msgid "(Optional) expected start (s), purely for representing in the timeline"
-msgstr ""
+msgstr "（可选）预期起始时间，仅用于在起始时间不确定时显示在时间线中"
 
 #: ../experiment/components/_base.py:100
 msgid ""
 "(Optional) expected duration (s), purely for representing in the timeline"
-msgstr ""
+msgstr "（可选）预期终止时间，仅用于在终止时间不确定时显示在时间线中"
 
 #: ../experiment/components/_base.py:107
 msgid ""
 "Store the onset/offset times in the data file (as well as in the log file)."
-msgstr ""
+msgstr "将起始/终止时间储存于数据文件中（以及日志文件）。"
 
 #: ../experiment/components/_base.py:112
 msgid "Save onset/offset times"
-msgstr ""
+msgstr "储存起始/终止时间"
 
 #: ../experiment/components/_base.py:114
 msgid ""
 "Synchronize times with screen refresh (good for visual stimuli and responses "
 "based on them)"
-msgstr ""
+msgstr "将时间与屏幕刷新同步（适用于视觉刺激及对视觉刺激的应答）"
 
 #: ../experiment/components/_base.py:119
 msgid "Sync timing with screen refresh"
-msgstr ""
+msgstr "计时与屏幕刷新同步"
 
 #: ../experiment/components/_base.py:121 ../experiment/routines/_base.py:59
 msgid "Disable this component"
-msgstr ""
+msgstr "禁用此组件"
 
 #: ../experiment/components/_base.py:125 ../experiment/routines/_base.py:63
 msgid "Disable component"
-msgstr ""
+msgstr "组件禁用"
 
 #: ../experiment/components/_base.py:639
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:113
 #: ../experiment/routines/eyetracker_validate/__init__.py:153
 msgid "Units of dimensions for this stimulus"
-msgstr ""
+msgstr "此刺激的大小单位"
 
 #: ../experiment/components/_base.py:647
 msgid "Foreground color of this stimulus (e.g. $[1,1,0], red )"
-msgstr ""
+msgstr "此刺激的前景色（例：$[1,1,0]，红色）"
 
 #: ../experiment/components/_base.py:656
 #: ../experiment/routines/eyetracker_calibrate/__init__.py:86
@@ -3713,15 +3713,15 @@ msgstr ""
 msgid ""
 "In what format (color space) have you specified the colors? (rgb, dkl, lms, "
 "hsv)"
-msgstr ""
+msgstr "请问定义颜色的格式（色彩空间）为？（rgb, dkl, lms, hsv）"
 
 #: ../experiment/components/_base.py:665
 msgid "Fill color of this stimulus (e.g. $[1,1,0], red )"
-msgstr ""
+msgstr "此刺激的填充色（例：$[1,1,0]，红色）"
 
 #: ../experiment/components/_base.py:673
 msgid "Color of this stimulus (e.g. $[1,1,0], red )"
-msgstr ""
+msgstr "此刺激的颜色（例：$[1,1,0]，红色）"
 
 #: ../experiment/components/_base.py:681
 msgid ""
@@ -3729,27 +3729,32 @@ msgid ""
 "Leave blank for each color to have its own opacity (recommended if any color "
 "is None)."
 msgstr ""
+"此刺激的透明度（1=不透明，=-完全透明，0.5=半透明）。如每种颜色有单独的透明"
+"度，请留空（若任一颜色为None，建议留空）。"
 
 #: ../experiment/components/_base.py:690
+#, fuzzy
 msgid ""
 "Contrast of the stimulus (1.0=unchanged contrast, 0.5=decrease contrast, "
 "0.0=uniform/no contrast, -0.5=slightly inverted, -1.0=totally inverted)"
 msgstr ""
+"此刺激的对比度（1.0=原对比度，0.5=降低对比度，0.0=无对比度，-0.5=轻度反"
+"色，-1.0=完全反色）"
 
 #: ../experiment/components/_base.py:700
 #: ../experiment/components/ratingScale/__init__.py:210
 msgid "Position of this stimulus (e.g. [1,2] )"
-msgstr ""
+msgstr "此刺激的位置（例：[1,2]）"
 
 #: ../experiment/components/_base.py:708
 #: ../experiment/components/ratingScale/__init__.py:202
 msgid ""
 "Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] "
-msgstr ""
+msgstr "此刺激的大小（单一值或[x,y]数对，例：2.5，[1,2]）"
 
 #: ../experiment/components/_base.py:721
 msgid "Orientation of this stimulus (in deg)"
-msgstr ""
+msgstr "此刺激的旋转角度（单位为“度”）"
 
 #: ../experiment/components/aperture/__init__.py:29
 msgid "Aperture: restrict the drawing of stimuli to a given region"
@@ -4529,7 +4534,7 @@ msgstr "项目颜色"
 msgid ""
 "Base text color for responses, also sets color of lines in sliders and "
 "borders of textboxes"
-msgstr "响应的基本文本颜色，还设置滑块中的线条颜色和文本框的边框"
+msgstr "应答的基本文本颜色，还设置滑块中的线条颜色和文本框的边框"
 
 #: ../experiment/components/form/__init__.py:164
 msgid "Response Color"
