@@ -1,6 +1,8 @@
+import json
+
 import numpy as np
 
-from psychopy import session, visual, logging
+from psychopy import session, visual, logging, clock
 from psychopy.hardware import keyboard
 from psychopy.tests import utils
 from psychopy.constants import STARTED, PAUSED, STOPPED
@@ -134,9 +136,17 @@ class TestSession:
             )
 
             sess.runExperiment('clockFormat', expInfo={'targetFormat': case['ans']})
-            # make sure thisRow.t is the correct format
-            tRow = sess.runs[-1].entries[0]['thisRow.t']
-            assert str(tRow) == tRow.strftime(case['ans'])
+
+            # get first value of thisRow from ExperimentHandler
+            tRowVal = sess.runs[-1].entries[0]['thisRow.t']
+            # get first value of thisRow from ExperimentHandler's JSON output
+            tRowJSON = json.loads(sess.runs[-1].getJSON())['trials'][0]['thisRow.t']
+            # check that JSON output and direct value are the same
+            assert tRowVal == tRowJSON
+            # make into a Timestamp object
+            tRowObj = clock.Timestamp(tRowVal, format=case['ans'])
+            # make sure stringified value is same as stringified timestamp with requested format
+            assert str(tRowVal) == str(tRowObj)
 
     def test_disable_useversion(self):
         """
