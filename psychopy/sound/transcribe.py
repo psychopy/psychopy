@@ -18,7 +18,8 @@ __all__ = [
     'recognizeSphinx',
     'recognizeGoogle',
     'recognizeWhisper',
-    'getAllTranscribers'
+    'getAllTranscribers',
+    'getTranscriber'
 ]
 
 import json
@@ -677,6 +678,39 @@ def getAllTranscribers(engineKeys=False):
             toReturn[interface._engine] = interface
 
     return toReturn
+
+
+def getTranscriber(engine):
+    """Get a transcriber interface by name.
+
+    Parameters
+    ----------
+    engine : str
+        Name of the transcriber interface to get.
+
+    Returns
+    -------
+    Subclass of `BaseTranscriber`
+        Transcriber interface.
+
+    Examples
+    --------
+    Get a transcriber interface and initalize it::
+
+        whisperInterface = getTranscriber('WhisperTranscriber')
+        # initialize it
+        transcriber = whisperInterface({'device': 'cuda'})
+    
+    """
+    transcribers = getAllTranscribers(engineKeys=True)
+
+    try:
+        transcriber = transcribers[engine]
+    except KeyError:
+        raise ValueError(
+            f"Transcriber with engine name `{engine}` not found.")
+
+    return transcribe
 
 
 def transcribe(audioClip, engine='whisper', language='en-US', expectedWords=None,
