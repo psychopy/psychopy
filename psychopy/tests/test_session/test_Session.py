@@ -134,6 +134,9 @@ class TestSession:
             )
 
             sess.runExperiment('clockFormat', expInfo={'targetFormat': case['ans']})
+            # make sure thisRow.t is the correct format
+            tRow = sess.runs[-1].entries[0]['thisRow.t']
+            assert str(tRow) == tRow.strftime(case['ans'])
 
     def test_disable_useversion(self):
         """
