@@ -144,6 +144,14 @@ class Timestamp(float):
         # use strftime to return with own format
         return self.strftime(format=self.format)
 
+    def __format__(self, format_spec):
+        if self.format in (float, "float"):
+            # format as normal if float is requested
+            return float.__format__(self, format_spec)
+        else:
+            # otherwise just stringify
+            return str(self)
+
     def resolve(self, format=None):
         """
         Get the value of this timestamp as a simple value, either str or float.

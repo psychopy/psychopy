@@ -148,6 +148,29 @@ class TestSession:
             # make sure stringified value is same as stringified timestamp with requested format
             assert str(tRowVal) == str(tRowObj)
 
+            # get last timestamp in log file
+            sess.logFile.logger.flush()
+            fmtStr = sess.logFile.logger.format
+            msg = fmtStr.format(
+                **sess.logFile.logger.flushed[-1].__dict__
+            )
+            tLastLog = msg.split("\t")[0].strip()
+            # make sure last logged time fits format
+            try:
+                tLastLog = float(tLastLog)
+            except ValueError:
+                pass
+            if case['ans'] is float:
+                # if wanting float, value should convert to float
+                float(tLastLog)
+            else:
+                # if anything else, try to parse
+                fmt = case['ans']
+                if fmt is str:
+                    fmt = "%Y-%m-%d_%H:%M:%S.%f"
+                # should parse safely with format
+                time.strptime(tLastLog, fmt)
+
     def test_disable_useversion(self):
         """
         Experiment compiled via a Session shouldn't respect the useVersion setting.
