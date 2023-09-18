@@ -64,7 +64,7 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
             exp.saveToXML(filename=exp.filename)
         # generate command to run compile from requested version
         cmd = [
-            pythonExec, '-m', compiler, str(exp.legacyFilename), '-o', experimentPath
+            pythonExec, '-m', compiler, repr(exp.legacyFilename), '-o', experimentPath
         ]
         # run command
         cmd.extend(['-v', version])
