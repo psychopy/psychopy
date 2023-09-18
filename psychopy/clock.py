@@ -160,10 +160,10 @@ class Timestamp(float):
             The value of this timestamp in the requested format.
         """
         # if format is unspecified, use own default
-        if format is None:
+        if format in (None, "float"):
             format = self.format
         # if format is float, return as is
-        if format is float:
+        if format in (float, "float"):
             return self
         # otherwise, format to string in requested format
         return self.strftime(format=format)
@@ -184,13 +184,13 @@ class Timestamp(float):
             This timestamp as a string
         """
         # if format is unspecified, use own default
-        if format is None:
+        if format in (None, "None"):
             format = self.format
         # if format is float, print using base method
-        if format is float:
+        if format in (float, "float"):
             return float.__str__(self)
         # substitute nonspecified str format for ISO 8601
-        if format is str:
+        if format in (str, "str"):
             format = "%Y-%m-%d_%H:%M:%S.%f%z"
         # convert to datetime
         now = datetime.fromtimestamp(self)
@@ -250,10 +250,10 @@ class MonotonicClock:
         """
 
         # substitute no format for default
-        if format is None:
+        if format in (None, "None"):
             format = self.format
         # substitute nonspecified str format for ISO 8601
-        if format is str:
+        if format in (str, "str"):
             format = "%Y-%m-%d_%H:%M:%S.%f%z"
         # only use applyZero if format is float
         if format not in (float, "float"):
