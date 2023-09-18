@@ -144,6 +144,30 @@ class Timestamp(float):
         # use strftime to return with own format
         return self.strftime(format=self.format)
 
+    def resolve(self, format=None):
+        """
+        Get the value of this timestamp as a simple value, either str or float.
+
+        Parameters
+        ----------
+        format : str, class or None
+            Time format string, as in time.strftime, or `float` to return as a float. Defaults (None) to using the
+            format given when this timestamp was initialised.
+
+        Returns
+        -------
+        str, float
+            The value of this timestamp in the requested format.
+        """
+        # if format is unspecified, use own default
+        if format is None:
+            format = self.format
+        # if format is float, return as is
+        if format is float:
+            return self
+        # otherwise, format to string in requested format
+        return self.strftime(format=format)
+
     def strftime(self, format="%Y-%m-%d_%H:%M:%S.%f%z"):
         """
         Format this timestamp into a string with the given format.
