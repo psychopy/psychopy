@@ -144,6 +144,30 @@ class Timestamp(float):
         # use strftime to return with own format
         return self.strftime(format=self.format)
 
+    def resolve(self, format=None):
+        """
+        Get the value of this timestamp as a simple value, either str or float.
+
+        Parameters
+        ----------
+        format : str, class or None
+            Time format string, as in time.strftime, or `float` to return as a float. Defaults (None) to using the
+            format given when this timestamp was initialised.
+
+        Returns
+        -------
+        str, float
+            The value of this timestamp in the requested format.
+        """
+        # if format is unspecified, use own default
+        if format in (None, "float"):
+            format = self.format
+        # if format is float, return as is
+        if format in (float, "float"):
+            return self
+        # otherwise, format to string in requested format
+        return self.strftime(format=format)
+
     def strftime(self, format="%Y-%m-%d_%H:%M:%S.%f%z"):
         """
         Format this timestamp into a string with the given format.
@@ -160,11 +184,14 @@ class Timestamp(float):
             This timestamp as a string
         """
         # if format is unspecified, use own default
-        if format is None:
+        if format in (None, "None"):
             format = self.format
         # if format is float, print using base method
-        if format == float:
+        if format in (float, "float"):
             return float.__str__(self)
+        # substitute nonspecified str format for ISO 8601
+        if format in (str, "str"):
+            format = "%Y-%m-%d_%H:%M:%S.%f%z"
         # convert to datetime
         now = datetime.fromtimestamp(self)
         # format
@@ -198,7 +225,7 @@ class MonotonicClock:
         # store default format
         self.format = format
 
-    def getTime(self, applyZero=True, format=float):
+    def getTime(self, applyZero=True, format=None):
         """
         Returns the current time on this clock in secs (sub-ms precision).
 
@@ -223,12 +250,14 @@ class MonotonicClock:
         """
 
         # substitute no format for default
-        if format is None:
+        if format in (None, "None"):
             format = self.format
         # substitute nonspecified str format for ISO 8601
-        if format is str:
+        if format in (str, "str"):
             format = "%Y-%m-%d_%H:%M:%S.%f%z"
-
+        # only use applyZero if format is float
+        if format not in (float, "float"):
+            applyZero = False
         # get time since last reset
         t = getTime() - self._timeAtLastReset
         if not applyZero:

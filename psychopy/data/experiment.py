@@ -7,7 +7,7 @@ import pickle
 import atexit
 import pandas as pd
 
-from psychopy import constants
+from psychopy import constants, clock
 from psychopy import logging
 from psychopy.tools.filetools import (openOutputFile, genDelimiter,
                                       genFilenameFromDelimiter)
@@ -261,6 +261,10 @@ class ExperimentHandler(_ComparisonMixin):
         except TypeError:
             # unhashable type (list, dict, ...) == mutable, so need a copy()
             value = copy.deepcopy(value)
+
+        # if value is a Timestamp, resolve to a simple value
+        if isinstance(value, clock.Timestamp):
+            value = value.resolve()
 
         # get entry from row number
         entry = self.thisEntry
