@@ -163,8 +163,11 @@ class Timestamp(float):
         if format is None:
             format = self.format
         # if format is float, print using base method
-        if format == float:
+        if format is float:
             return float.__str__(self)
+        # substitute nonspecified str format for ISO 8601
+        if format is str:
+            format = "%Y-%m-%d_%H:%M:%S.%f%z"
         # convert to datetime
         now = datetime.fromtimestamp(self)
         # format
@@ -198,7 +201,7 @@ class MonotonicClock:
         # store default format
         self.format = format
 
-    def getTime(self, applyZero=True, format=float):
+    def getTime(self, applyZero=True, format=None):
         """
         Returns the current time on this clock in secs (sub-ms precision).
 
@@ -228,7 +231,9 @@ class MonotonicClock:
         # substitute nonspecified str format for ISO 8601
         if format is str:
             format = "%Y-%m-%d_%H:%M:%S.%f%z"
-
+        # only use applyZero if format is float
+        if format not in (float, "float"):
+            applyZero = False
         # get time since last reset
         t = getTime() - self._timeAtLastReset
         if not applyZero:
