@@ -112,3 +112,64 @@ class TPad(sd.SerialDevice):
             return self.parseLine(data)
         else:
             return [self.parseLine(line) for line in data]
+
+    def findOptode(self, win, accuity=0.2):
+        # calibrate optode to midgrey
+        self.calibrateOptode(127)
+        # import visual here - if they're using this function, it's already in the stack
+        from psychopy import visual
+        # add low opacity label
+        label = visual.TextBox2(
+            win,
+            text="Finding optode...",
+            fillColor=(0, 0, 0), color=(80, 80, 80), colorSpace="rgb255",
+            pos=(0, 0), size=(2, 2), units="norm",
+            alignment="center",
+            autoDraw=False
+        )
+        # make rect
+        rect = visual.Rect(
+            win,
+            size=(accuity, accuity), pos=(-1, -1), anchor="bottom left", units="norm",
+            fillColor="white",
+            autoDraw=False
+        )
+        # try every location
+        pos = None
+        res = int(1/accuity)
+        for y in range(-res, res):
+            y /= res
+            for x in range(-res, res):
+                x /= res
+                # set pos
+                print(x, y)
+                rect.pos = (x, y)
+                # draw
+                label.draw()
+                rect.draw()
+                win.flip()
+                self.pause()
+                # did we hit an optode?
+                resp = self.getResponse(length=2, timeout=1/30)
+                isOptode = False
+                for line in resp:
+                    if isinstance(line, TPadResponse) and line.channel == "C" and line.state == "P":
+                        isOptode = True
+                # if so, store pos
+                if isOptode:
+                    pos = rect.pos + accuity / 2
+        # get response again just to clear it
+        self.pause()
+        self.getResponse()
+
+        return pos
+
+    def calibrateOptode(self, level=127):
+        # set to mode 0
+        self.setMode(0)
+        # call help and get response
+        self.sendMessage(f"AAO1 {level}")
+        self.sendMessage(f"AAO2 {level}")
+        self.getResponse()
+        # set to mode 3
+        self.setMode(3)
