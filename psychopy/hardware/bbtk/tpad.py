@@ -118,6 +118,13 @@ class TPad(sd.SerialDevice):
         self.calibrateOptode(127)
         # import visual here - if they're using this function, it's already in the stack
         from psychopy import visual
+        # black box to cover screen
+        bg = visual.Rect(
+            win,
+            size=(2, 2), pos=(0, 0), units="norm",
+            fillColor="black",
+            autoDraw=False
+        )
         # add low opacity label
         label = visual.TextBox2(
             win,
@@ -142,14 +149,14 @@ class TPad(sd.SerialDevice):
             for x in range(-res, res):
                 x /= res
                 # set pos
-                print(x, y)
                 rect.pos = (x, y)
                 # draw
+                bg.draw()
                 label.draw()
                 rect.draw()
                 win.flip()
-                self.pause()
                 # did we hit an optode?
+                self.pause()
                 resp = self.getResponse(length=2, timeout=1/30)
                 isOptode = False
                 for line in resp:
