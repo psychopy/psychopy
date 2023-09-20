@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2023-09-13 15:47-0400\n"
-"Last-Translator: jingrun <jingrunlin@gmail.com>\n"
+"PO-Revision-Date: 2023-09-20 14:43-0400\n"
+"Last-Translator: Bingzi Yu <ybzice@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
@@ -3659,9 +3659,8 @@ msgid "When does the component start?"
 msgstr "组件起始时间？"
 
 #: ../experiment/components/_base.py:90
-#, fuzzy
 msgid "When does the component end? (blank is endless)"
-msgstr "组件终止时间？（空白意味时长无限）"
+msgstr "组件终止时间？（空白意为时长无限）"
 
 #: ../experiment/components/_base.py:93
 msgid "(Optional) expected start (s), purely for representing in the timeline"
@@ -3758,9 +3757,11 @@ msgstr "此刺激的大小（单一值或[x,y]数对，例：2.5，[1,2]）"
 msgid "Orientation of this stimulus (in deg)"
 msgstr "此刺激的旋转角度（单位为“度”）"
 
+# Aperture：视窗？缝隙？孔径？光圈？
 #: ../experiment/components/aperture/__init__.py:29
+#, fuzzy
 msgid "Aperture: restrict the drawing of stimuli to a given region"
-msgstr ""
+msgstr "Aperture：将刺激的描画边界限制在给定的区域中"
 
 #: ../experiment/components/aperture/__init__.py:49
 msgid "How big is the aperture? (a single number for diameter)"
@@ -3769,7 +3770,7 @@ msgstr ""
 #: ../experiment/components/aperture/__init__.py:53
 #: ../experiment/components/ratingScale/__init__.py:31
 msgid "Size"
-msgstr ""
+msgstr "大小"
 
 #: ../experiment/components/aperture/__init__.py:54
 msgid "Where is the aperture centred?"
@@ -3802,19 +3803,19 @@ msgstr "此画笔的填充颜色"
 #: ../experiment/components/brush/__init__.py:62
 msgid ""
 "Width of the brush's line (always in pixels and limited to 10px max width)"
-msgstr ""
+msgstr "画笔线条粗细（以像素为单位且不超过10像素）"
 
 #: ../experiment/components/brush/__init__.py:73
 msgid "The line opacity"
-msgstr ""
+msgstr "线条透明度"
 
 #: ../experiment/components/brush/__init__.py:76
 msgid "Whether a button needs to be pressed to draw (True/False)"
-msgstr ""
+msgstr "按钮是否需要被按下以显现（True/False）"
 
 #: ../experiment/components/button/__init__.py:18
 msgid "Callback Function"
-msgstr ""
+msgstr "回调函数"
 
 #: ../experiment/components/button/__init__.py:19
 #: ../experiment/components/joyButtons/__init__.py:25
@@ -3823,7 +3824,7 @@ msgstr ""
 #: ../experiment/components/ratingScale/__init__.py:35
 #: ../experiment/components/slider/__init__.py:29
 msgid "Force end of Routine"
-msgstr ""
+msgstr "结束例程"
 
 #: ../experiment/components/button/__init__.py:20
 msgid "Button text"
@@ -3917,71 +3918,74 @@ msgid ""
 "Should the callback run once per click (True), or each frame until click is "
 "released (False)"
 msgstr ""
+"鼠标每点击一次运行一次回调函数（True），或每帧运行一次回调函数直至鼠标按键被"
+"释放（False）。"
 
 #: ../experiment/components/button/__init__.py:106
 msgid "Code to run when button is clicked"
-msgstr ""
+msgstr "按钮被点击时运行的代码"
 
 #: ../experiment/components/button/__init__.py:111
 #: ../experiment/components/text/__init__.py:66
 #: ../experiment/components/textbox/__init__.py:91
 msgid "The text to be displayed"
-msgstr ""
+msgstr "待显示的文字"
 
 #: ../experiment/components/button/__init__.py:116
 #: ../experiment/components/form/__init__.py:101
 #: ../experiment/components/text/__init__.py:72
 #: ../experiment/components/textbox/__init__.py:97
 msgid "The font name (e.g. Comic Sans)"
-msgstr ""
+msgstr "字体名称（例：Comic Sans）"
 
 #: ../experiment/components/button/__init__.py:121
 #: ../experiment/components/text/__init__.py:78
 #: ../experiment/components/textbox/__init__.py:102
 msgid ""
 "Specifies the height of the letter (the width is then determined by the font)"
-msgstr ""
+msgstr "指明字母高度（宽度由字体决定）"
 
 #: ../experiment/components/button/__init__.py:127
 #: ../experiment/components/textbox/__init__.py:125
 msgid "Should text be italic?"
-msgstr ""
+msgstr "文字显示为斜体？"
 
 #: ../experiment/components/button/__init__.py:132
 #: ../experiment/components/textbox/__init__.py:130
 msgid "Should text be bold?"
-msgstr ""
+msgstr "文字显示为加粗？"
 
 #: ../experiment/components/button/__init__.py:137
 #: ../experiment/components/textbox/__init__.py:140
 msgid "Defines the space between text and the textbox border"
-msgstr ""
+msgstr "定义文字与文本框边框的间距"
 
 #: ../experiment/components/button/__init__.py:152
 #: ../experiment/components/textbox/__init__.py:155
 msgid "Should text anchor to the top, center or bottom of the box?"
-msgstr ""
+msgstr "文字锚点为文本框的上部，中部或下部？"
 
 #: ../experiment/components/button/__init__.py:157
 #: ../experiment/components/textbox/__init__.py:160
 msgid "Textbox border width"
-msgstr ""
+msgstr "文本框边框宽度"
 
 #: ../experiment/components/button/__init__.py:162
 msgid "What clicks on this button should be saved to the data output?"
-msgstr ""
+msgstr "此按钮的哪次点击应被存入数据输出？"
 
 #: ../experiment/components/button/__init__.py:169
 #: ../experiment/components/mouse/__init__.py:81
 #: ../experiment/components/roi/__init__.py:103
 msgid "What should the values of mouse.time should be relative to?"
 msgstr ""
+"mouse.time的值应相对什么时间进行计算（例：以实验开始或此例程开始为基准）？"
 
 #: ../experiment/components/cedrusBox/__init__.py:24
 #: ../experiment/components/joyButtons/__init__.py:28
 #: ../experiment/components/joystick/__init__.py:26
 msgid "Device number"
-msgstr ""
+msgstr "设备编号"
 
 #: ../experiment/components/cedrusBox/__init__.py:25
 msgid "Use box timer"
@@ -4011,7 +4015,7 @@ msgstr ""
 msgid ""
 "Device number, if you have multiple devices which one do you want (0, 1, "
 "2...)"
-msgstr ""
+msgstr "设备编号；若有多个设备，请指明其中一个（0，1，2…）"
 
 #: ../experiment/components/cedrusBox/__init__.py:97
 msgid ""
