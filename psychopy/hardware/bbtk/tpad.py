@@ -71,30 +71,29 @@ class TPadResponse:
 
 class TPad(sd.SerialDevice):
     def __init__(self, port=None):
-
         # initialise as a SerialDevice
         sd.SerialDevice.__init__(self, port=port, baudrate=115200)
 
-        # set to mode 3
-        self.sendMessage("MOD3")
-
-    def isAwake(self):
-        # set to mode 0
+    def setMode(self, mode):
+        # exit out of whatever mode we're in (effectively set it to 0)
         try:
             self.sendMessage("X")
             self.pause()
-            self.com.flush()
         except serial.serialutil.SerialException:
             pass
+        # set mode
+        self.sendMessage(f"MOD{mode}")
+        self.pause()
+        # clear messages
+        self.getResponse()
+
+    def isAwake(self):
+        self.setMode(0)
         # call help and get response
         self.sendMessage("HELP")
         resp = self.getResponse()
-        self.pause()
-        self.com.flush()
         # set to mode 3
-        self.sendMessage("MOD3")
-        self.pause()
-        self.com.flush()
+        self.setMode(3)
 
         return bool(resp)
 
