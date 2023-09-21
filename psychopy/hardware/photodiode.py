@@ -4,7 +4,10 @@ from psychopy.tools.attributetools import attributeSetter
 
 
 class PhotodiodeValidator:
-    def __init__(self, win, device: TPad, diodePos=None, diodeSize=None, diodeUnits="norm", autoLog=False):
+    def __init__(
+            self, win, device: TPad,
+            diodePos=None, diodeSize=None, diodeUnits="norm",
+            autoLog=False):
         # set autolog
         self.autoLog = autoLog
         # store window handle
@@ -50,13 +53,7 @@ class PhotodiodeValidator:
         self.onRect.draw()
 
     def validate(self, expectWhite):
-        resp = self.device.getResponse(length=2)
-        # start off assuming black
-        isWhite = False
-        for line in resp:
-            # if we have a TPadResponse, look for photodiode on
-            if isinstance(line, TPadResponse) and line.channel == "C" and line.state == "P":
-                isWhite = True
+        isWhite = self.getDiodeState()
         # was rect white/black as expected?
         valid = isWhite == expectWhite
         # do methods for valid or not
@@ -66,6 +63,19 @@ class PhotodiodeValidator:
             self.onInvalid(isWhite)
         # return whether expected white matches found
         return valid
+
+    def getDiodeState(self):
+        # start off assuming black
+        isWhite = False
+        # get response
+        resp = self.device.getResponse(length=2)
+        # go through response lines
+        for line in resp:
+            # if we have a TPadResponse, look for photodiode on
+            if isinstance(line, TPadResponse) and line.channel == "C" and line.state == "P":
+                isWhite = True
+
+        return isWhite
 
     @attributeSetter
     def diodeUnits(self, value):
