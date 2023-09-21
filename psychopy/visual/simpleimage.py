@@ -45,7 +45,8 @@ import numpy
 class SimpleImageStim(MinimalStim, WindowMixin):
     """A simple stimulus for loading images from a file and presenting at
     exactly the resolution and color in the file (subject to gamma correction
-    if set).
+    if set). This is a lazy-imported class, therefore import using full path 
+    `psychopy.visual.simpleimage.SimpleImageStim` when inheriting from it.
 
     Unlike the ImageStim, this type of stimulus cannot be rescaled, rotated or
     masked (although flipping horizontally or vertically is possible). Drawing
