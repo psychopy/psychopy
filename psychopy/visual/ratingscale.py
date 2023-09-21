@@ -23,6 +23,8 @@ from psychopy.constants import FINISHED, STARTED, NOT_STARTED
 
 class RatingScale(MinimalStim):
     """A class for obtaining ratings, e.g., on a 1-to-7 or categorical scale.
+    This is a lazy-imported class, therefore import using full path 
+    `psychopy.visual.ratingscale.RatingScale` when inheriting from it.
 
     A RatingScale instance is a re-usable visual object having a ``draw()``
     method, with customizable appearance and response options. ``draw()``
