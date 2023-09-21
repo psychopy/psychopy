@@ -13,10 +13,12 @@ import sys
 import time
 
 from psychopy import logging
-try:
-    import serial
-except ImportError:
-    serial = False
+import serial
+from serial.tools import list_ports
+
+
+# map out all ports on this device, to be filled as serial devices are initialised
+ports = {port.name: None for port in list_ports.comports()}
 
 
 class SerialDevice:
@@ -45,11 +47,11 @@ class SerialDevice:
 
         # get a list of port names to try
         if port is None:
-            ports = self._findPossiblePorts()
+            tryPorts = self._findPossiblePorts()
         elif type(port) in [int, float]:
-            ports = ['COM%i' % port]
+            tryPorts = ['COM%i' % port]
         else:
-            ports = [port]
+            tryPorts = [port]
 
         self.pauseDuration = pauseDuration
         self.com = None
@@ -62,7 +64,7 @@ class SerialDevice:
         self.type = self.name  # for backwards compatibility
 
         # try to open the port
-        for portString in ports:
+        for portString in tryPorts:
             try:
                 self.com = serial.Serial(
                     portString,
@@ -115,6 +117,9 @@ class SerialDevice:
         if self.OK:  # we have successfully sent and read a command
             msg = "Successfully opened %s with a %s"
             logging.info(msg % (self.portString, self.name))
+            # store device in ports dict
+            global ports
+            ports[port] = self
         # we aren't in a time-critical period so flush messages
         logging.flush()
 
