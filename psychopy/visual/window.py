@@ -588,6 +588,9 @@ class Window():
         self._toDrawDepths = []
         self._eventDispatchers = []
 
+        # dict of stimulus:validator pairs
+        self.validators = {}
+
         self.lastFrameT = core.getTime()
         self.waitBlanking = waitBlanking
 
@@ -1155,9 +1158,12 @@ class Window():
 
         if self._toDraw:
             for thisStim in self._toDraw:
-                # Draw
+                # draw
                 thisStim.draw()
-                # Handle dragging
+                # draw validation rect if needed
+                if thisStim in self.validators:
+                    self.validators[thisStim].draw()
+                # handle dragging
                 if getattr(thisStim, "draggable", False):
                     thisStim.doDragging()
         else:
@@ -1298,6 +1304,15 @@ class Window():
         for callEntry in self._toCall:
             callEntry['function'](*callEntry['args'], **callEntry['kwargs'])
         del self._toCall[:]
+
+        # queue validation calls for next flip
+        for thisStim, validator in self.validators.items():
+            # expected visibility is True/False depending on whether stim is due to be drawn this flip
+            self._toCall.append({
+                'function': validator.validate,
+                'args': [thisStim in self._toDraw],
+                'kwargs': {},
+            })
 
         # do bookkeeping
         if self.recordFrameIntervals:

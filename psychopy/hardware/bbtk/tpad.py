@@ -2,6 +2,8 @@ from .. import serialdevice as sd
 import serial
 import re
 
+from ... import layout
+
 
 class TPadResponse:
     # possible values for self.channel
@@ -104,7 +106,10 @@ class TPad(sd.SerialDevice):
         else:
             return line
 
-    def getResponse(self, length=1, timeout=1):
+    def getResponse(self, length=1, timeout=None):
+        # if timeout is None, use 2*min time for device
+        if timeout is None:
+            timeout = 1/60
         # do usual value getting
         data = sd.SerialDevice.getResponse(self, length=length, timeout=timeout)
         # parse response
@@ -114,8 +119,11 @@ class TPad(sd.SerialDevice):
             return [self.parseLine(line) for line in data]
 
     def findPhotodiode(self, win):
+        # stash autodraw
+        win.stashAutoDraw()
         # calibrate photodiode to midgrey
         self.calibratePhotodiode(127)
+        self.setMode(3)
         # import visual here - if they're using this function, it's already in the stack
         from psychopy import visual
         # black box to cover screen
@@ -183,8 +191,13 @@ class TPad(sd.SerialDevice):
         # get response again just to clear it
         self.pause()
         self.getResponse()
+        # reinstate autodraw
+        win.retrieveAutoDraw()
 
-        return rect.pos
+        return (
+            layout.Size(rect.pos + rect.size / (-2, 2), units="norm", win=win),
+            layout.Size(rect.size * 2, units="norm", win=win)
+        )
 
     def calibratePhotodiode(self, level=127):
         # set to mode 0
