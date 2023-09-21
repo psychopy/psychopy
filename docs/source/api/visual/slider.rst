@@ -2,6 +2,8 @@
 :class:`Slider`
 ------------------------------------
 
+A class for obtaining ratings, e.g., on a 1-to-7 or categorical scale. This is a lazy-imported class, therefore import using full path `psychopy.visual.slider.Slider` when inheriting from it.
+
 Attributes
 =============
 
