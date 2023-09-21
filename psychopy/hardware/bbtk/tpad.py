@@ -113,7 +113,7 @@ class TPad(sd.SerialDevice):
         else:
             return [self.parseLine(line) for line in data]
 
-    def findOptode(self, win, accuity=0.2):
+    def findOptode(self, win):
         # calibrate optode to midgrey
         self.calibrateOptode(127)
         # import visual here - if they're using this function, it's already in the stack
@@ -137,39 +137,54 @@ class TPad(sd.SerialDevice):
         # make rect
         rect = visual.Rect(
             win,
-            size=(accuity, accuity), pos=(-1, -1), anchor="bottom left", units="norm",
+            size=(2, 2), pos=(0, 0), anchor="center", units="norm",
             fillColor="white",
             autoDraw=False
         )
-        # try every location
-        pos = None
-        res = int(1/accuity)
-        for y in range(-res, res):
-            y /= res
-            for x in range(-res, res):
-                x /= res
-                # set pos
+
+        def testRect():
+            """
+            Recursively shrink the rectangle around the position of the optode until it's too small to detect.
+            """
+            # work out width and height of area
+            w, h = rect.size
+            # work out left, right, top and bottom of area
+            r, t = rect.pos + rect.size / 2
+            l, b = rect.pos - rect.size / 2
+
+            # set rect size to half of area size
+            rect.size /= 2
+            # try each corner
+            for x, y in [
+                (l + w/4, t - h/4),  # top left
+                (r - w/4, t - h/4),  # top right
+                (l + w/4, b + h/4),  # bottom left
+                (r - w/4, b + h/4),  # bottom right
+            ]:
+                # position rect
                 rect.pos = (x, y)
                 # draw
                 bg.draw()
                 label.draw()
                 rect.draw()
                 win.flip()
-                # did we hit an optode?
+                # poll optode
                 self.pause()
-                resp = self.getResponse(length=2, timeout=1/30)
-                isOptode = False
+                resp = self.getResponse(length=2, timeout=1 / 30)
+                # are any of the responses from an optode?
                 for line in resp:
                     if isinstance(line, TPadResponse) and line.channel == "C" and line.state == "P":
-                        isOptode = True
-                # if so, store pos
-                if isOptode:
-                    pos = rect.pos + accuity / 2
+                        # if one is, zero in recursively
+                        return testRect()
+            # if none of these have returned, rect is too small to cover the whole optode, so return
+            return
+        # recursively shrink rect around the optode
+        testRect()
         # get response again just to clear it
         self.pause()
         self.getResponse()
 
-        return pos
+        return rect.pos
 
     def calibrateOptode(self, level=127):
         # set to mode 0
