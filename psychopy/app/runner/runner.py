@@ -111,11 +111,11 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
 
     @property
     def stdOut(self):
-        return self.panel.stdoutCtrl
+        return self.panel.stdoutPnl.ctrl
 
     @property
     def alerts(self):
-        return self.panel.alertsCtrl
+        return self.panel.alertsPnl.ctrl
 
     def makeMenu(self):
         """Create Runner menubar."""
@@ -487,7 +487,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.topPanel.sizer.Add(self.expCtrl, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
 
         # Setup panel for bottom half (alerts and stdout)
-        self.bottomPanel = wx.Panel(self.splitter)
+        self.bottomPanel = wx.Panel(self.splitter, style=wx.BORDER_NONE)
         self.bottomPanel.border = wx.BoxSizer()
         self.bottomPanel.SetSizer(self.bottomPanel.border)
         self.bottomPanel.sizer = wx.BoxSizer(wx.VERTICAL)
