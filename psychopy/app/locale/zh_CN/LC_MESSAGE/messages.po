@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2023-09-20 14:43-0400\n"
+"PO-Revision-Date: 2023-09-21 17:15-0400\n"
 "Last-Translator: Bingzi Yu <ybzice@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -62,17 +62,16 @@ msgid ""
 "recommend either updating PsychoPy or changing the \"Use Version\" setting "
 "in Experiment Settings to this version."
 msgstr ""
-"此实验由更高版本的PsychoPy（{version}）搭建，我们建议升级PsychoPy，或在实验设"
-"置中将使用版本（Use Version）修改为现版本。"
+"此实验由更高版本的 PsychoPy（{version}）搭建，我们建议升级 PsychoPy，或在实验"
+"设置中将使用版本（Use Version）修改为现版本。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:36
-#, fuzzy
 msgid ""
 "Experiment was built in a past version of PsychoPy ({version}), saving it in "
 "this version may add parameters which cannot be parsed."
 msgstr ""
-"此实验由较低版本的PsychoPy（{version}）搭建，将实验保存为现版本可能出现不可读"
-"的参数。"
+"此实验由较低版本的 PsychoPy（{version}）搭建，将实验保存为现版本可能出现不可"
+"读的参数。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:40
 msgid ""
@@ -123,15 +122,15 @@ msgstr ""
 #: ../alerts/alertsCatalogue/alertmsg.py:67
 msgid ""
 "Font `{param.val}` not found locally, will check Google Fonts on next run."
-msgstr "未在本地找到“{param.val}”字体，下次运行将在Google Fonts中查找。"
+msgstr "未在本地找到“{param.val}”字体，下次运行将在 Google Fonts 中查找。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:71
 msgid ""
 "Font `{font} {style}` not available in weight `{weight}`, component `{name}` "
 "will default to Open Sans Regular."
 msgstr ""
-"磅值“{weight}”不可用于“{font}{style}”字体，组件“{name}”将默认显示为Open Sans "
-"Regular。"
+"磅值“{weight}”不可用于“{font}{style}”字体，组件“{name}”将默认显示为 Open "
+"Sans Regular。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:75
 msgid "Recording device '{device}' not found, using default device instead."
@@ -198,7 +197,7 @@ msgstr "音屏转录服务“{transcrbiver}”不支持离线。"
 msgid ""
 "Chosen transcriber '{engine}' requires an API key, please supply one in "
 "Preferences."
-msgstr "所选择的转录器“{engine}”要求API密钥，请在首选项中提供。"
+msgstr "所选择的转录器“{engine}”要求 API 密钥，请在首选项中提供。"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:120
 msgid ""
@@ -209,7 +208,7 @@ msgstr "麦克风组件“{name}”的设备参数无法在线使用。"
 msgid ""
 "The file you are attempting to run does not seem to exist, the full path "
 "supplied to Runner was {path}"
-msgstr "您将要运行的文件似乎不存在，该文件在Runner中的完整路径为{path}"
+msgstr "您将要运行的文件似乎不存在，该文件在 Runner 中的完整路径为{path}"
 
 #: ../alerts/alertsCatalogue/alertmsg.py:128
 msgid ""
@@ -221,7 +220,7 @@ msgstr "因为颜色不与单一空间绑定，不再使用色彩空间属性“
 msgid ""
 "RGB attribute `.{rgbAttrib}` is no longer in use, as non-RGB colors now "
 "handle their own conversion."
-msgstr "因为非RGB颜色已自行处理换算，不再使用RGB属性“.{rgbAttrib}”。"
+msgstr "因为非 RGB 颜色已自行处理换算，不再使用RGB属性“.{rgbAttrib}”。"
 
 #: ../app/_psychopyApp.py:102 ../app/builder/builder.py:355
 #: ../app/coder/coder.py:1629
@@ -2229,7 +2228,7 @@ msgid ""
 "\n"
 "(To disable this check, see Preferences > connections > checkForUpdates)"
 msgstr ""
-"PsychoPy版本v%(latest)s可用（您运行的版本为%(running)s）。\n"
+"PsychoPy 版本v%(latest)s可用（您运行的版本为%(running)s）。\n"
 "（如需禁用此检查，见 首选项>链接>检查更新（checkForUpdates））"
 
 #: ../app/connections/updates.py:205
@@ -2308,7 +2307,7 @@ msgid ""
 "PsychoPy could not connect to the \n"
 " internet to check for more recent versions.\n"
 msgstr ""
-"PsychoPy无法连接到\n"
+"PsychoPy 无法连接到\n"
 "网络以检查更新的版本。\n"
 
 #: ../app/connections/updates.py:345
@@ -2321,7 +2320,7 @@ msgid ""
 "You are running PsychoPy (%(running)s), which is ahead of the latest "
 "official version (%(latest)s)"
 msgstr ""
-"正在运行PsychoPy （%(running)s），此版本领先官方最新版本（%(latest)s）。"
+"正在运行 PsychoPy （%(running)s），此版本领先官方最新版本（%(latest)s）。"
 
 #: ../app/connections/updates.py:355
 #, python-format
@@ -2366,17 +2365,17 @@ msgstr ""
 #: ../app/connections/updates.py:419
 #, python-format
 msgid "Attempting to fetch PsychoPy %s..."
-msgstr "尝试获取PsychoPy %s…"
+msgstr "尝试获取 PsychoPy %s…"
 
 #: ../app/connections/updates.py:439
 #, python-format
 msgid "Fetched %(done)i of %(total)i kb of PsychoPy-%(version)s.zip"
-msgstr "已获取PsychoPy-%(version)s.zip的%(done)i/%(total)i kb"
+msgstr "已获取 PsychoPy-%(version)s.zip的%(done)i/%(total)i kb"
 
 #: ../app/connections/updates.py:445
 #, python-format
 msgid "Successfully downloaded PsychoPy-%s.zip"
-msgstr "成功下载PsychoPy-%s.zip"
+msgstr "成功下载 PsychoPy-%s.zip"
 
 # Translate “admin” as 管理者
 #: ../app/connections/updates.py:495
@@ -2389,7 +2388,7 @@ msgstr ""
 
 #: ../app/connections/updates.py:499
 msgid "Could not move existing PsychoPy installation (permissions error?)"
-msgstr "无法移动已有的PsychoPy安装（权限错误？）"
+msgstr "无法移动已有的 PsychoPy 安装（权限错误？）"
 
 #: ../app/connections/updates.py:527
 #, python-format
@@ -2415,19 +2414,19 @@ msgid ""
 "Changes to PsychoPy will be completed when the application is next run"
 msgstr ""
 "成功。\n"
-"下次运行软件时将完成PsychoPy的更新"
+"下次运行软件时将完成 PsychoPy 的更新"
 
 #: ../app/connections/updates.py:564
 #, python-format
 msgid "Downloading PsychoPy v%s"
-msgstr "正在下载PsychoPy v%s"
+msgstr "正在下载 PsychoPy v%s"
 
 #: ../app/connections/updates.py:569
 msgid ""
 "Failed to fetch PsychoPy release.\n"
 "Check proxy setting in preferences"
 msgstr ""
-"无法获取PsychoPy发布。\n"
+"无法获取 PsychoPy 的发布。\n"
 "请于首选项中检查代理设置"
 
 #: ../app/dialogs.py:38 ../gui/qtgui.py:610
@@ -2510,7 +2509,7 @@ msgstr "保存错误跟踪"
 #: ../app/errorDlg.py:180
 #, python-format
 msgid "Cannot save to file '%s'."
-msgstr "无法保存到文件 '%s'"
+msgstr "无法保存到文件 ‘%s’"
 
 #: ../app/errorDlg.py:181
 msgid "File save error"
@@ -2732,7 +2731,7 @@ msgstr "在线运行"
 
 #: ../app/pavlovia_ui/toolbar.py:28
 msgid "Run the study online (with pavlovia.org)"
-msgstr "在线运行研究项目(通过pavlovia.org)"
+msgstr "在线运行研究项目(通过 pavlovia.org)"
 
 #: ../app/pavlovia_ui/toolbar.py:32
 msgid "Sync online"
@@ -2740,7 +2739,7 @@ msgstr "在线同步"
 
 #: ../app/pavlovia_ui/toolbar.py:33
 msgid "Sync with web project (at pavlovia.org)"
-msgstr "同步web项目(到pavlovia.org)"
+msgstr "同步web项目(到 pavlovia.org)"
 
 #: ../app/pavlovia_ui/toolbar.py:37
 msgid "Search Pavlovia.org"
@@ -3751,7 +3750,7 @@ msgstr "此刺激的位置（例：[1,2]）"
 #: ../experiment/components/ratingScale/__init__.py:202
 msgid ""
 "Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] "
-msgstr "此刺激的大小（单一值或[x,y]数对，例：2.5，[1,2]）"
+msgstr "此刺激的大小（单一值或[x,y]数对，例：2.5，[1,2]） "
 
 #: ../experiment/components/_base.py:721
 msgid "Orientation of this stimulus (in deg)"
@@ -3943,7 +3942,7 @@ msgstr "字体名称（例：Comic Sans）"
 #: ../experiment/components/textbox/__init__.py:102
 msgid ""
 "Specifies the height of the letter (the width is then determined by the font)"
-msgstr "指明字母高度（宽度由字体决定）"
+msgstr "指定字母高度（宽度由字体决定）"
 
 #: ../experiment/components/button/__init__.py:127
 #: ../experiment/components/textbox/__init__.py:125
@@ -4086,18 +4085,18 @@ msgstr "显示 Python 或 JS 代码"
 msgid ""
 "Code to run before the experiment starts (initialization); right-click "
 "checks syntax"
-msgstr ""
+msgstr "在实验开始前运行的代码（初始化）；右键可检查语法"
 
 #: ../experiment/components/code/__init__.py:79
 msgid "Code at the start of the experiment ; right-click checks syntax"
-msgstr ""
+msgstr "实验开始时的代码；右键可检查语法"
 
 #: ../experiment/components/code/__init__.py:87
 #: ../experiment/components/code/__init__.py:138
 msgid ""
 "Code to be run at the start of each repeat of the Routine (e.g. each trial); "
 "right-click checks syntax"
-msgstr ""
+msgstr "例程每次循环开始时运行的代码（例：每个 trial ）；右键可检查语法"
 
 #: ../experiment/components/code/__init__.py:96
 #: ../experiment/components/code/__init__.py:147
@@ -4111,26 +4110,26 @@ msgstr ""
 msgid ""
 "Code at the end of this repeat of the Routine (e.g. getting/storing "
 "responses); right-click checks syntax"
-msgstr ""
+msgstr "例程此次循环结束时的代码（例：获取/储存应答）；右键可检查语法"
 
 #: ../experiment/components/code/__init__.py:114
 #: ../experiment/components/code/__init__.py:165
 msgid ""
 "Code at the end of the entire experiment (e.g. saving files, resetting "
 "computer); right-click checks syntax"
-msgstr ""
+msgstr "整个实验结束时的代码（例：储存文件，重置电脑）；右键可检查语法"
 
 #: ../experiment/components/code/__init__.py:123
 msgid ""
 "Code before the start of the experiment (initialization); right-click checks "
 "syntax"
-msgstr ""
+msgstr "在实验开始前的代码（初始化）；右键可检查语法"
 
 #: ../experiment/components/code/__init__.py:130
 msgid ""
 "Code at the start of the experiment (initialization); right-click checks "
 "syntax"
-msgstr ""
+msgstr "在实验开始时的代码（初始化）；右键可检查语法"
 
 #: ../experiment/components/dots/__init__.py:17
 msgid "Number of dots"
@@ -4188,41 +4187,43 @@ msgstr "点：随机点运动图"
 msgid ""
 "Number of dots in the field (for circular fields this will be average number "
 "of dots)"
-msgstr ""
+msgstr "区域内的点数（环形区域则取平均点数）"
 
 #: ../experiment/components/dots/__init__.py:77
 msgid "Direction of motion for the signal dots (degrees)"
-msgstr ""
+msgstr "信号点的运动方向（单位为度）"
 
 #: ../experiment/components/dots/__init__.py:85
 msgid "Speed of the dots (displacement per frame in the specified units)"
-msgstr ""
+msgstr "点的运动速度（每帧在指定单位内的位移）"
 
 #: ../experiment/components/dots/__init__.py:94
+#, fuzzy
 msgid ""
 "Coherence of the dots (fraction moving in the signal direction on any one "
 "frame)"
-msgstr ""
+msgstr "点的运动连贯性（在任意帧内朝信号方向移动的点的占比）"
 
 #: ../experiment/components/dots/__init__.py:103
 msgid "Size of the dots IN PIXELS regardless of the set units"
-msgstr ""
+msgstr "请忽略设定的单位，以像素为单位指明点的大小"
 
 #: ../experiment/components/dots/__init__.py:112
 msgid ""
 "Number of frames before each dot is killed and randomly assigned a new "
 "position"
-msgstr ""
+msgstr "在点被抹去并被随机赋予新位置前的帧数"
 
+# 参考jp将changing翻译为“变为同一方向”。
 #: ../experiment/components/dots/__init__.py:119
 msgid ""
 "On each frame are the signals dots remaining the same or changing? See Scase "
 "et al."
-msgstr ""
+msgstr "每帧内信号点保持不变或变为同一方向？见 Scase et al."
 
 #: ../experiment/components/dots/__init__.py:126
 msgid "When should the whole sample of dots be refreshed"
-msgstr ""
+msgstr "请指定所有点的更新时间"
 
 #: ../experiment/components/dots/__init__.py:134
 msgid "What governs the behaviour of the noise dots? See Scase et al."
@@ -4230,15 +4231,15 @@ msgstr ""
 
 #: ../experiment/components/dots/__init__.py:146
 msgid "What is the shape of the field?"
-msgstr ""
+msgstr "请定义区域形状"
 
 #: ../experiment/components/dots/__init__.py:149
 msgid "What is the size of the field (in the specified units)?"
-msgstr ""
+msgstr "请以指定单位定义区域大小"
 
 #: ../experiment/components/dots/__init__.py:158
 msgid "Where is the field centred (in the specified units)?"
-msgstr ""
+msgstr "请以指定单位定义区域中心位置"
 
 #: ../experiment/components/dots/__init__.py:168
 msgid "Dot Color"
@@ -4294,7 +4295,7 @@ msgstr ""
 #: ../experiment/components/noise/__init__.py:19
 #: ../experiment/components/patch/__init__.py:18
 msgid "Mask"
-msgstr ""
+msgstr "遮罩"
 
 #: ../experiment/components/envelopegrating/__init__.py:21
 msgid "Carrier spatial frequency"
