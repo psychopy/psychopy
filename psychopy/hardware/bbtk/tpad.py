@@ -113,9 +113,9 @@ class TPad(sd.SerialDevice):
         else:
             return [self.parseLine(line) for line in data]
 
-    def findOptode(self, win):
-        # calibrate optode to midgrey
-        self.calibrateOptode(127)
+    def findPhotodiode(self, win):
+        # calibrate photodiode to midgrey
+        self.calibratePhotodiode(127)
         # import visual here - if they're using this function, it's already in the stack
         from psychopy import visual
         # black box to cover screen
@@ -128,7 +128,7 @@ class TPad(sd.SerialDevice):
         # add low opacity label
         label = visual.TextBox2(
             win,
-            text="Finding optode...",
+            text="Finding photodiode...",
             fillColor=(0, 0, 0), color=(80, 80, 80), colorSpace="rgb255",
             pos=(0, 0), size=(2, 2), units="norm",
             alignment="center",
@@ -144,7 +144,7 @@ class TPad(sd.SerialDevice):
 
         def testRect():
             """
-            Recursively shrink the rectangle around the position of the optode until it's too small to detect.
+            Recursively shrink the rectangle around the position of the photodiode until it's too small to detect.
             """
             # work out width and height of area
             w, h = rect.size
@@ -168,17 +168,17 @@ class TPad(sd.SerialDevice):
                 label.draw()
                 rect.draw()
                 win.flip()
-                # poll optode
+                # poll photodiode
                 self.pause()
                 resp = self.getResponse(length=2, timeout=1 / 30)
-                # are any of the responses from an optode?
+                # are any of the responses from an photodiode?
                 for line in resp:
                     if isinstance(line, TPadResponse) and line.channel == "C" and line.state == "P":
                         # if one is, zero in recursively
                         return testRect()
-            # if none of these have returned, rect is too small to cover the whole optode, so return
+            # if none of these have returned, rect is too small to cover the whole photodiode, so return
             return
-        # recursively shrink rect around the optode
+        # recursively shrink rect around the photodiode
         testRect()
         # get response again just to clear it
         self.pause()
@@ -186,7 +186,7 @@ class TPad(sd.SerialDevice):
 
         return rect.pos
 
-    def calibrateOptode(self, level=127):
+    def calibratePhotodiode(self, level=127):
         # set to mode 0
         self.setMode(0)
         # call help and get response
