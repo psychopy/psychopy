@@ -35,7 +35,7 @@ class PhotodiodeValidator:
 
         # if no pos or size are given for photodiode, figure it out
         if diodePos is None or diodeSize is None:
-            _guessPos, _guessSize = self.device.findPhotodiode(self.win)
+            _guessPos, _guessSize = self.findDiode()
             if diodePos is None:
                 diodePos = _guessPos
             if diodeSize is None:
@@ -76,6 +76,97 @@ class PhotodiodeValidator:
                 isWhite = True
 
         return isWhite
+
+    def findDiode(self):
+        """
+        Draws rectangles on the screen and records photodiode responses to recursively find the location of the diode.
+
+        Returns
+        -------
+        psychopy.layout.Position
+            Position of the diode on the window. Essentially, the center of the last rectangle which the photodiode
+            was able to detect.
+        psychopy.layout.Size
+            Size of the area of certainty. Essentially, the size of the last (smallest) rectangle which the photodiode
+            was able to detect.
+        """
+        # stash autodraw
+        self.win.stashAutoDraw()
+        # calibrate photodiode to midgrey
+        self.device.calibratePhotodiode(127)
+        self.device.setMode(3)
+        # import visual here - if they're using this function, it's already in the stack
+        from psychopy import visual
+        # black box to cover screen
+        bg = visual.Rect(
+            self.win,
+            size=(2, 2), pos=(0, 0), units="norm",
+            fillColor="black",
+            autoDraw=False
+        )
+        # add low opacity label
+        label = visual.TextBox2(
+            self.win,
+            text="Finding photodiode...",
+            fillColor=(0, 0, 0), color=(80, 80, 80), colorSpace="rgb255",
+            pos=(0, 0), size=(2, 2), units="norm",
+            alignment="center",
+            autoDraw=False
+        )
+        # make rect
+        rect = visual.Rect(
+            self.win,
+            size=(2, 2), pos=(0, 0), anchor="center", units="norm",
+            fillColor="white",
+            autoDraw=False
+        )
+
+        def scanQuadrants():
+            """
+            Recursively shrink the rectangle around the position of the photodiode until it's too small to detect.
+            """
+            # work out width and height of area
+            w, h = rect.size
+            # work out left, right, top and bottom of area
+            r, t = rect.pos + rect.size / 2
+            l, b = rect.pos - rect.size / 2
+
+            # set rect size to half of area size
+            rect.size /= 2
+            # try each corner
+            for x, y in [
+                (l + w / 4, t - h / 4),  # top left
+                (r - w / 4, t - h / 4),  # top right
+                (l + w / 4, b + h / 4),  # bottom left
+                (r - w / 4, b + h / 4),  # bottom right
+            ]:
+                # position rect
+                rect.pos = (x, y)
+                # draw
+                bg.draw()
+                label.draw()
+                rect.draw()
+                self.win.flip()
+                # poll photodiode
+                self.device.pause()
+                if self.getDiodeState():
+                    # if it detected this rectangle, recur
+                    return scanQuadrants()
+            # if none of these have returned, rect is too small to cover the whole photodiode, so return
+            return
+
+        # recursively shrink rect around the photodiode
+        scanQuadrants()
+        # get response again just to clear it
+        self.device.pause()
+        self.device.getResponse()
+        # reinstate autodraw
+        self.win.retrieveAutoDraw()
+
+        return (
+            layout.Size(rect.pos + rect.size / (-2, 2), units="norm", win=self.win),
+            layout.Size(rect.size * 2, units="norm", win=self.win)
+        )
 
     @attributeSetter
     def diodeUnits(self, value):
