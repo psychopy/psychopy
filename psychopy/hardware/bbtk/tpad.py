@@ -54,15 +54,19 @@ class TPadPhotodiode(photodiode.BasePhotodiode):
         self.number = number
 
     def setThreshold(self, threshold):
+        self._threshold = threshold
         self.device.setMode(0)
         self.device.sendMessage(f"AAO{self.number} {threshold}")
+        self.device.pause()
+        self.device.setMode(3)
 
     def getState(self):
         # dispatch messages from device
+        self.device.pause()
         self.device.dispatchMessages()
         # return last known state of this diode
         if len(self.messages):
-            return self.messages[-1].state
+            return self.messages[-1].value
 
     def parseMessage(self, message):
         # if given a string, split according to regex

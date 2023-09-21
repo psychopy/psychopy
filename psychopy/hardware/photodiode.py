@@ -18,7 +18,7 @@ class BasePhotodiode:
         # get serial device from port (if photodiode manages its own device, this needs to be handled by the subclass)
         self.device = sd.ports[port]
         # dict in which to store messages by timestamp
-        self.messages = OrderedDict()
+        self.messages = []
 
     def receiveMessage(self, message):
         assert isinstance(message, PhotodiodeResponse), (
@@ -26,7 +26,7 @@ class BasePhotodiode:
             "{msgType}. Try parsing the message first using {ownType}.parseMessage()"
         ).format(ownType=type(self).__name__, msgType=type(message).__name__)
 
-        self.messages[message.t] = message
+        self.messages.append(message)
 
     def findPhotodiode(self, win):
         """
@@ -108,6 +108,8 @@ class BasePhotodiode:
         scanQuadrants()
         # reinstate autodraw
         win.retrieveAutoDraw()
+        # flip
+        win.flip()
 
         return (
             layout.Size(rect.pos + rect.size / (-2, 2), units="norm", win=win),
