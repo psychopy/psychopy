@@ -3,7 +3,7 @@
 
 Stimulus class for drawing circles. This is a lazy-imported class, therefore import using full path `psychopy.visual.circle.Circle` when inheriting from it.
 
-Overview
+Attributes
 ========
 
 .. currentmodule:: psychopy.visual.circle
