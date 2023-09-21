@@ -377,7 +377,21 @@ class BaseTranscriber:
             Transcription result object.
 
         """
-        return NULL_TRANSCRIPTION_RESULT
+        self._lastResult = NULL_TRANSCRIPTION_RESULT  # dummy value
+
+        return self._lastResult
+
+    def unload(self):
+        """Unload the transcriber interface.
+
+        This method is called when the transcriber interface is no longer
+        needed. This is useful for freeing up resources used by the transcriber
+        interface.
+
+        This might not be available on all transcriber interfaces.
+
+        """
+        pass
 
 
 class PocketSphinxTranscriber(BaseTranscriber):
@@ -823,10 +837,10 @@ def submit(audioClip, config=None):
     -------
     TranscriptionResult
         Result of the transcription.
-    
+
     """
     global _activeTranscriber
-    if _activeTranscriber is None:
+    if getActiveTranscriberName() is None:
         raise TranscriberNotSetupError(
             "No transcriber interface has been setup, call `setupTranscriber` "
             "before calling `submit`.")
