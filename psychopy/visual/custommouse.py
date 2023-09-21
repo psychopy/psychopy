@@ -24,6 +24,8 @@ import numpy
 class CustomMouse(MinimalStim):
     """Class for more control over the mouse,
     including the pointer graphic and bounding box.
+    This is a lazy-imported class, therefore import using
+    full path `psychopy.visual.custommouse.CustomMouse` when inheriting from it.
 
     Seems to work with pyglet or pygame. Not completely tested.
 
