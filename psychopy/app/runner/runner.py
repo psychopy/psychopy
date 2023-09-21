@@ -14,6 +14,7 @@ from ..themes import handlers, colors, icons
 from ..themes.ui import ThemeSwitcher
 
 import wx
+import wx.lib.agw.aui as aui
 import os
 import sys
 import time
@@ -87,7 +88,6 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
         # hide alerts to begin with, more room for std while also making alerts more noticeable
-        self.panel.alertsToggleBtn.ToggleMenu(False)
         self.Layout()
 
         self.theme = app.theme
@@ -428,64 +428,6 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
 
 
 class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
-
-    class SizerButton(wx.ToggleButton, handlers.ThemeMixin):
-        """Button to show/hide a category of components"""
-
-        def __init__(self, parent, label, sizer):
-            # Initialise button
-            wx.ToggleButton.__init__(self, parent,
-                                     label="   " + label, size=(-1, 24),
-                                     style=wx.BORDER_NONE | wx.BU_LEFT)
-            self.parent = parent
-            # Link to category of buttons
-            self.menu = sizer
-            # Default states to false
-            self.state = False
-            self.hover = False
-            # Bind toggle function
-            self.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleMenu)
-            # Bind hover functions
-            self.Bind(wx.EVT_ENTER_WINDOW, self.hoverOn)
-            self.Bind(wx.EVT_LEAVE_WINDOW, self.hoverOff)
-
-        def ToggleMenu(self, event):
-            # If triggered manually with a bool, treat that as a substitute for event selection
-            if isinstance(event, bool):
-                state = event
-            else:
-                state = event.GetSelection()
-            self.SetValue(state)
-            # Show / hide contents according to state
-            self.menu.Show(state)
-            # Do layout
-            self.parent.Layout()
-            # Restyle
-            self._applyAppTheme()
-
-        def hoverOn(self, event):
-            """Apply hover effect"""
-            self.hover = True
-            self._applyAppTheme()
-
-        def hoverOff(self, event):
-            """Unapply hover effect"""
-            self.hover = False
-            self._applyAppTheme()
-
-        def _applyAppTheme(self):
-            """Apply app theme to this button"""
-            if self.hover:
-                # If hovered over currently, use hover colours
-                self.SetForegroundColour(colors.app['txtbutton_fg_hover'])
-                # self.icon.SetForegroundColour(ThemeMixin.appColors['txtbutton_fg_hover'])
-                self.SetBackgroundColour(colors.app['txtbutton_bg_hover'])
-            else:
-                # Otherwise, use regular colours
-                self.SetForegroundColour(colors.app['text'])
-                # self.icon.SetForegroundColour(ThemeMixin.appColors['text'])
-                self.SetBackgroundColour(colors.app['panel_bg'])
-
     def __init__(self, parent=None, id=wx.ID_ANY, title='', app=None):
         super(RunnerPanel, self).__init__(parent=parent,
                                           id=id,
@@ -546,29 +488,18 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
 
         # Setup panel for bottom half (alerts and stdout)
         self.bottomPanel = wx.Panel(self.splitter)
+        self.bottomPanel.border = wx.BoxSizer()
+        self.bottomPanel.SetSizer(self.bottomPanel.border)
         self.bottomPanel.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.bottomPanel.SetSizer(self.bottomPanel.sizer)
+        self.bottomPanel.border.Add(self.bottomPanel.sizer, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
 
-        # Alerts
-        self._selectedHiddenAlerts = False  # has user manually hidden alerts?
-        self.alertsPnl = ScriptOutputPanel(parent=self.bottomPanel,
-                                           style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE)
-        self.alertsPnl.SetMinSize((-1, 150))
-        self.alertsToggleBtn = self.SizerButton(self.bottomPanel, _translate("Alerts"), self.alertsPnl)
-        self.bottomPanel.sizer.Add(self.alertsToggleBtn, 0, wx.TOP | wx.EXPAND, 10)
-        self.bottomPanel.sizer.Add(self.alertsPnl, proportion=1, border=10, flag=wx.EXPAND | wx.ALL)
-        self.alertsCtrl = self.alertsPnl.ctrl
-        self.setAlertsVisible(True)
-
-        # StdOut
-        self.stdoutPnl = ScriptOutputPanel(parent=self.bottomPanel,
-                                     style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE)
-        self.stdoutPnl.SetMinSize((-1, 150))
-        self.stdoutToggleBtn = self.SizerButton(self.bottomPanel, _translate("Stdout"), self.stdoutPnl)
-        self.bottomPanel.sizer.Add(self.stdoutToggleBtn, proportion=0, border=10, flag=wx.TOP | wx.EXPAND)
-        self.bottomPanel.sizer.Add(self.stdoutPnl, proportion=1, border=10, flag=wx.EXPAND | wx.ALL)
-        self.stdoutCtrl = self.stdoutPnl.ctrl
-        self.setStdoutVisible(True)
+        # Setup notebook for output
+        self.outputNotebook = RunnerOutputNotebook(self.bottomPanel)
+        self.stdoutPnl = self.outputNotebook.stdoutPnl
+        self.alertsPnl = self.outputNotebook.alertsPnl
+        self.bottomPanel.sizer.Add(
+            self.outputNotebook, proportion=1, border=6, flag=wx.ALL | wx.EXPAND
+        )
 
         # Assign to splitter
         self.splitter.SplitVertically(
@@ -584,8 +515,6 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         # Set starting states on buttons
         self.ribbon.buttons['pystop'].Disable()
         self.ribbon.buttons['remove'].Disable()
-        self.alertsToggleBtn.ToggleMenu(True)
-        self.stdoutToggleBtn.ToggleMenu(True)
 
         self.theme = parent.theme
 
@@ -596,17 +525,18 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.bottomPanel.SetBackgroundColour(colors.app['panel_bg'])
         # Theme buttons
         self.ribbon.theme = self.theme
-        # Add icons to buttons
-        bmp = icons.ButtonIcon("stdout", size=(16, 16)).bitmap
-        self.stdoutToggleBtn.SetBitmap(bmp)
-        self.stdoutToggleBtn.SetBitmapMargins(x=6, y=0)
-        bmp = icons.ButtonIcon("alerts", size=(16, 16)).bitmap
-        self.alertsToggleBtn.SetBitmap(bmp)
-        self.alertsToggleBtn.SetBitmapMargins(x=6, y=0)
+        # Theme notebook
+        self.outputNotebook.theme = self.theme
+        bmps = {
+            self.alertsPnl: icons.ButtonIcon("alerts", size=16).bitmap,
+            self.stdoutPnl: icons.ButtonIcon("stdout", size=16).bitmap,
+        }
+        for i in range(self.outputNotebook.GetPageCount()):
+            pg = self.outputNotebook.GetPage(i)
+            if pg in bmps:
+                self.outputNotebook.SetPageBitmap(i, bmps[pg])
         # Apply app theme on objects in non-theme-mixin panels
         for obj in (
-                self.alertsPnl, self.alertsToggleBtn,
-                self.stdoutPnl, self.stdoutToggleBtn,
                 self.expCtrl, self.ribbon
         ):
             obj.theme = self.theme
@@ -618,23 +548,16 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         self.Refresh()
 
     def setAlertsVisible(self, new=True):
-        if type(new) == bool:
-            self.alertsCtrl.Show(new)
-        # or could be an event from button click (a toggle)
-        else:
-            show = (not self.alertsCtrl.IsShown())
-            self.alertsCtrl.Show(show)
-            self._selectedHiddenAlerts = not show
-        self.Layout()
+        if new:
+            self.outputNotebook.SetSelectionToPage(
+                self.outputNotebook.GetPageIndex(self.alertsPnl)
+            )
 
     def setStdoutVisible(self, new=True):
-        # could be a boolean from our own code
-        if type(new) == bool:
-            self.stdoutCtrl.Show(new)
-        # or could be an event (so toggle) from button click
-        else:
-            self.stdoutCtrl.Show(not self.stdoutCtrl.IsShown())
-        self.Layout()
+        if new:
+            self.outputNotebook.SetSelectionToPage(
+                self.outputNotebook.GetPageIndex(self.stdoutPnl)
+            )
 
     def stopTask(self, event=None):
         """Kill script processes currently running."""
@@ -965,6 +888,30 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
     @currentProject.setter
     def currentProject(self, project):
         self._currentProject = None
+
+
+class RunnerOutputNotebook(aui.AuiNotebook, handlers.ThemeMixin):
+    def __init__(self, parent):
+        aui.AuiNotebook.__init__(self, parent, style=wx.BORDER_NONE)
+        # Alerts
+        self.alertsPnl = ScriptOutputPanel(
+            parent=parent,
+            style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE
+        )
+        self.AddPage(
+            self.alertsPnl, caption=_translate("Alerts")
+        )
+
+        # StdOut
+        self.stdoutPnl = ScriptOutputPanel(
+            parent=parent,
+            style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE
+        )
+        self.AddPage(
+            self.stdoutPnl, caption=_translate("Stdout")
+        )
+
+        self.SetMinSize((720, 720))
 
 
 class RunnerRibbon(ribbon.FrameRibbon):
