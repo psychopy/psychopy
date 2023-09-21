@@ -13,15 +13,14 @@ __all__ = [
     'transcribe',
     'TRANSCR_LANG_DEFAULT',
     'BaseTranscriber',
-    # 'WhisperTranscriber',
     'recognizerEngineValues',
     'recognizeSphinx',
     'recognizeGoogle',
-    'recognizeWhisper',
     'getAllTranscriberInterfaces',
     'getTranscriberInterface',
     'setupTranscriber',
-    'getActiveTranscriberName',
+    'getActiveTranscriber',
+    'getActiveTranscriberEngine',
     'submit'
 ]
 
@@ -795,7 +794,23 @@ def setupTranscriber(engine, config=None):
     _activeTranscriber = transcriber(config)  # init the transcriber
 
 
-def getActiveTranscriberName():
+def getActiveTranscriber():
+    """Get the currently active transcriber interface instance.
+
+    Should return a subclass of `BaseTranscriber` upon a successful call to
+    `setupTranscriber()`, otherwise `None` is returned.
+
+    Returns
+    -------
+    Subclass of `BaseTranscriber` or None
+        Active transcriber interface instance, or `None` if none is active.
+
+    """
+    global _activeTranscriber
+    return _activeTranscriber
+
+
+def getActiveTranscriberEngine():
     """Get the name currently active transcriber interface.
 
     Should return a string upon a successful call to `setupTranscriber()`, 
@@ -807,18 +822,19 @@ def getActiveTranscriberName():
         Name of the active transcriber interface, or `None` if none is active.
 
     """
-    global _activeTranscriber
-    if _activeTranscriber is None:
+    activeTranscriber = getActiveTranscriber()
+    if activeTranscriber is None:
         return None
 
-    return _activeTranscriber.engine
+    return activeTranscriber.engine
 
 
 def submit(audioClip, config=None):
     """Submit an audio clip for transcription.
 
     This will begin the transcription process using the currently loaded 
-    transcriber and return when completed.
+    transcriber and return when completed. Unlike `transcribe`, not calling 
+    `setupTranscriber` before calling this function will raise an exception.
 
     Parameters
     ----------
@@ -840,7 +856,7 @@ def submit(audioClip, config=None):
 
     """
     global _activeTranscriber
-    if getActiveTranscriberName() is None:
+    if getActiveTranscriberEngine() is None:
         raise TranscriberNotSetupError(
             "No transcriber interface has been setup, call `setupTranscriber` "
             "before calling `submit`.")
