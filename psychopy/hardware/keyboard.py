@@ -121,6 +121,40 @@ def getKeyboards():
     return []
 
 
+class KeyboardComponent:
+    def __init__(self, device=-1, bufferSize=10000, waitForStart=False, clock=None, backend=None):
+        self.device = Keyboard(
+            device=device, bufferSize=bufferSize, waitForStart=waitForStart, clock=clock, backend=backend
+        )
+
+    def getBackend(self):
+        return self.device.getBackend()
+
+    def setBackend(self, backend):
+        return self.device.setBackend(backend=backend)
+
+    def start(self):
+        return self.device.start()
+
+    def stop(self):
+        return self.device.stop()
+
+    def getKeys(self, keyList=None, ignoreKeys=None, waitRelease=True, clear=True):
+        return self.device.getKeys(
+            keyList=keyList, ignoreKeys=ignoreKeys, waitRelease=waitRelease, clear=clear
+        )
+
+    def waitKeys(self, maxWait=float('inf'), keyList=None, waitRelease=True,
+                 clear=True):
+        return self.device.waitKeys(
+            maxWait=maxWait, keyList=keyList, waitRelease=waitRelease,
+            clear=clear
+        )
+
+    def clearEvents(self, eventType=None):
+        return self.device.clearEvents(eventType=eventType)
+
+
 class Keyboard(AttributeGetSetMixin):
     """The Keyboard class provides access to the Psychtoolbox KbQueue-based
     calls on **Python3 64-bit** with fall-back to `event.getKeys` on legacy
