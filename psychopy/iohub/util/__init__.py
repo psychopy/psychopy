@@ -13,6 +13,7 @@ import datetime
 from ..errors import print2err, printExceptionDetailsToStdErr
 import re
 import collections.abc
+import pathlib
 import psychopy.logging as logging
 import psychopy.plugins as plugins
 
@@ -137,6 +138,54 @@ def module_directory(local_function):
     return moduleDirectory
 
 
+def getSupportedConfigSettings(moduleName, deviceClassName=None):
+    """Get the supported configuration settings for a device.
+
+    These are usually stored as YAML files within the module directory that 
+    defines the device class.
+
+    Parameters
+    ----------
+    moduleName : str
+        The name of the module to get the path for. Must be a package that defines
+        `__init__.py`.
+    deviceClassName : str, optional
+        The name of the specific device class to get the path for. If not provided, 
+        the default configuration file will be searched for in the module 
+        directory.
+    
+    Returns
+    -------
+    str
+        The path to the supported configuration settings file in YAML format.
+
+    """
+    yamlRoot = pathlib.Path(moduleName.__file__).parent
+    if deviceClassName is not None:
+        # file name for yaml file name convention for multiple files
+        fileName = 'supported_config_settings_{0}.yaml'.format(
+            deviceClassName.lower())
+        yamlFile = yamlRoot / pathlib.Path(moduleName.__file__).parent / fileName
+        if not yamlFile.exists():
+            raise FileNotFoundError(
+                "No config file found in module dir {0}".format(moduleName))
+        logging.debug(
+            "Found ioHub device configuration file: {0}".format(yamlFile))
+
+        return str(yamlFile)
+        
+    # file name for yaml file name convention for single file
+    yamlFile = yamlRoot / pathlib.Path('supported_config_settings.yaml')
+    if not yamlFile.exists():  # nothing is found
+        raise FileNotFoundError(
+            "No config file found in module dir {0}".format(moduleName))
+    
+    logging.debug(
+        "Found ioHub device configuration file: {0}".format(yamlFile))
+
+    return str(yamlFile)
+
+
 def isIterable(o):
     return isinstance(o, Iterable)
 
@@ -161,12 +210,12 @@ def getDevicePaths(device_name=""):
     from psychopy.iohub.devices import import_device
 
     # mdc - Changes here were made to support loading device modules from
-    #       extensions. This allows support for devices that are not included in 
+    #       extensions. This allows support for devices that are not included in
     #       the iohub package.
 
     def _getDevicePaths(iohub_device_path):
         """Look for device configuration files in the specified path.
-        
+
         Parameters
         ----------
         iohub_device_path : str
@@ -178,7 +227,7 @@ def getDevicePaths(device_name=""):
             A list of tuples containing the path to the device module and the
             name of the device module. If empty, no device configuration files
             were found.
-        
+
         """
         yaml_paths = []
         # try to walk both the internal iohub_device_path and user-level packages folder
@@ -201,7 +250,7 @@ def getDevicePaths(device_name=""):
         return yaml_paths
 
     scs_yaml_paths = []  # stores the paths to the device config files
-    plugins.refreshBundlePaths()  # make sure eyetracker external plugins are reachable 
+    plugins.refreshBundlePaths()  # make sure eyetracker external plugins are reachable
 
     # get device paths for extant extensions
     try:  # tobii eyetrackers
@@ -241,9 +290,16 @@ def getDevicePaths(device_name=""):
         if deviceConfig:
             logging.debug("Found PupilLabs device configuration file.")
             scs_yaml_paths.extend(deviceConfig)
+
+        import psychopy_eyetracker_pupil_labs.pupil_labs.neon as neon
+        deviceConfig = _getDevicePaths(os.path.dirname(neon.__file__))
+        if deviceConfig:
+            logging.debug("Found PupilLabs Neon device configuration file.")
+            scs_yaml_paths.extend(deviceConfig)
+
     except ImportError:
-        logging.debug("No PupilLabs device configuration file found.")    
-    
+        logging.debug("No PupilLabs device configuration file found.")
+
     # use this method for built-in devices
     iohub_device_path = module_directory(import_device)
     if device_name:
@@ -310,7 +366,7 @@ def getDeviceDefaultConfig(device_name, builder_hides=True):
     # if len(device_configs) == 1:
     #     # simplify return value when only one device was requested
     #     return list(device_configs[0].values())[0]
-    
+
     return device_configs
 
 

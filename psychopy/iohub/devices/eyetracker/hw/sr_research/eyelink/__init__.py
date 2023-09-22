@@ -7,6 +7,7 @@ import psychopy.logging as logging
 
 try:
     from psychopy_eyetracker_sr_research.sr_research.eyelink import (
+        __file__,
         EyeTracker, 
         MonocularEyeSampleEvent,
         BinocularEyeSampleEvent, 
@@ -15,7 +16,8 @@ try:
         SaccadeStartEvent,
         SaccadeEndEvent, 
         BlinkStartEvent,
-        BlinkEndEvent)
+        BlinkEndEvent
+    )
 except (ModuleNotFoundError, ImportError, NameError):
     logging.error(
         "SR Research eyetracker support requires the package "

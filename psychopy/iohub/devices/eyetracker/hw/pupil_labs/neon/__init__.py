@@ -12,18 +12,15 @@ import psychopy.logging as logging
 
 try:
     import psychopy_eyetracker_pupil_labs.pupil_labs.pupil_core as __plugin__
-    from psychopy_eyetracker_pupil_labs.pupil_labs.pupil_core import (
+    from psychopy_eyetracker_pupil_labs.pupil_labs.neon import (
         __file__,
-        MonocularEyeSampleEvent, 
         BinocularEyeSampleEvent,
-        EyeTracker
-    )
+        EyeTracker)
 except (ModuleNotFoundError, ImportError, NameError):
     logging.error(
         "Pupil Labs eyetracker support requires the package "
         "'psychopy-eyetracker-pupil-labs' to be installed. Please install this "
         "package and restart the session to enable support.")
-
 
 if __name__ == "__main__":
     pass
