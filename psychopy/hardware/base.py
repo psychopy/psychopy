@@ -30,37 +30,3 @@ class BaseDevice:
     def close(self):
         raise NotImplementedError()
 
-
-def deviceWrapper(deviceCls):
-    def _decorator(cls):
-        # docs
-        cls.__docs__ = (
-            f"Wrapper around {deviceCls.__name__} so that multiple objects can exist for the same physical device."
-        )
-
-        # alias init function of device
-        def initAlias(self, *args, **kwargs):
-            self.device = deviceCls(*args, **kwargs)
-        cls.__init__ = initAlias
-        # alias all methods of device
-        for methodName in deviceCls.__dict__:
-            # get method
-            meth = getattr(deviceCls, methodName)
-            # skip non-methods
-            if not inspect.isfunction(meth):
-                continue
-            # skip private methods
-            if methodName.startswith("_"):
-                continue
-
-            # create alias method
-            def methodAlias(self, *args, **kwargs):
-                return meth(self.device, *args, **kwargs)
-            # assign alias method
-            setattr(cls, methodName, methodAlias)
-
-        return cls
-
-    return _decorator
-
-
