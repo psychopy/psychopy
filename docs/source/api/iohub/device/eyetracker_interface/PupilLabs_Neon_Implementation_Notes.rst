@@ -47,7 +47,7 @@ Setting Up the Eye Tracker
 ==========================
 
 1. Follow `Neon's Getting Started
-   guide <https://docs.pupil-labs.com/neon/#getting-started>`__ to setup
+   guide <https://docs.pupil-labs.com/neon/#getting-started>`_ to setup
    the headset and companion device.
 
 Setting Up |PsychoPy|
@@ -61,7 +61,12 @@ Setting Up |PsychoPy|
 
    -  Select ``Pupil Labs (Neon)`` from the ``Eyetracker Device`` drop down menu
    -  ``Companion address`` / ``Companion port`` - Defines how to connect to
-      the Companion Device.
+      the Companion Device. These values can be found in the Neon Companion app by clicking the
+      ``Stream`` button in the top-left corner of the app.
+
+.. raw:: html
+<video src="https://raw.githubusercontent.com/wiki/pupil-labs/psychopy-eyetracker-pupil-labs/images/companion-stream-info.mp4" width="240" height="536"/>
+
    -  ``Recording enabled`` - Enable this option to create a recording on the Companion device.
    -  ``Camera calibration path`` - Specify the path of a camera calibration file. This is the
       ``scene_camera.json`` file from a saved recording.
@@ -72,6 +77,7 @@ Setting Up |PsychoPy|
    -  All the tags which are visible together must each have a unique ID.
    -  Tags can be placed anywhere on the screen as long as they are fully visible and do not overlap.
 
+A `sample experiment <https://github.com/pupil-labs/psychopy-gaze-contingent-demo>`_ is available for reference.
 
 *******************************
 Implementation and API Overview
