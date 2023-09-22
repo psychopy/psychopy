@@ -14,13 +14,14 @@ import time
 
 from psychopy import logging
 from psychopy.tools.attributetools import AttributeGetSetMixin
+from .base import BaseDevice
 try:
     import serial
 except ImportError:
     serial = False
 
 
-class SerialDevice(AttributeGetSetMixin):
+class SerialDevice(AttributeGetSetMixin, BaseDevice):
     """A base class for serial devices, to be sub-classed by specific devices
 
     If port=None then the SerialDevice.__init__() will search for the device
@@ -188,6 +189,13 @@ class SerialDevice(AttributeGetSetMixin):
         if type(retVal) is bytes:
             retVal = retVal.decode('utf-8')
         return retVal
+
+    def isSameDevice(self, params):
+        port = self.portString[3:]
+        return params['port'] in (self.portString, port, int(port))
+
+    def close(self):
+        self.com.close()
 
     def __del__(self):
         if self.com is not None:
