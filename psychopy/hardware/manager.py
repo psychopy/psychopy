@@ -26,34 +26,60 @@ def deviceAddMethod(key):
     return _decorator
 
 
-class DeviceManager:
-    def __init__(self):
-        self.devices = {}
+class DeviceManager(list):
+    instance = None
+
+    def __new__(cls):
+        if cls.instance is None:
+            cls.instance = list.__new__(cls)
+        return cls.instance
 
     # --- managing devices ---
     @deviceAddMethod("Keyboard")
-    def addKeyboard(self, name, backend="iohub"):
-        self.devices[name] = keyboard.Keyboard(backend=backend)
+    def addKeyboard(self, backend="iohub", device=-1):
+        return keyboard.Keyboard(backend=backend, device=device)
 
     @deviceAddMethod("Mouse")
     def addMouse(self, name):
-        self.devices[name] = mouse.Mouse()
+        self[name] = mouse.Mouse()
+
+        return self[name]
 
     @deviceAddMethod("Microphone")
     def addMicrophone(self, name, device, sampleRate=44100, channels=1):
-        self.devices[name] = microphone.Microphone(
+        self[name] = microphone.Microphone(
             device=device, sampleRateHz=sampleRate, channels=channels
         )
 
+        return self[name]
+
     @deviceAddMethod("Camera")
     def addCamera(self, name, device=0, backend=u'ffpyplayer'):
-        self.devices[name] = camera.Camera(
+        self[name] = camera.Camera(
             device=device, cameraLib=backend
         )
+
+        return self[name]
+
+    @deviceAddMethod("Serial")
+    def addSerialDevice(self, name, port, baudrate=9600, byteSize=8, stopBits=1, parity="N"):
+        self[name] = sd.SerialDevice(
+            port=port, baudrate=baudrate,
+            byteSize=byteSize, stopBits=stopBits,
+            parity=parity
+        )
+
+        return self[name]
 
     @deviceAddMethod("TPad")
     def addTPad(self, name, port):
         raise NotImplementedError("BBTK TPad integration is a work in progress")
+
+    def registerDevice(self, device):
+        for obj in self:
+            if obj.isSameDevice(params=device.__dict__):
+                return
+        self.append(device)
 
     def addDevicesFromSpec(self, spec):
         for item in spec:
@@ -93,3 +119,6 @@ class DeviceManager:
         for info in list_ports.comports():
             spec[info.name] = info
         return spec
+
+
+mgr = DeviceManager()
