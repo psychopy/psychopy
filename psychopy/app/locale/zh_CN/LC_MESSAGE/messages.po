@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2023-09-21 17:15-0400\n"
+"PO-Revision-Date: 2023-09-23 17:49-0400\n"
 "Last-Translator: Bingzi Yu <ybzice@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -303,7 +303,6 @@ msgstr "偏好"
 msgid "Stimuli"
 msgstr "刺激"
 
-# Change all translations of “responses” into “应答”.
 #: ../app/builder/builder.py:80
 msgid "Responses"
 msgstr "应答"
@@ -3754,17 +3753,16 @@ msgstr "此刺激的大小（单一值或[x,y]数对，例：2.5，[1,2]） "
 
 #: ../experiment/components/_base.py:721
 msgid "Orientation of this stimulus (in deg)"
-msgstr "此刺激的旋转角度（单位为“度”）"
+msgstr "此刺激的旋转方向（单位为“度”）"
 
 # Aperture：视窗？缝隙？孔径？光圈？
 #: ../experiment/components/aperture/__init__.py:29
-#, fuzzy
 msgid "Aperture: restrict the drawing of stimuli to a given region"
-msgstr "Aperture：将刺激的描画边界限制在给定的区域中"
+msgstr "孔径：将刺激的描画边界限制在给定的区域中"
 
 #: ../experiment/components/aperture/__init__.py:49
 msgid "How big is the aperture? (a single number for diameter)"
-msgstr ""
+msgstr "孔径的大小为？（请用个位数定义直径）"
 
 #: ../experiment/components/aperture/__init__.py:53
 #: ../experiment/components/ratingScale/__init__.py:31
@@ -3773,7 +3771,7 @@ msgstr "大小"
 
 #: ../experiment/components/aperture/__init__.py:54
 msgid "Where is the aperture centred?"
-msgstr ""
+msgstr "孔径的中心位置在？"
 
 #: ../experiment/components/brush/__init__.py:19
 msgid "Brush Size"
@@ -3910,7 +3908,7 @@ msgstr "文本颜色"
 #: ../experiment/components/joyButtons/__init__.py:83
 #: ../experiment/components/keyboard/__init__.py:101
 msgid "Should a response force the end of the Routine (e.g end the trial)?"
-msgstr ""
+msgstr "是否允许应答结束此例程（例：结束试验）？"
 
 #: ../experiment/components/button/__init__.py:100
 msgid ""
@@ -4283,11 +4281,11 @@ msgstr "初始化 EMOTIV 硬件连接"
 
 #: ../experiment/components/envelopegrating/__init__.py:18
 msgid "Carrier texture"
-msgstr ""
+msgstr "载波纹理"
 
 #: ../experiment/components/envelopegrating/__init__.py:19
 msgid "Carrier Orientation"
-msgstr ""
+msgstr "载波旋转方向"
 
 #: ../experiment/components/envelopegrating/__init__.py:20
 #: ../experiment/components/grating/__init__.py:19
@@ -4299,15 +4297,15 @@ msgstr "遮罩"
 
 #: ../experiment/components/envelopegrating/__init__.py:21
 msgid "Carrier spatial frequency"
-msgstr ""
+msgstr "载波空间频率"
 
 #: ../experiment/components/envelopegrating/__init__.py:22
 msgid "Carrier phase (in cycles)"
-msgstr ""
+msgstr "载波相位（相对循环）"
 
 #: ../experiment/components/envelopegrating/__init__.py:23
 msgid "Carrier contrast"
-msgstr ""
+msgstr "载波对比度"
 
 #: ../experiment/components/envelopegrating/__init__.py:24
 #: ../experiment/components/grating/__init__.py:22
@@ -4324,27 +4322,27 @@ msgstr "纹理分辨率"
 #: ../experiment/components/patch/__init__.py:22
 #: ../experiment/components/polygon/__init__.py:26
 msgid "Interpolate"
-msgstr ""
+msgstr "插值"
 
 #: ../experiment/components/envelopegrating/__init__.py:26
 msgid "Envelope texture"
-msgstr ""
+msgstr "包络纹理"
 
 #: ../experiment/components/envelopegrating/__init__.py:27
 msgid "Envelope spatial frequency"
-msgstr ""
+msgstr "包络空间频率"
 
 #: ../experiment/components/envelopegrating/__init__.py:28
 msgid "Envelope orientation"
-msgstr ""
+msgstr "包络旋转方向"
 
 #: ../experiment/components/envelopegrating/__init__.py:29
 msgid "Envelope phase"
-msgstr ""
+msgstr "包络相位"
 
 #: ../experiment/components/envelopegrating/__init__.py:30
 msgid "Envelope modulation depth"
-msgstr ""
+msgstr "包络调制深度"
 
 #: ../experiment/components/envelopegrating/__init__.py:31
 msgid "Power to which envelope is raised"
@@ -4364,13 +4362,13 @@ msgstr "OpenGL 混合模式"
 msgid ""
 "Envelope Grating: present cyclic textures including 2nd order envelope "
 "stimuli, prebuilt or from a file"
-msgstr ""
+msgstr "包络光栅：呈现循环纹理 （例如二阶包络），可预设或从文件中获取"
 
 #: ../experiment/components/envelopegrating/__init__.py:71
 msgid ""
 "The (2D) texture of the background - can be sin, sqr, sinXsin... or a "
 "filename (including path)"
-msgstr ""
+msgstr "背景纹理（2D）——可设置为 sin，sqr，sinXsin……或文件名（包括文件路径）"
 
 #: ../experiment/components/envelopegrating/__init__.py:80
 #: ../experiment/components/grating/__init__.py:67
@@ -4380,20 +4378,22 @@ msgid ""
 "An image to define the alpha mask (ie shape)- gauss, circle... or a filename "
 "(including path)"
 msgstr ""
+"设置定义 alpha 遮罩（即形状）的图像—— 可设置为gauss，circle……或文件名（包含文"
+"件路径）"
 
 #: ../experiment/components/envelopegrating/__init__.py:89
 msgid "Contrast of background carrier"
-msgstr ""
+msgstr "背景载波的对比度"
 
 #: ../experiment/components/envelopegrating/__init__.py:97
 msgid ""
 "Spatial frequency of background carrier repeats across the grating in 1 or 2 "
 "dimensions, e.g. 4 or [2,3]"
-msgstr ""
+msgstr "背景载波的空间频率如何在光栅上以一维或二维重复，例：4或[2,3]"
 
 #: ../experiment/components/envelopegrating/__init__.py:106
 msgid "Spatial positioning of the background carrier (wraps in range 0-1.0)"
-msgstr ""
+msgstr "背景载波的空间定位（范围为0-1.0）"
 
 #: ../experiment/components/envelopegrating/__init__.py:115
 #: ../experiment/components/grating/__init__.py:94
@@ -4402,7 +4402,7 @@ msgstr ""
 msgid ""
 "Resolution of the texture for standard ones such as sin, sqr etc. For most "
 "cases a value of 256 pixels will suffice"
-msgstr ""
+msgstr "标准纹理（如 sin，sqr 等）的分辨率。256像素可满足大多数情况"
 
 #: ../experiment/components/envelopegrating/__init__.py:125
 #: ../experiment/components/grating/__init__.py:104
@@ -4411,31 +4411,31 @@ msgstr ""
 #: ../experiment/components/patch/__init__.py:99
 #: ../experiment/components/polygon/__init__.py:118
 msgid "How should the image be interpolated if/when rescaled"
-msgstr ""
+msgstr "如果重新缩放图像，应如何对图像进行插值处理"
 
 #: ../experiment/components/envelopegrating/__init__.py:133
 msgid ""
 "The (2D) texture of the envelope - can be sin, sqr, sinXsin... or a filename "
 "(including path)"
-msgstr ""
+msgstr "包络纹理（2D）——可设置为 sin，sqr，sinXsin……或文件名（包含文件路径）"
 
 #: ../experiment/components/envelopegrating/__init__.py:142
 msgid ""
 "Spatial frequency of the modulation envelope repeats across the grating in 1 "
 "or 2 dimensions, e.g. 4 or [2,3]"
-msgstr ""
+msgstr "调制包络的空间频率如何在光栅上以一维或二维重复，例：4或[2,3]"
 
 #: ../experiment/components/envelopegrating/__init__.py:151
 msgid "Spatial positioning of the modulation envelope(wraps in range 0-1.0)"
-msgstr ""
+msgstr "调制包络的空间定位（范围为0-1.0）"
 
 #: ../experiment/components/envelopegrating/__init__.py:160
 msgid "Orientation of the modulation envelope(wraps in range 0-360)"
-msgstr ""
+msgstr "调制包络的旋转方向（范围为0-360）"
 
 #: ../experiment/components/envelopegrating/__init__.py:169
 msgid "Modulation depth of modulation envelope"
-msgstr ""
+msgstr "调制包络的调制深度"
 
 #: ../experiment/components/envelopegrating/__init__.py:177
 msgid ""
@@ -4453,20 +4453,26 @@ msgid ""
 msgstr ""
 
 #: ../experiment/components/envelopegrating/__init__.py:199
+#, fuzzy
 msgid ""
 "Do you want a 'beat'? [beat = carrier*envelope, no beat = "
 "carrier*(1+envelope), True/False, Y/N]"
 msgstr ""
+"是否需要一个“节拍”？[节拍 = 载波*包络，无节拍 = 载波*（1+包络），True/False，"
+"Y/N]"
 
 #: ../experiment/components/envelopegrating/__init__.py:208
+#, fuzzy
 msgid ""
 "OpenGL Blendmode. Avg is most common mode in PsychoPy, add is useful if "
 "combining a beat with the carrier image or numpy array at point of display"
 msgstr ""
+"OpenGL 渲染模式。Avg 是 PsychoPy 中最常用的模式，如果在显示时将节拍与载波图像"
+"或 numpy 数组结合在一起，添加该模式非常有用"
 
 #: ../experiment/components/eyetracker_record/__init__.py:24
 msgid "Eyetracker: use one of several eyetrackers to follow gaze"
-msgstr ""
+msgstr "眼动追踪器：使用其中一个眼动追踪器以追踪视线"
 
 #: ../experiment/components/form/__init__.py:20
 msgid "Items"
