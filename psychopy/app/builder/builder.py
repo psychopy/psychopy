@@ -4353,7 +4353,7 @@ class BuilderRibbon(ribbon.FrameRibbon):
         )
         # settings
         self.addButton(
-            section="experiment", name='expsettings', label=_translate('Experiment settings'), icon="cogwindow",
+            section="experiment", name='expsettings', label=_translate('Experiment settings'), icon="expsettings",
             tooltip=_translate("Edit experiment settings"),
             callback=parent.setExperimentSettings
         )
@@ -4416,7 +4416,7 @@ class BuilderRibbon(ribbon.FrameRibbon):
         )
         # sync project
         self.addButton(
-            section="pavlovia", name="jsrun", label=_translate("Sync"), icon='globe_greensync',
+            section="pavlovia", name="jsrun", label=_translate("Sync"), icon='pavsync',
             tooltip=_translate("Sync project with Pavlovia"),
             callback=parent.onPavloviaSync
         )

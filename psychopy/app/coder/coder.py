@@ -2946,7 +2946,7 @@ class CoderRibbon(ribbon.FrameRibbon):
         )
         # sync project
         self.addButton(
-            section="pavlovia", name="jsrun", label=_translate("Sync"), icon='globe_greensync',
+            section="pavlovia", name="jsrun", label=_translate("Sync"), icon='pavsync',
             tooltip=_translate("Sync project with Pavlovia"),
             callback=parent.onPavloviaSync
         )
