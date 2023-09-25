@@ -681,7 +681,7 @@ class PavloviaProjectCtrl(FrameRibbonDropdownButton):
             # Save file
             self.frame.fileSave(self.frame.filename)
             # If allowed by prefs, export html and js files
-            if self.frame._getExportPref('on sync'):
+            if hasattr(self.frame, "_getExportPref") and self.frame._getExportPref('on sync'):
                 htmlPath = self.frame._getHtmlPath(self.frame.filename)
                 if htmlPath:
                     self.frame.fileExport(htmlPath=htmlPath)

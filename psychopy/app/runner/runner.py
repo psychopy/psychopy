@@ -496,7 +496,9 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         # Setup notebook for output
         self.outputNotebook = RunnerOutputNotebook(self.bottomPanel)
         self.stdoutPnl = self.outputNotebook.stdoutPnl
+        self.stdoutCtrl = self.outputNotebook.stdoutPnl.ctrl
         self.alertsPnl = self.outputNotebook.alertsPnl
+        self.alertsCtrl = self.outputNotebook.alertsPnl.ctrl
         self.bottomPanel.sizer.Add(
             self.outputNotebook, proportion=1, border=6, flag=wx.ALL | wx.EXPAND
         )
@@ -786,14 +788,10 @@ class RunnerPanel(wx.Panel, ScriptProcess, handlers.ThemeMixin):
         else:
             nAlerts = 0
         # update labels and text accordingly
-        self.alertsToggleBtn.SetLabelText("   " + _translate("Alerts ({})").format(nAlerts))
         sys.stdout.flush()
         sys.stdout = sys.stderr = prev
         if nAlerts == 0:
             self.setAlertsVisible(False)
-        # elif selected hidden then don't touch
-        elif not self._selectedHiddenAlerts:
-            self.setAlertsVisible(True)
 
     def onDoubleClick(self, evt):
         self.currentSelection = evt.Index
