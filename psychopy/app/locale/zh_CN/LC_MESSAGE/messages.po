@@ -5606,7 +5606,7 @@ msgstr "结束例程..."
 #: ../experiment/components/roi/__init__.py:81
 msgid ""
 "How long (s) does the participant need to look at the ROI to count as a look?"
-msgstr "参与者需要观察感兴趣区域多长时间（秒）才算一次观察？"
+msgstr "参与者需要注视感兴趣区域多长时间（秒）才算一次注视？"
 
 #: ../experiment/components/roi/__init__.py:82
 msgid "Min. Look Time"
