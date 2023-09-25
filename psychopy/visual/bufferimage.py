@@ -37,7 +37,10 @@ import numpy
 
 
 class BufferImageStim(ImageStim):
-    """Take a "screen-shot", save as an ImageStim (RBGA object).
+    """Take a "screen-shot", save as an ImageStim (RBGA object). This is
+    a lazy-imported class, therefore import using full path 
+    `from psychopy.visual.bufferimage import BufferImageStim` when
+    inheriting from it.
 
     The screen-shot is a single collage image composed of static elements
     that you can treat as being a single stimulus. The screen-shot can be of

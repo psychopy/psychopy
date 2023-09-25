@@ -1,7 +1,9 @@
 :class:`psychopy.visual.Progress`
 -------------------------------
 
-Stimulus class for drawing progress bars. This is a lazy-imported class, therefore import using full path `psychopy.visual.progress.Progress` when inheriting from it.
+Stimulus class for drawing progress bars. This is a lazy-imported class,
+therefore import using full path `from psychopy.visual.progress import Progress`
+when inheriting from it.
 
 Overview
 ========
