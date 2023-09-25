@@ -5605,7 +5605,7 @@ msgstr "参与者需要注视感兴趣区域多长时间（秒）才算一次注
 
 #: ../experiment/components/roi/__init__.py:82
 msgid "Min. Look Time"
-msgstr "最小观察时间"
+msgstr "最小注视时间"
 
 #: ../experiment/components/roi/__init__.py:87
 msgid ""
