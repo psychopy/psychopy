@@ -2855,7 +2855,7 @@ class CoderRibbon(ribbon.FrameRibbon):
 
         # --- File ---
         self.addSection(
-            "file", label=_translate("File")
+            "file", label=_translate("File"), icon="file"
         )
         # file new
         self.addButton(
@@ -2886,7 +2886,7 @@ class CoderRibbon(ribbon.FrameRibbon):
 
         # --- Edit ---
         self.addSection(
-            "edit", label=_translate("Edit")
+            "edit", label=_translate("Edit"), icon="edit"
         )
         # undo
         self.addButton(
@@ -2905,13 +2905,7 @@ class CoderRibbon(ribbon.FrameRibbon):
 
         # --- Tools ---
         self.addSection(
-            "experiment", label=_translate("Experiment")
-        )
-        # monitor center
-        self.addButton(
-            section="experiment", name='monitor', label=_translate('Monitor center'), icon="monitors",
-            tooltip=_translate("Monitor settings and calibration"),
-            callback=parent.app.openMonitorCenter
+            "experiment", label=_translate("Experiment"), icon="experiment"
         )
         # settings
         self.addButton(
@@ -2928,17 +2922,41 @@ class CoderRibbon(ribbon.FrameRibbon):
 
         self.addSeparator()
 
-        # --- Pavlovia ---
-        self.addStretchSpacer()
-        self.addSeparator()
-        self.addSection(
-            name="pavlovia", label=_translate("Pavlovia")
+        # --- Python ---
+        self.addSection(name="py", label=_translate("Desktop"), icon="desktop")
+
+        # monitor center
+        self.addButton(
+            section="py", name='monitor', label=_translate('Monitor center'), icon="monitors",
+            tooltip=_translate("Monitor settings and calibration"),
+            callback=parent.app.openMonitorCenter
         )
-        # pavlovia user
-        self.addPavloviaUserCtrl(
-            section="pavlovia", name="pavuser", frame=parent
+        # run Py
+        self.addButton(
+            section="py", name="pyrun", label=_translate("Run in Python"), icon='pyRun',
+            tooltip=_translate("Run experiment locally in Python"),
+            callback=parent.runFile
+        )
+
+        self.addSeparator()
+
+        # --- Pavlovia ---
+        self.addSection(
+            name="pavlovia", label=_translate("Pavlovia"), icon="pavlovia"
+        )
+        # sync project
+        self.addButton(
+            section="pavlovia", name="jsrun", label=_translate("Sync"), icon='globe_greensync',
+            tooltip=_translate("Sync project with Pavlovia"),
+            callback=parent.onPavloviaSync
         )
         # pavlovia project
         self.addPavloviaProjectCtrl(
             section="pavlovia", name="pavproject", frame=parent
         )
+        # pavlovia user
+        self.addPavloviaUserCtrl(
+            section="pavlovia", name="pavuser", frame=parent
+        )
+
+        self.addSeparator()

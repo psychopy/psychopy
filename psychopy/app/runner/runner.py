@@ -919,7 +919,7 @@ class RunnerRibbon(ribbon.FrameRibbon):
 
         # --- File ---
         self.addSection(
-            "list", label=_translate("Manage list")
+            "list", label=_translate("Manage list"), icon="file"
         )
         # add experiment
         self.addButton(
@@ -950,14 +950,15 @@ class RunnerRibbon(ribbon.FrameRibbon):
 
         # --- Python ---
         self.addSection(
-            "py", label=_translate("Python")
+            "py", label=_translate("Desktop"), icon="desktop"
         )
         # run Py
-        self.addButton(
+        btn = self.addButton(
             section="py", name="pyrun", label=_translate("Run in Python"), icon='pyRun',
             tooltip=_translate("Run the current script in Python"),
             callback=parent.runLocal
         )
+        btn.Disable()
         # stop
         self.addButton(
             section="py", name="pystop", label=_translate("Stop"), icon='stop',
@@ -969,22 +970,21 @@ class RunnerRibbon(ribbon.FrameRibbon):
 
         # --- JS ---
         self.addSection(
-            "js", label=_translate("JavaScript")
+            "js", label=_translate("Browser"), icon="browser"
         )
         # run JS
-        self.addButton(
+        btn = self.addButton(
             section="js", name="jsrun", label=_translate("Run in local browser"), icon='jsRun',
             tooltip=_translate("Run the current script locally on your browser"),
             callback=parent.runOnlineDebug
         )
+        btn.Disable()
 
         self.addSeparator()
 
         # --- Pavlovia ---
-        self.addStretchSpacer()
-        self.addSeparator()
         self.addSection(
-            name="pavlovia", label=_translate("Pavlovia")
+            name="pavlovia", label=_translate("Pavlovia"), icon="pavlovia"
         )
         # pavlovia user
         self.addPavloviaUserCtrl(

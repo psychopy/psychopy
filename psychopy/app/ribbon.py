@@ -149,12 +149,29 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
         # add separator
         self.sizer.Add(sep, border=6, flag=wx.EXPAND | wx.ALL)
 
-    def addStretchSpacer(self, prop=1):
+    def addSpacer(self, size=6, section=None):
+        """
+        Add a non-streching space.
+        """
+        # choose sizer to add to
+        if section is None:
+            sizer = self.sizer
+        else:
+            sizer = self.sections[section].sizer
+        # add space
+        sizer.AddSpacer(size=size)
+
+    def addStretchSpacer(self, prop=1, section=None):
         """
         Add a stretching space.
         """
+        # choose sizer to add to
+        if section is None:
+            sizer = self.sizer
+        else:
+            sizer = self.sections[section].sizer
         # add space
-        self.sizer.AddStretchSpacer(prop=prop)
+        sizer.AddStretchSpacer(prop=prop)
 
     def _applyAppTheme(self):
         self.SetBackgroundColour(colors.app['frame_bg'])
@@ -430,6 +447,8 @@ class PavloviaUserCtrl(FrameRibbonDropdownButton):
             self, parent, label=_translate("No user"), icon=None,
             callback=self.onClick, menu=self.makeMenu
         )
+        # add left space
+        self.sizer.InsertSpacer(0, size=6)
         # store reference to frame and ribbon
         self.frame = frame
         self.ribbon = ribbon
@@ -557,17 +576,6 @@ class PavloviaProjectCtrl(FrameRibbonDropdownButton):
         # store reference to frame and ribbon
         self.frame = frame
         self.ribbon = ribbon
-        # add sync button
-        self.sync = FrameRibbonButton(
-            self, label=_translate("Sync"), icon="globe_greensync",
-            tooltip=_translate("Sync project with Pavlovia"),
-            callback=self.onPavloviaSync
-        )
-        self.sync.SetBitmap(icons.ButtonIcon("globe_greensync", size=32).bitmap)
-        self.sizer.Add(self.sync, border=0, flag=wx.EXPAND | wx.ALL)
-        # bind hover function to sync button
-        self.sync.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
-        self.sync.Bind(wx.EVT_LEAVE_WINDOW, self.onHover)
         # let app know about this button
         self.frame.app.pavloviaButtons['project'].append(self)
 
@@ -577,11 +585,6 @@ class PavloviaProjectCtrl(FrameRibbonDropdownButton):
     def __del__(self):
         i = self.frame.app.pavloviaButtons['project'].index(self)
         self.frame.app.pavloviaButtons['project'].pop(i)
-
-    def _applyAppTheme(self):
-        FrameRibbonDropdownButton._applyAppTheme(self)
-        # apply to sync button
-        self.sync.SetBackgroundColour(colors.app['frame_bg'])
 
     def onClick(self, evt):
         # get project
@@ -623,28 +626,12 @@ class PavloviaProjectCtrl(FrameRibbonDropdownButton):
 
         if project is None:
             self.button.SetLabel(_translate("No project"))
-            self.sync.Disable()
         else:
             self.button.SetLabel(project['path_with_namespace'])
-            self.sync.Enable()
 
         self.Layout()
         if self.ribbon is not None:
             self.ribbon.Layout()
-
-    def onPavloviaSync(self, evt=None):
-        # disable sync buttons
-        for ctrl in self.frame.app.pavloviaButtons['project']:
-            ctrl.sync.Disable()
-            ctrl.Update()
-        try:
-            # do sync as usual
-            self.frame.onPavloviaSync(evt)
-        finally:
-            # regardless of outcome, re-enable sync once done
-            for ctrl in self.frame.app.pavloviaButtons['project']:
-                ctrl.sync.Enable()
-                ctrl.Update()
 
     def onPavloviaSearch(self, evt=None):
         searchDlg = pavui.search.SearchFrame(
@@ -696,21 +683,4 @@ class PavloviaProjectCtrl(FrameRibbonDropdownButton):
         else:
             return
         # do first sync
-        self.onPavloviaSync()
-
-    def onPavloviaSync(self, evt=None):
-        if Path(self.frame.filename).is_file():
-            # Save file
-            self.frame.fileSave(self.frame.filename)
-            # If allowed by prefs, export html and js files
-            if hasattr(self.frame, "_getExportPref") and self.frame._getExportPref('on sync'):
-                htmlPath = self.frame._getHtmlPath(self.frame.filename)
-                if htmlPath:
-                    self.frame.fileExport(htmlPath=htmlPath)
-                else:
-                    return
-        # Attempy sync, re-enable buttons if it fails
-        try:
-            pavui.syncProject(parent=self, file=self.frame.filename, project=self.frame.project)
-        finally:
-            pass
+        self.frame.onPavloviaSync()

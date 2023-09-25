@@ -4299,7 +4299,7 @@ class BuilderRibbon(ribbon.FrameRibbon):
 
         # --- File ---
         self.addSection(
-            "file", label=_translate("File")
+            "file", label=_translate("File"), icon="file"
         )
         # file new
         self.addButton(
@@ -4330,7 +4330,7 @@ class BuilderRibbon(ribbon.FrameRibbon):
 
         # --- Edit ---
         self.addSection(
-            "edit", label=_translate("Edit")
+            "edit", label=_translate("Edit"), icon="edit"
         )
         # undo
         self.addButton(
@@ -4349,13 +4349,7 @@ class BuilderRibbon(ribbon.FrameRibbon):
 
         # --- Tools ---
         self.addSection(
-            "experiment", label=_translate("Experiment")
-        )
-        # monitor center
-        self.addButton(
-            section="experiment", name='monitor', label=_translate('Monitor center'), icon="monitors",
-            tooltip=_translate("Monitor settings and calibration"),
-            callback=parent.app.openMonitorCenter
+            "experiment", label=_translate("Experiment"), icon="experiment"
         )
         # settings
         self.addButton(
@@ -4374,7 +4368,13 @@ class BuilderRibbon(ribbon.FrameRibbon):
 
         # --- Python ---
         self.addSection(
-            "py", label=_translate("Python")
+            "py", label=_translate("Desktop"), icon="desktop"
+        )
+        # monitor center
+        self.addButton(
+            section="py", name='monitor', label=_translate('Monitor center'), icon="monitors",
+            tooltip=_translate("Monitor settings and calibration"),
+            callback=parent.app.openMonitorCenter
         )
         # compile python
         self.addButton(
@@ -4393,37 +4393,43 @@ class BuilderRibbon(ribbon.FrameRibbon):
 
         # --- JS ---
         self.addSection(
-            "js", label=_translate("JavaScript")
+            "browser", label=_translate("Browser"), icon="browser"
         )
         # compile JS
         self.addButton(
-            section="js", name="jscompile", label=_translate('Write JS'), icon='compile_js',
+            section="browser", name="jscompile", label=_translate('Write JS'), icon='compile_js',
             tooltip=_translate("Write experiment as a JavaScript (JS) script"),
             callback=parent.fileExport
         )
         # run JS
         self.addButton(
-            section="js", name="jsrun", label=_translate("Run in local browser"), icon='jsRun',
-            tooltip=_translate("Run experiment locally on your browser"),
+            section="browser", name="jsrun", label=_translate("Run in local browser"), icon='jsRun',
+            tooltip=_translate("Run experiment in your browser"),
             callback=parent.onPavloviaDebug
         )
 
         self.addSeparator()
 
-        # --- Pavlovia ---
-        self.addStretchSpacer()
-        self.addSeparator()
+        # --- JS ---
         self.addSection(
-            name="pavlovia", label=_translate("Pavlovia")
+            "pavlovia", label=_translate("Pavlovia"), icon="pavlovia"
         )
-        # pavlovia user
-        self.addPavloviaUserCtrl(
-            section="pavlovia", name="pavuser", frame=parent
+        # sync project
+        self.addButton(
+            section="pavlovia", name="jsrun", label=_translate("Sync"), icon='globe_greensync',
+            tooltip=_translate("Sync project with Pavlovia"),
+            callback=parent.onPavloviaSync
         )
         # pavlovia project
         self.addPavloviaProjectCtrl(
             section="pavlovia", name="pavproject", frame=parent
         )
+        # pavlovia user
+        self.addPavloviaUserCtrl(
+            section="pavlovia", name="pavuser", frame=parent
+        )
+
+        self.addSeparator()
 
 
 def extractText(stream):
