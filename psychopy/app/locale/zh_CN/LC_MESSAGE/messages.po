@@ -8,8 +8,13 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
+<<<<<<< Updated upstream
 "PO-Revision-Date: 2023-09-21 17:15-0400\n"
 "Last-Translator: Bingzi Yu <ybzice@gmail.com>\n"
+=======
+"PO-Revision-Date: 2023-09-25 15:53+0800\n"
+"Last-Translator: Huang Xinru <hxrmiaomiaomiao@pku.edu.cn>\n"
+>>>>>>> Stashed changes
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
@@ -5525,52 +5530,53 @@ msgstr ""
 
 #: ../experiment/components/ratingScale/__init__.py:125
 msgid "Labels for the ends of the scale, separated by commas"
-msgstr ""
+msgstr "量表结束的标签，以逗号分隔"
 
 #: ../experiment/components/ratingScale/__init__.py:132
 msgid "Style for the marker: triangle, circle, glow, slider, hover"
-msgstr ""
+msgstr "标志的样式：三角形，圆形，光晕，滑块，悬浮"
 
 #: ../experiment/components/ratingScale/__init__.py:138
 msgid "initial position for the marker"
-msgstr ""
+msgstr "标志的初始位置"
 
 #: ../experiment/components/ratingScale/__init__.py:145
+#, fuzzy
 msgid ""
 "Should clicking the line accept that rating (without needing to confirm via "
 "'accept')?"
-msgstr ""
+msgstr "是否点击该行来接受该评级（无需通过'接受'来确认）？"
 
 #: ../experiment/components/ratingScale/__init__.py:151
 msgid ""
 "Hide the scale when a rating has been accepted; False to remain on-screen"
-msgstr ""
+msgstr "接受评级时隐藏量表；反之，则将量表保留在屏幕上"
 
 #: ../experiment/components/ratingScale/__init__.py:157
 msgid "Should the accept button by visible?"
-msgstr ""
+msgstr "接受按钮是否可见？"
 
 #: ../experiment/components/ratingScale/__init__.py:162
 #: ../experiment/components/slider/__init__.py:197
 msgid "store the rating"
-msgstr ""
+msgstr "保存评级"
 
 #: ../experiment/components/ratingScale/__init__.py:167
 msgid "store the time taken to make the choice (in seconds)"
-msgstr ""
+msgstr "保存作出反应所用的时间（以秒计数）"
 
 #: ../experiment/components/ratingScale/__init__.py:173
 #: ../experiment/components/slider/__init__.py:208
 msgid "store the history of (selection, time)"
-msgstr ""
+msgstr "保存（反应，时间的）历史"
 
 #: ../experiment/components/ratingScale/__init__.py:178
 msgid "Should accepting a rating cause the end of the routine (e.g. trial)?"
-msgstr ""
+msgstr "接受评级是否会导致例程（如试验）的结束？"
 
 #: ../experiment/components/ratingScale/__init__.py:184
 msgid "height of tick marks (1 is upward, 0 is hidden, -1 is downward)"
-msgstr ""
+msgstr "刻度线的高度（1 表示向上，0 表示隐藏，-1 表示向下）"
 
 #: ../experiment/components/ratingScale/__init__.py:192
 msgid ""
@@ -5578,42 +5584,50 @@ msgid ""
 "overrides all dialog settings except time parameters, forceEndRoutine, "
 "storeRatingTime, storeRating"
 msgstr ""
+"使用此文本可以像在代码组件中一样创建评级量表；覆盖除时间参数、强制终止例程、"
+"保存评级时间、保存评级以外的所有对话框设置"
 
 #: ../experiment/components/roi/__init__.py:27
+#, fuzzy
 msgid ""
 "Region Of Interest: Define a region of interest for use with eyetrackers"
 msgstr ""
+"感兴趣区域(ROI)：定义感兴趣区域，与眼动仪配合使用（或许后面直接翻译为ROI？不"
+"用感兴趣区域）"
 
 #: ../experiment/components/roi/__init__.py:66
 msgid "Under what condition should this ROI end the routine?"
-msgstr ""
+msgstr "在何种情况下该感兴趣区域将结束例程？"
 
 #: ../experiment/components/roi/__init__.py:67
+#, fuzzy
 msgid "End Routine On..."
-msgstr ""
+msgstr "结束例程..."
 
 #: ../experiment/components/roi/__init__.py:81
 msgid ""
 "How long (s) does the participant need to look at the ROI to count as a look?"
-msgstr ""
+msgstr "参与者需要观察感兴趣区域多长时间（秒）才算一次观察？"
 
 #: ../experiment/components/roi/__init__.py:82
 msgid "Min. Look Time"
-msgstr ""
+msgstr "最小观察时间"
 
 #: ../experiment/components/roi/__init__.py:87
 msgid ""
 "In debug mode, the ROI is drawn in red. Use this to see what area of the "
 "screen is in the ROI."
 msgstr ""
+"在调试模式中，感兴趣区域以红色显示。使用此功能可查看屏幕上哪些区域属于感兴趣"
+"区域范围。"
 
 #: ../experiment/components/roi/__init__.py:89
 msgid "Debug Mode"
-msgstr ""
+msgstr "调试模式"
 
 #: ../experiment/components/roi/__init__.py:95
 msgid "What looks on this ROI should be saved to the data output?"
-msgstr ""
+msgstr "将此感兴趣区域的哪些内容保存到数据输出中？"
 
 #: ../experiment/components/roi/__init__.py:97
 msgid "Save..."
@@ -5621,19 +5635,19 @@ msgstr "保存..."
 
 #: ../experiment/components/roi/__init__.py:106
 msgid "Time Relative To..."
-msgstr ""
+msgstr "时间相对于..."
 
 #: ../experiment/components/settings/__init__.py:46
 msgid "Experiment name"
-msgstr ""
+msgstr "实验名称"
 
 #: ../experiment/components/settings/__init__.py:47
 msgid "Show info dialog"
-msgstr ""
+msgstr "展示信息对话框"
 
 #: ../experiment/components/settings/__init__.py:48
 msgid "Enable Escape key"
-msgstr ""
+msgstr "启用 Escape 键"
 
 #: ../experiment/components/settings/__init__.py:49
 msgid "Experiment info"
@@ -5702,27 +5716,27 @@ msgstr ""
 
 #: ../experiment/components/settings/__init__.py:68
 msgid "Use PsychoPy version"
-msgstr ""
+msgstr "使用 Psychopy 版本"
 
 #: ../experiment/components/settings/__init__.py:69
 msgid "Completed URL"
-msgstr ""
+msgstr "完整的 URL"
 
 #: ../experiment/components/settings/__init__.py:70
 msgid "Incomplete URL"
-msgstr ""
+msgstr "不完整的 URL"
 
 #: ../experiment/components/settings/__init__.py:71
 msgid "Output path"
-msgstr ""
+msgstr "输出路径"
 
 #: ../experiment/components/settings/__init__.py:72
 msgid "Additional Resources"
-msgstr ""
+msgstr "其他资源"
 
 #: ../experiment/components/settings/__init__.py:73
 msgid "JS libs"
-msgstr ""
+msgstr "JS 库"
 
 #: ../experiment/components/settings/__init__.py:74
 msgid "Force stereo"
@@ -5730,11 +5744,11 @@ msgstr ""
 
 #: ../experiment/components/settings/__init__.py:75
 msgid "Export HTML"
-msgstr ""
+msgstr "导出 HTML"
 
 #: ../experiment/components/settings/__init__.py:105
 msgid "Edit settings for this experiment"
-msgstr ""
+msgstr "编辑该实验的设置"
 
 #: ../experiment/components/settings/__init__.py:158
 msgid ""
