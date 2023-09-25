@@ -262,6 +262,8 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
             return
 
         # load any plugins
+        import psychopy.tools.pkgtools as pkgtools
+        pkgtools.refreshPackages()
         from psychopy.plugins import scanPlugins, loadPlugin, listPlugins
 
         # if we find valid plugins, attempt to load them

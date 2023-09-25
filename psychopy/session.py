@@ -389,10 +389,10 @@ class Session:
         if not str(folder).startswith(str(self.root)):
             # Warn user that some files are going to be copied
             logging.warning(_translate(
-                f"Experiment '{file.stem}' is located outside of the root folder for this Session. All files from its "
-                f"experiment folder ('{folder.stem}') will be copied to the root folder and the experiment will run "
-                f"from there."
-            ))
+                "Experiment '{}' is located outside of the root folder for this Session. All files from its "
+                "experiment folder ('{}') will be copied to the root folder and the experiment will run "
+                "from there."
+            ).format(file.stem, folder.stem))
             # Create new folder
             newFolder = self.root / folder.stem
             # Copy files to it
@@ -406,8 +406,8 @@ class Session:
             folder = newFolder
             # Notify user than files are copied
             logging.info(_translate(
-                f"Experiment '{file.stem}' and its experiment folder ('{folder.stem}') have been copied to {newFolder}"
-            ))
+                "Experiment '{}' and its experiment folder ('{}') have been copied to {}"
+            ).format(file.stem,folder.stem,newFolder))
         # Initialise as module
         moduleInitFile = (folder / "__init__.py")
         if not moduleInitFile.is_file():
@@ -425,8 +425,12 @@ class Session:
         # Write experiment as Python script
         pyFile = file.parent / (file.stem + ".py")
         if "psyexp" in file.suffix:
+            # Load experiment
             exp = experiment.Experiment()
             exp.loadFromXML(file)
+            # Make sure useVersion is off
+            exp.settings.params['Use version'].val = ""
+            # Write script
             script = exp.writeScript(target="PsychoPy")
             pyFile.write_text(script, encoding="utf8")
         # Handle if key is None
@@ -545,6 +549,112 @@ class Session:
         expInfo = self.experiments[key].showExpInfoDlg(expInfo=expInfo)
 
         return expInfo
+
+    def setCurrentExpInfoItem(self, key, value):
+        """
+        Set the value of a key (or set of keys) from the current expInfo dict.
+
+        Parameters
+        ----------
+        key : str or Iterable[str]
+            Key or list of keys whose value or values to set.
+
+        value : object or Iterable[str]
+            Value or values to set the key to. If one value is given along with multiple keys, all
+            keys will be set to that value. Otherwise, the number of values should match the number
+            of keys.
+
+        Returns
+        -------
+        bool
+            True if operation completed successfully
+        """
+        # get expInfo dict
+        expInfo = self.getCurrentExpInfo()
+        # return False if there is none
+        if expInfo is False:
+            return expInfo
+        # wrap key in list
+        if not isinstance(key, (list, tuple)):
+            key = [key]
+        # wrap value in a list and extend it to match length of key
+        if not isinstance(value, (list, tuple)):
+            value = [value] * len(key)
+        # set values
+        for subkey, subval in zip(key, value):
+            expInfo[subkey] = subval
+
+    def getCurrentExpInfoItem(self, key):
+        """
+        Get the value of a key (or set of keys) from the current expInfo dict.
+
+        Parameters
+        ----------
+        key : str or Iterable[str]
+            Key or keys to get vaues of fro expInfo dict
+
+        Returns
+        -------
+        object, dict{str:object} or False
+            If key was a string, the value of this key in expInfo. If key was a list of strings, a dict of key:value
+            pairs for each key in the list. If no experiment is running or the process can't complete, False.
+        """
+        # get expInfo dict
+        expInfo = self.getCurrentExpInfo()
+        # return False if there is none
+        if expInfo is False:
+            return expInfo
+        # if given a single key, get it
+        if key in expInfo:
+            return expInfo[key]
+        # if given a list of keys, get subset
+        if isinstance(key, (list, tuple)):
+            subset = {}
+            for subkey in key:
+                subset[subkey] = expInfo[subkey]
+            return subset
+        # if we've not returned yet, something is up, so return False
+        return False
+
+    def updateCurrentExpInfo(self, other):
+        """
+        Update key:value pairs in the current expInfo dict from another dict.
+
+        Parameters
+        ----------
+        other : dict
+            key:value pairs to update dict from.
+
+        Returns
+        -------
+        bool
+            True if operation completed successfully
+        """
+        # get expInfo dict
+        expInfo = self.getCurrentExpInfo()
+        # return False if there is none
+        if expInfo is False:
+            return expInfo
+        # set each key
+        for key, value in other.items():
+            expInfo[key] = value
+
+        return True
+
+    def getCurrentExpInfo(self):
+        """
+        Get the `expInfo` dict for the currently running experiment.
+
+        Returns
+        -------
+        dict or False
+            The `expInfo` for the currently running experiment, or False if no experiment is running.
+        """
+        # if no experiment is currently running, return False
+        if self.currentExperiment is None:
+            return False
+        # get expInfo from ExperimentHandler object
+        return self.currentExperiment.extraInfo
 
     def setupWindowFromExperiment(self, key, expInfo=None, blocking=True):
         """
@@ -1128,7 +1238,7 @@ class Session:
 
     def close(self, blocking=True):
         """
-        Safely close the current session. This will end the Python instance.
+        Safely close and delete the current session.
 
         Parameters
         ----------
@@ -1162,6 +1272,9 @@ class Session:
         if self.win is not None:
             self.win.close()
             self.win = None
+        # flush any remaining logs and kill reference to log file
+        self.logFile.logger.flush()
+        self.logFile.logger.removeTarget(self.logFile)
         # delete self
         del self
 

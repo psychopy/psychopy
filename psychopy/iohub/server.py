@@ -508,10 +508,17 @@ class udpServer(DatagramServer):
         return getTime()
 
     @staticmethod
-    def syncClock(lastResetTime):
-        """See Computer.syncClock documentation, where current process will be
-        the ioHub Server process."""
-        return syncClock(lastResetTime)
+    def syncClock(params):
+        """
+        Sync parameters between Computer.global_clock and a given dict.
+
+        Parameters
+        ----------
+        params : dict
+            Dict of attributes and values to apply to the computer's global clock. See
+            `psychopy.clock.MonotonicClock` for what attributes to include.
+        """
+        return syncClock(params)
 
     @staticmethod
     def setPriority(level='normal', disable_gc=False):

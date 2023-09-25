@@ -8,28 +8,7 @@
 from pathlib import Path
 from psychopy.alerts import alerttools, alert
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
-from psychopy.localization import _localized as __localized
 from ..keyboard import KeyboardComponent
-_localized = __localized.copy()
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'text': _translate('Text'),
-                   'font': _translate('Font'),
-                   'letterHeight': _translate('Letter height'),
-                   'flipHorizontal': _translate('Flip horizontal'),
-                   'flipVertical': _translate('Flip vertical'),
-                   'languageStyle': _translate('Language style'),
-                   'bold': _translate('Bold'),
-                   'italic': _translate('Italic'),
-                   'lineSpacing': _translate('Line Spacing'),
-                   'padding': _translate('Padding'),
-                   'anchor': _translate('Anchor'),
-                   'fillColor': _translate('Fill Colour'),
-                   'borderColor': _translate('Border Colour'),
-                   'borderWidth': _translate('Border Width'),
-                   'editable': _translate('Editable?'),
-                   'autoLog': _translate('Auto Log')
-                   })
 
 
 class TextboxComponent(BaseVisualComponent):

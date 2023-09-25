@@ -37,7 +37,7 @@ from psychopy import logging
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import (attributeSetter, logAttrib,
-                                           setAttribute)
+                                           setAttribute, AttributeGetSetMixin)
 from psychopy.tools.monitorunittools import (cm2pix, deg2pix, pix2cm,
                                              pix2deg, convertToPix)
 from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
@@ -81,7 +81,7 @@ mixin(s) as needed to add functionality.
 """
 
 
-class MinimalStim:
+class MinimalStim(AttributeGetSetMixin):
     """Non-visual methods and attributes for BaseVisualStim and RatingScale.
 
     Includes: name, autoDraw, autoLog, status, __str__

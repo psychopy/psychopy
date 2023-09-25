@@ -79,14 +79,6 @@ try:  # needed for wx.py shell
 except Exception:
     haveCode = False
 
-_localized = {'basic': _translate('basic'),
-              'input': _translate('input'),
-              'stimuli': _translate('stimuli'),
-              'experiment control': _translate('exp control'),
-              'iohub': 'ioHub',  # no translation
-              'hardware': _translate('hardware'),
-              'timing': _translate('timing'),
-              'misc': _translate('misc')}
 
 def toPickle(filename, data):
     """save data (of any sort) as a pickle file
@@ -2310,7 +2302,8 @@ class CoderFrame(BaseAuiFrame, handlers.ThemeMixin):
         self.setTitle(title=self.winTitle, document=fname)
         #if len(self.getOpenFilenames()) > 0:
         self.currentDoc.analyseScript()
-        self.fileBrowserWindow.gotoDir(path)
+        if os.path.isdir(path):
+            self.fileBrowserWindow.gotoDir(path)
 
         if not keepHidden:
             self.Show()  # if the user had closed the frame it might be hidden

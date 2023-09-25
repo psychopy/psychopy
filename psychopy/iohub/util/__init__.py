@@ -13,6 +13,8 @@ import datetime
 from ..errors import print2err, printExceptionDetailsToStdErr
 import re
 import collections.abc
+import psychopy.logging as logging
+import psychopy.plugins as plugins
 
 ########################
 #
@@ -29,6 +31,8 @@ try:
     from collections.abc import Iterable
 except ImportError:
     from collections import Iterable
+
+from psychopy.preferences import prefs
 
 
 def saveConfig(config, dst_path):
@@ -177,29 +181,68 @@ def getDevicePaths(device_name=""):
         
         """
         yaml_paths = []
-        for root, _, files in os.walk(iohub_device_path):
-            device_folder = None
-            for file in files:
-                if file == 'supported_config_settings.yaml':
-                    device_folder = root
-                    break
-            if device_folder:
-                for dfile in files:
-                    if dfile.startswith("default_") and dfile.endswith('.yaml'):
-                        yaml_paths.append((device_folder, dfile))
-        
+        # try to walk both the internal iohub_device_path and user-level packages folder
+        for route in (os.walk(iohub_device_path), os.walk(prefs.paths['packages'])):
+            for root, _, files in route:
+                # check each file in the route to see if it's a config yaml
+                device_folder = None
+                for file in files:
+                    if file == 'supported_config_settings.yaml':
+                        device_folder = root
+                        break
+                if device_folder:
+                    for dfile in files:
+                        if dfile.startswith("default_") and dfile.endswith('.yaml'):
+                            # if file is a new config yaml, append it
+                            item = (device_folder, dfile)
+                            if item not in yaml_paths:
+                                yaml_paths.append(item)
+
         return yaml_paths
 
     scs_yaml_paths = []  # stores the paths to the device config files
+    plugins.refreshBundlePaths()  # make sure eyetracker external plugins are reachable 
 
     # get device paths for extant extensions
-    try:
+    try:  # tobii eyetrackers
+        logging.debug("Looking for Tobii device configuration file...")
         import psychopy_eyetracker_tobii.tobii as tobii
         deviceConfig = _getDevicePaths(os.path.dirname(tobii.__file__))
         if deviceConfig:
+            logging.debug("Found Tobii device configuration file.")
             scs_yaml_paths.extend(deviceConfig)
     except ImportError:
-        pass  # do nothing
+        logging.debug("No Tobii device configuration file found.")
+
+    try:  # for SR Research EyeLink
+        logging.debug("Looking for SR Research EyeLink device configuration file...")
+        import psychopy_eyetracker_sr_research.sr_research.eyelink as eyelink
+        deviceConfig = _getDevicePaths(os.path.dirname(eyelink.__file__))
+        if deviceConfig:
+            logging.debug("Found SR Research EyeLink device configuration file.")
+            scs_yaml_paths.extend(deviceConfig)
+    except ImportError:
+        logging.debug("No SR Research EyeLink device configuration file found.")
+
+    try:  # for Gazepoint eye trackers
+        logging.debug("Looking for Gazepoint device configuration file...")
+        import psychopy_eyetracker_gazepoint.gazepoint.gp3 as gp3
+        deviceConfig = _getDevicePaths(os.path.dirname(gp3.__file__))
+        if deviceConfig:
+            logging.debug("Found Gazepoint device configuration file.")
+            scs_yaml_paths.extend(deviceConfig)
+    except ImportError:
+        logging.debug("No Gazepoint device configuration file found.")
+
+    try:  # for PupilLabs eye trackers
+        logging.debug("Looking for PupilLabs device configuration file...")
+        import psychopy_eyetracker_pupil_labs.pupil_labs.pupil_core as pupil_core
+        deviceConfig = _getDevicePaths(os.path.dirname(pupil_core.__file__))
+        if deviceConfig:
+            logging.debug("Found PupilLabs device configuration file.")
+            scs_yaml_paths.extend(deviceConfig)
+    except ImportError:
+        logging.debug("No PupilLabs device configuration file found.")    
     
     # use this method for built-in devices
     iohub_device_path = module_directory(import_device)

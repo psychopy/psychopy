@@ -65,7 +65,7 @@ es_HN ESH
 es_NI ESI
 es_CL ESL
 es_MX ESM
-es_ES ESN español  (Spanish)
+es_ES ESN español, España  (Spanish, Spain)
 es_CO ESO
 es_PE ESR
 es_AR ESS

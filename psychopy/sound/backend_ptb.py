@@ -566,16 +566,12 @@ class SoundPTB(_SoundBase):
             logging.exp(u"Sound %s started" % (self.name), obj=self, t=logTime)
 
     def pause(self, log=True):
-        """Toggles the pause state the sound but play will continue from here if needed
+        """Stops the sound without reset, so that play will continue from here if needed
         """
         if self.isPlaying:
             self.stop(reset=False)
             if log and self.autoLog:
                 logging.exp(u"Sound %s paused" % (self.name), obj=self)
-        else:
-            self.play()
-            if log and self.autoLog:
-                logging.exp(u"Sound %s unpaused" % (self.name), obj=self)
 
     def stop(self, reset=True, log=True):
         """Stop the sound and return to beginning
@@ -597,6 +593,7 @@ class SoundPTB(_SoundBase):
         self.frameN = int(round(t * self.sampleRate))
         if self.sndFile and not self.sndFile.closed:
             self.sndFile.seek(self.frameN)
+        self._isFinished = t >= self.duration
 
     def _EOS(self, reset=True, log=True):
         """Function called on End Of Stream

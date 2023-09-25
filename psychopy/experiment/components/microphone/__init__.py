@@ -13,7 +13,6 @@ from psychopy.alerts import alert
 from psychopy.tools import stringtools as st, systemtools as syst, audiotools as at
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
 from psychopy.tools.audiotools import sampleRateQualityLevels
-from psychopy.localization import _localized as __localized
 
 _hasPTB = True
 try:
@@ -26,14 +25,10 @@ except (ImportError, ModuleNotFoundError):
         "microphone stream will raise an error.")
     _hasPTB = False
 
-_localized = __localized.copy()
-_localized.update({'stereo': _translate('Stereo'),
-                   'channel': _translate('Channel')})
-
 # Get list of devices
 if _hasPTB and not syst.isVM_CI():
     devices = syst.getAudioCaptureDevices()
-    deviceIndices = [d['index'] for d in devices.values()]
+    deviceIndices = [str(d['index']) for d in devices.values()]
     deviceNames = [d['name'] for d in devices.values()]
 else:
     devices = []

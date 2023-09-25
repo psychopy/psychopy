@@ -747,6 +747,8 @@ def loadPlugin(plugin):
                 _registerWindowBackend(attr, ep)
             elif fqn == 'psychopy.experiment.components':  # if component
                 _registerBuilderComponent(ep)
+            elif fqn == 'psychopy.experiment.routine':  # if component
+                _registerBuilderStandaloneRoutine(ep)
             elif fqn == 'psychopy.hardware.photometer':  # photometer
                 _registerPhotometer(ep)
 
@@ -1027,13 +1029,20 @@ def activatePlugins():
         loadPlugin(plugin)
 
 
+# Keep track of currently installed window backends. When a window is loaded,
+# its `winType` is looked up here and the matching backend is loaded. Plugins
+# which define entry points into this module will update `winTypes` if they
+# define subclasses of `BaseBackend` that have valid names.
+_winTypes = {
+    'pyglet': '.pygletbackend.PygletBackend',
+    'glfw': '.glfwbackend.GLFWBackend',  # moved to plugin
+    'pygame': '.pygamebackend.PygameBackend'
+}
+
+
 def getWindowBackends():
-    # get reference to the backend class
-    fqn = 'psychopy.visual.backends'
-    backend = resolveObjectFromName(
-        fqn, resolve=(fqn not in sys.modules), error=False)
     # Return winTypes array from backend object
-    return backend.winTypes
+    return _winTypes
 
 
 def discoverModuleClasses(nameSpace, classType, includeUnbound=True):
@@ -1128,7 +1137,8 @@ def discoverModuleClasses(nameSpace, classType, includeUnbound=True):
 # Registration functions
 #
 # These functions are called to perform additional operations when a plugin is
-# loaded.
+# loaded. Most plugins that specify an entry point elsewhere will not need to
+# use these functions to appear in the application.
 #
 
 def _registerWindowBackend(attr, ep):
@@ -1229,6 +1239,38 @@ def _registerBuilderComponent(ep):
     else:
         raise AttributeError(
             "Cannot find function `addComponent()` in namespace "
+            "`{}`".format(fqn))
+
+
+def _registerBuilderStandaloneRoutine(ep):
+    """Register a PsychoPy builder standalone routine module.
+
+    This function is called by :func:`loadPlugin` when encountering an entry
+    point group for :mod:`psychopy.experiment.routine`.
+
+    This function is called by :func:`loadPlugin`, it should not be used for any
+    other purpose.
+
+    Parameters
+    ----------
+    ep : ClassType
+        Class defining the standalone routine.
+
+    """
+    # get reference to the backend class
+    fqn = 'psychopy.experiment.routines'
+    routinePkg = resolveObjectFromName(
+        fqn, resolve=(fqn not in sys.modules), error=False)
+
+    if routinePkg is None:
+        logging.error("Failed to resolve name `{}`.".format(fqn))
+        return
+
+    if hasattr(routinePkg, 'addStandaloneRoutine'):
+        routinePkg.addStandaloneRoutine(ep)
+    else:
+        raise AttributeError(
+            "Cannot find function `addStandaloneRoutine()` in namespace "
             "`{}`".format(fqn))
 
 
