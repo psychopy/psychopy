@@ -5568,7 +5568,7 @@ msgstr "保存作出反应所用的时间（以秒计数）"
 #: ../experiment/components/ratingScale/__init__.py:173
 #: ../experiment/components/slider/__init__.py:208
 msgid "store the history of (selection, time)"
-msgstr "保存（反应，时间的）历史"
+msgstr "保存（反应，时间）的历史"
 
 #: ../experiment/components/ratingScale/__init__.py:178
 msgid "Should accepting a rating cause the end of the routine (e.g. trial)?"
