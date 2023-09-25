@@ -27,7 +27,7 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
         self.sections = {}
         self.buttons = {}
 
-    def addSection(self, name, label=None):
+    def addSection(self, name, label=None, icon=None):
         """
         Add a section to the ribbon.
 
@@ -37,6 +37,8 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
             Name by which to internally refer to this section
         label : str
             Label to display on the section
+        icon : str or None
+            File stem of the icon for the section's label
 
         Returns
         -------
@@ -45,7 +47,7 @@ class FrameRibbon(wx.Panel, handlers.ThemeMixin):
         """
         # create section
         self.sections[name] = sct = FrameRibbonSection(
-            self, label=label
+            self, label=label, icon=icon
         )
         # add section to sizer
         self.sizer.Add(sct, border=0, flag=wx.EXPAND | wx.ALL)
@@ -168,8 +170,10 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
         Ribbon containing this section
     label : str
         Label to display on this section
+    icon : str or None
+        File stem of the icon for the section's label
     """
-    def __init__(self, parent, label=None):
+    def __init__(self, parent, label=None, icon=None):
         wx.Panel.__init__(self, parent)
         self.ribbon = parent
         # setup sizers
@@ -179,13 +183,29 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
         self.border.Add(
             self.sizer, proportion=1, border=0, flag=wx.EXPAND | wx.ALL
         )
-        # add label
+        # add label sizer
+        self.labelSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.border.Add(
+            self.labelSizer, border=0, flag=wx.ALIGN_CENTRE | wx.ALL
+        )
+        # add label icon
+        self._icon = icons.ButtonIcon(icon, size=16)
+        self.icon = wx.StaticBitmap(
+            self, bitmap=self._icon.bitmap
+        )
+        if icon is None:
+            self.icon.Hide()
+        self.labelSizer.Add(
+            self.icon, border=6, flag=wx.EXPAND | wx.RIGHT
+        )
+        # add label text
         if label is None:
             label = ""
         self.label = wx.StaticText(self, label=label, style=wx.ALIGN_CENTRE_HORIZONTAL)
-        self.border.Add(
-            self.label, border=0, flag=wx.EXPAND | wx.ALL
+        self.labelSizer.Add(
+            self.label, flag=wx.EXPAND
         )
+
 
         # add space
         self.border.AddSpacer(6)
@@ -287,6 +307,8 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
 
     def _applyAppTheme(self):
         self.SetBackgroundColour(colors.app['frame_bg'])
+
+        self.icon.SetBitmap(self._icon.bitmap)
 
 
 class FrameRibbonButton(wx.Button, handlers.ThemeMixin):
