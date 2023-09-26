@@ -92,7 +92,10 @@ class MovieFileReader:
         file. Must be greater than 0.
 
     """
-    def __init__(self, filename, decoderLib='ffpyplayer', decoderOpts=None, 
+    def __init__(self, 
+                 filename, 
+                 decoderLib='ffpyplayer', 
+                 decoderOpts=None, 
                  maxQueueSize=1):
         
         if maxQueueSize <= 0:
@@ -211,7 +214,6 @@ class MovieFileReader:
                 # need them
                 with readLock:
                     frame, val = moviePlayer.get_frame(show=True)
-                    metadata = moviePlayer.get_metadata()
                     
                 if val == 'eof':  # thread should exit if stream is done
                     break
@@ -220,7 +222,7 @@ class MovieFileReader:
                 elif frame is None:
                     continue
                 
-                frameQueue.put((frame, val, metadata))
+                frameQueue.put((frame, val))
 
             # if we're here, the reader thread should exit
             with readLock:
@@ -229,6 +231,17 @@ class MovieFileReader:
 
         logging.info("Opening movie file: {}".format(self._filename))
 
+        # default options
+        defaultFFOpts = {
+            'paused': True,
+            'loop': False
+        }
+
+        # merge user settings with defaults, user settings take precedence
+        defaultFFOpts.update(self._decoderOpts)
+        self._decoderOpts = defaultFFOpts
+
+        # create media player
         self._player = MediaPlayer(
             self._filename,
             ff_opts=self._decoderOpts)
@@ -237,7 +250,7 @@ class MovieFileReader:
         # the queue
         logging.debug("Starting movie reader thread...")
 
-        self._warmupBarrier = threading.Barrier(2)
+        self._warmupBarrier = threading.Barrier(2)  # hold thread until ready
         self._readerThread = threading.Thread(
             target=_asyncFrameReader,
             args=(
@@ -281,6 +294,31 @@ class MovieFileReader:
 
         """
         return self._readerThread is not None and self._readerThread.is_alive()
+    
+    @property
+    def pixelFormat(self):
+        """Pixel format of the movie (`str`).
+        """
+        if not self.isOpen:
+            return None
+        
+        with self._readLock:
+            return self._player.get_metadata()['src_pix_fmt']
+    
+    def getPixelFormat(self):
+        """Get the format of the movie (`str`).
+
+        Returns
+        -------
+        str
+            The pixel format of the movie. This is one of 'rgb24' or 'rgba32'.
+
+        """
+        if not self.isOpen:
+            return None
+        
+        with self._readLock:
+            return self._player.get_metadata()['src_pix_fmt']
 
     def close(self):
         """Close the movie file.
@@ -385,6 +423,80 @@ class MovieFileReader:
                 relative=relative, 
                 seek_by_bytes='auto', 
                 accurate=True)
+            
+    @property
+    def volume(self):
+        """The volume of the movie (`float`).
+
+        This value is in the range [0, 1].
+
+        """
+        if not self.isOpen:
+            return 0.0
+        
+        with self._readLock:
+            return self._player.get_volume()
+        
+    @volume.setter
+    def volume(self, volume):
+        if not self.isOpen:
+            return
+        
+        self.setVolume(volume)
+    
+    def setVolume(self, volume):
+        """Set the volume of the movie.
+
+        Parameters
+        ----------
+        volume : float
+            The volume of the movie. Must be in the range [0, 1].
+
+        """
+        if not self.isOpen:
+            return
+        
+        # ensure volume is in the range [0, 1]
+        volume = max(0.0, min(1.0, volume))
+        
+        with self._readLock:
+            self._player.set_volume(volume)
+
+    @property
+    def mute(self):
+        """Whether the movie is muted (`bool`).
+
+        If `True`, the movie is muted. If `False`, the movie is unmuted.
+
+        """
+        if not self.isOpen:
+            return False
+        
+        with self._readLock:
+            return self._player.get_mute()
+    
+    @mute.setter
+    def mute(self, mute):
+        if not self.isOpen:
+            return
+        
+        self.setMute(mute)
+
+    def setMute(self, mute):
+        """Mute or unmute the movie.
+
+        Parameters
+        ----------
+        mute : bool
+            If `True`, the movie will be muted. If `False`, the movie will be
+            unmuted.
+
+        """
+        if not self.isOpen:
+            return
+        
+        with self._readLock:
+            self._player.set_mute(mute)
 
     def _enqueueFrame(self):
         """Grab a queued frame from the decoder.
@@ -396,7 +508,6 @@ class MovieFileReader:
             has not acquired a new frame yet.
         
         """
-
         if not self.isOpen:
             return False
         
@@ -1374,6 +1485,28 @@ class MovieFileWriter:
             pass
 
 
+def closeAllMovieReaders():
+    """Signal all movie readers to close.
+
+    This function should only be called once at the end of the program. This can 
+    be registered `atexit` to ensure that all movie writers are closed when the 
+    program exits.
+
+    """
+    global _openMovieReaders
+
+    if not _openMovieReaders:  # do nothing if no movie writers are open
+        return
+
+    logging.info('Closing all open ({}) movie readers now'.format(
+        len(_openMovieReaders)))
+
+    for movieReader in _openMovieReaders.copy():
+        movieReader.close()
+        
+    _openMovieReaders.clear()  # clear the set to free references
+
+
 def closeAllMovieWriters():
     """Signal all movie writers to close.
 
@@ -1404,6 +1537,7 @@ def closeAllMovieWriters():
 
 
 # register the cleanup function to run when the program exits
+atexit.register(closeAllMovieReaders)
 atexit.register(closeAllMovieWriters)
 
 
