@@ -21,6 +21,7 @@ from psychopy.visual.basevisual import (
     BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin
 )
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
+from psychopy import core
 
 from .players import getMoviePlayer
 from .metadata import MovieMetadata, NULL_MOVIE_METADATA
@@ -39,6 +40,8 @@ FFPYPLAYER_STATUS_EOF = 'eof'
 FFPYPLAYER_STATUS_PAUSED = 'paused'
 
 PREFERRED_VIDEO_LIB = 'ffpyplayer'
+
+import psychopy.tools.movietools as mt
 
 
 # ------------------------------------------------------------------------------
@@ -142,6 +145,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._autoStart = autoStart
         self._isLoaded = False
 
+        # timekeeping
+        self._movieClock = core.Clock()
+
         # OpenGL data
         self.interpolate = interpolate
         self._texFilterNeedsUpdate = True
@@ -150,7 +156,9 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         self._textureId = GL.GLuint(0)
 
         # get the player interface for the desired `movieLib` and instance it
-        self._player = getMoviePlayer(movieLib)(self)
+        self._player = mt.MovieFileReader(
+            filename=self._filename,
+            decoderLib=movieLib)
 
         # load a file if provided, otherwise the user must call `setMovie()`
         self._filename = pathToString(filename)
@@ -221,7 +229,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 filename = filename.lastClip
 
         self._filename = filename
-        self._player.load(self._filename)
+        self._player.setMovie(self._filename)
 
         self._freeBuffers()  # free buffers (if any) before creating a new one
         self._setupTextureBuffers()
@@ -237,7 +245,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Path to movie file. Must be a format that FFMPEG supports.
 
         """
-        self.loadMovie(filename=filename)
+        self.setMovie(filename=filename)
 
     def unload(self, log=True):
         """Stop and unload the movie.
@@ -249,7 +257,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         """
         self._player.stop(log=log)
-        self._player.unload()
+        self._player.close()
         self._freeBuffers()  # free buffer before creating a new one
         self._isLoaded = False
 
@@ -275,9 +283,12 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         """
         # get the current movie frame for the video time
-        newFrameFromPlayer = self._player.getMovieFrame()
+        newFrameFromPlayer = self._player.getCurrentFrame()
+
         if newFrameFromPlayer is not None:
-            self._recentFrame = newFrameFromPlayer
+            self._recentFrame = newFrameFromPlayer  # most recent frame
+        else:
+            self._recentFrame = None
 
         # only do a pixel transfer on valid frames
         if self._recentFrame is not None:
@@ -385,7 +396,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         # if self.status == NOT_STARTED:
         #     self._player.volume = self._volume
 
-        self._player.play(log=log)
+        self._player.play()
+        self._movieClock.reset()
 
     def pause(self, log=True):
         """Pause the current point in the movie. The image of the last frame
@@ -397,7 +409,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Log this event.
 
         """
-        self._player.pause(log=log)
+        self._player.pause()
 
     def toggle(self, log=True):
         """Switch between playing and pausing the movie. If the movie is playing,
@@ -441,7 +453,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Log this event.
 
         """
-        self._player.seek(timestamp, log=log)
+        self._player.seek(timestamp, relative=False)
 
     def rewind(self, seconds=5, log=True):
         """Rewind the video.
@@ -455,7 +467,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Log this event.
 
         """
-        self._player.rewind(seconds, log=log)
+        pass
 
     def fastForward(self, seconds=5, log=True):
         """Fast-forward the video.
@@ -469,7 +481,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Log this event.
 
         """
-        self._player.fastForward(seconds, log=log)
+        pass
 
     def replay(self, log=True):
         """Replay the movie from the beginning.
@@ -486,7 +498,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
           you would like to restart the movie without reloading.
 
         """
-        self._player.replay(log=log)
+        pass
 
     # --------------------------------------------------------------------------
     # Audio stream control methods
@@ -496,11 +508,11 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     def muted(self):
         """`True` if the stream audio is muted (`bool`).
         """
-        return self._player.muted
+        return self._player.mute
 
     @muted.setter
     def muted(self, value):
-        self._player.muted = value
+        self._player.mute = value
 
     def volumeUp(self, amount=0.05):
         """Increase the volume by a fixed amount.
@@ -511,7 +523,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Amount to increase the volume relative to the current volume.
 
         """
-        self._player.volumeUp(amount)
+        currentVolume = self._player.volume 
+        self._player.setVolume(currentVolume + amount)
 
     def volumeDown(self, amount=0.05):
         """Decrease the volume by a fixed amount.
@@ -522,7 +535,8 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             Amount to decrease the volume relative to the current volume.
 
         """
-        self._player.volumeDown(amount)
+        currentVolume = self._player.volume 
+        self._player.setVolume(currentVolume - amount)
 
     @property
     def volume(self):
@@ -541,7 +555,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
     @property
     def frameIndex(self):
         """Current frame index being displayed (`int`)."""
-        return self._player.frameIndex
+        return 0
 
     def getCurrentFrameNumber(self):
         """Get the current movie frame number (`int`), same as `frameIndex`.
@@ -573,7 +587,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if not self._player:
             return -1
 
-        return self._player.loopCount
+        return 0
 
     @property
     def fps(self):
@@ -592,7 +606,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if not self._player:
             return 1.0
 
-        return self._player.metadata.frameRate
+        return self._player.getFrameRate()
 
     @property
     def videoSize(self):
@@ -602,7 +616,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if not self._player:
             return 0, 0
 
-        return self._player.metadata.size
+        return self._player.getSize()
 
     @property
     def origSize(self):
@@ -618,7 +632,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if not self._player:
             return 0, 0
 
-        return self._player.metadata.size
+        return self._player.getSize()
 
     @property
     def pts(self):
@@ -631,7 +645,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         if not self._player:
             return -1.0
 
-        return self._player.pts
+        return 0.0
 
     def getPercentageComplete(self):
         """Provides a value between 0.0 and 100.0, indicating the amount of the
@@ -674,7 +688,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
 
         """
         # get the size of the movie frame and compute the buffer size
-        vidWidth, vidHeight = self._player.getMetadata().size
+        vidWidth, vidHeight = self._player.getSize()
         nBufferBytes = vidWidth * vidHeight * 3
 
         # Create the pixel buffer object which will serve as the texture memory
@@ -730,7 +744,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
         """Copy pixel data from video frame to texture.
         """
         # get the size of the movie frame and compute the buffer size
-        vidWidth, vidHeight = self._player.getMetadata().size
+        vidWidth, vidHeight = self._player.getSize()
 
         nBufferBytes = vidWidth * vidHeight * 3
 
@@ -757,7 +771,7 @@ class MovieStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
             shape=(nBufferBytes,))
 
         # copy data
-        bufferArray[:] = self._recentFrame.colorData[:]
+        bufferArray[:] = self._recentFrame[:]
 
         # Very important that we unmap the buffer data after copying, but
         # keep the buffer bound for setting the texture.
