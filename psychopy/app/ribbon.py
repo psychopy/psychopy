@@ -606,7 +606,7 @@ class PavloviaProjectCtrl(FrameRibbonDropdownButton):
         if project is None:
             btn = menu.Append(wx.ID_ANY, _translate("New project"))
             btn.SetBitmap(icons.ButtonIcon("plus", size=16).bitmap)
-            menu.Bind(wx.EVT_MENU, self.frame.onPavloviaCreate, btn)
+            menu.Bind(wx.EVT_MENU, self.onPavloviaCreate, btn)
         # edit project
         btn = menu.Append(wx.ID_ANY, _translate("Edit project..."))
         btn.SetBitmap(icons.ButtonIcon("editbtn", size=16).bitmap)
