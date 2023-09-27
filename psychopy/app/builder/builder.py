@@ -4431,6 +4431,32 @@ class BuilderRibbon(ribbon.FrameRibbon):
 
         self.addSeparator()
 
+        # --- Views ---
+        self.addStretchSpacer()
+        self.addSeparator()
+
+        self.addSection(
+            "views", label=_translate("Views"), icon="windows"
+        )
+        # show Builder
+        self.addButton(
+            section="views", name="builder", label=_translate("Show Builder"), icon="showBuilder",
+            tooltip=_translate("Switch to Builder view"),
+            callback=parent.app.showBuilder
+        ).Disable()
+        # show Coder
+        self.addButton(
+            section="views", name="coder", label=_translate("Show Coder"), icon="showCoder",
+            tooltip=_translate("Switch to Coder view"),
+            callback=parent.app.showCoder
+        )
+        # show Runner
+        self.addButton(
+            section="views", name="runner", label=_translate("Show Runner"), icon="showRunner",
+            tooltip=_translate("Switch to Runner view"),
+            callback=parent.app.showRunner
+        )
+
 
 def extractText(stream):
     """Take a byte stream (or any file object of type b?) and return
