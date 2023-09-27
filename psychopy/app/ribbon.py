@@ -203,7 +203,7 @@ class FrameRibbonSection(wx.Panel, handlers.ThemeMixin):
         # add label sizer
         self.labelSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.border.Add(
-            self.labelSizer, border=0, flag=wx.ALIGN_CENTRE | wx.ALL
+            self.labelSizer, border=6, flag=wx.ALIGN_CENTRE | wx.TOP
         )
         # add label icon
         self._icon = icons.ButtonIcon(icon, size=16)
