@@ -1,6 +1,7 @@
-from collections import OrderedDict
+import logging
 from psychopy import layout
 from psychopy.hardware import serialdevice as sd
+from psychopy.tools.attributetools import attributeSetter
 
 
 class PhotodiodeResponse:
@@ -128,107 +129,156 @@ class BasePhotodiode:
 
     def parseMessage(self, message):
         raise NotImplementedError()
-#
-#
-# class PhotodiodeValidator:
-#     def __init__(
-#             self, win, device,
-#             diodePos=None, diodeSize=None, diodeUnits="norm",
-#             autoLog=False):
-#         # set autolog
-#         self.autoLog = autoLog
-#         # store window handle
-#         self.win = win
-#         # store device handle
-#         self.device = device
-#         # list to store linked stim handles
-#         self.stim = []
-#
-#         from psychopy import visual
-#         # black rect which is always drawn on win flip
-#         self.offRect = visual.Rect(
-#             win,
-#             fillColor="black",
-#             depth=1, autoDraw=True,
-#             autoLog=False
-#         )
-#         # white rect which is only drawn when target stim is, and covers black rect
-#         self.onRect = visual.Rect(
-#             win,
-#             fillColor="white",
-#             depth=0, autoDraw=False,
-#             autoLog=False
-#         )
-#
-#         # if no pos or size are given for photodiode, figure it out
-#         if diodePos is None or diodeSize is None:
-#             _guessPos, _guessSize = findDiode(self.win, self.device)
-#             if diodePos is None:
-#                 diodePos = _guessPos
-#             if diodeSize is None:
-#                 diodeSize = _guessSize
-#         # position rects to match photodiode
-#         self.diodeUnits = diodeUnits
-#         self.diodeSize = diodeSize
-#         self.diodePos = diodePos
-#
-#     def connectStimulus(self, stim):
-#         # store mapping of stimulus to self in window
-#         self.win.validators[stim] = self
-#
-#     def draw(self):
-#         self.onRect.draw()
-#
-#     def validate(self, expectWhite):
-#         isWhite = self.getDiodeState()
-#         # was rect white/black as expected?
-#         valid = isWhite == expectWhite
-#         # do methods for valid or not
-#         if valid:
-#             self.onValid(isWhite)
-#         else:
-#             self.onInvalid(isWhite)
-#         # return whether expected white matches found
-#         return valid
-#
-#     def getDiodeState(self):
-#         # start off assuming black
-#         isWhite = False
-#         # get response
-#         resp = self.device.getResponse(length=2)
-#         # go through response lines
-#         for line in resp:
-#             # if we have a TPadResponse, look for photodiode on
-#             if isinstance(line, TPadResponse) and line.channel == "C" and line.state == "P":
-#                 isWhite = True
-#
-#         return isWhite
-#
-#     @attributeSetter
-#     def diodeUnits(self, value):
-#         self.onRect.units = value
-#         self.offRect.units = value
-#
-#     @attributeSetter
-#     def diodePos(self, value):
-#         self.onRect.pos = value
-#         self.offRect.pos = value
-#
-#     @attributeSetter
-#     def diodeSize(self, value):
-#         self.onRect.size = value
-#         self.offRect.size = value
-#
-#     @staticmethod
-#     def onValid(isWhite):
-#         pass
-#
-#     @staticmethod
-#     def onInvalid(isWhite):
-#         msg = "Stimulus validation failed. "
-#         if isWhite:
-#             msg += "Stimulus drawn when not expected."
-#         else:
-#             msg += "Stimulus not drawn when expected."
-#
-#         raise AssertionError(msg)
+
+
+class PhotodiodeValidationError(BaseException):
+    pass
+
+
+class PhotodiodeValidator:
+
+    def __init__(
+            self, win, diode,
+            diodePos=None, diodeSize=None, diodeUnits="norm",
+            variability=1/60,
+            report="log",
+            autoLog=False):
+        # set autolog
+        self.autoLog = autoLog
+        # store window handle
+        self.win = win
+        # store diode handle
+        self.diode = diode
+        # store method of reporting
+        self.report = report
+        # set acceptable variability
+        self.variability = variability
+
+        from psychopy import visual
+        # black rect which is always drawn on win flip
+        self.offRect = visual.Rect(
+            win,
+            fillColor="black",
+            depth=1, autoDraw=True,
+            autoLog=False
+        )
+        # white rect which is only drawn when target stim is, and covers black rect
+        self.onRect = visual.Rect(
+            win,
+            fillColor="white",
+            depth=0, autoDraw=False,
+            autoLog=False
+        )
+
+        # if no pos or size are given for diode, figure it out
+        if diodePos is None or diodeSize is None:
+            _guessPos, _guessSize = diode.findPhotodiode(self.win)
+            if diodePos is None:
+                diodePos = _guessPos
+            if diodeSize is None:
+                diodeSize = _guessSize
+        # position rects to match diode
+        self.diodeUnits = diodeUnits
+        self.diodeSize = diodeSize
+        self.diodePos = diodePos
+
+    def connectStimulus(self, stim):
+        # store mapping of stimulus to self in window
+        self.win.validators[stim] = self
+        stim.validator = self
+
+    def draw(self):
+        self.onRect.draw()
+
+    def validate(self, state, t=None):
+        """
+        Confirm that stimulus was shown/hidden at the correct time, to within an acceptable margin of variability.
+
+        Parameters
+        ----------
+        state : bool
+            State which the photodiode is expected to have been in
+        t : clock.Timestamp, visual.Window or None
+            Time at which the photodiode should have read the given state.
+
+        Returns
+        -------
+        bool
+            True if photodiode state matched requested state, False otherwise.
+        """
+
+        # assume valid only if state is False
+        valid = not state
+        lastTime = None
+        # check messages in reverse chronological order
+        for msg in reversed(self.diode.messages):
+            # skip messages which don't match desired state
+            if msg.value != state:
+                continue
+            # get last time
+            lastTime = msg.t
+            # does this message match requested t?
+            valid = abs(lastTime - t) < self.variability
+            break
+
+        # construct message to report
+        validStr = "within acceptable variability"
+        if not valid:
+            validStr = "not " + validStr
+        logMsg = (
+            "Photodiode expected to receive {state} within {variability}s of {t}s. Actually received {state} at "
+            "{lastTime}. This is {validStr}."
+        ).format(
+            state=state, variability=self.variability, t=t, lastTime=lastTime, validStr=validStr
+        )
+
+        # report as requested
+        if self.report in ("log", "err", "error"):
+            # if report mode is log or error, log result
+            logging.debug(logMsg)
+        if self.report in ("err", "error") and not valid:
+            # if report mode is error, raise error for invalid
+            raise PhotodiodeValidationError(logMsg)
+        if callable(self.report):
+            # if self.report is a method, call it with args state, t, valid and logMsg
+            self.report(state, t, valid, logMsg)
+        # return whether expected white matches found
+        return valid
+
+    def getDiodeState(self):
+        return self.diode.getState()
+
+    @attributeSetter
+    def diodeUnits(self, value):
+        self.onRect.units = value
+        self.offRect.units = value
+
+        self.__dict__['diodeUnits'] = value
+
+    @attributeSetter
+    def diodePos(self, value):
+        self.onRect.pos = value
+        self.offRect.pos = value
+
+        self.__dict__['diodePos'] = value
+
+    @attributeSetter
+    def diodeSize(self, value):
+        self.onRect.size = value
+        self.offRect.size = value
+
+        self.__dict__['diodeSize'] = value
+
+    @staticmethod
+    def onValid(isWhite):
+        pass
+
+    @staticmethod
+    def onInvalid(isWhite):
+        msg = "Stimulus validation failed. "
+        if isWhite:
+            msg += "Stimulus drawn when not expected."
+        else:
+            msg += "Stimulus not drawn when expected."
+
+        raise AssertionError(msg)

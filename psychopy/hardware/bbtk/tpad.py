@@ -1,4 +1,5 @@
 from .. import serialdevice as sd, photodiode
+from psychopy import logging
 import serial
 import re
 
@@ -89,7 +90,7 @@ class TPadPhotodiode(photodiode.BasePhotodiode):
         # ).format(self.number, button, message)
         # create PhotodiodeResponse object
         resp = photodiode.PhotodiodeResponse(
-            int(time), state, threshold=self.getThreshold()
+            time, state, threshold=self.getThreshold()
         )
 
         return resp
@@ -99,7 +100,7 @@ class TPadPhotodiode(photodiode.BasePhotodiode):
         self.device.setMode(3)
         self.device.pause()
         # continue as normal
-        photodiode.BasePhotodiode.findPhotodiode(self, win)
+        return photodiode.BasePhotodiode.findPhotodiode(self, win)
 
 
 class TPadButton:
@@ -113,15 +114,18 @@ class TPadVoicekey:
 
 
 class TPad(sd.SerialDevice):
-    def __init__(self, port=None):
+    def __init__(self, port=None, pauseDuration=1/60):
         # initialise as a SerialDevice
-        sd.SerialDevice.__init__(self, port=port, baudrate=115200)
+        sd.SerialDevice.__init__(self, port=port, baudrate=115200, pauseDuration=pauseDuration)
         # dict of responses by timestamp
         self.messages = {}
         # inputs
         self.photodiodes = {i+1: TPadPhotodiode(port, i+1) for i in range(2)}
         self.buttons = {i+1: TPadButton(port, i+1) for i in range(10)}
         self.voicekeys = {i+1: TPadVoicekey(port, i+1) for i in range(1)}
+        # reset timer
+        self._lastTimerReset = None
+        self.resetTimer()
 
     def setMode(self, mode):
         # exit out of whatever mode we're in (effectively set it to 0)
@@ -135,6 +139,13 @@ class TPad(sd.SerialDevice):
         self.pause()
         # clear messages
         self.getResponse()
+
+    def resetTimer(self):
+        self.setMode(0)
+        self.sendMessage(f"REST")
+        self.pause()
+        self._lastTimerReset = logging.defaultClock.getTime()
+        self.setMode(3)
 
     def isAwake(self):
         self.setMode(0)
@@ -154,10 +165,13 @@ class TPad(sd.SerialDevice):
         for line in data:
             if re.match(messageFormat, line):
                 # if line fits format, split into attributes
-                parts = channel, state, button, time = splitTPadMessage(line)
-                # integerise time and button
+                channel, state, button, time = splitTPadMessage(line)
+                # integerise button
                 button = int(button)
-                time = int(time)
+                # get time in s using defaultClock units
+                time = float(time) / 1000 + self._lastTimerReset
+                # store in array
+                parts = (channel, state, button, time)
                 # store message
                 self.messages[time] = line
                 # choose object to dispatch to
@@ -172,7 +186,6 @@ class TPad(sd.SerialDevice):
                 if node is not None:
                     message = node.parseMessage(parts)
                     node.receiveMessage(message)
-
 
     def calibratePhotodiode(self, level=127):
         # set to mode 0

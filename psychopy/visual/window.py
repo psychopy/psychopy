@@ -1305,15 +1305,6 @@ class Window():
             callEntry['function'](*callEntry['args'], **callEntry['kwargs'])
         del self._toCall[:]
 
-        # queue validation calls for next flip
-        for thisStim, validator in self.validators.items():
-            # expected visibility is True/False depending on whether stim is due to be drawn this flip
-            self._toCall.append({
-                'function': validator.validate,
-                'args': [thisStim in self._toDraw],
-                'kwargs': {},
-            })
-
         # do bookkeeping
         if self.recordFrameIntervals:
             self.frames += 1
