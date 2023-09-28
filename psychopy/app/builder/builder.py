@@ -843,7 +843,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             return
 
         exportPath = os.path.join(htmlPath, expName.replace('.psyexp', '.js'))
-        self.generateScript(experimentPath=exportPath,
+        exportPath = self.generateScript(experimentPath=exportPath,
                             exp=self.exp,
                             target="PsychoJS")
         # Open exported files
@@ -1394,7 +1394,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def compileScript(self, event=None):
         """Defines compile script button behavior"""
         fullPath = self.filename.replace('.psyexp', '.py')
-        self.generateScript(experimentPath=fullPath, exp=self.exp)
+        fullPath = self.generateScript(experimentPath=fullPath, exp=self.exp)
         self.app.showCoder()  # make sure coder is visible
         self.app.coder.fileNew(filepath=fullPath)
         self.app.coder.fileReload(event=None, filename=fullPath)
