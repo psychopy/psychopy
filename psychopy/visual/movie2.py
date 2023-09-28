@@ -176,7 +176,9 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
     """A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy
     that does not require avbin. Instead it requires the cv2 python package
     for OpenCV. The VLC media player also needs to be installed on the
-    psychopy computer.
+    psychopy computer. This is a lazy-imported class, therefore import using
+    full path `from psychopy.visual.movie2 import MovieStim2` when
+    inheriting from it.
 
     **Example**::
 

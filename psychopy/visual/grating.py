@@ -35,7 +35,9 @@ import numpy
 class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
                   ContainerMixin):
     """Stimulus object for drawing arbitrary bitmaps that can repeat (cycle) in
-    either dimension.
+    either dimension. This is a lazy-imported class, therefore import using 
+    full path `from psychopy.visual.grating import GratingStim` when inheriting
+    from it.
 
     One of the main stimuli for PsychoPy.
 
