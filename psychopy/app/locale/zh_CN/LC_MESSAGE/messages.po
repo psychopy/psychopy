@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2023-09-25 22:44-0400\n"
-"Last-Translator: Bingzi Yu <ybzice@gmail.com>\n"
+"PO-Revision-Date: 2023-09-27 16:58+0800\n"
+"Last-Translator: Huang Xinru <hxrmiaomiaomiao@pku.edu.cn>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
@@ -5595,7 +5595,7 @@ msgstr "感兴趣区域(ROI)：定义感兴趣区域，与眼动仪配合使用"
 
 #: ../experiment/components/roi/__init__.py:66
 msgid "Under what condition should this ROI end the routine?"
-msgstr "在何种情况下该感兴趣区域将结束例程？"
+msgstr "在何种情况下该 ROI 将结束例程？"
 
 #: ../experiment/components/roi/__init__.py:67
 #, fuzzy
@@ -5605,7 +5605,7 @@ msgstr "结束例程..."
 #: ../experiment/components/roi/__init__.py:81
 msgid ""
 "How long (s) does the participant need to look at the ROI to count as a look?"
-msgstr "参与者需要注视感兴趣区域多长时间（秒）才算一次注视？"
+msgstr "参与者需要注视 ROI 多长时间（秒）才算一次注视？"
 
 #: ../experiment/components/roi/__init__.py:82
 msgid "Min. Look Time"
@@ -5751,79 +5751,81 @@ msgstr "编辑该实验的设置"
 #: ../experiment/components/settings/__init__.py:158
 msgid ""
 "Name of the entire experiment (taken by default from the filename on save)"
-msgstr ""
+msgstr "整个实验的名称（默认取自保存时的文件名）"
 
 #: ../experiment/components/settings/__init__.py:171
 msgid ""
 "Start the experiment with a dialog to set info (e.g.participant or condition)"
-msgstr ""
+msgstr "通过对话框设置信息（如参与者或条件）开始实验"
 
 #: ../experiment/components/settings/__init__.py:176
 msgid ""
 "Enable the <esc> key, to allow subjects to quit / break out of the experiment"
-msgstr ""
+msgstr "启用 <esc> 键，允许被试退出/中止实验"
 
 #: ../experiment/components/settings/__init__.py:181
 msgid ""
 "The info to present in a dialog box. Right-click to check syntax and preview "
 "the dialog box."
-msgstr ""
+msgstr "对话框中显示的信息。右键单击可检查语法并预览对话框。"
 
 #: ../experiment/components/settings/__init__.py:190
 msgid "The version of PsychoPy to use when running the experiment."
-msgstr ""
+msgstr "运行实验时使用的 Psychopy 版本。"
 
 #: ../experiment/components/settings/__init__.py:197
 msgid "Run the experiment full-screen (recommended)"
-msgstr ""
+msgstr "全屏运行实验（推荐）"
 
 #: ../experiment/components/settings/__init__.py:201
 msgid "Size of window (if not fullscreen)"
-msgstr ""
+msgstr "窗口大小（如果不是全屏）"
 
 #: ../experiment/components/settings/__init__.py:205
 msgid "Which physical screen to run on (1 or 2)"
-msgstr ""
+msgstr "在哪个物理屏幕上运行（1 或 2）"
 
 #: ../experiment/components/settings/__init__.py:209
 msgid ""
 "Name of the monitor (from Monitor Center). Right-click to go there, then "
 "copy & paste a monitor name here."
 msgstr ""
+"显示器名称（来自显示器中心）。右键单击进入，然后在此复制或粘贴显示器名称。"
 
 #: ../experiment/components/settings/__init__.py:215
 msgid ""
 "Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to "
 "bring up a color-picker.)"
 msgstr ""
+"屏幕颜色（例如：黑色，$[1.0,1.0,1.0]，$变量。右键单击可显示颜色选择器。）"
 
 #: ../experiment/components/settings/__init__.py:221
 msgid ""
 "Needed if color is defined numerically (see PsychoPy documentation on color "
 "spaces)"
-msgstr ""
+msgstr "如果颜色是数值定义的，则需要（参见有关颜色空间的 PsychoPy 文档）"
 
 #: ../experiment/components/settings/__init__.py:229
 msgid "Units to use for window/stimulus coordinates (e.g. cm, pix, deg)"
-msgstr ""
+msgstr "窗口/刺激的坐标使用的单位（如厘米、像素、度数）"
 
 #: ../experiment/components/settings/__init__.py:235
 msgid ""
 "Should new stimuli be added or averaged with the stimuli that have been "
 "drawn already"
-msgstr ""
+msgstr "将新的刺激与已绘制的刺激相加或是求平均值"
 
 #: ../experiment/components/settings/__init__.py:240
 msgid "Should the mouse be visible on screen?"
-msgstr ""
+msgstr "鼠标是否在屏幕上可见？"
 
 #: ../experiment/components/settings/__init__.py:246
 msgid "Force audio to stereo (2-channel) output"
-msgstr ""
+msgstr "将音频强制为立体声（双声道）输出"
 
 #: ../experiment/components/settings/__init__.py:251
 msgid "Which Python sound engine do you want to play your sounds?"
-msgstr ""
+msgstr "您希望使用哪个 Python 声音引擎来播放您的声音？"
 
 #: ../experiment/components/settings/__init__.py:252
 msgid "Audio library"
@@ -5831,72 +5833,79 @@ msgstr "音频库"
 
 #: ../experiment/components/settings/__init__.py:255
 msgid "use prefs"
-msgstr ""
+msgstr "使用首选项"
 
 #: ../experiment/components/settings/__init__.py:266
 msgid ""
 "How important is audio latency for you? If essential then you may need to "
 "get all your sounds in correct formats."
 msgstr ""
+"音频延迟对您有多重要？如果很重要，那么您需要保证您所有的声音格式都正确。"
 
 #: ../experiment/components/settings/__init__.py:267
 msgid "Audio latency priority"
-msgstr ""
+msgstr "音频延迟优先级"
 
+# 不太确定 file name base应该怎么翻译
 #: ../experiment/components/settings/__init__.py:272
+#, fuzzy
 msgid ""
 "Code to create your custom file name base. Don't give a file extension - "
 "this will be added."
-msgstr ""
+msgstr "用于创建自定义文件名库的代码。不要指定文件扩展名——扩展名将被自动添加。"
 
+# 这里的“Auto”不知道是不是程序里的一个选项或者按键，不知道应不应该翻译。
 #: ../experiment/components/settings/__init__.py:278
+#, fuzzy
 msgid ""
 "What symbol should the data file use to separate columns? Auto will select a "
 "delimiter automatically from the filename."
-msgstr ""
+msgstr "数据文件应使用什么符号来分隔列？Auto 将自动从文件名中选择分隔符。"
 
 #: ../experiment/components/settings/__init__.py:283
 msgid ""
 "Save a detailed log (more detailed than the excel/csv files) of the entire "
 "experiment"
-msgstr ""
+msgstr "保存整个实验的详细日志（比 excel/csv 文件更详细）"
 
 #: ../experiment/components/settings/__init__.py:288
 #: ../experiment/components/settings/__init__.py:293
+#, fuzzy
 msgid ""
 "Save data from loops in comma-separated-value (.csv) format for maximum "
 "portability"
-msgstr ""
+msgstr "以逗号分隔值（.csv）格式保存循环数据，实现最大程度的可移植性"
 
 #: ../experiment/components/settings/__init__.py:298
 msgid "Save data from loops in Excel (.xlsx) format"
-msgstr ""
+msgstr "以 Excel （.xlsx）格式保存循环数据"
 
 #: ../experiment/components/settings/__init__.py:302
 msgid ""
 "Save data from loops in psydat format. This is useful for python programmers "
 "to generate analysis scripts."
-msgstr ""
+msgstr "以 psydat 格式保存循环数据。这有助于 python 编程者生成分析脚本。"
 
 #: ../experiment/components/settings/__init__.py:308
 msgid ""
 "Save data from eyetrackers in hdf5 format. This is useful for viewing and "
 "analyzing complex data in structures."
-msgstr ""
+msgstr "以 hdf5 格式保存眼动仪数据。这有助于查看和分析结构复杂的数据。"
 
 #: ../experiment/components/settings/__init__.py:310
 msgid "Save hdf5 file"
-msgstr ""
+msgstr "保存 hdf5 文件"
 
 #: ../experiment/components/settings/__init__.py:314
 msgid ""
 "How much output do you want in the log files? ('error' is fewest messages, "
 "'debug' is most)"
 msgstr ""
+"你希望在日志文件中输出多少信息？（‘error’指最少的信息，’debug‘指最多的信息）"
 
 #: ../experiment/components/settings/__init__.py:325
 msgid "Place the HTML files will be saved locally "
-msgstr ""
+msgstr "将 HTML 文件保存到本地 "
 
 #: ../experiment/components/settings/__init__.py:329
 msgid "Any additional resources needed"
