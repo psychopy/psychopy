@@ -420,9 +420,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         menu.AppendSeparator()
 
         # Frame switcher
-        framesMenu = wx.Menu()
-        FrameSwitcher.makeViewSwitcherButtons(framesMenu, frame=self, app=self.app)
-        menu.AppendSubMenu(framesMenu, _translate("&Frames"))
+        FrameSwitcher.makeViewSwitcherButtons(menu, frame=self, app=self.app)
 
         # Theme switcher
         self.themesMenu = ThemeSwitcher(app=self.app)
