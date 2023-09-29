@@ -40,7 +40,9 @@ import platform
 import sys
 import glob
 import subprocess as sp
+import json
 from psychopy.preferences import prefs
+from psychopy import logging
 
 # ------------------------------------------------------------------------------
 # Constants
@@ -718,6 +720,232 @@ def getSerialPorts():
 # Miscellaneous utilities
 #
 
+def systemProfilerWindowsOS(
+        parseStr=True,
+        connected=None,
+        problem=None,
+        instanceid=None,
+        deviceid=None,
+        classname=None,
+        classid=None,
+        problemcode=None,
+        busname=None,
+        busid=None,
+        bus=False,
+        deviceids=False,
+        relations=False,
+        services=False,
+        stack=False,
+        drivers=False,
+        interfaces=False,
+        properties=False,
+        resources=False
+):
+    """
+    Get information about devices via Windows'
+    [pnputil](https://learn.microsoft.com/en-us/windows-hardware/drivers/devtest/pnputil-command-syntax#enum-devices).
+
+    Parameters
+    ----------
+    parseStr : bool
+        Whether to parse the string output from pnputil into a dict (True) or keep it as a string for each device
+        (False)
+    connected : bool or None
+        Filter by connection state of devices, leave as None for no filter.
+    problem : bool or None
+        Filter by devices with problems, leave as None for no filter.
+    instanceid : str or None
+        Filter by device instance ID, leave as None for no filter.
+    deviceid : str or None
+        Filter by device hardware and compatible ID, leave as None for no filter. Only works on Windows 11 (version
+        22H2 and up).
+    classname : str or None
+        Filter by device class name, leave as None for no filter.
+    classid : str or None
+        Filter by device class GUID, leave as None for no filter.
+    problemcode : str or None
+        Filter by specific problem code, leave as None for no filter.
+    busname : str or None
+        Filter by bus enumerator name, leave as None for no filter. Only works on Windows 11 (version 21H2 and up).
+    busid : str or None
+        Filter by bus type GUID, leave as None for no filter. Only works on Windows 11 (version 21H2 and up).
+    bus : bool
+        Display bus enumerator name and bus type GUID. Only works on Windows 11 (version 21H2 and up).
+    deviceids : bool
+        Display hardware and compatible IDs. Only works on Windows 11 (version 21H2 and up).
+    relations : bool
+        Display parent and child device relations.
+    services : bool
+        Display device services. Only works on Windows 11 (version 21H2 and up).
+    stack : bool
+        Display effective device stack information. Only works on Windows 11 (version 21H2 and up).
+    drivers : bool
+        Display matching and installed drivers.
+    interfaces : bool
+        Display device interfaces. Only works on Windows 11 (version 21H2 and up).
+    properties : bool
+        Display all device properties. Only works on Windows 11 (version 21H2 and up).
+    resources : bool
+        Display device resources. Only works on Windows 11 (version 22H2 and up).
+
+    Returns
+    -------
+    list
+        List of devices, with their details parsed into dicts if parseStr is True.
+    """
+
+    def _constructCommand():
+        """
+        Construct command based on method input.
+
+        Returns
+        -------
+        str
+            The command to pass to terminal.
+        """
+        # make sure mutually exclusive inputs aren't supplied
+        assert instanceid is None or deviceid is None, (
+            "Cannot filter by both instance and device ID, please leave one input as None."
+        )
+        assert instanceid is None or deviceid is None, (
+            "Cannot filter by both class name and class ID, please leave one input as None."
+        )
+        assert busname is None or busid is None, (
+            "Cannot filter by both class name and class ID, please leave one input as None."
+        )
+        # start off with the core command
+        cmd = ["pnputil", "/enum-devices"]
+        # append connected flag
+        if connected is True:
+            cmd.append("/connected")
+        elif connected is False:
+            cmd.append("/disconnected")
+        # append problem flag
+        if problem and problemcode is not None:
+            cmd.append("/problem")
+        # append filter flags if they're not None
+        for key, val in {
+            'instanceid': instanceid,
+            'deviceid': deviceid,
+            'class': classname or classid,
+            'problem': problemcode,
+            'bus': busid or busname,
+        }.items():
+            if val is None:
+                continue
+            cmd.append(f"/{key}")
+            cmd.append(val)
+        # append detail flags if they're True
+        for key, val in {
+            'bus': all((bus, busname is None, busid is None)),
+            'deviceids': deviceids,
+            'relations': relations,
+            'services': services,
+            'stack': stack,
+            'drivers': drivers,
+            'interfaces': interfaces,
+            'properties': properties,
+            'resources': resources
+        }.items():
+            if val:
+                cmd.append(f"/{key}")
+        # log command for debugging purposes
+        logging.debug("Calling command '{}'".format(" ".join(cmd)))
+
+        return cmd
+
+    def _parseDeviceStr(deviceStr):
+        """
+        Parse the string of a single device into a dict
+
+        Parameters
+        ----------
+        deviceStr : str
+            String in the format returned by pnputil.
+
+        Returns
+        -------
+        dict
+            Dict of device details
+        """
+        # dict for this device
+        device = {}
+        # values to keep track of relative position in dict
+        stack = []
+        val = key = None
+        lastLvl = -4
+        # split device into lines
+        allLines = deviceStr.split("\r\n")
+        for lineNum, line in enumerate(allLines):
+            # get key:value pair
+            extension = False
+            if ":" in line:
+                key, val = line.split(":", maxsplit=1)
+            else:
+                # with no key, this value extends the last - make sure the last is a list
+                if val == "":
+                    val = []
+                if not isinstance(val, list):
+                    val = [val]
+                # add to previous value
+                val.append(line.strip())
+                extension = True
+            # sanitise val and key
+            key = str(key)
+            if isinstance(val, str):
+                val = val.strip()
+            # figure out if we've moved up/down a level based on spaces before key name
+            lvl = len(key) - len(key.strip())
+            # update stack so we know where we are
+            if not extension:
+                if lvl > lastLvl:
+                    stack.append(key.strip())
+                elif lvl < lastLvl:
+                    backInx = -int((lastLvl-lvl)/4)+1
+                    stack = stack[:backInx]
+                    stack.append(key.strip())
+                else:
+                    stack[-1] = key.strip()
+            # set current value in stack
+            subdict = device
+            for i, subkey in enumerate(stack):
+                # if we're at the final key, set value
+                if i == len(stack) - 1:
+                    subdict[subkey] = val
+                else:
+                    # if this is the first entry in a subdict, make sure the subdict *is* a dict
+                    if not isinstance(subdict[subkey], dict):
+                        subdict[subkey] = {}
+                    subdict = subdict[subkey]
+            # take note of last level
+            lastLvl = lvl
+
+        return device
+
+    # send command
+    p = sp.Popen(
+        _constructCommand(),
+        stdout=sp.PIPE,
+        stderr=sp.PIPE,
+    )
+    # receive output in utf8
+    resp, err = p.communicate()
+    resp = resp.decode("utf-8", errors="ignore")
+    # list to store output
+    devices = []
+    # split into devices
+    for thisDeviceStr in resp.split("\r\n\r\nInstance ID")[1:]:
+        thisDeviceStr = "Instance ID" + thisDeviceStr
+        if parseStr:
+            thisDevice = _parseDeviceStr(thisDeviceStr)
+        else:
+            thisDevice = thisDeviceStr
+        # add device to devices list
+        devices.append(thisDevice)
+
+    return devices[:-1]
+
+
 def systemProfilerMacOS(dataTypes=None, detailLevel='basic', timeout=180):
     """Call the MacOS system profiler and return data in a JSON format.
 
@@ -814,7 +1042,7 @@ def systemProfilerMacOS(dataTypes=None, detailLevel='basic', timeout=180):
     # We're going to need to handle errors from this command at some point, for
     # now we're leaving that up to the user.
 
-    return systemProfilerRet.decode("utf-8")  # convert to string
+    return json.loads(systemProfilerRet.decode("utf-8"))  # convert to string
 
 
 if __name__ == "__main__":
