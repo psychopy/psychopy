@@ -7,7 +7,8 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import importlib
-from psychopy import logging
+from psychopy import logging, data
+from . import util
 
 haveQt = False  # until we confirm otherwise
 importOrder = ['PyQt6', 'PyQt5']
@@ -288,6 +289,14 @@ class Dlg(QtWidgets.QDialog):
         return self.addField(label, initial, color, choices, tip,
                              enabled=False)
 
+    def addReadmoreCtrl(self):
+        line = QtWidgets.QLabel("Config...", parent=self)
+
+        self.layout.addWidget(line, self.irow, 0, 1, 2)
+        self.irow += 1
+
+        return line
+
     def display(self):
         """Presents the dialog and waits for the user to press OK or CANCEL.
 
@@ -479,42 +488,61 @@ class DlgFromDict(Dlg):
             self.dictionary = dictionary.copy()
         else:
             self.dictionary = dictionary
-
-        self._keys = list(self.dictionary.keys())
-        self._labels = labels
-
-        if order:
-            self._keys = list(order) + list(set(self._keys).difference(set(order)))
-        elif sortKeys:
-            self._keys.sort()
-
-        for field in self._keys:
-            label = labels[field] if field in labels else field
-            tooltip = ''
-            if field in tip:
-                tooltip = tip[field]
-            # is field required?
-            required = str(label).startswith("*") or str(label).endswith("*")
-            # make field
-            if field in fixed:
+        # initialise storage attributes
+        self._labels = []
+        self._keys = []
+        # create internal dictionary just for making params
+        internalDict = self.dictionary.copy()
+        # convert fixed list to pipe syntax
+        for key in fixed:
+            if key in internalDict:
+                internalDict[f"{key}|fix"] = internalDict.pop(key)
+        # convert order list to pipe syntax
+        for key in order:
+            i = order.index(key)
+            if key in internalDict:
+                internalDict[f"{key}|{i}"] = internalDict.pop(key)
+        # convert to a list of params
+        params = util.makeDisplayParams(internalDict, sortKeys=sortKeys)
+        # make ctrls
+        for param in params:
+            # if param is the readmore button, add it and continue
+            if param == "---":
+                self.addReadmoreCtrl()
+                continue
+            # if given a label, use it
+            if param['key'] in labels:
+                param['label'] = labels[param['key']]
+            # add asterisk to label if needed
+            if param['required'] and "*" not in param['label']:
+                param['label'] += "*"
+            # if given a tooltip, use it
+            if param['key'] in tip:
+                param['tip'] = tip[param['key']]
+            else:
+                param['tip'] = ""
+            # store attributes from this param
+            self._labels.append(param['label'])
+            self._keys.append(param['key'])
+            # make ctrls
+            if param['fixed']:
                 self.addFixedField(
-                    label,
-                    self.dictionary[field],
-                    tip=tooltip
+                    param['label'],
+                    param['value'],
+                    tip=param['tip']
                 )
-            elif type(self.dictionary[field]) in [list, tuple]:
+            elif isinstance(param['value'], (list, tuple)):
                 self.addField(
-                    label,
-                    choices=self.dictionary[field],
-                    tip=tooltip,
-                    required=required
+                    param['label'],
+                    choices=param['value'],
+                    tip=param['tip'],
+                    required=param['required']
                 )
             else:
                 self.addField(
-                    label,
-                    self.dictionary[field],
-                    tip=tooltip,
-                    required=required
+                    param['label'],
+                    tip=param['tip'],
+                    required=param['required']
                 )
 
         # validate so the required message is shown/hidden as appropriate
