@@ -245,6 +245,8 @@ class Flow(list):
 
         # unpack inputs
         code = (
+            "# remove any dialog-specific syntax from expInfo\n"
+            "expInfo, _ = data.utils.parsePipeSyntaxDict(expInfo)\n"
             "# mark experiment as started\n"
             "thisExp.status = STARTED\n"
             "# make sure variables created by exec are available globally\n"
