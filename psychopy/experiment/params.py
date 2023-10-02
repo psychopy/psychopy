@@ -242,7 +242,6 @@ class Param():
                 # Otherwise, treat as string
                 return repr(val)
         elif self.valType == 'list':
-            valid, val = self.dollarSyntax()
             val = toList(val)
             return "{}".format(val)
         elif valType == 'fixedList':
@@ -325,44 +324,7 @@ class Param():
         return element
 
     def dollarSyntax(self):
-        """
-        Interpret string according to dollar syntax, return:
-        1: Whether syntax is valid (True/False)
-        2: Whether code is wanted (True/False)
-        3: The value, stripped of any unnecessary $
-        """
-        val = self.val
-        if self.valType in ['extendedStr','str', 'file', 'table', 'color', 'list']:
-            # How to handle dollar signs in a string param
-            self.codeWanted = str(val).startswith("$")
-
-            if not re.search(r"\$", str(val)):
-                # Return if there are no $
-                return True, val
-            if self.codeWanted:
-                # If value begins with an unescaped $, remove the first char and treat the rest as code
-                val = val[1:]
-                inComment = "".join(re.findall(r"\#.*", val))
-                inQuotes = "".join(re.findall("[\'\"][^\"|^\']*[\'\"]", val))
-                if not re.findall(r"\$", val):
-                    # Return if there are no further dollar signs
-                    return True, val
-                if len(re.findall(r"\$", val)) == len(re.findall(r"\$", inComment)):
-                    # Return if all $ are commented out
-                    return True, val
-                if len(re.findall(r"\$", val)) - len(re.findall(r"\$", inComment)) == len(re.findall(r"\$", inQuotes)):
-                    # Return if all non-commended $ are in strings
-                    return True, val
-            else:
-                # If value does not begin with an unescaped $, treat it as a string
-                if not re.findall(r"(?<!\\)\$", val):
-                    # Return if all $ are escaped (\$)
-                    return True, val
-        else:
-            # If valType does not interact with $, return True
-            return True, val
-        # Return false if method has not returned yet
-        return False, val
+        return dollarSyntax(self.val, self.valType)
 
     __nonzero__ = __bool__  # for python2 compatibility
 
