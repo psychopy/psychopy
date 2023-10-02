@@ -504,25 +504,26 @@ class DlgFromDict(Dlg):
             if "hid" in param['flags']:
                 # don't add anything if it's hidden
                 pass
-            if "fix" in param['flags']:
+            elif "fix" in param['flags']:
                 self.addFixedField(
                     param['key'],
-                    param['label'],
-                    param['value'],
+                    label=param['label'],
+                    initial=param['value'],
                     tip=param['tip']
                 )
             elif isinstance(param['value'], (list, tuple)):
                 self.addField(
                     param['key'],
-                    param['label'],
                     choices=param['value'],
+                    label=param['label'],
                     tip=param['tip'],
                     required="req" in param['flags']
                 )
             else:
                 self.addField(
                     param['key'],
-                    param['label'],
+                    initial=param['value'],
+                    label=param['label'],
                     tip=param['tip'],
                     required="req" in param['flags']
                 )
