@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2023-09-27 16:58+0800\n"
-"Last-Translator: Huang Xinru <hxrmiaomiaomiao@pku.edu.cn>\n"
+"PO-Revision-Date: 2023-10-02 15:47-0400\n"
+"Last-Translator: Bingzi Yu <ybzice@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
@@ -4101,7 +4101,7 @@ msgstr "例程每次循环开始时运行的代码（例：每个 trial ）；�
 msgid ""
 "Code to be run on every video frame during for the duration of this Routine; "
 "right-click checks syntax"
-msgstr ""
+msgstr "在此例程中的每一视频祯所运行的代码；右键可检查语法"
 
 #: ../experiment/components/code/__init__.py:105
 #: ../experiment/components/code/__init__.py:156
@@ -4225,7 +4225,7 @@ msgstr "请指定所有点的更新时间"
 
 #: ../experiment/components/dots/__init__.py:134
 msgid "What governs the behaviour of the noise dots? See Scase et al."
-msgstr ""
+msgstr "什么规定了噪声点的运动？见 Sacse et al."
 
 #: ../experiment/components/dots/__init__.py:146
 msgid "What is the shape of the field?"
@@ -4346,11 +4346,11 @@ msgstr "包络调制深度"
 
 #: ../experiment/components/envelopegrating/__init__.py:31
 msgid "Power to which envelope is raised"
-msgstr ""
+msgstr "包络提升的功率"
 
 #: ../experiment/components/envelopegrating/__init__.py:32
 msgid "Is modulation a beat"
-msgstr ""
+msgstr "调制是否为一个节拍"
 
 #: ../experiment/components/envelopegrating/__init__.py:33
 #: ../experiment/components/grating/__init__.py:23
@@ -4438,6 +4438,7 @@ msgid "Modulation depth of modulation envelope"
 msgstr "调制包络的调制深度"
 
 #: ../experiment/components/envelopegrating/__init__.py:177
+#, fuzzy
 msgid ""
 "Power of modulation envelope. The modulator will be raised to this power "
 "according to the equation S=cC*(1+mM)^power, where C is the carrier and M is "
@@ -4451,6 +4452,13 @@ msgid ""
 "Landy and Oruc, Vis Res 2002. Note overall contrast (apparent carrier "
 "contrast) will be altered."
 msgstr ""
+"调制包络的功率。根据公式 S=cC*(1+mM)^power，调制器的功率将提升至此值，其中 C "
+"为载波，M 为调制器，c 和 m 分别为对比度和调制深度。此等式仅适用于 AM 包络线"
+"（因此等式中为 +1）。如果要求节拍，功率将被忽略。这用于获取调制器的平方根（功"
+"率 = 0.5）；如果将两个具有不同载波和 180 度相移的包络光栅组合在一起，此平方根"
+"将非常适用，因为由此产生的组合信号不会降低图像中任何一点的局部对比度。这与"
+"（Landy & OrucVis & Res，2002）使用的方法相似，但不完全相同。请注意，整体对比"
+"度（表观载波对比度）会有所改变。"
 
 #: ../experiment/components/envelopegrating/__init__.py:199
 #, fuzzy
