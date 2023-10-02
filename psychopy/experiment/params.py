@@ -391,7 +391,7 @@ class Partial(functools.partial):
 
 def dollarSyntax(val, valType):
     """
-
+    Parse dollar syntax to identify whether a parameter value indicates that it is code.
 
     Parameters
     ----------
