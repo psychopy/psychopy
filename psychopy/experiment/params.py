@@ -387,6 +387,56 @@ class Partial(functools.partial):
         self.kwargs = kwargs
 
 
+def dollarSyntax(val, valType):
+    """
+
+
+    Parameters
+    ----------
+    val : any
+        Value to parse dollar syntax within
+    valType : str
+        Type of the value before taking dollar syntax into account
+
+    Returns
+    -------
+    any
+        The value with dollar signs removed
+    str or list
+        The new valType of the param (or a list of valTypes, if given a list to start with)
+    """
+
+    # if val is a list, call on each item and return output as list
+    if isinstance(val, (list, tuple)):
+        outVal = []
+        outTypes = []
+        for subval in val:
+            subval, subvalType = dollarSyntax(subval, "str")
+            outVal.append(subval)
+            outTypes.append(subvalType)
+
+        return outVal, outTypes
+
+    # copy val
+    activeVal = str(val)
+    # remove any string contents
+    activeVal = re.sub(r"[\"'].*[\"']", "_", activeVal)
+    # remove any comments
+    activeVal = re.sub(r"#.*", "_", activeVal)
+    # if there are still unescaped dollars, it's code
+    unescapedDollars = list(re.finditer(utils.unescaped_re + r"\$", activeVal))
+    if unescapedDollars:
+        valType = "code"
+
+    # remove code markers
+    deleteMarker = chr(int("FFFFE", 16))
+    for match in unescapedDollars:
+        val = val[:match.start()] + chr(int("FFFFE", 16)) + val[match.end():]
+    val = val.replace(deleteMarker, "")
+
+    return val, valType
+
+
 def getCodeFromParamStr(val, target=None):
     """Convert a Param.val string to its intended python code
     (as triggered by special char $)
