@@ -721,7 +721,7 @@ def parsePipeSyntax(key, stripKey=True):
     |hid = Hidden parameter, meaning it's not down by DlgFromDict
     |0, |1, |2, etc. = Parameter with specific place in key order
 
-    An unescaped * in the key is considered shorthand for |req, but will not be removed.
+    An unescaped * in the key is considered shorthand for |req.
 
     Parameters
     ----------
@@ -738,8 +738,7 @@ def parsePipeSyntax(key, stripKey=True):
         List of flags found
     """
     # add |req if an unescaped * is present
-    if re.search(r"(?<!\\)\*", key):
-        key += "|req"
+    key = re.sub(r"(?<!\\)\*", "|req", key)
     # get flags
     key, *flags = key.split("|")
     # remove duplicates
