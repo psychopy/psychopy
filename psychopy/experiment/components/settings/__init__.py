@@ -1160,19 +1160,13 @@ class SettingsComponent:
 
         sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
         code = (
-            f"# temporarily remove keys which the dialog doesn't need to show\n"
-            f"poppedKeys = {{\n"
-            f"    'date': expInfo.pop('date', data.getDateStr()),\n"
-            f"    'expName': expInfo.pop('expName', expName),\n"
-            f"    'psychopyVersion': expInfo.pop('psychopyVersion', psychopyVersion),\n"
-            f"}}\n"
+            f"# hide keys if they're only used internally\n"
+            f"for key in ('date', 'expName', 'psychopyVersion'):\n"
+            f"    expInfo[key + '|hid'] = expInfo.pop(key)\n"
             f"# show participant info dialog\n"
-            f"dlg = gui.DlgFromDict(dictionary=expInfo, "
-            f"sortKeys={sorting}, title=expName)\n"
+            f"dlg = gui.DlgFromDict(dictionary=expInfo, sortKeys={sorting}, title=expName)\n"
             f"if dlg.OK == False:\n"
             f"    core.quit()  # user pressed cancel\n"
-            f"# restore hidden keys\n"
-            f"expInfo.update(poppedKeys)\n"
             f"# return expInfo\n"
             f"return expInfo\n"
         )
