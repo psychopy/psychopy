@@ -470,17 +470,6 @@ class DlgFromDict(Dlg):
                  tip=None, screen=-1, sortKeys=True, copyDict=False,
                  labels=None, show=True):
         # Note: As of 2023.2.0, we do not allow sort_keys or copy_dict
-        
-        # We don't explicitly check for None identity
-        # for backward-compatibility reasons.
-        if not fixed:
-            fixed = []
-        if not order:
-            order = []
-        if not labels:
-            labels = dict()
-        if not tip:
-            tip = dict()
 
         Dlg.__init__(self, title, screen=screen)
 
@@ -491,36 +480,24 @@ class DlgFromDict(Dlg):
         # initialise storage attributes
         self._labels = []
         self._keys = []
-        # create internal dictionary just for making params
-        internalDict = self.dictionary.copy()
-        # convert fixed list to pipe syntax
-        for key in fixed:
-            if key in internalDict:
-                internalDict[f"{key}|fix"] = internalDict.pop(key)
-        # convert order list to pipe syntax
-        for key in order:
-            i = order.index(key)
-            if key in internalDict:
-                internalDict[f"{key}|{i}"] = internalDict.pop(key)
         # convert to a list of params
-        params = util.makeDisplayParams(internalDict, sortKeys=sortKeys)
+        params = util.makeDisplayParams(
+            self.dictionary,
+            sortKeys=sortKeys,
+            labels=labels,
+            tooltips=tip,
+            order=order,
+            fixed=fixed
+        )
         # make ctrls
         for param in params:
             # if param is the readmore button, add it and continue
             if param == "---":
                 self.addReadmoreCtrl()
                 continue
-            # if given a label, use it
-            if param['key'] in labels:
-                param['label'] = labels[param['key']]
             # add asterisk to label if needed
             if param['required'] and "*" not in param['label']:
                 param['label'] += "*"
-            # if given a tooltip, use it
-            if param['key'] in tip:
-                param['tip'] = tip[param['key']]
-            else:
-                param['tip'] = ""
             # store attributes from this param
             self._labels.append(param['label'])
             self._keys.append(param['key'])
