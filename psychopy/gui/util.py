@@ -52,8 +52,7 @@ def makeDisplayParams(expInfo, sortKeys=True, labels=None, tooltips=None, fixed=
             'label': label,
             'tip': tip,
             'value': expInfo[key],
-            'required': "req" in flags,
-            'fixed': "fix" in flags,
+            'flags': flags,
             'index': i,
         }
         # decide which list to add to

@@ -1195,7 +1195,7 @@ class SettingsComponent:
             f"if dlg.OK == False:\n"
             f"    core.quit()  # user pressed cancel\n"
             f"# return expInfo\n"
-            f"return dlg.data\n"
+            f"return expInfo\n"
         )
         buff.writeIndentedLines(code)
 

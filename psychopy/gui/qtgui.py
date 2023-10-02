@@ -96,7 +96,7 @@ class Dlg(QtWidgets.QDialog):
         self.inputFields = []
         self.inputFieldTypes = {}
         self.inputFieldNames = []
-        self.data = []
+        self.data = {}
         self.irow = 0
         self.pos = pos
         # QtWidgets.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
@@ -152,7 +152,7 @@ class Dlg(QtWidgets.QDialog):
 
         return textLabel
 
-    def addField(self, label='', initial='', color='', choices=None, tip='',
+    def addField(self, key, label='', initial='', color='', choices=None, tip='',
                  required=False, enabled=True):
         """Adds a (labelled) input field to the dialogue box,
         optional text color and tooltip.
@@ -176,19 +176,18 @@ class Dlg(QtWidgets.QDialog):
 
         # create input control
         if type(initial) == bool and not choices:
-            self.data.append(initial)
+            self.data[key] = initial
             inputBox = QtWidgets.QCheckBox(parent=self)
             inputBox.setChecked(initial)
 
             def handleCheckboxChange(new_state):
-                ix = self.inputFields.index(inputBox)
-                self.data[ix] = inputBox.isChecked()
+                self.data[key] = inputBox.isChecked()
                 msg = "handleCheckboxChange: inputFieldName={0}, checked={1}"
-                logging.debug(msg.format(label, self.data[ix]))
+                logging.debug(msg.format(label, self.data[key]))
 
             inputBox.stateChanged.connect(handleCheckboxChange)
         elif not choices:
-            self.data.append(initial)
+            self.data[key] = initial
             inputBox = QtWidgets.QLineEdit(str(initial), parent=self)
 
             def handleLineEditChange(new_text):
@@ -198,37 +197,37 @@ class Dlg(QtWidgets.QDialog):
 
                 try:
                     if thisType in (str, bytes):
-                        self.data[ix] = str(new_text)
+                        self.data[key] = str(new_text)
                     elif thisType == tuple:
                         jtext = "[" + str(new_text) + "]"
-                        self.data[ix] = json.loads(jtext)[0]
+                        self.data[key] = json.loads(jtext)[0]
                     elif thisType == list:
                         jtext = "[" + str(new_text) + "]"
-                        self.data[ix] = json.loads(jtext)[0]
+                        self.data[key] = json.loads(jtext)[0]
                     elif thisType == float:
-                        self.data[ix] = float(new_text)
+                        self.data[key] = float(new_text)
                     elif thisType == int:
-                        self.data[ix] = int(new_text)
+                        self.data[key] = int(new_text)
                     elif thisType == dict:
                         jtext = "[" + str(new_text) + "]"
-                        self.data[ix] = json.loads(jtext)[0]
+                        self.data[key] = json.loads(jtext)[0]
                     elif thisType == np.ndarray:
-                        self.data[ix] = np.array(
+                        self.data[key] = np.array(
                             json.loads("[" + str(new_text) + "]")[0])
                     else:
-                        self.data[ix] = new_text
+                        self.data[key] = new_text
                         msg = ("Unknown type in handleLineEditChange: "
                                "inputFieldName={0}, type={1}, value={2}")
                         logging.warning(msg.format(label, thisType,
                                                    self.data[ix]))
                     msg = ("handleLineEditChange: inputFieldName={0}, "
                            "type={1}, value={2}")
-                    logging.debug(msg.format(label, thisType, self.data[ix]))
+                    logging.debug(msg.format(label, thisType, self.data[key]))
                 except Exception as e:
-                    self.data[ix] = str(new_text)
+                    self.data[key] = str(new_text)
                     msg = ('Error in handleLineEditChange: inputFieldName='
                            '{0}, type={1}, value={2}, error={3}')
-                    logging.error(msg.format(label, thisType, self.data[ix],
+                    logging.error(msg.format(label, thisType, self.data[key],
                                              e))
 
                 self.validate()
@@ -251,18 +250,18 @@ class Dlg(QtWidgets.QDialog):
                 initial = 0
             inputBox.setCurrentIndex(initial)
 
-            self.data.append(choices[initial])
+            self.data[key] = choices[initial]
 
             def handleCurrentIndexChanged(new_index):
                 ix = self.inputFields.index(inputBox)
                 try:
-                    self.data[ix] = inputBox.itemData(new_index).toPyObject()[0]
+                    self.data[key] = inputBox.itemData(new_index).toPyObject()[0]
                 except AttributeError:
-                    self.data[ix] = inputBox.itemData(new_index)[0]
+                    self.data[key] = inputBox.itemData(new_index)[0]
                 msg = ("handleCurrentIndexChanged: inputFieldName={0}, "
                        "selected={1}, type: {2}")
-                logging.debug(msg.format(label, self.data[ix],
-                                         type(self.data[ix])))
+                logging.debug(msg.format(label, self.data[key],
+                                         type(self.data[key])))
 
             inputBox.currentIndexChanged.connect(handleCurrentIndexChanged)
 
@@ -496,30 +495,36 @@ class DlgFromDict(Dlg):
                 self.addReadmoreCtrl()
                 continue
             # add asterisk to label if needed
-            if param['required'] and "*" not in param['label']:
+            if "req" in param['flags'] and "*" not in param['label']:
                 param['label'] += "*"
             # store attributes from this param
             self._labels.append(param['label'])
             self._keys.append(param['key'])
             # make ctrls
-            if param['fixed']:
+            if "hid" in param['flags']:
+                # don't add anything if it's hidden
+                pass
+            if "fix" in param['flags']:
                 self.addFixedField(
+                    param['key'],
                     param['label'],
                     param['value'],
                     tip=param['tip']
                 )
             elif isinstance(param['value'], (list, tuple)):
                 self.addField(
+                    param['key'],
                     param['label'],
                     choices=param['value'],
                     tip=param['tip'],
-                    required=param['required']
+                    required="req" in param['flags']
                 )
             else:
                 self.addField(
+                    param['key'],
                     param['label'],
                     tip=param['tip'],
-                    required=param['required']
+                    required="req" in param['flags']
                 )
 
         # validate so the required message is shown/hidden as appropriate
@@ -531,17 +536,9 @@ class DlgFromDict(Dlg):
     def show(self):
         """Display the dialog.
         """
-        ok_data = self.exec_()
-        if ok_data:
-            for n, thisKey in enumerate(self._keys):
-                if thisKey in self._labels:
-                    labelKey = self._labels[thisKey]
-                else:
-                    labelKey = thisKey
-                try:
-                    self.dictionary[thisKey] = self.inputFieldTypes[labelKey](self.data[n])
-                except ValueError:
-                    self.dictionary[thisKey] = self.data[n]
+        data = self.exec_()
+        self.dictionary.update(data)
+        return self.dictionary
 
 
 def fileSaveDlg(initFilePath="", initFileName="",
