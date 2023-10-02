@@ -817,9 +817,9 @@ class SettingsComponent:
             f"    '{key}': {value},\n"
             )
         code += (
-            "    'date': data.getDateStr(),  # add a simple timestamp\n"
-            "    'expName': expName,\n"
-            "    'psychopyVersion': psychopyVersion,\n"
+            "    'date|hid': data.getDateStr(),  # add a simple timestamp\n"
+            "    'expName|hid': expName,\n"
+            "    'psychopyVersion|hid': psychopyVersion,\n"
             "}\n"
             "\n"
         )
@@ -1160,9 +1160,6 @@ class SettingsComponent:
 
         sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
         code = (
-            f"# hide keys if they're only used internally\n"
-            f"for key in ('date', 'expName', 'psychopyVersion'):\n"
-            f"    expInfo[key + '|hid'] = expInfo.pop(key)\n"
             f"# show participant info dialog\n"
             f"dlg = gui.DlgFromDict(dictionary=expInfo, sortKeys={sorting}, title=expName)\n"
             f"if dlg.OK == False:\n"
