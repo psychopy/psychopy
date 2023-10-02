@@ -314,7 +314,7 @@ class Experiment:
             if self_copy.settings.params['Show info dlg'].val:
                 # Only show exp info dlg if indicated to by settings
                 code += (
-                "    expInfo = showExpInfoDlg(expInfo=expInfo)\n"
+                "    expInfo = showExpInfoDlg(expInfoForDlg=expInfoForDlg)\n"
                 )
             code += (
                 "    thisExp = setupData(expInfo=expInfo)\n"

@@ -15,6 +15,7 @@ from psychopy.monitors import Monitor
 from psychopy.iohub import util as ioUtil
 from psychopy.alerts import alert
 from psychopy.tools.filetools import genDelimiter
+from psychopy.data.utils import parsePipeSyntax
 
 # for creating html output folders:
 import shutil
@@ -808,18 +809,35 @@ class SettingsComponent:
             "expName = %(expName)s  # from the Builder filename that created this script\n"
         )
         buff.writeIndentedLines(code % params)
-        # Construct exp info dict
+        # get info for this experiment
+        expInfo = self.getInfo()
+        # add internal expInfo keys
+        expInfo['date|hid'] = "data.getDateStr()"
+        expInfo['expName|hid'] = "expName"
+        expInfo['psychopyVersion|hid'] = "psychopyVersion"
+        # construct general exp info dict
         code = (
+            "# information about this experiment\n"
             "expInfo = {\n"
         )
-        for key, value in self.getInfo().items():
+        for key, value in expInfo.items():
             code += (
-            f"    '{key}': {value},\n"
+            f"    '{parsePipeSyntax(key)[0]}': {value},\n"
             )
         code += (
-            "    'date|hid': data.getDateStr(),  # add a simple timestamp\n"
-            "    'expName|hid': expName,\n"
-            "    'psychopyVersion|hid': psychopyVersion,\n"
+            "}\n"
+        )
+        buff.writeIndented(code)
+        # construct exp info dict for dialog
+        code = (
+            "# information about this experiment, with markers to tell a dialog box what to do with it\n"
+            "expInfoForDlg = {\n"
+        )
+        for key in expInfo:
+            code += (
+            f"    '{key}': expInfo['{parsePipeSyntax(key)[0]}'],\n"
+            )
+        code += (
             "}\n"
             "\n"
         )
@@ -1141,18 +1159,18 @@ class SettingsComponent:
         # Enter function def
         code = (
             '\n'
-            'def showExpInfoDlg(expInfo):\n'
+            'def showExpInfoDlg(expInfoForDlg):\n'
             '    """\n'
             '    Show participant info dialog.\n'
             '    Parameters\n'
             '    ==========\n'
-            '    expInfo : dict\n'
-            '        Information about this experiment, created by the `setupExpInfo` function.\n'
+            '    expInfoForDlg : dict\n'
+            '        Information about this experiment, including dialog-specific syntax.\n'
             '    \n'
             '    Returns\n'
             '    ==========\n'
             '    dict\n'
-            '        Information about this experiment.\n'
+            '        Information about this experiment, with dialog-specific syntax removed.\n'
             '    """\n'
         )
         buff.writeIndentedLines(code)
@@ -1161,11 +1179,11 @@ class SettingsComponent:
         sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
         code = (
             f"# show participant info dialog\n"
-            f"dlg = gui.DlgFromDict(dictionary=expInfo, sortKeys={sorting}, title=expName)\n"
+            f"dlg = gui.DlgFromDict(dictionary=expInfoForDlg, sortKeys={sorting}, title=expName)\n"
             f"if dlg.OK == False:\n"
             f"    core.quit()  # user pressed cancel\n"
             f"# return expInfo\n"
-            f"return expInfo\n"
+            f"return dlg.data\n"
         )
         buff.writeIndentedLines(code)
 
