@@ -381,6 +381,10 @@ def dollarSyntax(val, valType):
 
         return outVal, outTypes
 
+    # if val isn't a string, just return as is
+    if not isinstance(val, str):
+        return val, valType
+
     # copy val
     activeVal = str(val)
     # remove any string contents
