@@ -255,14 +255,28 @@ class Param():
             else:
                 # Otherwise, treat as string
                 return repr(val)
-        elif self.valType == 'list':
-            valid, val = self.dollarSyntax()
-            val = toList(val)
-            return "{}".format(val)
         elif self.valType == 'fixedList':
             return "{}".format(self.val)
-        elif self.valType == 'fileList':
-            return "{}".format(self.val)
+        elif self.valType in ('list', 'fileList'):
+            val = self.val
+            # convert to list if needed
+            if not len(val):
+                val = []
+            if isinstance(val, str):
+                if val[0] in ("[", "(") and val[-1] in ("]", ")"):
+                    val = val[1:-1].split(",")
+            # work out dollar syntax
+            val, valType = dollarSyntax(val, self.valType)
+            # add each value according to dollar syntax
+            code = "["
+            for subval, subtype in zip(val, valType):
+                if subtype == "code":
+                    code += str(subval)
+                else:
+                    code += repr(str(subval))
+                code += ", "
+            code += "]"
+            return code
         elif self.valType == 'bool':
             if utils.scriptTarget == "PsychoJS":
                 return ("%s" % self.val).lower()  # make True -> "true"

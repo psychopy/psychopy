@@ -713,7 +713,7 @@ class FileListCtrl(wx.ListBox, _ValidatorMixin, _HideMixin, _FileMixin):
         if stringEntry:
             self.InsertItems([stringEntry], 0)
 
-    def GetValue(self):
+    def getValue(self):
         return self.Items
 
 
