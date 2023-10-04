@@ -2937,6 +2937,14 @@ class CoderRibbon(ribbon.FrameRibbon):
             tooltip=_translate("Run experiment locally in Python"),
             callback=parent.runFile
         )
+
+        self.addSeparator()
+
+        # --- Browser ---
+        self.addSection(
+            name="browser", label=_translate("Browser"), icon="browser"
+        )
+
         # sync project
         self.addButton(
             section="browser", name="pavsync", label=_translate("Sync"), icon='pavsync',
