@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2023-10-04 16:57-0400\n"
+"PO-Revision-Date: 2023-10-04 17:05-0400\n"
 "Last-Translator: Bingzi Yu <ybzice@gmail.com>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -850,7 +850,7 @@ msgstr "期间设置: "
 #: ../app/builder/dialogs/__init__.py:1017
 #: ../app/builder/dialogs/dlgsCode.py:48 ../app/builder/dialogs/dlgsCode.py:50
 msgid " Properties"
-msgstr ""
+msgstr "属性"
 
 #: ../app/builder/dialogs/__init__.py:793
 #: ../app/builder/dialogs/dlgsCode.py:146
@@ -2541,19 +2541,19 @@ msgstr ""
 
 #: ../app/pavlovia_ui/_base.py:178
 msgid "Title summarizing the changes you're making in these files"
-msgstr ""
+msgstr "请在标题中总结您在这些文件中做的修改"
 
 #: ../app/pavlovia_ui/_base.py:181
 msgid "Optional details about the changes you're making in these files"
-msgstr ""
+msgstr "请描述您在这些文件中所做的修改细节（可选）"
 
 #: ../app/pavlovia_ui/functions.py:44
 msgid "Choose/create the root location for the synced project"
-msgstr ""
+msgstr "请为要同步的项目选择/创建源地址"
 
 #: ../app/pavlovia_ui/functions.py:101
 msgid "Changes to commit:\n"
-msgstr ""
+msgstr "需提交的修改：\n"
 
 #: ../app/pavlovia_ui/functions.py:107
 msgid "\t{}: {} files\n"
@@ -2561,7 +2561,7 @@ msgstr "\t{}: {} 文件\n"
 
 #: ../app/pavlovia_ui/functions.py:130
 msgid "You need to install git to use Pavlovia projects"
-msgstr ""
+msgstr "您需要安装 git 以运行 Pavlovia 项目"
 
 #: ../app/pavlovia_ui/menu.py:53
 msgid "Log in to Pavlovia...\t{}"
