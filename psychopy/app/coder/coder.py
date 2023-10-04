@@ -2937,6 +2937,12 @@ class CoderRibbon(ribbon.FrameRibbon):
             tooltip=_translate("Run experiment locally in Python"),
             callback=parent.runFile
         )
+        # sync project
+        self.addButton(
+            section="browser", name="pavsync", label=_translate("Sync"), icon='pavsync',
+            tooltip=_translate("Sync project with Pavlovia"),
+            callback=parent.onPavloviaSync
+        )
 
         self.addSeparator()
 
@@ -2944,19 +2950,13 @@ class CoderRibbon(ribbon.FrameRibbon):
         self.addSection(
             name="pavlovia", label=_translate("Pavlovia"), icon="pavlovia"
         )
-        # sync project
-        self.addButton(
-            section="pavlovia", name="jsrun", label=_translate("Sync"), icon='pavsync',
-            tooltip=_translate("Sync project with Pavlovia"),
-            callback=parent.onPavloviaSync
+        # pavlovia user
+        self.addPavloviaUserCtrl(
+            section="pavlovia", name="pavuser", frame=parent
         )
         # pavlovia project
         self.addPavloviaProjectCtrl(
             section="pavlovia", name="pavproject", frame=parent
-        )
-        # pavlovia user
-        self.addPavloviaUserCtrl(
-            section="pavlovia", name="pavuser", frame=parent
         )
 
         self.addSeparator()
