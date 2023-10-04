@@ -926,6 +926,7 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
         expRoot = Path(cmpRoot).parent
         self.templates = {
             'Form': Path(cmpRoot) / "form" / "formItems.xltx",
+            'CounterBalance': Path(expRoot) / "routines" / "counterbalance" / "counterbalanceItems.xltx",
             'TrialHandler': Path(expRoot) / "loopTemplate.xltx",
             'StairHandler': Path(expRoot) / "loopTemplate.xltx",
             'MultiStairHandler:simple': Path(expRoot) / "staircaseTemplate.xltx",
