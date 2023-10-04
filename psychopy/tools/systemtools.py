@@ -834,7 +834,7 @@ def systemProfilerWindowsOS(
             if val is None:
                 continue
             cmd.append(f"/{key}")
-            cmd.append(val)
+            cmd.append(f'"{val}"')
         # append detail flags if they're True
         for key, val in {
             'bus': all((bus, busname is None, busid is None)),
@@ -925,8 +925,9 @@ def systemProfilerWindowsOS(
         return device
 
     # send command
+    cmd = _constructCommand()
     p = sp.Popen(
-        _constructCommand(),
+        " ".join(cmd),
         stdout=sp.PIPE,
         stderr=sp.PIPE,
     )
@@ -945,7 +946,7 @@ def systemProfilerWindowsOS(
         # add device to devices list
         devices.append(thisDevice)
 
-    return devices[:-1]
+    return devices
 
 
 def systemProfilerMacOS(dataTypes=None, detailLevel='basic', timeout=180):
