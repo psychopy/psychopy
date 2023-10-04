@@ -879,8 +879,10 @@ def systemProfilerWindowsOS(
         for lineNum, line in enumerate(allLines):
             # get key:value pair
             extension = False
-            if ":" in line:
-                key, val = line.split(":", maxsplit=1)
+            if line.endswith(":"):
+                key, val = line, ""
+            elif ": " in line:
+                key, val = line.split(": ", maxsplit=1)
             else:
                 # with no key, this value extends the last - make sure the last is a list
                 if val == "":
