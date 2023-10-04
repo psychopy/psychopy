@@ -1,4 +1,5 @@
 from .. import serialdevice as sd, photodiode
+from psychopy.tools import systemtools as st
 from psychopy import logging
 import serial
 import re
@@ -115,6 +116,9 @@ class TPadVoicekey:
 
 class TPad(sd.SerialDevice):
     def __init__(self, port=None, pauseDuration=1/60):
+        # get port if not given
+        if port is None:
+            port = self._detectComPort()
         # initialise as a SerialDevice
         sd.SerialDevice.__init__(self, port=port, baudrate=115200, pauseDuration=pauseDuration)
         # dict of responses by timestamp
@@ -126,6 +130,38 @@ class TPad(sd.SerialDevice):
         # reset timer
         self._lastTimerReset = None
         self.resetTimer()
+
+    @staticmethod
+    def _detectComPort():
+        # error to raise if this fails
+        err = ConnectionError(
+            "Could not detect COM port for TPad device. Try supplying a COM port directly."
+        )
+        # get device profiles matching what we expect of a TPad
+        profiles = st.systemProfilerWindowsOS(connected=True, classname="Ports")
+
+        # find which port has FTDI
+        profile = None
+        for prf in profiles:
+            if prf['Manufacturer Name'] == "FTDI":
+                profile = prf
+        # if none found, fail
+        if not profile:
+            raise err
+        # find "COM" in profile description
+        desc = profile['Device Description']
+        start = desc.find("COM") + 3
+        end = desc.find(")", start)
+        # if there's no reference to a COM port, fail
+        if -1 in (start, end):
+            raise err
+        # get COM port number
+        num = desc[start:end]
+        # if COM port number doesn't look numeric, fail
+        if not num.isnumeric():
+            raise err
+        # construct COM port string
+        return f"COM{num}"
 
     def setMode(self, mode):
         # exit out of whatever mode we're in (effectively set it to 0)
