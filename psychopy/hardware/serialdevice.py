@@ -13,12 +13,13 @@ import sys
 import time
 
 from psychopy import logging
+import serial
+from serial.tools import list_ports
+from psychopy.tools import systemtools as st
 from psychopy.tools.attributetools import AttributeGetSetMixin
-try:
-    import serial
-except ImportError:
-    serial = False
 
+# map out all ports on this device, to be filled as serial devices are initialised
+ports = {port.name: None for port in list_ports.comports()}
 
 class SerialDevice(AttributeGetSetMixin):
     """A base class for serial devices, to be sub-classed by specific devices
@@ -46,11 +47,11 @@ class SerialDevice(AttributeGetSetMixin):
 
         # get a list of port names to try
         if port is None:
-            ports = self._findPossiblePorts()
+            tryPorts = self._findPossiblePorts()
         elif type(port) in [int, float]:
-            ports = ['COM%i' % port]
+            tryPorts = ['COM%i' % port]
         else:
-            ports = [port]
+            tryPorts = [port]
 
         self.pauseDuration = pauseDuration
         self.com = None
@@ -63,7 +64,7 @@ class SerialDevice(AttributeGetSetMixin):
         self.type = self.name  # for backwards compatibility
 
         # try to open the port
-        for portString in ports:
+        for portString in tryPorts:
             try:
                 self.com = serial.Serial(
                     portString,
@@ -116,22 +117,43 @@ class SerialDevice(AttributeGetSetMixin):
         if self.OK:  # we have successfully sent and read a command
             msg = "Successfully opened %s with a %s"
             logging.info(msg % (self.portString, self.name))
+            # store device in ports dict
+            global ports
+            ports[port] = self
         # we aren't in a time-critical period so flush messages
         logging.flush()
 
-    def _findPossiblePorts(self):
-        # serial's built-in check doesn't work too well on win32 so just try
-        # all
+    @staticmethod
+    def _findPossiblePorts():
         if sys.platform == 'win32':
-            return ['COM' + str(i) for i in range(20)]
-        # on linux and mac the options are too wide so use serial.tools
-        from serial.tools import list_ports
-        poss = list_ports.comports()
-        # filter out any that report 'n/a' for their hardware
-        final = []
-        for p in poss:
-            if p[2] != 'n/a':
-                final.append(p[0])  # just the port address
+            # get profiles for all serial port devices
+            profiles = st.systemProfilerWindowsOS(classname="Ports")
+            # get COM port for each device
+            final = []
+            for profile in profiles:
+                # find "COM" in profile description
+                desc = profile['Device Description']
+                start = desc.find("COM") + 3
+                end = desc.find(")", start)
+                # skip this profile if there's no reference to a COM port
+                if -1 in (start, end):
+                    continue
+                # get COM port number
+                num = desc[start:end]
+                # skip this profile if COM port number doesn't look numeric
+                if not num.isnumeric():
+                    continue
+                # store COM port
+                final.append(f"COM{num}")
+        else:
+            # on linux and mac the options are too wide so use serial.tools
+            from serial.tools import list_ports
+            poss = list_ports.comports()
+            # filter out any that report 'n/a' for their hardware
+            final = []
+            for p in poss:
+                if p[2] != 'n/a':
+                    final.append(p[0])  # just the port address
         return final
 
     def isAwake(self):
