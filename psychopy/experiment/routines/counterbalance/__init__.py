@@ -97,7 +97,7 @@ class CounterBalanceRoutine(BaseStandaloneRoutine):
         )
         buff.writeIndentedLines(code % self.params)
 
-    def writeRoutineBeginCodeJS(self, buff):
+    def writeRoutineBeginCodeJS(self, buff, modular=True):
 
         if self.params['specMode'] == "file":
             # if we're going from a file, read in file to get conditions
