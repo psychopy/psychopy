@@ -119,7 +119,7 @@ class CounterBalanceRoutine(BaseStandaloneRoutine):
         code = (
             "\n"
             "# create counterbalance object for %(name)s \n"
-            "%(name)s = data.counterbalance.Counterbalancer(\n"
+            "%(name)s = data.Counterbalancer(\n"
             "    shelf=expShelf,"
             "    entry='%(name)s',\n"
             "    conditions=%(name)sConditions,\n"
