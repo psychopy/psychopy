@@ -136,7 +136,7 @@ class CounterBalanceRoutine(BaseStandaloneRoutine):
             "    'conditions': %(name)sConditions,\n"
             "});\n"
             "// get group from online\n"
-            "%(name)s.group = PsychoJS.shelf.getGroupFromEntry('%(name)s');"
+            "%(name)s.allocateGroup();"
             "\n"
         )
         buff.writeIndentedLines(code % self.params)
