@@ -68,6 +68,7 @@ class Shelf:
         options = []
         weights = []
         for group, size, weight in zip(groups, groupSizes, groupWeights):
+            group = str(group)
             # make sure it exists in entry
             if group not in entry:
                 entry[group] = size
@@ -134,7 +135,7 @@ class ShelfData:
     def write(self, data):
         # write data to file
         with self._path.open("w", encoding="utf-8") as f:
-            json.dump(data, f)
+            json.dump(data, f, indent=True)
 
     def __setitem__(self, key, value):
         # get data from file
