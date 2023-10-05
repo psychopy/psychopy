@@ -6,7 +6,7 @@ from psychopy.localization import _translate
 
 class CounterBalanceRoutine(BaseStandaloneRoutine):
     categories = ['Custom']
-    targets = ["PsychoJS"]
+    targets = ["PsychoPy", "PsychoJS"]
     iconFile = Path(__file__).parent / "counterbalance.png"
     tooltip = _translate(
         "Counterbalance Routine: use the Shelf to choose a value taking into account previous runs of this experiment."
@@ -89,10 +89,43 @@ class CounterBalanceRoutine(BaseStandaloneRoutine):
             )
         )
 
+    def writeInitCode(self, buff):
+        code = (
+            "expShelf = data.shelf.Shelf(scope='experiment', expPath=_thisDir)"
+        )
+        buff.writeOnceIndentedLines(code % self.params)
+
     def writeMainCode(self, buff):
+        if self.params['specMode'] == "file":
+            # if we're going from a file, read in file to get conditions
+            code = (
+                "# load in conditions for %(name)s\n"
+                "%(name)sConditions = data.utils.importConditions(%(conditionsFile)s);\n"
+            )
+        else:
+            # otherwise, create conditions
+            code = (
+                "# create uniform conditions for %(name)s\n"
+                "%(name)sConditions = []\n"
+                "for n in range(%(nGroups)s):\n"
+                "    %(name)sConditions.append({"
+                "        'group': n,\n"
+                "        'probability': 1/%(nGroups)s,\n"
+                "        'cap': %(pCap)s\n"
+                "    })\n"
+            )
+        buff.writeIndentedLines(code % self.params)
+
         code = (
             "\n"
-            "# Unknown standalone routine ignored: %(name)s\n"
+            "# create counterbalance object for %(name)s \n"
+            "%(name)s = data.counterbalance.Counterbalancer(\n"
+            "    shelf=expShelf,"
+            "    entry='%(name)s',\n"
+            "    conditions=%(name)sConditions,\n"
+            ")\n"
+            "# get group from shelf\n"
+            "%(name)s.allocateGroup();"
             "\n"
         )
         buff.writeIndentedLines(code % self.params)
