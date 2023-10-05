@@ -98,6 +98,14 @@ class CounterBalanceRoutine(BaseStandaloneRoutine):
         buff.writeIndentedLines(code % self.params)
 
     def writeRoutineBeginCodeJS(self, buff, modular=True):
+        code = (
+                "\n"
+                "var %(name)s"
+                "function %(name)sRoutine(snapshot) {\n"
+                "  return async function () {\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(2, relative=True)
 
         if self.params['specMode'] == "file":
             # if we're going from a file, read in file to get conditions
@@ -123,12 +131,19 @@ class CounterBalanceRoutine(BaseStandaloneRoutine):
         code = (
             "\n"
             "// create counterbalance object for %(name)s \n"
-            "var %(name)s = data.Counterbalancer({\n"
+            "%(name)s = data.Counterbalancer({\n"
             "    'entry': '%(name)s',\n"
             "    'conditions': %(name)sConditions,\n"
             "});\n"
             "// get group from online\n"
             "%(name)s.group = PsychoJS.shelf.getGroupFromEntry('%(name)s');"
             "\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(-2, relative=True)
+        code = (
+            "  }\n"
+            "}\n"
         )
         buff.writeIndentedLines(code % self.params)
