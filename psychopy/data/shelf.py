@@ -1,5 +1,6 @@
 import json
 import os
+import numpy as np
 from pathlib import Path
 from psychopy.preferences import prefs
 
@@ -55,6 +56,37 @@ class Shelf:
                 return scope
         # if it isn't aliased, return as is
         return alias
+
+    def counterBalanceSelect(self, key, groups, groupSizes, groupWeights=None):
+        # get entry
+        try:
+            entry = self.data[key]
+        except KeyError:
+            entry = {}
+
+        # for each group...
+        options = []
+        weights = []
+        for group, size, weight in zip(groups, groupSizes, groupWeights):
+            # make sure it exists in entry
+            if group not in entry:
+                entry[group] = size
+            # add to options if not full
+            if entry[group] > 0:
+                options.append(group)
+                weights.append(weight)
+
+        # choose a group at random
+        chosen = np.random.choice(options, p=weights)
+        # iterate chosen group
+        entry[chosen] -= 1
+        # get finished
+        finished = entry[chosen] <= 0
+
+        # set entry
+        self.data[key] = entry
+
+        return chosen, finished
 
 
 class ShelfData:
