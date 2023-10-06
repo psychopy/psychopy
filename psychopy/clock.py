@@ -121,20 +121,22 @@ class Timestamp(float):
         - float : Seconds since arbitrary start time (if only using as a duration)
         - float : Seconds since epoch (for an absolute time)
         - str : Time string in the format specified by the parameter `format`
-
     format : str or class
         Time format string (as in time.strftime) indicated how to convert this timestamp to a string, and how to
         interpret its value if given as a string. Use `float` (default) to always print timestamp as a float, or `str`
         as
+    lastReset : float
+        Epoch time at last clock reset. Will be added to raw value if printing to string.
 
     """
-    def __new__(cls, value, format=float):
+    def __new__(cls, value, format=float, lastReset=0.0):
         return float.__new__(cls, value)
 
-    def __init__(self, value, format=float):
+    def __init__(self, value, format=float, lastReset=0.0):
+        self.lastReset = lastReset
         # if given a string, attempt to parse it using the given format
         if isinstance(value, str):
-            value = time.strptime(value, format)
+            value = time.strptime(value, format) - lastReset
         # create self as float representing the time
         float.__init__(value)
         # store default format
@@ -168,11 +170,11 @@ class Timestamp(float):
             The value of this timestamp in the requested format.
         """
         # if format is unspecified, use own default
-        if format in (None, "float"):
+        if format is None:
             format = self.format
-        # if format is float, return as is
+        # if format is float, return as simple (non-timestamp) float
         if format in (float, "float"):
-            return self
+            return float(self)
         # otherwise, format to string in requested format
         return self.strftime(format=format)
 
@@ -201,7 +203,7 @@ class Timestamp(float):
         if format in (str, "str"):
             format = "%Y-%m-%d_%H:%M:%S.%f%z"
         # convert to datetime
-        now = datetime.fromtimestamp(self)
+        now = datetime.fromtimestamp(self + self.lastReset)
         # format
         return now.strftime(format)
 
@@ -263,16 +265,13 @@ class MonotonicClock:
         # substitute nonspecified str format for ISO 8601
         if format in (str, "str"):
             format = "%Y-%m-%d_%H:%M:%S.%f%z"
-        # only use applyZero if format is float
-        if format not in (float, "float"):
-            applyZero = False
         # get time since last reset
         t = getTime() - self._timeAtLastReset
         if not applyZero:
             # if not applying zero, add epoch start time
             t += self._epochTimeAtLastReset
 
-        return Timestamp(t, format)
+        return Timestamp(t, format, lastReset=self._epochTimeAtLastReset)
 
     def getLastResetTime(self):
         """
