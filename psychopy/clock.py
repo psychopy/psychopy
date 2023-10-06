@@ -267,11 +267,14 @@ class MonotonicClock:
             format = "%Y-%m-%d_%H:%M:%S.%f%z"
         # get time since last reset
         t = getTime() - self._timeAtLastReset
+        # get last reset time from epoch
+        lastReset = self._epochTimeAtLastReset
         if not applyZero:
-            # if not applying zero, add epoch start time
+            # if not applying zero, add epoch start time to t rather than supplying it
             t += self._epochTimeAtLastReset
+            lastReset = 0
 
-        return Timestamp(t, format, lastReset=self._epochTimeAtLastReset)
+        return Timestamp(t, format, lastReset=lastReset)
 
     def getLastResetTime(self):
         """
