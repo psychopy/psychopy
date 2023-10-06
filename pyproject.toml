@@ -90,6 +90,7 @@ dependencies = [
     "pyobjc-framework-Quartz < 8.0; platform_system == \"Darwin\"",
     "pyobjc; platform_system == \"Darwin\"",
     "python-xlib; platform_system == \"Linux\"",
+    'blosc2<2.2.8; python_version < "3.5"',
 ]
 
 [project.optional-dependencies]  # This is optional dependencies
