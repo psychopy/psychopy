@@ -4,7 +4,7 @@ from pathlib import Path
 from psychopy.localization import _translate
 
 
-class CounterBalanceRoutine(BaseStandaloneRoutine):
+class CounterbalanceRoutine(BaseStandaloneRoutine):
     categories = ['Custom']
     targets = ["PsychoPy", "PsychoJS"]
     iconFile = Path(__file__).parent / "counterbalance.png"
