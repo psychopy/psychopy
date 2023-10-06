@@ -8,6 +8,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
     categories = ['Custom']
     targets = ["PsychoPy", "PsychoJS"]
     iconFile = Path(__file__).parent / "counterbalance.png"
+    label = _translate("Counter-balance")
     tooltip = _translate(
         "Counterbalance Routine: use the Shelf to choose a value taking into account previous runs of this experiment."
     )
