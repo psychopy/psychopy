@@ -242,7 +242,7 @@ class StaticComponent(BaseComponent):
                     code = (
                         f"console.log('register and start downloading resources specified by component %(name)s');\n"
                         f"await psychoJS.serverManager.prepareResources(%({fieldName})s);\n"
-                        f"%(name)s.status = PsychoJS.Status.STARTED;\n"
+                        f"{self.params['name']}.status = PsychoJS.Status.STARTED;\n"
                     )
                     buff.writeIndentedLines(code % prms)
                 # Set values
