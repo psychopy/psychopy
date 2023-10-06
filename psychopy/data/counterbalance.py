@@ -11,6 +11,10 @@ class Counterbalancer:
         # store autolog
         self.autoLog = autoLog
 
+    @property
+    def data(self):
+        return self.shelf.data[self.entry]
+
     def allocateGroup(self):
         # get group assignment from shelf
         self.group = self.shelf.counterBalanceSelect(
