@@ -23,6 +23,7 @@ class BaseStandaloneRoutine:
     categories = ['Custom']
     targets = []
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
+    label = None
     tooltip = ""
     limit = float('inf')
     # what version was this Routine added in?

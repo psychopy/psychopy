@@ -2661,7 +2661,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.component = comp
             self.category = cat
             # construct label
-            label = name
+            if comp.label is not None:
+                label = comp.label
+            else:
+                label = name
             # remove "Component" from the end
             for redundant in ['component', 'Component', "ButtonBox"]:
                 label = label.replace(redundant, "")
@@ -2794,7 +2797,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel, handlers.ThemeMixin):
             self.routine = rt
             self.category = cat
             # construct label
-            label = name
+            if rt.label is not None:
+                label = rt.label
+            else:
+                label = name
             # remove "Routine" from the end
             for redundant in ['routine', 'Routine', "ButtonBox"]:
                 label = label.replace(redundant, "")

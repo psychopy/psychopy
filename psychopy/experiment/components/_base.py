@@ -31,6 +31,7 @@ class BaseComponent:
     targets = []
     plugin = None
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
+    label = None
     tooltip = ""
     # what version was this Component added in?
     version = "0.0.0"
