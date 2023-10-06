@@ -21,6 +21,7 @@ class KeyboardComponent(BaseComponent):
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'keyboard.png'
+    label = _translate("Keyboard")
     tooltip = _translate('Keyboard: check and record keypresses')
 
     def __init__(self, exp, parentName, name='key_resp',

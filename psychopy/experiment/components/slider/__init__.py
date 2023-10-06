@@ -40,6 +40,7 @@ class SliderComponent(BaseVisualComponent):
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'slider.png'
+    label = _translate("Slider")
     tooltip = _translate('Slider: A simple, flexible object for getting ratings')
 
     def __init__(self, exp, parentName,

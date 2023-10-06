@@ -15,6 +15,7 @@ class PatchComponent(BaseVisualComponent):
     categories = ['Stimuli']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'patch.png'
+    label = _translate("Patch")
     tooltip = _translate('Patch: present images (bmp, jpg, tif...) or textures '
                          'like gratings')
 

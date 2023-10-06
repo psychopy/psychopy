@@ -23,6 +23,7 @@ class StaticComponent(BaseComponent):
     categories = ['Custom']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'static.png'
+    label = _translate("Static")
     tooltip = _translate('Static: Static screen period (e.g. an ISI). '
                          'Useful for pre-loading stimuli.')
 

@@ -17,6 +17,7 @@ class TextComponent(BaseVisualComponent):
     categories = ['Stimuli']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'text.png'
+    label = _translate("Text")
     tooltip = _translate('Text: present text stimuli')
 
     def __init__(self, exp, parentName, name='text',

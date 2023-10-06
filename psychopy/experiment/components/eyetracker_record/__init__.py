@@ -20,6 +20,7 @@ class EyetrackerRecordComponent(BaseComponent):
     targets = ['PsychoPy']
     version = "2021.2.0"
     iconFile = Path(__file__).parent / 'eyetracker_record.png'
+    label = _translate("Eyetracker Record")
     tooltip = _translate('Start and / or Stop recording data from the eye tracker')
     beta = True
 

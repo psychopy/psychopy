@@ -14,6 +14,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
     targets = ["PsychoPy"]
     version = "2021.2.0"
     iconFile = Path(__file__).parent / "eyetracker_valid.png"
+    label = _translate("Eyetracker Validation")
     tooltip = _translate("Validation routine for eyetrackers")
     beta = True
 

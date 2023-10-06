@@ -11,6 +11,7 @@ class ResourceManagerComponent(BaseComponent):
     categories = ['Custom']
     targets = ['PsychoJS']
     iconFile = Path(__file__).parent / "resource_manager.png"
+    label = _translate("Resource Manager")
     tooltip = _translate("Pre-load some resources into memory so that components using them can start without having "
                          "to load first")
     beta = True

@@ -17,6 +17,7 @@ class MovieComponent(BaseVisualComponent):
     categories = ['Stimuli']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'movie.png'
+    label = _translate("Movie")
     tooltip = _translate('Movie: play movie files')
 
     def __init__(self, exp, parentName, name='movie', movie='',

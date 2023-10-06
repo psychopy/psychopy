@@ -17,6 +17,7 @@ class JoyButtonsComponent(BaseComponent):
     categories = ['Responses']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'joyButtons.png'
+    label = _translate("Joy Buttons")
     tooltip = _translate('JoyButtons: check and record joystick/gamepad button presses')
 
     def __init__(self, exp, parentName, name='button_resp',

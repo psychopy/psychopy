@@ -17,6 +17,7 @@ class RegionOfInterestComponent(PolygonComponent):
     targets = ['PsychoPy']
     version = "2021.2.0"
     iconFile = Path(__file__).parent / 'eyetracker_roi.png'
+    label = _translate("Region Of Interest")
     tooltip = _translate('Region Of Interest: Define a region of interest for use with eyetrackers')
     beta = True
 

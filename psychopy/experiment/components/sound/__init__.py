@@ -17,6 +17,7 @@ class SoundComponent(BaseComponent):
     categories = ['Stimuli']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'sound.png'
+    label = _translate("Sound")
     tooltip = _translate('Sound: play recorded files or generated sounds', )
 
     def __init__(self, exp, parentName, name='sound_1', sound='A', volume=1,

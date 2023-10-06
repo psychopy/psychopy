@@ -18,6 +18,7 @@ class TextboxComponent(BaseVisualComponent):
     targets = ['PsychoPy', 'PsychoJS']
     version = "2020.2.0"
     iconFile = Path(__file__).parent / 'textbox.png'
+    label = _translate("Textbox")
     tooltip = _translate('Textbox: present text stimuli but cooler')
     beta = True
 

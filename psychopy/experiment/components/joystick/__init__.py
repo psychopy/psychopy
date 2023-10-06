@@ -19,6 +19,7 @@ class JoystickComponent(BaseComponent):
     categories = ['Responses']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'joystick.png'
+    label = _translate("Joystick")
     tooltip = _translate('Joystick: query joystick position and buttons')
 
     def __init__(self, exp, parentName, name='joystick',

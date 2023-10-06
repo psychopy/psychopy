@@ -18,6 +18,7 @@ class RatingScaleComponent(BaseComponent):
     categories = ['Responses']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'ratingscale.png'
+    label = _translate("Rating Scale")
     tooltip = _translate('Rating scale: obtain numerical or categorical '
                          'responses')
 

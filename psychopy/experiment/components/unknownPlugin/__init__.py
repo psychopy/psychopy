@@ -17,6 +17,7 @@ class UnknownPluginComponent(BaseComponent):
     categories = ['Other']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'unknownPlugin.png'
+    label = _translate("Unknown Plugin")
     tooltip = _translate('Unknown: A component which comes from a plugin which you do not have installed & activated.')
 
     def __init__(self, exp, parentName, name='', compType="UnknownPluginComponent"):

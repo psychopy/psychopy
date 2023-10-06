@@ -10,6 +10,7 @@ class PavloviaSurveyRoutine(BaseStandaloneRoutine):
     targets = ["PsychoJS"]
     version = "2023.1.0"
     iconFile = Path(__file__).parent / "survey.png"
+    label = _translate("Pavlovia Survey")
     tooltip = _translate("Run a SurveyJS survey in Pavlovia")
     beta = False
 

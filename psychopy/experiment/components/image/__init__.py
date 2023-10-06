@@ -16,6 +16,7 @@ class ImageComponent(BaseVisualComponent):
     categories = ['Stimuli']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'image.png'
+    label = _translate("Image")
     tooltip = _translate('Image: present images (bmp, jpg, tif...)')
 
     def __init__(self, exp, parentName, name='image', image='', mask='',

@@ -17,6 +17,7 @@ class MouseComponent(BaseComponent):
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'mouse.png'
+    label = _translate("Mouse")
     tooltip = _translate('Mouse: query mouse position and buttons')
 
     def __init__(self, exp, parentName, name='mouse',
