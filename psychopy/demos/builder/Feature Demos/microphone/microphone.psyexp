@@ -53,18 +53,6 @@
     <Param val="MIDDLE_BUTTON" valType="list" updates="None" name="mgBlink"/>
     <Param val="CONTINUOUS" valType="str" updates="None" name="mgMove"/>
     <Param val="0.5" valType="num" updates="None" name="mgSaccade"/>
-    <Param val="neon.local" valType="str" updates="None" name="plCompanionAddress"/>
-    <Param val="scene_camera.json" valType="file" updates="None" name="plCompanionCameraCalibration"/>
-    <Param val="8080" valType="num" updates="None" name="plCompanionPort"/>
-    <Param val="True" valType="bool" updates="None" name="plCompanionRecordingEnabled"/>
-    <Param val="0.6" valType="num" updates="None" name="plConfidenceThreshold"/>
-    <Param val="True" valType="bool" updates="None" name="plPupilCaptureRecordingEnabled"/>
-    <Param val="" valType="str" updates="None" name="plPupilCaptureRecordingLocation"/>
-    <Param val="127.0.0.1" valType="str" updates="None" name="plPupilRemoteAddress"/>
-    <Param val="50020" valType="num" updates="None" name="plPupilRemotePort"/>
-    <Param val="1000" valType="num" updates="None" name="plPupilRemoteTimeoutMs"/>
-    <Param val="False" valType="bool" updates="None" name="plPupillometryOnly"/>
-    <Param val="psychopy_iohub_surface" valType="str" updates="None" name="plSurfaceName"/>
     <Param val="time" valType="str" updates="None" name="sortColumns"/>
     <Param val="" valType="str" updates="None" name="tbLicenseFile"/>
     <Param val="" valType="str" updates="None" name="tbModel"/>
@@ -158,7 +146,7 @@
       </PolygonComponent>
       <MicrophoneComponent name="mic" plugin="None">
         <Param val="auto" valType="str" updates="None" name="channels"/>
-        <Param val="9" valType="str" updates="None" name="device"/>
+        <Param val="default" valType="str" updates="None" name="device"/>
         <Param val="False" valType="bool" updates="None" name="disabled"/>
         <Param val="" valType="code" updates="None" name="durationEstim"/>
         <Param val="24000" valType="num" updates="None" name="maxSize"/>
@@ -176,7 +164,6 @@
         <Param val="True" valType="bool" updates="None" name="transcribe"/>
         <Param val="Whisper" valType="code" updates="None" name="transcribeBackend"/>
         <Param val="en-US" valType="str" updates="None" name="transcribeLang"/>
-        <Param val="tiny.en" valType="code" updates="None" name="transcribeWhisperModel"/>
         <Param val="" valType="list" updates="None" name="transcribeWords"/>
         <Param val="False" valType="bool" updates="None" name="trimSilent"/>
       </MicrophoneComponent>

@@ -26,8 +26,8 @@ bn_IN BNG
 bo_CN BOB
 br_FR BRE
 ca_ES CAT
-zh_CN CHS 中文  (Chinese, simplified)
-zh_TW CHT 台語  (Chinese, traditional)
+zh_CN CHS 简体中文  (Chinese, simplified)
+zh_TW CHT 繁體中文  (Chinese, traditional)
 co_FR COS
 cs_CZ CSY čeština  (Czech)
 cy_GB CYM
@@ -65,7 +65,7 @@ es_HN ESH
 es_NI ESI
 es_CL ESL
 es_MX ESM
-es_ES ESN español  (Spanish)
+es_ES ESN español, España  (Spanish, Spain)
 es_CO ESO
 es_PE ESR
 es_AR ESS
@@ -76,7 +76,7 @@ es_UY ESY
 es_PY ESZ
 et_EE ETI
 eu_ES EUQ
-fa_IR FAR
+fa_IR FAR فارسی (Persian)
 fi_FI FIN suomi  (Finnish)
 fo_FO FOS
 fr_FR FRA français  (French)

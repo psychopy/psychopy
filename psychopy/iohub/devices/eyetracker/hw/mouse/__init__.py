@@ -5,3 +5,4 @@
 from .eyetracker import EyeTracker
 from psychopy.iohub.devices.eyetracker import (MonocularEyeSampleEvent, FixationStartEvent, FixationEndEvent,
                                                SaccadeEndEvent, SaccadeStartEvent, BlinkEndEvent, BlinkStartEvent)
+

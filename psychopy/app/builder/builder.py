@@ -420,9 +420,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         menu.AppendSeparator()
 
         # Frame switcher
-        framesMenu = wx.Menu()
-        FrameSwitcher.makeViewSwitcherButtons(framesMenu, frame=self, app=self.app)
-        menu.AppendSubMenu(framesMenu, _translate("&Frames"))
+        FrameSwitcher.makeViewSwitcherButtons(menu, frame=self, app=self.app)
 
         # Theme switcher
         self.themesMenu = ThemeSwitcher(app=self.app)
@@ -825,6 +823,13 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
         dlg.Destroy()
 
         self.updateWindowTitle()
+        # update README in case the file path has changed
+        if self.prefs['alwaysShowReadme']:
+            # if prefs are to always show README, show if populated
+            self.updateReadme()
+        else:
+            # otherwise update so we have the object, but don't show until asked
+            self.updateReadme(show=False)
         return returnVal
 
     def fileExport(self, event=None, htmlPath=None):
@@ -838,7 +843,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
             return
 
         exportPath = os.path.join(htmlPath, expName.replace('.psyexp', '.js'))
-        self.generateScript(experimentPath=exportPath,
+        exportPath = self.generateScript(experimentPath=exportPath,
                             exp=self.exp,
                             target="PsychoJS")
         # Open exported files
@@ -1389,7 +1394,7 @@ class BuilderFrame(BaseAuiFrame, handlers.ThemeMixin):
     def compileScript(self, event=None):
         """Defines compile script button behavior"""
         fullPath = self.filename.replace('.psyexp', '.py')
-        self.generateScript(experimentPath=fullPath, exp=self.exp)
+        fullPath = self.generateScript(experimentPath=fullPath, exp=self.exp)
         self.app.showCoder()  # make sure coder is visible
         self.app.coder.fileNew(filepath=fullPath)
         self.app.coder.fileReload(event=None, filename=fullPath)
