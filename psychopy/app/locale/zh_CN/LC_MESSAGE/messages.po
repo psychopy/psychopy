@@ -7314,298 +7314,304 @@ msgstr ""
 
 #: ../preferences/hints.py:135
 msgid "Display text in a floating window that describes the experiment"
-msgstr ""
+msgstr "在浮动窗口中显示描述实验的文本"
 
 #: ../preferences/hints.py:138
 msgid "choice of audio library"
-msgstr ""
+msgstr "选择音频库"
 
 #: ../preferences/hints.py:141
 msgid ""
 "latency mode for PsychToolbox audio (3 is good for most applications. See"
-msgstr ""
+msgstr "PsychToolbox音频的延迟模式（3 适合大多数应用）。请参见"
 
 #: ../preferences/hints.py:145
 msgid "audio driver to use"
-msgstr ""
+msgstr "使用的音频驱动程序"
 
 #: ../preferences/hints.py:148
 msgid "audio device to use (if audioLib allows control)"
-msgstr ""
+msgstr "要使用的音频设备（如果 audioLib 允许控制）"
 
 #: ../preferences/hints.py:151
 msgid "a list of parallel ports"
-msgstr ""
+msgstr "并行端口列表"
 
 #: ../preferences/hints.py:154
 msgid "The name of the Qmix pump configuration to use"
-msgstr ""
+msgstr "要使用的 Qmix 抽取配置名称"
 
 #: ../preferences/hints.py:157
 msgid "the http proxy for usage stats and auto-updating; format is host: port"
-msgstr ""
+msgstr "用于统计使用情况和自动更新的 http 代理；格式为 host: port"
 
 #: ../preferences/hints.py:160
 msgid ""
 "override the above proxy settings with values found in the environment (if "
 "possible)"
-msgstr ""
+msgstr "用环境中的值覆盖上述代理设置（如适用）"
 
 #: ../preferences/hints.py:164
 msgid ""
 "allow PsychoPy to send anonymous usage stats; please allow if possible, it "
 "helps PsychoPy's development"
 msgstr ""
+"允许 PsychoPy 发送匿名使用统计数据；如果适用，请允许，这有助于 PsychoPy 的开"
+"发"
 
 #: ../preferences/hints.py:167
 msgid "allow PsychoPy to check for new features and bug fixes"
-msgstr ""
+msgstr "允许 PsychoPy 检查新功能和错误修正"
 
 #: ../preferences/hints.py:170
 msgid "max time to wait for a connection response"
-msgstr ""
+msgstr "等待连接响应的最长时间"
 
 #: ../preferences/hints.py:173
 msgid "open an existing file"
-msgstr ""
+msgstr "打开现有文件"
 
 #: ../preferences/hints.py:176
 msgid "start a new experiment or script"
-msgstr ""
+msgstr "开始新的实验或脚本"
 
 #: ../preferences/hints.py:179
 msgid "save a Builder or Coder file"
-msgstr ""
+msgstr "保存Builder或Coder文件"
 
 #: ../preferences/hints.py:182
 msgid "save a Builder or Coder file under a new name"
-msgstr ""
+msgstr "以新名称保存Builder或Coder文件"
 
 #: ../preferences/hints.py:185
 msgid "Coder: print the file"
-msgstr ""
+msgstr "Coder: 打印该文件"
 
 #: ../preferences/hints.py:188
 msgid "close the Builder or Coder window"
-msgstr ""
+msgstr "关闭Builder或Coder窗口"
 
 #: ../preferences/hints.py:191
 msgid "end the application (PsychoPy)"
-msgstr ""
+msgstr "关闭软件(PsychoPy)"
 
 #: ../preferences/hints.py:194
 msgid "open the preferences dialog"
-msgstr ""
+msgstr "打开首选项对话框"
 
 #: ../preferences/hints.py:197
 msgid "export Builder experiment to HTML"
-msgstr ""
+msgstr "将Builder实验导出为 HTML"
 
 #: ../preferences/hints.py:200
 msgid "Coder: cut"
-msgstr ""
+msgstr "Coder: 剪切"
 
 #: ../preferences/hints.py:203
 msgid "Coder: copy"
-msgstr ""
+msgstr "Coder: 复制"
 
 #: ../preferences/hints.py:206
 msgid "Coder: paste"
-msgstr ""
+msgstr "Coder: 粘贴"
 
 #: ../preferences/hints.py:209
 msgid "Coder: duplicate"
-msgstr ""
+msgstr "Coder: 副本"
 
 #: ../preferences/hints.py:212
 msgid "Coder: indent code by one level (4 spaces)"
-msgstr ""
+msgstr "Coder: 缩进一级代码（4 个空格）"
 
 #: ../preferences/hints.py:215
 msgid "Coder: reduce indentation by one level (4 spaces)"
-msgstr ""
+msgstr "Coder: 缩进一级（4 个空格）"
 
 #: ../preferences/hints.py:218
 msgid "Coder: indent to fit python syntax"
-msgstr ""
+msgstr "Coder: 缩进以适应 Python 语法"
 
 #: ../preferences/hints.py:221
 msgid "Coder: find"
-msgstr ""
+msgstr "Coder: 查找"
 
 #: ../preferences/hints.py:224
 msgid "Coder: find again"
-msgstr ""
+msgstr "Coder: 再次查找"
 
 #: ../preferences/hints.py:227
 msgid "Coder: undo"
-msgstr ""
+msgstr "Coder: 撤销"
 
 #: ../preferences/hints.py:230
 msgid "Coder: redo"
-msgstr ""
+msgstr "Coder: 重做"
 
 #: ../preferences/hints.py:233
 msgid "Coder: add a # to the start of the line(s)"
-msgstr ""
+msgstr "Coder: 在行首加上 # 号"
 
 #: ../preferences/hints.py:236
 msgid "Coder: remove # from start of line(s)"
-msgstr ""
+msgstr "Coder: 删除行首的 # 号"
 
 #: ../preferences/hints.py:239
 msgid "Coder: add or remove # from start of line(s)"
-msgstr ""
+msgstr "Coder: 在行首添加或删除 # 号"
 
 #: ../preferences/hints.py:242
 msgid "Coder: fold this block of code"
-msgstr ""
+msgstr "Coder: 折叠此块码"
 
 #: ../preferences/hints.py:245
 msgid "Coder: increase font size this block of code"
-msgstr ""
+msgstr "Coder: 增大此块码的字号"
 
 #: ../preferences/hints.py:248
 msgid "Coder: decrease font size this block of code"
-msgstr ""
+msgstr "Coder: 减小此块码的字号"
 
 #: ../preferences/hints.py:251
 msgid "Coder: check for basic syntax errors"
-msgstr ""
+msgstr "Coder: 检查基本语法错误"
 
 #: ../preferences/hints.py:254
 msgid ""
 "convert a Builder .psyexp script into a python script and open it in the "
 "Coder"
-msgstr ""
+msgstr "将 Builder .psyexp 脚本转换为 python 脚本，并在 Coder 中打开它"
 
 #: ../preferences/hints.py:258
 msgid "launch a script, Builder or Coder, or run unit-tests"
-msgstr ""
+msgstr "启动脚本、Builder或Coder，或运行单元测试"
 
 #: ../preferences/hints.py:261
 msgid "attempt to interrupt and halt a running script"
-msgstr ""
+msgstr "尝试中断和停止正在运行的脚本"
 
 #: ../preferences/hints.py:264
 msgid "Coder: show / hide white-space dots"
-msgstr ""
+msgstr "Coder: 显示/隐藏空白点"
 
 #: ../preferences/hints.py:267
 msgid "Coder: show / hide end of line characters"
-msgstr ""
+msgstr "Coder: 显示/隐藏行尾字符"
 
 #: ../preferences/hints.py:270
 msgid "Coder: show / hide indentation level lines"
-msgstr ""
+msgstr "Coder: 显示/隐藏缩进水平线"
 
 #: ../preferences/hints.py:273
 msgid "Builder: create a new routine"
-msgstr ""
+msgstr "Builder: 创建新例程"
 
 #: ../preferences/hints.py:276
 msgid "Builder: copy an existing routine"
-msgstr ""
+msgstr "Builder: 复制现有例程"
 
 #: ../preferences/hints.py:279
 msgid "Builder: paste the copied routine"
-msgstr ""
+msgstr "Builder: 粘贴已复制的例程"
 
 #: ../preferences/hints.py:282
 msgid "Builder: paste the copied component"
-msgstr ""
+msgstr "Builder: 粘贴已复制的组件"
 
 #: ../preferences/hints.py:285
 msgid "Coder: show / hide the output panel"
-msgstr ""
+msgstr "Coder: 显示/隐藏输出面板"
 
 #: ../preferences/hints.py:288
 msgid "Builder: rename an existing routine"
-msgstr ""
+msgstr "Builder: 重命名现有例程"
 
 #: ../preferences/hints.py:291
 msgid "switch between windows"
-msgstr ""
+msgstr "切换窗口"
 
 #: ../preferences/hints.py:294
 msgid "increase display size in Flow"
-msgstr ""
+msgstr "增加 Flow 中的显示尺寸"
 
 #: ../preferences/hints.py:297
 msgid "decrease display size in Flow"
-msgstr ""
+msgstr "缩小 Flow 中的显示尺寸"
 
 #: ../preferences/hints.py:300
 msgid "increase display size of Routines"
-msgstr ""
+msgstr "增大例程的显示尺寸"
 
 #: ../preferences/hints.py:303
 msgid "decrease display size of Routines"
-msgstr ""
+msgstr "缩小例程的显示尺寸"
 
 #: ../preferences/hints.py:306
 msgid "show or hide the readme (info) for this experiment if possible"
-msgstr ""
+msgstr "如可能，显示或隐藏该实验的自述文件（信息）"
 
 #: ../preferences/hints.py:309
 msgid "Projects: Log in to pavlovia"
-msgstr ""
+msgstr "项目: 登录 pavlovia"
 
 #: ../preferences/hints.py:312
 msgid "Projects: Log in to OSF"
-msgstr ""
+msgstr "项目: 登录 OSF"
 
 #: ../preferences/hints.py:315
 msgid "Projects: Sync project"
-msgstr ""
+msgstr "项目: 同步项目"
 
 #: ../preferences/hints.py:318
 msgid "Projects: Find projects"
-msgstr ""
+msgstr "项目: 查找项目"
 
 #: ../preferences/hints.py:321
 msgid "Projects: Open project"
-msgstr ""
+msgstr "项目: 打开项目"
 
 #: ../preferences/hints.py:324
 msgid "Projects: Create new project"
-msgstr ""
+msgstr "项目: 创建新项目"
 
 #: ../projects/pavlovia.py:1121
 msgid ""
 "We found a repository pointing to {} but no project was found there "
 "(deleted?)"
-msgstr ""
+msgstr "我们发现了一个指向 {} 的版本库，但没有在那里找到任何项目（已删除？）"
 
 #: ../projects/pavlovia.py:1125
 msgid ""
 "We found a repository pointing to {} but no user is logged in for us to "
 "check it"
-msgstr ""
+msgstr "我们找到一个指向 {} 的版本库，但没有用户登录，无法查看"
 
 #: ../tools/versionchooser.py:74
+#, fuzzy
 msgid ""
 "Please request a version before importing any PsychoPy modules. (Found: {})"
-msgstr ""
+msgstr "请在导入任何 PsychoPy 模块之前申请一个版本。(发现：{}）。"
 
 #: ../tools/versionchooser.py:83
 msgid "Unknown version `{}`"
-msgstr ""
+msgstr "未知版本 “{}”"
 
 #: ../tools/versionchooser.py:95
+#, fuzzy
 msgid ""
 "Please request a version of PsychoPy that is compatible with Python 3. You "
 "can choose from the following versions: {}. Alternatively, run a Python 2 "
 "installation of PsychoPy < v1.9.0.\n"
 msgstr ""
+"请申请与 Python 3 兼容的 PsychoPy 版本。您可以选择以下版本： {}. 或者，运行 "
+"Python 2 安装 PsychoPy < v1.9.0。\n"
 
 #: ../tools/versionchooser.py:104
 msgid "Please install git; needed by useVersion()"
-msgstr ""
+msgstr "请安装 git；useVersion() 需要"
 
 #: ../tools/versionchooser.py:129
 msgid "Required minimal version `{}` not met ({})."
-msgstr ""
+msgstr "未满足最小版本 “{}” 的要求 ({})。"
 
 #: ../tools/versionchooser.py:165
 msgid "'{}' is not a valid PsychoPy version."
@@ -7613,7 +7619,7 @@ msgstr "“{}”不是有效的 PsychoPy 版本。"
 
 #: ../tools/versionchooser.py:331
 msgid "Couldn't find version {} locally. Trying github..."
-msgstr ""
+msgstr "本地找不到版本 {}。正在尝试 github…"
 
 #: ../tools/versionchooser.py:338
 msgid "{} is not currently available."
@@ -7621,155 +7627,162 @@ msgstr "{} 当前不可用。"
 
 #: ../tools/versionchooser.py:357
 msgid "Downloading the PsychoPy Library from Github (may take a while)"
-msgstr ""
+msgstr "从 Github 下载 PsychoPy 库（可能需要一些时间）"
 
 #: ../tools/wizard.py:35
 msgid "Benchmark"
-msgstr ""
+msgstr "基准"
 
 #: ../tools/wizard.py:36
 msgid "benchmark version"
-msgstr ""
+msgstr "基准版本"
 
 #: ../tools/wizard.py:38
+#, fuzzy
 msgid "dots_circle"
-msgstr ""
+msgstr "dots_circle"
 
 #: ../tools/wizard.py:39
+#, fuzzy
 msgid "dots_square"
-msgstr ""
+msgstr "dots_square"
 
 #: ../tools/wizard.py:40
 msgid "available memory"
-msgstr ""
+msgstr "可用内存"
 
 #: ../tools/wizard.py:41
 msgid "python version"
-msgstr ""
+msgstr "python 版本"
 
 #: ../tools/wizard.py:43
 msgid "Visual"
-msgstr ""
+msgstr "视觉"
 
 #: ../tools/wizard.py:44
 msgid "openGL version"
-msgstr ""
+msgstr "openGL 版本"
 
 #: ../tools/wizard.py:45
 msgid "openGL vendor"
-msgstr ""
+msgstr "openGL 供应商"
 
 #: ../tools/wizard.py:46
 msgid "screen size"
-msgstr ""
+msgstr "屏幕大小"
 
 #: ../tools/wizard.py:47
+#, fuzzy
 msgid "have shaders"
-msgstr ""
+msgstr "带有着色器"
 
 #: ../tools/wizard.py:48
 msgid "refresh stability (SD)"
-msgstr ""
+msgstr "刷新稳定性（标清）"
 
 #: ../tools/wizard.py:49
 msgid "no dropped frames"
-msgstr ""
+msgstr "无丢帧"
 
 #: ../tools/wizard.py:50
 msgid "pyglet avbin"
-msgstr ""
+msgstr "pyglet avbin"
 
 #: ../tools/wizard.py:52
 msgid "microphone latency"
-msgstr ""
+msgstr "麦克风延时"
 
 #: ../tools/wizard.py:53
 msgid "microphone"
-msgstr ""
+msgstr "麦克风"
 
 #: ../tools/wizard.py:54
 msgid "speakers latency"
-msgstr ""
+msgstr "扬声器延时"
 
 #: ../tools/wizard.py:55
 msgid "speakers"
-msgstr ""
+msgstr "扬声器"
 
 #: ../tools/wizard.py:56
 msgid "Numeric"
-msgstr ""
+msgstr "数值"
 
 #: ../tools/wizard.py:57
 msgid "System"
-msgstr ""
+msgstr "系统"
 
 #: ../tools/wizard.py:58
 msgid "platform"
-msgstr ""
+msgstr "平台"
 
 #: ../tools/wizard.py:59
 msgid "internet access"
-msgstr ""
+msgstr "网络连接"
 
 #: ../tools/wizard.py:60
 msgid "auto proxy"
-msgstr ""
+msgstr "自动代理"
 
 #: ../tools/wizard.py:61
 msgid "proxy setting"
-msgstr ""
+msgstr "代理设置"
 
 #: ../tools/wizard.py:62
 msgid "background processes"
-msgstr ""
+msgstr "后台进程"
 
 #: ../tools/wizard.py:63
 msgid "CPU speed test"
-msgstr ""
+msgstr "CPU 速度测试"
 
 #: ../tools/wizard.py:64
 msgid "visual sync (refresh)"
-msgstr ""
+msgstr "视觉同步（刷新）"
 
 #: ../tools/wizard.py:97
 #, python-format
 msgid "could not assess available physical RAM; total %s"
-msgstr ""
+msgstr "无法评估可用物理 RAM；总数 %s"
 
 #: ../tools/wizard.py:102
 #, python-format
 msgid "physical RAM available for configuration test (of %.1fG total)"
-msgstr ""
+msgstr "可用于配置测试的物理 RAM（占总 RAM 的 %.1fG）"
 
 #: ../tools/wizard.py:107
 #, python-format
 msgid ""
 "Warning: low available physical RAM for configuration test (of %.1fG total)"
-msgstr ""
+msgstr "警告：配置测试可用物理内存不足（占总 RAM 的 %.1fG）"
 
 #: ../tools/wizard.py:119
 msgid "avoid upgrading during an experiment"
-msgstr ""
+msgstr "避免在实验过程中升级"
 
 #: ../tools/wizard.py:121
 msgid ""
 "can be set in <a href=\"https://www.psychopy.org/general/prefs."
 "html#application-settings-app\">Preferences -> App</a>"
 msgstr ""
+"可在 <a href=“https://www.psychopy.org/general/prefs.html#application-"
+"settings-app”>首选项-> 应用程序</a>中设置"
 
 #: ../tools/wizard.py:130
 msgid ""
 "Warning: python 2.7 or 3.6 are recommended; 2.6 and 3.5 might work. Others "
 "probably won't."
 msgstr ""
+"警告：建议使用 python 2.7 或 3.6；2.6 和 3.5 可能也能运行。其他版本可能不可"
+"用。"
 
 #: ../tools/wizard.py:148
 msgid "Warning: wx 2.8.10 or higher required"
-msgstr ""
+msgstr "警告：需要 wx 2.8.10 或更高版本"
 
 #: ../tools/wizard.py:154
 msgid "for high-priority threads"
-msgstr ""
+msgstr "用于高优先级线程"
 
 #: ../tools/wizard.py:162
 msgid ""
@@ -7777,6 +7790,8 @@ msgid ""
 "reducingFrameDrops.html?highlight=OpenGL+2.0\">OpenGL 2.0 or higher is "
 "ideal</a>."
 msgstr ""
+"警告: <a href=“https://www.psychopy.org/general/timing/reducingFrameDrops."
+"html?highlight=OpenGL+2.0”> OpenGL 2.0 或更高版本更理想 </a>."
 
 #: ../tools/wizard.py:177
 msgid ""
@@ -7784,43 +7799,55 @@ msgid ""
 "reducingFrameDrops.html?highlight=shader\">Rendering of complex stimuli will "
 "be slow</a>."
 msgstr ""
+"警告: <a href=“https://www.psychopy.org/general/timing/reducingFrameDrops."
+"html?highlight=shader”> 复杂刺激物的渲染将变得缓慢</a>。"
 
 #: ../tools/wizard.py:186
+#, fuzzy
 msgid ""
 "during the drifting <a href=\"https://www.psychopy.org/api/visual/"
 "gratingstim.html\">GratingStim</a>"
 msgstr ""
+"漂移过程中 <a href=“https://www.psychopy.org/api/visual/gratingstim."
+"html”>GratingStim</a>"
 
 #: ../tools/wizard.py:190
 msgid ""
 "Warning: too fast? visual sync'ing with the monitor seems unlikely at 300+ Hz"
 msgstr ""
+"警告：速度太快？在 300 多赫兹的频率下，与监视器进行视觉同步似乎不太可能"
 
 #: ../tools/wizard.py:196
 msgid "SD &lt; 0.5 ms is ideal (want low variability)"
-msgstr ""
+msgstr "SD &lt; 0.5 毫秒最理想（希望变化小）"
 
 #: ../tools/wizard.py:199
 msgid ""
 "Warning: the refresh rate has high frame-to-frame variability (SD &gt; 0.5 "
 "ms)"
-msgstr ""
+msgstr "警告：刷新率的帧间变化很大（SD &gt; 0.5 毫秒）"
 
 #: ../tools/wizard.py:218
+#, fuzzy
 msgid ""
 "during <a href=\"https://www.psychopy.org/api/visual/dotstim.html\">DotStim</"
 "a> with 100 random dots"
 msgstr ""
+"在<a href=“https://www.psychopy.org/api/visual/dotstim.html”>DotStim</a>过程"
+"中，有 100 个随机点"
 
 #: ../tools/wizard.py:226
+#, fuzzy
 msgid ""
 "Warning: could not keep up during <a href=\"http://www.psychopy.org/api/"
 "visual/dotstim.html\">DotStim</a> with 100 random dots."
 msgstr ""
+"警告：在 <a href=“http://www.psychopy.org/api/visual/dotstim.html”>DotStim</"
+"a> 100 个随机点的过程中跟不上。"
 
 #: ../tools/wizard.py:254
 msgid "Warning: pyo is needed for sound and microphone."
-msgstr ""
+msgstr "警告：声音和麦克风需要 pyo。"
 
 #: ../tools/wizard.py:257
 msgid "(missing)"
@@ -7828,23 +7855,23 @@ msgstr "(缺失)"
 
 #: ../tools/wizard.py:267
 msgid "vector-based (fast) calculations"
-msgstr ""
+msgstr "基于向量的（快速）计算"
 
 #: ../tools/wizard.py:269
 msgid "scientific / numerical"
-msgstr ""
+msgstr "科学/数值"
 
 #: ../tools/wizard.py:271
 msgid "plotting; fast contains(), overlaps()"
-msgstr ""
+msgstr "绘图；快速包含()、重叠()"
 
 #: ../tools/wizard.py:277
 msgid "for online help, usage statistics, software updates, and google-speech"
-msgstr ""
+msgstr "在线帮助、使用统计、软件更新和谷歌语音"
 
 #: ../tools/wizard.py:282
 msgid "Warning: could not connect (no proxy attempted)"
-msgstr ""
+msgstr "警告：无法连接（未尝试代理）"
 
 #: ../tools/wizard.py:290
 msgid ""
@@ -7852,72 +7879,78 @@ msgid ""
 "general/prefs.html#connection-settings-connections\">Preferences -> "
 "Connections</a>"
 msgstr ""
+"如果需要，尝试自动检测代理；请参阅 <a href=“https://www.psychopy.org/general/"
+"prefs.html#connection-settings-connections”>首选项-> 连接</a>"
 
 #: ../tools/wizard.py:300
 msgid ""
 "current manual proxy setting from <a href=\"https://www.psychopy.org/general/"
 "prefs.html#connection-settings-connections\">Preferences -> Connections</a>"
 msgstr ""
+"当前手动代理设置来自 <a href=“https://www.psychopy.org/general/prefs."
+"html#connection-settings-connections”>首选项-> 连接</a>"
 
 #: ../tools/wizard.py:307
 msgid "numpy.std() of 1,000,000 data points"
-msgstr ""
+msgstr "1,000,000个数据点的numpy.std()"
 
 #: ../tools/wizard.py:315
 msgid "Python packages"
-msgstr ""
+msgstr "Python 软件包"
 
 #: ../tools/wizard.py:349
 #, python-format
 msgid "could not import package %s"
-msgstr ""
+msgstr "无法导入软件包 %s"
 
 #: ../tools/wizard.py:367
 msgid "video card drivers"
-msgstr ""
+msgstr "显卡驱动程序"
 
 #: ../tools/wizard.py:398
 #, python-format
 msgid "This page was auto-generated by the PsychoPy configuration wizard on %s"
-msgstr ""
+msgstr "此页面由 PsychoPy 配置向导在 %s 上自动生成"
 
 #: ../tools/wizard.py:408
 msgid "Configuration problem"
-msgstr ""
+msgstr "配置问题"
 
 #: ../tools/wizard.py:411
 msgid "Critical issue"
-msgstr ""
+msgstr "关键问题"
 
 #: ../tools/wizard.py:416
 msgid "Configuration report"
-msgstr ""
+msgstr "配置报告"
 
 #: ../tools/wizard.py:419
 msgid ""
 "<p>All values seem reasonable (no warnings, but there might still be room "
 "for improvement).</p>\n"
 msgstr ""
+"<p>所有值似乎都很合理（没有警告，但可能仍有改进的余地）。</p>\n"
+"\n"
 
 #: ../tools/wizard.py:423
 #, python-format
 msgid "1 suboptimal value was detected</font>, see details below (%s).</p>\n"
-msgstr ""
+msgstr "检测到 1 个次优值</font>，请参阅下面的详细信息（%s）。</p>\n"
 
 #: ../tools/wizard.py:428
 #, python-format
 msgid ""
 "%(num)i suboptimal values were detected</font>, see details below (%(warn)s)."
 "</p>\n"
-msgstr ""
+msgstr "检测到 %(num)i 次优值</font>，请参阅下面的详细信息（%(warn)s）。</p>\n"
 
 #: ../tools/wizard.py:450
 msgid "Only show suboptimal values"
-msgstr ""
+msgstr "只显示次优值"
 
 #: ../tools/wizard.py:453
 msgid "Show all information"
-msgstr ""
+msgstr "显示所有信息"
 
 #: ../tools/wizard.py:454
 msgid ""
@@ -7930,18 +7963,26 @@ msgid ""
 "group archives</a>\n"
 "                </p>"
 msgstr ""
+"<p>资源：\n"
+"                | <a href=“https://www.psychopy.org/documentation.html”>在线"
+"文件</a>\n"
+"                | Download <a href=“https://www.psychopy.org/PsychoPyManual."
+"pdf”>PDF 说明书</a>\n"
+"                | <a href=“https://discourse.psychopy.org”>搜索用户-组档案</"
+"a>\n"
+"                </p>"
 
 #: ../tools/wizard.py:461
 msgid "Configuration test</strong> or setting"
-msgstr ""
+msgstr "配置测试</strong>或设置"
 
 #: ../tools/wizard.py:462
 msgid "Version or value"
-msgstr ""
+msgstr "版本或值"
 
 #: ../tools/wizard.py:464
 msgid "Notes"
-msgstr ""
+msgstr "备注"
 
 #: ../tools/wizard.py:504
 msgid " Configuration Wizard"
@@ -7949,26 +7990,26 @@ msgstr " 配置向导"
 
 #: ../tools/wizard.py:517
 msgid "It looks like you are running PsychoPy for the first time."
-msgstr ""
+msgstr "看来您是第一次运行 PsychoPy。"
 
 #: ../tools/wizard.py:519
 msgid "This wizard will help you get started quickly and smoothly."
-msgstr ""
+msgstr "该向导将帮助您快速顺利地开始工作。"
 
 #: ../tools/wizard.py:522
 msgid "Welcome to the configuration wizard."
-msgstr ""
+msgstr "欢迎使用配置向导。"
 
 #: ../tools/wizard.py:529
 msgid "The first configuration check is your video card's drivers. The current"
-msgstr ""
+msgstr "首先要检查的是显卡驱动程序。当前的"
 
 #: ../tools/wizard.py:532
 msgid "drivers cannot support PsychoPy, so you'll need to update the drivers."
-msgstr ""
+msgstr "驱动程序无法支持 PsychoPy，因此需要更新驱动程序。"
 
 #: ../tools/wizard.py:535
-#, python-format
+#, fuzzy, python-format
 msgid ""
 "<p>Critical issue:\n"
 "</p><p>Your video card (%(card)s) has drivers\n"
@@ -8002,100 +8043,131 @@ msgid ""
 "                for more information</a> [psychopy.org].</p>\n"
 "            "
 msgstr ""
+"<p>关键问题：\n"
+"</p><p>您的显卡（%(card)s）的驱动程序\n"
+"                无法支持 PsychoPy 所依赖的高性能功能。\n"
+"                幸运的是，通常可以直接从制造商处免费获取新驱动程序。\n"
+"                直接从制造商处获取新驱动程序。\n"
+"                <p><strong>要更新驱动程序：</strong>\n"
+"                <li> 您需要管理员权限。\n"
+"                <li> 在 Windows 系统中，不要使用 Windows 选项检查更新\n"
+"                  - 它会报告没有可用的更新。\n"
+"                <li> 如果您的显卡是英伟达制造的，请访问\n"
+"                  <a href=“http://www.nvidia.com/Drivers”>英伟达官网</a>\n"
+"                  并使用 “自动检测 “选项。试试\n"
+"                  <a href=“http://support.amd.com/“>ATI / Radeon 驱动程序</"
+"a>。或尝试\n"
+"                  <a href=“http://www.google.com/search?q=download+drivers+"
+"%(card2)s”>\n"
+"                  谷歌搜索</a> [google.com]。\n"
+"                <li> 下载并安装驱动程序。\n"
+"                <li> 重新启动计算机。\n"
+"                <li> 重新启动 PsychoPy。</p>\n"
+"                <p>如果您更新了驱动程序，但仍收到此信息，那么您将\n"
+"                  需要更换显卡才能使用 PsychoPy。点击\n"
+"                <a href=“https://www.psychopy.org/installation."
+"html#recommended-hardware”>这里\n"
+"                获取更多信息</a> [psychopy.org]。</p>\n"
+"            "
 
 #: ../tools/wizard.py:560
 msgid ""
 "<p>Critical issue:\n"
 "</p>"
 msgstr ""
+"<p>关键问题：\n"
+"</p>"
 
 #: ../tools/wizard.py:565
 msgid "We'll go through a series of configuration checks in about 10 seconds. "
-msgstr ""
+msgstr "我们将在 10 秒钟内进行一系列配置检查。"
 
 #: ../tools/wizard.py:569
 msgid "Note: The display will switch to full-screen mode and will "
-msgstr ""
+msgstr "备注：显示屏将切换到全屏模式，并将 "
 
 #: ../tools/wizard.py:571
 msgid "then switch back. You don't need to do anything."
-msgstr ""
+msgstr "切换回来。您无需做任何操作。"
 
 #: ../tools/wizard.py:573
 msgid ""
 "Optional: For best results, please quit all email programs, web-browsers, "
-msgstr ""
+msgstr "可选： 为获得最佳效果，请退出所有电子邮件程序和网页浏览器、 "
 
 #: ../tools/wizard.py:575
 msgid "Dropbox, backup or sync services, and others."
-msgstr ""
+msgstr "Dropbox、备份或同步服务等。"
 
 #: ../tools/wizard.py:578
 msgid "Click OK to start, or Cancel to skip."
-msgstr ""
+msgstr "单击“确认”开始，或单击“取消”跳过。"
 
 #: ../tools/wizard.py:580
 msgid "Full details"
-msgstr ""
+msgstr "详细信息"
 
 #: ../tools/wizard.py:584
 msgid "Click OK for more information, or Cancel to skip."
-msgstr ""
+msgstr "单击“确认”获取更多信息，或单击“取消”跳过。"
 
 #: ../tools/wizard.py:614
 msgid "Configuration testing complete!"
-msgstr ""
+msgstr "配置测试完成！"
 
 #: ../tools/wizard.py:618
 msgid "All values seem reasonable (no warnings)."
-msgstr ""
+msgstr "所有值看起来都很合理（没有警告）。"
 
 #: ../tools/wizard.py:620
 #, python-format
 msgid "1 suboptimal value was detected (%s)"
-msgstr ""
+msgstr "检测到 1 个次优值 (%s)"
 
 #: ../tools/wizard.py:623
 #, python-format
 msgid "%(num)i suboptimal values were detected (%(warn)s, ...)"
-msgstr ""
+msgstr "检测到 %(num)i个次优化值（%(warn)s，…）"
 
 #: ../tools/wizard.py:631
 msgid "Click OK for full details (will open in a web-browser),"
-msgstr ""
+msgstr "单击“确认”查看全部详情（将在浏览器中打开）、"
 
 #: ../tools/wizard.py:633
 msgid "or Cancel to stay in PsychoPy."
-msgstr ""
+msgstr "或单击“取消”停留在 PsychoPy 中。"
 
 #: ../tools/wizard.py:652
 msgid " Benchmark Wizard"
 msgstr " 基准向导"
 
 #: ../tools/wizard.py:656
+#, fuzzy
 msgid "Benchmarking takes ~20-30 seconds to gather"
-msgstr ""
+msgstr "基准测试需要约 20-30 秒"
 
 #: ../tools/wizard.py:657
+#, fuzzy
 msgid "configuration and performance data. Begin?"
-msgstr ""
+msgstr "来收集配置和性能数据。开始？"
 
 #: ../tools/wizard.py:678
+#, fuzzy
 msgid "dots &amp; configuration"
-msgstr ""
+msgstr "点 &amp; 配置"
 
 #: ../tools/wizard.py:681
 msgid "visual window for drawing"
-msgstr ""
+msgstr "绘图视窗"
 
 #: ../tools/wizard.py:707
 msgid "Benchmark complete! (See the Coder output window.)"
-msgstr ""
+msgstr "基准测试完成！(请参阅Coder 输出窗口）。"
 
 #: ../tools/wizard.py:716
 msgid "Click OK to view full configuration and benchmark data."
-msgstr ""
+msgstr "单击“确认”查看完整配置和基准数据。"
 
 #: ../tools/wizard.py:718
 msgid "Click Cancel to stay in PsychoPy."
-msgstr ""
+msgstr "单击“取消”停留在 PsychoPy 中。"
