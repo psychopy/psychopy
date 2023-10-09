@@ -168,6 +168,14 @@ PsychoPy 2023.2.2
 * Fix colors demo by @TEParsons in https://github.com/psychopy/psychopy/pull/5838
 * Sternberg Builder demo - checked save log file to remove logFile error by @suelynnmah in https://github.com/psychopy/psychopy/pull/5845
 
+PsychoPy 2023.2.3
+~~~~~~~~~~~~~~~~~
+
+**Key fixes (from 2023.2.2):**
+
+
+- Silenced warning about numpy version number
+- Fixed issue with "cannot import Never from typing_extensions" (outdated version in windows standalone)
 
 PsychoPy 2023.1
 ---------------

@@ -81,4 +81,4 @@ osascript -e "set Volume 0.2"
 say -v Karen "all done"
 osascript -e "set Volume 3"
 mv dist/*.dmg ../dist
-mv -r dist/*.app ../dist
+mv dist/*.app ../dist
