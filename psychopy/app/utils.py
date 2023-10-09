@@ -1441,7 +1441,6 @@ class FrameSwitcher(wx.Menu):
         self.Bind(wx.EVT_MENU, self.nextWindow, self.next)
         self.AppendSeparator()
         self.makeViewSwitcherButtons(self, frame=self.Window, app=self.app)
-        self.AppendSeparator()
         self.updateFrames()
 
     @staticmethod
@@ -1480,6 +1479,8 @@ class FrameSwitcher(wx.Menu):
                 wx.ID_ANY, _translate("Show &runner"), _translate("Show Runner")
             )
             parent.Bind(wx.EVT_MENU, app.showRunner, items['runner'])
+
+        parent.AppendSeparator()
 
         return items
 
