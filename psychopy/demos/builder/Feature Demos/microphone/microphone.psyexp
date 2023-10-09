@@ -164,6 +164,7 @@
         <Param val="True" valType="bool" updates="None" name="transcribe"/>
         <Param val="Whisper" valType="code" updates="None" name="transcribeBackend"/>
         <Param val="en-US" valType="str" updates="None" name="transcribeLang"/>
+        <Param val="base" valType="code" updates="None" name="transcribeWhisperModel"/>
         <Param val="" valType="list" updates="None" name="transcribeWords"/>
         <Param val="False" valType="bool" updates="None" name="trimSilent"/>
       </MicrophoneComponent>
@@ -302,7 +303,7 @@
       </TextboxComponent>
       <MicrophoneComponent name="mic_2" plugin="None">
         <Param val="auto" valType="str" updates="None" name="channels"/>
-        <Param val="9" valType="str" updates="None" name="device"/>
+        <Param val="None" valType="str" updates="None" name="device"/>
         <Param val="False" valType="bool" updates="None" name="disabled"/>
         <Param val="" valType="code" updates="None" name="durationEstim"/>
         <Param val="24000" valType="num" updates="None" name="maxSize"/>
@@ -408,6 +409,25 @@
         <Param val="from exp settings" valType="str" updates="None" name="units"/>
         <Param val="" valType="num" updates="constant" name="wrapWidth"/>
       </TextComponent>
+      <KeyboardComponent name="key_resp_2" plugin="None">
+        <Param val="'space'" valType="list" updates="constant" name="allowedKeys"/>
+        <Param val="" valType="str" updates="constant" name="correctAns"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="True" valType="bool" updates="constant" name="discard previous"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="True" valType="bool" updates="constant" name="forceEndRoutine"/>
+        <Param val="key_resp_2" valType="code" updates="None" name="name"/>
+        <Param val="press" valType="str" updates="constant" name="registerOn"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="" valType="code" updates="constant" name="stopVal"/>
+        <Param val="last key" valType="str" updates="constant" name="store"/>
+        <Param val="False" valType="bool" updates="constant" name="storeCorrect"/>
+        <Param val="True" valType="bool" updates="constant" name="syncScreenRefresh"/>
+      </KeyboardComponent>
     </Routine>
   </Routines>
   <Flow>
