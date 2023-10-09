@@ -5,6 +5,7 @@
 
 import psychopy.logging as logging
 
+yamlFile = None
 try:
     from psychopy_eyetracker_tobii.tobii import *
 except (ModuleNotFoundError, ImportError, NameError):

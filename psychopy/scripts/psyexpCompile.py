@@ -62,6 +62,10 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
         # make sure we have a legacy save file
         if not Path(exp.legacyFilename).is_file():
             exp.saveToXML(filename=exp.filename)
+        # if compiling to JS, js file needs to have legacy filename
+        _stem, _ext = os.path.splitext(experimentPath)
+        if _ext == ".js":
+            experimentPath = _stem + "_legacy" + _ext
         # generate command to run compile from requested version
         cmd = [
             pythonExec, '-m', compiler, str(exp.legacyFilename), '-o', experimentPath
@@ -85,6 +89,8 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
 
     else:
         compileScript(infile=exp, version=None, outfile=filename)
+
+    return experimentPath
 
 
 def compileScript(infile=None, version=None, outfile=None):

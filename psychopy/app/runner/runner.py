@@ -200,9 +200,7 @@ class RunnerFrame(wx.Frame, handlers.ThemeMixin):
         viewMenu.AppendSubMenu(self.themesMenu, _translate("&Themes"))
 
         # Frame switcher
-        framesMenu = wx.Menu()
-        FrameSwitcher.makeViewSwitcherButtons(framesMenu, frame=self, app=self.app)
-        viewMenu.AppendSubMenu(framesMenu, _translate("&Frames"))
+        FrameSwitcher.makeViewSwitcherButtons(viewMenu, frame=self, app=self.app)
 
         # Create menus
         self.runnerMenu.Append(fileMenu, _translate('&File'))
