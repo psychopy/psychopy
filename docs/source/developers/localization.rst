@@ -340,7 +340,11 @@ Step 4: The git commit and the pull request
   
   * Usually, this is at least the ``.po`` file 
   
-    * But it could also comprise or include other relevant files (e.g., ``tips_[ll_CC].txt``, ``localization/mappings.txt``)
+    * But it could also comprise or include other relevant files (e.g., ``tips_[ll_CC].txt``, ``localization/mappings.txt``) 
+  * The commit-message prefix for translations is always ``DOCS:``
+  
+    * For example: ``DOCS: Swahili translations``
+  
   * Use the prefix ``DOCS:`` in your commit message 
 * Push the commit to your repository on *GitHub* (aka *origin*)
 * From *origin* on GitHub, make your pull request to the *release* branch of the |PsychoPy| repository as outlined in :ref:`how to contribute to PsychoPy<usingRepos>`
