@@ -178,6 +178,11 @@ class PsychoPyApp(wx.App, handlers.ThemeMixin):
         self.coder = None
         self.runner = None
         self.version = psychopy.__version__
+        # array of handles to extant Pavlovia buttons
+        self.pavloviaButtons = {
+            'user': [],
+            'project': [],
+        }
         # set default paths and prefs
         self.prefs = psychopy.prefs
         self._currentThemeSpec = None
