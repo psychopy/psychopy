@@ -130,17 +130,28 @@ class Timestamp(float):
 
     """
     def __new__(cls, value, format=float, lastReset=0.0):
+        # if given a string, attempt to parse it using the given format
+        if isinstance(value, str):
+            # substitute nonspecified str format for ISO 8601
+            if format in (str, "str"):
+                format = "%Y-%m-%d_%H:%M:%S.%f%z"
+            # try to parse
+            try:
+                value = datetime.strptime(value, format)
+            except ValueError as err:
+                # if parsing fails, try again without %z (as this is excluded in GMT)
+                if format.endswith("%z"):
+                    value = datetime.strptime(value, format[:-2])
+            # convert to timestamp
+            value = datetime.timestamp(value) - lastReset
+
         return float.__new__(cls, value)
 
     def __init__(self, value, format=float, lastReset=0.0):
         self.lastReset = lastReset
-        # if given a string, attempt to parse it using the given format
-        if isinstance(value, str):
-            value = time.strptime(value, format) - lastReset
+        self.format = format
         # create self as float representing the time
         float.__init__(value)
-        # store default format
-        self.format = format
 
     def __str__(self):
         # use strftime to return with own format
