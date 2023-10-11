@@ -68,8 +68,6 @@ Setting Up |PsychoPy|
 <video src="https://raw.githubusercontent.com/wiki/pupil-labs/psychopy-eyetracker-pupil-labs/images/companion-stream-info.mp4" width="240" height="536"/>
 
    -  ``Recording enabled`` - Enable this option to create a recording on the Companion device.
-   -  ``Camera calibration path`` - Specify the path of a camera calibration file. This is the
-      ``scene_camera.json`` file from a saved recording.
 
 5. Add AprilTag components to the routines that require eyetracking.
    -  Three tags is generally considered a bare minimum, but more tags will yield more robust detection
