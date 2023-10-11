@@ -220,6 +220,10 @@ class SerialDevice(AttributeGetSetMixin):
             return None
         return self.com.isOpen()
 
+    @staticmethod
+    def _findPossiblePorts():
+        return _findPossiblePorts()
+
 
 if __name__ == "__main__":
     pass
