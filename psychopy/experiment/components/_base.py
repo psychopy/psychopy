@@ -379,6 +379,13 @@ class BaseComponent:
                 # use the time ignoring any flips
                 code += f"thisExp.addData('{params['name']}.started', t)\n"
         buff.writeIndentedLines(code)
+        # validate presentation time
+        if self.params.get('validator', False):
+            code = (
+                "# use attached validator(s) (%(validator)s) to check presentation timing for %(name)s\n"
+                "%(name)s.validator.validate(state=True, t=tThisFlipGlobal)\n"
+            )
+            buff.writeIndentedLines(code % self.params)
         # Set status
         code = (
             "# update status\n"
@@ -503,6 +510,14 @@ class BaseComponent:
                 # use the time ignoring any flips
                 code += f"thisExp.addData('{params['name']}.stopped', t)\n"
         buff.writeIndentedLines(code)
+
+        # validate presentation time
+        if self.params.get('validator', False):
+            code = (
+                "# use attached validator(s) (%(validator)s) to check presentation timing for %(name)s\n"
+                "%(name)s.validator.validate(state=False, t=tThisFlipGlobal)\n"
+            )
+            buff.writeIndentedLines(code % self.params)
 
         # Set status
         code = (
@@ -945,7 +960,7 @@ class BaseVisualComponent(BaseComponent):
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
                  saveStartStop=True, syncScreenRefresh=True,
-                 disabled=False):
+                 validator="", disabled=False):
 
         super(BaseVisualComponent, self).__init__(
             exp, parentName, name,
@@ -1057,6 +1072,15 @@ class BaseVisualComponent(BaseComponent):
             label=_translate("Orientation"))
 
         self.params['syncScreenRefresh'].readOnly = True
+
+        # --- Testing ---
+        self.params['validator'] = Param(
+            validator, valType="code", inputType="single", categ="Testing",
+            label=_translate("Validate with..."),
+            hint=_translate(
+                "Names of Validator components (separated by commas) to use to check the timing of this stimulus."
+            )
+        )
 
     def integrityCheck(self):
         """
