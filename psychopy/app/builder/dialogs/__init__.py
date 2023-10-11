@@ -7,7 +7,6 @@
 
 """Dialog classes for the Builder, including ParamCtrls
 """
-import functools
 import sys
 
 import os
@@ -258,7 +257,7 @@ class ParamCtrls():
         #         parent, val, order=['Field', 'Default'])
         if hasattr(self.valueCtrl, 'SetToolTip'):
             self.valueCtrl.SetToolTip(wx.ToolTip(_translate(param.hint)))
-        if not isinstance(param.allowedVals, functools.partial) and len(param.allowedVals) == 1 or param.readOnly:
+        if not callable(param.allowedVals) and len(param.allowedVals) == 1 or param.readOnly:
             self.valueCtrl.Disable()  # visible but can't be changed
 
         # add a Validator to the valueCtrl
