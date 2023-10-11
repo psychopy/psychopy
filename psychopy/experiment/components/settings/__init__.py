@@ -893,6 +893,7 @@ class SettingsComponent:
             copyFileWithMD5(srcFile['abs'], dstAbs)
 
     def writeInitCodeJS(self, buff, version, localDateTime, modular=True):
+        from psychopy.tools import versionchooser as versions
         # create resources folder
         if self.exp.htmlFolder:
             self.prepareResourcesJS()
