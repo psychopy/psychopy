@@ -380,12 +380,21 @@ class BaseComponent:
                 code += f"thisExp.addData('{params['name']}.started', t)\n"
         buff.writeIndentedLines(code)
         # validate presentation time
-        if self.params.get('validator', False):
+        validator = self.getValidator()
+        if validator:
             code = (
-                "# use attached validator(s) (%(validator)s) to check presentation timing for %(name)s\n"
-                "%(name)s.validator.validate(state=True, t=tThisFlipGlobal)\n"
+                "# use attached validator (%(name)s) to check presentation timing\n"
+                "%(name)s.tStart, %(name)s.tStartValid = %(name)s.validate(state=True, t=tThisFlipGlobal)\n"
             )
-            buff.writeIndentedLines(code % self.params)
+            if self.params['saveStartStop']:
+                code += (
+                    f"thisExp.addData('{self.params['name']}.%(name)s.started', %(name)s.tStart)\n"
+                )
+            if validator.params['saveValid']:
+                code += (
+                    f"thisExp.addData('{self.params['name']}.started.valid', %(name)s.tStartValid)\n"
+                )
+            buff.writeIndentedLines(code % validator.params)
         # Set status
         code = (
             "# update status\n"
@@ -512,12 +521,21 @@ class BaseComponent:
         buff.writeIndentedLines(code)
 
         # validate presentation time
-        if self.params.get('validator', False):
+        validator = self.getValidator()
+        if validator:
             code = (
-                "# use attached validator(s) (%(validator)s) to check presentation timing for %(name)s\n"
-                "%(name)s.validator.validate(state=False, t=tThisFlipGlobal)\n"
+                "# use attached validator (%(name)s) to check presentation timing\n"
+                "%(name)s.tStop, %(name)s.tStopValid = %(name)s.validate(state=False, t=tThisFlipGlobal)\n"
             )
-            buff.writeIndentedLines(code % self.params)
+            if self.params['saveStartStop']:
+                code += (
+                    f"thisExp.addData('{self.params['name']}.%(name)s.stopped', %(name)s.tStop)\n"
+                )
+            if validator.params['saveValid']:
+                code += (
+                    f"thisExp.addData('{self.params['name']}.stopped.valid', %(name)s.tStopValid)\n"
+                )
+            buff.writeIndentedLines(code % validator.params)
 
         # Set status
         code = (
@@ -914,6 +932,25 @@ class BaseComponent:
     def getShortType(self):
         """Replaces word component with empty string"""
         return self.getType().replace('Component', '')
+
+    def getValidator(self):
+        """
+        Get the validator associated with this Component.
+
+        Returns
+        -------
+        BaseStandaloneRoutine or None
+            Validator Routine object
+        """
+        # return None if we have no such param
+        if "validator" not in self.params:
+            return None
+        # strip spaces from param
+        name = self.params['validator'].val.strip()
+        # look for Routines matching validator name
+        if name in self.exp.routines:
+            # append object if found
+            return self.exp.routines[name]
 
     @property
     def name(self):

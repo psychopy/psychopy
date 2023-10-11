@@ -243,7 +243,7 @@ class PhotodiodeValidator:
             # if self.report is a method, call it with args state, t, valid and logMsg
             self.report(state, t, valid, logMsg)
         # return whether expected white matches found
-        return valid
+        return lastTime, valid
 
     def getDiodeState(self):
         return self.diode.getState()

@@ -21,10 +21,15 @@ class PhotodiodeValidatorRoutine(BaseStandaloneRoutine):
                          'future)')
 
     def __init__(
-            self, exp:Experiment, name='photodiode',
+            self,
+            # basic
+            exp, name='photodiode',
             backend="bbtk-tpad", port="", number="1",
+            variability="1/60", report="log",
+            # layout
             findDiode=True, diodePos="(1, 1)", diodeSize="(0.1, 0.1)", diodeUnits="norm",
-            variability="1/60", report="log"
+            # data
+            saveValid=True,
     ):
         self.type = 'PhotodiodeValidator'
         self.exp = exp  # so we can access the experiment if necess
@@ -149,6 +154,15 @@ class PhotodiodeValidatorRoutine(BaseStandaloneRoutine):
                 "false": "show",  # otherwise...
             })
 
+        # --- Data ---
+        self.params['saveValid'] = Param(
+            saveValid, valType="code", inputType="bool", categ="Data",
+            label=_translate('Save validation results'),
+            hint=_translate(
+                "Save validation results after validating on/offset times for stimuli"
+            )
+        )
+
     def writeMainCode(self, buff):
         # initialise diode
         if self.params['backend'] == "bbtk-tpad":
@@ -192,13 +206,12 @@ class PhotodiodeValidatorRoutine(BaseStandaloneRoutine):
                 continue
             # inspect each Component
             for comp in rt:
-                # if there is a validator...
-                if comp.params.get('validator', False):
-                    # try each validator
-                    for validator in comp.params['validator'].val.split(","):
-                        # if it's this validator, add the comp to the list
-                        if validator.strip() == self.params['name']:
-                            stims.append(comp)
+                # get validators for this component
+                compValidator = comp.getValidator()
+                # look for self
+                if compValidator == self:
+                    # if found, add the comp to the list
+                    stims.append(comp)
 
         return stims
 
