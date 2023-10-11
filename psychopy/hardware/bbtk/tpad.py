@@ -50,6 +50,9 @@ def splitTPadMessage(message):
 
 class TPadPhotodiode(photodiode.BasePhotodiode):
     def __init__(self, port, number):
+        # if no TPad device present, try to create one
+        if sd.ports[port] is None:
+            TPad(port=port)
         # initialise base class
         photodiode.BasePhotodiode.__init__(self, port)
         # store number
