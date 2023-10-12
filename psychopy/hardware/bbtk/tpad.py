@@ -66,14 +66,6 @@ class TPadPhotodiode(photodiode.BasePhotodiode):
         self.device.pause()
         self.device.setMode(3)
 
-    def getState(self):
-        # dispatch messages from device
-        self.device.pause()
-        self.device.dispatchMessages()
-        # return last known state of this diode
-        if len(self.messages):
-            return self.messages[-1].value
-
     def parseMessage(self, message):
         # if given a string, split according to regex
         if isinstance(message, str):
@@ -204,6 +196,7 @@ class TPad(sd.SerialDevice):
         if timeout is None:
             timeout = self.pauseDuration
         # get data from box
+        self.pause()
         data = sd.SerialDevice.getResponse(self, length=2, timeout=timeout)
         self.pause()
         # parse lines

@@ -17,6 +17,8 @@ class BasePhotodiode:
     def __init__(self, port):
         # get serial device from port (if photodiode manages its own device, this needs to be handled by the subclass)
         self.device = sd.ports[port]
+        # attribute in which to store current state
+        self.state = False
         # dict in which to store messages by timestamp
         self.messages = []
 
@@ -25,7 +27,9 @@ class BasePhotodiode:
             "{ownType}.receiveMessage() can only receive messages of type PhotodiodeResponse, instead received "
             "{msgType}. Try parsing the message first using {ownType}.parseMessage()"
         ).format(ownType=type(self).__name__, msgType=type(message).__name__)
-
+        # update current state
+        self.state = message.value
+        # add message to responses
         self.messages.append(message)
 
     def findPhotodiode(self, win):
