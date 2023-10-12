@@ -936,10 +936,11 @@ class BaseComponent:
             return None
         # strip spaces from param
         name = self.params['validator'].val.strip()
-        # look for Routines matching validator name
-        if name in self.exp.routines:
-            # append object if found
-            return self.exp.routines[name]
+        # look for Components matching validator name
+        for rt in self.exp.routines.values():
+            for comp in rt:
+                if comp.name == name:
+                    return comp
 
     @property
     def name(self):

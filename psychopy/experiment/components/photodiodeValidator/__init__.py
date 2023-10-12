@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from pathlib import Path
-from psychopy.experiment import Param, Experiment
+from psychopy.experiment import Param
 from psychopy.experiment.components import BaseComponent
-from psychopy.experiment.routines import BaseStandaloneRoutine
+from psychopy.experiment.routines import Routine
 from psychopy.localization import _translate
 
 
@@ -224,7 +224,7 @@ class PhotodiodeValidatorComponent(BaseComponent):
                 code += (
                 "        thisExp.addData('{name}.started.valid', %(name)s.tStartValid)\n"
                 )
-            buff.writeIndentedLines(code.format(stim.params) % self.params)
+            buff.writeIndentedLines(code.format(**stim.params) % self.params)
 
             # validate stop time
             code = (
@@ -244,18 +244,18 @@ class PhotodiodeValidatorComponent(BaseComponent):
                 code += (
                 "        thisExp.addData('{name}.stopped.valid', %(name)s.tStopValid)\n"
                 )
-            buff.writeIndentedLines(code.format(stim.params) % self.params)
+            buff.writeIndentedLines(code.format(**stim.params) % self.params)
 
     def findConnectedStimuli(self):
         # list of linked components
         stims = []
         # inspect each Routine
-        for rt in self.exp.routines.values():
-            # skip standalone Routines
-            if isinstance(rt, BaseStandaloneRoutine):
+        for emt in self.exp.flow:
+            # skip non-standard Routines
+            if not isinstance(emt, Routine):
                 continue
             # inspect each Component
-            for comp in rt:
+            for comp in emt:
                 # get validators for this component
                 compValidator = comp.getValidator()
                 # look for self
