@@ -13,6 +13,7 @@ import sys
 import time
 
 from psychopy import logging
+from psychopy.tools.attributetools import AttributeGetSetMixin
 import serial
 from psychopy.tools import systemtools as st
 
@@ -54,7 +55,7 @@ def _findPossiblePorts():
 ports = {port: None for port in _findPossiblePorts()}
 
 
-class SerialDevice:
+class SerialDevice(AttributeGetSetMixin):
     """A base class for serial devices, to be sub-classed by specific devices
 
     If port=None then the SerialDevice.__init__() will search for the device

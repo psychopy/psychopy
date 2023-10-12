@@ -65,7 +65,10 @@ vshdModels = {
 
 class VisualSystemHD(window.Window):
     """Class provides support for NordicNeuralLab's VisualSystemHD(tm) fMRI
-    display hardware.
+    display hardware. This is a lazy-imported class, therefore import using
+    full path `from psychopy.visual.nnlvs import VisualSystemHD` when
+    inheriting from it.
+
 
     Use this class in-place of the `Window` class for use with the VSHD
     hardware. Ensure that the VSHD headset display output is configured in

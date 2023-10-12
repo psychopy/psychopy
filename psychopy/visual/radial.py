@@ -39,7 +39,10 @@ from numpy import pi
 
 
 class RadialStim(GratingStim):
-    """Stimulus object for drawing radial stimuli.
+    """Stimulus object for drawing radial stimuli. This is
+    a lazy-imported class, therefore import using full path 
+    `from psychopy.visual.radial import RadialStim` when
+    inheriting from it.
 
     Examples: annulus, rotating wedge, checkerboard.
 

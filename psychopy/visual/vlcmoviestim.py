@@ -51,7 +51,10 @@ reportNDroppedFrames = 10
 
 class VlcMovieStim(BaseVisualStim, ContainerMixin):
     """A stimulus class for playing movies in various formats (mpeg, avi,
-    etc...) in PsychoPy using the VLC media player as a decoder.
+    etc...) in PsychoPy using the VLC media player as a decoder. This is
+    a lazy-imported class, therefore import using full path 
+    `from psychopy.visual.vlcmoviestim import VlcMovieStim` when inheriting
+    from it.
 
     This movie class is very efficient and better suited for playing
     high-resolution videos (720p+) than the other movie classes. However, audio

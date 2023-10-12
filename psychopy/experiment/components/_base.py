@@ -19,7 +19,7 @@ from psychopy.experiment.params import getCodeFromParamStr
 from psychopy.alerts import alerttools
 from psychopy.colors import nonAlphaSpaces
 
-from psychopy.localization import _translate, _localized
+from psychopy.localization import _translate
 
 
 class BaseComponent:
@@ -41,7 +41,7 @@ class BaseComponent:
                  startEstim='', durationEstim='',
                  saveStartStop=True, syncScreenRefresh=False,
                  disabled=False):
-        self.type = 'Base'
+        self.type = type(self).__name__
         self.exp = exp  # so we can access the experiment if necess
         self.parentName = parentName  # to access the routine too if needed
 
@@ -125,8 +125,11 @@ class BaseComponent:
 
     @property
     def _xml(self):
+        return self.makeXmlNode(self.__class__.__name__)
+
+    def makeXmlNode(self, tag):
         # Make root element
-        element = Element(self.__class__.__name__)
+        element = Element(tag)
         element.set("name", self.params['name'].val)
         element.set("plugin", str(self.plugin))
         # Add an element for each parameter
@@ -1191,20 +1194,29 @@ class BaseVisualComponent(BaseComponent):
 
         buff.writeIndentedLines(f"\n// *{params['name']}* updates\n")
         # writes an if statement to determine whether to draw etc
-        self.writeStartTestCodeJS(buff)
-        buff.writeIndented(f"{params['name']}.setAutoDraw(true);\n")
-        # to get out of the if statement
-        buff.setIndentLevel(-1, relative=True)
-        buff.writeIndented("}\n\n")
-
-        # test for stop (only if there was some setting for duration or stop)
-        if self.params['stopVal'].val not in ('', None, -1, 'None'):
-            # writes an if statement to determine whether to draw etc
-            self.writeStopTestCodeJS(buff)
-            buff.writeIndented(f"{params['name']}.setAutoDraw(false);\n")
+        indented = self.writeStartTestCodeJS(buff)
+        if indented:
+            buff.writeIndentedLines(f"{params['name']}.setAutoDraw(true);\n")
             # to get out of the if statement
-            buff.setIndentLevel(-1, relative=True)
-            buff.writeIndented("}\n")
+            while indented > 0:
+                buff.setIndentLevel(-1, relative=True)
+                buff.writeIndentedLines(
+                    "}\n"
+                    "\n"
+                )
+                indented -= 1
+        # writes an if statement to determine whether to draw etc
+        indented = self.writeStopTestCodeJS(buff)
+        if indented:
+            buff.writeIndentedLines(f"{params['name']}.setAutoDraw(false);\n")
+            # to get out of the if statement
+            while indented > 0:
+                buff.setIndentLevel(-1, relative=True)
+                buff.writeIndentedLines(
+                    "}\n"
+                    "\n"
+                )
+                indented -= 1
 
 
 def canBeNumeric(inStr):

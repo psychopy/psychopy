@@ -9,18 +9,6 @@ from pathlib import Path
 
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy import logging
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
-
-# only use _localized values for label values, nothing functional:
-_localized = _localized.copy()
-_localized.update({'nVertices': _translate('Num. vertices'),
-                   'fillColor': _translate('Fill color'),
-                   'lineColor': _translate('Line color'),
-                   'lineWidth': _translate('Line width'),
-                   'interpolate': _translate('Interpolate'),
-                   'size': _translate("Size [w,h]"),
-                   'shape': _translate("Shape")})
 
 
 class PolygonComponent(BaseVisualComponent):
@@ -276,9 +264,9 @@ class PolygonComponent(BaseVisualComponent):
                     "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
                     "  edges: {nVertices}, size:{size},\n")
         else:
-            code = ("{name} = visual.ShapeStim({{\n" +
+            code = ("{name} = new visual.ShapeStim({{\n" +
                     "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
-                    "  vertices={vertices}, size={size},\n")
+                    "  vertices: {vertices}, size: {size},\n")
 
         depth = -self.getPosInRoutine()
 

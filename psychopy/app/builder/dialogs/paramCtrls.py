@@ -22,7 +22,6 @@ import re
 from pathlib import Path
 
 from . import CodeBox
-from ..localizedStrings import _localizedDialogs as _localized
 from ...coder import BaseCodeEditor
 from ...themes import icons, handlers
 from ... import utils
@@ -367,10 +366,6 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
             else:
                 _labels[value] = value
         labels = _labels
-        # Translate labels
-        for v, l in labels.items():
-            if l in _localized:
-                labels[v] = _localized[l]
         # store labels and choices
         self.labels = labels
         self.choices = choices
