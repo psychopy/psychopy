@@ -1,5 +1,4 @@
-import logging
-from psychopy import layout
+from psychopy import layout, logging
 from psychopy.hardware import serialdevice as sd
 from psychopy.tools.attributetools import attributeSetter
 
@@ -119,6 +118,9 @@ class BasePhotodiode:
 
     def setThreshold(self, threshold):
         raise NotImplementedError()
+
+    def resetTimer(self, clock=logging.defaultClock):
+        return self.device.resetTimer(clock=clock)
 
     def getThreshold(self):
         if hasattr(self, "_threshold"):
@@ -246,6 +248,9 @@ class PhotodiodeValidator:
             self.report(state, t, valid, logMsg)
         # return whether expected white matches found
         return lastTime, valid
+
+    def resetTimer(self, clock=logging.defaultClock):
+        self.diode.resetTimer(clock=clock)
 
     def getDiodeState(self):
         return self.diode.getState()
