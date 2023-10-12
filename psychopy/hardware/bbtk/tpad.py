@@ -119,7 +119,7 @@ class TPadVoicekey:
 
 
 class TPad(sd.SerialDevice):
-    def __init__(self, port=None, pauseDuration=1/60):
+    def __init__(self, port=None, pauseDuration=1/30):
         # get port if not given
         if port is None:
             port = self._detectComPort()
@@ -168,6 +168,8 @@ class TPad(sd.SerialDevice):
         return f"COM{num}"
 
     def setMode(self, mode):
+        # dispatch messages now to clear buffer
+        self.dispatchMessages()
         # exit out of whatever mode we're in (effectively set it to 0)
         try:
             self.sendMessage("X")
@@ -180,11 +182,11 @@ class TPad(sd.SerialDevice):
         # clear messages
         self.getResponse()
 
-    def resetTimer(self):
+    def resetTimer(self, clock=logging.defaultClock):
         self.setMode(0)
         self.sendMessage(f"REST")
         self.pause()
-        self._lastTimerReset = logging.defaultClock.getTime()
+        self._lastTimerReset = clock.getTime(format=float)
         self.setMode(3)
 
     def isAwake(self):
@@ -197,7 +199,10 @@ class TPad(sd.SerialDevice):
 
         return bool(resp)
 
-    def dispatchMessages(self, timeout=1/30):
+    def dispatchMessages(self, timeout=None):
+        # if timeout is None, use pause duration
+        if timeout is None:
+            timeout = self.pauseDuration
         # get data from box
         data = sd.SerialDevice.getResponse(self, length=2, timeout=timeout)
         self.pause()
