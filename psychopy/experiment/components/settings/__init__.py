@@ -9,7 +9,6 @@ import re
 from psychopy import logging, plugins
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
-import psychopy.tools.versionchooser as versions
 from psychopy.experiment import utils as exputils
 from psychopy.monitors import Monitor
 from psychopy.iohub import util as ioUtil
@@ -19,7 +18,6 @@ from psychopy.tools.filetools import genDelimiter
 # for creating html output folders:
 import shutil
 import hashlib
-from pkg_resources import parse_version
 import ast  # for doing literal eval to convert '["a","b"]' to a list
 
 try:
@@ -171,12 +169,16 @@ class SettingsComponent:
             hint=_translate("The info to present in a dialog box. Right-click"
                             " to check syntax and preview the dialog box."),
             label=_translate("Experiment info"))
+        def getVersions():
+            import psychopy.tools.versionchooser as versions
+            available = versions._versionFilter(versions.versionOptions(), wx_version)
+            available += ['']
+            available += versions._versionFilter(versions.availableVersions(), wx_version)
+            return available
         self.params['Use version'] = Param(
             useVersion, valType='str', inputType="choice",
             # search for options locally only by default, otherwise sluggish
-            allowedVals=versions._versionFilter(versions.versionOptions(), wx_version)
-                        + ['']
-                        + versions._versionFilter(versions.availableVersions(), wx_version),
+            allowedVals=getVersions,
             hint=_translate("The version of PsychoPy to use when running "
                             "the experiment."),
             label=_translate("Use PsychoPy version"), categ='Basic')
@@ -917,6 +919,7 @@ class SettingsComponent:
             copyFileWithMD5(srcFile['abs'], dstAbs)
 
     def writeInitCodeJS(self, buff, version, localDateTime, modular=True):
+        from psychopy.tools import versionchooser as versions
         # create resources folder
         if self.exp.htmlFolder:
             self.prepareResourcesJS()
