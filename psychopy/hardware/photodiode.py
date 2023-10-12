@@ -20,7 +20,44 @@ class BasePhotodiode:
         # attribute in which to store current state
         self.state = False
         # dict in which to store messages by timestamp
-        self.messages = []
+        self.responses = []
+
+    def clearResponses(self):
+        self.device.dispatchMessages()
+        self.responses = []
+
+    def getResponses(self, state=None, clear=True):
+        """
+        Get responses which match a given on/off state.
+
+        Parameters
+        ----------
+        state : bool or None
+            True to get photodiode "on" responses, False to get photodiode "off" responses, None to get all responses.
+        clear : bool
+            Whether or not to remove responses matching `state` after retrieval.
+
+        Returns
+        -------
+        list[PhotodiodeResponse]
+            List of matching responses.
+        """
+        # make sure device dispatches messages
+        self.device.dispatchMessages()
+        # array to store matching responses
+        matches = []
+        # check messages in chronological order
+        for resp in self.responses.copy():
+            # does this message meet the criterion?
+            if state is None or resp.value == state:
+                # if clear, remove the response
+                if clear:
+                    i = self.responses.index(resp)
+                    resp = self.responses.pop(i)
+                # append the response to responses array
+                matches.append(resp)
+
+        return matches
 
     def receiveMessage(self, message):
         assert isinstance(message, PhotodiodeResponse), (
@@ -30,7 +67,7 @@ class BasePhotodiode:
         # update current state
         self.state = message.value
         # add message to responses
-        self.messages.append(message)
+        self.responses.append(message)
 
     def findPhotodiode(self, win):
         """
@@ -101,8 +138,10 @@ class BasePhotodiode:
                 label.draw()
                 rect.draw()
                 win.flip()
+                # dispatch device messages
+                self.device.dispatchMessages()
                 # poll photodiode
-                if self.getState():
+                if self.state:
                     # if it detected this rectangle, recur
                     return scanQuadrants()
             # if none of these have returned, rect is too small to cover the whole photodiode, so return
@@ -110,6 +149,8 @@ class BasePhotodiode:
 
         # recursively shrink rect around the photodiode
         scanQuadrants()
+        # clear all the events created by this process
+        self.clearResponses()
         # reinstate autodraw
         win.retrieveAutoDraw()
         # flip
@@ -131,7 +172,10 @@ class BasePhotodiode:
             return self._threshold
 
     def getState(self):
-        raise NotImplementedError()
+        # dispatch messages from device
+        self.device.dispatchMessages()
+        # return state after update
+        return self.state
 
     def parseMessage(self, message):
         raise NotImplementedError()
@@ -212,22 +256,16 @@ class PhotodiodeValidator:
         bool
             True if photodiode state matched requested state, False otherwise.
         """
-        # make sure diode's device has dispatched its messages
-        if hasattr(self.diode.device, "dispatchMessages"):
-            self.diode.device.dispatchMessages()
-        # assume valid only if state is False
-        valid = not state
-        lastTime = None
-        # check messages in reverse chronological order
-        for msg in reversed(self.diode.messages):
-            # skip messages which don't match desired state
-            if msg.value != state:
-                continue
-            # get last time
-            lastTime = msg.t
-            # does this message match requested t?
-            valid = abs(lastTime - t) < self.variability
-            break
+        # get and clear responses
+        messages = self.diode.getResponses(state=state, clear=True)
+        # if there have been no responses yet, return empty handed
+        if not messages:
+            return None, None
+
+        # if there are responses, get most recent timestamp
+        lastTime = messages[-1].t
+        # validate
+        valid = abs(lastTime - t) < self.variability
 
         # construct message to report
         validStr = "within acceptable variability"
@@ -241,16 +279,19 @@ class PhotodiodeValidator:
         )
 
         # report as requested
-        if self.report in ("log", "err", "error"):
+        if self.report in ("log",):
             # if report mode is log or error, log result
             logging.debug(logMsg)
         if self.report in ("err", "error") and not valid:
             # if report mode is error, raise error for invalid
-            raise PhotodiodeValidationError(logMsg)
+            err = PhotodiodeValidationError(logMsg)
+            logging.error(err)
+            raise err
         if callable(self.report):
             # if self.report is a method, call it with args state, t, valid and logMsg
             self.report(state, t, valid, logMsg)
-        # return whether expected white matches found
+
+        # return timestamp and validity
         return lastTime, valid
 
     def resetTimer(self, clock=logging.defaultClock):

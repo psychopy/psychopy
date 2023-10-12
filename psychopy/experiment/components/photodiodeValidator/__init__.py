@@ -3,11 +3,12 @@
 
 from pathlib import Path
 from psychopy.experiment import Param, Experiment
+from psychopy.experiment.components import BaseComponent
 from psychopy.experiment.routines import BaseStandaloneRoutine
 from psychopy.localization import _translate
 
 
-class PhotodiodeValidatorRoutine(BaseStandaloneRoutine):
+class PhotodiodeValidatorComponent(BaseComponent):
     """
     Use a photodiode to confirm that stimuli are presented when they should be.
     """
@@ -23,7 +24,7 @@ class PhotodiodeValidatorRoutine(BaseStandaloneRoutine):
     def __init__(
             self,
             # basic
-            exp, name='photodiode',
+            exp, parentName, name='photodiode',
             backend="bbtk-tpad", port="", number="1",
             variability="1/60", report="log",
             # layout
@@ -35,7 +36,7 @@ class PhotodiodeValidatorRoutine(BaseStandaloneRoutine):
         self.exp = exp  # so we can access the experiment if necess
         self.params = {}
         self.depends = []
-        super(PhotodiodeValidatorRoutine, self).__init__(exp, name=name)
+        super(PhotodiodeValidatorComponent, self).__init__(exp, parentName, name=name)
         self.order += []
 
         exp.requireImport(
@@ -106,6 +107,10 @@ class PhotodiodeValidatorRoutine(BaseStandaloneRoutine):
         )
         del self.params['stopType']
         del self.params['stopVal']
+        del self.params['durationEstim']
+        del self.params['startVal']
+        del self.params['startType']
+        del self.params['startEstim']
 
         # --- Layout ---
         self.order += [
@@ -163,7 +168,7 @@ class PhotodiodeValidatorRoutine(BaseStandaloneRoutine):
             )
         )
 
-    def writeMainCode(self, buff):
+    def writeInitCode(self, buff):
         # initialise diode
         if self.params['backend'] == "bbtk-tpad":
             code = (
@@ -171,6 +176,8 @@ class PhotodiodeValidatorRoutine(BaseStandaloneRoutine):
                 "%(name)sDiode = tpad.TPadPhotodiode(port=%(port)s, number=%(number)s)\n"
             )
             buff.writeIndentedLines(code % self.params)
+        else:
+            raise NotImplementedError(f"Backend %(backend)s is not supported." % self.params)
         # create validator object
         code = (
             "# validator object for %(name)s\n"
@@ -195,6 +202,49 @@ class PhotodiodeValidatorRoutine(BaseStandaloneRoutine):
                 "%(name)s.connectStimulus({stim})\n"
             ).format(stim=stim.params['name'])
             buff.writeIndentedLines(code % self.params)
+
+    def writeFrameCode(self, buff):
+        # write validation code for each stim
+        for stim in self.findConnectedStimuli():
+            # validate start time
+            code = (
+                "# validate {name} start time\n"
+                "if {name}.status == STARTED and %(name)s.status == STARTED:\n"
+                "    %(name)s.tStart, %(name)s.tStartValid = %(name)s.validate(state=True, t={name}.tStart)\n"
+                "    if %(name)s.tStart is not None:\n"
+                "        %(name)s.status = FINISHED\n"
+            )
+            if stim.params['saveStartStop']:
+                # save validated start time if stim requested
+                code += (
+                "        thisExp.addData('{name}.%(name)s.started', %(name)s.tStart)\n"
+                )
+            if self.params['saveValid']:
+                # save validation result if params requested
+                code += (
+                "        thisExp.addData('{name}.started.valid', %(name)s.tStartValid)\n"
+                )
+            buff.writeIndentedLines(code.format(stim.params) % self.params)
+
+            # validate stop time
+            code = (
+                "# validate {name} stop time\n"
+                "if {name}.status == FINISHED and %(name)s.status == STARTED:\n"
+                "    %(name)s.tStop, %(name)s.tStopValid = %(name)s.validate(state=False, t={name}.tStop)\n"
+                "    if %(name)s.tStop is not None:\n"
+                "        %(name)s.status = FINISHED\n"
+            )
+            if stim.params['saveStartStop']:
+                # save validated start time if stim requested
+                code += (
+                "        thisExp.addData('{name}.%(name)s.stopped', %(name)s.tStop)\n"
+                )
+            if self.params['saveValid']:
+                # save validation result if params requested
+                code += (
+                "        thisExp.addData('{name}.stopped.valid', %(name)s.tStopValid)\n"
+                )
+            buff.writeIndentedLines(code.format(stim.params) % self.params)
 
     def findConnectedStimuli(self):
         # list of linked components

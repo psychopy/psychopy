@@ -385,18 +385,11 @@ class BaseComponent:
         # validate presentation time
         validator = self.getValidator()
         if validator:
+            # queue validation
             code = (
-                "# use attached validator (%(name)s) to check presentation timing\n"
-                "%(name)s.tStart, %(name)s.tStartValid = %(name)s.validate(state=True, t=tThisFlipGlobal)\n"
+                "# tell attached validator (%(name)s) to start looking for a start flag\n"
+                "%(name)s.status = STARTED\n"
             )
-            if self.params['saveStartStop']:
-                code += (
-                    f"thisExp.addData('{self.params['name']}.%(name)s.started', %(name)s.tStart)\n"
-                )
-            if validator.params['saveValid']:
-                code += (
-                    f"thisExp.addData('{self.params['name']}.started.valid', %(name)s.tStartValid)\n"
-                )
             buff.writeIndentedLines(code % validator.params)
         # Set status
         code = (
@@ -526,18 +519,11 @@ class BaseComponent:
         # validate presentation time
         validator = self.getValidator()
         if validator:
+            # queue validation
             code = (
-                "# use attached validator (%(name)s) to check presentation timing\n"
-                "%(name)s.tStop, %(name)s.tStopValid = %(name)s.validate(state=False, t=tThisFlipGlobal)\n"
+                "# tell attached validator (%(name)s) to start looking for a start flag\n"
+                "%(name)s.status = STARTED\n"
             )
-            if self.params['saveStartStop']:
-                code += (
-                    f"thisExp.addData('{self.params['name']}.%(name)s.stopped', %(name)s.tStop)\n"
-                )
-            if validator.params['saveValid']:
-                code += (
-                    f"thisExp.addData('{self.params['name']}.stopped.valid', %(name)s.tStopValid)\n"
-                )
             buff.writeIndentedLines(code % validator.params)
 
         # Set status
