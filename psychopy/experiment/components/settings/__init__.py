@@ -116,7 +116,7 @@ class SettingsComponent:
                  winSize=(1024, 768), screen=1, monitor='testMonitor', winBackend='pyglet',
                  showMouse=False, saveLogFile=True, showExpInfo=True,
                  expInfo="{'participant':'f\"{randint(0, 999999):06.0f}\"', 'session':'001'}",
-                 units='height', logging='exp',
+                 units='height', logging='warning',
                  color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
                  backgroundImg="", backgroundFit="none",
                  blendMode='avg',
