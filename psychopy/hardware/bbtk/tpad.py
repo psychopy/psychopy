@@ -175,10 +175,15 @@ class TPad(sd.SerialDevice):
         self.getResponse()
 
     def resetTimer(self, clock=logging.defaultClock):
+        # enter settings mode
         self.setMode(0)
+        # send reset command
         self.sendMessage(f"REST")
-        self.pause()
+        # store time
         self._lastTimerReset = clock.getTime(format=float)
+        # allow time to process
+        self.pause()
+        # reset mode
         self.setMode(3)
 
     def isAwake(self):
