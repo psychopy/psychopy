@@ -206,7 +206,9 @@ class PhotodiodeValidator:
         bool
             True if photodiode state matched requested state, False otherwise.
         """
-
+        # make sure diode's device has dispatched its messages
+        if hasattr(self.diode.device, "dispatchMessages"):
+            self.diode.device.dispatchMessages()
         # assume valid only if state is False
         valid = not state
         lastTime = None
