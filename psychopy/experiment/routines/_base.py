@@ -546,25 +546,6 @@ class Routine(list):
             )
             buff.writeIndentedLines(code % (maxTime))
 
-        # sync component start/stop timers with validator clocks
-        for comp in self:
-            # get validator for each Component
-            validator = comp.getValidator()
-            # skip if there's no validator
-            if validator is None:
-                continue
-            # choose a clock to sync to according to component's params
-            if "syncScreenRefresh" in comp.params and comp.params['syncScreenRefresh']:
-                clockStr = ""
-            else:
-                clockStr = "clock=routineTimer"
-            # otherwise sync its clock
-            code = (
-                f"# synchronise device clock for %(name)s with Routine timer\n"
-                f"%(name)s.resetTimer({clockStr})\n"
-            )
-            buff.writeIndentedLines(code % validator.params)
-
     def writeRoutineBeginCodeJS(self, buff, modular):
 
         # create the frame loop for this routine

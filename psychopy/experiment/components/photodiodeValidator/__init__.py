@@ -203,6 +203,21 @@ class PhotodiodeValidatorComponent(BaseComponent):
             ).format(stim=stim.params['name'])
             buff.writeIndentedLines(code % self.params)
 
+    def writeRoutineStartCode(self, buff):
+        # sync component start/stop timers with validator clocks
+        for comp in self.findConnectedStimuli():
+            # choose a clock to sync to according to component's params
+            if "syncScreenRefresh" in comp.params and comp.params['syncScreenRefresh']:
+                clockStr = ""
+            else:
+                clockStr = "clock=routineTimer"
+            # otherwise sync its clock
+            code = (
+                f"# synchronise device clock for %(name)s with Routine timer\n"
+                f"%(name)s.resetTimer({clockStr})\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+
     def writeFrameCode(self, buff):
         # write validation code for each stim
         for stim in self.findConnectedStimuli():
