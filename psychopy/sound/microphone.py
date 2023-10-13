@@ -13,6 +13,7 @@ __all__ = ['Microphone']
 import sys
 import psychopy.logging as logging
 from psychopy.constants import NOT_STARTED
+from psychopy.hardware.base import BaseDevice
 from psychopy.preferences import prefs
 from .audioclip import *
 from .audiodevice import *
@@ -307,7 +308,7 @@ class RecordingBuffer:
             sampleRateHz=self._sampleRateHz)
 
 
-class Microphone:
+class Microphone(BaseDevice):
     """Class for recording audio from a microphone or input stream.
 
     Creating an instance of this class will open a stream using the specified
@@ -551,6 +552,9 @@ class Microphone:
 
         logging.debug('Audio capture device #{} ready'.format(
             self._device.deviceIndex))
+
+    def isSameDevice(self, params):
+        return params['device'] == self._device
 
     @staticmethod
     def getDevices():
