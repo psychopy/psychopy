@@ -48,6 +48,36 @@ def splitTPadMessage(message):
     return re.match(messageFormat, message).groups()
 
 
+class TPadListener:
+    def __init__(self, device, receiveMessage):
+        self.device = device
+        self.receiveMessage = receiveMessage
+
+    def parseMessage(self, message):
+        # if given a string, split according to regex
+        if isinstance(message, str):
+            message = splitTPadMessage(message)
+        # split into variables
+        channel, state, button, time = message
+        # convert state to bool
+        if state == "P":
+            state = True
+        elif state == "R":
+            state = False
+        # construct appropriate response object
+        if channel == "C":
+            node = self.device.photodiodes[button]
+            resp = photodiode.PhotodiodeResponse(
+                time, state, threshold=node.getThreshold()
+            )
+        else:
+            raise NotImplementedError(
+                f"TPadListener does not know how to handle response from channel '{channel}'"
+            )
+
+        return resp
+
+
 class TPadPhotodiode(photodiode.BasePhotodiode):
     def __init__(self, port, number):
         # if no TPad device present, try to create one
@@ -123,6 +153,8 @@ class TPad(sd.SerialDevice):
         self.photodiodes = {i+1: TPadPhotodiode(port, i+1) for i in range(2)}
         self.buttons = {i+1: TPadButton(port, i+1) for i in range(10)}
         self.voicekeys = {i+1: TPadVoicekey(port, i+1) for i in range(1)}
+        # listeners
+        self.listeners = []
         # reset timer
         self._lastTimerReset = None
         self.resetTimer()
@@ -158,6 +190,12 @@ class TPad(sd.SerialDevice):
             raise err
         # construct COM port string
         return f"COM{num}"
+
+    def addListener(self, receiveMessage):
+        self.listeners.append(
+            TPadListener(self, receiveMessage)
+        )
+
 
     def setMode(self, mode):
         # dispatch messages now to clear buffer
@@ -225,7 +263,11 @@ class TPad(sd.SerialDevice):
                     node = self.photodiodes[button]
                 if channel == "M" and button in self.voicekeys:
                     node = self.voicekeys[button]
-                # dispatch
+                # dispatch to listeners
+                for listener in self.listeners:
+                    message = listener.parseMessage(parts)
+                    listener.receiveMessage(message)
+                # dispatch to node
                 if node is not None:
                     message = node.parseMessage(parts)
                     node.receiveMessage(message)
