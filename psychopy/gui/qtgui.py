@@ -57,6 +57,77 @@ def ensureQtApp():
 wasMouseVisible = True
 
 
+class ReadmoreCtrl(QtWidgets.QLabel):
+    """
+    A linked label which shows/hides a set of control on click.
+    """
+    def __init__(self, parent, label=""):
+        QtWidgets.QLabel.__init__(self, parent)
+        # set initial state and label
+        self.state = False
+        self.label = label
+        self.updateLabel()
+        # array to store linked ctrls
+        self.linkedCtrls = []
+        # bind onclick
+        self.setOpenExternalLinks(False)
+        self.linkActivated.connect(self.onToggle)
+
+    def updateLabel(self):
+        """
+        Update label so that e.g. arrow matches current state.
+        """
+        # reset label to its own value to refresh
+        self.setLabel(self.label)
+
+    def setLabel(self, label=""):
+        """
+        Set the label of this ctrl (will append arrow and necessary HTML for a link)
+        """
+        # store label root
+        self.label = label
+        # choose an arrow according to state
+        if self.state:
+            arrow = "▾"
+        else:
+            arrow = "▸"
+        # construct text to set
+        text = f"<a href='.' style='color: black; text-decoration: none;'>{arrow} {label}</a>"
+        # set label text
+        self.setText(text)
+
+    def onToggle(self, evt=None):
+        """
+        Toggle visibility of linked ctrls. Called on press.
+        """
+        # toggle state
+        self.state = not self.state
+        # show/hide linked ctrls according to state
+        for ctrl in self.linkedCtrls:
+            if self.state:
+                ctrl.show()
+            else:
+                ctrl.hide()
+        # update label
+        self.updateLabel()
+        # resize dlg
+        self.parent().adjustSize()
+
+    def linkCtrl(self, ctrl):
+        """
+        Connect a ctrl to this ReadmoreCtrl such that it's shown/hidden on toggle.
+        """
+        # add to array of linked ctrls
+        self.linkedCtrls.append(ctrl)
+        # show/hide according to own state
+        if self.state:
+            ctrl.show()
+        else:
+            ctrl.hide()
+        # resize dlg
+        self.parent().adjustSize()
+
+
 class Dlg(QtWidgets.QDialog):
     """A simple dialogue box. You can add text or input boxes
     (sequentially) and then retrieve the values.
@@ -124,9 +195,11 @@ class Dlg(QtWidgets.QDialog):
         # self.labelButtonCancel = labelButtonCancel
 
         self.layout = QtWidgets.QGridLayout()
-        self.layout.setColumnStretch(1, 1)
         self.layout.setSpacing(10)
         self.layout.setColumnMinimumWidth(1, 250)
+
+        # add placeholder for readmore control sizer
+        self.readmore = None
 
         # add message about required fields (shown/hidden by validate)
         msg = _translate("Fields marked with an asterisk (*) are required.")
@@ -275,6 +348,11 @@ class Dlg(QtWidgets.QDialog):
         inputBox.setEnabled(enabled)
         self.layout.addWidget(inputBox, self.irow, 1)
 
+        # link to readmore ctrl if we're in one
+        if self.readmore is not None:
+            self.readmore.linkCtrl(inputBox)
+            self.readmore.linkCtrl(inputLabel)
+
         self.inputFields.append(inputBox)  # store this to get data back on OK
         self.irow += 1
 
@@ -289,12 +367,20 @@ class Dlg(QtWidgets.QDialog):
                              enabled=False)
 
     def addReadmoreCtrl(self):
-        line = QtWidgets.QLabel("Config...", parent=self)
+        line = ReadmoreCtrl(self, label=_translate("Configuration fields..."))
 
         self.layout.addWidget(line, self.irow, 0, 1, 2)
         self.irow += 1
 
+        self.enterReadmoreCtrl(line)
+
         return line
+
+    def enterReadmoreCtrl(self, ctrl):
+        self.readmore = ctrl
+
+    def exitReadmoreCtrl(self):
+        self.readmore = None
 
     def display(self):
         """Presents the dialog and waits for the user to press OK or CANCEL.
