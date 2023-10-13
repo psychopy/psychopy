@@ -745,9 +745,9 @@ class ValidationTargetRenderer:
     max_msg_type_length = max([len(s) for s in message_types.keys()])
     binocular_sample_message_element = [('targ_pos_ix', int),
                                         ('last_msg_time', np.float64),
-                                        ('last_msg_type', np.str, max_msg_type_length),
+                                        ('last_msg_type', str, max_msg_type_length),
                                         ('next_msg_time', np.float64),
-                                        ('next_msg_type', np.str, max_msg_type_length),
+                                        ('next_msg_type', str, max_msg_type_length),
                                         ('targ_pos_x', np.float64),
                                         ('targ_pos_y', np.float64),
                                         ('targ_state', int),
@@ -761,9 +761,9 @@ class ValidationTargetRenderer:
                                         ('right_pupil_size', np.float64)]
     monocular_sample_message_element = [('targ_pos_ix', int),
                                         ('last_msg_time', np.float64),
-                                        ('last_msg_type', np.str, max_msg_type_length),
+                                        ('last_msg_type', str, max_msg_type_length),
                                         ('next_msg_time', np.float64),
-                                        ('next_msg_type', np.str, max_msg_type_length),
+                                        ('next_msg_type', str, max_msg_type_length),
                                         ('targ_pos_x', np.float64),
                                         ('targ_pos_y', np.float64),
                                         ('targ_state', int),

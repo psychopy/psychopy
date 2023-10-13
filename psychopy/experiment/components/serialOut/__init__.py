@@ -24,7 +24,7 @@ class SerialOutComponent(BaseComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
-                 port="COM3", baudrate=9600, bytesize=8, stopbits=1, parity='None',
+                 port="COM3", baudrate=9600, bytesize=8, stopbits=1, parity='N',
                  startdata=1, stopdata=0,
                  timeout="", getResponse=False,
                  syncScreenRefresh=False):

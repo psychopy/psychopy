@@ -9,7 +9,6 @@ import re
 from psychopy import logging, plugins
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
-import psychopy.tools.versionchooser as versions
 from psychopy.experiment import utils as exputils
 from psychopy.monitors import Monitor
 from psychopy.iohub import util as ioUtil
@@ -20,7 +19,6 @@ from psychopy.data.utils import parsePipeSyntax
 # for creating html output folders:
 import shutil
 import hashlib
-from pkg_resources import parse_version
 import ast  # for doing literal eval to convert '["a","b"]' to a list
 
 try:
@@ -110,6 +108,10 @@ class SettingsComponent:
                  plPupilRemoteTimeoutMs=1000,
                  plPupilCaptureRecordingEnabled=True,
                  plPupilCaptureRecordingLocation="",
+                 plCompanionAddress="neon.local",
+                 plCompanionPort=8080,
+                 plCompanionRecordingEnabled=True,
+                 plCompanionCameraCalibration='scene_camera.json',
                  keyboardBackend="ioHub",
                  filename=None, exportHTML='on Sync', endMessage=''):
         self.type = 'Settings'
@@ -168,12 +170,16 @@ class SettingsComponent:
             hint=_translate("The info to present in a dialog box. Right-click"
                             " to check syntax and preview the dialog box."),
             label=_translate("Experiment info"))
+        def getVersions():
+            import psychopy.tools.versionchooser as versions
+            available = versions._versionFilter(versions.versionOptions(), wx_version)
+            available += ['']
+            available += versions._versionFilter(versions.availableVersions(), wx_version)
+            return available
         self.params['Use version'] = Param(
             useVersion, valType='str', inputType="choice",
             # search for options locally only by default, otherwise sluggish
-            allowedVals=versions._versionFilter(versions.versionOptions(), wx_version)
-                        + ['']
-                        + versions._versionFilter(versions.availableVersions(), wx_version),
+            allowedVals=getVersions,
             hint=_translate("The version of PsychoPy to use when running "
                             "the experiment."),
             label=_translate("Use PsychoPy version"), categ='Basic')
@@ -408,6 +414,8 @@ class SettingsComponent:
             "Pupil Labs": ["plPupillometryOnly", "plSurfaceName", "plConfidenceThreshold",
                            "plPupilRemoteAddress", "plPupilRemotePort", "plPupilRemoteTimeoutMs",
                            "plPupilCaptureRecordingEnabled", "plPupilCaptureRecordingLocation"],
+            "Pupil Labs (Neon)": ["plCompanionAddress", "plCompanionPort", "plCompanionRecordingEnabled",
+                                  "plCompanionCameraCalibration"],
         }
         for tracker in trackerParams:
             for depParam in trackerParams[tracker]:
@@ -608,6 +616,26 @@ class SettingsComponent:
             hint=_translate("Pupil capture recording location"),
             label=_translate("Pupil capture recording location"), categ="Eyetracking"
         )
+        self.params['plCompanionAddress'] = Param(
+            plCompanionAddress, valType='str', inputType="single",
+            hint=_translate("Companion address"),
+            label=_translate("Companion address"), categ="Eyetracking"
+        )
+        self.params['plCompanionPort'] = Param(
+            plCompanionPort, valType='num', inputType="single",
+            hint=_translate("Companion port"),
+            label=_translate("Companion port"), categ="Eyetracking"
+        )
+        self.params['plCompanionRecordingEnabled'] = Param(
+            plCompanionRecordingEnabled, valType='bool', inputType="bool",
+            hint=_translate("Recording enabled"),
+            label=_translate("Recording enabled"), categ="Eyetracking"
+        )
+        self.params['plCompanionCameraCalibration'] = Param(
+            plCompanionCameraCalibration, valType='file', inputType="file",
+            hint=_translate("Camera calibration path"),
+            label=_translate("Camera calibration path"), categ="Eyetracking"
+        )
 
         # Input
         self.params['keyboardBackend'] = Param(
@@ -648,7 +676,7 @@ class SettingsComponent:
         dict
             expInfo as a dict
         """
-        
+
         infoStr = str(self.params['Experiment info'].val).strip()
         if len(infoStr) == 0:
             return {}
@@ -682,7 +710,7 @@ class SettingsComponent:
                     newDict[key] = Param(val=val, valType='str')
 
         except (ValueError, SyntaxError):
-            """under Python3 {'participant':'', 'session':02} raises an error because 
+            """under Python3 {'participant':'', 'session':02} raises an error because
             ints can't have leading zeros. We will check for those and correct them
             tests = ["{'participant':'', 'session':02}",
                     "{'participant':'', 'session':02}",
@@ -729,7 +757,7 @@ class SettingsComponent:
             'Builder (v%s),\n'
             '    on %s\n' % (version, localDateTime) +
             'If you publish work using this script the most relevant '
-            'publication is:\n\n'            
+            'publication is:\n\n'
             u'    Peirce J, Gray JR, Simpson S, MacAskill M, Höchenberger R, Sogo H, '
             u'Kastman E, Lindeløv JK. (2019) \n'
             '        PsychoPy2: Experiments in behavior made easy Behav Res 51: 195. \n'
@@ -912,6 +940,7 @@ class SettingsComponent:
             copyFileWithMD5(srcFile['abs'], dstAbs)
 
     def writeInitCodeJS(self, buff, version, localDateTime, modular=True):
+        from psychopy.tools import versionchooser as versions
         # create resources folder
         if self.exp.htmlFolder:
             self.prepareResourcesJS()
@@ -939,7 +968,7 @@ class SettingsComponent:
         # Write header comment
         starLen = "*"*(len(jsFilename) + 9)
         code = ("/%s \n"
-               " * %s *\n" 
+               " * %s *\n"
                " %s/\n\n")
         buff.writeIndentedLines(code % (starLen, jsFilename.title(), starLen))
 
@@ -975,7 +1004,7 @@ class SettingsComponent:
 
     def writeExpSetupCodeJS(self, buff, version):
 
-        
+
         # write the code to set up experiment
         buff.setIndentLevel(0, relative=False)
         template = readTextFile("JS_setupExp.tmpl")
@@ -1010,7 +1039,7 @@ class SettingsComponent:
             name=self.params['expName'].val,
             loggingLevel=self.params['logging level'].val.upper(),
             setRedirectURL=setRedirectURL,
-            version=version, 
+            version=version,
             field_separator=repr(delim)
         )
         buff.writeIndentedLines(code)
@@ -1252,7 +1281,7 @@ class SettingsComponent:
             if self.params['Monitor'].val in ["", None, "None"]:
                 alert(code=4545)
             # Alert user if they need calibration and don't have it
-            if self.params['eyetracker'].val != "MouseGaze":
+            if not self.params['eyetracker'].val in ["MouseGaze", "Pupil Labs (Neon)"]:
                 if not any(isinstance(rt, EyetrackerCalibrationRoutine)
                            for rt in self.exp.flow):
                     alert(code=4510, strFields={"eyetracker": self.params['eyetracker'].val})
@@ -1425,6 +1454,30 @@ class SettingsComponent:
                 buff.setIndentLevel(-1, relative=True)
                 code = (
                     "}\n"
+                )
+                buff.writeIndentedLines(code % inits)
+
+                # Close runtime_settings dict
+                buff.setIndentLevel(-1, relative=True)
+                code = (
+                    "}\n"
+                )
+                buff.writeIndentedLines(code % inits)
+
+            elif self.params['eyetracker'] == "Pupil Labs (Neon)":
+                # Open runtime_settings dict
+                code = (
+                    "'runtime_settings': {\n"
+                )
+                buff.writeIndentedLines(code % inits)
+                buff.setIndentLevel(1, relative=True)
+
+                # Define runtime_settings dict
+                code = (
+                    "'companion_address': %(plCompanionAddress)s,\n"
+                    "'companion_port': %(plCompanionPort)s,\n"
+                    "'recording_enabled': %(plCompanionRecordingEnabled)s,\n"
+                    "'camera_calibration': %(plCompanionCameraCalibration)s,\n"
                 )
                 buff.writeIndentedLines(code % inits)
 

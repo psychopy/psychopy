@@ -2,13 +2,13 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-
+import importlib
 import socket
 import os
 import numbers  # numbers.Integral is like (int, long) but supports Py3
 from psychopy import colors
 from psychopy.tools import arraytools
-from ..util import yload, yLoader, module_directory
+from ..util import yload, yLoader, module_directory, getSupportedConfigSettings
 from ..errors import print2err
 
 # Takes a device configuration yaml dict and processes it based on the devices
@@ -486,22 +486,32 @@ def validateDeviceConfiguration(
         relative_module_path,
         device_class_name,
         current_device_config):
-    validation_file_path = os.path.join(_current_dir,
-                                        relative_module_path[len('psychopy.iohub.devices.'):].replace('.', os.path.sep),
-                                        'supported_config_settings_{0}.yaml'.format(device_class_name.lower()))
+    """Validate the device configuration settings provided.
+    """
+    validation_module = importlib.import_module(relative_module_path)
+    validation_file_path = getSupportedConfigSettings(validation_module)
+
+    # use a default config if we can't get the YAML file
     if not os.path.exists(validation_file_path):
-        validation_file_path = os.path.join(_current_dir,
-                                            relative_module_path[len('psychopy.iohub.devices.'):].replace('.',
-                                                                                                          os.path.sep),
-                                            'supported_config_settings.yaml')
-    device_settings_validation_dict = yload(open(validation_file_path, 'r'), Loader=yLoader)
-    device_settings_validation_dict = device_settings_validation_dict[list(device_settings_validation_dict.keys())[0]]
+        validation_file_path = os.path.join(
+            _current_dir, 
+            relative_module_path[len('psychopy.iohub.devices.'):].replace(
+                '.', os.path.sep),
+        'supported_config_settings.yaml')
+
+    device_settings_validation_dict = yload(
+        open(validation_file_path, 'r'), Loader=yLoader)
+    device_settings_validation_dict = device_settings_validation_dict[
+        list(device_settings_validation_dict.keys())[0]]
 
     param_validation_func_mapping = dict()
     parent_config_param_path = None
-    buildConfigParamValidatorMapping(device_settings_validation_dict, param_validation_func_mapping,
-                                     parent_config_param_path)
+    buildConfigParamValidatorMapping(
+        device_settings_validation_dict, 
+        param_validation_func_mapping,
+        parent_config_param_path)
 
-    validation_results = validateConfigDictToFuncMapping(param_validation_func_mapping, current_device_config, None)
+    validation_results = validateConfigDictToFuncMapping(
+        param_validation_func_mapping, current_device_config, None)
 
     return validation_results
