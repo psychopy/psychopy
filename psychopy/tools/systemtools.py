@@ -26,8 +26,8 @@ __all__ = [
     'getAudioPlaybackDevices',
     'getKeyboards',
     'getSerialPorts',
-    # 'getParallelPorts',
-    'systemProfilerMacOS'
+    'systemProfilerMacOS',
+    'getInstalledDevices'
 ]
 
 # Keep imports to a minimum here! We don't want to import the whole stack to
