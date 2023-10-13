@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2023.2.2\n"
 "Report-Msgid-Bugs-To: shuonwang@gmail.com\n"
 "POT-Creation-Date: 2021-12-18 00:00+0100\n"
-"PO-Revision-Date: 2023-09-27 16:58+0800\n"
+"PO-Revision-Date: 2023-10-13 11:55+0800\n"
 "Last-Translator: Huang Xinru <hxrmiaomiaomiao@pku.edu.cn>\n"
 "Language-Team: Shun Wang <shuonwang@gmail.com>\n"
 "Language: zh_CN\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "Generated-By: Babel 2.6.0\n"
-"X-Generator: Poedit 3.3.2\n"
+"X-Generator: Poedit 3.4\n"
 "X-Poedit-KeywordsList: _translate\n"
 "X-Poedit-Basepath: ../../../..\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -5909,310 +5909,317 @@ msgstr "将 HTML 文件保存到本地 "
 
 #: ../experiment/components/settings/__init__.py:329
 msgid "Any additional resources needed"
-msgstr ""
+msgstr "所需的额外资源"
 
 #: ../experiment/components/settings/__init__.py:333
 msgid ""
 "Where should participants be redirected after the experiment on completion\n"
 " INSERT COMPLETION URL E.G.?"
 msgstr ""
+"实验完成后应将被试导向哪里\n"
+"例如：插入完成的网址？"
 
 #: ../experiment/components/settings/__init__.py:338
 msgid ""
 "Where participants are redirected if they do not complete the task\n"
 " INSERT INCOMPLETION URL E.G.?"
 msgstr ""
+"如果被试没有完成任务，他们将被导向哪里\n"
+"例如：插入未完成的网址？"
 
 #: ../experiment/components/settings/__init__.py:344
 msgid "When to export experiment to the HTML folder."
-msgstr ""
+msgstr "何时将实验导出到 HTML 文件夹。"
 
 #: ../experiment/components/settings/__init__.py:383
 msgid ""
 "What kind of eye tracker should PsychoPy use? Select 'MouseGaze' to use the "
 "mouse to simulate eye movement (for debugging without a tracker connected)"
 msgstr ""
+"PsychoPy 应使用什么类型的眼动仪？选择“MouseGaze”来使用鼠标模拟眼动（用于未连"
+"接眼动仪时的调试）"
 
 #: ../experiment/components/settings/__init__.py:385
 msgid "Eyetracker Device"
-msgstr ""
+msgstr "眼动设备"
 
 #: ../experiment/components/settings/__init__.py:392
 msgid "Mouse button to press for eye movement."
-msgstr ""
+msgstr "鼠标点击此键眼动。"
 
 #: ../experiment/components/settings/__init__.py:393
 msgid "Move Button"
-msgstr ""
+msgstr "移动按钮"
 
 #: ../experiment/components/settings/__init__.py:399
 msgid "Mouse button to press for a blink."
-msgstr ""
+msgstr "鼠标点击此键眨眼。"
 
 #: ../experiment/components/settings/__init__.py:400
 msgid "Blink Button"
-msgstr ""
+msgstr "眨眼按钮"
 
 #: ../experiment/components/settings/__init__.py:405
 msgid "Visual degree threshold for Saccade event creation."
-msgstr ""
+msgstr "创建扫视事件的视觉度数阈值。"
 
 #: ../experiment/components/settings/__init__.py:406
 msgid "Saccade Threshold"
-msgstr ""
+msgstr "扫视阈限"
 
+# GazePoint Control需要翻译吗
 #: ../experiment/components/settings/__init__.py:412
 msgid "IP Address of the computer running GazePoint Control."
-msgstr ""
+msgstr "运行 GazePoint Control 的电脑的 IP 地址。"
 
 #: ../experiment/components/settings/__init__.py:413
 msgid "GazePoint IP Address"
-msgstr ""
+msgstr "GazePoint 的 IP 地址"
 
 #: ../experiment/components/settings/__init__.py:418
 msgid "Port of the GazePoint Control server. Usually 4242."
-msgstr ""
+msgstr "GazePoint Control 服务器的端口。通常为 4242。"
 
 #: ../experiment/components/settings/__init__.py:419
 msgid "GazePoint Port"
-msgstr ""
+msgstr "GazePoint 端口"
 
 #: ../experiment/components/settings/__init__.py:426
 #: ../experiment/components/settings/__init__.py:496
 msgid "Eye tracker model."
-msgstr ""
+msgstr "眼动仪模型。"
 
 #: ../experiment/components/settings/__init__.py:427
 #: ../experiment/components/settings/__init__.py:497
 msgid "Model Name"
-msgstr ""
+msgstr "模型名称"
 
 #: ../experiment/components/settings/__init__.py:432
 msgid "Set the EyeLink to run in mouse simulation mode."
-msgstr ""
+msgstr "将 EyeLink 设置为鼠标模拟模式。"
 
 #: ../experiment/components/settings/__init__.py:433
 msgid "Mouse Simulation Mode"
-msgstr ""
+msgstr "鼠标模拟模式"
 
 #: ../experiment/components/settings/__init__.py:439
 #: ../experiment/components/settings/__init__.py:514
 msgid "Eye tracker sampling rate."
-msgstr ""
+msgstr "眼动仪采样率。"
 
 #: ../experiment/components/settings/__init__.py:440
 #: ../experiment/components/settings/__init__.py:515
 msgid "Sampling Rate"
-msgstr ""
+msgstr "采样率"
 
 #: ../experiment/components/settings/__init__.py:446
 msgid "Select with eye(s) to track."
-msgstr ""
+msgstr "选择要追踪的眼睛。"
 
 #: ../experiment/components/settings/__init__.py:447
 msgid "Track Eyes"
-msgstr ""
+msgstr "追踪眼"
 
 #: ../experiment/components/settings/__init__.py:453
 msgid ""
 "Filter eye sample data live, as it is streamed to the driving device. This "
 "may reduce the sampling speed."
-msgstr ""
+msgstr "在数据流传输到驱动设备时，实时过滤眼动采样数据。这可能会降低采样速度。"
 
 #: ../experiment/components/settings/__init__.py:455
 msgid "Live Sample Filtering"
-msgstr ""
+msgstr "实时采样过滤"
 
 #: ../experiment/components/settings/__init__.py:461
 msgid ""
 "Filter eye sample data when it is saved to the output file. This will not "
 "affect the sampling speed."
-msgstr ""
+msgstr "在眼动采样数据保存到输出文件时对其进行过滤。这不会影响采样速度。"
 
 #: ../experiment/components/settings/__init__.py:463
 msgid "Saved Sample Filtering"
-msgstr ""
+msgstr "保存的采样过滤"
 
 #: ../experiment/components/settings/__init__.py:469
 msgid "Track Pupil-CR or Pupil only."
-msgstr ""
+msgstr "只追踪瞳孔-CR 或瞳孔。"
 
 #: ../experiment/components/settings/__init__.py:470
 msgid "Pupil Tracking Mode"
-msgstr ""
+msgstr "瞳孔追踪模式"
 
 #: ../experiment/components/settings/__init__.py:476
 msgid "Algorithm used to detect the pupil center."
-msgstr ""
+msgstr "用于检测瞳孔中心的算法。"
 
 #: ../experiment/components/settings/__init__.py:477
 msgid "Pupil Center Algorithm"
-msgstr ""
+msgstr "瞳孔中心算法"
 
 #: ../experiment/components/settings/__init__.py:483
 msgid "Type of pupil data to record."
-msgstr ""
+msgstr "要记录的瞳孔数据类型。"
 
 #: ../experiment/components/settings/__init__.py:484
 msgid "Pupil Data Type"
-msgstr ""
+msgstr "瞳孔数据类型"
 
 #: ../experiment/components/settings/__init__.py:489
 msgid "IP Address of the EyeLink *Host* computer."
-msgstr ""
+msgstr "EyeLink *Host* 电脑的 IP 地址。"
 
 #: ../experiment/components/settings/__init__.py:490
 msgid "EyeLink IP Address"
-msgstr ""
+msgstr "EyeLink IP 地址"
 
 #: ../experiment/components/settings/__init__.py:502
 msgid "Eye tracker license file (optional)."
-msgstr ""
+msgstr "眼动仪的许可证文件（可选）。"
 
 #: ../experiment/components/settings/__init__.py:503
 msgid "License File"
-msgstr ""
+msgstr "许可证文件"
 
 #: ../experiment/components/settings/__init__.py:508
 msgid "Eye tracker serial number (optional)."
-msgstr ""
+msgstr "眼动仪的序列号（可选）。"
 
 #: ../experiment/components/settings/__init__.py:509
 msgid "Serial Number"
-msgstr ""
+msgstr "序列号"
 
 #: ../experiment/components/slider/__init__.py:28
 msgid "Ticks"
-msgstr ""
+msgstr "刻度"
 
 #: ../experiment/components/slider/__init__.py:33
 msgid "readOnly"
-msgstr ""
+msgstr "只读"
 
 #: ../experiment/components/slider/__init__.py:61
 msgid "Slider: A simple, flexible object for getting ratings"
-msgstr ""
+msgstr "滑块：简单、灵活地获取评级"
 
 #: ../experiment/components/slider/__init__.py:109
 msgid "Tick positions (numerical) on the scale, separated by commas"
-msgstr ""
+msgstr "量表上的刻度位置（数值），以逗号分隔"
 
 #: ../experiment/components/slider/__init__.py:115
 msgid "Labels for the tick marks on the scale, separated by commas"
-msgstr ""
+msgstr "量表上刻度标记的标签，以逗号分隔"
 
 #: ../experiment/components/slider/__init__.py:120
 msgid ""
 "Value of the slider befre any response, leave blank to hide the marker until "
 "clicked on"
-msgstr ""
+msgstr "做出任何反应之前的滑块值，留空表示在点击之前隐藏标记"
 
 #: ../experiment/components/slider/__init__.py:121
 msgid "Starting Value"
-msgstr ""
+msgstr "起始值"
 
 #: ../experiment/components/slider/__init__.py:126
 msgid ""
 "Specifies the minimum step size (0 for a continuous scale, 1 for integer "
 "rating scale)"
-msgstr ""
+msgstr "指定最小步长（0表示连续刻度，1表示整数等级刻度）"
 
 #: ../experiment/components/slider/__init__.py:129
 msgid "Granularity"
-msgstr ""
+msgstr "颗粒度"
 
 #: ../experiment/components/slider/__init__.py:133
 msgid ""
 "Should setting a rating (releasing the mouse) cause the end of the routine "
 "(e.g. trial)?"
-msgstr ""
+msgstr "设置评级（释放鼠标）是否会导致例程（如试验）的结束？"
 
 #: ../experiment/components/slider/__init__.py:139
 msgid "Should participant be able to change the rating on the Slider?"
-msgstr ""
+msgstr "被试是否能够改变滑块上的评级？"
 
 #: ../experiment/components/slider/__init__.py:146
 msgid ""
 "By default the labels will be on the bottom or left of the scale, but this "
 "can be flipped to the other side."
-msgstr ""
+msgstr "标签默认位于量表的下侧或左侧，但也可以翻转到另一侧。"
 
 #: ../experiment/components/slider/__init__.py:150
 msgid "Flip"
-msgstr ""
+msgstr "翻转"
 
 #: ../experiment/components/slider/__init__.py:153
 msgid "Label Color"
-msgstr ""
+msgstr "标签颜色"
 
 #: ../experiment/components/slider/__init__.py:154
 msgid ""
 "Color of all labels on this slider (might be overridden by the style setting)"
-msgstr ""
+msgstr "这一滑块上所有标签的颜色（可能被样式设置所覆盖）"
 
 #: ../experiment/components/slider/__init__.py:156
 msgid ""
 "Color of the marker on this slider (might be overridden by the style setting)"
-msgstr ""
+msgstr "这一滑块上标记的颜色（可能被样式设置所覆盖）"
 
 #: ../experiment/components/slider/__init__.py:157
 msgid "Line Color"
-msgstr ""
+msgstr "线条颜色"
 
 #: ../experiment/components/slider/__init__.py:158
 msgid ""
 "Color of all lines on this slider (might be overridden by the style setting)"
-msgstr ""
+msgstr "这一滑块上所有线条的颜色（可能被样式设置所覆盖）"
 
 #: ../experiment/components/slider/__init__.py:167
 msgid "Font for the labels"
-msgstr ""
+msgstr "标签的字体"
 
 #: ../experiment/components/slider/__init__.py:175
 msgid "Letter height for text in labels"
-msgstr ""
+msgstr "标签中本文的字体大小"
 
 #: ../experiment/components/slider/__init__.py:182
 msgid "Discrete styles to control the overall appearance of the slider."
-msgstr ""
+msgstr "用于控制滑块整体外观的独立样式。"
 
 #: ../experiment/components/slider/__init__.py:189
 msgid "Tweaks to change the appearance of the slider beyond its style."
-msgstr ""
+msgstr "除样式外，对滑块外观进行调整。"
 
 #: ../experiment/components/slider/__init__.py:191
 msgid "Style Tweaks"
-msgstr ""
+msgstr "样式调整"
 
 #: ../experiment/components/slider/__init__.py:202
 msgid "Store the time taken to make the choice (in seconds)"
-msgstr ""
+msgstr "保存做出反应所用的时间（秒）"
 
 #: ../experiment/components/sound/__init__.py:21
 msgid "Sound"
-msgstr ""
+msgstr "声音"
 
 #: ../experiment/components/sound/__init__.py:22
 msgid "Volume"
-msgstr ""
+msgstr "容量"
 
 #: ../experiment/components/sound/__init__.py:23
 msgid "Sync Start With Screen"
-msgstr ""
+msgstr "与屏幕同步启动"
 
 #: ../experiment/components/sound/__init__.py:31
 msgid "Sound: play recorded files or generated sounds"
-msgstr ""
+msgstr "声音：播放录制的文件或生成的声音"
 
 #: ../experiment/components/sound/__init__.py:52
 msgid "The maximum duration of a sound in seconds"
-msgstr ""
+msgstr "一段声音的最长持续时间（秒）"
 
 #: ../experiment/components/sound/__init__.py:58
 msgid ""
 "A sound can be a note name (e.g. A or Bf), a number to specify Hz (e.g. 440) "
 "or a filename"
-msgstr ""
+msgstr "声音可以是音符名称（如 A 或 Bf）、指定 Hz 的数字（如 440）或文件名"
 
 #: ../experiment/components/sound/__init__.py:69
 msgid "The volume (in range 0 to 1)"
