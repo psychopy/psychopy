@@ -8,13 +8,14 @@ _deviceAddMethods = {}
 
 
 def deviceAddMethod(key):
-    """
-    Decorator which adds the decorated method to _deviceAddMethods against the given key.
+    """Decorator which adds the decorated method to _deviceAddMethods against 
+    the given key.
 
     Parameters
     ----------
     key : str
         Key to link the decorated method to.
+
     """
     # make decorator function
     def _decorator(fcn):
@@ -27,7 +28,11 @@ def deviceAddMethod(key):
 
 
 class DeviceManager(list):
-    instance = None
+    """Class for managing hardware devices relevant to PsychoPy connected to the 
+    computer.
+
+    """
+    instance = None  # singleton instance
 
     def __new__(cls):
         if cls.instance is None:
@@ -106,12 +111,81 @@ class DeviceManager(list):
         st.getKeyboards()
 
     @staticmethod
+    def getSpeakers():
+        """Get a list of audio playback devices that have been initialized.
+
+        Returns
+        -------
+        list
+            List of audio playback devices that have been initialized.
+
+        """
+        return []
+
+    @staticmethod
     def getMicrophones():
-        return st.getAudioCaptureDevices()
+        """Get a list of audio capture devices that have been initialized.
+
+        Returns
+        -------
+        list
+            List of audio capture devices that have been initialized.
+
+        """
+        return []
 
     @staticmethod
     def getCameras():
-        return st.getCameras()
+        """Get a list of cameras that have been initialized.
+
+        Returns
+        -------
+        list
+            List of cameras that have been initialized.
+
+        """
+        return []
+
+    @staticmethod
+    def getAvailableSpeakers():
+        """Get information about all available audio playback devices connected to 
+        the system.
+        
+        Returns
+        -------
+        dict
+            Dictionary of information about available audio playback devices 
+            connected to the system.
+        
+        """
+        return st.getInstalledDevices('speaker')
+
+    @staticmethod
+    def getAvailableMicrophones():
+        """Get information about all available audio capture devices connected to
+        the system.
+
+        Returns
+        -------
+        dict
+            Dictionary of information about available audio capture devices 
+            connected to the system.
+
+        """
+        return st.getInstalledDevices('microphone')
+
+    @staticmethod
+    def getAvailableCameras():
+        """Get information about all available cameras connected to the system.
+
+        Returns
+        -------
+        dict
+            Dictionary of information about available cameras connected to the 
+            system.
+
+        """
+        return st.getInstalledDevices('camera')
 
     @staticmethod
     def getSerialDevices():
@@ -122,3 +196,7 @@ class DeviceManager(list):
 
 
 mgr = DeviceManager()
+
+
+if __name__ == "__main__":
+    pass
