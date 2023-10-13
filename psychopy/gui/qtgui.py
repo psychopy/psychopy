@@ -538,7 +538,8 @@ class DlgFromDict(Dlg):
         """Display the dialog.
         """
         data = self.exec_()
-        self.dictionary.update(data)
+        if data is not None:
+            self.dictionary.update(data)
         return self.dictionary
 
 
