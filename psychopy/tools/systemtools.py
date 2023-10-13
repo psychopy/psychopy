@@ -1064,8 +1064,8 @@ def getInstalledDevices(deviceType='all', refresh=False):
     Parameters
     ----------
     deviceType : str
-        Type of device to query. Possible values are `'all'`, `'audio'`,
-        `'camera'`, `'keyboard'`, or `'serial'`. Default is `'all'`.
+        Type of device to query. Possible values are `'all'`, `'speaker'`,
+        `'microphone'`, `'keyboard'`, or `'serial'`. Default is `'all'`.
     refresh : bool
         Whether to refresh the cache of installed devices. Default is `False`.
 
@@ -1123,12 +1123,12 @@ def getInstalledDevices(deviceType='all', refresh=False):
         for devIdx, devInfo in allAudioDevices.items():
             if devInfo["name"] not in foundDevices:  # unique names only
                 if devInfo["inputChannels"] > 0:
-                    foundDevices.append((devInfo["name"], 'microphones'))
+                    foundDevices.append((devInfo["name"], 'microphone'))
                 if devInfo["outputChannels"] > 0:
-                    foundDevices.append((devInfo["name"], 'speakers'))
+                    foundDevices.append((devInfo["name"], 'speaker'))
 
         # now get settings for each microphone
-        devSettings = {'microphones': [], 'speakers': []}
+        devSettings = {'microphone': [], 'speaker': []}
         for devName, devClass in foundDevices:
             supportedSampleRates = []
             supportedChannels = []
@@ -1204,32 +1204,33 @@ def getInstalledDevices(deviceType='all', refresh=False):
                 }
             )
         
-        return {'cameras': devSettings}
+        return {'camera': devSettings}
 
     # check if we support getting the requested device type
-    if deviceType not in ('all', 'audio', 'camera', 'keyboard', 'serial'):
+    if deviceType not in ('all', 'speaker', 'microphone', 'camera', 
+            'keyboard', 'serial'):
         raise ValueError(
-            "Value for parameter `deviceType` should be one of 'all', 'audio',"
-            " 'camera', 'keyboard' or 'serial'."
+            "Requested device type '{}' is not supported.".format(deviceType)
         )
     
     global _installedDeviceCache  # use the global cache
     if not refresh and _installedDeviceCache is not None:
-        return _installedDeviceCache
-
-    # build the output dictionary
-    toReturn = {}
-    if deviceType == 'all' or deviceType == 'audio':
+        toReturn = _installedDeviceCache
+    else:
+        # refresh device cache if requested or if it's empty
+        toReturn = {}
         toReturn.update(_getInstalledAudioDevices())
-    if deviceType == 'all' or deviceType == 'camera':
         if not platform.system().startswith('Linux'):
             toReturn.update(_getInstalledCameras())
         else:
             logging.error(
                 "Cannot get camera settings on Linux, not supported.")
 
-    _installedDeviceCache = toReturn  # update the cache
+        _installedDeviceCache = toReturn  # update the cache
 
+    if deviceType != 'all':  # return only the requested device type
+        return toReturn[deviceType]
+    
     return toReturn
 
 
