@@ -19,12 +19,25 @@ class BasePhotodiode:
         self.device = sd.ports[port]
         # attribute in which to store current state
         self.state = False
-        # dict in which to store messages by timestamp
+        # list in which to store messages in chronological order
         self.responses = []
+        # list of listener objects
+        self.listeners = []
 
     def clearResponses(self):
         self.device.dispatchMessages()
         self.responses = []
+
+    def addListener(self, listener):
+        """
+        Add a listener, which will receive all the same messages as this Photodiode.
+
+        Parameters
+        ----------
+        listener : hardware.listener.BaseListener
+            Object to duplicate messages to when received by this Photodiode.
+        """
+        self.listeners.append(listener)
 
     def getResponses(self, state=None, clear=True):
         """
@@ -68,6 +81,9 @@ class BasePhotodiode:
         self.state = message.value
         # add message to responses
         self.responses.append(message)
+        # relay message to listener
+        for listener in self.listeners:
+            listener.receiveMessage(message)
 
     def findPhotodiode(self, win):
         """

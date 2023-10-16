@@ -153,11 +153,19 @@ class TPad(sd.SerialDevice):
         self.photodiodes = {i+1: TPadPhotodiode(port, i+1) for i in range(2)}
         self.buttons = {i+1: TPadButton(port, i+1) for i in range(10)}
         self.voicekeys = {i+1: TPadVoicekey(port, i+1) for i in range(1)}
-        # listeners
-        self.listeners = []
         # reset timer
         self._lastTimerReset = None
         self.resetTimer()
+
+    @property
+    def nodes(self):
+        """
+        Returns
+        -------
+        list
+            List of nodes (photodiodes, buttons and voicekeys) managed by this TPad.
+        """
+        return list(self.photodiodes.values()) + list(self.buttons.values()) + list(self.voicekeys.values())
 
     @staticmethod
     def _detectComPort():
@@ -191,11 +199,18 @@ class TPad(sd.SerialDevice):
         # construct COM port string
         return f"COM{num}"
 
-    def addListener(self, receiveMessage):
-        self.listeners.append(
-            TPadListener(self, receiveMessage)
-        )
+    def addListener(self, listener):
+        """
+        Add a listener, which will receive all the messages dispatched by this TPad.
 
+        Parameters
+        ----------
+        listener : hardware.listener.BaseListener
+            Object to duplicate messages to when dispatched by this TPad.
+        """
+        # add listener to all nodes
+        for node in self.nodes:
+            node.addListener(listener)
 
     def setMode(self, mode):
         # dispatch messages now to clear buffer
@@ -263,10 +278,6 @@ class TPad(sd.SerialDevice):
                     node = self.photodiodes[button]
                 if channel == "M" and button in self.voicekeys:
                     node = self.voicekeys[button]
-                # dispatch to listeners
-                for listener in self.listeners:
-                    message = listener.parseMessage(parts)
-                    listener.receiveMessage(message)
                 # dispatch to node
                 if node is not None:
                     message = node.parseMessage(parts)
