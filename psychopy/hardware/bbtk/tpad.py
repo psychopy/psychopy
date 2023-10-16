@@ -1,4 +1,4 @@
-from .. import serialdevice as sd, photodiode
+from .. import serialdevice as sd, photodiode, button
 from psychopy.tools import systemtools as st
 from psychopy import logging
 import serial
@@ -72,7 +72,7 @@ class TPadPhotodiode(photodiode.BasePhotodiode):
             message = splitTPadMessage(message)
         # split into variables
         # assert isinstance(message, (tuple, list)) and len(message) == 4
-        channel, state, button, time = message
+        channel, state, number, time = message
         # convert state to bool
         if state == "P":
             state = True
@@ -82,9 +82,9 @@ class TPadPhotodiode(photodiode.BasePhotodiode):
         # assert channel == "C", (
         #     "TPadPhotometer {} received non-photometer message: {}"
         # ).format(self.number, message)
-        # assert button == str(self.number), (
+        # assert number == str(self.number), (
         #     "TPadPhotometer {} received message intended for photometer {}: {}"
-        # ).format(self.number, button, message)
+        # ).format(self.number, number, message)
         # create PhotodiodeResponse object
         resp = photodiode.PhotodiodeResponse(
             time, state, threshold=self.getThreshold()
@@ -100,9 +100,37 @@ class TPadPhotodiode(photodiode.BasePhotodiode):
         return photodiode.BasePhotodiode.findPhotodiode(self, win)
 
 
-class TPadButton:
-    def __init__(self, *args, **kwargs):
-        pass
+class TPadButton(button.BaseButton):
+    def __init__(self, port, number):
+        # if no TPad device present, try to create one
+        if sd.ports[port] is None:
+            pad = TPad(port=port)
+            pad.buttons[number] = self
+        else:
+            pad = sd.ports[port]
+        # initialise base class
+        button.BaseButton.__init__(self, device=pad)
+        # store number
+        self.number = number
+
+    def parseMessage(self, message):
+        # if given a string, split according to regex
+        if isinstance(message, str):
+            message = splitTPadMessage(message)
+        # split into variables
+        # assert isinstance(message, (tuple, list)) and len(message) == 4
+        channel, state, number, time = message
+        # convert state to bool
+        if state == "P":
+            state = True
+        elif state == "R":
+            state = False
+        # create PhotodiodeResponse object
+        resp = button.ButtonResponse(
+            time, state
+        )
+
+        return resp
 
 
 class TPadVoicekey:
@@ -231,9 +259,9 @@ class TPad(sd.SerialDevice):
         for line in data:
             if re.match(messageFormat, line):
                 # if line fits format, split into attributes
-                channel, state, button, time = splitTPadMessage(line)
-                # integerise button
-                button = int(button)
+                channel, state, number, time = splitTPadMessage(line)
+                # integerise number
+                number = int(number)
                 # get time in s using defaultClock units
                 time = float(time) / 1000 + self._lastTimerReset
                 # store in array
@@ -242,12 +270,12 @@ class TPad(sd.SerialDevice):
                 self.messages[time] = line
                 # choose object to dispatch to
                 node = None
-                if channel == "A" and button in self.buttons:
-                    node = self.buttons[button]
-                if channel == "C" and button in self.photodiodes:
-                    node = self.photodiodes[button]
-                if channel == "M" and button in self.voicekeys:
-                    node = self.voicekeys[button]
+                if channel == "A" and number in self.buttons:
+                    node = self.buttons[number]
+                if channel == "C" and number in self.photodiodes:
+                    node = self.photodiodes[number]
+                if channel == "M" and number in self.voicekeys:
+                    node = self.voicekeys[number]
                 # dispatch to node
                 if node is not None:
                     message = node.parseMessage(parts)
