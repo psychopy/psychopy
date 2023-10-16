@@ -410,7 +410,7 @@ msgstr ""
 
 #: psychopy/app/builder/builder.py:91
 msgid "move up"
-msgstr "यह भी है"
+msgstr "ऊपर चलो"
 
 #: psychopy/app/builder/builder.py:92
 msgid "move down"
