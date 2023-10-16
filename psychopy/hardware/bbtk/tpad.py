@@ -48,36 +48,6 @@ def splitTPadMessage(message):
     return re.match(messageFormat, message).groups()
 
 
-class TPadListener:
-    def __init__(self, device, receiveMessage):
-        self.device = device
-        self.receiveMessage = receiveMessage
-
-    def parseMessage(self, message):
-        # if given a string, split according to regex
-        if isinstance(message, str):
-            message = splitTPadMessage(message)
-        # split into variables
-        channel, state, button, time = message
-        # convert state to bool
-        if state == "P":
-            state = True
-        elif state == "R":
-            state = False
-        # construct appropriate response object
-        if channel == "C":
-            node = self.device.photodiodes[button]
-            resp = photodiode.PhotodiodeResponse(
-                time, state, threshold=node.getThreshold()
-            )
-        else:
-            raise NotImplementedError(
-                f"TPadListener does not know how to handle response from channel '{channel}'"
-            )
-
-        return resp
-
-
 class TPadPhotodiode(photodiode.BasePhotodiode):
     def __init__(self, port, number):
         # if no TPad device present, try to create one
