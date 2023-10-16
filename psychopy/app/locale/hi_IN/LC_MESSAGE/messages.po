@@ -398,7 +398,7 @@ msgstr ""
 
 #: psychopy/app/builder/builder.py:88
 msgid "paste above"
-msgstr ""
+msgstr "ऊपर चिपकाएँ"
 
 #: psychopy/app/builder/builder.py:89
 msgid "paste below"
