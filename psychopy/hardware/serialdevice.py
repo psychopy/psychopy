@@ -13,10 +13,9 @@ import sys
 import time
 
 from psychopy import logging
-from psychopy.tools.attributetools import AttributeGetSetMixin
 import serial
 from psychopy.tools import systemtools as st
-
+from psychopy.tools.attributetools import AttributeGetSetMixin
 
 def _findPossiblePorts():
     if sys.platform == 'win32':
@@ -53,7 +52,6 @@ def _findPossiblePorts():
 
 # map out all ports on this device, to be filled as serial devices are initialised
 ports = {port: None for port in _findPossiblePorts()}
-
 
 class SerialDevice(AttributeGetSetMixin):
     """A base class for serial devices, to be sub-classed by specific devices
@@ -221,6 +219,10 @@ class SerialDevice(AttributeGetSetMixin):
         if self.com is None:
             return None
         return self.com.isOpen()
+
+    @staticmethod
+    def _findPossiblePorts():
+        return _findPossiblePorts()
 
 
 if __name__ == "__main__":

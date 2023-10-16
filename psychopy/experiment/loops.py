@@ -196,7 +196,7 @@ class TrialHandler(_BaseLoopHandler):
         buff.setIndentLevel(1, relative=True)
         code = (
             "currentLoop = %(name)s\n"
-            "thisExp.timestampOnFlip(win, 'thisRow.t')\n"
+            "thisExp.timestampOnFlip(win, 'thisRow.t', format=globalClock.format)\n"
         )
         buff.writeIndentedLines(code % self.params)
 
@@ -526,7 +526,7 @@ class StairHandler(_BaseLoopHandler):
         buff.setIndentLevel(1, relative=True)
         code = (
             "currentLoop = %(name)s\n"
-            "thisExp.timestampOnFlip(win, 'thisRow.t')\n"
+            "thisExp.timestampOnFlip(win, 'thisRow.t', format=globalClock.format)\n"
         )
         buff.writeIndentedLines(code % self.params)
         buff.writeIndented("level = %s\n" % self.thisName)
@@ -657,7 +657,7 @@ class MultiStairHandler(_BaseLoopHandler):
         buff.setIndentLevel(1, relative=True)
         code = (
             "currentLoop = %(name)s\n"
-            "thisExp.timestampOnFlip(win, 'thisRow.t')\n"
+            "thisExp.timestampOnFlip(win, 'thisRow.t', format=globalClock.format)\n"
         )
         buff.writeIndentedLines(code % self.params)
         # uncluttered namespace
